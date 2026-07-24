@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>111 · Markets — in the app page frame (A / B)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+  .wrap { max-width:1500px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; letter-spacing:.2px; }
+  .toolbar h1 .muted { color:var(--text-secondary); font-weight:400; }
+  .tabs { display:flex; gap:2px; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; }
+  .tabs button { font:500 12.5px/18px var(--font); padding:7px 16px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; transition:.16s; }
+  .tabs button[aria-pressed="true"] { background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#00121A; font-weight:600; box-shadow:0 2px 12px rgba(20,200,255,.28); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:940px; }
+  p.lede b{ color:var(--text-primary); }
+  .up { color:var(--status-success); } .dn { color:var(--status-error); }
+
+  /* ===== app window frame (mirrors shipped sketch 103) ===== */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card); }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:46px; padding:0 var(--space-8);
+            background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 13px/16px var(--font); color:var(--text-secondary); }
+  .navbar .logo { width:20px; height:20px; border-radius:6px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-15px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .spacer { margin-left:auto; }
+  .navbar .chip { padding:5px 10px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); }
+  .navbar .cta { padding:6px 12px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); font:600 12px/16px var(--font); }
+
+  /* the PAGE: content frame centred + capped, side padding, navbar->title gap */
+  .stage { padding:0 var(--space-8) var(--space-12); }
+  .page { max-width:1180px; margin:0 auto; padding-top:40px; }  /* the GWPageHeader gap */
+
+  /* GWPageHeader — title on the canvas, NOT inside a box */
+  .pagehead { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-10); }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; margin-right:auto; }
+  .pagehead .live { display:inline-flex; align-items:center; gap:7px; font:600 10px/1 var(--font); letter-spacing:1.2px; text-transform:uppercase; color:var(--text-secondary); }
+  .pagehead .live .dot { width:7px; height:7px; border-radius:50%; background:#2BF5B4; box-shadow:0 0 9px #2BF5B4; animation:blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .pagehead .iconbtn { width:36px; height:36px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-secondary); display:grid; place-items:center; cursor:pointer; }
+  .pagehead .sumchip { display:flex; align-items:center; gap:12px; padding:7px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-menu); }
+  .pagehead .sumchip .k { font:600 8px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-secondary); }
+  .pagehead .sumchip .val { font:600 13px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .pagehead .sumchip .pill { font:600 11px/1 var(--font); color:var(--status-success); font-variant-numeric:tabular-nums; }
+
+  /* ===== content sections = GWCards on the page (NOT one big box) ===== */
+  .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); }
+  .sec { margin-bottom:14px; }
+  .seclabel { font:700 10px/1 var(--font); letter-spacing:2px; text-transform:uppercase; color:var(--brand-secondary); margin:0 2px 12px; }
+  [data-theme="light"] .seclabel { color:var(--brand-primary-strong); }
+
+  /* KPI band */
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media (max-width:760px){ .kpis{ grid-template-columns:repeat(2,1fr); } }
+  .kpi { padding:15px 16px; }
+  .kpi .l { font:600 9px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); }
+  .kpi .v { font:600 22px/1 var(--font); margin-top:9px; letter-spacing:-.5px; font-variant-numeric:tabular-nums; }
+  .kpi .sub { font:600 11px/1 var(--font); margin-top:7px; font-variant-numeric:tabular-nums; }
+  .kpi.gauge { display:flex; align-items:center; gap:14px; }
+  .kpi.gauge .state { font:700 13px/1 var(--font); color:var(--status-success); margin-top:4px; }
+
+  /* featured card */
+  .feature { padding:22px 24px; display:grid; grid-template-columns:1.15fr 1fr; gap:28px; align-items:center; }
+  @media (max-width:860px){ .feature{ grid-template-columns:1fr; } }
+  .feature .lead { font:600 26px/1.18 var(--font); letter-spacing:-.5px; max-width:15ch; }
+  .feature .lead .accent { color:var(--brand-secondary); }
+  [data-theme="light"] .feature .lead .accent { color:var(--brand-primary-strong); }
+  .feature .dek { font:400 13.5px/21px var(--font); color:var(--text-secondary); margin:14px 0 18px; max-width:44ch; }
+  .fstats { display:flex; gap:24px; }
+  .fstats .s .l { font:600 9px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); }
+  .fstats .s .v { font:600 19px/1 var(--font); margin-top:7px; font-variant-numeric:tabular-nums; letter-spacing:-.3px; }
+  .fchart { border-radius:14px; overflow:hidden; height:190px; background:var(--surface-sheen-b); border:1px solid var(--border-subtle); position:relative; }
+  .fchart .rng { position:absolute; right:12px; top:12px; display:flex; gap:2px; background:rgba(0,0,0,.28); border-radius:999px; padding:3px; z-index:2; }
+  [data-theme="light"] .fchart .rng { background:rgba(255,255,255,.6); }
+  .fchart .rng button { font:600 10px/1 var(--font); color:var(--text-secondary); background:transparent; border:0; padding:5px 9px; border-radius:999px; cursor:pointer; }
+  .fchart .rng button.on { background:rgba(127,127,127,.25); color:var(--text-primary); }
+
+  /* movers rail */
+  .rail { display:flex; gap:12px; overflow:auto; padding:2px; }
+  .mover { flex:0 0 176px; padding:13px 14px; }
+  .mover.native { border-color:transparent; background:linear-gradient(var(--surface-elevated),var(--surface-elevated)) padding-box, linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)) border-box; border:1px solid transparent; }
+  .mover .mtop { display:flex; align-items:center; justify-content:space-between; }
+  .mover .tk { font:700 13px/1 var(--font); } .mover .rkk { font:500 9px/1 var(--font); color:var(--text-secondary); }
+  .mover .pr { font:600 15px/1 var(--font); margin:10px 0 6px; font-variant-numeric:tabular-nums; }
+  .mover .ch { font:700 12px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .mover svg.mini { width:100%; height:30px; margin-top:8px; display:block; }
+  .railhead { display:flex; align-items:center; justify-content:space-between; margin:0 2px 12px; }
+  .railhead .seg { display:flex; gap:2px; background:var(--surface-menu); border-radius:999px; padding:3px; }
+  .railhead .seg button { font:600 10px/1 var(--font); color:var(--text-secondary); background:transparent; border:0; padding:6px 11px; border-radius:999px; cursor:pointer; }
+  .railhead .seg button.on { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  /* all-markets list card */
+  .listcard { padding:6px 20px; }
+  .mrow { display:grid; grid-template-columns:24px 1fr 66px 96px 74px; gap:14px; align-items:center; padding:13px 0; border-bottom:1px solid var(--border-subtle); }
+  .mrow:last-child { border-bottom:0; }
+  .mrow.native { background:linear-gradient(90deg,var(--brand-fill),transparent); margin:0 -20px; padding:13px 20px; }
+  .mrow .rk { font:500 11px/1 var(--font); color:var(--text-secondary); }
+  .mrow .nm { font:600 14px/1 var(--font); } .mrow .nm small { color:var(--text-secondary); font-weight:500; margin-left:6px; }
+  .mrow .pr { font:600 13px/1 var(--font); text-align:right; font-variant-numeric:tabular-nums; }
+  .mrow .ch { font:600 12px/1 var(--font); text-align:right; font-variant-numeric:tabular-nums; }
+  .mrow svg.mini { width:66px; height:22px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>111 · Markets in the page frame &nbsp;<span class="muted">— our page standard (navbar · GWPageHeader · 1180 frame · cards)</span></h1>
+    <div class="tabs" id="tabs">
+      <button aria-pressed="true"  data-v="a">A · clean + sparks</button>
+      <button aria-pressed="false" data-v="b">B · +KPI +movers</button>
+    </div>
+  </div>
+  <p class="lede">Now inside the real page shell: navbar → <b>GWPageHeader "Markets"</b> at 24px on the canvas (not in a box), the content frame centred &amp; capped, and the market content as <b>GWCards</b> below - matching Transactions / News.</p>
+
+  <div class="win">
+    <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+      <span class="spacer"></span><span class="chip">0x1d9b…4a87</span><span class="cta">Buy GNUS</span></div>
+    <div class="stage"><div class="page" id="page"></div></div>
+  </div>
+</div>
+
+<script>
+const COINS = [
+  {tk:'BTC', nm:'Bitcoin',   mc:1320, pr:'$67,120', ch:+2.4, rank:1,  ath:-12, vol:'$38B', spark:[3,5,4,6,7,6,8]},
+  {tk:'ETH', nm:'Ethereum',  mc:410,  pr:'$3,412',  ch:-1.1, rank:2,  ath:-28, vol:'$14B', spark:[8,7,7,6,6,5,6]},
+  {tk:'SOL', nm:'Solana',    mc:78,   pr:'$168',    ch:+11.9,rank:5,  ath:-41, vol:'$5.1B',spark:[3,4,4,5,7,8,9]},
+  {tk:'BNB', nm:'BNB',       mc:92,   pr:'$598',    ch:+0.8, rank:4,  ath:-14, vol:'$1.2B',spark:[5,5,6,5,6,6,6]},
+  {tk:'XRP', nm:'XRP',       mc:34,   pr:'$0.62',   ch:-4.7, rank:6,  ath:-82, vol:'$1.8B',spark:[7,6,6,5,4,4,3]},
+  {tk:'DOGE',nm:'Dogecoin',  mc:23,   pr:'$0.158',  ch:+6.2, rank:8,  ath:-79, vol:'$1.1B',spark:[4,4,5,5,6,7,7]},
+  {tk:'GNUS',nm:'GENIUS AI',  mc:8,   pr:'$0.42',   ch:+8.1, rank:142,ath:-63, vol:'$21M', spark:[3,3,3.5,4,5.5,7,9], native:true},
+  {tk:'AVAX',nm:'Avalanche', mc:14,   pr:'$36.2',   ch:+4.1, rank:10, ath:-73, vol:'$0.5B',spark:[4,5,5,6,6,7,7]},
+  {tk:'LINK',nm:'Chainlink', mc:11,   pr:'$18.4',   ch:+1.2, rank:12, ath:-64, vol:'$0.3B',spark:[5,5,6,6,6,6,7]},
+  {tk:'TAO', nm:'Bittensor', mc:4,    pr:'$412',    ch:+9.3, rank:24, ath:-46, vol:'$0.2B',spark:[3,4,4,5,6,7,8]},
+];
+const sgn = c => (c>=0?'+':'')+c.toFixed(1)+'%';
+function areaPath(pts,w,h,pad){ const max=Math.max(...pts),min=Math.min(...pts),R=(max-min)||1,st=w/(pts.length-1);
+  const P=pts.map((p,i)=>[i*st,h-pad-((p-min)/R)*(h-2*pad)]); let d='M'+P[0][0]+','+P[0][1];
+  for(let i=1;i<P.length;i++){const x0=P[i-1][0],y0=P[i-1][1],x1=P[i][0],y1=P[i][1],cx=(x0+x1)/2; d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
+  return {line:d,area:d+` L${w},${h} L0,${h} Z`}; }
+function chartSVG(pts,w,h,up,id){ const {line,area}=areaPath(pts,w,h,14); const c=up?'#2BF5B4':'#FF4D4D';
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:100%">
+    <defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".32"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#${id})"/><path d="${line}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+function mini(pts,up){ const {line}=areaPath(pts,66,22,3); const c=up?'#2BF5B4':'#FF4D4D';
+  return `<svg class="mini" viewBox="0 0 66 22" preserveAspectRatio="none"><path d="${line}" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+function miniW(pts,up){ const {line,area}=areaPath(pts,150,30,3); const c=up?'#2BF5B4':'#FF4D4D';
+  return `<svg class="mini" viewBox="0 0 150 30" preserveAspectRatio="none"><defs><linearGradient id="mw${pts.join('')}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".28"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#mw${pts.join('')})"/><path d="${line}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+function fgGauge(val){ const a=Math.PI*(1-val/100),cx=34,cy=34,r=27,x=cx+r*Math.cos(a),y=cy-r*Math.sin(a);
+  return `<svg width="68" height="40" viewBox="0 0 68 40"><path d="M7,34 A27,27 0 0,1 61,34" fill="none" stroke="rgba(127,127,127,.22)" stroke-width="6" stroke-linecap="round"/>
+    <path d="M7,34 A27,27 0 0,1 61,34" fill="none" stroke="url(#fg)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(val/100)*85} 200"/>
+    <defs><linearGradient id="fg" x1="0" x2="1"><stop offset="0" stop-color="#FF4D4D"/><stop offset=".5" stop-color="#FFC42E"/><stop offset="1" stop-color="#2BF5B4"/></linearGradient></defs>
+    <circle cx="${x}" cy="${y}" r="3.5" fill="var(--text-primary)"/></svg>`; }
+const G = COINS.find(c=>c.native);
+function featuredCard(id){ const up=G.ch>=0; return `<div class="card feature">
+    <div><div class="lead">GENIUS <span class="accent">AI</span> leads the desk, up 8.1% on rising volume.</div>
+      <div class="dek">The native token outpaced every large cap today, its best 7-day stretch this quarter as momentum broadened across AI names.</div>
+      <div class="fstats"><div class="s"><div class="l">Price</div><div class="v">${G.pr}</div></div>
+        <div class="s"><div class="l">Rank</div><div class="v">#${G.rank}</div></div>
+        <div class="s"><div class="l">ATH gap</div><div class="v dn">${G.ath}%</div></div></div></div>
+    <div class="fchart"><div class="rng"><button>24h</button><button class="on">7d</button><button>30d</button><button>1y</button></div>${chartSVG(G.spark,520,190,up,id)}</div>
+  </div>`; }
+function listCard(){ return `<div class="card listcard">${[...COINS].sort((a,b)=>a.rank-b.rank).map(c=>`<div class="mrow ${c.native?'native':''}">
+   <span class="rk">${String(c.rank).padStart(2,'0')}</span>
+   <span class="nm">${c.nm}<small>${c.tk}</small></span>
+   ${mini(c.spark,c.ch>=0)}
+   <span class="pr">${c.pr}</span>
+   <span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span></div>`).join('')}</div>`; }
+
+const headA=`<div class="pagehead"><h2>Markets</h2><span class="live"><span class="dot"></span>Live</span>
+   <div class="sumchip"><div><div class="k">Total cap</div><div class="val">$2.41T</div></div><span class="pill">▲ 3.1%</span></div></div>`;
+const headB=`<div class="pagehead"><h2>Markets</h2><span class="live"><span class="dot"></span>Live</span>
+   <div class="iconbtn">⟳</div></div>`;
+
+const PAGES={
+  a: headA + `<div class="sec">${featuredCard('fca')}</div>
+     <div class="seclabel">All markets</div>${listCard()}`,
+  b: headB +
+     `<div class="sec kpis">
+        <div class="card kpi"><div class="l">Total market cap</div><div class="v">$2.41T</div><div class="sub up">▲ 3.1% 24h</div></div>
+        <div class="card kpi"><div class="l">24h volume</div><div class="v">$128B</div><div class="sub" style="color:var(--text-secondary)">+12% vs avg</div></div>
+        <div class="card kpi"><div class="l">BTC dominance</div><div class="v">54.2%</div><div class="sub dn">▼ 0.4%</div></div>
+        <div class="card kpi gauge">${fgGauge(72)}<div><div class="l">Fear &amp; Greed</div><div class="state">72 · Greed</div></div></div>
+      </div>
+      <div class="railhead"><span class="seclabel" style="margin:0">Top movers · 24h</span>
+        <div class="seg"><button class="on">Gainers</button><button>Losers</button></div></div>
+      <div class="sec rail">${[G,...[...COINS].sort((a,b)=>b.ch-a.ch).filter(c=>!c.native).slice(0,5)].map(c=>`<div class="card mover ${c.native?'native':''}">
+        <div class="mtop"><span class="tk">${c.tk}</span><span class="rkk">#${c.rank}</span></div>
+        <div class="pr">${c.pr}</div><div class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</div>${miniW(c.spark,c.ch>=0)}</div>`).join('')}</div>
+      <div class="seclabel">Featured · Native token</div><div class="sec">${featuredCard('fcb')}</div>
+      <div class="seclabel">All markets</div>${listCard()}`
+};
+function render(v){ document.getElementById('page').innerHTML=PAGES[v]; }
+render('a');
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b)); render(b.dataset.v); });
+</script>
+</body>
+</html>

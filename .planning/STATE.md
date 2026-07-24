@@ -31,9 +31,21 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 > **DUAL-TRACK (both live on branch `ui-redesign-port`).** This project runs two parallel tracks.
 > The frontmatter counters above track only the **official GSD roadmap (Phases 1-11)**.
 > - **Official track:** Phase 06 (Onboarding) — **COMPLETE 6/6 (closed 2026-07-23).** Next planned: Phase 07 (Token screens), not yet planned.
-> - **Redesign track:** Phases 12-17 landed in parallel. Committed status: 12 (5/6), 13 (2/5),
->   15 (5/6, walk pending), **16 Markets + 17 News shipped** (`aa78eec` / `651541c`, walks pending);
->   14 is design-only (unplanned). See ROADMAP Phases 12-17 for detail.
+> - **Redesign track:** Phases 12-18 landed in parallel. Committed status: **12 (6/6 ✓ — dark walk
+>   APPROVED 2026-07-24, light deferred; 12-06-SUMMARY written, UNCOMMITTED)**,
+>   **13 — WRAPPED 2026-07-24 as 13-01/02/03 (all plan+SUMMARY done). 13-03 boot walk APPROVED
+>   incl. kicker→C @85%. 13-04 (per-section loader removal) and 13-05 (closeout) DELETED at
+>   Jakub's call: he chose to KEEP the loaders (13-04 code was written then fully reverted). Two
+>   knock-ons left in the tree by that choice: the `[boot-timing]` debugPrint stays in
+>   wallet_details_cubit.dart (13-05 would have removed it), and the phase's network-down cold
+>   start (SC3) was never walked. Neither is a blocker; both are conscious**,
+>   **15 (6/6 ✓ — dark walk APPROVED 2026-07-24 all 3 checkpoints; 15-06-SUMMARY written, light
+>   deferred)**, **16 Markets shipped (`aa78eec`), walk PENDING**, **17 News shipped (`651541c`),
+>   dark walk APPROVED 2026-07-24 (17-VERIFICATION.md written, light deferred)**;
+>   14 is design-only (unplanned); **18 Web tab chrome added 2026-07-24 — sketched (035-B/036-A/037-B),
+>   NOT planned yet.** See ROADMAP Phases 12-18 for detail.
+>   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
+>   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 06 (onboarding) — **COMPLETE (6/6 plans, closed 2026-07-23).**
 Plan: 06-01..06-06 all CLOSED. 06-06 shipped the §3 seed-safety gate + 5 gap todos, and the
@@ -251,7 +263,10 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-23T19:35:22.688Z
+Last session: 2026-07-24 (redesign-track walk session — executor on `ui-redesign-port`)
+Stopped at: **Phase 12 walk (12-06) APPROVED in dark, closed 6/6** (12-06-SUMMARY written,
+UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
+then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
 below is the preserved 06-01 historical narrative; read it for context, not for the next step.
 
@@ -352,6 +367,13 @@ Open decisions:
 
 ### Roadmap Evolution
 
+- Phase 18 added 2026-07-24: Web tab chrome — in-app browser address bar + tab strip. Sketched this
+  session: **035** (address bar, winner **B · Scalony toolbar**), **036** (tabs, winner **A · Stały
+  pasek kart**), consolidated in **037** (winner **B · 035-B + 036-A**). Targets
+  `lib/web/web_view_mobile.dart` (macOS/iOS) + `lib/web/web_view_windows.dart`. Replaces the raw
+  `_buildSearchBar` + full-screen `_buildTabManager` (fixes the `Matrix4.rotationX(pi)` upside-down
+  thumbnail bug). **NOT planned yet** — run `/gsd-plan-phase 18`. Design source:
+  `.planning/sketches/037-web-chrome-combined/`.
 - Phase 17 added 2026-07-23: News page — sketches 100-102, winner **B2 · Hero + Next up** (a lead
   hero + a "Next up" band over an even photo grid; `GWCard.hoverLift` lift-chip replaces the old
   black scrim; frozen `pubDate`, unrendered `description` and desktop-unreachable refresh all fixed;

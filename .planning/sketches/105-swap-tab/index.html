@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>105 · Swap tab — A refinement (presence on the page)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:52px var(--space-10) 64px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 auto var(--space-8); max-width:940px; text-align:center; }
+  .lede b { color:var(--text-primary); } .lede code { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); } [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+
+  /* ---------- real app window ---------- */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card); }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:46px; padding:0 var(--space-8);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 13px/16px var(--font); color:var(--text-secondary); }
+  .navbar .logo { width:20px; height:20px; border-radius:6px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-14px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .right { margin-left:auto; display:flex; align-items:center; gap:var(--space-6); }
+  .navbar .right > * { flex:none; white-space:nowrap; }
+  .navbar .chip { padding:5px 10px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); }
+  .navbar .cta { padding:6px 12px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); font:600 12px/16px var(--font); }
+
+  .stage { position:relative; padding:0; }
+  .variant { display:none; } .variant.active { display:block; }
+
+  /* GWPageHeader — FIXED chrome */
+  .pagehead { display:flex; align-items:flex-start; margin-bottom:var(--space-10); }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; color:var(--text-primary); }
+  .pagehead .sub { font:400 13px/18px var(--font); color:var(--text-secondary); margin-top:2px; }
+  .pagehead .grow { margin-right:auto; }
+  .tune { width:36px; height:36px; border-radius:var(--radius-sm); border:1px solid transparent; background:transparent;
+    color:var(--text-secondary); display:grid; place-items:center; cursor:pointer; transition:all .15s ease; }
+  .tune:hover { background:var(--surface-menu); color:var(--text-primary); transform:translateY(-1px); }
+
+  /* ---------- token logo / pill ---------- */
+  .logo { border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font:800 11px/1 var(--font); position:relative; }
+  .logo.eth { background:linear-gradient(135deg,#8FA2F5,#627EEA); } .logo.usdc { background:linear-gradient(135deg,#3E8FE0,#2775CA); }
+  .logo.usdt { background:linear-gradient(135deg,#3fc79a,#26A17B); } .logo.pol { background:linear-gradient(135deg,#a06bf0,#8247E5); }
+  .logo.wbtc { background:linear-gradient(135deg,#f7b267,#F09242); }
+  .tk { display:inline-flex; align-items:center; gap:9px; padding:6px 12px 6px 7px; border-radius:var(--radius-pill);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-primary); cursor:pointer; transition:all .15s ease; white-space:nowrap; }
+  .tk:hover { border-color:var(--brand-primary); transform:translateY(-1px); }
+  .tk .sym { font:700 16px/1 var(--font); } .tk .cv { color:var(--text-secondary); display:grid; place-items:center; }
+
+  /* ---------- amount / labels ---------- */
+  .amt { background:transparent; border:none; outline:none; color:var(--text-primary); font:600 34px/1 var(--font);
+    font-variant-numeric:tabular-nums; width:100%; letter-spacing:-.5px; }
+  .amt::placeholder { color:var(--text-primary-38); }
+  .usd { font:500 14px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .flabel { font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .bal { font:500 12px/16px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .maxbtn { font:700 10px/1 var(--font); letter-spacing:.4px; color:var(--brand-primary-strong); background:var(--brand-fill);
+    border:none; border-radius:6px; padding:5px 7px; cursor:pointer; transition:all .15s ease; }
+  [data-theme="dark"] .maxbtn { color:var(--brand-secondary); } .maxbtn:hover { filter:brightness(1.12); }
+
+  /* ---------- CTA ---------- */
+  .cta { width:100%; height:56px; border:none; border-radius:var(--radius-md); font:600 17px/1 var(--font); cursor:pointer;
+    color:var(--text-on-brand); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); transition:all .15s ease; }
+  .cta:hover:not(:disabled) { filter:brightness(1.06); transform:translateY(-1px); box-shadow:0 8px 22px rgba(10,216,156,.30); }
+  .cta:disabled { cursor:not-allowed; background:var(--surface-menu); color:var(--text-primary-38); }
+  .cta.loading { background:var(--surface-menu); color:var(--text-secondary); cursor:progress; }
+  .cta.err { background:var(--status-error-fill); color:var(--status-error); }
+
+  /* ---------- route details ---------- */
+  .route { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-elevated); overflow:hidden; }
+  .rrow { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; font:500 13px/18px var(--font); }
+  .rrow .k { color:var(--text-secondary); } .rrow .v { color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .rrow + .rrow { border-top:1px solid var(--border-subtle); } .rrow .v.good { color:var(--status-success); }
+
+  .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-2xl); box-shadow:var(--shadow-card); }
+  svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ---------- the swap card (shared across A1/A2/A3) ---------- */
+  .a-field { padding:18px 18px 20px; }
+  .a-field .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .a-field .mid { display:flex; align-items:flex-end; gap:12px; } .a-field .mid .col2 { flex:1; min-width:0; }
+  .a-field .foot { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+  .a-seam { position:relative; height:0; z-index:2; }
+  .a-flip { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:14px;
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); border:5px solid var(--surface-elevated); color:var(--text-on-brand);
+    display:grid; place-items:center; cursor:pointer; transition:filter .15s ease; }
+  .a-flip:hover { filter:brightness(1.06); } .a-flip svg { width:20px; height:20px; }
+
+  /* ===== A1 · FOCUSED (bigger) ===== */
+  .focus-wrap { position:relative; padding:var(--space-16) var(--space-8) 72px; overflow:hidden; }
+  /* brand sheen so the surrounding page reads as intentional canvas, not void */
+  .focus-wrap::before { content:""; position:absolute; left:50%; top:44%; width:820px; height:520px; transform:translate(-50%,-50%);
+    background:radial-gradient(closest-side, rgba(10,174,230,.10), transparent 72%),
+               radial-gradient(closest-side, rgba(10,216,156,.08), transparent 70%); background-position:30% 40%, 70% 60%; z-index:0; pointer-events:none; }
+  .focus-col { position:relative; z-index:1; max-width:560px; margin:0 auto; }
+  .focus-col .amt { font-size:38px; } .focus-col .a-field { padding:20px 20px 22px; }
+
+  /* ===== A2 · COMPANION ===== */
+  .comp-wrap { padding:var(--space-12) var(--space-8) 56px; }
+  .comp-grid { display:grid; grid-template-columns:minmax(0,460px) 320px; gap:var(--space-12); justify-content:center; align-items:start; }
+  .comp-side { display:flex; flex-direction:column; gap:var(--space-8); }
+  .panel { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-2xl); box-shadow:var(--shadow-card); padding:16px; }
+  .panel h4 { font:600 13px/18px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px; }
+  .miniquote { display:flex; align-items:baseline; gap:8px; margin-bottom:10px; }
+  .miniquote .n { font:600 22px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .pill { display:inline-flex; align-items:center; padding:2px 7px; border-radius:8px; font:600 12px/16px var(--font); font-variant-numeric:tabular-nums; }
+  .pill.up { background:var(--status-success-fill); color:var(--status-success); }
+  .spark { width:100%; height:44px; margin-top:4px; }
+  .rsrow { display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--border-subtle); }
+  .rsrow:first-of-type { border-top:none; }
+  .rsrow .pair { display:flex; align-items:center; }
+  .rsrow .pair .logo { width:22px; height:22px; } .rsrow .pair .logo:last-child { margin-left:-7px; border:2px solid var(--surface-elevated); }
+  .rsrow .txt { min-width:0; } .rsrow .txt .a { font:500 13px/17px var(--font); color:var(--text-primary); }
+  .rsrow .txt .b { font:400 11px/15px var(--font); color:var(--text-secondary); }
+  .rsrow .amt2 { margin-left:auto; font:500 13px/17px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  @media(max-width:1000px){ .comp-grid { grid-template-columns:minmax(0,460px); } .comp-side { display:none; } }
+
+  /* ===== A3 · CANVAS BAND ===== */
+  .band { position:relative; padding:64px var(--space-8) 72px; overflow:hidden;
+    background:radial-gradient(1100px 460px at 50% -8%, rgba(10,174,230,.16), transparent 62%),
+               radial-gradient(760px 360px at 82% 116%, rgba(10,216,156,.13), transparent 60%),
+               radial-gradient(680px 340px at 12% 120%, rgba(194,143,255,.10), transparent 60%),
+               var(--surface-sunken);
+    border-bottom:1px solid var(--border-subtle); }
+  .band::after { content:""; position:absolute; inset:0; background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 26px); pointer-events:none; }
+  [data-theme="light"] .band::after { background:
+    repeating-linear-gradient(0deg, rgba(16,19,26,.03) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, rgba(16,19,26,.03) 0 1px, transparent 1px 26px); }
+  .band-col { position:relative; z-index:1; max-width:500px; margin:0 auto; }
+  .band-title { text-align:center; margin-bottom:var(--space-10); }
+  .band-title h3 { font:600 22px/28px var(--font); letter-spacing:-.3px; }
+  .band-title p { font:400 13px/18px var(--font); color:var(--text-secondary); margin-top:4px; }
+
+  /* ---------- token picker / settings ---------- */
+  #picker,#settings { position:fixed; inset:0; z-index:9997; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; }
+  #picker.open,#settings.open { display:flex; }
+  #picker .sheet { width:100%; max-width:420px; background:var(--surface-base); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:18px 16px 22px; max-height:72vh; overflow:auto; }
+  #picker h3,#settings h3 { font:600 18px/24px var(--font); margin-bottom:14px; }
+  #picker .search { display:flex; align-items:center; gap:8px; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:14px; color:var(--text-secondary); }
+  #picker .search input { background:transparent; border:none; outline:none; color:var(--text-primary); font:400 15px/20px var(--font); flex:1; }
+  .prow { display:flex; align-items:center; gap:12px; padding:11px 10px; border-radius:var(--radius-md); cursor:pointer; transition:all .12s ease; }
+  .prow:hover { background:var(--surface-menu); } .prow .nm { font:500 15px/20px var(--font); color:var(--text-primary); }
+  .prow .sub { font:400 12px/16px var(--font); color:var(--text-secondary); } .prow .rb { margin-left:auto; text-align:right; }
+  .prow .rb .b { font:500 13px/18px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  #settings .box { width:320px; background:var(--surface-base); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:18px; }
+  .chip2 { font:600 12px/1 var(--font); padding:8px 12px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .chip2:hover { color:var(--text-primary); border-color:var(--border-strong); }
+  .chip2.on { background:var(--brand-fill); border-color:transparent; color:var(--brand-primary-strong); } [data-theme="dark"] .chip2.on { color:var(--brand-secondary); }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="name">105 · Swap · A refinement</span>
+  <button class="vt active" onclick="showVariant('a',event)">A1 · Focused (bigger) ★</button>
+  <button class="vt" onclick="showVariant('b',event)">A2 · Companion</button>
+  <button class="vt" onclick="showVariant('c',event)">A3 · Canvas band</button>
+</div>
+
+<div class="wrap">
+  <p class="lede" id="lede"></p>
+
+  <div class="win">
+    <div class="navbar">
+      <div class="logo"></div>
+      <span>Dashboard</span><span>Transactions</span><span class="on">Swap</span><span>Markets</span><span>News</span>
+      <div class="right"><span class="chip">Ethereum</span><span class="chip">0x12…9f</span><span class="cta">Connect</span></div>
+    </div>
+
+    <div class="stage">
+      <!-- ============ A1 · FOCUSED (bigger) ============ -->
+      <div id="variant-a" class="variant active">
+        <div class="focus-wrap">
+          <div class="focus-col">
+            <div class="pagehead">
+              <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+              <button class="tune" onclick="openSettings()"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button>
+            </div>
+            <div class="win2" data-v="a">__CARD__</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ A2 · COMPANION ============ -->
+      <div id="variant-b" class="variant">
+        <div class="comp-wrap">
+          <div class="pagehead" style="max-width:none; margin-bottom:var(--space-10);">
+            <div class="grow"><h2>Swap</h2></div>
+            <button class="tune" onclick="openSettings()"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button>
+          </div>
+          <div class="comp-grid">
+            <div class="win2" data-v="b">__CARD__</div>
+            <div class="comp-side">
+              <div class="panel">
+                <h4>ETH / USDC</h4>
+                <div class="miniquote"><span class="n">$3,420.55</span><span class="pill up">▲ 1.24%</span></div>
+                <svg class="spark" viewBox="0 0 300 44" preserveAspectRatio="none"><polyline points="0,34 30,30 60,32 90,24 120,26 150,18 180,20 210,12 240,15 270,8 300,10" fill="none" stroke="var(--status-success)" stroke-width="2"/></svg>
+              </div>
+              <div class="panel">
+                <h4>Recent swaps</h4>
+                <div class="rsrow"><span class="pair"><span class="logo eth">E</span><span class="logo usdc">U</span></span><span class="txt"><div class="a">ETH → USDC</div><div class="b">2h ago · Ethereum</div></span><span class="amt2">+1,708</span></div>
+                <div class="rsrow"><span class="pair"><span class="logo usdt">U</span><span class="logo pol">P</span></span><span class="txt"><div class="a">USDT → POL</div><div class="b">1d ago · Polygon</div></span><span class="amt2">+192</span></div>
+                <div class="rsrow"><span class="pair"><span class="logo wbtc">W</span><span class="logo eth">E</span></span><span class="txt"><div class="a">WBTC → ETH</div><div class="b">3d ago · Ethereum</div></span><span class="amt2">+0.43</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ A3 · CANVAS BAND ============ -->
+      <div id="variant-c" class="variant">
+        <div class="pagehead" style="padding:var(--space-12) var(--space-8) 0; margin-bottom:0;">
+          <div class="grow"><h2>Swap</h2></div>
+          <button class="tune" onclick="openSettings()"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button>
+        </div>
+        <div class="band">
+          <div class="band-col">
+            <div class="band-title"><h3>Swap any token, any chain</h3><p>Best route, live pricing, ~2 min cross-chain</p></div>
+            <div class="win2" data-v="c">__CARD__</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- token picker -->
+<div id="picker" onclick="if(event.target===this)closePicker()">
+  <div class="sheet"><h3>Select Token</h3>
+    <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="pickerSearch" placeholder="Search tokens..." oninput="renderPickerList()"></div>
+    <div id="pickerList"></div>
+  </div>
+</div>
+<!-- settings -->
+<div id="settings" onclick="if(event.target===this)closeSettings()">
+  <div class="box"><h3>Swap Settings</h3>
+    <div style="font:500 13px/18px var(--font); color:var(--text-secondary); margin-bottom:10px;">Slippage tolerance</div>
+    <div style="display:flex; gap:8px;">
+      <button class="chip2 on" onclick="setSlipAll(0.1,this)">0.1%</button>
+      <button class="chip2" onclick="setSlipAll(0.5,this)">0.5%</button>
+      <button class="chip2" onclick="setSlipAll(1.0,this)">1.0%</button>
+      <button class="chip2" style="flex:1;" onclick="closeSettings()">Custom</button>
+    </div>
+  </div>
+</div>
+
+<div id="sketch-tools" style="position:fixed;bottom:12px;right:12px;z-index:9999;font-family:system-ui;font-size:12px;background:rgba(0,0,0,0.72);color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;transition:opacity .2s;display:flex;gap:12px;align-items:center;" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.45">
+  <span>
+    <button onclick="setTheme('dark')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Dark</button>
+    <button onclick="setTheme('light')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Light</button>
+  </span>
+</div>
+
+<script>
+const TOKENS = {
+  ETH:  { sym:'ETH',  name:'Ethereum', price:3420.55, bal:1.842,  cls:'eth',  chain:'Ethereum' },
+  USDC: { sym:'USDC', name:'USD Coin', price:1.00,    bal:0,      cls:'usdc', chain:'Polygon'  },
+  USDT: { sym:'USDT', name:'Tether',   price:1.00,    bal:250.00, cls:'usdt', chain:'Ethereum' },
+  POL:  { sym:'POL',  name:'Polygon',  price:0.52,    bal:820.4,  cls:'pol',  chain:'Polygon'  },
+  WBTC: { sym:'WBTC', name:'Wrapped Bitcoin', price:96420.0, bal:0.0154, cls:'wbtc', chain:'Ethereum' },
+};
+const ORDER = ['ETH','USDC','USDT','POL','WBTC'];
+const SLIP  = { a:0.5, b:0.5, c:0.5 };
+const FEE_PCT = 0.001, IMPACT = 0.08;
+const state = { a:{from:'ETH',to:'USDC',amt:''}, b:{from:'ETH',to:'USDC',amt:''}, c:{from:'ETH',to:'USDC',amt:''} };
+const debounce = {};
+
+/* the shared swap-card markup, injected into each variant's .win2 */
+const TUNE='';
+const CARD = (v)=>`
+  <div class="card a-field">
+    <div class="top"><span class="flabel">You Pay</span></div>
+    <div class="mid"><div class="col2"><input class="amt pay-in" data-v="${v}" placeholder="0.0"></div><div class="tk" data-side="from" onclick="openPicker('${v}','from')"></div></div>
+    <div class="foot"><span class="usd pay-usd">$0.00</span><span style="display:flex;align-items:center;gap:8px;"><span class="bal from-bal"></span><button class="maxbtn" onclick="setMax('${v}')">MAX</button></span></div>
+  </div>
+  <div class="a-seam"><div class="a-flip" onclick="flip('${v}')"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v13M7 4l-3 3M7 4l3 3M17 20V7M17 20l3-3M17 20l-3-3"/></svg></div></div>
+  <div class="card a-field" style="margin-top:6px;">
+    <div class="top"><span class="flabel">You Receive</span></div>
+    <div class="mid"><div class="col2"><div class="amt rec-out" data-v="${v}" style="color:var(--text-primary-38)">0.0</div></div><div class="tk" data-side="to" onclick="openPicker('${v}','to')"></div></div>
+    <div class="foot"><span class="usd rec-usd">$0.00</span><span class="bal to-bal"></span></div>
+  </div>
+  <div class="route rdetails" data-v="${v}" style="display:none; margin-top:14px;"></div>
+  <button class="cta cta-btn" data-v="${v}" disabled style="margin-top:14px;">Enter an amount</button>`;
+['a','b','c'].forEach(v=>{ document.querySelector(`.win2[data-v="${v}"]`).innerHTML = CARD(v); });
+
+function fmt(n,dp){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp}); }
+function usd(n){ return '$'+fmt(n,2); }
+function tokenLogoHTML(key,size){ const t=TOKENS[key]; const s=size||28; return `<span class="logo ${t.cls}" style="width:${s}px;height:${s}px;">${t.sym[0]}</span>`; }
+function win(v){ return document.querySelector(`.win2[data-v="${v}"]`); }
+
+function render(v){
+  const w=win(v), s=state[v], from=TOKENS[s.from], to=TOKENS[s.to];
+  const chev='<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px;"><polyline points="6 9 12 15 18 9"/></svg>';
+  w.querySelector('.tk[data-side="from"]').innerHTML=`${tokenLogoHTML(s.from)}<span class="sym">${from.sym}</span><span class="cv">${chev}</span>`;
+  w.querySelector('.tk[data-side="to"]').innerHTML  =`${tokenLogoHTML(s.to)}<span class="sym">${to.sym}</span><span class="cv">${chev}</span>`;
+  w.querySelectorAll('.from-bal').forEach(e=> e.textContent=`Balance: ${fmt(from.bal, from.bal<1?4:2)} ${from.sym}`);
+  w.querySelectorAll('.to-bal').forEach(e=> e.textContent=`Balance: ${fmt(to.bal, to.bal<1?4:2)} ${to.sym}`);
+  computeRoute(v);
+}
+function computeRoute(v){
+  const w=win(v), s=state[v], from=TOKENS[s.from], pay=parseFloat(s.amt);
+  const cta=w.querySelector('.cta-btn'), recOut=w.querySelector('.rec-out'), payUsd=w.querySelector('.pay-usd'),
+        recUsd=w.querySelector('.rec-usd'), rdetails=w.querySelector('.rdetails');
+  const hide=()=>{ recOut.textContent='0.0'; recOut.style.color='var(--text-primary-38)'; payUsd.textContent='$0.00';
+    if(recUsd)recUsd.textContent='$0.00'; if(rdetails)rdetails.style.display='none'; };
+  if(!s.amt||isNaN(pay)||pay<=0){ hide(); cta.className='cta cta-btn'; cta.disabled=true; cta.textContent='Enter an amount'; return; }
+  payUsd.textContent=usd(pay*from.price);
+  if(pay>from.bal){ hide(); payUsd.textContent=usd(pay*from.price); cta.className='cta cta-btn err'; cta.disabled=true; cta.textContent=`Insufficient ${from.sym} balance`; return; }
+  cta.className='cta cta-btn loading'; cta.disabled=true; cta.textContent='Finding best route…';
+  if(debounce[v])clearTimeout(debounce[v]); debounce[v]=setTimeout(()=>resolveRoute(v),480);
+}
+function resolveRoute(v){
+  const w=win(v), s=state[v], from=TOKENS[s.from], to=TOKENS[s.to], pay=parseFloat(s.amt);
+  if(!pay||pay>from.bal) return;
+  const rate=from.price/to.price, recv=pay*rate*(1-FEE_PCT), feeUsd=pay*from.price*FEE_PCT+0.42, dp=to.price>1000?6:(to.price>1?2:4);
+  const recOut=w.querySelector('.rec-out'); recOut.textContent=fmt(recv,dp); recOut.style.color='var(--text-primary)';
+  const recUsd=w.querySelector('.rec-usd'); if(recUsd)recUsd.textContent=usd(recv*to.price);
+  const rateStr=`1 ${from.sym} = ${fmt(rate, rate>1000?2:4)} ${to.sym}`;
+  const rdetails=w.querySelector('.rdetails');
+  rdetails.innerHTML=`<div class="rrow"><span class="k">Rate</span><span class="v">${rateStr}</span></div>
+    <div class="rrow"><span class="k">Slippage</span><span class="v">${SLIP[v]}%</span></div>
+    <div class="rrow"><span class="k">Price impact</span><span class="v good">${IMPACT}%</span></div>
+    <div class="rrow"><span class="k">Network + route fee</span><span class="v">${usd(feeUsd)}</span></div>`;
+  rdetails.style.display='block';
+  const cta=w.querySelector('.cta-btn'); cta.className='cta cta-btn'; cta.disabled=false; cta.textContent='Swap';
+}
+document.querySelectorAll('.pay-in').forEach(inp=>inp.addEventListener('input',e=>{ const v=e.target.dataset.v; state[v].amt=e.target.value; computeRoute(v); }));
+function flip(v){ const s=state[v]; [s.from,s.to]=[s.to,s.from]; win(v).querySelector('.pay-in').value=''; s.amt=''; render(v); }
+function setMax(v){ const s=state[v], from=TOKENS[s.from], val=from.bal>0?String(from.bal):'0'; win(v).querySelector('.pay-in').value=val; s.amt=val; computeRoute(v); }
+function setSlipAll(val,el){ ['a','b','c'].forEach(v=>SLIP[v]=val); el.parentElement.querySelectorAll('.chip2').forEach(c=>c.classList.remove('on')); el.classList.add('on');
+  ['a','b','c'].forEach(v=>{ if(state[v].amt) resolveRoute(v); }); closeSettings(); }
+
+let pick={v:null,side:null};
+function openPicker(v,side){ pick={v,side}; document.getElementById('pickerSearch').value=''; renderPickerList(); document.getElementById('picker').classList.add('open'); }
+function closePicker(){ document.getElementById('picker').classList.remove('open'); }
+function renderPickerList(){
+  const q=(document.getElementById('pickerSearch').value||'').toLowerCase(), s=state[pick.v], other=pick.side==='from'?s.to:s.from;
+  const list=ORDER.filter(k=>{ const t=TOKENS[k]; return k!==other && (t.sym.toLowerCase().includes(q)||t.name.toLowerCase().includes(q)); });
+  document.getElementById('pickerList').innerHTML=list.map(k=>{ const t=TOKENS[k];
+    return `<div class="prow" onclick="choose('${k}')">${tokenLogoHTML(k,36)}<div><div class="nm">${t.name}</div><div class="sub">${t.sym} · ${t.chain}</div></div><div class="rb"><div class="b">${fmt(t.bal,t.bal<1?4:2)}</div><div class="sub">${t.sym}</div></div></div>`;
+  }).join('')||`<div class="sub" style="padding:12px 10px;">No tokens found</div>`;
+}
+function choose(k){ const s=state[pick.v]; if(pick.side==='from')s.from=k; else s.to=k; closePicker(); render(pick.v); }
+function openSettings(){ document.getElementById('settings').classList.add('open'); }
+function closeSettings(){ document.getElementById('settings').classList.remove('open'); }
+
+const LEDE = {
+  a:'<b>A1 · Focused (bigger).</b> The chosen faithful stack, sized up — column <b>560px</b>, 38px amounts, 56px CTA, a subtitle for header presence, and a soft brand sheen behind so the wide page reads as intentional canvas. The standard focused-DEX look, done at a confident size. <span class="tag rec">recommended</span>',
+  b:'<b>A2 · Companion.</b> Same swap card (460px) with a right-hand panel — live ETH/USDC quote + Recent swaps — so the desktop width is <b>used</b>, not padded. Collapses to the single card under ~1000px.',
+  c:'<b>A3 · Canvas band.</b> The swap card centred on a full-width brand-mesh band (the boot-canvas language). Turns the empty page into deliberate hero canvas. Most dramatic; furthest from today.',
+};
+function showVariant(id,ev){
+  document.querySelectorAll('.variant').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  document.getElementById('variant-'+id).classList.add('active');
+  if(ev) ev.target.classList.add('active');
+  document.getElementById('lede').innerHTML=LEDE[id];
+}
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); }
+
+['a','b','c'].forEach(render);
+document.getElementById('lede').innerHTML=LEDE.a;
+</script>
+</body>
+</html>

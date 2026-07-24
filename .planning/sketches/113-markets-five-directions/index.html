@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>113 · Markets — 5 directions (GENIUS AI as structure)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+  .wrap { max-width:1500px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; letter-spacing:.2px; }
+  .toolbar h1 .muted { color:var(--text-secondary); font-weight:400; }
+  .tabs { display:flex; gap:2px; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; flex-wrap:wrap; }
+  .tabs button { font:500 12px/18px var(--font); padding:7px 13px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; transition:.16s; }
+  .tabs button[aria-pressed="true"] { background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#00121A; font-weight:600; box-shadow:0 2px 12px rgba(20,200,255,.28); }
+  .up { color:var(--status-success); } .dn { color:var(--status-error); }
+  .meta { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:12px; padding:12px 16px; margin-bottom:14px; font:400 12.5px/1.6 var(--font); color:var(--text-secondary); }
+  .meta b { color:var(--text-primary); } .meta .sig { color:var(--brand-secondary); font-weight:600; } .meta .sac { color:#FFC42E; font-weight:600; }
+
+  /* app frame */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card); }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:46px; padding:0 var(--space-8); background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 13px/16px var(--font); color:var(--text-secondary); }
+  .navbar .logo { width:20px; height:20px; border-radius:6px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-15px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .spacer { margin-left:auto; }
+  .navbar .chip { padding:5px 10px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); }
+  .stage { padding:0 var(--space-8) var(--space-12); }
+  .page { max-width:1180px; margin:0 auto; padding-top:40px; }
+  .pagehead { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-8); }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; margin-right:auto; }
+  .pagehead .tool { display:flex; gap:6px; align-items:center; }
+  .pagehead .sortpill { font:600 11px/1 var(--font); color:var(--text-secondary); border:1px solid var(--border-subtle); background:var(--surface-menu); padding:7px 11px; border-radius:999px; }
+  .pagehead .searchfield { display:flex; align-items:center; gap:8px; height:34px; padding:0 12px; min-width:190px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-secondary); font:400 12.5px/1 var(--font); }
+
+  .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); }
+  .coinicon { width:26px; height:26px; border-radius:50%; flex:none; display:grid; place-content:center; font:700 8px/1 var(--font); color:#04070D; box-shadow:inset 0 0 0 1px rgba(255,255,255,.14); }
+  .coinicon.lg { width:44px; height:44px; font-size:12px; }
+  .coinicon.xl { width:56px; height:56px; font-size:15px; }
+  .seclabel { font:600 15px/1 var(--font); color:var(--text-primary); margin:20px 2px 12px; }
+
+  /* ===== D1 Ledger ===== */
+  .ledger { padding:0 18px; }
+  .lgrid { display:grid; grid-template-columns:34px 26px 1fr 92px 74px 74px 108px 92px 78px; gap:12px; align-items:center; }
+  .lhead { padding:12px 0; border-bottom:1px solid var(--border-strong); font:600 9px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .lhead span:nth-child(n+4){ text-align:right; }
+  .lrow { padding:11px 0; border-bottom:1px solid var(--border-subtle); font-variant-numeric:tabular-nums; }
+  .lrow .nm { font:600 13px/1 var(--font); } .lrow .nm small{ color:var(--text-secondary); font-weight:500; margin-left:5px; }
+  .lrow .n { font:600 12.5px/1 var(--font); text-align:right; } .lrow .ch { font:600 12.5px/1 var(--font); text-align:right; }
+  .lrow .rk { font:500 11px/1 var(--font); color:var(--text-secondary); }
+  .lrow svg.mini { width:74px; height:22px; }
+  .pinned { position:relative; background:linear-gradient(90deg,var(--brand-fill),transparent); border-bottom:2px solid; border-image:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary)) 1; padding:14px 0; }
+  .pinned .youtag { position:absolute; top:-8px; left:0; font:700 8px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:#00121A; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); padding:3px 6px; border-radius:4px; }
+
+  /* ===== D2 Editorial ===== */
+  .feature { padding:22px 24px; display:grid; grid-template-columns:1.1fr 1fr; gap:26px; align-items:center; }
+  @media(max-width:860px){.feature{grid-template-columns:1fr}}
+  .feature .idn { display:flex; align-items:center; gap:11px; margin-bottom:12px; }
+  .feature .idn .nm{ font:600 16px/1 var(--font);} .feature .idn .sy{ font:500 10px/1.4 var(--font); color:var(--text-secondary);}
+  .feature .idn .badge{ font:700 8px/1 var(--font); letter-spacing:1px; text-transform:uppercase; padding:4px 7px; border-radius:6px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#00121A; margin-left:2px;}
+  .feature .lead{ font:600 25px/1.18 var(--font); letter-spacing:-.5px; max-width:16ch;} .feature .lead .accent{color:var(--brand-secondary);}
+  .feature .dek{ font:400 13.5px/21px var(--font); color:var(--text-secondary); margin:12px 0 18px; max-width:44ch;}
+  .fstats{ display:flex; gap:22px;} .fstats .l{ font:600 9px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary);} .fstats .v{ font:600 18px/1 var(--font); margin-top:7px; font-variant-numeric:tabular-nums;}
+  .fchart{ border-radius:14px; overflow:hidden; height:186px; background:var(--surface-sheen-b); border:1px solid var(--border-subtle);}
+  .elist{ padding:6px 20px;} .erow{ display:grid; grid-template-columns:26px 1fr 66px 84px 66px; gap:14px; align-items:center; padding:14px 0; border-bottom:1px solid var(--border-subtle);}
+  .erow:last-child{border-bottom:0;} .erow .nm{font:600 14px/1 var(--font);} .erow .nm small{color:var(--text-secondary);font-weight:500;margin-left:6px;}
+  .erow .pr{font:600 13px/1 var(--font);text-align:right;font-variant-numeric:tabular-nums;} .erow .ch{font:600 12px/1 var(--font);text-align:right;font-variant-numeric:tabular-nums;} .erow svg.mini{width:66px;height:22px;}
+
+  /* ===== D3 Glance ===== */
+  .glance { padding:30px 30px 24px; text-align:center; position:relative; overflow:hidden; }
+  .glance .amb{ position:absolute; inset:-30% 20% auto; height:70%; background:radial-gradient(closest-side,rgba(43,245,180,.16),transparent); z-index:0;}
+  .glance .who{ display:inline-flex; align-items:center; gap:10px; position:relative; z-index:1;}
+  .glance .who .nm{ font:600 15px/1 var(--font);} .glance .who .sy{ font:500 11px/1 var(--font); color:var(--text-secondary);}
+  .glance .big{ font:600 78px/.95 var(--font); letter-spacing:-3px; margin:16px 0 6px; font-variant-numeric:tabular-nums; position:relative; z-index:1;}
+  .glance .todaychip{ display:inline-flex; align-items:center; gap:8px; font:600 20px/1 var(--font); padding:9px 16px; border-radius:999px; position:relative; z-index:1; font-variant-numeric:tabular-nums;}
+  .glance .todaychip.up{ background:var(--status-success-fill); color:var(--status-success);}
+  .glance .spark{ height:70px; margin:18px 0 6px; position:relative; z-index:1;}
+  .glance .say{ font:400 13px/1 var(--font); color:var(--text-secondary); position:relative; z-index:1;}
+  .rest{ display:flex; gap:8px; overflow:auto; margin-top:22px; padding-top:20px; border-top:1px solid var(--border-subtle);}
+  .rchip{ flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid var(--border-subtle); background:var(--surface-elevated);}
+  .rchip .tk{ font:700 12px/1 var(--font);} .rchip .ch{ font:600 12px/1 var(--font); font-variant-numeric:tabular-nums;}
+
+  /* ===== D4 Plain ===== */
+  .plainhero{ padding:26px 28px; display:flex; align-items:center; gap:20px;}
+  .plainhero .big{ font:600 26px/1.25 var(--font); letter-spacing:-.4px;}
+  .plainhero .big .st{ font-weight:700;} .plainhero .arrow{ font-size:44px; line-height:1;}
+  .plainhero .plain{ font:400 14px/1.5 var(--font); color:var(--text-secondary); margin-top:8px;}
+  .pcards{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+  @media(max-width:760px){.pcards{grid-template-columns:1fr}}
+  .pcard{ display:flex; align-items:center; gap:14px; padding:16px 18px;}
+  .pcard .txt{ flex:1;} .pcard .nm{ font:600 15px/1 var(--font);} .pcard .state{ font:500 13px/1 var(--font); margin-top:6px;}
+  .pcard .pr{ font:600 15px/1 var(--font); font-variant-numeric:tabular-nums;}
+  .pdot{ width:12px; height:12px; border-radius:50%; flex:none;}
+
+  /* ===== D5 Unconstrained ===== */
+  .u5{ position:relative; border-radius:20px; overflow:hidden; padding:26px; border:1px solid var(--border-subtle); background:#05070C;}
+  .u5 .aur{ position:absolute; inset:-20%; z-index:0; filter:blur(64px); opacity:.6; background:radial-gradient(26% 30% at 24% 22%,rgba(20,200,255,.5),transparent 60%),radial-gradient(24% 28% at 76% 30%,rgba(43,245,180,.5),transparent 60%),radial-gradient(30% 34% at 60% 82%,rgba(194,143,255,.32),transparent 60%); animation:drift 18s ease-in-out infinite alternate;}
+  @keyframes drift{0%{transform:translate(0,0)}100%{transform:translate(-3%,2%) scale(1.08)}}
+  .u5 .in{ position:relative; z-index:1;}
+  .u5 .briefing{ display:grid; grid-template-columns:1.3fr 1fr; gap:18px; align-items:stretch;}
+  @media(max-width:860px){.u5 .briefing{grid-template-columns:1fr}}
+  .glass{ background:rgba(10,13,20,.55); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.12); border-radius:16px;}
+  .u5 .lead{ padding:22px;} .u5 .lead .who{ display:flex; align-items:center; gap:12px;}
+  .u5 .lead .nm{ font:600 17px/1 var(--font);} .u5 .lead .ai{ margin-left:auto; font:700 8px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:#C28FFF; border:1px solid rgba(194,143,255,.4); padding:4px 7px; border-radius:6px;}
+  .u5 .lead .price{ font:600 44px/1 var(--font); letter-spacing:-1.6px; margin:16px 0 6px; font-variant-numeric:tabular-nums;}
+  .u5 .lead .narr{ font:400 14px/1.55 var(--font); color:var(--text-primary-70); margin-top:14px;}
+  .u5 .lead .narr b{ color:#fff;}
+  .u5 .meter{ padding:20px; display:flex; flex-direction:column; justify-content:center; gap:14px;}
+  .u5 .meter .l{ font:600 9px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary);}
+  .u5 .meter .pct{ font:600 40px/1 var(--font); letter-spacing:-1.5px;}
+  .u5 .meter .track{ height:8px; border-radius:999px; background:rgba(255,255,255,.1); overflow:hidden;}
+  .u5 .meter .track>i{ display:block; height:100%; background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary));}
+  .u5 .vs{ margin-top:16px;} .u5 .vrow{ display:grid; grid-template-columns:26px 1fr auto auto; gap:12px; align-items:center; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.06);}
+  .u5 .vrow:last-child{border-bottom:0;} .u5 .vrow .nm{ font:600 13px/1 var(--font);} .u5 .vrow .ch{ font:600 12px/1 var(--font); font-variant-numeric:tabular-nums; text-align:right; width:64px;}
+  .u5 .vrow .rel{ font:600 11px/1 var(--font); font-variant-numeric:tabular-nums; padding:4px 8px; border-radius:999px; white-space:nowrap;}
+  .u5 .vrow .rel.beat{ background:var(--status-success-fill); color:var(--status-success);} .u5 .vrow .rel.lost{ background:var(--status-error-fill); color:var(--status-error);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>113 · Markets — 5 directions &nbsp;<span class="muted">— GENIUS AI as structure</span></h1>
+    <div class="tabs" id="tabs">
+      <button aria-pressed="true"  data-v="1">1 · Ledger</button>
+      <button aria-pressed="false" data-v="2">2 · Editorial</button>
+      <button aria-pressed="false" data-v="3">3 · Glance</button>
+      <button aria-pressed="false" data-v="4">4 · Plain</button>
+      <button aria-pressed="false" data-v="5">5 · Unconstrained</button>
+    </div>
+  </div>
+  <div class="meta" id="meta"></div>
+
+  <div class="win">
+    <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+      <span class="spacer"></span><span class="chip">0x1d9b…4a87</span></div>
+    <div class="stage"><div class="page" id="page"></div></div>
+  </div>
+</div>
+
+<script>
+const COINS = [
+  {tk:'BTC',nm:'Bitcoin',mc:'$1.32T',pr:'$67,120',ch:+2.4,rank:1,ath:-12,vol:'$38B',hue:32,spark:[3,5,4,6,7,6,8]},
+  {tk:'ETH',nm:'Ethereum',mc:'$410B',pr:'$3,412',ch:-1.1,rank:2,ath:-28,vol:'$14B',hue:230,spark:[8,7,7,6,6,5,6]},
+  {tk:'SOL',nm:'Solana',mc:'$78B',pr:'$168',ch:+11.9,rank:5,ath:-41,vol:'$5.1B',hue:275,spark:[3,4,4,5,7,8,9]},
+  {tk:'BNB',nm:'BNB',mc:'$92B',pr:'$598',ch:+0.8,rank:4,ath:-14,vol:'$1.2B',hue:45,spark:[5,5,6,5,6,6,6]},
+  {tk:'XRP',nm:'XRP',mc:'$34B',pr:'$0.62',ch:-4.7,rank:6,ath:-82,vol:'$1.8B',hue:200,spark:[7,6,6,5,4,4,3]},
+  {tk:'DOGE',nm:'Dogecoin',mc:'$23B',pr:'$0.158',ch:+6.2,rank:8,ath:-79,vol:'$1.1B',hue:48,spark:[4,4,5,5,6,7,7]},
+  {tk:'GNUS',nm:'GENIUS AI',mc:'$8B',pr:'$0.42',ch:+8.1,rank:142,ath:-63,vol:'$21M',hue:165,spark:[3,3,3.5,4,5.5,7,9],native:true},
+  {tk:'AVAX',nm:'Avalanche',mc:'$14B',pr:'$36.2',ch:+4.1,rank:10,ath:-73,vol:'$0.5B',hue:0,spark:[4,5,5,6,6,7,7]},
+  {tk:'LINK',nm:'Chainlink',mc:'$11B',pr:'$18.4',ch:+1.2,rank:12,ath:-64,vol:'$0.3B',hue:215,spark:[5,5,6,6,6,6,7]},
+  {tk:'TAO',nm:'Bittensor',mc:'$4B',pr:'$412',ch:+9.3,rank:24,ath:-46,vol:'$0.2B',hue:190,spark:[3,4,4,5,6,7,8]},
+  {tk:'ADA',nm:'Cardano',mc:'$16B',pr:'$0.45',ch:-2.3,rank:9,ath:-85,vol:'$0.4B',hue:210,spark:[6,6,5,5,5,4,5]},
+  {tk:'DOT',nm:'Polkadot',mc:'$9B',pr:'$7.10',ch:-3.4,rank:13,ath:-87,vol:'$0.2B',hue:325,spark:[6,6,5,5,4,4,4]},
+];
+const G = COINS.find(c=>c.native);
+const sgn=c=>(c>=0?'+':'')+c.toFixed(1)+'%';
+const icon=(c,cls='')=>`<span class="coinicon ${cls}" style="background:linear-gradient(135deg,hsl(${c.hue} 85% 62%),hsl(${(c.hue+40)%360} 85% 52%))">${c.tk.slice(0,3)}</span>`;
+function areaPath(pts,w,h,pad){const max=Math.max(...pts),min=Math.min(...pts),R=(max-min)||1,st=w/(pts.length-1);const P=pts.map((p,i)=>[i*st,h-pad-((p-min)/R)*(h-2*pad)]);let d='M'+P[0][0]+','+P[0][1];for(let i=1;i<P.length;i++){const x0=P[i-1][0],y0=P[i-1][1],x1=P[i][0],y1=P[i][1],cx=(x0+x1)/2;d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}return{line:d,area:d+` L${w},${h} L0,${h} Z`};}
+function chart(pts,w,h,up,id){const{line,area}=areaPath(pts,w,h,14),c=up?'#2BF5B4':'#FF4D4D';return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:100%"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".32"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#${id})"/><path d="${line}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
+function mini(pts,up,w){w=w||66;const{line}=areaPath(pts,w,22,3),c=up?'#2BF5B4':'#FF4D4D';return`<svg class="mini" viewBox="0 0 ${w} 22" preserveAspectRatio="none"><path d="${line}" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
+const HEAD = `<div class="pagehead"><h2>Markets</h2><div class="tool"><span class="searchfield">⌕ Search</span><span class="sortpill">Sort ▾</span></div></div>`;
+
+const META = {
+ 1:`<b>1 · Ledger</b> — decision: the market as a precise, sortable data table. <span class="sig">Signature:</span> GENIUS AI is a <b>pinned lead row</b> that never leaves the top, whatever you sort or filter — the market ranks below it. <span class="sac">Sacrifices:</span> zero chart / zero atmosphere, pure numbers. <i>Structure, not banner: a fixed reference in a table is naturally its lead row.</i> Rejected: BTC-dominance column (needs /global).`,
+ 2:`<b>2 · Editorial</b> — decision: a magazine front page, breath &amp; polish. <span class="sig">Signature:</span> the <b>featured slot is permanently GENIUS AI</b> with a large 7d chart; the market is an elegant list beneath. <span class="sac">Sacrifices:</span> density — few coins per screen. <i>Structure: a front page always leads with the same subject; the lead slot is architecture, not an ad.</i> Rejected: 24h/30d/1y range selector (only 7d exists).`,
+ 3:`<b>3 · Glance</b> — decision: answer "how's our token today" in one look, 15 seconds. <span class="sig">Signature:</span> GENIUS AI <b>IS the page headline</b> — an oversized price + today's move + 7d spark; the rest of the market is a thin strip below. <span class="sac">Sacrifices:</span> depth — you can't compare many coins. <i>Structure: for a 15s visit the token is the question, so it's biggest by hierarchy, not by highlight.</i>`,
+ 4:`<b>4 · Plain language</b> — decision: for people who don't read charts. <span class="sig">Signature:</span> status in <b>words</b> — "GENIUS AI is up today, a lot" — and coins as plain up/down cards, no rank/ATH/mcap jargon. <span class="sac">Sacrifices:</span> precision — exact figures de-emphasised. <i>Structure: the token's status is the page's opening sentence; permanence comes from being the first thing stated.</i>`,
+ 5:`<b>5 · Unconstrained</b> — decision: the market seen entirely through YOUR token. <span class="sig">Signature:</span> an <b>AI briefing</b> + a percentile meter ("beat 94% of the market this week"), and every market row shown <b>relative to GENIUS AI</b> ("BTC +2.4% · you beat it by +5.7pts"). <span class="sac">Sacrifices:</span> buildability. <i>Structure: the most honest "your token vs market" is to literally measure the market against it.</i> New data: AI insight, percentile, relative strength.`
+};
+
+function ledgerRow(c,pinned){ return `<div class="lgrid lrow ${pinned?'pinned':''}">
+  ${pinned?'<span class="youtag">Your token</span>':''}
+  <span class="rk">${pinned?'★':String(c.rank).padStart(2,'0')}</span>
+  ${icon(c)}
+  <span class="nm">${c.nm}<small>${c.tk}</small></span>
+  <span class="n">${c.pr}</span>
+  <span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span>
+  ${mini(c.spark,c.ch>=0,74)}
+  <span class="n" style="color:var(--text-secondary)">${c.mc}</span>
+  <span class="n" style="color:var(--text-secondary)">${c.vol}</span>
+  <span class="n dn">${c.ath}%</span></div>`; }
+
+function say(c){ const a=Math.abs(c.ch); return c.ch>=0?(a>7?'up a lot':a>2?'up':'up a little'):(a>7?'down a lot':a>2?'down':'down a little'); }
+
+const R = {
+ 1:()=>HEAD+`<div class="card ledger">
+     <div class="lgrid lhead"><span>#</span><span></span><span>Coin</span><span>Price</span><span>24h</span><span>Last 7d</span><span>Market cap</span><span>Volume</span><span>ATH</span></div>
+     ${ledgerRow(G,true)}
+     ${[...COINS].filter(c=>!c.native).sort((a,b)=>a.rank-b.rank).map(c=>ledgerRow(c,false)).join('')}
+   </div>`,
+ 2:()=>HEAD+`<div class="seclabel">Today's lead · your token</div>
+   <div class="card feature">
+     <div><div class="idn">${icon(G,'lg')}<div><div class="nm">${G.nm}</div><div class="sy">${G.tk} · #${G.rank}</div></div><span class="badge">Native</span></div>
+       <div class="lead">GENIUS <span class="accent">AI</span> is having its best week this quarter.</div>
+       <div class="dek">Up 8.1% today on rising volume, outpacing every large cap on the board.</div>
+       <div class="fstats"><div class="s"><div class="l">Price</div><div class="v">${G.pr}</div></div><div class="s"><div class="l">24h</div><div class="v up">${sgn(G.ch)}</div></div><div class="s"><div class="l">ATH gap</div><div class="v dn">${G.ath}%</div></div></div></div>
+     <div class="fchart">${chart(G.spark,520,186,true,'d2')}</div></div>
+   <div class="seclabel">The rest of the market</div>
+   <div class="card elist">${[...COINS].filter(c=>!c.native).sort((a,b)=>a.rank-b.rank).map(c=>`<div class="erow">${icon(c)}<span class="nm">${c.nm}<small>${c.tk}</small></span>${mini(c.spark,c.ch>=0)}<span class="pr">${c.pr}</span><span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span></div>`).join('')}</div>`,
+ 3:()=>HEAD+`<div class="card glance"><div class="amb"></div>
+     <div class="who">${icon(G,'lg')}<div style="text-align:left"><div class="nm">${G.nm}</div><div class="sy">${G.tk} · today</div></div></div>
+     <div class="big">${G.pr}</div>
+     <div class="todaychip up">▲ ${sgn(G.ch)} today</div>
+     <div class="spark">${chart(G.spark,900,70,true,'d3')}</div>
+     <div class="say">Best week this month · volume rising</div>
+     <div class="rest">${[...COINS].filter(c=>!c.native).sort((a,b)=>b.ch-a.ch).map(c=>`<div class="rchip">${icon(c)}<span class="tk">${c.tk}</span><span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span></div>`).join('')}</div>
+   </div>`,
+ 4:()=>HEAD+`<div class="card plainhero">${icon(G,'xl')}
+     <div><div class="big">GENIUS AI is <span class="st up">up today</span>.</div>
+       <div class="plain">That's <b>+8.1%</b> — up a lot. It's near its best week this month.</div></div>
+     <div class="arrow up">↑</div></div>
+   <div class="seclabel">The rest of the market, in plain terms</div>
+   <div class="pcards">${[...COINS].filter(c=>!c.native).sort((a,b)=>b.ch-a.ch).map(c=>`<div class="card pcard">${icon(c,'lg')}
+       <div class="txt"><div class="nm">${c.nm}</div><div class="state ${c.ch>=0?'up':'dn'}">${c.ch>=0?'↑':'↓'} ${say(c)} today</div></div>
+       <div class="pr">${c.pr}</div></div>`).join('')}</div>`,
+ 5:()=>HEAD+`<div class="u5"><div class="aur"></div><div class="in">
+     <div class="briefing">
+       <div class="glass lead"><div class="who">${icon(G,'lg')}<div><div class="nm">${G.nm}</div><div style="font:500 11px/1.4 var(--font);color:var(--text-secondary)">${G.tk}</div></div><span class="ai">AI briefing</span></div>
+         <div class="price">${G.pr}</div>
+         <div class="narr">Your token <b>outperformed 94% of the market</b> this week and just printed its <b>strongest 7-day run of the quarter</b>. Volume is building while most large caps cooled — momentum is with you.</div></div>
+       <div class="glass meter"><div class="l">Beat the market this week</div><div class="pct up">94<span style="font-size:20px">th</span></div>
+         <div class="track"><i style="width:94%"></i></div>
+         <div class="l" style="margin-top:6px">Relative strength · 7d</div><div style="font:600 15px/1 var(--font)">+13.4 pts vs BTC</div></div>
+     </div>
+     <div class="glass vs"><div style="padding:14px 16px 4px;font:600 9px/1 var(--font);letter-spacing:1px;text-transform:uppercase;color:var(--text-secondary)">Market — measured against GENIUS AI (+8.1%)</div>
+       ${[...COINS].filter(c=>!c.native).sort((a,b)=>b.ch-a.ch).map(c=>{const d=(G.ch-c.ch);const beat=d>=0;return `<div class="vrow">${icon(c)}<span class="nm">${c.nm} <small style="color:var(--text-secondary);font-weight:500">${c.tk}</small></span><span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span><span class="rel ${beat?'beat':'lost'}">${beat?'you +':'you '}${d.toFixed(1)} pts</span></div>`;}).join('')}</div>
+   </div></div>`
+};
+function render(v){ document.getElementById('meta').innerHTML=META[v]; document.getElementById('page').innerHTML=R[v](); }
+render('1');
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));render(b.dataset.v);});
+</script>
+</body>
+</html>

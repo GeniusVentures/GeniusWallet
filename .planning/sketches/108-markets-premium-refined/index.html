@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>108 · Markets — premium refined (keynote / editorial / glass)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#04050A; color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+  .wrap { max-width:1500px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; letter-spacing:.2px; }
+  .toolbar h1 .muted { color:var(--text-secondary); font-weight:400; }
+  .tabs { display:flex; gap:2px; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; }
+  .tabs button { font:500 12.5px/18px var(--font); padding:7px 16px; border:0; border-radius:var(--radius-pill);
+                 background:transparent; color:var(--text-secondary); cursor:pointer; transition:.16s; }
+  .tabs button[aria-pressed="true"] { background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary));
+                 color:#00121A; font-weight:600; box-shadow:0 2px 12px rgba(20,200,255,.28); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:900px; }
+  .variant { display:none; } .variant.on { display:block; }
+  .up { color:var(--status-success); } .dn { color:var(--status-error); } .num{ font-variant-numeric:tabular-nums; }
+  @keyframes drift { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(-3%,2%) scale(1.1);} }
+
+  /* ============ A · CINEMATIC KEYNOTE ============ */
+  .kn { position:relative; height:600px; border-radius:20px; overflow:hidden; border:1px solid var(--border-subtle);
+        background:radial-gradient(120% 100% at 78% 8%, #0C1622 0%, #070A11 55%, #04060B 100%); }
+  .kn .ambient { position:absolute; inset:-15%; z-index:0; filter:blur(60px); opacity:.55;
+    background:radial-gradient(30% 34% at 80% 14%, rgba(20,200,255,.6), transparent 60%),
+              radial-gradient(28% 30% at 92% 40%, rgba(43,245,180,.4), transparent 60%);
+    animation:drift 18s ease-in-out infinite alternate; }
+  .kn .eyebrow { position:absolute; top:26px; left:30px; z-index:3; font:600 10px/1 var(--font); letter-spacing:2px; text-transform:uppercase; color:var(--text-secondary); display:flex; align-items:center; gap:8px; }
+  .kn .eyebrow .live { width:7px; height:7px; border-radius:50%; background:#2BF5B4; box-shadow:0 0 10px #2BF5B4; animation:blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+  .kn .focal { position:absolute; top:96px; left:30px; z-index:3; }
+  .kn .focal .who { display:flex; align-items:center; gap:12px; margin-bottom:22px; }
+  .kn .focal .mk { width:46px; height:46px; border-radius:13px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); box-shadow:0 8px 30px rgba(20,200,255,.4); }
+  .kn .focal .who .nm { font:600 19px/1 var(--font); } .kn .focal .who .sy { font:500 11px/1.5 var(--font); color:var(--text-secondary); }
+  .kn .focal .who .badge { font:700 8px/1 var(--font); letter-spacing:1px; text-transform:uppercase; padding:5px 8px; border-radius:6px; margin-left:6px;
+    background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#00121A; }
+  .kn .focal .price { font:600 88px/.9 var(--font); letter-spacing:-3.5px; font-variant-numeric:tabular-nums; }
+  .kn .focal .chg { font:600 18px/1 var(--font); margin-top:14px; display:flex; align-items:center; gap:10px; }
+  .kn .focal .chg .muted { color:var(--text-secondary); font-weight:500; font-size:14px; }
+  .kn .bigchart { position:absolute; inset:auto 0 0 0; height:56%; z-index:1; }
+  .kn .ticker { position:absolute; left:0; right:0; bottom:0; z-index:3; display:flex; gap:0; height:56px; align-items:center;
+    background:linear-gradient(0deg,rgba(4,6,11,.9),transparent); backdrop-filter:blur(6px); padding:0 30px; overflow:hidden; }
+  .kn .tk { display:flex; align-items:baseline; gap:8px; padding:0 20px; border-right:1px solid rgba(255,255,255,.08); white-space:nowrap; }
+  .kn .tk b { font:700 12px/1 var(--font); } .kn .tk .p { font:500 12px/1 var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .kn .tk .c { font:600 12px/1 var(--font); font-variant-numeric:tabular-nums; }
+
+  /* ============ B · EDITORIAL MAGAZINE ============ */
+  .mag { background:#080A10; border:1px solid var(--border-subtle); border-radius:18px; padding:34px 38px 40px; }
+  .mag .masthead { display:flex; align-items:baseline; justify-content:space-between; border-bottom:2px solid var(--text-primary); padding-bottom:16px; }
+  .mag .masthead .t { font:600 40px/1 var(--font); letter-spacing:-1.2px; }
+  .mag .masthead .meta { font:500 12px/1 var(--font); color:var(--text-secondary); letter-spacing:.4px; text-align:right; }
+  .mag .kick { font:700 10px/1 var(--font); letter-spacing:2.5px; text-transform:uppercase; color:var(--brand-secondary); margin:26px 0 14px; }
+  .mag .feature { display:grid; grid-template-columns:1.15fr 1fr; gap:30px; align-items:center; }
+  @media (max-width:860px){ .mag .feature{ grid-template-columns:1fr; } }
+  .mag .feature .lead { font:600 30px/1.18 var(--font); letter-spacing:-.6px; max-width:15ch; }
+  .mag .feature .lead .accent { color:var(--brand-secondary); }
+  .mag .feature .dek { font:400 14px/22px var(--font); color:var(--text-secondary); margin:16px 0 20px; max-width:44ch; }
+  .mag .feature .fstats { display:flex; gap:26px; }
+  .mag .feature .fstats .s .l { font:600 9px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); }
+  .mag .feature .fstats .s .v { font:600 20px/1 var(--font); margin-top:7px; font-variant-numeric:tabular-nums; letter-spacing:-.4px; }
+  .mag .fchart { border-radius:14px; overflow:hidden; height:210px; background:linear-gradient(160deg,#0C1119,#080B11); border:1px solid var(--border-subtle); position:relative; }
+  .mag .divider { height:1px; background:var(--border-subtle); margin:34px 0 22px; }
+  .mag .grid { display:grid; grid-template-columns:1fr 1fr; gap:0 40px; }
+  @media (max-width:860px){ .mag .grid{ grid-template-columns:1fr; } }
+  .mag .mrow { display:grid; grid-template-columns:22px 1fr 80px 74px auto; gap:14px; align-items:center; padding:15px 0; border-bottom:1px solid var(--border-subtle); }
+  .mag .mrow .rk { font:500 12px/1 var(--font); color:var(--text-secondary); }
+  .mag .mrow .nm { font:600 15px/1 var(--font); } .mag .mrow .nm small { color:var(--text-secondary); font-weight:500; margin-left:6px; }
+  .mag .mrow .pr { font:600 14px/1 var(--font); text-align:right; font-variant-numeric:tabular-nums; }
+  .mag .mrow .ch { font:600 13px/1 var(--font); text-align:right; font-variant-numeric:tabular-nums; }
+
+  /* ============ C · LUXURY GLASS ============ */
+  .lux { position:relative; border-radius:22px; overflow:hidden; padding:26px; min-height:600px; border:1px solid var(--border-subtle); background:#05070C; }
+  .lux .aur { position:absolute; inset:-20%; z-index:0; filter:blur(70px); opacity:.6;
+    background:radial-gradient(26% 30% at 22% 24%, rgba(20,200,255,.55), transparent 60%),
+              radial-gradient(24% 28% at 78% 30%, rgba(43,245,180,.5), transparent 60%),
+              radial-gradient(30% 36% at 60% 82%, rgba(194,143,255,.34), transparent 60%);
+    animation:drift 20s ease-in-out infinite alternate; }
+  .lux .inner { position:relative; z-index:1; display:grid; grid-template-columns:1.5fr 1fr; grid-template-rows:auto 1fr; gap:14px; }
+  @media (max-width:900px){ .lux .inner{ grid-template-columns:1fr; } }
+  .glass { background:rgba(10,13,20,.55); backdrop-filter:blur(18px) saturate(1.2); border:1px solid rgba(255,255,255,.12);
+           border-radius:18px; box-shadow:0 12px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06); }
+  .lux .hero { grid-row:1 / 3; padding:24px; position:relative; overflow:hidden; }
+  .lux .hero .who { display:flex; align-items:center; gap:12px; }
+  .lux .hero .mk { width:44px; height:44px; border-radius:13px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); box-shadow:0 8px 24px rgba(20,200,255,.35); }
+  .lux .hero .who .nm { font:600 18px/1 var(--font); } .lux .hero .who .sy { font:500 11px/1.5 var(--font); color:var(--text-secondary); }
+  .lux .hero .who .badge { margin-left:auto; font:700 8px/1 var(--font); letter-spacing:1px; text-transform:uppercase; padding:5px 8px; border-radius:6px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#00121A; }
+  .lux .hero .price { font:600 58px/1 var(--font); letter-spacing:-2px; margin:22px 0 8px; font-variant-numeric:tabular-nums; }
+  .lux .hero .chg { font:600 15px/1 var(--font); }
+  .lux .hero .chart { height:170px; margin:18px 0 20px; }
+  .lux .hero .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .lux .hero .st { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:11px; padding:11px; }
+  .lux .hero .st .l { font:600 8px/1 var(--font); letter-spacing:1px; text-transform:uppercase; color:var(--text-secondary); }
+  .lux .hero .st .v { font:600 14px/1 var(--font); margin-top:6px; font-variant-numeric:tabular-nums; }
+  .lux .pulse { padding:18px 20px; }
+  .lux .pulse .l { font:600 9px/1 var(--font); letter-spacing:1.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .lux .pulse .big { font:600 26px/1 var(--font); margin:12px 0 12px; letter-spacing:-.6px; }
+  .lux .pulse .big .rise { background:linear-gradient(90deg,var(--brand-secondary),var(--brand-primary)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lux .pulse .track { height:8px; border-radius:999px; overflow:hidden; display:flex; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1); }
+  .lux .pulse .track .g{ background:linear-gradient(90deg,#0AD89C,#2BF5B4); } .lux .pulse .track .r{ background:#FF4D4D; }
+  .lux .pulse .cap { display:flex; justify-content:space-between; margin-top:8px; font:500 11px/1 var(--font); color:var(--text-secondary); }
+  .lux .lst { padding:8px 8px; overflow:auto; }
+  .lux .lrow { display:grid; grid-template-columns:1fr auto 60px; gap:12px; align-items:center; padding:11px 12px; border-radius:11px; }
+  .lux .lrow:hover { background:rgba(255,255,255,.05); }
+  .lux .lrow .nm { font:600 13px/1 var(--font); } .lux .lrow .nm small{ color:var(--text-secondary); font-weight:500; margin-left:5px; }
+  .lux .lrow .pr { font:600 12px/1 var(--font); font-variant-numeric:tabular-nums; text-align:right; }
+  .lux .lrow .ch { font:600 12px/1 var(--font); font-variant-numeric:tabular-nums; text-align:right; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>108 · Markets — premium refined &nbsp;<span class="muted">— C/D zone, higher craft</span></h1>
+    <div class="tabs" id="tabs">
+      <button aria-pressed="true"  data-v="a">A · Keynote</button>
+      <button aria-pressed="false" data-v="b">B · Editorial</button>
+      <button aria-pressed="false" data-v="c">C · Luxury glass</button>
+    </div>
+  </div>
+  <p class="lede">Same premium/atmospheric lane as 107's C+D, pushed on craft: bigger type, more air, restrained palette, real depth. Pick the one that reads "ship it".</p>
+
+  <div class="win">
+    <div class="variant on" id="va"><div class="kn" id="kn"></div></div>
+    <div class="variant" id="vb"><div class="mag" id="mag"></div></div>
+    <div class="variant" id="vc"><div class="lux" id="lux"></div></div>
+  </div>
+</div>
+
+<script>
+const COINS = [
+  {tk:'BTC', nm:'Bitcoin',   mc:1320, pr:'$67,120', ch:+2.4, rank:1,  ath:-12, vol:'$38B', spark:[3,5,4,6,7,6,8]},
+  {tk:'ETH', nm:'Ethereum',  mc:410,  pr:'$3,412',  ch:-1.1, rank:2,  ath:-28, vol:'$14B', spark:[8,7,7,6,6,5,6]},
+  {tk:'SOL', nm:'Solana',    mc:78,   pr:'$168',    ch:+11.9,rank:5,  ath:-41, vol:'$5.1B',spark:[3,4,4,5,7,8,9]},
+  {tk:'BNB', nm:'BNB',       mc:92,   pr:'$598',    ch:+0.8, rank:4,  ath:-14, vol:'$1.2B',spark:[5,5,6,5,6,6,6]},
+  {tk:'XRP', nm:'XRP',       mc:34,   pr:'$0.62',   ch:-4.7, rank:6,  ath:-82, vol:'$1.8B',spark:[7,6,6,5,4,4,3]},
+  {tk:'DOGE',nm:'Dogecoin',  mc:23,   pr:'$0.158',  ch:+6.2, rank:8,  ath:-79, vol:'$1.1B',spark:[4,4,5,5,6,7,7]},
+  {tk:'GNUS',nm:'GENIUS AI',  mc:8,   pr:'$0.42',   ch:+8.1, rank:142,ath:-63, vol:'$21M', spark:[3,3,3.5,4,5.5,7,9], native:true},
+  {tk:'AVAX',nm:'Avalanche', mc:14,   pr:'$36.2',   ch:+4.1, rank:10, ath:-73, vol:'$0.5B',spark:[4,5,5,6,6,7,7]},
+];
+const sgn = c => (c>=0?'+':'')+c.toFixed(1)+'%';
+function areaPath(pts,w,h,pad){ const max=Math.max(...pts),min=Math.min(...pts),R=(max-min)||1,st=w/(pts.length-1);
+  const P=pts.map((p,i)=>[i*st, h-pad-((p-min)/R)*(h-2*pad)]); let d='M'+P[0][0]+','+P[0][1];
+  for(let i=1;i<P.length;i++){const x0=P[i-1][0],y0=P[i-1][1],x1=P[i][0],y1=P[i][1],cx=(x0+x1)/2; d+=` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;}
+  return {line:d, area:d+` L${w},${h} L0,${h} Z`}; }
+function chartSVG(pts,w,h,up,id){ const {line,area}=areaPath(pts,w,h,14); const c=up?'#2BF5B4':'#FF4D4D';
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:100%">
+    <defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".34"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#${id})"/><path d="${line}" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+const G = COINS.find(c=>c.native);
+
+/* A keynote */
+(function(){ const up=G.ch>=0;
+  const ticker=COINS.filter(c=>!c.native).map(c=>`<div class="tk"><b>${c.tk}</b><span class="p">${c.pr}</span><span class="c ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span></div>`).join('');
+  document.getElementById('kn').innerHTML=`<div class="ambient"></div>
+    <div class="eyebrow"><span class="live"></span>Markets · live</div>
+    <div class="focal">
+      <div class="who"><div class="mk"></div><div><div class="nm">${G.nm}</div><div class="sy">${G.tk} · rank #${G.rank}</div></div><span class="badge">Native</span></div>
+      <div class="price">${G.pr}</div>
+      <div class="chg ${up?'up':'dn'}">${up?'▲':'▼'} ${sgn(G.ch)} <span class="muted">24h · vol ${G.vol}</span></div>
+    </div>
+    <div class="bigchart">${chartSVG(G.spark,900,320,up,'kng')}</div>
+    <div class="ticker">${ticker}</div>`;
+})();
+
+/* B editorial */
+(function(){ const up=G.ch>=0;
+  const rows=[...COINS].sort((a,b)=>a.rank-b.rank).map(c=>`<div class="mrow">
+     <span class="rk">${String(c.rank).padStart(2,'0')}</span>
+     <span class="nm">${c.nm}<small>${c.tk}</small></span>
+     <span class="pr">${c.pr}</span>
+     <span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span></div>`).join('');
+  document.getElementById('mag').innerHTML=`
+    <div class="masthead"><div class="t">Markets</div><div class="meta">Thursday · Jul 24<br>Total cap $2.41T · ▲3.1%</div></div>
+    <div class="kick">Featured · Native token</div>
+    <div class="feature">
+      <div><div class="lead">GENIUS <span class="accent">AI</span> leads the desk, up 8.1% on rising volume.</div>
+        <div class="dek">The native token outpaced every large cap today, its best 7-day stretch this quarter as momentum broadened across AI names.</div>
+        <div class="fstats"><div class="s"><div class="l">Price</div><div class="v">${G.pr}</div></div>
+          <div class="s"><div class="l">Rank</div><div class="v">#${G.rank}</div></div>
+          <div class="s"><div class="l">ATH gap</div><div class="v dn">${G.ath}%</div></div></div></div>
+      <div class="fchart">${chartSVG(G.spark,520,210,up,'magg')}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="grid">${rows}</div>`;
+})();
+
+/* C luxury glass */
+(function(){ const up=G.ch>=0;
+  const rows=[...COINS].sort((a,b)=>a.rank-b.rank).map(c=>`<div class="lrow">
+     <span class="nm">${c.nm}<small>${c.tk}</small></span>
+     <span class="pr">${c.pr}</span>
+     <span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span></div>`).join('');
+  document.getElementById('lux').innerHTML=`<div class="aur"></div>
+    <div class="inner">
+      <div class="glass hero">
+        <div class="who"><div class="mk"></div><div><div class="nm">${G.nm}</div><div class="sy">${G.tk} · rank #${G.rank}</div></div><span class="badge">Native</span></div>
+        <div class="price">${G.pr}</div>
+        <div class="chg ${up?'up':'dn'}">${up?'▲':'▼'} ${sgn(G.ch)} <span style="color:var(--text-secondary);font-weight:500">· 24h</span></div>
+        <div class="chart">${chartSVG(G.spark,560,170,up,'luxg')}</div>
+        <div class="stats">
+          <div class="st"><div class="l">Mkt cap</div><div class="v">$${G.mc}B</div></div>
+          <div class="st"><div class="l">Volume</div><div class="v">${G.vol}</div></div>
+          <div class="st"><div class="l">Rank</div><div class="v">#${G.rank}</div></div>
+          <div class="st"><div class="l">ATH gap</div><div class="v dn">${G.ath}%</div></div></div>
+      </div>
+      <div class="glass pulse">
+        <div class="l">Market pulse</div>
+        <div class="big">Market is <span class="rise">risk-on</span></div>
+        <div class="track"><div class="g" style="width:62%"></div><div class="r" style="width:38%"></div></div>
+        <div class="cap"><span class="up">62% advancing</span><span class="dn">38% declining</span></div>
+      </div>
+      <div class="glass lst">${rows}</div>
+    </div>`;
+})();
+
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  ['a','b','c'].forEach(v=>document.getElementById('v'+v).classList.toggle('on',v===b.dataset.v)); });
+</script>
+</body>
+</html>

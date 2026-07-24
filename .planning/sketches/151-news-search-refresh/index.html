@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>151 · News — search + refresh (header pair)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-8) var(--space-10); }
+  .wrap { max-width:1120px; margin:0 auto; }
+
+  /* sketch toolbar (house style, 031) */
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  .verdict { font:400 13px/20px var(--font); color:var(--text-secondary); margin:0 0 var(--space-8); max-width:960px; } .verdict b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+  svg{ width:20px; height:20px; }
+
+  /* variant block */
+  .variant { margin:0 0 var(--space-16); }
+  .vhead { display:flex; align-items:baseline; gap:12px; margin:0 0 var(--space-6); }
+  .vhead .vid { font:700 11px/1 var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-secondary); background:var(--surface-menu); padding:5px 8px; border-radius:5px; }
+  .vhead .vname { font:600 18px/24px var(--font); letter-spacing:-.3px; }
+  .vhead .bold { margin-left:auto; font:700 10px/1 var(--font); letter-spacing:.6px; text-transform:uppercase; padding:5px 8px; border-radius:5px; }
+  .bold.safe { background:var(--surface-menu); color:var(--text-secondary); }
+  .bold.med  { background:var(--brand-fill); color:var(--brand-primary-strong); } [data-theme="dark"] .bold.med{ color:var(--brand-secondary); }
+  .bold.hi   { background:var(--status-success-fill); color:var(--status-success); }
+  .bold.top  { background:rgba(194,143,255,.16); color:var(--brand-tertiary); }
+
+  .vnote { font:400 13px/20px var(--font); color:var(--text-secondary); margin:var(--space-6) 0 0; max-width:960px; }
+  .vnote b { color:var(--text-primary); }
+  .vnote .pro::before{ content:'▲ '; color:var(--status-success); } .vnote .con::before{ content:'▼ '; color:var(--text-secondary); }
+
+  /* app viewport — makes each mock read as the real News page region, 1:1 */
+  .viewport { background:var(--surface-base); border:1px solid var(--border-subtle); border-radius:14px; padding:24px 24px 28px; }
+  .viewport .pagepad { max-width:1000px; }
+
+  .title { font:600 24px/30px var(--font); letter-spacing:-.4px; }
+
+  /* --- shared search field (real GWSearchField: filled, radius-lg 15px, gradient CTA ring on focus) --- */
+  .field { position:relative; display:flex; align-items:center; gap:10px; height:48px; padding:0 12px 0 14px;
+           background:var(--surface-menu); border-radius:15px; color:var(--text-secondary);
+           border:1px solid var(--border-subtle); transition:border-color .12s; }
+  .field:focus-within { border-color:transparent; box-shadow:0 0 0 2px transparent; }
+  /* gradient ring on focus — mirrors GeniusWalletGradient.brandCta (0AD89C→0AAEE6) */
+  .field.grad { border:0; padding:0; background:var(--border-subtle); border-radius:15px; }
+  .field.grad .inner { display:flex; align-items:center; gap:10px; height:100%; width:100%; margin:1px; padding:0 12px 0 13px; background:var(--surface-menu); border-radius:14px; transition:margin .12s; }
+  .field.grad:focus-within { background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .field.grad:focus-within .inner { margin:2px; }
+  .field .sico { color:var(--text-secondary); flex:none; }
+  .field input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--text-primary); font:400 16px/24px var(--font); }
+  .field input::placeholder { color:var(--text-secondary); }
+  .field .clear { flex:none; width:28px; height:28px; border:0; border-radius:8px; background:transparent; color:var(--text-secondary); cursor:pointer; display:grid; place-items:center; }
+  .field .clear:hover { background:var(--surface-sunken); }
+  .field .clear svg{ width:18px; height:18px; }
+
+  /* --- refresh atoms --- */
+  .rf-icon { flex:none; width:36px; height:36px; border-radius:12px; display:grid; place-items:center; border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-secondary); cursor:pointer; transition:transform .12s, background .12s, border-color .12s; }
+  .rf-icon:hover { background:var(--surface-elevated); border-color:var(--border-strong); transform:translateY(-1px); }
+  .rf-icon svg{ width:18px; height:18px; }
+  .spin svg{ animation:spin .6s linear; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .stamp { font:400 14px/20px var(--font); color:var(--text-secondary); white-space:nowrap; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--status-success); flex:none; box-shadow:0 0 0 0 var(--status-success-fill); }
+  .dot.live { animation:pulse 2.4s ease-out infinite; }
+  @keyframes pulse { 0%{ box-shadow:0 0 0 0 rgba(10,216,156,.45);} 70%{ box-shadow:0 0 0 6px rgba(10,216,156,0);} 100%{ box-shadow:0 0 0 0 rgba(10,216,156,0);} }
+
+  /* layout helpers */
+  .row { display:flex; align-items:center; gap:14px; }
+  .grow { flex:1; min-width:0; }
+  .mt8 { margin-top:16px; } .mt6 { margin-top:12px; }
+
+  /* Variant C — refresh docked INSIDE the field */
+  .field .divider { width:1px; height:22px; background:var(--border-subtle); flex:none; }
+  .field .dockrf { flex:none; display:inline-flex; align-items:center; gap:7px; padding:0 4px 0 2px; cursor:pointer; color:var(--text-secondary); }
+  .field .dockrf .rico { width:32px; height:32px; border-radius:9px; display:grid; place-items:center; }
+  .field .dockrf:hover .rico { background:var(--surface-sunken); }
+  .field .dockrf .rico svg{ width:17px; height:17px; }
+  .field .dockrf .agc { font:600 13px/18px var(--font); color:var(--status-success); }
+
+  /* Variant D — one command bar (gradient hairline, elevated) */
+  .cmd { display:flex; align-items:center; gap:0; padding:2px; border-radius:16px; background:var(--border-subtle); }
+  .cmd:focus-within { background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .cmd .cinner { display:flex; align-items:center; gap:12px; width:100%; height:52px; padding:0 8px 0 16px; background:var(--surface-elevated); border-radius:14px; box-shadow:var(--shadow-card); }
+  .cmd input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--text-primary); font:400 16px/24px var(--font); }
+  .cmd input::placeholder { color:var(--text-secondary); }
+  .cmd .status { flex:none; display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:var(--radius-pill); background:var(--status-success-fill); color:var(--status-success); font:600 13px/18px var(--font); }
+  .cmd .cdiv { width:1px; height:26px; background:var(--border-subtle); flex:none; }
+  .cmd .cclear { flex:none; width:32px; height:32px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; display:grid; place-items:center; }
+  .cmd .cclear:hover { background:var(--surface-menu); }
+  .cmd .crf { flex:none; width:40px; height:40px; border-radius:11px; display:grid; place-items:center; border:0; background:var(--surface-menu); color:var(--text-primary); cursor:pointer; transition:background .12s; }
+  .cmd .crf:hover { background:var(--surface-sunken); }
+  .cmd .crf.spin svg{ animation:spin .6s linear; }
+
+  /* Variant B — search grows, refresh pill docked right on the SAME line */
+  .rf-pill { flex:none; display:inline-flex; align-items:center; gap:9px; height:48px; padding:0 6px 0 14px; border-radius:15px; border:1px solid var(--border-subtle); background:var(--surface-menu); cursor:pointer; }
+  .rf-pill:hover { border-color:var(--border-strong); background:var(--surface-elevated); }
+  .rf-pill .rf-inner { width:36px; height:36px; border-radius:11px; display:grid; place-items:center; color:var(--text-secondary); }
+  .rf-pill:hover .rf-inner { color:var(--text-primary); }
+
+  .legend { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:10px; }
+  .legend b { color:var(--text-primary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="toolbar"><h1>151 · News — search + refresh (header pair)</h1>
+  <div class="seg" id="tsel"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button></div></div>
+
+<p class="verdict">Both controls are <b>real &amp; wired</b> (<code>crypto_news_screen.dart</code>): search is a debounced local
+  filter (<code>GWSearchField</code>, gradient focus ring), refresh re-fetches and stamps <code>Updated Xm ago</code>. So this
+  is a <b>re-skin, not a rebuild</b> — every variant keeps the search input, the clear ✕, and a refresh action that shows staleness.
+  What changes is <b>where the pair lives</b>. Sketch 031 shipped them <i>split</i> (search full-width, refresh top-right); these
+  4 compose them together. All at 1:1. <b>Click a field to see the gradient focus ring; click ⟳ to spin + reset the stamp.</b>
+  Toggle Dark/Light top-right.</p>
+
+<!-- ===================== A — polished split (safe) ===================== -->
+<div class="variant">
+  <div class="vhead"><span class="vid">A</span><span class="vname">Polished split — today's layout, cleaned up</span><span class="bold safe">Safe · least code</span></div>
+  <div class="viewport"><div class="pagepad">
+    <div class="row">
+      <span class="title">Crypto News</span>
+      <span class="grow"></span>
+      <span class="row" style="gap:9px"><span class="dot"></span><span class="stamp" data-stamp>Updated 3m ago</span>
+        <span class="rf-icon" data-rf>${refresh}</span></span>
+    </div>
+    <div class="mt8">
+      <label class="field grad"><span class="inner"><span class="sico">${search}</span>
+        <input placeholder="Search headlines"><button class="clear" tabindex="-1">${x}</button></span></label>
+    </div>
+  </div></div>
+  <p class="vnote"><span class="pro">Keeps the exact structure the code already has — <code>GWPageHeader.trailing</code> + <code>GWSearchField</code> below. Ships as a pure style pass.</span><br>
+    <span class="pro">Adds a small freshness <b>dot</b> so "Updated" reads as a live signal, not just grey text.</span><br>
+    <span class="con">Doesn't solve the thing you pointed at — the two controls still sit in two different places on the page.</span></p>
+</div>
+
+<!-- ===================== B — one toolbar line (medium) ===================== -->
+<div class="variant">
+  <div class="vhead"><span class="vid">B</span><span class="vname">One toolbar line — search grows, refresh docked right</span><span class="bold med">Medium</span></div>
+  <div class="viewport"><div class="pagepad">
+    <div class="row"><span class="title">Crypto News</span><span class="grow"></span>
+      <span class="row" style="gap:8px"><span class="dot"></span><span class="stamp" data-stamp>Updated 3m ago</span></span></div>
+    <div class="row mt8">
+      <label class="field grad grow"><span class="inner"><span class="sico">${search}</span>
+        <input placeholder="Search headlines"><button class="clear" tabindex="-1">${x}</button></span></label>
+      <span class="rf-pill" data-rf><span class="stamp">Refresh</span><span class="rf-inner">${refresh}</span></span>
+    </div>
+  </div></div>
+  <p class="vnote"><span class="pro">Search + refresh share <b>one horizontal band</b> — they read as a pair, and the pair aligns to the content edge. The staleness stamp sits by the title where the eye lands first.</span><br>
+    <span class="pro">Still two independent widgets, so the code stays a simple <code>Row</code> — low risk.</span><br>
+    <span class="con">The refresh pill widens the row; on a narrow window it may need to drop below.</span></p>
+</div>
+
+<!-- ===================== C — refresh docked in the field (bold) ===================== -->
+<div class="variant">
+  <div class="vhead"><span class="vid">C</span><span class="vname">Docked — refresh + freshness live inside the search bar</span><span class="bold hi">Bold · one unit</span></div>
+  <div class="viewport"><div class="pagepad">
+    <div class="row"><span class="title">Crypto News</span></div>
+    <div class="mt8">
+      <label class="field grad"><span class="inner"><span class="sico">${search}</span>
+        <input placeholder="Search headlines"><button class="clear" tabindex="-1">${x}</button>
+        <span class="divider"></span>
+        <span class="dockrf" data-rf><span class="agc" data-stamp>3m</span><span class="rico">${refresh}</span></span></span></label>
+    </div>
+  </div></div>
+  <p class="vnote"><span class="pro">Truly <b>one control</b>: search left, a hairline divider, then "<b>3m</b> ⟳" — age + refresh in the field's trailing slot. Frees the whole title row.</span><br>
+    <span class="pro">The green age is always in view next to the refresh, so "is it stale?" and "refresh it" are the same glance.</span><br>
+    <span class="con">Densest option — the field now holds search, clear, and refresh. Needs care so ✕ and ⟳ don't crowd on a short input.</span></p>
+</div>
+
+<!-- ===================== D — command bar (boldest) ===================== -->
+<div class="variant">
+  <div class="vhead"><span class="vid">D</span><span class="vname">Command bar — search + live status + refresh, one elevated pill</span><span class="bold top">Boldest</span></div>
+  <div class="viewport"><div class="pagepad">
+    <div class="row" style="margin-bottom:16px"><span class="title">Crypto News</span></div>
+    <div class="cmd">
+      <div class="cinner">
+        <span class="sico" style="color:var(--text-secondary)">${search}</span>
+        <input placeholder="Search headlines">
+        <button class="cclear" tabindex="-1">${x}</button>
+        <span class="status"><span class="dot live"></span><span data-stamp>Updated 3m ago</span></span>
+        <span class="cdiv"></span>
+        <button class="crf" data-rf>${refresh}</button>
+      </div>
+    </div>
+    <p class="legend"><b>Feels like a live feed toolbar.</b> The status chip pulses while fresh; on refresh it flips to "Updating…" then "just now".</p>
+  </div></div>
+  <p class="vnote"><span class="pro">The strongest "one thing": an elevated pill with the brand gradient ring on focus, a <b>live pulsing status</b>, and refresh — reads like a command palette / trading terminal.</span><br>
+    <span class="con">Heaviest to build (custom composite, not <code>GWSearchField</code> as-is) and the most visually loud — may fight the photo-led magazine below it.</span><br>
+    <span class="con">Status chip eats horizontal room; on narrow windows the chip would collapse to just the dot + ⟳.</span></p>
+</div>
+
+<p class="verdict" style="margin-top:var(--space-8)"><b>My read:</b> <b>B</b> is the sweet spot — it fixes exactly what you flagged (the pair now sits together)
+  with almost no new code, and it keeps the staleness stamp up by the title where you glance first. <b>C</b> if you want the tightest, most modern
+  single-control feel and are OK with a denser field. <b>A</b> is the fallback if you decide the split was fine and only wanted a polish.
+  <b>D</b> is there to see how far bold goes — probably too loud above a photo magazine, but the <i>live pulsing dot</i> from it is worth stealing into B or C.
+  Tell me a letter (or "B's layout + D's live dot") and I'll take it to a phase.</p>
+
+</div>
+<script>
+// icon defs injected as template literals above are placeholders; define + hydrate here
+const ICON = {
+  refresh:'<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5"/></svg>',
+  search:'<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>',
+  x:'<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+};
+// swap the literal ${...} tokens the template left in the DOM
+document.body.innerHTML = document.body.innerHTML
+  .replaceAll('${refresh}', ICON.refresh)
+  .replaceAll('${search}', ICON.search)
+  .replaceAll('${x}', ICON.x);
+
+// theme toggle
+document.getElementById('tsel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#tsel button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  document.documentElement.dataset.theme=b.dataset.t;});
+
+// refresh interaction: spin the icon + reset the stamp within the same variant block
+document.querySelectorAll('[data-rf]').forEach(rf=>{
+  rf.addEventListener('click',()=>{
+    rf.classList.remove('spin'); void rf.offsetWidth; rf.classList.add('spin');
+    setTimeout(()=>rf.classList.remove('spin'),650);
+    const stamp = rf.closest('.variant').querySelector('[data-stamp]');
+    if(!stamp) return;
+    const compact = stamp.classList.contains('agc');   // Variant C shows just "3m"
+    stamp.textContent = compact ? '·' : 'Updating…';
+    setTimeout(()=>{ stamp.textContent = compact ? 'now' : 'Updated just now'; }, 700);
+  });
+});
+</script>
+</body>
+</html>

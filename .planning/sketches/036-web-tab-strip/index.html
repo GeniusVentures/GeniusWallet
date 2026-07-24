@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 036 — Web tab · Karty (przełączanie + dodawanie)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+  svg { display: block; }
+
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+  .note { margin-left: auto; color: var(--text-secondary); font-size: 12px; }
+
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: hidden; }
+  .variant { display: none; position: absolute; inset: 0; flex-direction: column; }
+  .variant.active { display: flex; }
+
+  /* ===== navbar (compact, shared) ===== */
+  .navbar { flex: none; height: 60px; display: flex; align-items: center; gap: 16px; padding: 0 20px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .logo { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--brand-cta-b), var(--brand-cta-a)); display: grid; place-items: center; }
+  .logo svg { width: 18px; height: 18px; color: #001018; }
+  .navtabs { display: flex; gap: 2px; }
+  .navtab { padding: 0 11px; height: 40px; display: flex; align-items: center; gap: 6px; border-radius: 10px;
+    color: var(--text-primary-54); font: 500 13px var(--font); position: relative; }
+  .navtab svg { width: 15px; height: 15px; }
+  .navtab.on { color: var(--text-primary); }
+  .navtab.on::after { content:""; position:absolute; left:9px; right:9px; bottom:-10px; height:3px; border-radius:3px;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); box-shadow: 0 0 10px rgba(20,200,255,.55); }
+  .cluster { margin-left: auto; display: flex; gap: 8px; }
+  .cluster .btn-cta { height: 36px; padding: 0 16px; border: none; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); color: #001018; font: 700 12px var(--font); }
+  .cluster .btn-outline { height: 36px; padding: 0 14px; border: 1px solid var(--brand-primary); border-radius: 10px;
+    background: transparent; color: var(--brand-primary); font: 600 12px var(--font); cursor: pointer; }
+
+  /* ===== compact address bar (shared, A-style winner-agnostic) ===== */
+  .addrbar { flex: none; height: 46px; display: flex; align-items: center; gap: 6px; padding: 0 14px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .ico { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: var(--text-primary-70);
+    cursor: pointer; border: none; background: transparent; transition: all .15s ease; }
+  .ico:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .ico svg { width: 16px; height: 16px; }
+  .ico.brand { color: var(--brand-primary); }
+  .ico[disabled] { color: var(--text-primary-38); }
+  .addr-field { flex: 1; height: 34px; border-radius: var(--radius-pill); background: var(--surface-sunken);
+    display: flex; align-items: center; gap: 8px; padding: 0 14px; }
+  .fav { width: 16px; height: 16px; border-radius: 4px; flex: none; display: grid; place-items: center; font-size: 10px; }
+  .lock { width: 12px; height: 12px; color: var(--status-success); }
+  .host { color: var(--text-primary); font: 500 12px var(--font); }
+
+  /* ===== webview stand-in (per active tab site) ===== */
+  .webview { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+  .site { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+  .site h1 { font: 700 26px var(--font); color: #fff; }
+  .site .badge { width: 60px; height: 60px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; }
+  .site .bar { width: min(460px,60%); height: 42px; border-radius: 21px; background: rgba(255,255,255,.08);
+    display: flex; align-items: center; padding: 0 16px; color: rgba(255,255,255,.5); font-size: 14px; }
+
+  /* ==================== A · Stały pasek kart (horizontal strip) ==================== */
+  .stripwrap { flex: none; background: var(--surface-base); border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: flex-end; gap: 4px; padding: 8px 12px 0; overflow-x: auto; }
+  .stab { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px 0 12px; min-width: 150px; max-width: 220px;
+    border-radius: 10px 10px 0 0; background: transparent; color: var(--text-primary-54); cursor: pointer;
+    position: relative; transition: all .15s ease; flex: 0 0 auto; }
+  .stab:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .stab.on { background: var(--surface-elevated); color: var(--text-primary); }
+  .stab.on::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); }
+  .stab .fav { width: 16px; height: 16px; }
+  .stab .ttl { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 500 13px var(--font); }
+  .stab .x { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; color: var(--text-primary-38); flex: none; }
+  .stab .x:hover { background: var(--border-strong); color: var(--text-primary); }
+  .stab .x svg { width: 12px; height: 12px; }
+  .newtab { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; color: var(--text-primary-70);
+    cursor: pointer; flex: none; margin-bottom: 2px; transition: all .15s ease; }
+  .newtab:hover { background: var(--brand-primary-subtle); color: var(--brand-primary); }
+
+  /* ==================== B · Dopracowana nakładka (overlay grid) ==================== */
+  .overlay { position: absolute; inset: 0; z-index: 40; background: var(--surface-base);
+    display: none; flex-direction: column; }
+  .overlay.open { display: flex; }
+  .ov-head { flex: none; height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 24px;
+    border-bottom: 1px solid var(--border-subtle); }
+  .ov-head h2 { font: 600 16px var(--font); color: var(--text-primary); }
+  .ov-head .count { color: var(--brand-primary); background: var(--brand-primary-subtle); border-radius: 11px; padding: 2px 10px; font: 600 12px var(--font); }
+  .ov-head .done { margin-left: auto; }
+  .ov-grid { flex: 1; overflow-y: auto; padding: 24px; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; align-content: start; }
+  .tcard { border-radius: var(--radius-lg); background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+    overflow: hidden; cursor: pointer; transition: all .15s ease; }
+  .tcard:hover { transform: translateY(-3px); border-color: var(--border-strong); box-shadow: var(--shadow-card); }
+  .tcard.on { border-color: var(--brand-primary); box-shadow: 0 0 0 2px var(--brand-primary-subtle); }
+  .tcard .thumb { height: 138px; position: relative; overflow: hidden; }
+  .tcard .thumb .mini { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .tcard .thumb .mini .b { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-size: 18px; }
+  .tcard .thumb .mini .m { width: 60%; height: 18px; border-radius: 9px; background: rgba(255,255,255,.08); }
+  .tcard .foot { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-top: 1px solid var(--border-subtle); }
+  .tcard .foot .fav { width: 18px; height: 18px; }
+  .tcard .foot .ttl { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 500 13px var(--font); color: var(--text-primary); }
+  .tcard .foot .x { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; color: var(--text-primary-54); flex: none; }
+  .tcard .foot .x:hover { background: var(--status-error-fill); color: var(--status-error); }
+  .tcard .foot .x svg { width: 14px; height: 14px; }
+  .newcard { border: 1.5px dashed var(--border-strong); border-radius: var(--radius-lg); min-height: 189px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: var(--text-primary-54); cursor: pointer; transition: all .15s ease; }
+  .newcard:hover { border-color: var(--brand-primary); color: var(--brand-primary); background: var(--brand-primary-subtle); }
+  .newcard .plus { width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; }
+  .newcard .plus svg { width: 22px; height: 22px; }
+  .newcard span { font: 500 13px var(--font); }
+
+  /* the trigger tab-count chip in the address bar */
+  .tabcount { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 6px 0 12px;
+    background: var(--surface-menu); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    color: var(--text-primary); font: 700 12px var(--font); cursor: pointer; transition: all .15s ease; }
+  .tabcount:hover { border-color: var(--brand-primary); }
+  .tabcount .n { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; display: grid; place-items: center;
+    background: var(--brand-primary-subtle); color: var(--brand-primary); font-size: 11px; }
+
+  /* ==================== C · Boczny rail kart (vertical) ==================== */
+  .split { flex: 1; min-height: 0; display: flex; }
+  .rail { flex: none; width: 232px; background: var(--surface-base); border-right: 1px solid var(--border-subtle);
+    display: flex; flex-direction: column; }
+  .rail .rhead { display: flex; align-items: center; gap: 8px; padding: 12px 14px 8px; color: var(--text-secondary);
+    font: 600 11px var(--font); letter-spacing: .08em; text-transform: uppercase; }
+  .rail .rhead .cnt { margin-left: auto; color: var(--brand-primary); background: var(--brand-primary-subtle);
+    border-radius: 9px; padding: 1px 8px; font-size: 11px; }
+  .rail .list { flex: 1; overflow-y: auto; padding: 4px 8px; display: flex; flex-direction: column; gap: 3px; }
+  .rtab { display: flex; align-items: center; gap: 9px; padding: 0 8px 0 10px; height: 40px; border-radius: 10px;
+    color: var(--text-primary-54); cursor: pointer; position: relative; transition: all .15s ease; }
+  .rtab:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .rtab.on { background: var(--surface-elevated); color: var(--text-primary); }
+  .rtab.on::before { content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:3px;
+    background: linear-gradient(180deg, var(--brand-cta-b), var(--brand-cta-a)); }
+  .rtab .fav { width: 17px; height: 17px; }
+  .rtab .ttl { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 500 13px var(--font); }
+  .rtab .x { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: var(--text-primary-38); flex: none; opacity: 0; }
+  .rtab:hover .x { opacity: 1; }
+  .rtab .x:hover { background: var(--border-strong); color: var(--text-primary); }
+  .rtab .x svg { width: 12px; height: 12px; }
+  .rail .radd { margin: 8px; height: 38px; border-radius: 10px; border: 1.5px dashed var(--border-strong);
+    display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-primary-70);
+    font: 500 13px var(--font); cursor: pointer; transition: all .15s ease; }
+  .rail .radd:hover { border-color: var(--brand-primary); color: var(--brand-primary); background: var(--brand-primary-subtle); }
+  .rail .radd svg { width: 15px; height: 15px; }
+  .rpane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  #sketch-tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px system-ui;
+    background: rgba(0,0,0,.7); color: #fff; padding: 8px 12px; border-radius: 8px; opacity: .4; transition: opacity .2s; }
+  #sketch-tools:hover { opacity: 1; }
+  #sketch-tools select { background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; padding: 2px 4px; }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="brand">GSD ▸ 036</span>
+  <span class="sep"></span>
+  <button class="variant-tab active" onclick="show('a', this)">A · Stały pasek kart ★ Wybrany</button>
+  <button class="variant-tab" onclick="show('b', this)">B · Nakładka (siatka)</button>
+  <button class="variant-tab" onclick="show('c', this)">C · Boczny rail</button>
+  <span class="note">Klik kartę = przełącz · × = zamknij · + = nowa karta (DuckDuckGo)</span>
+</div>
+
+<div class="stage">
+  <!-- ============ A ============ -->
+  <section class="variant active" id="v-a">
+    <div class="navbar" data-nav></div>
+    <div class="stripwrap" id="stripA"></div>
+    <div class="addrbar" data-addr></div>
+    <div class="webview" id="webA"></div>
+  </section>
+
+  <!-- ============ B ============ -->
+  <section class="variant" id="v-b">
+    <div class="navbar" data-nav></div>
+    <div class="addrbar" data-addr>
+      <div class="tabcount" onclick="openOverlay()" style="margin-left:6px" title="Karty">
+        <span class="n" id="ovN">4</span>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </div>
+    </div>
+    <div class="webview" id="webB">
+      <div class="overlay" id="overlay">
+        <div class="ov-head">
+          <h2>Karty</h2><span class="count" id="ovCount">4 otwarte</span>
+          <button class="variant-tab active done" onclick="closeOverlay()">Gotowe</button>
+        </div>
+        <div class="ov-grid" id="ovGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ C ============ -->
+  <section class="variant" id="v-c">
+    <div class="navbar" data-nav></div>
+    <div class="split">
+      <aside class="rail">
+        <div class="rhead">Karty <span class="cnt" id="cCnt">4</span></div>
+        <div class="list" id="railC"></div>
+        <div class="radd" onclick="addTab('c')">%PLUS% Nowa karta</div>
+      </aside>
+      <div class="rpane">
+        <div class="addrbar" data-addr></div>
+        <div class="webview" id="webC"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="sketch-tools">
+  <label>Theme
+    <select onchange="document.documentElement.setAttribute('data-theme', this.value)">
+      <option value="dark">dark</option><option value="light">light</option>
+    </select>
+  </label>
+</div>
+
+<template id="tpl-nav">
+  <div class="logo">%BRAIN%</div>
+  <div class="navtabs">
+    <div class="navtab">%I_DASH% Dashboard</div>
+    <div class="navtab">%I_MKT% Markets</div>
+    <div class="navtab">%I_NEWS% News</div>
+    <div class="navtab on">%I_WEB% Web</div>
+    <div class="navtab">%I_SET% Settings</div>
+  </div>
+  <div class="cluster"><button class="btn-outline">Connect</button><button class="btn-cta">Buy GNUS</button></div>
+</template>
+
+<script>
+  const I = {
+    BACK:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+    FWD:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+    RELOAD:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>',
+    PLUS:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    X:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    LOCK:'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    GRIDICO:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+    BRAIN:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a4 4 0 0 0-4 4 3 3 0 0 0-1 5.8V17a3 3 0 0 0 5 2 3 3 0 0 0 5-2v-4.2A3 3 0 0 0 16 7a4 4 0 0 0-4-4z"/></svg>',
+    DASH:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    MKT:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l5-5 3 3 6-7"/></svg>',
+    NEWS:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h6M7 12h10M7 16h10"/></svg>',
+    WEB:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>',
+    SET:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.3 1a7 7 0 0 0-1.7-1L14.5 2h-4l-.4 2.3a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6 11a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.4h4l.4-2.3a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/></svg>'
+  };
+  function hy(s){ return s.replace(/%BACK%/g,I.BACK).replace(/%FWD%/g,I.FWD).replace(/%RELOAD%/g,I.RELOAD)
+    .replace(/%PLUS%/g,I.PLUS).replace(/%X%/g,I.X).replace(/%LOCK%/g,I.LOCK).replace(/%GRIDICO%/g,I.GRIDICO)
+    .replace(/%BRAIN%/g,I.BRAIN).replace(/%I_DASH%/g,I.DASH).replace(/%I_MKT%/g,I.MKT).replace(/%I_NEWS%/g,I.NEWS)
+    .replace(/%I_WEB%/g,I.WEB).replace(/%I_SET%/g,I.SET); }
+
+  // ---- tab model ----
+  let tabs = [
+    { host:'duckduckgo.com', title:'DuckDuckGo — Privacy',   emoji:'🦆', bg:'#de5833', g:'radial-gradient(600px 400px at 50% -10%,#101820,#05090f)' },
+    { host:'app.uniswap.org', title:'Uniswap Interface',      emoji:'🦄', bg:'#ff007a', g:'radial-gradient(600px 400px at 50% -10%,#1a0f22,#07050c)' },
+    { host:'coingecko.com',   title:'CoinGecko — Prices',     emoji:'🦎', bg:'#4bcc00', g:'radial-gradient(600px 400px at 50% -10%,#0d1710,#05090f)' },
+    { host:'etherscan.io',    title:'Etherscan Explorer',     emoji:'🔷', bg:'#21325b', g:'radial-gradient(600px 400px at 50% -10%,#0e1526,#05090f)' },
+  ];
+  let active = 0;
+
+  const navHTML = hy(document.getElementById('tpl-nav').innerHTML);
+  document.querySelectorAll('[data-nav]').forEach(n => n.innerHTML = navHTML);
+
+  function addrHTML(){
+    const t = tabs[active] || tabs[0];
+    return hy(`<button class="ico brand">%BACK%</button><button class="ico" disabled>%FWD%</button>
+      <button class="ico" onclick="spin(this)">%RELOAD%</button>
+      <div class="addr-field"><span class="fav" style="background:${t.bg}">${t.emoji}</span>%LOCK%<span class="host">${t.host}</span></div>`);
+  }
+  function siteHTML(t){
+    return `<div class="site" style="position:absolute;inset:0;background:${t.g}">
+      <div class="badge" style="background:${t.bg}">${t.emoji}</div>
+      <h1>${t.title.split(' —')[0].split(' ')[0]}</h1>
+      <div class="bar">${t.host}</div></div>`;
+  }
+
+  function renderAddrs(){
+    document.querySelectorAll('[data-addr]').forEach(el => {
+      // keep the trigger chip (variant B) if present
+      const trigger = el.querySelector('.tabcount');
+      el.innerHTML = addrHTML();
+      if (trigger) el.appendChild(trigger);
+    });
+  }
+  function renderWebviews(){
+    const t = tabs[active] || tabs[0];
+    ['webA','webC'].forEach(id => { const w=document.getElementById(id); if(w) w.innerHTML = siteHTML(t); });
+    // webB keeps overlay child; set its background site behind overlay
+    const wb = document.getElementById('webB');
+    const ov = document.getElementById('overlay');
+    wb.querySelectorAll('.site').forEach(s=>s.remove());
+    wb.insertAdjacentHTML('afterbegin', siteHTML(t));
+    wb.appendChild(ov);
+  }
+
+  // A — horizontal strip
+  function renderStrip(){
+    const w = document.getElementById('stripA'); w.innerHTML='';
+    tabs.forEach((t,i)=>{
+      const el=document.createElement('div');
+      el.className='stab'+(i===active?' on':'');
+      el.innerHTML=`<span class="fav" style="background:${t.bg}">${t.emoji}</span>
+        <span class="ttl">${t.title}</span>
+        <span class="x" onclick="event.stopPropagation();closeTab(${i})">${I.X}</span>`;
+      el.onclick=()=>select(i);
+      w.appendChild(el);
+    });
+    const add=document.createElement('div'); add.className='newtab'; add.innerHTML=I.PLUS; add.title='Nowa karta';
+    add.onclick=()=>addTab(); w.appendChild(add);
+  }
+  // B — overlay grid
+  function renderGrid(){
+    const g=document.getElementById('ovGrid'); if(!g) return; g.innerHTML='';
+    tabs.forEach((t,i)=>{
+      const c=document.createElement('div'); c.className='tcard'+(i===active?' on':'');
+      c.innerHTML=`<div class="thumb" style="background:${t.g}">
+          <div class="mini"><div class="b" style="background:${t.bg}">${t.emoji}</div><div class="m"></div></div>
+        </div>
+        <div class="foot"><span class="fav" style="background:${t.bg}">${t.emoji}</span>
+          <span class="ttl">${t.title}</span>
+          <span class="x" onclick="event.stopPropagation();closeTab(${i})">${I.X}</span></div>`;
+      c.onclick=()=>{ select(i); closeOverlay(); };
+      g.appendChild(c);
+    });
+    const nc=document.createElement('div'); nc.className='newcard';
+    nc.innerHTML=`<div class="plus">${I.PLUS}</div><span>Nowa karta</span>`;
+    nc.onclick=()=>{ addTab(); };
+    g.appendChild(nc);
+    const n=document.getElementById('ovN'); if(n) n.textContent=tabs.length;
+    const cc=document.getElementById('ovCount'); if(cc) cc.textContent=tabs.length+' otwarte';
+  }
+  // C — vertical rail
+  function renderRail(){
+    const w=document.getElementById('railC'); if(!w) return; w.innerHTML='';
+    tabs.forEach((t,i)=>{
+      const el=document.createElement('div'); el.className='rtab'+(i===active?' on':'');
+      el.innerHTML=`<span class="fav" style="background:${t.bg}">${t.emoji}</span>
+        <span class="ttl">${t.title}</span>
+        <span class="x" onclick="event.stopPropagation();closeTab(${i})">${I.X}</span>`;
+      el.onclick=()=>select(i); w.appendChild(el);
+    });
+    const cc=document.getElementById('cCnt'); if(cc) cc.textContent=tabs.length;
+  }
+
+  function renderAll(){ renderStrip(); renderGrid(); renderRail(); renderAddrs(); renderWebviews(); }
+  function select(i){ active=i; renderAll(); }
+  function closeTab(i){
+    if(tabs.length===1) return;
+    tabs.splice(i,1);
+    if(active>=tabs.length) active=tabs.length-1; else if(i<active) active--;
+    renderAll();
+  }
+  let seed=0;
+  function addTab(which){
+    tabs.push({ host:'duckduckgo.com', title:'Nowa karta', emoji:'🦆', bg:'#de5833',
+      g:'radial-gradient(600px 400px at 50% -10%,#101820,#05090f)' });
+    active=tabs.length-1; renderAll();
+  }
+  function openOverlay(){ document.getElementById('overlay').classList.add('open'); renderGrid(); }
+  function closeOverlay(){ document.getElementById('overlay').classList.remove('open'); }
+  function spin(btn){ const s=btn.querySelector('svg'); s.style.transition='transform .5s ease'; s.style.transform='rotate(360deg)';
+    setTimeout(()=>{s.style.transition='';s.style.transform='';},520); }
+
+  function show(id,btn){
+    document.querySelectorAll('.variant').forEach(v=>v.classList.remove('active'));
+    document.getElementById('v-'+id).classList.add('active');
+    document.querySelectorAll('#variant-nav .variant-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderAll();
+</script>
+</body>
+</html>
