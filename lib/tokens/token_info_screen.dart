@@ -520,12 +520,12 @@ class _MarketDataInfo extends StatelessWidget {
     final TextStyle keyStyle =
         (textTheme.bodySmall ?? const TextStyle()).copyWith(
       color: gw.textSecondary,
-      fontSize: 13,
+      fontSize: 14,
     );
     final TextStyle valStyle =
         (textTheme.bodySmall ?? const TextStyle()).copyWith(
       color: gw.textPrimary,
-      fontSize: 13,
+      fontSize: 14,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
 

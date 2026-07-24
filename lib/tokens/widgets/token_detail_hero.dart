@@ -125,7 +125,7 @@ class _Identity extends StatelessWidget {
                 style: (textTheme.titleLarge ?? const TextStyle()).copyWith(
                   color: colors.textPrimary,
                   fontWeight: FontWeight.w600,
-                  fontSize: 16,
+                  fontSize: 17,
                 ),
               ),
               if (subtitle.isNotEmpty) ...[
@@ -138,6 +138,7 @@ class _Identity extends StatelessWidget {
                     color: colors.textSecondary,
                     letterSpacing: 0.4,
                     fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -185,9 +186,9 @@ class _PriceBlock extends StatelessWidget {
           textAlign: alignEnd ? TextAlign.right : TextAlign.left,
           style: (textTheme.headlineSmall ?? const TextStyle()).copyWith(
             color: colors.textPrimary,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -1,
+            fontSize: 34,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
@@ -237,7 +238,7 @@ class _ChangePill extends StatelessWidget {
         style: (textTheme.bodySmall ?? const TextStyle()).copyWith(
           color: tone,
           fontWeight: FontWeight.w600,
-          fontSize: 11,
+          fontSize: 13,
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
       ),
