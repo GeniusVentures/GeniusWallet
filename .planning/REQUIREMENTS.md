@@ -46,7 +46,7 @@ verified by running the flow.
 - [x] **SCR-01**: Dashboard (balances, holdings, transactions, markets, news) wears the redesign and keeps develop's behavior — pull-to-refresh, error/empty states, poll intervals, accountStatus gating
 - [ ] **SCR-02**: Onboarding (create, import, recovery phrase, verify, legal) wears the redesign and keeps develop's behavior — including the seed-phrase read-only/hide-toggle and no seed logging
 - [ ] **SCR-03**: Token screens (token info, send, receive, address book, market data) wear the redesign
-- [ ] **SCR-04**: Swap (Squid Router) wears the redesign and keeps develop's route/fee/slippage logic
+- [x] **SCR-04**: Swap (Squid Router) wears the redesign and keeps develop's route/fee/slippage logic
 - [ ] **SCR-05**: Banxa (buy, KYC, checkout, order history/details) wears the redesign and keeps develop's rework — including the real KYC redirect URL
 - [ ] **SCR-06**: dApp connectivity (Reown/WalletConnect) wears the redesign and keeps develop's idempotent init guard — an arch-based skip kills WalletConnect on all x64 desktop
 
@@ -174,7 +174,7 @@ Deferred to future milestones.
 | SCR-02 | Phase 6 — Onboarding | ✓ Complete (Phase 6 closed 2026-07-23; fresh-install walk PASSED) |
 | GAP-04 | Phase 6 — Onboarding | ✓ Complete (closed by 06-02, `ba8e412`) |
 | SCR-03 | Phase 7 — Token screens | Pending |
-| SCR-04 | Phase 8 — Swap & bridge | Pending |
+| SCR-04 | Phase 8 — Swap & bridge | Complete |
 | SCR-05 | Phase 9 — Banxa | Pending |
 | GAP-05 | Phase 9 — Banxa | Pending |
 | SCR-06 | Phase 10 — dApp connectivity | Pending |

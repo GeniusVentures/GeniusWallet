@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 07
 current_phase_name: token-screens
 status: executing
-stopped_at: Phase 07 wave 1 executed (07-01 + 07-02 committed, analyze 61); 07-03 human walk is NEXT (blocking)
-last_updated: "2026-07-25T17:37:25.992Z"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-07-25T17:49:21.431Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 07 execution started
 progress:
   total_phases: 19
-  completed_phases: 12
-  total_plans: 60
-  completed_plans: 59
-  percent: 63
+  completed_phases: 13
+  total_plans: 72
+  completed_plans: 67
+  percent: 68
 ---
 
 # Project State
@@ -54,11 +54,11 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 07 (token-screens) — EXECUTING
-Plan: 1 of 3
+Plan: 2 of 3
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
-Status: Executing Phase 07
+Status: Ready to execute
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
 `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
@@ -162,6 +162,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 06-01, 2026-07-21]: **`GWMeshBackground` KEPT on `/landing_screen` in light mode — a live design decision, not a waived assumption.** The plan's Task 3 recipe hardened UI-SPEC §9.1's "if distracting, drop back" into a blocking gate specifically because this component is one of two STATE records as dark-only-by-design (never reads the appearance). The user judged it live in light mode on a genuine fresh-install profile and it read acceptably; the pre-named fallback (drop the mesh, let the wired `scaffoldBackgroundColor` stand) was available and NOT needed. Recorded explicitly so a future reader sees someone actually looked, rather than inheriting the general dark-only finding as a blanket assumption this specific consumer failed.
 - [Phase 06-01, 2026-07-21]: **Walk-driven Rule-1 fix — narrow-width zero-gutter on `wallet_creation_screen.dart` (commit `67e2821`).** `ConstrainedBox(maxWidth: GeniusBreakpoints.small * 2/3)` only binds when the viewport is wider than it; below that, `Center`'s loosened constraints collapse to the raw viewport width and the stretch CTA column ran edge-to-edge with zero gutter. Fixed with `Padding(EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8))` wrapped outside the `ConstrainedBox` (additive gutter; wide-window centring unchanged by construction). Token chosen from real precedent (`submit_logs_screen.dart`'s identical structural shape, `markets_screen.dart`'s page-edge `space8` gutter) rather than invented. Same-class bug confirmed present in `legal_screen.dart` and `select_wallet_type_screen.dart` (06-02's files) — see `.planning/todos/pending/2026-07-21-systemic-mobile-gutter-missing-on-onboarding-breakpoint-cons.md`.
 - [Phase 08-01, 2026-07-25]: **Swap component family re-skinned; RouteDetailsCard's four figures golden-locked before repainting.** `GWPageHeader` gained an additive, nullable `subtitle` (unused by any caller this plan — 08-03 consumes it). `TokenFlipButton` moved from a Material FAB to a 44px brandCta InkWell seam control, `AnimatedRotation`/`onFlip` untouched. `SwapField` re-skinned with the D-07-locked 38px hero amount, a new MAX affordance driving the EXISTING `onChanged` pipeline (no second quote path), and a USD line that is omitted — never zeroed — when `fiatValue()` has no price. `RouteDetailsCard` and `TokenSelectorDrawer` re-skinned; a new `test/squid_router/route_details_card_test.dart` proves the card's derived strings (`1 ETH ~ 0.995 USDT` / `0.5` / `0.51%` / `$0.30`) are unchanged by the paint job, run against the real `mockSquidRoute` constant both before and after — this is ROADMAP criterion 1's automated half (D-18b: the quote is a hardcoded mock, not a live route). `flutter analyze lib` 59 (≤61 baseline); `flutter test` 249/1 (248 baseline + this new test). See `08-01-SUMMARY.md`.
+- [Phase ?]: AI-FAB half stripped from GlobalSwapFabHost port (D-18a); _ready guard and its rationale comment preserved verbatim
 
 ### Pending Todos
 
@@ -274,8 +275,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-24 (redesign-track walk session — executor on `ui-redesign-port`)
-Stopped at: **Phase 12 walk (12-06) APPROVED in dark, closed 6/6** (12-06-SUMMARY written,
+Last session: 2026-07-25T17:49:21.420Z
+Stopped at: Completed 08-02-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -308,7 +309,7 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: .planning/phases/07-token-screens/07-03-PLAN.md
+Resume file: None
 `06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
@@ -375,6 +376,7 @@ Open decisions:
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 05 P01 | ~20min | 2 tasks | 3 files |
+| Phase 08-swap-bridge P02 | 25min | 3 tasks | 3 files |
 
 ### Roadmap Evolution
 
