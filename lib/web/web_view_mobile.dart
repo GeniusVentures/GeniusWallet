@@ -24,6 +24,11 @@ class WebViewMobile extends StatefulWidget {
 class WebViewMobileState extends State<WebViewMobile> {
   final List<WebViewController> _controllers = [];
   final List<String> _tabUrls = [];
+  // Cached per-tab page title. Kept off the render path on purpose: reading it
+  // via FutureBuilder(getTitle()) inline in build re-fired on every setState
+  // (e.g. a hover), flashing "Loading..." across all tabs. Updated once per
+  // page load in onPageFinished instead.
+  final List<String> _tabTitles = [];
 
   int _currentTabIndex = 0;
 
@@ -64,14 +69,23 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   // The omnibox swaps between a static favicon+lock+host row (at rest) and the
-  // editable TextField (on focus). On focus, seed the field with the FULL url
-  // and select-all so the user edits the real address, not the collapsed host.
+  // editable TextField (on focus). On focus, seed the field with the FULL url and
+  // place a COLLAPSED caret at the end.
   void _onUrlFocusChange() {
     if (_urlFocusNode.hasFocus && _tabUrls.isNotEmpty) {
       final full = _tabUrls[_currentTabIndex];
       _urlController.text = full;
-      _urlController.selection =
-          TextSelection(baseOffset: 0, extentOffset: full.length);
+      // Collapsed caret at the end, NOT select-all. This macOS WKWebView ↔
+      // Flutter text-input context cannot process a selection REPLACE — typing
+      // over a selection is silently dropped, while insertion at a collapsed
+      // caret works. Auto-selecting on focus therefore made the bar feel dead.
+      // (2026-07-25, after select-all + post-frame select-all both failed.)
+      _urlController.selection = TextSelection.collapsed(offset: full.length);
+    } else {
+      // At rest the favicon+host cover IS the address display, so keep the
+      // underlying field empty — otherwise its long URL text bleeds through the
+      // cover as faint marks across the field (#4, 2026-07-24).
+      _urlController.clear();
     }
     setState(() {}); // toggle rest-display <-> editable field
   }
@@ -150,9 +164,16 @@ class WebViewMobileState extends State<WebViewMobile> {
         NavigationDelegate(
           onPageStarted: (String loadedUrl) {
             print('[DEBUG] onPageStarted: $loadedUrl');
+            _onNav(controller!, loadedUrl);
+          },
+          onUrlChange: (UrlChange change) {
+            final u = change.url;
+            if (u != null) _onNav(controller!, u);
           },
           onPageFinished: (String loadedUrl) async {
             print('[DEBUG] onPageFinished: $loadedUrl');
+            _onNav(controller!, loadedUrl);
+            _syncTitle(controller!);
             if (!Platform.isMacOS &&
                 url.contains('uniswap.org') &&
                 loadedUrl == 'about:blank') {
@@ -208,6 +229,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       print('[DEBUG] Add controller, set tab index');
       _controllers.add(controller!);
       _tabUrls.add(url);
+      _tabTitles.add(url); // URL as fallback until onPageFinished sets the title
       _currentTabIndex = _controllers.length - 1;
     });
   }
@@ -222,6 +244,42 @@ class WebViewMobileState extends State<WebViewMobile> {
     if (await _controllers[_currentTabIndex].canGoForward()) {
       await _controllers[_currentTabIndex].goForward();
     }
+  }
+
+  // Keep the omnibox honest: the WebView itself drives the address text and the
+  // back/forward enabled-state, not just our explicit _loadUrl/_addNewTab. Any
+  // real navigation (link tap, goBack, goForward, redirect) fires
+  // onUrlChange/onPageStarted/onPageFinished → we resync that tab's URL and
+  // rebuild, so the host label and the canGoBack()/canGoForward() FutureBuilders
+  // re-query instead of freezing on the last typed URL. about:blank is the
+  // internal Uniswap dark-mode shim, never a real destination — skip it.
+  void _onNav(WebViewController c, String url) {
+    if (!mounted || url.isEmpty || url == 'about:blank') return;
+    final i = _controllers.indexOf(c);
+    if (i < 0) return;
+    _tabUrls[i] = url;
+    // NEVER rebuild while the URL bar is being edited. A background nav event
+    // (pages like DuckDuckGo fire onUrlChange freely) rebuilding the focused
+    // TextField mid-keystroke drops the KeyUp and trips HardwareKeyboard's
+    // "physical key already pressed" assert, which silently blocks typing. The
+    // host + arrows refresh on the next natural rebuild (blur / tab switch).
+    if (_urlFocusNode.hasFocus) return;
+    setState(() {});
+  }
+
+  // Refresh a tab's cached title once its page has loaded (title is only ready
+  // at onPageFinished). Setting it here keeps getTitle() OFF the build path.
+  Future<void> _syncTitle(WebViewController c) async {
+    final t = await c.getTitle();
+    if (!mounted) return;
+    final i = _controllers.indexOf(c);
+    if (i < 0 || i >= _tabTitles.length) return;
+    final title = (t == null || t.trim().isEmpty) ? _tabUrls[i] : t;
+    if (_tabTitles[i] == title) return;
+    _tabTitles[i] = title;
+    // Same rule as _onNav: don't rebuild the focused TextField mid-keystroke.
+    if (_urlFocusNode.hasFocus) return;
+    setState(() {});
   }
 
   void _loadUrl() {
@@ -241,19 +299,30 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   void _closeTab(int index) {
-    if (_controllers.length == 1) return;
+    // Closing the ONLY tab resets it to a fresh DuckDuckGo tab rather than
+    // leaving the browser with zero tabs. ponytail: this is a reset, not an
+    // "exit browser" — swap in Navigator.pop() here if a real exit is ever wanted.
+    if (_controllers.length == 1) {
+      _addNewTab("https://www.duckduckgo.com");
+      setState(() {
+        _controllers.removeAt(index);
+        _tabUrls.removeAt(index);
+        _tabTitles.removeAt(index);
+        _currentTabIndex = 0;
+      });
+      return;
+    }
     setState(() {
       _controllers.removeAt(index);
       _tabUrls.removeAt(index);
+      _tabTitles.removeAt(index);
       _currentTabIndex = _currentTabIndex > 0 ? _currentTabIndex - 1 : 0;
-      _urlController.text = _tabUrls[_currentTabIndex];
     });
   }
 
   void _switchTab(int index) {
     setState(() {
       _currentTabIndex = index;
-      _urlController.text = _tabUrls[index];
     });
   }
 
@@ -286,44 +355,59 @@ class WebViewMobileState extends State<WebViewMobile> {
   int? _hoveredTabIndex;
 
   Widget _buildTabStrip() {
-    final canClose = webTabCanClose(_controllers.length);
     return Container(
       height: 46,
       color: GeniusWalletColors.deepBlueCardColor,
+      // space6 matches the omnibox bar below so the first tab's left edge lines
+      // up with the omnibox field's left edge.
       padding: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space4,
+        horizontal: GeniusWalletConsts.space6,
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _controllers.length,
-              separatorBuilder: (_, _) =>
+      // Brave-style: tabs scroll left-aligned and the "+" rides as the LAST list
+      // item, right after the final tab (not pinned to the far edge), fronted by a
+      // light vertical separator. Overflow still scrolls horizontally.
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _controllers.length + 1,
+        separatorBuilder: (_, _) =>
+            const SizedBox(width: GeniusWalletConsts.space2),
+        itemBuilder: (context, index) {
+          if (index == _controllers.length) {
+            return Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 1,
+                    height: 20,
+                    color: GeniusWalletColors.borderSubtle,
+                  ),
                   const SizedBox(width: GeniusWalletConsts.space2),
-              itemBuilder: (context, index) =>
-                  Center(child: _buildTabChip(index, canClose)),
-            ),
-          ),
-          const SizedBox(width: GeniusWalletConsts.space2),
-          IconButton(
-            icon: Icon(
-              Icons.add,
-              size: 20,
-              color: GeniusWalletColors.textPrimary,
-            ),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            padding: EdgeInsets.zero,
-            splashRadius: 18,
-            tooltip: 'New tab',
-            onPressed: () => _addNewTab("https://www.duckduckgo.com"),
-          ),
-        ],
+                  IconButton(
+                    icon: Icon(
+                      Icons.add,
+                      size: 20,
+                      color: GeniusWalletColors.textPrimary,
+                    ),
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                    padding: EdgeInsets.zero,
+                    splashRadius: 18,
+                    tooltip: 'New tab',
+                    onPressed: () =>
+                        _addNewTab("https://www.duckduckgo.com"),
+                  ),
+                ],
+              ),
+            );
+          }
+          return _buildTabChip(index);
+        },
       ),
     );
   }
 
-  Widget _buildTabChip(int index, bool canClose) {
+  Widget _buildTabChip(int index) {
     final active = index == _currentTabIndex;
     final hovered = index == _hoveredTabIndex;
     final labelColor = active
@@ -337,108 +421,105 @@ class WebViewMobileState extends State<WebViewMobile> {
       child: GestureDetector(
       onTap: () => _switchTab(index),
       child: Container(
-        height: 34,
-        // ~1/3 shorter than the old 190 cap (Jakub 2026-07-24).
-        constraints: const BoxConstraints(maxWidth: 128),
+        width: 168,
+        height: 30,
+        // FIXED width pins the close-× to the right edge. height 30 + 8+8 vertical
+        // margin = 46 (the strip height), so the chip is centered by CONSTRUCTION
+        // regardless of how the ListView constrains item cross-axis height.
+        margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: active
               ? GeniusWalletColors.surfaceElevated
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
           border: Border.all(
             color: active
                 ? Colors.transparent
                 : GeniusWalletColors.borderSubtle,
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        // Stack: content vertically centered in the band; the active underline
+        // is OVERLAID at the bottom edge so it never pushes the content upward.
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: GeniusWalletConsts.space4,
-                  right: GeniusWalletConsts.space2,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.network(
-                      _getFaviconUrl(_tabUrls[index]),
-                      width: 16,
-                      height: 16,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.language,
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space4,
+              ),
+              child: Row(
+                children: [
+                  Image.network(
+                    _getFaviconUrl(_tabUrls[index]),
+                    width: 19,
+                    height: 19,
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      Icons.language,
+                      color: labelColor,
+                      size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: GeniusWalletConsts.space2),
+                  Expanded(
+                    child: Text(
+                      _tabTitles[index],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
                         color: labelColor,
-                        size: 16,
+                        fontSize: 16,
+                        fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                       ),
                     ),
+                  ),
+                  // Close (D-06): hover-only, pinned to the chip's RIGHT edge
+                  // (Expanded title pushes it there); lights up as the target.
+                  if (hovered) ...[
                     const SizedBox(width: GeniusWalletConsts.space2),
-                    Flexible(
-                      child: FutureBuilder<String?>(
-                        future: _controllers[index].getTitle(),
-                        builder: (context, snapshot) {
-                          final title = snapshot.connectionState ==
-                                  ConnectionState.waiting
-                              ? "Loading..."
-                              : (snapshot.data ?? _tabUrls[index]);
-                          return Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: labelColor,
-                              fontSize: 13,
-                              fontWeight:
-                                  active ? FontWeight.w600 : FontWeight.w400,
-                            ),
-                          );
-                        },
+                    InkWell(
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.radiusXs,
+                      ),
+                      onTap: () => _closeTab(index),
+                      child: Container(
+                        padding: const EdgeInsets.all(1),
+                        decoration: BoxDecoration(
+                          color: GeniusWalletColors.surfaceElevated,
+                          borderRadius: BorderRadius.circular(
+                            GeniusWalletConsts.radiusXs,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 17,
+                          color: GeniusWalletColors.textPrimary,
+                        ),
                       ),
                     ),
-                    // Close affordance (D-06 last-tab-locked): shown ONLY on
-                    // hover, right-aligned at the chip's trailing edge, and it
-                    // lights up (surfaceElevated pill + bright glyph) so it reads
-                    // as the live target. The lone tab never gets one.
-                    if (canClose && hovered) ...[
-                      const SizedBox(width: GeniusWalletConsts.space2),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(
-                          GeniusWalletConsts.radiusXs,
-                        ),
-                        onTap: () => _closeTab(index),
-                        child: Container(
-                          padding: const EdgeInsets.all(1),
-                          decoration: BoxDecoration(
-                            color: GeniusWalletColors.surfaceElevated,
-                            borderRadius: BorderRadius.circular(
-                              GeniusWalletConsts.radiusXs,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.close,
-                            size: 14,
-                            color: GeniusWalletColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
             ),
-            // Active mark reuses the navbar language (D-05): a 2px brandCta
-            // gradient underline under the active chip; inactive draws nothing.
-            Container(
-              height: 2,
-              decoration: BoxDecoration(
-                gradient: active ? _activeUnderlineGradient() : null,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(GeniusWalletConsts.radiusSm),
-                  bottomRight: Radius.circular(GeniusWalletConsts.radiusSm),
+            // Active mark (D-05): 2px brandCta gradient underline overlaid on
+            // the bottom edge.
+            if (active)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  height: 2,
+                  decoration: BoxDecoration(
+                    gradient: _activeUnderlineGradient(),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft:
+                          Radius.circular(GeniusWalletConsts.radiusMd),
+                      bottomRight:
+                          Radius.circular(GeniusWalletConsts.radiusMd),
+                    ),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -463,50 +544,16 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   // 035-B unified omnibox toolbar (~54px): one cohesive field — back/forward
   // nested into the LEFT edge, favicon + https lock + host in the middle (or the
-  // editable URL when focused), refresh at the RIGHT edge — plus a `⋯` overflow
-  // affordance OUTSIDE the field. Chrome only: submit still routes through
-  // _loadUrl and no navigation mechanic changed.
+  // editable URL when focused), refresh at the RIGHT edge. Chrome only: submit
+  // still routes through _loadUrl and no navigation mechanic changed.
   Widget _buildSearchBar() {
-    final includeBackButton = widget.includeBackButton ?? false;
     return Container(
       color: GeniusWalletColors.deepBlueCardColor,
       padding: const EdgeInsets.symmetric(
         horizontal: GeniusWalletConsts.space6,
         vertical: GeniusWalletConsts.space4,
       ),
-      child: Row(
-        children: [
-          if (includeBackButton) ...[
-            InkWell(
-              borderRadius:
-                  BorderRadius.circular(GeniusWalletConsts.radiusXs),
-              onTap: () => Navigator.of(context).pop(),
-              child: Icon(
-                Icons.cancel,
-                size: 20,
-                color: GeniusWalletColors.textPrimary60,
-              ),
-            ),
-            const SizedBox(width: GeniusWalletConsts.space4),
-          ],
-          Expanded(child: _buildOmniboxField()),
-          const SizedBox(width: GeniusWalletConsts.space4),
-          // ponytail: `⋯` is a placeholder affordance only. This phase is a
-          // chrome re-skin (D-09) — no history/bookmarks feature — so it stays
-          // a no-op until a future phase gives it real menu entries.
-          IconButton(
-            icon: Icon(
-              Icons.more_horiz,
-              size: 20,
-              color: GeniusWalletColors.textPrimary60,
-            ),
-            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-            padding: EdgeInsets.zero,
-            splashRadius: 18,
-            onPressed: () {},
-          ),
-        ],
-      ),
+      child: _buildOmniboxField(),
     );
   }
 
@@ -517,24 +564,15 @@ class WebViewMobileState extends State<WebViewMobile> {
         : widget.url;
     return Container(
       height: 40,
+      // The outer field stays neutral on focus — only the inner text area lights
+      // up (see _buildOmniboxCenter). Jakub: highlight the inner, not the bar.
       decoration: BoxDecoration(
         color: GeniusWalletColors.surfaceSunken,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
         border: Border.all(
-          color: editing
-              ? GeniusWalletColors.brandPrimary
-              : GeniusWalletColors.borderSubtle,
-          width: editing ? 2 : 1,
+          color: GeniusWalletColors.borderSubtle,
+          width: 1,
         ),
-        boxShadow: editing
-            ? [
-                BoxShadow(
-                  color: GeniusWalletColors.brandPrimarySubtle,
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ]
-            : null,
       ),
       child: Row(
         children: [
@@ -605,9 +643,24 @@ class WebViewMobileState extends State<WebViewMobile> {
   Widget _buildOmniboxCenter(bool editing, String currentUrl) {
     final secure = webIsSecure(currentUrl);
     final host = webDisplayHost(currentUrl);
-    return Stack(
-      alignment: Alignment.centerLeft,
-      children: [
+    return Container(
+      // Focus highlight lives HERE — the inner text area — not on the whole bar
+      // (Jakub: highlight the inner, not the outer bar).
+      decoration: editing
+          ? BoxDecoration(
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+              border: Border.all(
+                color: GeniusWalletColors.brandPrimary,
+                width: 1.5,
+              ),
+            )
+          : null,
+      child: Stack(
+        alignment: Alignment.centerLeft,
+        children: [
+        // The field is kept EMPTY at rest (cleared on blur in _onUrlFocusChange),
+        // so there is nothing to bleed through the host cover (#4) — no Opacity
+        // wrapper, which on macOS interfered with the text-input connection.
         TextField(
           controller: _urlController,
           focusNode: _urlFocusNode,
@@ -671,6 +724,7 @@ class WebViewMobileState extends State<WebViewMobile> {
             ),
           ),
       ],
+        ),
     );
   }
 
