@@ -139,6 +139,31 @@ surfacing the bridge entry (see Deferred Ideas).
   Accept the cost knowingly: the receipt's type badge will not read "bridge". That was weighed
   against a schema change and the schema change lost.
 
+### Receipt fee row (added 2026-07-25, post-planning)
+- **D-20:** **AUTHORIZED — one guarded condition in `lib/dashboard/home/widgets/transaction_displays.dart`.**
+  UI-SPEC says "no copy changes authorized" for the 031-B receipt; this is an explicit, scoped
+  exception Braian approved on 2026-07-25, because routing swap/bridge through the shared receipt
+  would otherwise print a **false** fee.
+  **The fix:** set `fees: ''` on both the swap and bridge paths, and guard the fee row on
+  `tx.fees.trim().isNotEmpty`. This honours the function's OWN existing skip-empty contract — the
+  neighbouring `add('Rate', tx.exchangeRate ?? '')` (`:464`) already depends on it. Add a test
+  asserting existing non-blank-fee behaviour is unchanged. Suppressing a row is correct here;
+  printing a wrong number is not.
+  **Root causes, recorded here rather than as separate todos (Braian declined extra backlog items) —
+  the guard HIDES these, it does not fix them:**
+  1. **Swap stores the pay amount as the fee.** `lib/squid_router/swap_screen.dart:366` sets
+     `fees: fromAmount`. The retired `SwapSuccessDrawer` never rendered a fee, so this was invisible;
+     031-B would newly print "Network Fee: 1 ETH" where 1 ETH is what the user pays. Changing that one
+     persisted `String` is not a schema change, and `txRowContent` does not read `fees` for the swap
+     type, so the Transactions list is unaffected.
+  2. **Bridge's gas figure is a price, mislabelled as a cost.** `genius_api.getBrigeOutGasCost`
+     returns `"<N> Gwei"` (from `getGasPriceInGwei`) with no gas-limit multiplication, in the SOURCE
+     chain's native token, displayed on develop under "Estimated Gas Cost". A real cost is mechanics
+     → out of scope for a re-skin (D-11). Plans preserve the value and record the inaccuracy. One
+     deliberate deviation: develop prints a literal `0` when unknown; plans show an em dash, because
+     "0" reads as a free bridge.
+  If either root cause is ever fixed properly, revisit this guard — it may become unnecessary.
+
 ### Cross-cutting project rules
 - **D-15:** WCAG AA contrast in **both** light and dark modes and in **all** states, including
   disabled — disabled states must stay visibly distinct. This is a hard project rule, not a
