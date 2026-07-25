@@ -383,14 +383,14 @@ outright if the zoom/pan controls are removed when real timeframe ranges are wir
   4. A bridge result shows its success/error toast alongside the result dialog (finding 28)
   5. `GlobalSwapFabHost` is mounted and the app starts with no `!_dirty` red screen when the initial route resolves mid-mount — the `7a63b4f` carry from Phase 4 lands here (NAV-02)
 
-**Plans**: 7 plans
+**Plans**: 1/7 plans executed
 **UI hint**: yes
 **Findings**: 21, 22, 28.
 **Carries (accepted 2026-07-25)**: `7a63b4f` (`!_dirty` guard + `GlobalSwapFabHost`) — deferred out of Phase 4 "to the swap-FAB phase"; Phase 8 is that phase and now owns it explicitly (criterion 5). **This is a PORT, not a build:** `lib/components/overlay/global_swap_fab_host.dart` (143 lines, with the fix already applied) exists on branch `ui-redesign-3.514-develop` at `7a63b4f` and is absent on `ui-redesign-port`. Port it and preserve the `if (!_ready) return;` guard and its comment verbatim — that comment records why the obvious `schedulerPhase` check does NOT catch the startup case (initial mount runs under `attachRootWidget`, phase `idle` not `persistentCallbacks`). See `lib/components/splash.dart:57` for the live trace of the same condition.
 
 Plans:
 
-- [ ] 08-01-PLAN.md — Swap-family primitives: page-header subtitle, SwapField (38px/MAX/USD), seam flip control, paint-only route card + golden figure test (criterion 1)
+- [x] 08-01-PLAN.md — Swap-family primitives: page-header subtitle, SwapField (38px/MAX/USD), seam flip control, paint-only route card + golden figure test (criterion 1)
 - [ ] 08-02-PLAN.md — `GlobalSwapFabHost` port from `7a63b4f` (AI-FAB half stripped) + mount in main.dart + `_ready`-gate test (criterion 5)
 - [ ] 08-03-PLAN.md — Swap tab to sketch 105 A1, unit-tested CTA ladder, D-09 route-error state (criterion 2)
 - [ ] 08-04-PLAN.md — Bridge screen to sketch 120 B1 (swap-twin) with every on-chain argument preserved
@@ -853,9 +853,11 @@ Plans:
 **Goal:** Re-skin the in-app browser (Web tab) chrome to sketch **037-B** — the consolidated winner of
 **035-B** (unified omnibox toolbar) + **036-A** (always-visible horizontal tab strip). Replace the two
 crude pieces the tab renders today:
+
 - **`_buildSearchBar`** — a full-width unstyled strip bolted under the redesigned navbar → becomes a
   single omnibox toolbar: back/forward nested into the field's left edge, favicon + secure lock + host,
   refresh at the right edge, ⋯ menu alongside. Brand focus ring on focus.
+
 - **`_buildTabManager` + the `1` counter** — a full-screen manager of upside-down thumbnails
   (`Matrix4.rotationX(pi)` bug) → becomes an always-visible horizontal tab strip: favicon + title + ×,
   active tab = surface-elevated + 2px brand underline (the navbar's active mark), `+` adds a DuckDuckGo tab.
