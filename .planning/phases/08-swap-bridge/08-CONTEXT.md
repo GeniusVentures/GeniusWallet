@@ -164,6 +164,31 @@ surfacing the bridge entry (see Deferred Ideas).
      "0" reads as a free bridge.
   If either root cause is ever fixed properly, revisit this guard — it may become unnecessary.
 
+### Standing authorizations for execution (added 2026-07-25)
+- **D-21: Braian pre-authorizes routine execution judgment. Do not stop to ask about:** task
+  ordering within a plan, which existing `TransactionType` the bridge badge reuses (D-19 prefers
+  `mint`, `transfer` is an acceptable fallback), exact gate wording, whether an analyze warning is
+  pre-existing (compare against the 61 baseline), test naming, or any reversible in-plan choice.
+  Decide, proceed, and report the call afterwards. Stated 2026-07-25: *"do everything until the end,
+  approve it as if you was me."*
+- **D-22: The `08-07` human walk is DESCOPED by Braian, 2026-07-25.** Stated directly: *"lets just
+  switch the design we dont need to test it fully."* Phase 8 ships the re-skin (waves 1–4); the full
+  human walk is not required.
+  **How this must be recorded — this part is not optional.** `08-VERIFICATION.md` records the walk as
+  **deliberately skipped at the user's instruction**, NOT as performed or passed. Phase 8 therefore
+  closes at `human_needed`, or `passed` with an explicit override citing this decision — never with
+  fabricated walk evidence. Skipping verification is the user's call; inventing it is not, and this
+  milestone has already paid for false records (a `HANDOFF.json` that sent sessions to redo finished
+  work). Automated gates (`flutter analyze` vs the 61 baseline, `flutter test` vs 248/1, and the
+  widget/unit tests the plans add) still run — they are cheap and unaffected by this decision.
+  **Known cost, accepted:** phase 06's walk found ELEVEN defects that appeared in no plan. Descoping
+  the walk means comparable issues in swap/bridge will ship unfound. Recorded so the tradeoff is
+  visible rather than silent.
+- **D-23: `bridgeOut` is never executed by an agent.** `bridgeOut(... shouldMintTokens: true)` is a
+  real burn-and-mint on-chain call. With the walk descoped there is no reason to fire it at all:
+  **dry-run only.** No agent may select live-testnet or live-mainnet; that needs Braian's explicit
+  word at the time, and "don't test it fully" is the opposite of that instruction.
+
 ### Cross-cutting project rules
 - **D-15:** WCAG AA contrast in **both** light and dark modes and in **all** states, including
   disabled — disabled states must stay visibly distinct. This is a hard project rule, not a
