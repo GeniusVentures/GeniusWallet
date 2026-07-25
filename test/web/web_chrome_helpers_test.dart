@@ -33,11 +33,4 @@ void main() {
     test('about:blank is not secure',
         () => expect(webIsSecure('about:blank'), false));
   });
-
-  group('webTabCanClose', () {
-    test('a lone tab cannot be closed',
-        () => expect(webTabCanClose(1), false));
-    test('two or more tabs can be closed',
-        () => expect(webTabCanClose(2), true));
-  });
 }

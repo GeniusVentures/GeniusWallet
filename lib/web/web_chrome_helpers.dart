@@ -1,4 +1,4 @@
-// ponytail: shared pure helpers so the host / https-lock / last-tab logic that
+// ponytail: shared pure helpers so the host / https-lock logic that
 // BOTH omniboxes need is written and tested ONCE. The mobile path uses an async
 // WebViewController and the Windows path a synchronous WebviewController, so the
 // two omnibox *widgets* stay separate on purpose (a shared widget would need
@@ -27,9 +27,3 @@ String webDisplayHost(String url) {
 /// True only when the scheme is `https` — drives whether the omnibox paints the
 /// secure lock glyph. `http`, `about:blank`, and unparseable input are false.
 bool webIsSecure(String url) => Uri.tryParse(url.trim())?.scheme == 'https';
-
-/// The last-tab-locked rule (mirrors the `_controllers.length == 1` guard in
-/// `_closeTab`): the final tab cannot be closed, so its close affordance reads
-/// disabled/absent. Extracted so the rule is testable without a live
-/// WebViewController.
-bool webTabCanClose(int tabCount) => tabCount > 1;
