@@ -122,6 +122,23 @@ surfacing the bridge entry (see Deferred Ideas).
   token or amount — it does not. Criterion 1 verifies that a re-skin didn't disturb a constant, not
   that a live route was fetched.
 
+### Bridge receipt plumbing (added 2026-07-25, post-research)
+- **D-19:** D-04 routes bridge results through `showTransactionDetails()`, which takes a
+  `Transaction` — but `bridge_screen.dart:235` raises a raw `AlertDialog` and never builds one, and
+  `TransactionType` has no `bridge` value (its seven are `transfer, mint, escrow, process,
+  escrowRelease, purchase, swap`).
+  **Decision: synthesize a `Transaction` for display and REUSE an existing `TransactionType`.**
+  **Do NOT add `TransactionType.bridge`, and do NOT touch anything under `packages/`.** That enum is
+  Hive-persisted with explicit `@HiveField` indices, so a new value is a persisted-schema change —
+  out of bounds for a re-skin phase, and this wallet has already lost a day to persistence-layer
+  surprises.
+  Preference for the reused value: **`mint`** — the destination-chain half of a bridge is literally a
+  mint, and the API call is `bridgeOut(... shouldMintTokens: true)`. Fall back to `transfer` if the
+  rendered badge copy reads wrong in situ; the planner may choose based on how
+  `transaction_utils.dart` maps type → badge. Either way the choice must not require editing the enum.
+  Accept the cost knowingly: the receipt's type badge will not read "bridge". That was weighed
+  against a schema change and the schema change lost.
+
 ### Cross-cutting project rules
 - **D-15:** WCAG AA contrast in **both** light and dark modes and in **all** states, including
   disabled — disabled states must stay visibly distinct. This is a hard project rule, not a
