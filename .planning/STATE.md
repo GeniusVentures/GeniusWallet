@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 07
 current_phase_name: token-screens
 status: executing
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-07-25T18:16:09.955Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-07-25T19:10:00.000Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 07 execution started
 progress:
@@ -33,10 +33,15 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 > - **Official track:** Phase 06 (Onboarding) — **COMPLETE 6/6 (closed 2026-07-23).** Phase 07
 >   (Token screens) EXECUTING, 07-03 human walk still blocking (see below). **Phase 08 (Swap &
 >   bridge) execution started in parallel 2026-07-25: 08-01 (swap component family re-skin, 3/3
->   tasks) committed — `f5518e9`/`3170623`/`08fd30f`; `08-01-SUMMARY.md` written. analyze lib holds
->   at 59 (≤61 baseline); full test 249/1 (248 baseline + 1 new golden test). Plans 08-02..08-07
->   NOT yet executed. D-22 descopes Phase 8's human walk at Braian's instruction — do not expect
->   walk evidence for this phase.**
+>   tasks) committed — `f5518e9`/`3170623`/`08fd30f`; 08-02 (GlobalSwapFabHost port + mount, 3/3
+>   tasks) committed; 08-03 (swap tab assembly, 105 A1, CTA ladder, D-09 route-error state, 3/3
+>   tasks) committed; **08-04 (bridge re-skin, 120 B1 swap-twin, CTA ladder, D-11 mechanics
+>   preserved verbatim, 3/3 tasks) committed — `befe971`/`d3af5ed`/`8c8548f`; `08-04-SUMMARY.md`
+>   written.** analyze lib holds at 59 (≤61 baseline); full test 285/1 (269 baseline + 16 new
+>   bridge_cta_state_test.dart tests). Plans 08-05..08-07 NOT yet executed. D-22 descopes Phase 8's
+>   human walk at Braian's instruction — do not expect walk evidence for this phase. SCR-04 stays
+>   NOT marked complete in REQUIREMENTS.md per 08-04-PLAN.md's explicit instruction — it closes at
+>   phase verification (08-07/08-08), not per-plan.**
 > - **Redesign track:** Phases 12-18 landed in parallel. Committed status: **12 (6/6 ✓ — dark walk
 >   APPROVED 2026-07-24, light deferred; 12-06-SUMMARY written, UNCOMMITTED)**,
 >   **13 — WRAPPED 2026-07-24 as 13-01/02/03 (all plan+SUMMARY done). 13-03 boot walk APPROVED
@@ -166,6 +171,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 08-swap-bridge]: 08-03: CTA colour mapping followed PLAN's literal grouping (enterAmount/findingRoute/submitting share surfaceMenu+textPrimary38) over UI-SPEC's slightly more granular table, per plan's own prohibitions text
 - [Phase 08-swap-bridge]: 08-03: Only ready/routeError CTA rungs use real GWButton(gradient); other four rungs use a hand-rolled fixed-size control since gw_button.dart was out of file scope and no variant matches surfaceMenu/statusError-alpha fills
 - [Phase 08-swap-bridge]: 08-03: Seam flip control positioned via Stack(alignment: Alignment.center) around a Column of the two cards -- no Positioned/pixel math, eliminating the -170 offset hack per D-07's own signal
+- [Phase 08-swap-bridge]: 08-04: bridge_cta_state.dart's ladder treats a null balance as insufficientBalance (not swap's "never accuse on missing data" rule) -- mirrors bridge's own precheck (`fromToken?.balance == null` already returns before any API call in develop)
+- [Phase 08-swap-bridge]: 08-04: Ready CTA label locked to "Bridge" (develop's own word), not the UI-SPEC's alternative "Review bridge" -- no second confirmation step exists on this screen
+- [Phase 08-swap-bridge]: 08-04: bridgeOut(... shouldMintTokens: true) and getBrigeOutGasCost(...) confirmed byte-identical to develop -- only isEstimating/isSubmitting (added state) wrap the real calls; no argument, guard, or precheck touched (D-11)
 
 ### Pending Todos
 
