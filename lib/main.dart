@@ -8,6 +8,7 @@ import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
+import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
@@ -335,7 +336,13 @@ class MyApp extends StatelessWidget {
             return MaterialApp.router(
               debugShowCheckedModeBanner: false,
               locale: DevicePreview.locale(context),
-              builder: DevicePreview.appBuilder,
+              builder: (context, child) => DevicePreview.appBuilder(
+                context,
+                GlobalSwapFabHost(
+                  router: geniusWalletRouter,
+                  child: child ?? const SizedBox.shrink(),
+                ),
+              ),
               title: 'Genius Wallet',
               theme: getThemeData(),
               routerConfig: geniusWalletRouter,
