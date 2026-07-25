@@ -6,14 +6,14 @@ current_phase: 07
 current_phase_name: token-screens
 status: executing
 stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-07-25T17:49:21.431Z"
+last_updated: "2026-07-25T18:16:09.955Z"
 last_activity: 2026-07-24
 last_activity_desc: Phase 07 execution started
 progress:
   total_phases: 19
   completed_phases: 13
   total_plans: 72
-  completed_plans: 67
+  completed_plans: 68
   percent: 68
 ---
 
@@ -54,7 +54,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 07 (token-screens) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
@@ -163,6 +163,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 06-01, 2026-07-21]: **Walk-driven Rule-1 fix — narrow-width zero-gutter on `wallet_creation_screen.dart` (commit `67e2821`).** `ConstrainedBox(maxWidth: GeniusBreakpoints.small * 2/3)` only binds when the viewport is wider than it; below that, `Center`'s loosened constraints collapse to the raw viewport width and the stretch CTA column ran edge-to-edge with zero gutter. Fixed with `Padding(EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space8))` wrapped outside the `ConstrainedBox` (additive gutter; wide-window centring unchanged by construction). Token chosen from real precedent (`submit_logs_screen.dart`'s identical structural shape, `markets_screen.dart`'s page-edge `space8` gutter) rather than invented. Same-class bug confirmed present in `legal_screen.dart` and `select_wallet_type_screen.dart` (06-02's files) — see `.planning/todos/pending/2026-07-21-systemic-mobile-gutter-missing-on-onboarding-breakpoint-cons.md`.
 - [Phase 08-01, 2026-07-25]: **Swap component family re-skinned; RouteDetailsCard's four figures golden-locked before repainting.** `GWPageHeader` gained an additive, nullable `subtitle` (unused by any caller this plan — 08-03 consumes it). `TokenFlipButton` moved from a Material FAB to a 44px brandCta InkWell seam control, `AnimatedRotation`/`onFlip` untouched. `SwapField` re-skinned with the D-07-locked 38px hero amount, a new MAX affordance driving the EXISTING `onChanged` pipeline (no second quote path), and a USD line that is omitted — never zeroed — when `fiatValue()` has no price. `RouteDetailsCard` and `TokenSelectorDrawer` re-skinned; a new `test/squid_router/route_details_card_test.dart` proves the card's derived strings (`1 ETH ~ 0.995 USDT` / `0.5` / `0.51%` / `$0.30`) are unchanged by the paint job, run against the real `mockSquidRoute` constant both before and after — this is ROADMAP criterion 1's automated half (D-18b: the quote is a hardcoded mock, not a live route). `flutter analyze lib` 59 (≤61 baseline); `flutter test` 249/1 (248 baseline + this new test). See `08-01-SUMMARY.md`.
 - [Phase ?]: AI-FAB half stripped from GlobalSwapFabHost port (D-18a); _ready guard and its rationale comment preserved verbatim
+- [Phase 08-swap-bridge]: 08-03: CTA colour mapping followed PLAN's literal grouping (enterAmount/findingRoute/submitting share surfaceMenu+textPrimary38) over UI-SPEC's slightly more granular table, per plan's own prohibitions text
+- [Phase 08-swap-bridge]: 08-03: Only ready/routeError CTA rungs use real GWButton(gradient); other four rungs use a hand-rolled fixed-size control since gw_button.dart was out of file scope and no variant matches surfaceMenu/statusError-alpha fills
+- [Phase 08-swap-bridge]: 08-03: Seam flip control positioned via Stack(alignment: Alignment.center) around a Column of the two cards -- no Positioned/pixel math, eliminating the -170 offset hack per D-07's own signal
 
 ### Pending Todos
 
@@ -275,7 +278,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-25T17:49:21.420Z
+Last session: 2026-07-25T18:14:14.871Z
 Stopped at: Completed 08-02-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
@@ -377,6 +380,7 @@ Open decisions:
 |------|----------|-------|-------|
 | Phase 05 P01 | ~20min | 2 tasks | 3 files |
 | Phase 08-swap-bridge P02 | 25min | 3 tasks | 3 files |
+| Phase 08-swap-bridge P03 | 30min | 3 tasks | 3 files |
 
 ### Roadmap Evolution
 
