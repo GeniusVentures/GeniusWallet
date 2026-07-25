@@ -6,8 +6,12 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,7 +31,6 @@ class BridgeScreenState extends State<BridgeScreen> {
   Network? toNetwork;
   TextEditingController fromAmountController = TextEditingController();
   TextEditingController toAmountController = TextEditingController();
-  int? previousNetwork; // To track the previously selected network
   List<Network>? availableBridgeNetworks;
   String? transactionCost;
   Timer? _debounce;
@@ -59,23 +62,230 @@ class BridgeScreenState extends State<BridgeScreen> {
     });
   }
 
+  // Task 2 · sketch 120 B1: the Phase 7 back-arrow AppBar convention, reused
+  // verbatim from token_info_screen.dart:96-124 -- one back-arrow pattern for
+  // the whole app, not a second invented one.
+  PreferredSizeWidget _buildAppBar(BuildContext context, GWColors gw) {
+    return AppBar(
+      toolbarHeight: 48,
+      backgroundColor: gw.surfaceSunken,
+      elevation: 0,
+      titleSpacing: 0,
+      automaticallyImplyLeading: false,
+      centerTitle: false,
+      title: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal:
+              MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
+              ? GeniusWalletConsts.space10
+              : GeniusWalletConsts.space8,
+        ),
+        child: Row(
+          children: [
+            InkWell(
+              onTap: () => Navigator.of(context).maybePop(),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+              child: SizedBox(
+                width: 30,
+                height: 30,
+                child: Center(
+                  child: SketchIcon(
+                    SketchIcons.back,
+                    size: 18,
+                    color: gw.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: GeniusWalletConsts.space6),
+            Text(
+              'Bridge',
+              style: GeniusWalletTypography.titleMd.copyWith(
+                color: gw.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Task 2 · a pill chip for the network route bar. Non-tappable when
+  // [onTap] is null (the source chip -- the source is the connected
+  // network, not a choice).
+  Widget _networkChip({
+    required GWColors gw,
+    required String? name,
+    required String? iconPath,
+    VoidCallback? onTap,
+  }) {
+    final chip = Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space6,
+        vertical: GeniusWalletConsts.space3,
+      ),
+      decoration: BoxDecoration(
+        color: gw.surfaceMenu,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+        border: Border.all(color: gw.borderSubtle, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            iconPath ?? "",
+            height: 20,
+            width: 20,
+            errorBuilder: (context, error, stackTrace) {
+              return const SizedBox(height: 20, width: 20);
+            },
+          ),
+          const SizedBox(width: GeniusWalletConsts.space3),
+          Flexible(
+            child: Text(
+              name ?? 'Select',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GeniusWalletTypography.labelMd.copyWith(
+                color: gw.textPrimary,
+              ),
+            ),
+          ),
+          if (onTap != null) ...[
+            const SizedBox(width: GeniusWalletConsts.space2),
+            Icon(
+              Icons.keyboard_arrow_down,
+              color: gw.textSecondary,
+              size: 14,
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (onTap == null) return chip;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+      child: chip,
+    );
+  }
+
+  // Task 2 (d): the destination network picker -- a re-skinned selector, not
+  // a new data path. Same `availableBridgeNetworks` list, same
+  // `setState(() => toNetwork = newNetwork)` the old dropdown's
+  // `onItemChanged` performed, now presented as a ResponsiveDrawer list.
+  Future<void> _showDestinationNetworkPicker(BuildContext context) {
+    final networks = availableBridgeNetworks ?? const <Network>[];
+    return ResponsiveDrawer.show<void>(
+      context: context,
+      title: 'Select destination network',
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          for (final network in networks)
+            _NetworkPickerRow(
+              network: network,
+              isSelected: network.chainId == toNetwork?.chainId,
+              onTap: () {
+                setState(() => toNetwork = network);
+                Navigator.of(context).pop();
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Task 2 (c): source-chain chip · arrow · centred "Bridge" pill ·
+  // destination-chain chip. Only the destination chip is tappable.
+  Widget _buildNetworkRouteBar(
+    BuildContext context,
+    GWColors gw,
+    Network? sourceNetwork,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: _networkChip(
+              gw: gw,
+              name: sourceNetwork?.name,
+              iconPath: sourceNetwork?.iconPath,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space4,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.arrow_forward, color: gw.textSecondary, size: 16),
+              const SizedBox(height: GeniusWalletConsts.space2),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space4,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: gw.surfaceMenu,
+                  borderRadius: BorderRadius.circular(
+                    GeniusWalletConsts.radiusPill,
+                  ),
+                ),
+                child: Text(
+                  'Bridge',
+                  style: GeniusWalletTypography.labelMd.copyWith(
+                    color: gw.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: _networkChip(
+              gw: gw,
+              name: toNetwork?.name,
+              iconPath: toNetwork?.iconPath,
+              onTap: () => _showDestinationNetworkPicker(context),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Scaffold(
-      appBar: AppBar(title: const Text("Bridge")),
+      backgroundColor: gw.surfaceBase,
+      appBar: _buildAppBar(context, gw),
       body: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
         builder: (context, state) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: GeniusBreakpoints.medium,
-              ),
-              child: Card(
-                child: Column(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space10,
+                    vertical: GeniusWalletConsts.space10,
+                  ),
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _buildNetworkRouteBar(context, gw, state.selectedNetwork),
+                    const SizedBox(height: GeniusWalletConsts.space10),
                     // From Token Input
                     _buildDropdown<Coin>(
                       cs: cs,
@@ -173,29 +383,6 @@ class BridgeScreenState extends State<BridgeScreen> {
                       controller: fromAmountController,
                     ),
                     const SizedBox(height: 30),
-                    // To Token Input
-                    _buildDropdown<Network>(
-                      cs: cs,
-                      availableItems: availableBridgeNetworks ?? List.empty(),
-                      onItemChanged: (Network newNetwork) {
-                        setState(() {
-                          toNetwork = newNetwork; // Update the selected coin
-                        });
-                      },
-                      displayText: (Network network) => network.name ?? '',
-                      displayIcon: (Network network) => Image.asset(
-                        network.iconPath ?? "",
-                        height: 36,
-                        width: 36,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const SizedBox(height: 36, width: 36);
-                        },
-                      ),
-                      label: 'You Receive',
-                      selectedItem: toNetwork,
-                      onAmountChanged: null, // Disable manual input for "To"
-                      controller: toAmountController,
-                    ),
                     const SizedBox(height: 24),
 
                     // Swap Button
@@ -537,6 +724,7 @@ class BridgeScreenState extends State<BridgeScreen> {
                       ],
                     ),
                   ],
+                  ),
                 ),
               ),
             ),
@@ -692,6 +880,62 @@ class BridgeScreenState extends State<BridgeScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Task 2 (d): one tappable row per `availableBridgeNetworks` entry inside
+/// the destination-network `ResponsiveDrawer`. Mirrors
+/// `token_selector_drawer.dart`'s row treatment (`gw.surfaceMenu` fill,
+/// `gw.textPrimary`/`gw.textSecondary` text) without importing that
+/// `SquidTokenInfo`-typed widget -- this row is `Network`-typed.
+class _NetworkPickerRow extends StatelessWidget {
+  final Network network;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _NetworkPickerRow({
+    required this.network,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Container(
+      margin: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
+      decoration: BoxDecoration(
+        color: gw.surfaceMenu,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+        border: isSelected
+            ? Border.all(color: gw.borderStrong, width: 1)
+            : null,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 4,
+        ),
+        leading: Image.asset(
+          network.iconPath ?? "",
+          height: 36,
+          width: 36,
+          errorBuilder: (context, error, stackTrace) {
+            return const SizedBox(height: 36, width: 36);
+          },
+        ),
+        title: Text(
+          network.name ?? '',
+          style: GeniusWalletTypography.labelMd.copyWith(
+            color: gw.textPrimary,
+          ),
+        ),
+        trailing: isSelected
+            ? Icon(Icons.check, color: gw.textPrimary, size: 18)
+            : null,
+        onTap: onTap,
       ),
     );
   }
