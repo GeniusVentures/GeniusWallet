@@ -22,11 +22,18 @@ session; 109-119 left free).
 - **Swap route-fetch error (finding 22)** designed: receive → `—` + red "not current" notice + Retry
   (never a silently stale quote).
 
-## Decisions OPEN (resume here tonight)
-1. **Bridge B1 vs B2** — rec **B1 · Swap-twin** (mirrors the swap tab exactly; instant recognition;
-   lowest-churn reskin of `bridge_screen.dart`). B2 leads with the source→destination network hero.
-2. **Surface the bridge entry?** Today Bridge is hidden: GNUS token → **More** → "Bridge Tokens".
-   Optional finding — make it a first-class action instead of buried under More. Not required for the plan.
+## Decisions CLOSED 2026-07-25 (was "OPEN — resume here tonight")
+Both open picks were resolved by Braian on 2026-07-25. Nothing in this document is open any more.
+
+4. **Bridge = B1 · Swap-twin** — recommendation accepted. Mirrors the swap tab exactly; instant
+   recognition; lowest-churn reskin of `bridge_screen.dart`; bridge is 1:1 burn→mint with no
+   rate/slippage, so the swap layout carries over. B2 (source→destination network hero) rejected.
+   Recorded as `winner: "B1"` in `.planning/sketches/120-phase-8-flow/README.md`.
+5. **Bridge entry stays buried** — it remains GNUS token → **More** → "Bridge Tokens". Surfacing it
+   is an IA restructure, not a re-skin, and ROADMAP's four Phase 8 criteria do not cover
+   discoverability. Deferred to a product/IA decision, tracked at
+   `.planning/todos/pending/2026-07-25-surface-the-bridge-entry-as-a-first-class-action.md`, to be
+   taken together with the deferred mobile-nav-IA item. **Explicitly OUT OF SCOPE for Phase 8.**
 
 ## Navigation facts (verified in code — for whoever plans/builds)
 - **Swap** = `/swap` → `SwapScreen` (`router.dart:223`); a top-nav tab, any token; also global `GWSwapFab`.
@@ -43,8 +50,14 @@ session; 109-119 left free).
   swap states + 031-B (result).
 
 ## Next step
-Confirm Bridge B1/B2 (+ surface decision), then **`/gsd-plan-phase 8`** — that's executor work
-(writes `.planning/phases/08-*`, touches `lib/`). This design session cannot plan/execute it.
+~~Confirm Bridge B1/B2 (+ surface decision), then~~ **both picks are now closed (see above).**
+Next is **`/gsd-plan-phase 8`** — executor work (writes `.planning/phases/08-*`, touches `lib/`).
+
+⚠ **Do NOT feed this file to `/gsd-plan-phase 8 --ingest`.** Tried 2026-07-25 and the ADR parser
+mis-reads it: it hoisted the (then-)OPEN section into `decisions[]` as if locked, fragmented
+multi-line bullets into half-sentences, and dropped the Navigation-facts section as an unmapped
+header. Phase 8 needs a real `/gsd-discuss-phase 8` pass to build CONTEXT.md, using this document
+as the source of the locked decisions.
 
 ## Executor to-do (MANIFEST rows waiting)
 Pending todos hold the rows to add to `.planning/sketches/MANIFEST.md` + suggested commits:
