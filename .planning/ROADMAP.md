@@ -381,10 +381,12 @@ outright if the zoom/pan controls are removed when real timeframe ranges are wir
   2. A failed route fetch shows the user an error notice — the "You Receive" field never just goes stale in silence (finding 22)
   3. Submitting a swap produces develop's outcome (toast + success drawer + a transaction recorded and persisted), or the deliberate deviation is re-confirmed and written down as a decision — not left as a demo snackbar by accident (finding 21)
   4. A bridge result shows its success/error toast alongside the result dialog (finding 28)
+  5. `GlobalSwapFabHost` is mounted and the app starts with no `!_dirty` red screen when the initial route resolves mid-mount — the `7a63b4f` carry from Phase 4 lands here (NAV-02)
 
 **Plans**: TBD
 **UI hint**: yes
 **Findings**: 21, 22, 28.
+**Carries (accepted 2026-07-25)**: `7a63b4f` (`!_dirty` guard + `GlobalSwapFabHost`) — deferred out of Phase 4 "to the swap-FAB phase"; Phase 8 is that phase and now owns it explicitly (criterion 5). **This is a PORT, not a build:** `lib/components/overlay/global_swap_fab_host.dart` (143 lines, with the fix already applied) exists on branch `ui-redesign-3.514-develop` at `7a63b4f` and is absent on `ui-redesign-port`. Port it and preserve the `if (!_ready) return;` guard and its comment verbatim — that comment records why the obvious `schedulerPhase` check does NOT catch the startup case (initial mount runs under `attachRootWidget`, phase `idle` not `persistentCallbacks`). See `lib/components/splash.dart:57` for the live trace of the same condition.
 
 ### Phase 9: Banxa
 

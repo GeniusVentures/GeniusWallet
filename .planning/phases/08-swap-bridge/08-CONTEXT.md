@@ -80,6 +80,30 @@ surfacing the bridge entry (see Deferred Ideas).
 - **D-14:** **`gw_swap_fab.dart` (global swap FAB) is IN scope** — it is a swap entry point and
   should not read as pre-redesign chrome.
 
+### GlobalSwapFabHost — the Phase 4 carry (added 2026-07-25, post-discussion)
+- **D-17:** **Phase 8 owns `7a63b4f` and mounts `GlobalSwapFabHost`.** ROADMAP's Phase 4 entry
+  deferred this commit "to the swap-FAB phase per D-08 (its target `GlobalSwapFabHost` is not built
+  this phase; carry-move, not a drop)". Phase 8 is that phase. It was NOT in the original four
+  success criteria, so it would have drifted a second time with nobody owning it — a **crash fix**
+  (NAV-02, the `!_dirty` red screen on startup). ROADMAP criterion 5 was added to make it explicit.
+  Surfaced by the UI researcher, which found `gw_swap_fab.dart:9` documenting a host that does not
+  exist.
+- **D-18:** **This is a PORT, not a from-scratch build.**
+  `lib/components/overlay/global_swap_fab_host.dart` — 143 lines, with the `7a63b4f` fix already
+  applied — exists on branch `ui-redesign-3.514-develop` (the superseded forward-port branch that
+  survives only as a source of fix commits) and is **absent** on `ui-redesign-port`. Port it rather
+  than reimplementing.
+  **Preserve the `if (!_ready) return;` guard and its comment verbatim.** That comment records a
+  genuinely subtle finding: mounting the router's Navigator resolves the initial route and notifies
+  the delegate from inside `performRebuild`, *after* `super.performRebuild()` has cleared the dirty
+  flag, so `setState()` there re-dirties the element and trips `assert(!_dirty)` — and the obvious
+  `schedulerPhase` check does **not** catch it, because the initial mount runs under
+  `attachRootWidget` where the phase is `idle`, not `persistentCallbacks`. Re-deriving that from a
+  blank file would be expensive. A live trace of the same condition sits at
+  `lib/components/splash.dart:57`.
+  Note the FAB *button* itself (`gw_swap_fab.dart`) is already visually compliant — D-14's re-skin
+  scope for it is close to a no-op. The real work here is the host and the crash guard.
+
 ### Cross-cutting project rules
 - **D-15:** WCAG AA contrast in **both** light and dark modes and in **all** states, including
   disabled — disabled states must stay visibly distinct. This is a hard project rule, not a
