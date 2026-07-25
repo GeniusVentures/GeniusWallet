@@ -1,10 +1,28 @@
 ---
 phase: 19-feedback-tab-redesign-sketch-150-variant-d
 verified: 2026-07-25T00:00:00Z
-status: human_needed
-score: 5/6 must-haves verified
-behavior_unverified: 1
-overrides_applied: 0
+status: passed
+score: 6/6 must-haves verified (5 verified + 1 accepted via override)
+behavior_unverified: 0
+overrides_applied: 1
+overrides:
+  - must_have: "All 6 states render honestly: Ready, Sending, Success, No-SDK, Failed-exception, Failed-emptyId"
+    reason: >
+      The 2026-07-25 live walk rendered and passed 3 of the 6 states (Ready, Sending, Success) plus the
+      Send-another reset, which disproves the one concern this truth was held open for — the
+      _resetToReady re-probe race — with zero new exceptions in the run log. The remaining 3 states
+      (No-SDK, Failed-exception, Failed-emptyId) are NOT deterministically reachable: there is no dev
+      fault injector for the feedback/Sentry paths, only the Markets one. Their code is present, wired,
+      internally consistent and analyze-clean, and the two failure branches provably keep distinct
+      messages by direct code read. Also uncovered by consequence: the error-red status line was not
+      contrast-checked in light mode, since it only paints in a Failed state — the rest of the
+      light-mode AA sweep passed. Accepted rather than blocking the phase, because closing it requires
+      building a new dev fixture, which is its own scoped task. Tracked at
+      .planning/todos/pending/2026-07-25-dev-fault-injector-for-feedback-sentry-failure-paths.md,
+      which mirrors the 05-08 Markets fixture precedent (commit 3364259). Braian accepted on
+      2026-07-25 after the walk results and the coverage gap were presented together.
+    accepted_by: "braian"
+    accepted_at: "2026-07-25T12:35:51.827Z"
 walk_2026_07_25:
   host: "Windows 11, flutter run -d windows --debug --dart-define=GW_DEV_TOOLS=true (Debug exe built 34.0s); SDK initialized, Sentry live"
   walked_by: "braian"
