@@ -103,6 +103,24 @@ surfacing the bridge entry (see Deferred Ideas).
   `lib/components/splash.dart:57`.
   Note the FAB *button* itself (`gw_swap_fab.dart`) is already visually compliant — D-14's re-skin
   scope for it is close to a no-op. The real work here is the host and the crash guard.
+- **D-18a — CORRECTION to D-18, 2026-07-25 (post-research).** D-18's "port it verbatim" is **wrong as
+  written and would not compile.** The `7a63b4f` file imports
+  `package:genius_wallet/components/buttons/gw_ai_fab.dart` (line 3) and renders `GWAiFab` (line 136);
+  `gw_ai_fab.dart` does **not exist** on `ui-redesign-port` — it was deliberately excluded from Phase
+  3's component-library port because WIRE-02 puts the AI FAB out of scope for this milestone
+  (ROADMAP's own Phase 3 accounting: "60 additive − 9 nav-shell − 1 `gw_ai_fab.dart` (WIRE-02) = 50
+  files"). Verified: `find lib -iname "*ai_fab*"` returns nothing.
+  **Corrected instruction:** port the file with the `GWAiFab` import and its `Positioned` block
+  REMOVED (~15 lines). Everything else — and in particular the `if (!_ready) return;` guard and its
+  comment — is preserved verbatim. Do NOT add `gw_ai_fab.dart`; that would import WIRE-02 scope into
+  this phase.
+- **D-18b — Criterion 1 means less than it looks.** `SquidTokenService.getRoute()` returns a
+  hardcoded `mockSquidRoute` constant (`lib/squid_router/squid_token_service.dart:60`, mock defined at
+  `:92`, called from `swap_screen.dart:155`). This is **pre-existing on `develop`**, not introduced by
+  the redesign. D-08 ("preserve the figures exactly") is therefore trivially satisfied by a compile-time
+  constant. The planner must NOT design a verification step that assumes the quote varies by input
+  token or amount — it does not. Criterion 1 verifies that a re-skin didn't disturb a constant, not
+  that a live route was fetched.
 
 ### Cross-cutting project rules
 - **D-15:** WCAG AA contrast in **both** light and dark modes and in **all** states, including
