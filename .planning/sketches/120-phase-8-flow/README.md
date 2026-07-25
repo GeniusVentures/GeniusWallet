@@ -2,7 +2,7 @@
 sketch: 120
 name: phase-8-flow
 question: "What are the missing designs that complete the whole Phase 8 (Swap & bridge) flow — beyond the swap tab (105 A1) — so the phase is design-complete?"
-winner: null
+winner: "B1"
 tags: [phase-8, swap, bridge, squid, gnus, states, error, result, receipt, drawer, flow]
 ---
 
