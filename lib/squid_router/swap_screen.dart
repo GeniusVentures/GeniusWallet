@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
@@ -17,11 +18,13 @@ import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/squid_token_service.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
+import 'package:genius_wallet/squid_router/swap_cta_state.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -45,6 +48,15 @@ class _SwapScreenState extends State<SwapScreen> {
   final TextEditingController toAmountController = TextEditingController();
   SquidRouteResponse? fetchedRoute;
   double slippage = 0.5; // Default slippage
+
+  // D-09 / criterion 2: the CTA ladder's own state (swap_cta_state.dart).
+  bool isFetchingRoute = false;
+  bool routeError = false;
+  bool isSubmitting = false;
+
+  /// The selected pay token's balance as a number, or null when unknown.
+  /// Never accuse the user of an insufficient balance on missing data.
+  double? get fromBalanceAmount => fromToken?.balance?.amountAsDouble;
 
   @override
   void initState() {
@@ -153,6 +165,11 @@ class _SwapScreenState extends State<SwapScreen> {
     final params = swapParams;
     if (params == null) return;
 
+    setState(() {
+      isFetchingRoute = true;
+      routeError = false;
+    });
+
     try {
       final route = await SquidTokenService.getRoute(params);
       final formatted = formatTokenAmount(
@@ -163,8 +180,21 @@ class _SwapScreenState extends State<SwapScreen> {
         toAmount = formatted;
         toAmountController.text = formatted;
         fetchedRoute = route;
+        isFetchingRoute = false;
       });
     } catch (e) {
+      // D-09 HARD CONTRACT: a failed fetch must never leave a stale quote on
+      // screen. Null the route, clear the receive controller (the field then
+      // shows the em-dash placeholder), hide the route card and surface a
+      // red inline notice with an enabled Retry CTA. The snackbar stays as a
+      // supplementary toast, not the mechanism.
+      setState(() {
+        routeError = true;
+        fetchedRoute = null;
+        toAmount = '';
+        toAmountController.clear();
+        isFetchingRoute = false;
+      });
       if (mounted) {
         showAppSnackBar(
           context,
@@ -179,6 +209,219 @@ class _SwapScreenState extends State<SwapScreen> {
     _debounce = Timer(const Duration(milliseconds: 500), () {
       _fetchRoute();
     });
+  }
+
+  /// The READY rung's submit action — byte-identical to develop's inline
+  /// closure (D-01/D-02: the TODO markers stay, nothing here invokes Squid
+  /// or upgrades the copy's claims), only now wrapped with the `isSubmitting`
+  /// flag around the real await so the CTA can show its "Submitting swap…"
+  /// rung for exactly as long as this genuinely takes.
+  Future<void> _submitSwap() async {
+    final params = swapParams;
+    if (params == null) return;
+
+    setState(() => isSubmitting = true);
+    try {
+      debugPrint('Swapping with params: ${params.toJson()}');
+      // TODO: invoke Squid API
+
+      final walletState = context.read<WalletDetailsCubit>().state;
+      final walletAddress = walletState.selectedWallet?.address;
+      final walletNetwork = walletState.selectedNetwork?.symbol;
+      final transactionsCubit = context.read<TransactionsCubit>();
+
+      // TODO: record transaction...
+      // IF SUCCESSS ...
+      final transaction = Transaction(
+        hash: "",
+        fromAddress: walletAddress!,
+        recipients: [
+          TransferRecipients(toAddr: walletAddress, amount: toAmount),
+        ],
+        timeStamp: DateTime.now(),
+        transactionDirection: TransactionDirection.received,
+        fees: fromAmount,
+        coinSymbol: walletNetwork!,
+        transactionStatus: TransactionStatus.completed,
+        type: TransactionType.swap,
+        toAmount: toAmount,
+        toIconUrl: toToken?.logoURI,
+        fromSymbol: fromToken?.symbol,
+        toSymbol: toToken?.symbol,
+        fromAmount: fromAmount,
+        fromIconUrl: fromToken?.logoURI,
+      );
+
+      ToastManager.instance.showToast(
+        context: context,
+        title: 'Swap Submitted',
+        message:
+            'Swapping ${params.fromAmount} ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
+        type: ToastType.success,
+      );
+
+      SwapSuccessDrawer.show(
+        context,
+        fromAmount: fromAmount,
+        toAmount: toAmount,
+        fromIconUrl: fromToken?.logoURI ?? '',
+        toIconUrl: toToken?.logoURI ?? '',
+        fromSymbol: fromToken?.symbol ?? '',
+        toSymbol: toToken?.symbol ?? '',
+        chain: walletNetwork,
+        onClose: () {
+          Navigator.of(context).pop();
+        },
+      );
+      transactionsCubit.addTransaction(transaction);
+
+      // save to hive
+      await TransactionStorageService().addTransaction(
+        walletAddress,
+        transaction,
+      );
+    } finally {
+      if (mounted) setState(() => isSubmitting = false);
+    }
+  }
+
+  /// D-09 / finding 22's inline notice — background `statusError` @ ~12%
+  /// alpha, `radiusMd`, space6/space8 padding, icon + copy both in
+  /// `statusError`. Kept inline in this file per the UI-SPEC (no shared
+  /// `GWInlineNotice` primitive exists and this phase does not add one).
+  Widget _buildRouteErrorNotice(GWColors gw) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space8,
+        vertical: GeniusWalletConsts.space4,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space8,
+        vertical: GeniusWalletConsts.space6,
+      ),
+      decoration: BoxDecoration(
+        color: gw.statusError.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error_outline, color: gw.statusError, size: 18),
+          const SizedBox(width: GeniusWalletConsts.space4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Couldn't fetch a route.",
+                  style: GeniusWalletTypography.labelMd.copyWith(
+                    color: gw.statusError,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: GeniusWalletConsts.space2),
+                Text(
+                  'Check your connection and try again — the quote above is '
+                  'not current.',
+                  style: GeniusWalletTypography.labelMd.copyWith(
+                    color: gw.statusError,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The CTA ladder (criterion 2 / D-09). `resolveSwapCtaState` +
+  /// `swapCtaLabel` + `swapCtaEnabled` (swap_cta_state.dart) are the single
+  /// source of truth — this method only maps a resolved state to paint. The
+  /// two rungs that share the brand gradient (`ready`, `routeError`) render
+  /// through the real `GWButton(variant: GWButtonVariant.gradient)`; the
+  /// three disabled rungs plus `insufficientBalance` reuse the shipped
+  /// `textPrimary38`-on-`surfaceMenu` disabled treatment (D-15) — the
+  /// insufficient rung swaps in the `statusError` pair per the UI-SPEC's CTA
+  /// state → colour table. The CTA always renders — the old canSwap-gated
+  /// visibility check is gone; a ladder whose disabled rungs never appear is
+  /// not a ladder.
+  Widget _buildSwapCta(GWColors gw) {
+    final state = resolveSwapCtaState(
+      hasBothTokens: fromToken != null && toToken != null,
+      fromAmount: fromAmount,
+      fromBalance: fromBalanceAmount,
+      isFetchingRoute: isFetchingRoute,
+      hasRoute: fetchedRoute != null,
+      routeError: routeError,
+      isSubmitting: isSubmitting,
+    );
+    final label = swapCtaLabel(state, symbol: fromToken?.symbol);
+    final enabled = swapCtaEnabled(state);
+
+    if (state == SwapCtaState.ready || state == SwapCtaState.routeError) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: GWButton(
+          variant: GWButtonVariant.gradient,
+          size: GWButtonSize.lg,
+          expand: true,
+          label: label,
+          // ROUTE-ERROR RUNG: retry fetches directly — a user tapping Retry
+          // should not wait out the 500ms debounce.
+          onPressed: !enabled
+              ? null
+              : state == SwapCtaState.routeError
+              ? _fetchRoute
+              : _submitSwap,
+        ),
+      );
+    }
+
+    final isInsufficient = state == SwapCtaState.insufficientBalance;
+    final background = isInsufficient
+        ? gw.statusError.withValues(alpha: 0.12)
+        : gw.surfaceMenu;
+    final foreground = isInsufficient ? gw.statusError : gw.textPrimary38;
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+          ),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (state == SwapCtaState.submitting) ...[
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(foreground),
+                    ),
+                  ),
+                  const SizedBox(width: GeniusWalletConsts.space4),
+                ],
+                Text(
+                  label,
+                  style: GeniusWalletTypography.titleLg.copyWith(
+                    color: foreground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -370,6 +613,9 @@ class _SwapScreenState extends State<SwapScreen> {
                                     setState(() => toAmount = val),
                                 selectedToken: toToken,
                                 isSelectingFrom: false,
+                                // D-09: on a failed route fetch the field
+                                // shows an em dash, never a stale amount.
+                                emptyPlaceholder: routeError ? '—' : null,
                                 // filter out the selected fromToken, and the token that is already selected
                                 tokens: tokens
                                     .where(
@@ -396,7 +642,9 @@ class _SwapScreenState extends State<SwapScreen> {
                           TokenFlipButton(onFlip: _flipTokens),
                         ],
                       ),
-                      if (fetchedRoute != null)
+                      // D-09: the route card never shows figures derived
+                      // from a route that just failed.
+                      if (fetchedRoute != null && !routeError)
                         RouteDetailsCard(
                           route: fetchedRoute!,
                           fromAmount: fromAmountController.text,
@@ -405,117 +653,9 @@ class _SwapScreenState extends State<SwapScreen> {
                           toToken: toToken,
                           slippage: slippage.toString(),
                         ),
+                      if (routeError) _buildRouteErrorNotice(gw),
                       const SizedBox(height: GeniusWalletConsts.space12),
-                      if (canSwap)
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            return Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.greenAccent,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                  ),
-                                  onPressed: swapParams == null
-                                      ? null
-                                      : () async {
-                                          final params = swapParams!;
-
-                                          debugPrint(
-                                            'Swapping with params: ${params.toJson()}',
-                                          );
-                                          // TODO: invoke Squid API
-
-                                          final walletState = context
-                                              .read<WalletDetailsCubit>()
-                                              .state;
-                                          final walletAddress = walletState
-                                              .selectedWallet
-                                              ?.address;
-                                          final walletNetwork = walletState
-                                              .selectedNetwork
-                                              ?.symbol;
-                                          final transactionsCubit = context
-                                              .read<TransactionsCubit>();
-
-                                          // TODO: record transaction...
-                                          // IF SUCCESSS ...
-                                          final transaction = Transaction(
-                                            hash: "",
-                                            fromAddress: walletAddress!,
-                                            recipients: [
-                                              TransferRecipients(
-                                                toAddr: walletAddress,
-                                                amount: toAmount,
-                                              ),
-                                            ],
-                                            timeStamp: DateTime.now(),
-                                            transactionDirection:
-                                                TransactionDirection.received,
-                                            fees: fromAmount,
-                                            coinSymbol: walletNetwork!,
-                                            transactionStatus:
-                                                TransactionStatus.completed,
-                                            type: TransactionType.swap,
-                                            toAmount: toAmount,
-                                            toIconUrl: toToken?.logoURI,
-                                            fromSymbol: fromToken?.symbol,
-                                            toSymbol: toToken?.symbol,
-                                            fromAmount: fromAmount,
-                                            fromIconUrl: fromToken?.logoURI,
-                                          );
-
-                                          ToastManager.instance.showToast(
-                                            context: context,
-                                            title: 'Swap Submitted',
-                                            message:
-                                                'Swapping ${params.fromAmount} ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
-                                            type: ToastType.success,
-                                          );
-
-                                          SwapSuccessDrawer.show(
-                                            context,
-                                            fromAmount: fromAmount,
-                                            toAmount: toAmount,
-                                            fromIconUrl:
-                                                fromToken?.logoURI ?? '',
-                                            toIconUrl: toToken?.logoURI ?? '',
-                                            fromSymbol:
-                                                fromToken?.symbol ?? '',
-                                            toSymbol: toToken?.symbol ?? '',
-                                            chain: walletNetwork,
-                                            onClose: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          );
-                                          transactionsCubit.addTransaction(
-                                            transaction,
-                                          );
-
-                                          // save to hive
-                                          await TransactionStorageService()
-                                              .addTransaction(
-                                                walletAddress,
-                                                transaction,
-                                              );
-                                        },
-                                  child: const Text(
-                                    "Swap",
-                                    style: TextStyle(
-                                      color:
-                                          GeniusWalletColors.deepBlueTertiary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                      _buildSwapCta(gw),
                     ],
                   ),
                 ),
