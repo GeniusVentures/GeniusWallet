@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/chart/markets_hero_card.dart';
-import 'package:genius_wallet/dashboard/chart/markets_search_bar.dart';
 import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
 import 'package:genius_wallet/dashboard/chart/markets_table.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
-import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -85,27 +82,8 @@ class _MarketsScreenState extends State<MarketsScreen> {
           constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
           child: Column(
             children: [
-              GWPageHeader(
+              const GWPageHeader(
                 title: "Markets",
-                trailing: IconButton(
-                  icon: const FaIcon(
-                    FontAwesomeIcons.magnifyingGlass,
-                    size: 18,
-                  ),
-                  onPressed: () {
-                    ResponsiveDrawer.show<void>(
-                      context: context,
-                      title: "Search Coins",
-                      child: ListView(
-                        children: [
-                          MarketSearchBar(
-                            onCoinPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
               ),
               // Expanded at the COLUMN level so EVERY state — the loading
               // spinner, the error/empty `_centered`, and the data scroll view
