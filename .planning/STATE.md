@@ -192,7 +192,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 
 ### Blockers/Concerns
 
-- ~~**No working automated test harness** (`flutter test` does not compile)~~ — **FALSE. CORRECTED 2026-07-21 by direct measurement.** `flutter test` compiles and runs on this branch: **234 tests pass, 1 fails** (measured 2026-07-23;
+- ~~**No working automated test harness** (`flutter test` does not compile)~~ — **FALSE. CORRECTED 2026-07-21 by direct measurement.** `flutter test` compiles and runs on this branch: **248 tests pass, 1 fails** (re-measured 2026-07-25; was 234 on 2026-07-23, then 250 before the Phase-18 `webTabCanClose` cleanup removed 2;
 
 the redesign track added many test files since the original 14-test snapshot). **The single failure is not a compile failure** — `local_wallet_storage_test.dart` is *entirely commented out* (every line prefixed `//`, no `main()`), so Flutter reports "Missing definition of `main` method". Someone read that one message as "the harness doesn't compile" and the belief was never re-tested.
   **Cost of the error:** this constraint was carried into every phase plan, every verification report, and every agent brief in this milestone. It is why Phase 05 needed six human walks, why `verify:` blocks were written around a human being available, why "analyze is a gate, never evidence" became doctrine, and why APP-02 was deferred to v2 as if building a harness — when it is uncommenting one file. **Real test gates are available now.** Prefer them over grep gates wherever behaviour can be asserted; keep human walks for what only eyes can judge (visual fidelity, contrast in situ, feel).

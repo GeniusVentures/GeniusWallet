@@ -79,7 +79,7 @@ the whole set.
 ### Verification reality
 
 **CORRECTION (2026-07-23):** the long-held "`flutter test` does not compile / no working test harness"
-claim is **FALSE** — measured, the suite runs at **234 pass / 1 fail** (the 1 fail is the fully
+claim is **FALSE** — measured, the suite runs at **248 pass / 1 fail** (re-measured 2026-07-25) (the 1 fail is the fully
 commented-out `test/local_wallet_storage_test.dart`, not a compile failure). Real test gates ARE
 available; prefer them where behaviour can be asserted. That said, many success criteria below remain
 TRUE/FALSE statements only a **human walk** can settle (visual fidelity, contrast in situ, feel) —
@@ -802,7 +802,7 @@ the dashboard panel is untouched.
 > the xxl cap. Phase 15's *structure* (page header, filter rail, card surfaces, empty-state anchor,
 > amount honesty) is unchanged; only the cap number moved.
 
-Suite at **234 passing / 1 failing** (measured 2026-07-23); the failure is the pre-existing, entirely
+Suite at **248 passing / 1 failing** (re-measured 2026-07-25); the failure is the pre-existing, entirely
 commented-out `test/local_wallet_storage_test.dart`.
 
 **Deferred to the walk** (`.planning/phases/15-transactions-tab/deferred-items.md`): the
