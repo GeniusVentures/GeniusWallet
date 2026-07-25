@@ -1,13 +1,27 @@
 ---
 phase: 18-web-tab-chrome-in-app-browser-address-bar-and-tab-strip-rede
 verified: 2026-07-25T00:00:00Z
-status: gaps_found
-score: 10/11 must-haves verified
+status: passed
+score: 10/11 must-haves verified (11/11 with 1 override)
 behavior_unverified: 0
-overrides_applied: 0
+overrides_applied: 1
+overrides:
+  - must_have: "The last remaining tab cannot be closed (its x reads disabled/absent) — last-tab-locked rule"
+    reason: >
+      Reset-on-close (closing a lone tab replaces it with a fresh DuckDuckGo tab) is accepted as the
+      intended behavior, superseding decision D-06's last-tab-locked rule. It is the better UX — a
+      disabled/inert close button on a lone tab reads as broken — and it matches Brave/Safari, which
+      keep a tab rather than leaving zero. The change was made deliberately during the 2026-07-25
+      follow-up session (commit 5c473d8, PR #214) and is documented in
+      HANDOFF-session-260725-web-omnibox-markets.md; it was simply never written back into a plan or
+      SUMMARY, which is why verification surfaced it. Braian ratified the deviation on 2026-07-25
+      after it was raised as a blocker. Follow-up: the now-orphaned webTabCanClose() helper and its
+      2 unit tests are removed separately so the dead code does not remain as a trap.
+    accepted_by: "braian"
+    accepted_at: "2026-07-25T12:07:07.206Z"
 gaps:
   - truth: "The last remaining tab cannot be closed (its x reads disabled/absent) — last-tab-locked rule"
-    status: failed
+    status: overridden
     reason: >
       A follow-up polish commit (5c473d8, merged via PR #214, AFTER the 18-01/02/03 plans/summaries
       were written) rewrote _closeTab's last-tab behavior and the tab-chip close affordance.
