@@ -5,6 +5,48 @@ status: human_needed
 score: 5/6 must-haves verified
 behavior_unverified: 1
 overrides_applied: 0
+walk_2026_07_25:
+  host: "Windows 11, flutter run -d windows --debug --dart-define=GW_DEV_TOOLS=true (Debug exe built 34.0s); SDK initialized, Sentry live"
+  walked_by: "braian"
+  result: "4/4 human_verification items PASS"
+  items:
+    - item: "Shell framing (dark) — navbar active underline, GWPageHeader, navbar→title gap, .surf card"
+      result: PASS
+      evidence: "Walked live against Transactions/Markets/News side by side; framing reported indistinguishable."
+    - item: "State machine — Ready → Sending → Success → Send another → Ready"
+      result: PASS (partial coverage — see uncovered_by_walk)
+      evidence: >
+        Real submission with type deliberately set to Question (NOT the default) and message
+        'phase19 walk 2026-07-25 checkpoint2'. Placeholder swapped on chooser change; receipt showed
+        real log chips; Sending rendered; Success returned a live Reference number (which by
+        _isSuccessfulSentryId means eventId != SentryId.empty(), so the empty-id branch was NOT taken);
+        'Send another' reset cleanly to Ready with the receipt re-probed and no stale state. This
+        closes the specific behavior_unverified concern below — the _resetToReady re-probe race did
+        not manifest. Run log showed ZERO new exceptions across the full cycle.
+    - item: "feedback_type tag reaches Sentry"
+      result: PASS
+      evidence: >
+        Event located in the Sentry dashboard; tag reads feedback_type=question beside source/platform.
+        Because the walk deliberately chose a non-default type, this proves the chooser drives the tag
+        rather than a hardcoded/default value.
+    - item: "Light-mode WCAG AA — mint active chooser segment, log/meta chips"
+      result: PASS (partial coverage — see uncovered_by_walk)
+      evidence: >
+        Toggled to light via the dev-tools Appearance section. Mint active chooser segment label
+        legible, log chips + TAIL badge legible, SDK/platform meta chips legible, and the disabled
+        'Send feedback' button remained visibly distinct from enabled (project rule: disabled states
+        stay distinct).
+uncovered_by_walk:
+  - gap: "3 of the 6 states were never rendered: No-SDK, Failed-exception, Failed-emptyId."
+    reason: >
+      None are deterministically reachable in a normal run. There is NO dev fault injector for the
+      feedback/Sentry paths — lib/dev/dev_fault_injector.dart exposes only the Markets fault
+      (armMarketsFault/marketsFault). This is the same wall Phase 05-08 hit with the Markets error/empty
+      branches, which is exactly why the Markets fixture was built during that walk. Filed as a todo.
+  - gap: "The error-red status line was not contrast-checked in light mode."
+    reason: >
+      It only renders in a Failed state, which is unreachable per the gap above. The rest of the
+      light-mode AA sweep passed; this one pairing remains unmeasured.
 behavior_unverified_items:
   - truth: "All 6 states render honestly and the state machine cycles cleanly (Ready → Sending → Success/Failed → Send another → Ready re-probe) without stale-state leakage."
     test: "In a running debug build: submit successfully, hit Send another, confirm the composer is fully reset (message cleared, receipt re-probed, no stale reference number) and repeat for both failure paths and the No-SDK path."
