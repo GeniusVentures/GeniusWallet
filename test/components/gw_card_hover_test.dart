@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -29,8 +30,11 @@ Widget _host({required bool hoverLift}) => MaterialApp(
 AnimatedContainer _animated(WidgetTester tester) =>
     tester.widget<AnimatedContainer>(find.byType(AnimatedContainer));
 
+/// 0.0 when no transform is set at all — which is the point since 2026-07-26:
+/// the shared hover recipe is decorative, so GWCard sets no transform in
+/// either state. The old `transform!` threw once the lift was removed.
 double _liftY(WidgetTester tester) =>
-    _animated(tester).transform!.getTranslation().y;
+    _animated(tester).transform?.getTranslation().y ?? 0.0;
 
 Color _borderColor(WidgetTester tester) => ((_animated(tester).decoration
         as BoxDecoration)
@@ -38,11 +42,15 @@ Color _borderColor(WidgetTester tester) => ((_animated(tester).decoration
     .top
     .color;
 
+/// The brand tint painted OVER the card on hover (null at rest).
+Color? _hoverTint(WidgetTester tester) =>
+    (_animated(tester).foregroundDecoration as BoxDecoration?)?.color;
+
 double _shadowDy(WidgetTester tester) =>
     (_animated(tester).decoration as BoxDecoration).boxShadow!.first.offset.dy;
 
 void main() {
-  testWidgets('hover lifts the card, strengthens the edge and deepens the shadow',
+  testWidgets('hover paints the shared brand tint + brand hairline, no lift',
       (tester) async {
     final gw = GWColors.dark();
     await tester.pumpWidget(_host(hoverLift: true));
@@ -61,20 +69,23 @@ void main() {
     await gesture.moveTo(tester.getCenter(find.byType(GWCard)));
     await tester.pump();
 
-    // Hovered: all three of the lift chip's parts move.
-    expect(_liftY(tester), -2.0, reason: 'the card rises 2px on hover');
-    expect(_borderColor(tester), gw.borderStrong,
-        reason: 'hairline strengthens to borderStrong on hover');
-    expect(_shadowDy(tester), GeniusWalletElevation.dialog.first.offset.dy,
-        reason: 'shadow deepens to the dialog elevation on hover');
-    expect(gw.borderStrong == gw.borderSubtle, isFalse,
-        reason: 'guards the assertion above — the two tokens must differ');
+    // Hovered: THE app-wide recipe (sketch 044 variant 3, 2026-07-26) —
+    // brand tint over the card + brand hairline, and NO geometry. The 2px
+    // lift and the dialog-shadow deepening were this card's half of three
+    // disagreeing hovers and are deliberately gone.
+    expect(_liftY(tester), 0.0, reason: 'the card no longer rises on hover');
+    expect(_borderColor(tester), GWDecorations.hoverEdge,
+        reason: 'hairline goes BRAND on hover, not merely stronger');
+    expect(_shadowDy(tester), GeniusWalletElevation.card.first.offset.dy,
+        reason: 'shadow is hover-invariant now');
+    expect(_hoverTint(tester), GWDecorations.hoverFill,
+        reason: 'the brand tint is painted over the card');
 
     // Move the mouse away; the card settles back to rest.
     await gesture.moveTo(const Offset(-100, -100));
     await tester.pump();
-    expect(_liftY(tester), 0.0, reason: 'the card returns flat on exit');
     expect(_borderColor(tester), gw.borderSubtle);
+    expect(_hoverTint(tester), isNull, reason: 'tint clears on exit');
 
     expect(tester.takeException(), isNull);
   });

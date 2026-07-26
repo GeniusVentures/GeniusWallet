@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 
@@ -77,7 +78,8 @@ void main() {
   );
 
   testWidgets(
-    'navContextChipStyle: surfaceMenu fill + borderSubtle->borderStrong hover',
+    'navContextChipStyle: transparent/borderless at rest, brand tint + brand '
+    'hairline on hover, pinned to 36px pill (039-B track, 044-3 hover)',
     (tester) async {
       late BuildContext capturedContext;
       await tester.pumpWidget(
@@ -97,14 +99,35 @@ void main() {
       // compare against that same fallback instance.
       final gw = GWColors.dark();
 
-      final background = style.backgroundColor?.resolve({});
-      expect(background, gw.surfaceMenu);
+      final restBackground = style.backgroundColor?.resolve({});
+      expect(restBackground, Colors.transparent);
 
-      final restSide = style.side?.resolve({});
-      expect(restSide?.color, gw.borderSubtle);
+      final hoverBackground = style.backgroundColor?.resolve({
+        WidgetState.hovered,
+      });
+      // THE app-wide hover recipe (sketch 044 variant 3, 2026-07-26): brand
+      // tint, not a neutral surface fill. Was gw.surfaceElevated, which is
+      // exactly the drift this shared recipe exists to prevent.
+      expect(hoverBackground, GWDecorations.hoverFill);
 
       final hoverSide = style.side?.resolve({WidgetState.hovered});
-      expect(hoverSide?.color, gw.borderStrong);
+      expect(hoverSide?.color, GWDecorations.hoverEdge,
+          reason: 'hover draws the shared brand hairline');
+
+      // The track (not the chip) now carries the one hairline border --
+      // three bordered chips inside a bordered track was the "five things"
+      // problem 039-B exists to kill.
+      final restSide = style.side?.resolve({});
+      expect(restSide, BorderSide.none);
+
+      final minSize = style.minimumSize?.resolve({});
+      final maxSize = style.maximumSize?.resolve({});
+      expect(minSize?.height, 36);
+      expect(maxSize?.height, 36);
+
+      final shape = style.shape?.resolve({}) as RoundedRectangleBorder?;
+      final radius = shape?.borderRadius as BorderRadius?;
+      expect(radius?.topLeft.x, GeniusWalletConsts.radiusPill);
     },
   );
 
