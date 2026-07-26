@@ -6,6 +6,14 @@
 // string/int predicates, which have no controller dependency and are the only
 // non-trivial edge-case logic worth a test.
 
+/// The Web tab's home page — what `/web` opens with, what the `+` button adds,
+/// and what closing the last tab resets to.
+///
+/// One constant because the previous literal (`https://www.duckduckgo.com`) was
+/// written out at FOUR call sites across two files, so "change the home page"
+/// was never a single edit. Jakub set it to gnus.ai on 2026-07-26.
+const String kWebHomeUrl = 'https://gnus.ai/';
+
 /// The host shown in the omnibox at rest, e.g. `app.uniswap.org`.
 ///
 /// Returns the trimmed raw input unchanged when the URL has no parseable host

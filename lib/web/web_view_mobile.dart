@@ -69,18 +69,12 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   // The omnibox swaps between a static favicon+lock+host row (at rest) and the
-  // editable TextField (on focus). On focus, seed the field with the FULL url and
-  // place a COLLAPSED caret at the end.
+  // editable TextField (on focus). On focus, seed the field with the FULL url;
+  // EditableText then selects all of it (selectAllOnFocus defaults to true on
+  // desktop), so typing replaces the address like any browser omnibox.
   void _onUrlFocusChange() {
     if (_urlFocusNode.hasFocus && _tabUrls.isNotEmpty) {
-      final full = _tabUrls[_currentTabIndex];
-      _urlController.text = full;
-      // Collapsed caret at the end, NOT select-all. This macOS WKWebView ↔
-      // Flutter text-input context cannot process a selection REPLACE — typing
-      // over a selection is silently dropped, while insertion at a collapsed
-      // caret works. Auto-selecting on focus therefore made the bar feel dead.
-      // (2026-07-25, after select-all + post-frame select-all both failed.)
-      _urlController.selection = TextSelection.collapsed(offset: full.length);
+      _urlController.text = _tabUrls[_currentTabIndex];
     } else {
       // At rest the favicon+host cover IS the address display, so keep the
       // underlying field empty — otherwise its long URL text bleeds through the
@@ -299,11 +293,11 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   void _closeTab(int index) {
-    // Closing the ONLY tab resets it to a fresh DuckDuckGo tab rather than
+    // Closing the ONLY tab resets it to a fresh home tab (kWebHomeUrl) rather than
     // leaving the browser with zero tabs. ponytail: this is a reset, not an
     // "exit browser" — swap in Navigator.pop() here if a real exit is ever wanted.
     if (_controllers.length == 1) {
-      _addNewTab("https://www.duckduckgo.com");
+      _addNewTab(kWebHomeUrl);
       setState(() {
         _controllers.removeAt(index);
         _tabUrls.removeAt(index);
@@ -350,7 +344,7 @@ class WebViewMobileState extends State<WebViewMobile> {
   // and the omnibox (D-04/D-08). Each tab = favicon + title (getTitle() with URL
   // fallback) + close; the active tab wears the navbar's own mark (surfaceElevated
   // fill + a 2px brandCta gradient underline, D-05); a trailing `+` adds a
-  // DuckDuckGo tab. Tab mechanics (_switchTab / _closeTab / _addNewTab) verbatim.
+  // home tab (kWebHomeUrl). Tab mechanics (_switchTab / _closeTab / _addNewTab) verbatim.
   // Tab currently under the mouse — drives the hover-only close affordance.
   int? _hoveredTabIndex;
 
@@ -395,7 +389,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                     splashRadius: 18,
                     tooltip: 'New tab',
                     onPressed: () =>
-                        _addNewTab("https://www.duckduckgo.com"),
+                        _addNewTab(kWebHomeUrl),
                   ),
                 ],
               ),
@@ -646,15 +640,27 @@ class WebViewMobileState extends State<WebViewMobile> {
     return Container(
       // Focus highlight lives HERE — the inner text area — not on the whole bar
       // (Jakub: highlight the inner, not the outer bar).
-      decoration: editing
-          ? BoxDecoration(
-              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-              border: Border.all(
-                color: GeniusWalletColors.brandPrimary,
-                width: 1.5,
-              ),
-            )
-          : null,
+      //
+      // The decoration is ALWAYS non-null — only its border colour changes. A
+      // null decoration makes Container skip its DecoratedBox entirely, so
+      // toggling it would change the tree's SHAPE on focus: the Stack below
+      // would be matched against a DecoratedBox, forcing Flutter to unmount and
+      // rebuild the whole subtree. That disposed the freshly-focused
+      // EditableText and closed its text-input connection one frame after
+      // _handleFocusChanged had consumed the focus node's single keyboard
+      // token — leaving a focused field that could not be typed into until it
+      // was blurred and re-focused (macOS routes ALL text editing, arrows
+      // included, through that connection, so every key came back unhandled
+      // and AppKit beeped). Keep this decoration unconditional.
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+        border: Border.all(
+          color: editing
+              ? GeniusWalletColors.brandPrimary
+              : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
       child: Stack(
         alignment: Alignment.centerLeft,
         children: [
