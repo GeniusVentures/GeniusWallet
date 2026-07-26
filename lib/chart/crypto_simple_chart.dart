@@ -102,9 +102,13 @@ class CryptoSparkLineChart extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Same sparkline geometry as the Markets TAB's table column
+          // (markets_table.dart:310-318 — 72x32, barWidth 1.6) so the two
+          // renderings of the same data read as one component instead of the
+          // dashboard's being a visibly shrunk 56x20 copy. Jakub, 2026-07-25.
           SizedBox(
-            width: 56,
-            height: 20,
+            width: 72,
+            height: 32,
             child: LineChart(
               LineChartData(
                 lineBarsData: [
@@ -112,7 +116,7 @@ class CryptoSparkLineChart extends StatelessWidget {
                     spots: getSparklineChartData(),
                     isCurved: true,
                     color: changeColor,
-                    barWidth: 2,
+                    barWidth: 1.6,
                     dotData: const FlDotData(show: false),
                   ),
                 ],

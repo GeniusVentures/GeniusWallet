@@ -157,8 +157,13 @@ class ResponsiveDashboardView extends StatelessWidget {
       child: Row(
         spacing: GeniusWalletConsts.space3,
         children: [
+          // 2 (not 3) against the Transactions column's flex 1: at 1920px that
+          // moves the split from 1426/476 to 1268/634, buying the transactions
+          // list the width sketch 029's Status + Fee columns need. The four
+          // panels here give up 63-95px each; their internal ratios are
+          // untouched. Sketch 038.
           Expanded(
-            flex: 3,
+            flex: 2,
             child: Column(
               spacing: GeniusWalletConsts.space3,
               children: [
@@ -186,7 +191,7 @@ class ResponsiveDashboardView extends StatelessWidget {
           Expanded(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: 600,
+                maxWidth: 760,
                 minHeight: totalMinHeight,
               ),
               child: const TransactionsDashboardView(),
@@ -238,6 +243,10 @@ class _OverviewContributionsRow extends StatelessWidget {
     return Row(
       spacing: GeniusWalletConsts.space3,
       children: [
+        // OverviewDashboardView (wallet + processing) STAYS top-left at every
+        // width — that is its location, confirmed by Jakub 2026-07-25. Do not
+        // reorder this row to chase seam alignment; use _ChartMarketsRow for
+        // that instead, which owns no fixed-position panel.
         const Expanded(flex: 2, child: OverviewDashboardView()),
         const Expanded(
           flex: 3,
@@ -256,6 +265,11 @@ class _ChartMarketsRow extends StatelessWidget {
     return Row(
       spacing: GeniusWalletConsts.space3,
       children: [
+        // Chart leads, Markets trails. The seam-alignment reorder (sketch 038
+        // A2 — Markets first, so both rows split 40/60) was built and walked
+        // live on 2026-07-25 and REJECTED: aligned seams were not worth moving
+        // the chart off the left edge. The 40/60-then-60/40 zigzag is a
+        // deliberate, sighted trade, not an oversight. Do not re-propose it.
         const Expanded(flex: 3, child: ChartDashboardView()),
         const Expanded(flex: 2, child: MarketsDashboardView()),
       ],
@@ -674,7 +688,12 @@ class _TimeframeSegmentState extends State<_TimeframeSegment> {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: gw.surfaceMenu,
+        // Control-track standard: surfaceSunken (recessed well), not
+        // surfaceMenu (raised chip). Recipe + rationale in
+        // .planning/codebase/CONVENTIONS.md ("Control track"). Keep in sync
+        // with the filter track in transactions_slim_view.dart — the two are
+        // deliberately identical.
+        color: gw.surfaceSunken,
         // Hairline border so the five tabs read as ONE connected segmented
         // "baton" (a single track holding the options), not five loose chips.
         border: Border.all(color: gw.borderSubtle),
