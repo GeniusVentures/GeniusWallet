@@ -60,14 +60,23 @@ class GWDecorations {
 
   // --- elevated surfaces --------------------------------------------------
 
-  /// Dark: a near-black fill that's a hair lighter at the top edge. The delta
-  /// is tiny (~8 L*) so it never reads as a gradient, just as material.
+  /// Dark: a FLAT surfaceElevated fill, matching the Swap tab's boxes exactly
+  /// (`swap_field.dart` passes `background: gw.surfaceElevated` to GWCard,
+  /// which skips the sheen). Jakub, 2026-07-25: the Swap boxes are the target
+  /// look for every box in the app, so the one lever that reaches them all is
+  /// this gradient — every `GWDecorations.surface()` consumer, every default
+  /// `GWCard`, plus dialogs, bottom sheets, the responsive overlay and the
+  /// empty state read it.
+  ///
+  /// Kept as a LinearGradient rather than switched to a solid `color:` so the
+  /// change stays one edit instead of rewriting every consumer's decoration.
+  /// The previous top-lit pair was 0xFF181B24 -> 0xFF0C0E14 (~8 L* delta).
   static const LinearGradient _surfaceSheenDark = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF181B24), // surfaceElevated + sheen
       Color(0xFF0C0E14), // surfaceElevated (dark)
+      Color(0xFF0C0E14), // same stop — flat, no sheen
     ],
   );
 
@@ -107,6 +116,40 @@ class GWDecorations {
       radius: GeniusWalletConsts.radiusPill,
       elevated: elevated,
       border: border);
+
+  // --- hover ---------------------------------------------------------------
+
+  /// THE hover treatment. One recipe for every interactive surface in the app
+  /// — nav tabs, control-track chips, cards, list rows (sketch 044 variant 3,
+  /// chosen 2026-07-26).
+  ///
+  /// Deliberately **decorative, not geometric**. The three hovers this
+  /// replaces all moved the element: the nav tab rose 1px, `GWCard` rose 2px,
+  /// and the track chips did neither (only a fill), so nothing in the app
+  /// agreed. Geometry was the wrong foundation for a shared recipe on two
+  /// counts: `ButtonStyle` cannot express a transform, so every button-based
+  /// control needed its own wrapper; and lifting a chip that sits INSIDE a
+  /// recessed `surfaceSunken` track contradicts itself — a thing in a groove
+  /// does not rise above its rim.
+  ///
+  /// Both tokens are fixed-brand, not appearance-aware, matching every other
+  /// brand colour (`genius_wallet_colors.dart:42` — "Brand + status colours
+  /// are fixed"), so this reads identically in dark and light.
+  ///
+  /// The hairline is not decoration on decoration: a 12% tint alone, on a list
+  /// row over `surfaceElevated`, sits at the edge of visibility. The border is
+  /// what says "this row, not its neighbour".
+  static Color get hoverFill => GeniusWalletColors.brandPrimarySubtle; // ~12%
+  static Color get hoverEdge => GeniusWalletColors.brandPrimaryMuted; //  ~24%
+
+  /// [hoverFill] + [hoverEdge] as a decoration, for consumers that paint a
+  /// `BoxDecoration` (nav tabs, cards). Button-based controls read the two
+  /// colours directly into their `ButtonStyle` instead.
+  static BoxDecoration hover({required double radius}) => BoxDecoration(
+        color: hoverFill,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: hoverEdge, width: 1),
+      );
 
   // --- tactile circular action -------------------------------------------
 

@@ -118,18 +118,21 @@ BoxDecoration _cardDecoration({
     gradient:
         gradient ?? (useDefaultSurface ? GWDecorations.surfaceSheen : null),
     borderRadius: BorderRadius.circular(radius),
-    // A caller-supplied border is respected as-is; only the default hairline
-    // strengthens on hover so a custom-bordered card never surprises.
+    // THE app-wide hover recipe (sketch 044 variant 3, 2026-07-26): the
+    // hairline goes BRAND on hover, not merely stronger, so a card answers a
+    // pointer with the same mark as a nav tab and a control-track chip. A
+    // caller-supplied border is still respected as-is, so a custom-bordered
+    // card never surprises.
     border: border ??
         (useDefaultSurface
             ? Border.all(
-                color: hovered ? gw.borderStrong : gw.borderSubtle,
+                color: hovered ? GWDecorations.hoverEdge : gw.borderSubtle,
                 width: 1,
               )
             : null),
-    boxShadow: elevated
-        ? (hovered ? GeniusWalletElevation.dialog : GeniusWalletElevation.card)
-        : null,
+    // Shadow no longer reacts to hover. Depth was this card's half of three
+    // disagreeing hovers; the shared recipe is decorative, not geometric.
+    boxShadow: elevated ? GeniusWalletElevation.card : null,
   );
 }
 
@@ -180,11 +183,19 @@ class _HoverLiftCardState extends State<_HoverLiftCard> {
       width: widget.width,
       height: widget.height,
       padding: widget.padding,
-      // 2px lift on hover. A DISCRETE two-state transform driven by pointer
-      // enter/exit — not a per-frame, constraint-derived dimension — so it is
-      // clear of the continuous-relayout freeze class commit 37639d5 banned.
-      transform: Matrix4.translationValues(0, _hovered ? -2 : 0, 0),
-      transformAlignment: Alignment.center,
+      // The 2px lift is gone (2026-07-26). Hover is now the app-wide
+      // decorative recipe — brand tint painted OVER the card plus the brand
+      // hairline in the decoration below — so a card, a nav tab and a chip in
+      // the navbar's control track all answer a pointer identically. The tint
+      // rides in `foregroundDecoration` because the card's own surface may be
+      // a gradient, and a BoxDecoration cannot hold both a gradient and a
+      // colour.
+      foregroundDecoration: _hovered
+          ? BoxDecoration(
+              color: GWDecorations.hoverFill,
+              borderRadius: BorderRadius.circular(widget.radius),
+            )
+          : null,
       decoration: _cardDecoration(
         gw: widget.gw,
         useDefaultSurface: widget.useDefaultSurface,

@@ -562,13 +562,12 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
 /// on the menu. That is deliberate: one token decides the branch for every
 /// consumer, so the two marks cannot degrade at different thresholds. Do not
 /// "fix" it into a per-surface argument.
-LinearGradient _activeLabelShader(GWColors gw) {
-  if (gw.surfaceMenu.computeLuminance() <= 0.5) {
-    return GeniusWalletGradient.brandCta;
-  }
-  final safe = GeniusWalletColors.brandPrimaryOnSurface;
-  return LinearGradient(colors: [safe, safe]);
-}
+/// Body moved to `GeniusWalletGradient.brandCtaText` on 2026-07-26, when the
+/// navbar's Connect field became a third consumer (sketch 043 variant 4A).
+/// The name and both call sites stay — the reasoning above is the shared
+/// contract now, kept here because this file is where it was earned.
+LinearGradient _activeLabelShader(GWColors gw) =>
+    GeniusWalletGradient.brandCtaText(gw.surfaceMenu);
 
 /// F1 two-tier filter control (sketch 014): four icon chips on the title row,
 /// everything else behind a `⋯` menu with live counts.
@@ -607,7 +606,10 @@ class _TransactionFilterBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: gw.surfaceMenu,
+        // Control-track standard, per .planning/codebase/CONVENTIONS.md
+        // ("Control track") — see the matching note on _TimeframeSegment in
+        // dashboard_screen.dart, these two tracks change together.
+        color: gw.surfaceSunken,
         border: Border.all(color: gw.borderSubtle),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
       ),

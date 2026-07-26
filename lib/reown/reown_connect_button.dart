@@ -12,6 +12,7 @@ import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -499,68 +500,65 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   Widget build(BuildContext context) {
     // Appearance-aware read IS needed here: light's surfaceElevated is pure
     // white, and raw brandPrimaryStrong on white is 2.56:1 (fails AA) -- see
-    // connectBrandColor. The status branches (Disconnect/Connecting/Timed
-    // Out/Retry) stay mode-invariant fixed fills, unaffected by this read.
+    // connectBrandColor. Every branch below now shares one visual language
+    // (transparent fill + 1px state-coloured outline), decided 2026-07-26,
+    // sketch 039-B -- so this appearance read only matters for idle's brand
+    // colour.
     final isConnected = _session != null;
 
     final isMobile = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
 
     IconData icon;
-    Color iconColor;
-    Color textColor;
-    Color backgroundColor;
-    // Only the idle "Connect" state carries the 002-B ghost/outline border;
-    // the status branches (Disconnect/Connecting/…) stay filled + borderless.
-    BorderSide? border;
+    Color stateColor;
     String text;
 
     if (isConnected) {
       icon = Icons.link_off;
-      iconColor = GeniusWalletColors.statusError;
-      textColor = GeniusWalletColors.statusError;
-      backgroundColor =
-          GeniusWalletColors.statusError.withValues(alpha: 0.18);
+      stateColor = GeniusWalletColors.statusError;
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
-      iconColor = GeniusWalletColors.statusWarning;
-      textColor = GeniusWalletColors.statusWarning;
-      backgroundColor =
-          GeniusWalletColors.statusWarning.withValues(alpha: 0.18);
+      stateColor = GeniusWalletColors.statusWarning;
       text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
-      iconColor = GeniusWalletColors.statusWarning;
-      textColor = GeniusWalletColors.statusWarning;
-      backgroundColor =
-          GeniusWalletColors.statusWarning.withValues(alpha: 0.18);
+      stateColor = GeniusWalletColors.statusWarning;
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
-      iconColor = GeniusWalletColors.statusError;
-      textColor = GeniusWalletColors.statusError;
-      backgroundColor =
-          GeniusWalletColors.statusError.withValues(alpha: 0.18);
+      stateColor = GeniusWalletColors.statusError;
       text = 'Retry Connect';
     } else {
-      // 005-B ghost Connect (the secondary): transparent fill +
-      // appearance-aware brand outline & text/icon so it clears AA in BOTH
+      // Appearance-aware brand outline & text/icon so it clears AA in BOTH
       // modes (dark = brandPrimaryStrong, light = a darker brand -- see
       // connectBrandColor). Connection logic (_connect/_disconnect) is
       // untouched.
-      final brand = connectBrandColor(context);
       icon = Icons.link;
-      iconColor = brand;
-      textColor = brand;
-      backgroundColor = Colors.transparent;
-      border = BorderSide(color: brand, width: 1.5);
+      stateColor = connectBrandColor(context);
       text = 'Connect';
     }
 
+    // Sketch 043 variant 4A. This is the FOURTH FIELD inside the navbar's
+    // control track, so it takes the track's chip geometry (36px, pill) and —
+    // like its three neighbours — carries NO fill and NO border of its own.
+    // The track is the one fill and the one hairline.
+    //
+    // State is carried by a dot plus the label colour. The IDLE branch, and
+    // only the idle branch, paints its label and dot with the brand gradient:
+    // idle is the one state that INVITES a click, while the other three report
+    // a status a brand gradient cannot express. That keeps the brand accent in
+    // the bar without adding a surface to a side we just cleared of its CTA.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final bool isIdle =
+        !isConnected && !_isConnecting && !_timedOut && !_hasError;
+    final iconColor = stateColor;
+    final textColor = stateColor;
+
     final btn = TextButton(
-      style: navChipShell(context).copyWith(
-        backgroundColor: WidgetStatePropertyAll(backgroundColor),
-        side: border == null ? null : WidgetStatePropertyAll(border),
+      style: navContextChipStyle(context).copyWith(
+        overlayColor: WidgetStatePropertyAll(
+          stateColor.withValues(alpha: 0.16),
+        ),
       ),
       onPressed: () {
         if (_isConnecting || _isDisconnecting) return;
@@ -574,17 +572,77 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       child: Row(
         spacing: GeniusWalletConsts.space4,
         children: [
-          AnimatedRotation(
-            duration: const Duration(milliseconds: 600),
-            turns: _isConnecting ? 1 : 0,
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
+          // The connecting spinner keeps its icon — a rotating mark is the one
+          // thing a static dot cannot say. Every settled state shows the dot,
+          // which is quieter and is what carries the colour.
+          if (_isConnecting)
+            AnimatedRotation(
+              duration: const Duration(milliseconds: 600),
+              turns: 1,
+              child: Icon(icon, color: iconColor, size: 16),
+            )
+          else
+            _StateDot(color: isIdle ? null : stateColor, gw: gw),
           if (!isMobile)
-            Text(text, style: TextStyle(fontSize: 14, color: textColor)),
+            // Idle gets the gradient; the status branches get their flat
+            // colour. ShaderMask paints the child's alpha with the shader, so
+            // the Text colour below only has to be non-transparent.
+            if (isIdle)
+              ShaderMask(
+                shaderCallback: (bounds) =>
+                    GeniusWalletGradient.brandCtaText(gw.surfaceMenu)
+                        .createShader(bounds),
+                blendMode: BlendMode.srcIn,
+                child: const Text(
+                  'Connect',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            else
+              Text(
+                text,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
         ],
       ),
     );
 
     return isMobile ? Tooltip(message: text, child: btn) : btn;
+  }
+}
+
+/// The 9px state mark in the navbar's Connect field (sketch 043 variant 4A).
+///
+/// A null [color] means the IDLE branch, which paints the brand gradient
+/// instead of a flat colour — same rule as the label beside it, so the two
+/// marks can never disagree about which state they are showing.
+class _StateDot extends StatelessWidget {
+  const _StateDot({required this.color, required this.gw});
+
+  final Color? color;
+  final GWColors gw;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color? flat = color;
+    return Container(
+      width: 9,
+      height: 9,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: flat,
+        gradient: flat == null
+            ? GeniusWalletGradient.brandCtaText(gw.surfaceMenu)
+            : null,
+      ),
+    );
   }
 }

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 042 — Navbar bez CTA (4 warianty)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+  svg { display: block; }
+
+  #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border-subtle); padding: 10px 16px; display: flex; gap: 8px;
+    align-items: center; flex-wrap: wrap; }
+  #nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--text-secondary); margin-right: 4px; }
+  #nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  #nav .grp { font: 600 10px var(--font-mono); color: var(--text-primary-38); letter-spacing: .08em; margin-left: 6px; }
+  .tab { font: 500 12.5px var(--font); color: var(--text-primary-70); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 6px 13px; cursor: pointer; transition: all .15s; }
+  .tab:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+  .tab.sm { padding: 5px 10px; font-size: 11.5px; }
+
+  .stage { position: fixed; inset: 62px 0 0 0; overflow: auto; padding: 26px 0 60px; }
+  .board { display: flex; flex-direction: column; align-items: center; }
+
+  .bar { width: 1600px; height: 60px; display: flex; align-items: center; gap: 16px; padding: 0 24px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .logo { width: 32px; height: 32px; border-radius: 9px; flex: none;
+    background: linear-gradient(135deg, var(--brand-cta-b), var(--brand-cta-a)); }
+  .navtabs { display: flex; gap: 2px; align-items: center; }
+  .navtab { height: 44px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px;
+    color: var(--text-primary-54); font: 500 13px var(--font); position: relative; white-space: nowrap; cursor: pointer; }
+  .navtab.on, .navtab:hover { color: var(--text-primary); background: var(--surface-menu); }
+  .navtab.on::after { content:""; position:absolute; left:12px; right:12px; bottom:4px; height:3px; border-radius:3px;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); }
+
+  .cluster { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+  /* atomy */
+  .chainico { width: 20px; height: 20px; border-radius: 50%; flex: none; background: linear-gradient(135deg,#627EEA,#8FA2F5); }
+  .avatar { width: 20px; height: 20px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-tertiary)); }
+  .caret { width: 14px; height: 14px; flex: none; opacity: .5; }
+  .gear { width: 16px; height: 16px; flex: none; opacity: .75; }
+  .mono { font-family: var(--font-mono); font-size: 12.5px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .divider { width: 1px; height: 22px; background: var(--border-subtle); flex: none; margin: 0 2px; }
+
+  .track { display: flex; align-items: center; gap: 2px; flex: none; padding: 3px;
+    background: var(--surface-sunken); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    transition: border-color .18s ease, box-shadow .18s ease; }
+  .track.instr { padding: 3px 6px; }
+  .chip { height: 36px; padding: 0 12px; display: flex; align-items: center; gap: 8px; border-radius: var(--radius-pill);
+    background: transparent; color: var(--text-primary); font: 500 12.5px var(--font); white-space: nowrap; flex: none; cursor: pointer; }
+  .chip:hover { background: var(--surface-elevated); }
+  .chip.ico { padding: 0 8px; gap: 4px; }
+  .statusfield { height: 36px; padding: 0 12px; display: flex; align-items: center; gap: 7px;
+    border-radius: var(--radius-pill); font: 600 12px var(--font); flex: none; cursor: pointer; }
+
+  /* OBWÓDKA — tylko warianty z sufiksem A */
+  #app[data-v="v2a"] .track, #app[data-v="v3a"] .track {
+    border-color: var(--st);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--st) 14%, transparent);
+  }
+
+  .measure { width: 1600px; padding: 10px 24px 0; display: flex; justify-content: flex-end;
+    font: 600 11px var(--font-mono); color: var(--brand-primary); }
+  body:not(.show-measure) .measure { visibility: hidden; }
+  .legend { width: 1600px; padding: 22px 24px 0; color: var(--text-secondary); font-size: 12.5px; line-height: 1.66; }
+  .legend b { color: var(--text-primary); }
+  .legend h4 { color: var(--text-primary); font-size: 13px; margin: 15px 0 4px; }
+  .legend table { border-collapse: collapse; margin: 8px 0 4px; }
+  .legend td, .legend th { border: 1px solid var(--border-subtle); padding: 6px 12px; font-size: 12px; text-align: left; }
+  .legend th { color: var(--text-primary); font-weight: 600; }
+  kbd { font: 600 11px var(--font-mono); background: var(--surface-menu); border: 1px solid var(--border-subtle);
+    border-radius: 5px; padding: 1px 6px; color: var(--text-primary-70); }
+  .hide { display: none !important; }
+</style>
+</head>
+<body class="show-measure">
+
+<div id="nav">
+  <span class="brand">SKETCH 042</span>
+  <span class="sep"></span>
+  <button class="tab active" data-go="v2">2 · tor</button>
+  <button class="tab" data-go="v2a">2A · tor + obwódka</button>
+  <button class="tab" data-go="v3">3 · instrument</button>
+  <button class="tab" data-go="v3a">★ 3A · instrument + obwódka</button>
+  <span class="grp">CONNECT</span>
+  <button class="tab sm active" data-st="idle">Rozłączony</button>
+  <button class="tab sm" data-st="connected">Połączony</button>
+  <button class="tab sm" data-st="connecting">Łączy</button>
+  <button class="tab sm" data-st="timedout">Timeout</button>
+  <span class="sep"></span>
+  <button class="tab sm active" id="t-sdk">SDK jest</button>
+  <button class="tab sm active" id="t-measure">miary</button>
+  <button class="tab sm" id="t-theme">jasny / ciemny</button>
+</div>
+
+<div class="stage"><div class="board">
+<div id="app" data-v="v2" data-st="idle">
+
+  <div class="bar">
+    <div class="logo"></div>
+    <div class="navtabs">
+      <div class="navtab on">Dashboard</div>
+      <div class="navtab">Swap</div>
+      <div class="navtab">Markets</div>
+      <div class="navtab">News</div>
+      <div class="navtab">Web</div>
+      <div class="navtab">Feedback</div>
+    </div>
+
+    <div class="cluster">
+
+      <!-- ===== 2 / 2A · TOR (bez przegród) ===== -->
+      <div class="track" data-only="v2 v2a">
+        <div class="chip ico" title="Ethereum"><span class="chainico"></span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+        <div class="chip sdk"><svg class="gear" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.9 4a7 7 0 01-.1 1l2 1.6-2 3.4-2.4-1a7 7 0 01-1.7 1l-.4 2.5h-4l-.4-2.5a7 7 0 01-1.7-1l-2.4 1-2-3.4 2-1.6a7 7 0 010-2l-2-1.6 2-3.4 2.4 1a7 7 0 011.7-1L10.3 3h4l.4 2.5a7 7 0 011.7 1l2.4-1 2 3.4-2 1.6c.1.3.1.7.1 1z"/></svg><span class="mono">0x1d9b…4a87</span></div>
+        <div class="chip"><span class="avatar"></span><span class="mono">0x9fF8…2e2b</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+        <div class="statusfield cstate"><span class="dot"></span><span class="clabel">Connect</span></div>
+      </div>
+
+      <!-- ===== 3 / 3A · INSTRUMENT (z przegrodami) ===== -->
+      <div class="track instr" data-only="v3 v3a">
+        <div class="chip ico" title="Ethereum"><span class="chainico"></span></div>
+        <span class="divider"></span>
+        <div class="chip sdk"><svg class="gear" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.9 4a7 7 0 01-.1 1l2 1.6-2 3.4-2.4-1a7 7 0 01-1.7 1l-.4 2.5h-4l-.4-2.5a7 7 0 01-1.7-1l-2.4 1-2-3.4 2-1.6a7 7 0 010-2l-2-1.6 2-3.4 2.4 1a7 7 0 011.7-1L10.3 3h4l.4 2.5a7 7 0 011.7 1l2.4-1 2 3.4-2 1.6c.1.3.1.7.1 1z"/></svg><span class="mono">0x1d9b…4a87</span></div>
+        <span class="divider sdk"></span>
+        <div class="chip"><span class="avatar"></span><span class="mono">0x9fF8…2e2b</span></div>
+        <span class="divider"></span>
+        <div class="statusfield cstate"><span class="dot"></span><span class="clabel">Connect</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="measure">
+    <span data-m="v2">tor 44 · 4 pola · bez przegród · obwódka neutralna</span>
+    <span data-m="v2a">tor 44 · 4 pola · bez przegród · <b>obwódka i poświata w kolorze stanu</b></span>
+    <span data-m="v3">tor 44 · 4 pola · <b>przegrody hairline</b> · obwódka neutralna</span>
+    <span data-m="v3a">tor 44 · 4 pola · <b>przegrody + obwódka w kolorze stanu</b></span>
+  </div>
+
+  <div class="legend">
+    <b>Skala 1:1.</b> Buy GNUS zdjęty ze wszystkich czterech. Taby nawigacji w prawdziwych 44 px hovera
+    (<code>responsive_overlay.dart:317</code>). <b>Przejedź cztery stany Connect</b> — bez CTA to stan
+    połączenia jest jedyną rzeczą w pasku, która się zmienia.
+
+    <h4>Matryca — to są dwie niezależne decyzje</h4>
+    <table>
+      <tr><th></th><th>bez obwódki</th><th>z obwódką</th></tr>
+      <tr><th>tor (bez przegród)</th><td>2</td><td>2A</td></tr>
+      <tr><th>instrument (przegrody)</th><td>3</td><td>3A ★</td></tr>
+    </table>
+    <b>Przegrody</b> decydują, czy pasek czyta się jak cztery pola odczytu jednego przyrządu, czy jak
+    cztery chipy w wspólnej obwolucie. <b>Obwódka</b> decyduje, czy stan połączenia jest widoczny z
+    drugiego końca ekranu, czy trzeba na niego spojrzeć. Można wybrać niezależnie.
+
+    <h4>Co wspólne dla wszystkich czterech</h4>
+    Wysokość 44 (zgodna z hoverem tabów) · sieć tylko ikoną · stan jako <b>etykietowane pole w torze</b>,
+    czyli zawsze klikalny cel · znikający SDK zabiera swój chip (a w 3/3A także swoją przegrodę) bez
+    rozjeżdżania toru · brak CTA.
+
+    <h4>⚠ Pułapka widoczna na „Połączony" — dotyczy 2A i 3A</h4>
+    Stan „połączony" jest dziś malowany kolorem <code>statusError</code> <b>nie dlatego, że coś jest
+    nie tak</b>, tylko dlatego, że etykieta akcji brzmi „Disconnect". Przy obwódce całego toru
+    <b>udane połączenie świeci na czerwono i czyta się jak awaria</b>. Zostawiłem to niepoprawione,
+    żebyś zobaczył problem. Warunek wdrożenia 2A/3A: obwódka niesie <i>stan</i> (zielony = połączony),
+    pole w torze zostaje czerwone, bo opisuje <i>to, co zrobi kliknięcie</i>.
+  </div>
+</div>
+</div></div>
+
+<script>
+  const app = document.getElementById('app');
+  const CS = {
+    idle:      { label:'Connect',     c:'var(--brand-primary)' },
+    connected: { label:'Disconnect',  c:'var(--status-error)' },
+    connecting:{ label:'Connecting…', c:'var(--status-warning)' },
+    timedout:  { label:'Retry',       c:'var(--status-warning)' },
+  };
+  function apply() {
+    const v = app.dataset.v, s = CS[app.dataset.st];
+    app.style.setProperty('--st', s.c);
+    document.querySelectorAll('[data-only]').forEach(el =>
+      el.classList.toggle('hide', !el.dataset.only.split(' ').includes(v)));
+    document.querySelectorAll('.cstate').forEach(el => {
+      el.style.color = s.c;
+      el.style.background = 'color-mix(in srgb, ' + s.c + ' 16%, transparent)';
+      el.querySelector('.dot').style.background = s.c;
+      el.querySelector('.clabel').textContent = s.label;
+    });
+    const sdkOn = document.getElementById('t-sdk').classList.contains('active');
+    document.querySelectorAll('.sdk').forEach(el => { if (!el.closest('.hide')) el.style.display = sdkOn ? '' : 'none'; });
+    document.querySelectorAll('[data-m]').forEach(el => el.style.display = el.dataset.m === v ? '' : 'none');
+  }
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-go]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); app.dataset.v = b.dataset.go; apply();
+  }));
+  document.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-st]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); app.dataset.st = b.dataset.st; apply();
+  }));
+  document.getElementById('t-sdk').addEventListener('click', e => {
+    e.currentTarget.classList.toggle('active');
+    e.currentTarget.textContent = e.currentTarget.classList.contains('active') ? 'SDK jest' : 'brak SDK';
+    apply();
+  });
+  document.getElementById('t-measure').addEventListener('click', e => {
+    document.body.classList.toggle('show-measure');
+    e.currentTarget.classList.toggle('active', document.body.classList.contains('show-measure'));
+  });
+  document.getElementById('t-theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+  apply();
+</script>
+</body>
+</html>
