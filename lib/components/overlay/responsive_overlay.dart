@@ -8,7 +8,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_tools_bubble.dart';
@@ -17,7 +16,6 @@ import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
-import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -97,18 +95,71 @@ int _currentIndex(BuildContext context) {
 
 List<Widget> _buildActionRowWidgets(BuildContext context) {
   final walletDetailsCubit = context.read<WalletDetailsCubit>();
+  final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
   return [
-    const NetworkDropdownSelector(),
-    const SDKAccountManagerButton(),
-    AccountDropdownSelector(),
-    ReownConnectButton(
-      walletAddress: walletDetailsCubit.state.selectedWallet?.address ?? '',
-      geniusApi: context.read<GeniusApi>(),
-      walletDetailsCubit: walletDetailsCubit,
-      transactionsCubit: context.read<TransactionsCubit>(),
+    // Control track (sketch 039-B "jeden tor", extended by 042 variant 2):
+    // chain / SDK account / wallet / connection state share one recessed
+    // surfaceSunken track, the same recipe as `_TimeframeSegment` and
+    // `_TransactionFilterBar` -- see CONVENTIONS.md -> Control track.
+    //
+    // Connect moved INSIDE the track and Buy GNUS left the bar entirely
+    // (2026-07-26): with no CTA there is no hierarchy left to protect, so the
+    // whole right side is one instrument with four fields. Track height is 44
+    // (36px chip + 6px padding + 2px border), matching the nav tab hover at
+    // responsive_overlay.dart's destination row.
+    //
+    // ponytail: SDKAccountManagerButton self-hides to SizedBox.shrink() when
+    // accounts.isEmpty, but Row(spacing: 2) still reserves its 2px gap --
+    // a 2px phantom gap below the perceptual threshold. Ceiling: the track
+    // never tightens that last 2px. Upgrade path: lift the accounts.isEmpty
+    // read up to this function and build the children list conditionally.
+    Container(
+      // 6px horizontal (3 vertical) so the outer fields keep a hair more room
+      // from the track's own edge than they do from a divider -- sketch 042
+      // variant 3.
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: gw.surfaceSunken,
+        border: Border.all(color: gw.borderSubtle),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 2,
+        children: [
+          const NetworkDropdownSelector(),
+          _trackDivider(gw),
+          // The SDK chip and ITS divider appear together. SDKAccountManagerButton
+          // self-hides to SizedBox.shrink() when the account list is empty, and
+          // with a divider next to it that would leave a hairline floating
+          // against nothing. So the emptiness is read HERE instead -- the
+          // upgrade path the previous `ponytail:` note named, now required
+          // rather than optional. `watch` (not `read`): the divider has to
+          // disappear the moment the list empties.
+          if (context.watch<AppBloc>().state.sdkAccounts.isNotEmpty) ...[
+            const SDKAccountManagerButton(),
+            _trackDivider(gw),
+          ],
+          AccountDropdownSelector(),
+          _trackDivider(gw),
+          ReownConnectButton(
+            walletAddress:
+                walletDetailsCubit.state.selectedWallet?.address ?? '',
+            geniusApi: context.read<GeniusApi>(),
+            walletDetailsCubit: walletDetailsCubit,
+            transactionsCubit: context.read<TransactionsCubit>(),
+          ),
+        ],
+      ),
     ),
   ];
 }
+
+/// Hairline separating two fields inside the navbar control track (sketch 042
+/// variant 3 "instrument"). 22px against a 36px chip, so it reads as a rule
+/// between readouts rather than a full-height cut.
+Widget _trackDivider(GWColors gw) =>
+    Container(width: 1, height: 22, color: gw.borderSubtle);
 
 const _kIconSize = 23.0;
 
@@ -272,21 +323,18 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                           ),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 120),
-                            transformAlignment: Alignment.center,
-                            transform: lifted
-                                ? Matrix4.translationValues(0, -1, 0)
-                                : Matrix4.identity(),
-                            decoration: BoxDecoration(
-                              color: lifted
-                                  ? gw.surfaceElevated
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(
-                                GeniusWalletConsts.borderRadiusCard,
-                              ),
-                              boxShadow: lifted
-                                  ? GeniusWalletElevation.card
-                                  : null,
-                            ),
+                            // THE app-wide hover recipe (sketch 044 variant 3,
+                            // 2026-07-26): brand tint + brand hairline, no
+                            // geometry. Replaces this tab's own
+                            // surfaceElevated + card-shadow + 1px rise, which
+                            // was one of three disagreeing hovers. The lift
+                            // is gone on purpose -- see GWDecorations.hover.
+                            decoration: lifted
+                                ? GWDecorations.hover(
+                                    radius:
+                                        GeniusWalletConsts.borderRadiusCard,
+                                  )
+                                : const BoxDecoration(),
                             child: SizedBox(
                             height: 44.0,
                             child: Padding(
@@ -388,18 +436,14 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
               Row(
-                spacing: GeniusWalletConsts.space4,
+                spacing: GeniusWalletConsts.space6,
                 children: [
+                  // Buy GNUS removed from the bar 2026-07-26 (sketch 042):
+                  // it was the only element forcing a hierarchy on this side,
+                  // and without it the cluster can read as one instrument
+                  // rather than a row of buttons. `/buy` is still routed and
+                  // still reachable — this drops the shortcut, not the feature.
                   ..._buildActionRowWidgets(context),
-                  GWButton(
-                    variant: GWButtonVariant.gradient,
-                    size: GWButtonSize.md,
-                    height: 40,
-                    label: 'Buy GNUS',
-                    onPressed: () async {
-                      context.push('/buy');
-                    },
-                  ),
                 ],
               ),
             ],
@@ -425,7 +469,10 @@ class MobileOverlay extends StatelessWidget {
               Flexible(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: Row(children: [..._buildActionRowWidgets(context)]),
+                  child: Row(
+                    spacing: GeniusWalletConsts.space6,
+                    children: [..._buildActionRowWidgets(context)],
+                  ),
                 ),
               ),
             ],
