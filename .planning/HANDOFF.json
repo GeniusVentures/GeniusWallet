@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-26T08:30:00.000Z",
+  "phase": "quick",
+  "phase_name": "Quick tasks + design sketches (navbar / hover / dashboard / web)",
+  "phase_dir": ".planning/quick",
+  "plan": 0,
+  "task": 0,
+  "total_tasks": 0,
+  "status": "paused",
+  "note_on_this_file": "This session did NOT run a roadmap phase. It ran two quick tasks (260726-0z4, 260726-1j8), several inline fast tasks, and produced sketches 038/039/042/043/044/045. The narrative handoff is .planning/HANDOFF-260726-navbar-hover-web.md — read that first; this file only carries the machine-readable resume state. Phases 06/07/08 state in STATE.md is untouched by this session.",
+  "completed_tasks": [
+    {"id": "web-urlbar", "name": "Web URL bar could not be typed into — root cause was tree SHAPE (Container.decoration toggled null<->non-null remounted the focused EditableText and killed its text-input connection), NOT text input. Fixed + guard test.", "status": "done", "commit": null},
+    {"id": "web-home", "name": "Web tab home page -> https://gnus.ai/ via one shared const kWebHomeUrl (literal was hardcoded at 4 call sites)", "status": "done", "commit": null},
+    {"id": "038", "name": "Dashboard column widths A1 (flex 3->2, cap 600->760) + Markets sparkline 56x20 -> 72x32", "status": "done", "commit": null},
+    {"id": "260726-0z4", "name": "Control-track standard filed in CONVENTIONS.md + page titles left-aligned on Feedback and Swap", "status": "done_partially_held_back", "commit": null},
+    {"id": "260726-1j8", "name": "Navbar right cluster -> sketch 039-B one control track + outlined Connect states", "status": "done", "commit": null},
+    {"id": "042-043", "name": "Buy GNUS removed from the bar; Connect became the 4th field in the track; treatment 4A (no fill, brand-gradient label on the idle branch only)", "status": "done", "commit": null},
+    {"id": "044", "name": "ONE hover recipe app-wide: brand tint 12% + brand hairline 24%, no geometry. Replaced three disagreeing hovers (nav tab 1px lift, GWCard 2px lift, chips colour-only).", "status": "done", "commit": null}
+  ],
+  "remaining_tasks": [
+    {"id": "walk", "name": "Jakub walks the app after the last reload: navbar cluster, Connect 4A across all four states, the unified hover across tab / chip / card / row, and the mobile AppBar (same _buildActionRowWidgets, two surfaces).", "status": "not_started"},
+    {"id": "card-tint", "name": "Decide whether the hover tint riding in GWCard.foregroundDecoration dirties card TEXT at 12%. If yes, move the tint under the content at the cost of one extra widget.", "status": "not_started"},
+    {"id": "state-row", "name": "Append the STATE.md Quick Tasks row for 260726-1j8 once the navbar is accepted.", "status": "not_started"},
+    {"id": "lane-conflict", "name": "Resolve the Swap-page lane conflict with the parallel session (see blockers).", "status": "not_started"}
+  ],
+  "blockers": [
+    {
+      "description": "A PARALLEL SESSION is writing to this same working tree. Observed by file mtimes interleaving with this session's: sketches 040 / 041-swap-page-buildout / 060 / 061 and test/components/gw_page_header_centered_test.dart are NOT this session's work. Territories are otherwise disjoint (this session: navbar, hover, dashboard, web. Other session: Swap page, coin page).",
+      "type": "process",
+      "workaround": "Sketch-number collision on 041 was resolved by renumbering THIS session's sketch to 045 — the other session's 041 was left untouched. Three files carry BOTH sessions' edits and are therefore EXCLUDED from this session's commits: lib/squid_router/swap_screen.dart, lib/logs/submit_logs_screen.dart, lib/components/scaffold/gw_page_header.dart (plus test/components/gw_page_header_centered_test.dart). They stay uncommitted in the working tree for the other session to own."
+    }
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {
+      "action": "Decide who owns lib/squid_router/swap_screen.dart. This session moved its page header to the left edge (quick 260726-0z4); the parallel session's sketch 040 asks the SAME question with no winner chosen, and its 041-swap-page-buildout (winner '3 · Ledger') and 060 build on top of it.",
+      "context": "Both answers are fine. Committing it without a decision is not. It is deliberately NOT in this session's PR.",
+      "blocking": true
+    },
+    {
+      "action": "Do NOT delete GWPageHeader.centered. Recommendation to remove it is WITHDRAWN — it has its own test and comes from the parallel session, so it is most likely groundwork for their variant, not dead code.",
+      "context": "Reversed after reading the parallel session's sketch subjects.",
+      "blocking": false
+    }
+  ],
+  "decisions": [
+    {"decision": "Hover is decorative, never geometric", "rationale": "ButtonStyle cannot express a transform, so every button-based control would need its own wrapper; and a chip lifting out of a recessed surfaceSunken track contradicts itself. All lifts (nav tab 1px, GWCard 2px) were removed on purpose.", "phase": "044"},
+    {"decision": "OverviewDashboardView (wallet + processing) stays top-left at every width", "rationale": "Confirmed by Jakub after this session moved it once, having misread a confirmation of the current state as a request to change it. Reverted.", "phase": "038"},
+    {"decision": "Sketch 038 variant A2 (bottom-row swap for seam alignment) REJECTED after a live walk", "rationale": "'nie jest lepszy' — aligned seams were not worth moving the chart off the left edge. The 40/60-then-60/40 zigzag is a sighted trade, not an oversight. Do not re-propose.", "phase": "038"},
+    {"decision": "Buy GNUS removed from the navbar", "rationale": "It was the only element forcing a hierarchy on that side; without it the cluster can read as one instrument. The /buy route still exists — the shortcut went, not the feature.", "phase": "042"},
+    {"decision": "Brand gradient paints the Connect field ONLY on the idle branch", "rationale": "A brand gradient says 'invitation'. It cannot say 'error' or 'wait'. Three of the four Connect branches are statuses, so they keep their status colour.", "phase": "043"},
+    {"decision": "brandCtaText shader lifted from transactions_slim_view.dart to GeniusWalletGradient", "rationale": "A third consumer appeared. Its own docs named the risk of duplicating it: a second, separately-drifting colour decision.", "phase": "043"}
+  ],
+  "uncommitted_files": [
+    "lib/squid_router/swap_screen.dart",
+    "lib/logs/submit_logs_screen.dart",
+    "lib/components/scaffold/gw_page_header.dart",
+    "test/components/gw_page_header_centered_test.dart",
+    ".planning/sketches/040-swap-page-header/",
+    ".planning/sketches/041-swap-page-buildout/",
+    ".planning/sketches/060-swap-companion-rail/",
+    ".planning/sketches/061-coin-page-in-app-language/"
+  ],
+  "next_action": "Read .planning/HANDOFF-260726-navbar-hover-web.md, then walk the app (it may need a relaunch: `R` is banned, and a const-class field change rejects hot reload). Gate: flutter analyze lib = 59.",
+  "context_notes": "Baseline held at analyze lib = 59 for the whole session; every touched test passes. Facts worth not re-deriving: nav tab hover surface is 44px (responsive_overlay.dart:343), its slot is 60 (44 + 2x space4), appBarHeight is 68; the control track is 44 (36 chip + 6 padding + 2 border); _buildActionRowWidgets is called TWICE (desktop + mobile AppBar) so one edit hits two surfaces; NEVER fix heights in theme.dart's textButtonTheme (it governs every bare TextButton app-wide); surfaceMenu on surfaceElevated is only 1.11:1, so a control is visible by its BORDER, not its fill. Guard tests whose contract this session deliberately changed (do not 'fix' them back): nav_chip_style_test.dart (32->36px, hover -> brand tint) and gw_card_hover_test.dart (2px lift -> none, borderStrong -> hoverEdge). Diagnostic rule earned the hard way: if ARROW KEYS do not move the caret in a focused field on macOS, the text-input connection is dead — stop looking at IME or selection."
+}

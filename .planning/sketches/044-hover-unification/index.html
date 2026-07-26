@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 044 — Jeden hover dla całej aplikacji</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+  svg { display: block; }
+
+  #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border-subtle); padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--text-secondary); margin-right: 4px; }
+  #nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .tab { font: 500 12.5px var(--font); color: var(--text-primary-70); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 6px 13px; cursor: pointer; }
+  .tab:hover { color: var(--text-primary); border-color: var(--border-strong); }
+  .tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+
+  .stage { position: fixed; inset: 62px 0 0 0; overflow: auto; padding: 24px 0 60px; }
+  .board { width: 1180px; margin: 0 auto; }
+  h3 { font: 600 13px var(--font); color: var(--text-primary); margin: 22px 0 8px; }
+  .hint { font: 400 12px var(--font); color: var(--text-secondary); margin-bottom: 10px; }
+
+  /* ===== rodziny elementów ===== */
+  .barrow { height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 18px;
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: 14px; }
+  .navtab { height: 44px; padding: 0 14px; display: flex; align-items: center; gap: 7px; border-radius: 12px;
+    color: var(--text-primary-54); font: 500 13px var(--font); cursor: pointer; position: relative; }
+  .navtab.on { color: var(--text-primary); }
+  .navtab.on::after { content:""; position:absolute; left:12px; right:12px; bottom:5px; height:3px; border-radius:3px;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); }
+
+  .track { margin-left: auto; display: flex; align-items: center; gap: 2px; padding: 3px 6px; flex: none;
+    background: var(--surface-sunken); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); }
+  .chip { height: 36px; padding: 0 12px; display: flex; align-items: center; gap: 8px; border-radius: var(--radius-pill);
+    color: var(--text-primary); font: 500 12.5px var(--font); cursor: pointer; white-space: nowrap; }
+  .avatar { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-tertiary)); flex: none; }
+  .chainico { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg,#627EEA,#8FA2F5); flex: none; }
+  .mono { font-family: var(--font-mono); font-size: 12.5px; }
+  .divider { width: 1px; height: 22px; background: var(--border-subtle); margin: 0 2px; flex: none; }
+
+  .cards { display: flex; gap: 12px; }
+  .card { flex: 1; padding: 16px; border-radius: var(--radius-2xl); cursor: pointer;
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); }
+  .card b { display: block; font: 600 14px var(--font); margin-bottom: 4px; }
+  .card span { font: 400 12px var(--font); color: var(--text-secondary); }
+
+  .list { background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer;
+    border-top: 1px solid var(--border-subtle); }
+  .row:first-child { border-top: none; }
+  .row .g { flex: 1; }
+  .row .g b { display: block; font: 600 13px var(--font); }
+  .row .g span { font: 400 11px var(--font); color: var(--text-secondary); }
+  .row .amt { font: 600 13px var(--font); font-variant-numeric: tabular-nums; }
+
+  /* ===== RECEPTURY HOVERA ===== */
+  .hoverable { transition: background .16s ease, box-shadow .16s ease, transform .16s ease, border-color .16s ease; }
+
+  /* h1 · lift chip (dzisiejszy standard) */
+  [data-h="h1"] .hoverable:hover { background: var(--surface-menu); box-shadow: var(--shadow-card); transform: translateY(-2px); }
+  [data-h="h1"] .chip.hoverable:hover { background: var(--surface-elevated); }
+
+  /* h2 · podświetlenie markowe */
+  [data-h="h2"] .hoverable:hover { background: var(--brand-primary-subtle); }
+
+  /* h3 · podświetlenie + hairline markowy */
+  [data-h="h3"] .hoverable:hover { background: var(--brand-primary-subtle); box-shadow: inset 0 0 0 1px var(--brand-primary-muted); }
+
+  /* h4 · sheen gradientowy */
+  [data-h="h4"] .hoverable:hover {
+    background: linear-gradient(100deg,
+      color-mix(in srgb, var(--brand-cta-a) 18%, transparent),
+      color-mix(in srgb, var(--brand-cta-b) 10%, transparent));
+  }
+
+  /* h5 · poświata */
+  [data-h="h5"] .hoverable:hover { background: var(--surface-menu);
+    box-shadow: 0 0 0 1px var(--brand-primary-muted), 0 0 14px color-mix(in srgb, var(--brand-primary) 30%, transparent); }
+
+  .legend { padding: 26px 0 0; color: var(--text-secondary); font-size: 12.5px; line-height: 1.66; }
+  .legend b { color: var(--text-primary); }
+  .legend h4 { color: var(--text-primary); font-size: 13px; margin: 15px 0 4px; }
+  .legend table { border-collapse: collapse; margin: 8px 0; width: 100%; }
+  .legend td, .legend th { border: 1px solid var(--border-subtle); padding: 6px 12px; font-size: 12px; text-align: left; }
+  .legend th { color: var(--text-primary); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="brand">SKETCH 044</span>
+  <span class="sep"></span>
+  <button class="tab" data-h="h1">1 · lift chip (dziś)</button>
+  <button class="tab" data-h="h2">2 · podświetlenie</button>
+  <button class="tab active" data-h="h3">★ 3 · podświetlenie + hairline</button>
+  <button class="tab" data-h="h4">4 · sheen gradientowy</button>
+  <button class="tab" data-h="h5">5 · poświata</button>
+  <span class="sep"></span>
+  <button class="tab" id="t-theme">jasny / ciemny</button>
+</div>
+
+<div class="stage"><div class="board" id="app" data-h="h3">
+
+  <h3>1 · Pasek nawigacji — tab i chip w torze</h3>
+  <div class="hint">Najedź na tab po lewej, potem od razu na chip po prawej. To jest ten sam pasek — muszą reagować identycznie.</div>
+  <div class="barrow">
+    <div class="navtab on hoverable">Dashboard</div>
+    <div class="navtab hoverable">Swap</div>
+    <div class="navtab hoverable">Markets</div>
+    <div class="navtab hoverable">News</div>
+    <div class="track">
+      <div class="chip hoverable"><span class="chainico"></span></div>
+      <span class="divider"></span>
+      <div class="chip hoverable"><span class="avatar"></span><span class="mono">0x9fF8…2e2b</span></div>
+      <span class="divider"></span>
+      <div class="chip hoverable"><span class="mono" style="color:var(--brand-primary)">Connect</span></div>
+    </div>
+  </div>
+
+  <h3>2 · Karty</h3>
+  <div class="hint">Ta sama receptura na dużej powierzchni. Tu wychodzi, czy efekt skaluje się z rozmiarem.</div>
+  <div class="cards">
+    <div class="card hoverable"><b>Bitcoin</b><span>$64 318,00 · +0,28%</span></div>
+    <div class="card hoverable"><b>Ethereum</b><span>$1 872,94 · +0,75%</span></div>
+    <div class="card hoverable"><b>Genius Tokens</b><span>$0,78 · +0,27%</span></div>
+  </div>
+
+  <h3>3 · Wiersze listy</h3>
+  <div class="hint">Wiersze transakcji i rynków — najwęższy cel, najczęściej przejeżdżany kursorem.</div>
+  <div class="list">
+    <div class="row hoverable"><div class="g"><b>Received from 0x7a3f…c21b</b><span>25 lip, 14:02</span></div><span class="amt">+0,4200 ETH</span></div>
+    <div class="row hoverable"><div class="g"><b>Swap GNUS → ETH</b><span>25 lip, 11:47</span></div><span class="amt">−120,00 GNUS</span></div>
+    <div class="row hoverable"><div class="g"><b>Processing job payout</b><span>24 lip, 22:15</span></div><span class="amt">+340,00 SGNUS</span></div>
+  </div>
+
+  <div class="legend">
+    <h4>Problem, zmierzony w kodzie</h4>
+    Dziś w aplikacji są <b>trzy</b> hovery, nie dwa: tab nawigacji unosi o <b>1 px</b> + cień
+    (<code>responsive_overlay.dart:331-341</code>), <code>GWCard</code> z <code>hoverLift</code> unosi o
+    <b>2 px</b> + zmienia ramkę na <code>borderStrong</code> + cień na <code>dialog</code>
+    (<code>gw_card.dart:185</code>), a chipy w torze do wczoraj robiły <b>tylko kolor</b>.
+
+    <h4>Dlaczego geometria jest złym fundamentem dla wspólnego hovera</h4>
+    Uniesienie działa na karcie i na tabie, ale <b>nie da się go wyrazić w <code>ButtonStyle</code></b> —
+    nie ma tam transformacji. Każdy element oparty na przycisku wymaga więc własnego opakowania.
+    Do tego uniesienie chipa <i>wewnątrz wklęsłego toru</i> jest sprzeczne samo w sobie: rzecz w rowku
+    nie unosi się nad krawędź. Dlatego wszystkie warianty poniżej poza 1 są <b>czysto dekoracyjne</b> —
+    jedna dekoracja, zero geometrii, działa wszędzie tak samo i nie wymaga ani jednego wrappera.
+
+    <table>
+      <tr><th>#</th><th>Receptura</th><th>Wyraża się w ButtonStyle</th><th>Skaluje się chip → karta</th></tr>
+      <tr><td>1</td><td>lift chip (dziś)</td><td><b>nie</b> — potrzebny wrapper</td><td>tak</td></tr>
+      <tr><td>2</td><td>podświetlenie markowe 12%</td><td>tak</td><td>tak, ale bez krawędzi bywa gubione</td></tr>
+      <tr><td>3 ★</td><td>podświetlenie + hairline 24%</td><td>tak</td><td>tak</td></tr>
+      <tr><td>4</td><td>sheen gradientowy</td><td>tak (gradient w dekoracji)</td><td><b>nie</b> — patrz niżej</td></tr>
+      <tr><td>5</td><td>poświata</td><td>tak</td><td>tak, ale koliduje znaczeniowo</td></tr>
+    </table>
+
+    <h4>★ Rekomendacja: 3 · podświetlenie + hairline markowy</h4>
+    <b>Jedna dekoracja, zero geometrii, działa na każdej powierzchni</b> — na wklęsłym torze, na
+    wyniesionej karcie i na przezroczystym pasku tak samo, bo tint i hairline nie zakładają niczego o
+    tym, co jest pod spodem. Wyraża się w <code>ButtonStyle</code>, więc <b>znika potrzeba wrappera</b>,
+    o którym pisałem godzinę temu jako o koszcie. I jest „podświetleniem" w Twoim sensie — element się
+    rozjaśnia markowo, zamiast fizycznie ruszać.<br>
+    Hairline (24%) jest tam nie dla ozdoby: sam tint 12% na wierszu listy nad
+    <code>surfaceElevated</code> to różnica na granicy widoczności — krawędź jest tym, co mówi „ten
+    wiersz, nie sąsiedni".<br><br>
+    <b>Runner-up: 4 · sheen gradientowy</b> — najładniejszy z piątki i najbardziej „firmowy". Ma jedną
+    twardą wadę: gradient potrzebuje dystansu, żeby był gradientem. Na 36-pikselowym chipie widać
+    praktycznie płaską plamę, na karcie pełny przelot — więc <b>ten sam token daje inny efekt zależnie
+    od rozmiaru</b>, co jest dokładnym przeciwieństwem ujednolicenia. Przejedź kursorem z chipa na
+    kartę w wariancie 4 i zobaczysz to w dwie sekundy.<br><br>
+    <b>Czego bym nie brał: 5 · poświata.</b> Poświata jest w tej aplikacji <b>już zajęta</b> — nosi ją
+    podkreślenie aktywnego taba (<code>responsive_overlay.dart</code>, <code>blurRadius: 10</code> na
+    <code>brandPrimaryStrong</code>). Użycie jej do hovera zderza dwa znaczenia: „jesteś tutaj" i
+    „możesz tu kliknąć". Do tego poświata wokół chipa <i>w rowku</i> czyta się jak błąd renderowania.
+
+    <h4>Koszt wdrożenia 3</h4>
+    <code>brandPrimarySubtle</code> i <code>brandPrimaryMuted</code> istnieją
+    (<code>genius_wallet_colors.dart:50-52</code>), ale <b>nie są wystawione na <code>GWColors</code></b>,
+    więc nie są appearance-aware. Wdrożenie zaczyna się od dopięcia ich do ThemeExtension — jedno
+    miejsce, po którym recepturę można wpiąć w <code>navContextChipStyle</code>, nav tab i
+    <code>GWCard</code> jako jeden wspólny helper.
+  </div>
+</div></div>
+
+<script>
+  const app = document.getElementById('app');
+  document.querySelectorAll('[data-h]').forEach(b => {
+    if (b.id) return;
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#nav [data-h]').forEach(x => x.classList.remove('active'));
+      b.classList.add('active'); app.dataset.h = b.dataset.h;
+    });
+  });
+  document.getElementById('t-theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+</script>
+</body>
+</html>

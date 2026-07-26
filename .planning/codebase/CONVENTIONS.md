@@ -355,6 +355,40 @@ class GeniusWalletColors {
 
 **Usage:** Access via class properties (`GeniusWalletColors.lightGreenPrimary`) or Material ColorScheme from `Theme.of(context).colorScheme`.
 
+### Control track (segmented control / filter bar)
+
+<!-- HAND-WRITTEN 2026-07-26. Not produced by /gsd-map-codebase. Preserve on regeneration. -->
+
+A control track is the pill-shaped container holding a row of small chips (a segmented
+control or a filter bar). Two exist today. The recipe is fixed - partial adoption reads as a
+different design language on the same screen:
+
+| Part | Value |
+|------|-------|
+| Fill | `gw.surfaceSunken` |
+| Border | `Border.all(color: gw.borderSubtle)` (hairline) |
+| Radius | `GeniusWalletConsts.radiusPill` |
+| Track padding | `EdgeInsets.all(3)` |
+| Gap between chips | `SizedBox(width: 2)` |
+
+**Why sunken, not the raised-chip `surfaceMenu`.** Measured this session in dark mode, real
+hex values from `lib/theme/genius_wallet_colors.dart`: panel fill `surfaceElevated` is
+`#0C0E14`; `surfaceMenu` `#171A21` sits about 1.11:1 above it; `surfaceSunken` `#06080C` sits
+about 1.10:1 below it. The fill step itself is not what makes the control visible - the
+hairline border is. `surfaceSunken` was chosen so the panel stays the brightest plane and the
+control reads as a recessed well rather than a raised chip. This only became legible after
+`GWDecorations._surfaceSheenDark` was flattened this session from a `#181B24` → `#0C0E14`
+gradient into a flat `#0C0E14`, matching the Swap tab's boxes. Light mode's sunken step
+(`#FFFFFF` panel vs `#CFD4DB` track) is a much larger, already-visible step; any light-only
+follow-up belongs to the deferred app-wide light pass, not here.
+
+**Pairing rule.** `lib/dashboard/home/view/dashboard_screen.dart` (`_TimeframeSegment`) and
+`lib/dashboard/home/widgets/transactions_slim_view.dart` (`_TransactionFilterBar`) are
+deliberately identical in geometry and CHANGE TOGETHER. They already drifted once (pill vs
+radiusMd, 3 vs 4 padding) and briefly read as two design languages on one screen; timeframe is
+the approved shape (sketch 006/008), so the filter bar follows it, never the reverse. The full
+history is written at `transactions_slim_view.dart:601-606`.
+
 ---
 
 *Convention analysis: 2026-07-15*
