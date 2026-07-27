@@ -386,7 +386,7 @@ outright if the zoom/pan controls are removed when real timeframe ranges are wir
   4. A bridge result shows its success/error toast alongside the result dialog (finding 28)
   5. `GlobalSwapFabHost` is mounted and the app starts with no `!_dirty` red screen when the initial route resolves mid-mount — the `7a63b4f` carry from Phase 4 lands here (NAV-02)
 
-**Plans**: 5/7 plans executed
+**Plans**: 6/7 plans executed
 **UI hint**: yes
 **Findings**: 21, 22, 28.
 **Carries (accepted 2026-07-25)**: `7a63b4f` (`!_dirty` guard + `GlobalSwapFabHost`) — deferred out of Phase 4 "to the swap-FAB phase"; Phase 8 is that phase and now owns it explicitly (criterion 5). **This is a PORT, not a build:** `lib/components/overlay/global_swap_fab_host.dart` (143 lines, with the fix already applied) exists on branch `ui-redesign-3.514-develop` at `7a63b4f` and is absent on `ui-redesign-port`. Port it and preserve the `if (!_ready) return;` guard and its comment verbatim — that comment records why the obvious `schedulerPhase` check does NOT catch the startup case (initial mount runs under `attachRootWidget`, phase `idle` not `persistentCallbacks`). See `lib/components/splash.dart:57` for the live trace of the same condition.
@@ -398,7 +398,7 @@ Plans:
 - [x] 08-03-PLAN.md — Swap tab to sketch 105 A1, unit-tested CTA ladder, D-09 route-error state (criterion 2)
 - [x] 08-04-PLAN.md — Bridge screen to sketch 120 B1 (swap-twin) with every on-chain argument preserved
 - [x] 08-05-PLAN.md — Swap result onto the 031-B receipt, three superseded drawers deleted, dev bubble repointed, Swap Settings drawer re-skinned (criterion 3)
-- [ ] 08-06-PLAN.md — Bridge result: toast + 031-B receipt via a synthesized display-only Transaction (criterion 4)
+- [x] 08-06-PLAN.md — Bridge result: toast + 031-B receipt via a synthesized display-only Transaction (criterion 4)
 - [ ] 08-07-PLAN.md — Human walk: all 5 criteria + WCAG AA in both modes; records 08-VERIFICATION.md
 
 ### Phase 9: Banxa
