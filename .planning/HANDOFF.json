@@ -7,23 +7,79 @@
   "plan": 1,
   "task": 3,
   "total_tasks": 3,
-  "status": "paused",
+  "status": "committed_and_pr_open",
   "note_on_this_file": "OVERWRITES the 2026-07-26 08:30 morning-session handoff (backup: /tmp/HANDOFF-morning-backup.json). That session ended ~15h before this one and its narrative survives in .planning/HANDOFF-260726-navbar-hover-web.md, so nothing was lost. THIS session's narrative is .planning/HANDOFF-260726-swap-polish-and-drawer-archetype.md - read that first; this file carries only machine-readable resume state.",
   "completed_tasks": [
-    {"id": 1, "name": "Phase 20 Task 1 - the page-frame widget test written FIRST and watched fail (RED) for three correct reasons: header measured 560 not 1024, the rail title finder found zero widgets, the send button sat at 758 beside a status ending at 842", "status": "done", "commit": null},
-    {"id": 2, "name": "Phase 20 Task 2 - frame xxl->large (1024), title out of the 560 Center and back on the frame's left edge, LayoutBuilder two-column/stacked, new _buildRail + _railRow, chip strip deleted (_buildReceipt/_logChip/_metaChip removed; _tailBadge kept and reused)", "status": "done", "commit": null},
-    {"id": 3, "name": "Phase 20 Task 3 - Failed-state footer: status line and send button unstacked from one Row (a 130-char message parked the button mid-block). All 3 plan tests GREEN", "status": "done", "commit": null},
-    {"id": "064", "name": "Sketch 064 built, variant B chosen by Jakub: the feedback type chooser now carries the nav bar's exact active-tab language (3px brandCta underline, rounded top, brandPrimaryStrong glow at 50% blur 10, 200ms) plus GWDecorations.hover on inactive tabs", "status": "done", "commit": null},
-    {"id": "064-fixes", "name": "Walk fixes: constant-width border (a BoxDecoration border INSETS its child, so the label twitched 1px on hover), SizedBox(width: infinity) inside the Stack (loose constraints made textAlign:center a no-op), space12->space16 under the chooser, hintStyle textPrimary38 + italic", "status": "done", "commit": null},
-    {"id": "focus-ring", "name": "GWFocusRing (new, lib/components/inputs/) - a gradient focus ring, needed because a BorderSide takes one Color so no InputBorder can be a gradient. Wired into the Swap amount card, the slippage field, the token search and the feedback message", "status": "done", "commit": null},
-    {"id": "drawers", "name": "swap_settings_drawer -> sketch 063-A (presets + validated custom field, Apply in the shell footer via a ValueNotifier); token_selector_drawer -> 032-A1 (padding, visible rows, selection state, displayBalance)", "status": "done", "commit": null},
-    {"id": "swap-form", "name": "Swap form polish: DecimalTextInputFormatter moved bridge->utils (+comma->dot, +decimalRange), You Receive readOnly, hover on the token pill and MAX, theme focusedBorder leak silenced, three 16px horizontal insets removed from the route card / error notice / both CTA branches", "status": "done", "commit": null}
+    {
+      "id": 1,
+      "name": "Phase 20 Task 1 - the page-frame widget test written FIRST and watched fail (RED) for three correct reasons: header measured 560 not 1024, the rail title finder found zero widgets, the send button sat at 758 beside a status ending at 842",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": 2,
+      "name": "Phase 20 Task 2 - frame xxl->large (1024), title out of the 560 Center and back on the frame's left edge, LayoutBuilder two-column/stacked, new _buildRail + _railRow, chip strip deleted (_buildReceipt/_logChip/_metaChip removed; _tailBadge kept and reused)",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": 3,
+      "name": "Phase 20 Task 3 - Failed-state footer: status line and send button unstacked from one Row (a 130-char message parked the button mid-block). All 3 plan tests GREEN",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": "064",
+      "name": "Sketch 064 built, variant B chosen by Jakub: the feedback type chooser now carries the nav bar's exact active-tab language (3px brandCta underline, rounded top, brandPrimaryStrong glow at 50% blur 10, 200ms) plus GWDecorations.hover on inactive tabs",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": "064-fixes",
+      "name": "Walk fixes: constant-width border (a BoxDecoration border INSETS its child, so the label twitched 1px on hover), SizedBox(width: infinity) inside the Stack (loose constraints made textAlign:center a no-op), space12->space16 under the chooser, hintStyle textPrimary38 + italic",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": "focus-ring",
+      "name": "GWFocusRing (new, lib/components/inputs/) - a gradient focus ring, needed because a BorderSide takes one Color so no InputBorder can be a gradient. Wired into the Swap amount card, the slippage field, the token search and the feedback message",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": "drawers",
+      "name": "swap_settings_drawer -> sketch 063-A (presets + validated custom field, Apply in the shell footer via a ValueNotifier); token_selector_drawer -> 032-A1 (padding, visible rows, selection state, displayBalance)",
+      "status": "done",
+      "commit": null
+    },
+    {
+      "id": "swap-form",
+      "name": "Swap form polish: DecimalTextInputFormatter moved bridge->utils (+comma->dot, +decimalRange), You Receive readOnly, hover on the token pill and MAX, theme focusedBorder leak silenced, three 16px horizontal insets removed from the route card / error notice / both CTA branches",
+      "status": "done",
+      "commit": null
+    }
   ],
   "remaining_tasks": [
-    {"id": "walk", "name": "NEXT SESSION STARTS HERE (Jakub, 2026-07-27). Human walk of the ~17 drawers affected by the responsive_drawer shell change - nobody has looked at them. Do it BEFORE Phase 21, which builds further on the same shell", "status": "not_started"},
-    {"id": "20-verification", "name": "Write 20-VERIFICATION.md. 20-01-SUMMARY.md is DONE (2026-07-27); the verification still needs the SDK-running rail rows, the Failed status string, light mode and the send path - all listed in the summary's 'What the live walk still owes'", "status": "not_started"},
-    {"id": "08-05-remainder", "name": "08-05 Tasks 1 and 2 remain outstanding: the receipt wiring in swap_screen.dart, and deleting the three superseded swap drawers plus the dev-bubble repoint. Task 3 is annotated as superseded and must NOT be run", "status": "not_started"},
-    {"id": "rollout", "name": "Decide whether sketch 064-B rolls out to the other tab/segment controls: transactions filter chips, markets timeframe tabs, web tab strip. NOT to list pickers - 032-A1 decided those separately and differently", "status": "not_started"}
+    {
+      "id": "walk",
+      "name": "NEXT SESSION STARTS HERE (Jakub, 2026-07-27). Human walk of the ~17 drawers affected by the responsive_drawer shell change - nobody has looked at them. Do it BEFORE Phase 21, which builds further on the same shell",
+      "status": "not_started"
+    },
+    {
+      "id": "20-verification",
+      "name": "Write 20-VERIFICATION.md. 20-01-SUMMARY.md is DONE (2026-07-27); the verification still needs the SDK-running rail rows, the Failed status string, light mode and the send path - all listed in the summary's 'What the live walk still owes'",
+      "status": "not_started"
+    },
+    {
+      "id": "08-05-remainder",
+      "name": "08-05 Tasks 1 and 2 remain outstanding: the receipt wiring in swap_screen.dart, and deleting the three superseded swap drawers plus the dev-bubble repoint. Task 3 is annotated as superseded and must NOT be run",
+      "status": "not_started"
+    },
+    {
+      "id": "rollout",
+      "name": "Decide whether sketch 064-B rolls out to the other tab/segment controls: transactions filter chips, markets timeframe tabs, web tab strip. NOT to list pickers - 032-A1 decided those separately and differently",
+      "status": "not_started"
+    }
   ],
   "resolved_2026_07_27": [
     {
@@ -60,32 +116,54 @@
     }
   ],
   "decisions": [
-    {"decision": "Phase 20 executed WITHOUT commits", "rationale": "CLAUDE.md forbids commits and the tree carries three sources' uncommitted work; a GSD executor committing atomically would sweep up files it does not own. Chosen by Jakub over the with-commits option.", "phase": "20"},
-    {"decision": "Feedback type chooser = sketch 064 variant B, gradient underline", "rationale": "Chosen by Jakub. The old control broke two standards at once: no hover at all (sketch 044's recipe is app-wide) and a FLAT mint accent, while drawers-final rules that the accent is the gradient.", "phase": "20"},
-    {"decision": "The Message label moved ABOVE the field", "rationale": "Not taste. GWTextField - the app's own component, used by Settings, Markets search, the account manager and onboarding across 7 files - renders labels this way. Feedback used a raw TextField(labelText:), which picks up theme.dart's floatingLabelBehavior: always and notches the label into the outline.", "phase": "20"},
-    {"decision": "'What gets sent' -> 'Attached automatically'", "rationale": "Carries the one thing the user cannot know: that they need do nothing. Recovers the sense of the deleted 'SDK logs attached automatically' header without the word SDK, which means nothing to someone reporting a bug.", "phase": "20"},
-    {"decision": "GWFocusRing rather than an InputBorder", "rationale": "A BorderSide takes a single Color, so no InputBorder can be a gradient. The ring also reserves its 1.5px in BOTH states, so focus never nudges the content it surrounds.", "phase": "20"},
-    {"decision": "formattedBalance left untouched; a separate displayBalance added", "rationale": "MAX puts formattedBalance straight into the amount field, so rounding it there would strand dust or over-ask. The exact value keeps its getter; the rounded one is for eyes only.", "phase": "08"}
+    {
+      "decision": "Phase 20 executed WITHOUT commits",
+      "rationale": "CLAUDE.md forbids commits and the tree carries three sources' uncommitted work; a GSD executor committing atomically would sweep up files it does not own. Chosen by Jakub over the with-commits option.",
+      "phase": "20"
+    },
+    {
+      "decision": "Feedback type chooser = sketch 064 variant B, gradient underline",
+      "rationale": "Chosen by Jakub. The old control broke two standards at once: no hover at all (sketch 044's recipe is app-wide) and a FLAT mint accent, while drawers-final rules that the accent is the gradient.",
+      "phase": "20"
+    },
+    {
+      "decision": "The Message label moved ABOVE the field",
+      "rationale": "Not taste. GWTextField - the app's own component, used by Settings, Markets search, the account manager and onboarding across 7 files - renders labels this way. Feedback used a raw TextField(labelText:), which picks up theme.dart's floatingLabelBehavior: always and notches the label into the outline.",
+      "phase": "20"
+    },
+    {
+      "decision": "'What gets sent' -> 'Attached automatically'",
+      "rationale": "Carries the one thing the user cannot know: that they need do nothing. Recovers the sense of the deleted 'SDK logs attached automatically' header without the word SDK, which means nothing to someone reporting a bug.",
+      "phase": "20"
+    },
+    {
+      "decision": "GWFocusRing rather than an InputBorder",
+      "rationale": "A BorderSide takes a single Color, so no InputBorder can be a gradient. The ring also reserves its 1.5px in BOTH states, so focus never nudges the content it surrounds.",
+      "phase": "20"
+    },
+    {
+      "decision": "formattedBalance left untouched; a separate displayBalance added",
+      "rationale": "MAX puts formattedBalance straight into the amount field, so rounding it there would strand dust or over-ask. The exact value keeps its getter; the rounded one is for eyes only.",
+      "phase": "08"
+    }
   ],
   "uncommitted_files": [
-    "lib/components/bottom_drawer/responsive_drawer.dart",
-    "lib/components/inputs/gw_focus_ring.dart (new)",
-    "lib/components/scaffold/gw_page_header.dart (NOT this session - morning session)",
-    "lib/dashboard/bridge/bridge_screen.dart",
-    "lib/logs/submit_logs_screen.dart",
-    "lib/squid_router/models/squid_balance.dart",
-    "lib/squid_router/route_details_card.dart",
-    "lib/squid_router/slippage_state.dart (new)",
-    "lib/squid_router/swap_field.dart",
-    "lib/squid_router/swap_screen.dart",
-    "lib/squid_router/swap_settings_drawer.dart",
-    "lib/squid_router/token_selector_drawer.dart",
-    "lib/utils/formatters.dart",
-    "test/logs/submit_logs_page_frame_test.dart (new, 4 tests)",
-    "test/squid_router/slippage_state_test.dart (new, 13 tests)",
-    "test/utils/decimal_text_input_formatter_test.dart (new, 16 tests)",
-    "cmake/CommonBuildParameters.cmake + cmake/DownloadDependencies.cmake (NOT this session - held aside deliberately)"
+    "cmake/CommonBuildParameters.cmake and cmake/DownloadDependencies.cmake ONLY - deliberately held out of PR #216. Snappy is not shipped in the TestNet-Phase-3.1 thirdparty bundle so find_package moved REQUIRED -> QUIET, and the 300MB archive download timeout went 300s -> 3600s. Build-environment work, not redesign work; should land on its own."
   ],
   "next_action": "START WITH THE DRAWER WALK - Jakub's instruction, 2026-07-27. Open the ~17 drawers nobody has seen since the responsive_drawer shell change (Select Network, Select Account, the dApp approval drawers, the Banxa receipts, token 'More Options', Receive) and record what the 18px/w600 title, the 56px toolbar and titleSpacing 20 did to each. Fix nothing until the list is complete. Then Phase 21, or 08-05 Tasks 1-2 (Task 3 is superseded - do not run it). Gate: flutter analyze lib = 59, flutter test = 323 pass / 1 fail (test/local_wallet_storage_test.dart is a main()-less stub from the baseline, untouched).",
-  "context_notes": "Facts worth not re-deriving. (1) theme.dart:242 sets an app-wide focusedBorder, and a PER-STATE border always beats InputDecoration's `border` fallback - that is why 'borderless' fields grew a blue box on focus; any field claiming to be borderless must silence all four states. (2) A BoxDecoration carrying a border INSETS its child by the border width, so animating from no-border to border makes content twitch - keep the border present and transparent instead. (3) A Stack gives non-positioned children LOOSE constraints, so a Text inside one shrink-wraps and textAlign:center does nothing. (4) Hot reload is `kill -USR1 42347`; SIGUSR2 and `R` are a RESTART and crash the app on the RocksDB lock. Proof a reload landed: a fresh app.dill.incremental.dill under /var/folders/.../flutter_tools.d6tXkT/. (5) Chrome for Testing EXISTS at ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/ so sketches can be rendered headless; an earlier session wrongly reported no Chrome because it only checked /Applications. (6) swap_screen.dart:243 writes `fees: fromAmount` and transaction_displays.dart:474 renders it as 'Network Fee' - the swap detail drawer shows a wrong number TODAY; todo filed. (7) Swap history is real and persisted, but swap_screen.dart:227 is still `// TODO: invoke Squid API`, so every record describes a swap that never happened."
+  "context_notes": "Facts worth not re-deriving. (1) theme.dart:242 sets an app-wide focusedBorder, and a PER-STATE border always beats InputDecoration's `border` fallback - that is why 'borderless' fields grew a blue box on focus; any field claiming to be borderless must silence all four states. (2) A BoxDecoration carrying a border INSETS its child by the border width, so animating from no-border to border makes content twitch - keep the border present and transparent instead. (3) A Stack gives non-positioned children LOOSE constraints, so a Text inside one shrink-wraps and textAlign:center does nothing. (4) Hot reload is `kill -USR1 42347`; SIGUSR2 and `R` are a RESTART and crash the app on the RocksDB lock. Proof a reload landed: a fresh app.dill.incremental.dill under /var/folders/.../flutter_tools.d6tXkT/. (5) Chrome for Testing EXISTS at ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/ so sketches can be rendered headless; an earlier session wrongly reported no Chrome because it only checked /Applications. (6) swap_screen.dart:243 writes `fees: fromAmount` and transaction_displays.dart:474 renders it as 'Network Fee' - the swap detail drawer shows a wrong number TODAY; todo filed. (7) Swap history is real and persisted, but swap_screen.dart:227 is still `// TODO: invoke Squid API`, so every record describes a swap that never happened.",
+  "pr": {
+    "url": "https://github.com/GeniusVentures/GeniusWallet/pull/216",
+    "branch": "redesign/jakub-260726b",
+    "base": "main",
+    "opened": "2026-07-27",
+    "commits": [
+      "c028cb22 feat(components): a centered GWPageHeader and a gradient focus ring",
+      "cf49b8aa feat(swap): numeric-only amounts, a gradient focus ring, and hover on the pill",
+      "bd501d78 feat(drawers): the settings form archetype (063-A) and the list picker (032-A1)",
+      "d71537fd feat(feedback): Phase 20 page frame (153-B) and the 064-B gradient underline",
+      "76745cb8 docs(planning): Phase 20 record, sketches 040/041/060-064/153/154, plan corrections"
+    ],
+    "gates": "flutter analyze lib = 59 (baseline <= 61); flutter test = 323 pass / 1 fail (test/local_wallet_storage_test.dart, a main()-less stub from the baseline, untouched)"
+  }
 }
