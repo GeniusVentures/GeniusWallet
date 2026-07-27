@@ -2,8 +2,8 @@
 phase: 08-swap-bridge
 verified: 2026-07-27T00:00:00Z
 status: human_needed
-score: "walk IN PROGRESS — 3 of 9 items settled in dark; 0 of 9 in light"
-behavior_unverified: 6
+score: "walk IN PROGRESS — 6 of 9 items settled in dark; 0 of 9 in light"
+behavior_unverified: 3
 requirements: [SCR-04]
 walk_authorisation:
   descoped_by: "D-22 (Braian, 2026-07-25) — 'lets just switch the design we dont need to test it fully'"
@@ -26,8 +26,8 @@ automated_gates:
 | # | Criterion | Verdict |
 |---|-----------|---------|
 | 1 | Swap renders in the redesign skin (105 A1); quote figures match develop | 🟨 dark PASS, light outstanding |
-| 2 | Route-fetch failure → em dash, no route card, red notice, enabled Retry | ⬜ not walked |
-| 3 | Submit → develop's outcome (toast + receipt + persisted tx), NO real swap (D-01) | ⬜ not walked |
+| 2 | Route-fetch failure → em dash, no route card, red notice, enabled Retry | 🟨 dark PASS, light outstanding |
+| 3 | Submit → develop's outcome (toast + receipt + persisted tx), NO real swap (D-01) | 🟨 dark PASS as the documented deviation, light outstanding |
 | 4 | Bridge result shows toast ALONGSIDE the receipt | ⬜ not walked (dry-run depth only) |
 | 5 | Cold start with no `!_dirty`; FAB present/absent on the right surfaces | 🟨 dark PASS (after `10be9c3`), light outstanding |
 | D-15 | WCAG AA on every CTA rung, notice, impact green, MAX chip, sheen — both modes | ⬜ not walked |
@@ -92,9 +92,48 @@ first run in which held balances rendered their real figures at all rather than 
 
 **Outstanding:** light mode.
 
-### 4. Route error (D-09) — ⬜ not walked
-### 5. CTA ladder + D-15 disabled contrast — ⬜ not walked
-### 6. Swap submit (D-01 documented deviation) — ⬜ not walked
+### 4. Route error (D-09, finding 22) — ✅ PASS (dark)
+
+Walked by Braian 2026-07-27 with a forced route-fetch failure. All four required behaviours
+observed together: "You Receive" shows an **em dash** rather than the stale number it last held,
+the route-details card **disappears** (D-09: no figures derived from a route that just failed), the
+red "quote is not current" notice appears, and the CTA becomes an **enabled Retry** that re-fetches
+on tap.
+
+This is criterion 2, and it has no automatable proof — the quote service is a compile-time
+constant (D-18b), so the failure path cannot be provoked from a test.
+
+**Outstanding:** light mode, including the notice's legibility.
+
+### 5. CTA ladder + D-15 disabled contrast — ✅ PASS (dark)
+
+Walked by Braian 2026-07-27. Every rung of the 08-03 state ladder rendered and read correctly:
+`Enter an amount` (disabled, still legible), `Insufficient {SYMBOL} balance` on the red-tinted
+fill, `Finding best route…` during fetch, and the brand-gradient `Swap` on a valid quote. D-15's
+specific question — disabled rungs clearly distinguishable from the enabled one AND readable,
+not a grey smear — passes in dark.
+
+⚠ **This rung was untestable before today.** The `pow(10, decimals) as double` cast threw inside
+`fromBalanceAmount` before the ladder could evaluate, so `Insufficient {SYMBOL} balance` could
+never render. `1445549` is what made this item walkable at all — worth remembering if this
+verdict is ever revisited.
+
+**Outstanding:** light mode, which is the half D-15 most needs (the disabled fills and the
+red tint are the states most likely to collapse against a light surface).
+
+### 6. Swap submit — ✅ PASS (dark), recorded as the D-01 DOCUMENTED DEVIATION
+
+Walked by Braian 2026-07-27. Submitting produced develop's outcome: the "Swap Submitted" toast
+**and** the shipped 031-B receipt — both, not one instead of the other (D-04) — with no Network
+Fee row (nothing executed, so no fee is claimed — this is 08-05's blank-fee guard doing its job),
+no explorer button (the hash is empty), no wording implying on-chain settlement (D-02), and the
+transaction appearing in the Transactions surface.
+
+**Recorded explicitly:** criterion 3 is satisfied by the DOCUMENTED-DEVIATION branch. No real
+Squid swap was executed and none was attempted — `swap_screen.dart` still carries both
+`// TODO:` markers, grep-guarded by 08-05. Recording this as "a swap executed" would be false.
+
+**Outstanding:** light mode.
 ### 7. Bridge (120 B1), dry-run depth — ⬜ not walked
 ### 8. No orphans / no Phase-10 damage — ⬜ not walked
 ### 9. Console watch — 🟨 PARTIAL
