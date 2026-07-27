@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
@@ -103,10 +104,24 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
   });
 
   // Sketch 030-B1 "Quiet band" (.planning/sketches/030-drawer-shell,
-  // drawers-final): the header is a compact zone, not a full-height
-  // kToolbarHeight (56) app bar. Header-chrome-only value -- does not affect
-  // body padding or any other caller-visible layout.
-  static const double _compactToolbarHeight = 48;
+  // drawers-final): the header is its own quiet zone.
+  //
+  // Was 48 to read "compact" against the old 56px-leading close button. With
+  // that gone and the title at its specified 18px, 48 left the title crowded
+  // between the panel's top edge and the hairline — the band stopped reading
+  // as a zone and started reading as a strip. 56 gives the title the same
+  // breathing room the body below it has. Header chrome ONLY -- no blanket
+  // body padding is added here; that stays each caller's responsibility.
+  static const double _compactToolbarHeight = 56;
+
+  /// The title's left edge.
+  ///
+  /// Material's default `titleSpacing` is 16 (`NavigationToolbar.kMiddleSpacing`)
+  /// while every drawer body in this app pads itself with `space10` (20), so
+  /// the title sat 4px inside its own content's left edge — close enough to
+  /// look like a mistake rather than a decision, which is exactly how it read
+  /// on a live walk. Pinning it to the same token puts the two on one axis.
+  static const double _titleInset = GeniusWalletConsts.space10;
 
   @override
   Widget build(BuildContext context) {
@@ -137,14 +152,20 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
               elevation: 0,
               centerTitle: false,
               toolbarHeight: _compactToolbarHeight,
+              titleSpacing: _titleInset,
               title: Text(
                 title!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                // Smaller, non-bold, ellipsizing drawer title (long coin names).
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                // 18px/w600 is what 030-B1 "Quiet band" specified; the shell
+                // shipped `titleMedium` (16/w500) and nobody re-measured it
+                // against the sketch. Still ellipsizing — long coin names are
+                // why the title was made smaller in the first place, and that
+                // constraint has not gone away.
+                style: GeniusWalletTypography.titleLg.copyWith(
+                  color: gw.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               // No leading close well anymore (was a 56px-wide leading slot
               // holding a padded 48px IconButton) -- leading is fully
@@ -159,7 +180,10 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
                   icon: const Icon(Icons.close),
                   iconSize: 20,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
                   tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   onPressed: Navigator.of(context).pop,
                 ),
