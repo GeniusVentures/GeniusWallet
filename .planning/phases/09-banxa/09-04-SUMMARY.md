@@ -151,3 +151,9 @@ None - no external service configuration required.
 ---
 *Phase: 09-banxa*
 *Completed: 2026-07-27*
+
+## Self-Check: PASSED
+
+All 4 files (`order_details_card.dart`, `order_details_page.dart`,
+`order_details_card_test.dart`, `09-04-SUMMARY.md`) found on disk; all 3
+commits (`61143aa`, `3a5a2ef`, `b12d314`) found in `git log --oneline --all`.
