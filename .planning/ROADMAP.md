@@ -104,7 +104,7 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - [x] **Phase 6: Onboarding** - Create, import, recovery phrase, verify, legal, select-wallet-type (completed 2026-07-23 — 6/6 plans; fresh-install walk PASSED all 4 criteria)
 - [ ] **Phase 7: Token screens** - Token info, send, receive, address book, charts
 - [x] **Phase 8: Swap & bridge** - Squid Router and GNUS bridge (completed 2026-07-27)
-- [ ] **Phase 9: Banxa** - Buy, KYC, checkout, order history/details
+- [x] **Phase 9: Banxa** - Buy, KYC, checkout, order history/details (completed 2026-07-27)
 - [ ] **Phase 10: dApp connectivity** - Reown/WalletConnect
 - [ ] **Phase 11: Port closeout** - Full-app walk; all 37 findings signed off (now also signs off the redesign-track surfaces 12/13/14/15/16/17 + the shadow-name baseline)
 
@@ -413,7 +413,7 @@ Plans:
   3. The checkout QR scans in both light and dark appearance (finding 6), and opening Banxa KYC on Linux falls back to the browser instead of crashing (finding 7)
   4. The develop-only Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `banxa_buy_screen.dart`) wear the extended design language per the Phase 3 treatment
 
-**Plans**: 6/7 plans executed
+**Plans**: 7/7 plans complete
 
 Plans:
 
@@ -423,7 +423,7 @@ Plans:
 - [x] 09-04-PLAN.md — Order details card + page: the missing error branch, the tinted severity banner, twin button swap
 - [x] 09-05-PLAN.md — Checkout QR (white backing preserved) and the D-07 checkout options sheet
 - [x] 09-06-PLAN.md — Payment and KYC webview hosts: shared Linux-fallback layout, redirect logic provably untouched
-- [ ] 09-07-PLAN.md — Standing literal gate over all ten in-scope files, and `09-OUTSTANDING.md`
+- [x] 09-07-PLAN.md — Standing literal gate over all ten in-scope files, and `09-OUTSTANDING.md`
 
 **UI hint**: yes
 **Findings**: 1, 6, 7. **Covers GAP-05**.

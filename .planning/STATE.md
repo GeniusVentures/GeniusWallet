@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
 status: verifying
-stopped_at: Completed 09-banxa-06-PLAN.md
-last_updated: "2026-07-27T17:13:04.612Z"
+stopped_at: "Completed 09-07-PLAN.md (phase closeout: literal gate + 09-OUTSTANDING.md); Phase 9 ready for verification"
+last_updated: "2026-07-27T17:28:14.161Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
   total_phases: 21
-  completed_phases: 15
+  completed_phases: 16
   total_plans: 86
-  completed_plans: 79
-  percent: 71
+  completed_plans: 80
+  percent: 76
 ---
 
 # Project State
@@ -201,6 +201,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 09-banxa-06]: Both webview hosts' Linux-fallback spacing normalised to one shared token set (space12/space6/space16/space6) so the twins render structurally identical, rather than each keeping its slightly different original literal value
 - [Phase 09-banxa-06]: Cross-mode colour test re-pointed from gw.textPrimary (headline) to gw.textSecondary (body) -- textPrimary reads a global GWAppearance.isLight flag, not the constructed GWColors instance, the same trap 09-03 already recorded
 - [Phase 09-banxa-06]: GAP-05/SCR-05 checkboxes left unchecked in REQUIREMENTS.md despite banxa_payment.dart closing GAP-05's third named file -- SCR-05 explicitly needs the real KYC redirect (D-02 defers it); 09-07 owns final requirement bookkeeping
+- [Phase ?]: 09-07: standing literal gate proven to bite twice (reintroduced Colors.grey, deleted QR white backing), both reverted before commit
+- [Phase ?]: 09-07: 09-OUTSTANDING.md records criteria 1 PARTIAL, criteria 2/3 NOT ADDRESSED; SCR-05 and GAP-05 both left unchecked pending phase verification
 
 ### Pending Todos
 
@@ -315,8 +317,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T17:13:04.601Z
-Stopped at: Completed 09-banxa-06-PLAN.md
+Last session: 2026-07-27T17:28:14.150Z
+Stopped at: Completed 09-07-PLAN.md (phase closeout: literal gate + 09-OUTSTANDING.md); Phase 9 ready for verification
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -350,7 +352,7 @@ from that session: a `_basePath` `LateInitializationError` thrown as an unhandle
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
 Resume file: 
-`06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
+None
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
 todo remains open only as a product/UX decision (see Open decisions item 4 below), unrelated to
@@ -426,6 +428,7 @@ Open decisions:
 | Phase 09-banxa P04 | 3min | 2 tasks | 3 files |
 | Phase 09-banxa P05 | 25min | 2 tasks | 5 files |
 | Phase 09-banxa P06 | 20min | 2 tasks | 3 files |
+| Phase 09-banxa P07 | 25min | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 
