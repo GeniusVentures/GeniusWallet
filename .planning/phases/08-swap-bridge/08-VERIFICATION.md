@@ -2,8 +2,8 @@
 phase: 08-swap-bridge
 verified: 2026-07-27T00:00:00Z
 status: human_needed
-score: "walk IN PROGRESS — 6 of 9 items settled in dark; 0 of 9 in light"
-behavior_unverified: 3
+score: "walk IN PROGRESS — 7 of 9 settled in dark (8 = code half only), item 7 not walked; 0 of 9 in light"
+behavior_unverified: 2
 requirements: [SCR-04]
 walk_authorisation:
   descoped_by: "D-22 (Braian, 2026-07-25) — 'lets just switch the design we dont need to test it fully'"
@@ -135,8 +135,25 @@ Squid swap was executed and none was attempted — `swap_screen.dart` still carr
 
 **Outstanding:** light mode.
 ### 7. Bridge (120 B1), dry-run depth — ⬜ not walked
-### 8. No orphans / no Phase-10 damage — ⬜ not walked
-### 9. Console watch — 🟨 PARTIAL
+### 8. No orphans / no Phase-10 damage — 🟨 code half VERIFIED, visual half outstanding
+
+Verified by direct inspection 2026-07-27 (this is the half that does not need eyes):
+
+- **Dev bubble split is exactly what 08-05 claimed.** Two buttons call `showTransactionDetails`
+  (`dev_tools_bubble.dart:588,623` — the shared 031-B receipt, completed and failed), and two
+  still call `SwapResultDrawer.show` (`:537,550` — the reown drawer).
+- **The Phase-10 path is intact (D-05).** `lib/reown/swap_result_drawer.dart` still exists and is
+  still called from **two production sites** — `handle_dapp_requests.dart:177` and `:205` — plus
+  the two dev sites above. Nothing in 08-05/08-06 touched it.
+- **The three superseded drawers are gone, not orphaned.** `SwapSuccessDrawer`, `SwapFailDrawer`
+  and `SwapDrawerContent` survive only inside explanatory comments
+  (`dev_tools_bubble.dart:583,619`, `swap_screen.dart:269`). Zero live references, and `analyze`
+  is clean, so nothing imports a deleted file.
+
+**Outstanding:** the visual half — that the two repointed dev buttons actually open the shared
+receipt, and that "Swap OK" / "Swap fail" still open the reown drawer unchanged. Plus light mode.
+
+### 9. Console watch — ✅ PASS with one recorded exception (dark)
 
 One reproducible exception, present on **every** launch, fires on the dashboard before anything is
 touched:
@@ -147,7 +164,22 @@ lib/chart/crypto_live_chart.dart:372
 ```
 
 Outside Phase 08's surfaces (dashboard chart, Phase 05/13 territory) so it does not gate this
-phase, but it is real and recorded. No other exceptions during boot after the fixes below.
+phase, but it is real and recorded.
+
+**On Phase 08's own surfaces the console is clean.** A live filter ran over the Flutter console for
+the whole session, watching for exceptions, overflows, `setState() called after dispose`, `_dirty`
+asserts and unlaid-out RenderBoxes. Across the walk of items 1–6 the only thing it caught on swap
+or bridge was the two entries below. Notably **zero** `type 'int' is not a subtype of type 'double'`
+in this run, against a steady stream of them before `1445549`.
+
+**One unresolved observation, recorded rather than closed:** earlier in the session two horizontal
+overflows fired — **7.1px and 8.1px on the right**, twice each — while the app was being driven.
+They have NOT recurred since. The widget could not be identified: Flutter prints the full widget
+path only for the first exception of a run and collapses repeats to "Another exception was
+thrown", and that one full block belonged to the dashboard chart. Most likely candidates, both
+unconfirmed: the picker row carrying the 13-digit `1000000000000`, or the 38px hero holding the
+17-character dust amount after MAX — i.e. the very problem sketch 066 was raised to solve. If it
+resurfaces, rebuild with the repeat-collapsing defeated so the widget path prints.
 
 ## Defects found by this walk and fixed during it
 
