@@ -2,8 +2,8 @@
 phase: 08-swap-bridge
 verified: 2026-07-27T00:00:00Z
 status: human_needed
-score: "walk IN PROGRESS — 7 of 9 settled in dark (8 = code half only), item 7 not walked; 0 of 9 in light"
-behavior_unverified: 2
+score: "walk IN PROGRESS — 8 of 9 settled in dark, item 7 (bridge) not walked; 0 of 9 in light"
+behavior_unverified: 1
 requirements: [SCR-04]
 walk_authorisation:
   descoped_by: "D-22 (Braian, 2026-07-25) — 'lets just switch the design we dont need to test it fully'"
@@ -135,7 +135,7 @@ Squid swap was executed and none was attempted — `swap_screen.dart` still carr
 
 **Outstanding:** light mode.
 ### 7. Bridge (120 B1), dry-run depth — ⬜ not walked
-### 8. No orphans / no Phase-10 damage — 🟨 code half VERIFIED, visual half outstanding
+### 8. No orphans / no Phase-10 damage — ✅ PASS (dark), one cosmetic defect routed elsewhere
 
 Verified by direct inspection 2026-07-27 (this is the half that does not need eyes):
 
@@ -150,8 +150,30 @@ Verified by direct inspection 2026-07-27 (this is the half that does not need ey
   (`dev_tools_bubble.dart:583,619`, `swap_screen.dart:269`). Zero live references, and `analyze`
   is clean, so nothing imports a deleted file.
 
-**Outstanding:** the visual half — that the two repointed dev buttons actually open the shared
-receipt, and that "Swap OK" / "Swap fail" still open the reown drawer unchanged. Plus light mode.
+**Visual half walked 2026-07-27 — the item's own criterion PASSES, with a cosmetic defect found
+that belongs to other phases.**
+
+The no-orphans / no-Phase-10-damage question is answered: "Swap OK" and "Swap fail" **do** still
+open the reown drawer, and the repointed buttons **do** open the shared receipt. Nothing is
+orphaned and nothing in Phase 10 was broken by 08-05.
+
+**But** Braian: *"swap ok and swap fail is basically empty right now … it does not have paddings in
+this content."* Both drawers render their body flush against the panel edges —
+`swap_result_drawer.dart:25` has no body padding at all, and `_buildDetailsCard`
+(`transaction_displays.dart:421`) has `vertical: space2` with **zero horizontal**.
+
+Not a Phase 8 regression. `ResponsiveDrawer` documents that body padding is each caller's
+responsibility (`responsive_drawer.dart:113`); the 07-06 re-skin pinned the *title* to a 20px inset
+and these two callers never padded their bodies to match. `swap_result_drawer.dart` has not been
+touched since `4d1bb36`, before the redesign.
+
+**Deliberately NOT fixed.** Both files are fenced off from this phase — D-05 makes the reown
+drawer Phase 10's, and 08-05 forbids redesigning `showTransactionDetails`. Braian was asked at the
+walk and chose to respect both prohibitions rather than cross them. Recorded in
+`.planning/todos/pending/2026-07-27-drawer-bodies-have-no-horizontal-padding.md`, routed to
+sketch 154 (which already recorded the identical finding) and Phase 10.
+
+**Outstanding:** light mode.
 
 ### 9. Console watch — ✅ PASS with one recorded exception (dark)
 
@@ -210,4 +232,7 @@ Recorded in both sketch READMEs.
 
 - `.planning/todos/pending/2026-07-27-swap-pay-token-picker-should-list-only-held-tokens.md` — the
   flip control can still seat a zero-balance token on the filtered pay side.
+- `.planning/todos/pending/2026-07-27-drawer-bodies-have-no-horizontal-padding.md` — the reown
+  swap-result drawer and `_buildDetailsCard` both render flush to the panel edge. Fenced off from
+  this phase by D-05 and 08-05; routed to Phase 10 and sketch 154 respectively.
 - `crypto_live_chart.dart:372` overflow (item 9).
