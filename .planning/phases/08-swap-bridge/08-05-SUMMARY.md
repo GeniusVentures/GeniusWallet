@@ -156,3 +156,17 @@ None - no external service configuration required.
 ---
 *Phase: 08-swap-bridge*
 *Completed: 2026-07-27*
+
+## Self-Check: PASSED
+- FOUND: test/dashboard/transaction_receipt_fee_row_test.dart
+- FOUND: lib/squid_router/swap_screen.dart
+- FOUND: lib/dashboard/home/widgets/transaction_displays.dart
+- FOUND: lib/dev/dev_tools_bubble.dart
+- FOUND: .planning/phases/08-swap-bridge/08-05-SUMMARY.md
+- CONFIRMED DELETED: lib/squid_router/swap_success_drawer.dart
+- CONFIRMED DELETED: lib/squid_router/swap_fail_drawer.dart
+- CONFIRMED DELETED: lib/squid_router/swap_drawer_content.dart
+- FOUND commit: c848663
+- FOUND commit: 4e0fae7
+- FOUND commit: 9ff7c04
+- FOUND commit: 98ecd9d
