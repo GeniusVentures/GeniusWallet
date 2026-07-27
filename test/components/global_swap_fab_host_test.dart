@@ -38,6 +38,13 @@ GoRouter _router() => GoRouter(
       builder: (context, state) =>
           const Scaffold(body: Text('swap placeholder')),
     ),
+    // '/token-info' was ADDED to _hiddenPaths in Phase 8: the token detail
+    // grew its own live Swap button, making the floating one redundant there.
+    GoRoute(
+      path: '/token-info',
+      builder: (context, state) =>
+          const Scaffold(body: Text('token detail placeholder')),
+    ),
   ],
 );
 
@@ -149,6 +156,37 @@ void main() {
       findsOneWidget,
       reason: 'back on a visible path, the FAB must return',
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the FAB is hidden on the token detail, which has its own Swap', (
+    tester,
+  ) async {
+    // Phase 8 wired the token detail's Swap button (07 deferred it here:
+    // "Send + Swap render but do nothing (Swap is Phase 8's)"). With a real
+    // Swap affordance on the page, the floating one is redundant — the same
+    // rule that already hid it on /swap.
+    final router = _router();
+    await tester.pumpWidget(_app(router));
+    await tester.pump(); // let _ready flip
+
+    expect(find.byType(GWSwapFab), findsOneWidget);
+
+    router.push('/token-info');
+    await tester.pumpAndSettle();
+
+    expect(find.text('token detail placeholder'), findsOneWidget);
+    expect(
+      find.byType(GWSwapFab),
+      findsNothing,
+      reason: '/token-info carries its own Swap button, so the FAB must hide',
+    );
+
+    // And it must come back on the way out — the token detail is pushed, so
+    // this also re-covers the pop path on a second hidden route.
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(GWSwapFab), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

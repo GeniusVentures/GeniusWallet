@@ -31,8 +31,13 @@ class GlobalSwapFabHost extends StatefulWidget {
   final Widget child;
 
   /// Auth / onboarding / splash surfaces where the global swap action must
-  /// not appear. Exact path match. Also hides on `/swap` (redundant there).
-  /// Swap stays reachable everywhere else, including the token detail.
+  /// not appear. Exact path match. Also hides on `/swap` (redundant there)
+  /// and on `/token-info`, which grew its own live Swap button in Phase 8 —
+  /// same redundancy rule, decided by Braian at the 08-07 walk.
+  ///
+  /// Note `/markets` is deliberately NOT here: it has no Swap affordance of
+  /// its own (`TokenActionBar` is used only by the token detail), so hiding
+  /// the FAB there would leave the page with no route to swap at all.
   static const Set<String> _hiddenPaths = {
     '/',
     '/landing_screen',
@@ -45,6 +50,7 @@ class GlobalSwapFabHost extends StatefulWidget {
     '/import_existing_wallet',
     '/create_wallet',
     '/swap',
+    '/token-info',
     // Payment / KYC flows: floating wallet actions over a checkout or
     // identity form are distracting and can cover their CTAs.
     '/checkout',

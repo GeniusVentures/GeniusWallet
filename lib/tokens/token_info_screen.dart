@@ -344,7 +344,18 @@ class TokenInfoScreen extends StatelessWidget {
   /// wired to the existing drawer behaviour. Receive opens the 034-A2 QR
   /// receive drawer; More opens the 07-07 Bridge Tokens drawer but ONLY when
   /// [isGnusBridgeEnabled] (else `onMore: null` renders More disabled —
-  /// finding-37). Send/Swap stay disabled (D-01/D-02).
+  /// finding-37).
+  ///
+  /// **Send stays disabled (07 D-01/D-02)** — there is no `/send` route and
+  /// wiring one is build-new, explicitly fenced out of the re-skin.
+  ///
+  /// **Swap is LIVE as of Phase 8.** Phase 07 left it inert and said exactly
+  /// why: *"Send + Swap render but do nothing (Swap is Phase 8's)"*
+  /// (07-CONTEXT.md). This is Phase 8, `/swap` exists and has been re-skinned,
+  /// so that deferral is discharged here. Unlike Send it needs no new
+  /// capability — one push to a route that already works. The old
+  /// "Send/Swap stay disabled (D-01/D-02)" wording over-attributed: D-01 and
+  /// D-02 are about Send's signing path and say nothing about Swap.
   Widget _buildActionBar(
     BuildContext context,
     Coin? selectedCoin,
@@ -355,6 +366,12 @@ class TokenInfoScreen extends StatelessWidget {
   ) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return TokenActionBar(
+      // Phase 8 discharges 07's "Swap is Phase 8's" deferral. `push`, not `go`,
+      // so the back arrow returns to this token — and the global FAB correctly
+      // hides on /swap either way now that its host reads the top match rather
+      // than the match-list uri (10be9c3).
+      swapEnabled: true,
+      onSwap: () => context.push('/swap'),
       onReceive: () {
         ResponsiveDrawer.show<void>(
           context: context,
