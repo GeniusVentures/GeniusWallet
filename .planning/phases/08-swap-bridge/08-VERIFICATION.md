@@ -34,7 +34,7 @@ automated_gates:
 
 ## Walk items
 
-### 1. Cold start + FAB placement — 🟨 PARTIAL (dark only)
+### 1. Cold start + FAB placement — ✅ PASS (dark), light outstanding
 
 **Crash half — PASS (dark).** Four separate cold starts in this session produced **no red error
 screen and no `!_dirty` / `assert(!_dirty)` line** as the initial route resolved. The `_ready` gate
@@ -42,8 +42,8 @@ ported in 08-02 holds under `runApp`'s real mount timing, which is the thing `pu
 prove. Boot was slow (`getCoins` settled in 20.4s on the first run, 318ms on later ones) but that
 is network, not the bug.
 
-**FAB half — FAILED, fixed, NOT yet re-walked.** Braian: *"the swap button should disappear when in
-the swap page."* It did not.
+**FAB half — FAILED on first walk, fixed, then re-walked green.** Braian: *"the swap button should
+disappear when in the swap page."* It did not.
 
 `/swap` was in `_hiddenPaths` all along; the defect was which path the host read.
 `currentConfiguration.uri` tracks declarative navigation only — an imperative `push` appends an
@@ -91,6 +91,7 @@ This item also covers the first sight of the 08-07 magnitude fixtures in the pic
 first run in which held balances rendered their real figures at all rather than `0`.
 
 **Outstanding:** light mode.
+
 ### 4. Route error (D-09) — ⬜ not walked
 ### 5. CTA ladder + D-15 disabled contrast — ⬜ not walked
 ### 6. Swap submit (D-01 documented deviation) — ⬜ not walked
