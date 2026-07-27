@@ -62,6 +62,58 @@ plans in this phase each mistakenly ticked a requirement checkbox and had to rev
 (`REQUIREMENTS.md`'s SCR-05 traceability row records the same correction) — this document does
 not repeat that mistake in either direction.
 
+## ⚠ The finding that actually blocks closeout — the layout was never designed
+
+Added 2026-07-27, after Braian reached the re-skinned screens in the running app:
+**"we need to redesign the banxa screens it's too ugly."**
+
+This is not a defect in Phase 9's execution, and it is not a token problem. Asked to distinguish,
+Braian confirmed it is **layout and structure**, not "the re-skin didn't land". The 09-07 literal
+gate (31 tests) and the verifier's code-level grep both independently confirm the tokens ARE
+applied. The screens are consistent. They are not good.
+
+**The cause is structural and was baked in from the start.** `PROJECT.md` line 33 says the
+develop-era surfaces have **no mockup** — "they wear the design language in place, structure
+unchanged" — and §65's *"Re-skin, never restructure"* then held that structure fixed. So Phase 9
+correctly applied a design system to a layout that had never been designed. Every other surface in
+this milestone got a sketch first:
+
+| Surface | Sketches |
+|---------|----------|
+| Swap | 105, 040, 041, 060, 062 |
+| Feedback | 150, 153, 064 |
+| Markets | 103, 107–115 |
+| Transactions | 007–014, 020–030 |
+| Token picker / numbers | 032, 065, 066 |
+| **Banxa** | **none** |
+
+**What is concretely wrong, from reading the code:**
+
+- `banxa_buy_screen.dart` is a bare `Column` of three stock Material `DropdownMenu`s (Fiat, Crypto,
+  Payment Method) plus a `TextField` amount, a Get Quote button, a quote `GWCard` and a wallet
+  `TextField`. No grouping, no hierarchy, and stock dropdowns rather than the app's own field
+  language. A re-skin could not fix this: swapping a `DropdownMenu` for something else is
+  restructuring.
+- `banxa_orders_history.dart` stacks a Status dropdown, a "Pick Date Range" button, a date string
+  and "Total Orders: N" in a plain `Column` above the list — filters as loose controls rather than
+  a designed toolbar.
+
+**Both have a precedent this app already settled**, which is why the fix is tractable rather than
+open-ended:
+
+- **Buy is Swap with one side fixed to fiat.** Sketch 105-A1 solved the same shape — a 560px
+  column, two amount cards, a details card, a gradient CTA ladder.
+- **Orders-with-filters is Transactions.** Phases 12/15 solved filter-above-list already.
+
+**Status: this item is OUTSTANDING and it is the one that should gate calling Banxa "done".** The
+other items above are verification debt — things true but unwitnessed. This one is a product gap:
+the surfaces are finished to spec and the spec was never drawn.
+
+**Next step, agreed but not yet executed:** sketch the buy form and the orders page (3 variants
+each, grounded in the two precedents above), pick winners, then implement in a follow-up phase.
+Sketch numbers 067 and 068 are free and reserved for this. Deferred at the end of the 2026-07-27
+session; nothing has been built yet.
+
 ## Recommended follow-up
 
 A small, separate behaviour-fix phase covering criterion 2 (the KYC redirect blocker — the one
