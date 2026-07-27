@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>062 · Ledger — 5 wariantów, każda dana z metryką pochodzenia</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#000; color:var(--text-primary); padding:104px 16px 72px; }
+  .wrap { max-width:1740px; margin:0 auto; }
+
+  /* ═══════════ chrome szkicu ═══════════ */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+
+  /* pasek legendy — zawsze widoczny, bo to jest sedno tego szkicu */
+  #legend { position:fixed; top:41px; left:0; right:0; z-index:9997; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; font:500 11px/15px var(--font); color:var(--text-secondary); }
+  #legend b { color:var(--text-primary); font-weight:600; }
+  #legend .sep { width:1px; height:16px; background:var(--border-subtle); }
+  #legend .tgl { margin-left:auto; display:flex; gap:6px; align-items:center; }
+  #legend button { font:600 11px/15px var(--font); padding:5px 10px; border-radius:var(--radius-pill); cursor:pointer;
+    border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); transition:all .15s ease; }
+  #legend button:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #legend button.on { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; }
+
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 auto var(--space-8); max-width:1180px; }
+  .lede b { color:var(--text-primary); } .lede code { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec  { background:var(--brand-fill); color:var(--brand-secondary); }
+  .tag.warn { background:rgba(255,196,46,.14); color:var(--status-warning); }
+  .tag.bad  { background:var(--status-error-fill); color:var(--status-error); }
+
+  /* ═══════════ METRYKA POCHODZENIA — trzy poziomy ═══════════ */
+  .p { font:700 8px/1 var(--font-mono); letter-spacing:.4px; padding:3px 5px; border-radius:3px; white-space:nowrap; vertical-align:middle;
+       display:inline-flex; align-items:center; flex:none; }
+  .p-have  { background:var(--status-success-fill); color:var(--status-success); }
+  .p-easy  { background:var(--brand-fill);          color:var(--brand-primary); }
+  .p-build { background:rgba(255,196,46,.14);       color:var(--status-warning); }
+  body:not(.prov) .p { display:none; }
+
+  /* podświetlenie całych bloków wg pochodzenia */
+  body.prov [data-p="have"]  { outline:1px dashed rgba(10,216,156,.45);  outline-offset:2px; }
+  body.prov [data-p="easy"]  { outline:1px dashed rgba(20,200,255,.45);  outline-offset:2px; }
+  body.prov [data-p="build"] { outline:1px dashed rgba(255,196,46,.55);  outline-offset:2px; }
+
+  /* ═══════════ okno aplikacji ═══════════ */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card);
+    width:100%; max-width:var(--winw, 100%); margin:0 auto; transition:max-width .2s ease; }
+  .navbar { display:flex; align-items:center; gap:var(--space-10); height:68px; padding:0 var(--space-12);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 14px/18px var(--font); color:var(--text-secondary); }
+  .navbar .brand { width:24px; height:24px; border-radius:7px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-24px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .right { margin-left:auto; display:flex; align-items:center; gap:var(--space-6); }
+  .navbar .right > * { flex:none; white-space:nowrap; }
+  .navbar .chip { padding:6px 11px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); }
+  .body-pad { padding:0 0 var(--space-20); min-height:660px; }
+  .stage { position:relative; } .variant { display:none; } .variant.active { display:block; }
+
+  /* ═══════════ ramka strony — tytuł ZAWSZE na tym samym X ═══════════ */
+  .frame { max-width:1600px; margin:0 auto; padding:0 12px; }
+  .headrow { padding:40px 0 20px; }
+  .pagehead { display:flex; align-items:flex-start; gap:var(--space-8); }
+  .pagehead h2 { font:600 28px/36px var(--font); letter-spacing:-.5px; color:var(--text-primary); }
+  .pagehead .sub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-2); }
+  .pagehead .grow { margin-right:auto; }
+  .tune { height:40px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:transparent; padding:0 14px; gap:8px;
+    color:var(--text-secondary); display:inline-flex; align-items:center; cursor:pointer; transition:all .15s ease; flex:none; font:600 13px/1 var(--font); }
+  .tune:hover { background:var(--surface-menu); color:var(--text-primary); }
+  body.axis .frame { background:linear-gradient(90deg, rgba(20,200,255,.10) 0 1px, transparent 1px); }
+  body.axis .titleX { outline:1px dashed rgba(43,245,180,.5); }
+
+  /* ═══════════ siatka ═══════════ */
+  .cols { display:flex; gap:var(--space-12); align-items:flex-start; }
+  .form-col { width:560px; flex:none; }
+  /* Szyna ZAWSZE dociąga do prawej rynny ramki. Szyna o stałej szerokości
+     odtwarzała dokładnie tę wadę, którą Ledger miał usunąć: tytuł na 12px,
+     treść kończąca się na 1024 i pigułka slippage sama na 1600 - trzy osie,
+     które nie zgadzają się z niczym. */
+  .rail { flex:1; min-width:0; display:flex; flex-direction:column; gap:var(--space-12); }
+  .rail.split { flex-direction:row; align-items:flex-start; }
+  .rail.split > .grow { flex:1; min-width:0; }
+  .rail.split > .side { flex:none; width:300px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; }
+  .grid2 .stat:nth-child(-n+2) { border-top:none; }
+  .grid2 .stat:nth-child(even) { border-left:1px solid var(--border-subtle); }
+
+  /* ═══════════ karty ═══════════ */
+  .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); }
+  .card.pad { padding:var(--space-10) var(--space-8); }
+  .card:hover { background:color-mix(in srgb, var(--brand-primary) 4%, var(--surface-elevated)); }
+  .phead { display:flex; align-items:center; gap:var(--space-4); padding:var(--space-8) var(--space-8) var(--space-6); }
+  .phead .t { font:600 13px/18px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); }
+  .phead .grow { margin-right:auto; }
+  .phead a { font:600 12px/16px var(--font); color:var(--brand-primary); text-decoration:none; cursor:pointer; }
+  .phead a:hover { text-decoration:underline; }
+
+  /* wiersz historii */
+  .srow { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6) var(--space-8); cursor:pointer; transition:background .15s ease; border-top:1px solid var(--border-subtle); }
+  .srow:hover { background:color-mix(in srgb, var(--brand-primary) 8%, transparent); }
+  .srow .pair { display:flex; align-items:center; }
+  .srow .pair .logo:last-child { margin-left:-8px; }
+  .srow .mid { min-width:0; flex:1; }
+  .srow .nm { font:600 14px/19px var(--font); color:var(--text-primary); white-space:nowrap; }
+  .srow .sub { font:400 12px/16px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .srow .rt { text-align:right; font-variant-numeric:tabular-nums; }
+  .srow .rt .a { font:600 13px/18px var(--font); color:var(--text-primary); }
+
+  .badge { font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.5px; padding:4px 7px; border-radius:4px; white-space:nowrap; }
+  .badge.ok   { background:var(--status-success-fill); color:var(--status-success); }
+  .badge.pend { background:rgba(255,196,46,.14);       color:var(--status-warning); }
+  .badge.fail { background:var(--status-error-fill);   color:var(--status-error); }
+
+  /* statystyki */
+  .stat { display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-6); padding:var(--space-6) var(--space-8); border-top:1px solid var(--border-subtle); }
+  .stat .k { font:400 13px/18px var(--font); color:var(--text-secondary); display:flex; align-items:center; gap:6px; }
+  .stat .v { font:600 14px/20px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+
+  .ribbon { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-12); margin-bottom:var(--space-12); }
+  .rcell { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:var(--space-8) var(--space-10); }
+  .rcell .k { font:600 10px/14px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); display:flex; align-items:center; gap:6px; }
+  .rcell .v { font:600 24px/32px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; margin-top:var(--space-2); letter-spacing:-.4px; }
+  .rcell .d { font:400 12px/16px var(--font); color:var(--text-secondary); }
+
+  /* tabela ledger */
+  table.led { width:100%; border-collapse:collapse; }
+  table.led th { font:600 10px/14px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); text-align:left;
+    padding:var(--space-6) var(--space-8); border-bottom:1px solid var(--border-subtle); white-space:nowrap; }
+  table.led td { padding:var(--space-6) var(--space-8); border-bottom:1px solid var(--border-subtle); font:500 13px/18px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  table.led td.dim { color:var(--text-secondary); font-weight:400; }
+  table.led tr:hover td { background:color-mix(in srgb, var(--brand-primary) 8%, transparent); }
+  table.led .r { text-align:right; }
+
+  /* ═══════════ token / formularz ═══════════ */
+  .logo { border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font:800 10px/1 var(--font); border:2px solid var(--surface-elevated); }
+  .logo.eth{background:linear-gradient(135deg,#8FA2F5,#627EEA);} .logo.usdc{background:linear-gradient(135deg,#3E8FE0,#2775CA);}
+  .logo.usdt{background:linear-gradient(135deg,#3fc79a,#26A17B);} .logo.pol{background:linear-gradient(135deg,#a06bf0,#8247E5);}
+  .logo.wbtc{background:linear-gradient(135deg,#f7b267,#F09242);} .logo.gnus{background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));}
+  .tk { display:inline-flex; align-items:center; gap:9px; padding:6px 12px 6px 7px; border-radius:var(--radius-pill);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-primary); cursor:pointer; transition:all .15s ease; white-space:nowrap; }
+  .tk:hover { border-color:var(--brand-primary); }
+  .tk .sym { font:700 16px/1 var(--font); }
+  .fcard { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:var(--space-10) var(--space-8); }
+  .fcard .top { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-6); }
+  .flabel { font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .bal { font:500 12px/16px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; gap:6px; }
+  .mid { display:flex; align-items:center; gap:var(--space-6); }
+  .amt { background:transparent; border:none; outline:none; color:var(--text-primary); font:600 38px/1 var(--font);
+    font-variant-numeric:tabular-nums; width:100%; letter-spacing:-.5px; }
+  .amt::placeholder { color:var(--text-primary-38); }
+  .usd { font:500 14px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; margin-top:var(--space-4); display:flex; align-items:center; gap:6px; }
+  .seam { position:relative; height:0; display:grid; place-items:center; z-index:2; }
+  .flip { width:44px; height:44px; border-radius:var(--radius-md); border:none; cursor:pointer; display:grid; place-items:center;
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); box-shadow:var(--shadow-card); transition:transform .2s ease; }
+  .flip:hover { transform:rotate(180deg); }
+  .cta { width:100%; height:52px; border:none; border-radius:var(--radius-md); cursor:pointer; font:600 16px/1 var(--font);
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); margin-top:var(--space-12); transition:filter .15s ease; }
+  .cta:hover { filter:brightness(1.08); }
+  .cta:disabled { background:var(--surface-menu); color:var(--text-primary-38); cursor:default; filter:none; }
+  .route { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); margin-top:var(--space-8); }
+  .rrow { display:flex; justify-content:space-between; gap:var(--space-6); padding:var(--space-4) var(--space-8); font:500 13px/18px var(--font); border-top:1px solid var(--border-subtle); }
+  .rrow:first-child { border-top:none; }
+  .rrow .k { color:var(--text-secondary); display:flex; align-items:center; gap:6px; } .rrow .v { color:var(--text-primary); font-variant-numeric:tabular-nums; }
+
+  /* pusty stan */
+  .empty { padding:var(--space-16) var(--space-8); text-align:center; }
+  .empty .ic { width:44px; height:44px; border-radius:50%; background:var(--surface-menu); display:grid; place-items:center; margin:0 auto var(--space-6); color:var(--text-primary-38); }
+  .empty .t { font:600 14px/20px var(--font); color:var(--text-primary); }
+  .empty .s { font:400 13px/19px var(--font); color:var(--text-secondary); margin-top:var(--space-2); max-width:280px; margin-left:auto; margin-right:auto; }
+
+  .note { font:400 11px/16px var(--font); color:var(--text-secondary); padding:var(--space-4) var(--space-8) var(--space-8); }
+  .note code { font-family:var(--font-mono); font-size:10px; }
+
+  /* ═══════════ BUILD nie do przeoczenia ═══════════
+     Sama pigułka ginie w gęstym panelu. Skos na tle mówi „tu nic nie ma"
+     zanim ktokolwiek przeczyta etykietę. */
+  body.prov [data-p="build"] {
+    background-image:repeating-linear-gradient(45deg,
+      rgba(255,196,46,.055) 0 6px, transparent 6px 12px);
+  }
+
+  /* ═══════════ rachunek backendu ═══════════ */
+  .backend { margin:var(--space-20) auto 0; max-width:1400px; }
+  .backend > h3 { font:600 18px/24px var(--font); color:var(--text-primary); display:flex; align-items:center; gap:var(--space-6); }
+  .backend > h3 .cnt { font:700 10px/1 var(--font); letter-spacing:.6px; text-transform:uppercase; padding:5px 8px; border-radius:4px;
+    background:rgba(255,196,46,.14); color:var(--status-warning); }
+  .backend > p { font:400 13px/20px var(--font); color:var(--text-secondary); margin:var(--space-4) 0 var(--space-10); }
+  .bitem { display:grid; grid-template-columns:104px 1fr 260px; gap:var(--space-8); align-items:start;
+    padding:var(--space-8); border-top:1px solid var(--border-subtle); }
+  .bitem:hover { background:rgba(255,255,255,.02); }
+  .bsev { font:700 9px/1 var(--font); letter-spacing:.6px; text-transform:uppercase; padding:5px 7px; border-radius:4px; text-align:center; }
+  .bsev.blocker { background:var(--status-error-fill); color:var(--status-error); }
+  .bsev.bug     { background:var(--status-error-fill); color:var(--status-error); }
+  .bsev.mock    { background:rgba(255,196,46,.14);     color:var(--status-warning); }
+  .bsev.gap     { background:var(--surface-menu);      color:var(--text-secondary); }
+  .bitem .ttl { font:600 14px/20px var(--font); color:var(--text-primary); }
+  .bitem .src { font:500 11px/16px var(--font-mono); color:var(--brand-primary); margin-top:3px; }
+  .bitem .eff { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-3); }
+  .bitem .hits { font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .bitem .hits b { color:var(--text-primary); font-weight:600; }
+  /* Etykieta „dotyczy / nie dotyczy" jest blokiem; <b> w treści zostaje inline,
+     inaczej każde pogrubione słowo łamie zdanie na własną linię. */
+  .bitem .hits .lab { color:var(--text-primary); font:600 11px/16px var(--font);
+    letter-spacing:.5px; text-transform:uppercase; display:block; margin-bottom:3px; }
+  .bitem.on-variant .hits .lab { color:var(--status-warning); }
+  .bitem.on-variant { box-shadow:inset 3px 0 0 var(--status-warning); }
+</style>
+</head>
+<body class="prov">
+
+<div id="variant-nav">
+  <span class="name">062 · Ledger — warianty</span>
+  <button class="vt" onclick="showVariant('rail',event)">A · Rail ★</button>
+  <button class="vt" onclick="showVariant('ribbon',event)">B · Ribbon</button>
+  <button class="vt" onclick="showVariant('receipt',event)">C · Receipt</button>
+  <button class="vt" onclick="showVariant('ledger',event)">D · Ledger</button>
+  <button class="vt" onclick="showVariant('console',event)">E · Console</button>
+</div>
+
+<div id="legend">
+  <span class="p p-have">HAVE</span> <b>mamy</b> — realne dane, ten ekran już je czyta albo zapisuje
+  <span class="sep"></span>
+  <span class="p p-easy">EASY</span> <b>łatwo pociągnąć</b> — jest w modelu/odpowiedzi, nikt tego nie renderuje
+  <span class="sep"></span>
+  <span class="p p-build">BUILD</span> <b>do zbudowania</b> — brak kodu albo integracja stoi na mocku
+  <div class="tgl">
+    <button id="bProv" class="on" onclick="toggleProv()">Metryki</button>
+    <button id="bFill" class="on" onclick="toggleFill()">Wypełnione</button>
+    <button id="bAxis" onclick="toggleAxis()">Oś tytułu</button>
+    <select onchange="setTheme(this.value)" style="background:transparent;border:1px solid var(--border-subtle);color:var(--text-secondary);border-radius:48px;padding:5px 8px;font:600 11px var(--font);">
+      <option value="dark">Dark</option><option value="light">Light</option>
+    </select>
+    <select onchange="setW(this.value)" style="background:transparent;border:1px solid var(--border-subtle);color:var(--text-secondary);border-radius:48px;padding:5px 8px;font:600 11px var(--font);">
+      <option value="100%">1740</option><option value="1536px">1536</option><option value="1280px">1280</option><option value="1024px">1024</option>
+    </select>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="lede" id="lede"></p>
+
+  <div class="win">
+    <div class="navbar">
+      <div class="brand"></div>
+      <span>Dashboard</span><span>Transactions</span><span class="on">Swap</span><span>Markets</span><span>News</span>
+      <div class="right"><span class="chip">Ethereum</span><span class="chip">0x7a…4f2b</span><span class="chip">Connect</span></div>
+    </div>
+
+    <div class="body-pad">
+      <div class="stage">
+
+        <!-- ══════════════════ A · RAIL ══════════════════ -->
+        <div id="variant-rail" class="variant active">
+          <div class="frame">
+            <div class="headrow"><div class="pagehead">
+              <div class="grow titleX"><h2>Swap</h2><div class="sub">Trade tokens across chains</div></div>
+              <button class="tune" onclick="alert('Slippage — patrz szkic 041')">⚙ Slippage 0.5%</button>
+            </div></div>
+            <div class="cols">
+              <div class="form-col" data-form="rail"></div>
+              <div class="rail split">
+                <div class="card grow" data-p="have">
+                  <div class="phead"><span class="t">Your swaps</span><span class="grow"></span><a>View all →</a></div>
+                  <div data-list="rail"></div>
+                  <div class="note">Źródło: <code>TransactionsCubit</code> (już w <code>context</code> tego ekranu, linia 232) → filtr <code>type == TransactionType.swap</code>.</div>
+                </div>
+                <div class="card side">
+                  <div class="phead"><span class="t">Summary</span></div>
+                  <div data-sum="rail"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════ B · RIBBON ══════════════════ -->
+        <div id="variant-ribbon" class="variant">
+          <div class="frame">
+            <div class="headrow"><div class="pagehead">
+              <div class="grow titleX"><h2>Swap</h2><div class="sub">Trade tokens across chains</div></div>
+              <button class="tune">⚙ Slippage 0.5%</button>
+            </div></div>
+            <div class="ribbon" data-ribbon="ribbon"></div>
+            <div class="cols">
+              <div class="form-col" data-form="ribbon"></div>
+              <div class="rail">
+                <div class="card" data-p="have">
+                  <div class="phead"><span class="t">Your swaps</span><span class="grow"></span><a>View all →</a></div>
+                  <div data-list="ribbon"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════ C · RECEIPT ══════════════════ -->
+        <div id="variant-receipt" class="variant">
+          <div class="frame">
+            <div class="headrow"><div class="pagehead">
+              <div class="grow titleX"><h2>Swap</h2><div class="sub">Trade tokens across chains</div></div>
+              <button class="tune">⚙ Slippage 0.5%</button>
+            </div></div>
+            <div class="cols">
+              <div class="form-col" data-form="receipt"></div>
+              <div class="rail" data-receipt="receipt"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════ D · LEDGER ══════════════════ -->
+        <div id="variant-ledger" class="variant">
+          <div class="frame">
+            <div class="headrow"><div class="pagehead">
+              <div class="grow titleX"><h2>Swap</h2><div class="sub">Trade tokens across chains</div></div>
+              <button class="tune">⚙ Slippage 0.5%</button>
+            </div></div>
+            <div class="cols" style="margin-bottom:24px;">
+              <div class="form-col" data-form="ledger"></div>
+              <div class="rail">
+                <div class="ribbon" style="grid-template-columns:repeat(2,1fr); margin:0;" data-ribbon2="ledger"></div>
+                <div class="card" data-p="easy">
+                  <div class="phead"><span class="t">This quote</span><span class="grow"></span><span class="p p-easy">EASY</span></div>
+                  <div class="grid2">
+                    <div class="stat"><span class="k">Network gas</span><span class="v">$15.06</span></div>
+                    <div class="stat"><span class="k">Gas limit</span><span class="v">667,000</span></div>
+                    <div class="stat"><span class="k">Max fee / gas</span><span class="v">21.45 gwei</span></div>
+                    <div class="stat"><span class="k">Gas Receiver Fee</span><span class="v">$0.30</span></div>
+                    <div class="stat"><span class="k">Price impact</span><span class="v">0.51%</span></div>
+                    <div class="stat"><span class="k">Minimum received</span><span class="v">4,189.50 USDT</span></div>
+                  </div>
+                  <div class="note"><code>gasCosts[]</code> / <code>feeCosts[]</code> są w odpowiedzi, <code>RouteDetailsCard</code> ściska je do 4 wierszy.</div>
+                </div>
+              </div>
+            </div>
+            <div class="card" data-p="have">
+              <div class="phead"><span class="t">Swap ledger</span><span class="grow"></span><a>Export CSV →</a></div>
+              <div data-table="ledger"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════ E · CONSOLE ══════════════════ -->
+        <div id="variant-console" class="variant">
+          <div class="frame">
+            <div class="headrow"><div class="pagehead">
+              <div class="grow titleX"><h2>Swap</h2><div class="sub">Trade tokens across chains</div></div>
+              <button class="tune">⚙ Slippage 0.5%</button>
+            </div></div>
+            <div class="cols">
+              <div style="width:280px;flex:none;">
+                <div class="card" data-p="build">
+                  <div class="phead"><span class="t">Your tokens</span><span class="p p-build">BUILD</span></div>
+                  <div data-holdings="console"></div>
+                  <div class="note"><code>squid_token_service.dart:36</code> → <code>return mockSquidBalances;</code> — prawdziwy fetch zakomentowany (39-54). Ta szyna dziś kłamie.</div>
+                </div>
+              </div>
+              <div class="form-col" data-form="console"></div>
+              <div class="rail">
+                <div class="card" data-p="have">
+                  <div class="phead"><span class="t">Activity</span><span class="grow"></span><a>View all →</a></div>
+                  <div data-list="console"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ rachunek backendu — renderowany z BACKEND[] ══════════ -->
+  <div class="backend">
+    <h3>Backend — czego nie ma <span class="cnt" id="bcount"></span></h3>
+    <p>Wszystko poniżej jest zweryfikowane w kodzie. Podświetlone na żółto pozycje dotyczą
+       <b id="bwhich">aktualnie oglądanego wariantu</b>. Pozycje bez podświetlenia obciążają inne warianty
+       albo formularz, który już shipował w 08-03.</p>
+    <div class="card" id="blist"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   DANE — kształty 1:1 z Dartem, żeby tagi pochodzenia znaczyły coś realnego.
+   Transaction: packages/genius_api/lib/models/transaction.dart:83-134
+   ══════════════════════════════════════════════════════════════════════════ */
+const TOK = {
+  eth:{sym:'ETH',name:'Ethereum',cls:'eth'},   usdt:{sym:'USDT',name:'Tether',cls:'usdt'},
+  usdc:{sym:'USDC',name:'USD Coin',cls:'usdc'},pol:{sym:'POL',name:'Polygon',cls:'pol'},
+  wbtc:{sym:'WBTC',name:'Wrapped BTC',cls:'wbtc'}, gnus:{sym:'GNUS',name:'Genius Tokens',cls:'gnus'},
+};
+
+/* Każde pole poniżej ISTNIEJE w Transaction i jest zapisywane przez swap_screen.dart:236-268.
+   transactionStatus jest tam ZAHARDKODOWANY na `completed` — stąd `statusReal` poniżej. */
+const SWAPS = [
+  {fromSymbol:'eth', toSymbol:'usdt', fromAmount:'1.5',  toAmount:'4210.55', exchangeRate:'2807.03', ageMin:125,   status:'completed'},
+  {fromSymbol:'usdc',toSymbol:'gnus', fromAmount:'500',  toAmount:'1240.00', exchangeRate:'2.48',    ageMin:1520,  status:'completed'},
+  {fromSymbol:'wbtc',toSymbol:'eth',  fromAmount:'0.08', toAmount:'2.14',    exchangeRate:'26.75',   ageMin:4380,  status:'pending'},
+  {fromSymbol:'pol', toSymbol:'usdc', fromAmount:'2400', toAmount:'1092.00', exchangeRate:'0.455',   ageMin:8640,  status:'completed'},
+  {fromSymbol:'eth', toSymbol:'wbtc', fromAmount:'3.2',  toAmount:'0.119',   exchangeRate:'0.0372',  ageMin:14400, status:'failed'},
+];
+/* Ceny — livePricesBySymbol() czyta Hive marketDataBox, który panel Assets już wypełnia.
+   transaction_utils.dart:114-121. Zero nowych zapytań sieciowych. */
+const PRICES = { eth:2807.03, usdt:1.0, usdc:1.0, pol:0.455, wbtc:75450.0, gnus:2.48 };
+
+/* ══════════════════════════════════════════════════════════════════════════
+   summarize() — JEDYNA nietrywialna logika w tym szkicu i jedyna rzecz,
+   która pójdzie 1:1 do Darta jako fold po List<Transaction>. Czysta, bez DOM.
+   Dlatego ma na dole uruchamialny check.
+   ══════════════════════════════════════════════════════════════════════════ */
+function summarize(swaps, prices){
+  const done = swaps.filter(s => s.status === 'completed');
+  let volume = 0, pairs = {};
+  for (const s of done) {
+    const px = prices[s.fromSymbol];
+    if (px != null) volume += px * parseFloat(s.fromAmount);   // brak ceny => pomijamy, NIE zerujemy
+    const key = TOK[s.fromSymbol].sym + '→' + TOK[s.toSymbol].sym;
+    pairs[key] = (pairs[key] || 0) + 1;
+  }
+  const top = Object.entries(pairs).sort((a,b) => b[1]-a[1])[0];
+  return {
+    total:    swaps.length,
+    settled:  done.length,
+    pending:  swaps.filter(s => s.status === 'pending').length,
+    failed:   swaps.filter(s => s.status === 'failed').length,
+    volume:   done.length ? volume : null,      // null => wiersz znika, nie pokazuje $0.00
+    topPair:  top ? top[0] : null,
+  };
+}
+
+/* ── uruchamialny check — pada głośno w konsoli, jeśli ktoś ruszy agregację ── */
+(function selfCheck(){
+  const fails = [];
+  const eq = (name, got, exp) => { if (JSON.stringify(got) !== JSON.stringify(exp)) fails.push([name, got, exp]); };
+
+  const empty = summarize([], PRICES);
+  eq('pusty portfel → volume null (nie 0)', empty.volume, null);
+  eq('pusty portfel → total 0',             empty.total,  0);
+  eq('pusty portfel → brak pary',           empty.topPair, null);
+
+  const s = summarize(SWAPS, PRICES);
+  eq('liczy WSZYSTKIE swapy',               s.total,   5);
+  eq('rozliczone tylko completed',          s.settled, 3);
+  eq('pending liczone osobno',              s.pending, 1);
+  eq('failed liczone osobno',               s.failed,  1);
+  // 1.5 ETH * 2807.03 + 500 USDC * 1 + 2400 POL * 0.455 = 4210.545 + 500 + 1092 = 5802.545
+  eq('wolumen tylko z rozliczonych',        Math.round(s.volume*100)/100, 5802.55);
+
+  // brak ceny NIE może wyzerować wolumenu ani go wywalić
+  const noPx = summarize([{fromSymbol:'gnus',toSymbol:'eth',fromAmount:'10',toAmount:'1',exchangeRate:'0.1',ageMin:5,status:'completed'}], {});
+  eq('brak ceny → pomija, nie zeruje',      noPx.volume, 0);
+  eq('brak ceny → swap nadal policzony',    noPx.settled, 1);
+
+  if (fails.length) console.error('SUMMARIZE CHECK FAILED', fails);
+  else console.log('summarize check OK — 9 przypadków (pusty, mieszany, bez ceny)');
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════ */
+let FILLED = true, PROVON = true;
+const money = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const compact = n => n >= 1000 ? '$' + (n/1000).toFixed(1) + 'k' : money(n);
+function ago(min){
+  if (min < 60) return min + 'm ago';
+  if (min < 1440) return Math.floor(min/60) + 'h ago';
+  const d = Math.floor(min/1440);
+  return d === 1 ? 'Yesterday' : d + 'd ago';
+}
+function dateOf(min){
+  const d = new Date(Date.UTC(2026,6,26,8,0) - min*60000);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'}) + ' ' +
+         d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'UTC'});
+}
+const logo = (k,sz) => `<div class="logo ${TOK[k].cls}" style="width:${sz}px;height:${sz}px;font-size:${sz<24?8:10}px">${TOK[k].sym.slice(0,2)}</div>`;
+const P = lvl => `<span class="p p-${lvl}">${lvl.toUpperCase()}</span>`;
+const BADGE = {completed:['ok','Completed'], pending:['pend','Pending'], failed:['fail','Failed']};
+
+/* ── formularz swapa: identyczny we wszystkich wariantach ── */
+function formHTML(v){
+  return `
+  <div class="fcard">
+    <div class="top"><span class="flabel">From</span>
+      <span class="bal">Balance 4.2140 ETH ${P('build')}</span></div>
+    <div class="mid"><input class="amt" value="1.5" data-amt="${v}" oninput="render('${v}')">
+      <div class="tk">${logo('eth',26)}<span class="sym">ETH</span> ▾</div></div>
+    <div class="usd">≈ $4,210.55 ${P('have')}</div>
+  </div>
+  <div class="seam"><button class="flip">⇅</button></div>
+  <div class="fcard" style="margin-top:8px;">
+    <div class="top"><span class="flabel">To</span>
+      <span class="bal">Balance 0.00 USDT ${P('build')}</span></div>
+    <div class="mid"><div class="amt" style="color:var(--text-primary-70)">4,210.55</div>
+      <div class="tk">${logo('usdt',26)}<span class="sym">USDT</span> ▾</div></div>
+    <div class="usd">≈ $4,210.55 ${P('have')}</div>
+  </div>
+  <div class="route" data-p="build">
+    <div class="rrow"><span class="k">Pricing ${P('build')}</span><span class="v">1 ETH ≈ 2,807.03 USDT</span></div>
+    <div class="rrow"><span class="k">Slippage</span><span class="v">0.5%</span></div>
+    <div class="rrow"><span class="k">Price impact ${P('build')}</span><span class="v">0.51%</span></div>
+    <div class="rrow"><span class="k">Fees ${P('build')}</span><span class="v">$0.30</span></div>
+  </div>
+  <button class="cta">Swap</button>`;
+}
+
+/* ── lista historii ── */
+function listHTML(v, limit){
+  if (!FILLED) return `<div class="empty">
+    <div class="ic">⇅</div><div class="t">No swaps yet</div>
+    <div class="s">Your completed swaps will show up here.</div></div>`;
+  return SWAPS.slice(0, limit).map(s => {
+    const [cls,label] = BADGE[s.status];
+    const build = s.status !== 'completed' ? P('build') : '';
+    return `<div class="srow">
+      <div class="pair">${logo(s.fromSymbol,26)}${logo(s.toSymbol,26)}</div>
+      <div class="mid">
+        <div class="nm">${TOK[s.fromSymbol].sym} → ${TOK[s.toSymbol].sym}</div>
+        <div class="sub">${s.fromAmount} ${TOK[s.fromSymbol].sym} · ${ago(s.ageMin)}</div>
+      </div>
+      <div class="rt"><div class="a">+${s.toAmount}</div>
+        <div><span class="badge ${cls}">${label}</span> ${build}</div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ── podsumowanie ──
+   Total swaps / Settled USUNIĘTE (Jakub, 26-07): liczba swapów nie jest
+   informacją, po którą ktoś przychodzi na tę stronę — a jako pierwsze dwa
+   wiersze spychały Volume i Top pair pod fold panelu.
+   Fees paid ZOSTAJE, ale jako BUILD, nie EASY — patrz backend #4. */
+function sumHTML(){
+  const s = summarize(FILLED ? SWAPS : [], PRICES);
+  const rows = [
+    ['Volume',    s.volume == null ? null : compact(s.volume), 'have'],
+    ['Top pair',  s.topPair, 'have'],
+    ['Fees paid', FILLED ? '$1.24' : null, 'build'],
+  ];
+  return rows.filter(r => r[1] !== null && r[1] !== undefined).map(([k,val,lvl]) =>
+    `<div class="stat"><span class="k">${k} ${P(lvl)}</span><span class="v">${val}</span></div>`).join('')
+    || `<div class="note">Pusty portfel: każdy wiersz znika zamiast pokazać <code>0</code> albo <code>$0.00</code>.</div>`;
+}
+
+/* ── ribbon ── */
+function ribbonHTML(cells){
+  const s = summarize(FILLED ? SWAPS : [], PRICES);
+  const all = [
+    {k:'Total swaps', v:s.total, d:s.pending ? `${s.pending} pending` : 'all settled', p:'have'},
+    {k:'Volume',      v:s.volume==null?'—':compact(s.volume), d:'last 30 days', p:'have'},
+    {k:'Fees paid',   v:FILLED?'$1.24':'—', d:'gas + bridge', p:'build'},
+    {k:'Top pair',    v:s.topPair||'—', d:FILLED?'2 swaps':'no history', p:'have'},
+  ];
+  return all.slice(0,cells).map(c =>
+    `<div class="rcell" data-p="${c.p}"><div class="k">${c.k} ${P(c.p)}</div><div class="v">${c.v}</div><div class="d">${c.d}</div></div>`).join('');
+}
+
+/* ── C · Receipt: szyna zmienia rolę zależnie od stanu formularza ── */
+function receiptHTML(v){
+  const amt = (document.querySelector(`[data-amt="${v}"]`)||{}).value;
+  const composing = amt && parseFloat(amt) > 0;
+  if (!composing) {
+    return `<div class="rail split" style="gap:var(--space-12);">
+      <div class="card grow" data-p="have">
+        <div class="phead"><span class="t">Your swaps</span><span class="grow"></span><a>View all →</a></div>
+        ${listHTML(v,5)}
+        <div class="note">Formularz pusty → szyna pokazuje historię.</div></div>
+      <div class="card side"><div class="phead"><span class="t">Summary</span></div>${sumHTML()}</div></div>`;
+  }
+  return `<div class="card" data-p="easy">
+    <div class="phead"><span class="t">Route</span><span class="grow"></span><span class="p p-build">BUILD</span></div>
+    <div class="stat"><span class="k">Hops ${P('build')}</span><span class="v">— brak danych</span></div>
+    <div class="note"><code>mockSquidRoute.route</code> to <code>[/* ... as before ... */]</code> — <b>pusta tablica</b>.
+      Wizualizacja hopów nie ma czym karmić się nawet w mocku.</div>
+  </div>
+  <div class="card" data-p="easy">
+    <div class="phead"><span class="t">Cost breakdown</span></div>
+    <div class="grid2">
+    <div class="stat"><span class="k">Network gas ${P('easy')}</span><span class="v">$15.06</span></div>
+    <div class="stat"><span class="k">Gas limit ${P('easy')}</span><span class="v">667,000</span></div>
+    <div class="stat"><span class="k">Max fee / gas ${P('easy')}</span><span class="v">21.45 gwei</span></div>
+    <div class="stat"><span class="k">Gas Receiver Fee ${P('easy')}</span><span class="v">$0.30</span></div>
+    <div class="stat"><span class="k">Price impact ${P('easy')}</span><span class="v">0.51%</span></div>
+    <div class="stat"><span class="k">Minimum received ${P('easy')}</span><span class="v">4,189.50 USDT</span></div>
+    </div>
+    <div class="note">Wszystko powyżej siedzi w <code>SquidRouteResponse.gasCosts[]</code> / <code>feeCosts[]</code>
+      (<code>gasPrice</code>, <code>maxFeePerGas</code>, <code>estimate</code>, <code>limit</code>, <code>amountUSD</code>,
+      <code>name</code>, <code>description</code>). <code>RouteDetailsCard</code> ściska to dziś do 4 wierszy.
+      <b>EASY co do odczytu, ale sama odpowiedź to <code>mockSquidRoute</code></b> — liczby są prawdziwie ukształtowane, nie prawdziwe.</div>
+  </div>
+  <div class="card">
+    <div class="phead"><span class="t">Recent</span></div>${listHTML(v,2)}</div>`;
+}
+
+/* ── D · tabela ── */
+function tableHTML(){
+  if (!FILLED) return `<div class="empty"><div class="ic">⇅</div><div class="t">No swaps yet</div>
+    <div class="s">Once you swap, every trade lands in this ledger.</div></div>`;
+  return `<table class="led"><thead><tr>
+      <th>Date ${P('have')}</th><th>Pair ${P('have')}</th><th class="r">Sent ${P('have')}</th>
+      <th class="r">Received ${P('have')}</th><th class="r">Rate ${P('have')}</th>
+      <th class="r">Value ${P('have')}</th><th>Status ${P('build')}</th><th>Tx ${P('build')}</th></tr></thead><tbody>` +
+    SWAPS.map(s => {
+      const [cls,label] = BADGE[s.status];
+      const px = PRICES[s.fromSymbol];
+      return `<tr>
+        <td class="dim">${dateOf(s.ageMin)}</td>
+        <td><span style="display:inline-flex;vertical-align:middle;">${logo(s.fromSymbol,20)}${logo(s.toSymbol,20)}</span>
+            &nbsp;${TOK[s.fromSymbol].sym} → ${TOK[s.toSymbol].sym}</td>
+        <td class="r">${s.fromAmount} ${TOK[s.fromSymbol].sym}</td>
+        <td class="r">${s.toAmount} ${TOK[s.toSymbol].sym}</td>
+        <td class="r dim">${s.exchangeRate}</td>
+        <td class="r">${px ? money(px*parseFloat(s.fromAmount)) : '—'}</td>
+        <td><span class="badge ${cls}">${label}</span></td>
+        <td class="dim">—</td></tr>`;
+    }).join('') +
+    `</tbody></table>
+    <div class="note">Kolumna <b>Tx</b> jest pusta, bo <code>swap_screen.dart:238</code> zapisuje <code>hash: ""</code>.
+      Kolumna <b>Status</b> zawsze pokaże <i>Completed</i>, bo linia 246 hardkoduje <code>TransactionStatus.completed</code>.</div>`;
+}
+
+/* ── E · holdings (mock) ── */
+function holdingsHTML(){
+  return ['eth','usdc','wbtc','pol','gnus'].map(k =>
+    `<div class="srow"><div class="pair">${logo(k,24)}</div>
+      <div class="mid"><div class="nm">${TOK[k].sym}</div><div class="sub">${TOK[k].name}</div></div>
+      <div class="rt"><div class="a">${(Math.random()*4+.2).toFixed(3)}</div></div></div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RACHUNEK BACKENDU — jedno źródło prawdy dla tego, czego nie ma.
+   Każda pozycja zweryfikowana w kodzie; `src` to plik:linia, nie pamięć.
+   `hits` mówi, których wariantów dotyczy — żeby „co mnie to kosztuje"
+   dało się odczytać per wariant, a nie jako jedna wspólna lista lęków.
+   ══════════════════════════════════════════════════════════════════════════ */
+const BACKEND = [
+  { sev:'blocker', ttl:'Swap nigdy się nie wykonuje',
+    src:'swap_screen.dart:227',
+    eff:'<code>// TODO: invoke Squid API</code> — transakcja jest zapisywana do historii i do Hive, ale żaden swap nie idzie na łańcuch. Każdy wpis opisuje zdarzenie, które się nie odbyło.',
+    hits:['rail','ribbon','receipt','ledger','console'],
+    what:'Cała szyna Your swaps, Summary i tabela. To jest fundament — reszta pozycji to jego konsekwencje.' },
+
+  { sev:'bug', ttl:'Pole opłat trzyma kwotę swapa',
+    src:'swap_screen.dart:243',
+    eff:'<code>fees: fromAmount</code> — do pola „opłata" wpisywana jest wymieniana kwota. <code>transaction_displays.dart:474</code> renderuje to jako <b>„Network Fee"</b>, więc drawer szczegółów swapa <b>już dziś pokazuje błędną liczbę</b>.',
+    hits:['rail','ribbon','receipt','ledger','console'],
+    what:'Wiersz <b>Fees paid</b> w Summary i w pasie statystyk. Nie da się go policzyć, dopóki zapis nie zacznie trzymać prawdziwego gasu z <code>gasCosts[].amountUSD</code>.' },
+
+  { sev:'gap', ttl:'Status zawsze „completed"',
+    src:'swap_screen.dart:246',
+    eff:'<code>transactionStatus: TransactionStatus.completed</code> zahardkodowane. Model zna <code>pending</code> / <code>failed</code> / <code>cancelled</code>, ale dla swapa żadna ścieżka kodu ich nie produkuje.',
+    hits:['rail','ribbon','receipt','ledger','console'],
+    what:'Badge statusu w wierszu i kolumna <b>Status</b> w tabeli. Kod będzie poprawny — pokaże jedną wartość, bo tylko jedna powstaje.' },
+
+  { sev:'gap', ttl:'Pusty hash transakcji',
+    src:'swap_screen.dart:238',
+    eff:'<code>hash: ""</code> — brak identyfikatora, więc nie ma czego pokazać ani w co kliknąć.',
+    hits:['ledger'],
+    what:'Kolumna <b>Tx</b> w wariancie D i link do explorera w drawerze szczegółów.' },
+
+  { sev:'mock', ttl:'Salda tokenów to mock',
+    src:'squid_token_service.dart:36',
+    eff:'<code>return mockSquidBalances;</code> — prawdziwy fetch zakomentowany w liniach 39-54.',
+    hits:['console'],
+    what:'Lewa szyna wariantu E (dlatego odrzucony) oraz wiersz <b>Balance</b> w formularzu — ale formularz shipował już w 08-03, więc szyna tego długu nie dokłada.' },
+
+  { sev:'mock', ttl:'Trasa i kwotowanie to mock',
+    src:'squid_token_service.dart:59',
+    eff:'<code>return mockSquidRoute;</code>. Dodatkowo pole <code>route</code> tego mocka to <b>pusta tablica</b>, więc listy hopów nie ma nawet w atrapie.',
+    hits:['receipt'],
+    what:'Panel <b>Route</b> i <b>Cost breakdown</b> w wariancie C oraz karta Pricing w formularzu (istniejąca, nie nowa).' },
+
+  { sev:'gap', ttl:'„View all" nie umie wskazać filtra',
+    src:'transactions_slim_view.dart:181',
+    eff:'Cel <b>istnieje</b>: trasa <code>/transactions</code> działa, a <code>Filters.swap</code> jest zbudowany i przetestowany (<code>:92</code>). Ale <code>selectedFilter</code> to prywatny stan startujący na <code>Filters.all</code> — nie da się go ustawić z zewnątrz.',
+    hits:['rail','ribbon','receipt','console'],
+    what:'Link <b>View all →</b>. Naprawa to ~20 linii w 3 plikach, wszystkie addytywne (default zostaje <code>all</code>, więc 3 istniejące call-site\'y nie drgną). <b>Jedyna pozycja na tej liście, która nie czeka na Squid.</b>' },
+];
+
+const SEVLABEL = {blocker:'bloker', bug:'błąd', mock:'mock', gap:'brak'};
+
+function renderBackend(v){
+  document.getElementById('blist').innerHTML = BACKEND.map(b => {
+    const on = b.hits.includes(v);
+    return `<div class="bitem${on?' on-variant':''}">
+      <span class="bsev ${b.sev}">${SEVLABEL[b.sev]}</span>
+      <div><div class="ttl">${b.ttl}</div><div class="src">${b.src}</div><div class="eff">${b.eff}</div></div>
+      <div class="hits"><span class="lab">${on?'Dotyczy tego wariantu':'Nie dotyczy tego wariantu'}</span>${b.what}</div>
+    </div>`;
+  }).join('');
+  const n = BACKEND.filter(b => b.hits.includes(v)).length;
+  document.getElementById('bcount').textContent = `${n} z ${BACKEND.length} dotyczy tego wariantu`;
+  document.getElementById('bwhich').textContent = 'aktualnie oglądanego wariantu';
+}
+
+/* ── render ── */
+const VS = ['rail','ribbon','receipt','ledger','console'];
+
+/* Drugi uruchamialny check: rachunek backendu nie może zgnić po cichu.
+   Literówka w `hits` sprawiłaby, że pozycja przestaje się podświetlać i
+   wariant wygląda na tańszy, niż jest — czyli dokładnie ten błąd, który
+   ten szkic ma eliminować. */
+(function backendCheck(){
+  const bad = [];
+  BACKEND.forEach((b,i) => {
+    if (!SEVLABEL[b.sev]) bad.push(`#${i} nieznana waga "${b.sev}"`);
+    if (!b.hits.length)   bad.push(`#${i} "${b.ttl}" nie dotyczy żadnego wariantu`);
+    b.hits.forEach(h => { if (!VS.includes(h)) bad.push(`#${i} "${b.ttl}" wskazuje nieistniejący wariant "${h}"`); });
+    if (!/\.dart:\d+$/.test(b.src)) bad.push(`#${i} "${b.ttl}" nie ma źródła plik:linia`);
+  });
+  const orphan = VS.filter(v => !BACKEND.some(b => b.hits.includes(v)));
+  if (orphan.length) bad.push(`warianty bez ani jednej pozycji backendu: ${orphan.join(', ')}`);
+  if (bad.length) console.error('BACKEND CHECK FAILED', bad);
+  else console.log(`backend check OK — ${BACKEND.length} pozycji, każda z plik:linia, każda przypisana`);
+})();
+function render(v){
+  const f = document.querySelector(`[data-form="${v}"]`);
+  if (f && !f.innerHTML) f.innerHTML = formHTML(v);
+  const list = document.querySelector(`[data-list="${v}"]`);  if (list) list.innerHTML = listHTML(v, v==='console'?4:5);
+  const sum  = document.querySelector(`[data-sum="${v}"]`);   if (sum)  sum.innerHTML  = sumHTML();
+  const rb   = document.querySelector(`[data-ribbon="${v}"]`);if (rb)   rb.innerHTML   = ribbonHTML(4);
+  const rb2  = document.querySelector(`[data-ribbon2="${v}"]`);if(rb2)  rb2.innerHTML  = ribbonHTML(4);
+  const rc   = document.querySelector(`[data-receipt="${v}"]`);if(rc)   rc.innerHTML   = receiptHTML(v);
+  const tb   = document.querySelector(`[data-table="${v}"]`); if (tb)   tb.innerHTML   = tableHTML();
+  const hd   = document.querySelector(`[data-holdings="${v}"]`);if(hd)  hd.innerHTML   = holdingsHTML();
+}
+
+function toggleProv(){ PROVON=!PROVON; document.body.classList.toggle('prov',PROVON); document.getElementById('bProv').classList.toggle('on',PROVON); }
+function toggleFill(){ FILLED=!FILLED; document.getElementById('bFill').classList.toggle('on',FILLED);
+  document.getElementById('bFill').textContent = FILLED?'Wypełnione':'Pusty portfel'; VS.forEach(render); }
+function toggleAxis(){ const on=document.body.classList.toggle('axis'); document.getElementById('bAxis').classList.toggle('on',on); }
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); document.body.style.background = t==='dark'?'#000':'#B8BEC7'; }
+function setW(w){ document.documentElement.style.setProperty('--winw', w); }
+
+const LEDE = {
+rail:`<b>A · Rail.</b> <span class="tag rec">rekomendacja</span> Formularz 560 po lewej, po prawej szyna dociągnięta do rynny: <b>Your swaps</b> (elastyczna) + <b>Summary</b> 300. Bezpośrednia realizacja 041/3.
+  <b>Dlaczego to ★:</b> to jedyny wariant, w którym cała prawa strona to jeden <code>BlocBuilder&lt;TransactionsCubit, List&lt;Transaction&gt;&gt;</code> plus jeden <code>fold</code> — a <code>TransactionsCubit</code> jest już czytany w tym pliku (linia 232). Zero nowych źródeł, zero nowych zapytań, zero mocków w nowym kodzie.
+  <b>Koszt:</b> najmniej ambitny. Prawa szyna to dwie karty jedna pod drugą.`,
+ribbon:`<b>B · Ribbon.</b> Podsumowanie wyprowadzone z szyny na <b>pełnowymiarowy pas pod tytułem</b>, potem formularz + historia. Tytuł po lewej rządzi całą szerokością od razu w pierwszym wierszu treści, a nie dopiero przez sąsiedztwo.
+  <b>Zaleta:</b> najmocniej uzasadnia lewy tytuł — pas fizycznie sięga prawej rynny. <b>Koszt:</b> przy pustym portfelu cztery kafle pokazują cztery kreski tuż pod tytułem. Przełącz <b>Pusty portfel</b> i oceń właśnie ten stan, nie wypełniony.`,
+receipt:`<b>C · Receipt.</b> Szyna ma <b>dwie role zależnie od stanu formularza</b>: kiedy wpisujesz kwotę pokazuje rozbite koszty trasy, kiedy formularz jest pusty — historię. Skasuj kwotę w polu <i>From</i>, żeby zobaczyć przełączenie.
+  <b>To wariant, który wyciąga najwięcej EASY:</b> <code>gasCosts[].gasPrice/maxFeePerGas/estimate/limit</code> i <code>feeCosts[].name/description</code> istnieją w odpowiedzi, a <code>RouteDetailsCard</code> ściska je do czterech wierszy.
+  <b>Ale:</b> ta odpowiedź to <code>mockSquidRoute</code>, a jej pole <code>route</code> jest <b>pustą tablicą</b> — panel hopów nie ma czym się karmić nawet w mocku. <span class="tag warn">obietnica na wyrost</span>`,
+ledger:`<b>D · Ledger.</b> Jedyny wariant, który zasługuje na tę nazwę dosłownie: formularz + zbite statystyki na górze, a pod nimi <b>pełnowymiarowa tabela</b> — Date / Pair / Sent / Received / Rate / Value / Status / Tx.
+  <b>Zaleta:</b> najlepiej wykorzystuje 1536px i pokazuje <i>wszystkie</i> pola, które <code>Transaction</code> naprawdę niesie — nic nie chowa się w skróconym wierszu.
+  <b>Koszt i powód, dla którego nie jest ★:</b> dwie ostatnie kolumny są dziś martwe. <code>hash: ""</code> i <code>transactionStatus</code> zahardkodowany na <code>completed</code> — tabela z dwiema pustymi kolumnami wygląda na zepsutą, a nie na powściągliwą. Zrobi się mocna dopiero po podpięciu prawdziwego swapa.`,
+console:`<b>E · Console.</b> Trzy kolumny: <b>Your tokens</b> 280 → formularz 560 → <b>Activity</b>. Najgęstsze, najbardziej „pro DEX".
+  <span class="tag bad">odrzucony</span> Lewa szyna stoi w całości na <code>mockSquidBalances</code> (<code>squid_token_service.dart:36</code>, prawdziwy fetch zakomentowany w liniach 39-54). Panel „twoje tokeny" ze zmyślonymi saldami w portfelu kryptowalutowym to nie kwestia gustu.
+  Pokazany, żeby granica była narysowana, a nie żeby wygrał — to ta sama wada, przez którą odpadł <b>041/1 Desk</b>.`,
+};
+
+function showVariant(id, ev){
+  document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('#variant-nav .vt').forEach(t => t.classList.remove('active'));
+  document.getElementById('variant-'+id).classList.add('active');
+  if (ev) ev.target.classList.add('active');
+  else { const b=[...document.querySelectorAll('#variant-nav .vt')].find(x=>x.getAttribute('onclick').includes(`'${id}'`)); if(b) b.classList.add('active'); }
+  document.getElementById('lede').innerHTML = LEDE[id];
+  render(id);
+  renderBackend(id);
+  location.hash = id;
+}
+/* ?empty=1 wchodzi od razu w pusty portfel — to jest stan, na którym te
+   warianty trzeba oceniać, a nie na wypełnionym. */
+if (new URLSearchParams(location.search).get('empty') === '1') toggleFill();
+VS.forEach(render);
+function openFromHash(){ const id=(location.hash||'').replace('#','')||'rail'; showVariant(id in LEDE ? id : 'rail'); }
+window.addEventListener('hashchange', openFromHash);
+openFromHash();
+</script>
+</body>
+</html>

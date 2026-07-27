@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>063 · Szuflada-formularz — brakujący archetyp</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#000; color:var(--text-primary); padding:100px 16px 64px; }
+  .wrap { max-width:1500px; margin:0 auto; }
+
+  /* ── chrome szkicu ── */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #bar2 { position:fixed; top:41px; left:0; right:0; z-index:9997; display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; font:500 11px/15px var(--font); color:var(--text-secondary); }
+  #bar2 b { color:var(--text-primary); }
+  #bar2 .sep { width:1px; height:16px; background:var(--border-subtle); }
+  #bar2 button, #bar2 select { font:600 11px/15px var(--font); padding:5px 10px; border-radius:var(--radius-pill); cursor:pointer;
+    border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); transition:all .15s ease; }
+  #bar2 button:hover { color:var(--text-primary); }
+  #bar2 button.on { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 auto var(--space-10); max-width:1100px; }
+  .lede b { color:var(--text-primary); } .lede code { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); }
+  .tag { display:inline-flex; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-secondary); }
+  .tag.warn { background:rgba(255,196,46,.14); color:var(--status-warning); }
+  .tag.bad { background:var(--status-error-fill); color:var(--status-error); }
+
+  /* ── okno + przyciemniona strona ── */
+  .win { position:relative; border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden;
+    background:var(--surface-base); box-shadow:var(--shadow-card); height:720px; }
+  .page { position:absolute; inset:0; padding:56px; opacity:.30; pointer-events:none; }
+  .page h2 { font:600 24px/32px var(--font); text-align:center; }
+  .page .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+    height:96px; max-width:520px; margin:20px auto; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.45); }
+
+  /* ══════ SHELL — 030 B1 „Quiet band", decyzja 23-07. Nie wymyślam go od nowa. ══════ */
+  .drawer { position:absolute; top:0; right:0; bottom:0; width:420px; background:var(--surface-elevated);
+    border-left:1px solid var(--border-subtle); display:flex; flex-direction:column; }
+  .dhead { padding:var(--space-10) var(--space-10) var(--space-8); display:flex; align-items:flex-start; gap:var(--space-6); position:relative; }
+  .dhead h3 { font:600 18px/24px var(--font); color:var(--text-primary); }        /* B1: tytuł 18px, do lewej */
+  .dhead .sub { font:400 13px/19px var(--font); color:var(--text-secondary); margin-top:3px; }
+  .dhead .grow { margin-right:auto; }
+  .dhead .x { width:32px; height:32px; border-radius:var(--radius-sm); border:none; background:transparent; color:var(--text-secondary);
+    cursor:pointer; display:grid; place-items:center; font-size:17px; flex:none; }
+  .dhead .x:hover { background:var(--brand-primary-subtle); color:var(--text-primary); }
+  /* B1: hairline to delikatny GRADIENT, nie płaski błękit */
+  .dhead::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
+    background:linear-gradient(90deg, var(--brand-cta-a), var(--brand-cta-b)); opacity:.35; }
+  .dbody { flex:1; overflow-y:auto; padding:var(--space-10); }                    /* B1: 20px */
+  .dfoot { padding:var(--space-10); border-top:1px solid var(--border-subtle); }  /* B1: footer z górną krawędzią */
+  .cta { width:100%; height:48px; border:none; border-radius:var(--radius-md); cursor:pointer; font:600 15px/1 var(--font);
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); }
+  .cta:hover { filter:brightness(1.08); }
+  .cta:disabled { background:var(--surface-menu); color:var(--text-primary-38); cursor:default; filter:none; }
+
+  /* ── kontrolki formularza ── */
+  .fieldlabel { font:600 13px/18px var(--font); color:var(--text-primary); }
+  .fieldhelp  { font:400 12px/17px var(--font); color:var(--text-secondary); margin-top:3px; }
+  .presets { display:flex; gap:var(--space-4); margin-top:var(--space-6); }
+  .pchip { flex:1; height:40px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:transparent;
+    color:var(--text-primary); font:600 14px/1 var(--font); cursor:pointer; font-variant-numeric:tabular-nums; transition:all .15s ease; }
+  .pchip:hover { background:var(--brand-primary-subtle); border-color:var(--brand-primary-muted); }
+  .pchip.on { border-color:transparent; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); }
+  .inp { width:100%; height:44px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-menu);
+    color:var(--text-primary); font:600 15px/1 var(--font); padding:0 var(--space-6); outline:none; font-variant-numeric:tabular-nums; }
+  .inp:focus { border-color:var(--brand-primary); }
+  .inp.err { border-color:var(--status-error); }
+  .inp.warn { border-color:var(--status-warning); }
+  .msg { font:500 12px/17px var(--font); margin-top:var(--space-4); display:flex; gap:6px; align-items:flex-start; }
+  .msg.err  { color:var(--status-error); } .msg.warn { color:var(--status-warning); } .msg.ok { color:var(--text-secondary); }
+
+  /* wiersz ustawienia (wariant C) */
+  .srow { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-8) 0; border-bottom:1px solid var(--border-subtle); cursor:pointer; }
+  .srow:hover { background:var(--brand-primary-subtle); margin:0 calc(-1 * var(--space-6)); padding-left:var(--space-6); padding-right:var(--space-6);
+    border-radius:var(--radius-sm); }
+  .srow .k { font:500 14px/20px var(--font); color:var(--text-primary); }
+  .srow .d { font:400 12px/17px var(--font); color:var(--text-secondary); margin-top:2px; }
+  .srow .v { margin-left:auto; font:600 14px/20px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .srow .cv { color:var(--text-primary-38); flex:none; }
+  .expand { padding:var(--space-6) 0 var(--space-8); border-bottom:1px solid var(--border-subtle); }
+
+  /* sekcje (wariant D) */
+  .sect { margin-bottom:var(--space-12); }
+  .sect > .h { font:600 10px/14px var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .sect > .box { border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden; }
+  .sect .item { padding:var(--space-8); border-bottom:1px solid var(--border-subtle); }
+  .sect .item:last-child { border-bottom:none; }
+
+  /* hero stepper (wariant B) */
+  .hero { text-align:center; padding:var(--space-10) 0 var(--space-8); }
+  .hero .val { font:600 44px/1 var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; letter-spacing:-1px; }
+  .hero .unit { font:600 20px/1 var(--font); color:var(--text-secondary); }
+  .stepper { display:flex; align-items:center; justify-content:center; gap:var(--space-10); margin-top:var(--space-8); }
+  .stepper button { width:44px; height:44px; border-radius:50%; border:1px solid var(--border-subtle); background:transparent;
+    color:var(--text-primary); font:600 20px/1 var(--font); cursor:pointer; }
+  .stepper button:hover { background:var(--brand-primary-subtle); border-color:var(--brand-primary-muted); }
+
+  .switch { width:40px; height:24px; border-radius:12px; background:var(--surface-menu); border:1px solid var(--border-subtle);
+    position:relative; cursor:pointer; flex:none; margin-left:auto; }
+  .switch.on { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); border-color:transparent; }
+  .switch::after { content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .15s ease; }
+  .switch.on::after { left:19px; }
+
+  .note { font:400 11px/16px var(--font); color:var(--text-secondary); margin-top:var(--space-8); padding-top:var(--space-6);
+    border-top:1px dashed var(--border-subtle); }
+  .note code { font-family:var(--font-mono); font-size:10px; }
+  .empty-warn { margin-top:var(--space-10); padding:var(--space-8); border-radius:var(--radius-md);
+    background:rgba(255,196,46,.10); font:400 12px/18px var(--font); color:var(--status-warning); }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="name">063 · Szuflada-formularz</span>
+  <button class="vt" onclick="show('presets',event)">A · Presety ★</button>
+  <button class="vt" onclick="show('stepper',event)">B · Hero</button>
+  <button class="vt" onclick="show('rows',event)">C · Wiersze</button>
+  <button class="vt" onclick="show('sections',event)">D · Sekcje</button>
+  <button class="vt" onclick="show('instant',event)">E · Bez Apply</button>
+  <button class="vt" onclick="show('today',event)">0 · Dziś</button>
+</div>
+
+<div id="bar2">
+  <b>Skala:</b> ten sam archetyp musi obsłużyć jedno ustawienie i siedem.
+  <button id="s1" class="on" onclick="setScale(1)">1 ustawienie · Swap</button>
+  <button id="s7" onclick="setScale(7)">7 ustawień · SDK Account</button>
+  <span class="sep"></span>
+  <select onchange="document.documentElement.setAttribute('data-theme',this.value); document.body.style.background=this.value==='dark'?'#000':'#B8BEC7';">
+    <option value="dark">Dark</option><option value="light">Light</option>
+  </select>
+  <span style="margin-left:auto;">Shell = <b>030 B1 „Quiet band"</b> (decyzja 23-07) — nie projektowany tu od nowa</span>
+</div>
+
+<div class="wrap">
+  <p class="lede" id="lede"></p>
+  <div class="win">
+    <div class="page">
+      <h2>Swap</h2><div class="card"></div><div class="card"></div>
+    </div>
+    <div class="scrim"></div>
+    <div class="drawer">
+      <div class="dhead">
+        <div class="grow"><h3 id="dtitle">Swap Settings</h3><div class="sub" id="dsub">How much price movement you will accept</div></div>
+        <button class="x">✕</button>
+      </div>
+      <div class="dbody" id="dbody"></div>
+      <div class="dfoot" id="dfoot"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   slipState() — przeniesiona ze szkicu 041. To JEDYNA nietrywialna logika
+   tutaj i to ona pójdzie do Darta, bo realny SwapSettingsDrawer
+   (swap_settings_drawer.dart:32-53) ma tylko `double.tryParse` BEZ ZAKRESU:
+   przyjmuje 0 (każdy swap padnie) i 900 (użytkownik akceptuje dowolną cenę).
+   ══════════════════════════════════════════════════════════════════════════ */
+function slipState(raw){
+  const t = String(raw ?? '').trim().replace(',', '.');
+  if (t === '') return {ok:null, level:'', msg:'', n:null};
+  if (!/^\d*\.?\d*$/.test(t)) return {ok:false, level:'err', msg:'Numbers only.', n:null};
+  const n = parseFloat(t);
+  if (!isFinite(n))  return {ok:false, level:'err', msg:'Enter a number.', n:null};
+  if (n <= 0)        return {ok:false, level:'err', msg:'Must be above 0 — a 0% tolerance rejects every swap.', n:null};
+  if (n > 50)        return {ok:false, level:'err', msg:'Maximum is 50%.', n:null};
+  if (n > 5)         return {ok:true,  level:'warn', msg:'High — you may lose value to front-running.', n};
+  if (n < 0.05)      return {ok:true,  level:'warn', msg:'Very low — the swap will often fail to fill.', n};
+  return {ok:true, level:'', msg:'', n};
+}
+
+(function selfCheck(){
+  const cases=[['',null],['0',false],['-1',false],['abc',false],['1.5',true],['0,5',true],
+               ['51',false],['50',true],['6',true],['0.01',true],['900',false]];
+  const bad=cases.filter(([i,e])=>slipState(i).ok!==e);
+  const lv=[['6','warn'],['0.01','warn'],['0.5',''],['51','err'],['0','err']]
+    .filter(([i,l])=>slipState(i).level!==l);
+  if(bad.length||lv.length) console.error('SLIPPAGE CHECK FAILED',{bad,lv});
+  else console.log('slippage check OK — 11 przypadków, 4 poziomy');
+})();
+
+/* ── dane: realne ustawienia z realnych ekranów ── */
+const ONE = [
+  {k:'Slippage tolerance', d:'Max price movement you accept', v:'0.5%', type:'slip'},
+];
+/* sdk_account_manager.dart ma 7 pól — archetyp musi je unieść tak samo jak jedno */
+const SEVEN = [
+  {k:'Slippage tolerance', d:'Max price movement you accept', v:'0.5%', type:'slip'},
+  {k:'Transaction deadline', d:'Cancel if not filled in time', v:'20 min', type:'num'},
+  {k:'Preferred network', d:'Used when a token exists on several', v:'Ethereum', type:'pick'},
+  {k:'Expert mode', d:'Skip confirmation prompts', v:'Off', type:'switch'},
+  {k:'Auto-router', d:'Let the router pick the cheapest path', v:'On', type:'switch'},
+  {k:'Gas speed', d:'Higher settles sooner, costs more', v:'Standard', type:'pick'},
+  {k:'Hide small balances', d:'Below $1', v:'On', type:'switch'},
+];
+
+let SCALE = 1, CUR = 'presets', SLIP = '0.5', PRESET = 0.5, OPEN = null;
+const items = () => SCALE === 1 ? ONE : SEVEN;
+const PRESETS = [0.1, 0.5, 1.0];
+
+function slipBlock(showLabel){
+  const st = slipState(SLIP);
+  const cls = st.level === 'err' ? 'err' : st.level === 'warn' ? 'warn' : '';
+  return `
+    ${showLabel ? `<div class="fieldlabel">Slippage tolerance</div>
+    <div class="fieldhelp">The most the price may move before your swap is cancelled.</div>` : ''}
+    <div class="presets">
+      ${PRESETS.map(p => `<button class="pchip ${PRESET===p&&SLIP===String(p)?'on':''}" onclick="pick(${p})">${p}%</button>`).join('')}
+    </div>
+    <div style="margin-top:var(--space-6);position:relative;">
+      <input class="inp ${cls}" value="${SLIP}" oninput="SLIP=this.value;render()" placeholder="Custom">
+      <span style="position:absolute;right:12px;top:13px;color:var(--text-secondary);font:600 15px var(--font);">%</span>
+    </div>
+    ${st.msg ? `<div class="msg ${st.level}">${st.level==='err'?'✕':'⚠'} ${st.msg}</div>` : ''}
+    <div class="note">Realny <code>SwapSettingsDrawer</code> ma dziś <b>tylko</b> <code>double.tryParse</code> bez zakresu —
+      przyjmuje <code>0</code> (każdy swap padnie) i <code>900</code> (dowolna cena, scenariusz MEV). Zero presetów.</div>`;
+}
+
+const BODY = {
+  today: () => `
+    <div class="fieldlabel" style="font-size:16px;">Slippage Tolerance (%)</div>
+    <div style="margin-top:var(--space-4);"><input class="inp" style="height:52px;border-color:var(--brand-primary);" value="0.5"></div>
+    <div class="empty-warn">Stan dzisiejszy. Jedno pole, brak presetów, brak walidacji, brak podpowiedzi co ta liczba znaczy —
+      i ~500px pustki nad przyklejonym <b>Apply</b>. Przy siedmiu ustawieniach ten układ nie ma nic do powiedzenia.</div>`,
+
+  presets: () => slipBlock(true) + (SCALE === 7 ? `
+    <div style="margin-top:var(--space-12);">
+      ${SEVEN.slice(1).map(s => rowHTML(s)).join('')}
+    </div>` : ''),
+
+  stepper: () => {
+    const st = slipState(SLIP);
+    return `<div class="hero"><span class="val">${SLIP||'0'}</span><span class="unit">%</span>
+      <div class="stepper">
+        <button onclick="bump(-0.1)">−</button><button onclick="bump(0.1)">+</button>
+      </div></div>
+      <div class="presets">${PRESETS.map(p=>`<button class="pchip ${SLIP===String(p)?'on':''}" onclick="pick(${p})">${p}%</button>`).join('')}</div>
+      ${st.msg?`<div class="msg ${st.level}">${st.level==='err'?'✕':'⚠'} ${st.msg}</div>`:''}
+      <div class="fieldhelp" style="margin-top:var(--space-8);">The most the price may move before your swap is cancelled.</div>
+      ${SCALE===7?`<div style="margin-top:var(--space-12);">${SEVEN.slice(1).map(s=>rowHTML(s)).join('')}</div>`:''}`;
+  },
+
+  rows: () => items().map((s,i) => {
+    const open = OPEN === i;
+    return rowHTML(s, i) + (open && s.type==='slip' ? `<div class="expand">${slipBlock(false)}</div>` : '');
+  }).join(''),
+
+  sections: () => {
+    if (SCALE === 1) return `<div class="sect"><div class="h">Price protection</div>
+      <div class="box"><div class="item">${slipBlock(true)}</div></div></div>`;
+    return `
+      <div class="sect"><div class="h">Price protection</div><div class="box">
+        <div class="item">${slipBlock(true)}</div>
+        <div class="item">${itemHTML(SEVEN[1])}</div></div></div>
+      <div class="sect"><div class="h">Routing</div><div class="box">
+        ${[SEVEN[2],SEVEN[4],SEVEN[5]].map(s=>`<div class="item">${itemHTML(s)}</div>`).join('')}</div></div>
+      <div class="sect"><div class="h">Display</div><div class="box">
+        ${[SEVEN[3],SEVEN[6]].map(s=>`<div class="item">${itemHTML(s)}</div>`).join('')}</div></div>`;
+  },
+
+  instant: () => slipBlock(true) + (SCALE===7?`<div style="margin-top:var(--space-12);">${SEVEN.slice(1).map(s=>rowHTML(s)).join('')}</div>`:'') +
+    `<div class="note">Bez stopki. Preset zapisuje się natychmiast, ręczna wartość po opuszczeniu pola —
+      a szuflada zamyka się krzyżykiem albo kliknięciem w tło, jak każda inna.</div>`,
+};
+
+function rowHTML(s, i){
+  return `<div class="srow" onclick="toggle(${i})">
+    <div><div class="k">${s.k}</div><div class="d">${s.d}</div></div>
+    ${s.type==='switch' ? `<div class="switch ${s.v==='On'?'on':''}"></div>`
+      : `<div class="v">${s.k.startsWith('Slippage')?SLIP+'%':s.v}</div><span class="cv">›</span>`}
+  </div>`;
+}
+function itemHTML(s){
+  if (s.type==='switch') return `<div style="display:flex;align-items:center;"><div><div class="fieldlabel">${s.k}</div>
+    <div class="fieldhelp">${s.d}</div></div><div class="switch ${s.v==='On'?'on':''}"></div></div>`;
+  return `<div style="display:flex;align-items:center;gap:12px;"><div><div class="fieldlabel">${s.k}</div>
+    <div class="fieldhelp">${s.d}</div></div><div class="v" style="margin-left:auto;font:600 14px var(--font);color:var(--text-secondary);">${s.v}</div><span class="cv">›</span></div>`;
+}
+
+const FOOT = {
+  today:    () => `<button class="cta">Apply</button>`,
+  presets:  () => { const st=slipState(SLIP); return `<button class="cta" ${st.ok===false?'disabled':''}>Apply</button>`; },
+  stepper:  () => { const st=slipState(SLIP); return `<button class="cta" ${st.ok===false?'disabled':''}>Apply</button>`; },
+  rows:     () => { const st=slipState(SLIP); return `<button class="cta" ${st.ok===false?'disabled':''}>Apply</button>`; },
+  sections: () => { const st=slipState(SLIP); return `<button class="cta" ${st.ok===false?'disabled':''}>Apply</button>`; },
+  instant:  () => ``,
+};
+
+function pick(p){ PRESET=p; SLIP=String(p); render(); }
+function bump(d){ const n=Math.max(0,Math.round(((parseFloat(SLIP)||0)+d)*100)/100); SLIP=String(n); render(); }
+function toggle(i){ OPEN = OPEN===i ? null : i; render(); }
+function setScale(n){ SCALE=n; OPEN=null;
+  document.getElementById('s1').classList.toggle('on',n===1);
+  document.getElementById('s7').classList.toggle('on',n===7); render(); }
+
+const LEDE = {
+today:`<b>0 · Dziś.</b> Punkt odniesienia — dokładnie to, co jest w aplikacji. Jedno nieopisane pole, ~500px pustki i przyklejony <b>Apply</b>.
+  Szuflada nie mówi, czym jest slippage ani jakie wartości są rozsądne, a pole przyjmuje <code>0</code> i <code>900</code>.
+  <b>I to nie jest wina tej jednej szuflady</b> — nie ma archetypu, który mogłaby przyjąć.`,
+presets:`<b>A · Presety + własna wartość.</b> <span class="tag rec">rekomendacja</span> Trzy presety jako główna droga, pole tekstowe jako wyjście awaryjne,
+  walidacja pod polem. <b>Dlaczego to ★:</b> zamienia pytanie „jaką liczbę wpisać?" w wybór, a pustkę wypełnia treścią, która coś znaczy —
+  nie dekoracją. Skaluje się bez zmiany kształtu: przy 7 ustawieniach pierwsze zostaje rozwinięte (bo jest bohaterem tej szuflady), reszta schodzi do wierszy.
+  <b>Koszt:</b> najmniej efektowny z piątki.`,
+stepper:`<b>B · Hero ze stepperem.</b> Wartość jako duża liczba z −/+, presety pod spodem. Rodzinne podobieństwo do pola kwoty na karcie swapa (38px hero).
+  <b>Zaleta:</b> najładniejszy przy jednym ustawieniu. <b>Koszt:</b> przy siedmiu jedno ustawienie dostaje 200px i koronę, a sześć pozostałych ściska się pod spodem —
+  hierarchia, której nikt nie zamawiał. Przełącz na <b>7 ustawień</b> i sam zobacz.`,
+rows:`<b>C · Wiersze.</b> Każde ustawienie to wiersz: etykieta, opis, aktualna wartość, chevron. Kliknięcie rozwija edytor <b>w miejscu</b> (kliknij „Slippage tolerance").
+  <b>Zaleta:</b> jedyny wariant, który wygląda identycznie przy 1 i przy 7 — a wartość widać bez wchodzenia w cokolwiek.
+  Najbliżej wzorca, który użytkownik zna z ustawień systemowych. <span class="tag rec">wicelider</span>
+  <b>Koszt:</b> przy jednym ustawieniu jeden wiersz w pustej szufladzie wygląda na pomyłkę — trzeba go domyślnie rozwijać.`,
+sections:`<b>D · Sekcje.</b> Grupy z nagłówkami (Price protection / Routing / Display), każda kontrolka od razu widoczna i edytowalna.
+  <b>Zaleta:</b> najlepiej znosi 7 pól — a <code>sdk_account_manager.dart</code> ma dokładnie tyle. Grupowanie niesie znaczenie, którego płaska lista nie ma.
+  <b>Koszt:</b> przy jednym ustawieniu nagłówek sekcji nad jedną kontrolką to czysta biurokracja. Najdroższy w budowie.`,
+instant:`<b>E · Bez Apply.</b> Ta sama treść co A, ale <b>stopka znika</b>: preset zapisuje się od razu, ręczna wartość po opuszczeniu pola.
+  <b>Podważa założenie</b>, że szuflada ustawień potrzebuje CTA. Slippage to preferencja, nie transakcja — nic tu nie trzeba „zatwierdzać".
+  <b>Koszt:</b> zrywa z <code>drawers-final</code>, gdzie stopka jest częścią shella, i nie da się wycofać zmiany.
+  Pokazany, żeby ta decyzja była świadoma, a nie odziedziczona.`,
+};
+
+function render(){
+  document.getElementById('dbody').innerHTML = BODY[CUR]();
+  const f = FOOT[CUR]();
+  document.getElementById('dfoot').innerHTML = f;
+  document.getElementById('dfoot').style.display = f ? '' : 'none';
+  const many = SCALE === 7;
+  document.getElementById('dtitle').textContent = many ? 'Settings' : 'Swap Settings';
+  document.getElementById('dsub').textContent = many
+    ? 'Routing, price protection and display' : 'How much price movement you will accept';
+}
+function show(id, ev){
+  CUR = id; OPEN = (id === 'rows' && SCALE === 1) ? 0 : null;
+  document.querySelectorAll('#variant-nav .vt').forEach(t => t.classList.remove('active'));
+  if (ev) ev.target.classList.add('active');
+  else { const b=[...document.querySelectorAll('#variant-nav .vt')].find(x=>x.getAttribute('onclick').includes(`'${id}'`)); if(b) b.classList.add('active'); }
+  document.getElementById('lede').innerHTML = LEDE[id];
+  render(); location.hash = id;
+}
+function openFromHash(){ const id=(location.hash||'').replace('#','')||'presets'; show(id in LEDE ? id : 'presets'); }
+window.addEventListener('hashchange', openFromHash);
+openFromHash();
+</script>
+</body>
+</html>

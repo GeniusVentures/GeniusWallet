@@ -16,6 +16,7 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/formatters.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -1036,30 +1037,7 @@ class _NetworkPickerRow extends StatelessWidget {
   }
 }
 
-class DecimalTextInputFormatter extends TextInputFormatter {
-  DecimalTextInputFormatter();
-
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = newValue.text;
-
-    // Allow empty input
-    if (text.isEmpty) {
-      return newValue;
-    }
-
-    // Regex to validate input with a single decimal point and limited decimals
-    final regExp = RegExp(r'^\d*\.?\d*$');
-
-    if (regExp.hasMatch(text)) {
-      // Return valid input
-      return newValue;
-    } else {
-      // Ignore invalid input and keep the old value
-      return oldValue;
-    }
-  }
-}
+// `DecimalTextInputFormatter` moved to `lib/utils/formatters.dart` — Swap's
+// amount field needed the same guard, and a shared control does not belong
+// inside a screen. This call site is unchanged: the shared version defaults to
+// unlimited decimals, and additionally maps a typed comma to a dot.

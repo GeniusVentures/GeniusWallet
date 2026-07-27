@@ -27,6 +27,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SwapScreen extends StatefulWidget {
@@ -291,10 +292,10 @@ class _SwapScreenState extends State<SwapScreen> {
   /// `GWInlineNotice` primitive exists and this phase does not add one).
   Widget _buildRouteErrorNotice(GWColors gw) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space8,
-        vertical: GeniusWalletConsts.space4,
-      ),
+      // Vertical only — same reason as RouteDetailsCard: this notice replaces
+      // that card in the layout, so it has to sit on the same edge as it and
+      // as the amount cards above.
+      margin: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space4),
       padding: const EdgeInsets.symmetric(
         horizontal: GeniusWalletConsts.space8,
         vertical: GeniusWalletConsts.space6,
@@ -361,7 +362,9 @@ class _SwapScreenState extends State<SwapScreen> {
 
     if (state == SwapCtaState.ready || state == SwapCtaState.routeError) {
       return Padding(
-        padding: const EdgeInsets.all(16),
+        // Vertical only: EdgeInsets.all inset the CTA 16px inside the amount
+        // cards, so the button's edge disagreed with every card above it.
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: GWButton(
           variant: GWButtonVariant.gradient,
           size: GWButtonSize.lg,
@@ -385,7 +388,9 @@ class _SwapScreenState extends State<SwapScreen> {
     final foreground = isInsufficient ? gw.statusError : gw.textPrimary38;
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      // Same edge as the gradient rung above — the two must not disagree, or
+      // the CTA would shift sideways as the ladder changes rung.
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: SizedBox(
         width: double.infinity,
         height: 56,
@@ -479,9 +484,7 @@ class _SwapScreenState extends State<SwapScreen> {
                     GeniusWalletColors.brandPrimaryStrong.withValues(
                       alpha: cyanAlpha,
                     ),
-                    GeniusWalletColors.brandPrimaryStrong.withValues(
-                      alpha: 0,
-                    ),
+                    GeniusWalletColors.brandPrimaryStrong.withValues(alpha: 0),
                   ],
                 ),
               ),
@@ -528,134 +531,186 @@ class _SwapScreenState extends State<SwapScreen> {
           Align(
             alignment: Alignment.topCenter,
             child: SingleChildScrollView(
-              child: ConstrainedBox(
-                // D-07 · sketch 105 A1: focused column, 500px -> 560px.
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Padding(
-                  // Page horizontal padding applied once at the column level
-                  // so the header and the cards share one left edge.
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: GeniusWalletConsts.space10,
+              child: Padding(
+                // top space32 (64) — navbar→title gap unified with
+                // Transactions/Markets/News. 12/8 sides match the shared page
+                // frame so the title lands at the same X as the other tabs.
+                padding: const EdgeInsets.fromLTRB(
+                  12,
+                  GeniusWalletConsts.space32,
+                  12,
+                  8,
+                ),
+                child: ConstrainedBox(
+                  // xxl: this is the PAGE frame, not the card frame — unified
+                  // with Transactions/Markets/News so the title lands at the
+                  // same X.
+                  constraints: const BoxConstraints(
+                    maxWidth: GeniusBreakpoints.xxl,
                   ),
                   child: Column(
+                    // stretch: the header takes the full capped width
+                    // instead of shrink-wrapping and getting centred
+                    // (transactions_screen.dart does the same).
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // navbar→title gap, unified with Transactions at space32 (64).
-                      const SizedBox(height: GeniusWalletConsts.space32),
-                      GWPageHeader(
-                        title: "Swap",
-                        subtitle: "Trade any token across chains",
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.tune,
-                            color: gw.textSecondary,
-                            size: 24,
+                      Center(
+                        child: ConstrainedBox(
+                          // D-07 · sketch 105 A1: focused column, 500px -> 560px.
+                          constraints: const BoxConstraints(maxWidth: 560),
+                          child: Padding(
+                            // Page horizontal padding applied once at the
+                            // column level so the header and the two cards
+                            // share one left edge.
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: GeniusWalletConsts.space10,
+                            ),
+                            child: Column(
+                              children: [
+                                // Header lives INSIDE the focused column and
+                                // centres over it (Jakub's call, 26-07): a
+                                // left-gutter title with the form parked in
+                                // the middle of a 1536 frame left the two
+                                // agreeing on nothing. Settings icon stays on
+                                // the column's right edge, where it was before
+                                // the GWPageHeader migration (905a2a91).
+                                GWPageHeader(
+                                  title: "Swap",
+                                  subtitle: "Trade any token across chains",
+                                  centered: true,
+                                  trailing: IconButton(
+                                    icon: Icon(
+                                      Icons.tune,
+                                      color: gw.textSecondary,
+                                      size: 24,
+                                    ),
+                                    onPressed: () {
+                                      SwapSettingsDrawer.show(
+                                        context,
+                                        initialSlippage: slippage,
+                                        onSlippageChanged: (value) {
+                                          setState(() {
+                                            slippage = value;
+                                          });
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                                // The two amount cards, with the flip control in
+                                // the seam between them (D-07) — a Column of both
+                                // cards inside a Stack, the flip control centred
+                                // on the Stack's bounding box via
+                                // Alignment.center. Because the two cards render
+                                // at (near-)equal heights, that centre point
+                                // lands on the seam itself; no hardcoded pixel
+                                // offset is involved anywhere in this layout.
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        SwapField(
+                                          label: "You Pay",
+                                          controller: fromAmountController,
+                                          onChanged: (val) {
+                                            setState(() => fromAmount = val);
+                                            _debouncedFetchRoute();
+                                          },
+                                          selectedToken: fromToken,
+                                          isSelectingFrom: true,
+                                          // filter out the selected toToken, and the token that is already selected
+                                          tokens: tokens
+                                              .where(
+                                                (t) =>
+                                                    (toToken == null ||
+                                                        t.address
+                                                                .toLowerCase() !=
+                                                            toToken!.address
+                                                                .toLowerCase() ||
+                                                        t.chainId !=
+                                                            toToken!.chainId) &&
+                                                    (fromToken == null ||
+                                                        t.address
+                                                                .toLowerCase() !=
+                                                            fromToken!.address
+                                                                .toLowerCase() ||
+                                                        t.chainId !=
+                                                            fromToken!.chainId),
+                                              )
+                                              .toList(),
+                                          onTokenSelected: (token) {
+                                            setState(() => fromToken = token);
+                                            _debouncedFetchRoute();
+                                          },
+                                        ),
+                                        const SizedBox(
+                                          height: GeniusWalletConsts.space8,
+                                        ),
+                                        SwapField(
+                                          label: "You Receive",
+                                          controller: toAmountController,
+                                          onChanged: (val) =>
+                                              setState(() => toAmount = val),
+                                          selectedToken: toToken,
+                                          isSelectingFrom: false,
+                                          // D-09: on a failed route fetch the field
+                                          // shows an em dash, never a stale amount.
+                                          emptyPlaceholder: routeError
+                                              ? '—'
+                                              : null,
+                                          // filter out the selected fromToken, and the token that is already selected
+                                          tokens: tokens
+                                              .where(
+                                                (t) =>
+                                                    (fromToken == null ||
+                                                        t.address
+                                                                .toLowerCase() !=
+                                                            fromToken!.address
+                                                                .toLowerCase() ||
+                                                        t.chainId !=
+                                                            fromToken!
+                                                                .chainId) &&
+                                                    (toToken == null ||
+                                                        t.address
+                                                                .toLowerCase() !=
+                                                            toToken!.address
+                                                                .toLowerCase() ||
+                                                        t.chainId !=
+                                                            toToken!.chainId),
+                                              )
+                                              .toList(),
+                                          onTokenSelected: (token) {
+                                            setState(() => toToken = token);
+                                            _debouncedFetchRoute();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    TokenFlipButton(onFlip: _flipTokens),
+                                  ],
+                                ),
+                                // D-09: the route card never shows figures derived
+                                // from a route that just failed.
+                                if (fetchedRoute != null && !routeError)
+                                  RouteDetailsCard(
+                                    route: fetchedRoute!,
+                                    fromAmount: fromAmountController.text,
+                                    toAmount: toAmountController.text,
+                                    fromToken: fromToken,
+                                    toToken: toToken,
+                                    slippage: slippage.toString(),
+                                  ),
+                                if (routeError) _buildRouteErrorNotice(gw),
+                                const SizedBox(
+                                  height: GeniusWalletConsts.space12,
+                                ),
+                                _buildSwapCta(gw),
+                              ],
+                            ),
                           ),
-                          onPressed: () {
-                            SwapSettingsDrawer.show(
-                              context,
-                              initialSlippage: slippage,
-                              onSlippageChanged: (value) {
-                                setState(() {
-                                  slippage = value;
-                                });
-                              },
-                            );
-                          },
                         ),
                       ),
-                      // The two amount cards, with the flip control in the
-                      // seam between them (D-07) — a Column of both cards
-                      // inside a Stack, the flip control centred on the
-                      // Stack's bounding box via Alignment.center. Because
-                      // the two cards render at (near-)equal heights, that
-                      // centre point lands on the seam itself; no hardcoded
-                      // pixel offset is involved anywhere in this layout.
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Column(
-                            children: [
-                              SwapField(
-                                label: "You Pay",
-                                controller: fromAmountController,
-                                onChanged: (val) {
-                                  setState(() => fromAmount = val);
-                                  _debouncedFetchRoute();
-                                },
-                                selectedToken: fromToken,
-                                isSelectingFrom: true,
-                                // filter out the selected toToken, and the token that is already selected
-                                tokens: tokens
-                                    .where(
-                                      (t) =>
-                                          (toToken == null ||
-                                              t.address.toLowerCase() !=
-                                                  toToken!.address
-                                                      .toLowerCase() ||
-                                              t.chainId != toToken!.chainId) &&
-                                          (fromToken == null ||
-                                              t.address.toLowerCase() !=
-                                                  fromToken!.address
-                                                      .toLowerCase() ||
-                                              t.chainId != fromToken!.chainId),
-                                    )
-                                    .toList(),
-                                onTokenSelected: (token) {
-                                  setState(() => fromToken = token);
-                                  _debouncedFetchRoute();
-                                },
-                              ),
-                              const SizedBox(height: GeniusWalletConsts.space8),
-                              SwapField(
-                                label: "You Receive",
-                                controller: toAmountController,
-                                onChanged: (val) =>
-                                    setState(() => toAmount = val),
-                                selectedToken: toToken,
-                                isSelectingFrom: false,
-                                // D-09: on a failed route fetch the field
-                                // shows an em dash, never a stale amount.
-                                emptyPlaceholder: routeError ? '—' : null,
-                                // filter out the selected fromToken, and the token that is already selected
-                                tokens: tokens
-                                    .where(
-                                      (t) =>
-                                          (fromToken == null ||
-                                              t.address.toLowerCase() !=
-                                                  fromToken!.address
-                                                      .toLowerCase() ||
-                                              t.chainId != fromToken!.chainId) &&
-                                          (toToken == null ||
-                                              t.address.toLowerCase() !=
-                                                  toToken!.address
-                                                      .toLowerCase() ||
-                                              t.chainId != toToken!.chainId),
-                                    )
-                                    .toList(),
-                                onTokenSelected: (token) {
-                                  setState(() => toToken = token);
-                                  _debouncedFetchRoute();
-                                },
-                              ),
-                            ],
-                          ),
-                          TokenFlipButton(onFlip: _flipTokens),
-                        ],
-                      ),
-                      // D-09: the route card never shows figures derived
-                      // from a route that just failed.
-                      if (fetchedRoute != null && !routeError)
-                        RouteDetailsCard(
-                          route: fetchedRoute!,
-                          fromAmount: fromAmountController.text,
-                          toAmount: toAmountController.text,
-                          fromToken: fromToken,
-                          toToken: toToken,
-                          slippage: slippage.toString(),
-                        ),
-                      if (routeError) _buildRouteErrorNotice(gw),
-                      const SizedBox(height: GeniusWalletConsts.space12),
-                      _buildSwapCta(gw),
                     ],
                   ),
                 ),

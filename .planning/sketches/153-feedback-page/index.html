@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>153 · Feedback page - 5 whole-page shapes, zero new features</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:52px var(--space-8) var(--space-16); }
+  .wrap { max-width:1440px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #variant-nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #variant-nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+  #variant-nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .st:hover { color:var(--text-primary); border-color:var(--border-strong); }
+  #variant-nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:1120px; }
+  .lede b { color:var(--text-primary); }
+  .lede code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu);
+    padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.have { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.warn { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .tag.no { background:rgba(255,77,77,.14); color:var(--status-error); }
+
+  /* per-variant caption strip above the window */
+  .cap { display:flex; align-items:flex-start; gap:10px; margin:0 0 var(--space-8); }
+  .cap .k { font:700 11px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary);
+    flex:none; padding-top:1px; }
+  .cap .v { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:1000px; }
+
+  /* ---------- fake app window + navbar ---------- */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden;
+    background:var(--surface-base); box-shadow:var(--shadow-card); margin:0 auto; transition:max-width .2s ease; max-width:1440px; }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:68px; padding:0 var(--space-10);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); }
+  .brand { display:flex; align-items:center; gap:9px; font:700 15px/1 var(--font); color:var(--text-primary); margin-right:var(--space-4); }
+  .brand .g { width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+    display:grid; place-items:center; color:var(--text-on-brand); font:800 13px/1 var(--font); }
+  .tabs { display:flex; gap:2px; align-items:center; }
+  .tabs a { position:relative; font:500 13px/1 var(--font); color:var(--text-secondary); text-decoration:none; padding:10px 12px 12px;
+    border-radius:var(--radius-sm) var(--radius-sm) 0 0; transition:all .15s ease; cursor:pointer; }
+  .tabs a:hover { color:var(--text-primary); transform:translateY(-1px); }
+  .tabs a.active { color:var(--text-primary); font-weight:700; }
+  .tabs a.active::after { content:""; position:absolute; left:12px; right:12px; bottom:-1px; height:2px; border-radius:2px;
+    background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .right { margin-left:auto; display:flex; align-items:center; gap:var(--space-6); }
+  .navbar .chip-w { display:flex; align-items:center; gap:7px; font:600 12px/1 var(--font); color:var(--text-primary);
+    padding:8px 12px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:var(--surface-menu); }
+  .navbar .chip-w .d { width:8px; height:8px; border-radius:50%; background:var(--brand-secondary); }
+
+  /* stage = the real page frame: 12px side gutters, 32px above the title */
+  .stage { position:relative; padding:var(--space-16) 12px var(--space-16); min-height:600px;
+    background:radial-gradient(120% 90% at 50% -10%, rgba(20,200,255,.05), transparent 60%); }
+
+  /* ---------- page frame ---------- */
+  .page { margin:0 auto; }
+  .pagehead { margin-bottom:var(--space-12); }
+  .pagehead .title { font:600 28px/34px var(--font); color:var(--text-primary); }
+  .pagehead .sub { font:400 14px/22px var(--font); color:var(--text-secondary); margin-top:var(--space-3); max-width:560px; }
+  .pagehead.mid { text-align:center; }
+  .pagehead.mid .sub { margin-inline:auto; }
+
+  /* the emptiness the variants are arguing about */
+  .void { position:absolute; top:96px; bottom:32px; width:var(--vw); border:1px dashed color-mix(in srgb,var(--status-error) 45%,transparent);
+    border-radius:var(--radius-md); background:color-mix(in srgb,var(--status-error) 5%,transparent);
+    display:grid; place-items:center; pointer-events:none; }
+  .void span { font:700 11px/1 var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--status-error); opacity:.8;
+    writing-mode:vertical-rl; }
+  body.novoid .void { display:none; }
+
+  /* ---------- shared building blocks ---------- */
+  .surf { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+    border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); }
+  .pad { padding:var(--space-12); }
+  .pad-lg { padding:var(--space-16) var(--space-12); }
+  .cardtitle { font:600 13px/18px var(--font); color:var(--text-secondary); letter-spacing:.4px; text-transform:uppercase; }
+  .stack > * + * { margin-top:var(--space-12); }
+  .stack-8 > * + * { margin-top:var(--space-8); }
+  .divide { height:1px; background:var(--border-subtle); }
+
+  /* segmented type chooser - faithful to submit_logs_screen.dart _buildTypeChooser */
+  .segtrack { display:flex; padding:var(--space-2); gap:4px; border-radius:var(--radius-md);
+    background:var(--surface-elevated); border:1px solid var(--border-subtle); }
+  .segtrack button { flex:1; padding:var(--space-4) 8px; cursor:pointer; border:1px solid transparent; border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); font:500 13px/18px var(--font); transition:all .12s ease; }
+  .segtrack button:hover { color:var(--text-primary); }
+  .segtrack button[aria-pressed="true"] { color:var(--text-primary); font-weight:600;
+    background:color-mix(in srgb,var(--brand-secondary) 18%,transparent); border-color:var(--brand-secondary); }
+
+  /* message field */
+  .flabel { font:500 12px/16px var(--font); color:var(--text-secondary); margin-bottom:var(--space-3); display:block; }
+  .field { position:relative; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-menu);
+    transition:border-color .15s ease, box-shadow .15s ease; }
+  .field:focus-within { border-color:var(--brand-primary); box-shadow:0 0 0 3px var(--brand-primary-subtle); }
+  .field textarea { width:100%; background:transparent; border:0; outline:0; resize:vertical; color:var(--text-primary);
+    font:400 15px/23px var(--font); padding:14px 15px 26px; min-height:124px; }
+  .field.tall textarea { min-height:184px; }
+  .field.xtall textarea { min-height:260px; }
+  .field textarea::placeholder { color:var(--text-primary-38); }
+  .field .count { position:absolute; right:12px; bottom:8px; font:500 11px/1 var(--font); color:var(--text-primary-38);
+    font-variant-numeric:tabular-nums; pointer-events:none; }
+  .hint { font:400 13px/20px var(--font); color:var(--text-secondary); }
+
+  /* receipt (chips) */
+  .attach .ah { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:var(--space-6); }
+  .attach .ah .t { font:500 13px/18px var(--font); color:var(--text-primary); }
+  .attach .ah .h2 { font:400 13px/18px var(--font); color:var(--text-secondary); }
+  .chiprow { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { display:inline-flex; align-items:center; gap:8px; font:400 13px/1 var(--font); color:var(--text-primary);
+    padding:7px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-elevated); }
+  .chip .dot { width:8px; height:8px; border-radius:50%; background:var(--text-secondary); flex:none; }
+  .chip .dot.ok { background:var(--status-success); }
+  .chip.mut { color:var(--text-secondary); }
+  .chip.mut .through { text-decoration:line-through; }
+  .chip .trim { font:700 10px/1 var(--font); letter-spacing:.5px; color:var(--text-primary);
+    background:color-mix(in srgb,var(--brand-secondary) 18%,transparent); border-radius:4px; padding:3px 5px; }
+
+  /* receipt (rail rows) */
+  .kv { display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--border-subtle); }
+  .kv:first-of-type { border-top:0; }
+  .kv .kk { font:400 13px/18px var(--font); color:var(--text-secondary); margin-right:auto; }
+  .kv .kvv { font:500 13px/18px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .note { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-8);
+    padding:10px 12px; border-radius:var(--radius-sm); background:var(--brand-primary-subtle); border:1px solid var(--brand-primary-muted); }
+  .note.warn { background:color-mix(in srgb,var(--status-warning) 12%,transparent);
+    border-color:color-mix(in srgb,var(--status-warning) 40%,transparent); }
+
+  /* status line */
+  .status { display:flex; align-items:flex-start; gap:9px; font:400 13px/19px var(--font); color:var(--text-secondary); }
+  .status .dot { width:9px; height:9px; border-radius:50%; flex:none; background:var(--text-secondary); margin-top:5px; }
+  .status.ok .dot { background:var(--status-success); }
+  .status.busy .dot { background:var(--brand-primary); animation:pulse 1s ease-in-out infinite; }
+  .status.warn { color:var(--status-warning); } .status.warn .dot { background:var(--status-warning); }
+  .status.err { color:var(--status-error); } .status.err .dot { background:var(--status-error); }
+  @keyframes pulse { 0%,100%{opacity:.35;transform:scale(.8)} 50%{opacity:1;transform:scale(1.15)} }
+
+  /* CTA - GWButton primary gradient, near-black label (gw_button.dart) */
+  .cta { display:inline-flex; align-items:center; justify-content:center; gap:9px; font:600 14px/1 var(--font);
+    padding:0 20px; height:44px; border:0; border-radius:var(--radius-md); cursor:pointer; transition:all .15s ease; flex:none;
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); }
+  .cta svg { width:17px; height:17px; }
+  .cta:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(10,174,230,.35); }
+  .cta.off { background:var(--surface-menu); color:var(--text-primary-38); cursor:not-allowed; border:1px solid var(--border-subtle); }
+  .cta.busy { background:var(--surface-menu); color:var(--text-secondary); cursor:progress; border:1px solid var(--border-subtle); }
+  .cta.off:hover, .cta.busy:hover { transform:none; box-shadow:none; }
+  .cta.block { width:100%; }
+  .spin { width:15px; height:15px; border-radius:50%; border:2px solid var(--border-strong); border-top-color:var(--brand-primary);
+    animation:spin .7s linear infinite; } @keyframes spin { to{transform:rotate(360deg)} }
+
+  .footer-row { display:flex; align-items:center; gap:var(--space-8); }
+  .footer-row .status { margin-right:auto; }
+
+  /* success */
+  .ok-head { display:flex; align-items:center; gap:var(--space-8); }
+  .ok-badge { width:44px; height:44px; border-radius:50%; display:grid; place-items:center; flex:none;
+    background:var(--status-success-fill); color:var(--status-success); }
+  .ok-badge svg { width:22px; height:22px; }
+  .ok-title { font:600 20px/28px var(--font); color:var(--text-primary); }
+  .ok-sub { font:400 14px/22px var(--font); color:var(--text-secondary); }
+  .eidbox { padding:12px 14px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); background:var(--surface-sunken);
+    display:flex; align-items:center; gap:12px; }
+  .eidbox code { font:500 13px/1 var(--font-mono); color:var(--text-primary); letter-spacing:.3px; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; margin-right:auto; }
+  .kcap { font:500 12px/16px var(--font); color:var(--text-secondary); }
+  .copybtn { font:600 12px/1 var(--font); padding:9px 12px; border-radius:var(--radius-sm); cursor:pointer; transition:all .15s ease;
+    border:1px solid var(--border-subtle); background:var(--surface-elevated); color:var(--text-primary); flex:none; }
+  .copybtn:hover { border-color:var(--brand-primary); transform:translateY(-1px); }
+  .send-another { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px; padding:0 18px;
+    border-radius:var(--radius-md); cursor:pointer; font:600 13px/1 var(--font); transition:all .15s ease;
+    border:1.5px solid transparent; background:linear-gradient(var(--surface-sheen-b),var(--surface-sheen-b)) padding-box,
+      linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)) border-box; }
+  .send-another .lab { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .send-another svg { width:16px; height:16px; color:var(--brand-secondary); }
+  .send-another:hover { filter:brightness(1.12); transform:translateY(-1px); }
+
+  /* two-column shapes */
+  .cols { display:flex; gap:var(--space-10); align-items:flex-start; }
+  .cols .main { width:640px; flex:none; min-width:0; }
+  .cols .side { flex:1; min-width:0; }
+
+  /* C: one card, split by a hairline */
+  .splitcard { display:flex; align-items:stretch; }
+  .splitcard .left { flex:1; padding:var(--space-12); min-width:0; }
+  .splitcard .right { width:380px; flex:none; padding:var(--space-12); border-left:1px solid var(--border-subtle);
+    display:flex; flex-direction:column; }
+  .splitcard .right .grow { margin-top:auto; }
+  /* the message field eats the leftover height so the two panes end level */
+  .splitcard .left > .s { display:flex; flex-direction:column; height:100%; }
+  .splitcard .left .growfield { flex:1; display:flex; flex-direction:column; }
+  .splitcard .left .growfield .field { flex:1; display:flex; flex-direction:column; }
+  .splitcard .left .growfield textarea { flex:1; }
+
+  /* D: numbered steps */
+  .step { display:flex; gap:var(--space-8); }
+  .step + .step { margin-top:var(--space-12); }
+  .step .n { width:26px; height:26px; flex:none; border-radius:50%; display:grid; place-items:center;
+    font:600 12px/1 var(--font); color:var(--text-secondary); border:1px solid var(--border-subtle); background:var(--surface-elevated); }
+  .step .body { flex:1; min-width:0; }
+  .step .st { font:500 14px/20px var(--font); color:var(--text-primary); margin-bottom:var(--space-3); }
+  .step .sh { font:400 12px/18px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+
+  /* E: wide composer */
+  .cardhead { display:flex; align-items:center; gap:var(--space-8); padding:var(--space-8) var(--space-12);
+    border-bottom:1px solid var(--border-subtle); }
+  .cardhead .t { font:500 14px/20px var(--font); color:var(--text-primary); margin-right:auto; }
+  .cardhead .segtrack { width:340px; flex:none; }
+  .cardfoot { display:flex; align-items:center; gap:var(--space-8); padding:var(--space-8) var(--space-12);
+    border-top:1px solid var(--border-subtle); }
+
+  body.narrow .win { max-width:420px; }
+  body.narrow .cols, body.narrow .splitcard { flex-direction:column; }
+  body.narrow .cols .main, body.narrow .cols .side,
+  body.narrow .splitcard .right, body.narrow .splitcard .left { width:100%; flex:none; }
+  body.narrow .splitcard .right { border-left:0; border-top:1px solid var(--border-subtle); }
+  body.narrow .page { max-width:100% !important; }
+  body.narrow .cardhead { flex-wrap:wrap; }
+  body.narrow .cardhead .segtrack { width:100%; }
+  body.narrow .void { display:none; }
+
+  .variant { display:none; }
+  .variant.active { display:block; }
+
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); z-index:9999;
+    background:var(--surface-elevated); color:var(--text-primary); border:1px solid var(--border-subtle); box-shadow:var(--shadow-card);
+    padding:10px 16px; border-radius:var(--radius-pill); font:600 13px/1 var(--font); opacity:0; pointer-events:none; transition:all .2s ease; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body data-state="ready">
+
+<div id="variant-nav">
+  <span class="name">153 · Feedback page</span>
+  <button class="vt active" onclick="showVariant('0',this)">0 · Today</button>
+  <button class="vt" onclick="showVariant('a',this)">A · Sheet</button>
+  <button class="vt" onclick="showVariant('b',this)">B · Focused frame ★</button>
+  <button class="vt" onclick="showVariant('c',this)">C · Split card</button>
+  <button class="vt" onclick="showVariant('d',this)">D · Steps</button>
+  <button class="vt" onclick="showVariant('e',this)">E · Wide composer</button>
+  <span class="sep"></span>
+  <span class="lbl">State</span>
+  <button class="st on" data-st="ready" onclick="setState('ready',this)">Ready</button>
+  <button class="st" data-st="sending" onclick="setState('sending',this)">Sending</button>
+  <button class="st" data-st="success" onclick="setState('success',this)">Success</button>
+  <button class="st" data-st="nosdk" onclick="setState('nosdk',this)">No-SDK</button>
+  <button class="st" data-st="failed" onclick="setState('failed',this)">Failed</button>
+  <span class="sep"></span>
+  <button class="st" onclick="toggleNarrow(this)">Phone</button>
+  <button class="st" onclick="toggleTheme(this)">Light</button>
+  <button class="st on" onclick="toggleVoid(this)">Empty-space marks</button>
+</div>
+
+<div class="wrap">
+  <p class="lede">
+    <b>Design question:</b> the Feedback tab ships sketch <b>150-D</b> - a 560px card on a 1536px page frame,
+    so roughly <b>430px of dead page on each side</b>. What whole-page shape does it deserve, using
+    <b>only what the screen already has</b>? Inventory, verified in <code>submit_logs_screen.dart</code>:
+    the Bug/Idea/Question chooser, one message field (2000 chars), two probed SDK logs with sizes and a
+    <code>TAIL</code>/<code>skipped</code> disposition, SDK running/stopped, the platform string, one status
+    line, one send button, and a success state with a reference number, Copy and Send another.
+    <b>That is the entire pantry.</b> No history, no ticket status, no reply thread, no email field, no file
+    picker - none of that exists and no variant pretends it does.
+    <span class="tag rec">B recommended</span>
+    <span class="tag have">every element is shipped code</span>
+    <span class="tag warn">B/C/D/E move the title back to the left - conflicts with the uncommitted centered:true</span>
+  </p>
+
+  <!-- ============================ 0 · TODAY ============================ -->
+  <section id="variant-0" class="variant active">
+    <div class="cap"><span class="k">0 · Today</span><span class="v">
+      What is in the tree right now: page frame <code>xxl</code> 1536, content column 560, title centred
+      inside that column. The card is fine. The <b>page</b> is two red rectangles wide.
+    </span></div>
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="void" style="--vw:400px; left:12px;"><span>dead page</span></div>
+        <div class="void" style="--vw:400px; right:12px;"><span>dead page</span></div>
+        <div class="page" style="max-width:560px;">
+          <div class="pagehead mid">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Bug reports, ideas and questions go straight to the team.</div>
+          </div>
+          <div class="surf pad">
+            <div class="s ready sending nosdk failed stack-8">
+              %CHOOSER%
+              <div class="hint">Describe what's happening in as much detail as you can - the more specific, the faster we can help.</div>
+              <div>%FIELD%</div>
+              %RECEIPT%
+              <div class="divide"></div>
+              <div class="footer-row">%STATUS%%SEND%</div>
+            </div>
+            %SUCCESS%
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ A · SHEET ============================ -->
+  <section id="variant-a" class="variant">
+    <div class="cap"><span class="k">A · Sheet</span><span class="v">
+      Owns the narrowness instead of apologising for it. Same 560 column and the same centred title,
+      but the card is re-proportioned as a <b>sheet</b>: 32px vertical padding, a taller message field
+      (184px, the real <code>minLines:4/maxLines:8</code> band), the receipt demoted to a quiet footer
+      strip, and the CTA <b>full-width at the bottom</b> instead of squeezed beside the status line.
+      Smallest possible diff - no new widgets, only spacing, order and one <code>block</code> button.
+    </span></div>
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="void" style="--vw:400px; left:12px;"><span>still dead</span></div>
+        <div class="void" style="--vw:400px; right:12px;"><span>still dead</span></div>
+        <div class="page" style="max-width:560px;">
+          <div class="pagehead mid">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Bug reports, ideas and questions go straight to the team.</div>
+          </div>
+          <div class="surf pad-lg">
+            <div class="s ready sending nosdk failed stack">
+              %CHOOSER%
+              <div>
+                <span class="flabel">Message</span>
+                %FIELD_TALL%
+              </div>
+              <div class="divide"></div>
+              %RECEIPT%
+              %STATUS%
+              <button class="cta block s ready failed" onclick="setState('sending')">%ICON_SEND% Send feedback</button>
+              <button class="cta block busy s sending" disabled><span class="spin"></span> Sending...</button>
+              <button class="cta block off s nosdk" disabled>Start the SDK to send</button>
+            </div>
+            %SUCCESS%
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ B · FOCUSED FRAME (recommended) ============================ -->
+  <section id="variant-b" class="variant">
+    <div class="cap"><span class="k">B · Focused frame ★</span><span class="v">
+      The honest answer to "what fills 1536px?" is <b>nothing does</b> - so the page declares a narrower
+      frame. Frame capped at <b>1040</b>, centred; title sits <b>top-left of that frame</b>, same as
+      Transactions / Markets / News; composer 640 + receipt rail 380 fill it edge to edge. What is left
+      over reads as page margin, not as a hole. The rail is exactly the four facts the probe already
+      computes.
+    </span></div>
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="page" style="max-width:1040px;">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Bug reports, ideas and questions go straight to the team.</div>
+          </div>
+          <div class="cols">
+            <div class="main surf pad">
+              <div class="s ready sending nosdk failed stack">
+                %CHOOSER%
+                <div>
+                  <span class="flabel">Message</span>
+                  %FIELD_TALL%
+                </div>
+                <div class="divide"></div>
+                <div class="footer-row">%STATUS%%SEND%</div>
+              </div>
+              %SUCCESS%
+            </div>
+            <aside class="side surf pad">
+              <div class="cardtitle" style="margin-bottom:var(--space-8);">What gets sent</div>
+              %RAIL%
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ C · SPLIT CARD ============================ -->
+  <section id="variant-c" class="variant">
+    <div class="cap"><span class="k">C · Split card</span><span class="v">
+      Same 1040 frame and same left title as B, but <b>one surface</b> instead of two: a single card
+      divided by a hairline. Left = what you write. Right = what leaves the machine, with the status
+      line and the CTA parked at the bottom of that same pane. One card is cheaper to build than a
+      card plus a rail, and the send button ends up next to the receipt it is about.
+    </span></div>
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="page" style="max-width:1040px;">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Bug reports, ideas and questions go straight to the team.</div>
+          </div>
+          <div class="surf splitcard">
+            <div class="left">
+              <div class="s ready sending nosdk failed stack">
+                %CHOOSER%
+                <div class="growfield">
+                  <span class="flabel">Message</span>
+                  %FIELD_TALL%
+                </div>
+              </div>
+              %SUCCESS%
+            </div>
+            <div class="right s ready sending nosdk failed">
+              <div class="cardtitle" style="margin-bottom:var(--space-8);">What gets sent</div>
+              %RAIL%
+              <div class="grow" style="padding-top:var(--space-12);">
+                <div class="divide" style="margin-bottom:var(--space-8);"></div>
+                %STATUS%
+                <div style="margin-top:var(--space-8);">
+                  <button class="cta block s ready failed" onclick="setState('sending')">%ICON_SEND% Send feedback</button>
+                  <button class="cta block busy s sending" disabled><span class="spin"></span> Sending...</button>
+                  <button class="cta block off s nosdk" disabled>Start the SDK to send</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ D · STEPS ============================ -->
+  <section id="variant-d" class="variant">
+    <div class="cap"><span class="k">D · Steps</span><span class="v">
+      One axis: the title sits on the <b>left edge of the 640 column</b>, so title and card agree on
+      exactly one X (sketch 040-B's "one axis", applied here). The card becomes a short numbered
+      procedure - <b>1</b> pick a kind, <b>2</b> write it, <b>3</b> check what rides along - which is
+      literally what the existing three blocks do, just labelled. Tallest of the five; no new widgets.
+    </span></div>
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="void" style="--vw:340px; left:12px;"><span>margin</span></div>
+        <div class="void" style="--vw:340px; right:12px;"><span>margin</span></div>
+        <div class="page" style="max-width:640px;">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Bug reports, ideas and questions go straight to the team.</div>
+          </div>
+          <div class="surf pad-lg">
+            <div class="s ready sending nosdk failed">
+              <div class="step">
+                <div class="n">1</div>
+                <div class="body">
+                  <div class="st">What kind of note is this?</div>
+                  <div class="sh">It tags the report so the team can filter it.</div>
+                  %CHOOSER%
+                </div>
+              </div>
+              <div class="step">
+                <div class="n">2</div>
+                <div class="body">
+                  <div class="st">Tell us what happened</div>
+                  <div class="sh">The more specific, the faster we can help.</div>
+                  %FIELD%
+                </div>
+              </div>
+              <div class="step">
+                <div class="n">3</div>
+                <div class="body">
+                  <div class="st">Check what rides along</div>
+                  <div class="sh">Attached for you - nothing here is optional.</div>
+                  %RECEIPT_BARE%
+                </div>
+              </div>
+              <div class="divide" style="margin:var(--space-12) 0;"></div>
+              <div class="footer-row">%STATUS%%SEND%</div>
+            </div>
+            %SUCCESS%
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ E · WIDE COMPOSER (rejected) ============================ -->
+  <section id="variant-e" class="variant">
+    <div class="cap"><span class="k">E · Wide composer</span><span class="v">
+      Shown to be argued against. The card takes the <b>whole 1536 frame</b>: chooser in the card
+      header, message field spanning the width, receipt as a footer bar. Nothing is empty any more -
+      but a 1400px-wide text box for a two-sentence bug report is a stadium with one chair, and the
+      line length blows past every other card in the app. It fills the page by making the page worse.
+    </span></div>
+    <div class="win">
+      %NAVBAR%
+      <div class="stage">
+        <div class="page">
+          <div class="pagehead">
+            <div class="title">Send Feedback</div>
+            <div class="sub">Bug reports, ideas and questions go straight to the team.</div>
+          </div>
+          <div class="surf">
+            <div class="s ready sending nosdk failed">
+              <div class="cardhead">
+                <span class="t">New feedback</span>
+                %CHOOSER%
+              </div>
+              <div style="padding:var(--space-12);">%FIELD_XTALL%</div>
+              <div class="cardfoot">
+                %RECEIPT_INLINE%
+                <span style="margin-left:auto"></span>
+                %SEND%
+              </div>
+              <div class="cardfoot" style="border-top:0; padding:0 var(--space-12) var(--space-12);">%STATUS%</div>
+            </div>
+            <div style="padding:var(--space-16) var(--space-12);">%SUCCESS%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast">Copied reference number</div>
+
+<script>
+/* ---------- inline SVG icons ---------- */
+const I = {
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  redo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>',
+};
+
+/* ---------- shared blocks: every one is a 1:1 read of submit_logs_screen.dart ---------- */
+function navbar(){
+  return `<div class="navbar">
+    <div class="brand"><span class="g">G</span> GeniusWallet</div>
+    <nav class="tabs"><a>Wallet</a><a>Transactions</a><a>Markets</a><a>News</a><a>Swap</a><a class="active">Feedback</a></nav>
+    <div class="right"><div class="chip-w"><span class="d"></span> 0x7a...4Bf1</div></div>
+  </div>`;
+}
+/* _buildTypeChooser - a bordered track, three equal text segments, mint-tinted active */
+function chooser(){
+  return `<div class="segtrack">
+    <button aria-pressed="true" onclick="pickType(this)">Bug</button>
+    <button aria-pressed="false" onclick="pickType(this)">Idea</button>
+    <button aria-pressed="false" onclick="pickType(this)">Question</button>
+  </div>`;
+}
+function field(cls){
+  return `<div class="field ${cls||''}">
+    <textarea placeholder="Describe what broke and the steps to reproduce it.">The compute node keeps flipping to "restarting" after a job finishes.</textarea>
+    <span class="count">62 / 2000</span>
+  </div>`;
+}
+/* _buildReceipt - probe chips + SDK dot + platform. Sizes and TAIL come from the real disposition. */
+function receiptChips(){
+  return `<div class="s ready sending success failed chiprow">
+      <div class="chip">sgnslog.log <b>312 KB</b></div>
+      <div class="chip">sgnslog2.log <b>1.4 MB</b><span class="trim">TAIL</span></div>
+      <div class="chip mut"><span class="through">sgnslog3.log</span> skipped (empty)</div>
+      <div class="chip"><span class="dot ok"></span> SDK Running</div>
+      <div class="chip">macos</div>
+    </div>
+    <div class="s nosdk chiprow">
+      <div class="chip mut"><span class="dot"></span> Attachments unavailable - SDK stopped</div>
+      <div class="chip"><span class="dot"></span> SDK Stopped</div>
+      <div class="chip">macos</div>
+    </div>`;
+}
+function receipt(){
+  return `<div class="attach">
+    <div class="ah"><span class="t">SDK logs attached automatically</span><span class="h2">last 1 MB of each, empty ones skipped</span></div>
+    ${receiptChips()}
+  </div>`;
+}
+function receiptBare(){ return `<div class="attach">${receiptChips()}</div>`; }
+function receiptInline(){
+  return `<div class="attach" style="display:flex;align-items:center;gap:12px;">
+    <span class="h2" style="font:400 13px/18px var(--font);color:var(--text-secondary);flex:none;">Attached automatically:</span>
+    ${receiptChips()}
+  </div>`;
+}
+/* the same four facts as rows, for the rail shapes (B/C) */
+function rail(){
+  return `<div class="s ready sending success failed">
+      <div class="kv"><span class="kk">sgnslog.log</span><span class="kvv">312 KB</span></div>
+      <div class="kv"><span class="kk">sgnslog2.log <span class="trim">TAIL</span></span><span class="kvv">1.4 MB</span></div>
+      <div class="kv"><span class="kk" style="text-decoration:line-through">sgnslog3.log</span><span class="kvv" style="color:var(--text-secondary)">skipped</span></div>
+      <div class="kv"><span class="kk">SDK</span><span class="kvv" style="color:var(--status-success)">Running</span></div>
+      <div class="kv"><span class="kk">Platform</span><span class="kvv">macos</span></div>
+      <div class="note">Only the last <b>1 MB</b> of each log is read, so large files stay light. Empty logs are skipped.</div>
+    </div>
+    <div class="s nosdk">
+      <div class="kv"><span class="kk">SDK</span><span class="kvv" style="color:var(--status-warning)">Stopped</span></div>
+      <div class="kv"><span class="kk">Platform</span><span class="kvv">macos</span></div>
+      <div class="note warn">Logs are collected by the SDK. Start it and they attach here automatically.</div>
+    </div>`;
+}
+/* the four status strings, verbatim from the widget */
+function statusBlock(){
+  return `
+    <div class="status ok s ready"><span class="dot"></span> Ready to send feedback.</div>
+    <div class="status busy s sending"><span class="dot"></span> Sending feedback with 2 log attachment(s)...</div>
+    <div class="status warn s nosdk"><span class="dot"></span> Start the SDK first - feedback needs it running to attach logs and send.</div>
+    <div class="status err s failed"><span class="dot"></span> Sentry did not confirm feedback upload (empty event ID). This usually means the payload was dropped or rejected before ingestion.</div>`;
+}
+function sendBtn(){
+  return `
+    <button class="cta s ready failed" onclick="setState('sending')">${I.send} Send feedback</button>
+    <button class="cta busy s sending" disabled><span class="spin"></span> Sending...</button>
+    <button class="cta off s nosdk" disabled>Start the SDK to send</button>`;
+}
+function successBlock(){
+  return `<div class="s success stack-8">
+    <div class="ok-head"><div class="ok-badge">${I.check}</div><div class="ok-title">Feedback sent</div></div>
+    <div class="ok-sub">Thanks for your feedback - every bit helps us make GeniusWallet better.</div>
+    <div>
+      <div class="kcap" style="margin-bottom:var(--space-3);">Reference number</div>
+      <div class="eidbox"><code>a1b2c3d4e5f64789ab01cd23ef45ab67</code><button class="copybtn" onclick="copyEid()">Copy</button></div>
+      <div class="kcap" style="margin-top:var(--space-3);">Keep it handy in case you follow up with support.</div>
+    </div>
+    <button class="send-another" onclick="setState('ready')">${I.redo}<span class="lab">Send another</span></button>
+  </div>`;
+}
+
+/* ---------- template expansion ---------- */
+document.querySelectorAll('.variant').forEach(sec=>{
+  sec.innerHTML = sec.innerHTML
+    .replace(/%NAVBAR%/g, navbar())
+    .replace(/%CHOOSER%/g, chooser())
+    .replace(/%FIELD_XTALL%/g, field('xtall'))
+    .replace(/%FIELD_TALL%/g, field('tall'))
+    .replace(/%FIELD%/g, field(''))
+    .replace(/%RECEIPT_INLINE%/g, receiptInline())
+    .replace(/%RECEIPT_BARE%/g, receiptBare())
+    .replace(/%RECEIPT%/g, receipt())
+    .replace(/%RAIL%/g, rail())
+    .replace(/%STATUS%/g, statusBlock())
+    .replace(/%SEND%/g, sendBtn())
+    .replace(/%SUCCESS%/g, successBlock())
+    .replace(/%ICON_SEND%/g, I.send);
+});
+
+/* ---------- state machine ---------- */
+const STATES = ['ready','sending','success','nosdk','failed'];
+function setState(st, btn){
+  document.body.dataset.state = st;
+  document.querySelectorAll('.s').forEach(el=>{
+    let show=false; STATES.forEach(s=>{ if(el.classList.contains(s) && s===st) show=true; });
+    el.style.display = show ? '' : 'none';
+  });
+  document.querySelectorAll('#variant-nav .st[data-st]').forEach(b=>b.classList.toggle('on', b.dataset.st===st));
+  if(st==='sending'){ clearTimeout(window._t); window._t=setTimeout(()=>setState('success'),1400); }
+}
+function showVariant(v, btn){
+  document.querySelectorAll('.variant').forEach(s=>s.classList.remove('active'));
+  document.getElementById('variant-'+v).classList.add('active');
+  document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  setState(document.body.dataset.state);
+}
+function pickType(btn){
+  btn.parentElement.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));
+  btn.setAttribute('aria-pressed','true');
+  // the real FeedbackType.placeholder strings
+  const t = btn.textContent.trim();
+  const ph = t==='Bug' ? 'Describe what broke and the steps to reproduce it.'
+    : t==='Idea' ? "Describe what you'd like to see and why it would help."
+    : 'Ask what you need help with and what you have already tried.';
+  const scope = btn.closest('.variant');
+  scope.querySelectorAll('textarea').forEach(ta=>ta.placeholder = ph);
+}
+function copyEid(){
+  navigator.clipboard && navigator.clipboard.writeText('a1b2c3d4e5f64789ab01cd23ef45ab67').catch(()=>{});
+  const t=document.getElementById('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1300);
+}
+function toggleNarrow(btn){ document.body.classList.toggle('narrow'); btn.classList.toggle('on');
+  btn.textContent = document.body.classList.contains('narrow')?'Desktop':'Phone'; }
+function toggleTheme(btn){ const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme = d?'light':'dark'; btn.textContent = d?'Dark':'Light'; btn.classList.toggle('on'); }
+function toggleVoid(btn){ document.body.classList.toggle('novoid'); btn.classList.toggle('on'); }
+
+document.addEventListener('input', e=>{
+  if(e.target.tagName!=='TEXTAREA') return;
+  const c = e.target.parentElement.querySelector('.count');
+  if(c) c.textContent = `${Math.min(e.target.value.length,2000)} / 2000`;
+});
+
+setState('ready');
+
+/* deep link: index.html#b opens variant B; #b+phone also flips the narrow width */
+(function(){
+  let v = (location.hash||'').replace('#','').toLowerCase();
+  if(!v) return;
+  if(v.includes('+phone')){ v = v.replace('+phone',''); document.body.classList.add('narrow'); }
+  const btn = [...document.querySelectorAll('#variant-nav .vt')]
+    .find(b=>b.getAttribute('onclick').includes(`'${v}'`));
+  if(btn) showVariant(v, btn);
+})();
+</script>
+</body>
+</html>
