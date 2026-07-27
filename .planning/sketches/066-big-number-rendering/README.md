@@ -2,7 +2,7 @@
 sketch: 066
 name: big-number-rendering
 question: "How do the picker row and the 38px hero amount survive magnitudes from 1e-15 to 1e12?"
-winner: null
+winner: "B"
 tags: [numbers, typography, swap, picker, phase-08]
 ---
 
@@ -58,3 +58,38 @@ settles. `GWEmptyState` follows the same rule with a two-tier compact/full switc
 480px anchor. So C must be a **small fixed set of steps keyed to string length**, never a
 continuous fit. Any implementation that measures and scales per frame is the banned pattern
 wearing a different hat.
+
+## Decision — B · Grouped + exact second line
+
+Chosen by Braian, 2026-07-27, at the walk. B never hides a digit, which is the right default for
+a balance you are about to spend — A's `1T` cannot distinguish 1.0 from 1.49 trillion, and C's
+shrinking hero trades stability for the same exactness B gets by demoting the value to its own
+line. A and C are not taken.
+
+### ⚠ B and 065-C compound — this is the one thing to watch
+
+Both winners spend **vertical space in the same list**:
+
+- **065-C** adds a sticky section header per chain
+- **066-B** adds a second line to a row
+
+A pay list of 6 tokens across 3 chains goes from 6 rows to 3 headers + 6 two-line rows. On a
+420px drawer that is roughly double the height it is today, on a list already capped at 30 rows.
+Neither sketch was evaluated with the other applied — they were designed in isolation and picked
+in the same sitting.
+
+**Mitigation already in the mockup, and it should survive to the implementation:** the second line
+is rendered ONLY when the grouped form actually differs from the displayed one. `500` and `0.01`
+stay single-line; only `1,000,000,000,000` earns a second row of type. That keeps the ~90% of
+ordinary balances at today's height and spends the space only where it buys something.
+
+### What B still owes an answer
+
+1. **Which slot gets which treatment.** The row is a scanning surface and the hero an editing
+   surface. The mockup gives the row *compact + grouped-exact beneath* and the hero
+   *grouped + raw beneath*. That asymmetry is deliberate but unconfirmed.
+2. **The second line's relationship to MAX.** `displayBalance` caps at 6 decimals while
+   `formattedBalance` (what MAX writes) keeps the exact value — so on a dust row the row's second
+   line and the field's contents are the same 17-character string, in two places at once.
+3. **Thousands separators are locale-shaped.** The mockup hardcodes `,`. The app has no locale
+   formatting today; adopting `intl`'s `NumberFormat` is a larger decision than this sketch made.
