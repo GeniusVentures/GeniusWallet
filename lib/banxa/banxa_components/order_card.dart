@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:intl/intl.dart';
 
 class OrderCard extends StatelessWidget {
@@ -18,20 +23,6 @@ class OrderCard extends StatelessWidget {
 
   String get fiat => "${order.fiatAmount} ${order.fiat}";
   String get crypto => "${order.cryptoAmount} ${order.crypto.id}";
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'pendingpayment':
-      case 'pending':
-        return Colors.orange;
-      case 'declined':
-      case 'cancelled':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
 
   String formatDate(DateTime? dateTime) {
     if (dateTime == null) return '';
@@ -49,50 +40,32 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor(order.status);
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(
-          color: GeniusWalletColors.lightGreenSecondary,
-          width: 1.5,
-        ),
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space2,
+        vertical: GeniusWalletConsts.space4,
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: GWCard(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           spacing: 2.0,
           children: [
             // Top Row
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Order #${_shortId(order.id)}",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                Expanded(
                   child: Text(
-                    order.status.toUpperCase(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: statusColor,
+                    "Order #${_shortId(order.id)}",
+                    style: GeniusWalletTypography.titleLg.copyWith(
+                      color: gw.textPrimary,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: GeniusWalletConsts.space4),
+                OrderStatusPill(status: order.status),
               ],
             ),
             const SizedBox(height: 12),
@@ -104,43 +77,44 @@ class OrderCard extends StatelessWidget {
             OrderInfoRow(label: "Updated:", value: formatDate(order.updatedAt)),
             const SizedBox(height: 10),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (order.status.toLowerCase() == 'pendingpayment')
-                  ElevatedButton(
-                    onPressed: onCompletePayment,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Complete Payment'),
-                  )
-                else if (order.status.toLowerCase() == 'declined')
-                  OutlinedButton(
-                    onPressed: onRetryOrder,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Retry Order'),
-                  )
-                else
-                  const SizedBox.shrink(),
+                // Expanded + Align (rather than the bare button `Row` this
+                // replaces) so neither slot's natural width can overflow the
+                // 300px grid tile — each half falls back to its own
+                // `GWButton`'s existing label ellipsis before that happens.
+                // The if/else-if/else gating on the status string is
+                // unchanged (D-01); only the overflow-safety wrapper is new.
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: order.status.toLowerCase() == 'pendingpayment'
+                        ? GWButton(
+                            onPressed: onCompletePayment,
+                            label: 'Complete Payment',
+                            variant: GWButtonVariant.gradient,
+                            size: GWButtonSize.sm,
+                          )
+                        : order.status.toLowerCase() == 'declined'
+                        ? GWButton(
+                            onPressed: onRetryOrder,
+                            label: 'Retry Order',
+                            variant: GWButtonVariant.secondary,
+                            size: GWButtonSize.sm,
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ),
                 const SizedBox(width: 8),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    textStyle: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: GWButton(
+                      onPressed: onSeeDetails,
+                      label: 'See Details',
+                      variant: GWButtonVariant.tertiary,
+                      size: GWButtonSize.sm,
                     ),
                   ),
-                  onPressed: onSeeDetails,
-                  child: const Text('See Details'),
                 ),
               ],
             ),
@@ -158,11 +132,27 @@ class OrderInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey[700])),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: GeniusWalletTypography.labelMd.copyWith(
+            color: gw.textSecondary,
+          ),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: GeniusWalletTypography.bodyMd.copyWith(
+              color: gw.textPrimary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
