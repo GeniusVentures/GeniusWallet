@@ -21,6 +21,7 @@ import 'package:genius_wallet/squid_router/squid_token_service.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
+import 'package:genius_wallet/squid_router/swap_preselection.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
@@ -32,7 +33,29 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SwapScreen extends StatefulWidget {
-  const SwapScreen({super.key});
+  const SwapScreen({super.key, this.preselectSymbol, this.preselectChainId});
+
+  /// Seat this token when the screen opens, if the catalogue has it.
+  ///
+  /// Set when arriving from a coin page's Swap button — landing on an empty
+  /// form after tapping Swap ON a specific coin makes the user re-find the
+  /// thing they were already looking at.
+  ///
+  /// **Which side it lands on depends on whether the wallet holds it**, which
+  /// is forced by the pay-side holdings filter (`held_tokens.dart`): seating an
+  /// unheld token on the pay side would put back exactly what that filter
+  /// exists to remove. So a held coin seats as "You Pay" (you are spending it)
+  /// and an unheld one as "You Receive" (you are acquiring it) — both readings
+  /// of "swap this coin", chosen by what the wallet can actually do.
+  ///
+  /// Null-safe by design: an unmatched symbol seats nothing rather than
+  /// guessing. The catalogue is `mockTokens` today (13 entries), so plenty of
+  /// real coins — GNUS among them — have no match at all.
+  final String? preselectSymbol;
+
+  /// Narrows the match when the same symbol exists on several chains, which is
+  /// the normal case (ETH is on 1, 137 and 80001). Ignored when null.
+  final int? preselectChainId;
 
   @override
   State<SwapScreen> createState() => _SwapScreenState();
@@ -74,6 +97,33 @@ class _SwapScreenState extends State<SwapScreen> {
     super.dispose();
   }
 
+  /// Seats [SwapScreen.preselectSymbol] once the catalogue and balances have
+  /// merged — it must run AFTER the merge, or every candidate still has a null
+  /// balance and the held/unheld decision below would always answer "unheld".
+  ///
+  /// Deliberately does nothing when the symbol does not match. Guessing a
+  /// neighbouring token would be worse than an empty form: the user would have
+  /// to notice the wrong one before correcting it.
+  void _applyPreselection() {
+    if (fromToken != null || toToken != null) return;
+
+    final result = resolvePreselection(
+      tokens: tokens,
+      symbol: widget.preselectSymbol,
+      chainId: widget.preselectChainId,
+    );
+    if (result == null) return;
+
+    setState(() {
+      switch (result.side) {
+        case PreselectSide.pay:
+          fromToken = result.token;
+        case PreselectSide.receive:
+          toToken = result.token;
+      }
+    });
+  }
+
   Future<void> _loadTokens() async {
     try {
       final walletState = context.read<WalletDetailsCubit>().state;
@@ -103,6 +153,7 @@ class _SwapScreenState extends State<SwapScreen> {
         tokens = result;
         isLoading = false;
       });
+      _applyPreselection();
     } catch (e) {
       setState(() => isLoading = false);
       if (mounted) {

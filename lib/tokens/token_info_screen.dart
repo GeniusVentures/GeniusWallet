@@ -366,12 +366,28 @@ class TokenInfoScreen extends StatelessWidget {
   ) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return TokenActionBar(
-      // Phase 8 discharges 07's "Swap is Phase 8's" deferral. `push`, not `go`,
-      // so the back arrow returns to this token — and the global FAB correctly
-      // hides on /swap either way now that its host reads the top match rather
-      // than the match-list uri (10be9c3).
+      // Phase 8 discharges 07's "Swap is Phase 8's" deferral.
+      //
+      // `go`, NOT `push`. This route lives OUTSIDE the ShellRoute while
+      // `/swap` lives inside it, so pushing built a second shell while the
+      // first was still mounted and the root navigatorKey appeared twice:
+      //   'navigator.dart': Failed assertion: '!keyReservation.contains(key)'
+      //   A GlobalKey was used multiple times inside one widget's child list
+      // The navigation then silently did nothing — the exact symptom Braian
+      // reported at the walk ("swap does not go to swap page"). `go` replaces
+      // the location, so the shell is built once.
+      //
+      // The coin travels in `extra` so the form opens on the token the user
+      // was already looking at; which side it seats on is decided in
+      // SwapScreen._applyPreselection, because the pay side is holdings-only.
       swapEnabled: true,
-      onSwap: () => context.push('/swap'),
+      onSwap: () => context.go(
+        '/swap',
+        extra: <String, dynamic>{
+          'symbol': selectedCoin?.symbol,
+          'chainId': selectedNetwork?.chainId,
+        },
+      ),
       onReceive: () {
         ResponsiveDrawer.show<void>(
           context: context,
