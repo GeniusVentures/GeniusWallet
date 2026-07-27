@@ -14,9 +14,8 @@ import 'package:genius_wallet/dev/dev_mock_transactions.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
-import 'package:genius_wallet/squid_router/swap_fail_drawer.dart';
-import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -581,38 +580,73 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                         _devButton(
                           'Succeed',
                           () {
-                            SwapSuccessDrawer.show(
+                            // D-06: SwapSuccessDrawer is deleted (superseded
+                            // by the shared 031-B receipt) — this button now
+                            // exercises the same showTransactionDetails path
+                            // the real swap flow uses, with a synthetic swap
+                            // Transaction.
+                            showTransactionDetails(
                               context,
-                              fromAmount: '1.0',
-                              toAmount: '0.98',
-                              fromSymbol: 'ETH',
-                              toSymbol: 'USDC',
-                              fromIconUrl:
-                                  'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-                              toIconUrl:
-                                  'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-                              chain: 'Ethereum',
+                              Transaction(
+                                hash: '',
+                                fromAddress:
+                                    '0x1111222233334444555566667777888899990000',
+                                recipients: const [],
+                                timeStamp: DateTime.now(),
+                                transactionDirection:
+                                    TransactionDirection.received,
+                                fees: '',
+                                coinSymbol: 'ETH',
+                                transactionStatus: TransactionStatus.completed,
+                                type: TransactionType.swap,
+                                fromAmount: '1.0',
+                                toAmount: '0.98',
+                                fromSymbol: 'ETH',
+                                toSymbol: 'USDC',
+                                fromIconUrl:
+                                    'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+                                toIconUrl:
+                                    'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                              ),
                             );
                           },
-                          tooltip: 'Test Swap Success Drawer',
+                          tooltip:
+                              'Test the shared swap receipt (showTransactionDetails, completed)',
                         ),
                         _devButton(
                           'Failed',
                           () {
-                            SwapFailDrawer.show(
+                            // D-06: SwapFailDrawer is deleted (superseded by
+                            // the shared 031-B receipt, and it had no
+                            // production caller at all — the exact orphan
+                            // trap D-06 names).
+                            showTransactionDetails(
                               context,
-                              fromAmount: '1.0',
-                              toAmount: '0.00',
-                              fromSymbol: 'ETH',
-                              toSymbol: 'USDC',
-                              fromIconUrl:
-                                  'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-                              toIconUrl:
-                                  'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-                              chain: 'Ethereum',
+                              Transaction(
+                                hash: '',
+                                fromAddress:
+                                    '0x1111222233334444555566667777888899990000',
+                                recipients: const [],
+                                timeStamp: DateTime.now(),
+                                transactionDirection:
+                                    TransactionDirection.received,
+                                fees: '',
+                                coinSymbol: 'ETH',
+                                transactionStatus: TransactionStatus.failed,
+                                type: TransactionType.swap,
+                                fromAmount: '1.0',
+                                toAmount: '0.00',
+                                fromSymbol: 'ETH',
+                                toSymbol: 'USDC',
+                                fromIconUrl:
+                                    'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+                                toIconUrl:
+                                    'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                              ),
                             );
                           },
-                          tooltip: 'Test Swap Failed Drawer',
+                          tooltip:
+                              'Test the shared swap receipt (showTransactionDetails, failed)',
                         ),
                         _devButton(
                           'Buy OK',
