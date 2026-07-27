@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
 status: verifying
-stopped_at: "Completed 09-07-PLAN.md (phase closeout: literal gate + 09-OUTSTANDING.md); Phase 9 ready for verification"
-last_updated: "2026-07-27T17:28:14.161Z"
+stopped_at: Phase 9 executed (human_needed); Banxa redesign recorded as the closeout gate
+last_updated: "2026-07-27T18:57:17.388Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
@@ -317,8 +317,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T17:28:14.150Z
-Stopped at: Completed 09-07-PLAN.md (phase closeout: literal gate + 09-OUTSTANDING.md); Phase 9 ready for verification
+Last session: 2026-07-27T18:57:17.378Z
+Stopped at: Phase 9 executed (human_needed); Banxa redesign recorded as the closeout gate
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -352,7 +352,7 @@ from that session: a `_basePath` `LateInitializationError` thrown as an unhandle
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
 Resume file: 
-None
+.planning/phases/09-banxa/09-OUTSTANDING.md
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
 todo remains open only as a product/UX decision (see Open decisions item 4 below), unrelated to
