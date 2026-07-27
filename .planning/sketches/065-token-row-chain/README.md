@@ -2,7 +2,7 @@
 sketch: 065
 name: token-row-chain
 question: "How does a token picker row show WHICH CHAIN it is on, without breaking the 032-A1 list archetype?"
-winner: null
+winner: "C"
 tags: [drawers, list, picker, token, chain, swap, phase-08]
 ---
 
@@ -64,3 +64,31 @@ magnitude fixtures.
   search filters down to two tokens across two chains (two headers, two rows)?
 - Both modes: the crest ring and the group hairline are the two things most likely to vanish in
   light mode.
+
+## Decision — C · Grouped by chain
+
+Chosen by Braian, 2026-07-27, at the walk. C is the only variant where the chain is still on
+screen after the row that named it has scrolled away, and the only one where two identically-named
+tokens can never sit adjacent — which was the actual complaint.
+
+Rows keep 032-A1 byte-for-byte; the chain becomes structure rather than an addition to the row.
+A and B are not taken.
+
+### What C still owes an answer
+
+Three things the mockup shows but does not settle, all of which the implementation has to decide:
+
+1. **Search versus grouping.** Filtering to two tokens on two chains leaves two headers and two
+   rows — more ceremony than list. Options: collapse headers below a threshold, drop grouping
+   entirely while a query is active, or accept it.
+2. **The thin-wallet case.** The pay side is now filtered to holdings, so a wallet holding one
+   token per chain renders as all headers and no list. This is *more* likely since the holdings
+   filter landed, not less.
+3. **Sticky headers in a drawer body.** The mockup uses CSS `position: sticky`; Flutter needs
+   `SliverPersistentHeader` inside a `CustomScrollView`, which is a different scroll widget from
+   the `ListView.builder` the drawer uses today. That is the real cost of C, and it is not
+   visible in the HTML.
+
+**Unresolved and deliberately so:** whether the *receive* side — which is NOT filtered to holdings
+and carries the full catalogue across every chain — wants the same grouping. It has far more rows
+and far more chains, so grouping may help more there, or may bury the search. Not decided here.
