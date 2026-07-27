@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
 status: verifying
-stopped_at: Completed 09-banxa-04-PLAN.md
-last_updated: "2026-07-27T16:36:51.801Z"
+stopped_at: Completed 09-banxa-05-PLAN.md
+last_updated: "2026-07-27T16:57:02.837Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
   total_phases: 21
   completed_phases: 15
   total_plans: 86
-  completed_plans: 77
+  completed_plans: 78
   percent: 71
 ---
 
@@ -59,8 +59,12 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 09 (banxa) — EXECUTING
-Plan: 09-01 of 7 COMPLETE (`b479266`/`9c246e3`; test/banxa/ floor + shared order-status ladder;
-analyze lib 59/59, test 389/1 = 376 baseline + 13 new). 09-02..09-07 not yet executed.
+Plan: 09-01..09-05 of 7 COMPLETE. 09-01 `b479266`/`9c246e3` (test/banxa/ floor + shared
+order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
+09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
+handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING). analyze lib
+59/59, test 429/1 = 420 baseline (09-04) + 8 new (09-05) + 1 known pre-existing failure. 09-06 and
+09-07 not yet executed.
 drifts independently of the phases dir per the project's dual-track note; verify against
 `.planning/phases/08-swap-bridge/*-SUMMARY.md` rather than trusting it at face value.
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
@@ -189,6 +193,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: quote_card_test.dart's dark/light divergence check reads gw.textSecondary, not gw.textPrimary -- textPrimary is mode-invariant across GWColors.dark()/.light() by construction (same root-cause class as 09-01's statusWarning finding).
 - [Phase 09-banxa]: order_details_card.dart: removed bannerColor, added OrderStatusTone? bannerTone driven from order_details_page.dart's initialStatus
 - [Phase 09-banxa]: order_details_page.dart: kept the canGoBack ? null : IconButton(...) two-case AppBar shape (restyled, not collapsed into the single-InkWell recipe used elsewhere in Phase 9)
+- [Phase 09-banxa]: handle_banxa_drawer.dart (D-07) has NO per-file visual contract in 09-UI-SPEC.md; its GWButton mapping and gw.surfaceElevated background were derived by analogy, recorded in a filed todo for Phase 21 to claim
+- [Phase 09-banxa]: handle_banxa_drawer.dart deliberately stays on showModalBottomSheet, NOT ResponsiveDrawer.show -- that helper switches to a centred dialog at/above GeniusBreakpoints.medium, which would restructure the sheet's desktop presentation (PROJECT.md par 65); migration is Phase 21's call
 
 ### Pending Todos
 
@@ -303,8 +309,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T16:36:51.789Z
-Stopped at: Completed 09-banxa-04-PLAN.md
+Last session: 2026-07-27T16:52:31.929Z
+Stopped at: Completed 09-banxa-05-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -412,6 +418,7 @@ Open decisions:
 | Phase 09-banxa P02 | 20min | 3 tasks | 4 files |
 | Phase 09-banxa P03 | 15min | 2 tasks | 5 files |
 | Phase 09-banxa P04 | 3min | 2 tasks | 3 files |
+| Phase 09-banxa P05 | 25min | 2 tasks | 5 files |
 
 ### Roadmap Evolution
 
