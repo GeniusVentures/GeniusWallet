@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
-status: executing
+status: verifying
 stopped_at: Phase 9 UI-SPEC approved
-last_updated: "2026-07-27T15:52:11.007Z"
+last_updated: "2026-07-27T16:10:27.469Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
   total_phases: 21
   completed_phases: 15
   total_plans: 86
-  completed_plans: 74
+  completed_plans: 75
   percent: 71
 ---
 
@@ -66,7 +66,7 @@ drifts independently of the phases dir per the project's dual-track note; verify
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
-Status: Executing Phase 09
+Status: Phase complete — ready for verification
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
 `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
@@ -184,6 +184,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 08-06]: Failure toast surfaces bridgeTokensResponse.errorMessage when present, falling back to develop's own string -- the shared receipt has no free-text error slot
 - [Phase ?]: gwBothModes declared final not const -- GWColors.dark()/.light() are non-const factories with a debug-mode assert
 - [Phase ?]: 09-01: MaterialApp wraps content in an implicit AnimatedTheme -- widget tests switching GWColors host across sequential pumpWidget() calls need pumpAndSettle(), not a bare pump(), or they read the pre-transition theme value
+- [Phase ?]: order_card.dart's title/pill Row and action-button Row wrapped in Expanded+Align to guard against test-font overflow while preserving all button variants/gating (D-01)
+- [Phase ?]: Orders-history empty-state filter-active predicate: selectedStatus.isEmpty && startDate == null && endDate == null
 
 ### Pending Todos
 
@@ -298,7 +300,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T15:49:28.553Z
+Last session: 2026-07-27T16:08:01.445Z
 Stopped at: Phase 9 UI-SPEC approved
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
@@ -404,6 +406,7 @@ Open decisions:
 | Phase 08-swap-bridge P05 | 25min | 2 tasks | 7 files |
 | Phase 08-swap-bridge P06 | 20min | 2 tasks | 3 files |
 | Phase 09 P01 | 20min | 2 tasks | 5 files |
+| Phase 09-banxa P02 | 20min | 3 tasks | 4 files |
 
 ### Roadmap Evolution
 

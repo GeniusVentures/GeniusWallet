@@ -175,8 +175,8 @@ Deferred to future milestones.
 | GAP-04 | Phase 6 — Onboarding | ✓ Complete (closed by 06-02, `ba8e412`) |
 | SCR-03 | Phase 7 — Token screens | Pending |
 | SCR-04 | Phase 8 — Swap & bridge | In progress (5 of 7 plans; swap tab re-skinned by 08-03, swap result path (receipt wiring + drawer consolidation) closed by 08-05; bridge result path 08-06 pending; box stays unchecked until phase verification per 08-04-PLAN.md) |
-| SCR-05 | Phase 9 — Banxa | In progress (09-01: test/banxa/ floor + shared order-status ladder landed; box stays unchecked until phase verification — this phase does not deliver the real KYC redirect URL per 09-CONTEXT.md D-02 scope reduction, mirroring SCR-04's per-plan pattern) |
-| GAP-05 | Phase 9 — Banxa | Pending |
+| SCR-05 | Phase 9 — Banxa | In progress (09-01: test/banxa/ floor + shared order-status ladder landed; 09-02: orders list + card re-skinned; box stays unchecked until phase verification — this phase does not deliver the real KYC redirect URL per 09-CONTEXT.md D-02 scope reduction, mirroring SCR-04's per-plan pattern) |
+| GAP-05 | Phase 9 — Banxa | In progress (09-02: `banxa_orders_history.dart` + `order_card.dart` re-skinned and closed; `banxa_payment.dart` and `screens/banxa_buy_screen.dart` still pending later plans; box stays unchecked until all three named files are done) |
 | SCR-06 | Phase 10 — dApp connectivity | Pending |
 | BEH-01 | Phase 11 — Port closeout | Pending |
 
