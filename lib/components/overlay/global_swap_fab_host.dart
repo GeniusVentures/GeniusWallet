@@ -113,7 +113,21 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
     // First frame: don't touch the router yet (see _ready above).
     if (!_ready) return widget.child;
 
-    final path = widget.router.routerDelegate.currentConfiguration.uri.path;
+    // Read the TOP match's location, not the match list's `uri`.
+    //
+    // `currentConfiguration.uri` tracks only declarative navigation. An
+    // imperative `push` appends an `ImperativeRouteMatch` WITHOUT moving that
+    // uri, so after `push('/swap')` — which is exactly what this FAB does —
+    // `uri.path` still reads `/dashboard` and the FAB stayed floating on top
+    // of the swap screen it had just opened. `go('/swap')` from the nav bar
+    // hid it correctly, which is why the original test missed this: it only
+    // ever exercised `go`.
+    //
+    // `last.matchedLocation` reports `/swap` for BOTH push and go.
+    final config = widget.router.routerDelegate.currentConfiguration;
+    final path = config.isNotEmpty
+        ? config.last.matchedLocation
+        : config.uri.path;
     final hidden = GlobalSwapFabHost._hiddenPaths.contains(path);
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
