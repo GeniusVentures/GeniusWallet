@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
 status: verifying
-stopped_at: Completed 09-banxa-05-PLAN.md
-last_updated: "2026-07-27T16:57:02.837Z"
+stopped_at: Completed 09-banxa-06-PLAN.md
+last_updated: "2026-07-27T17:13:04.612Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
   total_phases: 21
   completed_phases: 15
   total_plans: 86
-  completed_plans: 78
+  completed_plans: 79
   percent: 71
 ---
 
@@ -59,12 +59,15 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 09 (banxa) — EXECUTING
-Plan: 09-01..09-05 of 7 COMPLETE. 09-01 `b479266`/`9c246e3` (test/banxa/ floor + shared
+Plan: 09-01..09-06 of 7 COMPLETE. 09-01 `b479266`/`9c246e3` (test/banxa/ floor + shared
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
-handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING). analyze lib
-59/59, test 429/1 = 420 baseline (09-04) + 8 new (09-05) + 1 known pre-existing failure. 09-06 and
-09-07 not yet executed.
+handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
+`a3ee489`/`cf05642` (banxa_payment.dart + kyc_registration.dart re-skinned as twins, closing
+GAP-05's third named file; onNavigationRequest proven byte-identical by diff — see
+09-06-SUMMARY.md; finding 1 deferred D-02, finding 7 stays OUTSTANDING/unverifiable). analyze lib
+59/59, test 432/1 = 428 baseline (09-05) + 4 new (09-06) + 1 known pre-existing failure. 09-07
+(closeout) not yet executed.
 drifts independently of the phases dir per the project's dual-track note; verify against
 `.planning/phases/08-swap-bridge/*-SUMMARY.md` rather than trusting it at face value.
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
@@ -195,6 +198,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 09-banxa]: order_details_page.dart: kept the canGoBack ? null : IconButton(...) two-case AppBar shape (restyled, not collapsed into the single-InkWell recipe used elsewhere in Phase 9)
 - [Phase 09-banxa]: handle_banxa_drawer.dart (D-07) has NO per-file visual contract in 09-UI-SPEC.md; its GWButton mapping and gw.surfaceElevated background were derived by analogy, recorded in a filed todo for Phase 21 to claim
 - [Phase 09-banxa]: handle_banxa_drawer.dart deliberately stays on showModalBottomSheet, NOT ResponsiveDrawer.show -- that helper switches to a centred dialog at/above GeniusBreakpoints.medium, which would restructure the sheet's desktop presentation (PROJECT.md par 65); migration is Phase 21's call
+- [Phase 09-banxa-06]: Both webview hosts' Linux-fallback spacing normalised to one shared token set (space12/space6/space16/space6) so the twins render structurally identical, rather than each keeping its slightly different original literal value
+- [Phase 09-banxa-06]: Cross-mode colour test re-pointed from gw.textPrimary (headline) to gw.textSecondary (body) -- textPrimary reads a global GWAppearance.isLight flag, not the constructed GWColors instance, the same trap 09-03 already recorded
+- [Phase 09-banxa-06]: GAP-05/SCR-05 checkboxes left unchecked in REQUIREMENTS.md despite banxa_payment.dart closing GAP-05's third named file -- SCR-05 explicitly needs the real KYC redirect (D-02 defers it); 09-07 owns final requirement bookkeeping
 
 ### Pending Todos
 
@@ -309,8 +315,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T16:52:31.929Z
-Stopped at: Completed 09-banxa-05-PLAN.md
+Last session: 2026-07-27T17:13:04.601Z
+Stopped at: Completed 09-banxa-06-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -343,7 +349,7 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: None
+Resume file: 
 `06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
@@ -419,6 +425,7 @@ Open decisions:
 | Phase 09-banxa P03 | 15min | 2 tasks | 5 files |
 | Phase 09-banxa P04 | 3min | 2 tasks | 3 files |
 | Phase 09-banxa P05 | 25min | 2 tasks | 5 files |
+| Phase 09-banxa P06 | 20min | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 

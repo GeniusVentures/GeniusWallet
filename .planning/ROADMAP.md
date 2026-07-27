@@ -413,7 +413,7 @@ Plans:
   3. The checkout QR scans in both light and dark appearance (finding 6), and opening Banxa KYC on Linux falls back to the browser instead of crashing (finding 7)
   4. The develop-only Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `banxa_buy_screen.dart`) wear the extended design language per the Phase 3 treatment
 
-**Plans**: 5/7 plans executed
+**Plans**: 6/7 plans executed
 
 Plans:
 
@@ -422,7 +422,7 @@ Plans:
 - [x] 09-03-PLAN.md — Buy screen GWButton CTA ladder, plus the D-08 dead-code quote-card re-skin and its todo
 - [x] 09-04-PLAN.md — Order details card + page: the missing error branch, the tinted severity banner, twin button swap
 - [x] 09-05-PLAN.md — Checkout QR (white backing preserved) and the D-07 checkout options sheet
-- [ ] 09-06-PLAN.md — Payment and KYC webview hosts: shared Linux-fallback layout, redirect logic provably untouched
+- [x] 09-06-PLAN.md — Payment and KYC webview hosts: shared Linux-fallback layout, redirect logic provably untouched
 - [ ] 09-07-PLAN.md — Standing literal gate over all ten in-scope files, and `09-OUTSTANDING.md`
 
 **UI hint**: yes
