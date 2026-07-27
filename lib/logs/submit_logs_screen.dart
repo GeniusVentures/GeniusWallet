@@ -6,9 +6,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -115,6 +118,15 @@ class _AttachmentProbe {
 class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   static const int _maxAttachmentBytes = 1024 * 1024; // 1 MiB per file.
 
+  // 153-B "Focused frame". The composer keeps `small`; the rail's floor and
+  // the two-column threshold are DERIVED from it, so the breakpoint cannot
+  // drift away from the widths it is about. The sketch's "1040" is a mockup
+  // number — `large` (1024) is a real token and 640 + 20 + 360 fits inside it.
+  static const double _composerWidth = GeniusBreakpoints.small;
+  static const double _railMinWidth = 360;
+  static const double _twoColumnMin =
+      _composerWidth + GeniusWalletConsts.space10 + _railMinWidth;
+
   final TextEditingController _feedbackController = TextEditingController();
   bool _isSubmitting = false;
   bool _statusIsError = false;
@@ -182,8 +194,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       // 0 stays 0 (skipEmpty), a whole file is its size, a tail is maxBytes.
       // ponytail: a file that is non-empty on disk but reads back empty is a
       // race we don't preview; the send path re-reads and skips it for real.
-      final payloadLength =
-          size == 0 ? 0 : (size <= _maxAttachmentBytes ? size : _maxAttachmentBytes);
+      final payloadLength = size == 0
+          ? 0
+          : (size <= _maxAttachmentBytes ? size : _maxAttachmentBytes);
       probes.add(
         _AttachmentProbe(
           name,
@@ -258,8 +271,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
 
     final normalizedBasePath = _normalizedBasePath(geniusApi.jsonFilePath);
 
-    final candidateLogs =
-        _candidateLogNames.map((name) => File('$normalizedBasePath$name'));
+    final candidateLogs = _candidateLogNames.map(
+      (name) => File('$normalizedBasePath$name'),
+    );
 
     final existingLogs = <File>[];
     for (final file in candidateLogs) {
@@ -392,32 +406,87 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     return Scaffold(
       // No AppBar: this is a shell tab (/logs), so the shared navbar is the top
       // chrome, exactly as on Transactions/Markets/News/Swap. The title is a
-      // left-aligned in-body GWPageHeader, not a Material app-bar title.
+      // page-frame GWPageHeader (left edge, same X as the other tabs), not a
+      // Material app-bar title.
       body: Align(
         alignment: Alignment.topCenter,
         child: SingleChildScrollView(
           // topCenter + space32 top: the navbar→title gap, unified with the
           // other tabs (transactions_screen.dart). Scroll so the card never
-          // clips on a short window or with the keyboard up.
+          // clips on a short window or with the keyboard up. 12/8 sides match
+          // the shared page frame so the title lands at the same X as
+          // Transactions / Markets / News.
           padding: const EdgeInsets.fromLTRB(
-            16,
+            12,
             GeniusWalletConsts.space32,
-            16,
-            16,
+            12,
+            8,
           ),
           child: ConstrainedBox(
-            constraints:
-                const BoxConstraints(maxWidth: GeniusBreakpoints.small),
+            // `large`, not `xxl` (D-01). A 560 column inside a 1536 frame left
+            // ~430px of dead page on each side, and the title had been pushed
+            // inside that column to hide the mismatch. 153-B narrows the FRAME
+            // instead of the content, so the leftover reads as margin.
+            constraints: const BoxConstraints(
+              maxWidth: GeniusBreakpoints.large,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              // stretch: the header takes the full capped width instead of
+              // shrink-wrapping and getting centred (transactions_screen.dart
+              // does the same).
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const GWPageHeader(title: 'Send Feedback'),
-                GWCard(
-                  padding: const EdgeInsets.all(GeniusWalletConsts.space12),
-                  child: isSuccess
-                      ? _buildSuccess(gw)
-                      : _buildComposer(gw, sdkReady),
+                // D-02: the title is a direct child of the frame's
+                // Column(stretch) — no Center, no second ConstrainedBox
+                // between them — so it lands on the frame's left edge like
+                // every other tab. `centered` stays on GWPageHeader (it is
+                // additive and tested); only this call site stops passing it.
+                const GWPageHeader(
+                  title: 'Send Feedback',
+                  subtitle:
+                      'Bug reports, ideas and questions go straight to the team.',
+                ),
+                // D-03. LayoutBuilder sits INSIDE the ConstrainedBox, so
+                // `constraints.maxWidth` is the frame's CONTENT width, not the
+                // window's — measuring the window here would put the page in
+                // two columns while the content was still narrow.
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final composer = GWCard(
+                      padding: const EdgeInsets.all(GeniusWalletConsts.space12),
+                      child: isSuccess
+                          ? _buildSuccess(gw)
+                          : _buildComposer(gw, sdkReady),
+                    );
+                    final rail = GWCard(
+                      padding: const EdgeInsets.all(GeniusWalletConsts.space12),
+                      child: _buildRail(gw, sdkReady),
+                    );
+
+                    if (constraints.maxWidth >= _twoColumnMin) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(width: _composerWidth, child: composer),
+                          const SizedBox(width: GeniusWalletConsts.space10),
+                          Expanded(child: rail),
+                        ],
+                      );
+                    }
+                    // The rail is mounted in BOTH branches. Mounting it only
+                    // in the wide one would make it vanish on a narrow window
+                    // — the facts it carries are not a wide-screen luxury.
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        composer,
+                        const SizedBox(height: GeniusWalletConsts.space10),
+                        rail,
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
@@ -451,58 +520,106 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildTypeChooser(gw),
-        const SizedBox(height: GeniusWalletConsts.space12),
+        // space16, not space12: the chooser lost its box, so the only thing
+        // separating it from the description below is air. At 24 the two read
+        // as one block; the tabs need to finish before the copy starts.
+        const SizedBox(height: GeniusWalletConsts.space16),
         Text(
           'Describe what\'s happening in as much detail as you can - the more specific, the faster we can help.',
-          style: GeniusWalletTypography.bodyMd.copyWith(color: gw.textSecondary),
-        ),
-        const SizedBox(height: GeniusWalletConsts.space6),
-        TextField(
-          controller: _feedbackController,
-          minLines: 4,
-          maxLines: 8,
-          maxLength: 2000,
-          enabled: !_isSubmitting,
-          textInputAction: TextInputAction.newline,
-          decoration: InputDecoration(
-            labelText: 'Message',
-            hintText: _selectedType.placeholder,
+          style: GeniusWalletTypography.bodyMd.copyWith(
+            color: gw.textSecondary,
           ),
         ),
-        const SizedBox(height: GeniusWalletConsts.space8),
-        _buildReceipt(gw, sdkReady),
+        const SizedBox(height: GeniusWalletConsts.space6),
+        // The label sits ABOVE the field, not floating on its border. That is
+        // this app's own standard — `GWTextField` renders it exactly this way
+        // (labelMd / textSecondary, space4 below) and Settings, the Markets
+        // search, the account manager and onboarding all inherit it. This
+        // screen used a raw `TextField(labelText:)`, which picks up
+        // `theme.dart`'s `floatingLabelBehavior: always` and notches the label
+        // into the outline — the one place in the app that reads that way.
+        Text(
+          'Message',
+          style: GeniusWalletTypography.labelMd.copyWith(
+            color: gw.textSecondary,
+          ),
+        ),
+        const SizedBox(height: GeniusWalletConsts.space4),
+        // Same focus behaviour as the Swap amount field: quiet at rest, brand
+        // gradient on focus. `GWFocusRing` keeps its 1.5px in BOTH states, so
+        // clicking into the message never nudges the card.
+        GWFocusRing(
+          radius: GeniusWalletConsts.radiusLg,
+          background: gw.surfaceMenu,
+          enabled: !_isSubmitting,
+          child: TextField(
+            controller: _feedbackController,
+            minLines: 4,
+            maxLines: 8,
+            maxLength: 2000,
+            enabled: !_isSubmitting,
+            textInputAction: TextInputAction.newline,
+            decoration: InputDecoration(
+              hintText: _selectedType.placeholder,
+              // Without an explicit style the hint inherits near-body colour
+              // and reads as text the user already typed. Muted AND italic:
+              // either alone still looked like content in the walk.
+              hintStyle: GeniusWalletTypography.bodyMd.copyWith(
+                color: gw.textPrimary38,
+                fontStyle: FontStyle.italic,
+              ),
+              // All four silenced — the ring is the border now, and the
+              // theme's app-wide focusedBorder would paint a second, flat one
+              // inside it.
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space6,
+                vertical: GeniusWalletConsts.space6,
+              ),
+            ),
+          ),
+        ),
         const SizedBox(height: GeniusWalletConsts.space12),
         Divider(color: gw.borderSubtle, height: 1),
         const SizedBox(height: GeniusWalletConsts.space12),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Text(
-                statusText,
-                style: GeniusWalletTypography.bodySm.copyWith(color: statusColor),
-              ),
-            ),
-            const SizedBox(width: GeniusWalletConsts.space8),
-            GWButton(
-              label: 'Send feedback',
-              leading: const Icon(Icons.send),
-              isLoading: _isSubmitting,
-              onPressed: canSend ? _submitFeedback : null,
-            ),
-          ],
+        // D-06. The status line and the button used to share one Row with
+        // `center` alignment. The empty-event-ID failure message is 130
+        // characters and wraps to several lines in a 640 column, which parked
+        // the button in the MIDDLE of that block — it read as belonging to the
+        // second line of an error rather than to the form.
+        //
+        // Stacked, the arrangement is unconditional: the button is below the
+        // status in every state, so the one-line states look the same as they
+        // did and the multi-line ones stop breaking.
+        Text(
+          statusText,
+          style: GeniusWalletTypography.bodySm.copyWith(color: statusColor),
+        ),
+        const SizedBox(height: GeniusWalletConsts.space8),
+        Align(
+          alignment: Alignment.centerRight,
+          child: GWButton(
+            label: 'Send feedback',
+            leading: const Icon(Icons.send),
+            isLoading: _isSubmitting,
+            onPressed: canSend ? _submitFeedback : null,
+          ),
         ),
       ],
     );
   }
 
+  /// Sketch 064-B: the nav bar's active-tab language, brought down to a
+  /// segmented control. The track loses its box — a filled, bordered pill
+  /// around tabs that already mark themselves is a second frame saying the
+  /// same thing — and keeps only the hairline the underline sits on.
   Widget _buildTypeChooser(GWColors gw) {
-    return Container(
-      padding: const EdgeInsets.all(GeniusWalletConsts.space2),
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: gw.surfaceElevated,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        border: Border.all(color: gw.borderSubtle),
+        border: Border(bottom: BorderSide(color: gw.borderSubtle, width: 1)),
       ),
       child: Row(
         children: [
@@ -515,132 +632,224 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
 
   Widget _buildTypeSegment(GWColors gw, FeedbackType type) {
     final active = _selectedType == type;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+
+    // Hover state per segment, in a StatefulBuilder — the same shape
+    // responsive_overlay.dart uses for the nav tabs, so the two controls do
+    // not drift apart.
+    //
+    // ponytail: this state lives in the builder, so a rebuild of the screen
+    // drops a mid-hover highlight. Rare and harmless; the nav tabs carry the
+    // identical caveat. Upgrade path is a shared hoverable wrapper.
+    bool hovered = false;
+    return StatefulBuilder(
+      builder: (context, setHover) {
+        final lifted = hovered && !active;
+        // WHITE on active OR hover, muted otherwise. The gradient is the
+        // underline ONLY — it never touches the label (nav-tab rule).
+        final labelColor = (active || lifted)
+            ? gw.textPrimary
+            : gw.textSecondary;
+
+        return InkWell(
           onTap: _isSubmitting
               ? null
               : () => setState(() => _selectedType = type),
+          onHover: (h) => setHover(() => hovered = h),
+          // The tab paints its own hover; Material's splash would be a second,
+          // disagreeing one on top of it.
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
-            padding: const EdgeInsets.symmetric(
-              vertical: GeniusWalletConsts.space4,
-            ),
+            // THE app-wide hover recipe (sketch 044 variant 3): brand tint +
+            // brand hairline, no geometry. Read from GWDecorations so this
+            // control cannot drift from the nav bar.
+            // The border is present in BOTH states, transparent when idle.
+            // A BoxDecoration with a border INSETS its child by the border
+            // width, so animating from "no border" to "1px border" shifts the
+            // label a pixel down and right on every hover — small, constant,
+            // and exactly the twitch a hover must not have.
             decoration: BoxDecoration(
-              // Mint-tinted active fill + border; label stays on the primary
-              // text ladder so the pairing holds AA in both themes.
-              color: active
-                  ? GeniusWalletColors.brandSecondaryMuted
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+              color: lifted ? GWDecorations.hoverFill : null,
+              borderRadius: BorderRadius.circular(
+                GeniusWalletConsts.borderRadiusCard,
+              ),
               border: Border.all(
-                color: active
-                    ? GeniusWalletColors.brandSecondary
-                    : Colors.transparent,
+                color: lifted ? GWDecorations.hoverEdge : Colors.transparent,
+                width: 1,
               ),
             ),
-            alignment: Alignment.center,
-            child: Text(
-              type.label,
-              style: GeniusWalletTypography.labelMd.copyWith(
-                color: active ? gw.textPrimary : gw.textSecondary,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-              ),
+            child: Stack(
+              children: [
+                // width: infinity is load-bearing. A Stack gives its
+                // non-positioned children LOOSE constraints, so the Text was
+                // shrink-wrapping and `textAlign: center` had no box to centre
+                // within — every label sat flush left inside its third.
+                SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: GeniusWalletConsts.space6,
+                    ),
+                    child: Text(
+                      type.label,
+                      textAlign: TextAlign.center,
+                      style: GeniusWalletTypography.labelMd.copyWith(
+                        color: labelColor,
+                        fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+                // 3px gradient bar, rounded top, soft brandPrimaryStrong glow
+                // — the nav bar's exact underline (002-B), down to the 200ms.
+                // A BoxDecoration cannot set both color and gradient, so each
+                // state uses exactly one.
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 3,
+                    decoration: BoxDecoration(
+                      gradient: active ? GeniusWalletGradient.brandCta : null,
+                      color: active ? null : Colors.transparent,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(3),
+                      ),
+                      boxShadow: active
+                          ? [
+                              BoxShadow(
+                                color: GeniusWalletColors.brandPrimaryStrong
+                                    .withValues(alpha: 0.5),
+                                blurRadius: 10,
+                              ),
+                            ]
+                          : null,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildReceipt(GWColors gw, bool sdkReady) {
+  /// D-04: the receipt rail. Every line is a fact `_probes` already computes —
+  /// no new data, no new network call, no new shared component.
+  ///
+  /// `_candidateLogNames` is a two-element const, so this is four rows on a
+  /// good day and two with the SDK stopped. It is sized for that and given no
+  /// growth affordance: a list that can never be long does not need one.
+  Widget _buildRail(GWColors gw, bool sdkReady) {
     final probes = _probes;
+    final rows = <Widget>[];
 
-    final List<Widget> chips = [];
     if (!sdkReady) {
-      chips.add(_metaChip(
-        gw,
-        'Attachments unavailable - SDK stopped',
-        dotColor: gw.textSecondary,
-      ));
+      // Says WHY there are no log rows rather than showing an empty space the
+      // user has to interpret.
+      rows.add(_railRow(gw, 'Logs', 'Unavailable - SDK stopped'));
     } else if (probes == null) {
-      chips.add(_metaChip(gw, 'Checking for logs...', dotColor: gw.textSecondary));
+      rows.add(_railRow(gw, 'Logs', 'Checking...'));
+    } else if (probes.isEmpty) {
+      rows.add(_railRow(gw, 'Logs', 'None found yet'));
     } else {
-      final attachable = probes
-          .where((p) => p.disposition != AttachmentDisposition.skipEmpty)
-          .toList();
-      if (attachable.isEmpty) {
-        chips.add(_metaChip(gw, 'No logs found yet', dotColor: gw.textSecondary));
-      }
       for (final probe in probes) {
-        chips.add(_logChip(gw, probe));
+        final skipped = probe.disposition == AttachmentDisposition.skipEmpty;
+        rows.add(
+          _railRow(
+            gw,
+            probe.fileName,
+            skipped ? 'skipped (empty)' : _friendlySize(probe.size),
+            strike: skipped,
+            tail: probe.disposition == AttachmentDisposition.tail,
+          ),
+        );
       }
     }
 
-    // Neutral meta chips: SDK status + platform.
-    chips.add(_metaChip(
-      gw,
-      sdkReady ? 'SDK Running' : 'SDK Stopped',
-      dotColor: sdkReady ? gw.statusSuccess : gw.textSecondary,
-    ));
-    chips.add(_metaChip(gw, Platform.operatingSystem));
+    rows.add(
+      _railRow(
+        gw,
+        'SDK',
+        sdkReady ? 'Running' : 'Stopped',
+        valueColor: sdkReady ? gw.statusSuccess : null,
+      ),
+    );
+    rows.add(_railRow(gw, 'Platform', Platform.operatingSystem));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'SDK logs attached automatically',
-          style: GeniusWalletTypography.labelMd.copyWith(color: gw.textPrimary),
-        ),
-        const SizedBox(height: GeniusWalletConsts.space2),
-        Text(
-          'last 1 MB of each, empty ones skipped',
-          style: GeniusWalletTypography.bodySm.copyWith(color: gw.textSecondary),
+          // "What gets sent" read like a customs form and, more importantly,
+          // never said the thing the user cannot know: that they do not have
+          // to do anything. This recovers the sense of the deleted
+          // "SDK logs attached automatically" header without the word "SDK",
+          // which means nothing to someone reporting a bug.
+          'Attached automatically',
+          style: GeniusWalletTypography.labelMd.copyWith(
+            color: gw.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: GeniusWalletConsts.space6),
-        Wrap(
-          spacing: GeniusWalletConsts.space4,
-          runSpacing: GeniusWalletConsts.space4,
-          children: chips,
+        ...rows,
+        const SizedBox(height: GeniusWalletConsts.space6),
+        Text(
+          'last 1 MB of each, empty ones skipped',
+          style: GeniusWalletTypography.bodySm.copyWith(
+            color: gw.textSecondary,
+          ),
         ),
       ],
     );
   }
 
-  Widget _logChip(GWColors gw, _AttachmentProbe probe) {
-    final skipped = probe.disposition == AttachmentDisposition.skipEmpty;
-    final tail = probe.disposition == AttachmentDisposition.tail;
-    final label = '${probe.fileName}  ${_friendlySize(probe.size)}';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space4,
-        vertical: GeniusWalletConsts.space3,
-      ),
-      decoration: BoxDecoration(
-        color: gw.surfaceElevated,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-        border: Border.all(color: gw.borderSubtle),
-      ),
+  /// One key/value line of the rail. [strike] marks a file that will NOT be
+  /// attached — struck through rather than hidden, because "we looked and it
+  /// was empty" is different from "we did not look".
+  Widget _railRow(
+    GWColors gw,
+    String label,
+    String value, {
+    bool strike = false,
+    bool tail = false,
+    Color? valueColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space3),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            skipped ? '${probe.fileName}  skipped (empty)' : label,
-            style: GeniusWalletTypography.bodySm.copyWith(
-              color: skipped ? gw.textSecondary : gw.textPrimary,
-              decoration: skipped ? TextDecoration.lineThrough : null,
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textSecondary,
+                decoration: strike ? TextDecoration.lineThrough : null,
+              ),
             ),
           ),
-          if (tail) ...[
-            const SizedBox(width: GeniusWalletConsts.space3),
-            _tailBadge(gw),
-          ],
+          const SizedBox(width: GeniusWalletConsts.space4),
+          if (tail) ...[_tailBadge(gw), const SizedBox(width: 6)],
+          Flexible(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: valueColor ?? gw.textPrimary,
+                decoration: strike ? TextDecoration.lineThrough : null,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -661,38 +870,6 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
           fontSize: 10,
           letterSpacing: 0.5,
         ),
-      ),
-    );
-  }
-
-  Widget _metaChip(GWColors gw, String label, {Color? dotColor}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space4,
-        vertical: GeniusWalletConsts.space3,
-      ),
-      decoration: BoxDecoration(
-        color: gw.surfaceElevated,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-        border: Border.all(color: gw.borderSubtle),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (dotColor != null) ...[
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: GeniusWalletConsts.space3),
-          ],
-          Text(
-            label,
-            style:
-                GeniusWalletTypography.bodySm.copyWith(color: gw.textSecondary),
-          ),
-        ],
       ),
     );
   }
@@ -724,8 +901,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
             Expanded(
               child: Text(
                 'Feedback sent',
-                style: GeniusWalletTypography.headlineMd
-                    .copyWith(color: gw.textPrimary),
+                style: GeniusWalletTypography.headlineMd.copyWith(
+                  color: gw.textPrimary,
+                ),
               ),
             ),
           ],
@@ -733,12 +911,16 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
         const SizedBox(height: GeniusWalletConsts.space8),
         Text(
           'Thanks for your feedback - every bit helps us make GeniusWallet better.',
-          style: GeniusWalletTypography.bodyMd.copyWith(color: gw.textSecondary),
+          style: GeniusWalletTypography.bodyMd.copyWith(
+            color: gw.textSecondary,
+          ),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
         Text(
           'Reference number',
-          style: GeniusWalletTypography.labelMd.copyWith(color: gw.textSecondary),
+          style: GeniusWalletTypography.labelMd.copyWith(
+            color: gw.textSecondary,
+          ),
         ),
         const SizedBox(height: GeniusWalletConsts.space3),
         Container(
@@ -754,8 +936,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
               Expanded(
                 child: SelectableText(
                   _lastEventId ?? '',
-                  style: GeniusWalletTypography.bodyMd
-                      .copyWith(color: gw.textPrimary),
+                  style: GeniusWalletTypography.bodyMd.copyWith(
+                    color: gw.textPrimary,
+                  ),
                 ),
               ),
               const SizedBox(width: GeniusWalletConsts.space6),
@@ -772,7 +955,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
         const SizedBox(height: GeniusWalletConsts.space3),
         Text(
           'Keep it handy in case you follow up with support.',
-          style: GeniusWalletTypography.bodySm.copyWith(color: gw.textSecondary),
+          style: GeniusWalletTypography.bodySm.copyWith(
+            color: gw.textSecondary,
+          ),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
         GWButton(
