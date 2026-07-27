@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>154 · Transaction details drawer - 5 receipts in the shipped drawer language</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:82px var(--space-8) var(--space-16); }
+  .wrap { max-width:1280px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #variant-nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #variant-nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+  #variant-nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .st:hover { color:var(--text-primary); border-color:var(--border-strong); }
+  #variant-nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:1120px; }
+  .lede b { color:var(--text-primary); }
+  .lede code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.have { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.bug  { background:rgba(255,77,77,.14); color:var(--status-error); }
+
+  .cap { display:flex; align-items:flex-start; gap:10px; margin:0 0 var(--space-8); }
+  .cap .k { font:700 11px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary); flex:none; padding-top:1px; }
+  .cap .v { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:980px; }
+
+  /* ---------- stage: dimmed app + 420 panel, like the real overlay ---------- */
+  .stage { position:relative; display:flex; justify-content:flex-end; border:1px solid var(--border-strong);
+    border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card); min-height:760px; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.45);
+    background-image:linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px); background-size:100% 56px; }
+  .scrim .ghost { position:absolute; left:24px; top:24px; right:460px; }
+  .scrim .ghost .g { height:44px; border-radius:10px; background:var(--skeleton); margin-bottom:10px; }
+  .scrim .ghost .g:nth-child(3n) { width:82%; } .scrim .ghost .g:nth-child(4n) { width:64%; }
+
+  /* 030-B1 "Quiet band" shell, verbatim */
+  .panel { position:relative; width:420px; flex:none; background:var(--surface-elevated); display:flex; flex-direction:column;
+    border-left:1px solid var(--border-subtle); }
+  .p-head { height:60px; flex:none; display:flex; align-items:center; padding:0 var(--space-10);
+    border-bottom:1px solid var(--border-subtle); position:relative; }
+  .p-head::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:1px;
+    background:linear-gradient(90deg, transparent, var(--brand-primary-muted) 30%, var(--brand-primary-muted) 70%, transparent); }
+  .p-head .t { font:600 18px/24px var(--font); color:var(--text-primary); margin-right:auto; }
+  .p-head .x { width:32px; height:32px; display:grid; place-items:center; border-radius:8px; border:0; background:transparent;
+    color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .p-head .x:hover { background:var(--surface-menu); color:var(--text-primary); }
+  .p-head .x svg { width:18px; height:18px; }
+  .p-body { flex:1; overflow-y:auto; padding:var(--space-4) var(--space-10) var(--space-10); }
+  .p-foot { flex:none; padding:var(--space-8) var(--space-10); border-top:1px solid var(--border-subtle); }
+
+  /* today's panel has NO body padding - that is the bug, kept literal in variant 0 */
+  .p-body.nopad { padding:var(--space-4) 0 var(--space-10); }
+
+  /* ---------- receipt parts ---------- */
+  .hero { text-align:center; padding-top:var(--space-8); }
+  .ident { width:60px; height:60px; border-radius:50%; margin:0 auto; position:relative;
+    background:#627EEA; display:grid; place-items:center; }
+  .ident .sym { font:700 22px/1 var(--font); color:#fff; }
+  .ident .badge { position:absolute; right:-2px; bottom:-2px; width:22px; height:22px; border-radius:50%;
+    display:grid; place-items:center; border:2px solid var(--surface-elevated); background:var(--status-neutral); color:#fff; }
+  .ident .badge svg { width:11px; height:11px; }
+  .amount { font:600 24px/32px var(--font); font-variant-numeric:tabular-nums; margin-top:var(--space-6); }
+  .amount.tone-out { color:var(--text-primary); }
+  .exact { font:400 12px/16px var(--font-mono); color:var(--text-primary-54); margin-top:3px; font-variant-numeric:tabular-nums; }
+  .fiat  { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-3); font-variant-numeric:tabular-nums; }
+  .ctx   { font:400 13px/19px var(--font); color:var(--text-secondary); margin-top:var(--space-3); }
+
+  .pill { display:inline-flex; align-items:center; gap:6px; margin-top:var(--space-8);
+    padding:6px 14px; border-radius:999px; font:600 13px/16px var(--font); }
+  .pill .d { width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+  .sec { margin-top:var(--space-12); }
+  .sec-label { font:700 10px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-primary-54);
+    margin-bottom:var(--space-6); }
+  .card { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b); overflow:hidden; }
+  .row { display:flex; align-items:center; gap:12px; padding:11px var(--space-8); border-top:1px solid var(--border-subtle); }
+  .row:first-child { border-top:0; }
+  .row .k { font:400 14px/20px var(--font); color:var(--text-primary-70); flex:none; }
+  .row .v { font:400 14px/20px var(--font); color:var(--text-primary); margin-left:auto; text-align:right;
+    font-variant-numeric:tabular-nums; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .row .v.mono { font-family:var(--font-mono); font-size:13px; }
+  .row.flat { padding-left:0; padding-right:0; }
+
+  /* copyable row (variant D) */
+  .row.copy { cursor:pointer; transition:background .12s ease; }
+  .row.copy:hover { background:var(--surface-menu); }
+  .row.copy .cg { width:15px; height:15px; flex:none; color:var(--text-primary-38); transition:color .12s ease; }
+  .row.copy:hover .cg { color:var(--brand-primary); }
+  .chunk { font-family:var(--font-mono); font-size:13px; letter-spacing:.2px; }
+  .chunk b { color:var(--text-primary); font-weight:600; }
+  .chunk span { color:var(--text-primary-54); }
+
+  /* banner (variant C) */
+  .banner { display:flex; gap:12px; padding:12px 14px; border-radius:var(--radius-md); margin-top:var(--space-4);
+    position:relative; overflow:hidden; }
+  .banner::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:currentColor; }
+  .banner .bi { width:20px; height:20px; flex:none; }
+  .banner .bt { font:600 14px/20px var(--font); }
+  .banner .br { font:400 13px/19px var(--font); color:var(--text-secondary); margin-top:2px; }
+
+  /* woven status (variant B) */
+  .woven { display:inline-flex; align-items:center; gap:7px; margin-top:var(--space-6);
+    font:500 13px/18px var(--font); }
+  .woven .d { width:7px; height:7px; border-radius:50%; background:currentColor; }
+
+  /* swap pair (variant E) */
+  .pair { display:flex; align-items:center; gap:10px; padding:12px var(--space-8); }
+  .pair .leg { flex:1; min-width:0; }
+  .pair .leg .l { font:400 11px/14px var(--font); color:var(--text-primary-54); text-transform:uppercase; letter-spacing:.5px; }
+  .pair .leg .a { font:600 15px/20px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .pair .arr { color:var(--text-primary-38); flex:none; }
+  .pair .arr svg { width:16px; height:16px; }
+
+  /* buttons - 030 language: primary = filled gradient, secondary = gradient OUTLINE */
+  .btn2 { width:100%; display:inline-flex; align-items:center; justify-content:center; gap:9px; height:46px;
+    border-radius:var(--radius-md); cursor:pointer; font:600 14px/1 var(--font); transition:all .15s ease;
+    border:1.5px solid transparent; background:linear-gradient(var(--surface-elevated),var(--surface-elevated)) padding-box,
+      linear-gradient(135deg,var(--brand-cta-b),var(--brand-cta-a)) border-box; }
+  .btn2 .lab { background:linear-gradient(135deg,var(--brand-cta-b),var(--brand-cta-a));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .btn2 svg { width:16px; height:16px; color:var(--brand-secondary); }
+  .btn2:hover { filter:brightness(1.12); transform:translateY(-1px); }
+
+  /* today's flush rows */
+  .flushrow { display:flex; align-items:baseline; gap:12px; padding:5px 0; }
+  .flushrow .k { font:400 14px/20px var(--font); color:var(--text-primary-70); }
+  .flushrow .v { font:400 16px/24px var(--font); color:var(--text-primary); margin-left:auto; text-align:right;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .edgemark { position:absolute; top:60px; bottom:78px; width:0; border-left:2px dashed var(--status-error); opacity:.75; }
+  .edgemark.l { left:0; } .edgemark.r { right:0; }
+  .edgetag { position:absolute; bottom:84px; left:50%; transform:translateX(-50%); font:700 10px/1 var(--font);
+    letter-spacing:.5px; text-transform:uppercase; color:var(--status-error); background:var(--surface-elevated);
+    padding:4px 8px; border-radius:4px; border:1px solid color-mix(in srgb,var(--status-error) 40%,transparent); }
+  body.novoid .edgemark, body.novoid .edgetag { display:none; }
+
+  .variant { display:none; } .variant.active { display:block; }
+
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); z-index:9999;
+    background:var(--surface-elevated); color:var(--text-primary); border:1px solid var(--border-subtle); box-shadow:var(--shadow-card);
+    padding:10px 16px; border-radius:var(--radius-pill); font:600 13px/1 var(--font); opacity:0; pointer-events:none; transition:all .2s ease; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body data-state="completed" data-type="sent">
+
+<div id="variant-nav">
+  <span class="name">154 · Transaction details drawer</span>
+  <button class="vt active" onclick="showVariant('0',this)">0 · Today</button>
+  <button class="vt" onclick="showVariant('a',this)">A · 031-B1 as decided ★</button>
+  <button class="vt" onclick="showVariant('b',this)">B · Ledger</button>
+  <button class="vt" onclick="showVariant('c',this)">C · Banner</button>
+  <button class="vt" onclick="showVariant('d',this)">D · Copyable</button>
+  <button class="vt" onclick="showVariant('e',this)">E · Type-aware</button>
+  <span class="sep"></span>
+  <span class="lbl">Status</span>
+  <button class="st on" data-s="completed" onclick="setStatus('completed',this)">Completed</button>
+  <button class="st" data-s="pending" onclick="setStatus('pending',this)">Pending</button>
+  <button class="st" data-s="failed" onclick="setStatus('failed',this)">Failed</button>
+  <button class="st" data-s="cancelled" onclick="setStatus('cancelled',this)">Cancelled</button>
+  <span class="sep"></span>
+  <span class="lbl">Type</span>
+  <button class="st on" data-t="sent" onclick="setType('sent',this)">Sent</button>
+  <button class="st" data-t="swap" onclick="setType('swap',this)">Swap</button>
+  <button class="st" data-t="job" onclick="setType('job',this)">Job</button>
+  <span class="sep"></span>
+  <button class="st" onclick="toggleTheme(this)">Light</button>
+  <button class="st on" onclick="toggleMarks(this)">Edge marks</button>
+</div>
+
+<div class="wrap">
+  <p class="lede">
+    <b>Design question:</b> the transaction-detail drawer is the one panel every transaction type lands in
+    (<code>showTransactionDetails</code>, <code>transaction_displays.dart:430</code>). Sketch <b>031</b> already
+    decided how it should read - <b>B1 · Pill + sections</b>, inside the <b>030-B1</b> shell - and
+    <b>that decision was never ported</b>. What shipped is a bare <code>ListView</code> with
+    <b>zero horizontal body padding</b>: labels touch the left edge, values slam the right one.
+    All five variants live inside the shipped drawer language (420px panel, 60px header, left title,
+    ✕ top-right, gradient hairline, secondary = gradient outline) and use <b>only fields
+    <code>txRowContent</code> already computes on this exact call</b>.
+    <span class="tag rec">A recommended</span>
+    <span class="tag have">every field is already in TxRowContent</span>
+    <span class="tag bug">today: body padding = 0</span>
+  </p>
+
+  <!-- ============================ 0 · TODAY ============================ -->
+  <section id="variant-0" class="variant active">
+    <div class="cap"><span class="k">0 · Today</span><span class="v">
+      Literal render of what ships. Amount and icon are centred, then six rows in a bare
+      <code>Column</code>. The dashed marks are the panel's own edges - <b>the rows are touching them</b>.
+      The header has a 20px inset and the footer has 20px padding, so the body is the one zone that
+      forgot. Also thrown away here: the fiat line, the unclamped amount, the status pill and the
+      context line - all four already computed.
+    </span></div>
+    <div class="stage">
+      %SCRIM%
+      <div class="panel">
+        <div class="edgemark l"></div><div class="edgemark r"></div>
+        <div class="edgetag">rows run edge to edge</div>
+        %HEAD%
+        <div class="p-body nopad">
+          <div class="hero">%IDENT%<div class="amount tone-out" id="amt0">− 0.75 ETH</div></div>
+          <div style="height:16px"></div>
+          <div class="flushrow"><span class="k">Date</span><span class="v">July 26, 2026 at 8:28 AM</span></div>
+          <div class="flushrow"><span class="k">Status</span><span class="v st-txt">Completed</span></div>
+          <div class="flushrow t-sent"><span class="k">To</span><span class="v">0xToMo...ed01</span></div>
+          <div class="flushrow t-swap"><span class="k">From</span><span class="v">1.00 ETH</span></div>
+          <div class="flushrow t-swap"><span class="k">To</span><span class="v">2,401.50 USDC</span></div>
+          <div class="flushrow t-swap"><span class="k">Rate</span><span class="v">1 ETH = 2,401.50 USDC</span></div>
+          <div class="flushrow"><span class="k">Network</span><span class="v">ETH</span></div>
+          <div class="flushrow"><span class="k">Network Fee</span><span class="v">0.001 ETH</span></div>
+          <div class="flushrow"><span class="k t-lbl-hash">Hash</span><span class="v">0xdevm...ck01</span></div>
+        </div>
+        %FOOT%
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ A · 031-B1 AS DECIDED ============================ -->
+  <section id="variant-a" class="variant">
+    <div class="cap"><span class="k">A · 031-B1 as decided ★</span><span class="v">
+      The standing decision, finally drawn against the real data: identity + amount centred, the
+      <b>existing <code>_statusPill</code></b> under the amount, rows grouped into
+      <b>TRANSACTION</b> / <b>NETWORK</b> cards with hairline dividers and 20px body padding. Colour is
+      carried by icon + pill + Status row only - <b>the amount stays neutral</b>, per the 031 round-2
+      rule. Adds the two lines the drawer already has and drops: the <b>fiat</b> (<code>valueLine</code>)
+      and the <b>unclamped amount</b> (<code>exactAmount</code>), which is exactly what a receipt is for.
+    </span></div>
+    <div class="stage">
+      %SCRIM%
+      <div class="panel">
+        %HEAD%
+        <div class="p-body">
+          <div class="hero">
+            %IDENT%
+            <div class="amount tone-out">− 0.75 ETH</div>
+            <div class="exact">exact: −0.750000000000000000</div>
+            <div class="fiat">$1,801.13</div>
+            %PILL%
+          </div>
+          <div class="sec">
+            <div class="sec-label">Transaction</div>
+            <div class="card">
+              <div class="row"><span class="k">Date</span><span class="v">July 26, 2026 at 8:28 AM</span></div>
+              <div class="row"><span class="k">Status</span><span class="v st-txt st-col">Completed</span></div>
+              %ROWS_PARTY%
+            </div>
+          </div>
+          <div class="sec">
+            <div class="sec-label">Network</div>
+            <div class="card">
+              <div class="row"><span class="k">Network</span><span class="v">ETH</span></div>
+              <div class="row"><span class="k">Network Fee</span><span class="v">0.001 ETH</span></div>
+              <div class="row"><span class="k t-lbl-hash">Hash</span><span class="v mono">0xdevm...ck01</span></div>
+            </div>
+          </div>
+        </div>
+        %FOOT%
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ B · LEDGER ============================ -->
+  <section id="variant-b" class="variant">
+    <div class="cap"><span class="k">B · Ledger</span><span class="v">
+      031-B3 "woven minimal", brought forward. No pill, no section labels, no second card: a status
+      <b>dot + word</b> sits hairline-thin under the amount and every row lands in <b>one</b> flat card.
+      The quietest of the five and the shortest scroll - the whole receipt fits above the fold in every
+      state. Cost: on Failed the only red left is the dot, the word and the Status row.
+    </span></div>
+    <div class="stage">
+      %SCRIM%
+      <div class="panel">
+        %HEAD%
+        <div class="p-body">
+          <div class="hero">
+            %IDENT%
+            <div class="amount tone-out">− 0.75 ETH</div>
+            <div class="fiat">$1,801.13</div>
+            <div class="woven st-col"><span class="d"></span><span class="st-txt">Completed</span></div>
+          </div>
+          <div class="sec">
+            <div class="card">
+              <div class="row"><span class="k">Date</span><span class="v">July 26, 2026 at 8:28 AM</span></div>
+              %ROWS_PARTY%
+              <div class="row"><span class="k">Network</span><span class="v">ETH</span></div>
+              <div class="row"><span class="k">Network Fee</span><span class="v">0.001 ETH</span></div>
+              <div class="row"><span class="k t-lbl-hash">Hash</span><span class="v mono">0xdevm...ck01</span></div>
+              <div class="row"><span class="k">Exact amount</span><span class="v mono">−0.750000000000000000</span></div>
+            </div>
+          </div>
+        </div>
+        %FOOT%
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ C · BANNER ============================ -->
+  <section id="variant-c" class="variant">
+    <div class="cap"><span class="k">C · Banner</span><span class="v">
+      031-B2. Status leads as a <b>full-width banner</b> at the top of the body - state-coloured 3px
+      accent, icon, label and a one-line plain-language reason - then the amount, then one flat card.
+      <b>Cycle to Failed and Cancelled</b>: this is the variant that earns its keep there. Then cycle
+      back to Completed and ask whether a receipt for a transaction that simply worked needs an alert
+      band across its top.
+    </span></div>
+    <div class="stage">
+      %SCRIM%
+      <div class="panel">
+        %HEAD%
+        <div class="p-body">
+          %BANNER%
+          <div class="hero" style="padding-top:20px">
+            %IDENT%
+            <div class="amount tone-out">− 0.75 ETH</div>
+            <div class="fiat">$1,801.13</div>
+          </div>
+          <div class="sec">
+            <div class="card">
+              <div class="row"><span class="k">Date</span><span class="v">July 26, 2026 at 8:28 AM</span></div>
+              %ROWS_PARTY%
+              <div class="row"><span class="k">Network</span><span class="v">ETH</span></div>
+              <div class="row"><span class="k">Network Fee</span><span class="v">0.001 ETH</span></div>
+              <div class="row"><span class="k t-lbl-hash">Hash</span><span class="v mono">0xdevm...ck01</span></div>
+            </div>
+          </div>
+        </div>
+        %FOOT%
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ D · COPYABLE ============================ -->
+  <section id="variant-d" class="variant">
+    <div class="cap"><span class="k">D · Copyable</span><span class="v">
+      Built around what people actually open this drawer to do: <b>get the hash or the address out</b>.
+      A's shape, but every mono value is a <b>tap-to-copy row</b> with a copy glyph on hover, and the
+      truncated middle is replaced by <b>4-character chunks</b> with the first and last group emphasised
+      (034-A2's eyeball-verify treatment) so a pasted address can be checked without an explorer.
+      Explorer stays in the footer. Try clicking the To and Hash rows.
+    </span></div>
+    <div class="stage">
+      %SCRIM%
+      <div class="panel">
+        %HEAD%
+        <div class="p-body">
+          <div class="hero">
+            %IDENT%
+            <div class="amount tone-out">− 0.75 ETH</div>
+            <div class="fiat">$1,801.13</div>
+            %PILL%
+          </div>
+          <div class="sec">
+            <div class="sec-label">Transaction</div>
+            <div class="card">
+              <div class="row"><span class="k">Date</span><span class="v">July 26, 2026 at 8:28 AM</span></div>
+              <div class="row"><span class="k">Status</span><span class="v st-txt st-col">Completed</span></div>
+              %ROWS_PARTY_COPY%
+            </div>
+          </div>
+          <div class="sec">
+            <div class="sec-label">Network</div>
+            <div class="card">
+              <div class="row"><span class="k">Network</span><span class="v">ETH</span></div>
+              <div class="row"><span class="k">Network Fee</span><span class="v">0.001 ETH</span></div>
+              <div class="row copy" onclick="copyVal('0xdevm4a91c02b7e5fck01')">
+                <span class="k t-lbl-hash">Hash</span>
+                <span class="v"><span class="chunk"><b>0xde</b><span>vm4a·91c0·2b7e·5f</span><b>ck01</b></span></span>
+                %COPYGLYPH%
+              </div>
+            </div>
+          </div>
+        </div>
+        %FOOT%
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ E · TYPE-AWARE ============================ -->
+  <section id="variant-e" class="variant">
+    <div class="cap"><span class="k">E · Type-aware</span><span class="v">
+      One drawer, seven types - so let the middle section change shape with the type instead of only
+      swapping row labels. <b>Switch the Type control</b>: a swap gets a real <b>From → To pair block</b>
+      with the rate under it; a job gets its reference framed as a job, not as a hash. Sent/Received
+      falls back to A. Honest cost: this is the only variant that adds a second layout to maintain, and
+      the code today has <b>seven</b> types, not three.
+    </span></div>
+    <div class="stage">
+      %SCRIM%
+      <div class="panel">
+        %HEAD%
+        <div class="p-body">
+          <div class="hero">
+            %IDENT%
+            <div class="amount tone-out">− 0.75 ETH</div>
+            <div class="fiat">$1,801.13</div>
+            %PILL%
+          </div>
+          <div class="sec t-swap">
+            <div class="sec-label">Swapped</div>
+            <div class="card">
+              <div class="pair">
+                <div class="leg"><div class="l">From</div><div class="a">1.00 ETH</div></div>
+                <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+                <div class="leg" style="text-align:right"><div class="l">To</div><div class="a">2,401.50 USDC</div></div>
+              </div>
+              <div class="row"><span class="k">Rate</span><span class="v">1 ETH = 2,401.50 USDC</span></div>
+            </div>
+          </div>
+          <div class="sec">
+            <div class="sec-label">Transaction</div>
+            <div class="card">
+              <div class="row"><span class="k">Date</span><span class="v">July 26, 2026 at 8:28 AM</span></div>
+              <div class="row"><span class="k">Status</span><span class="v st-txt st-col">Completed</span></div>
+              <div class="row t-sent"><span class="k">To</span><span class="v mono">0xToMo...ed01</span></div>
+              <div class="row t-job"><span class="k">Job</span><span class="v mono">0xdevm...ck01</span></div>
+            </div>
+          </div>
+          <div class="sec">
+            <div class="sec-label">Network</div>
+            <div class="card">
+              <div class="row"><span class="k">Network</span><span class="v">ETH</span></div>
+              <div class="row"><span class="k">Network Fee</span><span class="v">0.001 ETH</span></div>
+              <div class="row t-sent t-swap"><span class="k">Hash</span><span class="v mono">0xdevm...ck01</span></div>
+            </div>
+          </div>
+        </div>
+        %FOOT%
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+const I = {
+  x:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  ext:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>',
+  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  up:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+};
+
+/* the four real TransactionStatus states - tokens straight from _statusPill */
+const S = {
+  completed: {label:'Completed', col:'var(--status-success)',  bg:'color-mix(in srgb,var(--status-success) 14%,transparent)',  reason:'Confirmed on-chain.'},
+  pending:   {label:'Pending',   col:'var(--status-warning)',  bg:'color-mix(in srgb,var(--status-warning) 16%,transparent)',  reason:'Waiting for confirmations.'},
+  failed:    {label:'Failed',    col:'var(--status-error)',    bg:'color-mix(in srgb,var(--status-error) 14%,transparent)',    reason:'Dropped - it was never mined.'},
+  cancelled: {label:'Cancelled', col:'var(--status-neutral)',  bg:'var(--surface-menu)',                                        reason:'Cancelled before it was sent.'},
+};
+
+function scrim(){
+  let g=''; for(let i=0;i<11;i++) g+='<div class="g"></div>';
+  return `<div class="scrim"><div class="ghost">${g}</div></div>`;
+}
+function head(){
+  return `<div class="p-head"><span class="t" id="ttl">Sent</span><button class="x">${I.x}</button></div>`;
+}
+function foot(){
+  return `<div class="p-foot"><button class="btn2" onclick="toast('Opens etherscan.io')">${I.ext}<span class="lab">View on Explorer</span></button></div>`;
+}
+function ident(){
+  return `<div class="ident"><span class="sym">◆</span><span class="badge"></span></div>`;
+}
+function pill(){
+  return `<span class="pill st-pill"><span class="d"></span><span class="st-txt">Completed</span></span>`;
+}
+function banner(){
+  return `<div class="banner st-banner">
+    <span class="bi st-col">${I.up}</span>
+    <span><span class="bt st-col st-txt">Completed</span><span class="br st-reason">Confirmed on-chain.</span></span>
+  </div>`;
+}
+/* the counterparty rows - the ONE place the row set differs by type, per the real code */
+function rowsParty(copyable){
+  const cg = copyable ? `<span class="cg">${I.copy}</span>` : '';
+  const cls = copyable ? 'row copy' : 'row';
+  const onc = copyable ? ` onclick="copyVal('0xToMo9f31ab7c04e2ed01')"` : '';
+  const to  = copyable
+    ? `<span class="v"><span class="chunk"><b>0xTo</b><span>Mo9f·31ab·7c04·e2</span><b>ed01</b></span></span>${cg}`
+    : `<span class="v mono">0xToMo...ed01</span>`;
+  return `
+    <div class="${cls} t-sent"${onc}><span class="k">To</span>${to}</div>
+    <div class="row t-swap"><span class="k">From</span><span class="v">1.00 ETH</span></div>
+    <div class="row t-swap"><span class="k">To</span><span class="v">2,401.50 USDC</span></div>
+    <div class="row t-swap"><span class="k">Rate</span><span class="v">1 ETH = 2,401.50 USDC</span></div>
+    <div class="row t-job"><span class="k">To</span><span class="v mono">0xToMo...ed01</span></div>`;
+}
+
+document.querySelectorAll('.variant').forEach(sec=>{
+  sec.innerHTML = sec.innerHTML
+    .replace(/%SCRIM%/g, scrim())
+    .replace(/%HEAD%/g, head())
+    .replace(/%FOOT%/g, foot())
+    .replace(/%IDENT%/g, ident())
+    .replace(/%PILL%/g, pill())
+    .replace(/%BANNER%/g, banner())
+    .replace(/%ROWS_PARTY_COPY%/g, rowsParty(true))
+    .replace(/%ROWS_PARTY%/g, rowsParty(false))
+    .replace(/%COPYGLYPH%/g, `<span class="cg">${I.copy}</span>`);
+});
+
+/* ---------- status: recolours icon badge, pill, banner and the Status row together ---------- */
+function setStatus(s, btn){
+  document.body.dataset.status = s;
+  const t = S[s];
+  document.querySelectorAll('.st-txt').forEach(e=>e.textContent = t.label);
+  document.querySelectorAll('.st-reason').forEach(e=>e.textContent = t.reason);
+  document.querySelectorAll('.st-col').forEach(e=>e.style.color = t.col);
+  document.querySelectorAll('.st-pill').forEach(e=>{ e.style.color = t.col; e.style.background = t.bg; });
+  document.querySelectorAll('.st-banner').forEach(e=>{ e.style.color = t.col; e.style.background = t.bg; });
+  document.querySelectorAll('.ident .badge').forEach(e=>e.style.background = t.col);
+  // the amount stays NEUTRAL - 031 round-2 rule: colour rides on icon + pill + status row only
+  document.querySelectorAll('#variant-nav .st[data-s]').forEach(b=>b.classList.toggle('on', b.dataset.s===s));
+}
+
+/* ---------- type: swaps the counterparty rows, exactly like showTransactionDetails does ---------- */
+const TITLES = { sent:'Sent', swap:'Swapped', job:'Processing job' };
+function setType(t, btn){
+  document.body.dataset.type = t;
+  document.querySelectorAll('.t-sent').forEach(e=>e.style.display = t==='sent' ? '' : 'none');
+  document.querySelectorAll('.t-swap').forEach(e=>e.style.display = t==='swap' ? '' : 'none');
+  document.querySelectorAll('.t-job').forEach(e=>e.style.display  = t==='job'  ? '' : 'none');
+  // a job's hash IS its job reference - one row, one label (the real code does this)
+  document.querySelectorAll('.t-lbl-hash').forEach(e=>e.textContent = t==='job' ? 'Job' : 'Hash');
+  document.querySelectorAll('#ttl').forEach(e=>e.textContent = TITLES[t]);
+  document.querySelectorAll('#variant-nav .st[data-t]').forEach(b=>b.classList.toggle('on', b.dataset.t===t));
+}
+
+function showVariant(v, btn){
+  document.querySelectorAll('.variant').forEach(s=>s.classList.remove('active'));
+  document.getElementById('variant-'+v).classList.add('active');
+  document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+}
+function copyVal(v){ navigator.clipboard && navigator.clipboard.writeText(v).catch(()=>{}); toast('Copied ' + v.slice(0,6) + '…'); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
+function toggleTheme(btn){ const d=document.documentElement.dataset.theme==='dark';
+  document.documentElement.dataset.theme = d?'light':'dark'; btn.textContent = d?'Dark':'Light'; btn.classList.toggle('on'); }
+function toggleMarks(btn){ document.body.classList.toggle('novoid'); btn.classList.toggle('on'); }
+
+setStatus('completed');
+setType('sent');
+
+/* deep link: index.html#a, or #a+failed / #a+swap */
+(function(){
+  const h=(location.hash||'').replace('#','').toLowerCase(); if(!h) return;
+  const parts=h.split('+');
+  const btn=[...document.querySelectorAll('#variant-nav .vt')].find(b=>b.getAttribute('onclick').includes(`'${parts[0]}'`));
+  if(btn) showVariant(parts[0], btn);
+  parts.slice(1).forEach(p=>{ if(S[p]) setStatus(p); if(TITLES[p]) setType(p); });
+})();
+</script>
+</body>
+</html>

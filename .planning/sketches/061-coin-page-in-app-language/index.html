@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>061 · Coin page — w języku reszty aplikacji</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#000; color:var(--text-primary); padding:56px 16px 64px; }
+  .wrap { max-width:1740px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 auto var(--space-8); max-width:1060px; }
+  .lede b { color:var(--text-primary); } .lede code { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-secondary); }
+  .tag.bad { background:var(--status-error-fill); color:var(--status-error); }
+  .tag.warn { background:rgba(255,196,46,.14); color:var(--status-warning); }
+  .tag.free { background:var(--status-success-fill); color:var(--status-success); }
+
+  /* ---------- app window ---------- */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card);
+    width:100%; max-width:var(--winw, 100%); margin:0 auto; transition:max-width .2s ease; }
+  .navbar { display:flex; align-items:center; gap:var(--space-10); height:68px; padding:0 var(--space-12);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 14px/18px var(--font); color:var(--text-secondary); }
+  .navbar .brand { width:24px; height:24px; border-radius:7px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-24px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .right { margin-left:auto; display:flex; align-items:center; gap:var(--space-6); }
+  .navbar .chip { padding:6px 11px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); white-space:nowrap; }
+  .navbar .navcta { padding:7px 13px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); font:600 12px/16px var(--font); white-space:nowrap; }
+  .variant.noshell .navbar { display:none; }
+
+  .stage { position:relative; min-height:760px; }
+  .variant { display:none; } .variant.active { display:block; }
+
+  /* ---------- page frame (identyczna z Transactions/Markets/News) ---------- */
+  .frame { max-width:1536px; margin:0 auto; padding:0 12px; }
+  .pagetop { padding-top:64px; }              /* space32 navbar→tytuł */
+  .pagehead { display:flex; align-items:flex-start; gap:var(--space-8); margin-bottom:var(--space-8); }
+  .pagehead h2 { font:600 28px/36px var(--font); letter-spacing:-.5px; color:var(--text-primary); }
+  .pagehead .sub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-2); }
+  .pagehead .grow { margin-right:auto; min-width:0; }
+  .backchip { display:inline-flex; align-items:center; gap:7px; height:32px; padding:0 12px 0 9px; border-radius:var(--radius-pill);
+    border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); font:600 12px/1 var(--font);
+    cursor:pointer; transition:all .15s ease; margin-bottom:var(--space-6); }
+  .backchip:hover { color:var(--text-primary); background:var(--surface-menu); transform:translateY(-1px); }
+
+  /* stary AppBar (wariant 0 i E) */
+  .appbar { height:48px; display:flex; align-items:center; background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); }
+  .appbar .in { display:flex; align-items:center; gap:8px; }
+  .crumb { font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .crumb b { color:var(--text-primary); font-weight:600; }
+  .backsq { width:30px; height:30px; border-radius:var(--radius-sm); display:grid; place-items:center; color:var(--text-secondary); cursor:pointer; }
+  .backsq:hover { background:var(--surface-menu); color:var(--text-primary); }
+
+  /* ---------- tożsamość / cena ---------- */
+  .icn { border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font:800 15px/1 var(--font);
+    background:linear-gradient(135deg,#f7b267,#F09242); }
+  .idrow { display:flex; align-items:center; gap:13px; min-width:0; }
+  .idrow .nm { font:600 22px/28px var(--font); color:var(--text-primary); letter-spacing:-.3px; }
+  .idrow .sb { font:400 13px/18px var(--font); color:var(--text-secondary); margin-top:2px; }
+  .price { font:600 30px/36px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; letter-spacing:-.6px; }
+  .price.sm { font:600 24px/30px var(--font); }
+  .pill { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:8px; font:600 13px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .pill.up { background:var(--status-success-fill); color:var(--status-success); }
+  .pill.dn { background:var(--status-error-fill); color:var(--status-error); }
+
+  /* ---------- karty ---------- */
+  .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:var(--space-8); }
+  .sectitle { font:600 13px/18px var(--font); letter-spacing:.4px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .krow { display:flex; justify-content:space-between; align-items:center; padding:9px 0; font:500 14px/20px var(--font); }
+  .krow + .krow { border-top:1px solid var(--border-subtle); }
+  .krow .k { color:var(--text-secondary); } .krow .v { color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .krow .v.na { color:var(--text-primary-38); }
+
+  /* action bar */
+  .acts { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--space-4); }
+  .act { border:1px solid var(--border-subtle); border-radius:var(--radius-sm); background:transparent; color:var(--text-primary);
+    padding:11px 6px 9px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:all .15s ease;
+    font:500 12px/16px var(--font); }
+  .act:hover:not(.off) { transform:translateY(-1px); border-color:var(--brand-primary); background:var(--surface-menu); }
+  .act svg { width:19px; height:19px; stroke:var(--brand-primary); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .act.prim { background:var(--surface-menu); }
+  .act.off { color:var(--text-primary-38); cursor:not-allowed; background:var(--surface-sunken); border-color:transparent; }
+  .act.off svg { stroke:var(--text-primary-38); }
+
+  /* KPI kafle */
+  .kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:var(--space-4); }
+  .kpi { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:13px 15px; }
+  .kpi .k { font:500 11px/15px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; }
+  .kpi .v { font:600 18px/25px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; margin-top:4px; letter-spacing:-.2px; }
+  .kpi .v.good { color:var(--status-success); } .kpi .v.bad { color:var(--status-error); }
+  .kpi .v.sm { font-size:14px; }
+  @media(max-width:1100px){ .kpis { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+
+  /* wykres */
+  .chartbox { position:relative; height:var(--ch,300px); }
+  .chartbox svg { width:100%; height:100%; display:block; overflow:visible; }
+  .cross { position:absolute; top:0; bottom:0; width:1px; background:var(--border-strong); display:none; pointer-events:none; }
+  .ttip { position:absolute; transform:translate(-50%,-120%); background:var(--surface-menu); border:1px solid var(--border-subtle);
+    border-radius:var(--radius-sm); padding:6px 9px; font:600 12px/16px var(--font); color:var(--text-primary);
+    font-variant-numeric:tabular-nums; display:none; pointer-events:none; white-space:nowrap; box-shadow:var(--shadow-card); }
+  .zoom { position:absolute; right:6px; top:6px; display:flex; gap:5px; }
+  .zoom button { width:26px; height:26px; border-radius:6px; border:1px solid var(--border-subtle); background:transparent;
+    color:var(--text-secondary); font:600 13px/1 var(--font); cursor:pointer; }
+  .zoom button:hover { color:var(--text-primary); background:var(--surface-menu); }
+
+  /* convert */
+  .field { border:1px solid var(--border-subtle); border-radius:var(--radius-sm); background:var(--surface-menu); padding:9px 12px; }
+  .field .lab { font:500 11px/15px var(--font); color:var(--text-secondary); display:flex; align-items:center; gap:7px; }
+  .field input { background:transparent; border:none; outline:none; width:100%; color:var(--text-primary);
+    font:600 16px/24px var(--font); font-variant-numeric:tabular-nums; }
+  .field .ro { font:600 16px/24px var(--font); color:var(--text-primary-70); font-variant-numeric:tabular-nums; }
+  .rochip { font:700 9px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; padding:3px 6px; border-radius:4px;
+    background:var(--surface-sunken); color:var(--text-secondary); }
+  .total { display:flex; justify-content:space-between; align-items:baseline; margin-top:var(--space-6); }
+  .total .t { font:600 20px/27px var(--font); font-variant-numeric:tabular-nums; }
+
+  /* pozycja (D) */
+  .posval { font:600 26px/33px var(--font); font-variant-numeric:tabular-nums; letter-spacing:-.4px; }
+  .possub { font:500 13px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+
+  /* band (C) */
+  .band { background:linear-gradient(180deg, var(--surface-sheen-a), var(--surface-base)); border-bottom:1px solid var(--border-subtle); }
+  .band .in { padding:26px 0 22px; display:flex; align-items:flex-end; gap:var(--space-12); flex-wrap:wrap; }
+  .band .acts { min-width:340px; margin-left:auto; }
+
+  /* siatki */
+  .g-2col { display:grid; grid-template-columns:minmax(0,2fr) minmax(300px,1fr); gap:var(--space-8); align-items:start; }
+  .g-3col { display:grid; grid-template-columns:minmax(220px,260px) minmax(0,1fr) minmax(280px,340px); gap:var(--space-8); align-items:start; }
+  .stack > * + * { margin-top:var(--space-8); }
+  @media(max-width:1100px){ .g-2col,.g-3col { grid-template-columns:minmax(0,1fr); } }
+
+  /* overlay pomiarowy */
+  .mz { display:none; } body.measure .mz { display:block; position:absolute; z-index:5; pointer-events:none; }
+  .mz .rule { position:absolute; inset:0; border-left:1px dashed rgba(20,200,255,.55); }
+  .mz .lbl { position:absolute; top:0; left:6px; font:600 10px/14px var(--font-mono); color:var(--brand-primary);
+    background:rgba(0,0,0,.6); padding:1px 5px; border-radius:3px; white-space:nowrap; }
+  body.measure .axisline { outline:1px dashed rgba(43,245,180,.5); }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="name">061 · Coin page</span>
+  <button class="vt active" onclick="show('now',event)">0 · Dziś</button>
+  <button class="vt" onclick="show('a',event)">A · W ramie ★</button>
+  <button class="vt" onclick="show('b',event)">B · Pasek stat</button>
+  <button class="vt" onclick="show('c',event)">C · Band</button>
+  <button class="vt" onclick="show('d',event)">D · Moja pozycja</button>
+  <button class="vt" onclick="show('e',event)">E · Detal bez navbara</button>
+</div>
+
+<div class="wrap">
+  <p class="lede" id="lede"></p>
+  <div class="win">
+    <div class="stage">
+
+      <!-- ============================ 0 · DZIŚ ============================ -->
+      <div id="v-now" class="variant active noshell">
+        <div class="appbar"><div class="frame" style="max-width:1200px;"><div class="in">
+          <div class="backsq">__BACK__</div><span class="crumb">Markets &nbsp;/&nbsp; <b>Bitcoin</b></span>
+        </div></div></div>
+        <div style="padding:20px 0;">
+          <div class="frame" style="max-width:1200px;">
+            <div class="g-2col">
+              <div class="card" style="height:480px; display:flex; flex-direction:column;">
+                <div style="display:flex; align-items:flex-start; gap:16px;">
+                  <div class="idrow" style="flex:1;"><span class="icn" style="width:52px;height:52px;">₿</span>
+                    <span><div class="nm">Bitcoin</div><div class="sb">BTC · Ethereum</div></span></div>
+                  <div style="text-align:right;"><div class="price">$96,420.18</div>
+                    <div style="margin-top:4px;"><span class="pill up">▲ 2.14%</span></div></div>
+                </div>
+                <div style="height:16px"></div>
+                <div class="acts" data-acts></div>
+                <div style="height:16px"></div>
+                <div style="flex:1;" data-chart="now"></div>
+              </div>
+              <div class="stack">
+                <div class="card" data-convert="now"></div>
+                <div class="card" data-info="now" data-rows="4"></div>
+              </div>
+            </div>
+            <div class="mz" style="left:calc(50% - 600px);top:0;bottom:0;width:1px;"><div class="rule"></div><div class="lbl">1200, wycentrowane — inaczej niż każda zakładka</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================ A · W RAMIE ============================ -->
+      <div id="v-a" class="variant">
+        <div data-nav></div>
+        <div class="pagetop"><div class="frame">
+          <button class="backchip">__BACK__ Markets</button>
+          <div class="pagehead axisline">
+            <div class="grow"><div class="idrow"><span class="icn" style="width:40px;height:40px;">₿</span>
+              <span><h2>Bitcoin</h2><div class="sub">BTC · Ethereum · #1</div></span></div></div>
+            <div style="text-align:right;"><div class="price sm">$96,420.18</div>
+              <div style="margin-top:3px;"><span class="pill up">▲ 2.14%</span></div></div>
+          </div>
+          <div class="g-2col">
+            <div class="stack">
+              <div class="card"><div class="chartbox" style="--ch:340px;" data-chart="a"></div></div>
+              <div class="card"><div class="sectitle">Actions</div><div class="acts" data-acts></div></div>
+            </div>
+            <div class="stack">
+              <div class="card" data-convert="a"></div>
+              <div class="card" data-info="a" data-rows="8"></div>
+            </div>
+          </div>
+          <div class="mz" style="left:12px;top:0;bottom:0;width:1px;"><div class="rule"></div><div class="lbl">ten sam X co Transactions / Markets / News</div></div>
+        </div></div>
+      </div>
+
+      <!-- ============================ B · PASEK STAT ============================ -->
+      <div id="v-b" class="variant">
+        <div data-nav></div>
+        <div class="pagetop"><div class="frame">
+          <button class="backchip">__BACK__ Markets</button>
+          <div class="pagehead axisline">
+            <div class="grow"><div class="idrow"><span class="icn" style="width:40px;height:40px;">₿</span>
+              <span><h2>Bitcoin</h2><div class="sub">BTC · Ethereum</div></span></div></div>
+            <div style="text-align:right;"><div class="price sm">$96,420.18</div>
+              <div style="margin-top:3px;"><span class="pill up">▲ 2.14%</span></div></div>
+          </div>
+          <div class="kpis" style="margin-bottom:var(--space-8);" data-kpis></div>
+          <div class="card" style="margin-bottom:var(--space-8);"><div class="chartbox" style="--ch:320px;" data-chart="b"></div></div>
+          <div class="g-2col">
+            <div class="card"><div class="sectitle">Actions</div><div class="acts" data-acts></div>
+              <div style="height:16px"></div><div data-info="b" data-rows="6"></div></div>
+            <div class="card" data-convert="b"></div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- ============================ C · BAND ============================ -->
+      <div id="v-c" class="variant">
+        <div data-nav></div>
+        <div class="band"><div class="frame" style="padding-top:14px;">
+          <button class="backchip">__BACK__ Markets</button>
+          <div class="in">
+            <div class="idrow"><span class="icn" style="width:56px;height:56px;font-size:19px;">₿</span>
+              <span><h2 style="font:600 30px/38px var(--font);letter-spacing:-.6px;">Bitcoin</h2>
+              <div class="sub">BTC · Ethereum · rank #1</div></span></div>
+            <div><div class="price">$96,420.18</div>
+              <div style="margin-top:5px;display:flex;align-items:center;gap:9px;">
+                <span class="pill up">▲ 2.14%</span><span class="possub">24h: $94,102 – $97,880</span></div></div>
+            <div class="acts" data-acts></div>
+          </div>
+        </div></div>
+        <div style="padding:28px 0 40px;"><div class="frame">
+          <div class="g-2col">
+            <div class="card"><div class="chartbox" style="--ch:340px;" data-chart="c"></div></div>
+            <div class="stack">
+              <div class="card" data-convert="c"></div>
+              <div class="card" data-info="c" data-rows="6"></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- ============================ D · MOJA POZYCJA ============================ -->
+      <div id="v-d" class="variant">
+        <div data-nav></div>
+        <div class="pagetop"><div class="frame">
+          <button class="backchip">__BACK__ Markets</button>
+          <div class="pagehead axisline">
+            <div class="grow"><div class="idrow"><span class="icn" style="width:40px;height:40px;">₿</span>
+              <span><h2>Bitcoin</h2><div class="sub">BTC · Ethereum</div></span></div></div>
+            <div style="text-align:right;"><div class="price sm">$96,420.18</div>
+              <div style="margin-top:3px;"><span class="pill up">▲ 2.14%</span></div></div>
+          </div>
+          <div class="g-3col">
+            <div class="stack">
+              <div class="card">
+                <div class="sectitle">Your position <span class="tag free" style="margin-left:6px;">realne</span></div>
+                <div class="posval">$1,484.87</div>
+                <div class="possub" style="margin-top:3px;">0.0154 BTC</div>
+                <div style="height:14px"></div>
+                <div class="krow"><span class="k">24h change</span><span class="v" style="color:var(--status-success)">+$31.08</span></div>
+                <div class="krow"><span class="k">Network</span><span class="v">Ethereum</span></div>
+              </div>
+              <div class="card"><div class="sectitle">Actions</div><div class="acts" style="grid-template-columns:repeat(2,1fr);" data-acts></div></div>
+            </div>
+            <div class="stack">
+              <div class="card"><div class="chartbox" style="--ch:320px;" data-chart="d"></div></div>
+              <div class="card" data-info="d" data-rows="8"></div>
+            </div>
+            <div class="stack">
+              <div class="card" data-convert="d"></div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+
+      <!-- ============================ E · DETAL BEZ NAVBARA ============================ -->
+      <div id="v-e" class="variant noshell">
+        <div class="appbar"><div class="frame"><div class="in">
+          <div class="backsq">__BACK__</div><span class="crumb">Markets &nbsp;/&nbsp; <b>Bitcoin</b></span>
+        </div></div></div>
+        <div style="padding:40px 0 40px;"><div class="frame">
+          <div class="pagehead axisline">
+            <div class="grow"><div class="idrow"><span class="icn" style="width:40px;height:40px;">₿</span>
+              <span><h2>Bitcoin</h2><div class="sub">BTC · Ethereum · #1</div></span></div></div>
+            <div style="text-align:right;"><div class="price sm">$96,420.18</div>
+              <div style="margin-top:3px;"><span class="pill up">▲ 2.14%</span></div></div>
+          </div>
+          <div class="g-2col">
+            <div class="stack">
+              <div class="card"><div class="chartbox" style="--ch:340px;" data-chart="e"></div></div>
+              <div class="card"><div class="sectitle">Actions</div><div class="acts" data-acts></div></div>
+            </div>
+            <div class="stack">
+              <div class="card" data-convert="e"></div>
+              <div class="card" data-info="e" data-rows="8"></div>
+            </div>
+          </div>
+          <div class="mz" style="left:12px;top:0;bottom:0;width:1px;"><div class="rule"></div><div class="lbl">ramka xxl jak zakładki, ale bez navbara nad nią</div></div>
+        </div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="sketch-tools" style="position:fixed;bottom:12px;right:12px;z-index:9999;font-family:system-ui;font-size:12px;background:rgba(0,0,0,0.72);color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;transition:opacity .2s;display:flex;gap:14px;align-items:center;" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.45">
+  <span>
+    <button onclick="setTheme('dark')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Dark</button>
+    <button onclick="setTheme('light')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Light</button>
+  </span>
+  <span>
+    <button onclick="setW('100%')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">1700</button>
+    <button onclick="setW('1280px')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">1280</button>
+    <button onclick="setW('900px')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">900</button>
+    <button onclick="setW('420px')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">420</button>
+  </span>
+  <span>
+    <button onclick="document.body.classList.toggle('measure')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Osie</button>
+  </span>
+</div>
+
+<script>
+const BACK='<svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="15 18 9 12 15 6"/></svg>';
+document.querySelectorAll('.backsq,.backchip').forEach(b=> b.innerHTML=b.innerHTML.replace('__BACK__',BACK));
+
+/* navbar shell — te warianty, które wracają pod pasek nawigacji */
+const NAV=`<div class="navbar"><div class="brand"></div>
+  <span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span><span>Web</span>
+  <div class="right"><span class="chip">Ethereum</span><span class="chip">0x12…9f</span><span class="navcta">Connect</span></div></div>`;
+document.querySelectorAll('[data-nav]').forEach(n=> n.innerHTML=NAV);
+
+/* CoinGeckoMarketData — wszystkie pola realne (coin_gecko_market_data.dart).
+   Dziś ekran pokazuje z tego TYLKO 4: marketCap, circulatingSupply, totalSupply, totalVolume. */
+const M={ name:'Bitcoin', sym:'BTC', price:96420.18, chg:2.14, rank:1,
+  mcap:1_902_400_000_000, fdv:2_024_800_000_000, vol:41_820_000_000,
+  high24:97_880.42, low24:94_102.10, circ:19_730_000, total:19_730_000, max:21_000_000,
+  ath:108_268.00, athPct:-10.9, atl:67.81, atlPct:142_000, updated:'2 min temu', bal:0.0154 };
+const cur=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const comp=n=>{ const a=Math.abs(n); if(a>=1e12)return '$'+(n/1e12).toFixed(2)+'T'; if(a>=1e9)return '$'+(n/1e9).toFixed(2)+'B';
+  if(a>=1e6)return '$'+(n/1e6).toFixed(2)+'M'; return '$'+n.toLocaleString('en-US'); };
+const num=n=>n.toLocaleString('en-US',{maximumFractionDigits:0});
+
+/* --- Info: dziś 4 wiersze, warianty pokazują do 8 z tego samego modelu --- */
+const INFO=[
+  ['Market cap', comp(M.mcap)],
+  ['Circulating supply', num(M.circ)+' BTC'],
+  ['Total supply', num(M.total)+' BTC'],
+  ['Volume 24h', comp(M.vol)],
+  ['Rank', '#'+M.rank],
+  ['24h range', cur(M.low24)+' – '+cur(M.high24)],
+  ['Fully diluted', comp(M.fdv)],
+  ['All-time high', cur(M.ath)+'  ('+M.athPct+'%)'],
+];
+document.querySelectorAll('[data-info]').forEach(el=>{
+  const n=+el.dataset.rows||4, extra=n>4;
+  el.innerHTML=`<div class="sectitle">Info${extra?` <span class="tag free" style="margin-left:6px;">+${n-4} pola już w modelu</span>`:''}</div>`
+    + INFO.slice(0,n).map(([k,v])=>`<div class="krow"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')
+    + `<div class="krow"><span class="k">Updated</span><span class="v">${M.updated}</span></div>`;
+});
+
+/* --- KPI (B) --- */
+const kpi=(k,v,cls)=>`<div class="kpi"><div class="k">${k}</div><div class="v ${cls||''}">${v}</div></div>`;
+document.querySelectorAll('[data-kpis]').forEach(el=> el.innerHTML=
+    kpi('Rank','#'+M.rank) + kpi('Market cap',comp(M.mcap)) + kpi('Volume 24h',comp(M.vol))
+  + kpi('24h range',cur(M.low24).replace('.10','')+' – '+cur(M.high24).replace('.42',''),'sm')
+  + kpi('From ATH',M.athPct+'%','bad'));
+
+/* --- Actions: Receive żywe, Send/Swap wyłączone (D-01/D-02), More bramkowane --- */
+const ICO={ receive:'<polyline points="19 12 12 19 5 12"/><line x1="12" y1="5" x2="12" y2="19"/>',
+  send:'<polyline points="5 12 12 5 19 12"/><line x1="12" y1="19" x2="12" y2="5"/>',
+  swap:'<path d="M7 4v13M7 4l-3 3M7 4l3 3M17 20V7M17 20l3-3M17 20l-3-3"/>',
+  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>' };
+const act=(k,l,off)=>`<button class="act ${off?'off':(k==='receive'?'prim':'')}" ${off?'disabled title="wyłączone w kodzie (D-01/D-02)"':''}>
+  <svg viewBox="0 0 24 24">${ICO[k]}</svg>${l}</button>`;
+document.querySelectorAll('[data-acts]').forEach(el=> el.innerHTML=
+  act('receive','Receive')+act('send','Send',true)+act('swap','Swap',true)+act('more','More'));
+
+/* --- Convert: cena READ-ONLY (ustalenie 152), edytowalna tylko ilość --- */
+document.querySelectorAll('[data-convert]').forEach(el=>{
+  const id='cv'+Math.random().toString(36).slice(2,7);
+  el.innerHTML=`<div class="sectitle">Convert</div>
+    <div class="field" style="margin-bottom:8px;"><div class="lab">Token price <span class="rochip">read-only</span></div><div class="ro">${cur(M.price)}</div></div>
+    <div class="field"><div class="lab">Token amount</div><input id="${id}" value="0.0154" inputmode="decimal"></div>
+    <div class="total"><span class="k" style="color:var(--text-secondary);font:500 13px/18px var(--font);">Total</span><span class="t" data-total>${cur(0.0154*M.price)}</span></div>`;
+  const inp=el.querySelector('#'+id), out=el.querySelector('[data-total]');
+  inp.addEventListener('input',()=>{ const v=parseFloat(inp.value); out.textContent=isNaN(v)?'—':cur(v*M.price); });
+});
+
+/* --- wykres: seria + crosshair + zoom (bez zakładek 1H/1D/1W — 152 je usunął) --- */
+function series(n,seed){ const p=[]; let v=100; for(let i=0;i<n;i++){ v+=Math.sin(i/3+seed)*1.6+((i*seed)%7-3)*0.5; p.push(v);} return p; }
+function drawChart(host,seed){
+  const pts=series(90,seed), min=Math.min(...pts), max=Math.max(...pts), W=1000, H=300;
+  const x=i=>i/(pts.length-1)*W, y=v=>H-((v-min)/(max-min))*(H-24)-12;
+  const line=pts.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+  const gid='g'+seed;
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--status-success)" stop-opacity=".26"/>
+        <stop offset="100%" stop-color="var(--status-success)" stop-opacity="0"/></linearGradient></defs>
+      <polygon points="0,${H} ${line} ${W},${H}" fill="url(#${gid})"/>
+      <polyline points="${line}" fill="none" stroke="var(--status-success)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+    </svg>
+    <div class="cross"></div><div class="ttip"></div>
+    <div class="zoom"><button title="zoom in">+</button><button title="zoom out">−</button></div>`;
+  const cross=host.querySelector('.cross'), tip=host.querySelector('.ttip');
+  host.onmousemove=e=>{ const r=host.getBoundingClientRect(), px=e.clientX-r.left;
+    const i=Math.max(0,Math.min(pts.length-1,Math.round(px/r.width*(pts.length-1))));
+    cross.style.display='block'; cross.style.left=(i/(pts.length-1)*r.width)+'px';
+    tip.style.display='block'; tip.style.left=cross.style.left; tip.style.top=(y(pts[i])/H*r.height)+'px';
+    tip.textContent=cur(M.price*(pts[i]/pts[pts.length-1])); };
+  host.onmouseleave=()=>{ cross.style.display='none'; tip.style.display='none'; };
+}
+document.querySelectorAll('[data-chart]').forEach((el,i)=>{
+  if(!el.classList.contains('chartbox')){ el.classList.add('chartbox'); el.style.setProperty('--ch','100%'); }
+  drawChart(el, i+1);
+});
+
+const LEDE={
+  now:'<b>0 · Dziś</b> — stan z <code>token_info_screen.dart</code>. Trzy rzeczy odróżniają tę stronę od każdej innej zakładki: (1) trasa <code>/token-info</code> jest <b>poza <code>ShellRoute</code></b> (<code>router.dart:242</code>), więc jako jedyna strona w apce <b>nie ma navbara</b>; (2) ramka to <b>1200 wycentrowane</b>, a nie 1536 z rynną 12px; (3) nagłówek to Material <code>AppBar</code> z okruszkiem, a nie <code>GWPageHeader</code>. Do tego karta pokazuje 4 pola Info, choć model niesie ich kilkanaście. <span class="tag bad">niespójność</span>',
+  a:'<b>A · W ramie aplikacji.</b> Strona wraca pod navbar i przyjmuje dokładnie ten szkielet co Transactions / Markets / News: rynna 12, ramka 1536, odstęp 64px, tytuł w <code>GWPageHeader</code>. Tożsamość monety JEST tytułem strony (ikona + „Bitcoin" 28px + „BTC · Ethereum · #1"), cena z pigułką jedzie w slot <code>trailing</code>, a nad tytułem siedzi chip <b>← Markets</b> jako powrót. Pod spodem dzisiejszy układ dwóch paneli, tylko szerszy. <span class="tag rec">rekomendacja</span><br>Koszt: przeniesienie <code>GoRoute(\'/token-info\')</code> do <code>ShellRoute</code> i wyrzucenie <code>AppBar</code>. Zysk: znika jedyna strona w apce bez nawigacji - dziś z coina nie da się kliknąć w News bez cofania.',
+  b:'<b>B · Pasek stat.</b> To samo wejście co A, ale pod nagłówkiem ląduje rząd kafli KPI (<b>Rank</b>, <b>Market cap</b>, <b>Volume 24h</b>, <b>24h range</b>, <b>From ATH</b>), potem wykres pełną szerokością, a Info/Convert schodzą na dół. <span class="tag free">wszystkie pola już w modelu</span> <code>marketCapRank</code>, <code>high24h/low24h</code>, <code>athChangePercentage</code>, <code>fullyDilutedValuation</code> siedzą w <code>CoinGeckoMarketData</code> i nikt ich nie pokazuje. Najbliżej języka zakładki Markets - gęsto, tabelarycznie, liczby na wierzchu.',
+  c:'<b>C · Band.</b> Pełnoszerokościowy pas pod navbarem niesie tożsamość, cenę, zakres 24h i akcje, a dopiero pod nim wchodzi ramka z wykresem i panelami. To ten sam chwyt, który wygrał na News (szkic 102 hero band): strona ma wyraźne „wejście". Cena: pas to trzecia warstwa chromu pod navbarem, więc wykres startuje ~150px niżej niż w A - na 900px to zaczyna boleć.',
+  d:'<b>D · Moja pozycja.</b> Trzy kolumny: po lewej <b>Twoja pozycja</b> (saldo z <code>Coin.balance</code> + wartość + akcje), w środku wykres i Info, po prawej Convert. Odpowiada na inne pytanie niż reszta wariantów: nie „ile kosztuje Bitcoin", tylko „ile mam i co mogę z tym zrobić". <span class="tag free">saldo realne</span><br>Cena: trzy kolumny wymagają ≥1400px, żeby nie ścisnąć wykresu; poniżej 1100 i tak składa się do jednej kolumny, więc na laptopie 1280 to de facto wariant A z dodatkową kartą na górze.',
+  e:'<b>E · Detal bez navbara.</b> Ścieżka minimalna: trasa zostaje poza <code>ShellRoute</code> (zero zmian w routerze), <code>AppBar</code> z okruszkiem zostaje, ale strona pod nim przyjmuje język aplikacji - ramka 1536 z rynną 12, <code>GWPageHeader</code> z tożsamością i ceną, ten sam rytm kart. <br>Cena: strona nadal nie ma navbara. Jeśli świadomie chcesz, żeby detal monety był „widokiem pełnoekranowym" (jak drawer, tylko strona), to jest właśnie ten wariant - ale wtedy powiedz to głośno, bo dziś wygląda to na przypadek, nie na decyzję.',
+};
+function show(id,ev){
+  document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  if(ev&&ev.target) ev.target.classList.add('active');
+  document.querySelectorAll('.variant').forEach(v=>v.classList.remove('active'));
+  document.getElementById('v-'+id).classList.add('active');
+  document.getElementById('lede').innerHTML=LEDE[id];
+}
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); document.body.style.background=t==='dark'?'#000':'#B8BEC7'; }
+function setW(w){ document.documentElement.style.setProperty('--winw',w); }
+function openFromHash(){ const id=(location.hash||'').replace('#','')||'now'; show(id in LEDE?id:'now'); }
+window.addEventListener('hashchange',openFromHash); openFromHash();
+</script>
+</body>
+</html>

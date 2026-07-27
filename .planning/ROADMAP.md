@@ -123,6 +123,9 @@ redesign-track phase supersedes a Phase 5 first pass, Phase 5's version is histo
 | News (`/news` tab) | **Phase 17** | supersedes Phase 5 (05-05) |
 | Boot / splash / loading | **Phase 13** | — |
 | Web tab (in-app browser chrome — address bar + tabs) | **Phase 18** | new surface; not owned by any prior phase |
+| Feedback tab (`/logs`) — the composer card | **Phase 19** | new surface; not owned by any prior phase |
+| Feedback tab (`/logs`) — the page frame around it | **Phase 20** | supersedes ONLY Phase 19's "centered `GWPageHeader`" clause |
+| Drawer chrome + content patterns (all ~19 `ResponsiveDrawer` instances) | **Phase 21** | extends Phase 7 (07-06 shipped the shell header); each drawer's MECHANICS stay with its owning phase (8 swap, 9 Banxa, 10 Reown, 12/15 transactions) |
 | Token detail, send, receive, address book | **Phase 7** | market data → 16; chart re-skin → 5 (inherited) |
 | Token-detail chart (`crypto_live_chart`) | **Phase 5** (quick `260721-dws`) | Phase 7 inherits; only the finding-24 lifecycle fix is Phase 7's |
 | Swap & bridge | **Phase 8** | page frame already unified by `99a8913` (don't re-do) |
@@ -474,7 +477,7 @@ not a hard dependency chain. Each is independently landable on develop.
 | 10. dApp connectivity | 0/TBD | Not started | - |
 | 11. Port closeout | 0/TBD | Not started | - |
 
-**Redesign track (Phases 12-17)** — landed on this same branch in parallel with the official track
+**Redesign track (Phases 12-20)** — landed on this same branch in parallel with the official track
 above; tracked separately (see the per-phase detail sections below):
 
 | Phase | Plans Complete | Status | Committed |
@@ -485,6 +488,10 @@ above; tracked separately (see the per-phase detail sections below):
 | 15. Transactions tab | 5/6 | Executed — 15-06 walk next | `8cb4222` |
 | 16. Markets page (H1) | ahead-of-plan | Implemented & committed; walk + verification outstanding | `aa78eec` |
 | 17. News page (B2) | ahead-of-plan | Implemented & committed; walk + verification outstanding | `651541c` |
+| 18. Web tab chrome | 0/TBD | Sketched (035-B/036-A/037-B); not planned | - |
+| 19. Feedback tab (card, 150-D) | 1/1 | ✓ Complete (19-VERIFICATION passed 6/6, walk 4/4) | 2026-07-25 |
+| 20. Feedback page frame (153-B) | 1/1 planned | Planned 2026-07-26; supersedes 19's "centered header" clause only | - |
+| 21. Drawer language rollout | 0/TBD | Added 2026-07-26; 030-B1 shell shipped in 07-06, the four content patterns did not | - |
 
 ### Phase 12: Transactions redesign
 
@@ -908,8 +915,177 @@ thrown exception vs empty `SentryId` (upload unconfirmed) — kept as separate m
 `send-another-options.html`); full spec in `.planning/todos/pending/2026-07-24-phase-19-feedback-tab-redesign.md`.
 **Requirements**: TBD (retrofit from sketch README if a formal record is wanted)
 **Depends on:** Phase 4 (navigation shell & chrome — the navbar/`GWPageHeader` this tab mounts under); Phase 3 (`gw_*` primitives — `GWButton`, `GWCard`). Sequenced after Phase 18.
-**Plans:** 0 plans — run `/gsd-plan-phase 19` to break down.
+**Plans:** 1 plan — 19-01 (planned, executed, SUMMARY written). Phase VERIFIED **passed 2026-07-25**
+(`19-VERIFICATION.md`, 6/6 must-haves = 5 verified + 1 override accepted by Braian; live walk 4/4 PASS
+on Windows 11). *This line previously read "0 plans — run /gsd-plan-phase 19"; that was stale
+bookkeeping, corrected 2026-07-26. The phase's own artifacts were always the record.*
+
+**⚠ PARTIALLY SUPERSEDED by Phase 20 (2026-07-26).** The clause above reading "a **centered**
+`GWPageHeader`" is the one and only part of this goal that Phase 20 reverses — sketch **153-B** puts
+the title back on the page frame's left edge, like Transactions / Markets / News. Everything else this
+phase delivered (150-D's card: chooser, message, receipt, five honest states, `feedback_type` tag,
+button ladder) **stands unchanged and is not reopened.** Phase 19 keeps `status: passed`; its walk
+evidence and accepted override remain valid for the card, which Phase 20 does not touch.
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 19 to break down)
+- [x] 19-01-PLAN.md — Feedback tab re-skin to sketch 150-D (guided receipt card, `feedback_type` tag,
+  five states, button ladder) — SUMMARY + VERIFICATION written
+
+---
+
+### Phase 20: Feedback page frame — 153-B "Focused frame" (left title + receipt rail)
+
+**Goal:** Phase 19 fixed the Feedback **card**. This fixes the **page** it floats in. Today a 560px
+column sits inside an `xxl` (1536) page frame, leaving roughly **430px of dead page on each side**, and
+the title was pushed inside that column to hide the mismatch. Sketch **153-B** answers it the other way:
+the page declares a **narrower frame**, the title returns to the frame's left edge like every other tab,
+and a receipt rail fills the width beside the composer. **No new feature, no new data, no new
+component** — the rail is a re-arrangement of facts `_probes` already computes.
+
+**Chosen design:** `.planning/sketches/153-feedback-page/index.html#b` — variant **B · Focused frame**
+(chosen by Jakub 2026-07-26). Runner-up **A · Sheet** (smallest diff, keeps the centred title);
+rejected **E · Wide composer** (a 1400px textarea for a two-sentence report).
+
+**The change, all of it in `lib/logs/submit_logs_screen.dart`:**
+
+1. **Page frame `xxl` → `GeniusBreakpoints.large` (1024)** at `:416`. An **existing** token, and
+   640 + 20 + 360 = 1020 fits inside it — the sketch's "1040" is a mockup number, do not introduce a
+   new constant for it.
+2. **Header leaves the 560 column** (`:430-441`): drop the `Center(ConstrainedBox(maxWidth: 560))`
+   wrapper and the `centered: true` argument, so `GWPageHeader` renders its default left-aligned form
+   directly in the frame's `Column(stretch)`.
+3. **Two columns**: `LayoutBuilder` → at content width ≥ ~1020 a `Row` of
+   `SizedBox(width: 640, child: GWCard(composer))` + `space10` + `Expanded(child: GWCard(rail))`;
+   below that, a `Column` with the rail under the composer.
+4. **New `_buildRail`** — the same probe data as key/value rows (file + size, `TAIL`, struck-through
+   `skipped`, `SDK Running/Stopped`, platform) plus the "last 1 MB of each, empty ones skipped" note.
+5. **`_buildReceipt` chip strip leaves the composer** (`:596-659`) — its content is now the rail.
+6. **Failed-state footer fix (in scope, small):** the status line and the send button share one `Row`
+   with `crossAxisAlignment: center`. The empty-event-ID message (`:359`) is 130 characters and wraps
+   to several lines in a 640 column, leaving the button hovering in the middle of the block.
+
+**Preserve, do not regress:** everything Phase 19 verified — `Sentry.captureFeedback` at
+`level=warning`, the auto-attached `sgnslog.log`/`sgnslog2.log` (whole ≤1 MiB else tail-trim, empties
+skipped, user never picks files), the `!isSdkInitialized` No-SDK guard as its own state, the **two
+distinct** failure messages, the `feedback_type` tag, "Reference number" wording, and the
+primary/gradientOutline button ladder.
+
+**⚠ Reverts an uncommitted in-tree change.** `centered: true` at `submit_logs_screen.dart:440` was
+added by a parallel session on 2026-07-26 and is recorded in
+`.planning/HANDOFF-swap-feedback-header-and-coin-sketches.md` as a deliberate call. Jakub chose 153-B
+on 2026-07-26 knowing this. **The `centered` flag itself stays in `GWPageHeader`** (additive, tested by
+`test/components/gw_page_header_centered_test.dart`) and **Swap's own `centered: true` is out of scope
+here** — that is Phase 8's call, and this phase must not touch `swap_screen.dart`.
+
+**Finding baked in:** `_candidateLogNames` (`:97`) is a **two-element const**, so the rail can never
+show more than two log rows — four rows with the SDK running, two with it stopped. The rail is sized
+for that truth; do not design it as if the list grows.
+
+**Test position:** the existing `test/logs/submit_logs_feedback_test.dart` (5 tests) is pure logic —
+enum tags, placeholders, dispositions, attachment names — and is **unaffected** by this layout change,
+as is `gw_page_header_centered_test.dart`, which pumps the header in isolation. This phase owes **one
+new runnable check**: a widget test that the page renders two columns at a wide width and one column
+narrow, with the title on the frame's left edge.
+
+**Target file:** `lib/logs/submit_logs_screen.dart` (single file; no new files expected).
+**Design source:** `.planning/sketches/153-feedback-page/` (winner **B**; README carries the code-grounded
+findings and the full pantry inventory).
+**Requirements:** none new — this is a layout change to a shipped surface.
+**Depends on:** Phase 19 (the card this page frames); Phase 4 (`GWPageHeader`, navbar); Phase 3
+(`GWCard`, `GWButton`).
+**Supersedes:** the "centered `GWPageHeader`" clause of Phase 19's goal — and **only** that clause.
+**Plans:** 1 plan - 20-01 (planned 2026-07-26). One file under `lib/`, three tasks, test-first.
+
+Plans:
+
+- [ ] 20-01-PLAN.md - Focused frame: cap at `large`, title back on the frame's left edge, composer +
+  receipt rail via `LayoutBuilder`, chip strip retired, Failed-footer fix, and one new page-frame
+  widget test (`test/logs/submit_logs_page_frame_test.dart`)
+
+---
+
+### Phase 21: Drawer language rollout - the four decided drawer designs, applied to every drawer
+
+**Goal:** Sketches **030 / 031 / 032 / 033 / 034** decided the whole drawer language on 2026-07-23 and
+consolidated it in `.planning/sketches/drawers-final/`. **Only the shell header shipped** (Phase 07-06,
+`1d43a13`). Every drawer *body* still wears whatever it was born with. This phase applies the four
+decided content patterns to all ~19 drawer instances across 15 files, and gives the shared shell the
+padded body it was always specified to have.
+
+**Design source:** `.planning/sketches/drawers-final/` (the consolidated five) + `.planning/sketches/154-transaction-details-drawer/`
+(variant **A · 031-B1 as decided**, chosen by Jakub 2026-07-26, which is what re-opened this).
+
+**The one shared change (Wave 1, everything else depends on it):** `responsive_drawer.dart` gains an
+opt-in **padded body** so 030-B1's 20px body inset finally exists in one place. 07-06 deliberately did
+not add it - *"body padding remains each caller's own responsibility; some of the ~19 callers already
+pad their own bodies; double-padding would regress them"* (07-06-SUMMARY). That reasoning was correct
+and is exactly what this phase resolves: the primitive lands once, and each caller's ad-hoc padding is
+removed as that caller is converted. Today the same inset is spelled five different ways -
+`EdgeInsets.all(8)`, `all(16)`, `space10`, `space16`, `symmetric(...)` - and in
+`showTransactionDetails` it is **absent**, which is the visible defect Jakub reported.
+
+**The four patterns and where each one lands:**
+
+| Pattern | Drawers |
+|---|---|
+| **031-B1 · Receipt** (identity + amount, status pill, TRANSACTION/NETWORK section cards) | `transaction_displays.dart` (`showTransactionDetails`), `squid_router/swap_success_drawer.dart`, `squid_router/swap_fail_drawer.dart`, `reown/swap_result_drawer.dart`, `banxa/buy_success_drawer.dart`, `banxa/buy_cancelled_drawer.dart` |
+| **032-A1 · List picker** (tappable rows, rounded gradient-tint selection + gradient check, no accent bar) | `network_dropdown_selector.dart` ("Select Network"), `squid_router/token_selector_drawer.dart`, `account_dropdown_selector.dart` ("Your Accounts"), `account/sdk_account_manager.dart` ("SDK Accounts"), `dashboard/bridge/bridge_screen.dart` ("Select destination network"), `components/coins/view/coins_screen.dart` ("Assets") |
+| **033-B1 · Confirm** (dApp identity borderless, static caution as tint, one merged Details card) | `reown/approve_dapp_connection_drawer.dart`, `reown/approve_transaction_drawer.dart` |
+| **034-A2 · Receive** (gap above QR, network chip above QR, 4-char address chunks, copy only) | `coins_screen.dart` ("Receive"), `tokens/token_info_screen.dart` ("Receive {coin}") |
+
+**Drawers that fit none of the four** - they get the shared padded body and nothing else, and the phase
+must say so rather than inventing a fifth pattern: `swap_settings_drawer.dart` (a form),
+`account_dropdown_selector.dart`'s "Rename Wallet" / "Delete wallet", `network_dropdown_selector.dart`'s
+"Network Changed" notice, `coins_screen.dart`'s "No coins yet" empty state.
+
+**Findings that must survive into the plans (from sketch 154's code audit):**
+- `_statusPill` (`transaction_displays.dart:49`) already handles **all four** `TransactionStatus`
+  states with the right tokens and is **not used in the drawer**. The receipt's pill is a call, not a
+  new component.
+- `content.valueLine` (fiat) and `content.exactAmount` (unclamped) are **computed on the
+  `showTransactionDetails` call and discarded**. This corrects sketch 031's "the receipt has no fiat",
+  which was true when 031 was drawn and is not true now.
+- Colour rides on **icon + pill + Status row only; the amount stays neutral** (031 round-2 rule).
+- A job's hash IS its job reference - one row labelled `Job`, not the same value twice (`:477`).
+- An empty explorer URL **suppresses** the footer button (`:509`). A drawer with no footer is a real
+  state; no pattern may assume the button is present.
+
+**⚠ Security gate.** `approve_transaction_drawer.dart` and `approve_dapp_connection_drawer.dart` are
+**signing-path UI**. This phase is a **re-skin only**: it must not change what is signed, what is
+displayed as the amount or recipient, or the approve/reject wiring. 033-B1's caution copy is static by
+design - the sketch explicitly rejected an unbacked "new address" claim, because the
+"sent-here-before?" scan over the Hive `Box<Transaction>` does not exist. Plans touching these two
+files need a threat model.
+
+**Preserve, do not regress:** Phase 07-06's shell header (left title, compact 48 toolbar, top-right ✕
+appended after caller actions, 1px hairline) stays exactly as shipped - this phase extends the same
+file, it does not re-open that decision. The desktop 420px right-panel / mobile bottom-sheet split and
+the appearance-aware surface reads stay untouched.
+
+**Target files:** `lib/components/bottom_drawer/responsive_drawer.dart` (+ the shared content
+primitives) and the 15 caller files listed above.
+**Requirements:** none new - re-skin of shipped surfaces.
+**Depends on:** Phase 07 (07-06 shipped the shell header this builds on); Phase 3 (`gw_*` primitives).
+**Surface note:** cuts across surfaces owned by Phases 8 (swap drawers), 9 (Banxa), 10 (Reown) and
+12/15 (transactions). Phase 21 owns **drawer chrome and content pattern** only; each drawer's
+mechanics stay with its owning phase.
+**Plans:** 6 plans in 3 waves. Wave 1 is the shared primitive; wave 2 is the four patterns in
+parallel; wave 3 is Receive, the unpatterned leftovers, and the invariant sweep. No two plans in a
+wave touch the same file.
+
+**Planning corrected the inventory above.** `coins_screen.dart` has no "Assets" list drawer (that is
+an inline `GWSectionTitle`), and three of D-09's four "fits none" entries are not drawers at all -
+Rename/Delete are `GWDialog`, "Network Changed" is a toast, "No coins yet" is an inline empty state.
+Two undocumented drawers exist in `wallet_information.g.dart` (generated, analyzer-excluded, not
+mounted on any live route - deliberately excepted). Real totals: **6 receipt · 5 list · 2 confirm ·
+2 receive · 5 unpatterned = 20 call sites across 18 files.** Full table in `21-06-PLAN.md`.
+
+Plans:
+
+- [ ] 21-01-PLAN.md — Wave 1: the shared padded body (`padBody` + `bodyPadding`) and the five drawer content primitives, proven on the token picker
+- [ ] 21-02-PLAN.md — Wave 2: 032-A1 list picker across the four remaining pickers (network, account, SDK accounts, bridge destination)
+- [ ] 21-03-PLAN.md — Wave 2: 031-B1 receipt for `showTransactionDetails` — pill, section cards, the fiat line and exact amount it already computes and discards
+- [ ] 21-04-PLAN.md — Wave 2: 031-B1 for the five result drawers (swap success/fail, Banxa success/cancelled, Reown swap result) + the D-03 neutral-amount guard
+- [ ] 21-05-PLAN.md — Wave 2: 033-B1 for the two signing drawers, with a threat model and a behavioural-identity contract test
+- [ ] 21-06-PLAN.md — Wave 3: 034-A2 receive (4-char chunks), the three unpatterned drawers, and the padding invariant proven across every caller at once

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>064 · Feedback — segment, pole i etykieta</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:#000;color:var(--text-primary);padding:96px 16px 64px}
+  .wrap{max-width:1180px;margin:0 auto}
+  #nav{position:fixed;top:0;left:0;right:0;z-index:99;display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+    background:#0b0d12;border-bottom:1px solid var(--border-subtle);padding:8px 14px}
+  #nav .vt{font:600 12px/16px var(--font);padding:6px 12px;border:1px solid var(--border-subtle);border-radius:var(--radius-pill);
+    background:transparent;color:var(--text-secondary);cursor:pointer;transition:all .15s}
+  #nav .vt:hover{color:var(--text-primary)}
+  #nav .vt.active{background:var(--surface-menu);color:var(--text-primary);border-color:transparent}
+  #nav .name{font:600 12px/16px var(--font);margin-right:auto;opacity:.75}
+  #bar{position:fixed;top:41px;left:0;right:0;z-index:98;background:#0b0d12;border-bottom:1px solid var(--border-subtle);
+    padding:8px 14px;font:500 11px/15px var(--font);color:var(--text-secondary);display:flex;gap:10px;align-items:center}
+  #bar b{color:var(--text-primary)}
+  .lede{color:var(--text-secondary);font:400 13px/21px var(--font);margin:0 0 20px;max-width:1000px}
+  .lede b{color:var(--text-primary)} .lede code{font-family:var(--font-mono);font-size:12px;color:var(--text-primary)}
+  .tag{display:inline-flex;font:700 9px/1 var(--font);text-transform:uppercase;letter-spacing:.6px;padding:4px 7px;border-radius:4px}
+  .tag.rec{background:var(--brand-fill);color:var(--brand-secondary)}
+  .tag.bad{background:var(--status-error-fill);color:var(--status-error)}
+  .tag.warn{background:rgba(255,196,46,.14);color:var(--status-warning)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:20px}
+  .demo{background:var(--surface-base);border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:24px}
+  .demo > h4{font:600 14px/20px var(--font);color:var(--text-primary);margin-bottom:4px;display:flex;gap:8px;align-items:center}
+  .demo > .why{font:400 12px/18px var(--font);color:var(--text-secondary);margin-bottom:18px}
+  .demo > .why code{font-family:var(--font-mono);font-size:11px}
+  .card{background:var(--surface-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:24px}
+
+  /* ── tor segmentu ── */
+  .seg{display:flex;padding:2px;border-radius:var(--radius-md);border:1px solid var(--border-subtle);background:var(--surface-elevated)}
+  .seg.sunken{background:var(--surface-sunken)}
+  .seg.bare{border-color:transparent;background:transparent;padding:0;gap:4px}
+  .sg{flex:1;text-align:center;padding:9px 0;border-radius:var(--radius-sm);cursor:pointer;position:relative;
+    font:500 13px/18px var(--font);color:var(--text-secondary);border:1px solid transparent;transition:all .15s;background:transparent}
+  .sg:hover{color:var(--text-primary)}
+  .sg.on{color:var(--text-primary);font-weight:600}
+
+  /* 0 · dziś: plaska mieta, ZERO hoveru */
+  .v-now .sg.on{background:rgba(10,216,156,.16);border-color:#0AD89C}
+  /* A · tor + gradientowa pigulka */
+  .v-pill .sg:hover:not(.on){background:var(--brand-primary-subtle);border-color:var(--brand-primary-muted)}
+  .v-pill .sg.on{background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));color:var(--text-on-brand);border-color:transparent}
+  /* B · gradientowe podkreślenie (język nav-tabów) */
+  .v-under .sg{border-radius:0}
+  .v-under .sg:hover:not(.on){color:var(--text-primary)}
+  .v-under .sg.on::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b))}
+  .v-under .seg{background:transparent;border:none;border-bottom:1px solid var(--border-subtle);border-radius:0;padding:0}
+  /* C · tint + gradientowa włosowa krawędź (przepis 044 awansowany na stan aktywny) */
+  .v-tint .sg:hover:not(.on){background:var(--brand-primary-subtle);border-color:var(--brand-primary-muted)}
+  .v-tint .sg.on{background:var(--brand-primary-subtle);border-color:transparent;position:relative}
+  .v-tint .sg.on::before{content:"";position:absolute;inset:0;border-radius:var(--radius-sm);padding:1px;
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  /* D · gradientowy TEKST */
+  .v-text .sg:hover:not(.on){background:var(--brand-primary-subtle)}
+  .v-text .sg.on{background:var(--surface-menu)}
+  .v-text .sg.on span{background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+    -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
+
+  /* ── pole message ── */
+  .flabel{font:500 13px/18px var(--font);color:var(--text-secondary);margin-bottom:8px;display:block}
+  .fwrap{border-radius:var(--radius-lg);padding:1.5px;background:var(--border-subtle);transition:background .15s}
+  .fwrap.focus{background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b))}
+  .fwrap > textarea{width:100%;min-height:110px;resize:vertical;border:none;outline:none;border-radius:13.5px;
+    background:var(--surface-menu);color:var(--text-primary);font:400 14px/21px var(--font);padding:12px 14px}
+  .fwrap > textarea::placeholder{color:var(--text-primary-38)}
+  /* 0 · dziś — notch label na ramce */
+  .notch{position:relative;border:1.5px solid var(--brand-primary);border-radius:var(--radius-lg);padding:14px}
+  .notch textarea{width:100%;min-height:96px;resize:vertical;border:none;outline:none;background:transparent;
+    color:var(--text-primary);font:400 14px/21px var(--font)}
+  .notch .lab{position:absolute;top:-8px;left:12px;background:var(--surface-elevated);padding:0 6px;
+    font:400 12px/16px var(--font);color:var(--text-secondary)}
+  /* B · tylko gradientowa linia pod spodem */
+  .uline{border:none;border-bottom:1.5px solid var(--border-subtle);border-radius:0;padding:0 0 8px}
+  .uline.focus{border-bottom-color:transparent;background-image:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b));
+    background-size:100% 1.5px;background-position:bottom;background-repeat:no-repeat}
+  .uline textarea{width:100%;min-height:96px;resize:vertical;border:none;outline:none;background:transparent;
+    color:var(--text-primary);font:400 14px/21px var(--font)}
+  .count{text-align:right;font:400 12px/16px var(--font);color:var(--text-secondary);margin-top:6px}
+
+  .note{font:400 11px/17px var(--font);color:var(--text-secondary);margin-top:14px;padding-top:10px;border-top:1px dashed var(--border-subtle)}
+  .note code{font-family:var(--font-mono);font-size:10px}
+  table.t{width:100%;border-collapse:collapse;margin-top:6px}
+  table.t td{padding:7px 10px;border-bottom:1px solid var(--border-subtle);font:400 13px/19px var(--font);vertical-align:top}
+  table.t td:first-child{color:var(--text-secondary);white-space:nowrap;width:190px}
+  table.t code{font-family:var(--font-mono);font-size:11px;color:var(--text-primary)}
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">064 · Feedback — kontrolki</span>
+  <button class="vt" onclick="show('seg',event)">1 · Segment</button>
+  <button class="vt" onclick="show('field',event)">2 · Pole Message</button>
+  <button class="vt" onclick="show('title',event)">3 · Tytuł szyny</button>
+</div>
+<div id="bar">
+  <b>Najedź myszą</b> na nieaktywne segmenty i <b>kliknij w pola</b> — hover i focus są tu prawdziwe, nie narysowane.
+  <span style="margin-left:auto">Przepis hoveru = <b>044</b> · akcent = <b>gradient</b>, nie płaski kolor</span>
+</div>
+
+<div class="wrap">
+  <p class="lede" id="lede"></p>
+  <div id="stage"></div>
+</div>
+
+<script>
+const SEG = ['Bug','Idea','Question'];
+function seg(cls, variant){
+  return `<div class="seg ${variant==='under'?'':''} ${variant==='pill'?'sunken':''} ${cls}">` +
+    SEG.map((s,i)=>`<button class="sg ${i===0?'on':''}" onclick="pick(this)"><span>${s}</span></button>`).join('') + `</div>`;
+}
+function pick(el){
+  [...el.parentElement.children].forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+const VARIANTS_SEG = [
+  {k:'now', cls:'v-now', t:'0 · Dziś', tag:'<span class="tag bad">2 odstępstwa</span>',
+   why:'Płaska mięta <code>brandSecondaryMuted</code> + <code>brandSecondary</code>. <b>Hover nie istnieje</b> — najedź na „Idea", nic się nie dzieje. Do tego akcent jest płaski, a nie gradientowy.'},
+  {k:'pill', cls:'v-pill', t:'A · Tor + gradientowa pigułka', tag:'<span class="tag rec">rekomendacja</span>',
+   why:'Wgłębiony tor, aktywny segment bierze <b>prawdziwy gradient brandCta</b>, nieaktywne dostają przepis 044 na hover. Ten sam język, co pasek kontrolek w navbarze (szkic 039-B).'},
+  {k:'under', cls:'v-under', t:'B · Gradientowe podkreślenie',
+   why:'Język <b>zakładek nawigacji</b> przeniesiony w dół: 2px gradientu pod aktywnym. Najlżejszy, ale ryzykuje pomyleniem z nawigacją strony — to jest wybór typu, nie zmiana widoku.'},
+  {k:'tint', cls:'v-tint', t:'C · Tint + gradientowa krawędź',
+   why:'Aktywny = tint 12% + <b>gradientowa</b> włosowa krawędź; hover = ten sam tint bez gradientu. Najbliżej przepisu 044 dosłownie. Ryzyko: hover i stan aktywny są zbyt podobne.'},
+  {k:'text', cls:'v-text', t:'D · Gradientowy tekst',
+   why:'Wypełnienie zostaje neutralne, gradient niesie <b>sama etykieta</b> (<code>brandCtaText</code>, ten sam shader co CTA w nagłówkach). Najsubtelniejszy. Uwaga: gradient jako tekst ma zmierzone 9.4:1 i 6.8:1 — przechodzi AA, ale traci na małym stopniu pisma.'},
+];
+
+const VARIANTS_FIELD = [
+  {k:'now', t:'0 · Dziś', tag:'<span class="tag bad">odstępstwo</span>', html:`
+    <span style="font:500 13px var(--font);color:var(--text-secondary)"></span>
+    <div class="notch"><span class="lab">Message</span>
+      <textarea placeholder="Describe what broke and the steps to reproduce it."></textarea></div>
+    <div class="count">0/2000</div>`,
+   why:'Pływająca etykieta Materiala wtopiona w ramkę + <b>płaska</b> cyjanowa obwódka na focusie z <code>theme.dart:242</code>. Aplikacja ma własny standard i on wygląda inaczej — patrz sekcja pod spodem.'},
+  {k:'ring', t:'A · Etykieta nad polem + gradientowy ring', tag:'<span class="tag rec">rekomendacja</span>', html:`
+    <label class="flabel">Message</label>
+    <div class="fwrap" onfocusin="this.classList.add('focus')" onfocusout="this.classList.remove('focus')">
+      <textarea placeholder="Describe what broke and the steps to reproduce it."></textarea></div>
+    <div class="count">0/2000</div>`,
+   why:'Dokładnie to, co robi <code>GWTextField</code> (etykieta <code>labelMd</code>/<code>textSecondary</code> nad polem, odstęp <code>space4</code>) plus <code>GWFocusRing</code>, który już wczoraj wszedł na Swapa. <b>Zero nowych decyzji</b> — dwa istniejące standardy złożone razem.'},
+  {k:'uline', t:'B · Etykieta nad polem + gradientowa linia', html:`
+    <label class="flabel">Message</label>
+    <div class="uline" onfocusin="this.classList.add('focus')" onfocusout="this.classList.remove('focus')">
+      <textarea placeholder="Describe what broke and the steps to reproduce it."></textarea></div>
+    <div class="count">0/2000</div>`,
+   why:'Ta sama etykieta, ale zamiast pełnej obwódki — gradientowa linia pod spodem. Lżejsze, bardziej „dokumentowe". Koszt: pole przestaje być pudełkiem, więc na karcie o tym samym tle gorzej widać, gdzie się kończy.'},
+];
+
+const LEDE = {
+seg:`<b>1 · Segment typu (Bug / Idea / Question).</b> Pytanie: czy dzisiejszy stan trzyma nasze standardy? <b>Nie, łamie dwa.</b>
+  Po pierwsze <b>nie ma hoveru w ogóle</b> — przepis 044 („brand tint 12% + brand hairline 24%, bez geometrii") obowiązuje w całej aplikacji i ta kontrolka go nie ma.
+  Po drugie akcent jest <b>płaską miętą</b>, a <code>drawers-final</code> ustala globalnie: <i>akcentem jest gradient, nie płaski kolor</i>.
+  Najedź myszą na nieaktywne segmenty w każdym wariancie — w „0 · Dziś" nie stanie się nic.`,
+field:`<b>2 · Pole Message.</b> Dwie rzeczy naraz: gradient zamiast płaskiej obwódki na focusie, i etykieta, która nie wtapia się w ramkę.
+  <b>To drugie nie jest kwestią gustu.</b> Aplikacja ma własny komponent <code>GWTextField</code>, używany przez Settings, wyszukiwarkę Markets, Account manager i onboarding — <b>7 plików</b> — i on stawia etykietę
+  <b>nad</b> polem jako osobny <code>Text</code>. Feedback używa surowego <code>TextField</code> z <code>labelText:</code>, a motyw ma <code>floatingLabelBehavior: always</code>, więc etykieta ląduje na ramce.
+  Kliknij w pola, żeby zobaczyć focus.`,
+title:`<b>3 · Tytuł szyny.</b> „What gets sent" jest opisowe, ale brzmi jak pytanie z formularza celnego i nie mówi, że to <b>dzieje się automatycznie</b>. Propozycje niżej, z uzasadnieniem.`,
+};
+
+function fieldCard(v){
+  return `<div class="demo"><h4>${v.t} ${v.tag||''}</h4><div class="why">${v.why}</div>
+    <div class="card">${v.html}</div></div>`;
+}
+function segCard(v){
+  return `<div class="demo"><h4>${v.t} ${v.tag||''}</h4><div class="why">${v.why}</div>
+    <div class="card">${seg(v.cls, v.k)}</div></div>`;
+}
+
+const TITLES = `
+<div class="demo" style="max-width:820px">
+  <h4>Zamiast „What gets sent"</h4>
+  <div class="why">Szyna jest <b>paragonem</b>: mówi, co pojedzie razem z wiadomością, bez pytania użytkownika o zgodę. Dobry tytuł powinien to nieść.</div>
+  <table class="t">
+    <tr><td><b>Attached automatically</b> <span class="tag rec">rekomendacja</span></td>
+        <td>Niesie jedyną rzecz, której użytkownik może nie wiedzieć: <b>że nie musi nic robić</b>. Odzyskuje sens skasowanego nagłówka „SDK logs attached automatically", nie wracając do słowa „SDK", którego użytkownik nie zna.</td></tr>
+    <tr><td>Included with your report</td><td>Najbardziej ludzkie, wprost wiąże z „report" z podtytułu strony. Dłuższe.</td></tr>
+    <tr><td>Attached</td><td>Najkrótsze, pasuje do szyny 360px. Ale samo „Attached" nie mówi, że dzieje się to automatycznie.</td></tr>
+    <tr><td>Diagnostics</td><td>Precyzyjne i krótkie, ale to żargon — „Diagnostics" nie znaczy nic dla osoby zgłaszającej błąd.</td></tr>
+    <tr><td class="tag bad" style="color:var(--status-error)">Report contents</td>
+        <td>Odrzucone: sugeruje, że to zawartość <i>wiadomości</i>, którą użytkownik pisze obok. Myli dwie rzeczy.</td></tr>
+  </table>
+  <div class="note">Uwaga na zakres: zmiana tego napisu dotyka <b>tylko</b> szyny. Zdanie <code>last 1 MB of each, empty ones skipped</code> zostaje bez zmian — jest zacytowane w D-04 dosłownie.</div>
+</div>`;
+
+function show(id, ev){
+  document.querySelectorAll('#nav .vt').forEach(t=>t.classList.remove('active'));
+  if(ev) ev.target.classList.add('active');
+  else {const b=[...document.querySelectorAll('#nav .vt')].find(x=>x.getAttribute('onclick').includes(`'${id}'`)); if(b)b.classList.add('active');}
+  document.getElementById('lede').innerHTML = LEDE[id];
+  const st=document.getElementById('stage');
+  if(id==='seg')   st.innerHTML = `<div class="grid">${VARIANTS_SEG.map(segCard).join('')}</div>`;
+  if(id==='field') st.innerHTML = `<div class="grid">${VARIANTS_FIELD.map(fieldCard).join('')}</div>`;
+  if(id==='title') st.innerHTML = TITLES;
+  location.hash=id;
+}
+function openFromHash(){const id=(location.hash||'').replace('#','')||'seg';show(id in LEDE?id:'seg');}
+window.addEventListener('hashchange',openFromHash);openFromHash();
+</script>
+</body>
+</html>
