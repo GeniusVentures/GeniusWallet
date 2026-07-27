@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/dev/dev_banxa_fixtures.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -76,6 +78,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
   bool _mockExpanded = true;
   bool _testFlowsExpanded = false;
   bool _navigateExpanded = false;
+  bool _banxaExpanded = false;
   bool _appearanceExpanded = true;
 
   double _panelMaxWidth(Size screenSize) {
@@ -657,6 +660,125 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           'Buy fail',
                           () => BuyCancelledDrawer.show(context),
                           tooltip: 'Test Buy Cancelled Drawer',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
+                // DEV-ONLY: Banxa order fixtures. The Banxa order surfaces are
+                // the least walkable in the app — the list, the card, the
+                // details card and its page all render nothing until a real
+                // order exists, and creating one needs a live sandbox round
+                // trip with KYC and a payment method. Phase 9 re-skinned all
+                // of them under a decision (09-CONTEXT.md D-03) that forbade
+                // exactly that, so six of its ten surfaces shipped unwalked.
+                // These buttons close that gap. See lib/dev/dev_banxa_fixtures.dart.
+                _Section(
+                  label: 'BANXA',
+                  expanded: _banxaExpanded,
+                  onToggle: () =>
+                      setState(() => _banxaExpanded = !_banxaExpanded),
+                  gw: gw,
+                  children: [
+                    Wrap(
+                      spacing: GeniusWalletConsts.space2,
+                      runSpacing: GeniusWalletConsts.space2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _devButton(
+                          'Orders x4',
+                          () {
+                            DevBanxaFixtures.instance.arm(
+                              DevBanxaOrders.seeded,
+                            );
+                            context.read<OrdersCubit>().fetchOrders(
+                              'your-cust-id',
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Banxa orders seeded',
+                              message:
+                                  'Four orders, one per status bucket: '
+                                  'completed, pendingPayment, declined, and '
+                                  'an UNKNOWN status that must read neutral '
+                                  'rather than green. HELD until Clear.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Seeds 4 mock Banxa orders covering every '
+                              'bucket of the 09-01 status ladder, then '
+                              'refetches. Makes the orders list, order card, '
+                              'order-details card and its page walkable with '
+                              'no sandbox call. STICKY until Clear.',
+                        ),
+                        _devButton(
+                          'Orders empty',
+                          () {
+                            DevBanxaFixtures.instance.arm(DevBanxaOrders.empty);
+                            context.read<OrdersCubit>().fetchOrders(
+                              'your-cust-id',
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Banxa empty state armed',
+                              message:
+                                  'A SUCCESSFUL fetch returning zero orders — '
+                                  "the GWEmptyState branch 09-02 added. This "
+                                  'is what a new wallet sees. HELD until Clear.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Forces a successful-but-empty orders fetch — '
+                              'the "No orders yet" GWEmptyState, distinct '
+                              'from the error branch. STICKY until Clear.',
+                        ),
+                        _devButton(
+                          'Orders error',
+                          () {
+                            DevBanxaFixtures.instance.arm(DevBanxaOrders.error);
+                            context.read<OrdersCubit>().fetchOrders(
+                              'your-cust-id',
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Banxa orders error armed',
+                              message:
+                                  "The GWErrorState branch 09-02 added, which "
+                                  'replaced a bare "❌" string. Its own Retry '
+                                  'will KEEP failing while armed — press '
+                                  'Clear first, then Retry, to watch it '
+                                  'recover.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Forces an orders-load failure so the '
+                              'GWErrorState + Retry affordance can be walked. '
+                              'STICKY until Clear.',
+                        ),
+                        _devButton(
+                          'Clear Banxa',
+                          () {
+                            DevBanxaFixtures.instance.disarm();
+                            context.read<OrdersCubit>().fetchOrders(
+                              'your-cust-id',
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Banxa fixtures cleared',
+                              message:
+                                  'Next fetch runs for real against the '
+                                  'sandbox.',
+                              type: ToastType.success,
+                            );
+                          },
+                          tooltip:
+                              'Clears any armed Banxa fixture and refetches '
+                              'for real. Press this before testing the error '
+                              "state's own Retry, or it will keep failing.",
                         ),
                       ],
                     ),
