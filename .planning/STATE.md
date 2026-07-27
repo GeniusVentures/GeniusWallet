@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
 status: verifying
-stopped_at: Phase 9 UI-SPEC approved
-last_updated: "2026-07-27T16:10:27.469Z"
+stopped_at: Completed 09-03-PLAN.md
+last_updated: "2026-07-27T16:23:41.593Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
   total_phases: 21
   completed_phases: 15
   total_plans: 86
-  completed_plans: 75
+  completed_plans: 76
   percent: 71
 ---
 
@@ -186,6 +186,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 09-01: MaterialApp wraps content in an implicit AnimatedTheme -- widget tests switching GWColors host across sequential pumpWidget() calls need pumpAndSettle(), not a bare pump(), or they read the pre-transition theme value
 - [Phase ?]: order_card.dart's title/pill Row and action-button Row wrapped in Expanded+Align to guard against test-font overflow while preserving all button variants/gating (D-01)
 - [Phase ?]: Orders-history empty-state filter-active predicate: selectedStatus.isEmpty && startDate == null && endDate == null
+- [Phase ?]: quote_card_test.dart's dark/light divergence check reads gw.textSecondary, not gw.textPrimary -- textPrimary is mode-invariant across GWColors.dark()/.light() by construction (same root-cause class as 09-01's statusWarning finding).
 
 ### Pending Todos
 
@@ -300,8 +301,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T16:08:01.445Z
-Stopped at: Phase 9 UI-SPEC approved
+Last session: 2026-07-27T16:23:41.581Z
+Stopped at: Completed 09-03-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -334,7 +335,7 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: .planning/phases/09-banxa/09-UI-SPEC.md
+Resume file: None
 `06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
@@ -407,6 +408,7 @@ Open decisions:
 | Phase 08-swap-bridge P06 | 20min | 2 tasks | 3 files |
 | Phase 09 P01 | 20min | 2 tasks | 5 files |
 | Phase 09-banxa P02 | 20min | 3 tasks | 4 files |
+| Phase 09-banxa P03 | 15min | 2 tasks | 5 files |
 
 ### Roadmap Evolution
 
