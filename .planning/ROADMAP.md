@@ -413,9 +413,22 @@ Plans:
   3. The checkout QR scans in both light and dark appearance (finding 6), and opening Banxa KYC on Linux falls back to the browser instead of crashing (finding 7)
   4. The develop-only Banxa additions (`banxa_orders_history.dart`, `banxa_payment.dart`, `banxa_buy_screen.dart`) wear the extended design language per the Phase 3 treatment
 
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Wave-0 test floor (`test/banxa/` fixtures + two-mode pump helper) and the one shared 4-bucket order-status ladder
+- [ ] 09-02-PLAN.md — Orders history + order card: GWCard, semantic status pill, GWErrorState/GWEmptyState
+- [ ] 09-03-PLAN.md — Buy screen GWButton CTA ladder, plus the D-08 dead-code quote-card re-skin and its todo
+- [ ] 09-04-PLAN.md — Order details card + page: the missing error branch, the tinted severity banner, twin button swap
+- [ ] 09-05-PLAN.md — Checkout QR (white backing preserved) and the D-07 checkout options sheet
+- [ ] 09-06-PLAN.md — Payment and KYC webview hosts: shared Linux-fallback layout, redirect logic provably untouched
+- [ ] 09-07-PLAN.md — Standing literal gate over all ten in-scope files, and `09-OUTSTANDING.md`
+
 **UI hint**: yes
 **Findings**: 1, 6, 7. **Covers GAP-05**.
+**Scope note (09-CONTEXT D-01/D-02/D-03)**: planned as a RE-SKIN ONLY. Criterion 1 closes PARTIAL,
+criteria 2 and 3 are NOT ADDRESSED. SCR-05 cannot be marked complete by this phase — its wording
+includes the KYC redirect, which D-02 defers. See `09-OUTSTANDING.md` (written by 09-07).
 
 ### Phase 10: dApp connectivity
 
