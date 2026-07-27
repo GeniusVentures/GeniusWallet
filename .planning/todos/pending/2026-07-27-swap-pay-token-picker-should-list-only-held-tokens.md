@@ -62,6 +62,32 @@ used to filter.
 - Interaction with the 08-03 CTA ladder: the "Insufficient {SYMBOL} balance" rung
   does NOT become dead code — it is still reachable by typing an amount larger
   than the held balance. Only the "token you hold none of" path disappears.
+
+## Open question found alongside this — GNUS is not in the swap catalogue at all
+
+Noticed at the 08-07 walk (2026-07-27) while testing the coin-page Swap button:
+tapping Swap on the **GNUS** page seats nothing.
+
+The mechanism is understood and the wiring is correct — `resolvePreselection`
+found no match and declined to guess. `mockTokens` carries 11 symbols (ETH,
+WGLMR, DAI, USDC, USDT, WETH, USDT-BSC, WFTM, WETH-ARB, OP, CELO) and **GNUS is
+not among them**.
+
+What is NOT known, and should not be assumed either way: whether the **live**
+Squid catalogue carries GNUS. `SquidTokenService.fetchTokens()` returns
+`mockTokens` with the real HTTP call commented out (`squid_token_service.dart:12`),
+so no one has seen the real list. Two possibilities, with different consequences:
+
+- **Squid carries GNUS** → this resolves itself the moment the mocks are
+  replaced, and nothing here needs doing.
+- **Squid does not carry GNUS** → the wallet's own token has a permanently inert
+  Swap button on its own page, and GNUS's cross-chain story is the **bridge**
+  only (which is already GNUS-only by design). In that case the GNUS coin page
+  should probably not offer Swap at all, the way `More` is already gated on
+  `isGnusBridgeEnabled` — an inert button is worse than an absent one.
+
+Worth answering before the swap feeds go live, because the answer decides
+whether the GNUS page's action bar needs a gate.
 - The flip control swaps `fromToken`/`toToken`. If the pay side is filtered and the
   receive side is not, flipping can seat a zero-balance token on the pay side —
   decide whether flip re-validates or is simply allowed to produce the
