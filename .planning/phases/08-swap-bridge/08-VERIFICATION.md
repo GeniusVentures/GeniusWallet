@@ -1,9 +1,46 @@
 ---
 phase: 08-swap-bridge
 verified: 2026-07-27T00:00:00Z
-status: human_needed
-score: "9 of 9 items PASS in dark; light mode deliberately not walked (Braian 2026-07-27); criterion 4 partial (dry-run depth, no bridgeOut)"
-behavior_unverified: 0  # in dark. Light mode + criterion 4 full depth remain unverified by choice — see below.
+status: passed
+score: "9 of 9 items PASS in dark; 2 overrides accepted (light mode declined, criterion 4 at dry-run depth)"
+behavior_unverified: 0  # in dark. Light mode + criterion 4 full depth are unverified BY CHOICE — see overrides.
+overrides_applied: 2
+overrides:
+  - must_have: "D-15: WCAG AA on every CTA rung, the route-error notice, the price-impact green, the MAX chip and the brand sheen, in BOTH light and dark"
+    reason: >
+      Only the dark half was walked. Braian declined the light pass on 2026-07-27 — "everything
+      pass and light mode we are not running for now" — after all nine items had passed in dark.
+      This is the SAME class of decision as D-22, which descoped the walk entirely two days
+      earlier, and it is recorded the same way: declined, never performed, never passed.
+      What it genuinely leaves open, stated plainly rather than minimised: D-15's rule explicitly
+      names both modes, so half of it is untested, and the states most likely to fail are the
+      untested ones — the disabled CTA fills and the red route-error tint are what collapse
+      against a light surface, not against a dark one. The brand sheen behind the swap column was
+      called out in item 2 as a light-mode risk specifically. The dust figure and the 13-digit
+      balance in the picker have only ever been seen dark.
+      Accepted rather than blocking the phase because the dark walk was thorough — it found and
+      fixed nine defects the 376-test suite could not — and because a light pass remains cheap to
+      run later against a build that has not changed.
+    accepted_by: "braian"
+    accepted_at: "2026-07-27"
+  - must_have: "CRITERION 4: a bridge result shows its success/error toast ALONGSIDE the 031-B result receipt"
+    reason: >
+      Verified as far as the authorised depth allows, and no further. At 08-07 Task 1 Braian chose
+      DRY-RUN — no `bridgeOut` — consistent with D-23, because that call is a genuine burn on the
+      source chain and mint on the destination, spending real GNUS and real gas.
+      So the bridge SCREEN is verified (120 B1 twin layout, destination sheet, two-row gas card
+      with an em dash before the estimate, no rate or slippage rows, a real gas estimate on typing,
+      1:1 receive), and the RESULT path is not: the shared receipt was exercised through the dev
+      bubble against a synthesized record rather than a real bridge response.
+      Two judgement calls raised by 08-06 therefore remain unanswered: whether the receipt's
+      "Minted" badge and title read acceptably for a bridge (D-19's sanctioned fallback is the
+      transfer type if not), and whether staying on the bridge screen after dismissing the receipt,
+      rather than popping to the token screen as before, is acceptable (RESEARCH Assumptions Log
+      A4). Both need a real bridge to answer honestly.
+      Accepted because closing it requires moving real funds, which is a business decision rather
+      than a verification task.
+    accepted_by: "braian"
+    accepted_at: "2026-07-27"
 requirements: [SCR-04]
 walk_authorisation:
   descoped_by: "D-22 (Braian, 2026-07-25) — 'lets just switch the design we dont need to test it fully'"
@@ -22,8 +59,11 @@ automated_gates:
 > performed. Criterion 4 is partial by authorisation, not by omission: dry-run depth meant no
 > `bridgeOut`, so the real bridge result path was never observed.
 >
-> This file must NOT be flipped to `passed` without an explicit override citing both of those
-> decisions — the same rule D-22 set for the walk it originally cancelled.
+> **CLOSED `passed` on 2026-07-27 with TWO EXPLICIT OVERRIDES**, both accepted by Braian and both
+> recorded in the frontmatter above: the light-mode pass was declined, and criterion 4 was verified
+> only to the dry-run depth he authorised. This is the route D-22 named — *"passed with an explicit
+> override citing D-22, never with fabricated walk evidence"* — and no walk evidence here is
+> fabricated: every PASS below was earned in dark, by a person, at the running app.
 
 ## Criteria
 
@@ -227,6 +267,12 @@ thrown", and that one full block belonged to the dashboard chart. Most likely ca
 unconfirmed: the picker row carrying the 13-digit `1000000000000`, or the 38px hero holding the
 17-character dust amount after MAX — i.e. the very problem sketch 066 was raised to solve. If it
 resurfaces, rebuild with the repeat-collapsing defeated so the widget path prints.
+
+## Companion record
+
+The narrative of the walk — what was found, in what order, and what each fix cost — is in
+`08-07-SUMMARY.md`, written after this file and covering the same session. This document is the
+gate; that one is the story.
 
 ## Light mode — DELIBERATELY NOT WALKED (Braian, 2026-07-27)
 
