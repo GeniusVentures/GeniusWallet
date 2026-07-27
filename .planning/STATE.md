@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 08
-current_phase_name: swap-bridge
+current_phase: 09
+current_phase_name: banxa
 status: executing
-stopped_at: Completed 08-06-PLAN.md
-last_updated: "2026-07-27T11:10:14.711Z"
+stopped_at: Phase 9 context gathered
+last_updated: "2026-07-27T14:26:30.618Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 08 execution started
+last_activity_desc: Phase 09 execution started
 progress:
   total_phases: 21
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 79
-  completed_plans: 72
-  percent: 67
+  completed_plans: 73
+  percent: 71
 ---
 
 # Project State
@@ -24,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 08 — swap-bridge
+**Current focus:** Phase 09 — banxa
 
 ## Current Position
 
@@ -58,14 +58,14 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
-Phase: 08 (swap-bridge) — EXECUTING
-Plan: 6 of 7 complete (08-01..08-05 done via SUMMARY files on disk; 08-06/08-07 next) — this counter
+Phase: 09 (banxa) — EXECUTING
+Plan: 1 of ?
 drifts independently of the phases dir per the project's dual-track note; verify against
 `.planning/phases/08-swap-bridge/*-SUMMARY.md` rather than trusting it at face value.
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
-Status: Ready to execute
+Status: Executing Phase 09
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
 `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
@@ -107,7 +107,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-27 — Phase 08 execution started
+Last activity: 2026-07-27 — Phase 09 execution started
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
@@ -295,8 +295,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T11:10:14.700Z
-Stopped at: Completed 08-06-PLAN.md
+Last session: 2026-07-27T14:26:30.608Z
+Stopped at: Phase 9 context gathered
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -329,7 +329,7 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: None
+Resume file: .planning/phases/09-banxa/09-CONTEXT.md
 `06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
