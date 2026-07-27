@@ -174,7 +174,7 @@ Deferred to future milestones.
 | SCR-02 | Phase 6 — Onboarding | ✓ Complete (Phase 6 closed 2026-07-23; fresh-install walk PASSED) |
 | GAP-04 | Phase 6 — Onboarding | ✓ Complete (closed by 06-02, `ba8e412`) |
 | SCR-03 | Phase 7 — Token screens | Pending |
-| SCR-04 | Phase 8 — Swap & bridge | In progress (3 of 7 plans; swap tab re-skinned by 08-03, result path 08-05 pending) |
+| SCR-04 | Phase 8 — Swap & bridge | In progress (5 of 7 plans; swap tab re-skinned by 08-03, swap result path (receipt wiring + drawer consolidation) closed by 08-05; bridge result path 08-06 pending; box stays unchecked until phase verification per 08-04-PLAN.md) |
 | SCR-05 | Phase 9 — Banxa | Pending |
 | GAP-05 | Phase 9 — Banxa | Pending |
 | SCR-06 | Phase 10 — dApp connectivity | Pending |

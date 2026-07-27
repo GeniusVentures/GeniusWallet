@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 07
-current_phase_name: token-screens
+current_phase: 08
+current_phase_name: swap-bridge
 status: executing
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-07-25T23:24:19.782Z"
-last_activity: 2026-07-24
-last_activity_desc: Phase 07 execution started
+stopped_at: Completed 08-05-PLAN.md
+last_updated: "2026-07-27T10:56:33.975Z"
+last_activity: 2026-07-27
+last_activity_desc: Phase 08 execution started
 progress:
-  total_phases: 15
-  completed_phases: 13
-  total_plans: 72
-  completed_plans: 69
+  total_phases: 21
+  completed_phases: 14
+  total_plans: 79
+  completed_plans: 71
+  percent: 67
 ---
 
 # Project State
@@ -23,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 07 — token-screens
+**Current focus:** Phase 08 — swap-bridge
 
 ## Current Position
 
@@ -57,8 +58,10 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
-Phase: 07 (token-screens) — EXECUTING
-Plan: 3 of 3
+Phase: 08 (swap-bridge) — EXECUTING
+Plan: 5 of 7 complete (08-01..08-05 done via SUMMARY files on disk; 08-06/08-07 next) — this counter
+drifts independently of the phases dir per the project's dual-track note; verify against
+`.planning/phases/08-swap-bridge/*-SUMMARY.md` rather than trusting it at face value.
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
@@ -104,7 +107,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-24 — Phase 07 execution started
+Last activity: 2026-07-27 — Phase 08 execution started
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
@@ -173,6 +176,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 08-swap-bridge]: 08-04: bridge_cta_state.dart's ladder treats a null balance as insufficientBalance (not swap's "never accuse on missing data" rule) -- mirrors bridge's own precheck (`fromToken?.balance == null` already returns before any API call in develop)
 - [Phase 08-swap-bridge]: 08-04: Ready CTA label locked to "Bridge" (develop's own word), not the UI-SPEC's alternative "Review bridge" -- no second confirmation step exists on this screen
 - [Phase 08-swap-bridge]: 08-04: bridgeOut(... shouldMintTokens: true) and getBrigeOutGasCost(...) confirmed byte-identical to develop -- only isEstimating/isSubmitting (added state) wrap the real calls; no argument, guard, or precheck touched (D-11)
+- [Phase 08-05]: Task 3 (swap_settings_drawer.dart re-skin, D-13) skipped as superseded -- sketch 063-A already landed on the file 2026-07-26, before this execution, per the plan's own banner; re-verified live (zero ElevatedButton/Ink matches, footer already GWButtonVariant.gradient)
+- [Phase 08-05]: swap_screen.dart: fees blanked ('' instead of fromAmount) on the swap Transaction; transaction_displays.dart's Network Fee row now skips a blank fees, mirroring the Rate row's existing skip-empty contract
 
 ### Pending Todos
 
@@ -287,8 +292,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-25T18:14:14.871Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-07-27T10:56:33.965Z
+Stopped at: Completed 08-05-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -390,6 +395,7 @@ Open decisions:
 | Phase 05 P01 | ~20min | 2 tasks | 3 files |
 | Phase 08-swap-bridge P02 | 25min | 3 tasks | 3 files |
 | Phase 08-swap-bridge P03 | 30min | 3 tasks | 3 files |
+| Phase 08-swap-bridge P05 | 25min | 2 tasks | 7 files |
 
 ### Roadmap Evolution
 
