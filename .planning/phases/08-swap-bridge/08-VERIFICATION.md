@@ -12,7 +12,7 @@ walk_authorisation:
   host: "Windows 11, flutter run -d windows --debug --dart-define=GW_DEV_TOOLS=true, Flutter 3.41.9"
 automated_gates:
   analyze: "59 issues (baseline 61) — no new issues in touched files"
-  tests: "363 pass / 1 known pre-existing failure (test/local_wallet_storage_test.dart — 'Missing definition of main method', unrelated to this phase)"
+  tests: "376 pass / 1 known pre-existing failure (test/local_wallet_storage_test.dart — 'Missing definition of main method', unrelated to this phase). Up from 326 at the start of the walk: the walk added 50 tests across the balance math, the holdings filter, the picker empty state, the magnitude fixtures, the FAB push/pop paths and the swap preselection."
 ---
 
 # Phase 08 — Swap & Bridge: Verification
