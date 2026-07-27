@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -297,6 +298,20 @@ class MyApp extends StatelessWidget {
     };
 
     FlutterError.onError = (FlutterErrorDetails details) {
+      // DEBUG ONLY — make every error report its own widget path.
+      //
+      // `presentError` prints the full block (including "The relevant
+      // error-causing widget was: … file:line") only for the FIRST error of a
+      // run, collapsing every later one to "Another exception was thrown".
+      // In practice the dashboard chart's overflow fires at boot and
+      // permanently consumes that one detailed report, so every subsequent
+      // overflow is anonymous — which is exactly what stalled three of them
+      // during the 08-07 walk. Resetting the counter first makes each error
+      // print in full.
+      //
+      // Costs a noisier debug console and nothing in release: `kDebugMode` is
+      // a const, so this is tree-shaken out of profile/release builds.
+      if (kDebugMode) FlutterError.resetErrorCount();
       FlutterError.presentError(details);
       debugPrint('FlutterError caught: ${details.exception}');
     };
