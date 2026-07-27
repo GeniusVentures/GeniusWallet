@@ -39,10 +39,11 @@ class RouteDetailsCard extends StatelessWidget {
     final fees = '\$${totalFeesUsd.toStringAsFixed(2)}';
 
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space8,
-        vertical: GeniusWalletConsts.space4,
-      ),
+      // Vertical only. A horizontal margin here inset this card 16px inside
+      // the two amount cards above it, which carry no outer margin of their
+      // own — the column already applies the page gutter once, at its own
+      // level, so anything adding a second one lands on a different edge.
+      margin: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space4),
       decoration: BoxDecoration(
         color: gw.surfaceElevated,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
