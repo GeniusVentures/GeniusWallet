@@ -2,8 +2,8 @@
 phase: 08-swap-bridge
 verified: 2026-07-27T00:00:00Z
 status: human_needed
-score: "walk IN PROGRESS — 8 of 9 settled in dark, item 7 (bridge) not walked; 0 of 9 in light"
-behavior_unverified: 1
+score: "9 of 9 items PASS in dark; light mode deliberately not walked (Braian 2026-07-27); criterion 4 partial (dry-run depth, no bridgeOut)"
+behavior_unverified: 0  # in dark. Light mode + criterion 4 full depth remain unverified by choice — see below.
 requirements: [SCR-04]
 walk_authorisation:
   descoped_by: "D-22 (Braian, 2026-07-25) — 'lets just switch the design we dont need to test it fully'"
@@ -17,9 +17,13 @@ automated_gates:
 
 # Phase 08 — Swap & Bridge: Verification
 
-> **STATUS: WALK IN PROGRESS.** This file is written as the walk proceeds so nothing is lost.
-> It must NOT be flipped to `passed` until every numbered item has a verdict in BOTH appearance
-> modes. Items with no verdict below are **not** implied passes.
+> **STATUS: dark-mode walk COMPLETE, light-mode walk DECLINED.** All nine items pass in dark.
+> Light mode was deliberately not run (Braian, 2026-07-27) and is recorded as declined, never as
+> performed. Criterion 4 is partial by authorisation, not by omission: dry-run depth meant no
+> `bridgeOut`, so the real bridge result path was never observed.
+>
+> This file must NOT be flipped to `passed` without an explicit override citing both of those
+> decisions — the same rule D-22 set for the walk it originally cancelled.
 
 ## Criteria
 
@@ -28,9 +32,9 @@ automated_gates:
 | 1 | Swap renders in the redesign skin (105 A1); quote figures match develop | 🟨 dark PASS, light outstanding |
 | 2 | Route-fetch failure → em dash, no route card, red notice, enabled Retry | 🟨 dark PASS, light outstanding |
 | 3 | Submit → develop's outcome (toast + receipt + persisted tx), NO real swap (D-01) | 🟨 dark PASS as the documented deviation, light outstanding |
-| 4 | Bridge result shows toast ALONGSIDE the receipt | ⬜ not walked (dry-run depth only) |
+| 4 | Bridge result shows toast ALONGSIDE the receipt | 🟨 PARTIAL — screen verified dark at dry-run depth; NO bridgeOut, so the real result path is unobserved |
 | 5 | Cold start with no `!_dirty`; FAB present/absent on the right surfaces | 🟨 dark PASS (after `10be9c3`), light outstanding |
-| D-15 | WCAG AA on every CTA rung, notice, impact green, MAX chip, sheen — both modes | ⬜ not walked |
+| D-15 | WCAG AA on every CTA rung, notice, impact green, MAX chip, sheen — both modes | 🟨 dark PASS; **light HALF NEVER TESTED** — the rule explicitly requires both |
 
 ## Walk items
 
@@ -134,7 +138,28 @@ Squid swap was executed and none was attempted — `swap_screen.dart` still carr
 `// TODO:` markers, grep-guarded by 08-05. Recording this as "a swap executed" would be false.
 
 **Outstanding:** light mode.
-### 7. Bridge (120 B1), dry-run depth — ⬜ not walked
+### 7. Bridge (120 B1), dry-run depth — ✅ PASS (dark), at DRY-RUN depth only
+
+Walked by Braian 2026-07-27. The bridge screen reads as the Swap tab's twin per sketch 120 B1:
+compact back-arrow header, ~560px column, source→destination route bar whose destination chip
+opens a picker **sheet** (not a dropdown menu), "You Pay" / "You Receive on {network}" cards, a gas
+card with exactly two rows showing an **em dash rather than a 0** before an estimate arrives, no
+rate row, no slippage row, no flip control and no swap/bridge toggle. Entry still requires GNUS
+with a non-zero balance. A real gas estimate arrives on typing an amount — that call genuinely
+hits chain — and the receive amount mirrors the pay amount 1:1.
+
+**CRITERION 4 IS PARTIALLY VERIFIED, AND MUST NOT BE RECORDED OTHERWISE.** The walk stopped at
+CTA-ready. No `bridgeOut` was called, per the dry-run depth Braian authorised at Task 1 and per
+D-23. So the toast-alongside-receipt path was NOT observed against a real bridge response — the
+shared receipt was exercised through the dev bubble instead, against a synthesized record.
+
+Consequently these two remain **UNANSWERED**, both flagged by 08-06 as needing human judgement:
+
+1. Whether the receipt's **"Minted"** badge and title read acceptably for a bridge. D-19's
+   sanctioned fallback is the transfer type if they do not.
+2. Whether **staying on the bridge screen** after dismissing the receipt — instead of popping back
+   to the token screen as before — is acceptable (RESEARCH Assumptions Log A4). This is a
+   documented behaviour change, and it has not been put to a human against a real bridge.
 ### 8. No orphans / no Phase-10 damage — ✅ PASS (dark), one cosmetic defect routed elsewhere
 
 Verified by direct inspection 2026-07-27 (this is the half that does not need eyes):
@@ -202,6 +227,31 @@ thrown", and that one full block belonged to the dashboard chart. Most likely ca
 unconfirmed: the picker row carrying the 13-digit `1000000000000`, or the 38px hero holding the
 17-character dust amount after MAX — i.e. the very problem sketch 066 was raised to solve. If it
 resurfaces, rebuild with the repeat-collapsing defeated so the widget path prints.
+
+## Light mode — DELIBERATELY NOT WALKED (Braian, 2026-07-27)
+
+*"everything pass and light mode we are not running for now."*
+
+Every verdict above is **dark mode only**. Light mode was not walked, and nothing here may be read
+as implying it. This is a deliberate descope by the developer, recorded as such — the same
+treatment D-22 prescribed for the walk it originally cancelled: *"never as performed, never as
+passed."*
+
+**What that leaves genuinely unverified**, rather than merely unrecorded:
+
+- **D-15 is the biggest hole.** Its whole point is *"WCAG AA in BOTH light and dark, across every
+  CTA rung including the disabled ones."* Half the rule was tested. The states most likely to fail
+  are precisely the untested ones: disabled CTA fills and the red route-error tint, both of which
+  collapse most easily against a light surface.
+- The brand sheen behind the swap column — item 2 explicitly called out light mode as the mode
+  where it might wash out card contrast.
+- The route-error notice's legibility (item 4).
+- The `<0.000001` dust figure and the 13-digit balance in the picker (item 3), which sketch 066 was
+  raised to address and which have only ever been seen dark.
+
+This is the known cost, accepted knowingly. Phase 06's walk found eleven defects that appeared in
+no plan; this walk found nine in dark alone. A light-mode pass would be the cheapest remaining
+place to find more.
 
 ## Defects found by this walk and fixed during it
 
