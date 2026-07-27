@@ -191,3 +191,8 @@ None - no external service configuration required.
 ---
 *Phase: 09-banxa*
 *Completed: 2026-07-27*
+
+## Self-Check: PASSED
+
+All 6 created/modified files found on disk; all 3 commits (`dc7421d`, `3536bbe`,
+`ab197bf`) found in `git log --oneline --all`.
