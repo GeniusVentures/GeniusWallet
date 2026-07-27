@@ -6,14 +6,14 @@ current_phase: 09
 current_phase_name: banxa
 status: executing
 stopped_at: Phase 9 UI-SPEC approved
-last_updated: "2026-07-27T14:42:43.672Z"
+last_updated: "2026-07-27T15:52:11.007Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 09 execution started
+last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
   total_phases: 21
   completed_phases: 15
-  total_plans: 79
-  completed_plans: 73
+  total_plans: 86
+  completed_plans: 74
   percent: 71
 ---
 
@@ -59,7 +59,8 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 09 (banxa) — EXECUTING
-Plan: 1 of ?
+Plan: 09-01 of 7 COMPLETE (`b479266`/`9c246e3`; test/banxa/ floor + shared order-status ladder;
+analyze lib 59/59, test 389/1 = 376 baseline + 13 new). 09-02..09-07 not yet executed.
 drifts independently of the phases dir per the project's dual-track note; verify against
 `.planning/phases/08-swap-bridge/*-SUMMARY.md` rather than trusting it at face value.
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
@@ -107,7 +108,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-27 — Phase 09 execution started
+Last activity: 2026-07-27 — Phase 09 execution resumed (wave continue)
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
@@ -181,6 +182,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 08-06]: bridge_receipt.dart's doc comment reworded to avoid literal tokens (BuildContext/TransactionsCubit/TransactionStorageService) its own purity grep checks for -- same meaning, doesn't trip the gate
 - [Phase 08-06]: Dropped go_router, scaffold_helper.dart, and flutter/services.dart imports from bridge_screen.dart (all three were referenced only inside the deleted AlertDialog); flutter analyze confirms zero issues
 - [Phase 08-06]: Failure toast surfaces bridgeTokensResponse.errorMessage when present, falling back to develop's own string -- the shared receipt has no free-text error slot
+- [Phase ?]: gwBothModes declared final not const -- GWColors.dark()/.light() are non-const factories with a debug-mode assert
+- [Phase ?]: 09-01: MaterialApp wraps content in an implicit AnimatedTheme -- widget tests switching GWColors host across sequential pumpWidget() calls need pumpAndSettle(), not a bare pump(), or they read the pre-transition theme value
 
 ### Pending Todos
 
@@ -295,7 +298,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T14:42:43.662Z
+Last session: 2026-07-27T15:49:28.553Z
 Stopped at: Phase 9 UI-SPEC approved
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
@@ -400,6 +403,7 @@ Open decisions:
 | Phase 08-swap-bridge P03 | 30min | 3 tasks | 3 files |
 | Phase 08-swap-bridge P05 | 25min | 2 tasks | 7 files |
 | Phase 08-swap-bridge P06 | 20min | 2 tasks | 3 files |
+| Phase 09 P01 | 20min | 2 tasks | 5 files |
 
 ### Roadmap Evolution
 
