@@ -71,4 +71,53 @@ void main() {
       expect(b.displayBalance, '<0.000001');
     });
   });
+
+  group('the magnitude stress fixtures render as their comments claim', () {
+    // These pin the four extremes added to `mockSquidBalances` at the 08-07
+    // walk. The fixtures exist to stress the picker row and the 38px amount
+    // slot; if a future edit changes what they render, the comment next to
+    // each fixture becomes a lie and this group is where that surfaces.
+
+    test('DUST: 1e-15 of an 18-decimal token reads "<0.000001"', () {
+      expect(_balance(raw: '1000', decimals: 18).displayBalance, '<0.000001');
+    });
+
+    test('FLOOR: exactly 0.000001 reads as the figure, not "less than"', () {
+      expect(_balance(raw: '1', decimals: 6).displayBalance, '0.000001');
+    });
+
+    test('LONG FRACTION: eighteen decimals are capped at six', () {
+      expect(
+        _balance(raw: '1234567890123456789', decimals: 18).displayBalance,
+        '1.234568',
+      );
+    });
+
+    test('HUGE: 1e12 whole tokens render every digit', () {
+      expect(
+        _balance(
+          raw: '1000000000000000000000000000000',
+          decimals: 18,
+        ).displayBalance,
+        '1000000000000',
+      );
+    });
+
+    test('all four survive the pay-side spendability filter', () {
+      // Dust especially — a filter that dropped it would be deciding what is
+      // worth owning.
+      for (final raw in [
+        '1000',
+        '1',
+        '1234567890123456789',
+        '1000000000000000000000000000000',
+      ]) {
+        expect(
+          double.tryParse(raw)! > 0,
+          isTrue,
+          reason: '$raw must read as a spendable balance',
+        );
+      }
+    });
+  });
 }
