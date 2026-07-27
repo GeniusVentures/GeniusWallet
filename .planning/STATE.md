@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
 status: executing
-stopped_at: Phase 9 context gathered
-last_updated: "2026-07-27T14:26:30.618Z"
+stopped_at: Phase 9 UI-SPEC approved
+last_updated: "2026-07-27T14:42:43.672Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 09 execution started
 progress:
@@ -295,8 +295,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T14:26:30.608Z
-Stopped at: Phase 9 context gathered
+Last session: 2026-07-27T14:42:43.662Z
+Stopped at: Phase 9 UI-SPEC approved
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -329,7 +329,7 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: .planning/phases/09-banxa/09-CONTEXT.md
+Resume file: .planning/phases/09-banxa/09-UI-SPEC.md
 `06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
