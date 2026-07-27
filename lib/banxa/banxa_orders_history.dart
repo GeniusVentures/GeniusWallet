@@ -9,6 +9,10 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -102,39 +106,98 @@ class _OrdersPageState extends State<OrdersPage> {
     );
   }
 
+  // Task 2 · sketch 152 / token_info_screen.dart:92-129, applied verbatim —
+  // the one shared back-arrow AppBar recipe, reused rather than reinvented.
+  // Only reached when `canGoBack` (see build()); the three actions are the
+  // SAME instances the plain-chrome branch uses (icons/tooltips/onPressed
+  // unchanged, D-01).
+  PreferredSizeWidget _buildBackArrowAppBar(
+    BuildContext context,
+    GWColors gw,
+    List<Widget> actions,
+  ) {
+    return AppBar(
+      toolbarHeight: 48,
+      backgroundColor: gw.surfaceSunken,
+      elevation: 0,
+      titleSpacing: 0,
+      automaticallyImplyLeading: false,
+      centerTitle: false,
+      title: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
+              ? GeniusWalletConsts.space10
+              : GeniusWalletConsts.space8,
+        ),
+        child: Row(
+          children: [
+            InkWell(
+              onTap: () => Navigator.of(context).maybePop(),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+              child: SizedBox(
+                width: 30,
+                height: 30,
+                child: Center(
+                  child: SketchIcon(
+                    SketchIcons.back,
+                    size: 18,
+                    color: gw.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: GeniusWalletConsts.space6),
+            Text(
+              'My Orders',
+              style: GeniusWalletTypography.titleMd.copyWith(
+                color: gw.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: actions,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final canGoBack = GoRouter.of(context).canPop();
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: canGoBack,
-        title: const Text("My Orders"),
-        actions: [
-          IconButton(
-            tooltip: "KYC",
-            icon: const Icon(Icons.assignment_ind),
-            onPressed: () => context.push('/kyc'),
-          ),
-          IconButton(
-            tooltip: "Refresh",
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<OrdersCubit>().fetchOrders('your-cust-id');
-            },
-          ),
-          IconButton(
-            onPressed: () => context.push('/createOrder'),
-            icon: const Row(
-              children: [
-                Icon(Icons.add),
-                SizedBox(width: 4),
-                Text('New Order'),
-              ],
-            ),
-            tooltip: 'Create new order',
-          ),
-        ],
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final actions = <Widget>[
+      IconButton(
+        tooltip: "KYC",
+        icon: const Icon(Icons.assignment_ind),
+        onPressed: () => context.push('/kyc'),
       ),
+      IconButton(
+        tooltip: "Refresh",
+        icon: const Icon(Icons.refresh),
+        onPressed: () {
+          context.read<OrdersCubit>().fetchOrders('your-cust-id');
+        },
+      ),
+      IconButton(
+        onPressed: () => context.push('/createOrder'),
+        icon: const Row(
+          children: [
+            Icon(Icons.add),
+            SizedBox(width: 4),
+            Text('New Order'),
+          ],
+        ),
+        tooltip: 'Create new order',
+      ),
+    ];
+    return Scaffold(
+      appBar: canGoBack
+          ? _buildBackArrowAppBar(context, gw, actions)
+          : AppBar(
+              automaticallyImplyLeading: canGoBack,
+              title: const Text("My Orders"),
+              actions: actions,
+            ),
       body: BlocBuilder<OrdersCubit, OrdersState>(
         builder: (context, state) {
           if (state.status == OrdersStatus.loading) {
@@ -182,16 +245,14 @@ class _OrdersPageState extends State<OrdersPage> {
                     if (startDate != null && endDate != null)
                       Text(
                         "Selected: ${DateFormat('yyyy-MM-dd').format(startDate!)} → ${DateFormat('yyyy-MM-dd').format(endDate!)}",
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
+                        style: GeniusWalletTypography.bodySm.copyWith(
+                          color: gw.textSecondary,
                         ),
                       ),
                     Text(
                       "Total Orders: ${orders.length}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      style: GeniusWalletTypography.labelMd.copyWith(
+                        color: gw.textSecondary,
                       ),
                     ),
                     orders.isEmpty
