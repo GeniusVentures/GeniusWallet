@@ -710,8 +710,18 @@ class _SwapScreenState extends State<SwapScreen> {
                                     slippage: slippage.toString(),
                                   ),
                                 if (routeError) _buildRouteErrorNotice(gw),
+                                // The gap the eye reads here is NOT this box
+                                // alone: RouteDetailsCard (and the error notice
+                                // that replaces it) each carry their own
+                                // `vertical: space4` margin, so the space
+                                // between the fees table and the CTA was
+                                // 8 + 24 = 32px. Halved to 16 at the walk
+                                // (Braian, 2026-07-27) by taking this box to
+                                // space4 — 8 + 8. Changing this to space6 would
+                                // have given 20px, not the half that was asked
+                                // for.
                                 const SizedBox(
-                                  height: GeniusWalletConsts.space12,
+                                  height: GeniusWalletConsts.space4,
                                 ),
                                 _buildSwapCta(gw),
                               ],
