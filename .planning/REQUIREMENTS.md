@@ -47,7 +47,7 @@ verified by running the flow.
 - [ ] **SCR-02**: Onboarding (create, import, recovery phrase, verify, legal) wears the redesign and keeps develop's behavior — including the seed-phrase read-only/hide-toggle and no seed logging
 - [ ] **SCR-03**: Token screens (token info, send, receive, address book, market data) wear the redesign
 - [ ] **SCR-04**: Swap (Squid Router) wears the redesign and keeps develop's route/fee/slippage logic
-- [ ] **SCR-05**: Banxa (buy, KYC, checkout, order history/details) wears the redesign and keeps develop's rework — including the real KYC redirect URL
+- [x] **SCR-05**: Banxa (buy, KYC, checkout, order history/details) wears the redesign and keeps develop's rework — including the real KYC redirect URL
 - [ ] **SCR-06**: dApp connectivity (Reown/WalletConnect) wears the redesign and keeps develop's idempotent init guard — an arch-based skip kills WalletConnect on all x64 desktop
 
 ### Design Gaps (GAP)

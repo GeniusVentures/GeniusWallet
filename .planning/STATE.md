@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
 status: verifying
-stopped_at: Completed 09-03-PLAN.md
-last_updated: "2026-07-27T16:23:41.593Z"
+stopped_at: Completed 09-banxa-04-PLAN.md
+last_updated: "2026-07-27T16:36:51.801Z"
 last_activity: 2026-07-27
 last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
   total_phases: 21
   completed_phases: 15
   total_plans: 86
-  completed_plans: 76
+  completed_plans: 77
   percent: 71
 ---
 
@@ -187,6 +187,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: order_card.dart's title/pill Row and action-button Row wrapped in Expanded+Align to guard against test-font overflow while preserving all button variants/gating (D-01)
 - [Phase ?]: Orders-history empty-state filter-active predicate: selectedStatus.isEmpty && startDate == null && endDate == null
 - [Phase ?]: quote_card_test.dart's dark/light divergence check reads gw.textSecondary, not gw.textPrimary -- textPrimary is mode-invariant across GWColors.dark()/.light() by construction (same root-cause class as 09-01's statusWarning finding).
+- [Phase 09-banxa]: order_details_card.dart: removed bannerColor, added OrderStatusTone? bannerTone driven from order_details_page.dart's initialStatus
+- [Phase 09-banxa]: order_details_page.dart: kept the canGoBack ? null : IconButton(...) two-case AppBar shape (restyled, not collapsed into the single-InkWell recipe used elsewhere in Phase 9)
 
 ### Pending Todos
 
@@ -301,8 +303,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-27T16:23:41.581Z
-Stopped at: Completed 09-03-PLAN.md
+Last session: 2026-07-27T16:36:51.789Z
+Stopped at: Completed 09-banxa-04-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -409,6 +411,7 @@ Open decisions:
 | Phase 09 P01 | 20min | 2 tasks | 5 files |
 | Phase 09-banxa P02 | 20min | 3 tasks | 4 files |
 | Phase 09-banxa P03 | 15min | 2 tasks | 5 files |
+| Phase 09-banxa P04 | 3min | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 
