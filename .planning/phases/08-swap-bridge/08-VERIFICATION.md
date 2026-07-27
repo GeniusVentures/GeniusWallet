@@ -2,8 +2,8 @@
 phase: 08-swap-bridge
 verified: 2026-07-27T00:00:00Z
 status: human_needed
-score: "walk IN PROGRESS — 1 of 9 items settled, dark mode only"
-behavior_unverified: 8
+score: "walk IN PROGRESS — 3 of 9 items settled in dark; 0 of 9 in light"
+behavior_unverified: 6
 requirements: [SCR-04]
 walk_authorisation:
   descoped_by: "D-22 (Braian, 2026-07-25) — 'lets just switch the design we dont need to test it fully'"
@@ -25,11 +25,11 @@ automated_gates:
 
 | # | Criterion | Verdict |
 |---|-----------|---------|
-| 1 | Swap renders in the redesign skin (105 A1); quote figures match develop | ⬜ not walked |
+| 1 | Swap renders in the redesign skin (105 A1); quote figures match develop | 🟨 dark PASS, light outstanding |
 | 2 | Route-fetch failure → em dash, no route card, red notice, enabled Retry | ⬜ not walked |
 | 3 | Submit → develop's outcome (toast + receipt + persisted tx), NO real swap (D-01) | ⬜ not walked |
 | 4 | Bridge result shows toast ALONGSIDE the receipt | ⬜ not walked (dry-run depth only) |
-| 5 | Cold start with no `!_dirty`; FAB present/absent on the right surfaces | 🟨 **partial** — see item 1 |
+| 5 | Cold start with no `!_dirty`; FAB present/absent on the right surfaces | 🟨 dark PASS (after `10be9c3`), light outstanding |
 | D-15 | WCAG AA on every CTA rung, notice, impact green, MAX chip, sheen — both modes | ⬜ not walked |
 
 ## Walk items
@@ -59,12 +59,38 @@ floating on top of it. The nav bar uses `context.go`, which hid it correctly —
 test used `go`, the one path that was never broken. Fixed in `10be9c3` by reading
 `last.matchedLocation`; two regression tests added (hidden after push, restored on pop).
 
-**Outstanding for this item:** the visual half has not been re-walked since the fix — FAB on the
-dashboard and a pushed token detail, absent on `/swap` and onboarding, returning on back-out,
-exactly one FAB, not covering another screen's CTA. And nothing here has been seen in light mode.
+**FAB half re-walked after the fix — PASS (dark).** Braian, 2026-07-27, on the build carrying
+`10be9c3`: FAB present on the dashboard and on a pushed token detail, **absent on `/swap` including
+when reached by tapping the FAB itself** (the exact path that was broken), returning on back-out,
+exactly one FAB, not covering another screen's CTA.
 
-### 2. Swap skin + quote figures (105 A1) — ⬜ not walked
-### 3. MAX + the fiat line — ⬜ not walked
+**Outstanding for this item:** light mode.
+
+### 2. Swap skin + quote figures (105 A1) — ✅ PASS (dark)
+
+Walked by Braian 2026-07-27 against sketch 105 A1: centred ~560px column, brand sheen not washing
+out card contrast, one-line subtitle under "Swap", 38px amounts, flip control sitting IN THE SEAM
+between the cards (the `-170` pixel-offset hack is gone), route-details card showing Pricing /
+Slippage / Price Impact / Fees. Quote figures match develop — noting D-18b: the quote is a
+compile-time constant, so the criterion is "the same figures develop showed", never "a live route".
+
+Walked on the build carrying `faaa74b`, which halved the fees-table→CTA gap from 32px to 16px at
+Braian's request during this item.
+
+**Outstanding:** light mode.
+
+### 3. MAX + the fiat line — ✅ PASS (dark)
+
+Walked by Braian 2026-07-27. MAX fills the amount from the token's balance. Note the conditions
+that made this a real test rather than a formality: CoinGecko was returning HTTP 429 and the
+USDC/GNUS/USDT price fetches failed with handshake errors throughout the session, so no price was
+known for most tokens — the fiat line had to be ABSENT rather than `$0.00`, and was.
+
+This item also covers the first sight of the 08-07 magnitude fixtures in the picker
+(`<0.000001` through `1000000000000`) on the build carrying the `pow`/`toDouble` fix, i.e. the
+first run in which held balances rendered their real figures at all rather than `0`.
+
+**Outstanding:** light mode.
 ### 4. Route error (D-09) — ⬜ not walked
 ### 5. CTA ladder + D-15 disabled contrast — ⬜ not walked
 ### 6. Swap submit (D-01 documented deviation) — ⬜ not walked
