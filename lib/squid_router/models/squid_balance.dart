@@ -35,8 +35,14 @@ class SquidBalance {
     };
   }
 
+  /// `pow(10, decimals)` returns an **int** whenever base and exponent are both
+  /// ints — which they always are here — so the old `as double` cast threw
+  /// `type 'int' is not a subtype of type 'double'` for EVERY token carrying a
+  /// balance. [displayBalance] swallowed it and rendered `0`; `swap_screen`'s
+  /// `fromBalanceAmount` did not, and threw during build. `.toDouble()` is the
+  /// conversion the cast was reaching for.
   double get amountAsDouble =>
-      double.tryParse(balance)! / (pow(10, decimals) as double);
+      double.tryParse(balance)! / pow(10, decimals).toDouble();
 
   @override
   String toString() =>
