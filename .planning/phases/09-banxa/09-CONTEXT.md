@@ -69,6 +69,28 @@ finding 7, separate from this re-skin. Criterion 2 is the one that actually bloc
 - **D-06:** Cubits and services are untouched — `banxa_order/*`, `banxa_api_services.dart`,
   `banxa_model.dart`, `banxa_helpers/*`. A re-skin has no business in the order state machine.
 
+### Scope gaps resolved after research (Braian, 2026-07-27)
+
+Research surfaced two files that fell between D-04 and D-05. Both are now decided:
+
+- **D-07: `lib/banxa/handle_banxa_drawer.dart` IS in scope for Phase 9.**
+  The checkout options sheet is invoked from **4 call sites across 3 in-scope files**. Leaving it
+  pre-redesign would mean every re-skinned Banxa screen opens an un-re-skinned sheet — a seam a
+  walk would catch immediately. It is NOT claimed by plan 21-04, so including it here creates no
+  collision with Phase 21. This is the one drawer Phase 9 owns; D-05's fence still holds for the
+  other four.
+
+- **D-08: `lib/banxa/quote_card.dart` is re-skinned and LEFT DEAD.**
+  Confirmed dead code — `QuoteCard(` has exactly one match in all of `lib/`, its own constructor;
+  `banxa_buy_screen.dart` hand-rolls an equivalent card inline. Braian chose to re-skin it rather
+  than delete it or consolidate the two.
+  **Accepted cost, recorded so it is not rediscovered as a surprise:** this produces **zero
+  user-visible change**, and it leaves two divergent copies of the same card — the styled-but-dead
+  component and the inline one that actually renders. A future edit could easily land on the wrong
+  one. Consolidation was rejected because repointing the screen at the component is restructuring,
+  which `PROJECT.md` §65 fences out of a re-skin phase; deletion was rejected too. A todo should be
+  filed so the duplication has an owner.
+
 ### Claude's Discretion
 - Which redesign primitives each surface adopts (GWCard, GWButton, GWPageHeader, the shipped input
   theme, `GWColors` reads) — the design language is already settled across phases 3–8; this is
