@@ -12,6 +12,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/squid_router/held_tokens.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
@@ -612,8 +613,22 @@ class _SwapScreenState extends State<SwapScreen> {
                                           },
                                           selectedToken: fromToken,
                                           isSelectingFrom: true,
+                                          // The pay side offers ONLY what the
+                                          // wallet can spend (`heldTokens`) —
+                                          // you cannot swap a BNB you do not
+                                          // have, and the old full-catalogue
+                                          // list only revealed that at the CTA.
+                                          // The receive side below is
+                                          // deliberately NOT filtered.
+                                          pickerEmptyTitle:
+                                              'No tokens to swap',
+                                          pickerEmptyMessage:
+                                              'This wallet holds no tokens with '
+                                              'a balance on the selected '
+                                              'network. Receive or buy a token '
+                                              'to start swapping.',
                                           // filter out the selected toToken, and the token that is already selected
-                                          tokens: tokens
+                                          tokens: heldTokens(tokens)
                                               .where(
                                                 (t) =>
                                                     (toToken == null ||

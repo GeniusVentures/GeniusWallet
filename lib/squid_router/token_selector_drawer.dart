@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
@@ -35,12 +36,25 @@ class TokenSelectorDrawer extends StatefulWidget {
   /// with nothing selected, which is what it did before.
   final SquidTokenInfo? selectedToken;
 
+  /// Shown when [tokens] arrives EMPTY — i.e. the caller had nothing to offer,
+  /// not the search that found nothing.
+  ///
+  /// The pay side is filtered to holdings (`held_tokens.dart`), so an empty
+  /// list there is the ordinary state of a new or single-token wallet, and
+  /// "No tokens match """ — what the search empty-state would have said with a
+  /// blank query — describes it wrongly. Optional: a caller that passes the
+  /// full catalogue (the receive side) can never be empty and needs neither.
+  final String? emptyTitle;
+  final String? emptyMessage;
+
   const TokenSelectorDrawer({
     super.key,
     required this.tokens,
     required this.onTokenSelected,
     this.title = 'Select Token',
     this.selectedToken,
+    this.emptyTitle,
+    this.emptyMessage,
   });
 
   static void show({
@@ -49,6 +63,8 @@ class TokenSelectorDrawer extends StatefulWidget {
     required ValueChanged<SquidTokenInfo> onTokenSelected,
     String title = 'Select Token',
     SquidTokenInfo? selectedToken,
+    String? emptyTitle,
+    String? emptyMessage,
   }) {
     ResponsiveDrawer.show<void>(
       context: context,
@@ -61,6 +77,8 @@ class TokenSelectorDrawer extends StatefulWidget {
         onTokenSelected: onTokenSelected,
         title: title,
         selectedToken: selectedToken,
+        emptyTitle: emptyTitle,
+        emptyMessage: emptyMessage,
       ),
     );
   }
@@ -90,6 +108,11 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final query = _query.trim().toLowerCase();
 
+    // Nothing to offer at all — distinct from "the search found nothing".
+    // The search field is suppressed with the list: a field that can only ever
+    // return the same empty state is an invitation to a dead end.
+    final nothingToOffer = widget.tokens.isEmpty;
+
     final filtered = widget.tokens
         .where(
           (t) =>
@@ -102,7 +125,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
+        if (!nothingToOffer) Padding(
           // Matches the title's own inset in the shell's header, so the search
           // field's left edge and the drawer title sit on one axis.
           padding: const EdgeInsets.fromLTRB(
@@ -144,7 +167,13 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
           ),
         ),
         Expanded(
-          child: filtered.isEmpty
+          child: nothingToOffer
+              ? GWEmptyState(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: widget.emptyTitle ?? 'No tokens available',
+                  message: widget.emptyMessage,
+                )
+              : filtered.isEmpty
               ? _EmptyResult(query: _query, gw: gw)
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(
