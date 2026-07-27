@@ -8,6 +8,8 @@ import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -204,11 +206,16 @@ class _OrdersPageState extends State<OrdersPage> {
             return const Center(child: Loading());
           }
           if (state.status == OrdersStatus.error) {
-            return Center(
-              child: Text(
-                "❌ ${state.error}",
-                style: const TextStyle(color: Colors.red),
-              ),
+            // Task 3 · crypto_news_screen.dart:149-152's GWErrorState usage.
+            // `state.error` is preserved verbatim as the detail line; `onRetry`
+            // re-dispatches the EXISTING fetchOrders('your-cust-id') call the
+            // Refresh action and initState already make (D-01/D-02 — no new
+            // call, no new argument).
+            return GWErrorState(
+              title: "Couldn't load your orders",
+              message: state.error,
+              onRetry: () =>
+                  context.read<OrdersCubit>().fetchOrders('your-cust-id'),
             );
           }
           final orders = state.filteredOrders ?? [];
@@ -256,7 +263,34 @@ class _OrdersPageState extends State<OrdersPage> {
                       ),
                     ),
                     orders.isEmpty
-                        ? Text("No orders found.")
+                        ? Expanded(
+                            child:
+                                selectedStatus.isEmpty &&
+                                    startDate == null &&
+                                    endDate == null
+                                ? GWEmptyState(
+                                    icon: Icons.receipt_long_outlined,
+                                    title: "No orders yet",
+                                    message:
+                                        "Your Banxa purchases will show up here once you create one.",
+                                    actionLabel: "New Order",
+                                    onAction: () =>
+                                        context.push('/createOrder'),
+                                  )
+                                : const GWEmptyState(
+                                    icon: Icons.receipt_long_outlined,
+                                    title: "No orders match this filter.",
+                                    // Recorded deviation (09-02-SUMMARY.md):
+                                    // the UI-SPEC's filter-reset action is
+                                    // deliberately NOT added here — resetting
+                                    // filter state is behaviour, which
+                                    // D-01/D-02 fence out of this re-skin. The
+                                    // status
+                                    // dropdown and date-range button stay on
+                                    // screen directly above this empty state,
+                                    // so no dead end exists.
+                                  ),
+                          )
                         : Expanded(
                             child: LayoutBuilder(
                               builder: (context, constraints) {
