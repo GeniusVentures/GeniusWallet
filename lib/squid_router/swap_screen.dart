@@ -9,6 +9,7 @@ import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
@@ -21,7 +22,6 @@ import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
-import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -241,7 +241,10 @@ class _SwapScreenState extends State<SwapScreen> {
         ],
         timeStamp: DateTime.now(),
         transactionDirection: TransactionDirection.received,
-        fees: fromAmount,
+        // Blank, not fromAmount: nothing executed (D-01), so no network fee
+        // exists to report. The receipt's blank-fee guard (D-20) omits the
+        // row rather than printing what the user pays under "Network Fee".
+        fees: '',
         coinSymbol: walletNetwork!,
         transactionStatus: TransactionStatus.completed,
         type: TransactionType.swap,
@@ -261,19 +264,9 @@ class _SwapScreenState extends State<SwapScreen> {
         type: ToastType.success,
       );
 
-      SwapSuccessDrawer.show(
-        context,
-        fromAmount: fromAmount,
-        toAmount: toAmount,
-        fromIconUrl: fromToken?.logoURI ?? '',
-        toIconUrl: toToken?.logoURI ?? '',
-        fromSymbol: fromToken?.symbol ?? '',
-        toSymbol: toToken?.symbol ?? '',
-        chain: walletNetwork,
-        onClose: () {
-          Navigator.of(context).pop();
-        },
-      );
+      // D-03/D-04: the shared 031-B receipt replaces the superseded
+      // SwapSuccessDrawer, alongside the toast above — never instead of it.
+      if (mounted) showTransactionDetails(context, transaction);
       transactionsCubit.addTransaction(transaction);
 
       // save to hive
