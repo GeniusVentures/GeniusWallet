@@ -384,7 +384,18 @@ class TokenInfoScreen extends StatelessWidget {
       onSwap: () => context.go(
         '/swap',
         extra: <String, dynamic>{
-          'symbol': selectedCoin?.symbol,
+          // `marketData` FIRST, `selectedCoin` only as a fallback.
+          //
+          // `selectedCoin` is the WALLET's currently-selected coin
+          // (`WalletDetailsCubit`), not the coin this page is showing. Opening
+          // a coin from Markets leaves it null or pointing at something else
+          // entirely, which is why preselection did nothing on exactly the
+          // route it was asked for. `marketData.symbol` is the coin actually
+          // on screen. CoinGecko returns it lowercase; the match is
+          // case-insensitive.
+          'symbol': marketData?.symbol ?? selectedCoin?.symbol,
+          // The wallet's chain is a weak hint for a market coin, and only a
+          // preference — an unmatched chain falls back rather than blocking.
           'chainId': selectedNetwork?.chainId,
         },
       ),
