@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GeniusWallet - design status, 27 July 2026</title>
+<style>
+  @page { size:A4; margin:14mm 13mm 14mm; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:#10131A;
+    background:#fff; font-size:10.5px; line-height:1.55; }
+  code, .mono { font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace; font-size:9.5px;
+    background:#F1F4F8; padding:1px 4px; border-radius:3px; color:#10131A; }
+
+  .cover { padding:8mm 0 0; }
+  .kicker { font:700 10px/1 inherit; letter-spacing:1.4px; text-transform:uppercase; color:#0A6885; }
+  h1 { font:700 27px/32px inherit; margin:8px 0 6px; letter-spacing:-.4px; }
+  .sub { font-size:12px; color:#5A606E; max-width:150mm; }
+  .rule { height:3px; border-radius:2px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); margin:14px 0 18px; width:120px; }
+
+  h2 { font:700 15px/20px inherit; margin:0 0 4px; letter-spacing:-.2px; }
+  h3 { font:700 11px/16px inherit; letter-spacing:.5px; text-transform:uppercase; color:#0A6885; margin:12px 0 5px; }
+  p { margin:0 0 7px; }
+  b { color:#10131A; }
+  .muted { color:#5A606E; }
+
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; }
+
+  table { border-collapse:collapse; width:100%; margin:6px 0 10px; }
+  th,td { text-align:left; padding:5px 7px; border-bottom:1px solid #E3E7ED; vertical-align:top; font-size:10px; }
+  th { font-weight:700; font-size:8.5px; letter-spacing:.5px; text-transform:uppercase; color:#5A606E;
+    border-bottom:1.5px solid #C9D0D9; }
+  td:first-child { white-space:nowrap; }
+
+  .chip { display:inline-block; font:700 8px/1 inherit; letter-spacing:.5px; text-transform:uppercase;
+    padding:3px 6px; border-radius:3px; white-space:nowrap; }
+  .c-new  { background:#E1F6FF; color:#0A6885; }
+  .c-dec  { background:#E4F8F0; color:#07875F; }
+  .c-open { background:#FEF3D6; color:#8A6200; }
+  .c-blk  { background:#FDE6E6; color:#B02020; }
+  .c-done { background:#EDEFF3; color:#5A606E; }
+
+  .item { border:1px solid #E3E7ED; border-radius:8px; padding:11px 13px; margin-bottom:10px;
+    break-inside:avoid; page-break-inside:avoid; }
+  .item .hd { display:flex; align-items:baseline; gap:8px; margin-bottom:6px; }
+  .item .no { font:700 15px/1 inherit; color:#C9D0D9; width:22px; flex:none; }
+  .item .hd h2 { flex:1; }
+  .ask { background:#F7F9FC; border-left:2px solid #0AAEE6; padding:5px 9px; margin:0 0 8px;
+    font-size:10px; color:#5A606E; font-style:italic; }
+  .ask b { font-style:normal; }
+  .rec { background:#E4F8F0; border-radius:5px; padding:6px 9px; margin-top:7px; font-size:10px; }
+  .rec b { color:#07875F; }
+  ul { margin:0 0 7px 15px; }
+  li { margin-bottom:3px; }
+  .lbl { font:700 8.5px/1 inherit; letter-spacing:.5px; text-transform:uppercase; color:#5A606E;
+    display:inline-block; width:64px; }
+  .kv { margin-bottom:3px; font-size:10px; }
+
+  .break { page-break-before:always; }
+  .foot { margin-top:16px; padding-top:8px; border-top:1px solid #E3E7ED; font-size:9px; color:#8A8F9D; }
+  .big { font:700 20px/1 inherit; }
+  .callout { border:1.5px solid #FFC42E; background:#FFFCF2; border-radius:8px; padding:10px 13px; margin:10px 0; }
+  .callout.red { border-color:#F0A0A0; background:#FFF7F7; }
+  .callout h3 { margin-top:0; color:#8A6200; }
+  .callout.red h3 { color:#B02020; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<div class="cover">
+  <div class="kicker">GeniusWallet &middot; design session</div>
+  <h1>Where every open design question stands</h1>
+  <div class="rule"></div>
+  <p class="sub">
+    Eight items were raised on 27 July 2026. This is what each one turned out to be, what was designed
+    against it, and what has to be decided before anything is built. <b>Nothing in the app was changed.</b>
+    Five new sketches were written; the code was read, not edited.
+  </p>
+</div>
+
+<h3>The eight items at a glance</h3>
+<table>
+  <tr><th>#</th><th>Item</th><th>State</th><th>Where it lives</th><th>What is needed</th></tr>
+  <tr><td>1</td><td>Assets balance value</td><td><span class="chip c-new">new sketch</span></td><td>sketch <b>155</b></td><td>pick 1 of 5</td></tr>
+  <tr><td>2</td><td>Balance + compute panel</td><td><span class="chip c-dec">decided, unbuilt</span></td><td>sketches <b>016 / 017 / 018</b></td><td>schedule a phase</td></tr>
+  <tr><td>3</td><td>Transaction drawer</td><td><span class="chip c-open">awaiting pick</span></td><td>sketch <b>154</b></td><td>pick 1 of 5</td></tr>
+  <tr><td>4</td><td>Drawer colours</td><td><span class="chip c-new">new sketch</span></td><td>sketch <b>156</b></td><td>pick, then walk</td></tr>
+  <tr><td>5</td><td>Coin page</td><td><span class="chip c-open">half decided</span></td><td><b>152</b> done &middot; <b>061</b> open</td><td>pick chrome, 1 of 5</td></tr>
+  <tr><td>6</td><td>Receive drawer</td><td><span class="chip c-new">new sketch</span></td><td><b>034</b> decided &middot; <b>159</b> new</td><td>finish the decision</td></tr>
+  <tr><td>7</td><td>Buy GNUS</td><td><span class="chip c-blk">defect found</span></td><td>sketch <b>157</b></td><td>routing fix + pick</td></tr>
+  <tr><td>8</td><td>Floating swap button</td><td><span class="chip c-new">new sketch</span></td><td>sketch <b>158</b></td><td>pick placement + skin</td></tr>
+</table>
+
+<div class="callout red">
+  <h3>The one thing worth knowing before anything else</h3>
+  <p style="margin-bottom:0">
+    <b>The button labelled "Buy GNUS" does not open a buy screen.</b> <code>coins_screen.dart:349</code>
+    pushes <code>/buy</code>, and <code>router.dart:80</code> maps <code>/buy</code> to the order
+    <i>history</i>. The screen that actually buys something sits at <code>/createOrder</code>, reachable only
+    through a small "+ New Order" text action. A user with no orders taps a gradient CTA promising a purchase
+    and lands on <b>"Total Orders: 0 / No orders found."</b> - which is the screenshot. This is a one-line
+    routing fix and it is worth more than every other item on this list.
+  </p>
+</div>
+
+<h3>How to open the new work</h3>
+<p class="muted mono" style="font-size:9.5px">
+open .planning/sketches/155-assets-balance-value/index.html<br>
+open .planning/sketches/156-drawer-canvas-colour/index.html<br>
+open .planning/sketches/157-buy-gnus-page/index.html<br>
+open .planning/sketches/158-global-fab-placement/index.html<br>
+open .planning/sketches/159-receive-drawer/index.html
+</p>
+<p class="muted">Each has a README beside it with the findings, the variants, and an explicit recommendation
+with a runner-up and a rejected option. Every sketch renders clean in headless Chrome; each carries its own
+Light/Dark toggle and state switches.</p>
+
+<div class="foot">Numbers 155-159 are design lane B (150-199), per the parallel-session rule in CLAUDE.md.
+The MANIFEST row for each sketch is written at the bottom of its README, ready for the executor to append -
+a design session does not write the shared manifest.</div>
+
+<!-- ============================ ITEMS ============================ -->
+<div class="break"></div>
+<div class="kicker">Item by item</div>
+<h1 style="font-size:20px; margin-bottom:12px">What each one turned out to be</h1>
+
+<div class="item">
+  <div class="hd"><span class="no">1</span><h2>The Assets balance value</h2><span class="chip c-new">sketch 155</span></div>
+  <p class="ask"><b>Asked:</b> five designs for the balance figure in the Assets panel - "wyglada srednio".</p>
+  <p><b>What it is today:</b> <code>coins_screen.dart:258-284</code> - a 20px/w700 total over
+  <code>+$82.91 &middot; +1.36%</code>, both crammed into the trailing slot of a 44px section-title row.</p>
+  <h3>Three findings, from the code</h3>
+  <ul>
+    <li><b>The same dollar figure is printed twice on that row, from two different sources.</b> The left card
+    shows <code>selectedWalletBalance</code> (the wallet's own balance); the Assets header shows
+    <code>assetsTotal()</code> (a CoinGecko fold). Both carry a <code>$</code>, neither says what it is. They
+    match in the dev mock because one injector sets both. Nothing makes them agree in production.</li>
+    <li>The two-line column is centred in a <b>44px</b> row and needs ~42px, so it is wedged edge to edge -
+    which is most of the "wyglada srednio".</li>
+    <li>The delta joins a <b>rate</b> and an <b>amount</b> at equal weight with a literal mid-dot, flooded
+    with one colour.</li>
+  </ul>
+  <div class="kv"><span class="lbl">Variants</span> 0 Today &middot; A Value + chip &middot; B Eyebrow stack &middot; C Sparkline &middot; D Balance band &middot; E Quiet ledger</div>
+  <div class="rec"><b>Recommendation: A &middot; Value + chip.</b> The % becomes a filled pill matching the
+  <code>+3.20%</code> pills in the rows directly below it, the dollars go quiet grey, the cents drop to 54%,
+  and "today" replaces the mid-dot. Smallest diff that fixes all three findings.
+  <b>Runner-up D &middot; Balance band</b> - structurally better, but only take it if the left card is being
+  restructured too (sketch 016), otherwise two hero balances sit 12px apart.
+  <b>Rejected C &middot; Sparkline</b> - there is no portfolio time series in this app; it would have to be faked.</div>
+</div>
+
+<div class="item">
+  <div class="hd"><span class="no">2</span><h2>The balance + compute panel</h2><span class="chip c-dec">decided 2026-07-22, never built</span></div>
+  <p class="ask"><b>Asked:</b> where do we stand with this part - open everything we did there.</p>
+  <p>Three sketches cover this panel and <b>all three have chosen winners. None of them has been built.</b>
+  What is on screen today is still the pre-design card.</p>
+  <table>
+    <tr><th>Sketch</th><th>Question</th><th>Winner</th></tr>
+    <tr><td><b>016</b> compute-panel-anatomy</td><td>How does the card split into Balance + Compute in the 276px it has?</td><td><b>B2 &middot; Twin tiles</b> - fits at 261px worst case, +15px headroom</td></tr>
+    <tr><td><b>017</b> compute-status-states</td><td>What status component is honest across all nine states?</td><td><b>A &middot; Dot + label</b> - the ring is kept only for the 56px FAB</td></tr>
+    <tr><td><b>018</b> job-request-flow</td><td>What does requesting a job look like as a flow?</td><td><b>A &middot; Drawer, vertical steps</b> - <code>/submit_job</code> stays as the full-screen host</td></tr>
+  </table>
+  <h3>Why it matters that these are unbuilt</h3>
+  <ul>
+    <li><b>The 52.5% is a lie, and it was measured.</b> Over 161 polls across 40s the value reaches 0.525 at
+    t=10.6s and never changes again. A determinate ring promises it will reach 100. It does not.</li>
+    <li><b>The silent death.</b> Any exception from <code>getProcessingStatus()</code> cancels the timer
+    <b>permanently</b>; nothing restarts it. The UI then shows "idle" in grey - pixel-identical to a healthy
+    node with nothing to do.</li>
+    <li><b>The zero-balance red.</b> "No funds available" renders in <code>statusError</code>. An empty wallet
+    is not a broken wallet.</li>
+  </ul>
+  <div class="rec"><b>Nothing new to decide here.</b> The designs are chosen and documented, including an
+  affordance audit that names the <b>three code changes</b> they need (a stall detector, a restartable
+  processing timer, and a public <code>AccountDrawer.show</code>). This is a <b>planning</b> item, not a
+  design one: it wants a phase of its own. It also interacts with item 1 - if 016-B2 lands, the balance-band
+  variant becomes available for the Assets header.</div>
+</div>
+
+<div class="item">
+  <div class="hd"><span class="no">3</span><h2>The transaction details drawer</h2><span class="chip c-open">sketch 154, awaiting your pick</span></div>
+  <p class="ask"><b>Asked:</b> bring it to our standards - or does it just copy the other new drawers?</p>
+  <p><b>It copies them, and the sketch already exists.</b> Sketch 154 was written 26 July with five variants
+  and a recommendation. No new design was needed today.</p>
+  <ul>
+    <li>The receipt shape was decided by <b>031-B1 "Pill + sections"</b>; the shell by <b>030-B1 "Quiet band"</b>.
+    Neither ever reached this drawer.</li>
+    <li><code>_buildDetailsCard</code> has <b>vertical padding only</b>, so labels touch the panel's left edge
+    and values slam its right edge.</li>
+    <li><code>_statusPill</code> is already written and already correct for all four states - the drawer just
+    does not call it.</li>
+    <li><b>Three computed fields are thrown away on every open:</b> the fiat value line, the exact unclamped
+    amount, and the context subtitle. All three are returned by the same <code>txRowContent()</code> call the
+    drawer already makes.</li>
+  </ul>
+  <div class="rec"><b>Recommendation: A &middot; 031-B1 as decided</b>, and take <b>D &middot; Copyable</b>'s
+  tap-to-copy rows with it. This panel has been designed twice and ported zero times; picking a third shape
+  would be the mistake. <b>Rejected C &middot; Banner</b> - alarm chrome on the happy path; borrow only its
+  reason sentence for the Failed and Cancelled states.</div>
+</div>
+
+<div class="item">
+  <div class="hd"><span class="no">4</span><h2>Drawer colours</h2><span class="chip c-new">sketch 156</span></div>
+  <p class="ask"><b>Asked:</b> the drawer is fine, but the colours - it should be darker and more compatible
+  with the rest.</p>
+  <p><b>That reading is correct, and it has a measurable cause.</b></p>
+  <table>
+    <tr><th>Surface</th><th>Token</th><th>Value</th></tr>
+    <tr><td>The page</td><td><code>surfaceBase</code></td><td>#0B0D12</td></tr>
+    <tr><td>Every card</td><td><code>surfaceElevated</code></td><td>#0C0E14</td></tr>
+    <tr><td><b>Every drawer</b></td><td><code>surfaceMenu</code></td><td><b>#171A21</b> - two steps lighter, and the only large surface at that value</td></tr>
+  </table>
+  <ul>
+    <li><b>The input field is painted the same colour as the panel it sits on.</b> The drawer passes
+    <code>gw.surfaceMenu</code> as the field background, and the panel is already <code>surfaceMenu</code>.
+    Fill contrast: <b>1.00:1</b>. It is not a box, it is a hairline.</li>
+    <li>That hairline is white at 12%, which measures <b>1.43:1</b> against its own canvas. WCAG 1.4.11 asks
+    for <b>3:1</b> when a border is the only thing identifying an input. <b>White at 30% is the first step
+    that clears it.</b></li>
+    <li>Two dark fills can never carry the boundary alone (#171A21 on #0C0E14 is 1.11:1), so the answer has to
+    be a pair: darker panel <b>and</b> stronger field edge.</li>
+  </ul>
+  <div class="rec"><b>Recommendation: A &middot; Card canvas</b> - panel down to <code>surfaceElevated</code>,
+  field <i>up</i> to <code>surfaceMenu</code>, field edge to white 30%. Answers both halves of the request in
+  one move, and it is <b>one line</b> in <code>responsive_drawer.dart</code>.
+  <b>That one line is also the whole risk</b> - it re-skins all ~19 drawers, and ~17 of them are unwalked since
+  the header change. It should ride the drawer walk that is already queued, not precede it.
+  <b>If the walk slips, take C &middot; Sunken field</b> - single-drawer scope, fixes the 1.00:1 outright, and
+  does not block A later.</div>
+</div>
+
+<div class="item">
+  <div class="hd"><span class="no">5</span><h2>The coin page</h2><span class="chip c-open">inside decided, chrome open</span></div>
+  <p class="ask"><b>Asked:</b> where do we stand with the design, to be finished.</p>
+  <p>Two sketches, one answered and one not:</p>
+  <table>
+    <tr><th>Sketch</th><th>Scope</th><th>State</th></tr>
+    <tr><td><b>104</b></td><td>The page structure, first pass</td><td>superseded by 152</td></tr>
+    <tr><td><b>152</b></td><td>What is <i>inside</i> the page, responsively</td><td><b>DECIDED and implemented</b> - A at &ge;768 (two panels), D below (unified stack). Convert is read-only, no 1H/1D/1W tabs (there is no per-range fetch), Send and Swap disabled</td></tr>
+    <tr><td><b>061</b></td><td>The page's <i>chrome</i> - frame, header, navigation</td><td><b>OPEN</b> - five variants drawn, recommendation written, no pick</td></tr>
+  </table>
+  <h3>What 061 found</h3>
+  <ul>
+    <li><b>This page has no navbar.</b> <code>/token-info</code> sits outside <code>ShellRoute</code>, so from
+    a coin you cannot reach any tab without going back. Every other page is inside the shell.</li>
+    <li>It uses a Material <code>AppBar</code> with a breadcrumb instead of <code>GWPageHeader</code>, and a
+    <b>centred 1200</b> frame where every tab uses <b>1536 with a 12px gutter</b> - so its title sits ~170px
+    off the app's own left axis.</li>
+    <li><b>The model carries far more than the page shows.</b> Four fields are rendered;
+    <code>marketCapRank</code>, <code>high24h</code>/<code>low24h</code>, <code>fullyDilutedValuation</code>,
+    <code>ath</code>/<code>athChangePercentage</code>, <code>maxSupply</code> and more are already in Hive,
+    unused, with no new request needed.</li>
+  </ul>
+  <div class="rec"><b>Recommendation: 061-A &middot; In the app frame</b> - the route returns to
+  <code>ShellRoute</code>, a "&larr; Markets" chip replaces the breadcrumb, the coin identity becomes a
+  <code>GWPageHeader</code> with the price in its trailing slot, frame 1536. Inside stays exactly as 152
+  decided. <b>Runner-up B &middot; Stat bar</b> adds the KPI tiles from the unused fields - take it after A,
+  as content, not as a rival layout. <b>Note:</b> the missing-navbar defect is the same one found on the Buy
+  GNUS routes (item 7). If both are fixed, fix them together - it is one <code>ShellRoute</code> edit.</div>
+</div>
+
+<div class="item">
+  <div class="hd"><span class="no">6</span><h2>The Receive drawer</h2><span class="chip c-new">sketch 159</span></div>
+  <p class="ask"><b>Asked:</b> Receive design - with a screenshot and no further words.</p>
+  <p>So the sketch answers the unasked question first: <b>is this what was decided?</b> Mostly. Sketch
+  <b>034 round 2 chose A2 "Grouped address"</b> and two of its four parts shipped.</p>
+  <ul>
+    <li><b>Drift:</b> the 4-character chunked address shipped as a <b>middle truncation</b>
+    (<code>0x9fF8C9&hellip;262e2b</code>). Chunks were chosen precisely because a receive address is the one
+    string a user eyeball-verifies against another screen, and truncation hides the 26 middle characters.</li>
+    <li><b>The drawer body has zero horizontal padding</b>, so the amber network warning runs to both panel
+    edges. Same defect class as the transaction drawer in item 3, and the same fix location.</li>
+    <li><b>A blank network name produces broken copy:</b> "Only send <b>-network</b> assets to this address."</li>
+    <li><code>AssetImage("")</code> is constructed for the QR's centre image when the network has no icon.</li>
+    <li><b>Two things are right and must not be touched:</b> the QR keeps a solid white backing in both
+    appearances so a phone camera can read it, and the amber uses a darkened light-mode value because the
+    warning token fails as text on white.</li>
+  </ul>
+  <div class="rec"><b>Recommendation: A &middot; A2 as decided</b> - finish the standing decision: 20px body
+  padding, 4-char chunks in a labelled card, QR in a rounded white tile, Copy in the footer where every other
+  drawer's primary action lives. <b>Build the chunking as one small component</b> - sketch 154-D needs the
+  same thing, so one widget pays for two sketches. <b>Rejected D &middot; Compact</b> - it un-boxes the one
+  warning standing between a user and a permanent loss of funds.</div>
+</div>
+
+<div class="item">
+  <div class="hd"><span class="no">7</span><h2>Buy GNUS - full analysis and redesign</h2><span class="chip c-blk">sketch 157</span></div>
+  <p class="ask"><b>Asked:</b> full redesign of this page - analysis of what is there, what the logic is.</p>
+  <p><b>The flow, end to end:</b> <span class="mono">Buy GNUS &rarr; /buy (order history) &rarr; "+ New Order"
+  &rarr; /createOrder (the form) &rarr; Get Quote &rarr; Create Order &rarr; /checkout or /checkoutQR &rarr;
+  geniuswallet://banxa/callback &rarr; OrderDetailsPage (polls)</span>. Seven routes, <b>all outside the
+  navbar shell</b>.</p>
+  <h3>Fourteen defects were found. The ones that matter most:</h3>
+  <ul>
+    <li><b>1. The CTA lies</b> - "Buy GNUS" opens the order history (see the callout on page 1).</li>
+    <li><b>2. The customer id is a placeholder</b> - <code>fetchOrders('your-cust-id')</code>, hardcoded at
+    two call sites. <b>The list cannot show a real user's orders in any build.</b> "Total Orders: 0" is a stub,
+    not an empty account.</li>
+    <li><b>3. Three conflicting status vocabularies.</b> The filter offers six values, the colour switch
+    handles five, the banner handles three. <code>inProgress</code> and <code>expired</code> get no colour;
+    <code>cancelled</code> gets a colour but cannot be filtered.</li>
+    <li><b>4. No design tokens at all</b> - raw <code>Colors.green/orange/red/grey</code>. Nothing on this page
+    flips with the appearance.</li>
+    <li><b>5. The empty state reads as a failed load</b> - two bare strings over an empty page.</li>
+    <li><b>9. Real data thrown away</b> - <code>processingFee</code>, <code>networkFee</code>,
+    <code>transactionHash</code> and <code>walletAddress</code> are all parsed and none are shown. A completed
+    purchase cannot be opened in an explorer although its hash is in hand.</li>
+    <li><b>14. KYC is an unlabelled icon</b> with no state - and a fiat purchase can fail on exactly that.</li>
+  </ul>
+  <div class="callout" style="margin:8px 0">
+    <h3>The constraint, and the way through it</h3>
+    <p style="margin-bottom:5px"><code>CLAUDE.md</code>: <i>"Files under /banxa and /squidrouter are
+    auto-generated. Do not change them."</i> <b>Six of the seven screens live there.</b> Taken literally, no
+    redesign is possible.</p>
+    <p style="margin-bottom:0">They can all be built anyway, because the generated code is layered: models,
+    service and cubits are <b>data</b>; only three files are <b>presentation</b>. New widgets can live under
+    <code>lib/screens/</code> - where the buy form already lives, outside the fence - subscribe to the same
+    cubits, and the router repoints to them. <b>The generated files stay byte-identical and simply stop being
+    mounted. Zero edits inside the fence.</b> Worth confirming with Braian whether that note is still true or
+    stale.</p>
+  </div>
+  <div class="rec"><b>Recommendation: A &middot; Buy first, plus E &middot; Orders fixed</b> - not rivals. A
+  decides what <code>/buy</code> <i>is</i>; E decides what the history <i>looks like</i>. In value order:
+  <b>(1)</b> repoint <code>/buy</code>, <b>(2)</b> put the Banxa routes inside <code>ShellRoute</code>,
+  <b>(3)</b> fix the customer id - until it is real, no list design can be judged - <b>(4)</b> then the list
+  rebuild. <b>Runner-up D &middot; Stepper</b> beats A if KYC turns out to branch for most users, which is a
+  product fact nobody has yet. <b>Rejected C &middot; Drawer</b> - a purchase with limits, an expiring quote
+  and a third-party handoff does not fit in 420px.</div>
+</div>
+
+<div class="item">
+  <div class="hd"><span class="no">8</span><h2>The floating swap button</h2><span class="chip c-new">sketch 158</span></div>
+  <p class="ask"><b>Asked:</b> change its location - the bottom and right gaps are not equal. Propose a design,
+  and make one where only the outline is the gradient.</p>
+  <p><b>The gaps are 20 and 80</b> - <code>global_swap_fab_host.dart:124-128</code> is literally
+  <code>right: space10</code> (20) and <code>bottom: 80</code>. Not a rounding slip: two numbers chosen for
+  two reasons, and one of the reasons does not apply here.</p>
+  <ul>
+    <li>The comment says the 80 <i>"clears the 60px bottom nav"</i>. That nav is mounted <b>only by
+    MobileOverlay</b>. <b>The desktop app has no bottom bar at all</b> - so 60 of those 80 pixels are avoiding
+    something that is not there.</li>
+    <li>The two glows are offset 6px downward with a 24px blur, so the visible mass hangs ~30px below the box -
+    which does not rescue the gap, and means the glow is clipped on the right at 20px while having 80px of
+    room underneath.</li>
+  </ul>
+  <h3>The gradient outline - the one technical fact</h3>
+  <p><b>A <code>BorderSide</code> takes a single <code>Color</code>.</b> No Flutter border can be a gradient -
+  which is exactly why <code>GWFocusRing</code> was built during Phase 20. A gradient-outline FAB is a
+  gradient-filled circle with an inset circle of surface colour on top. Two consequences, both drawn in the
+  sketch: <b>(a)</b> the hole is a specific surface colour, so the FAB stops being canvas-agnostic - over a
+  card and over the mesh it reads as a disc of the wrong shade; <b>(b)</b> the glyph colour must change, since
+  the brand mint measures ~12:1 on the dark canvas but <b>~1.6:1 in light mode</b>.</p>
+  <div class="rec"><b>Recommendation - placement: P1 &middot; Equal gutter.</b> Derive the number instead of
+  hardcoding it: <code>space10 + (isDesktop ? 0 : 60) + bottomInset</code>, using the same breakpoint
+  <code>ResponsiveDrawer</code> already uses. Mobile keeps exactly today's 80. <b>Rejected P3 &middot;
+  optically equal</b> - it hardcodes compensation for a shadow offset, so retuning the glow silently
+  un-centres the button.<br>
+  <b>Recommendation - skin: S1 &middot; Gradient ring</b>, but judge it on the three canvases first. If the
+  hole reads as a hole in a card, <b>S2 &middot; ring + tint</b> is the same idea with the failure removed -
+  take it without a second round. <b>Rejected S3 &middot; glass</b> - a permanent BackdropFilter above the
+  Navigator on every screen.</div>
+  <p class="muted" style="margin-top:6px; font-size:9.5px"><b>Found while measuring:</b> the FAB is hidden on
+  <code>/checkout</code>, <code>/checkoutQR</code>, <code>/kyc</code> and <code>/banxa/callback</code> - but
+  <b>not</b> on <code>/buy</code>, <code>/createOrder</code> or <code>/orderDetails</code>. So the swap button
+  floats over the fiat purchase flow. Product question, raised in sketch 157.</p>
+</div>
+
+<!-- ============================ PROJECT STATE ============================ -->
+<div class="break"></div>
+<div class="kicker">The wider picture</div>
+<h1 style="font-size:20px; margin-bottom:4px">Where the project stands tonight</h1>
+<p class="sub" style="margin-bottom:14px">Everything below predates today and is unchanged by this session.</p>
+
+<h3>In flight</h3>
+<table>
+  <tr><th>Thing</th><th>State</th></tr>
+  <tr><td><b>PR #216</b></td><td>Open, branch <code>redesign/jakub-260726b</code>. Five commits: centred
+  <code>GWPageHeader</code> + gradient focus ring, swap form polish, the settings-form drawer archetype
+  (063-A) + list picker (032-A1), the Phase 20 feedback page frame (153-B) + the 064-B gradient underline,
+  and the planning record. Gates: <code>flutter analyze lib</code> = 59 (baseline &le;61);
+  <code>flutter test</code> = 323 pass / 1 fail, the failing one being a <code>main()</code>-less stub that
+  predates this work.</td></tr>
+  <tr><td><b>Phase 20</b></td><td>Feedback page frame - executed and summarised. <code>20-VERIFICATION.md</code>
+  still owed: the SDK-running rail rows, the Failed status string, light mode and the send path.</td></tr>
+  <tr><td><b>Phase 08</b></td><td>Swap and bridge - 08-01 to 08-04 committed. <b>08-05 Tasks 1 and 2 remain:</b>
+  the receipt wiring in <code>swap_screen.dart</code> and deleting three superseded swap drawers. Task 3 is
+  marked superseded and must not be run.</td></tr>
+  <tr><td><b>Uncommitted</b></td><td>Two cmake files only - held out of PR #216 deliberately. Build-environment
+  work, not redesign work; should land on its own.</td></tr>
+</table>
+
+<div class="callout red">
+  <h3>The blocker that was already queued for tonight</h3>
+  <p style="margin-bottom:0"><b>~17 drawers have not been looked at since the shell header changed.</b> The
+  title went 16px/w500 to 18px/w600, <code>titleSpacing</code> 16 to 20, and the toolbar 48 to 56 - a change
+  with a blast radius of about nineteen drawers, of which only Swap Settings and the Token Selector have been
+  seen. The rest (Select Network, Select Account, the dApp approvals, the Banxa receipts, "More Options",
+  Receive) are unwalked. <b>Item 4 in this document lands on exactly the same nineteen panels</b>, so the
+  sensible order is: walk with today's colours, record the whole list, then apply the colour change and
+  re-walk the same list.</p>
+</div>
+
+<h3>Two defects that are the same defect</h3>
+<p><b>Zero body padding in drawers.</b> The shell passes <code>body: child</code> straight through and adds no
+padding, although 030-B1 specified 20px for every drawer. It shows up in the transaction drawer (item 3), in
+the Receive drawer (item 6), and potentially in any of the other seventeen. <b>Fix it once, in
+<code>responsive_drawer.dart</code>, during the walk</b> - not three times in three callers.</p>
+<p><b>Pages outside the navbar shell.</b> The coin page (item 5) and all seven Banxa routes (item 7) sit
+outside <code>ShellRoute</code>, so none of them has the navbar. It is one edit, and it closes two items.</p>
+
+<h3>Also open, not raised today</h3>
+<p class="muted">Sketch <b>062</b> (swap page ledger) is awaiting a pick and carries a live bug:
+<code>swap_screen.dart:243</code> writes <code>fees: fromAmount</code> and the receipt renders it as "Network
+Fee", so the swap detail drawer shows a wrong number today. Sketch <b>040</b> (swap page header),
+<b>060</b>, <b>103</b> (markets page), <b>151</b> (news search), <b>025-030</b> (transactions page chrome) and
+<b>020</b> (boot mesh depth) are all drawn with recommendations and no pick. And it is still open whether
+<b>064-B</b>'s gradient underline rolls out to the transaction filter chips, the Markets timeframe tabs and
+the Web tab strip.</p>
+
+<!-- ============================ DECISIONS ============================ -->
+<div class="break"></div>
+<div class="kicker">Tonight</div>
+<h1 style="font-size:20px; margin-bottom:4px">The decisions, and a suggested order</h1>
+<p class="sub" style="margin-bottom:12px">Eight picks. Each has a recommendation with a stated runner-up and a
+stated rejection, so a pick can be "yes" or a one-word substitution.</p>
+
+<table>
+  <tr><th>#</th><th>Decision</th><th>Recommended</th><th>If not that</th><th>Size</th></tr>
+  <tr><td>1</td><td>Assets balance treatment</td><td><b>155-A</b> value + chip</td><td>155-D, but only with 016</td><td>S</td></tr>
+  <tr><td>2</td><td>Compute panel - schedule it</td><td>a phase for <b>016-B2 + 017-A + 018-A</b></td><td>defer, say so explicitly</td><td>L</td></tr>
+  <tr><td>3</td><td>Transaction drawer</td><td><b>154-A</b> + D's copy rows</td><td>154-B ledger</td><td>M</td></tr>
+  <tr><td>4</td><td>Drawer colours</td><td><b>156-A</b> card canvas, after the walk</td><td>156-C tonight, A later</td><td>S / walk</td></tr>
+  <tr><td>5</td><td>Coin page chrome</td><td><b>061-A</b> in the app frame</td><td>061-B adds the KPI tiles</td><td>M</td></tr>
+  <tr><td>6</td><td>Receive drawer</td><td><b>159-A</b> finish 034-A2</td><td>159-C adds the network picker</td><td>S</td></tr>
+  <tr><td>7</td><td>Buy GNUS</td><td><b>157-A + E</b>, routing first</td><td>157-D if KYC really branches</td><td>L</td></tr>
+  <tr><td>8</td><td>FAB placement + skin</td><td><b>158-P1</b> + <b>S1</b> (fallback S2)</td><td>P2 at 24px</td><td>S</td></tr>
+</table>
+
+<h3>A suggested order for the evening</h3>
+<ol style="margin-left:16px">
+  <li style="margin-bottom:5px"><b>Repoint <code>/buy</code>.</b> One line, and it is the defect a user hits
+  first. Nothing else on this list has that ratio.</li>
+  <li style="margin-bottom:5px"><b>Fix the FAB gap</b> (158-P1). One expression, no blast radius, immediately
+  visible.</li>
+  <li style="margin-bottom:5px"><b>Do the drawer walk</b> - it was already tonight's first task, and items 3,
+  4 and 6 all land on the same nineteen panels. Record the whole list before fixing anything.</li>
+  <li style="margin-bottom:5px"><b>Then the drawer trio together:</b> body padding in the shell (fixes items 3
+  and 6 at once), the colour change (item 4), the receipt (154-A) and the receive finish (159-A).</li>
+  <li style="margin-bottom:5px"><b>Then the Assets header</b> (155-A) - self-contained, one call site.</li>
+  <li style="margin-bottom:5px"><b>Then the <code>ShellRoute</code> edit</b> - it closes the navbar half of
+  both item 5 and item 7.</li>
+  <li><b>Buy GNUS and the compute panel are phases</b>, not evening tasks. Both want planning: Buy GNUS
+  because the customer id has to become real before its list can be judged, and the compute panel because its
+  three sketches name three bloc changes.</li>
+</ol>
+
+<div class="callout">
+  <h3>One thing to confirm with Braian, not decide alone</h3>
+  <p style="margin-bottom:0">Whether <code>lib/banxa/</code> is genuinely regenerated by a tool, or whether
+  that note in <code>CLAUDE.md</code> is stale. It changes the size of item 7 substantially: if the fence can
+  be lifted for the three widget files, the same design lands with a much smaller diff than re-hosting the
+  UI in <code>lib/screens/</code>.</p>
+</div>
+
+<div class="foot">
+  Written 27 July 2026 by a design session. No file under <code>lib/</code>, <code>test/</code>,
+  <code>macos/</code> or <code>packages/</code> was touched; no commit was made; the shared planning files
+  (<code>ROADMAP.md</code>, <code>STATE.md</code>, <code>MANIFEST.md</code>, <code>HANDOFF.json</code>) were
+  read and not written, per the parallel-session rules in <code>CLAUDE.md</code>. New files: five sketch
+  directories under <code>.planning/sketches/155-159</code>, this document, and
+  <code>.planning/HANDOFF-260727-eight-design-questions.md</code>.
+</div>
+
+</body>
+</html>

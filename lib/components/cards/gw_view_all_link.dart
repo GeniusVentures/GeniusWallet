@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/theme/genius_wallet_motion.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -43,12 +44,17 @@ class _GWViewAllLinkState extends State<GWViewAllLink> {
 
     // Children are drawn opaque white and recolored by the ShaderMask below:
     // a solid textSecondary at rest, the brand-CTA gradient on hover.
-    final labelStyle = const TextStyle(
-      fontFamily: 'Inter',
-      fontSize: 11,
+    //
+    // Takes GWKicker's shared TYPE but not the widget (sketch 065): this link
+    // owns hover, a sliding arrow and a gradient underline sized to the label,
+    // none of which belong in a label component. Two properties are overridden
+    // and both are load-bearing — `color: white` is what the ShaderMask needs
+    // to recolour, and `height: 1.0` keeps the underline tight under the text.
+    // The tracking DOES change here, 0.88 -> the dense step's 0.6, so the app
+    // carries one value instead of two; the underline is drawn to the measured
+    // label width, so it follows automatically.
+    final labelStyle = GWKicker.style(gw, dense: true).copyWith(
       height: 1.0,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.88, // ~0.08em at 11px
       color: Colors.white,
     );
 

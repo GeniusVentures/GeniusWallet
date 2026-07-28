@@ -278,8 +278,14 @@ class SwapField extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
+                            // `displayBalance`, not `formattedBalance`: this
+                            // line is FOR EYES, and an 18-decimal token renders
+                            // its float error verbatim - 0.01 DAI reached this
+                            // row as `0.010000000000000221`. The MAX tap below
+                            // deliberately keeps the exact string, which is the
+                            // split `displayBalance`'s own doc describes.
                             selectedToken?.balance != null
-                                ? "${selectedToken!.balance!.formattedBalance} ${selectedToken!.balance!.symbol}"
+                                ? "${selectedToken!.balance!.displayBalance} ${selectedToken!.balance!.symbol}"
                                 : "",
                             style: GeniusWalletTypography.labelMd.copyWith(
                               color: gw.textSecondary,
@@ -314,12 +320,21 @@ class SwapField extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(
                                       GeniusWalletConsts.radiusSm,
                                     ),
-                                    border: hovered
-                                        ? Border.all(
-                                            color: GWDecorations.hoverEdge,
-                                            width: 1,
-                                          )
-                                        : null,
+                                    // ALWAYS a 1px border, transparent at rest.
+                                    // A `BoxDecoration` border is layout, not
+                                    // paint: `Border.all(width: 1)` adds 1px to
+                                    // every side of the box, so appearing on
+                                    // hover grew the chip 2x2, which grew the
+                                    // Row, the card and the whole centred swap
+                                    // column - the page visibly jumped under the
+                                    // cursor. Same defect `GWSelectRow` fixed on
+                                    // 2026-07-28 (068-A) and pins with a test.
+                                    border: Border.all(
+                                      color: hovered
+                                          ? GWDecorations.hoverEdge
+                                          : Colors.transparent,
+                                      width: 1,
+                                    ),
                                   ),
                                   child: Text(
                                     "MAX",

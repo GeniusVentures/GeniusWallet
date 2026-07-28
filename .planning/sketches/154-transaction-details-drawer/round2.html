@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>154 round 2 · A1 / A2 / A3 - variant A in the language we actually shipped</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1320px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+
+  h1 { font:700 20px/28px var(--font); margin-bottom:var(--space-4); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:1000px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.ship{ background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.new { background:rgba(255,196,46,.16); color:var(--status-warning); }
+
+  /* the shipped-vocabulary strip */
+  .voc { display:flex; gap:10px; flex-wrap:wrap; margin:0 0 var(--space-10); }
+  .voc .c { flex:1; min-width:210px; border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+    background:var(--surface-sheen-b); padding:10px 12px; }
+  .voc .c h4 { font:700 10px/14px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-primary-54); margin-bottom:5px; }
+  .voc .c p { font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .voc .c b { color:var(--text-primary); }
+
+  .outer { display:flex; gap:var(--space-8); align-items:flex-start; }
+  .stage { position:relative; display:flex; justify-content:flex-end; border:1px solid var(--border-strong);
+    border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); min-height:760px; flex:1; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.5); }
+  .scrim .ghost { position:absolute; left:22px; top:22px; right:452px; }
+  .scrim .ghost .g { height:42px; border-radius:10px; background:var(--skeleton); margin-bottom:10px; }
+  .scrim .ghost .g:nth-child(3n) { width:78%; }
+
+  /* 030-B1 shell, verbatim as shipped */
+  .panel { position:relative; width:420px; flex:none; background:var(--surface-elevated); display:flex; flex-direction:column;
+    border-top-left-radius:24px; border-bottom-left-radius:24px; overflow:hidden; }
+  .p-head { height:56px; flex:none; display:flex; align-items:center; padding:0 20px; position:relative; }
+  .p-head .t { font:600 18px/24px var(--font); margin-right:auto; }
+  .p-head .x { color:var(--text-secondary); cursor:pointer; font:400 20px/1 var(--font); }
+  .p-head::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:rgba(20,200,255,.12); }
+  /* body padding: fromLTRB(space10, space12, space10, space10) - the swap-settings recipe */
+  .p-body { flex:1; overflow-y:auto; padding:24px 20px 20px; }
+  .p-foot { flex:none; padding:20px; border-top:1px solid var(--border-subtle); }
+
+  /* hero - identical in all three */
+  .hero { text-align:center; }
+  .ident { width:60px; height:60px; border-radius:50%; margin:0 auto; position:relative; background:#627EEA;
+    display:grid; place-items:center; }
+  .ident .sym { font:700 22px/1 var(--font); color:#fff; }
+  .ident .bdg { position:absolute; right:-2px; bottom:-2px; width:22px; height:22px; border-radius:50%;
+    display:grid; place-items:center; border:2px solid var(--surface-elevated); background:var(--status-neutral); color:#fff;
+    font:700 11px/1 var(--font); }
+  .amt { font:600 26px/34px var(--font); font-variant-numeric:tabular-nums; margin-top:var(--space-6); color:var(--text-primary); }
+  .exact { font:400 12px/16px var(--font-mono); color:var(--text-primary-54); margin-top:2px; font-variant-numeric:tabular-nums; }
+  .fiat { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-3); font-variant-numeric:tabular-nums; }
+  .pill { display:inline-flex; align-items:center; gap:6px; margin-top:var(--space-6); padding:3px 10px;
+    border-radius:999px; font:600 13px/18px var(--font); }
+  .pill .d { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .pill.completed { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .pill.pending   { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .pill.failed    { background:rgba(255,77,77,.14);  color:var(--status-error); }
+  .pill.cancelled { background:var(--surface-menu);  color:var(--text-secondary); }
+
+  /* ---- the row: 032-A1 grammar. transparent at rest, hover = brand tint + brand hairline,
+         border ALWAYS present and transparent so nothing twitches by 1px ---- */
+  .r { display:flex; align-items:center; gap:10px; margin-bottom:2px; padding:9px 12px;
+    border-radius:var(--radius-md); border:1px solid transparent; background:transparent;
+    transition:background .12s ease, border-color .12s ease; }
+  .r .k { font:400 13px/19px var(--font); color:var(--text-secondary); flex:none; }
+  .r .v { margin-left:auto; font:400 13px/19px var(--font); color:var(--text-primary); text-align:right;
+    font-variant-numeric:tabular-nums; }
+  .r .v.mono { font-family:var(--font-mono); font-size:12.5px; letter-spacing:.2px; color:var(--text-primary-54); }
+  .r .v.mono b { color:var(--text-primary); font-weight:700; }
+  .r .cg { width:15px; height:15px; flex:none; color:transparent; transition:color .12s ease; }
+  .r.copy { cursor:pointer; }
+  .r.copy:hover { background:rgba(20,200,255,.08); border-color:rgba(20,200,255,.32); }
+  .r.copy:hover .cg { color:var(--brand-primary); }
+  .r.copy.done { background:rgba(10,216,156,.10); border-color:rgba(10,216,156,.40); }
+  .r.copy.done .cg { color:var(--status-success); }
+  .r .v.stat.dead { color:var(--status-error); }
+
+  /* A2 only: the group, as a hairline container at radiusMd - the search-ring radius, not a card fill */
+  .grp { border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:4px; margin-bottom:var(--space-6); }
+  .grp .r { margin-bottom:0; }
+  /* A2's label: swap-settings grammar - sentence case labelMd w600, NOT an uppercase kicker */
+  .glab { font:600 13px/18px var(--font); color:var(--text-primary); margin:0 0 var(--space-3); padding-left:2px; }
+  .ghint { font:400 12px/17px var(--font); color:var(--text-secondary); margin:-2px 0 var(--space-4); padding-left:2px; }
+
+  /* A3 only: the tinted hero band - 032-A1's selection tint, the one brand statement the shipped drawers make */
+  .tint { border-radius:var(--radius-lg); padding:20px 16px 18px;
+    background:linear-gradient(90deg, rgba(10,216,156,.18), rgba(10,174,230,.18));
+    border:1px solid rgba(20,200,255,.32); }
+
+  .sep { height:1px; background:var(--border-subtle); margin:var(--space-8) 0 var(--space-6); }
+
+  .btn { height:48px; border-radius:var(--radius-pill); display:flex; align-items:center; justify-content:center; gap:8px;
+    font:600 14px/1 var(--font); cursor:pointer; position:relative; }
+  /* GWButtonVariant.secondary as it actually ships: a FLAT brandPrimaryOnSurface
+     outline + label, not a gradient outline. Corrected 2026-07-27 - the CTA-weight
+     rule in CONVENTIONS.md reserves the gradient outline for a secondary action
+     that pairs with a filled gradient CTA, and this footer has none. */
+  .btn.sec { background:transparent; color:var(--brand-primary-strong);
+    border:1px solid var(--brand-primary-strong); }
+  [data-theme="dark"] .btn.sec { color:var(--brand-primary); border-color:var(--brand-primary); }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); width:430px; flex:none; }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; margin-bottom:var(--space-6); }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+
+  .pane { display:none; } .pane.on { display:block; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">154 round 2 · A in the shipped language</span>
+  <button class="vt" data-v="a">A · round 1</button>
+  <button class="vt active" data-v="a1">A1 · Flat rows</button>
+  <button class="vt" data-v="a2">A2 · Labelled groups</button>
+  <button class="vt" data-v="a3">A3 · Tinted hero</button>
+  <span class="sep"></span>
+  <span class="lbl">Status</span>
+  <button class="st on" data-s="completed">Completed</button>
+  <button class="st" data-s="pending">Pending</button>
+  <button class="st" data-s="failed">Failed</button>
+  <button class="st" data-s="cancelled">Cancelled</button>
+  <span class="sep"></span>
+  <span class="lbl">Type</span>
+  <button class="st on" data-t="sent">Sent</button>
+  <button class="st" data-t="swap">Swap</button>
+  <button class="st" data-t="job">Job</button>
+  <span class="sep"></span>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap">
+  <h1>Variant A, three ways, in the language the last two drawers actually shipped in</h1>
+  <p class="lede">
+    Round 1 chose <b>A · 031-B1 as decided</b>. Round 1 also drew it with <b>uppercase section kickers and
+    bordered cards</b> - and that is not the vocabulary <code>swap_settings_drawer.dart</code> (063-A) and
+    <code>token_selector_drawer.dart</code> (032-A1) went out with on 2026-07-27. These three keep every
+    decision A made and re-say it in the shipped grammar. <b>Try the copy rows - they really copy.</b>
+  </p>
+
+  <div class="voc">
+    <div class="c"><h4>Shipped rule 1</h4><p><b>No filled cards.</b> The token row is
+      <code>transparent</code> at rest, with a comment saying a <code>surfaceMenu</code> row on a
+      <code>surfaceMenu</code> panel is decoration nobody sees. Hover brings <code>hoverFill</code> +
+      <code>hoverEdge</code>; the border is <b>always present and transparent</b> so nothing twitches by 1px.</p></div>
+    <div class="c"><h4>Shipped rule 2</h4><p><b>No uppercase kickers.</b> Swap Settings uses a sentence-case
+      <code>labelMd</code> w600 label plus a plain description line. Token Selector has no section labels at
+      all. Nothing in either drawer is set in caps.</p></div>
+    <div class="c"><h4>Shipped rule 3</h4><p><b>The accent is the gradient</b>, in two doses: the full
+      <code>brandCta</code> on a chosen preset, or a <b>0x2E-alpha tint</b> plus a
+      <code>ShaderMask</code> check. Never a flat brand fill.</p></div>
+    <div class="c"><h4>Shipped constants</h4><p>Body <code>20px</code> sides, <code>24</code> top.
+      <code>radiusMd</code> rows, <code>radiusSm</code> fields. Primary action in the footer above a
+      <code>borderSubtle</code> top rule. <code>GWFocusRing</code> on every input.</p></div>
+  </div>
+
+  <div class="outer">
+    <div class="stage">
+      <div class="scrim"><div class="ghost"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+      <div class="panel">
+        <div class="p-head"><span class="t ttl">Sent</span><span class="x">&#10005;</span></div>
+        <div class="p-body" id="body"></div>
+        <div class="p-foot"><div class="btn sec"><span>&#8599;</span> View on Explorer</div></div>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+
+<script>
+const STATUS = {
+  completed: { word:'Completed', dead:false },
+  pending:   { word:'Pending',   dead:false },
+  failed:    { word:'Failed',    dead:true  },
+  cancelled: { word:'Cancelled', dead:true  }
+};
+
+// chunk a mono value into 4-char groups, first and last emphasised (034-A2 / D)
+function chunk(s){
+  const g = s.match(/.{1,4}/g) || [];
+  if (g.length <= 2) return '<b>' + s + '</b>';
+  return '<b>' + g[0] + '</b>' + g.slice(1,-1).join(' ') + ' <b>' + g[g.length-1] + '</b>';
+}
+
+function rows(type, st){
+  const dead = STATUS[st].dead;
+  const statusRow = { k:'Status', v:STATUS[st].word, cls:'stat' + (dead ? ' dead' : '') };
+  const tx = [ { k:'Date', v:'July 26, 2026 at 8:28 AM' }, statusRow ];
+  const net = [];
+  if (type === 'swap') {
+    tx.push({ k:'From', v:'1.00 ETH' }, { k:'To', v:'3,200.00 USDC' }, { k:'Rate', v:'1 ETH ~ 3,200 USDC' });
+  } else if (type === 'job') {
+    tx.push({ k:'To', v:'0xToMo9f31ab7c04e2ed09', mono:true, copy:true });
+  } else {
+    tx.push({ k:'To', v:'0xToMo9f31ab7c04e2ed01', mono:true, copy:true });
+  }
+  net.push({ k:'Network', v:'ETH' });
+  net.push({ k:'Network Fee', v:'0.001 ETH' });
+  net.push({ k: type === 'job' ? 'Job' : 'Hash', v:'0xdevm4a91c02b7e5fck01', mono:true, copy:true });
+  return { tx, net };
+}
+
+function rowHTML(r){
+  const val = r.mono ? '<span class="v mono">' + chunk(r.v) + '</span>'
+                     : '<span class="v ' + (r.cls || '') + '">' + r.v + '</span>';
+  const cg = r.copy
+    ? '<span class="cg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span>'
+    : '';
+  return '<div class="r' + (r.copy ? ' copy' : '') + '"' + (r.copy ? ' data-copy="' + r.v + '"' : '') + '>'
+       + '<span class="k">' + r.k + '</span>' + val + cg + '</div>';
+}
+
+function hero(type, st, tinted){
+  const sym = type === 'job' ? 'G' : 'E';
+  const bg  = type === 'job' ? 'background:linear-gradient(135deg,#0AD89C,#0AAEE6)' : '';
+  const amount = type === 'swap' ? '+ 3,200.00 USDC' : (type === 'job' ? '− 0.42 GNUS' : '− 0.75 ETH');
+  const exact  = type === 'swap' ? '3200.000000000000000' : (type === 'job' ? '−0.420000000000000' : '−0.750000000000000');
+  const fiat   = STATUS[st].dead && st === 'failed' ? 'Not charged' : (type === 'job' ? '$0.36' : '$1,801.13');
+  const inner =
+      '<div class="ident" style="' + bg + '"><span class="sym">' + sym + '</span><span class="bdg">↗</span></div>'
+    + '<div class="amt">' + amount + '</div>'
+    + '<div class="exact">exact: ' + exact + '</div>'
+    + '<div class="fiat">' + fiat + '</div>'
+    + '<div class="pill ' + st + '"><span class="d"></span>' + STATUS[st].word + '</div>';
+  return tinted ? '<div class="tint"><div class="hero">' + inner + '</div></div>'
+                : '<div class="hero">' + inner + '</div>';
+}
+
+const NOTES = {
+  'a': { h:'A · round 1, for comparison', b:`
+    <p>What round 1 drew. Everything about it is right except the two things that are not ours:
+    <b>uppercase TRANSACTION / NETWORK kickers</b> and <b>bordered cards with a fill</b>.</p>
+    <p>Neither shipped drawer contains either. Kept here so the difference is visible rather than argued.</p>` },
+  'a1': { h:'A1 · Flat rows <span class="tag rec">rec</span>', b:`
+    <p><b>The Token Selector applied literally.</b> No group labels, no containers - just the hero, a hairline,
+    and a stack of rows that are transparent until you point at them.</p>
+    <ul class="spec">
+      <li>rows <code>radiusMd</code>, transparent, <b>2px</b> apart, border always present and transparent</li>
+      <li>hover <code>hoverFill</code> + <code>hoverEdge</code>; the copy glyph fades in on the same 120ms</li>
+      <li>mono values in <b>4-char groups</b>, first and last at full weight, the middle at 54%</li>
+      <li>one hairline between the hero and the rows - the only structural line in the panel</li>
+      <li><b>Nothing new to build.</b> The row is <code>_buildRow</code> plus the decoration already written in <code>_TokenRow</code></li>
+    </ul>
+    <p><b>The trade:</b> Network and Network Fee sit in one undifferentiated run with Date and To. On a Sent
+    receipt that is six rows and it reads fine. Cycle to <b>Swap</b>, where it becomes eight.</p>` },
+  'a2': { h:'A2 · Labelled groups', b:`
+    <p>Keeps A's two groups, but says them the way <b>Swap Settings</b> says things: a sentence-case
+    <code>labelMd</code> w600 label, and a hairline container at <code>radiusMd</code> - the search ring's
+    radius - with <b>no fill</b>.</p>
+    <ul class="spec">
+      <li><b>Transaction</b> / <b>Network</b> in sentence case, not caps</li>
+      <li>container is a 1px <code>borderSubtle</code> outline over the panel, not a raised card</li>
+      <li>4px of inner padding so the row's hover tint has somewhere to land inside the outline</li>
+      <li>survives <b>Swap</b> best of the three - eight rows in two named groups instead of one run</li>
+    </ul>
+    <p><b>The trade:</b> two outlines inside a 420px panel is more chrome than either shipped drawer carries.
+    Judge it on <b>Sent</b> (where it may be over-built) and on <b>Swap</b> (where it earns itself).</p>` },
+  'a3': { h:'A3 · Tinted hero', b:`
+    <p>A1's rows, but the hero sits on <b>032-A1's selection tint</b> - the 0x2E-alpha gradient plus the brand
+    hairline. The one place the shipped drawers allow a brand statement, spent on the one block that is the
+    reason the panel opened.</p>
+    <ul class="spec">
+      <li>tint <code>0x2E0AD89C → 0x2E0AAEE6</code> at <code>radiusLg</code>, 1px brand hairline</li>
+      <li>rows identical to A1 below it</li>
+      <li>gives the panel a shape without adding a single label</li>
+    </ul>
+    <p><b>The trade, and it is a real one:</b> in the shipped drawers that tint means <b>"this one is
+    selected"</b>. Using it as decoration here spends a word the design system has already assigned a meaning
+    to. Also worth cycling to <b>Failed</b> - a brand-green wash behind a red pill is a mixed signal.</p>` }
+};
+
+let v = 'a1', st = 'completed', type = 'sent';
+
+function paint(){
+  const { tx, net } = rows(type, st);
+  const all = tx.concat(net);
+  let html = '';
+  if (v === 'a') {
+    html = hero(type, st, false)
+      + '<div style="margin-top:24px"><div style="font:700 10px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-primary-54); margin-bottom:12px">Transaction</div>'
+      + '<div style="border:1px solid var(--border-subtle); border-radius:12px; background:var(--surface-sheen-b); overflow:hidden">'
+      + tx.map(r => rowHTML(r).replace('class="r', 'class="rr r').replace('border-radius:', '')).join('')
+      + '</div></div>'
+      + '<div style="margin-top:24px"><div style="font:700 10px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-primary-54); margin-bottom:12px">Network</div>'
+      + '<div style="border:1px solid var(--border-subtle); border-radius:12px; background:var(--surface-sheen-b); overflow:hidden">'
+      + net.map(rowHTML).join('')
+      + '</div></div>';
+  } else if (v === 'a1') {
+    html = hero(type, st, false) + '<div class="sep"></div>' + all.map(rowHTML).join('');
+  } else if (v === 'a2') {
+    html = hero(type, st, false) + '<div class="sep"></div>'
+      + '<div class="glab">Transaction</div><div class="grp">' + tx.map(rowHTML).join('') + '</div>'
+      + '<div class="glab">Network</div><div class="grp">' + net.map(rowHTML).join('') + '</div>';
+  } else {
+    html = hero(type, st, true) + '<div style="height:20px"></div>' + all.map(rowHTML).join('');
+  }
+  document.getElementById('body').innerHTML = html;
+  document.querySelector('.ttl').textContent =
+    type === 'swap' ? 'Swapped' : (type === 'job' ? 'Processing job' : 'Sent');
+
+  document.querySelectorAll('.r.copy').forEach(el => el.onclick = () => {
+    navigator.clipboard && navigator.clipboard.writeText(el.dataset.copy);
+    el.classList.add('done');
+    setTimeout(() => el.classList.remove('done'), 1400);
+  });
+
+  document.querySelectorAll('#nav .vt').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  document.querySelectorAll('#nav .st[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === st));
+  document.querySelectorAll('#nav .st[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === type));
+  const n = NOTES[v];
+  document.getElementById('note').innerHTML = '<h3>' + n.h + '</h3>' + n.b;
+}
+
+document.querySelectorAll('#nav .vt').forEach(b => b.onclick = () => { v = b.dataset.v; location.hash = v; paint(); });
+document.querySelectorAll('#nav .st[data-s]').forEach(b => b.onclick = () => { st = b.dataset.s; paint(); });
+document.querySelectorAll('#nav .st[data-t]').forEach(b => b.onclick = () => { type = b.dataset.t; paint(); });
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+if (location.hash && NOTES[location.hash.slice(1)]) v = location.hash.slice(1);
+paint();
+</script>
+</body>
+</html>

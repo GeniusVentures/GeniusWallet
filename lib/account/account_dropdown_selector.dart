@@ -5,6 +5,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
@@ -13,6 +14,7 @@ import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -73,10 +75,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
         onFieldSubmitted: (value) => navigator.pop(value.trim()),
       ),
       actions: [
-        GWDialogAction(
-          label: 'Cancel',
-          onPressed: () => navigator.pop(),
-        ),
+        GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop()),
         GWDialogAction(
           label: 'Rename',
           variant: GWButtonVariant.primary,
@@ -124,13 +123,16 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     final confirmed = await GWDialog.show<bool>(
       context: navigator.context,
       title: 'Delete wallet',
-      message: 'Are you sure you want to delete "${wallet.walletName}"?\n\n'
-          'This action cannot be undone.',
+      // No `\n\n`. GWDialog owns the vertical rhythm - space4 title→message,
+      // space8 →content, space10 →actions - and a hand-typed double break
+      // inside the string opened a gap wider than any of them, which is why
+      // this dialog read as spaced differently from every other one. Two
+      // sentences, one paragraph; the component does the spacing.
+      message:
+          'This removes "${wallet.walletName}" from the app. If you have no '
+          'copy of its recovery phrase, the wallet cannot be restored.',
       actions: [
-        GWDialogAction(
-          label: 'Cancel',
-          onPressed: () => navigator.pop(false),
-        ),
+        GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
         GWDialogAction(
           label: 'Delete',
           // Mode-invariant statusError destructive fill -- never
@@ -163,6 +165,9 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
     final selected = await ResponsiveDrawer.show<Wallet>(
       context: context,
+      // Owns a scrolling viewport: the inset lives on the list so it scrolls
+      // with the content and rows still reach the panel edge (kDrawerBodyPadding).
+      bodyPadding: EdgeInsets.zero,
       title: "Your Accounts",
       child: BlocBuilder<AppBloc, AppState>(
         builder: (context, appState) {
@@ -177,31 +182,31 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               ),
             );
           }
-          return ListView.separated(
+          // ListView.builder, not .separated: GWSelectRow carries its own
+          // bottom margin, so a separator would double the gap.
+          return ListView.builder(
+            padding: const EdgeInsets.all(GeniusWalletConsts.space10),
             itemBuilder: (context, i) => _buildDrawerRow(
               context,
               wallets[i],
               wallets[i].walletName == selectedWallet?.walletName,
             ),
             itemCount: wallets.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8.0),
           );
         },
       ),
-      footer: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: FilledButton.icon(
-          style: FilledButton.styleFrom(
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-            iconSize: 28,
-          ),
-          onPressed: () => context.push('/landing_screen', extra: true),
-          icon: const Icon(Icons.add),
-          label: const Text("Add Wallet"),
-        ),
+      // Inset removed: the shell supplies it now (kDrawerFooterPadding), and
+      // its 20 replaces this file's hand-typed 16.
+      // GWButton, not a raw `FilledButton.icon` with an inline fontSize 18 and
+      // iconSize 28 (sketch 068-A). Gradient because adding a wallet is the
+      // panel's only action and it is a commitment.
+      footer: GWButton(
+        label: 'Add Wallet',
+        leading: const Icon(Icons.add),
+        variant: GWButtonVariant.gradient,
+        size: GWButtonSize.lg,
+        expand: true,
+        onPressed: () => context.push('/landing_screen', extra: true),
       ),
     );
 
@@ -213,11 +218,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
     await Hive.box(walletBoxName).put(selectedWalletKey, selected.address);
   }
 
-  Widget _buildDrawerRow(
-    BuildContext context,
-    Wallet wallet,
-    bool isSelected,
-  ) {
+  Widget _buildDrawerRow(BuildContext context, Wallet wallet, bool isSelected) {
     // Fail-soft read: registers the InheritedWidget dependency (on the
     // per-row context passed in from the drawer's own itemBuilder, NOT the
     // widget-level this.context) that forces this row to rebuild on a live
@@ -226,106 +227,73 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
     final isWatched = wallet.walletType == WalletType.tracking;
 
-    // Selected-row text/icons stay on the mode-invariant on-brand token
-    // (WCAG-safe against the brandPrimary fill); unselected rows read the
-    // appearance-aware primary/secondary text tokens.
-    final textColor =
-        isSelected ? GeniusWalletColors.textOnBrand : gw.textPrimary;
-
-    final subColor =
-        isSelected ? GeniusWalletColors.textOnBrand : gw.textSecondary;
-
-    return ListTile(
+    // Sketch 068-A. This row used to paint selection as
+    // `selectedTileColor: brandPrimaryStrong` -- a FLAT brand fill, the one
+    // thing `drawers-final`'s global accent rule forbids and which quick
+    // 260721-0ze swept out of the rest of the app. This row was missed. It also
+    // needed two on-brand text colours to stay legible ON that fill; with the
+    // gradient tint underneath, ordinary text tokens read fine and both are
+    // gone.
+    //
+    // The shape follows the token row: identity on the LEFT (name over
+    // address), value on the RIGHT (balance). The address moved from a
+    // `SelectableText` to the subtitle -- select-to-copy inside a tappable row
+    // fights the tap, and the overflow menu's "Copy address" is the real path.
+    return GWSelectRow(
       selected: isSelected,
-      selectedTileColor: GeniusWalletColors.brandPrimaryStrong,
-      tileColor: gw.surfaceElevated,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onTap: () => Navigator.of(context).pop(wallet),
       leading: _buildAvatar(wallet, isSelected: isSelected, size: 36),
-      title: Row(
-        children: [
-          Flexible(
-            child: Text(
-              wallet.walletName,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 16,
-                color: textColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          if (isWatched)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: Icon(
-                Icons.remove_red_eye_outlined,
-                size: 16,
-                color: textColor,
-              ),
-            ),
-        ],
+      title: wallet.walletName,
+      subtitle: wallet.address.isEmpty ? null : wallet.address,
+      subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
+        fontFamily: 'JetBrainsMono',
+        color: gw.textSecondary,
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 3.0,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              if (wallet.walletType == WalletType.sgnus)
-                GeniusBalanceDisplay(
-                  useMinions: true,
-                  fontSize: 12,
-                  isShowSuffix: true,
-                  fontColor: subColor,
-                )
-              else
-                Text(
-                  '${wallet.balance} ${wallet.balance == 1 ? "minion" : "minions"}',
-                  style: TextStyle(
-                    color: subColor,
-                    fontSize: 12,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-            ],
-          ),
-          if (wallet.address.isNotEmpty) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: SelectableText(
-                    wallet.address,
-                    maxLines: 2,
-                    style: TextStyle(
-                      fontFamily: 'JetBrainsMono',
-                      color: subColor,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
+          // `isShowSuffix: false` -- GeniusBalanceDisplay hard-codes the suffix
+          // as the abbreviation "min", so with it on this row read "0 min"
+          // directly above another row reading "0.0 minions". One unit, two
+          // spellings, adjacent. The suffix is written here instead so both
+          // branches say the same word.
+          if (wallet.walletType == WalletType.sgnus) ...[
+            GeniusBalanceDisplay(
+              useMinions: true,
+              fontSize: 12,
+              fontColor: gw.textSecondary,
+            ),
+            Text(
+              ' minions',
+              style: GeniusWalletTypography.labelMd.copyWith(
+                color: gw.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ] else
+            Text(
+              '${wallet.balance} ${wallet.balance == 1 ? "minion" : "minions"}',
+              style: GeniusWalletTypography.labelMd.copyWith(
+                color: gw.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          if (isWatched) ...[
+            const SizedBox(width: GeniusWalletConsts.space3),
+            Icon(
+              Icons.remove_red_eye_outlined,
+              size: 16,
+              color: gw.textSecondary,
             ),
           ],
         ],
       ),
-      trailing: wallet.address.isEmpty
+      action: wallet.address.isEmpty
           ? null
+          // No local `MenuStyle` -- see `theme.dart`'s menuTheme/menuButtonTheme.
           : MenuAnchor(
-              // Explicit menuStyle: the reconciled theme no longer supplies
-              // menuTheme, so an un-styled MenuAnchor container reverts to
-              // stock Material 3 (04-RESEARCH Pitfall 5).
-              style: MenuStyle(
-                backgroundColor: WidgetStatePropertyAll(gw.surfaceElevated),
-                shape: WidgetStatePropertyAll(
-                  RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(GeniusWalletConsts.radiusLg),
-                  ),
-                ),
-              ),
               builder: (context, controller, child) => IconButton(
-                icon: Icon(Icons.more_vert, size: 20, color: textColor),
+                icon: Icon(Icons.more_vert, size: 20, color: gw.textSecondary),
                 onPressed: () {
                   if (controller.isOpen) {
                     controller.close();
@@ -336,7 +304,11 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
               ),
               menuChildren: [
                 MenuItemButton(
-                  leadingIcon: Icon(Icons.copy, size: 20, color: gw.textPrimary),
+                  leadingIcon: Icon(
+                    Icons.copy,
+                    size: 20,
+                    color: gw.textPrimary,
+                  ),
                   style: MenuItemButton.styleFrom(
                     foregroundColor: gw.textPrimary,
                   ),
@@ -354,8 +326,11 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                 ),
                 if (wallet.walletType != WalletType.sgnus)
                   MenuItemButton(
-                    leadingIcon: Icon(Icons.edit_outlined,
-                        size: 20, color: gw.textPrimary),
+                    leadingIcon: Icon(
+                      Icons.edit_outlined,
+                      size: 20,
+                      color: gw.textPrimary,
+                    ),
                     style: MenuItemButton.styleFrom(
                       foregroundColor: gw.textPrimary,
                     ),
@@ -409,8 +384,7 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       builder: (context, state) {
         final wallets = state.wallets;
         if (wallets.isEmpty) {
-          final gw =
-              Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+          final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
           return Center(
             child: Text(
               "You have no wallets!",

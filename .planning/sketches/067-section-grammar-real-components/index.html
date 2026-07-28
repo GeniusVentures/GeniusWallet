@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Sketch 067 - gramatyka sekcji na istniejących komponentach</title>
+<style>
+:root{
+  --menu:#171A21; --elev:#0C0E14; --sunk:#06080C; --base:#0B0D12;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink54:rgba(255,255,255,.54);
+  --ink38:rgba(255,255,255,.38);
+  --sec:#8A8F9D; --border:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --border36:rgba(255,255,255,.36);
+  --ok:#0AD89C; --err:#FF4D4D; --warn:#FFC42E; --brandStrong:#0AAEE6;
+  --cta:linear-gradient(90deg,#0AD89C,#0AAEE6);
+  --rSm:8px; --rMd:12px; --rLg:15px; --rXl:24px;
+  --panel:var(--menu);          /* przelacznik 156-A podmienia to */
+}
+body.canvas156{ --panel:var(--elev); }
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;
+  -webkit-font-smoothing:antialiased}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+
+header{position:sticky;top:0;z-index:40;background:rgba(11,13,18,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:14px 28px}
+h1{margin:0 0 3px;font-size:17px;font-weight:600}
+.q{margin:0 0 12px;font-size:12px;color:var(--ink38);max-width:88ch;line-height:1.5}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;background:var(--sunk);border:1px solid var(--border);
+  border-radius:48px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;color:var(--ink70);cursor:pointer;
+  padding:7px 13px;border-radius:48px;font:inherit;font-size:12px;font-weight:500;transition:.15s}
+.seg button:hover{background:rgba(255,255,255,.08)}
+.seg button[aria-selected="true"]{background:var(--cta);color:#000B18;font-weight:600}
+.tog{border:1px solid var(--border);background:transparent;color:var(--ink70);cursor:pointer;
+  padding:8px 14px;border-radius:48px;font:inherit;font-size:12px}
+.tog[aria-pressed="true"]{border-color:var(--ok);color:var(--ok)}
+
+main{max-width:1240px;margin:0 auto;padding:26px 28px 90px}
+.vb{border:1px solid var(--border);border-radius:var(--rLg);padding:16px 18px;margin:0 0 24px;
+  background:var(--elev)}
+.vb h2{margin:0 0 5px;font-size:16px;font-weight:600}
+.vb p{margin:0 0 8px;color:var(--ink70);font-size:13px;max-width:92ch;line-height:1.6}
+.vb .who{font:400 11px/1.7 ui-monospace,Menlo,monospace;color:var(--ink38)}
+.star{color:var(--ok)}
+
+h3{font-size:12px;font-weight:600;margin:30px 0 14px;color:var(--ink38);
+  text-transform:uppercase;letter-spacing:.07em}
+.pair{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:9px}
+.col .cl{font:600 11px/1.3 ui-monospace,Menlo,monospace;color:var(--ink38);letter-spacing:.04em}
+
+/* ---------- POWLOKA 030-B1 ---------- */
+.dw{width:420px;background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--rXl);overflow:hidden;display:flex;flex-direction:column;
+  transition:background .2s}
+.dw .hd{height:56px;display:flex;align-items:center;padding:0 16px 0 20px;flex:none;position:relative}
+.dw .hd .t{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.dw .hd .x{margin-left:auto;width:32px;height:32px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;color:var(--ink70);cursor:pointer}
+.dw .hd .x:hover{background:rgba(255,255,255,.08)}
+.dw .hd::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}
+.dw .bd{padding:20px 20px 20px;flex:1}
+.dw .ft{padding:20px;border-top:1px solid var(--border);flex:none}
+
+/* ---------- GWKicker (065-C, zbudowany) ---------- */
+.kick{font-weight:600;color:var(--sec);text-transform:uppercase;
+  font-size:13px;letter-spacing:.5px;line-height:18px;
+  display:flex;align-items:center;gap:10px}
+body.dense .kick{font-size:11px;letter-spacing:.6px;line-height:16px}
+.kick .rule{flex:1;height:1px;background:var(--border);display:none}
+body[data-v="B"] .kick .rule{display:block}
+
+/* ---------- kontener sekcji, per wariant ---------- */
+.sect{margin-top:14px}
+.sectbody{margin-top:12px}
+/* A: brak kontenera */
+/* B: brak kontenera, linia jest w kickerze */
+/* C: GWCard z krawedzia 36% */
+body[data-v="C"] .sectbody{
+  background:var(--elev);border:1px solid var(--border36);
+  border-radius:var(--rLg);padding:16px}
+body.canvas156[data-v="C"] .sectbody{background:var(--sunk)}
+
+/* ---------- tresc: formularz 063-A ---------- */
+.desc{font-size:13px;color:var(--sec);line-height:1.55;margin:0 0 14px}
+.chips{display:flex;gap:8px}
+.chip{flex:1;height:44px;border-radius:var(--rSm);display:flex;align-items:center;
+  justify-content:center;font-size:14px;font-weight:500;cursor:pointer;
+  border:1px solid var(--border);background:transparent;color:var(--ink);transition:.15s}
+.chip:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.24)}
+.chip.on{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+.fieldwrap{margin-top:14px}
+.flabel{font-size:13px;font-weight:500;color:var(--ink70);margin-bottom:8px}
+.ring{padding:1.5px;border-radius:calc(var(--rSm) + 1.5px);background:transparent}
+.ring.on{background:var(--cta)}
+.field{background:var(--elev);border:1px solid var(--border);border-radius:var(--rSm);
+  padding:13px 14px;font-size:16px;display:flex;align-items:center;justify-content:space-between}
+.ring.on .field{border-color:transparent}
+body.canvas156 .field{background:var(--sunk)}
+.field .pct{color:var(--ink38)}
+.msg{margin-top:9px;font-size:13px;line-height:1.5;display:flex;gap:8px;align-items:flex-start}
+.msg.ok{color:var(--sec)}
+.msg.warn{color:var(--warn)}
+.msg .ic{flex:none;margin-top:2px}
+
+/* ---------- GWButton ---------- */
+.btn{display:flex;align-items:center;justify-content:center;height:48px;width:100%;
+  border:none;border-radius:var(--rLg);font:500 16px/1 inherit;font-family:inherit;
+  cursor:pointer;background:var(--cta);color:#000B18;position:relative;overflow:hidden}
+.btn:hover::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.12)}
+
+/* ---------- nakladka kontrastu ---------- */
+body.contrast .sectbody{outline:1px dashed var(--warn);outline-offset:4px;position:relative}
+body.contrast .sectbody::after{content:attr(data-c);position:absolute;left:0;top:-22px;
+  font:400 10px/1 ui-monospace,Menlo,monospace;color:var(--warn);white-space:nowrap}
+
+/* ---------- tabele / notki ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font:600 11px/1.3 ui-monospace,Menlo,monospace;color:var(--ink38);letter-spacing:.05em;
+  text-transform:uppercase}
+td.mono{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink70)}
+.ok-b{color:var(--ok)} .bad-b{color:var(--err)} .warn-b{color:var(--warn)}
+.note{border-left:2px solid var(--ok);padding:2px 0 2px 14px;margin:22px 0;
+  color:var(--ink70);font-size:13px;max-width:94ch;line-height:1.65}
+.note.bad{border-left-color:var(--err)}
+.note.warn{border-left-color:var(--warn)}
+.note b{color:var(--ink)}
+</style>
+</head>
+<body data-v="A" data-s="normal">
+
+<header>
+  <h1>Sketch 067 · Gramatyka sekcji na istniejących komponentach</h1>
+  <p class="q">160-1 zostało wybrane, ale specyfikuje trzy własne komponenty: kicker 10/w700/0.8/textPrimary54
+  (szósta wartość, sprzeczna z 065-C), kartę radiusMd + surfaceSheen (nie <code>GWCard</code>) i wiersz 14/14
+  (nie istniejący <code>_buildRow</code>). Ten sketch rysuje ten sam kształt <b>wyłącznie</b> z tego, co
+  w kodzie już jest - i pyta, czym w takim razie grupować, skoro karta na panelu szuflady mierzy 1.11:1.</p>
+  <div class="bar">
+    <div class="seg" role="tablist">
+      <button role="tab" data-v="A" aria-selected="true">A · Sam kicker ★</button>
+      <button role="tab" data-v="B">B · Kicker z linią</button>
+      <button role="tab" data-v="C">C · Karta 3:1</button>
+    </div>
+    <div class="seg" role="tablist">
+      <button role="tab" data-s="normal" aria-selected="true">Normalny</button>
+      <button role="tab" data-s="high">Wysoka wartość</button>
+    </div>
+    <button class="tog" id="dense" aria-pressed="false">Kicker dense (11)</button>
+    <button class="tog" id="c156" aria-pressed="false">Płótno po 156-A</button>
+    <button class="tog" id="contrast" aria-pressed="false">Kontrast</button>
+  </div>
+</header>
+
+<main>
+<div class="vb" id="banner"></div>
+
+<h3>Swap Settings, 420px, 1:1</h3>
+<div class="pair">
+  <div class="col">
+    <div class="cl">SZUFLADA</div>
+    <div class="dw">
+      <div class="hd"><span class="t">Swap Settings</span><span class="x">✕</span></div>
+      <div class="bd">
+        <div class="sect">
+          <div class="kick"><span>Slippage tolerance</span><span class="rule"></span></div>
+          <div class="sectbody" id="sbody">
+            <p class="desc">Maksymalna różnica ceny, jaką zaakceptujesz między wyceną a rozliczeniem.</p>
+            <div class="chips">
+              <div class="chip" id="c01">0.1%</div>
+              <div class="chip on" id="c05">0.5%</div>
+              <div class="chip" id="c10">1%</div>
+            </div>
+            <div class="fieldwrap">
+              <div class="flabel">Wartość własna</div>
+              <div class="ring" id="ring"><div class="field"><span id="fval">0.5</span><span class="pct">%</span></div></div>
+              <div class="msg ok" id="msg">
+                <span class="ic">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg>
+                </span>
+                <span id="msgtxt">Typowa wartość dla większości par.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ft"><button class="btn">Apply</button></div>
+    </div>
+  </div>
+
+  <div class="col" style="flex:1;min-width:340px">
+    <div class="cl">SKĄD POCHODZI KAŻDY ELEMENT</div>
+    <table>
+      <tr><th>Element</th><th>Komponent</th><th>Plik</th></tr>
+      <tr><td>powłoka, pasek 56px, stopka</td><td class="mono">ResponsiveDrawer</td><td class="mono">bottom_drawer/responsive_drawer.dart</td></tr>
+      <tr><td>etykieta sekcji</td><td class="mono">GWKicker</td><td class="mono">cards/gw_kicker.dart <span class="ok-b">zbudowane dziś</span></td></tr>
+      <tr><td>presety</td><td class="mono">_PresetChip</td><td class="mono">squid_router/swap_settings_drawer.dart</td></tr>
+      <tr><td>pierścień pola</td><td class="mono">GWFocusRing</td><td class="mono">inputs/gw_focus_ring.dart</td></tr>
+      <tr><td>walidacja + komunikat</td><td class="mono">slippageState()</td><td class="mono">squid_router/slippage_state.dart</td></tr>
+      <tr><td>Apply</td><td class="mono">GWButton(gradient)</td><td class="mono">buttons/gw_button.dart</td></tr>
+      <tr><td>karta sekcji <span class="warn-b">tylko wariant C</span></td><td class="mono">GWCard</td><td class="mono">cards/gw_card.dart, krawędź nadpisana na 36%</td></tr>
+    </table>
+    <div class="cl" style="margin-top:18px">NIC NOWEGO NIE POWSTAJE</div>
+    <p style="font-size:13px;color:var(--ink70);line-height:1.6;margin:6px 0 0">
+      W wariantach A i B nie ma ani jednego nowego widgetu - sekcja to <code>GWKicker</code> plus
+      odstęp. W wariancie C jedyny dodatek to nadpisanie <code>border:</code> w istniejącym
+      <code>GWCard</code>, bo domyślny <code>borderSubtle</code> nie przechodzi 1.4.11 na tym panelu.
+    </p>
+  </div>
+</div>
+
+<h3>Dlaczego karta odpada z arytmetyki, nie z gustu</h3>
+<table>
+  <tr><th>Granica</th><th>Panel dziś #171A21</th><th>Panel po 156-A #0C0E14</th><th>1.4.11 wymaga 3:1</th></tr>
+  <tr><td><code>GWCard</code> wypełnienie <code>surfaceElevated</code></td><td>1.11:1</td><td><b>1.00:1</b> - ten sam kolor</td><td class="bad-b">nie</td></tr>
+  <tr><td>karta wgłębiona <code>surfaceSunken</code></td><td>1.15:1</td><td>1.04:1</td><td class="bad-b">nie</td></tr>
+  <tr><td>hairline <code>borderSubtle</code> 12%</td><td>1.42:1</td><td>1.36:1</td><td class="bad-b">nie</td></tr>
+  <tr><td><code>borderStrong</code> 24%</td><td>2.19:1</td><td>2.11:1</td><td class="bad-b">nie</td></tr>
+  <tr><td>krawędź biały 30% (propozycja 156-A)</td><td>2.72:1</td><td>2.63:1</td><td class="bad-b">nie</td></tr>
+  <tr><td><b>krawędź biały 36%</b></td><td><b>3.32:1</b></td><td><b>3.30:1</b></td><td class="ok-b">tak</td></tr>
+</table>
+
+<div class="note bad">
+  <b>Żadne wypełnienie dostępne w tej palecie nie sprawia, że karta czyta się na panelu szuflady.</b>
+  Najlepsze, co jest, to 1.15:1 - a po 156-A karta staje się dokładnie tym samym kolorem co panel,
+  czyli znika bez śladu. Pracę wykonuje wyłącznie krawędź, i musi zejść do <b>białego 36%</b>, żeby
+  przejść WCAG 1.4.11. To już nie jest hairline, tylko widoczna szara kreska - włącz wariant C
+  i zobacz, czy w szufladzie na 420px to nie jest za głośne.
+</div>
+
+<div class="note">
+  <b>To jest ten sam wniosek, do którego doszły dwie wysłane szuflady</b>, tylko z liczbą pod spodem.
+  <code>_TokenRow</code> ma w kodzie komentarz mówiący, że wiersz <code>surfaceMenu</code> na panelu
+  <code>surfaceMenu</code> to dekoracja, której nikt nie widzi. Runda 2 sketcha 154 zapisała to jako
+  regułę „bez wypełnionych kart". 067 mierzy, o ile dokładnie ta dekoracja jest niewidoczna: 1.11:1
+  przy progu 3:1.
+</div>
+
+<div class="note warn">
+  <b>Wariant B jest tym samym kickerem z linią, którego nie wybrałeś w 065.</b> Tam był dodatkiem do
+  etykiety; tutaj jest jedynym sposobem grupowania, który nic nie kosztuje - kreska sama w sobie nie
+  musi przechodzić 1.4.11, bo nie jest granicą elementu, tylko ozdobnikiem tekstu. Jeśli B wygra,
+  komponent dostaje flagę <code>rule</code>, jedno <code>Expanded</code> w tym samym <code>Row</code>.
+</div>
+
+</main>
+
+<script>
+const V = {
+ A:{t:"A · Sam kicker",
+    d:"Sekcja to etykieta i odstęp. Zero kontenerów, zero krawędzi. To jest dokładnie to, co robią dwie już wysłane szuflady - Token Selector nie ma żadnych etykiet sekcji, a Swap Settings ma zdaniową etykietę bez pudełka - więc trzecia szuflada nie wprowadza nowego słownika. Grupowanie niesie odstęp, a odstęp nie ma progu kontrastu do spełnienia. Koszt: przy trzech i więcej sekcjach w jednym panelu granice zaczynają zależeć wyłącznie od tego, czy ktoś nie pomylił się o 4px.",
+    w:"nowych widgetów: 0 · przechodzi 1.4.11: nie dotyczy, nie ma granicy"},
+ B:{t:"B · Kicker z linią",
+    d:"Etykieta ciągnie hairline do prawej krawędzi. Grupowanie jest widoczne, a jednocześnie nic nie musi przechodzić 1.4.11 - kreska pod etykietą nie jest granicą kontrolki, tylko częścią jej typografii, tak samo jak podkreślenie w linku. To jest kształt 065-D, którego nie wybrałeś jako domyślnego stopnia; tutaj wraca nie jako ozdoba, tylko jako jedyny sposób pokazania grupy, który nie kosztuje kontrastu.",
+    w:"nowych widgetów: 0 · komponent zyskuje flagę rule (jedno Expanded)"},
+ C:{t:"C · Karta, która faktycznie przechodzi",
+    d:"GWCard z krawędzią podniesioną do białego 36%, bo domyślny borderSubtle mierzy 1.42:1 przy wymaganych 3:1. Jedyny wariant, w którym sekcja jest prawdziwym pudełkiem - i jedyny, który przeżywa 156-A, bo tam pracuje krawędź, a nie wypełnienie. Cena jest widoczna gołym okiem: przy 420px szerokości szara kreska 36% jest wyraźnie mocniejsza niż wszystko inne w tej szufladzie, łącznie z hairline'ami powłoki, które zostają na 12%.",
+    w:"nowych widgetów: 0 · GWCard z nadpisanym border · jedyny zgodny z 1.4.11"}
+};
+const banner=document.getElementById('banner');
+function render(){
+  const v=document.body.dataset.v,o=V[v];
+  banner.innerHTML='<h2>'+o.t.replace('★','<span class="star">★</span>')+'</h2><p>'+o.d+'</p><div class="who">'+o.w+'</div>';
+  const c={A:'brak granicy',B:'brak granicy',C:'krawędź 36% = 3.32:1'}[v];
+  document.getElementById('sbody').setAttribute('data-c',c);
+}
+function state(){
+  const high=document.body.dataset.s==='high';
+  document.getElementById('c05').classList.toggle('on',!high);
+  document.getElementById('fval').textContent=high?'12':'0.5';
+  document.getElementById('ring').classList.toggle('on',high);
+  const m=document.getElementById('msg');
+  m.className='msg '+(high?'warn':'ok');
+  document.getElementById('msgtxt').textContent=high
+    ? 'Wysoka - ryzyko front-runningu. Możesz dostać znacznie mniej, niż pokazuje wycena.'
+    : 'Typowa wartość dla większości par.';
+}
+document.querySelectorAll('[data-v]').forEach(b=>b.tagName==='BUTTON'&&b.addEventListener('click',()=>{
+  document.body.dataset.v=b.dataset.v;
+  document.querySelectorAll('button[data-v]').forEach(x=>x.setAttribute('aria-selected',x.dataset.v===b.dataset.v));
+  render(); location.hash=b.dataset.v;
+}));
+document.querySelectorAll('button[data-s]').forEach(b=>b.addEventListener('click',()=>{
+  document.body.dataset.s=b.dataset.s;
+  document.querySelectorAll('button[data-s]').forEach(x=>x.setAttribute('aria-selected',x.dataset.s===b.dataset.s));
+  state();
+}));
+[['dense','dense'],['c156','canvas156'],['contrast','contrast']].forEach(([id,cls])=>{
+  document.getElementById(id).addEventListener('click',e=>{
+    const on=document.body.classList.toggle(cls);
+    e.currentTarget.setAttribute('aria-pressed',on);
+  });
+});
+if(location.hash.replace('#','') in V) document.body.dataset.v=location.hash.replace('#','');
+document.querySelectorAll('button[data-v]').forEach(x=>x.setAttribute('aria-selected',x.dataset.v===document.body.dataset.v));
+render(); state();
+</script>
+</body>
+</html>

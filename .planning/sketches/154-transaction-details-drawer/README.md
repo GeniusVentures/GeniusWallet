@@ -2,10 +2,30 @@
 sketch: 154
 name: transaction-details-drawer
 question: "Sketch 031 already decided how the transaction receipt should read and it was never ported. What does the detail drawer look like in the shipped drawer language, using only fields txRowContent already computes?"
-winner: null
+winner: "A \u00b7 031-B1 as decided - ONE schema for all 7 transaction types (Jakub 2026-07-27), WITH D's copy rows (Jakub 2026-07-28, closing the open question). BUILT 2026-07-28, quick 260728-r4k - the section grouping shipped bare on 067-A's reasoning and was walked back the same day into a new GWDetailGrid component - 067's arithmetic covers a box around a FORM, not a read-only table whose rules are decorative."
 tags: [drawers, transaction-detail, receipt, responsive-drawer, status, copy, data-honesty, follows-031]
 lane: B
 ---
+
+> ## DECIDED 2026-07-27 (Jakub)
+>
+> **Variant A · 031-B1 as decided.** Colours, layout and structure as drawn in round 1's variant A:
+> identity + amount centred, the existing `_statusPill` under it, rows grouped into **TRANSACTION** /
+> **NETWORK** section cards, 20px body padding, the fiat line and the exact amount added, amount stays
+> neutral (colour rides on icon + pill + Status row).
+>
+> **One schema for ALL transaction types.** Jakub, 2026-07-27: *"wszystkie transakcje powinny mieć ten
+> schemat"*. That covers all seven `TransactionType` values - `transfer`, `mint`, `escrow`, `process`,
+> `escrowRelease`, `purchase`, `swap`. The rows inside the sections still vary by type (a swap gets
+> From / To / Rate, a job's hash is labelled `Job`), because `showTransactionDetails` already builds them
+> that way - but **the frame does not change per type**.
+>
+> **This rejects variant E · Type-aware**, which was previously only deferred. No per-type layout.
+>
+> Round 2 (A1 / A2 / A3, `round2.html`) was drawn and **not taken** - Jakub kept round-1 A.
+>
+> **Still open on this sketch:** whether D's tap-to-copy rows and 4-character address chunks ride along
+> with A. Recommended yes; see the round-1 recommendation below.
 
 # Sketch 154: Transaction details drawer
 
@@ -125,6 +145,53 @@ a swap, but the code has **seven** types (`transfer`, `mint`, `escrow`, `process
 5. **An empty explorer URL suppresses the footer button** (`:509`) rather than rendering a dead one.
    A panel with no footer is a real state - none of the variants assume the button is always there.
 
+## Round 2 - A1 / A2 / A3 (2026-07-27)
+
+Jakub chose **A** on 2026-07-27, then asked for A re-drawn in the language of the two drawers that had just
+shipped. `round2.html` is that round.
+
+```
+open .planning/sketches/154-transaction-details-drawer/round2.html
+```
+
+### What the shipped drawers actually do
+
+Read from `swap_settings_drawer.dart` (063-A) and `token_selector_drawer.dart` (032-A1), both landed
+2026-07-27 in PR #216. Round 1's variant A breaks two of these:
+
+1. **No filled cards.** `_TokenRow` is `Colors.transparent` at rest, with a comment stating that a
+   `surfaceMenu` row on a `surfaceMenu` panel is decoration nobody sees. Hover brings `GWDecorations.hoverFill`
+   + `hoverEdge`, and **the border is always present and transparent** so nothing twitches by 1px.
+   *Round 1's A used bordered cards with a `surface-sheen-b` fill.*
+2. **No uppercase kickers.** Swap Settings uses a sentence-case `labelMd`/w600 label plus a plain description
+   line; Token Selector has no section labels at all. Nothing in either drawer is set in caps.
+   *Round 1's A used `TRANSACTION` / `NETWORK` in caps.*
+3. **The accent is the gradient, in two doses:** the full `brandCta` on a chosen preset, or a `0x2E`-alpha
+   tint (`_TokenRowState._selectionTint`) plus a `ShaderMask` check. Never a flat brand fill.
+4. **Constants:** body `fromLTRB(space10, space12, space10, space10)`, `radiusMd` rows, `radiusSm` fields,
+   `GWFocusRing` on every input, primary action in the shell footer above a `borderSubtle` top rule.
+
+All three variants keep every round-1 decision: 20px body padding, `_statusPill`, the fiat line, the exact
+amount, a neutral amount, D's tap-to-copy rows with 4-char chunks, and the footer explorer button.
+
+- **A1 · Flat rows ★** - the Token Selector applied literally. No labels, no containers; hero, one hairline,
+  then a stack of transparent rows. **Nothing new to build** - the row is `_buildRow` plus the decoration
+  already written in `_TokenRow`.
+- **A2 · Labelled groups** - A's two groups kept, but said the Swap Settings way: sentence-case labels and a
+  hairline container at `radiusMd` with **no fill**. Survives the Swap type best (eight rows in two groups).
+- **A3 · Tinted hero** - A1's rows with the hero on 032-A1's selection tint.
+
+### Recommendation for round 2
+
+**★ A1.** It is the only one of the three that adds no new vocabulary at all, and on the receipt that actually
+gets opened most (Sent, six rows) the groups in A2 are structure for its own sake. **A2 is the fallback and
+the answer if Swap reads badly** - cycle the Type switch to Swap and judge there, that is where A1 goes to
+eight undifferentiated rows.
+
+**A3 is drawn to be rejected, and should be checked before rejecting it.** In the shipped drawers that tint
+means *"this one is selected"*; spending it as decoration takes a word the design system has already assigned
+a meaning. Cycle to **Failed**: a brand-green wash behind a red pill is a mixed signal.
+
 ## MANIFEST row
 
 Design session, so per `CLAUDE.md` this did not write `.planning/sketches/MANIFEST.md` (executor-only,
@@ -151,3 +218,34 @@ checked against Jakub's screenshot (same rows, same order, same flush edges). St
 - **The exact-amount line** - useful precision, or noise under every receipt?
 - **Switch to Swap in A vs E.** Three labelled rows against one pair block.
 - **Light mode** is togglable, but per the dark-first rule it is not the deciding view.
+
+## BUILT 2026-07-28 - quick 260728-r4k, with one departure
+
+Jakub closed the open question the same week he opened it: *"wybraliśmy wcześniej D copyable"*. So
+**A's frame with D's rows**, which is what this sketch's own recommendation asked for
+(*"it is not a rival to A but an extension of it"*).
+
+**The grouping went out and came straight back.** It first shipped bare - kicker and gap, 067-A -
+on the grounds that a `GWCard` on the 156-A panel measures 1.00:1 and the first 1.4.11-passing edge
+is white 36%. Jakub walked it the same day: *"tej siatki nie ma - chciałbym ją mieć"*.
+
+He was right and 067 had been over-applied. **067 measured a box around a FORM**, whose frame is part
+of identifying the control inside it; **A's groups are a read-only table**, whose rules carry no
+information - every row reads with them removed and the text clears AA by itself. That makes them
+decorative separators, the same category as the drawer header's hairline. `borderSubtle` is the
+correct weight, and 36% would have made the frame louder than the contents.
+
+So A's cards are back, as **`GWDetailGrid`** - a `surfaceSunken` well with a `borderSubtle` outline
+and hairline rules between rows. It is a component rather than a private widget because Jakub asked
+for one, and because archetype **B · Result** (sketch 066: the two Banxa results and the swap result)
+shares this hero and will want the same table.
+
+**The chunking question this sketch left open was answered by width.** It asked whether 4-char
+chunking is "worth it for an address and arguable for a 64-character hash". Both get it, but on a
+SHORT form - `0x1234·5678 … cdef·0123`, 8 + 8 characters, outer groups emphasised. A full 42-char
+address chunked is ~398px of monospace against 380px of content width, and a hash is 66 characters.
+The full value goes to the clipboard, which is what the row is for.
+
+Everything else landed as drawn: the fiat line, the exact amount, `_statusPill`, the neutral amount,
+the 20px body inset (from the shell, quick 260728-0vd) and the explorer button suppressed when the
+chain has no URL.

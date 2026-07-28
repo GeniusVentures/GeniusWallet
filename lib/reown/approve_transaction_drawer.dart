@@ -15,8 +15,10 @@ class ApproveTransactionDrawer {
       title: "Transaction Request",
       child: ListView(
         children: [
+          // Was EdgeInsets.all(16): the shell now supplies the body inset
+          // (kDrawerBodyPadding), so keeping this would render 36 on the sides.
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.zero,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

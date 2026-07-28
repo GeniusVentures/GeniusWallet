@@ -36,12 +36,19 @@ void main() {
       expect(slippageState('-1').level, SlippageLevel.error);
     });
 
-    test('the comfortable band is silent', () {
+    test('the comfortable band confirms, and empty stays silent', () {
+      // Was "the comfortable band is silent". Sketch 067-A draws a reassurance
+      // line in the ok state and the drawer did not have one, so `ok` now
+      // carries a message. Empty is the case that must NOT: it is the one
+      // moment there is genuinely nothing to confirm, and it is what keeps the
+      // panel from talking to someone who has only just cleared the field.
       for (final v in ['0.05', '0.1', '0.5', '1', '5']) {
         final s = slippageState(v);
         expect(s.level, SlippageLevel.ok, reason: '$v should be quiet');
-        expect(s.message, isNull, reason: '$v should have nothing to say');
+        expect(s.message, isNotNull, reason: '$v should confirm itself');
       }
+      expect(slippageState('').message, isNull);
+      expect(slippageState(null).message, isNull);
     });
   });
 

@@ -46,6 +46,17 @@ void main() {
       final b = _balance(raw: '0', decimals: 18);
       expect(b.amountAsDouble, 0.0);
     });
+
+    // Merge 2026-07-28: this defect was fixed on two branches at once. The
+    // other fix used `double.tryParse(balance)!`, which turns an unparseable
+    // balance into a null-check error instead of a number. The nullable form
+    // shipped because a balance that never ARRIVED and a balance of zero are
+    // different facts, and the swap CTA reads them differently - "Insufficient
+    // ETH" on data the app never received is a lie the getter must not enable.
+    test('an unparseable balance is null, never 0', () {
+      expect(_balance(raw: '', decimals: 18).amountAsDouble, isNull);
+      expect(_balance(raw: 'not-a-number', decimals: 6).amountAsDouble, isNull);
+    });
   });
 
   group('displayBalance — no longer masks the throw as "0"', () {

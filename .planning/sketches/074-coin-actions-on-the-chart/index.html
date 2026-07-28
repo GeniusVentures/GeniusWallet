@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-v="C2" data-s="data">
+<head>
+<meta charset="utf-8">
+<title>074 · Coin actions on the chart</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink54:rgba(255,255,255,.54);
+  --ink38:rgba(255,255,255,.38); --sec:#8A8F9D;
+  --border:rgba(255,255,255,.12); --borderControl:rgba(255,255,255,.36);
+  --brand:#14C8FF; --brandStrong:#0AAEE6; --mint:#0AD89C; --bad:#FF4D4D; --amber:#FFC42E;
+  --hoverFill:rgba(20,200,255,.12); --hoverEdge:rgba(20,200,255,.24);
+  --cta:linear-gradient(90deg,#0AD89C 0%,#0AAEE6 100%);
+  --tint:linear-gradient(90deg,rgba(10,216,156,.18) 0%,rgba(10,174,230,.18) 100%);
+  --rSm:8px; --rMd:12px; --rLg:15px;
+}
+html[data-theme="light"]{
+  --base:#DCE0E6; --card:#FFFFFF; --menu:#EFF2F6; --sunken:#CFD4DB;
+  --ink:#10131A; --ink70:rgba(16,19,26,.70); --ink54:rgba(16,19,26,.54);
+  --sec:#5A606E; --border:rgba(16,19,26,.12); --borderControl:rgba(16,19,26,.46);
+  --bad:#D92D2D;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font:400 14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 0 80px}
+.bar{position:sticky;top:0;z-index:30;background:var(--card);border-bottom:1px solid var(--border);
+  padding:10px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.grp{display:flex;gap:6px;align-items:center}
+.grp>b{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin-right:4px}
+.bar button{border:1px solid var(--border);background:transparent;color:var(--ink70);
+  font:500 13px/1 inherit;padding:8px 12px;border-radius:var(--rSm);cursor:pointer;font-family:inherit}
+.bar button:hover{background:var(--hoverFill);border-color:var(--hoverEdge);color:var(--ink)}
+.bar button.on{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+main{padding:22px 20px 0;max-width:1400px}
+h2{font-size:20px;font-weight:600;margin:26px 0 6px}
+p.lead{color:var(--ink70);max-width:100ch;margin:0 0 16px;line-height:1.65}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;background:var(--menu);padding:1px 5px;border-radius:4px}
+.cl{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin:0 0 8px}
+.stage{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+
+.wrap{width:560px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rLg);padding:14px;position:relative}
+.kick{font:600 13px/18px inherit;letter-spacing:.5px;text-transform:uppercase;color:var(--sec);margin:0}
+.chart{background:var(--sunken);border-radius:var(--rMd);height:190px;position:relative;overflow:hidden}
+.chart svg{width:100%;height:100%;display:block}
+
+/* wallet action icon: 44x44 target, 20px glyph */
+.iact{width:44px;height:44px;border-radius:var(--rMd);border:1px solid var(--border);
+  background:transparent;color:var(--ink70);display:inline-flex;align-items:center;
+  justify-content:center;font-size:20px;cursor:pointer;flex:none;font-family:inherit;position:relative}
+.iact:hover{background:var(--hoverFill);border-color:var(--hoverEdge);color:var(--ink)}
+.iact.pri{background:var(--tint);border-color:transparent;color:var(--ink)}
+.iact .lb{position:absolute;top:47px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  font-size:11px;color:var(--sec);opacity:0;pointer-events:none;z-index:5}
+.iact:hover .lb{opacity:1}
+.iacts{display:flex;gap:6px}
+.iacts.onglass .iact{background:rgba(12,14,20,.72);border-color:var(--border);backdrop-filter:blur(6px)}
+html[data-theme="light"] .iacts.onglass .iact{background:rgba(255,255,255,.78)}
+
+/* the chart's EXISTING controls - drawn in every variant on purpose */
+.chartctl{display:flex;gap:6px;justify-content:center;padding:8px 0 0}
+.cbtn{width:36px;height:36px;border-radius:var(--rSm);display:inline-flex;align-items:center;
+  justify-content:center;color:#fff;font-size:16px;opacity:.85}
+html[data-theme="light"] .cbtn{color:#fff}
+.mark{outline:2px dashed var(--bad);outline-offset:3px;border-radius:var(--rMd)}
+.tag{position:absolute;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--bad);background:var(--base);padding:1px 5px;border-radius:3px;z-index:6}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}
+.above{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}
+.empty{border:1px dashed var(--border);border-radius:var(--rMd);padding:26px 18px;text-align:center;
+  color:var(--sec);font-size:13px}
+
+table{border-collapse:collapse;width:100%;margin:8px 0 18px;font-size:13px}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--menu);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--sec)}
+td.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.ok-b{color:var(--mint);font-weight:600}
+.bad-b{color:var(--bad);font-weight:600}
+.warn-b{color:#FFC42E;font-weight:600}
+.note{border-left:3px solid var(--brand);background:var(--menu);padding:12px 14px;
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:14px 0;line-height:1.65;max-width:104ch}
+.note.bad{border-left-color:var(--bad)}
+.note.ok{border-left-color:var(--mint)}
+.note.warn{border-left-color:var(--amber)}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="grp"><b>Placement</b>
+    <button data-set="v" data-val="C1">C1 &middot; Top of the card</button>
+    <button data-set="v" data-val="C2" class="on">C2 &middot; Above the card &#9733;</button>
+    <button data-set="v" data-val="D1">D1 &middot; Floating on the chart</button>
+    <button data-set="v" data-val="D2">D2 &middot; Shared bottom row</button>
+  </div>
+  <div class="grp"><b>State</b>
+    <button data-set="s" data-val="data" class="on">With market data</button>
+    <button data-set="s" data-val="nodata">No market data</button>
+  </div>
+  <div class="grp"><button id="theme">Light</button></div>
+</div>
+
+<main>
+  <h2>074 &middot; Putting the actions on the chart - four precise versions</h2>
+  <p class="lead">
+    Jakub: <i>&ldquo;Co s&#261;dzisz o tym, &#380;eby da&#263; to na wykresie? Tak jak to
+    zasugerowa&#322;e&#347; w C albo w D. Poka&#380; mi, jakby to wygl&#261;da&#322;o [&hellip;]
+    dok&#322;adniej.&rdquo;</i>
+    <br><br>
+    <b>Every panel draws the chart&rsquo;s EXISTING controls</b> - the zoom / pan row that
+    <code>crypto_live_chart.dart:506</code> already renders, centred, at the bottom of the card. That
+    row is the reason this is a harder question than it looks, and it is marked in red so you can see
+    what the new icons are sharing a card with.
+  </p>
+
+  <div class="stage">
+    <div>
+      <p class="cl" id="slabel">Chart card at 560px, 1:1</p>
+      <div id="screen"></div>
+    </div>
+    <div style="flex:1;min-width:400px">
+      <p class="cl">This version</p>
+      <div class="note" id="vnote"></div>
+      <p class="cl" style="margin-top:16px">Verdict</p>
+      <table id="prov"></table>
+    </div>
+  </div>
+
+  <h2>The one finding that decides this</h2>
+
+  <div class="note bad">
+    <b>The chart card already owns an icon row.</b> <code>crypto_live_chart.dart:506</code> renders a
+    centred <code>Row</code> of four <code>IconButton</code>s - zoom in, zoom out, back, forward -
+    inside the same card. It is drawn in red in every panel above.
+    <br><br>
+    So putting wallet actions in that card means <b>two icon rows in one box with categorically
+    different consequences</b>: one changes what you are looking at, the other moves money. Undo
+    exists for the first and not for the second. That is not a spacing problem and no amount of
+    alignment fixes it.
+    <br><br>
+    Worth knowing while you are here: those four icons are <b>hardcoded <code>Colors.white</code></b>
+    (a filed todo, <code>2026-07-21-chart-zoom-pan-icons-still-raw-colors-white</code>), so in light
+    mode they are white-on-light today. Any variant that sits next to them inherits that neighbour.
+  </div>
+
+  <div class="note bad">
+    <b>And the no-data page still has no chart card.</b> Switch <b>State &rarr; No market data</b>.
+    C1, D1 and D2 all put the actions inside a card that does not exist on that route - so they either
+    vanish or have to be re-homed, which means the page has two different action positions for a
+    reason the user cannot see. <b>C2 is the only one of the four that does not move.</b>
+  </div>
+
+  <h2>The four</h2>
+  <table>
+    <tr><th></th><th>Version</th><th>Where exactly</th><th>Collides with zoom row</th><th>Survives no-data</th></tr>
+    <tr><td><b>C1</b></td><td>Top of the card</td><td>inside the card, above the plot, kicker left / icons right</td>
+      <td class="warn-b">same card, opposite ends</td><td class="bad-b">no</td></tr>
+    <tr><td><b>C2</b> &#9733;</td><td>Above the card</td><td><b>outside</b> the card, on the section line</td>
+      <td class="ok-b">no - different container</td><td class="ok-b">yes</td></tr>
+    <tr><td><b>D1</b></td><td>Floating on the chart</td><td>overlaid top-right on the plot itself</td>
+      <td class="warn-b">same card</td><td class="bad-b">no</td></tr>
+    <tr><td><b>D2</b></td><td>Shared bottom row</td><td>same row as zoom: zoom centred, wallet right</td>
+      <td class="bad-b">directly - one row, two meanings</td><td class="bad-b">no</td></tr>
+  </table>
+
+  <h2>Recommendation</h2>
+  <div class="note ok">
+    <b>&#9733; C2 &middot; Above the card.</b> It is the version of your idea that survives its own
+    context: the icons sit on a section line <b>outside</b> the chart card, opposite a
+    <code>GWKicker</code>, so they are visually &ldquo;at the chart&rdquo; without being <i>in</i> the
+    box that already contains four icons with a different job. It is also the only one of the four
+    that <b>does not move on the no-data page</b> - the section line stays, the card under it becomes
+    the empty state.
+    <br><br>
+    <b>Runner-up: D1 &middot; Floating on the chart.</b> Visually the best of the four - the glass
+    treatment reads as premium and it costs zero height. Keep it in reserve for a version where the
+    chart is a full-bleed hero. Not the pick because it shares a card with the zoom row and disappears
+    on the no-data route.
+    <br><br>
+    <b>Rejected: D2 &middot; Shared bottom row.</b> It looks like the tidy answer - one row, no new
+    height - and it is the worst of the four: it puts <i>Receive</i> and <i>zoom out</i> on the same
+    line, 6px apart, at the same size. The two things a user must never confuse end up as neighbours
+    with identical affordance.
+  </div>
+
+  <div class="note warn">
+    <b>Honest note on my own recommendation.</b> In sketch 073 I recommended <b>A - under the price</b>
+    and it still wins on one measure the chart versions cannot match: it costs <b>zero</b> new
+    vertical height, where C2 costs ~44px. If the page&rsquo;s vertical budget matters more than the
+    association with the chart, 073-A is still the better answer, and this sketch does not overturn
+    it - it only shows the best version of the chart idea.
+  </div>
+</main>
+
+<script>
+var ACTIONS = [
+  {g:'&#9635;', l:'Receive', pri:true},
+  {g:'&#8644;', l:'Swap',    pri:false}
+];
+
+function icons(glass){
+  return '<div class="iacts' + (glass ? ' onglass' : '') + '">'
+    + ACTIONS.map(function(a){
+        return '<button class="iact' + (a.pri ? ' pri' : '') + '" title="' + a.l + '">'
+          + a.g + '<span class="lb">' + a.l + '</span></button>';
+      }).join('')
+    + '</div>';
+}
+
+var PLOT = '<svg viewBox="0 0 560 190" preserveAspectRatio="none">'
+  + '<polyline fill="none" stroke="#0AD89C" stroke-width="2.5" points="'
+  + '0,158 60,150 120,146 180,148 240,138 300,142 360,132 420,104 480,96 540,88 560,84"/></svg>';
+
+/* the zoom/pan row that already exists, marked */
+function zoomRow(){
+  return '<div style="position:relative">'
+    + '<span class="tag" style="left:50%;transform:translateX(-50%);top:-7px">already in the code</span>'
+    + '<div class="chartctl mark">'
+    + '<span class="cbtn">&#8853;</span><span class="cbtn">&#8854;</span>'
+    + '<span class="cbtn">&#8249;</span><span class="cbtn">&#8250;</span>'
+    + '</div></div>';
+}
+
+function chartBody(v){
+  if (v === 'D1') {
+    return '<div class="chart">' + PLOT
+      + '<div style="position:absolute;top:10px;right:10px">' + icons(true) + '</div></div>';
+  }
+  return '<div class="chart">' + PLOT + '</div>';
+}
+
+function emptyCard(){
+  return '<div class="card"><div class="empty">&#128200;<br><br>'
+    + '<b style="color:var(--ink)">No market data</b><br>'
+    + 'This token is not covered by our market data provider.</div></div>';
+}
+
+function panel(v, state){
+  var noData = state === 'nodata';
+
+  if (v === 'C2') {
+    // icons live OUTSIDE the card, on the section line - so nothing moves.
+    return '<div class="above"><span class="kick">Price</span>' + icons(false) + '</div>'
+      + (noData ? emptyCard()
+                : '<div class="card">' + chartBody(v) + zoomRow() + '</div>');
+  }
+
+  if (noData) {
+    return emptyCard()
+      + '<p style="color:var(--bad);font-size:12px;margin-top:10px;line-height:1.5">'
+      + '<b>The actions are gone.</b> This version puts them inside the chart card, and on this route '
+      + 'there is no chart card - so they must be re-homed, and the page ends up with two different '
+      + 'action positions for a reason the user cannot see.</p>';
+  }
+
+  if (v === 'C1') {
+    return '<div class="card">'
+      + '<div class="toolbar"><span class="kick">Price</span>' + icons(false) + '</div>'
+      + chartBody(v) + zoomRow() + '</div>';
+  }
+  if (v === 'D1') {
+    return '<div class="card">' + chartBody(v) + zoomRow() + '</div>';
+  }
+  // D2 - one row, zoom centred, wallet actions pushed right
+  return '<div class="card">' + chartBody(v)
+    + '<div style="position:relative;display:flex;align-items:center;margin-top:8px">'
+    + '<div style="flex:1"></div>'
+    + '<div class="chartctl mark" style="padding:0">'
+    + '<span class="cbtn">&#8853;</span><span class="cbtn">&#8854;</span>'
+    + '<span class="cbtn">&#8249;</span><span class="cbtn">&#8250;</span></div>'
+    + '<div style="flex:1;display:flex;justify-content:flex-end">' + icons(false) + '</div>'
+    + '</div></div>';
+}
+
+var NOTES = {
+  'C1': '<b>Inside the card, above the plot.</b> A <code>GWKicker</code> on the left names the '
+      + 'section, the wallet icons sit right. Reads well with data - and puts a second icon row in '
+      + 'the same box as the zoom controls, at opposite ends of the same card. Costs ~44px.',
+  'C2': '<b>Outside the card, on the section line.</b> The icons are visually at the chart without '
+      + 'being in the box that already holds four icons with a different job. <b>The only one of the '
+      + 'four that does not move on the no-data page</b> - the line stays, the card beneath it '
+      + 'becomes the empty state. Costs ~44px.',
+  'D1': '<b>Floating on the plot, top-right, on a translucent surface.</b> The best-looking of the '
+      + 'four and it costs zero height. Two problems: it shares the card with the zoom row, and on '
+      + 'the no-data route there is no plot to float over.',
+  'D2': '<b>One bottom row: zoom centred, wallet actions right.</b> Tidy on paper, worst in practice '
+      + '- <i>Receive</i> ends up 6px from <i>zoom out</i>, same size, same affordance. The two '
+      + 'things a user must never confuse become neighbours.'
+};
+
+var PROV = {
+  'C1': [['height cost','~44px',''],
+         ['zoom-row collision','<span class="warn-b">same card</span>','crypto_live_chart.dart:506'],
+         ['no-data route','<span class="bad-b">actions disappear</span>','071-B'],
+         ['components','GWKicker + GWButton(icon)','all existing']],
+  'C2': [['height cost','~44px',''],
+         ['zoom-row collision','<span class="ok-b">none - different container</span>','&mdash;'],
+         ['no-data route','<span class="ok-b">unchanged</span>','the line stays put'],
+         ['components','GWKicker + GWButton(icon)','all existing']],
+  'D1': [['height cost','<span class="ok-b">zero</span>',''],
+         ['zoom-row collision','<span class="warn-b">same card</span>','crypto_live_chart.dart:506'],
+         ['no-data route','<span class="bad-b">no plot to float over</span>','071-B'],
+         ['components','GWButton(icon) on a translucent surface','<span class="warn-b">the glass fill is new</span>']],
+  'D2': [['height cost','<span class="ok-b">zero</span>',''],
+         ['zoom-row collision','<span class="bad-b">the same row</span>','crypto_live_chart.dart:506'],
+         ['no-data route','<span class="bad-b">actions disappear</span>','071-B'],
+         ['components','GWButton(icon)','existing']]
+};
+
+function render(){
+  var d = document.documentElement.dataset;
+  document.getElementById('screen').innerHTML = '<div class="wrap">' + panel(d.v, d.s) + '</div>';
+  document.getElementById('slabel').textContent = d.s === 'nodata'
+    ? 'The no-data route, 560px'
+    : 'Chart card at 560px, 1:1';
+  document.getElementById('vnote').innerHTML = NOTES[d.v];
+  document.getElementById('prov').innerHTML =
+    '<tr><th>Aspect</th><th>Result</th><th>Source</th></tr>' +
+    PROV[d.v].map(function(r){
+      return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="mono">' + r[2] + '</td></tr>';
+    }).join('');
+}
+
+document.querySelectorAll('.bar button[data-set]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var set = b.dataset.set;
+    document.querySelectorAll('.bar button[data-set="' + set + '"]').forEach(function(o){
+      o.classList.toggle('on', o === b);
+    });
+    document.documentElement.dataset[set] = b.dataset.val;
+    render();
+  });
+});
+document.getElementById('theme').addEventListener('click', function(){
+  var el = document.documentElement, light = el.dataset.theme === 'light';
+  el.dataset.theme = light ? 'dark' : 'light';
+  this.textContent = light ? 'Light' : 'Dark';
+});
+render();
+</script>
+</body>
+</html>

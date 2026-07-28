@@ -168,6 +168,35 @@ class GeniusWalletColors {
   static Color get borderStrong => _isLight
       ? const Color.fromRGBO(16, 19, 26, 0.24)
       : const Color.fromRGBO(255, 255, 255, 0.24);
+
+  /// The edge of a CONTROL whose fill cannot identify it -- an input on a
+  /// drawer panel, where fill and panel are two dark values 1.11:1 apart.
+  ///
+  /// WHY a third border token rather than [borderStrong]: WCAG 1.4.11 asks for
+  /// 3:1 from anything that identifies a UI component, and when the boundary is
+  /// the ONLY identifier it has to carry that alone. Measured on the 156-A
+  /// drawer canvas (`surfaceElevated` #0C0E14), compositing the hairline over
+  /// the panel it sits on:
+  ///
+  /// | edge | contrast |
+  /// |---|---|
+  /// | `borderSubtle` white 12% | 1.36:1 |
+  /// | `borderStrong` white 24% | 2.11:1 |
+  /// | white 30% (sketch 156's first proposal) | 2.64:1 |
+  /// | **white 36%** | **3.30:1** ✓ |
+  ///
+  /// 36 is not a round number chosen for looks -- it is the first step that
+  /// clears 3:1, and sketch 067's contrast table arrives at the same value
+  /// independently. Light mode takes ink at 46% for the same reason: the light
+  /// panel is pure white, and 3:1 on white lands at ~#919397.
+  ///
+  /// ponytail: this is the CONTROL edge, not a general "strong hairline".
+  /// Decorative separators stay on [borderSubtle] -- a rule that carries no
+  /// information has no 1.4.11 threshold to meet, and painting every hairline
+  /// at 36% would make the app a wireframe.
+  static Color get borderControl => _isLight
+      ? const Color.fromRGBO(16, 19, 26, 0.46)
+      : const Color.fromRGBO(255, 255, 255, 0.36);
   static const Color borderBrand = brandPrimary;
 
   // Status

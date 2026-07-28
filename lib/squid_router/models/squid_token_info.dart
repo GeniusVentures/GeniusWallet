@@ -39,6 +39,21 @@ class SquidTokenInfo {
     );
   }
 
+  /// Token identity. **Address alone is not it** - the same address exists on
+  /// several chains and this list is explicitly cross-chain, so both halves are
+  /// load-bearing.
+  ///
+  /// Written once because it was previously spelled out three times: twice in
+  /// `swap_screen.dart` as a De Morgan'd exclusion
+  /// (`t.address != x.address || t.chainId != x.chainId`) and once in
+  /// `token_selector_drawer.dart` as the selection test. The two spellings
+  /// disagreed about what they were for, which is how the picker ended up
+  /// hiding the very token it had been told to mark as selected.
+  bool sameAs(SquidTokenInfo? other) =>
+      other != null &&
+      address.toLowerCase() == other.address.toLowerCase() &&
+      chainId == other.chainId;
+
   String get display =>
       '$symbol ${balance != null ? ' - ${balance!.formattedBalance}' : ''}';
 }

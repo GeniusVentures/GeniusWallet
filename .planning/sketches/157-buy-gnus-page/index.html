@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>157 · Buy GNUS - what the flow actually is, and five ways to redesign it</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1340px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+
+  h1 { font:700 21px/29px var(--font); margin-bottom:var(--space-4); }
+  h2 { font:700 16px/24px var(--font); margin:var(--space-16) 0 var(--space-6); padding-top:var(--space-8);
+    border-top:1px solid var(--border-subtle); }
+  h3 { font:700 13px/20px var(--font); margin:var(--space-10) 0 var(--space-4); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-10); max-width:1030px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bug  { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.stub { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .tag.have { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.lock { background:rgba(194,143,255,.16); color:var(--brand-tertiary); }
+
+  /* ---------- flow map ---------- */
+  .flow { display:flex; align-items:stretch; gap:0; flex-wrap:wrap; margin:var(--space-8) 0 var(--space-10); }
+  .node { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-elevated);
+    padding:10px 13px; min-width:172px; }
+  .node.bad { border-color:rgba(255,77,77,.5); }
+  .node .r { display:block; font:600 11px/16px var(--font-mono); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .node .r { color:var(--brand-primary); }
+  .node .n { display:block; font:700 13px/19px var(--font); color:var(--text-primary); margin-top:2px; }
+  .node .f { display:block; font:400 11px/16px var(--font); color:var(--text-secondary); margin-top:3px; }
+  .arrow { display:flex; align-items:center; padding:0 10px; color:var(--text-primary-38); font:700 16px/1 var(--font); }
+  .arrow small { font:600 10px/14px var(--font); color:var(--text-secondary); display:block; margin-top:2px; }
+  .arrowbox { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 12px; min-width:96px; }
+  .arrowbox .g { font:700 15px/1 var(--font); color:var(--text-primary-38); }
+  .arrowbox .l { font:600 10px/14px var(--font); color:var(--text-secondary); text-align:center; margin-top:3px; }
+
+  table { border-collapse:collapse; width:100%; margin:var(--space-6) 0 var(--space-10); }
+  th, td { text-align:left; font:400 12px/19px var(--font); color:var(--text-secondary); padding:8px 10px;
+    border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  th { font-weight:700; color:var(--text-primary); font-size:11px; text-transform:uppercase; letter-spacing:.4px; }
+  td b { color:var(--text-primary); }
+  td:first-child { white-space:nowrap; }
+
+  /* ---------- page stage ---------- */
+  .stage { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden;
+    background:var(--surface-base); }
+  .navbar { height:68px; display:flex; align-items:center; gap:22px; padding:0 20px;
+    border-bottom:1px solid var(--border-subtle); background:var(--surface-elevated); }
+  .navbar .brand { width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,#0AD89C,#0AAEE6); }
+  .navbar .tab { font:600 13px/18px var(--font); color:var(--text-secondary); position:relative; padding-bottom:6px; }
+  .navbar .tab.on { color:var(--text-primary); }
+  .navbar .tab.on::after { content:""; position:absolute; left:0; right:0; bottom:0; height:3px; border-radius:2px 2px 0 0;
+    background:linear-gradient(90deg,#0AD89C,#0AAEE6); box-shadow:0 0 10px rgba(10,174,230,.5); }
+  .navbar .sp { margin-left:auto; display:flex; gap:8px; }
+  .navbar .chip { height:36px; padding:0 12px; display:grid; place-items:center; border:1px solid var(--border-subtle);
+    border-radius:var(--radius-pill); font:600 12px/1 var(--font); color:var(--text-secondary); }
+  .appbar { height:56px; display:flex; align-items:center; gap:14px; padding:0 16px; border-bottom:1px solid var(--border-subtle); }
+  .appbar .bk { color:var(--text-primary); font:700 17px/1 var(--font); }
+  .appbar .ti { font:600 16px/1 var(--font); margin:0 auto; }
+  .appbar .ac { font:500 13px/1 var(--font); color:var(--text-primary); }
+
+  .page { padding:32px 24px 28px; min-height:520px; }
+  .ph { display:flex; align-items:flex-end; gap:14px; margin-bottom:24px; }
+  .ph .t { font:700 28px/34px var(--font); }
+  .ph .sub { font:400 13px/20px var(--font); color:var(--text-secondary); padding-bottom:4px; }
+  .ph .end { margin-left:auto; display:flex; gap:8px; align-items:center; }
+
+  .btn { height:40px; padding:0 18px; border-radius:var(--radius-pill); display:inline-grid; place-items:center;
+    font:600 13px/1 var(--font); cursor:pointer; border:1px solid transparent; }
+  .btn.g { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .btn.o { border-color:var(--border-strong); color:var(--text-primary); background:transparent; }
+  .btn.o:hover { background:rgba(20,200,255,.08); border-color:rgba(20,200,255,.32); }
+  .btn.lg { height:52px; font-size:15px; width:100%; }
+
+  .card { border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--surface-elevated);
+    padding:20px; }
+  .card + .card { margin-top:12px; }
+  .fld { margin-bottom:14px; }
+  .fld .k { font:600 12px/18px var(--font); color:var(--text-primary); margin-bottom:6px; }
+  .inp { height:46px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); background:var(--surface-menu);
+    display:flex; align-items:center; padding:0 12px; font:400 15px/1 var(--font); color:var(--text-primary); }
+  .inp .ph2 { color:var(--text-primary-38); }
+  .inp .sfx { margin-left:auto; color:var(--text-secondary); font-weight:600; }
+  .inp.big { height:62px; font:700 26px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .seg { display:flex; gap:8px; }
+  .seg .s { flex:1; height:42px; display:grid; place-items:center; border:1px solid var(--border-subtle);
+    border-radius:var(--radius-sm); font:600 13px/1 var(--font); color:var(--text-primary); cursor:pointer; }
+  .seg .s.on { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; border-color:transparent; }
+  .qrow { display:flex; padding:9px 0; border-top:1px solid var(--border-subtle); }
+  .qrow:first-child { border-top:0; }
+  .qrow .k { font:400 13px/19px var(--font); color:var(--text-primary-70); }
+  .qrow .v { margin-left:auto; font:600 13px/19px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .qrow.total .k, .qrow.total .v { font-size:15px; font-weight:700; }
+
+  .cols { display:flex; gap:20px; align-items:flex-start; }
+  .rail { width:340px; flex:none; }
+  .sect-t { font:700 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-primary-54);
+    margin-bottom:10px; }
+
+  /* order list row - the ledger shape 021/022 already decided */
+  .lrow { display:flex; align-items:center; gap:14px; padding:14px 12px; border-top:1px solid var(--border-subtle); }
+  .lrow:first-child { border-top:0; }
+  .lrow .ic { width:34px; height:34px; border-radius:50%; flex:none; display:grid; place-items:center;
+    background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; font:700 12px/1 var(--font); }
+  .lrow .n { font:600 14px/20px var(--font); }
+  .lrow .s { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:1px; }
+  .lrow .rt { margin-left:auto; text-align:right; }
+  .lrow .rv { font:600 14px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .lrow .rq { font:400 12px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:var(--radius-pill);
+    font:600 11px/16px var(--font); }
+  .pill .d { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .pill.ok  { background:var(--status-success-fill); color:var(--status-success); }
+  .pill.pd  { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .pill.no  { background:var(--status-error-fill);  color:var(--status-error); }
+  .pill.nu  { background:rgba(100,116,139,.20);     color:#94A3B8; }
+  [data-theme="light"] .pill.nu { color:#475569; }
+
+  /* filter rail 022-B2 */
+  .frail { width:220px; flex:none; }
+  .frow { display:flex; align-items:center; gap:10px; padding:8px 6px; font:500 13px/19px var(--font);
+    color:var(--text-secondary); cursor:pointer; position:relative; }
+  .frow.on { color:var(--text-primary); font-weight:700; }
+  .frow.on::after { content:""; position:absolute; left:6px; right:6px; bottom:2px; height:2px; border-radius:1px;
+    background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .frow .c { margin-left:auto; font:600 12px/18px var(--font-mono); color:var(--text-primary-54); }
+
+  .empty { text-align:center; padding:46px 20px; }
+  .empty .ei { width:64px; height:64px; border-radius:50%; margin:0 auto 16px; display:grid; place-items:center;
+    background:rgba(20,200,255,.10); color:var(--brand-primary); }
+  .empty .ei svg { width:28px; height:28px; }
+  .empty .et { font:600 16px/24px var(--font); }
+  .empty .em { font:400 13px/20px var(--font); color:var(--text-secondary); margin:6px auto 18px; max-width:340px; }
+
+  /* today's literal render */
+  .today { display:flex; flex-direction:column; align-items:center; gap:16px; padding:16px; }
+  .today .mdd { width:300px; height:56px; border:1px solid #2196F3; border-radius:var(--radius-sm); position:relative;
+    display:flex; align-items:center; padding:0 14px; font:400 15px/1 var(--font); color:var(--text-primary); }
+  .today .mdd span.lb { position:absolute; top:-8px; left:12px; background:var(--surface-base); padding:0 4px;
+    font:400 11px/1 var(--font); color:#2196F3; }
+  .today .mdd .car { margin-left:auto; color:var(--text-primary); }
+  .today .mob { width:300px; height:44px; border:1px solid #2196F3; border-radius:var(--radius-pill); display:grid;
+    place-items:center; font:600 14px/1 var(--font); color:var(--text-primary); }
+  .today .tot { font:700 16px/24px var(--font); }
+  .today .none { font:400 14px/20px var(--font); color:var(--text-primary); }
+
+  .stepper { display:flex; flex-direction:column; gap:0; }
+  .step { display:flex; gap:14px; }
+  .step .gut { width:28px; flex:none; display:flex; flex-direction:column; align-items:center; }
+  .step .dot { width:26px; height:26px; border-radius:50%; display:grid; place-items:center; flex:none;
+    font:700 12px/1 var(--font); border:1px solid var(--border-strong); color:var(--text-secondary); }
+  .step.done .dot { background:linear-gradient(135deg,#0AD89C,#0AAEE6); border-color:transparent; color:#000B18; }
+  .step.on .dot { border-color:var(--brand-primary); color:var(--brand-primary); }
+  .step .line { flex:1; width:1px; background:var(--border-subtle); margin:4px 0; }
+  .step .bd { flex:1; padding-bottom:18px; }
+  .step .st { font:600 14px/22px var(--font); }
+  .step .sm { font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .step.done .sum { margin-top:6px; font:500 13px/19px var(--font); color:var(--text-primary); }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); margin-top:var(--space-8); }
+  .note h4 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+
+  .pane { display:none; } .pane.on { display:block; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">157 · Buy GNUS</span>
+  <button class="vt active" data-v="0">0 · Today</button>
+  <button class="vt" data-v="a">A · Buy first</button>
+  <button class="vt" data-v="b">B · Form + rail</button>
+  <button class="vt" data-v="c">C · Drawer</button>
+  <button class="vt" data-v="d">D · Stepper</button>
+  <button class="vt" data-v="e">E · Orders, fixed</button>
+  <span class="sep"></span>
+  <span class="lbl">Data</span>
+  <button class="st on" data-d="full">Has orders</button>
+  <button class="st" data-d="zero">Empty</button>
+  <span class="sep"></span>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap">
+  <h1>Buy GNUS: what the flow actually is, and five ways to redesign it</h1>
+  <p class="lede">
+    Jakub, 2026-07-27: <b>"buy genius - caly redesign tej strony - analiza co tam jest i tak dalej? jaki
+    logic and so on"</b>. So this sketch is half analysis and half proposal. The analysis is first, because
+    <b>the single biggest problem here is not visual</b> and no amount of re-skinning fixes it.
+  </p>
+
+  <h2>1 · The headline finding</h2>
+  <p class="lede">
+    <span class="tag bug">routing</span>
+    <b>The button labelled "Buy GNUS" does not open a buy screen.</b>
+    <code>coins_screen.dart:349</code> pushes <code>/buy</code>; <code>router.dart:80</code> maps
+    <code>/buy</code> to <code>OrdersPage</code> - the order <i>history</i>. The screen that actually buys
+    something is <code>BanxaBuyScreen</code> at <code>/createOrder</code>, and the only way to reach it is a
+    small text action in the AppBar labelled <b>"+ New Order"</b>.
+    A user with no orders taps a gradient CTA that promises a purchase and lands on the words
+    <b>"Total Orders: 0 / No orders found."</b> That is the screenshot.
+  </p>
+
+  <div class="flow">
+    <div class="node bad"><span class="r">CTA</span><span class="n">Buy GNUS</span><span class="f">coins_screen.dart:349</span></div>
+    <div class="arrowbox"><span class="g">&#8594;</span><span class="l">push('/buy')</span></div>
+    <div class="node bad"><span class="r">/buy</span><span class="n">OrdersPage</span><span class="f">order history, not a purchase</span></div>
+    <div class="arrowbox"><span class="g">&#8594;</span><span class="l">AppBar<br>"+ New Order"</span></div>
+    <div class="node"><span class="r">/createOrder</span><span class="n">BanxaBuyScreen</span><span class="f">the actual buy form</span></div>
+    <div class="arrowbox"><span class="g">&#8594;</span><span class="l">Get Quote<br>Create Order</span></div>
+    <div class="node"><span class="r">/checkout</span><span class="n">Banxa webview</span><span class="f">or /checkoutQR on desktop</span></div>
+    <div class="arrowbox"><span class="g">&#8594;</span><span class="l">deep link<br>geniuswallet://</span></div>
+    <div class="node"><span class="r">/banxa/callback</span><span class="n">OrderDetailsPage</span><span class="f">polls for the final status</span></div>
+  </div>
+
+  <h2>2 · What the flow is made of</h2>
+  <table>
+    <tr><th>Route</th><th>Screen</th><th>File</th><th>State</th></tr>
+    <tr><td><code>/buy</code></td><td>OrdersPage</td><td><code>banxa/banxa_orders_history.dart</code></td><td><span class="tag lock">locked</span> raw Material, no tokens</td></tr>
+    <tr><td><code>/createOrder</code></td><td>BanxaBuyScreen</td><td><code>screens/banxa_buy_screen.dart</code></td><td><span class="tag have">editable</span> raw Material, no tokens</td></tr>
+    <tr><td><code>/orderDetails</code></td><td>OrderDetailsPage</td><td><code>banxa/banxa_order/…</code> + <code>order_details_card.dart</code></td><td><span class="tag lock">locked</span></td></tr>
+    <tr><td><code>/checkout</code></td><td>BanxaPaymentWebView</td><td><code>banxa/banxa_payment.dart</code></td><td><span class="tag lock">locked</span> third-party page</td></tr>
+    <tr><td><code>/checkoutQR</code></td><td>CheckoutQrPage</td><td><code>banxa/checkout_qr.dart</code></td><td><span class="tag lock">locked</span> desktop hand-off to phone</td></tr>
+    <tr><td><code>/kyc</code></td><td>BanxaKycScreen</td><td><code>banxa/user_kyc/kyc_registration.dart</code></td><td><span class="tag lock">locked</span></td></tr>
+    <tr><td><code>/banxa/callback</code></td><td>OrderDetailsPage</td><td>router + <code>OrderLinker</code></td><td>deep-link return</td></tr>
+  </table>
+
+  <p class="lede">
+    <span class="tag lock">locked</span>
+    <b>`CLAUDE.md`: "Files under /banxa and /squidrouter are auto-generated. Do not change them."</b>
+    Six of the seven screens above live under <code>lib/banxa/</code>. That is the constraint that shapes
+    every recommendation below, and the way through it is in section 5 - <b>the cubits and models stay
+    untouched; only the widget layer moves out</b>.
+  </p>
+
+  <h2>3 · The logic, as it really runs</h2>
+  <table>
+    <tr><th>Step</th><th>What happens</th><th>Where</th></tr>
+    <tr><td>Load list</td><td><code>fetchOrders('your-cust-id')</code> <span class="tag stub">placeholder</span> - a hardcoded literal, at <b>two</b> call sites (init and Refresh). No real customer id is ever passed.</td><td><code>banxa_orders_history.dart:33,122</code></td></tr>
+    <tr><td>Filter</td><td>Status dropdown + date range, applied client-side by <code>applyFilters</code>. Six statuses offered.</td><td><code>:52,60</code></td></tr>
+    <tr><td>Load form</td><td><code>loadCurrencies()</code> fetches fiats and cryptos; a fiat carries its own <code>supportedPaymentMethods</code>, so the method list is derived, not fetched again.</td><td><code>create_order_cubit.dart:11</code></td></tr>
+    <tr><td>Quote</td><td>Explicit <b>Get Quote</b> button. Returns <code>cryptoAmount</code>, <code>fiatAmount</code>, <code>processingFee</code>, <code>networkFee</code>. Any selection change clears it (<code>clearQuote: true</code>).</td><td><code>banxa_model.dart:247</code></td></tr>
+    <tr><td>Create</td><td>Creates the order, gets <code>checkoutUrl</code> + <code>orderId</code>, registers the pair in <code>OrderLinker</code> so the deep link can find it again.</td><td><code>create_order_cubit.dart</code></td></tr>
+    <tr><td>Pay</td><td>Desktop: <code>showCheckoutOptionsSheet</code> offers webview or a QR to continue on a phone. The payment page itself is Banxa's.</td><td><code>handle_banxa_drawer.dart</code></td></tr>
+    <tr><td>Return</td><td><code>geniuswallet://banxa/callback?extOrderId=…</code> re-enters at <code>/banxa/callback</code>; <code>PollingCubit</code> polls until the status settles.</td><td><code>router.dart:113</code>, <code>polling_order_cubit.dart</code></td></tr>
+  </table>
+
+  <h3>Defects found while reading it</h3>
+  <table>
+    <tr><th>#</th><th>Finding</th><th>Evidence</th></tr>
+    <tr><td>1</td><td><b>The CTA lies.</b> "Buy GNUS" opens the order history.</td><td><code>coins_screen.dart:349</code> to <code>router.dart:80</code></td></tr>
+    <tr><td>2</td><td><b>The customer id is a placeholder string.</b> The list cannot show a real user's orders in any build.</td><td><code>'your-cust-id'</code>, twice</td></tr>
+    <tr><td>3</td><td><b>Three different status vocabularies.</b> The filter offers <code>pendingPayment / completed / declined / inProgress / expired</code>; the colour switch handles <code>completed / pendingpayment / pending / declined / cancelled</code>; the banner handles <code>cancel / failure / success</code>. <b><code>inProgress</code> and <code>expired</code> get no colour; <code>cancelled</code> gets a colour but cannot be filtered.</b></td><td><code>banxa_helpers.dart:36</code>, <code>order_card.dart:21</code></td></tr>
+    <tr><td>4</td><td><b>No design tokens at all.</b> <code>Colors.green / orange / red / grey</code>, <code>Colors.grey[700]</code>, a 1.5px <code>lightGreenSecondary</code> card border. Nothing here flips with the appearance.</td><td><code>order_card.dart:21-34,58</code></td></tr>
+    <tr><td>5</td><td><b>The empty state reads as a failed load.</b> "Total Orders: 0" then "No orders found." - two bare strings, top-centre, over an empty page. The MANIFEST's own rule for this whole round is "a wallet with no funds is not a broken wallet".</td><td><code>:190-198</code></td></tr>
+    <tr><td>6</td><td><b>"Total Orders" counts the filtered list.</b> Filter to Declined and the total changes.</td><td><code>orders.length</code> where <code>orders = state.filteredOrders</code></td></tr>
+    <tr><td>7</td><td><b>No navbar.</b> All seven routes sit outside <code>ShellRoute</code>, so from My Orders there is no way to any tab - only a back arrow. Same defect sketch 061 found on the coin page.</td><td><code>router.dart:72-207</code></td></tr>
+    <tr><td>8</td><td><b>Cards in a grid for what is a ledger.</b> <code>mainAxisExtent: 300</code>, min column 294 - at 1536 that is five columns of 300px cards. Sketch 021/022 already settled that this app renders a transaction ledger as a list with a filter rail.</td><td><code>:202-215</code></td></tr>
+    <tr><td>9</td><td><b>Real data thrown away.</b> <code>Order</code> carries <code>processingFee</code>, <code>networkFee</code>, <code>transactionHash</code>, <code>walletAddress</code>, <code>country</code>, <code>metadata</code>. The card shows none of them - so a completed purchase cannot be opened in an explorer even though its hash is in hand.</td><td><code>banxa_model.dart:336-357</code></td></tr>
+    <tr><td>10</td><td><b>No pagination</b> although <code>OrdersResponse</code> parses <code>total</code> and <code>pageTotal</code>.</td><td><code>:306</code></td></tr>
+    <tr><td>11</td><td><b>The date picker is a raw Material dialog.</b> Every other picker in this app is a <code>ResponsiveDrawer</code>.</td><td><code>showDateRangePicker</code>, <code>:37</code></td></tr>
+    <tr><td>12</td><td><b>The buy form does not validate against the minimum it already parses.</b> <code>Blockchain.minimum</code> is read from the API and never used.</td><td><code>banxa_model.dart:221</code></td></tr>
+    <tr><td>13</td><td><b>The swap FAB floats over the whole purchase flow.</b> <code>_hiddenPaths</code> hides it on <code>/checkout</code>, <code>/checkoutQR</code>, <code>/kyc</code> and <code>/banxa/callback</code> - but not on <code>/buy</code>, <code>/createOrder</code> or <code>/orderDetails</code>.</td><td><code>global_swap_fab_host.dart:36</code></td></tr>
+    <tr><td>14</td><td><b>KYC is an icon with no state.</b> A person-badge <code>IconButton</code> that pushes <code>/kyc</code>. Nothing says whether verification is needed, pending or done - and a fiat purchase can fail on exactly that.</td><td><code>:113-117</code></td></tr>
+  </table>
+
+  <h2>4 · Five redesigns</h2>
+  <p class="lede">Every variant below is drawn in the app's real chrome and uses only fields the models above
+  actually carry. Switch <b>Empty</b> in the toolbar - the zero state is where today's page fails hardest, so
+  it is the state worth judging on.</p>
+
+  <div class="stage">
+    <!-- ===================== 0 TODAY ===================== -->
+    <div class="pane on" data-p="0">
+      <div class="appbar"><span class="bk">&#8249;</span><span class="ti">My Orders</span>
+        <span class="ac">&#9776;</span><span class="ac">&#8635;</span><span class="ac">+ New Order</span></div>
+      <div class="page">
+        <div class="today">
+          <div class="mdd"><span class="lb">Status</span>All<span class="car">&#9662;</span></div>
+          <div class="mob">Pick Date Range</div>
+          <div class="tot dcount">Total Orders: 3</div>
+          <div class="dempty" style="display:none"><div class="none">No orders found.</div></div>
+          <div class="dfull" style="width:100%; display:flex; gap:16px; flex-wrap:wrap; justify-content:center">
+            <div class="card" style="width:294px">
+              <div style="display:flex; align-items:center"><b style="font:700 16px/1 var(--font)">Order #a1b2c3…9f0</b>
+                <span style="margin-left:auto; background:rgba(76,175,80,.15); color:#4CAF50; padding:5px 10px; border-radius:20px; font:700 12px/1 var(--font)">COMPLETED</span></div>
+              <div style="margin-top:12px">
+                <div class="qrow"><span class="k" style="color:#9E9E9E">Fiat:</span><span class="v">425.00 USD</span></div>
+                <div class="qrow"><span class="k" style="color:#9E9E9E">Crypto:</span><span class="v">500.0 GNUS</span></div>
+                <div class="qrow"><span class="k" style="color:#9E9E9E">Payment:</span><span class="v">Visa / Mastercard</span></div>
+                <div class="qrow"><span class="k" style="color:#9E9E9E">Created:</span><span class="v">Jul 26, 2026 &bull; 08:00 AM</span></div>
+                <div class="qrow"><span class="k" style="color:#9E9E9E">Updated:</span><span class="v">Jul 26, 2026 &bull; 08:04 AM</span></div>
+              </div>
+              <div style="display:flex; justify-content:flex-end; margin-top:10px"><span class="btn o" style="border-radius:8px">See Details</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== A BUY FIRST ===================== -->
+    <div class="pane" data-p="a">
+      <div class="navbar"><span class="brand"></span><span class="tab">Dashboard</span><span class="tab">Transactions</span>
+        <span class="tab">Swap</span><span class="tab">Markets</span><span class="tab">News</span><span class="tab on">Buy</span>
+        <span class="sp"><span class="chip">0x1d9b…4a87</span><span class="chip">Connect</span></span></div>
+      <div class="page">
+        <div class="ph"><span class="t">Buy GNUS</span><span class="sub">Card or bank transfer, settled to your wallet</span>
+          <span class="end"><span class="btn o">Order history &#183; 3</span></span></div>
+        <div class="cols">
+          <div style="width:560px; flex:none">
+            <div class="card">
+              <div class="fld"><div class="k">You pay</div>
+                <div class="inp big">425.00 <span class="sfx" style="font-size:15px">USD &#9662;</span></div></div>
+              <div class="fld"><div class="k">You receive</div>
+                <div class="inp big">500.00 <span class="sfx" style="font-size:15px">GNUS &#9662;</span></div></div>
+              <div class="fld"><div class="k">Payment method</div>
+                <div class="seg"><span class="s on">Card</span><span class="s">Bank transfer</span><span class="s">Apple Pay</span></div></div>
+              <div class="fld" style="margin-bottom:18px"><div class="k">Deliver to</div>
+                <div class="inp"><span style="font-family:var(--font-mono); font-size:13px">0x9fF8C9…262e2b</span>
+                  <span class="sfx" style="font-weight:500; font-size:12px">This wallet</span></div></div>
+              <div style="border-top:1px solid var(--border-subtle); padding-top:12px; margin-bottom:16px">
+                <div class="qrow"><span class="k">Processing fee</span><span class="v">$4.25</span></div>
+                <div class="qrow"><span class="k">Network fee</span><span class="v">$1.10</span></div>
+                <div class="qrow total"><span class="k">Total</span><span class="v">$430.35</span></div>
+              </div>
+              <div class="btn g lg">Continue to payment</div>
+            </div>
+          </div>
+          <div class="rail">
+            <div class="card" style="padding:16px">
+              <div class="sect-t">Verification</div>
+              <div style="display:flex; align-items:center; gap:10px">
+                <span class="pill ok"><span class="d"></span>Verified</span>
+                <span style="font:400 12px/18px var(--font); color:var(--text-secondary)">Limits up to $2,000 / day</span>
+              </div>
+            </div>
+            <div class="card" style="padding:16px; margin-top:12px">
+              <div class="sect-t">Recent orders</div>
+              <div class="dfull">
+                <div class="lrow" style="padding:10px 0"><span class="ic">G</span>
+                  <span><span class="n">500.00 GNUS</span><span class="s">Card &#183; 26 Jul</span></span>
+                  <span class="rt"><span class="rv">$425.00</span><br><span class="pill ok" style="margin-top:3px"><span class="d"></span>Completed</span></span></div>
+                <div class="lrow" style="padding:10px 0"><span class="ic">G</span>
+                  <span><span class="n">120.00 GNUS</span><span class="s">Bank &#183; 24 Jul</span></span>
+                  <span class="rt"><span class="rv">$102.00</span><br><span class="pill pd" style="margin-top:3px"><span class="d"></span>Pending</span></span></div>
+              </div>
+              <div class="dempty" style="display:none; font:400 13px/20px var(--font); color:var(--text-secondary)">
+                Your purchases will appear here.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== B FORM + RAIL ===================== -->
+    <div class="pane" data-p="b">
+      <div class="navbar"><span class="brand"></span><span class="tab">Dashboard</span><span class="tab">Transactions</span>
+        <span class="tab">Swap</span><span class="tab">Markets</span><span class="tab">News</span><span class="tab on">Buy</span>
+        <span class="sp"><span class="chip">0x1d9b…4a87</span><span class="chip">Connect</span></span></div>
+      <div class="page">
+        <div class="ph"><span class="t">Buy GNUS</span>
+          <span class="end"><span class="pill ok"><span class="d"></span>Verified</span></span></div>
+        <div class="cols">
+          <div style="width:560px; flex:none">
+            <div class="card">
+              <div class="fld"><div class="k">You pay</div><div class="inp big">425.00 <span class="sfx" style="font-size:15px">USD &#9662;</span></div></div>
+              <div class="fld"><div class="k">You receive</div><div class="inp big">500.00 <span class="sfx" style="font-size:15px">GNUS &#9662;</span></div></div>
+              <div class="fld"><div class="k">Payment method</div><div class="seg"><span class="s on">Card</span><span class="s">Bank</span><span class="s">Apple Pay</span></div></div>
+              <div class="btn g lg" style="margin-top:6px">Continue to payment</div>
+            </div>
+          </div>
+          <div style="flex:1">
+            <div class="card" style="padding:16px 20px">
+              <div class="sect-t">Quote</div>
+              <div class="qrow"><span class="k">Rate</span><span class="v">1 GNUS = $0.85</span></div>
+              <div class="qrow"><span class="k">Processing fee</span><span class="v">$4.25</span></div>
+              <div class="qrow"><span class="k">Network fee</span><span class="v">$1.10</span></div>
+              <div class="qrow total"><span class="k">Total</span><span class="v">$430.35</span></div>
+            </div>
+            <div class="card" style="padding:16px 20px; margin-top:12px">
+              <div style="display:flex; align-items:center; margin-bottom:8px">
+                <span class="sect-t" style="margin:0">Your orders</span>
+                <span style="margin-left:auto; font:600 12px/16px var(--font); color:var(--brand-primary)">View all &#8594;</span></div>
+              <div class="dfull">
+                <div class="lrow"><span class="ic">G</span><span><span class="n">500.00 GNUS</span><span class="s">Visa &bull;&bull;&bull;&bull; 4242 &#183; 26 Jul</span></span>
+                  <span class="rt"><span class="rv">$425.00</span><br><span class="rq">fee $5.35</span></span>
+                  <span class="pill ok" style="margin-left:14px"><span class="d"></span>Completed</span></div>
+                <div class="lrow"><span class="ic">G</span><span><span class="n">120.00 GNUS</span><span class="s">Bank transfer &#183; 24 Jul</span></span>
+                  <span class="rt"><span class="rv">$102.00</span><br><span class="rq">fee $2.10</span></span>
+                  <span class="pill pd" style="margin-left:14px"><span class="d"></span>Pending</span></div>
+                <div class="lrow"><span class="ic">G</span><span><span class="n">80.00 GNUS</span><span class="s">Visa &bull;&bull;&bull;&bull; 4242 &#183; 21 Jul</span></span>
+                  <span class="rt"><span class="rv">$68.00</span><br><span class="rq">not charged</span></span>
+                  <span class="pill no" style="margin-left:14px"><span class="d"></span>Declined</span></div>
+              </div>
+              <div class="dempty" style="display:none; font:400 13px/20px var(--font); color:var(--text-secondary); padding:8px 0">
+                No purchases yet. Your first order will show up here with its receipt.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== C DRAWER ===================== -->
+    <div class="pane" data-p="c">
+      <div class="navbar"><span class="brand"></span><span class="tab on">Dashboard</span><span class="tab">Transactions</span>
+        <span class="tab">Swap</span><span class="tab">Markets</span><span class="tab">News</span>
+        <span class="sp"><span class="chip">0x1d9b…4a87</span><span class="chip">Connect</span></span></div>
+      <div style="position:relative; display:flex; justify-content:flex-end; min-height:520px; background:var(--surface-base)">
+        <div style="position:absolute; inset:0; padding:20px">
+          <div class="card" style="height:100%"><div class="sect-t">Assets</div>
+            <div class="lrow"><span class="ic">G</span><span><span class="n">GeniusAI</span><span class="s">$0.85</span></span>
+              <span class="rt"><span class="rv">$1,020.00</span></span></div>
+            <div class="lrow"><span class="ic" style="background:#627EEA; color:#fff">E</span><span><span class="n">Ethereum</span><span class="s">$3,200.00</span></span>
+              <span class="rt"><span class="rv">$4,320.00</span></span></div>
+          </div>
+        </div>
+        <div style="position:absolute; inset:0; background:rgba(0,0,0,.54)"></div>
+        <div style="position:relative; width:420px; background:#0C0E14; display:flex; flex-direction:column;
+                    border-top-left-radius:24px; border-bottom-left-radius:24px">
+          <div style="height:56px; display:flex; align-items:center; padding:0 20px; border-bottom:1px solid var(--border-subtle)">
+            <span style="font:600 18px/24px var(--font)">Buy GNUS</span>
+            <span style="margin-left:auto; color:var(--text-secondary)">&#10005;</span></div>
+          <div style="flex:1; padding:24px 20px">
+            <div class="fld"><div class="k">You pay</div><div class="inp big" style="background:var(--surface-menu)">425.00 <span class="sfx" style="font-size:15px">USD</span></div></div>
+            <div class="fld"><div class="k">You receive</div><div class="inp big" style="background:var(--surface-menu)">500.00 <span class="sfx" style="font-size:15px">GNUS</span></div></div>
+            <div class="fld"><div class="k">Payment method</div><div class="seg"><span class="s on">Card</span><span class="s">Bank</span></div></div>
+            <div style="border-top:1px solid var(--border-subtle); padding-top:12px; margin-top:16px">
+              <div class="qrow"><span class="k">Fees</span><span class="v">$5.35</span></div>
+              <div class="qrow total"><span class="k">Total</span><span class="v">$430.35</span></div></div>
+          </div>
+          <div style="padding:20px; border-top:1px solid var(--border-subtle)"><div class="btn g lg">Continue to payment</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== D STEPPER ===================== -->
+    <div class="pane" data-p="d">
+      <div class="navbar"><span class="brand"></span><span class="tab">Dashboard</span><span class="tab">Transactions</span>
+        <span class="tab">Swap</span><span class="tab">Markets</span><span class="tab">News</span><span class="tab on">Buy</span>
+        <span class="sp"><span class="chip">0x1d9b…4a87</span><span class="chip">Connect</span></span></div>
+      <div class="page">
+        <div class="ph"><span class="t">Buy GNUS</span><span class="sub">Step 3 of 4</span>
+          <span class="end"><span class="btn o">Order history</span></span></div>
+        <div style="width:600px">
+          <div class="card">
+            <div class="stepper">
+              <div class="step done"><span class="gut"><span class="dot">&#10003;</span><span class="line"></span></span>
+                <span class="bd"><span class="st">Amount</span><span class="sum">$425.00 &#8594; 500.00 GNUS</span></span></div>
+              <div class="step done"><span class="gut"><span class="dot">&#10003;</span><span class="line"></span></span>
+                <span class="bd"><span class="st">Payment method</span><span class="sum">Visa &bull;&bull;&bull;&bull; 4242</span></span></div>
+              <div class="step on"><span class="gut"><span class="dot">3</span><span class="line"></span></span>
+                <span class="bd"><span class="st">Review</span><span class="sm">Check the quote before you are handed to Banxa.</span>
+                  <div style="margin-top:12px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px 14px">
+                    <div class="qrow"><span class="k">Rate</span><span class="v">1 GNUS = $0.85</span></div>
+                    <div class="qrow"><span class="k">Processing fee</span><span class="v">$4.25</span></div>
+                    <div class="qrow"><span class="k">Network fee</span><span class="v">$1.10</span></div>
+                    <div class="qrow"><span class="k">Deliver to</span><span class="v" style="font-family:var(--font-mono); font-size:12px">0x9fF8C9…262e2b</span></div>
+                    <div class="qrow total"><span class="k">Total</span><span class="v">$430.35</span></div>
+                  </div>
+                  <div class="btn g lg" style="margin-top:14px; width:auto; padding:0 28px; display:inline-grid">Continue to payment</div>
+                </span></div>
+              <div class="step"><span class="gut"><span class="dot">4</span></span>
+                <span class="bd"><span class="st">Pay with Banxa</span><span class="sm">Opens Banxa's checkout, or shows a QR to finish on your phone.</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== E ORDERS FIXED ===================== -->
+    <div class="pane" data-p="e">
+      <div class="navbar"><span class="brand"></span><span class="tab">Dashboard</span><span class="tab">Transactions</span>
+        <span class="tab">Swap</span><span class="tab">Markets</span><span class="tab">News</span><span class="tab on">Buy</span>
+        <span class="sp"><span class="chip">0x1d9b…4a87</span><span class="chip">Connect</span></span></div>
+      <div class="page">
+        <div class="ph"><span class="t">Your orders</span>
+          <span class="end"><span class="pill ok"><span class="d"></span>Verified</span><span class="btn o">&#8635;</span><span class="btn g">Buy GNUS</span></span></div>
+        <div class="cols dfull">
+          <div class="frail">
+            <div class="sect-t">Status</div>
+            <div class="frow on">All<span class="c">3</span></div>
+            <div class="frow">Pending payment<span class="c">1</span></div>
+            <div class="frow">In progress<span class="c">0</span></div>
+            <div class="frow">Completed<span class="c">1</span></div>
+            <div class="frow">Declined<span class="c">1</span></div>
+            <div class="frow">Expired<span class="c">0</span></div>
+            <div class="sect-t" style="margin-top:20px">Period</div>
+            <div class="frow on">All time</div>
+            <div class="frow">Custom range</div>
+          </div>
+          <div style="flex:1">
+            <div class="card" style="padding:6px 12px">
+              <div class="lrow"><span class="ic">G</span><span><span class="n">500.00 GNUS</span><span class="s">Visa &bull;&bull;&bull;&bull; 4242 &#183; 26 Jul, 08:00</span></span>
+                <span class="rt"><span class="rv">$425.00</span><br><span class="rq">$5.35 fees</span></span>
+                <span class="pill ok" style="margin-left:16px; width:104px; justify-content:center"><span class="d"></span>Completed</span>
+                <span style="margin-left:14px; color:var(--text-primary-38)">&#8250;</span></div>
+              <div class="lrow"><span class="ic">G</span><span><span class="n">120.00 GNUS</span><span class="s">Bank transfer &#183; 24 Jul, 19:10</span></span>
+                <span class="rt"><span class="rv">$102.00</span><br><span class="rq">$2.10 fees</span></span>
+                <span class="pill pd" style="margin-left:16px; width:104px; justify-content:center"><span class="d"></span>Pending</span>
+                <span class="btn g" style="margin-left:14px; height:32px; font-size:12px; padding:0 14px">Pay</span></div>
+              <div class="lrow"><span class="ic">G</span><span><span class="n">80.00 GNUS</span><span class="s">Visa &bull;&bull;&bull;&bull; 4242 &#183; 21 Jul, 15:45</span></span>
+                <span class="rt"><span class="rv">$68.00</span><br><span class="rq">not charged</span></span>
+                <span class="pill no" style="margin-left:16px; width:104px; justify-content:center"><span class="d"></span>Declined</span>
+                <span class="btn o" style="margin-left:14px; height:32px; font-size:12px; padding:0 14px">Retry</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="dempty" style="display:none">
+          <div class="card" style="max-width:520px; margin:24px auto 0">
+            <div class="empty">
+              <span class="ei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+              <div class="et">No purchases yet</div>
+              <div class="em">Buy GNUS with a card or a bank transfer and it lands straight in this wallet. Your receipts will live here.</div>
+              <div class="btn g" style="display:inline-grid">Buy GNUS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note" id="note"></div>
+
+  <h2>5 · The constraint, and the way through it</h2>
+  <div class="note">
+    <h4>Do-not-change vs redesign</h4>
+    <p>
+      <code>CLAUDE.md</code> says files under <code>/banxa</code> are auto-generated and must not be changed.
+      <b>The order list, the order card, the order details card, the KYC screen and the checkout screens all
+      live there.</b> Taken literally, none of the five variants above can be built.
+    </p>
+    <p>They can all be built anyway, and cheaply, because <b>the generated code is layered</b>:</p>
+    <ul class="spec">
+      <li><b>Models</b> - <code>banxa_model.dart</code>: <code>Order</code>, <code>Quote</code>, <code>FiatCurrency</code>, <code>Blockchain</code>. Read-only, keep as is.</li>
+      <li><b>Service</b> - <code>banxa_api_services.dart</code>. Keep as is.</li>
+      <li><b>Cubits</b> - <code>OrdersCubit</code>, <code>MakeOrderCubit</code>, <code>PollingCubit</code>. Keep as is.</li>
+      <li><b>Widgets</b> - <code>banxa_orders_history.dart</code>, <code>order_card.dart</code>, <code>order_details_card.dart</code>. <b>These are the only files a redesign needs, and they are pure presentation over the cubits above.</b></li>
+    </ul>
+    <p>
+      So the redesign does not have to edit <code>/banxa</code>: it can add new widgets under
+      <code>lib/screens/</code> (where <code>banxa_buy_screen.dart</code> already lives, outside the fence)
+      that subscribe to the same cubits, and repoint the routes in <code>router.dart</code>. The generated
+      files stay byte-identical and simply stop being mounted. <b>That is a routing change plus new files -
+      zero edits inside the fence.</b>
+    </p>
+    <p>
+      <span class="tag stub">confirm</span> Worth checking with Braian whether <code>/banxa</code> is
+      genuinely regenerated by a tool, or whether the note is stale and the fence can be lifted for the three
+      widget files. If it can, the same designs land with a smaller diff.
+    </p>
+  </div>
+</div>
+
+<script>
+const NOTES = {
+  '0': { h:'0 · Today (reference)', b:`
+    <p>Literal render of <code>banxa_orders_history.dart</code>: a Material <code>DropdownMenu</code>, an
+    <code>OutlinedButton</code>, two bare strings, and a grid of bordered cards - all centred in a
+    <code>xxl</code> column, with no navbar above.</p>
+    <p>Switch to <b>Empty</b>. That is the screen a user reaches by tapping <b>Buy GNUS</b>.</p>` },
+  'a': { h:'A · Buy first <span class="tag rec">rec</span>', b:`
+    <p><b>/buy becomes the buy form.</b> The CTA finally means what it says, and the order history moves to a
+    secondary link in the header with a count on it. The rail carries the two things a fiat purchase actually
+    depends on: verification state and what you bought recently.</p>
+    <ul class="spec">
+      <li>fixes finding <b>1</b> (the lying CTA) with a router change, not a redesign</li>
+      <li>fixes <b>14</b> - KYC stops being an unlabelled icon and becomes a state with a limit under it</li>
+      <li>the page comes back <b>inside <code>ShellRoute</code></b>, so the navbar exists (finding 7)</li>
+      <li>the quote block shows <code>processingFee</code> + <code>networkFee</code>, which the API already returns</li>
+    </ul>` },
+  'b': { h:'B · Form + rail', b:`
+    <p>The <b>shape sketch 062-A chose for Swap</b>, applied here: a 560 form column and a flexible rail.
+    Makes Buy and Swap read as siblings, which they are - both are "turn one thing into another".</p>
+    <ul class="spec">
+      <li>the quote leaves the form and becomes its own card, so the form stays short</li>
+      <li>orders get a real list row with fees and status - the ledger shape from 021/022</li>
+      <li>best use of a 1536 frame of the five</li>
+    </ul>
+    <p><b>Cost:</b> two panels that both need real content. On an empty account the right column is a quote
+    with no numbers and an empty list. A degrades better.</p>` },
+  'c': { h:'C · Drawer', b:`
+    <p>Buy GNUS opens the app's own <b>form drawer archetype</b> (063-A) instead of a page. Cheapest chrome of
+    the five, and it keeps the user on the dashboard they pressed the button from.</p>
+    <ul class="spec">
+      <li>no new page, no <code>ShellRoute</code> question, no page header</li>
+      <li>matches how the app now handles every other form</li>
+      <li>the handoff to Banxa still leaves for a webview, so the drawer is only the first two steps</li>
+    </ul>
+    <p><b>Cost:</b> a fiat purchase has KYC, limits, a quote that expires and a third-party handoff. That is a
+    lot of consequence for a 420px panel, and there is nowhere to put the order history.</p>` },
+  'd': { h:'D · Stepper', b:`
+    <p>Sketch <b>018-A</b>'s vertical steps, which this project already chose for the processing-job flow.
+    Completed steps collapse to a summary that stays on screen, so the quote is never lost behind a
+    navigation.</p>
+    <ul class="spec">
+      <li>the only variant that makes the <b>Get Quote</b> button disappear as a concept - the quote is step 3</li>
+      <li>naturally carries KYC as a step when it is required, and hides it when it is not</li>
+      <li>matches a flow that genuinely has an order: amount, method, review, pay</li>
+    </ul>
+    <p><b>Cost:</b> four steps for what is often "425 dollars, card, go". Best if KYC turns out to be a real
+    branch for most users; overbuilt if it does not.</p>` },
+  'e': { h:'E · Orders, fixed <span class="tag rec">take with A</span>', b:`
+    <p><b>Not a rival to A - the other half of it.</b> Wherever the order history ends up living, it needs
+    this: the Transactions ledger shape the app already decided on, a filter rail with real counts
+    (022-B2), the per-status action on the row instead of buried in a card, and an empty state that reads as
+    ready rather than failed.</p>
+    <ul class="spec">
+      <li>fixes <b>3</b> - one status vocabulary, all six values, each with a colour</li>
+      <li>fixes <b>5</b> and <b>6</b> - a real empty state, and counts that live in the rail where filtered numbers belong</li>
+      <li>fixes <b>8</b> - a list, not a five-column grid of cards</li>
+      <li>surfaces <b>9</b> - fees on the row, hash on the detail</li>
+      <li>the date range becomes a <code>ResponsiveDrawer</code>, like every other picker (finding 11)</li>
+    </ul>
+    <p>Switch to <b>Empty</b> here and compare with variant 0 on the same toggle. That comparison is the
+    whole argument.</p>` }
+};
+
+let v = '0', data = 'full';
+function show(){
+  document.querySelectorAll('[data-p]').forEach(el => el.classList.toggle('on', el.dataset.p === v));
+  document.querySelectorAll('#nav .vt').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  document.querySelectorAll('#nav .st[data-d]').forEach(b => b.classList.toggle('on', b.dataset.d === data));
+  const zero = data === 'zero';
+  document.querySelectorAll('.dfull').forEach(el => el.style.display = zero ? 'none' : '');
+  document.querySelectorAll('.dempty').forEach(el => el.style.display = zero ? '' : 'none');
+  document.querySelectorAll('.dcount').forEach(el => el.textContent = 'Total Orders: ' + (zero ? '0' : '3'));
+  document.querySelectorAll('.btn.o').forEach(el => {
+    if (el.textContent.startsWith('Order history')) el.textContent = zero ? 'Order history' : 'Order history · 3';
+  });
+  const n = NOTES[v];
+  document.getElementById('note').innerHTML = '<h4>' + n.h + '</h4>' + n.b;
+}
+document.querySelectorAll('#nav .vt').forEach(b => b.onclick = () => { v = b.dataset.v; location.hash = v; show(); });
+document.querySelectorAll('#nav .st[data-d]').forEach(b => b.onclick = () => { data = b.dataset.d; show(); });
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+if (location.hash && NOTES[location.hash.slice(1)]) v = location.hash.slice(1);
+show();
+</script>
+</body>
+</html>

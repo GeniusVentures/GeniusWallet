@@ -206,7 +206,7 @@ function(download_dependency DEP_NAME)
                 ${ARCHIVE_PATH}
                 STATUS DOWNLOAD_STATUS
                 SHOW_PROGRESS
-                TIMEOUT 300  # 5 minute timeout
+                TIMEOUT 3600  # 60 minute timeout (raised from 300: 300MB thirdparty archive times out on slower links)
             )
             
             list(GET DOWNLOAD_STATUS 0 DOWNLOAD_RESULT)
@@ -286,7 +286,7 @@ function(download_dependency DEP_NAME)
             ${ARCHIVE_PATH}
             STATUS DOWNLOAD_STATUS
             SHOW_PROGRESS
-            TIMEOUT 300  # 5 minute timeout
+            TIMEOUT 3600  # 60 minute timeout (raised from 300: 300MB thirdparty archive times out on slower links)
         )
         
         list(GET DOWNLOAD_STATUS 0 DOWNLOAD_RESULT)

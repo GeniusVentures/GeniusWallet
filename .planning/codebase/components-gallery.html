@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>GeniusWallet - komponenty bazowe</title>
+<style>
+:root{
+  /* surfaces - genius_wallet_colors.dart:94-120 (dark) */
+  --base:#0B0D12; --elevated:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  /* text - :131-161 */
+  --ink:#FFFFFF; --ink80:rgba(255,255,255,.80); --ink60:rgba(255,255,255,.60);
+  --ink38:rgba(255,255,255,.38); --ink12:rgba(255,255,255,.12);
+  --secondary:#8A8F9D; --tertiary:#35363D; --onBrand:#000B18;
+  /* brand - :48-86 */
+  --brand:#14C8FF; --brandStrong:#0AAEE6; --brand2:#2BF5B4; --brand2Strong:#0AD89C;
+  --brand2Bright:#5BFFD0; --brand3:#C28FFF; --gradGreen:#0AD89C; --gradBlue:#0AAEE6;
+  /* border - :165-170 */
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  /* status - :174-195 */
+  --ok:#0AD89C; --err:#FF4D4D; --warn:#FFC42E; --neutral:#64748B;
+  /* radius - genius_wallet_consts.dart:41-49 */
+  --rXs:4px; --rSm:8px; --rBase:10px; --rMd:12px; --rLg:15px; --rXl:24px; --rPill:48px;
+  --cta:linear-gradient(90deg,#0AD89C 0%,#0AAEE6 100%);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--brand)}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+
+/* ---- chrome ---- */
+header.top{position:sticky;top:0;z-index:50;background:rgba(11,13,18,.92);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--borderSubtle);padding:14px 32px}
+header.top h1{margin:0 0 8px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+nav a{display:inline-block;margin-right:14px;font-size:12px;color:var(--ink60);text-decoration:none}
+nav a:hover{color:var(--brand)}
+main{max-width:1180px;margin:0 auto;padding:32px}
+section{margin:0 0 56px}
+h2{font-size:24px;font-weight:600;letter-spacing:-.01em;margin:0 0 4px;
+   padding-bottom:10px;border-bottom:1px solid var(--borderSubtle)}
+h2 .n{color:var(--ink38);font-weight:400;margin-right:10px}
+h3{font-size:16px;font-weight:600;margin:32px 0 4px}
+h4{font-size:13px;font-weight:600;margin:20px 0 8px;color:var(--ink80);
+   text-transform:uppercase;letter-spacing:.08em}
+p{margin:6px 0 14px;color:var(--ink80);max-width:78ch}
+.src{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink38)}
+.lead{color:var(--ink60);font-size:13px;margin-top:0}
+
+/* ---- layout helpers ---- */
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.stage{background:var(--elevated);border:1px solid var(--borderSubtle);
+  border-radius:var(--rLg);padding:24px;margin:12px 0}
+.stage.sunken{background:var(--sunken)}
+.stage.menu{background:var(--menu)}
+.cap{font-size:11px;color:var(--ink38);margin-top:8px;font-family:ui-monospace,Menlo,monospace}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.item{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink38);
+  font-family:ui-monospace,Menlo,monospace}
+
+/* ---- tables ---- */
+table{border-collapse:collapse;width:100%;font-size:13px;margin:12px 0}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--borderSubtle);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink38);font-weight:600}
+td.mono,th.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.tbl-wrap{overflow-x:auto}
+tr.dead td{color:var(--ink38)}
+.pill{display:inline-block;padding:2px 8px;border-radius:var(--rPill);font-size:11px;
+  font-family:ui-monospace,Menlo,monospace}
+.pill.ds{background:rgba(10,216,156,.14);color:var(--gradGreen)}
+.pill.legacy{background:rgba(255,196,46,.14);color:var(--warn)}
+.pill.dead{background:rgba(255,77,77,.14);color:var(--err)}
+
+/* ================= GWButton — gw_button.dart ================= */
+.btn{display:inline-flex;align-items:center;justify-content:center;position:relative;
+  border:none;background:none;cursor:pointer;overflow:hidden;
+  border-radius:var(--rLg);            /* :270 radiusLg = 15 */
+  transition:all 120ms cubic-bezier(.2,0,0,1);
+  font-family:inherit;white-space:nowrap}
+/* sizes — :77-110 */
+.btn.sm{height:44px;padding:0 12px;font-size:13px;font-weight:500;line-height:18px} /* labelMd */
+.btn.md{height:48px;padding:0 16px;font-size:16px;font-weight:500;line-height:22px} /* titleMd */
+.btn.lg{height:56px;padding:0 20px;font-size:18px;font-weight:600;line-height:24px} /* titleLg */
+/* variants — :117-183 */
+.btn.primary,.btn.gradient{background:var(--cta);color:var(--onBrand)}
+.btn.secondary{background:transparent;color:var(--brandStrong);
+  box-shadow:inset 0 0 0 1.5px var(--brandStrong)}
+.btn.tertiary{background:var(--elevated);color:var(--ink);box-shadow:inset 0 0 0 1px var(--borderSubtle)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.destructive{background:var(--err);color:var(--ink)}
+.btn.iconv{background:var(--elevated);color:var(--ink);box-shadow:inset 0 0 0 1px var(--borderSubtle)}
+/* gradientOutline — border+label recoloured by a srcIn ShaderMask, :298-313.
+   In CSS the same picture: gradient border via a padding-box/border-box trick
+   and gradient text via background-clip. */
+.btn.gradoutline{background:
+    linear-gradient(var(--base),var(--base)) padding-box,
+    var(--cta) border-box;
+  border:1.5px solid transparent;color:transparent;
+  background-clip:padding-box,border-box}
+.btn.gradoutline span{background:var(--cta);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+/* hover / press wash — _overlay(), :336-362 */
+.btn.primary:hover::after,.btn.gradient:hover::after{content:"";position:absolute;inset:0;
+  background:rgba(255,255,255,.12)}
+.btn.primary:active::after,.btn.gradient:active::after{background:rgba(255,255,255,.18)}
+.btn.gradoutline:hover::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.04)}
+.btn.secondary:hover,.btn.tertiary:hover,.btn.ghost:hover,.btn.iconv:hover{
+  background-color:rgba(255,255,255,.08)}
+/* disabled — alpha 140/255 = .549, :192-197 */
+.btn.dis{cursor:default;opacity:.549;pointer-events:none}
+.btn.iconOnly{padding:0;border-radius:50%}
+.btn.iconOnly.sm{width:44px}.btn.iconOnly.md{width:48px}.btn.iconOnly.lg{width:56px}
+.btn.expand{width:100%}
+.spin{width:18px;height:18px;border:2px solid currentColor;border-right-color:transparent;
+  border-radius:50%;animation:sp .8s linear infinite;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.btn .ic{width:20px;height:20px;display:inline-flex;margin-right:8px}
+.btn.iconOnly .ic{margin:0}
+svg{display:block}
+
+/* ---- swatches ---- */
+.sw{display:flex;flex-direction:column;gap:6px}
+.sw .chip{height:56px;border-radius:var(--rMd);border:1px solid var(--borderSubtle)}
+.sw .nm{font-size:12px}
+.sw .hx{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink38)}
+
+/* ---- fields — gw_text_field.dart ---- */
+.field{display:flex;flex-direction:column;gap:8px;width:300px}
+.field .lbl{font-size:13px;font-weight:500;color:var(--ink80)}
+.field .box{background:var(--elevated);border:1px solid var(--borderSubtle);
+  border-radius:var(--rLg);padding:16px;font-size:16px;color:var(--ink)}
+.field .box.ph{color:var(--ink38)}
+.field .box.focus{border:2px solid var(--brandStrong);padding:15px}
+.field .box.err{border:1px solid var(--err)}
+.field .hint{font-size:13px;color:var(--secondary)}
+.field .hint.e{color:var(--err)}
+/* gw_focus_ring.dart — 1.5px gradient ring, width reserved in both states */
+.ring{padding:1.5px;border-radius:calc(var(--rLg) + 1.5px);background:transparent}
+.ring.on{background:var(--cta)}
+.ring .box{border:none}
+
+/* ---- checkbox / switch ---- */
+.cb{width:20px;height:20px;border-radius:var(--rXs);border:1.5px solid var(--borderSubtle);
+  display:inline-flex;align-items:center;justify-content:center;flex:none}
+.cb.on{background:var(--brandStrong);border-color:var(--brandStrong)}
+.sw-track{width:52px;height:32px;border-radius:var(--rPill);background:var(--menu);
+  border:1px solid var(--borderSubtle);position:relative;flex:none}
+.sw-track .knob{position:absolute;top:5px;left:6px;width:20px;height:20px;border-radius:50%;
+  background:var(--ink);transition:.2s}
+.sw-track.on{background:rgba(10,174,230,.549);border-color:var(--brandStrong)}
+.sw-track.on .knob{left:26px;background:var(--brandStrong)}
+
+/* ---- cards ---- */
+.card{background:var(--elevated);border:1px solid var(--borderSubtle);
+  border-radius:var(--rLg);padding:16px}
+.card.gradborder{background:linear-gradient(var(--elevated),var(--elevated)) padding-box,
+  linear-gradient(90deg,#14C8FF,#5BFFD0) border-box;border:1px solid transparent}
+.sectiontitle{font-size:18px;font-weight:600;letter-spacing:-.2px;line-height:24px;
+  color:var(--ink);padding:2px 8px 16px;min-height:44px;display:flex;align-items:center}
+.viewall{display:inline-flex;align-items:center;gap:6px;font-size:11px;line-height:1;color:#fff}
+.viewall .u{padding-bottom:3px;border-bottom:2px solid transparent;
+  background:var(--cta) bottom/100% 2px no-repeat}
+.tokenrow{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--rMd)}
+.tokenrow .av{width:36px;height:36px;border-radius:50%;background:var(--menu);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--ink60)}
+.tokenrow .nm{font-size:16px;font-weight:500}
+.tokenrow .sub{font-size:13px;color:var(--secondary)}
+.tokenrow .val{margin-left:auto;text-align:right}
+.tokenrow.sel{background:rgba(10,216,156,.10)}
+
+/* ---- feedback ---- */
+.state{display:flex;flex-direction:column;align-items:center;gap:12px;padding:32px 16px;text-align:center}
+.state .ttl{font-size:18px;font-weight:600}
+.state .msg{font-size:14px;color:var(--secondary);max-width:36ch}
+.gwspin{width:44px;height:44px;border-radius:50%;
+  background:conic-gradient(from 0deg,#14C8FF,#2BF5B4,#5BFFD0,#14C8FF);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 0);
+  mask:radial-gradient(farthest-side,transparent calc(100% - 4px),#000 0);
+  animation:sp 1.1s linear infinite}
+.skel{height:14px;border-radius:var(--rXs);
+  background:linear-gradient(90deg,var(--menu),#20242d,var(--menu));
+  background-size:200% 100%;animation:sk 1.4s ease-in-out infinite}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ---- overlays ---- */
+.drawer{width:420px;background:var(--menu);border-radius:var(--rXl) var(--rXl) 0 0;
+  border:1px solid var(--borderSubtle);overflow:hidden}
+.drawer .bar{height:56px;display:flex;align-items:center;padding-left:20px;
+  font-size:18px;font-weight:600}
+.drawer .body{padding:20px;border-top:1px solid var(--borderSubtle)}
+.fab{width:56px;height:56px;border-radius:50%;background:var(--cta);
+  display:flex;align-items:center;justify-content:center;color:var(--onBrand);
+  box-shadow:0 0 0 8px rgba(20,200,255,.25),0 0 24px 8px rgba(43,245,180,.25)}
+.mesh{height:120px;border-radius:var(--rLg);
+  background:
+    radial-gradient(60% 80% at 15% 20%,rgba(20,200,255,.30),transparent 60%),
+    radial-gradient(50% 70% at 85% 30%,rgba(43,245,180,.22),transparent 60%),
+    radial-gradient(70% 90% at 50% 100%,rgba(194,143,255,.18),transparent 60%),
+    var(--base)}
+
+.note{border-left:2px solid var(--gradGreen);padding:2px 0 2px 14px;margin:16px 0;
+  color:var(--ink80);font-size:13px;max-width:78ch}
+.warn{border-left-color:var(--warn)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>GeniusWallet - komponenty bazowe</h1>
+  <nav>
+    <a href="#buttons">1 · Buttony</a>
+    <a href="#other-buttons">2 · Pozostałe buttony</a>
+    <a href="#tokens">3 · Tokeny</a>
+    <a href="#cards">4 · Karty</a>
+    <a href="#inputs">5 · Pola</a>
+    <a href="#feedback">6 · Stany</a>
+    <a href="#scaffold">7 · Rusztowanie</a>
+    <a href="#overlays">8 · Warstwy</a>
+    <a href="#inventory">9 · Pełny spis</a>
+  </nav>
+</header>
+
+<main>
+
+<section>
+  <p class="lead">Wygenerowane 2026-07-27 przez odczyt kodu, nie z pamięci. Każda liczba niżej ma
+  swój plik i linię. Rozmiary są prawdziwe - 1:1, nie miniatury.</p>
+  <div class="note">
+    <strong>W kodzie żyje też galeria w aplikacji</strong> - <code>lib/dev/design_gallery_screen.dart</code>
+    (1050 linii), dostępna pod dev-flagą. Ta strona nie zastępuje jej, tylko pokazuje to samo bez
+    przebudowy apki i obok siebie. Galeria w apce jest źródłem prawdy dla trybu jasnego - tutaj
+    rysuję tylko ciemny.
+  </div>
+</section>
+
+<!-- ============================================================= 1 -->
+<section id="buttons">
+  <h2><span class="n">1</span>GWButton</h2>
+  <p class="src">lib/components/buttons/gw_button.dart · 396 linii · 8 wariantów × 3 rozmiary ·
+  18 plików poza <code>components/</code> go używa</p>
+
+  <p>Jeden komponent na wszystkie buttony w redesignie. Warianty to <em>waga</em>, nie kolor -
+  która decyzja jest ważna, a nie która ładna.</p>
+
+  <h3>Warianty</h3>
+  <p class="src">:117-183 · wszystkie w rozmiarze <code>md</code> (48px)</p>
+  <div class="stage">
+    <div class="row">
+      <div class="item"><button class="btn md primary">Primary</button>
+        <span class="tag">primary · gradient brandCta</span></div>
+      <div class="item"><button class="btn md gradient">Gradient</button>
+        <span class="tag">gradient · sygnatura</span></div>
+      <div class="item"><button class="btn md gradoutline"><span>Gradient outline</span></button>
+        <span class="tag">gradientOutline · bliźniak</span></div>
+      <div class="item"><button class="btn md secondary">Secondary</button>
+        <span class="tag">secondary · outline 1.5px</span></div>
+    </div>
+    <div class="row" style="margin-top:24px">
+      <div class="item"><button class="btn md tertiary">Tertiary</button>
+        <span class="tag">tertiary · surfaceElevated</span></div>
+      <div class="item"><button class="btn md ghost">Ghost</button>
+        <span class="tag">ghost · bez tła</span></div>
+      <div class="item"><button class="btn md destructive">Destructive</button>
+        <span class="tag">destructive · statusError</span></div>
+      <div class="item"><button class="btn md iconv">Icon</button>
+        <span class="tag">icon · = tertiary</span></div>
+    </div>
+    <div class="cap">Najedź myszą - gradient rozjaśnia się białym washem 12% (hover) / 18% (press),
+      :336-362. Outline dostaje 4% / 6%, bo cały jest przemalowany srcIn ShaderMaskiem.</div>
+  </div>
+
+  <div class="note">
+    <strong><code>primary</code> i <code>gradient</code> to dziś ten sam obraz.</strong> Oba zwracają
+    identyczną paletę (<code>:120-126</code> vs <code>:167-173</code>) - gradient brandCta, tekst
+    <code>textOnBrand</code>. Rozdzielone są tylko nazwą. To nie jest błąd, to ślad po jednej
+    centralnej zmianie: primary był płaskim neonowym fillem i został przepięty na gradient jednym
+    edytem. Ale dziś 10 wywołań mówi <code>primary</code>, a 12 mówi <code>gradient</code> na
+    dokładnie ten sam przycisk.
+  </div>
+
+  <h3>Rozmiary</h3>
+  <p class="src">:77-110 · wysokość / padding poziomy / styl etykiety</p>
+  <div class="stage">
+    <div class="row" style="align-items:flex-end">
+      <div class="item"><button class="btn sm gradient">Small</button>
+        <span class="tag">44px · pad 12 · labelMd 13/500</span></div>
+      <div class="item"><button class="btn md gradient">Medium</button>
+        <span class="tag">48px · pad 16 · titleMd 16/500</span></div>
+      <div class="item"><button class="btn lg gradient">Large</button>
+        <span class="tag">56px · pad 20 · titleLg 18/600</span></div>
+    </div>
+    <div class="cap">sm=44 to nie estetyka, to podłoga dotyku iOS - komentarz w kodzie mówi
+      wprost "was 36 - touch floor (iOS 44)".</div>
+  </div>
+
+  <h3>Stany</h3>
+  <div class="stage">
+    <div class="row">
+      <div class="item"><button class="btn md gradient">Gotowy</button>
+        <span class="tag">enabled · kursor łapka</span></div>
+      <div class="item"><button class="btn md gradient dis">Wyłączony</button>
+        <span class="tag">disabled · alpha 140/255</span></div>
+      <div class="item"><button class="btn md gradient dis"><span class="spin"></span>Ładowanie</button>
+        <span class="tag">isLoading · spinner 18px</span></div>
+      <div class="item"><button class="btn md secondary dis">Wyłączony outline</button>
+        <span class="tag">disabled secondary</span></div>
+    </div>
+    <div class="cap">Wyłączony gradient nie robi się szary - każdy stop gradientu dostaje
+      alpha 140, :259-266. Kursor spada do zwykłej strzałki, :283-284.</div>
+  </div>
+
+  <h3>Ikony, tylko ikona, pełna szerokość</h3>
+  <div class="stage">
+    <div class="row">
+      <div class="item">
+        <button class="btn md gradient"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>Z ikoną</button>
+        <span class="tag">leading · odstęp space4=8</span></div>
+      <div class="item">
+        <button class="btn md gradient">Z trailing<span class="ic" style="margin:0 0 0 8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></button>
+        <span class="tag">trailing</span></div>
+      <div class="item">
+        <button class="btn md iconv iconOnly"><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span></button>
+        <span class="tag">GWButton.icon · koło h/2</span></div>
+    </div>
+    <div style="margin-top:24px;max-width:420px">
+      <button class="btn md gradient expand">Expand - pełna szerokość rodzica</button>
+      <div class="cap">expand:true owija w SizedBox(width: infinity), :316-318</div>
+    </div>
+    <div class="cap" style="margin-top:16px">Tylko jedno wywołanie <code>GWButton.icon</code> w całym
+      <code>lib/</code>. Wariant <code>icon</code> (enum) nie jest używany ani razu - jest identyczny
+      z <code>tertiary</code>.</div>
+  </div>
+
+  <h3>Specyfikacja</h3>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>Cecha</th><th>sm</th><th>md</th><th>lg</th><th class="mono">źródło</th></tr>
+    <tr><td>Wysokość</td><td class="mono">44</td><td class="mono">48</td><td class="mono">56</td><td class="mono">:77-87</td></tr>
+    <tr><td>Padding poziomy</td><td class="mono">space6 = 12</td><td class="mono">space8 = 16</td><td class="mono">space10 = 20</td><td class="mono">:89-99</td></tr>
+    <tr><td>Etykieta</td><td class="mono">labelMd 13/500</td><td class="mono">titleMd 16/500</td><td class="mono">titleLg 18/600</td><td class="mono">:101-110</td></tr>
+    <tr><td>Ikona</td><td class="mono">16</td><td class="mono">20</td><td class="mono">22</td><td class="mono">:373-382</td></tr>
+    <tr><td>Promień</td><td colspan="3" class="mono">radiusLg = 15 · tylko-ikona: h/2 (koło)</td><td class="mono">:269-270</td></tr>
+    <tr><td>Animacja</td><td colspan="3" class="mono">GeniusWalletMotion.fast + standard, na całym kontenerze</td><td class="mono">:251-253</td></tr>
+  </table>
+  </div>
+
+  <h3>Co się faktycznie używa</h3>
+  <p>Spis z <code>lib/</code>, bez samego komponentu i bez galerii dev.</p>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>Wariant</th><th>Wywołań</th><th>Uwaga</th></tr>
+    <tr><td class="mono">gradient</td><td class="mono">12</td><td>sygnatura, jedna na ekran</td></tr>
+    <tr><td class="mono">primary</td><td class="mono">10</td><td>ten sam obraz co gradient</td></tr>
+    <tr><td class="mono">secondary</td><td class="mono">10</td><td>domyślna akcja drugorzędna</td></tr>
+    <tr><td class="mono">gradientOutline</td><td class="mono">2</td><td>tylko w parze z filled</td></tr>
+    <tr><td class="mono">tertiary</td><td class="mono">2</td><td></td></tr>
+    <tr><td class="mono">ghost</td><td class="mono">2</td><td></td></tr>
+    <tr><td class="mono">destructive</td><td class="mono">2</td><td></td></tr>
+    <tr class="dead"><td class="mono">icon</td><td class="mono">0</td><td>martwy - duplikat tertiary</td></tr>
+  </table>
+  </div>
+  <p class="src">Rozmiary: lg 12 · sm 8 · md 5. Czyli <code>md</code>, wartość domyślna,
+  jest najrzadziej wybierana świadomie.</p>
+
+  <div class="note">
+    <strong>Stała reguła wagi CTA</strong> (wpisana do <code>AGENTS.md</code> i
+    <code>CONVENTIONS.md</code> 2026-07-27): fill = zobowiązanie (Apply, Swap, Bridge, Buy GNUS,
+    Confirm). Outline = wszystko inne (View on Explorer, Cancel, Back).
+    <code>gradientOutline</code> tylko obok wypełnionego gradientu, nigdy sam.
+    <strong>Najwyżej jeden wypełniony gradient na ekran</strong> - drabinka CTA, której szczeble
+    wykluczają się nawzajem, liczy się jako jeden.
+  </div>
+</section>
+
+<!-- ============================================================= 2 -->
+<section id="other-buttons">
+  <h2><span class="n">2</span>Pozostałe implementacje buttona</h2>
+  <p>Na pytanie "jakie mamy buttony" uczciwa odpowiedź to nie "jeden". W <code>lib/components/</code>
+  żyje <strong>dwanaście</strong> osobnych klas przycisku. Jedna jest systemem, osiem to zaszłości
+  z jednym-dwoma wywołaniami, trzy są martwe.</p>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>Klasa</th><th>Plik</th><th>Wywołań poza components/</th><th>Status</th></tr>
+    <tr><td class="mono">GWButton</td><td class="mono">buttons/gw_button.dart</td><td class="mono">18</td><td><span class="pill ds">system</span></td></tr>
+    <tr><td class="mono">GWSwapFab</td><td class="mono">buttons/gw_swap_fab.dart</td><td class="mono">1</td><td><span class="pill ds">system</span></td></tr>
+    <tr><td class="mono">SlidingDrawerButton</td><td class="mono">sliding_drawer_button.dart</td><td class="mono">2</td><td><span class="pill legacy">zaszłość</span></td></tr>
+    <tr><td class="mono">ActionButton</td><td class="mono">action_button.dart</td><td class="mono">1</td><td><span class="pill legacy">zaszłość</span></td></tr>
+    <tr><td class="mono">SubmitJobDashboardButton</td><td class="mono">job/submit_job_dashboard_button.dart</td><td class="mono">1</td><td><span class="pill legacy">zaszłość</span></td></tr>
+    <tr><td class="mono">IsactiveTrue</td><td class="mono">continue_button/isactive_true.g.dart</td><td class="mono">1</td><td><span class="pill legacy">zaszłość (.g)</span></td></tr>
+    <tr><td class="mono">IsactiveFalse</td><td class="mono">continue_button/isactive_false.g.dart</td><td class="mono">1</td><td><span class="pill legacy">zaszłość (.g)</span></td></tr>
+    <tr><td class="mono">GeniusBackButton</td><td class="mono">genius_back_button.g.dart</td><td class="mono">1</td><td><span class="pill legacy">zaszłość (.g)</span></td></tr>
+    <tr><td class="mono">GeniusBackButtonCustom</td><td class="mono">custom/genius_back_button_custom.dart</td><td class="mono">1</td><td><span class="pill legacy">zaszłość</span></td></tr>
+    <tr class="dead"><td class="mono">StringButton</td><td class="mono">string_button.dart</td><td class="mono">0</td><td><span class="pill dead">martwy</span></td></tr>
+    <tr class="dead"><td class="mono">CopyButton</td><td class="mono">button/copy_button.dart</td><td class="mono">0</td><td><span class="pill dead">martwy</span></td></tr>
+    <tr class="dead"><td class="mono">SubmitJobButton</td><td class="mono">job/submit_job_button.dart</td><td class="mono">0</td><td><span class="pill dead">martwy</span></td></tr>
+  </table>
+  </div>
+  <div class="note warn">
+    <strong>Trzy z nich nie mają ani jednego wywołania.</strong> <code>StringButton</code>,
+    <code>CopyButton</code> i <code>SubmitJobButton</code> kompilują się, są utrzymywane przez
+    analyze i nikt ich nie renderuje. Kasowanie to trzy pliki mniej i zero ryzyka - ale to osobna
+    decyzja, nie robota tej strony.
+  </div>
+
+  <h3>GWSwapFab</h3>
+  <p class="src">buttons/gw_swap_fab.dart · 56px koło, dwie poświaty: brandPrimary alpha 64 i
+  brandSecondary alpha 64, ikona 26px w kolorze textOnBrand</p>
+  <div class="stage">
+    <div class="fab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></div>
+    <div class="cap">Montowany globalnie przez GlobalSwapFabHost na builderze MaterialApp.router.
+      Ma otwarty todo: <code>bottom: 80</code> omija pasek, którego pulpit nigdy nie montuje.</div>
+  </div>
+</section>
+
+<!-- ============================================================= 3 -->
+<section id="tokens">
+  <h2><span class="n">3</span>Tokeny</h2>
+  <p class="src">lib/theme/genius_wallet_colors.dart · genius_wallet_consts.dart ·
+  genius_wallet_typography.dart · genius_wallet_gradient.dart</p>
+
+  <h4>Marka</h4>
+  <div class="grid g3">
+    <div class="sw"><div class="chip" style="background:#14C8FF"></div><span class="nm">brandPrimary</span><span class="hx">#14C8FF</span></div>
+    <div class="sw"><div class="chip" style="background:#0AAEE6"></div><span class="nm">brandPrimaryStrong</span><span class="hx">#0AAEE6</span></div>
+    <div class="sw"><div class="chip" style="background:#2BF5B4"></div><span class="nm">brandSecondary</span><span class="hx">#2BF5B4</span></div>
+    <div class="sw"><div class="chip" style="background:#0AD89C"></div><span class="nm">brandSecondaryStrong</span><span class="hx">#0AD89C</span></div>
+    <div class="sw"><div class="chip" style="background:#5BFFD0"></div><span class="nm">brandSecondaryBright</span><span class="hx">#5BFFD0</span></div>
+    <div class="sw"><div class="chip" style="background:#C28FFF"></div><span class="nm">brandTertiary</span><span class="hx">#C28FFF</span></div>
+  </div>
+
+  <h4>Powierzchnie (ciemny)</h4>
+  <div class="grid g3">
+    <div class="sw"><div class="chip" style="background:#0B0D12"></div><span class="nm">surfaceBase - płótno</span><span class="hx">#0B0D12</span></div>
+    <div class="sw"><div class="chip" style="background:#0C0E14"></div><span class="nm">surfaceElevated - karta</span><span class="hx">#0C0E14</span></div>
+    <div class="sw"><div class="chip" style="background:#171A21"></div><span class="nm">surfaceMenu - szuflada</span><span class="hx">#171A21</span></div>
+    <div class="sw"><div class="chip" style="background:#06080C"></div><span class="nm">surfaceSunken - tor</span><span class="hx">#06080C</span></div>
+  </div>
+  <div class="note warn">
+    <code>surfaceMenu</code> (#171A21) jest o dwa kroki jaśniejszy niż każda karta (#0C0E14) i niż
+    strona (#0B0D12). Sketch 156 nazywa to źródłem "szuflady nie pasują do reszty" - i to jest
+    ten sam token, którym pomalowane jest pole formularza wewnątrz szuflady, przez co kontrast
+    wypełnienia wynosi 1.00:1.
+  </div>
+
+  <h4>Status</h4>
+  <div class="grid g3">
+    <div class="sw"><div class="chip" style="background:#0AD89C"></div><span class="nm">statusSuccess</span><span class="hx">#0AD89C</span></div>
+    <div class="sw"><div class="chip" style="background:#FF4D4D"></div><span class="nm">statusError</span><span class="hx">#FF4D4D</span></div>
+    <div class="sw"><div class="chip" style="background:#FFC42E"></div><span class="nm">statusWarning</span><span class="hx">#FFC42E</span></div>
+    <div class="sw"><div class="chip" style="background:#64748B"></div><span class="nm">statusNeutral - tylko fill</span><span class="hx">#64748B</span></div>
+  </div>
+
+  <h4>Gradienty</h4>
+  <div class="grid g2">
+    <div class="sw"><div class="chip" style="background:linear-gradient(90deg,#0AD89C,#0AAEE6)"></div><span class="nm">brandCta - sygnatura, w lewo→prawo</span><span class="hx">#0AD89C → #0AAEE6</span></div>
+    <div class="sw"><div class="chip" style="background:linear-gradient(90deg,#14C8FF,#5BFFD0)"></div><span class="nm">brandBorder - obwódka kart</span><span class="hx">#14C8FF → #5BFFD0</span></div>
+  </div>
+  <p class="src">Jest też <code>brandCtaText(appearanceProxy)</code>: ten sam gradient jako shader
+  tekstu, który w trybie jasnym zapada się do płaskiego <code>#0A6885</code>, bo oba stopy mierzą
+  tam 1.65:1 i 2.28:1 - nieczytelne.</p>
+
+  <h4>Siatka odstępów</h4>
+  <div class="stage">
+    <div class="row" style="align-items:flex-end">
+      <div class="item"><div style="width:4px;height:32px;background:var(--brand)"></div><span class="tag">space2 · 4</span></div>
+      <div class="item"><div style="width:6px;height:32px;background:var(--warn)"></div><span class="tag">space3 · 6 ⚠</span></div>
+      <div class="item"><div style="width:8px;height:32px;background:var(--brand)"></div><span class="tag">space4 · 8</span></div>
+      <div class="item"><div style="width:12px;height:32px;background:var(--brand)"></div><span class="tag">space6 · 12</span></div>
+      <div class="item"><div style="width:16px;height:32px;background:var(--brand)"></div><span class="tag">space8 · 16</span></div>
+      <div class="item"><div style="width:20px;height:32px;background:var(--brand)"></div><span class="tag">space10 · 20</span></div>
+      <div class="item"><div style="width:24px;height:32px;background:var(--brand)"></div><span class="tag">space12 · 24</span></div>
+      <div class="item"><div style="width:32px;height:32px;background:var(--brand)"></div><span class="tag">space16 · 32</span></div>
+      <div class="item"><div style="width:40px;height:32px;background:var(--brand)"></div><span class="tag">space20 · 40</span></div>
+      <div class="item"><div style="width:48px;height:32px;background:var(--brand)"></div><span class="tag">space24 · 48</span></div>
+      <div class="item"><div style="width:64px;height:32px;background:var(--brand)"></div><span class="tag">space32 · 64</span></div>
+    </div>
+    <div class="cap">Siatka 4-punktowa z JEDNYM świadomym wyjątkiem: space3 = 6px, półkrok,
+      opisany w kodzie jako celowy.</div>
+  </div>
+
+  <h4>Promienie</h4>
+  <div class="stage">
+    <div class="row">
+      <div class="item"><div style="width:64px;height:48px;background:var(--menu);border-radius:4px"></div><span class="tag">radiusXs · 4</span></div>
+      <div class="item"><div style="width:64px;height:48px;background:var(--menu);border-radius:8px"></div><span class="tag">radiusSm · 8</span></div>
+      <div class="item"><div style="width:64px;height:48px;background:var(--menu);border-radius:10px"></div><span class="tag">radiusBase · 10</span></div>
+      <div class="item"><div style="width:64px;height:48px;background:var(--menu);border-radius:12px"></div><span class="tag">radiusMd · 12</span></div>
+      <div class="item"><div style="width:64px;height:48px;background:var(--menu);border-radius:15px"></div><span class="tag">radiusLg · 15</span></div>
+      <div class="item"><div style="width:64px;height:48px;background:var(--menu);border-radius:24px"></div><span class="tag">radiusXl · 24</span></div>
+      <div class="item"><div style="width:96px;height:48px;background:var(--menu);border-radius:48px"></div><span class="tag">radiusPill · 48</span></div>
+    </div>
+  </div>
+
+  <h4>Typografia - Inter, wpięta lokalnie</h4>
+  <div class="stage">
+    <div style="font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:40px">displayLg · 32/700</div>
+    <div style="font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:36px">displayMd · 28/700</div>
+    <div style="font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:32px">headlineLg · 24/600</div>
+    <div style="font-size:20px;font-weight:600;line-height:28px">headlineMd · 20/600</div>
+    <div style="font-size:18px;font-weight:600;line-height:24px">titleLg · 18/600</div>
+    <div style="font-size:16px;font-weight:500;line-height:22px">titleMd · 16/500</div>
+    <div style="font-size:16px;font-weight:400;line-height:24px">bodyLg · 16/400</div>
+    <div style="font-size:14px;font-weight:400;line-height:20px">bodySm · 14/400</div>
+    <div style="font-size:13px;font-weight:500;line-height:18px">labelMd · 13/500</div>
+    <div class="cap">Plus trzy numeryczne warianty (numericDisplay 32/700, numericHeadline 24/600,
+      numericBody 14/500) dla kwot, żeby cyfry nie skakały.</div>
+  </div>
+</section>
+
+<!-- ============================================================= 4 -->
+<section id="cards">
+  <h2><span class="n">4</span>Karty i wiersze</h2>
+
+  <div class="grid g2">
+    <div>
+      <h4>GWCard</h4>
+      <p class="src">cards/gw_card.dart · padding space8=16 · radius 15 · surfaceElevated ·
+        hover: unosi 2px, hairline → borderStrong</p>
+      <div class="card">
+        <div style="font-size:16px;font-weight:500">Standardowa karta</div>
+        <div style="font-size:13px;color:var(--secondary);margin-top:4px">
+          surfaceElevated + hairline 12% + cień elevation.</div>
+      </div>
+    </div>
+    <div>
+      <h4>GWGradientBorderCard</h4>
+      <p class="src">cards/gw_gradient_border_card.dart · obwódka brandBorder cyan→mint</p>
+      <div class="card gradborder">
+        <div style="font-size:16px;font-weight:500">Karta bohater</div>
+        <div style="font-size:13px;color:var(--secondary);margin-top:4px">
+          Jedna najważniejsza karta na ekranie, nie więcej.</div>
+      </div>
+    </div>
+  </div>
+
+  <h4>GWSectionTitle + GWViewAllLink</h4>
+  <p class="src">cards/gw_section_title.dart · <strong>titleLg 18/600, zdaniowa wielkość liter,
+    letterSpacing -0.2</strong> - NIE wersaliki i nie mała czcionka · padding fromLTRB(space4, 2,
+    space4, space8), rezerwuje minHeight 44, żeby każdy panel miał ten sam odstęp tytuł→pierwszy
+    wiersz (komponent posiada ten odstęp sam - wywołujący nie dokłada własnego) ·
+    cards/gw_view_all_link.dart · 11px, podkreślenie brandCta tylko pod szerokością etykiety</p>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="sectiontitle" style="padding-bottom:8px">Assets</div>
+      <div class="viewall"><span class="u">View all</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+    </div>
+    <div class="tokenrow"><div class="av">ETH</div>
+      <div><div class="nm">Ethereum</div><div class="sub">0.482 ETH</div></div>
+      <div class="val"><div class="nm">$1,204.55</div><div class="sub" style="color:var(--ok)">+2.4%</div></div>
+    </div>
+    <div class="tokenrow sel"><div class="av">GNUS</div>
+      <div><div class="nm">GNUS</div><div class="sub">1,250.00 GNUS</div></div>
+      <div class="val"><div class="nm">$812.00</div><div class="sub" style="color:var(--err)">-0.8%</div></div>
+    </div>
+    <div class="cap">GWTokenRow - wiersz listy tokenów. Drugi wiersz pokazuje stan zaznaczenia
+      (tint), o którym rozstrzyga otwarty sketch 161/162.</div>
+  </div>
+</section>
+
+<!-- ============================================================= 5 -->
+<section id="inputs">
+  <h2><span class="n">5</span>Pola</h2>
+  <p class="src">inputs/gw_text_field.dart · etykieta NAD polem (odstęp space4=8), wypełnienie
+    surfaceElevated, padding 16/16, radius 15, obramowanie 1px borderSubtle → 2px brandPrimaryStrong
+    przy focusie</p>
+
+  <div class="stage">
+    <div class="row" style="align-items:flex-start;gap:32px">
+      <div class="field">
+        <div class="lbl">Wallet name</div>
+        <div class="box ph">My main wallet</div>
+        <div class="hint">Pick something memorable</div>
+      </div>
+      <div class="field">
+        <div class="lbl">Wallet name</div>
+        <div class="box focus">Główny portfel</div>
+        <div class="hint">stan focus - 2px brandPrimaryStrong</div>
+      </div>
+      <div class="field">
+        <div class="lbl">With error</div>
+        <div class="box err ph">Type something</div>
+        <div class="hint e">This field is required</div>
+      </div>
+    </div>
+  </div>
+
+  <h4>GWFocusRing</h4>
+  <p class="src">inputs/gw_focus_ring.dart · pierścień gradientowy 1.5px, przezroczysty w spoczynku.
+    <code>BorderSide</code> przyjmuje jeden <code>Color</code>, więc to nigdy nie może być
+    <code>InputBorder</code> - musi być warstwą obok. Szerokość jest zarezerwowana w OBU stanach,
+    żeby wejście w focus nie przesuwało treści o 1.5px.</p>
+  <div class="stage">
+    <div class="row" style="align-items:flex-start;gap:32px">
+      <div class="field"><div class="lbl">Spoczynek</div>
+        <div class="ring"><div class="box ph">0.00</div></div></div>
+      <div class="field"><div class="lbl">Focus</div>
+        <div class="ring on"><div class="box">1.25</div></div></div>
+    </div>
+    <div class="cap">Używane przez pole kwoty w Swapie i przez pole wiadomości na Feedbacku.</div>
+  </div>
+
+  <h4>GWCheckbox · GWSwitch · GWSelect</h4>
+  <div class="stage">
+    <div class="row" style="gap:32px">
+      <div class="row" style="gap:12px"><span class="cb"></span><span>Niezaznaczony</span></div>
+      <div class="row" style="gap:12px"><span class="cb on">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M4 12l6 6L20 6"/></svg></span><span>Zaznaczony</span></div>
+      <div class="row" style="gap:12px"><span class="sw-track"><span class="knob"></span></span><span>Wyłączony</span></div>
+      <div class="row" style="gap:12px"><span class="sw-track on"><span class="knob"></span></span><span>Włączony</span></div>
+    </div>
+    <div style="margin-top:24px" class="field">
+      <div class="lbl">Network</div>
+      <div class="box" style="display:flex;align-items:center;justify-content:space-between">
+        <span>Ethereum</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A8F9D" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </div>
+    <div class="cap">Checkbox: 1.5px obramowanie, radiusXs=4, fill brandPrimaryStrong.
+      Switch: tor surfaceMenu → brandPrimaryStrong alpha 140.
+      Select: rozwijane menu na surfaceMenu, radius 15.</div>
+  </div>
+</section>
+
+<!-- ============================================================= 6 -->
+<section id="feedback">
+  <h2><span class="n">6</span>Stany: pusto, błąd, ładowanie</h2>
+  <div class="grid g3">
+    <div class="card"><div class="state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8A8F9D" stroke-width="1.5"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>
+      <div class="ttl">Brak transakcji</div>
+      <div class="msg">Kiedy coś wyślesz albo odbierzesz, pojawi się tutaj.</div>
+      <button class="btn sm secondary">Odśwież</button>
+    </div><div class="cap">GWEmptyState</div></div>
+
+    <div class="card"><div class="state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF4D4D" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>
+      <div class="ttl">Nie udało się pobrać</div>
+      <div class="msg">Sprawdź połączenie i spróbuj ponownie.</div>
+      <button class="btn sm secondary">Spróbuj ponownie</button>
+    </div><div class="cap">GWErrorState</div></div>
+
+    <div class="card"><div class="state">
+      <div class="gwspin"></div>
+      <div class="msg">Ładowanie portfela...</div>
+    </div><div class="cap">GWLoadingState + GWSpinner - trzy stopy marki na okręgu</div></div>
+  </div>
+
+  <h4>PulsingSkeleton</h4>
+  <div class="card">
+    <div class="skel" style="width:40%"></div>
+    <div class="skel" style="width:70%;margin-top:10px"></div>
+    <div class="skel" style="width:55%;margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- ============================================================= 7 -->
+<section id="scaffold">
+  <h2><span class="n">7</span>Rusztowanie strony</h2>
+  <h4>GWPageHeader</h4>
+  <p class="src">scaffold/gw_page_header.dart · tytuł + opcjonalny podtytuł (odstęp space2=4),
+    odstęp do treści space8=16, opcjonalny widget po prawej. Wariant wyśrodkowany centruje
+    względem PEŁNEJ szerokości, nie względem kolumny tekstu.</p>
+  <div class="stage">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div style="font-size:24px;font-weight:600;letter-spacing:-.02em">Transactions</div>
+        <div style="font-size:14px;color:var(--secondary);margin-top:4px">Wszystko, co przeszło przez ten portfel</div>
+      </div>
+      <button class="btn sm secondary">Filtruj</button>
+    </div>
+  </div>
+  <p class="src">Obok tego: GWScreen (scaffold/gw_screen.dart), AppScreenView, ResponsiveGrid,
+    DesktopContainer / DesktopBodyContainer - kontenery szerokości i breakpointów.</p>
+</section>
+
+<!-- ============================================================= 8 -->
+<section id="overlays">
+  <h2><span class="n">8</span>Warstwy: szuflada, dialog, tło</h2>
+  <h4>ResponsiveDrawer</h4>
+  <p class="src">bottom_drawer/responsive_drawer.dart · po zmianie powłoki: tytuł 18/600
+    (było 16/500), titleSpacing 20 (było 16), pasek 56 (było 48). Ta zmiana dotyka ~19 szuflad,
+    a obejrzane są dwie.</p>
+  <div class="stage sunken">
+    <div class="drawer">
+      <div class="bar">Swap Settings</div>
+      <div class="body">
+        <div style="font-size:13px;color:var(--secondary);margin-bottom:12px">Slippage tolerance</div>
+        <div class="row" style="gap:8px">
+          <button class="btn sm tertiary">0.1%</button>
+          <button class="btn sm gradient">0.5%</button>
+          <button class="btn sm tertiary">1.0%</button>
+        </div>
+        <div style="margin-top:20px"><button class="btn md gradient expand">Apply</button></div>
+      </div>
+    </div>
+    <div class="cap">Panel na surfaceMenu (#171A21) - jaśniejszym niż płótno. Pole formularza
+      wewnątrz jest dziś pomalowane TYM SAMYM tokenem; to jest ten otwarty todo o kontraście 1.00:1.</div>
+  </div>
+
+  <h4>GWMeshBackground</h4>
+  <p class="src">effects/gw_mesh_background.dart · jeden z dwóch komponentów oznaczonych jako
+    "z założenia tylko ciemny" - nigdy nie czyta trybu. Na /landing_screen ŚWIADOMIE zostawiony
+    także w trybie jasnym, po obejrzeniu na żywo (decyzja z 06-01).</p>
+  <div class="mesh"></div>
+
+  <p class="src" style="margin-top:24px">Dalej: GWDialog (overlays/gw_dialog.dart),
+    GWBottomSheet (overlays/gw_bottom_sheet.dart), ToastManager + ToastWidget (toast/),
+    ResponsiveOverlay, GlobalSwapFabHost.</p>
+</section>
+
+<!-- ============================================================= 9 -->
+<section id="inventory">
+  <h2><span class="n">9</span>Pełny spis - 81 plików</h2>
+  <p>Tyle plików leży pod <code>lib/components/</code>. Dwadzieścia pięć to system projektowy
+  (<code>gw_*</code>). Dziewięć to wygenerowane <code>.g.dart</code> z czasów sprzed redesignu.
+  Reszta to komponenty funkcjonalne i zaszłości.</p>
+
+  <h4>System projektowy - 25 plików</h4>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>Grupa</th><th>Pliki</th></tr>
+    <tr><td>buttons</td><td class="mono">gw_button · gw_swap_fab</td></tr>
+    <tr><td>cards</td><td class="mono">gw_card · gw_gradient_border_card · gw_section_title · gw_token_row · gw_view_all_link · gw_wallet_card</td></tr>
+    <tr><td>inputs</td><td class="mono">gw_text_field · gw_select · gw_checkbox · gw_switch · gw_focus_ring</td></tr>
+    <tr><td>feedback</td><td class="mono">gw_empty_state · gw_error_state · gw_loading_state</td></tr>
+    <tr><td>loading</td><td class="mono">gw_spinner</td></tr>
+    <tr><td>overlays</td><td class="mono">gw_dialog · gw_bottom_sheet</td></tr>
+    <tr><td>scaffold</td><td class="mono">gw_page_header · gw_screen</td></tr>
+    <tr><td>data</td><td class="mono">gw_animated_number</td></tr>
+    <tr><td>effects</td><td class="mono">gw_mesh_background</td></tr>
+    <tr><td>inne</td><td class="mono">gw_icon · gw_qr_scanner</td></tr>
+  </table>
+  </div>
+
+  <h4>Wygenerowane .g.dart - 9 plików</h4>
+  <p class="src">continue_button/isactive_true · continue_button/isactive_false ·
+    genius_back_button · incorrect_pin · recoveryword · registration_header ·
+    wallet_information · wallet_preview · wallets_overview</p>
+  <p>Nazwa <code>.g.dart</code> zwykle znaczy "nie dotykaj, to się regeneruje". Tutaj nie -
+  te pliki są edytowane ręcznie (<code>wallet_information.g.dart</code> ma poprawki z Fazy 3
+  wpisane w kod). Nazwa kłamie i jest to warte osobnej decyzji: albo przemianować, albo udokumentować.</p>
+
+  <h4>Funkcjonalne i zaszłości - 47 plików</h4>
+  <p class="src">action_button · app_screen_view · app_screen_with_header_desktop ·
+    app_screen_with_header_mobile · animation/checkmark_animation · animation/x_animation ·
+    bottom_drawer/bottom_drawer · bottom_drawer/responsive_drawer · button/copy_button ·
+    coins/assets_totals · coins/view/coin_card_container · coins/view/coin_card_row ·
+    coins/view/coins_screen · currency_dropdown · custom/genius_back_button_custom ·
+    custom/isactive_false_custom · custom/isactive_true_custom · custom/wallet_address_custom ·
+    custom/wallet_agreement_custom · custom_drop_down · custom_future_builder ·
+    desktop_body_container · desktop_container · disclaimer_dialogue · job/submit_job_button ·
+    job/submit_job_dashboard_button · loading · loading/loading · number_pad ·
+    overlay/global_swap_fab_host · overlay/responsive_overlay · pulsing_skeleton ·
+    qr/crypto_address_qr · responsive_grid · scaffold/scaffold_helper ·
+    sgnus/sgnus_connected_dropdown · sgnus/sgnus_connection_widget · sgnus/sgnus_wallet ·
+    sliding_drawer_button · splash · string_button · toast/ticker_provider ·
+    toast/toast_manager · toast/toast_navigator_observer · toast/toast_widget ·
+    wallet_overview · wallet_type_icon</p>
+
+  <div class="note">
+    <strong>Dwa pliki loadingu, dwa katalogi overlay.</strong> <code>loading.dart</code> i
+    <code>loading/loading.dart</code> to dwa osobne pliki; <code>overlay/</code> i
+    <code>overlays/</code> to dwa osobne katalogi różniące się jedną literą. Oba są znane i
+    udokumentowane (loading.dart ma 19 importerów), ale dla kogoś czytającego drzewo pierwszy raz
+    to jest pułapka.
+  </div>
+</section>
+
+<section>
+  <p class="src">Wszystkie liczby na tej stronie odczytane z drzewa 2026-07-27 na gałęzi
+  redesign/jakub-260726b. Nic nie jest przeniesione z wcześniejszego podsumowania.</p>
+</section>
+
+</main>
+</body>
+</html>

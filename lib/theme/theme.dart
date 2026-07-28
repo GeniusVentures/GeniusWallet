@@ -399,18 +399,51 @@ ThemeData getThemeData() {
     // (and 6 other files) call bare Divider(); Alex leaves this unset, which
     // would fall back to Material 3's colorScheme.outlineVariant default.
     dividerTheme: DividerThemeData(color: colorScheme.surfaceContainerHighest),
-    // Preserved from develop (absent from Alex's reference) -- the
-    // account-drawer's per-wallet "..." MenuAnchor/MenuItemButton context menu
-    // (and sdk_account_manager.dart) depends on this for its rounded container.
-    menuTheme: const MenuThemeData(
+    // The container for every `MenuAnchor` overflow menu -- the wallet drawer's
+    // per-row "..." and the SDK drawer's.
+    //
+    // `backgroundColor` moved here 2026-07-28: both call sites were passing
+    // their own `MenuStyle(backgroundColor:, shape:)` under a comment claiming
+    // "the reconciled theme no longer supplies menuTheme", which was **false** --
+    // this entry has been here the whole time and its own comment says it was
+    // kept for exactly those two menus. Two files were duplicating a style on a
+    // premise the file below them contradicted.
+    //
+    // `surfaceMenu` is what the token is named for: a menu floats ABOVE a
+    // panel, and after 156-A that panel is `surfaceElevated`, so a menu painted
+    // the same value would have no edge.
+    menuTheme: MenuThemeData(
       style: MenuStyle(
-        shape: WidgetStatePropertyAll(
+        // surfaceContainerHighest is where the scheme maps `surfaceMenu` (see the
+        // ColorScheme above); `surfaceContainer` is an M3-derived value and would
+        // not be our token.
+        backgroundColor: WidgetStatePropertyAll(
+          colorScheme.surfaceContainerHighest,
+        ),
+        // M3 tints an elevated surface with the primary colour. The menu's
+        // colour is a decision, not a derivation, so the tint is off.
+        surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+        shape: const WidgetStatePropertyAll(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.all(
               Radius.circular(GeniusWalletConsts.borderRadiusCard),
             ),
           ),
         ),
+      ),
+    ),
+    // The menu ITEM, which nothing was styling. `MenuItemButton` renders its
+    // label in `textTheme.labelLarge` -- and `toMaterialTextTheme()` does not
+    // map `labelLarge`, so every menu row in the app was rendering in Material's
+    // default typography (Roboto 14/w500/0.1) instead of Inter. That is the
+    // "font się nie zgadza" a walk picks up without being able to name it.
+    //
+    // Fixed HERE rather than by mapping `labelLarge` globally: that slot also
+    // drives every bare TextButton and SnackBarAction, so re-typing it app-wide
+    // is its own decision with its own walk. A todo is filed.
+    menuButtonTheme: MenuButtonThemeData(
+      style: ButtonStyle(
+        textStyle: WidgetStatePropertyAll(GeniusWalletTypography.bodySm),
       ),
     ),
     buttonTheme: const ButtonThemeData(padding: EdgeInsets.zero),

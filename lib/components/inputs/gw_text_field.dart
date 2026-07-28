@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -35,6 +36,8 @@ class GWTextField extends StatelessWidget {
     this.textAlign = TextAlign.start,
     this.validator,
     this.borderless = false,
+    this.focusRing = false,
+    this.fill,
     // IME-hardening opt-ins (06-04 §3.6). Every default below is Flutter's own
     // TextFormField stock default, so existing call sites — including
     // GWPasswordField and GWSearchField — behave byte-identically unless a
@@ -76,6 +79,28 @@ class GWTextField extends StatelessWidget {
   /// keeps its normal borders byte-identically.
   final bool borderless;
 
+  /// Wrap the input in [GWFocusRing], so focus is the brand GRADIENT instead of
+  /// the flat `brandPrimaryStrong` stroke `focusedBorder` draws.
+  ///
+  /// A `BorderSide` takes a single `Color`, so no `InputBorder` can be a
+  /// gradient -- which is why `GWFocusRing` exists at all. Its own doc names
+  /// the rule: *"the app's accent IS the gradient"*, and a field painted flat
+  /// blue is off-language in the one state where the app is most clearly
+  /// speaking to the user.
+  ///
+  /// ponytail: OPT-IN, not the default, and that is a compromise rather than a
+  /// design. Every one of this widget's eight call sites should arguably have
+  /// it, but flipping the default re-skins Settings, News, Markets, the account
+  /// manager and onboarding in one commit, which deserves its own walk. Ceiling:
+  /// until then, two fields in the app light a gradient on focus and six light a
+  /// flat blue. Upgrade path: flip this to true, delete the flag, walk the six.
+  final bool focusRing;
+
+  /// The fill inside the box. Defaults to `gw.surfaceElevated`, which is right
+  /// on a page and WRONG on a drawer or dialog painted that same value -- see
+  /// `ResponsiveDrawer`'s class doc for the 1.00:1 arithmetic.
+  final Color? fill;
+
   /// See the constructor note. [enableIMEPersonalizedLearning] is the
   /// load-bearing one for key material — it maps to Android's
   /// `IME_FLAG_NO_PERSONALIZED_LEARNING`, the actual switch on the keyboard's
@@ -103,63 +128,69 @@ class GWTextField extends StatelessWidget {
           ),
           const SizedBox(height: GeniusWalletConsts.space4),
         ],
-        TextFormField(
-          controller: controller,
-          initialValue: controller == null ? initialValue : null,
-          focusNode: focusNode,
-          obscureText: obscureText,
-          maxLines: obscureText ? 1 : maxLines,
-          maxLength: maxLength,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          autofillHints: autofillHints,
-          onChanged: onChanged,
-          onFieldSubmitted: onFieldSubmitted,
-          onTap: onTap,
-          readOnly: readOnly,
-          enabled: enabled,
-          autofocus: autofocus,
-          inputFormatters: inputFormatters,
-          textAlign: textAlign,
-          validator: validator,
-          autocorrect: autocorrect,
-          enableSuggestions: enableSuggestions,
-          enableIMEPersonalizedLearning: enableIMEPersonalizedLearning,
-          textCapitalization: textCapitalization,
-          style: GeniusWalletTypography.bodyLg,
-          cursorColor: GeniusWalletColors.brandPrimary,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GeniusWalletTypography.bodyLg.copyWith(
-              color: gw.textSecondary,
-            ),
-            prefixIcon: prefix,
-            suffixIcon: suffix,
-            counterText: '',
-            filled: true,
-            fillColor: gw.surfaceElevated,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: GeniusWalletConsts.space8,
-              vertical: GeniusWalletConsts.space8,
-            ),
-            border: borderless ? _noBorder : _border(gw.borderSubtle),
-            enabledBorder: borderless ? _noBorder : _border(gw.borderSubtle),
-            focusedBorder: borderless
-                ? _noBorder
-                : _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
-            errorBorder:
-                borderless ? _noBorder : _border(GeniusWalletColors.statusError),
-            focusedErrorBorder: borderless
-                ? _noBorder
-                : _border(GeniusWalletColors.statusError, width: 2),
-            disabledBorder: borderless ? _noBorder : _border(gw.borderSubtle),
-            errorText: errorText,
-            errorStyle: GeniusWalletTypography.bodySm.copyWith(
-              color: GeniusWalletColors.statusError,
-            ),
-            helperText: errorText == null ? helper : null,
-            helperStyle: GeniusWalletTypography.bodySm.copyWith(
-              color: gw.textSecondary,
+        _maybeRing(
+          gw,
+          TextFormField(
+            controller: controller,
+            initialValue: controller == null ? initialValue : null,
+            focusNode: focusNode,
+            obscureText: obscureText,
+            maxLines: obscureText ? 1 : maxLines,
+            maxLength: maxLength,
+            keyboardType: keyboardType,
+            textInputAction: textInputAction,
+            autofillHints: autofillHints,
+            onChanged: onChanged,
+            onFieldSubmitted: onFieldSubmitted,
+            onTap: onTap,
+            readOnly: readOnly,
+            enabled: enabled,
+            autofocus: autofocus,
+            inputFormatters: inputFormatters,
+            textAlign: textAlign,
+            validator: validator,
+            autocorrect: autocorrect,
+            enableSuggestions: enableSuggestions,
+            enableIMEPersonalizedLearning: enableIMEPersonalizedLearning,
+            textCapitalization: textCapitalization,
+            style: GeniusWalletTypography.bodyLg,
+            cursorColor: GeniusWalletColors.brandPrimary,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: GeniusWalletTypography.bodyLg.copyWith(
+                color: gw.textSecondary,
+              ),
+              prefixIcon: prefix,
+              suffixIcon: suffix,
+              counterText: '',
+              filled: true,
+              fillColor: fill ?? gw.surfaceElevated,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space8,
+                vertical: GeniusWalletConsts.space8,
+              ),
+              border: _borderless ? _noBorder : _border(gw.borderSubtle),
+              enabledBorder: _borderless ? _noBorder : _border(gw.borderSubtle),
+              focusedBorder: _borderless
+                  ? _noBorder
+                  : _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
+              errorBorder: _borderless
+                  ? _noBorder
+                  : _border(GeniusWalletColors.statusError),
+              focusedErrorBorder: _borderless
+                  ? _noBorder
+                  : _border(GeniusWalletColors.statusError, width: 2),
+              disabledBorder: _borderless
+                  ? _noBorder
+                  : _border(gw.borderSubtle),
+              errorText: errorText,
+              errorStyle: GeniusWalletTypography.bodySm.copyWith(
+                color: GeniusWalletColors.statusError,
+              ),
+              helperText: errorText == null ? helper : null,
+              helperStyle: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textSecondary,
+              ),
             ),
           ),
         ),
@@ -167,19 +198,40 @@ class GWTextField extends StatelessWidget {
     );
   }
 
+  /// [focusRing] implies [borderless]: the ring IS the border, and letting the
+  /// `InputDecoration` draw its own inside it is the exact bug `GWFocusRing`'s
+  /// doc warns about (`theme.dart`'s app-wide `focusedBorder` beats a local
+  /// `border: InputBorder.none`, because a per-state border always beats the
+  /// fallback).
+  bool get _borderless => borderless || focusRing;
+
+  Widget _maybeRing(GWColors gw, Widget field) {
+    if (!focusRing) return field;
+    return GWFocusRing(
+      radius: GeniusWalletConsts.radiusLg,
+      background: fill ?? gw.surfaceElevated,
+      // The fill is a step from its canvas at best, so the edge carries WCAG
+      // 1.4.11 on its own -- the same reasoning as the drawer fields.
+      restingColor: errorText == null
+          ? gw.borderControl
+          : GeniusWalletColors.statusError,
+      enabled: enabled,
+      child: field,
+    );
+  }
+
   OutlineInputBorder _border(Color color, {double width = 1}) =>
       OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(GeniusWalletConsts.radiusLg),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
         borderSide: BorderSide(color: color, width: width),
       );
 
   /// Keeps the rounded fill but draws NO stroke — [borderless] mode, where a
   /// parent owns the visible border (the gradient focus ring).
   OutlineInputBorder get _noBorder => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
-        borderSide: BorderSide.none,
-      );
+    borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+    borderSide: BorderSide.none,
+  );
 }
 
 /// Password input with a built-in show/hide toggle. Common enough in a wallet
@@ -317,19 +369,11 @@ class _GWSearchFieldState extends State<GWSearchField> {
         focusNode: _focusNode,
         onChanged: widget.onChanged,
         borderless: true,
-        prefix: Icon(
-          Icons.search,
-          size: 20,
-          color: gw.textSecondary,
-        ),
+        prefix: Icon(Icons.search, size: 20, color: gw.textSecondary),
         suffix: widget.onClear != null
             ? IconButton(
                 tooltip: 'Clear',
-                icon: Icon(
-                  Icons.close,
-                  size: 18,
-                  color: gw.textSecondary,
-                ),
+                icon: Icon(Icons.close, size: 18, color: gw.textSecondary),
                 onPressed: widget.onClear,
               )
             : null,
