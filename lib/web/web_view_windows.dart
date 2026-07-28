@@ -139,7 +139,9 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     // Basic check for whether it's likely a URL
     final isLikelyUrl = input.contains('.') && !input.contains(' ');
 
-    if (input.isEmpty) return;
+    if (input.isEmpty) {
+      return;
+    }
 
     if (!isLikelyUrl) {
       // Treat as search query
@@ -164,8 +166,10 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     if (_urlFocusNode.hasFocus) {
       final full = _currentUrl;
       _urlController.text = full;
-      _urlController.selection =
-          TextSelection(baseOffset: 0, extentOffset: full.length);
+      _urlController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: full.length,
+      );
     }
     setState(() {});
   }

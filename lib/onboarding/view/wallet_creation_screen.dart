@@ -47,8 +47,7 @@ class WalletCreationScreen extends StatelessWidget {
                       variant: GWButtonVariant.secondary,
                       size: GWButtonSize.lg,
                       expand: true,
-                      onPressed: () =>
-                          context.push('/import_existing_wallet'),
+                      onPressed: () => context.push('/import_existing_wallet'),
                     ),
                   ),
                   ConstrainedBox(

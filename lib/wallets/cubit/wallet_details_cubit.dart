@@ -159,7 +159,9 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     // DEV-ONLY: while mock-mode is ON, the live read (and the
     // selectNetwork/selectWallet re-fetches that call this) must not
     // overwrite the injected mock holdings.
-    if (mockMode) return;
+    if (mockMode) {
+      return;
+    }
     // TEMPORARY (removed by plan 13-05): measures the coins/holdings leg's
     // boot-time latency to answer 13-RESEARCH open question 1 / assumption
     // A2. Not a feature — delete alongside the [boot-timing] debugPrint

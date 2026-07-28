@@ -11,12 +11,7 @@ class SketchIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const SketchIcon(
-    this.svg, {
-    super.key,
-    this.size = 20,
-    required this.color,
-  });
+  const SketchIcon(this.svg, {super.key, this.size = 20, required this.color});
 
   @override
   Widget build(BuildContext context) {

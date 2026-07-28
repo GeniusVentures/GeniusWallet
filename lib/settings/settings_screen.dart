@@ -72,7 +72,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Reads a merged config file from the SDK directory.
   Future<Map<String, dynamic>> _readSdkJson(String fileName) async {
     final file = File('${_api.jsonFilePath}$fileName');
-    if (!await file.exists()) return {};
+    if (!await file.exists()) {
+      return {};
+    }
     try {
       final content = await file.readAsString();
       final decoded = jsonDecode(content);
@@ -227,7 +229,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   .map((l) => GWSelectItem(value: l, label: l))
                   .toList(),
               onChanged: (v) {
-                if (v != null) setState(() => _loggerLevels[entry.key] = v);
+                if (v != null) {
+                  setState(() => _loggerLevels[entry.key] = v);
+                }
               },
             ),
           ),

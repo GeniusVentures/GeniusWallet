@@ -85,25 +85,33 @@ double coinChartHeight({
 /// a confident `$0.00` / `#0`. Lifted out of `CoinInfoCard` on 2026-07-28 so the
 /// stat rail uses the SAME rule rather than inventing a third one.
 String formatCompactCurrency(double? number) {
-  if (number == 0 || number == null) return "N/A";
+  if (number == 0 || number == null) {
+    return "N/A";
+  }
   return NumberFormat.compactSimpleCurrency().format(number);
 }
 
 String formatCompactDecimal(double? number) {
-  if (number == 0 || number == null) return "N/A";
+  if (number == 0 || number == null) {
+    return "N/A";
+  }
   return NumberFormat.compact().format(number);
 }
 
 /// A signed percentage, or "N/A" when the field never arrived.
 String formatPercent(double? pct) {
-  if (pct == null || pct == 0) return "N/A";
+  if (pct == null || pct == 0) {
+    return "N/A";
+  }
   final sign = pct > 0 ? '+' : '';
   return '$sign${pct.toStringAsFixed(2)}%';
 }
 
 /// A price, or "N/A". Not compact - a price is read digit by digit.
 String formatPrice(double? value) {
-  if (value == null || value == 0) return "N/A";
+  if (value == null || value == 0) {
+    return "N/A";
+  }
   return NumberFormat.currency(locale: "en_US", symbol: "\$").format(value);
 }
 

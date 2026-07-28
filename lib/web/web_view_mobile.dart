@@ -162,7 +162,9 @@ class WebViewMobileState extends State<WebViewMobile> {
           },
           onUrlChange: (UrlChange change) {
             final u = change.url;
-            if (u != null) _onNav(controller!, u);
+            if (u != null) {
+              _onNav(controller!, u);
+            }
           },
           onPageFinished: (String loadedUrl) async {
             print('[DEBUG] onPageFinished: $loadedUrl');
@@ -223,7 +225,9 @@ class WebViewMobileState extends State<WebViewMobile> {
       print('[DEBUG] Add controller, set tab index');
       _controllers.add(controller!);
       _tabUrls.add(url);
-      _tabTitles.add(url); // URL as fallback until onPageFinished sets the title
+      _tabTitles.add(
+        url,
+      ); // URL as fallback until onPageFinished sets the title
       _currentTabIndex = _controllers.length - 1;
     });
   }
@@ -248,16 +252,22 @@ class WebViewMobileState extends State<WebViewMobile> {
   // re-query instead of freezing on the last typed URL. about:blank is the
   // internal Uniswap dark-mode shim, never a real destination — skip it.
   void _onNav(WebViewController c, String url) {
-    if (!mounted || url.isEmpty || url == 'about:blank') return;
+    if (!mounted || url.isEmpty || url == 'about:blank') {
+      return;
+    }
     final i = _controllers.indexOf(c);
-    if (i < 0) return;
+    if (i < 0) {
+      return;
+    }
     _tabUrls[i] = url;
     // NEVER rebuild while the URL bar is being edited. A background nav event
     // (pages like DuckDuckGo fire onUrlChange freely) rebuilding the focused
     // TextField mid-keystroke drops the KeyUp and trips HardwareKeyboard's
     // "physical key already pressed" assert, which silently blocks typing. The
     // host + arrows refresh on the next natural rebuild (blur / tab switch).
-    if (_urlFocusNode.hasFocus) return;
+    if (_urlFocusNode.hasFocus) {
+      return;
+    }
     setState(() {});
   }
 
@@ -265,20 +275,30 @@ class WebViewMobileState extends State<WebViewMobile> {
   // at onPageFinished). Setting it here keeps getTitle() OFF the build path.
   Future<void> _syncTitle(WebViewController c) async {
     final t = await c.getTitle();
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     final i = _controllers.indexOf(c);
-    if (i < 0 || i >= _tabTitles.length) return;
+    if (i < 0 || i >= _tabTitles.length) {
+      return;
+    }
     final title = (t == null || t.trim().isEmpty) ? _tabUrls[i] : t;
-    if (_tabTitles[i] == title) return;
+    if (_tabTitles[i] == title) {
+      return;
+    }
     _tabTitles[i] = title;
     // Same rule as _onNav: don't rebuild the focused TextField mid-keystroke.
-    if (_urlFocusNode.hasFocus) return;
+    if (_urlFocusNode.hasFocus) {
+      return;
+    }
     setState(() {});
   }
 
   void _loadUrl() {
     String input = _urlController.text.trim();
-    if (input.isEmpty) return;
+    if (input.isEmpty) {
+      return;
+    }
     final isLikelyUrl = input.contains('.') && !input.contains(' ');
     if (!isLikelyUrl) {
       final query = Uri.encodeComponent(input);
@@ -383,13 +403,14 @@ class WebViewMobileState extends State<WebViewMobile> {
                       size: 20,
                       color: GeniusWalletColors.textPrimary,
                     ),
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
                     padding: EdgeInsets.zero,
                     splashRadius: 18,
                     tooltip: 'New tab',
-                    onPressed: () =>
-                        _addNewTab(kWebHomeUrl),
+                    onPressed: () => _addNewTab(kWebHomeUrl),
                   ),
                 ],
               ),
@@ -410,113 +431,116 @@ class WebViewMobileState extends State<WebViewMobile> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hoveredTabIndex = index),
       onExit: (_) => setState(() {
-        if (_hoveredTabIndex == index) _hoveredTabIndex = null;
+        if (_hoveredTabIndex == index) {
+          _hoveredTabIndex = null;
+        }
       }),
       child: GestureDetector(
-      onTap: () => _switchTab(index),
-      child: Container(
-        width: 168,
-        height: 30,
-        // FIXED width pins the close-× to the right edge. height 30 + 8+8 vertical
-        // margin = 46 (the strip height), so the chip is centered by CONSTRUCTION
-        // regardless of how the ListView constrains item cross-axis height.
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: active
-              ? GeniusWalletColors.surfaceElevated
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-          border: Border.all(
+        onTap: () => _switchTab(index),
+        child: Container(
+          width: 168,
+          height: 30,
+          // FIXED width pins the close-× to the right edge. height 30 + 8+8 vertical
+          // margin = 46 (the strip height), so the chip is centered by CONSTRUCTION
+          // regardless of how the ListView constrains item cross-axis height.
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
             color: active
-                ? Colors.transparent
-                : GeniusWalletColors.borderSubtle,
+                ? GeniusWalletColors.surfaceElevated
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+            border: Border.all(
+              color: active
+                  ? Colors.transparent
+                  : GeniusWalletColors.borderSubtle,
+            ),
           ),
-        ),
-        // Stack: content vertically centered in the band; the active underline
-        // is OVERLAID at the bottom edge so it never pushes the content upward.
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space4,
-              ),
-              child: Row(
-                children: [
-                  Image.network(
-                    _getFaviconUrl(_tabUrls[index]),
-                    width: 19,
-                    height: 19,
-                    errorBuilder: (context, error, stackTrace) => Icon(
-                      Icons.language,
-                      color: labelColor,
-                      size: 19,
+          // Stack: content vertically centered in the band; the active underline
+          // is OVERLAID at the bottom edge so it never pushes the content upward.
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space4,
+                ),
+                child: Row(
+                  children: [
+                    Image.network(
+                      _getFaviconUrl(_tabUrls[index]),
+                      width: 19,
+                      height: 19,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Icon(Icons.language, color: labelColor, size: 19),
                     ),
-                  ),
-                  const SizedBox(width: GeniusWalletConsts.space2),
-                  Expanded(
-                    child: Text(
-                      _tabTitles[index],
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: labelColor,
-                        fontSize: 16,
-                        fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                  // Close (D-06): hover-only, pinned to the chip's RIGHT edge
-                  // (Expanded title pushes it there); lights up as the target.
-                  if (hovered) ...[
                     const SizedBox(width: GeniusWalletConsts.space2),
-                    InkWell(
-                      borderRadius: BorderRadius.circular(
-                        GeniusWalletConsts.radiusXs,
+                    Expanded(
+                      child: Text(
+                        _tabTitles[index],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: labelColor,
+                          fontSize: 16,
+                          fontWeight: active
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
                       ),
-                      onTap: () => _closeTab(index),
-                      child: Container(
-                        padding: const EdgeInsets.all(1),
-                        decoration: BoxDecoration(
-                          color: GeniusWalletColors.surfaceElevated,
-                          borderRadius: BorderRadius.circular(
-                            GeniusWalletConsts.radiusXs,
+                    ),
+                    // Close (D-06): hover-only, pinned to the chip's RIGHT edge
+                    // (Expanded title pushes it there); lights up as the target.
+                    if (hovered) ...[
+                      const SizedBox(width: GeniusWalletConsts.space2),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(
+                          GeniusWalletConsts.radiusXs,
+                        ),
+                        onTap: () => _closeTab(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(1),
+                          decoration: BoxDecoration(
+                            color: GeniusWalletColors.surfaceElevated,
+                            borderRadius: BorderRadius.circular(
+                              GeniusWalletConsts.radiusXs,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 17,
+                            color: GeniusWalletColors.textPrimary,
                           ),
                         ),
-                        child: Icon(
-                          Icons.close,
-                          size: 17,
-                          color: GeniusWalletColors.textPrimary,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              // Active mark (D-05): 2px brandCta gradient underline overlaid on
+              // the bottom edge.
+              if (active)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    height: 2,
+                    decoration: BoxDecoration(
+                      gradient: _activeUnderlineGradient(),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(
+                          GeniusWalletConsts.radiusMd,
+                        ),
+                        bottomRight: Radius.circular(
+                          GeniusWalletConsts.radiusMd,
                         ),
                       ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            // Active mark (D-05): 2px brandCta gradient underline overlaid on
-            // the bottom edge.
-            if (active)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  height: 2,
-                  decoration: BoxDecoration(
-                    gradient: _activeUnderlineGradient(),
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft:
-                          Radius.circular(GeniusWalletConsts.radiusMd),
-                      bottomRight:
-                          Radius.circular(GeniusWalletConsts.radiusMd),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -563,10 +587,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       decoration: BoxDecoration(
         color: GeniusWalletColors.surfaceSunken,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
-        border: Border.all(
-          color: GeniusWalletColors.borderSubtle,
-          width: 1,
-        ),
+        border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
       ),
       child: Row(
         children: [
@@ -619,11 +640,7 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   Widget _omniboxGhostButton(IconData icon, VoidCallback onPressed) {
     return IconButton(
-      icon: Icon(
-        icon,
-        size: 18,
-        color: GeniusWalletColors.textPrimary,
-      ),
+      icon: Icon(icon, size: 18, color: GeniusWalletColors.textPrimary),
       constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
       padding: EdgeInsets.zero,
       splashRadius: 18,
@@ -655,82 +672,83 @@ class WebViewMobileState extends State<WebViewMobile> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
         border: Border.all(
-          color: editing
-              ? GeniusWalletColors.brandPrimary
-              : Colors.transparent,
+          color: editing ? GeniusWalletColors.brandPrimary : Colors.transparent,
           width: 1.5,
         ),
       ),
       child: Stack(
         alignment: Alignment.centerLeft,
         children: [
-        // The field is kept EMPTY at rest (cleared on blur in _onUrlFocusChange),
-        // so there is nothing to bleed through the host cover (#4) — no Opacity
-        // wrapper, which on macOS interfered with the text-input connection.
-        TextField(
-          controller: _urlController,
-          focusNode: _urlFocusNode,
-          style: TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 14),
-          textAlignVertical: TextAlignVertical.center,
-          decoration: const InputDecoration(
-            isDense: true,
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(horizontal: 4),
+          // The field is kept EMPTY at rest (cleared on blur in _onUrlFocusChange),
+          // so there is nothing to bleed through the host cover (#4) — no Opacity
+          // wrapper, which on macOS interfered with the text-input connection.
+          TextField(
+            controller: _urlController,
+            focusNode: _urlFocusNode,
+            style: TextStyle(
+              color: GeniusWalletColors.textPrimary,
+              fontSize: 14,
+            ),
+            textAlignVertical: TextAlignVertical.center,
+            decoration: const InputDecoration(
+              isDense: true,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 4),
+            ),
+            onSubmitted: (_) {
+              _loadUrl();
+              _urlFocusNode.unfocus();
+            },
           ),
-          onSubmitted: (_) {
-            _loadUrl();
-            _urlFocusNode.unfocus();
-          },
-        ),
-        if (!editing)
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _urlFocusNode.requestFocus(),
-              child: Container(
-                color: GeniusWalletColors.surfaceSunken,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: GeniusWalletConsts.space2,
-                ),
-                child: Row(
-                  children: [
-                    Image.network(
-                      _getFaviconUrl(currentUrl),
-                      width: 16,
-                      height: 16,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.language,
-                        color: GeniusWalletColors.textPrimary60,
-                        size: 16,
-                      ),
-                    ),
-                    if (secure) ...[
-                      const SizedBox(width: GeniusWalletConsts.space2),
-                      Icon(
-                        Icons.lock,
-                        color: GeniusWalletColors.statusSuccess,
-                        size: 13,
-                      ),
-                    ],
-                    const SizedBox(width: GeniusWalletConsts.space2),
-                    Expanded(
-                      child: Text(
-                        host,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: GeniusWalletColors.textPrimary,
-                          fontSize: 14,
+          if (!editing)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _urlFocusNode.requestFocus(),
+                child: Container(
+                  color: GeniusWalletColors.surfaceSunken,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space2,
+                  ),
+                  child: Row(
+                    children: [
+                      Image.network(
+                        _getFaviconUrl(currentUrl),
+                        width: 16,
+                        height: 16,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.language,
+                          color: GeniusWalletColors.textPrimary60,
+                          size: 16,
                         ),
                       ),
-                    ),
-                  ],
+                      if (secure) ...[
+                        const SizedBox(width: GeniusWalletConsts.space2),
+                        Icon(
+                          Icons.lock,
+                          color: GeniusWalletColors.statusSuccess,
+                          size: 13,
+                        ),
+                      ],
+                      const SizedBox(width: GeniusWalletConsts.space2),
+                      Expanded(
+                        child: Text(
+                          host,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: GeniusWalletColors.textPrimary,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-      ],
-        ),
+        ],
+      ),
     );
   }
 

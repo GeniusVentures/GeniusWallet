@@ -44,7 +44,9 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
       'https://api.coingecko.com/api/v3/coins/$coinId/market_chart?vs_currency=usd&days=1';
 
   try {
-    final response = await http.get(Uri.parse(historyApi)).timeout(requestTimeout);
+    final response = await http
+        .get(Uri.parse(historyApi))
+        .timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
@@ -88,7 +90,9 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
 Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
   required List<String> coinIds,
 }) async {
-  if (coinIds.isEmpty) return {};
+  if (coinIds.isEmpty) {
+    return {};
+  }
 
   // 🔹 Combine with other market coins if needed
   final marketCoins = getAllMarketDataCoinIds();
@@ -140,7 +144,9 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}&sparkline=true';
 
   try {
-    final response = await http.get(Uri.parse(marketApi)).timeout(requestTimeout);
+    final response = await http
+        .get(Uri.parse(marketApi))
+        .timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);

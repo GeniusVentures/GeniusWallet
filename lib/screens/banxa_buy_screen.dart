@@ -120,7 +120,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
               title: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal:
-                      MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
+                      MediaQuery.sizeOf(context).width >
+                          GeniusBreakpoints.medium
                       ? GeniusWalletConsts.space10
                       : GeniusWalletConsts.space8,
                 ),
@@ -128,8 +129,9 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                   children: [
                     InkWell(
                       onTap: () => Navigator.of(context).maybePop(),
-                      borderRadius:
-                          BorderRadius.circular(GeniusWalletConsts.radiusSm),
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.radiusSm,
+                      ),
                       child: SizedBox(
                         width: 30,
                         height: 30,
@@ -344,8 +346,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                             "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
                                             "Banxa's Terms of Use and Privacy & Cookies Policy.",
                                         confirmText: "Continue",
-                                        activeColor:
-                                            GeniusWalletColors.brandPrimaryOnSurface,
+                                        activeColor: GeniusWalletColors
+                                            .brandPrimaryOnSurface,
                                       );
 
                                       if (!accepted) {

@@ -81,7 +81,9 @@ AttachmentDisposition attachmentDispositionFor({
   required int maxBytes,
   required int payloadLength,
 }) {
-  if (payloadLength == 0) return AttachmentDisposition.skipEmpty;
+  if (payloadLength == 0) {
+    return AttachmentDisposition.skipEmpty;
+  }
   return size <= maxBytes
       ? AttachmentDisposition.whole
       : AttachmentDisposition.tail;
@@ -180,7 +182,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   Future<void> _probeAttachments() async {
     final geniusApi = context.read<GeniusApi>();
     if (!geniusApi.isSdkInitialized) {
-      if (mounted) setState(() => _probes = const []);
+      if (mounted) {
+        setState(() => _probes = const []);
+      }
       return;
     }
 
@@ -188,7 +192,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     final probes = <_AttachmentProbe>[];
     for (final name in _candidateLogNames) {
       final file = File('$base$name');
-      if (!await file.exists()) continue;
+      if (!await file.exists()) {
+        continue;
+      }
       final size = await file.length();
       // The probe only knows the size, so it approximates the payload length:
       // 0 stays 0 (skipEmpty), a whole file is its size, a tail is maxBytes.
@@ -210,7 +216,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       );
     }
 
-    if (mounted) setState(() => _probes = probes);
+    if (mounted) {
+      setState(() => _probes = probes);
+    }
   }
 
   void _resetToReady() {

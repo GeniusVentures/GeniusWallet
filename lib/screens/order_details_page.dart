@@ -55,7 +55,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   String? _effectiveCheckoutUrl(Order o) {
-    if ((widget.checkoutUrl ?? '').isNotEmpty) return widget.checkoutUrl;
+    if ((widget.checkoutUrl ?? '').isNotEmpty) {
+      return widget.checkoutUrl;
+    }
     return o.orderStatusUrl.isNotEmpty ? o.orderStatusUrl : null;
   }
 

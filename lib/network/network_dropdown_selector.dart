@@ -43,7 +43,9 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
     final chainId = box.get(selectedNetworkKeyChainId) as int?;
     final rpcUrl = box.get(selectedNetworkKeyRpcUrl) as String?;
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       savedChainId = chainId;
       savedRpcUrl = rpcUrl;

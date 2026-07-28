@@ -28,7 +28,9 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
     super.initState();
 
     Connectivity().checkConnectivity().then((list) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         lastKnownConnectivity = list.isNotEmpty
             ? list.first
@@ -41,7 +43,9 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
     );
 
     _connectivitySub = connectivityStream.listen((result) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         lastKnownConnectivity = result;
       });
@@ -52,7 +56,9 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
 
   void _startInitStatusPolling() {
     _initStatusTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       try {
         final status = widget.geniusApi.getInitializationStatus();
         setState(() {

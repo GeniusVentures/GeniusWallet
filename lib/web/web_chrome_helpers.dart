@@ -28,7 +28,9 @@ String webDisplayHost(String url) {
     final beforeQuery = trimmed.split(RegExp(r'[?#]')).first;
     uri = Uri.tryParse(beforeQuery);
   }
-  if (uri == null || uri.host.isEmpty) return trimmed;
+  if (uri == null || uri.host.isEmpty) {
+    return trimmed;
+  }
   return uri.host;
 }
 

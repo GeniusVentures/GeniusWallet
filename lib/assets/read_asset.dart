@@ -243,9 +243,13 @@ Future<List<Coin>> readSuperGeniusTokenAssets({
 
   // Add token balances (e.g., Graffiti) using their token IDs
   for (final token in tokensList) {
-    if (token.id == null || token.id!.isEmpty) continue;
+    if (token.id == null || token.id!.isEmpty) {
+      continue;
+    }
     // Skip native GNUS token (id "0") — already handled by getSGNUSBalance() above
-    if (token.id == '0') continue;
+    if (token.id == '0') {
+      continue;
+    }
     try {
       final balance = geniusApi.getMinionsBalance(token.id);
       coins.add(

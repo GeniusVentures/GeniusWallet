@@ -21,7 +21,9 @@ void Function() handleDappRequests({
   final Set<int> pendingRequestIds = {};
 
   Future<void> onSessionRequest(SessionRequestEvent? event) async {
-    if (event == null) return;
+    if (event == null) {
+      return;
+    }
 
     final int requestId = event.id;
     if (pendingRequestIds.contains(requestId)) {

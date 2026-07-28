@@ -33,7 +33,9 @@ double compactPriceFontSize({
   required double priceHeight,
   required bool isCompact,
 }) {
-  if (!isCompact) return priceHeight;
+  if (!isCompact) {
+    return priceHeight;
+  }
   // floor, never round: rounding up can exceed the 0.45 budget the caller's
   // overflow assert depends on.
   return min(priceHeight, maxHeight * 0.45).floorToDouble();
@@ -66,7 +68,9 @@ double compactPriceFontSize({
   double? viewMinX,
   double? viewMaxX,
 }) {
-  if (data.isEmpty) return (0, 1);
+  if (data.isEmpty) {
+    return (0, 1);
+  }
 
   final lo = viewMinX ?? data.first.x;
   final hi = viewMaxX ?? data.last.x;
@@ -77,7 +81,9 @@ double compactPriceFontSize({
       .toList();
   // Pan/zoom cannot empty this, but a bad window should degrade to the whole
   // series rather than throw out of `reduce`.
-  if (visible.isEmpty) visible = data.map((s) => s.y).toList();
+  if (visible.isEmpty) {
+    visible = data.map((s) => s.y).toList();
+  }
 
   final lowest = visible.reduce(min);
   final highest = visible.reduce(max);
@@ -155,7 +161,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
           .map((entry) => FlSpot(entry.key.toDouble(), entry.value))
           .toList();
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _priceData = historicalData;
         _latestPrice = _priceData.last.y;
@@ -186,7 +194,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   void _addNewPricePoint(double newPrice) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       final newTime = DateTime.now().millisecondsSinceEpoch / 1000.0;
       _priceData.add(FlSpot(newTime.toDouble(), newPrice));
@@ -249,7 +259,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   void _zoomIn() {
-    if (!_hasData) return;
+    if (!_hasData) {
+      return;
+    }
     final range = (_viewMaxX! - _viewMinX!) * 0.8;
     final mid = (_viewMaxX! + _viewMinX!) / 2;
     setState(() {
@@ -259,7 +271,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   void _zoomOut() {
-    if (!_hasData) return;
+    if (!_hasData) {
+      return;
+    }
     final range = (_viewMaxX! - _viewMinX!) / 0.8;
     final mid = (_viewMaxX! + _viewMinX!) / 2;
     setState(() {
@@ -269,7 +283,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   void _panLeft() {
-    if (!_hasData) return;
+    if (!_hasData) {
+      return;
+    }
     final step = (_viewMaxX! - _viewMinX!) * 0.2;
     setState(() {
       _viewMinX = max(_priceData.first.x, _viewMinX! - step);
@@ -278,7 +294,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   void _panRight() {
-    if (!_hasData) return;
+    if (!_hasData) {
+      return;
+    }
     final step = (_viewMaxX! - _viewMinX!) * 0.2;
     setState(() {
       _viewMinX = min(_priceData.last.x - 1, _viewMinX! + step);
@@ -313,7 +331,8 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
           // than shrinking continuously. Upgrade path: measure the price +
           // change row with a TextPainter and branch on the real height.
           final bool isCompact =
-              isHeightBounded && constraints.maxHeight < widget.priceHeight * 3.5;
+              isHeightBounded &&
+              constraints.maxHeight < widget.priceHeight * 3.5;
           final double priceFontSize = compactPriceFontSize(
             maxHeight: constraints.maxHeight,
             priceHeight: widget.priceHeight,
@@ -358,8 +377,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                           maxWidth: 280,
                           maxHeight: 96,
                           child: ImageFiltered(
-                            imageFilter:
-                                ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                            imageFilter: ImageFilter.blur(
+                              sigmaX: 14,
+                              sigmaY: 14,
+                            ),
                             child: DecoratedBox(
                               decoration: BoxDecoration(
                                 gradient: RadialGradient(

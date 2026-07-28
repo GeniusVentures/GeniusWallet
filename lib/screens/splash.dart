@@ -87,7 +87,9 @@ class _SplashState extends State<Splash> {
   Duration _railDuration = Duration.zero;
 
   void _onStage(BootStage stage, double railTarget, Duration railDuration) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _railTarget = railTarget;
       _railDuration = railDuration;
@@ -101,7 +103,9 @@ class _SplashState extends State<Splash> {
   }
 
   void _startClosingRun() {
-    if (_closingRunStarted) return;
+    if (_closingRunStarted) {
+      return;
+    }
     _closingRunStarted = true;
 
     // Kick off the REAL work now, in parallel with the timed stages -- D7
@@ -131,7 +135,9 @@ class _SplashState extends State<Splash> {
       work: work,
       isLive: () => mounted,
     );
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     context.go('/dashboard');
   }
 
@@ -139,7 +145,9 @@ class _SplashState extends State<Splash> {
   Widget build(BuildContext context) {
     return BlocListener<AppBloc, AppState>(
       listener: (context, state) {
-        if (state.subscribeToWalletStatus != AppStatus.loaded) return;
+        if (state.subscribeToWalletStatus != AppStatus.loaded) {
+          return;
+        }
 
         if (state.wallets.isEmpty) {
           // A fresh/wallet-less profile has no balances and nothing true to
@@ -156,7 +164,9 @@ class _SplashState extends State<Splash> {
         final accountSettled =
             state.accountStatus == AppStatus.loaded ||
             state.accountStatus == AppStatus.error;
-        if (accountSettled) _startClosingRun();
+        if (accountSettled) {
+          _startClosingRun();
+        }
       },
       child: Scaffold(
         // Pins the one frame before the mesh paints so it is never a light
@@ -251,7 +261,10 @@ class _SplashState extends State<Splash> {
                                 ),
                               ),
                               TweenAnimationBuilder<double>(
-                                tween: Tween<double>(begin: 0, end: _railTarget),
+                                tween: Tween<double>(
+                                  begin: 0,
+                                  end: _railTarget,
+                                ),
                                 duration: _railDuration,
                                 builder: (context, value, child) => Container(
                                   width: constraints.maxWidth * value,

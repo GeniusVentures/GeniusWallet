@@ -119,7 +119,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     );
 
     _sessionConnectHandler = (event) {
-      if (!mounted || event == null) return;
+      if (!mounted || event == null) {
+        return;
+      }
 
       setState(() {
         _session = event.session;
@@ -132,7 +134,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     walletKit.onSessionConnect.subscribe(_sessionConnectHandler);
 
     _sessionProposalHandler = (event) async {
-      if (event == null) return;
+      if (event == null) {
+        return;
+      }
 
       final metadata = event.params.proposer.metadata;
       final dappName = metadata.name;
@@ -140,7 +144,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       final dappUrl = metadata.url;
       final dappIcon = metadata.icons.isNotEmpty ? metadata.icons.first : null;
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {});
 
@@ -190,7 +196,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   }
 
   Future<void> maybeInitWalletKit() async {
-    if (_isInitialized) return;
+    if (_isInitialized) {
+      return;
+    }
     if (_initCompleter != null) {
       await _initCompleter!.future;
       return;
@@ -244,7 +252,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       String? manualInputError;
       bool showManualInput = _isDesktopOrIot;
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       await showDialog<void>(
         context: context,
@@ -252,7 +262,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           builder: (ctx, setInnerState) => AlertDialog(
             backgroundColor:
                 Theme.of(ctx).extension<GWColors>()?.surfaceElevated ??
-                    GWColors.dark().surfaceElevated,
+                GWColors.dark().surfaceElevated,
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -561,7 +571,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         ),
       ),
       onPressed: () {
-        if (_isConnecting || _isDisconnecting) return;
+        if (_isConnecting || _isDisconnecting) {
+          return;
+        }
 
         if (isConnected) {
           _disconnect();
@@ -589,9 +601,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             // the Text colour below only has to be non-transparent.
             if (isIdle)
               ShaderMask(
-                shaderCallback: (bounds) =>
-                    GeniusWalletGradient.brandCtaText(gw.surfaceMenu)
-                        .createShader(bounds),
+                shaderCallback: (bounds) => GeniusWalletGradient.brandCtaText(
+                  gw.surfaceMenu,
+                ).createShader(bounds),
                 blendMode: BlendMode.srcIn,
                 child: const Text(
                   'Connect',

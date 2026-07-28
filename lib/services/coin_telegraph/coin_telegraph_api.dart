@@ -64,7 +64,8 @@ Future<List<NewsArticle>> fetchCoinTelegraphNews() async {
       // Time), so a cached article's age advances instead of freezing at fetch.
       // Fall back to the raw RSS date when unparseable — relativeTime shows it
       // verbatim rather than an empty timestamp.
-      final String storedDate = parsedDate?.toUtc().toIso8601String() ?? rawDate;
+      final String storedDate =
+          parsedDate?.toUtc().toIso8601String() ?? rawDate;
 
       String? imageUrl;
 

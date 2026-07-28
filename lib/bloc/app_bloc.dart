@@ -298,7 +298,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   void _startSgnusConnectionListener() {
-    if (_sgnusConnectionSubscription != null) return;
+    if (_sgnusConnectionSubscription != null) {
+      return;
+    }
     _sgnusConnectionSubscription = api.getSGNUSConnectionStream().listen((
       connection,
     ) {

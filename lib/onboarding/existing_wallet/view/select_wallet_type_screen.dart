@@ -61,9 +61,8 @@ class SelectWalletTypeScreen extends StatelessWidget {
               ),
               ListView.separated(
                 itemCount: supportedNetworks.length,
-                separatorBuilder: (context, index) => const SizedBox(
-                  height: GeniusWalletConsts.space10,
-                ),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: GeniusWalletConsts.space10),
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemBuilder: (context, index) {

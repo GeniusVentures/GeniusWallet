@@ -303,7 +303,9 @@ class MyApp extends StatelessWidget {
       //
       // Costs a noisier debug console and nothing in release: `kDebugMode` is
       // a const, so this is tree-shaken out of profile/release builds.
-      if (kDebugMode) FlutterError.resetErrorCount();
+      if (kDebugMode) {
+        FlutterError.resetErrorCount();
+      }
       FlutterError.presentError(details);
       debugPrint('FlutterError caught: ${details.exception}');
     };

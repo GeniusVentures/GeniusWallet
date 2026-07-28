@@ -81,11 +81,15 @@ class BootSequence {
 
     onStage(BootStage.walletsReady, 1 / 3, stageGap);
     await Future.delayed(stageGap);
-    if (!live()) return;
+    if (!live()) {
+      return;
+    }
 
     onStage(BootStage.balancesReady, 2 / 3, stageGap);
     await Future.delayed(stageGap);
-    if (!live()) return;
+    if (!live()) {
+      return;
+    }
 
     onStage(BootStage.marketsReady, 1.0, finalHold);
 
@@ -102,6 +106,8 @@ class BootSequence {
     }();
 
     await Future.wait([Future.delayed(finalHold), guardedWork]);
-    if (!live()) return;
+    if (!live()) {
+      return;
+    }
   }
 }

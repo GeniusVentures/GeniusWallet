@@ -9,10 +9,18 @@ part 'news_article.g.dart';
 /// for a deterministic test. A future instant (clock skew) clamps to `now`.
 String shortTimeAgo(DateTime from, {DateTime? now}) {
   final d = (now ?? DateTime.now()).difference(from);
-  if (d.isNegative || d.inMinutes < 1) return 'now';
-  if (d.inMinutes < 60) return '${d.inMinutes}m ago';
-  if (d.inHours < 24) return '${d.inHours}h ago';
-  if (d.inDays < 7) return '${d.inDays}d ago';
+  if (d.isNegative || d.inMinutes < 1) {
+    return 'now';
+  }
+  if (d.inMinutes < 60) {
+    return '${d.inMinutes}m ago';
+  }
+  if (d.inHours < 24) {
+    return '${d.inHours}h ago';
+  }
+  if (d.inDays < 7) {
+    return '${d.inDays}d ago';
+  }
   return '${(d.inDays / 7).floor()}w ago';
 }
 

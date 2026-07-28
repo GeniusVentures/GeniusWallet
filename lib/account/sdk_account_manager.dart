@@ -326,7 +326,9 @@ class SDKAccountManagerButton extends StatelessWidget {
       ],
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true) {
+      return;
+    }
     await Clipboard.setData(ClipboardData(text: mnemonic));
     HapticFeedback.lightImpact();
     if (navigator.context.mounted) {
@@ -419,7 +421,9 @@ class SDKAccountManagerButton extends StatelessWidget {
       ],
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true) {
+      return;
+    }
 
     bloc.add(DeleteSDKAccount(address));
 
@@ -437,7 +441,9 @@ class SDKAccountManagerButton extends StatelessWidget {
         .firstWhere((gone) => gone)
         .timeout(const Duration(seconds: 3), onTimeout: () => false);
 
-    if (!navigator.context.mounted) return;
+    if (!navigator.context.mounted) {
+      return;
+    }
     // `navigator.context` is the ROOT navigator's and outlives the popped
     // drawer, so the guard above is the correct one -- the analyzer
     // cannot see that and reads it as unrelated to this context.
@@ -494,7 +500,9 @@ class SDKAccountManagerButton extends StatelessWidget {
           usePhrase.dispose();
         });
 
-    if (result == null || result.value.isEmpty || !context.mounted) return;
+    if (result == null || result.value.isEmpty || !context.mounted) {
+      return;
+    }
 
     bloc.add(
       result.phrase
@@ -503,7 +511,9 @@ class SDKAccountManagerButton extends StatelessWidget {
     );
     // Refresh after a short delay to let the SDK process the addition.
     await Future.delayed(const Duration(milliseconds: 500));
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      return;
+    }
     bloc.add(RefreshSDKAccounts());
     showAppSnackBar(
       context,
@@ -531,14 +541,18 @@ class SDKAccountManagerButton extends StatelessWidget {
           onPressed: () {
             // Validation the field never had: it used to post any string at
             // all, and the SDK's rejection came back as an opaque enum name.
-            if (!isEvmAddress(controller.text)) return;
+            if (!isEvmAddress(controller.text)) {
+              return;
+            }
             navigator.pop(controller.text.trim());
           },
         ),
       ],
     );
 
-    if (payoutAddress == null || payoutAddress.isEmpty) return;
+    if (payoutAddress == null || payoutAddress.isEmpty) {
+      return;
+    }
 
     bloc.add(SetSDKPayoutAddress(payoutAddress));
 
@@ -551,7 +565,9 @@ class SDKAccountManagerButton extends StatelessWidget {
         .first
         .timeout(const Duration(seconds: 5), onTimeout: () => null);
 
-    if (!navigator.context.mounted) return;
+    if (!navigator.context.mounted) {
+      return;
+    }
     final ok = result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
     // `navigator.context` is the ROOT navigator's and outlives the popped
     // drawer, so the guard above is the correct one -- the analyzer

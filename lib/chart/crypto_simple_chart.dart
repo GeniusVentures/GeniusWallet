@@ -50,8 +50,9 @@ class CryptoSparkLineChart extends StatelessWidget {
     // this const-instanced widget to rebuild on a live appearance toggle.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     // Assets-mirror up/down: status green/red (never the legacy muted green).
-    final Color changeColor =
-        priceChangePercent >= 0 ? gw.statusSuccess : gw.statusError;
+    final Color changeColor = priceChangePercent >= 0
+        ? gw.statusSuccess
+        : gw.statusError;
     final tokenDecimalsToDisplay = currentPrice >= 1 ? 2 : 6;
 
     final formattedPrice = NumberFormat.currency(

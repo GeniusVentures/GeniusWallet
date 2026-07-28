@@ -51,12 +51,16 @@ class DecimalTextInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    if (newValue.text.isEmpty) return newValue;
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
 
     // Same length, so the incoming selection stays valid without adjustment.
     final text = newValue.text.replaceAll(',', '.');
 
-    if (!_shape.hasMatch(text)) return oldValue;
+    if (!_shape.hasMatch(text)) {
+      return oldValue;
+    }
 
     if (decimalRange != null) {
       final dot = text.indexOf('.');
@@ -64,8 +68,12 @@ class DecimalTextInputFormatter extends TextInputFormatter {
         // A token with no decimals has no use for a separator. Allowing the
         // bare dot let the field reach "1." and stick — nothing may follow it,
         // and the trailing dot is noise `double.tryParse` happens to survive.
-        if (decimalRange == 0) return oldValue;
-        if (text.length - dot - 1 > decimalRange!) return oldValue;
+        if (decimalRange == 0) {
+          return oldValue;
+        }
+        if (text.length - dot - 1 > decimalRange!) {
+          return oldValue;
+        }
       }
     }
 

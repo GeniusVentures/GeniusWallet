@@ -189,7 +189,9 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                 style: TextButton.styleFrom(foregroundColor: gw.textSecondary),
                 onPressed: () async {
                   await FlutterClipboard.copy(words.join(' '));
-                  if (!mounted) return;
+                  if (!mounted) {
+                    return;
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Recovery phrase copied to clipboard!"),

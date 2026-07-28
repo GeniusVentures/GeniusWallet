@@ -50,7 +50,9 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
 
   Future<void> _loadSavedWallet() async {
     final address = Hive.box(walletBoxName).get(selectedWalletKey);
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() => savedWalletAddress = address);
   }
 
@@ -210,7 +212,9 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
       ),
     );
 
-    if (selected == null || selected == selectedWallet) return;
+    if (selected == null || selected == selectedWallet) {
+      return;
+    }
 
     setState(() => selectedWallet = selected);
     widget.onAccountSelected?.call(selected);
