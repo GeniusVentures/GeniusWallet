@@ -26,7 +26,6 @@ import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:device_preview/device_preview.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -130,13 +129,6 @@ Future<void> main() async {
       await geniusApi.loadStoredWallets();
 
       GWAppearance.instance.load();
-
-      // Inter is now bundled (04-02) and genius_wallet_typography.dart no
-      // longer calls GoogleFonts.inter -- this was the only GoogleFonts.*
-      // call site in lib/**. Disabling runtime fetching means any future
-      // GoogleFonts usage fails LOUDLY instead of silently hitting the
-      // network, closing the offline-font gap the 04-01 D-02 re-walk found.
-      GoogleFonts.config.allowRuntimeFetching = false;
 
       if ((await geniusApi.getWallets().first).isEmpty) {
         byPassSGNUSConnecton(geniusApi);
