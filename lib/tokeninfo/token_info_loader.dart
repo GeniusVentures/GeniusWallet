@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'token_model.g.dart';
 
@@ -21,7 +22,7 @@ class TokenInfoLoader {
       return tokens.isNotEmpty ? tokens.first : null;
     } catch (e) {
       // Return null on any error to allow graceful fallback
-      print('Error loading token from $tokensUrl: $e');
+      debugPrint('Error loading token from $tokensUrl: $e');
       return null;
     }
   }
@@ -52,7 +53,7 @@ class TokenInfoLoader {
 
       return [];
     } catch (e) {
-      print('Error loading tokens from $tokensUrl: $e');
+      debugPrint('Error loading tokens from $tokensUrl: $e');
       return [];
     }
   }

@@ -157,7 +157,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String loadedUrl) {
-            print('[DEBUG] onPageStarted: $loadedUrl');
+            debugPrint('[DEBUG] onPageStarted: $loadedUrl');
             _onNav(controller!, loadedUrl);
           },
           onUrlChange: (UrlChange change) {
@@ -167,13 +167,15 @@ class WebViewMobileState extends State<WebViewMobile> {
             }
           },
           onPageFinished: (String loadedUrl) async {
-            print('[DEBUG] onPageFinished: $loadedUrl');
+            debugPrint('[DEBUG] onPageFinished: $loadedUrl');
             _onNav(controller!, loadedUrl);
             _syncTitle(controller);
             if (!Platform.isMacOS &&
                 url.contains('uniswap.org') &&
                 loadedUrl == 'about:blank') {
-              print('[DEBUG] Injecting localStorage for Uniswap (about:blank)');
+              debugPrint(
+                '[DEBUG] Injecting localStorage for Uniswap (about:blank)',
+              );
               await _safeRunJavaScript(controller, '''
               localStorage.setItem("interface_color_theme", "\\"Dark\\"");
               localStorage.setItem("uni-theme", "\\"dark\\"");
@@ -187,7 +189,7 @@ class WebViewMobileState extends State<WebViewMobile> {
             // Only retry ONCE if still not dark
             if (!Platform.isMacOS && loadedUrl.contains('uniswap.org')) {
               if (!retried) {
-                print(
+                debugPrint(
                   '[DEBUG] Uniswap loaded, attempting one retry for dark mode.',
                 );
                 retried = true;
@@ -201,10 +203,12 @@ class WebViewMobileState extends State<WebViewMobile> {
                 }
               ''', context: 'uniswap-retry-theme');
               } else {
-                print('[DEBUG] Already retried dark mode once. Not repeating.');
+                debugPrint(
+                  '[DEBUG] Already retried dark mode once. Not repeating.',
+                );
               }
             } else {
-              print(
+              debugPrint(
                 '[DEBUG] Non-Uniswap or macOS, injecting generic dark mode.',
               );
               await forceDarkModeAndRemoveBanner(_currentTabIndex);
@@ -214,7 +218,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       );
 
     if (!Platform.isMacOS && url.contains('uniswap.org')) {
-      print(
+      debugPrint(
         '[DEBUG] Loading about:blank before Uniswap for reliable dark theme',
       );
       controller.loadRequest(Uri.parse('about:blank'));
@@ -222,7 +226,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       controller.loadRequest(Uri.parse(url));
     }
     setState(() {
-      print('[DEBUG] Add controller, set tab index');
+      debugPrint('[DEBUG] Add controller, set tab index');
       _controllers.add(controller!);
       _tabUrls.add(url);
       _tabTitles.add(

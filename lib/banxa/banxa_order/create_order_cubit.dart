@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
@@ -247,7 +248,7 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       );
       return order.checkoutUrl;
     } catch (e) {
-      print(e);
+      debugPrint('$e');
       emit(
         state.copyWith(
           step: MakeOrderStep.error,
