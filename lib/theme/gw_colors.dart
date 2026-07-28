@@ -43,6 +43,7 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.statusError,
     required this.borderSubtle,
     required this.borderStrong,
+    required this.borderControl,
   });
 
   final Color surfaceBase;
@@ -76,6 +77,10 @@ class GWColors extends ThemeExtension<GWColors> {
 
   final Color borderSubtle;
   final Color borderStrong;
+
+  /// The 3:1 edge for a control whose fill cannot identify it -- see
+  /// [GeniusWalletColors.borderControl] for the measurements.
+  final Color borderControl;
 
   /// Light-mode instance. Every field is copied verbatim from the LIGHT
   /// branch of the matching `GeniusWalletColors` getter.
@@ -111,6 +116,7 @@ class GWColors extends ThemeExtension<GWColors> {
       statusError: const Color(0xFFD92D2D), // 4.8:1 on white
       borderSubtle: GeniusWalletColors.borderSubtle,
       borderStrong: GeniusWalletColors.borderStrong,
+      borderControl: GeniusWalletColors.borderControl,
     );
     // NB: textSecondary is intentionally OMITTED from the value-preservation
     // assert below — light-mode textSecondary deliberately diverges from the
@@ -133,7 +139,8 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.textPrimary12 == GeniusWalletColors.textPrimary12 &&
               instance.textPrimary10 == GeniusWalletColors.textPrimary10 &&
               instance.borderSubtle == GeniusWalletColors.borderSubtle &&
-              instance.borderStrong == GeniusWalletColors.borderStrong),
+              instance.borderStrong == GeniusWalletColors.borderStrong &&
+              instance.borderControl == GeniusWalletColors.borderControl),
       'GWColors.light() value drifted from GeniusWalletColors in light mode',
     );
     return instance;
@@ -166,6 +173,7 @@ class GWColors extends ThemeExtension<GWColors> {
       statusError: const Color(0xFFFF4D4D),
       borderSubtle: GeniusWalletColors.borderSubtle,
       borderStrong: GeniusWalletColors.borderStrong,
+      borderControl: GeniusWalletColors.borderControl,
     );
     // NB: textSecondary is OMITTED from the value-preservation assert below to
     // mirror light() — the light branch deliberately diverges it for AA, so the
@@ -188,7 +196,8 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.textPrimary12 == GeniusWalletColors.textPrimary12 &&
               instance.textPrimary10 == GeniusWalletColors.textPrimary10 &&
               instance.borderSubtle == GeniusWalletColors.borderSubtle &&
-              instance.borderStrong == GeniusWalletColors.borderStrong),
+              instance.borderStrong == GeniusWalletColors.borderStrong &&
+              instance.borderControl == GeniusWalletColors.borderControl),
       'GWColors.dark() value drifted from GeniusWalletColors in dark mode',
     );
     return instance;
@@ -216,6 +225,7 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? statusError,
     Color? borderSubtle,
     Color? borderStrong,
+    Color? borderControl,
   }) {
     return GWColors(
       surfaceBase: surfaceBase ?? this.surfaceBase,
@@ -238,6 +248,7 @@ class GWColors extends ThemeExtension<GWColors> {
       statusError: statusError ?? this.statusError,
       borderSubtle: borderSubtle ?? this.borderSubtle,
       borderStrong: borderStrong ?? this.borderStrong,
+      borderControl: borderControl ?? this.borderControl,
     );
   }
 
