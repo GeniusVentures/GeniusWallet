@@ -52,15 +52,16 @@ class _FallbackFixture extends StatelessWidget {
           padding: EdgeInsets.symmetric(
             horizontal:
                 MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
-                    ? GeniusWalletConsts.space10
-                    : GeniusWalletConsts.space8,
+                ? GeniusWalletConsts.space10
+                : GeniusWalletConsts.space8,
           ),
           child: Row(
             children: [
               InkWell(
                 onTap: () {},
-                borderRadius:
-                    BorderRadius.circular(GeniusWalletConsts.radiusSm),
+                borderRadius: BorderRadius.circular(
+                  GeniusWalletConsts.radiusSm,
+                ),
                 child: SizedBox(
                   width: 30,
                   height: 30,
@@ -109,8 +110,7 @@ class _FallbackFixture extends StatelessWidget {
               const SizedBox(height: GeniusWalletConsts.space12),
               Text(
                 headline,
-                style:
-                    GeniusWalletTypography.titleLg.copyWith(
+                style: GeniusWalletTypography.titleLg.copyWith(
                   color: gw.textPrimary,
                 ),
               ),
@@ -224,10 +224,12 @@ void main() {
       final paymentColumn = tester.widget<Column>(
         find.byKey(const Key('fallbackColumn')),
       );
-      final paymentTypes =
-          paymentColumn.children.map((w) => w.runtimeType).toList();
-      final paymentButtonCount =
-          tester.widgetList(find.byType(GWButton)).length;
+      final paymentTypes = paymentColumn.children
+          .map((w) => w.runtimeType)
+          .toList();
+      final paymentButtonCount = tester
+          .widgetList(find.byType(GWButton))
+          .length;
       final paymentIconCount = tester
           .widgetList(find.byIcon(Icons.open_in_browser))
           .length;
@@ -246,7 +248,9 @@ void main() {
       expect(paymentButtonCount, equals(kycButtonCount));
       expect(paymentIconCount, equals(kycIconCount));
       expect(
-        tester.widgetList(find.byType(GWButton)).map((w) => (w as GWButton).variant),
+        tester
+            .widgetList(find.byType(GWButton))
+            .map((w) => (w as GWButton).variant),
         equals([GWButtonVariant.secondary, GWButtonVariant.gradient]),
       );
       expect(tester.takeException(), isNull);

@@ -27,50 +27,45 @@ void main() {
     }
   }
 
-  testWidgets('renders without throwing when pumped offline', (
-    tester,
-  ) async {
+  testWidgets('renders without throwing when pumped offline', (tester) async {
     await pumpOffline(tester);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('the Create Order CTA is present, labelled Create Order, and disabled', (
-    tester,
-  ) async {
-    await pumpOffline(tester);
-    expect(find.text('Create Order'), findsOneWidget);
+  testWidgets(
+    'the Create Order CTA is present, labelled Create Order, and disabled',
+    (tester) async {
+      await pumpOffline(tester);
+      expect(find.text('Create Order'), findsOneWidget);
 
-    // GWButton's InkWell.onTap is null when its onPressed is null — this is
-    // the disabled-rung fingerprint, since GWButton has no public "enabled"
-    // getter to read directly.
-    final inkWell = tester.widget<InkWell>(
-      find.ancestor(
-        of: find.text('Create Order'),
-        matching: find.byType(InkWell),
-      ),
-    );
-    expect(inkWell.onTap, isNull);
-  });
+      // GWButton's InkWell.onTap is null when its onPressed is null — this is
+      // the disabled-rung fingerprint, since GWButton has no public "enabled"
+      // getter to read directly.
+      final inkWell = tester.widget<InkWell>(
+        find.ancestor(
+          of: find.text('Create Order'),
+          matching: find.byType(InkWell),
+        ),
+      );
+      expect(inkWell.onTap, isNull);
+    },
+  );
 
-  testWidgets('the currency-load retry affordance is present with its Retry tooltip', (
-    tester,
-  ) async {
-    await pumpOffline(tester);
-    expect(find.byTooltip('Retry'), findsOneWidget);
-    expect(find.byIcon(Icons.refresh), findsOneWidget);
-  });
+  testWidgets(
+    'the currency-load retry affordance is present with its Retry tooltip',
+    (tester) async {
+      await pumpOffline(tester);
+      expect(find.byTooltip('Retry'), findsOneWidget);
+      expect(find.byIcon(Icons.refresh), findsOneWidget);
+    },
+  );
 
-  testWidgets('the Get Quote control is present and disabled', (
-    tester,
-  ) async {
+  testWidgets('the Get Quote control is present and disabled', (tester) async {
     await pumpOffline(tester);
     expect(find.text('Get Quote'), findsOneWidget);
 
     final inkWell = tester.widget<InkWell>(
-      find.ancestor(
-        of: find.text('Get Quote'),
-        matching: find.byType(InkWell),
-      ),
+      find.ancestor(of: find.text('Get Quote'), matching: find.byType(InkWell)),
     );
     expect(inkWell.onTap, isNull);
   });
@@ -90,7 +85,10 @@ void main() {
       ),
     );
     expect(
-      find.ancestor(of: find.byWidget(inkWell), matching: find.byType(Material)),
+      find.ancestor(
+        of: find.byWidget(inkWell),
+        matching: find.byType(Material),
+      ),
       findsWidgets,
     );
   });

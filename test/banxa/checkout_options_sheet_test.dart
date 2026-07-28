@@ -46,10 +46,8 @@ void main() {
       routes: [
         GoRoute(
           path: '/',
-          builder: (context, state) => _SheetLauncher(
-            parentContext: context,
-            checkoutUrl: checkoutUrl,
-          ),
+          builder: (context, state) =>
+              _SheetLauncher(parentContext: context, checkoutUrl: checkoutUrl),
         ),
         GoRoute(
           path: '/checkoutQR',

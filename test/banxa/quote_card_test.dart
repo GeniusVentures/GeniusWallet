@@ -16,9 +16,7 @@ void main() {
     'a quote-bearing state with compact:false renders the full receive wording and both fee lines',
     (tester) async {
       final state = testQuoteState();
-      await tester.pumpWidget(
-        gwHost(QuoteCard(state: state, compact: false)),
-      );
+      await tester.pumpWidget(gwHost(QuoteCard(state: state, compact: false)));
 
       expect(
         find.text(
@@ -27,9 +25,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.text(
-          'Gateway: ${state.quote!.processingFee} ${state.fiatCode}',
-        ),
+        find.text('Gateway: ${state.quote!.processingFee} ${state.fiatCode}'),
         findsOneWidget,
       );
       expect(

@@ -60,16 +60,17 @@ void main() {
     },
   );
 
-  testWidgets('the waiting copy renders when the polling state has no message', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      qrPageFor(const PollingState(status: PollingStatus.loading)),
-    );
+  testWidgets(
+    'the waiting copy renders when the polling state has no message',
+    (tester) async {
+      await tester.pumpWidget(
+        qrPageFor(const PollingState(status: PollingStatus.loading)),
+      );
 
-    expect(find.text('Waiting for payment...'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      expect(find.text('Waiting for payment...'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     "the polling state's own message renders in place of the waiting copy when non-empty",

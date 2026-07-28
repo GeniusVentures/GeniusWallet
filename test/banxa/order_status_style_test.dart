@@ -73,7 +73,10 @@ void main() {
           .color;
 
       await tester.pumpWidget(
-        gwHost(const OrderStatusPill(status: 'completed'), gw: GWColors.light()),
+        gwHost(
+          const OrderStatusPill(status: 'completed'),
+          gw: GWColors.light(),
+        ),
       );
       await tester.pumpAndSettle();
       final lightSuccess = tester
@@ -89,10 +92,7 @@ void main() {
         gwHost(const OrderStatusPill(status: 'declined'), gw: GWColors.dark()),
       );
       await tester.pumpAndSettle();
-      final darkError = tester
-          .widget<Text>(find.text('DECLINED'))
-          .style!
-          .color;
+      final darkError = tester.widget<Text>(find.text('DECLINED')).style!.color;
 
       await tester.pumpWidget(
         gwHost(const OrderStatusPill(status: 'declined'), gw: GWColors.light()),

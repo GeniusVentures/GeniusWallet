@@ -80,23 +80,22 @@ void main() {
   });
 
   group('empty branch (GWEmptyState) — a filter is active', () {
-    testWidgets(
-      'reads "No orders match this filter." and offers no action',
-      (tester) async {
-        await tester.pumpWidget(
-          gwHost(
-            const GWEmptyState(
-              icon: Icons.receipt_long_outlined,
-              title: 'No orders match this filter.',
-            ),
+    testWidgets('reads "No orders match this filter." and offers no action', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        gwHost(
+          const GWEmptyState(
+            icon: Icons.receipt_long_outlined,
+            title: 'No orders match this filter.',
           ),
-        );
+        ),
+      );
 
-        expect(find.text('No orders match this filter.'), findsOneWidget);
-        expect(find.text('No orders found.'), findsNothing);
-        expect(find.text('New Order'), findsNothing);
-        expect(find.text('Clear Filter'), findsNothing);
-      },
-    );
+      expect(find.text('No orders match this filter.'), findsOneWidget);
+      expect(find.text('No orders found.'), findsNothing);
+      expect(find.text('New Order'), findsNothing);
+      expect(find.text('Clear Filter'), findsNothing);
+    });
   });
 }

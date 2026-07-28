@@ -135,9 +135,7 @@ void main() {
     },
   );
 
-  testWidgets('with no banner text, no banner renders at all', (
-    tester,
-  ) async {
+  testWidgets('with no banner text, no banner renders at all', (tester) async {
     await tester.pumpWidget(gwHost(cardFor('completed')));
     expect(find.byType(OrderStatusBanner), findsNothing);
     expect(tester.takeException(), isNull);
@@ -196,18 +194,19 @@ void main() {
   testWidgets(
     "the status text colour differs between a dark host and a light host",
     (tester) async {
-      await tester.pumpWidget(
-        gwHost(cardFor('completed'), gw: gwBothModes[0]),
-      );
+      await tester.pumpWidget(gwHost(cardFor('completed'), gw: gwBothModes[0]));
       await tester.pumpAndSettle();
-      final darkColor = tester.widget<Text>(find.text('completed')).style?.color;
+      final darkColor = tester
+          .widget<Text>(find.text('completed'))
+          .style
+          ?.color;
 
-      await tester.pumpWidget(
-        gwHost(cardFor('completed'), gw: gwBothModes[1]),
-      );
+      await tester.pumpWidget(gwHost(cardFor('completed'), gw: gwBothModes[1]));
       await tester.pumpAndSettle();
-      final lightColor =
-          tester.widget<Text>(find.text('completed')).style?.color;
+      final lightColor = tester
+          .widget<Text>(find.text('completed'))
+          .style
+          ?.color;
 
       expect(darkColor, isNot(equals(lightColor)));
     },

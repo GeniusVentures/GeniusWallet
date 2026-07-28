@@ -103,12 +103,17 @@ void main() {
     (tester) async {
       await tester.pumpWidget(gwHost(cardFor('completed'), gw: gwBothModes[0]));
       await tester.pumpAndSettle();
-      final darkColor = tester.widget<Text>(find.text('COMPLETED')).style?.color;
+      final darkColor = tester
+          .widget<Text>(find.text('COMPLETED'))
+          .style
+          ?.color;
 
       await tester.pumpWidget(gwHost(cardFor('completed'), gw: gwBothModes[1]));
       await tester.pumpAndSettle();
-      final lightColor =
-          tester.widget<Text>(find.text('COMPLETED')).style?.color;
+      final lightColor = tester
+          .widget<Text>(find.text('COMPLETED'))
+          .style
+          ?.color;
 
       expect(darkColor, isNot(equals(lightColor)));
     },
