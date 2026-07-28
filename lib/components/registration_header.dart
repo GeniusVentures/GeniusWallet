@@ -5,7 +5,7 @@ import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/components/custom/genius_back_button_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:genius_wallet/components/genius_back_button.g.dart';
+import 'package:genius_wallet/components/genius_back_button.dart';
 
 class RegistrationHeader extends StatefulWidget {
   final BoxConstraints constraints;
