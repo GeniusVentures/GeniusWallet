@@ -1,0 +1,25 @@
+root = true
+
+# dart format owns all whitespace inside .dart files (analysis_options.yaml
+# formatter.page_width: 80). This file is for the file types the formatter
+# does not touch, and to make a fresh editor agree with the repo before it
+# runs.
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.dart]
+max_line_length = 80
+
+[*.md]
+# Two trailing spaces are a hard line break in Markdown -- do not trim them.
+trim_trailing_whitespace = false
+
+[*.sh]
+# A CRLF shebang line makes a script unrunnable on the Linux CI runner.
+end_of_line = lf
