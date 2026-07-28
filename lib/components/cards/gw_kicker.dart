@@ -63,7 +63,9 @@ class GWKicker extends StatelessWidget {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final text = Text(label.toUpperCase(), style: style(gw, dense: dense));
 
-    if (trailing == null) return text;
+    if (trailing == null) {
+      return text;
+    }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

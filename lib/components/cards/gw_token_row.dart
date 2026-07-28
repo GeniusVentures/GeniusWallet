@@ -45,7 +45,8 @@ class GWTokenRow extends StatelessWidget {
               SizedBox(
                 width: 40,
                 height: 40,
-                child: iconWidget ??
+                child:
+                    iconWidget ??
                     (iconAsset != null
                         ? Image.asset(
                             iconAsset!,
@@ -62,15 +63,17 @@ class GWTokenRow extends StatelessWidget {
                   children: [
                     Text(
                       symbol,
-                      style: GeniusWalletTypography.titleMd
-                          .copyWith(color: gw.textPrimary),
+                      style: GeniusWalletTypography.titleMd.copyWith(
+                        color: gw.textPrimary,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       name,
-                      style: GeniusWalletTypography.bodySm
-                          .copyWith(color: gw.textSecondary),
+                      style: GeniusWalletTypography.bodySm.copyWith(
+                        color: gw.textSecondary,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -86,16 +89,18 @@ class GWTokenRow extends StatelessWidget {
                   children: [
                     Text(
                       balance!,
-                      style: GeniusWalletTypography.numericBody
-                          .copyWith(color: gw.textPrimary),
+                      style: GeniusWalletTypography.numericBody.copyWith(
+                        color: gw.textPrimary,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (subBalance != null)
                       Text(
                         subBalance!,
-                        style: GeniusWalletTypography.bodySm
-                            .copyWith(color: gw.textSecondary),
+                        style: GeniusWalletTypography.bodySm.copyWith(
+                          color: gw.textSecondary,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -120,11 +125,7 @@ class _FallbackDot extends StatelessWidget {
     return CircleAvatar(
       radius: 20,
       backgroundColor: gw.surfaceMenu,
-      child: Icon(
-        Icons.token,
-        size: 18,
-        color: gw.textSecondary,
-      ),
+      child: Icon(Icons.token, size: 18, color: gw.textSecondary),
     );
   }
 }

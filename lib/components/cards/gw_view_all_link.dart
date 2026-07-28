@@ -33,7 +33,9 @@ class _GWViewAllLinkState extends State<GWViewAllLink> {
   bool _hovered = false;
 
   void _setHover(bool value) {
-    if (_hovered != value) setState(() => _hovered = value);
+    if (_hovered != value) {
+      setState(() => _hovered = value);
+    }
   }
 
   @override
@@ -53,10 +55,10 @@ class _GWViewAllLinkState extends State<GWViewAllLink> {
     // The tracking DOES change here, 0.88 -> the dense step's 0.6, so the app
     // carries one value instead of two; the underline is drawn to the measured
     // label width, so it follows automatically.
-    final labelStyle = GWKicker.style(gw, dense: true).copyWith(
-      height: 1.0,
-      color: Colors.white,
-    );
+    final labelStyle = GWKicker.style(
+      gw,
+      dense: true,
+    ).copyWith(height: 1.0, color: Colors.white);
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -103,8 +105,11 @@ class _GWViewAllLinkState extends State<GWViewAllLink> {
               AnimatedContainer(
                 duration: GeniusWalletMotion.base,
                 curve: GeniusWalletMotion.standard,
-                transform:
-                    Matrix4.translationValues(_hovered ? 3.0 : 0.0, 0.0, 0.0),
+                transform: Matrix4.translationValues(
+                  _hovered ? 3.0 : 0.0,
+                  0.0,
+                  0.0,
+                ),
                 child: const Icon(
                   Icons.arrow_right_alt,
                   size: 15,

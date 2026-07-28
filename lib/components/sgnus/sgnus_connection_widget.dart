@@ -36,9 +36,13 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
 
   void _startInitPolling() {
     _initTimer?.cancel();
-    if (_initComplete || _geniusApi == null) return;
+    if (_initComplete || _geniusApi == null) {
+      return;
+    }
     _initTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       try {
         final status = _geniusApi!.getInitializationStatus();
         setState(() {

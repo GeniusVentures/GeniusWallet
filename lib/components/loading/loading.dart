@@ -27,18 +27,16 @@ class Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-        spacing: GeniusWalletConsts.space8,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          LoadingAnimationWidget.flickr(
-            leftDotColor: GeniusWalletColors.brandGreen,
-            rightDotColor: GeniusWalletColors.statusInfo,
-            size: 50,
-          ),
-          AutoSizeText(
-            text ?? "",
-            style: GeniusWalletTypography.headlineLg,
-          )
-        ]);
+      spacing: GeniusWalletConsts.space8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        LoadingAnimationWidget.flickr(
+          leftDotColor: GeniusWalletColors.brandGreen,
+          rightDotColor: GeniusWalletColors.statusInfo,
+          size: 50,
+        ),
+        AutoSizeText(text ?? "", style: GeniusWalletTypography.headlineLg),
+      ],
+    );
   }
 }

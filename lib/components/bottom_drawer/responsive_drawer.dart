@@ -292,8 +292,9 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
                       minWidth: 36,
                       minHeight: 36,
                     ),
-                    tooltip:
-                        MaterialLocalizations.of(context).closeButtonTooltip,
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).closeButtonTooltip,
                     onPressed: Navigator.of(context).pop,
                   ),
                 ),

@@ -12,11 +12,8 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 class IncorrectPin extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrIncorrectPinLabel;
-  const IncorrectPin(
-    this.constraints, {
-    Key? key,
-    this.ovrIncorrectPinLabel,
-  }) : super(key: key);
+  const IncorrectPin(this.constraints, {Key? key, this.ovrIncorrectPinLabel})
+    : super(key: key);
   @override
   _IncorrectPin createState() => _IncorrectPin();
 }
@@ -27,45 +24,51 @@ class _IncorrectPin extends State<IncorrectPin> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(),
-        child: Stack(children: [
+      decoration: BoxDecoration(),
+      child: Stack(
+        children: [
           Positioned(
             left: 0,
             width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
-            child: Stack(children: [
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(
-                  height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 1.0,
-                  decoration: const BoxDecoration(
-                    color: GeniusWalletColors.statusError,
-                    borderRadius: BorderRadius.all(Radius.circular(100.0)),
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    height: widget.constraints.maxHeight * 1.0,
+                    width: widget.constraints.maxWidth * 1.0,
+                    decoration: const BoxDecoration(
+                      color: GeniusWalletColors.statusError,
+                      borderRadius: BorderRadius.all(Radius.circular(100.0)),
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                left: 34.0,
-                right: 35.0,
-                top: 7.0,
-                bottom: 8.0,
-                child: SizedBox(
+                Positioned(
+                  left: 34.0,
+                  right: 35.0,
+                  top: 7.0,
+                  bottom: 8.0,
+                  child: SizedBox(
                     height: widget.constraints.maxHeight * 0.5588235294117647,
                     width: widget.constraints.maxWidth * 0.56875,
                     child: AutoSizeText(
                       widget.ovrIncorrectPinLabel ?? 'Incorrect Pin',
                       style: GeniusWalletTypography.titleMd,
                       textAlign: TextAlign.center,
-                    )),
-              ),
-            ]),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ]));
+        ],
+      ),
+    );
   }
 
   @override

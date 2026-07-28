@@ -10,11 +10,8 @@ class IsactiveTrue extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrContinue;
 
-  const IsactiveTrue(
-    this.constraints, {
-    Key? key,
-    this.ovrContinue,
-  }) : super(key: key);
+  const IsactiveTrue(this.constraints, {Key? key, this.ovrContinue})
+    : super(key: key);
 
   @override
   _IsactiveTrue createState() => _IsactiveTrue();
@@ -47,7 +44,8 @@ class _IsactiveTrue extends State<IsactiveTrue> {
             Positioned(
               left: 16.0, // Consistent horizontal padding
               right: 16.0,
-              top: widget.constraints.maxHeight *
+              top:
+                  widget.constraints.maxHeight *
                   0.3, // Balanced vertical alignment
               bottom: widget.constraints.maxHeight * 0.3,
               child: Center(
@@ -56,7 +54,7 @@ class _IsactiveTrue extends State<IsactiveTrue> {
                   child: AutoSizeText(
                     widget.ovrContinue ?? GeniusWalletText.btnContinue,
                     style: const TextStyle(
-fontSize: GeniusWalletFontSize.medium,
+                      fontSize: GeniusWalletFontSize.medium,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.138,
                       color: GeniusWalletColors.btnText,

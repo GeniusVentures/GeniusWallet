@@ -50,7 +50,9 @@ class GWDetailGrid extends StatelessWidget {
     // Fail-soft read: registers the InheritedWidget dependency that forces this
     // subtree to rebuild on a live appearance toggle (04-04 discipline).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    if (rows.isEmpty) return const SizedBox.shrink();
+    if (rows.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       decoration: BoxDecoration(

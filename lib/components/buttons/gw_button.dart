@@ -13,8 +13,10 @@ enum GWButtonVariant {
   ghost,
   destructive,
   icon,
+
   /// Hero / signature CTA — green→blue gradient lifted from the gnus.ai site.
   gradient,
+
   /// Outline twin of [gradient] — transparent fill, gradient border + label
   /// (painted via a srcIn ShaderMask over the brand CTA gradient). Pairs with
   /// a [gradient] primary so both CTAs share one gradient identity.
@@ -37,9 +39,11 @@ class GWButton extends StatelessWidget {
     this.tooltip,
     this.semanticLabel,
     this.height,
-  })  : assert(label != null || leading != null,
-            'GWButton needs a label or a leading widget'),
-        icon = null;
+  }) : assert(
+         label != null || leading != null,
+         'GWButton needs a label or a leading widget',
+       ),
+       icon = null;
 
   const GWButton.icon({
     super.key,
@@ -50,11 +54,11 @@ class GWButton extends StatelessWidget {
     this.isLoading = false,
     this.tooltip,
     this.semanticLabel,
-  })  : label = null,
-        leading = null,
-        trailing = null,
-        expand = false,
-        height = null;
+  }) : label = null,
+       leading = null,
+       trailing = null,
+       expand = false,
+       height = null;
 
   final String? label;
   final Widget? leading;
@@ -75,7 +79,9 @@ class GWButton extends StatelessWidget {
   bool get _isIconOnly => icon != null;
 
   double get _height {
-    if (height != null) return height!;
+    if (height != null) {
+      return height!;
+    }
     switch (size) {
       case GWButtonSize.sm:
         return 44; // was 36 — touch floor (iOS 44)
@@ -87,7 +93,9 @@ class GWButton extends StatelessWidget {
   }
 
   double get _horizontalPadding {
-    if (_isIconOnly) return 0;
+    if (_isIconOnly) {
+      return 0;
+    }
     switch (size) {
       case GWButtonSize.sm:
         return GeniusWalletConsts.space6;
@@ -219,13 +227,15 @@ class GWButton extends StatelessWidget {
           children: [
             if (isLoading) ...[
               _spinner(fg),
-              if (label != null) const SizedBox(width: GeniusWalletConsts.space4),
+              if (label != null)
+                const SizedBox(width: GeniusWalletConsts.space4),
             ] else if (leading != null) ...[
               IconTheme.merge(
                 data: IconThemeData(color: fg, size: _iconSize()),
                 child: leading!,
               ),
-              if (label != null) const SizedBox(width: GeniusWalletConsts.space4),
+              if (label != null)
+                const SizedBox(width: GeniusWalletConsts.space4),
             ],
             if (label != null)
               Flexible(
@@ -237,7 +247,8 @@ class GWButton extends StatelessWidget {
                 ),
               ),
             if (!isLoading && trailing != null) ...[
-              if (label != null) const SizedBox(width: GeniusWalletConsts.space4),
+              if (label != null)
+                const SizedBox(width: GeniusWalletConsts.space4),
               IconTheme.merge(
                 data: IconThemeData(color: fg, size: _iconSize()),
                 child: trailing!,
@@ -257,17 +268,18 @@ class GWButton extends StatelessWidget {
         color: hasGradient ? null : bg,
         gradient: hasGradient
             ? (disabled
-                ? LinearGradient(
-                    begin: palette.gradient!.begin,
-                    end: palette.gradient!.end,
-                    colors: palette.gradient!.colors
-                        .map((c) => c.withAlpha(140))
-                        .toList(),
-                  )
-                : palette.gradient)
+                  ? LinearGradient(
+                      begin: palette.gradient!.begin,
+                      end: palette.gradient!.end,
+                      colors: palette.gradient!.colors
+                          .map((c) => c.withAlpha(140))
+                          .toList(),
+                    )
+                  : palette.gradient)
             : null,
-        borderRadius:
-            BorderRadius.circular(_isIconOnly ? _height / 2 : GeniusWalletConsts.radiusLg),
+        borderRadius: BorderRadius.circular(
+          _isIconOnly ? _height / 2 : GeniusWalletConsts.radiusLg,
+        ),
         border: palette.border != null
             ? Border.fromBorderSide(palette.border!)
             : null,
@@ -276,12 +288,14 @@ class GWButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(
-              _isIconOnly ? _height / 2 : GeniusWalletConsts.radiusLg),
+            _isIconOnly ? _height / 2 : GeniusWalletConsts.radiusLg,
+          ),
           onTap: disabled ? null : onPressed,
           // "łapka" — pointer cursor on the enabled CTA; deferred when
           // disabled so it falls back to the natural (basic) cursor.
-          mouseCursor:
-              disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+          mouseCursor: disabled
+              ? SystemMouseCursors.basic
+              : SystemMouseCursors.click,
           // Option A · Brighten (approved): the bright gradient fill swallows
           // the default Material ripple, so we paint an explicit white wash on
           // hover/press. Only the two gradient variants override the overlay;
@@ -298,16 +312,17 @@ class GWButton extends StatelessWidget {
     if (variant == GWButtonVariant.gradientOutline) {
       masked = ShaderMask(
         blendMode: BlendMode.srcIn,
-        shaderCallback: (bounds) => (disabled
-                ? LinearGradient(
-                    begin: GeniusWalletGradient.brandCta.begin,
-                    end: GeniusWalletGradient.brandCta.end,
-                    colors: GeniusWalletGradient.brandCta.colors
-                        .map((c) => c.withAlpha(140))
-                        .toList(),
-                  )
-                : GeniusWalletGradient.brandCta)
-            .createShader(bounds),
+        shaderCallback: (bounds) =>
+            (disabled
+                    ? LinearGradient(
+                        begin: GeniusWalletGradient.brandCta.begin,
+                        end: GeniusWalletGradient.brandCta.end,
+                        colors: GeniusWalletGradient.brandCta.colors
+                            .map((c) => c.withAlpha(140))
+                            .toList(),
+                      )
+                    : GeniusWalletGradient.brandCta)
+                .createShader(bounds),
         child: button,
       );
     }
@@ -350,7 +365,9 @@ class GWButton extends StatelessWidget {
         return null; // defer to InkWell default
     }
     return WidgetStateProperty.resolveWith((states) {
-      if (disabled) return Colors.transparent;
+      if (disabled) {
+        return Colors.transparent;
+      }
       if (states.contains(WidgetState.pressed)) {
         return Colors.white.withValues(alpha: press);
       }
@@ -362,13 +379,13 @@ class GWButton extends StatelessWidget {
   }
 
   Widget _spinner(Color color) => SizedBox(
-        width: 18,
-        height: 18,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(color),
-        ),
-      );
+    width: 18,
+    height: 18,
+    child: CircularProgressIndicator(
+      strokeWidth: 2,
+      valueColor: AlwaysStoppedAnimation<Color>(color),
+    ),
+  );
 
   double _iconSize() {
     switch (size) {

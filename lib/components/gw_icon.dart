@@ -11,8 +11,8 @@ class GWIcon extends StatelessWidget {
     this.color,
     this.package,
     this.semanticLabel,
-  })  : svgAsset = null,
-        pngAsset = null;
+  }) : svgAsset = null,
+       pngAsset = null;
 
   const GWIcon.svg(
     String this.svgAsset, {
@@ -21,8 +21,8 @@ class GWIcon extends StatelessWidget {
     this.color,
     this.package = 'genius_wallet',
     this.semanticLabel,
-  })  : materialIcon = null,
-        pngAsset = null;
+  }) : materialIcon = null,
+       pngAsset = null;
 
   const GWIcon.png(
     String this.pngAsset, {
@@ -31,8 +31,8 @@ class GWIcon extends StatelessWidget {
     this.color,
     this.package = 'genius_wallet',
     this.semanticLabel,
-  })  : materialIcon = null,
-        svgAsset = null;
+  }) : materialIcon = null,
+       svgAsset = null;
 
   final IconData? materialIcon;
   final String? svgAsset;

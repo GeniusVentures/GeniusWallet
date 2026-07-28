@@ -130,8 +130,7 @@ class GWEmptyState extends StatelessWidget {
         // edit that breaks the design invariant, in either the title+message
         // shape or the action-bearing shape.
         assert(
-          _compactLayoutHeight +
-                  (hasAction ? _compactActionBlockHeight : 0) <
+          _compactLayoutHeight + (hasAction ? _compactActionBlockHeight : 0) <
               compactHeightThreshold,
           'compact metrics (including the action block when present) must '
           'stay smaller than the threshold that selects them, or switching '
@@ -152,8 +151,7 @@ class GWEmptyState extends StatelessWidget {
         );
 
         final double iconBox = isCompact ? _iconBoxCompact : _iconBoxFull;
-        final double iconGlyph =
-            isCompact ? _iconGlyphCompact : _iconGlyphFull;
+        final double iconGlyph = isCompact ? _iconGlyphCompact : _iconGlyphFull;
         final double outerPadding = isCompact
             ? GeniusWalletConsts.space6
             : GeniusWalletConsts.space12;
@@ -178,11 +176,7 @@ class GWEmptyState extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: gw.borderSubtle),
                   ),
-                  child: Icon(
-                    icon,
-                    size: iconGlyph,
-                    color: gw.textSecondary,
-                  ),
+                  child: Icon(icon, size: iconGlyph, color: gw.textSecondary),
                 ),
                 SizedBox(height: iconToTitleGap),
                 Text(
@@ -227,7 +221,9 @@ class GWEmptyState extends StatelessWidget {
         // (measured, by dropping this line). `isHeightBounded` is the same
         // flag the compact decision above reads: one source of truth for
         // "is this slot real".
-        if (!isHeightBounded) return centred;
+        if (!isHeightBounded) {
+          return centred;
+        }
 
         // BOUNDED slot. Read inner-to-outer, because that is the non-obvious
         // part: `centred` centres the block inside whatever height it is

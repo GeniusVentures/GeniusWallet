@@ -76,11 +76,7 @@ class GWErrorState extends StatelessWidget {
 }
 
 class GWErrorBanner extends StatelessWidget {
-  const GWErrorBanner({
-    super.key,
-    required this.message,
-    this.onDismiss,
-  });
+  const GWErrorBanner({super.key, required this.message, this.onDismiss});
 
   final String message;
   final VoidCallback? onDismiss;
@@ -125,10 +121,7 @@ class GWErrorBanner extends StatelessWidget {
               ),
               onPressed: onDismiss,
               padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(
-                minWidth: 24,
-                minHeight: 24,
-              ),
+              constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
             ),
         ],
       ),

@@ -49,9 +49,7 @@ class GWScreen extends StatelessWidget {
       }
     }
     if (scroll) {
-      content = SingleChildScrollView(
-        child: content,
-      );
+      content = SingleChildScrollView(child: content);
     }
 
     return Scaffold(

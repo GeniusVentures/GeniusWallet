@@ -17,9 +17,11 @@ import 'package:intl/intl.dart';
 class WalletsOverview extends StatefulWidget {
   final Account? account;
   final GeniusApi geniusApi;
-  const WalletsOverview(
-      {Key? key, required this.geniusApi, required this.account})
-      : super(key: key);
+  const WalletsOverview({
+    Key? key,
+    required this.geniusApi,
+    required this.account,
+  }) : super(key: key);
   @override
   WalletsOverviewState createState() => WalletsOverviewState();
 }
@@ -36,105 +38,117 @@ class WalletsOverviewState extends State<WalletsOverview> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Flexible(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: AutoSizeText(
-                    'Current Balance',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: GeniusWalletColors.textPrimary, fontSize: 32),
-                  ),
-                ),
-                BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-                  builder: (context, state) {
-                    if (state.selectedWallet == null) {
-                      return const Center(child: Text('No wallet selected'));
-                    }
-
-                    if (state.selectedWallet?.walletType == WalletType.sgnus) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          GeniusBalanceDisplay(useMinions: useMinions),
-                          const SizedBox(height: 8),
-                          _buildToggle(),
-                        ],
-                      );
-                    }
-
-                    final balance =
-                        double.tryParse(state.selectedWalletBalance ?? '0') ??
-                            0;
-                    final displayBalance = balance == 0
-                        ? "\$0.00"
-                        : NumberFormat.simpleCurrency().format(balance);
-
-                    if (balance == 0) {
-                      return const Padding(
-                        padding: EdgeInsets.only(top: 4),
-                        child: Text(
-                          'No funds available',
-                          style: TextStyle(
-                            color: GeniusWalletColors.statusError,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return Flexible(
-                      child: AutoSizeText(
-                        displayBalance,
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 36.0,
-                          fontWeight: FontWeight.w500,
-                          color: GeniusWalletColors.textPrimary,
-                        ),
-                        textAlign: TextAlign.left,
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: AutoSizeText(
+                      'Current Balance',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: GeniusWalletColors.textPrimary,
+                        fontSize: 32,
                       ),
-                    );
-                  },
-                ),
-              ],
+                    ),
+                  ),
+                  BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+                    builder: (context, state) {
+                      if (state.selectedWallet == null) {
+                        return const Center(child: Text('No wallet selected'));
+                      }
+
+                      if (state.selectedWallet?.walletType ==
+                          WalletType.sgnus) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            GeniusBalanceDisplay(useMinions: useMinions),
+                            const SizedBox(height: 8),
+                            _buildToggle(),
+                          ],
+                        );
+                      }
+
+                      final balance =
+                          double.tryParse(state.selectedWalletBalance ?? '0') ??
+                          0;
+                      final displayBalance = balance == 0
+                          ? "\$0.00"
+                          : NumberFormat.simpleCurrency().format(balance);
+
+                      if (balance == 0) {
+                        return const Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: Text(
+                            'No funds available',
+                            style: TextStyle(
+                              color: GeniusWalletColors.statusError,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return Flexible(
+                        child: AutoSizeText(
+                          displayBalance,
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 36.0,
+                            fontWeight: FontWeight.w500,
+                            color: GeniusWalletColors.textPrimary,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          )
-        ],
-      ),
-      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        const Row(children: [Flexible(child: SGNUSConnectionWidget())]),
-        SizedBox(
-          height: 8,
+          ],
         ),
-        SGNUSConnectionStatusWidget(),
-        BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-            builder: (context, state) {
-          if (state.selectedWallet != null) {
-            return StreamBuilder<SGNUSConnection>(
-                stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-                builder: (context, snapshot) {
-                  final connection = snapshot.data;
-                  return SubmitJobDashboardButton(
-                    walletDetailsCubit: context.read<WalletDetailsCubit>(),
-                    walletAddress: state.selectedWallet!.address,
-                    gnusConnectedWalletAddress: connection?.walletAddress ?? "",
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const Row(children: [Flexible(child: SGNUSConnectionWidget())]),
+            SizedBox(height: 8),
+            SGNUSConnectionStatusWidget(),
+            BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
+              builder: (context, state) {
+                if (state.selectedWallet != null) {
+                  return StreamBuilder<SGNUSConnection>(
+                    stream: context
+                        .read<GeniusApi>()
+                        .getSGNUSConnectionStream(),
+                    builder: (context, snapshot) {
+                      final connection = snapshot.data;
+                      return SubmitJobDashboardButton(
+                        walletDetailsCubit: context.read<WalletDetailsCubit>(),
+                        walletAddress: state.selectedWallet!.address,
+                        gnusConnectedWalletAddress:
+                            connection?.walletAddress ?? "",
+                      );
+                    },
                   );
-                });
-          } else {
-            return const SizedBox.shrink();
-          }
-        }),
-      ])
-    ]);
+                } else {
+                  return const SizedBox.shrink();
+                }
+              },
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _buildToggle() {
@@ -163,8 +177,11 @@ class WalletsOverviewState extends State<WalletsOverview> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("assets/images/crypto/minion.png",
-                height: 20, width: 20),
+            Image.asset(
+              "assets/images/crypto/minion.png",
+              height: 20,
+              width: 20,
+            ),
             const SizedBox(width: 6),
             const Text("Minions", style: TextStyle(fontSize: 13)),
           ],

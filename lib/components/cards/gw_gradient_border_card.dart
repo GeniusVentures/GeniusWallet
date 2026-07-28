@@ -69,10 +69,7 @@ class GWGradientBorderCard extends StatelessWidget {
         : (background ?? GeniusWalletColors.surfaceElevated);
 
     Widget innerSurface = Container(
-      decoration: BoxDecoration(
-        color: innerBg,
-        borderRadius: innerRadius,
-      ),
+      decoration: BoxDecoration(color: innerBg, borderRadius: innerRadius),
       padding: padding,
       child: child,
     );
@@ -99,16 +96,14 @@ class GWGradientBorderCard extends StatelessWidget {
       child: innerSurface,
     );
 
-    if (onTap == null) return card;
+    if (onTap == null) {
+      return card;
+    }
 
     return Material(
       color: Colors.transparent,
       borderRadius: outerRadius,
-      child: InkWell(
-        borderRadius: outerRadius,
-        onTap: onTap,
-        child: card,
-      ),
+      child: InkWell(borderRadius: outerRadius, onTap: onTap, child: card),
     );
   }
 }

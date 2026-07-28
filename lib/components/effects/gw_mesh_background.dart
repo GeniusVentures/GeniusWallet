@@ -102,7 +102,9 @@ class _MeshPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (intensity <= 0) return;
+    if (intensity <= 0) {
+      return;
+    }
 
     final w = size.width;
     final h = size.height;
@@ -129,9 +131,7 @@ class _MeshPainter extends CustomPainter {
             color.withAlpha(0),
           ],
           stops: const [0.0, 1.0],
-        ).createShader(
-          Rect.fromCircle(center: Offset(cx, cy), radius: radius),
-        );
+        ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: radius));
       canvas.drawRect(rect, paint);
     }
 

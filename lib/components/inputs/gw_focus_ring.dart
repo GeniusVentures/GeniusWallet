@@ -80,7 +80,9 @@ class _GWFocusRingState extends State<GWFocusRing> {
       // Fires when this node OR any descendant gains/loses focus, which is the
       // whole point: the field inside keeps its own node and this only watches.
       onFocusChange: (hasFocus) {
-        if (hasFocus != _focused) setState(() => _focused = hasFocus);
+        if (hasFocus != _focused) {
+          setState(() => _focused = hasFocus);
+        }
       },
       child: DecoratedBox(
         decoration: BoxDecoration(

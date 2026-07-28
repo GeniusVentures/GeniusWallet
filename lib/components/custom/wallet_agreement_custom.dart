@@ -25,7 +25,8 @@ class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
     return CheckboxListTile(
       value: widget.value ?? false,
       onChanged: widget.onChanged,
-      title: widget.child ??
+      title:
+          widget.child ??
           AutoSizeText(
             widget.text ??
                 'I’ve read and accept the Terms of Service and Privacy Policy',

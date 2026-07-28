@@ -8,11 +8,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 class IsactiveFalse extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrContinue;
-  const IsactiveFalse(
-    this.constraints, {
-    Key? key,
-    this.ovrContinue,
-  }) : super(key: key);
+  const IsactiveFalse(this.constraints, {Key? key, this.ovrContinue})
+    : super(key: key);
   @override
   _IsactiveFalse createState() => _IsactiveFalse();
 }
@@ -43,7 +40,8 @@ class _IsactiveFalse extends State<IsactiveFalse> {
             Positioned(
               left: 16.0, // Adjusted for better responsiveness
               right: 16.0,
-              top: widget.constraints.maxHeight *
+              top:
+                  widget.constraints.maxHeight *
                   0.3, // Centered more effectively
               bottom: widget.constraints.maxHeight * 0.3,
               child: Center(
@@ -52,7 +50,7 @@ class _IsactiveFalse extends State<IsactiveFalse> {
                   child: AutoSizeText(
                     widget.ovrContinue ?? GeniusWalletText.btnContinue,
                     style: const TextStyle(
-fontSize: GeniusWalletFontSize.medium,
+                      fontSize: GeniusWalletFontSize.medium,
                       fontWeight: FontWeight.w400,
                       letterSpacing: 0.1375,
                       color: GeniusWalletColors.btnTextDisabled,

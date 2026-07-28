@@ -20,6 +20,8 @@ double assetsTotal(Iterable<({double balance, double price})> holdings) =>
 
 /// Total 24h fiat change across all holdings.
 double assetsDayChange(
-        Iterable<({double balance, double price, double pct})> holdings) =>
-    holdings.fold(
-        0.0, (sum, h) => sum + holdingDayChange(h.balance, h.price, h.pct));
+  Iterable<({double balance, double price, double pct})> holdings,
+) => holdings.fold(
+  0.0,
+  (sum, h) => sum + holdingDayChange(h.balance, h.price, h.pct),
+);

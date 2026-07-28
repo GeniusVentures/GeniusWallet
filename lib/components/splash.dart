@@ -38,7 +38,9 @@ class _SplashState extends State<Splash> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       final state = context.read<AppBloc>().state;
       if (state.subscribeToWalletStatus != AppStatus.loaded) {
         context.go('/landing_screen');
@@ -55,10 +57,13 @@ class _SplashState extends State<Splash> {
           // resolves synchronously (e.g. the UI-only stub backend), the bloc
           // emits `loaded` while a frame is building, and calling context.go
           // then marks the router dirty mid-build -> "!_dirty" red screen.
-          final target =
-              state.wallets.isEmpty ? '/landing_screen' : '/dashboard';
+          final target = state.wallets.isEmpty
+              ? '/landing_screen'
+              : '/dashboard';
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) context.go(target);
+            if (context.mounted) {
+              context.go(target);
+            }
           });
         }
       },

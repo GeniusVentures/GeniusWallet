@@ -85,7 +85,9 @@ class GWCard extends StatelessWidget {
       child: child,
     );
 
-    if (onTap == null) return content;
+    if (onTap == null) {
+      return content;
+    }
 
     return Material(
       color: Colors.transparent,
@@ -123,7 +125,8 @@ BoxDecoration _cardDecoration({
     // pointer with the same mark as a nav tab and a control-track chip. A
     // caller-supplied border is still respected as-is, so a custom-bordered
     // card never surprises.
-    border: border ??
+    border:
+        border ??
         (useDefaultSurface
             ? Border.all(
                 color: hovered ? GWDecorations.hoverEdge : gw.borderSubtle,

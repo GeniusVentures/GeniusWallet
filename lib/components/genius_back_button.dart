@@ -11,11 +11,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 class GeniusBackButton extends StatefulWidget {
   final BoxConstraints constraints;
   final Widget? ovrWhiteArrowBack;
-  const GeniusBackButton(
-    this.constraints, {
-    Key? key,
-    this.ovrWhiteArrowBack,
-  }) : super(key: key);
+  const GeniusBackButton(this.constraints, {Key? key, this.ovrWhiteArrowBack})
+    : super(key: key);
   @override
   _GeniusBackButton createState() => _GeniusBackButton();
 }
@@ -26,24 +23,29 @@ class _GeniusBackButton extends State<GeniusBackButton> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(),
-        child: GeniusBackButtonCustom(
-            child: Stack(children: [
-          Positioned(
-            left: 0,
-            width: widget.constraints.maxWidth * 1.0,
-            top: 0,
-            height: widget.constraints.maxHeight * 1.0,
-            child: widget.ovrWhiteArrowBack ??
-                SvgPicture.asset(
-                  'assets/images/whitearrowback.svg',
-                  package: 'genius_wallet',
-                  height: widget.constraints.maxHeight * 1.0,
-                  width: widget.constraints.maxWidth * 1.0,
-                  fit: BoxFit.fill,
-                ),
-          ),
-        ])));
+      decoration: BoxDecoration(),
+      child: GeniusBackButtonCustom(
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              width: widget.constraints.maxWidth * 1.0,
+              top: 0,
+              height: widget.constraints.maxHeight * 1.0,
+              child:
+                  widget.ovrWhiteArrowBack ??
+                  SvgPicture.asset(
+                    'assets/images/whitearrowback.svg',
+                    package: 'genius_wallet',
+                    height: widget.constraints.maxHeight * 1.0,
+                    width: widget.constraints.maxWidth * 1.0,
+                    fit: BoxFit.fill,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override

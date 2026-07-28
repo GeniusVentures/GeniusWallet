@@ -36,32 +36,33 @@ class GWCheckbox extends StatelessWidget {
     // A natural Checkbox keeps Flutter's padded ~48px tap target (touch floor);
     // the visible box stays ~18px (was capped to 24 + shrinkWrap → 24px tap).
     final box = Checkbox(
-        value: value,
-        tristate: tristate,
-        onChanged: disabled ? null : onChanged,
-        side: BorderSide(
-          color: disabled
-              ? gw.borderSubtle
-              : GeniusWalletColors.brandPrimaryStrong,
-          width: 1.5,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(GeniusWalletConsts.radiusXs),
-        ),
-        fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
-          if (states.contains(WidgetState.disabled)) {
-            return gw.borderSubtle;
-          }
-          if (states.contains(WidgetState.selected)) {
-            return GeniusWalletColors.brandPrimaryStrong;
-          }
-          return Colors.transparent;
-        }),
-        checkColor: gw.textPrimary,
-      );
+      value: value,
+      tristate: tristate,
+      onChanged: disabled ? null : onChanged,
+      side: BorderSide(
+        color: disabled
+            ? gw.borderSubtle
+            : GeniusWalletColors.brandPrimaryStrong,
+        width: 1.5,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusXs),
+      ),
+      fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return gw.borderSubtle;
+        }
+        if (states.contains(WidgetState.selected)) {
+          return GeniusWalletColors.brandPrimaryStrong;
+        }
+        return Colors.transparent;
+      }),
+      checkColor: gw.textPrimary,
+    );
 
-    if (label == null && description == null) return box;
+    if (label == null && description == null) {
+      return box;
+    }
 
     final text = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +72,9 @@ class GWCheckbox extends StatelessWidget {
           Text(
             label!,
             style: GeniusWalletTypography.bodyMd.copyWith(
-              color: disabled ? GeniusWalletColors.textTertiary : gw.textPrimary,
+              color: disabled
+                  ? GeniusWalletColors.textTertiary
+                  : gw.textPrimary,
             ),
           ),
         if (description != null) ...[
@@ -106,10 +109,7 @@ class GWCheckbox extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: box,
-            ),
+            Padding(padding: const EdgeInsets.only(top: 2), child: box),
             const SizedBox(width: GeniusWalletConsts.space4),
             Flexible(child: text),
           ],

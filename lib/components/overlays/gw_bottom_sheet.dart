@@ -19,11 +19,8 @@ class GWBottomSheet {
       isScrollControlled: isScrollControlled,
       backgroundColor: Colors.transparent,
       barrierColor: GeniusWalletColors.surfaceOverlay,
-      builder: (_) => _SheetContainer(
-        title: title,
-        showHandle: showHandle,
-        child: child,
-      ),
+      builder: (_) =>
+          _SheetContainer(title: title, showHandle: showHandle, child: child),
     );
   }
 }

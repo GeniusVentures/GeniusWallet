@@ -88,7 +88,9 @@ int _currentIndex(BuildContext context) {
   final location = GoRouterState.of(context).uri.path;
   final visible = _visibleDestinations;
   for (var i = 0; i < visible.length; i++) {
-    if (location.startsWith(visible[i].path)) return i;
+    if (location.startsWith(visible[i].path)) {
+      return i;
+    }
   }
   return 0;
 }
@@ -186,9 +188,7 @@ class _MobileTabBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: GWDecorations.surfaceSheen,
-        border: Border(
-          top: BorderSide(color: gw.borderSubtle, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: gw.borderSubtle, width: 0.5)),
       ),
       child: BottomNavigationBar(
         backgroundColor: Colors.transparent,
@@ -267,172 +267,183 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                     spacing: hideLabels ? 6 : 2,
                     children: [
                       ...destinations.indexed.map((entry) {
-                    final (index, dest) = entry;
-                    final isSelected = index == selected;
-                    // Active label+icon = WHITE (textPrimary); the gradient lives
-                    // ONLY in the underline. Inactive tabs "light up" white on
-                    // hover. Built inside the StatefulBuilder below so the hover
-                    // colour can react to `lifted`.
+                        final (index, dest) = entry;
+                        final isSelected = index == selected;
+                        // Active label+icon = WHITE (textPrimary); the gradient lives
+                        // ONLY in the underline. Inactive tabs "light up" white on
+                        // hover. Built inside the StatefulBuilder below so the hover
+                        // colour can react to `lifted`.
 
-                    // Design-system hover: an inactive tab lights up to white
-                    // (textPrimary) and rises onto surfaceElevated + card shadow
-                    // + a 1px lift.
-                    // ponytail: hover state lives in this StatefulBuilder
-                    // closure; a parent rebuild (route/theme change) resets it
-                    // mid-hover -- rare and harmless. Upgrade path: extract a
-                    // _DesktopNavTab StatefulWidget if it ever matters.
-                    bool hovered = false;
-                    final tabButton = StatefulBuilder(
-                      builder: (context, setHover) {
-                        final lifted = hovered && !isSelected;
-                        // WHITE on active OR hover, muted otherwise. No gradient
-                        // on the label -- the gradient is the underline only.
-                        final labelColor = (isSelected || lifted)
-                            ? gw.textPrimary
-                            : gw.textSecondary;
-                        final iconLabelRow = Row(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 6,
-                          children: [
-                            Icon(dest.icon, size: _kIconSize, color: labelColor),
-                            if (!hideLabels)
-                              Text(
-                                dest.label,
-                                style: GeniusWalletTypography.labelMd
-                                    .copyWith(color: labelColor),
-                              ),
-                          ],
-                        );
-                        return Material(
-                      color: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: GeniusWalletConsts.space4,
-                        ),
-                        child: InkWell(
-                          onTap: () => context.go(dest.path),
-                          onHover: (h) => setHover(() => hovered = h),
-                          borderRadius: BorderRadius.circular(
-                            GeniusWalletConsts.borderRadiusCard,
-                          ),
-                          mouseCursor: SystemMouseCursors.click,
-                          // We paint the D lift ourselves, so suppress InkWell's
-                          // own overlay splash across all states.
-                          overlayColor: const WidgetStatePropertyAll(
-                            Colors.transparent,
-                          ),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 120),
-                            // THE app-wide hover recipe (sketch 044 variant 3,
-                            // 2026-07-26): brand tint + brand hairline, no
-                            // geometry. Replaces this tab's own
-                            // surfaceElevated + card-shadow + 1px rise, which
-                            // was one of three disagreeing hovers. The lift
-                            // is gone on purpose -- see GWDecorations.hover.
-                            decoration: lifted
-                                ? GWDecorations.hover(
-                                    radius:
-                                        GeniusWalletConsts.borderRadiusCard,
-                                  )
-                                : const BoxDecoration(),
-                            child: SizedBox(
-                            height: 44.0,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                              ),
-                              // IntrinsicWidth tracks the Column's content width;
-                              // CrossAxisAlignment.stretch makes the underline
-                              // span exactly the icon+label width -- same
-                              // content-tracking as before ("Transactions" long,
-                              // "Swap" short, icon-only when labels are hidden).
-                              child: IntrinsicWidth(
-                                // Design C center-fix: a Stack so the icon+label
-                                // centers on the TRUE box center (via Center),
-                                // INDEPENDENTLY of the underline. The old grouped
-                                // `Center(Column[Row, gap, underline])` centered
-                                // the whole [text + underline] block as one unit,
-                                // which pushed the icon+label ~3.5px ABOVE the box
-                                // center (extra space at the top). The underline is
-                                // now a `Positioned(bottom:4, left:0, right:0)`
-                                // child: positioned children do NOT contribute to
-                                // the Stack's intrinsic width, so IntrinsicWidth
-                                // still resolves the box width from the icon+label
-                                // Row (content-tracking preserved), and left:0/
-                                // right:0 stretches the underline to exactly that
-                                // width (icon-only when labels are hidden).
-                                child: Stack(
-                                  children: [
-                                    Center(child: iconLabelRow),
-                                    // Underline rides ~3-4px beneath the centered
-                                    // text (still close to the label, NOT spread to
-                                    // the box bottom). bottom:4 leaves the blur-10
-                                    // glow ~4px clearance to the box edge; any
-                                    // downward bleed lands on the 12px of elevated
-                                    // bar below the box (same behaviour as the prior
-                                    // shipped layout, which also spilled) and stays
-                                    // inside the bar -- so no ClipRect is added,
-                                    // which would otherwise clip the horizontal glow
-                                    // and regress it.
-                                    Positioned(
-                                      // Lowered 4 -> 2 so the underline clears
-                                      // the icon (reported near-overlap).
-                                      bottom: 2,
-                                      left: 0,
-                                      right: 0,
-                                      child: AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 200),
-                                        height: 3,
-                                        decoration: BoxDecoration(
-                                          // 002-B: a thick 3px gradient bar with
-                                          // a rounded top and a soft
-                                          // brandPrimaryStrong glow. Selected
-                                          // uses the brand CTA gradient;
-                                          // unselected is flat transparent. A
-                                          // BoxDecoration cannot set both color
-                                          // and gradient, so each state uses
-                                          // exactly one.
-                                          gradient: isSelected
-                                              ? GeniusWalletGradient.brandCta
-                                              : null,
-                                          color: isSelected
-                                              ? null
-                                              : Colors.transparent,
-                                          borderRadius:
-                                              const BorderRadius.vertical(
-                                            top: Radius.circular(3),
-                                          ),
-                                          boxShadow: isSelected
-                                              ? [
-                                                  BoxShadow(
-                                                    color: GeniusWalletColors
-                                                        .brandPrimaryStrong
-                                                        .withValues(alpha: 0.5),
-                                                    blurRadius: 10,
+                        // Design-system hover: an inactive tab lights up to white
+                        // (textPrimary) and rises onto surfaceElevated + card shadow
+                        // + a 1px lift.
+                        // ponytail: hover state lives in this StatefulBuilder
+                        // closure; a parent rebuild (route/theme change) resets it
+                        // mid-hover -- rare and harmless. Upgrade path: extract a
+                        // _DesktopNavTab StatefulWidget if it ever matters.
+                        bool hovered = false;
+                        final tabButton = StatefulBuilder(
+                          builder: (context, setHover) {
+                            final lifted = hovered && !isSelected;
+                            // WHITE on active OR hover, muted otherwise. No gradient
+                            // on the label -- the gradient is the underline only.
+                            final labelColor = (isSelected || lifted)
+                                ? gw.textPrimary
+                                : gw.textSecondary;
+                            final iconLabelRow = Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 6,
+                              children: [
+                                Icon(
+                                  dest.icon,
+                                  size: _kIconSize,
+                                  color: labelColor,
+                                ),
+                                if (!hideLabels)
+                                  Text(
+                                    dest.label,
+                                    style: GeniusWalletTypography.labelMd
+                                        .copyWith(color: labelColor),
+                                  ),
+                              ],
+                            );
+                            return Material(
+                              color: Colors.transparent,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: GeniusWalletConsts.space4,
+                                ),
+                                child: InkWell(
+                                  onTap: () => context.go(dest.path),
+                                  onHover: (h) => setHover(() => hovered = h),
+                                  borderRadius: BorderRadius.circular(
+                                    GeniusWalletConsts.borderRadiusCard,
+                                  ),
+                                  mouseCursor: SystemMouseCursors.click,
+                                  // We paint the D lift ourselves, so suppress InkWell's
+                                  // own overlay splash across all states.
+                                  overlayColor: const WidgetStatePropertyAll(
+                                    Colors.transparent,
+                                  ),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 120),
+                                    // THE app-wide hover recipe (sketch 044 variant 3,
+                                    // 2026-07-26): brand tint + brand hairline, no
+                                    // geometry. Replaces this tab's own
+                                    // surfaceElevated + card-shadow + 1px rise, which
+                                    // was one of three disagreeing hovers. The lift
+                                    // is gone on purpose -- see GWDecorations.hover.
+                                    decoration: lifted
+                                        ? GWDecorations.hover(
+                                            radius: GeniusWalletConsts
+                                                .borderRadiusCard,
+                                          )
+                                        : const BoxDecoration(),
+                                    child: SizedBox(
+                                      height: 44.0,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12.0,
+                                        ),
+                                        // IntrinsicWidth tracks the Column's content width;
+                                        // CrossAxisAlignment.stretch makes the underline
+                                        // span exactly the icon+label width -- same
+                                        // content-tracking as before ("Transactions" long,
+                                        // "Swap" short, icon-only when labels are hidden).
+                                        child: IntrinsicWidth(
+                                          // Design C center-fix: a Stack so the icon+label
+                                          // centers on the TRUE box center (via Center),
+                                          // INDEPENDENTLY of the underline. The old grouped
+                                          // `Center(Column[Row, gap, underline])` centered
+                                          // the whole [text + underline] block as one unit,
+                                          // which pushed the icon+label ~3.5px ABOVE the box
+                                          // center (extra space at the top). The underline is
+                                          // now a `Positioned(bottom:4, left:0, right:0)`
+                                          // child: positioned children do NOT contribute to
+                                          // the Stack's intrinsic width, so IntrinsicWidth
+                                          // still resolves the box width from the icon+label
+                                          // Row (content-tracking preserved), and left:0/
+                                          // right:0 stretches the underline to exactly that
+                                          // width (icon-only when labels are hidden).
+                                          child: Stack(
+                                            children: [
+                                              Center(child: iconLabelRow),
+                                              // Underline rides ~3-4px beneath the centered
+                                              // text (still close to the label, NOT spread to
+                                              // the box bottom). bottom:4 leaves the blur-10
+                                              // glow ~4px clearance to the box edge; any
+                                              // downward bleed lands on the 12px of elevated
+                                              // bar below the box (same behaviour as the prior
+                                              // shipped layout, which also spilled) and stays
+                                              // inside the bar -- so no ClipRect is added,
+                                              // which would otherwise clip the horizontal glow
+                                              // and regress it.
+                                              Positioned(
+                                                // Lowered 4 -> 2 so the underline clears
+                                                // the icon (reported near-overlap).
+                                                bottom: 2,
+                                                left: 0,
+                                                right: 0,
+                                                child: AnimatedContainer(
+                                                  duration: const Duration(
+                                                    milliseconds: 200,
                                                   ),
-                                                ]
-                                              : null,
+                                                  height: 3,
+                                                  decoration: BoxDecoration(
+                                                    // 002-B: a thick 3px gradient bar with
+                                                    // a rounded top and a soft
+                                                    // brandPrimaryStrong glow. Selected
+                                                    // uses the brand CTA gradient;
+                                                    // unselected is flat transparent. A
+                                                    // BoxDecoration cannot set both color
+                                                    // and gradient, so each state uses
+                                                    // exactly one.
+                                                    gradient: isSelected
+                                                        ? GeniusWalletGradient
+                                                              .brandCta
+                                                        : null,
+                                                    color: isSelected
+                                                        ? null
+                                                        : Colors.transparent,
+                                                    borderRadius:
+                                                        const BorderRadius.vertical(
+                                                          top: Radius.circular(
+                                                            3,
+                                                          ),
+                                                        ),
+                                                    boxShadow: isSelected
+                                                        ? [
+                                                            BoxShadow(
+                                                              color: GeniusWalletColors
+                                                                  .brandPrimaryStrong
+                                                                  .withValues(
+                                                                    alpha: 0.5,
+                                                                  ),
+                                                              blurRadius: 10,
+                                                            ),
+                                                          ]
+                                                        : null,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                              ),
-                          ),
-                        ),
-                      );
-                    });
+                            );
+                          },
+                        );
 
-                    return hideLabels
-                        ? Tooltip(message: dest.label, child: tabButton)
-                        : tabButton;
-                    }),
-                  ],
-                ),
+                        return hideLabels
+                            ? Tooltip(message: dest.label, child: tabButton)
+                            : tabButton;
+                      }),
+                    ],
+                  ),
                 ],
               ),
               Row(

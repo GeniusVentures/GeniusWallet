@@ -69,8 +69,9 @@ class GWWalletCard extends StatelessWidget {
                 Flexible(
                   child: Text(
                     walletName ?? '',
-                    style: GeniusWalletTypography.bodyMd
-                        .copyWith(color: gw.textPrimary),
+                    style: GeniusWalletTypography.bodyMd.copyWith(
+                      color: gw.textPrimary,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

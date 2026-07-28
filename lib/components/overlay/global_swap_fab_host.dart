@@ -80,7 +80,9 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
     // a hidden route (the provider doesn't always notify on pop).
     widget.router.routerDelegate.addListener(_onRouteChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() => _ready = true);
+      if (mounted) {
+        setState(() => _ready = true);
+      }
     });
   }
 
@@ -91,7 +93,9 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
   }
 
   void _onRouteChanged() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     // Before the first frame, build() ignores the router entirely (see _ready) and
     // the post-frame callback in initState rebuilds us anyway, so a rebuild here
     // would be pointless -- and actively harmful. `widget.child` is the router's
@@ -100,14 +104,18 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
     // dirty flag. setState() there re-dirties the element and trips assert(!_dirty).
     // The schedulerPhase check below does not catch that case: the initial mount runs
     // under attachRootWidget, where the phase is `idle`, not `persistentCallbacks`.
-    if (!_ready) return;
+    if (!_ready) {
+      return;
+    }
     // The delegate can also notify *while a frame is building* (e.g. a redirect during
     // navigation). Calling setState then throws "!_dirty" too, so defer to the next
     // frame in that case; otherwise rebuild immediately.
     if (SchedulerBinding.instance.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       });
     } else {
       setState(() {});
@@ -117,7 +125,9 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
   @override
   Widget build(BuildContext context) {
     // First frame: don't touch the router yet (see _ready above).
-    if (!_ready) return widget.child;
+    if (!_ready) {
+      return widget.child;
+    }
 
     // Read the TOP match's location, not the match list's `uri`.
     //
@@ -146,9 +156,7 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
             // Clears the 60px bottom nav (+ safe-area) on the main shell;
             // floats thumb-reachable above the edge on pushed screens.
             bottom: 80 + bottomInset,
-            child: GWSwapFab(
-              onPressed: () => widget.router.push('/swap'),
-            ),
+            child: GWSwapFab(onPressed: () => widget.router.push('/swap')),
           ),
       ],
     );

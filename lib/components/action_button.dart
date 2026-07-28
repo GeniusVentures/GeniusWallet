@@ -58,7 +58,9 @@ class _ActionButtonState extends State<ActionButton>
   void didUpdateWidget(covariant ActionButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.animation == ActionButtonAnimation.rotate) {
-      if (!_controller.isAnimating) _controller.repeat();
+      if (!_controller.isAnimating) {
+        _controller.repeat();
+      }
     } else {
       _controller.stop();
     }

@@ -81,7 +81,9 @@ class CoinsScreenState extends State<CoinsScreen> {
       return;
     }
 
-    if (_isFetchingMarketData || coins.isEmpty) return;
+    if (_isFetchingMarketData || coins.isEmpty) {
+      return;
+    }
     setState(() => _isFetchingMarketData = true);
 
     final coinGeckoCoinsList = await fetchAllCoinGeckoCoins();
@@ -106,7 +108,9 @@ class CoinsScreenState extends State<CoinsScreen> {
     if (coinGeckoIds.isNotEmpty) {
       final marketData = await fetchCoinsMarketData(coinIds: coinGeckoIds);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _marketData = marketData;
@@ -133,9 +137,10 @@ class CoinsScreenState extends State<CoinsScreen> {
     for (final coin in coins) {
       final marketData = _marketData[coin.symbol?.toLowerCase()];
       if (marketData != null) {
-        holdings.add(
-          (balance: coin.balance ?? 0.0, price: marketData.currentPrice),
-        );
+        holdings.add((
+          balance: coin.balance ?? 0.0,
+          price: marketData.currentPrice,
+        ));
       }
     }
     return holdings;
@@ -143,7 +148,8 @@ class CoinsScreenState extends State<CoinsScreen> {
 
   /// The pct-carrying variant used by the header's 24h-change subline.
   List<({double balance, double price, double pct})> _changeHoldings(
-      List<Coin> coins) {
+    List<Coin> coins,
+  ) {
     final holdings = <({double balance, double price, double pct})>[];
     for (final coin in coins) {
       final marketData = _marketData[coin.symbol?.toLowerCase()];
@@ -166,15 +172,16 @@ class CoinsScreenState extends State<CoinsScreen> {
   /// `/receive` screen if receive grows beyond "show my address".
   void _showReceive(WalletDetailsState state) {
     final address = state.selectedWallet?.address;
-    if (address == null || address.isEmpty) return;
+    if (address == null || address.isEmpty) {
+      return;
+    }
     ResponsiveDrawer.show<void>(
       context: context,
       title: 'Receive',
       child: CryptoAddressQR(
         address: address,
-        network: state.selectedNetwork?.name ??
-            state.selectedNetwork?.symbol ??
-            '',
+        network:
+            state.selectedNetwork?.name ?? state.selectedNetwork?.symbol ?? '',
         iconPath: state.selectedNetwork?.iconPath,
       ),
     );
@@ -241,8 +248,9 @@ class CoinsScreenState extends State<CoinsScreen> {
           final bool isDashboard = widget.onCoinSelected == null;
           final currencyFormatter = NumberFormat.currency(symbol: "\$");
           final double total = assetsTotal(_valueHoldings(state.coins));
-          final double dayChange =
-              assetsDayChange(_changeHoldings(state.coins));
+          final double dayChange = assetsDayChange(
+            _changeHoldings(state.coins),
+          );
           final double pctOfTotal = total == 0 ? 0 : dayChange / total * 100;
 
           return SingleChildScrollView(
@@ -310,11 +318,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                   ),
                   if ((isDashboard || (widget.isUseDivider ?? false)) &&
                       i < orderedCoins.length - 1)
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: gw.borderSubtle,
-                    ),
+                    Divider(height: 1, thickness: 1, color: gw.borderSubtle),
                 ],
                 // Value-empty footer: the truly-no-coins case is handled above
                 // by the state.coins.isEmpty -> GWEmptyState branch; this strip
@@ -323,8 +327,9 @@ class CoinsScreenState extends State<CoinsScreen> {
                   Padding(
                     // top space8 mirrors the header's bottom space8 so the gap
                     // above the CTAs matches the Assets→first-row gap.
-                    padding:
-                        const EdgeInsets.only(top: GeniusWalletConsts.space8),
+                    padding: const EdgeInsets.only(
+                      top: GeniusWalletConsts.space8,
+                    ),
                     child: Row(
                       children: [
                         Expanded(

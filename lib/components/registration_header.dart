@@ -27,31 +27,33 @@ class _RegistrationHeader extends State<RegistrationHeader> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: const BoxDecoration(),
-        child: Stack(children: [
+      decoration: const BoxDecoration(),
+      child: Stack(
+        children: [
           Positioned(
             left: 0,
             width: widget.constraints.maxWidth * 1.0,
             top: 0,
             height: widget.constraints.maxHeight * 1.0,
-            child: Stack(children: [
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: 56,
-                child: Container(
-                  width: widget.constraints.maxWidth * 1.0,
-                  decoration: BoxDecoration(
-                    color: GeniusWalletColors.deepBlueCardColor,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: 56,
+                  child: Container(
+                    width: widget.constraints.maxWidth * 1.0,
+                    decoration: BoxDecoration(
+                      color: GeniusWalletColors.deepBlueCardColor,
+                    ),
                   ),
                 ),
-              ),
-              Positioned(
-                left: 30.0,
-                right: 30.0,
-                top: 100.0,
-                child: Container(
+                Positioned(
+                  left: 30.0,
+                  right: 30.0,
+                  top: 100.0,
+                  child: Container(
                     width: widget.constraints.maxWidth * 0.84,
                     child: AutoSizeText(
                       widget.ovrSubtitle ??
@@ -62,13 +64,14 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                         letterSpacing: 0.13750000298023224,
                         color: GeniusWalletColors.textPrimary,
                       ),
-                    )),
-              ),
-              Positioned(
-                left: 74.0,
-                right: 74.0,
-                top: 16,
-                child: SizedBox(
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 74.0,
+                  right: 74.0,
+                  top: 16,
+                  child: SizedBox(
                     width: widget.constraints.maxWidth * 0.6053333333333333,
                     child: AutoSizeText(
                       widget.ovrTitle ?? GeniusWalletText.titleWalletBackup,
@@ -80,31 +83,41 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                         color: GeniusWalletColors.textPrimary,
                       ),
                       textAlign: TextAlign.center,
-                    )),
-              ),
-              Positioned(
-                left: 30.0,
-                width: 10.0,
-                top: 20.0,
-                height: 18.0,
-                child: GeniusBackButtonCustom(
-                    child: LayoutBuilder(builder: (context, constraints) {
-                  return GeniusBackButton(
-                    constraints,
-                    ovrWhiteArrowBack: SvgPicture.asset(
-                      'assets/images/whitearrowback.svg',
-                      package: 'genius_wallet',
-                      height:
-                          widget.constraints.maxHeight * 0.09473684210526316,
-                      width: widget.constraints.maxWidth * 0.02666666666666667,
-                      fit: BoxFit.fill,
                     ),
-                  );
-                })),
-              ),
-            ]),
+                  ),
+                ),
+                Positioned(
+                  left: 30.0,
+                  width: 10.0,
+                  top: 20.0,
+                  height: 18.0,
+                  child: GeniusBackButtonCustom(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return GeniusBackButton(
+                          constraints,
+                          ovrWhiteArrowBack: SvgPicture.asset(
+                            'assets/images/whitearrowback.svg',
+                            package: 'genius_wallet',
+                            height:
+                                widget.constraints.maxHeight *
+                                0.09473684210526316,
+                            width:
+                                widget.constraints.maxWidth *
+                                0.02666666666666667,
+                            fit: BoxFit.fill,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ]));
+        ],
+      ),
+    );
   }
 
   @override

@@ -18,9 +18,7 @@ class AppScreenView extends StatelessWidget {
           CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              SliverToBoxAdapter(
-                child: body,
-              ),
+              SliverToBoxAdapter(child: body),
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Container(

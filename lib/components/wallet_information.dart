@@ -27,13 +27,14 @@ class WalletInformation extends StatefulWidget {
   final String? totalBalance;
   final String ovrAddressField;
   final WalletType walletType;
-  const WalletInformation(this.constraints,
-      {Key? key,
-      this.ovrShowMoreIcon,
-      this.totalBalance,
-      required this.ovrAddressField,
-      this.walletType = WalletType.tracking})
-      : super(key: key);
+  const WalletInformation(
+    this.constraints, {
+    Key? key,
+    this.ovrShowMoreIcon,
+    this.totalBalance,
+    required this.ovrAddressField,
+    this.walletType = WalletType.tracking,
+  }) : super(key: key);
   @override
   WalletInformationState createState() => WalletInformationState();
 }
@@ -47,199 +48,219 @@ class WalletInformationState extends State<WalletInformation> {
     final geniusApi = context.read<GeniusApi>();
 
     return BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-        builder: (context, state) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Label
-            Text(
-              'Total Balance',
-              style: GeniusWalletTypography.bodyLg.copyWith(
-                color: GeniusWalletColors.textPrimary70,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            // Balance
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Flexible(
-                  child: AutoSizeText(
-                    widget.totalBalance ?? "0.00",
-                    overflow: TextOverflow.ellipsis,
-                    style: GeniusWalletTypography.numericDisplay.copyWith(
-                      letterSpacing: 1.0,
-                    ),
+                // Label
+                Text(
+                  'Total Balance',
+                  style: GeniusWalletTypography.bodyLg.copyWith(
+                    color: GeniusWalletColors.textPrimary70,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(width: 6),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if ((widget.totalBalance == null) ||
-                widget.totalBalance == "0" ||
-                widget.totalBalance == "0.00" ||
-                widget.totalBalance == "\$0.00")
-              Text(
-                'No funds available',
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  color: GeniusWalletColors.statusError,
-                ),
-              ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.center,
-              child: SizedBox(
-                width: 220,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: const [
-                    SGNUSConnectionWidget(),
-                    SizedBox(height: 8),
-                    SGNUSConnectionStatusWidget(),
+                const SizedBox(height: 4),
+                // Balance
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Flexible(
+                      child: AutoSizeText(
+                        widget.totalBalance ?? "0.00",
+                        overflow: TextOverflow.ellipsis,
+                        style: GeniusWalletTypography.numericDisplay.copyWith(
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
                   ],
                 ),
-              ),
-            )
-          ],
-        ),
-        const SizedBox(height: 20),
-        Row(children: [
-          if (widget.walletType == WalletType.tracking) ...[
-            Expanded(
-                child: Column(
-              children: [
-                Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                            GeniusWalletConsts.borderRadiusCard),
-                        color: GeniusWalletColors.surfaceElevated),
-                    child: Text(
-                      "You are watching this account",
-                      style: GeniusWalletTypography.headlineMd,
-                    )),
-                const SizedBox(height: 24),
-                WalletAddressCustom(
-                    child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                      Flexible(
-                          child: Text(
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        widget.ovrAddressField,
-                        style: GeniusWalletTypography.bodyLg.copyWith(
-                          letterSpacing: 0.4,
-                        ),
-                      )),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.copy_rounded, size: 24)
-                    ]))
-              ],
-            ))
-          ],
-          if (widget.walletType != WalletType.tracking) ...[
-            ActionButton(
-              onPressed: () {
-                ResponsiveDrawer.show<void>(
-                  context: context,
-                  title: "Your ${state.selectedNetwork?.name} address",
-                  child: Container(
-                    margin: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * .15),
-                    alignment: Alignment.center,
-                    child: CryptoAddressQR(
-                      iconPath: state.selectedNetwork?.iconPath,
-                      address: state.selectedWallet?.address ?? "",
-                      network: state.selectedNetwork?.name ?? "",
+                const SizedBox(height: 8),
+                if ((widget.totalBalance == null) ||
+                    widget.totalBalance == "0" ||
+                    widget.totalBalance == "0.00" ||
+                    widget.totalBalance == "\$0.00")
+                  Text(
+                    'No funds available',
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      color: GeniusWalletColors.statusError,
                     ),
                   ),
-                );
-              },
-              text: 'Receive',
-              semanticLabel: "Receive ",
-              icon: Icons.qr_code,
-            ),
-            const SizedBox(width: 8),
-            // No send flow yet — muted/disabled rather than a dead button.
-            const ActionButton(
-              text: 'Send',
-              icon: Icons.send,
-              semanticLabel: "Send",
-              iconColor: GeniusWalletColors.textSecondary,
-              textColor: GeniusWalletColors.textSecondary,
-              onPressed: null,
-            ),
-            const SizedBox(width: 8),
-            ActionButton(
-              text: 'Buy GNUS',
-              semanticLabel: "Buy GNUS crypto",
-              icon: Icons.attach_money,
-              onPressed: () async {
-                context.push('/buy');
-              },
-            ),
-            const SizedBox(width: 8),
-            ActionButton(
-              text: "More",
-              semanticLabel: "See more options",
-              icon: Icons.more_horiz,
-              onPressed: () {
-                ResponsiveDrawer.show<void>(
-                  context: context,
-                  title: "More Options",
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      StreamBuilder<SGNUSConnection>(
-                        stream: geniusApi.getSGNUSConnectionStream(),
-                        builder: (context, snapshot) {
-                          final connection = snapshot.data;
-                          return SubmitJobButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            walletDetailsCubit: walletDetailsCubit,
-                            walletAddress: state.selectedWallet?.address ?? "",
-                            gnusConnectedWalletAddress:
-                                connection?.walletAddress ?? "",
-                          );
-                        },
-                      ),
-                      SlidingDrawerButton(
-                        onPressed: () {
-                          geniusApi.deleteWallet(
-                              state.selectedWallet?.address ?? "");
-                          showAppSnackBar(context,
-                              'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!');
-
-                          Navigator.of(context).pop();
-                          Future.delayed(const Duration(milliseconds: 100),
-                              () {
-                            // ignore: use_build_context_synchronously
-                            context.go('/dashboard');
-                          });
-                        },
-                        color: GeniusWalletColors.statusError,
-                        icon: FontAwesomeIcons.trash.data,
-                        label: "Delete Wallet",
-                      ),
-                    ],
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: 220,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: const [
+                        SGNUSConnectionWidget(),
+                        SizedBox(height: 8),
+                        SGNUSConnectionStatusWidget(),
+                      ],
+                    ),
                   ),
-                );
-              },
+                ),
+              ],
             ),
-          ]
-        ]),
-      ]);
-    });
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                if (widget.walletType == WalletType.tracking) ...[
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              GeniusWalletConsts.borderRadiusCard,
+                            ),
+                            color: GeniusWalletColors.surfaceElevated,
+                          ),
+                          child: Text(
+                            "You are watching this account",
+                            style: GeniusWalletTypography.headlineMd,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        WalletAddressCustom(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  widget.ovrAddressField,
+                                  style: GeniusWalletTypography.bodyLg.copyWith(
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Icon(Icons.copy_rounded, size: 24),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (widget.walletType != WalletType.tracking) ...[
+                  ActionButton(
+                    onPressed: () {
+                      ResponsiveDrawer.show<void>(
+                        context: context,
+                        title: "Your ${state.selectedNetwork?.name} address",
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            top: MediaQuery.of(context).size.height * .15,
+                          ),
+                          alignment: Alignment.center,
+                          child: CryptoAddressQR(
+                            iconPath: state.selectedNetwork?.iconPath,
+                            address: state.selectedWallet?.address ?? "",
+                            network: state.selectedNetwork?.name ?? "",
+                          ),
+                        ),
+                      );
+                    },
+                    text: 'Receive',
+                    semanticLabel: "Receive ",
+                    icon: Icons.qr_code,
+                  ),
+                  const SizedBox(width: 8),
+                  // No send flow yet — muted/disabled rather than a dead button.
+                  const ActionButton(
+                    text: 'Send',
+                    icon: Icons.send,
+                    semanticLabel: "Send",
+                    iconColor: GeniusWalletColors.textSecondary,
+                    textColor: GeniusWalletColors.textSecondary,
+                    onPressed: null,
+                  ),
+                  const SizedBox(width: 8),
+                  ActionButton(
+                    text: 'Buy GNUS',
+                    semanticLabel: "Buy GNUS crypto",
+                    icon: Icons.attach_money,
+                    onPressed: () async {
+                      context.push('/buy');
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  ActionButton(
+                    text: "More",
+                    semanticLabel: "See more options",
+                    icon: Icons.more_horiz,
+                    onPressed: () {
+                      ResponsiveDrawer.show<void>(
+                        context: context,
+                        title: "More Options",
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            StreamBuilder<SGNUSConnection>(
+                              stream: geniusApi.getSGNUSConnectionStream(),
+                              builder: (context, snapshot) {
+                                final connection = snapshot.data;
+                                return SubmitJobButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  walletDetailsCubit: walletDetailsCubit,
+                                  walletAddress:
+                                      state.selectedWallet?.address ?? "",
+                                  gnusConnectedWalletAddress:
+                                      connection?.walletAddress ?? "",
+                                );
+                              },
+                            ),
+                            SlidingDrawerButton(
+                              onPressed: () {
+                                geniusApi.deleteWallet(
+                                  state.selectedWallet?.address ?? "",
+                                );
+                                showAppSnackBar(
+                                  context,
+                                  'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!',
+                                );
+
+                                Navigator.of(context).pop();
+                                Future.delayed(
+                                  const Duration(milliseconds: 100),
+                                  () {
+                                    // ignore: use_build_context_synchronously
+                                    context.go('/dashboard');
+                                  },
+                                );
+                              },
+                              color: GeniusWalletColors.statusError,
+                              icon: FontAwesomeIcons.trash.data,
+                              label: "Delete Wallet",
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

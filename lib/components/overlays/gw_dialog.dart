@@ -98,12 +98,14 @@ class GWDialog extends StatelessWidget {
                   spacing: GeniusWalletConsts.space4,
                   runSpacing: GeniusWalletConsts.space4,
                   children: actions
-                      .map((a) => GWButton(
-                            label: a.label,
-                            onPressed: a.onPressed,
-                            variant: a.variant,
-                            isLoading: a.isLoading,
-                          ))
+                      .map(
+                        (a) => GWButton(
+                          label: a.label,
+                          onPressed: a.onPressed,
+                          variant: a.variant,
+                          isLoading: a.isLoading,
+                        ),
+                      )
                       .toList(),
                 ),
               ],

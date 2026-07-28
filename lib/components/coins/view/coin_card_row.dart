@@ -73,8 +73,9 @@ class CoinCardRow extends StatelessWidget {
               currencyFormatter.format(price),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GeniusWalletTypography.bodySm
-                  .copyWith(color: gw.textSecondary),
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textSecondary,
+              ),
             ),
           ),
           const SizedBox(width: 6),

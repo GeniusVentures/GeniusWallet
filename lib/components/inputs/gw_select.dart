@@ -96,11 +96,9 @@ class GWSelect<T> extends StatelessWidget {
         ),
         border: _border(GeniusWalletColors.borderSubtle),
         enabledBorder: _border(GeniusWalletColors.borderSubtle),
-        focusedBorder:
-            _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
+        focusedBorder: _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
         errorBorder: _border(GeniusWalletColors.statusError),
-        focusedErrorBorder:
-            _border(GeniusWalletColors.statusError, width: 2),
+        focusedErrorBorder: _border(GeniusWalletColors.statusError, width: 2),
         disabledBorder: _border(GeniusWalletColors.borderSubtle),
         errorText: errorText,
         errorStyle: GeniusWalletTypography.bodySm.copyWith(
@@ -113,7 +111,9 @@ class GWSelect<T> extends StatelessWidget {
       ),
     );
 
-    if (label == null) return field;
+    if (label == null) {
+      return field;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

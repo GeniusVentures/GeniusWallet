@@ -6,10 +6,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:shimmer/shimmer.dart';
 
 class GWLoadingState extends StatelessWidget {
-  const GWLoadingState({
-    super.key,
-    this.message,
-  });
+  const GWLoadingState({super.key, this.message});
 
   final String? message;
 

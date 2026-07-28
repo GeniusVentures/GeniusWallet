@@ -206,7 +206,9 @@ class GWTextField extends StatelessWidget {
   bool get _borderless => borderless || focusRing;
 
   Widget _maybeRing(GWColors gw, Widget field) {
-    if (!focusRing) return field;
+    if (!focusRing) {
+      return field;
+    }
     return GWFocusRing(
       radius: GeniusWalletConsts.radiusLg,
       background: fill ?? gw.surfaceElevated,

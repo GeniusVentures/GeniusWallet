@@ -31,15 +31,17 @@ class BottomDrawer extends StatelessWidget {
             // Header
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: GeniusWalletConsts.space8,
-                  vertical: GeniusWalletConsts.space6),
+                horizontal: GeniusWalletConsts.space8,
+                vertical: GeniusWalletConsts.space6,
+              ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   // Centered Title
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 30), // Leaves space for X
+                      horizontal: 30,
+                    ), // Leaves space for X
                     child: Text(
                       title ?? '',
                       textAlign: TextAlign.center,
@@ -68,13 +70,15 @@ class BottomDrawer extends StatelessWidget {
             // Scrollable content
             Expanded(
               child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: GeniusWalletConsts.space8,
-                      vertical: GeniusWalletConsts.space6),
-                  child: ListView.builder(
-                    itemCount: children.length,
-                    itemBuilder: (context, index) => children[index],
-                  )),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space8,
+                  vertical: GeniusWalletConsts.space6,
+                ),
+                child: ListView.builder(
+                  itemCount: children.length,
+                  itemBuilder: (context, index) => children[index],
+                ),
+              ),
             ),
 
             // Footer

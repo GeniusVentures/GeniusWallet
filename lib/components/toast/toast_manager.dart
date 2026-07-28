@@ -42,7 +42,9 @@ class ToastManager {
   }
 
   void _dismiss(_ActiveToast toast, VoidCallback? onClose) {
-    if (toast.dismissed) return;
+    if (toast.dismissed) {
+      return;
+    }
     toast.dismissed = true;
     toast.timer?.cancel();
     _toasts.remove(toast);

@@ -26,8 +26,7 @@ class Loading extends StatelessWidget {
           rightDotColor: GeniusWalletColors.statusInfo,
           size: 50,
         ),
-        if (text != null)
-          Text(text!, style: GeniusWalletTypography.headlineLg),
+        if (text != null) Text(text!, style: GeniusWalletTypography.headlineLg),
       ],
     );
   }

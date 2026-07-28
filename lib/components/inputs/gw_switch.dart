@@ -43,7 +43,9 @@ class GWSwitch extends StatelessWidget {
       // Keep Flutter's padded 48px min tap target (was shrinkWrap → ~30-40px).
     );
 
-    if (label == null && description == null) return toggle;
+    if (label == null && description == null) {
+      return toggle;
+    }
 
     return InkWell(
       onTap: disabled ? null : () => onChanged!(!value),
