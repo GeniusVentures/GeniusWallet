@@ -51,10 +51,7 @@ const minus = '−';
 void main() {
   group('formatTxAmount', () {
     test('clamps a 9-decimal whale amount to 2 dp — the width symptom', () {
-      expect(
-        formatTxAmount('123456789.123456789123456789'),
-        '123,456,789.12',
-      );
+      expect(formatTxAmount('123456789.123456789123456789'), '123,456,789.12');
     });
 
     test('>= 1000 always shows exactly 2 dp, grouped', () {
@@ -138,16 +135,19 @@ void main() {
   group('fiatValue', () {
     const prices = {'eth': 3200.0, 'gnus': 0.85};
 
-    test('an unknown symbol is null, never 0 — absence, not a wrong number', () {
-      expect(
-        fiatValue(symbol: 'NOPE', amount: 5, pricesBySymbol: prices),
-        isNull,
-      );
-      expect(
-        fiatValue(symbol: 'ETH', amount: 5, pricesBySymbol: const {}),
-        isNull,
-      );
-    });
+    test(
+      'an unknown symbol is null, never 0 — absence, not a wrong number',
+      () {
+        expect(
+          fiatValue(symbol: 'NOPE', amount: 5, pricesBySymbol: prices),
+          isNull,
+        );
+        expect(
+          fiatValue(symbol: 'ETH', amount: 5, pricesBySymbol: const {}),
+          isNull,
+        );
+      },
+    );
 
     test('multiplies price by amount, case-insensitively', () {
       expect(fiatValue(symbol: 'eth', amount: 2, pricesBySymbol: prices), 6400);
@@ -441,8 +441,10 @@ void main() {
         amountOf(TransactionType.transfer, TransactionDirection.received),
         startsWith('+'),
       );
-      expect(amountOf(TransactionType.escrow, TransactionDirection.sent),
-          startsWith(minus));
+      expect(
+        amountOf(TransactionType.escrow, TransactionDirection.sent),
+        startsWith(minus),
+      );
       for (final type in [
         TransactionType.mint,
         TransactionType.escrowRelease,

@@ -21,16 +21,16 @@ const _hash =
 
 Transaction _tx({TransactionStatus status = TransactionStatus.completed}) =>
     Transaction(
-  hash: _hash,
-  fromAddress: '0x1111222233334444555566667777888899990000',
-  recipients: [TransferRecipients(toAddr: _toAddress, amount: '1.25')],
-  timeStamp: DateTime(2026, 7, 20, 18, 42),
-  transactionDirection: TransactionDirection.sent,
-  fees: '0.00042',
-  coinSymbol: 'ETH',
-  transactionStatus: status,
-  type: TransactionType.transfer,
-);
+      hash: _hash,
+      fromAddress: '0x1111222233334444555566667777888899990000',
+      recipients: [TransferRecipients(toAddr: _toAddress, amount: '1.25')],
+      timeStamp: DateTime(2026, 7, 20, 18, 42),
+      transactionDirection: TransactionDirection.sent,
+      fees: '0.00042',
+      coinSymbol: 'ETH',
+      transactionStatus: status,
+      type: TransactionType.transfer,
+    );
 
 void main() {
   late List<String> copied;
@@ -133,7 +133,11 @@ void main() {
       final texts = tester.widgetList<Text>(find.text(label)).toList();
       // Exactly two: the pill under the amount and the Status row's value. If
       // this ever finds one, a consumer was dropped rather than recoloured.
-      expect(texts, hasLength(2), reason: 'pill + Status row both print $label');
+      expect(
+        texts,
+        hasLength(2),
+        reason: 'pill + Status row both print $label',
+      );
       expect(texts[0].style?.color, isNotNull);
       expect(texts[0].style?.color, texts[1].style?.color);
     });

@@ -39,22 +39,32 @@ void main() {
   group('the locked fills are the locked values', () {
     final gw = GWColors.dark();
     test('sent + escrow are Slate #64748B', () {
-      expect(badgeSpec(TransactionBadgeKind.sent, gw).fill.toARGB32(),
-          0xFF64748B);
-      expect(badgeSpec(TransactionBadgeKind.escrow, gw).fill.toARGB32(),
-          0xFF64748B);
+      expect(
+        badgeSpec(TransactionBadgeKind.sent, gw).fill.toARGB32(),
+        0xFF64748B,
+      );
+      expect(
+        badgeSpec(TransactionBadgeKind.escrow, gw).fill.toARGB32(),
+        0xFF64748B,
+      );
     });
     test('mint is brandTertiary #C28FFF', () {
-      expect(badgeSpec(TransactionBadgeKind.mint, gw).fill.toARGB32(),
-          0xFFC28FFF);
+      expect(
+        badgeSpec(TransactionBadgeKind.mint, gw).fill.toARGB32(),
+        0xFFC28FFF,
+      );
     });
     test('job is brandPrimaryStrong #0AAEE6', () {
       expect(
-          badgeSpec(TransactionBadgeKind.job, gw).fill.toARGB32(), 0xFF0AAEE6);
+        badgeSpec(TransactionBadgeKind.job, gw).fill.toARGB32(),
+        0xFF0AAEE6,
+      );
     });
     test('pending is statusWarning #FFC42E', () {
-      expect(badgeSpec(TransactionBadgeKind.pending, gw).fill.toARGB32(),
-          0xFFFFC42E);
+      expect(
+        badgeSpec(TransactionBadgeKind.pending, gw).fill.toARGB32(),
+        0xFFFFC42E,
+      );
     });
   });
 

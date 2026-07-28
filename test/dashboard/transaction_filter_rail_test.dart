@@ -198,7 +198,9 @@ void main() {
   // 1 -------------------------------------------------------------------
   testWidgets('the rail unrolls the whole menu', (tester) async {
     _surface(tester);
-    await tester.pumpWidget(_host(width: 1200, gw: gwFor(GWAppearanceMode.dark)));
+    await tester.pumpWidget(
+      _host(width: 1200, gw: gwFor(GWAppearanceMode.dark)),
+    );
     expect(tester.takeException(), isNull);
 
     // NINE rows: seven types + two statuses. There is NO All element at all
@@ -211,7 +213,9 @@ void main() {
     expect(railText('Status'), findsOneWidget);
 
     for (final f in Filters.values) {
-      if (f == Filters.all) continue;
+      if (f == Filters.all) {
+        continue;
+      }
       expect(railText(f.label), findsOneWidget, reason: '${f.label} missing');
     }
 
@@ -230,7 +234,9 @@ void main() {
     _surface(tester);
 
     // PAGE.
-    await tester.pumpWidget(_host(width: 1200, gw: gwFor(GWAppearanceMode.dark)));
+    await tester.pumpWidget(
+      _host(width: 1200, gw: gwFor(GWAppearanceMode.dark)),
+    );
     expect(tester.takeException(), isNull);
     expect(find.textContaining(RegExp(r'\d+ transactions?')), findsNothing);
 
@@ -250,7 +256,9 @@ void main() {
   // 3 -------------------------------------------------------------------
   testWidgets('counts are computed over the unfiltered list', (tester) async {
     _surface(tester);
-    await tester.pumpWidget(_host(width: 1200, gw: gwFor(GWAppearanceMode.dark)));
+    await tester.pumpWidget(
+      _host(width: 1200, gw: gwFor(GWAppearanceMode.dark)),
+    );
 
     final before = _countOf(tester, rowFor('Sent'));
     expect(before, isNot('0'));
@@ -276,8 +284,10 @@ void main() {
     final gw = gwFor(GWAppearanceMode.dark);
     await tester.pumpWidget(_host(width: 1200, gw: gw));
 
-    expect(tester.widget<Text>(railText('Mint')).style!.fontWeight,
-        FontWeight.w500);
+    expect(
+      tester.widget<Text>(railText('Mint')).style!.fontWeight,
+      FontWeight.w500,
+    );
 
     await tester.tap(rowFor('Mint'));
     await tester.pumpAndSettle();
@@ -301,8 +311,10 @@ void main() {
 
     // Another row is untouched, so w700 is a SELECTION mark and not the rail's
     // resting weight.
-    expect(tester.widget<Text>(railText('Sent')).style!.fontWeight,
-        FontWeight.w500);
+    expect(
+      tester.widget<Text>(railText('Sent')).style!.fontWeight,
+      FontWeight.w500,
+    );
   });
 
   // 4b ------------------------------------------------------------------
@@ -313,12 +325,17 @@ void main() {
     // a filter with no visible route out. RED if the toggle regresses to a
     // plain re-select: the row would stay w700 on the second tap.
     _surface(tester);
-    await tester.pumpWidget(_host(width: 1200, gw: gwFor(GWAppearanceMode.dark)));
+    await tester.pumpWidget(
+      _host(width: 1200, gw: gwFor(GWAppearanceMode.dark)),
+    );
 
     await tester.tap(rowFor('Mint'));
     await tester.pumpAndSettle();
-    expect(tester.widget<Text>(railText('Mint')).style!.fontWeight,
-        FontWeight.w700, reason: 'first tap activates');
+    expect(
+      tester.widget<Text>(railText('Mint')).style!.fontWeight,
+      FontWeight.w700,
+      reason: 'first tap activates',
+    );
 
     await tester.tap(rowFor('Mint'));
     await tester.pumpAndSettle();
@@ -332,7 +349,9 @@ void main() {
     );
     // And no row anywhere wears the active weight now.
     for (final f in Filters.values) {
-      if (f == Filters.all) continue;
+      if (f == Filters.all) {
+        continue;
+      }
       expect(
         tester.widget<Text>(railText(f.label)).style!.fontWeight,
         FontWeight.w500,
@@ -422,7 +441,9 @@ void main() {
   // 7 -------------------------------------------------------------------
   testWidgets('rest geometry matches the menu item', (tester) async {
     _surface(tester);
-    await tester.pumpWidget(_host(width: 1200, gw: gwFor(GWAppearanceMode.dark)));
+    await tester.pumpWidget(
+      _host(width: 1200, gw: gwFor(GWAppearanceMode.dark)),
+    );
     expect(tester.takeException(), isNull);
 
     // 40 = `space20`, the height `_menuItem` uses and the height the navbar
@@ -438,8 +459,10 @@ void main() {
     // `GWDecorations.surface` carries one. 194, not the 196 a padding-only
     // reading gives. If either drifts, the width arithmetic in `_railWidth`'s
     // comment stops describing the widget.
-    expect(tester.getSize(find.byType(DashboardScrollContainer).first).width,
-        220);
+    expect(
+      tester.getSize(find.byType(DashboardScrollContainer).first).width,
+      220,
+    );
     expect(tester.getSize(railFinder).width, 194);
 
     // The measured half of `_railWidth`'s budget: 194 - 24 row padding - 14

@@ -222,8 +222,9 @@ void main() {
 
   group('bridgeCtaEnabled — exhaustive', () {
     test('only ready is enabled', () {
-      final enabledStates =
-          BridgeCtaState.values.where(bridgeCtaEnabled).toSet();
+      final enabledStates = BridgeCtaState.values
+          .where(bridgeCtaEnabled)
+          .toSet();
       expect(enabledStates, {BridgeCtaState.ready});
     });
   });

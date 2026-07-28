@@ -158,10 +158,7 @@ void main() {
       for (final f in Filters.primary) {
         expect(Filters.isInOverflow(f), isFalse, reason: f.label);
       }
-      for (final f in [
-        ...Filters.overflowTypes,
-        ...Filters.overflowStatuses,
-      ]) {
+      for (final f in [...Filters.overflowTypes, ...Filters.overflowStatuses]) {
         expect(Filters.isInOverflow(f), isTrue, reason: f.label);
       }
       expect(Filters.isInOverflow(Filters.all), isFalse);
@@ -179,10 +176,7 @@ void main() {
     final txs = [
       _tx(type: TransactionType.transfer, direction: TransactionDirection.sent),
       _tx(type: TransactionType.swap, direction: TransactionDirection.sent),
-      _tx(
-        type: TransactionType.mint,
-        direction: TransactionDirection.received,
-      ),
+      _tx(type: TransactionType.mint, direction: TransactionDirection.received),
       _tx(type: TransactionType.escrow),
       _tx(type: TransactionType.escrowRelease),
       _tx(type: TransactionType.process, status: TransactionStatus.pending),
@@ -264,12 +258,14 @@ void main() {
       expect(filteredEmptyTitle(Filters.jobs), 'No computing transactions');
     });
 
-    test('the filtered message states how many DO exist, and agrees in number',
-        () {
-      expect(filteredEmptyMessage(1), contains('You have 1 transaction,'));
-      expect(filteredEmptyMessage(1), isNot(contains('transactions')));
-      expect(filteredEmptyMessage(8), contains('You have 8 transactions,'));
-    });
+    test(
+      'the filtered message states how many DO exist, and agrees in number',
+      () {
+        expect(filteredEmptyMessage(1), contains('You have 1 transaction,'));
+        expect(filteredEmptyMessage(1), isNot(contains('transactions')));
+        expect(filteredEmptyMessage(8), contains('You have 8 transactions,'));
+      },
+    );
 
     test('the two empty states are never the same words', () {
       for (final f in Filters.values.where((f) => f != Filters.all)) {
@@ -359,7 +355,8 @@ void main() {
       final withinDay =
           tester.getRect(rows.at(1)).top - tester.getRect(rows.at(0)).bottom;
       // Second row's bottom up to the YESTERDAY label — pure padding.
-      final aboveLabel = tester.getRect(find.text('YESTERDAY')).top -
+      final aboveLabel =
+          tester.getRect(find.text('YESTERDAY')).top -
           tester.getRect(rows.at(1)).bottom;
 
       expect(

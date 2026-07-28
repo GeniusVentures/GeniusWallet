@@ -57,7 +57,10 @@ Widget _host(Transaction tx, {required double width, required GWColors gw}) =>
       theme: ThemeData(extensions: [gw]),
       home: Scaffold(
         body: Center(
-          child: SizedBox(width: width, child: TransactionRow(tx: tx)),
+          child: SizedBox(
+            width: width,
+            child: TransactionRow(tx: tx),
+          ),
         ),
       ),
     );
@@ -96,8 +99,10 @@ void main() {
     ),
   };
 
-  for (final appearance in {'dark': GWColors.dark(), 'light': GWColors.light()}
-      .entries) {
+  for (final appearance in {
+    'dark': GWColors.dark(),
+    'light': GWColors.light(),
+  }.entries) {
     for (final width in widths) {
       for (final entry in cases.entries) {
         testWidgets(

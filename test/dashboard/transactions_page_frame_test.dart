@@ -236,9 +236,7 @@ void main() {
     await tester.pumpWidget(_host());
     await tester.pumpAndSettle();
 
-    final listCard = tester.getSize(
-      find.byType(DashboardScrollContainer).last,
-    );
+    final listCard = tester.getSize(find.byType(DashboardScrollContainer).last);
     // Well under the 2000px window and comfortably under the 496 floor's worst
     // case — a stretched card would be ~1900+. The floor keeps it >= 496 so the
     // pair stays aligned; the ceiling here is what proves it is not stretched.
