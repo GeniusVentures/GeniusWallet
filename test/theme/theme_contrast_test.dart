@@ -30,74 +30,68 @@ ThemeData themeFor(GWAppearanceMode mode) {
 }
 
 void main() {
-  group(
-    'Part 2: foreground-on-brand-fill pairings clear 4.5:1 (both modes)',
-    () {
-      for (final mode in GWAppearanceMode.values) {
-        test(
-          'checkbox checkColor(selected) vs fillColor(selected) -- $mode',
-          () {
-            final theme = themeFor(mode);
-            final fg = theme.checkboxTheme.checkColor?.resolve(
-              {WidgetState.selected},
-            );
-            final bg = theme.checkboxTheme.fillColor?.resolve(
-              {WidgetState.selected},
-            );
-            expect(fg, isNotNull);
-            expect(bg, isNotNull);
-            expect(
-              contrastRatio(fg!, bg!),
-              greaterThanOrEqualTo(4.5),
-              reason:
-                  'checkbox checkColor(selected)=$fg vs '
-                  'fillColor(selected)=$bg in $mode mode',
-            );
-          },
+  group('Part 2: foreground-on-brand-fill pairings clear 4.5:1 (both modes)', () {
+    for (final mode in GWAppearanceMode.values) {
+      test('checkbox checkColor(selected) vs fillColor(selected) -- $mode', () {
+        final theme = themeFor(mode);
+        final fg = theme.checkboxTheme.checkColor?.resolve({
+          WidgetState.selected,
+        });
+        final bg = theme.checkboxTheme.fillColor?.resolve({
+          WidgetState.selected,
+        });
+        expect(fg, isNotNull);
+        expect(bg, isNotNull);
+        expect(
+          contrastRatio(fg!, bg!),
+          greaterThanOrEqualTo(4.5),
+          reason:
+              'checkbox checkColor(selected)=$fg vs '
+              'fillColor(selected)=$bg in $mode mode',
         );
+      });
 
-        test(
-          'datePicker headerForegroundColor vs headerBackgroundColor -- $mode',
-          () {
-            final theme = themeFor(mode);
-            final fg = theme.datePickerTheme.headerForegroundColor;
-            final bg = theme.datePickerTheme.headerBackgroundColor;
-            expect(fg, isNotNull);
-            expect(bg, isNotNull);
-            expect(
-              contrastRatio(fg!, bg!),
-              greaterThanOrEqualTo(4.5),
-              reason:
-                  'datePicker headerForegroundColor=$fg vs '
-                  'headerBackgroundColor=$bg in $mode mode',
-            );
-          },
-        );
+      test(
+        'datePicker headerForegroundColor vs headerBackgroundColor -- $mode',
+        () {
+          final theme = themeFor(mode);
+          final fg = theme.datePickerTheme.headerForegroundColor;
+          final bg = theme.datePickerTheme.headerBackgroundColor;
+          expect(fg, isNotNull);
+          expect(bg, isNotNull);
+          expect(
+            contrastRatio(fg!, bg!),
+            greaterThanOrEqualTo(4.5),
+            reason:
+                'datePicker headerForegroundColor=$fg vs '
+                'headerBackgroundColor=$bg in $mode mode',
+          );
+        },
+      );
 
-        test(
-          'datePicker dayForegroundColor(selected) vs dayBackgroundColor(selected) -- $mode',
-          () {
-            final theme = themeFor(mode);
-            final fg = theme.datePickerTheme.dayForegroundColor?.resolve(
-              {WidgetState.selected},
-            );
-            final bg = theme.datePickerTheme.dayBackgroundColor?.resolve(
-              {WidgetState.selected},
-            );
-            expect(fg, isNotNull);
-            expect(bg, isNotNull);
-            expect(
-              contrastRatio(fg!, bg!),
-              greaterThanOrEqualTo(4.5),
-              reason:
-                  'datePicker dayForegroundColor(selected)=$fg vs '
-                  'dayBackgroundColor(selected)=$bg in $mode mode',
-            );
-          },
-        );
-      }
-    },
-  );
+      test(
+        'datePicker dayForegroundColor(selected) vs dayBackgroundColor(selected) -- $mode',
+        () {
+          final theme = themeFor(mode);
+          final fg = theme.datePickerTheme.dayForegroundColor?.resolve({
+            WidgetState.selected,
+          });
+          final bg = theme.datePickerTheme.dayBackgroundColor?.resolve({
+            WidgetState.selected,
+          });
+          expect(fg, isNotNull);
+          expect(bg, isNotNull);
+          expect(
+            contrastRatio(fg!, bg!),
+            greaterThanOrEqualTo(4.5),
+            reason:
+                'datePicker dayForegroundColor(selected)=$fg vs '
+                'dayBackgroundColor(selected)=$bg in $mode mode',
+          );
+        },
+      );
+    }
+  });
 
   group(
     'Part 3: focus/selection states clear 4.5:1 on every light surface (both modes)',
@@ -138,11 +132,7 @@ void main() {
               token,
               reason: 'tabBarTheme.indicatorColor ($mode)',
             );
-            expect(
-              checkboxSide,
-              token,
-              reason: 'checkboxTheme.side ($mode)',
-            );
+            expect(checkboxSide, token, reason: 'checkboxTheme.side ($mode)');
             expect(
               progressColor,
               token,

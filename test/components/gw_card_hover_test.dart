@@ -15,17 +15,17 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// hover no longer changes all three.
 
 Widget _host({required bool hoverLift}) => MaterialApp(
-      theme: ThemeData(extensions: [GWColors.dark()]),
-      home: Scaffold(
-        body: Center(
-          child: GWCard(
-            hoverLift: hoverLift,
-            onTap: () {},
-            child: const SizedBox(width: 220, height: 120),
-          ),
-        ),
+  theme: ThemeData(extensions: [GWColors.dark()]),
+  home: Scaffold(
+    body: Center(
+      child: GWCard(
+        hoverLift: hoverLift,
+        onTap: () {},
+        child: const SizedBox(width: 220, height: 120),
       ),
-    );
+    ),
+  ),
+);
 
 AnimatedContainer _animated(WidgetTester tester) =>
     tester.widget<AnimatedContainer>(find.byType(AnimatedContainer));
@@ -36,11 +36,10 @@ AnimatedContainer _animated(WidgetTester tester) =>
 double _liftY(WidgetTester tester) =>
     _animated(tester).transform?.getTranslation().y ?? 0.0;
 
-Color _borderColor(WidgetTester tester) => ((_animated(tester).decoration
-        as BoxDecoration)
-    .border as Border)
-    .top
-    .color;
+Color _borderColor(WidgetTester tester) =>
+    ((_animated(tester).decoration as BoxDecoration).border as Border)
+        .top
+        .color;
 
 /// The brand tint painted OVER the card on hover (null at rest).
 Color? _hoverTint(WidgetTester tester) =>
@@ -50,8 +49,9 @@ double _shadowDy(WidgetTester tester) =>
     (_animated(tester).decoration as BoxDecoration).boxShadow!.first.offset.dy;
 
 void main() {
-  testWidgets('hover paints the shared brand tint + brand hairline, no lift',
-      (tester) async {
+  testWidgets('hover paints the shared brand tint + brand hairline, no lift', (
+    tester,
+  ) async {
     final gw = GWColors.dark();
     await tester.pumpWidget(_host(hoverLift: true));
 
@@ -62,8 +62,7 @@ void main() {
     expect(_shadowDy(tester), GeniusWalletElevation.card.first.offset.dy);
 
     // Move a synthetic mouse over the card.
-    final gesture =
-        await tester.createGesture(kind: PointerDeviceKind.mouse);
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
     await gesture.addPointer(location: Offset.zero);
     addTearDown(gesture.removePointer);
     await gesture.moveTo(tester.getCenter(find.byType(GWCard)));
@@ -74,12 +73,21 @@ void main() {
     // lift and the dialog-shadow deepening were this card's half of three
     // disagreeing hovers and are deliberately gone.
     expect(_liftY(tester), 0.0, reason: 'the card no longer rises on hover');
-    expect(_borderColor(tester), GWDecorations.hoverEdge,
-        reason: 'hairline goes BRAND on hover, not merely stronger');
-    expect(_shadowDy(tester), GeniusWalletElevation.card.first.offset.dy,
-        reason: 'shadow is hover-invariant now');
-    expect(_hoverTint(tester), GWDecorations.hoverFill,
-        reason: 'the brand tint is painted over the card');
+    expect(
+      _borderColor(tester),
+      GWDecorations.hoverEdge,
+      reason: 'hairline goes BRAND on hover, not merely stronger',
+    );
+    expect(
+      _shadowDy(tester),
+      GeniusWalletElevation.card.first.offset.dy,
+      reason: 'shadow is hover-invariant now',
+    );
+    expect(
+      _hoverTint(tester),
+      GWDecorations.hoverFill,
+      reason: 'the brand tint is painted over the card',
+    );
 
     // Move the mouse away; the card settles back to rest.
     await gesture.moveTo(const Offset(-100, -100));

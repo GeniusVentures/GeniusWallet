@@ -29,8 +29,13 @@ void main() {
 
   group('webIsSecure', () {
     test('https is secure', () => expect(webIsSecure('https://x.com'), true));
-    test('http is not secure', () => expect(webIsSecure('http://x.com'), false));
-    test('about:blank is not secure',
-        () => expect(webIsSecure('about:blank'), false));
+    test(
+      'http is not secure',
+      () => expect(webIsSecure('http://x.com'), false),
+    );
+    test(
+      'about:blank is not secure',
+      () => expect(webIsSecure('about:blank'), false),
+    );
   });
 }

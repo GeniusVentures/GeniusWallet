@@ -51,28 +51,31 @@ void main() {
       expect(
         sw.elapsedMilliseconds,
         greaterThanOrEqualTo(200),
-        reason: 'run() must take at least minimumHold even when work resolves '
+        reason:
+            'run() must take at least minimumHold even when work resolves '
             'instantly',
       );
     });
 
-    test('the hold is a floor, not a ceiling — slow work stretches it',
-        () async {
-      final seq = BootSequence(
-        stageGap: const Duration(milliseconds: 50),
-        minimumHold: const Duration(milliseconds: 200),
-      );
-      // finalHold = 200 - 50*2 = 100ms; work deliberately outlasts it.
-      final work = Future<void>.delayed(const Duration(milliseconds: 300));
-      final sw = Stopwatch()..start();
-      await seq.run(onStage: (_, _, _) {}, work: work);
+    test(
+      'the hold is a floor, not a ceiling — slow work stretches it',
+      () async {
+        final seq = BootSequence(
+          stageGap: const Duration(milliseconds: 50),
+          minimumHold: const Duration(milliseconds: 200),
+        );
+        // finalHold = 200 - 50*2 = 100ms; work deliberately outlasts it.
+        final work = Future<void>.delayed(const Duration(milliseconds: 300));
+        final sw = Stopwatch()..start();
+        await seq.run(onStage: (_, _, _) {}, work: work);
 
-      expect(
-        sw.elapsedMilliseconds,
-        greaterThanOrEqualTo(300),
-        reason: 'run() must stretch to cover work slower than finalHold (D7)',
-      );
-    });
+        expect(
+          sw.elapsedMilliseconds,
+          greaterThanOrEqualTo(300),
+          reason: 'run() must stretch to cover work slower than finalHold (D7)',
+        );
+      },
+    );
 
     test('work bounded by a timeout terminates the run', () async {
       final seq = BootSequence(
@@ -117,28 +120,30 @@ void main() {
       );
     });
 
-    test('drives D5\'s three stages in order with the right rail targets',
-        () async {
-      final seq = BootSequence(); // D5 defaults: stageGap 450ms, hold 1500ms
-      final calls = <(BootStage, double, Duration)>[];
-      await seq.run(
-        onStage: (stage, target, duration) =>
-            calls.add((stage, target, duration)),
-        work: Future.value(null),
-      );
+    test(
+      'drives D5\'s three stages in order with the right rail targets',
+      () async {
+        final seq = BootSequence(); // D5 defaults: stageGap 450ms, hold 1500ms
+        final calls = <(BootStage, double, Duration)>[];
+        await seq.run(
+          onStage: (stage, target, duration) =>
+              calls.add((stage, target, duration)),
+          work: Future.value(null),
+        );
 
-      expect(calls.length, 3);
-      expect(calls[0].$1, BootStage.walletsReady);
-      expect(calls[0].$2, 1 / 3);
-      expect(calls[1].$1, BootStage.balancesReady);
-      expect(calls[1].$2, 2 / 3);
-      expect(calls[2].$1, BootStage.marketsReady);
-      expect(calls[2].$2, 1.0);
-      expect(
-        calls[2].$3,
-        seq.finalHold,
-        reason: 'the final ramp must run for finalHold',
-      );
-    });
+        expect(calls.length, 3);
+        expect(calls[0].$1, BootStage.walletsReady);
+        expect(calls[0].$2, 1 / 3);
+        expect(calls[1].$1, BootStage.balancesReady);
+        expect(calls[1].$2, 2 / 3);
+        expect(calls[2].$1, BootStage.marketsReady);
+        expect(calls[2].$2, 1.0);
+        expect(
+          calls[2].$3,
+          seq.finalHold,
+          reason: 'the final ramp must run for finalHold',
+        );
+      },
+    );
   });
 }

@@ -10,14 +10,14 @@ import 'package:genius_wallet/chart/crypto_live_chart.dart';
 
 void main() {
   group('chartYBounds - the ruler comes from the VISIBLE slice', () {
-    test('a price crash outside the view does not flatten what is inside it',
-        () {
+    test('a price crash outside the view does not flatten what is inside it', () {
       // GNUS's actual shape on 2026-07-28: -98.53% from its all-time high, and
       // the default view is the last 50 points. Points 0..49 are the old high,
       // 50..99 are today's range.
       final data = <FlSpot>[
         for (int i = 0; i < 50; i++) FlSpot(i.toDouble(), 45.0),
-        for (int i = 50; i < 100; i++) FlSpot(i.toDouble(), 0.65 + (i % 3) * 0.07),
+        for (int i = 50; i < 100; i++)
+          FlSpot(i.toDouble(), 0.65 + (i % 3) * 0.07),
       ];
 
       final (lo, hi) = chartYBounds(data, viewMinX: 50, viewMaxX: 99);

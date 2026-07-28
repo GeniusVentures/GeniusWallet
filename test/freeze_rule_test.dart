@@ -72,18 +72,24 @@ void main() {
       );
 
       for (final entity in directory.listSync(recursive: true)) {
-        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+        if (entity is! File || !entity.path.endsWith('.dart')) {
+          continue;
+        }
         final lines = entity.readAsLinesSync();
         for (var i = 0; i < lines.length; i++) {
           final line = lines[i];
           // A comment naming the banned widget is how this rule is DOCUMENTED
           // at each site it was removed from; only real uses count.
           final trimmed = line.trimLeft();
-          if (trimmed.startsWith('//') || trimmed.startsWith('///')) continue;
+          if (trimmed.startsWith('//') || trimmed.startsWith('///')) {
+            continue;
+          }
           for (final entry in bannedPatterns.entries) {
             if (line.contains(entry.key)) {
-              offenders.add('${entity.path}:${i + 1} — ${entry.key} '
-                  '${entry.value}');
+              offenders.add(
+                '${entity.path}:${i + 1} — ${entry.key} '
+                '${entry.value}',
+              );
             }
           }
         }

@@ -20,9 +20,7 @@ double contrastRatio(Color a, Color b) {
 }
 
 void main() {
-  testWidgets('navChipShell pins height 40 and radiusMd shape', (
-    tester,
-  ) async {
+  testWidgets('navChipShell pins height 40 and radiusMd shape', (tester) async {
     late BuildContext capturedContext;
     await tester.pumpWidget(
       MaterialApp(
@@ -47,35 +45,34 @@ void main() {
     expect(radius?.topLeft.x, GeniusWalletConsts.radiusMd);
   });
 
-  testWidgets(
-    'chip RENDERS exactly 40px even under an ambient compact theme',
-    (tester) async {
-      // Desktop's adaptivePlatformDensity is compact; its -8 minHeight
-      // adjustment previously collapsed the chip to ~32px (8px shorter than
-      // Buy GNUS's hard 40). navChipShell now pins standard density, so the
-      // rendered box must be exactly 40 regardless of the ambient theme.
-      // This asserts the RENDERED size (getSize), not just the style props --
-      // the property-only check above passed while the box was still 32.
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(visualDensity: VisualDensity.compact),
-          home: Scaffold(
-            body: Center(
-              child: Builder(
-                builder: (context) => TextButton(
-                  style: navChipShell(context),
-                  onPressed: () {},
-                  child: const Text('0x1234'),
-                ),
+  testWidgets('chip RENDERS exactly 40px even under an ambient compact theme', (
+    tester,
+  ) async {
+    // Desktop's adaptivePlatformDensity is compact; its -8 minHeight
+    // adjustment previously collapsed the chip to ~32px (8px shorter than
+    // Buy GNUS's hard 40). navChipShell now pins standard density, so the
+    // rendered box must be exactly 40 regardless of the ambient theme.
+    // This asserts the RENDERED size (getSize), not just the style props --
+    // the property-only check above passed while the box was still 32.
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(visualDensity: VisualDensity.compact),
+        home: Scaffold(
+          body: Center(
+            child: Builder(
+              builder: (context) => TextButton(
+                style: navChipShell(context),
+                onPressed: () {},
+                child: const Text('0x1234'),
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
 
-      expect(tester.getSize(find.byType(TextButton)).height, 40);
-    },
-  );
+    expect(tester.getSize(find.byType(TextButton)).height, 40);
+  });
 
   testWidgets(
     'navContextChipStyle: transparent/borderless at rest, brand tint + brand '
@@ -111,8 +108,11 @@ void main() {
       expect(hoverBackground, GWDecorations.hoverFill);
 
       final hoverSide = style.side?.resolve({WidgetState.hovered});
-      expect(hoverSide?.color, GWDecorations.hoverEdge,
-          reason: 'hover draws the shared brand hairline');
+      expect(
+        hoverSide?.color,
+        GWDecorations.hoverEdge,
+        reason: 'hover draws the shared brand hairline',
+      );
 
       // The track (not the chip) now carries the one hairline border --
       // three bordered chips inside a bordered track was the "five things"

@@ -65,7 +65,9 @@ Future<bool> _fieldSurvivesFocus(
   required bool toggleShape,
 }) async {
   await tester.pumpWidget(
-    MaterialApp(home: Scaffold(body: _Omnibox(toggleShape: toggleShape))),
+    MaterialApp(
+      home: Scaffold(body: _Omnibox(toggleShape: toggleShape)),
+    ),
   );
   final EditableTextState before = tester.state<EditableTextState>(
     find.byType(EditableText),
@@ -86,7 +88,8 @@ void main() {
     expect(
       await _fieldSurvivesFocus(tester, toggleShape: false),
       isTrue,
-      reason: 'Focusing must not replace the EditableText. If this fails, the '
+      reason:
+          'Focusing must not replace the EditableText. If this fails, the '
           'omnibox decoration went back to being conditional and typing in the '
           'URL bar is dead again on the first click.',
     );
@@ -98,7 +101,8 @@ void main() {
     expect(
       await _fieldSurvivesFocus(tester, toggleShape: true),
       isFalse,
-      reason: 'Pins the trap itself: a null decoration drops the DecoratedBox, '
+      reason:
+          'Pins the trap itself: a null decoration drops the DecoratedBox, '
           'so the subtree is rebuilt on focus. Kept as executable evidence '
           'because three earlier fix attempts blamed text input instead.',
     );

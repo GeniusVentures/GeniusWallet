@@ -24,14 +24,21 @@ void main() {
   });
 
   test('a small non-empty file is attached whole under its own name', () {
-    final d = attachmentDispositionFor(size: 500, maxBytes: mib, payloadLength: 500);
+    final d = attachmentDispositionFor(
+      size: 500,
+      maxBytes: mib,
+      payloadLength: 500,
+    );
     expect(d, AttachmentDisposition.whole);
     expect(attachmentNameFor('sgnslog.log', d), 'sgnslog.log');
   });
 
   test('an over-cap file is tail-trimmed and renamed', () {
-    final d =
-        attachmentDispositionFor(size: 2 * mib, maxBytes: mib, payloadLength: mib);
+    final d = attachmentDispositionFor(
+      size: 2 * mib,
+      maxBytes: mib,
+      payloadLength: mib,
+    );
     expect(d, AttachmentDisposition.tail);
     expect(attachmentNameFor('sgnslog.log', d), 'sgnslog.log.tail.log');
   });

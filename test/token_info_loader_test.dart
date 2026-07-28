@@ -21,9 +21,11 @@ void main() {
       expect(token, isNotNull);
       expect(token!.name, equals('GNUS'));
       expect(
-          token.id,
-          equals(
-              '0000000000000000000000000000000000000000000000000000000000000000'));
+        token.id,
+        equals(
+          '0000000000000000000000000000000000000000000000000000000000000000',
+        ),
+      );
       expect(token.iconUrl, contains('GNUS.png'));
     });
 
@@ -41,9 +43,7 @@ void main() {
         return http.Response('Not Found', 404);
       });
 
-      final loader = TokenInfoLoader(
-        httpClient: mockClient,
-      );
+      final loader = TokenInfoLoader(httpClient: mockClient);
 
       final token = await loader.loadToken();
       expect(token, isNull);
@@ -57,9 +57,7 @@ void main() {
         return http.Response('Invalid JSON', 200);
       });
 
-      final loader = TokenInfoLoader(
-        httpClient: mockClient,
-      );
+      final loader = TokenInfoLoader(httpClient: mockClient);
 
       final token = await loader.loadToken();
       expect(token, isNull);
@@ -119,9 +117,7 @@ void main() {
         ''', 200);
       });
 
-      final loader = TokenInfoLoader(
-        httpClient: mockClient,
-      );
+      final loader = TokenInfoLoader(httpClient: mockClient);
 
       // First call
       final tokens1 = await loader.loadTokensWithCache();
@@ -164,12 +160,11 @@ void main() {
         ''', 200);
       });
 
-      final loader = TokenInfoLoader(
-        httpClient: mockClient,
-      );
+      final loader = TokenInfoLoader(httpClient: mockClient);
 
       final token = await loader.loadTokenById(
-          '1111111111111111111111111111111111111111111111111111111111111111');
+        '1111111111111111111111111111111111111111111111111111111111111111',
+      );
       expect(token, isNotNull);
       expect(token!.name, equals('TEST'));
 
@@ -183,9 +178,11 @@ void main() {
       expect(gnusToken, isNotNull);
       expect(gnusToken!.name, equals('GNUS'));
       expect(
-          gnusToken.id,
-          equals(
-              '0000000000000000000000000000000000000000000000000000000000000000'));
+        gnusToken.id,
+        equals(
+          '0000000000000000000000000000000000000000000000000000000000000000',
+        ),
+      );
     });
 
     test('loads real token data from GitHub URL', () async {
@@ -197,13 +194,17 @@ void main() {
       expect(token, isNotNull);
       expect(token!.name, equals('GNUS'));
       expect(
-          token.id,
-          equals(
-              '0000000000000000000000000000000000000000000000000000000000000000'));
+        token.id,
+        equals(
+          '0000000000000000000000000000000000000000000000000000000000000000',
+        ),
+      );
       expect(
-          token.iconUrl,
-          equals(
-              'https://raw.githubusercontent.com/GeniusVentures/tokeninfo/main/images/GNUS.png'));
+        token.iconUrl,
+        equals(
+          'https://raw.githubusercontent.com/GeniusVentures/tokeninfo/main/images/GNUS.png',
+        ),
+      );
 
       // Test loading all tokens
       final tokens = await realLoader.loadTokens();

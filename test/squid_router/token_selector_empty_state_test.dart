@@ -66,22 +66,23 @@ void main() {
     expect(find.textContaining('No tokens match'), findsNothing);
   });
 
-  testWidgets('the search field is suppressed when there is nothing to search', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _host(
-        TokenSelectorDrawer(
-          tokens: const [],
-          onTokenSelected: (_) {},
-          emptyTitle: 'No tokens to swap',
+  testWidgets(
+    'the search field is suppressed when there is nothing to search',
+    (tester) async {
+      await tester.pumpWidget(
+        _host(
+          TokenSelectorDrawer(
+            tokens: const [],
+            onTokenSelected: (_) {},
+            emptyTitle: 'No tokens to swap',
+          ),
         ),
-      ),
-    );
+      );
 
-    // A field whose every query returns the same empty state is a dead end.
-    expect(find.byType(TextField), findsNothing);
-  });
+      // A field whose every query returns the same empty state is a dead end.
+      expect(find.byType(TextField), findsNothing);
+    },
+  );
 
   testWidgets('a caller passing no copy still gets a sane default', (
     tester,

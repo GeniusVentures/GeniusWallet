@@ -34,23 +34,23 @@ class _UnusedApi implements GeniusApi {
 }
 
 Widget _host() => BlocProvider(
-      create: (_) => WalletDetailsCubit(
-        geniusApi: _UnusedApi(),
-        networkTokensProvider: NetworkTokensProvider(),
+  create: (_) => WalletDetailsCubit(
+    geniusApi: _UnusedApi(),
+    networkTokensProvider: NetworkTokensProvider(),
+  ),
+  child: MaterialApp(
+    theme: ThemeData(extensions: [GWColors.dark()]),
+    home: Builder(
+      builder: (context) => TokenInfoScreen(
+        walletDetailsCubit: context.read<WalletDetailsCubit>(),
+        // The state this test exists for. Reachable from the wallet's own
+        // Assets list, which looks the coin up by symbol and passes null
+        // when CoinGecko does not cover it.
+        marketData: null,
       ),
-      child: MaterialApp(
-        theme: ThemeData(extensions: [GWColors.dark()]),
-        home: Builder(
-          builder: (context) => TokenInfoScreen(
-            walletDetailsCubit: context.read<WalletDetailsCubit>(),
-            // The state this test exists for. Reachable from the wallet's own
-            // Assets list, which looks the coin up by symbol and passes null
-            // when CoinGecko does not cover it.
-            marketData: null,
-          ),
-        ),
-      ),
-    );
+    ),
+  ),
+);
 
 void main() {
   group('coinChartHeight - the 480 literal must not come back', () {
@@ -98,8 +98,9 @@ void main() {
     });
   });
 
-  testWidgets('no market data: the page SAYS so and keeps what still works',
-      (tester) async {
+  testWidgets('no market data: the page SAYS so and keeps what still works', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -123,8 +124,9 @@ void main() {
     expect(find.byType(CoinInfoCard), findsOneWidget);
   });
 
-  testWidgets('074-C2: no Send, and no Bridge on a coin that cannot bridge',
-      (tester) async {
+  testWidgets('074-C2: no Send, and no Bridge on a coin that cannot bridge', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.resetPhysicalSize);

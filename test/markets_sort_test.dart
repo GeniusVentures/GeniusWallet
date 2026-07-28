@@ -13,21 +13,16 @@ void main() {
     double cap = 0,
     double vol = 0,
     String name = 'x',
-  }) =>
-      MarketRowData(
-        rank: rank,
-        name: name,
-        price: price,
-        changePct: change,
-        marketCap: cap,
-        volume: vol,
-      );
+  }) => MarketRowData(
+    rank: rank,
+    name: name,
+    price: price,
+    changePct: change,
+    marketCap: cap,
+    volume: vol,
+  );
 
-  List<int> sortedRanks(
-    List<MarketRowData> rows,
-    MarketSort sort,
-    bool asc,
-  ) {
+  List<int> sortedRanks(List<MarketRowData> rows, MarketSort sort, bool asc) {
     final copy = [...rows]..sort((a, b) => compareMarketRows(sort, asc, a, b));
     return copy.map((r) => r.rank).toList();
   }
@@ -38,11 +33,7 @@ void main() {
   });
 
   test('market cap descending = biggest first', () {
-    final rows = [
-      row(1, cap: 10),
-      row(2, cap: 30),
-      row(3, cap: 20),
-    ];
+    final rows = [row(1, cap: 10), row(2, cap: 30), row(3, cap: 20)];
     expect(sortedRanks(rows, MarketSort.marketCap, false), [2, 3, 1]);
   });
 

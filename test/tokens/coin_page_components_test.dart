@@ -26,9 +26,9 @@ import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 const _address = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 Widget _host(Widget child) => MaterialApp(
-      theme: ThemeData(extensions: [GWColors.dark()]),
-      home: Scaffold(body: SingleChildScrollView(child: child)),
-    );
+  theme: ThemeData(extensions: [GWColors.dark()]),
+  home: Scaffold(body: SingleChildScrollView(child: child)),
+);
 
 void main() {
   testWidgets('every Info glyph is the SAME colour, and it is the one that '
@@ -36,9 +36,9 @@ void main() {
     // `marketData: null` on purpose - the four numeric rows print "N/A" and
     // still render their glyphs, so all six are in the tree without standing up
     // a 24-field Hive model to assert a colour.
-    await tester.pumpWidget(_host(
-      const CoinInfoCard(network: 'Ethereum', address: _address),
-    ));
+    await tester.pumpWidget(
+      _host(const CoinInfoCard(network: 'Ethereum', address: _address)),
+    );
     await tester.pumpAndSettle();
 
     // Six rows: Network, Address, Market Cap, Circulating, Total Supply,
@@ -54,8 +54,11 @@ void main() {
     // ONE entry, not "all pass contrast" - a contrast assertion would still be
     // satisfied by five different colours that each happen to clear a bar in
     // dark, which is precisely the state this replaced.
-    expect(glyphs.length, 1,
-        reason: 'the rainbow is back: ${glyphs.length} glyph colours');
+    expect(
+      glyphs.length,
+      1,
+      reason: 'the rainbow is back: ${glyphs.length} glyph colours',
+    );
     expect(glyphs.single, GeniusWalletColors.brandPrimaryOnSurface);
   });
 
@@ -80,18 +83,19 @@ void main() {
     final copied = <String>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-      if (call.method == 'Clipboard.setData') {
-        copied.add((call.arguments as Map)['text'] as String);
-      }
-      return null;
-    });
-    addTearDown(() => TestDefaultBinaryMessengerBinding
-        .instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(SystemChannels.platform, null));
+          if (call.method == 'Clipboard.setData') {
+            copied.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null),
+    );
 
-    await tester.pumpWidget(_host(
-      const CoinInfoCard(network: 'Ethereum', address: _address),
-    ));
+    await tester.pumpWidget(
+      _host(const CoinInfoCard(network: 'Ethereum', address: _address)),
+    );
     await tester.pumpAndSettle();
 
     // The row draws the SHORT form - assert that first, or the copy assertion

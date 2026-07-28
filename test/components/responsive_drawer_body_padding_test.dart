@@ -68,7 +68,10 @@ void main() {
     tester,
   ) async {
     final zero = await _openAndMeasure(tester, bodyPadding: EdgeInsets.zero);
-    final padded = await _openAndMeasure(tester, bodyPadding: kDrawerBodyPadding);
+    final padded = await _openAndMeasure(
+      tester,
+      bodyPadding: kDrawerBodyPadding,
+    );
 
     // 20 on the sides and bottom, 24 on top — the header hairline sits
     // directly above and a flat 20 read as glued to it.

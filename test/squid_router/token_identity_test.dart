@@ -57,8 +57,7 @@ void main() {
       final onEthereum = _token('USDC', '0xSAME', chainId: 1);
       final onPolygon = _token('USDC', '0xSAME', chainId: 137);
       expect(onEthereum.sameAs(onPolygon), isFalse);
-      expect(tokensForSide([onEthereum, onPolygon], onPolygon),
-          [onEthereum]);
+      expect(tokensForSide([onEthereum, onPolygon], onPolygon), [onEthereum]);
     });
 
     test('address case is not identity - checksummed vs lowercase', () {

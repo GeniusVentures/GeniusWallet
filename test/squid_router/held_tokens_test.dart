@@ -42,10 +42,7 @@ void main() {
     });
 
     test('a zero balance is not spendable', () {
-      expect(
-        hasSpendableBalance(_token(symbol: 'BNB', balance: '0')),
-        isFalse,
-      );
+      expect(hasSpendableBalance(_token(symbol: 'BNB', balance: '0')), isFalse);
     });
 
     test('a whole-token balance is spendable', () {
@@ -60,10 +57,7 @@ void main() {
     test('dust below the display floor is STILL spendable', () {
       // 1 wei renders as "<0.000001" in the picker. It is real, and hiding it
       // would be the filter deciding what is worth owning.
-      expect(
-        hasSpendableBalance(_token(symbol: 'ETH', balance: '1')),
-        isTrue,
-      );
+      expect(hasSpendableBalance(_token(symbol: 'ETH', balance: '1')), isTrue);
     });
 
     test('decimals never change the answer', () {
@@ -86,10 +80,7 @@ void main() {
         hasSpendableBalance(_token(symbol: 'BAD', balance: 'not-a-number')),
         isFalse,
       );
-      expect(
-        hasSpendableBalance(_token(symbol: 'BAD', balance: '')),
-        isFalse,
-      );
+      expect(hasSpendableBalance(_token(symbol: 'BAD', balance: '')), isFalse);
     });
   });
 
@@ -102,10 +93,7 @@ void main() {
         _token(symbol: 'DAI', balance: '0'),
       ];
 
-      expect(
-        heldTokens(tokens).map((t) => t.symbol).toList(),
-        ['ETH', 'USDT'],
-      );
+      expect(heldTokens(tokens).map((t) => t.symbol).toList(), ['ETH', 'USDT']);
     });
 
     test('a wallet holding nothing yields an empty list, not a throw', () {

@@ -76,21 +76,23 @@ void main() {
     expect(_styleOf(tester, 'VOLUME'), GWKicker.style(gw, dense: true));
   });
 
-  testWidgets('trailing is pushed to the right edge; without one there is no Row',
-      (tester) async {
-    await tester.pumpWidget(
-      _host(const GWKicker('Network', trailing: Icon(Icons.chevron_right))),
-    );
-    final host = tester.getRect(find.byType(GWKicker));
-    final trailing = tester.getRect(find.byType(Icon));
-    expect(trailing.right, moreOrLessEquals(host.right, epsilon: 0.5));
+  testWidgets(
+    'trailing is pushed to the right edge; without one there is no Row',
+    (tester) async {
+      await tester.pumpWidget(
+        _host(const GWKicker('Network', trailing: Icon(Icons.chevron_right))),
+      );
+      final host = tester.getRect(find.byType(GWKicker));
+      final trailing = tester.getRect(find.byType(Icon));
+      expect(trailing.right, moreOrLessEquals(host.right, epsilon: 0.5));
 
-    // No trailing -> a bare Text, not a Row: the component must not reserve
-    // width it has nothing to put in.
-    await tester.pumpWidget(_host(const GWKicker('Network')));
-    expect(
-      find.descendant(of: find.byType(GWKicker), matching: find.byType(Row)),
-      findsNothing,
-    );
-  });
+      // No trailing -> a bare Text, not a Row: the component must not reserve
+      // width it has nothing to put in.
+      await tester.pumpWidget(_host(const GWKicker('Network')));
+      expect(
+        find.descendant(of: find.byType(GWKicker), matching: find.byType(Row)),
+        findsNothing,
+      );
+    },
+  );
 }
