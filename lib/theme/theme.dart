@@ -146,8 +146,9 @@ ThemeData getThemeData() {
         }
         return Colors.transparent;
       }),
-      rangeSelectionBackgroundColor:
-          GeniusWalletColors.brandPrimary.withAlpha(38),
+      rangeSelectionBackgroundColor: GeniusWalletColors.brandPrimary.withAlpha(
+        38,
+      ),
       rangeSelectionOverlayColor: WidgetStateProperty.all(
         GeniusWalletColors.brandPrimary.withAlpha(51),
       ),
@@ -202,9 +203,7 @@ ThemeData getThemeData() {
         surfaceTintColor: WidgetStateProperty.resolveWith<Color?>(
           (states) => Colors.transparent,
         ),
-        textStyle: WidgetStatePropertyAll(
-          GeniusWalletTypography.titleMd,
-        ),
+        textStyle: WidgetStatePropertyAll(GeniusWalletTypography.titleMd),
         padding: const WidgetStatePropertyAll(
           EdgeInsets.symmetric(
             horizontal: GeniusWalletConsts.space8,
@@ -213,10 +212,7 @@ ThemeData getThemeData() {
         ),
         shape: const WidgetStatePropertyAll(
           RoundedRectangleBorder(
-            side: BorderSide(
-              color: GeniusWalletColors.brandPrimary,
-              width: 1,
-            ),
+            side: BorderSide(color: GeniusWalletColors.brandPrimary, width: 1),
             borderRadius: BorderRadius.all(
               Radius.circular(GeniusWalletConsts.radiusLg),
             ),
@@ -230,9 +226,7 @@ ThemeData getThemeData() {
           return GeniusWalletColors.textPrimary;
         }),
         iconSize: const WidgetStatePropertyAll(20),
-        iconColor: WidgetStatePropertyAll(
-          GeniusWalletColors.textPrimary,
-        ),
+        iconColor: WidgetStatePropertyAll(GeniusWalletColors.textPrimary),
       ),
     ),
     // Not const: the on-surface brand getter below is appearance-aware, not
@@ -260,9 +254,7 @@ ThemeData getThemeData() {
     ),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
-        textStyle: WidgetStatePropertyAll(
-          GeniusWalletTypography.titleMd,
-        ),
+        textStyle: WidgetStatePropertyAll(GeniusWalletTypography.titleMd),
         padding: const WidgetStatePropertyAll(
           EdgeInsets.symmetric(
             horizontal: GeniusWalletConsts.space12,
@@ -286,9 +278,7 @@ ThemeData getThemeData() {
           return GeniusWalletColors.textPrimary;
         }),
         iconSize: const WidgetStatePropertyAll(16),
-        iconColor: WidgetStatePropertyAll(
-          GeniusWalletColors.textPrimary,
-        ),
+        iconColor: WidgetStatePropertyAll(GeniusWalletColors.textPrimary),
       ),
     ),
     searchBarTheme: SearchBarThemeData(
@@ -327,7 +317,9 @@ ThemeData getThemeData() {
           ),
           // Light was 2.56/2.28/1.93:1 (AA fail); the token clears
           // 6.30/5.61/4.76:1. Dark byte-identical.
-          borderSide: BorderSide(color: GeniusWalletColors.brandPrimaryOnSurface),
+          borderSide: BorderSide(
+            color: GeniusWalletColors.brandPrimaryOnSurface,
+          ),
         ),
         contentPadding: const EdgeInsets.only(left: GeniusWalletConsts.space10),
         border: const OutlineInputBorder(

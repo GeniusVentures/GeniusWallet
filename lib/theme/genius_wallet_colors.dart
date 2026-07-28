@@ -27,8 +27,9 @@ class GeniusWalletColors {
   // Appearance-aware: app-wide root fix for bare-TextButton light-mode
   // legibility. theme.dart:258 is the sole consumer (textButtonTheme
   // .backgroundColor); every bare TextButton flips via this single getter.
-  static Color get btnFilter =>
-      _isLight ? const Color(0xFFEFF2F6) : const Color.fromARGB(255, 19, 33, 53);
+  static Color get btnFilter => _isLight
+      ? const Color(0xFFEFF2F6)
+      : const Color.fromARGB(255, 19, 33, 53);
   static Color btnFilterSelected = lightGreenPrimary.withValues(alpha: 0.1);
   static const Color borderGrey = Color.fromRGBO(255, 255, 255, 0.30);
 
@@ -47,10 +48,12 @@ class GeniusWalletColors {
   // Brand — primary (cyan/blue). Vibrant v1.2 — electric. See DESIGN_SYSTEM.md note 2026-05.
   static const Color brandPrimary = Color(0xFF14C8FF);
   static const Color brandPrimaryStrong = Color(0xFF0AAEE6);
-  static Color brandPrimaryMuted =
-      const Color(0xFF14C8FF).withAlpha(61); // ~24%
-  static Color brandPrimarySubtle =
-      const Color(0xFF14C8FF).withAlpha(31); // ~12%
+  static Color brandPrimaryMuted = const Color(
+    0xFF14C8FF,
+  ).withAlpha(61); // ~24%
+  static Color brandPrimarySubtle = const Color(
+    0xFF14C8FF,
+  ).withAlpha(31); // ~12%
 
   // Brand colour for content painted ON a surface -- foreground text,
   // outlines, focus rings, indicators -- as distinct from
@@ -151,8 +154,9 @@ class GeniusWalletColors {
       _isLight ? const Color(0x1F10131A) : const Color(0x1FFFFFFF);
   static Color get textPrimary10 =>
       _isLight ? const Color(0x1A10131A) : const Color(0x1AFFFFFF);
-  static const Color textSecondary =
-      Color(0xFF8A8F9D); // gnus.ai --muted-foreground
+  static const Color textSecondary = Color(
+    0xFF8A8F9D,
+  ); // gnus.ai --muted-foreground
   // Alias used by ported components (e.g. sgnus_wallet.dart) that reference
   // the reference worktree's gray-scale naming instead of the semantic name.
   static const Color gray500 = textSecondary;
@@ -200,10 +204,12 @@ class GeniusWalletColors {
   static const Color borderBrand = brandPrimary;
 
   // Status
-  static const Color statusSuccess =
-      Color(0xFF0AD89C); // mint-green from gradient (vibrant v1.2)
-  static const Color statusError =
-      Color(0xFFFF4D4D); // gnus.ai --destructive, vibrant v1.2
+  static const Color statusSuccess = Color(
+    0xFF0AD89C,
+  ); // mint-green from gradient (vibrant v1.2)
+  static const Color statusError = Color(
+    0xFFFF4D4D,
+  ); // gnus.ai --destructive, vibrant v1.2
   static const Color statusWarning = Color(0xFFFFC42E);
   // Slate — the transaction-badge fill sketch 012 picked for Sent and Escrow.
   // WHY a new token rather than reuse: amber already means Pending and red

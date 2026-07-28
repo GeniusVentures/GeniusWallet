@@ -257,7 +257,9 @@ class GWColors extends ThemeExtension<GWColors> {
   /// frame occurs in practice since `ThemeData` swaps are not animated here).
   @override
   GWColors lerp(ThemeExtension<GWColors>? other, double t) {
-    if (other is! GWColors) return this;
+    if (other is! GWColors) {
+      return this;
+    }
     return t < 0.5 ? this : other;
   }
 }

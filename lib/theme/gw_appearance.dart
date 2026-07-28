@@ -38,11 +38,12 @@ class GWAppearance extends ValueNotifier<GWAppearanceMode> {
   }
 
   Future<void> setMode(GWAppearanceMode mode) async {
-    if (value == mode) return;
+    if (value == mode) {
+      return;
+    }
     value = mode;
-    await Hive.box(preferencesBoxName).put(
-      appearanceModeKey,
-      mode == GWAppearanceMode.light ? 'light' : 'dark',
-    );
+    await Hive.box(
+      preferencesBoxName,
+    ).put(appearanceModeKey, mode == GWAppearanceMode.light ? 'light' : 'dark');
   }
 }

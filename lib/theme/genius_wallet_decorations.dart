@@ -35,11 +35,7 @@ class GWDecorations {
   static const LinearGradient _canvasLight = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFFE3E6EB),
-      Color(0xFFDCE0E6),
-      Color(0xFFD3D7DE),
-    ],
+    colors: [Color(0xFFE3E6EB), Color(0xFFDCE0E6), Color(0xFFD3D7DE)],
     stops: [0.0, 0.4, 1.0],
   );
 
@@ -84,10 +80,7 @@ class GWDecorations {
   static const LinearGradient _surfaceSheenLight = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFFFFFFFF),
-      Color(0xFFF5F7FA),
-    ],
+    colors: [Color(0xFFFFFFFF), Color(0xFFF5F7FA)],
   );
 
   /// Top-lit sheen for elevated surfaces, simulating a soft overhead light.
@@ -100,22 +93,22 @@ class GWDecorations {
     double radius = GeniusWalletConsts.radiusLg,
     bool elevated = true,
     Color? border,
-  }) =>
-      BoxDecoration(
-        gradient: surfaceSheen,
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(
-          color: border ?? GeniusWalletColors.borderSubtle, // hairline @ 12%
-          width: 1,
-        ),
-        boxShadow: elevated ? GeniusWalletElevation.card : null,
-      );
+  }) => BoxDecoration(
+    gradient: surfaceSheen,
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(
+      color: border ?? GeniusWalletColors.borderSubtle, // hairline @ 12%
+      width: 1,
+    ),
+    boxShadow: elevated ? GeniusWalletElevation.card : null,
+  );
 
   /// Pill / fully-rounded variant of [surface].
   static BoxDecoration pill({bool elevated = false, Color? border}) => surface(
-      radius: GeniusWalletConsts.radiusPill,
-      elevated: elevated,
-      border: border);
+    radius: GeniusWalletConsts.radiusPill,
+    elevated: elevated,
+    border: border,
+  );
 
   // --- hover ---------------------------------------------------------------
 
@@ -146,10 +139,10 @@ class GWDecorations {
   /// `BoxDecoration` (nav tabs, cards). Button-based controls read the two
   /// colours directly into their `ButtonStyle` instead.
   static BoxDecoration hover({required double radius}) => BoxDecoration(
-        color: hoverFill,
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: hoverEdge, width: 1),
-      );
+    color: hoverFill,
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: hoverEdge, width: 1),
+  );
 
   // --- tactile circular action -------------------------------------------
 
@@ -157,18 +150,18 @@ class GWDecorations {
   /// edge and an optional brand glow so the button reads as a physical chip
   /// rather than a flat hole punched in the canvas.
   static BoxDecoration actionCircle({bool glow = false}) => BoxDecoration(
-        gradient: surfaceSheen,
-        shape: BoxShape.circle,
-        border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
-        boxShadow: [
-          ...GeniusWalletElevation.card,
-          if (glow)
-            BoxShadow(
-              color: GeniusWalletColors.brandPrimary.withAlpha(36),
-              blurRadius: 18,
-            ),
-        ],
-      );
+    gradient: surfaceSheen,
+    shape: BoxShape.circle,
+    border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
+    boxShadow: [
+      ...GeniusWalletElevation.card,
+      if (glow)
+        BoxShadow(
+          color: GeniusWalletColors.brandPrimary.withAlpha(36),
+          blurRadius: 18,
+        ),
+    ],
+  );
 
   // --- hero glow ----------------------------------------------------------
 
@@ -196,9 +189,7 @@ class GWCanvasBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        DecoratedBox(
-          decoration: BoxDecoration(gradient: GWDecorations.canvas),
-        ),
+        DecoratedBox(decoration: BoxDecoration(gradient: GWDecorations.canvas)),
         if (!isLight) ...[
           const DecoratedBox(
             decoration: BoxDecoration(gradient: GWDecorations.canvasTopLight),

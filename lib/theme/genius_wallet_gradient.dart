@@ -42,7 +42,9 @@ class GeniusWalletGradient {
   /// field, sketch 043 variant 4A). Its own docs named the risk this shared
   /// home removes: a second, separately-drifting colour decision.
   static LinearGradient brandCtaText(Color appearanceProxy) {
-    if (appearanceProxy.computeLuminance() <= 0.5) return brandCta;
+    if (appearanceProxy.computeLuminance() <= 0.5) {
+      return brandCta;
+    }
     // Not const: brandPrimaryOnSurface is an appearance-aware getter.
     final safe = GeniusWalletColors.brandPrimaryOnSurface;
     return LinearGradient(colors: [safe, safe]);
@@ -62,11 +64,11 @@ class GeniusWalletGradient {
   /// Subtle background wash for hero sections — fades the brand teal into the
   /// darker contained surface so cards still feel anchored.
   static LinearGradient get heroWash => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: <Color>[
-          GeniusWalletColors.surfaceBase,
-          GeniusWalletColors.surfaceElevated,
-        ],
-      );
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: <Color>[
+      GeniusWalletColors.surfaceBase,
+      GeniusWalletColors.surfaceElevated,
+    ],
+  );
 }

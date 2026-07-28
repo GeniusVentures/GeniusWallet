@@ -21,9 +21,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// constraints at [40, 40] so the chip renders exactly 40, matching Buy GNUS.
 ButtonStyle navChipShell(BuildContext context) {
   return TextButton.styleFrom(
-    padding: const EdgeInsets.symmetric(
-      horizontal: GeniusWalletConsts.space6,
-    ),
+    padding: const EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space6),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
     ),
