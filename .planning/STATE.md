@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 09
 current_phase_name: banxa
 status: verifying
-stopped_at: Phase 9 executed (human_needed); Banxa redesign recorded as the closeout gate
-last_updated: "2026-07-28T14:38:03.576Z"
+stopped_at: Completed 22-04-PLAN.md
+last_updated: "2026-07-28T15:12:56.052Z"
 last_activity: 2026-07-27
 last_activity_desc: "Phase 09 execution resumed (wave continue) — AND, on a parallel branch merged 2026-07-28, Completed quick tasks 260727-w58 (GWKicker), 260728-0vd (drawer shell insets + close button), 260728-13f (Markets hero shadow clearance) 260728-q7c (sketches 067-A + 156-A: drawer card canvas, section kicker, new borderControl token) 260728-r4k (transaction receipt on 154-A + 154-D copyable) 260728-p2m (sketch 068-A: three list pickers onto one GWSelectRow) 260728-s9k (sketch 069-A: the SDK Accounts section, plus 4 bugs) 260728-t3n (sketch 070-A: the coin page on base components, glyphs to one accent, plus 3 swap walk bugs) 260728-u8p (sketch 071-B: the whole coin page screen - into the ShellRoute, one page frame, the 480 literal replaced, a stat rail, GWStatTile promoted, and an explicit no-data state) and 260728-v6c (sketch 074-C2: the coin page's actions onto the section line above the chart - Receive/Swap/Bridge as icon buttons, NO Send, TokenActionBar and the More drawer deleted)"
 progress:
   total_phases: 24
   completed_phases: 16
   total_plans: 101
-  completed_plans: 83
+  completed_plans: 84
   percent: 67
 ---
 
@@ -207,6 +207,10 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 22]: check_brace_style.sh excludes generated code by explicit path, not a blanket *.g.dart glob, since 9 hand-written production widgets share that suffix
 - [Phase ?]: 22-03: GeniusWalletTypography lacks bare fontSize tokens matching the 3 call sites, so GeniusWalletFontSize was reduced (not deleted) per the plan's fallback branch.
 - [Phase ?]: 22-03: Fixed a stale Loading-baseline entry in tool/verify_additive_boundary.sh (22-01 deleted a real Loading importer, markets_search_bar.dart, without updating the pinned baseline).
+- [Phase ?]: 22-04: --fix shares the gate's own classify_if/terminator_scan detector via a refactored terminator_scan_pos, so gate and fixer can never disagree
+- [Phase ?]: 22-04: --fix refuses (reports, never rewrites) anything outside a narrow proven-safe shape; all 192 real violations fell inside it, so zero hand-closing was needed
+- [Phase ?]: 22-04: verified the mounted-guard bracing hazard directly (isolated before/after flutter analyze) rather than asserting it away -- no diagnostic delta found, recorded in 22-04-SEMANTIC-DELTAS.md
+- [Phase ?]: 22-04: fixed check_onboarding_seed_safety.sh CHECK 4's regex (Rule 1) since this plan's own bracing broke it; left verify_additive_boundary.sh's pre-existing unrelated Check 2/3 failures and check_no_new_key_logging.sh's argument gap documented but unfixed (out of scope, predates this plan)
 
 ### Pending Todos
 
@@ -330,8 +334,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-28T14:36:44.570Z
-Stopped at: Phase 9 executed (human_needed); Banxa redesign recorded as the closeout gate
+Last session: 2026-07-28T15:12:56.040Z
+Stopped at: Completed 22-04-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -444,6 +448,7 @@ Open decisions:
 | Phase 09-banxa P07 | 25min | 2 tasks | 3 files |
 | Phase 22 P02 | 35min | 3 tasks | 2 files |
 | Phase 22 P03 | 10min | - tasks | - files |
+| Phase 22 P04 | 29min | 3 tasks | 168 files |
 
 ### Roadmap Evolution
 

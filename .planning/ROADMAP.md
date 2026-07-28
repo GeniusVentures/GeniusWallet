@@ -1030,7 +1030,7 @@ state ownership and money paths are Phase 24.
 
 **Requirements**: ORG-01, ORG-02, ORG-03
 **Depends on:** Phase 21
-**Plans:** 3/8 plans executed
+**Plans:** 4/8 plans executed
 
 **Requirement IDs coined for this phase** (ROADMAP said TBD; REQUIREMENTS.md carries no
 codebase-quality requirement). ORG-01..03 close in Phase 22; ORG-04..05 close in Phase 23:
@@ -1114,7 +1114,7 @@ Plans:
       (`verify_additive_boundary.sh` + `shadow-baseline.txt`) with them, retire `GeniusWalletFontSize`.
       **The one sanctioned analyzer rise in this phase** — un-hiding 9 files sets a new ceiling
 
-- [ ] 22-04-PLAN.md — Brace auto-fix across `lib/` + `test/` via a `--fix` mode sharing the gate's
+- [x] 22-04-PLAN.md — Brace auto-fix across `lib/` + `test/` via a `--fix` mode sharing the gate's
       detector; multi-line and `else` cases refused and hand-closed
 
 - [ ] 22-05-PLAN.md — `dart fix --apply --code=<rule>`, one rule per commit (~223 issues, 12 commits),
