@@ -1430,25 +1430,8 @@ jobs:
         continue-on-error: true
         run: bash tool/verify_additive_boundary.sh
 
-      - name: Run tests with coverage (randomized order; --report-on lib does not exist on this SDK, flutter test --coverage already scopes lcov.info to lib/ -- see 22-08-SUMMARY.md)
-        run: flutter test --coverage --test-randomize-ordering-seed random
-
-      - name: Check for Codecov token
-        id: codecov_check
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: |
-          if [ -n "${CODECOV_TOKEN:-}" ]; then
-            echo "has_token=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_token=false" >> "$GITHUB_OUTPUT"
-            echo "CODECOV_TOKEN is not configured as a repository secret; skipping the coverage upload. See codecov.yml and 22-08-SUMMARY.md for the operator setup steps."
-          fi
-
-      - name: Upload coverage to Codecov
-        if: ${{ steps.codecov_check.outputs.has_token == 'true' }}
-        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/lcov.info
-          fail_ci_if_error: false
+      # Randomized order catches inter-test state leakage. No --coverage: the
+      # Codecov upload was removed (2026-07-28) and nothing else consumed
+      # lcov.info, so generating it was pure cost.
+      - name: Run tests (randomized order)
+        run: flutter test --test-randomize-ordering-seed random

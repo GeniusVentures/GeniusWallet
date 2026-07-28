@@ -1142,7 +1142,7 @@ Plans:
       diffing. See `cancelled/22-07-CANCELLED.md`.
 
 - [x] 22-08-PLAN.md — CI teeth: a `quality` job in `build.yml` (format, analyze, brace gate, the 3
-      existing security gates, tests, coverage) + `codecov.yml`. Repointed `depends_on: ["22-06"]`
+      existing security gates, tests) -- Codecov removed 2026-07-28. Repointed `depends_on: ["22-06"]`
       (wave 7 → 6) when 22-07 was cancelled. **The job has never run** — proving it needs a push.
       No golden step was added; a CI step running zero golden tests would pass vacuously.
 

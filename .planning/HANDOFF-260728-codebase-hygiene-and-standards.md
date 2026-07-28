@@ -84,7 +84,6 @@ references, and it **cut extraction work it could not honestly verify** — `GWC
 ## Open for the next session
 
 - **Push to prove CI** — the `quality` job has never run; CI pins Flutter 3.38.10 vs local 3.41.9.
-- **Codecov token** — needs a `CODECOV_TOKEN` secret; the upload step skips itself without one.
 - **Live smoke test** — dApp connect + market data, before merge.
 - **Two unscoped findings:** unguarded dev routes at `router.dart:199,203` (reachable in release),
   and `swap_screen.dart:293` where the swap makes no API call but still writes a completed
