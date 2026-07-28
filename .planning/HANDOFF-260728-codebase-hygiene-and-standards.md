@@ -83,7 +83,10 @@ references, and it **cut extraction work it could not honestly verify** — `GWC
 
 ## Open for the next session
 
-- **Push to prove CI** — the `quality` job has never run; CI pins Flutter 3.38.10 vs local 3.41.9.
+- **CI proof waits for the first PR.** Branch pushed, but `build.yml` triggers only on
+  `develop`/`main` pushes, PRs into those, or `workflow_dispatch` -- so the `quality` job has still
+  never run. **Do not use `workflow_dispatch` to test it** -- it also runs `build`, which deletes and
+  recreates a GitHub release on the no-tag path.
 - **Live smoke test** — dApp connect + market data, before merge.
 - **Two unscoped findings:** unguarded dev routes at `router.dart:199,203` (reachable in release),
   and `swap_screen.dart:293` where the swap makes no API call but still writes a completed
