@@ -23,18 +23,33 @@
 # USAGE
 # -----
 #   bash tool/check_no_new_key_logging.sh <file-path>
+#   bash tool/check_no_new_key_logging.sh --scan-tree [file-path ...]
 #
 # Prints "OK: no new key logging" and exits 0 on a clean (or empty) diff.
 # Exits 1 with the offending line(s) printed otherwise.
+#
+# --scan-tree MODE (added 22-08, CI wiring)
+# ------------------------------------------
+# The default (single-file, no-ref) mode diffs the WORKING TREE against the
+# INDEX. That is exactly right for a developer mid-edit in a plan session
+# (04-06's original use case), but on a CI runner's fresh checkout the
+# working tree and the index are identical -- the diff is always empty, so
+# the gate would print "OK" unconditionally regardless of what the file
+# actually contains. That is a vacuous pass: a check that cannot fail is
+# decoration, not a gate (see 22-08-PLAN.md's quality-job acceptance
+# criteria, and the same reasoning that made 22-02's --self-test mandatory).
+#
+# --scan-tree checks the CURRENT CONTENT of the given file(s) (comment-lines
+# stripped, same convention as tool/check_onboarding_seed_safety.sh's
+# strip_comments) for any print/debugPrint-family call -- a standing
+# invariant over the finished tree, not a diff. If no file is given it
+# defaults to lib/account/sdk_account_manager.dart, the one file this script
+# has ever been run against (Phase 4-06, GAP-03: the SDK account manager's
+# mnemonic/private-key entry dialogs). Exits 1 and prints the offending
+# line(s) if any file contains a call; 0 otherwise.
 
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
-
-FILE="${1:-}"
-if [ -z "$FILE" ]; then
-  echo "usage: bash tool/check_no_new_key_logging.sh <file-path>" >&2
-  exit 1
-fi
 
 # Assembled at runtime from parts -- see header comment for why this isn't
 # a literal 'print'/'debugPrint' substring in this file's source.
@@ -44,6 +59,39 @@ DP1="debugPr"
 DP2="int"
 PRINT_TOKEN="${P1}${P2}"
 DEBUG_PRINT_TOKEN="${DP1}${DP2}"
+
+if [ "${1:-}" = "--scan-tree" ]; then
+  shift
+  FILES=("$@")
+  if [ "${#FILES[@]}" -eq 0 ]; then
+    FILES=("lib/account/sdk_account_manager.dart")
+  fi
+  FAIL=0
+  for f in "${FILES[@]}"; do
+    if [ ! -f "$f" ]; then
+      echo "FAIL: $f not found" >&2
+      FAIL=1
+      continue
+    fi
+    BODY=$(grep -vE '^[[:space:]]*//' "$f" 2>/dev/null || true)
+    OFFENDERS=$(printf '%s\n' "$BODY" | grep -nE "(^|[^A-Za-z0-9_])(${PRINT_TOKEN}|${DEBUG_PRINT_TOKEN})[[:space:]]*\(" || true)
+    if [ -n "$OFFENDERS" ]; then
+      echo "FAIL: console-logging call(s) detected in $f:"
+      echo "$OFFENDERS"
+      FAIL=1
+    else
+      echo "OK: no key logging in $f"
+    fi
+  done
+  exit $FAIL
+fi
+
+FILE="${1:-}"
+if [ -z "$FILE" ]; then
+  echo "usage: bash tool/check_no_new_key_logging.sh <file-path>" >&2
+  echo "       bash tool/check_no_new_key_logging.sh --scan-tree [file-path ...]" >&2
+  exit 1
+fi
 
 DIFF=$(git diff -- "$FILE" 2>/dev/null || true)
 
