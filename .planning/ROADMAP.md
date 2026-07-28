@@ -1024,9 +1024,13 @@ Plans:
 ### Phase 22: Codebase hygiene: standards config, dead code deletion, analyzer to zero, CI gates
 
 **Goal:** Make the codebase's own rules mechanically enforceable and get the tree clean under them —
-without changing behaviour anywhere. Ends with analyzer at zero, a green test suite, a golden
-baseline, and CI actually enforcing. Using that enforcement to collapse duplication is Phase 23;
-state ownership and money paths are Phase 24.
+without changing behaviour anywhere. Ends with analyzer at zero, a green test suite, and CI actually
+enforcing. Using that enforcement to collapse duplication is Phase 23; state ownership and money
+paths are Phase 24.
+
+**Shipped 2026-07-28** — analyzer **0 / exit 0** (from 408), tests **512/0** (from 512/1), brace-less
+`if` **0** (from 192), **−1,744 LOC**, CI `quality` job wired and blocking. One caveat: the CI job has
+never actually run — it needs a push, which was not authorised.
 
 **Requirements**: ORG-01, ORG-02, ORG-03
 **Depends on:** Phase 21
@@ -1049,9 +1053,14 @@ codebase-quality requirement). ORG-01..03 close in Phase 22; ORG-04..05 close in
 
 **Why this order.** Research (2026-07-28, 12 parallel audit + research agents) settled the sequence:
 lint/format/CI first because `dart fix --apply` turns each newly-enabled rule into a bulk rewriter;
-then goldens, because they are the published safety net for the two workstreams after them; then
-**theme before components**, so extracted components are born on tokens instead of needing a second
-pass. LeanCode's 4-level framework orders it the same way.
+then **theme before components**, so extracted components are born on tokens instead of needing a
+second pass. LeanCode's 4-level framework orders it the same way.
+
+The original sequence also placed a golden-test baseline between the two, as the published safety net
+for the design-system work. **That step was cancelled** — see `cancelled/22-07-CANCELLED.md`. Phase 23
+was re-planned around proofs that do not need it (value equality, compiler enforcement, measured WCAG
+ratios), and the extraction work that genuinely required visual diffing was cut or deferred rather
+than shipped unverified.
 
 **Measured baseline (2026-07-28, verified not estimated):**
 
@@ -1125,19 +1134,20 @@ Plans:
 - [x] 22-06-PLAN.md — Hand-fix the ~96 remainder → **analyze 0, exit 0**. Risk-stratified:
       `unawaited()` never `await`; `mounted` guards recorded as the one sanctioned semantic delta
 
-- [~] 22-07-PLAN.md — **DEFERRED 2026-07-28 at its own blocking-human gate.** Braian declined both
-      the `alchemist` install and the no-dependency fallback. Plan retained unexecuted; full
-      rationale and consequences in `22-07-DEFERRED.md`. **This leaves Phase 23 without its primary
-      verification mechanism** — its seven plans reference goldens 104 times. Phase 23 must
-      reinstate the baseline, be re-planned against human-walk verification, or be narrowed to the
-      provably-safe subset before it can execute.
+- [-] 22-07-PLAN.md — **CANCELLED 2026-07-28.** Golden tests declined twice: first the `alchemist`
+      install and the no-dependency fallback at the blocking-human gate, then again after a full
+      explanation — *"no need to test it design diff wise."* No replacement test infrastructure
+      either, for now. Plan and rationale moved to `cancelled/`. Phase 23 was **re-planned without
+      goldens** rather than patched, and cut the extraction work that genuinely needed visual
+      diffing. See `cancelled/22-07-CANCELLED.md`.
 
 - [x] 22-08-PLAN.md — CI teeth: a `quality` job in `build.yml` (format, analyze, brace gate, the 3
-      existing security gates, tests, coverage) + `codecov.yml`. Proven on a real CI run, not locally.
-      Repointed `depends_on: ["22-06"]` (wave 7 → 6) when 22-07 was deferred
+      existing security gates, tests, coverage) + `codecov.yml`. Repointed `depends_on: ["22-06"]`
+      (wave 7 → 6) when 22-07 was cancelled. **The job has never run** — proving it needs a push.
+      No golden step was added; a CI step running zero golden tests would pass vacuously.
 
 **Phase exit:** analyzer 0 / exit 0, tests 512/0, brace rule enforced at 0, CI gates enforcing,
-no design-system file changed. **No golden baseline** — see the 22-07 deferral above.
+no design-system file changed. **No golden baseline** — 22-07 was cancelled; see `cancelled/22-07-CANCELLED.md`.
 
 ### Phase 23: Design system consolidation: theme tokens and shared components
 
