@@ -1030,7 +1030,7 @@ state ownership and money paths are Phase 24.
 
 **Requirements**: ORG-01, ORG-02, ORG-03
 **Depends on:** Phase 21
-**Plans:** 2/8 plans executed
+**Plans:** 3/8 plans executed
 
 **Requirement IDs coined for this phase** (ROADMAP said TBD; REQUIREMENTS.md carries no
 codebase-quality requirement). ORG-01..03 close in Phase 22; ORG-04..05 close in Phase 23:
@@ -1110,7 +1110,7 @@ Plans:
 - [x] 22-02-PLAN.md — `tool/check_brace_style.sh` with `--count` and `--self-test`, plus
       `.editorconfig`. The self-test is mandatory: a gate that never fails is not a gate
 
-- [ ] 22-03-PLAN.md — Rename the 9 hand-written `*.g.dart` widgets, move the shadow guard
+- [x] 22-03-PLAN.md — Rename the 9 hand-written `*.g.dart` widgets, move the shadow guard
       (`verify_additive_boundary.sh` + `shadow-baseline.txt`) with them, retire `GeniusWalletFontSize`.
       **The one sanctioned analyzer rise in this phase** — un-hiding 9 files sets a new ceiling
 

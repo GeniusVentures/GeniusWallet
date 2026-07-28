@@ -6,14 +6,14 @@ current_phase: 09
 current_phase_name: banxa
 status: verifying
 stopped_at: Phase 9 executed (human_needed); Banxa redesign recorded as the closeout gate
-last_updated: "2026-07-28T14:20:05.417Z"
+last_updated: "2026-07-28T14:38:03.576Z"
 last_activity: 2026-07-27
 last_activity_desc: "Phase 09 execution resumed (wave continue) — AND, on a parallel branch merged 2026-07-28, Completed quick tasks 260727-w58 (GWKicker), 260728-0vd (drawer shell insets + close button), 260728-13f (Markets hero shadow clearance) 260728-q7c (sketches 067-A + 156-A: drawer card canvas, section kicker, new borderControl token) 260728-r4k (transaction receipt on 154-A + 154-D copyable) 260728-p2m (sketch 068-A: three list pickers onto one GWSelectRow) 260728-s9k (sketch 069-A: the SDK Accounts section, plus 4 bugs) 260728-t3n (sketch 070-A: the coin page on base components, glyphs to one accent, plus 3 swap walk bugs) 260728-u8p (sketch 071-B: the whole coin page screen - into the ShellRoute, one page frame, the 480 literal replaced, a stat rail, GWStatTile promoted, and an explicit no-data state) and 260728-v6c (sketch 074-C2: the coin page's actions onto the section line above the chart - Receive/Swap/Bridge as icon buttons, NO Send, TokenActionBar and the More drawer deleted)"
 progress:
   total_phases: 24
   completed_phases: 16
   total_plans: 101
-  completed_plans: 82
+  completed_plans: 83
   percent: 67
 ---
 
@@ -205,6 +205,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 09-07: 09-OUTSTANDING.md records criteria 1 PARTIAL, criteria 2/3 NOT ADDRESSED; SCR-05 and GAP-05 both left unchecked pending phase verification
 - [Phase 22]: Collection-if detection uses a depth-tracked terminator scan (not a trailing-comma heuristic) to correctly tell Dart statement-if apart from multi-line/spread collection-if elements
 - [Phase 22]: check_brace_style.sh excludes generated code by explicit path, not a blanket *.g.dart glob, since 9 hand-written production widgets share that suffix
+- [Phase ?]: 22-03: GeniusWalletTypography lacks bare fontSize tokens matching the 3 call sites, so GeniusWalletFontSize was reduced (not deleted) per the plan's fallback branch.
+- [Phase ?]: 22-03: Fixed a stale Loading-baseline entry in tool/verify_additive_boundary.sh (22-01 deleted a real Loading importer, markets_search_bar.dart, without updating the pinned baseline).
 
 ### Pending Todos
 
@@ -328,7 +330,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-28T14:19:20.043Z
+Last session: 2026-07-28T14:36:44.570Z
 Stopped at: Phase 9 executed (human_needed); Banxa redesign recorded as the closeout gate
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
@@ -441,6 +443,7 @@ Open decisions:
 | Phase 09-banxa P06 | 20min | 2 tasks | 3 files |
 | Phase 09-banxa P07 | 25min | 2 tasks | 3 files |
 | Phase 22 P02 | 35min | 3 tasks | 2 files |
+| Phase 22 P03 | 10min | - tasks | - files |
 
 ### Roadmap Evolution
 
