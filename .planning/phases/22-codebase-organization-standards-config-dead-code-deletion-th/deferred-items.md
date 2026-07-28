@@ -81,3 +81,31 @@ print/debugPrint-family call. **Recommendation:** a future plan (22-08, which wi
 into CI, is the natural owner) should either fix the acceptance-criteria verify command to pass a
 file path, or give the script a no-argument "scan everything staged/changed" mode so it can run
 unconditionally like the other two gates.
+
+## From 22-06 (hand-fix the non-automatable analyzer tail)
+
+### `tool/verify_additive_boundary.sh` -- same two pre-existing Check 2 / Check 3 findings, re-confirmed
+
+Re-ran after all of 22-06's fixes landed. Byte-for-byte identical to 22-03/22-04's findings: the
+same 6 duplicate private-class names (`_Section`, `_SplashState`, `_TimeframeSegment`,
+`_TimeframeSegmentState`, `_TimeframeTab`, `_TimeframeTabState`) and the same
+`global_swap_fab_host.dart:21` WIRE-02 prose match. Neither file was touched by 22-06 (this plan's
+diff includes `test/components/global_swap_fab_host_test.dart` -- a different file, the test, not
+`lib/components/overlay/global_swap_fab_host.dart` itself). Not fixed here, same reasoning as
+22-03/22-04: still recommend a future plan baseline the 6 or exclude `_`-prefixed names from Check
+2's census regex.
+
+### `tool/check_onboarding_seed_safety.sh` CHECK 4 (3.4) regex widened -- fixed, not deferred
+
+`use_build_context_synchronously` required changing `recovery_phrase_screen.dart`'s existing
+`if (!mounted) { return; }` guard to `if (!context.mounted) { return; }` (see
+`22-06-SEMANTIC-DELTAS.md` for the full reasoning: `context` there is a `BlocBuilder`'s
+closure-local parameter, not the enclosing State's own -- the analyzer correctly distinguishes
+these as different objects even though they are lifecycle-equivalent for a `BlocBuilder`
+descendant). This broke CHECK 4's literal-text regex, which only recognized bare `mounted`.
+Rather than defer, widened the regex to also accept an optional `<identifier>.` prefix (so both
+`mounted` and `context.mounted` pass) -- the check's security intent (a lifecycle guard within 2
+lines of the awaited clipboard copy) is unchanged; only the accepted spelling widened. Re-ran:
+`check_onboarding_seed_safety.sh: PASSED -- all six Section 3 checks hold over the finished tree.`
+This is a Rule 3 (blocking-issue) auto-fix, not a deferred item -- listed here for visibility since
+it touches a security-gate script, not because it is unresolved.

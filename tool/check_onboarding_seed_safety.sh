@@ -199,9 +199,22 @@ echo "== CHECK 4 (3.4): 'if (!mounted) return;' within 2 lines after the awaited
 # since 22-04 (`if (!mounted) {` on the guard's own line, `return;` on the
 # next) -- the optional `\{?` is the only difference between the two shapes;
 # adjacency is still enforced by the -A2 window collapsed into that one line.
+#
+# 22-06: also accepts an optional `<identifier>.` prefix on `mounted` (e.g.
+# `context.mounted`), not just the bare `State.mounted` form. The
+# use_build_context_synchronously analyzer lint requires `context.mounted`
+# specifically when `context` is a closure-local parameter (this file's copy
+# handler runs inside a BlocBuilder's `builder: (context, state) => ...`,
+# so `context` here is that closure-local context, not the enclosing State's
+# own) -- bare `mounted` checks the State's lifecycle, an unrelated object
+# from the analyzer's point of view, and the analyzer flags it as such even
+# though the two are equivalent in practice for a BlocBuilder descendant.
+# Both spellings satisfy this check's actual security intent: a lifecycle
+# guard sits within 2 lines of the awaited copy, before the context reaches
+# ScaffoldMessenger.
 copy_window=$(strip_comments "$RECOVERY" | grep -A2 -E 'await[[:space:]]+FlutterClipboard\.copy\(' || true)
 copy_window_collapsed=$(printf '%s\n' "$copy_window" | tr '\n' ' ' | tr -s '[:space:]' ' ')
-if printf '%s' "$copy_window_collapsed" | grep -qE 'if[[:space:]]*\([[:space:]]*![[:space:]]*mounted[[:space:]]*\)[[:space:]]*\{?[[:space:]]*return;'; then
+if printf '%s' "$copy_window_collapsed" | grep -qE 'if[[:space:]]*\([[:space:]]*!([A-Za-z_][A-Za-z0-9_]*\.)?[[:space:]]*mounted[[:space:]]*\)[[:space:]]*\{?[[:space:]]*return;'; then
   echo "PASS [3.4]: the mounted guard is adjacent to (<=2 lines after) the awaited copy."
 else
   echo "FAIL [3.4]: no 'if (!mounted) return;' within 2 lines after the awaited FlutterClipboard.copy() in $RECOVERY."
