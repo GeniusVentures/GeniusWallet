@@ -242,13 +242,13 @@ class _OverviewContributionsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       spacing: GeniusWalletConsts.space3,
-      children: [
+      children: const [
         // OverviewDashboardView (wallet + processing) STAYS top-left at every
         // width — that is its location, confirmed by Jakub 2026-07-25. Do not
         // reorder this row to chase seam alignment; use _ChartMarketsRow for
         // that instead, which owns no fixed-position panel.
-        const Expanded(flex: 2, child: OverviewDashboardView()),
-        const Expanded(
+        Expanded(flex: 2, child: OverviewDashboardView()),
+        Expanded(
           flex: 3,
           child: SizedBox.expand(child: ContributionsDashboardView()),
         ),
@@ -264,14 +264,14 @@ class _ChartMarketsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       spacing: GeniusWalletConsts.space3,
-      children: [
+      children: const [
         // Chart leads, Markets trails. The seam-alignment reorder (sketch 038
         // A2 — Markets first, so both rows split 40/60) was built and walked
         // live on 2026-07-25 and REJECTED: aligned seams were not worth moving
         // the chart off the left edge. The 40/60-then-60/40 zigzag is a
         // deliberate, sighted trade, not an oversight. Do not re-propose it.
-        const Expanded(flex: 3, child: ChartDashboardView()),
-        const Expanded(flex: 2, child: MarketsDashboardView()),
+        Expanded(flex: 3, child: ChartDashboardView()),
+        Expanded(flex: 2, child: MarketsDashboardView()),
       ],
     );
   }
@@ -551,9 +551,9 @@ class ChartDashboardView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _ChartSectionHeader(),
-          const Expanded(
+        children: const [
+          _ChartSectionHeader(),
+          Expanded(
             child: CryptoLiveChart(
               coinGeckoCoinId: 'bitcoin',
               tokenSymbol: 'btc',

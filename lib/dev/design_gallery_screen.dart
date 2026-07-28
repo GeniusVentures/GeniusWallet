@@ -714,16 +714,16 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
               _Section(
                 title: 'Token row',
                 child: Column(
-                  children: [
-                    const GWTokenRow(
+                  children: const [
+                    GWTokenRow(
                       symbol: 'ETH',
                       name: 'Ethereum',
                       iconAsset: 'assets/images/crypto/eth.png',
                       balance: '1.2345',
                       subBalance: '\$3,210.00',
                     ),
-                    const SizedBox(height: GeniusWalletConsts.space2),
-                    const GWTokenRow(
+                    SizedBox(height: GeniusWalletConsts.space2),
+                    GWTokenRow(
                       symbol: 'XYZ',
                       name: 'Broken asset path (fallback dot)',
                       iconAsset: 'assets/images/crypto/does_not_exist.png',
@@ -735,10 +735,10 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
               _Section(
                 title: 'Wallet card',
                 child: Column(
-                  children: [
-                    const GWWalletCard(walletName: 'Ethereum'),
-                    const SizedBox(height: GeniusWalletConsts.space4),
-                    const GWWalletCard(
+                  children: const [
+                    GWWalletCard(walletName: 'Ethereum'),
+                    SizedBox(height: GeniusWalletConsts.space4),
+                    GWWalletCard(
                       walletName: 'Bitcoin (no trailing arrow)',
                       showArrow: false,
                     ),
@@ -753,14 +753,14 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                 title: 'Empty / Error / Loading states',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const GWEmptyState(title: 'No transactions yet'),
-                    const SizedBox(height: GeniusWalletConsts.space8),
-                    const GWErrorState(),
-                    const SizedBox(height: GeniusWalletConsts.space6),
-                    const GWErrorBanner(message: 'Network request failed.'),
-                    const SizedBox(height: GeniusWalletConsts.space6),
-                    const GWLoadingState(message: 'Loading balances…'),
+                  children: const [
+                    GWEmptyState(title: 'No transactions yet'),
+                    SizedBox(height: GeniusWalletConsts.space8),
+                    GWErrorState(),
+                    SizedBox(height: GeniusWalletConsts.space6),
+                    GWErrorBanner(message: 'Network request failed.'),
+                    SizedBox(height: GeniusWalletConsts.space6),
+                    GWLoadingState(message: 'Loading balances…'),
                   ],
                 ),
               ),

@@ -137,7 +137,7 @@ class ImportSecurityScreen extends StatelessWidget {
                                     ? TabAlignment.start
                                     : TabAlignment.center,
                                 isScrollable: true,
-                                tabs: [
+                                tabs: const [
                                   Tab(text: 'Phrase'),
                                   Tab(text: 'Private Key'),
                                   Tab(text: 'Keystore'),
