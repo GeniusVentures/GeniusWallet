@@ -14,7 +14,7 @@ class IncorrectPin extends StatefulWidget {
   final String? ovrIncorrectPinLabel;
   const IncorrectPin(this.constraints, {super.key, this.ovrIncorrectPinLabel});
   @override
-  _IncorrectPin createState() => _IncorrectPin();
+  State<IncorrectPin> createState() => _IncorrectPin();
 }
 
 class _IncorrectPin extends State<IncorrectPin> {

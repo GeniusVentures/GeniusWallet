@@ -13,7 +13,7 @@ class IsactiveTrue extends StatefulWidget {
   const IsactiveTrue(this.constraints, {super.key, this.ovrContinue});
 
   @override
-  _IsactiveTrue createState() => _IsactiveTrue();
+  State<IsactiveTrue> createState() => _IsactiveTrue();
 }
 
 class _IsactiveTrue extends State<IsactiveTrue> {

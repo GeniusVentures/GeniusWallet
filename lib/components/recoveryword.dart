@@ -13,7 +13,7 @@ class Recoveryword extends StatefulWidget {
     this.isEnabled = true,
   });
   @override
-  _Recoveryword createState() => _Recoveryword();
+  State<Recoveryword> createState() => _Recoveryword();
 }
 
 class _Recoveryword extends State<Recoveryword> {

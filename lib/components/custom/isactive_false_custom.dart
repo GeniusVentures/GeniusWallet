@@ -5,7 +5,7 @@ class IsactiveFalseCustom extends StatefulWidget {
   const IsactiveFalseCustom({super.key, this.child});
 
   @override
-  _IsactiveFalseCustomState createState() => _IsactiveFalseCustomState();
+  State<IsactiveFalseCustom> createState() => _IsactiveFalseCustomState();
 }
 
 class _IsactiveFalseCustomState extends State<IsactiveFalseCustom> {

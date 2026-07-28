@@ -10,7 +10,7 @@ class IsactiveFalse extends StatefulWidget {
   final String? ovrContinue;
   const IsactiveFalse(this.constraints, {super.key, this.ovrContinue});
   @override
-  _IsactiveFalse createState() => _IsactiveFalse();
+  State<IsactiveFalse> createState() => _IsactiveFalse();
 }
 
 class _IsactiveFalse extends State<IsactiveFalse> {
