@@ -50,7 +50,16 @@ class SwapSettingsDrawer {
         raw: raw,
         onApply: (value) {
           onSlippageChanged(value);
-          Navigator.of(context).pop();
+          // `context` here is the CALLER's — the swap screen's — captured when
+          // the drawer was opened. The swap screen lives inside the shell's
+          // nested Navigator (`router.dart` ShellRoute), while
+          // `ResponsiveDrawer.show` pushes on the ROOT navigator
+          // (`useRootNavigator: true`). Without `rootNavigator: true` this pop
+          // resolved to the shell's navigator and popped the SWAP ROUTE —
+          // Apply dropped the user on the dashboard instead of closing the
+          // drawer. The token picker never had this bug because it pops with a
+          // context from inside the drawer.
+          Navigator.of(context, rootNavigator: true).pop();
         },
       ),
       // Both are created here, so both are disposed here — when the route is

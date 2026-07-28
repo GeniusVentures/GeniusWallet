@@ -8,12 +8,16 @@ import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 class BanxaBuyScreen extends StatefulWidget {
@@ -66,7 +70,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             showAppSnackBar(
               context,
               state.errorMessage,
-              backgroundColor: Colors.red,
+              backgroundColor: GeniusWalletColors.statusError,
             );
 
             context.read<MakeOrderCubit>().clearError();
@@ -82,6 +86,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
           }
         },
         builder: (context, state) {
+          final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
           if (_amountController.text != state.amountText) {
             _amountController.text = state.amountText;
             _amountController.selection = TextSelection.fromPosition(
@@ -102,7 +107,53 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
 
           final width = GeniusBreakpoints.small * 2 / 3;
           return Scaffold(
-            appBar: AppBar(title: Text('Buy Crypto')),
+            // token_info_screen.dart:92-129's back-arrow AppBar recipe,
+            // applied unconditionally: this screen is always pushed at
+            // `/createOrder`, so it always has a back target.
+            appBar: AppBar(
+              toolbarHeight: 48,
+              backgroundColor: gw.surfaceSunken,
+              elevation: 0,
+              titleSpacing: 0,
+              automaticallyImplyLeading: false,
+              centerTitle: false,
+              title: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal:
+                      MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
+                      ? GeniusWalletConsts.space10
+                      : GeniusWalletConsts.space8,
+                ),
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () => Navigator.of(context).maybePop(),
+                      borderRadius:
+                          BorderRadius.circular(GeniusWalletConsts.radiusSm),
+                      child: SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: Center(
+                          child: SketchIcon(
+                            SketchIcons.back,
+                            size: 18,
+                            color: gw.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: GeniusWalletConsts.space6),
+                    Text(
+                      'Buy Crypto',
+                      style: GeniusWalletTypography.titleMd.copyWith(
+                        color: gw.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             body: Stack(
               children: [
                 if (isBootLoading)
@@ -201,13 +252,15 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                             Row(
                               children: [
                                 Expanded(
-                                  child: ElevatedButton(
+                                  child: GWButton(
+                                    variant: GWButtonVariant.secondary,
+                                    expand: true,
+                                    label: 'Get Quote',
                                     onPressed: state.canGetQuote
                                         ? () => context
                                               .read<MakeOrderCubit>()
                                               .getQuote()
                                         : null,
-                                    child: const Text('Get Quote'),
                                   ),
                                 ),
                                 if (state.step == MakeOrderStep.error &&
@@ -234,30 +287,36 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                               ],
                             ),
                             if (state.hasQuote)
-                              Card(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'You will receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}',
-                                      ),
-                                      Wrap(
-                                        spacing: 12,
-                                        runSpacing: 4,
-                                        children: [
-                                          Text(
-                                            'Gateway: ${state.quote!.processingFee} ${state.fiatCode}',
-                                          ),
-                                          Text(
-                                            'Network: ${state.quote!.networkFee} ${state.fiatCode}',
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                              GWCard(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'You will receive: ${state.quote!.cryptoAmount} ${state.cryptoCode}',
+                                      style: GeniusWalletTypography.bodyLg
+                                          .copyWith(color: gw.textPrimary),
+                                    ),
+                                    Wrap(
+                                      spacing: 12,
+                                      runSpacing: 4,
+                                      children: [
+                                        Text(
+                                          'Gateway: ${state.quote!.processingFee} ${state.fiatCode}',
+                                          style: GeniusWalletTypography.bodySm
+                                              .copyWith(
+                                                color: gw.textSecondary,
+                                              ),
+                                        ),
+                                        Text(
+                                          'Network: ${state.quote!.networkFee} ${state.fiatCode}',
+                                          style: GeniusWalletTypography.bodySm
+                                              .copyWith(
+                                                color: gw.textSecondary,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             TextField(
@@ -269,8 +328,12 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                 labelText: 'Wallet Address',
                               ),
                             ),
-                            InkWell(
-                              onTap: state.canCreateOrder
+                            GWButton(
+                              variant: GWButtonVariant.gradient,
+                              size: GWButtonSize.lg,
+                              expand: true,
+                              label: 'Create Order',
+                              onPressed: state.canCreateOrder
                                   ? () async {
                                       final accepted = await showDisclaimerDialog(
                                         context,
@@ -281,7 +344,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                             "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
                                             "Banxa's Terms of Use and Privacy & Cookies Policy.",
                                         confirmText: "Continue",
-                                        activeColor: Colors.blue,
+                                        activeColor:
+                                            GeniusWalletColors.brandPrimaryOnSurface,
                                       );
 
                                       if (!accepted) {
@@ -308,39 +372,6 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                       }
                                     }
                                   : null,
-                              borderRadius: BorderRadius.circular(
-                                GeniusWalletConsts.borderRadiusButton,
-                              ),
-                              child: Ink(
-                                decoration: BoxDecoration(
-                                  gradient: state.canCreateOrder
-                                      ? GeniusWalletGradient
-                                            .greenBlueGreenGradient
-                                      : LinearGradient(
-                                          colors: [
-                                            Colors.grey.shade500,
-                                            Colors.grey.shade600,
-                                          ],
-                                        ),
-                                  borderRadius: BorderRadius.circular(
-                                    GeniusWalletConsts.borderRadiusButton,
-                                  ),
-                                ),
-                                child: Container(
-                                  height: 48,
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    'Create Order',
-                                    style: TextStyle(
-                                      color: state.canCreateOrder
-                                          ? GeniusWalletColors.deepBlue
-                                          : Colors.black.withValues(alpha: 0.4),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
-                              ),
                             ),
                           ],
                         ),

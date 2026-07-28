@@ -28,6 +28,12 @@ class SwapField extends StatelessWidget {
   /// route-error state ("—" instead of a stale amount).
   final String? emptyPlaceholder;
 
+  /// Copy for the picker's empty state, forwarded to [TokenSelectorDrawer].
+  /// Only the pay side needs it — its list is filtered to holdings and can
+  /// legitimately arrive empty; the receive side offers the full catalogue.
+  final String? pickerEmptyTitle;
+  final String? pickerEmptyMessage;
+
   const SwapField({
     super.key,
     required this.label,
@@ -38,6 +44,8 @@ class SwapField extends StatelessWidget {
     required this.tokens,
     required this.onTokenSelected,
     this.emptyPlaceholder,
+    this.pickerEmptyTitle,
+    this.pickerEmptyMessage,
   });
 
   @override
@@ -172,6 +180,8 @@ class SwapField extends StatelessWidget {
                             // Without this the picker reopens showing no trace
                             // of what is already chosen (032-A1's selection).
                             selectedToken: selectedToken,
+                            emptyTitle: pickerEmptyTitle,
+                            emptyMessage: pickerEmptyMessage,
                           );
                         },
                         borderRadius: BorderRadius.circular(

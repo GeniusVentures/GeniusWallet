@@ -220,7 +220,21 @@ final geniusWalletRouter = GoRouter(
           path: '/transactions',
           builder: (_, _) => const TransactionsScreen(),
         ),
-        GoRoute(path: '/swap', builder: (_, _) => const SwapScreen()),
+        GoRoute(
+          path: '/swap',
+          builder: (context, state) {
+            // `extra` carries an optional coin to seat, sent by a coin page's
+            // Swap button. Absent for every other entry point (nav bar, FAB),
+            // which is why both fields are nullable rather than defaulted.
+            final extra = state.extra is Map<String, dynamic>
+                ? state.extra as Map<String, dynamic>
+                : const <String, dynamic>{};
+            return SwapScreen(
+              preselectSymbol: extra['symbol'] as String?,
+              preselectChainId: extra['chainId'] as int?,
+            );
+          },
+        ),
         if (!Platform.isLinux)
           GoRoute(
             path: '/web',

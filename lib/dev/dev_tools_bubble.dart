@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_cancelled_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_success_drawer.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/dev/dev_banxa_fixtures.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -14,9 +16,8 @@ import 'package:genius_wallet/dev/dev_mock_transactions.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
-import 'package:genius_wallet/squid_router/swap_fail_drawer.dart';
-import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -77,6 +78,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
   bool _mockExpanded = true;
   bool _testFlowsExpanded = false;
   bool _navigateExpanded = false;
+  bool _banxaExpanded = false;
   bool _appearanceExpanded = true;
 
   double _panelMaxWidth(Size screenSize) {
@@ -581,38 +583,73 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                         _devButton(
                           'Succeed',
                           () {
-                            SwapSuccessDrawer.show(
+                            // D-06: SwapSuccessDrawer is deleted (superseded
+                            // by the shared 031-B receipt) — this button now
+                            // exercises the same showTransactionDetails path
+                            // the real swap flow uses, with a synthetic swap
+                            // Transaction.
+                            showTransactionDetails(
                               context,
-                              fromAmount: '1.0',
-                              toAmount: '0.98',
-                              fromSymbol: 'ETH',
-                              toSymbol: 'USDC',
-                              fromIconUrl:
-                                  'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-                              toIconUrl:
-                                  'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-                              chain: 'Ethereum',
+                              Transaction(
+                                hash: '',
+                                fromAddress:
+                                    '0x1111222233334444555566667777888899990000',
+                                recipients: const [],
+                                timeStamp: DateTime.now(),
+                                transactionDirection:
+                                    TransactionDirection.received,
+                                fees: '',
+                                coinSymbol: 'ETH',
+                                transactionStatus: TransactionStatus.completed,
+                                type: TransactionType.swap,
+                                fromAmount: '1.0',
+                                toAmount: '0.98',
+                                fromSymbol: 'ETH',
+                                toSymbol: 'USDC',
+                                fromIconUrl:
+                                    'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+                                toIconUrl:
+                                    'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                              ),
                             );
                           },
-                          tooltip: 'Test Swap Success Drawer',
+                          tooltip:
+                              'Test the shared swap receipt (showTransactionDetails, completed)',
                         ),
                         _devButton(
                           'Failed',
                           () {
-                            SwapFailDrawer.show(
+                            // D-06: SwapFailDrawer is deleted (superseded by
+                            // the shared 031-B receipt, and it had no
+                            // production caller at all — the exact orphan
+                            // trap D-06 names).
+                            showTransactionDetails(
                               context,
-                              fromAmount: '1.0',
-                              toAmount: '0.00',
-                              fromSymbol: 'ETH',
-                              toSymbol: 'USDC',
-                              fromIconUrl:
-                                  'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-                              toIconUrl:
-                                  'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
-                              chain: 'Ethereum',
+                              Transaction(
+                                hash: '',
+                                fromAddress:
+                                    '0x1111222233334444555566667777888899990000',
+                                recipients: const [],
+                                timeStamp: DateTime.now(),
+                                transactionDirection:
+                                    TransactionDirection.received,
+                                fees: '',
+                                coinSymbol: 'ETH',
+                                transactionStatus: TransactionStatus.failed,
+                                type: TransactionType.swap,
+                                fromAmount: '1.0',
+                                toAmount: '0.00',
+                                fromSymbol: 'ETH',
+                                toSymbol: 'USDC',
+                                fromIconUrl:
+                                    'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
+                                toIconUrl:
+                                    'https://assets.coingecko.com/coins/images/6319/large/USD_Coin_icon.png',
+                              ),
                             );
                           },
-                          tooltip: 'Test Swap Failed Drawer',
+                          tooltip:
+                              'Test the shared swap receipt (showTransactionDetails, failed)',
                         ),
                         _devButton(
                           'Buy OK',
@@ -623,6 +660,125 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           'Buy fail',
                           () => BuyCancelledDrawer.show(context),
                           tooltip: 'Test Buy Cancelled Drawer',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
+                // DEV-ONLY: Banxa order fixtures. The Banxa order surfaces are
+                // the least walkable in the app — the list, the card, the
+                // details card and its page all render nothing until a real
+                // order exists, and creating one needs a live sandbox round
+                // trip with KYC and a payment method. Phase 9 re-skinned all
+                // of them under a decision (09-CONTEXT.md D-03) that forbade
+                // exactly that, so six of its ten surfaces shipped unwalked.
+                // These buttons close that gap. See lib/dev/dev_banxa_fixtures.dart.
+                _Section(
+                  label: 'BANXA',
+                  expanded: _banxaExpanded,
+                  onToggle: () =>
+                      setState(() => _banxaExpanded = !_banxaExpanded),
+                  gw: gw,
+                  children: [
+                    Wrap(
+                      spacing: GeniusWalletConsts.space2,
+                      runSpacing: GeniusWalletConsts.space2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _devButton(
+                          'Orders x4',
+                          () {
+                            DevBanxaFixtures.instance.arm(
+                              DevBanxaOrders.seeded,
+                            );
+                            context.read<OrdersCubit>().fetchOrders(
+                              'your-cust-id',
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Banxa orders seeded',
+                              message:
+                                  'Four orders, one per status bucket: '
+                                  'completed, pendingPayment, declined, and '
+                                  'an UNKNOWN status that must read neutral '
+                                  'rather than green. HELD until Clear.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Seeds 4 mock Banxa orders covering every '
+                              'bucket of the 09-01 status ladder, then '
+                              'refetches. Makes the orders list, order card, '
+                              'order-details card and its page walkable with '
+                              'no sandbox call. STICKY until Clear.',
+                        ),
+                        _devButton(
+                          'Orders empty',
+                          () {
+                            DevBanxaFixtures.instance.arm(DevBanxaOrders.empty);
+                            context.read<OrdersCubit>().fetchOrders(
+                              'your-cust-id',
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Banxa empty state armed',
+                              message:
+                                  'A SUCCESSFUL fetch returning zero orders — '
+                                  "the GWEmptyState branch 09-02 added. This "
+                                  'is what a new wallet sees. HELD until Clear.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Forces a successful-but-empty orders fetch — '
+                              'the "No orders yet" GWEmptyState, distinct '
+                              'from the error branch. STICKY until Clear.',
+                        ),
+                        _devButton(
+                          'Orders error',
+                          () {
+                            DevBanxaFixtures.instance.arm(DevBanxaOrders.error);
+                            context.read<OrdersCubit>().fetchOrders(
+                              'your-cust-id',
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Banxa orders error armed',
+                              message:
+                                  "The GWErrorState branch 09-02 added, which "
+                                  'replaced a bare "❌" string. Its own Retry '
+                                  'will KEEP failing while armed — press '
+                                  'Clear first, then Retry, to watch it '
+                                  'recover.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Forces an orders-load failure so the '
+                              'GWErrorState + Retry affordance can be walked. '
+                              'STICKY until Clear.',
+                        ),
+                        _devButton(
+                          'Clear Banxa',
+                          () {
+                            DevBanxaFixtures.instance.disarm();
+                            context.read<OrdersCubit>().fetchOrders(
+                              'your-cust-id',
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Banxa fixtures cleared',
+                              message:
+                                  'Next fetch runs for real against the '
+                                  'sandbox.',
+                              type: ToastType.success,
+                            );
+                          },
+                          tooltip:
+                              'Clears any armed Banxa fixture and refetches '
+                              'for real. Press this before testing the error '
+                              "state's own Retry, or it will keep failing.",
                         ),
                       ],
                     ),

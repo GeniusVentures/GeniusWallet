@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_details_card.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_helpers.dart';
 import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
+import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
 
 class OrderDetailsPage extends StatefulWidget {
@@ -29,7 +34,7 @@ class OrderDetailsPage extends StatefulWidget {
 class _OrderDetailsPageState extends State<OrderDetailsPage> {
   late Future<Order> _orderFuture;
   final _service = BanxaApiService();
-  Color? _bannerColor;
+  OrderStatusTone? _bannerTone;
   String? _bannerText;
 
   @override
@@ -40,7 +45,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     final bannerInfo = BanxaHelpers.getBannerInfo(widget.initialStatus);
 
     if (bannerInfo != null) {
-      _bannerColor = bannerInfo.color;
+      _bannerTone = bannerTone(widget.initialStatus);
       _bannerText = bannerInfo.text;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,7 +66,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     final redirect = widget.redirectUrl ?? BanxaApiService.redirectUrl;
 
     if (status == 'pendingpayment' && checkout != null && orderId.isNotEmpty) {
-      return ElevatedButton(
+      return GWButton(
         onPressed: () async {
           await showCheckoutOptionsSheet(
             context,
@@ -70,14 +75,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             redirectUrl: redirect,
           );
         },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        child: const Text('Complete Payment'),
+        label: 'Complete Payment',
+        variant: GWButtonVariant.gradient,
       );
     } else if (status == 'declined') {
-      return OutlinedButton(
+      return GWButton(
         onPressed: () {
           context.push(
             '/createOrder',
@@ -90,12 +92,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             },
           );
         },
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.red,
-          side: const BorderSide(color: Colors.red),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        child: const Text('Retry Order'),
+        label: 'Retry Order',
+        variant: GWButtonVariant.secondary,
       );
     }
     return const SizedBox.shrink();
@@ -104,15 +102,26 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final canGoBack = GoRouter.of(context).canPop();
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Details'),
+        toolbarHeight: 48,
+        backgroundColor: gw.surfaceSunken,
+        elevation: 0,
+        centerTitle: false,
+        title: Text(
+          'Order Details',
+          style: GeniusWalletTypography.titleMd.copyWith(
+            color: gw.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         automaticallyImplyLeading: canGoBack,
         leading: canGoBack
             ? null
             : IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: Icon(Icons.arrow_back, color: gw.textSecondary),
                 onPressed: () {
                   context.go('/buy');
                 },
@@ -120,6 +129,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       ),
       body: FutureStateWidget<Order>(
         future: _orderFuture,
+        error: const GWErrorState(title: "Couldn't load this order"),
         onRetry: () {
           setState(() {
             _orderFuture = _service.getOrderById(widget.orderId);
@@ -127,7 +137,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         },
         onData: (order) => OrderDetailCard(
           order: order,
-          bannerColor: _bannerColor,
+          bannerTone: _bannerTone,
           bannerText: _bannerText,
           actionButton: _buildActionButton(context, order),
         ),

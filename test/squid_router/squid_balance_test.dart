@@ -1,63 +1,134 @@
-// The ONE check `SquidBalance` owes.
-//
-// `amountAsDouble` was `double.tryParse(balance)! / (pow(10, decimals) as
-// double)`, and that cast threw on EVERY real token: `pow(int, int)` hands back
-// a `num` that is an int at runtime whenever the result fits in an int64, which
-// covers every `decimals <= 18`.
-//
-// It survived because two of the three callers catch and print '0' - so the
-// token picker showed a column of honest-looking zeroes next to tokens the
-// wallet actually held. The third caller, the swap CTA, has no catch, so
-// picking a pay token crashed the whole swap screen.
-//
-// Hence both halves below: the number must be RIGHT (a zero that is a lie is
-// the failure this bug shipped as), and the picker's string must agree with it.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 
-SquidBalance _balance(String raw, int decimals) => SquidBalance(
+/// Pins the balance math that the 08-07 walk found broken.
+///
+/// `amountAsDouble` divided by `(pow(10, decimals) as double)`. `pow` returns an
+/// **int** when base and exponent are both ints — which they always are here —
+/// so that cast threw `type 'int' is not a subtype of type 'double'` for every
+/// token carrying a balance, on a line that had been in the tree since
+/// `7c40615` (2025-05-12). It stayed dormant because its only reader,
+/// `displayBalance`, catches and returns `'0'`. 08-03's CTA ladder added
+/// `swap_screen`'s unguarded `fromBalanceAmount`, and the latent throw became
+/// console spam plus an "Insufficient balance" rung that could never evaluate.
+///
+/// The first group is the regression itself: these calls must not throw. The
+/// rest pin the rendering contract around them so a future "simplification"
+/// back to a cast fails loudly here rather than at the user's swap screen.
+SquidBalance _balance({required String raw, required int decimals}) =>
+    SquidBalance(
       balance: raw,
       symbol: 'TKN',
-      address: '0x0',
+      address: '0xabc',
       decimals: decimals,
       chainId: '1',
     );
 
 void main() {
-  group('amountAsDouble', () {
-    test('18 decimals - the case that crashed the swap screen', () {
-      // 1.5 ETH in wei. 10^18 fits in an int64, so `pow` returns an int here.
-      expect(_balance('1500000000000000000', 18).amountAsDouble, 1.5);
+  group('amountAsDouble — the int/double regression', () {
+    test('does not throw for an 18-decimal token', () {
+      final b = _balance(raw: '1000000000000000000', decimals: 18);
+      expect(b.amountAsDouble, closeTo(1.0, 1e-12));
     });
 
-    test('6 decimals - USDC/USDT', () {
-      expect(_balance('2500000', 6).amountAsDouble, 2.5);
+    test('does not throw for a 6-decimal token', () {
+      final b = _balance(raw: '2500000', decimals: 6);
+      expect(b.amountAsDouble, closeTo(2.5, 1e-12));
     });
 
-    test('0 decimals - pow returns the int 1', () {
-      expect(_balance('42', 0).amountAsDouble, 42.0);
+    test('does not throw for a 0-decimal token', () {
+      // pow(10, 0) is the int 1 — the cast threw here too.
+      final b = _balance(raw: '7', decimals: 0);
+      expect(b.amountAsDouble, closeTo(7.0, 1e-12));
     });
 
+    test('a zero balance is zero, not a throw', () {
+      final b = _balance(raw: '0', decimals: 18);
+      expect(b.amountAsDouble, 0.0);
+    });
+
+    // Merge 2026-07-28: this defect was fixed on two branches at once. The
+    // other fix used `double.tryParse(balance)!`, which turns an unparseable
+    // balance into a null-check error instead of a number. The nullable form
+    // shipped because a balance that never ARRIVED and a balance of zero are
+    // different facts, and the swap CTA reads them differently - "Insufficient
+    // ETH" on data the app never received is a lie the getter must not enable.
     test('an unparseable balance is null, never 0', () {
-      // 0 would make the swap CTA say "Insufficient TKN" about data it never
-      // received. `swap_screen.dart`'s `fromBalanceAmount` documents that rule.
-      expect(_balance('', 18).amountAsDouble, isNull);
-      expect(_balance('not-a-number', 18).amountAsDouble, isNull);
+      expect(_balance(raw: '', decimals: 18).amountAsDouble, isNull);
+      expect(_balance(raw: 'not-a-number', decimals: 6).amountAsDouble, isNull);
     });
   });
 
-  group('displayBalance', () {
-    test('prints the held amount instead of the catch branch 0', () {
-      expect(_balance('1500000000000000000', 18).displayBalance, '1.5');
-      expect(_balance('2500000', 6).displayBalance, '2.5');
+  group('displayBalance — no longer masks the throw as "0"', () {
+    test('a held balance renders its real figure, not 0', () {
+      final b = _balance(raw: '1000000000000000000', decimals: 18);
+      expect(b.displayBalance, '1');
     });
 
-    test('a real zero still prints 0', () {
-      expect(_balance('0', 18).displayBalance, '0');
+    test('a fractional balance keeps six decimals, trailing zeros trimmed', () {
+      // 2.5 USDC
+      final b = _balance(raw: '2500000', decimals: 6);
+      expect(b.displayBalance, '2.5');
     });
 
-    test('dust below the 6-decimal window says so rather than lying', () {
-      expect(_balance('1', 18).displayBalance, '<0.000001');
+    test('an empty balance still reads "0" rather than crashing', () {
+      final b = _balance(raw: '0', decimals: 6);
+      expect(b.displayBalance, '0');
+    });
+
+    test('dust below the readable floor says "less than", never "0"', () {
+      // 1 wei of an 18-decimal token: real, but smaller than 1e-6.
+      final b = _balance(raw: '1', decimals: 18);
+      expect(b.displayBalance, '<0.000001');
+    });
+  });
+
+  group('the magnitude stress fixtures render as their comments claim', () {
+    // These pin the four extremes added to `mockSquidBalances` at the 08-07
+    // walk. The fixtures exist to stress the picker row and the 38px amount
+    // slot; if a future edit changes what they render, the comment next to
+    // each fixture becomes a lie and this group is where that surfaces.
+
+    test('DUST: 1e-15 of an 18-decimal token reads "<0.000001"', () {
+      expect(_balance(raw: '1000', decimals: 18).displayBalance, '<0.000001');
+    });
+
+    test('FLOOR: exactly 0.000001 reads as the figure, not "less than"', () {
+      expect(_balance(raw: '1', decimals: 6).displayBalance, '0.000001');
+    });
+
+    test('LONG FRACTION: eighteen decimals are capped at six', () {
+      expect(
+        _balance(raw: '1234567890123456789', decimals: 18).displayBalance,
+        '1.234568',
+      );
+    });
+
+    test('HUGE: 1e12 whole tokens render every digit', () {
+      expect(
+        _balance(
+          raw: '1000000000000000000000000000000',
+          decimals: 18,
+        ).displayBalance,
+        '1000000000000',
+      );
+    });
+
+    test('all four survive the pay-side spendability filter', () {
+      // Dust especially — a filter that dropped it would be deciding what is
+      // worth owning.
+      for (final raw in [
+        '1000',
+        '1',
+        '1234567890123456789',
+        '1000000000000000000000000000000',
+      ]) {
+        expect(
+          double.tryParse(raw)! > 0,
+          isTrue,
+          reason: '$raw must read as a spendable balance',
+        );
+      }
     });
   });
 }

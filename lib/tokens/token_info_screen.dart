@@ -522,7 +522,38 @@ class TokenInfoScreen extends StatelessWidget {
           size: GWButtonSize.md,
           tooltip: 'Swap',
           semanticLabel: 'Swap',
-          onPressed: () => GoRouter.of(context).push('/swap'),
+          // **Preselection, gained in the 2026-07-28 merge.** Sketch 072 said
+          // no variant may promise it, because `SwapScreen` took no parameters
+          // - that was true of this branch and false of the base, which built
+          // `preselectSymbol` / `preselectChainId` in Phase 8. The promise is
+          // now keepable, so it is kept.
+          //
+          // **`marketData.symbol` FIRST, `selectedCoin` only as a fallback**,
+          // which is the base branch's hard-won finding rather than a
+          // preference: `selectedCoin` is the WALLET's currently-selected coin,
+          // not the coin this page is showing. Opening a coin from Markets
+          // leaves it null or pointing somewhere else entirely, which is why
+          // preselection did nothing on exactly the route it was asked for.
+          //
+          // **`push`, not the base branch's `go`.** That `go` was a workaround
+          // for a real crash - `/token-info` used to live OUTSIDE the
+          // ShellRoute while `/swap` lived inside it, so pushing built a second
+          // shell, the root navigatorKey appeared twice, and go_router asserted
+          // `!keyReservation.contains(key)` while the navigation silently did
+          // nothing. **071-B moved this route INSIDE the shell**, so both now
+          // push onto the same navigator and the cause is gone - and `push`
+          // keeps the back stack, where `go` replaced the location and lost the
+          // way back to the coin. Walk this one: the failure it replaces was
+          // real and was reported from a walk.
+          onPressed: () => GoRouter.of(context).push(
+            '/swap',
+            extra: <String, dynamic>{
+              'symbol': marketData?.symbol ?? selectedCoin?.symbol,
+              // A weak hint, and only a preference - an unmatched chain falls
+              // back rather than blocking.
+              'chainId': selectedNetwork?.chainId,
+            },
+          ),
         ),
         if (isGnusBridgeEnabled)
           GWButton.icon(

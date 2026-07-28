@@ -671,8 +671,14 @@ void showTransactionDetails(BuildContext context, Transaction tx) {
   }
 
   add(netRows, 'Network', tx.coinSymbol);
-  // Where the fee lives now that it is off the resting row.
-  add(netRows, 'Network Fee', '${formatTxAmount(tx.fees)} ${tx.coinSymbol}');
+  // Where the fee lives now that it is off the resting row. A blank `fees`
+  // means "no fee is known" (e.g. the D-01 unwired swap path) - skip the row
+  // entirely, exactly as the Rate row above already skips a blank
+  // `exchangeRate`. Do not "restore" this for a value that composes to a bare
+  // coin symbol; that IS the defect this guard closes.
+  if (tx.fees.trim().isNotEmpty) {
+    add(netRows, 'Network Fee', '${formatTxAmount(tx.fees)} ${tx.coinSymbol}');
+  }
   // For a processing job the hash IS the job reference — one row, not the same
   // value printed twice under two labels.
   addCopy(

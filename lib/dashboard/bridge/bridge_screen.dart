@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
@@ -9,9 +8,10 @@ import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_cta_state.dart';
+import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
@@ -20,7 +20,6 @@ import 'package:genius_wallet/utils/formatters.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:go_router/go_router.dart';
 
 class BridgeScreen extends StatefulWidget {
   final Coin? fromToken;
@@ -275,18 +274,18 @@ class BridgeScreenState extends State<BridgeScreen> {
     );
   }
 
-  // Task 3 (c): the ready rung's submit action -- byte-identical to
-  // develop's inline closure (api.bridgeOut(...) with all seven arguments
-  // including shouldMintTokens: true, the mounted guard, the ToastManager
-  // call and the existing result AlertDialog -- 08-06 replaces that dialog,
-  // not this plan), only now wrapped with the `isSubmitting` flag around the
-  // real await so the CTA can show its "Bridging…" rung for exactly as long
-  // as this genuinely takes.
+  // Task 3 (c) / 08-06 Task 2: the ready rung's submit action -- develop's
+  // inline closure (api.bridgeOut(...) with all seven arguments including
+  // shouldMintTokens: true, the mounted guard, the ToastManager call) stays
+  // byte-identical; the `isSubmitting` flag still wraps the real await so
+  // the CTA can show its "Bridging…" rung for exactly as long as this
+  // genuinely takes. 08-06 replaces the retired inline AlertDialog below
+  // with the shared 031-B receipt (D-04), fired alongside the toast, never
+  // instead of it.
   Future<void> _submitBridge(
     BuildContext context,
     WalletDetailsState state,
   ) async {
-    final cs = Theme.of(context).colorScheme;
     setState(() => isSubmitting = true);
     try {
       final api = context.read<GeniusApi>();
@@ -302,245 +301,58 @@ class BridgeScreenState extends State<BridgeScreen> {
 
       if (!context.mounted) return;
 
+      final isSuccess = bridgeTokensResponse.isSuccess;
+      final errorMessage = bridgeTokensResponse.errorMessage;
+      // FAILURE MESSAGE: the retired AlertDialog was the only place that
+      // ever surfaced the response's real error text -- routing to 031-B
+      // without carrying it into the toast would silently discard the only
+      // diagnostic a user gets from a genuine on-chain failure.
+      final failureMessage = (errorMessage != null && errorMessage.trim().isNotEmpty)
+          ? errorMessage
+          : 'Bridge transaction failed.';
+
       ToastManager.instance.showToast(
         context: context,
-        title: bridgeTokensResponse.isSuccess ? 'Success' : 'Error',
-        message: bridgeTokensResponse.isSuccess
-            ? 'Bridge transaction completed.'
-            : 'Bridge transaction failed.',
-        type: bridgeTokensResponse.isSuccess
-            ? ToastType.success
-            : ToastType.error,
+        title: isSuccess ? 'Success' : 'Error',
+        message: isSuccess ? 'Bridge transaction completed.' : failureMessage,
+        type: isSuccess ? ToastType.success : ToastType.error,
       );
 
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: cs.surface,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 20,
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ), // Rounded corners
-          title: Center(
-            child: Text(
-              bridgeTokensResponse.isSuccess
-                  ? 'Bridge Success!'
-                  : 'Bridge Failed!',
-              style: TextStyle(
-                color: bridgeTokensResponse.isSuccess
-                    ? cs.primary
-                    : cs.error,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          content: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: GeniusBreakpoints.useDesktopLayout(context)
-                  ? 500
-                  : MediaQuery.of(context).size.width * .85,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: bridgeTokensResponse.isSuccess
-                  ? [
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment
-                                  .start, // Ensures wrapped text aligns properly
-                              children: [
-                                // From Token Section (Icon + Amount + Network Symbol)
-                                Expanded(
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _cryptoIcon(fromToken?.iconPath),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        // Allows text to wrap properly
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '${fromAmountController.text} ${fromToken?.symbol?.toUpperCase()}',
-                                              maxLines: 1,
-                                              overflow:
-                                                  TextOverflow.ellipsis,
-                                              softWrap:
-                                                  true, // Allows wrapping if needed
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              fromToken?.networkSymbol ??
-                                                  "",
-                                              maxLines:
-                                                  2, // Allows wrapping on small screens
-                                              overflow:
-                                                  TextOverflow.ellipsis,
-                                              softWrap: true,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: cs.onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                const Expanded(
-                                  child: Icon(
-                                    Icons.arrow_forward,
-                                    color: Colors.white70,
-                                    size: 30,
-                                  ),
-                                ), // Arrow Icon
-                                // To Token Section (Icon + Amount + Network Name)
-                                Expanded(
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _cryptoIcon(toNetwork?.iconPath),
-                                      const SizedBox(width: 6),
-                                      Expanded(
-                                        // Allows text to wrap properly
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '${toAmountController.text} ${toNetwork?.symbol?.toUpperCase()}',
-                                              maxLines: 1,
-                                              overflow:
-                                                  TextOverflow.ellipsis,
-                                              softWrap:
-                                                  true, // Allows wrapping
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              toNetwork?.name ?? "",
-                                              maxLines:
-                                                  2, // Allows wrapping on small screens
-                                              overflow:
-                                                  TextOverflow.ellipsis,
-                                              softWrap: true,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: cs.onSurfaceVariant,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 64),
-
-                      /// **Transaction Hash**
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Transaction Hash:',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.black26,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: SelectableText(
-                                bridgeTokensResponse.data ??
-                                    "No Hash Available",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.copy,
-                                color: Colors.white70,
-                              ),
-                              onPressed: () {
-                                Clipboard.setData(
-                                  ClipboardData(
-                                    text: bridgeTokensResponse.data ?? "",
-                                  ),
-                                );
-                                showAppSnackBar(
-                                  context,
-                                  "Transaction Hash Copied!",
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ]
-                  : [
-                      const SizedBox(height: 12),
-                      Text(
-                        bridgeTokensResponse.errorMessage ??
-                            "Failed to bridge tokens",
-                        style: const TextStyle(fontSize: 16),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // for now return to the coins screen
-                GoRouter.of(context).pop();
-              },
-              child: const Text(
-                'Close',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
+      // D-04/D-19: the shared 031-B receipt replaces the retired inline
+      // AlertDialog, alongside the toast above -- never instead of it. The
+      // Transaction is synthesized for display only (bridge_receipt.dart);
+      // nothing here persists it.
+      final tx = bridgeReceiptTransaction(
+        isSuccess: isSuccess,
+        txHash: bridgeTokensResponse.data,
+        walletAddress: state.selectedWallet?.address ?? '',
+        amount: fromAmountController.text,
+        // `Coin.symbol` is nullable but `Transaction.coinSymbol` is not, and
+        // an empty symbol would strip the unit off the receipt's headline
+        // amount -- bridge is GNUS-only (D-12), so this fallback is factual.
+        coinSymbol: fromToken?.symbol ?? 'GNUS',
       );
+      showTransactionDetails(context, tx);
+
+      // NAVIGATION -- deliberate, documented change (RESEARCH Assumptions
+      // Log A4). The old Close action popped the dialog AND popped /bridge
+      // back to the token screen. `showTransactionDetails` returns void and
+      // its ResponsiveDrawer pops only itself, so that chain cannot be
+      // reproduced without awaiting a function that returns nothing. The
+      // route pop is intentionally NOT reproduced; whether that read is
+      // acceptable is put to the human at the 08-07 walk.
+      if (isSuccess) {
+        // Reset to a clean bridge screen on success, rather than one still
+        // showing a completed amount.
+        setState(() {
+          fromAmountController.clear();
+          toAmountController.clear();
+          transactionCost = null;
+          isError = false;
+        });
+      }
+      // On FAILURE the entered amount is left in place so the user can
+      // correct and retry.
     } finally {
       if (mounted) setState(() => isSubmitting = false);
     }
@@ -963,23 +775,6 @@ class BridgeScreenState extends State<BridgeScreen> {
         },
       ),
     );
-  }
-
-  Widget _cryptoIcon(String? iconPath) {
-    return iconPath != null && iconPath.isNotEmpty
-        ? Image.asset(
-            iconPath,
-            width: 28,
-            height: 28,
-            errorBuilder: (_, _, _) {
-              return const Icon(
-                Icons.currency_bitcoin,
-                color: Colors.white70,
-                size: 28,
-              );
-            },
-          )
-        : const Icon(Icons.currency_bitcoin, color: Colors.white70, size: 28);
   }
 
 }

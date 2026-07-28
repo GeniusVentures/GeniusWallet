@@ -2,18 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 07
-current_phase_name: token-screens
-status: executing
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-07-25T23:24:19.782Z"
-last_activity: 2026-07-24
-last_activity_desc: Phase 07 execution started
+current_phase: 09
+current_phase_name: banxa
+status: verifying
+stopped_at: Phase 9 executed (human_needed); Banxa redesign recorded as the closeout gate
+last_updated: "2026-07-27T18:57:17.388Z"
+last_activity: 2026-07-27
+last_activity_desc: Phase 09 execution resumed (wave continue)
 progress:
-  total_phases: 15
-  completed_phases: 13
-  total_plans: 72
-  completed_plans: 69
+  total_phases: 21
+  completed_phases: 16
+  total_plans: 86
+  completed_plans: 80
+  percent: 76
 ---
 
 # Project State
@@ -23,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 07 — token-screens
+**Current focus:** Phase 09 — banxa
 
 ## Current Position
 
@@ -57,12 +58,22 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
-Phase: 07 (token-screens) — EXECUTING
-Plan: 3 of 3
+Phase: 09 (banxa) — EXECUTING
+Plan: 09-01..09-06 of 7 COMPLETE. 09-01 `b479266`/`9c246e3` (test/banxa/ floor + shared
+order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
+09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
+handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
+`a3ee489`/`cf05642` (banxa_payment.dart + kyc_registration.dart re-skinned as twins, closing
+GAP-05's third named file; onNavigationRequest proven byte-identical by diff — see
+09-06-SUMMARY.md; finding 1 deferred D-02, finding 7 stays OUTSTANDING/unverifiable). analyze lib
+59/59, test 432/1 = 428 baseline (09-05) + 4 new (09-06) + 1 known pre-existing failure. 09-07
+(closeout) not yet executed.
+drifts independently of the phases dir per the project's dual-track note; verify against
+`.planning/phases/08-swap-bridge/*-SUMMARY.md` rather than trusting it at face value.
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
-Status: Ready to execute
+Status: Phase complete — ready for verification
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
 `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
@@ -104,7 +115,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-28 — Completed quick tasks 260727-w58 (GWKicker), 260728-0vd (drawer shell insets + close button), 260728-13f (Markets hero shadow clearance) 260728-q7c (sketches 067-A + 156-A: drawer card canvas, section kicker, new borderControl token) 260728-r4k (transaction receipt on 154-A + 154-D copyable) 260728-p2m (sketch 068-A: three list pickers onto one GWSelectRow) 260728-s9k (sketch 069-A: the SDK Accounts section, plus 4 bugs) 260728-t3n (sketch 070-A: the coin page on base components, glyphs to one accent, plus 3 swap walk bugs) 260728-u8p (sketch 071-B: the whole coin page screen - into the ShellRoute, one page frame, the 480 literal replaced, a stat rail, GWStatTile promoted, and an explicit no-data state) and 260728-v6c (sketch 074-C2: the coin page's actions onto the section line above the chart - Receive/Swap/Bridge as icon buttons, NO Send, TokenActionBar and the More drawer deleted)
+Last activity: 2026-07-27 — Phase 09 execution resumed (wave continue) — AND, on a parallel branch merged 2026-07-28, Completed quick tasks 260727-w58 (GWKicker), 260728-0vd (drawer shell insets + close button), 260728-13f (Markets hero shadow clearance) 260728-q7c (sketches 067-A + 156-A: drawer card canvas, section kicker, new borderControl token) 260728-r4k (transaction receipt on 154-A + 154-D copyable) 260728-p2m (sketch 068-A: three list pickers onto one GWSelectRow) 260728-s9k (sketch 069-A: the SDK Accounts section, plus 4 bugs) 260728-t3n (sketch 070-A: the coin page on base components, glyphs to one accent, plus 3 swap walk bugs) 260728-u8p (sketch 071-B: the whole coin page screen - into the ShellRoute, one page frame, the 480 literal replaced, a stat rail, GWStatTile promoted, and an explicit no-data state) and 260728-v6c (sketch 074-C2: the coin page's actions onto the section line above the chart - Receive/Swap/Bridge as icon buttons, NO Send, TokenActionBar and the More drawer deleted)
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
@@ -173,6 +184,25 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 08-swap-bridge]: 08-04: bridge_cta_state.dart's ladder treats a null balance as insufficientBalance (not swap's "never accuse on missing data" rule) -- mirrors bridge's own precheck (`fromToken?.balance == null` already returns before any API call in develop)
 - [Phase 08-swap-bridge]: 08-04: Ready CTA label locked to "Bridge" (develop's own word), not the UI-SPEC's alternative "Review bridge" -- no second confirmation step exists on this screen
 - [Phase 08-swap-bridge]: 08-04: bridgeOut(... shouldMintTokens: true) and getBrigeOutGasCost(...) confirmed byte-identical to develop -- only isEstimating/isSubmitting (added state) wrap the real calls; no argument, guard, or precheck touched (D-11)
+- [Phase 08-05]: Task 3 (swap_settings_drawer.dart re-skin, D-13) skipped as superseded -- sketch 063-A already landed on the file 2026-07-26, before this execution, per the plan's own banner; re-verified live (zero ElevatedButton/Ink matches, footer already GWButtonVariant.gradient)
+- [Phase 08-05]: swap_screen.dart: fees blanked ('' instead of fromAmount) on the swap Transaction; transaction_displays.dart's Network Fee row now skips a blank fees, mirroring the Rate row's existing skip-empty contract
+- [Phase 08-06]: bridge_receipt.dart's doc comment reworded to avoid literal tokens (BuildContext/TransactionsCubit/TransactionStorageService) its own purity grep checks for -- same meaning, doesn't trip the gate
+- [Phase 08-06]: Dropped go_router, scaffold_helper.dart, and flutter/services.dart imports from bridge_screen.dart (all three were referenced only inside the deleted AlertDialog); flutter analyze confirms zero issues
+- [Phase 08-06]: Failure toast surfaces bridgeTokensResponse.errorMessage when present, falling back to develop's own string -- the shared receipt has no free-text error slot
+- [Phase ?]: gwBothModes declared final not const -- GWColors.dark()/.light() are non-const factories with a debug-mode assert
+- [Phase ?]: 09-01: MaterialApp wraps content in an implicit AnimatedTheme -- widget tests switching GWColors host across sequential pumpWidget() calls need pumpAndSettle(), not a bare pump(), or they read the pre-transition theme value
+- [Phase ?]: order_card.dart's title/pill Row and action-button Row wrapped in Expanded+Align to guard against test-font overflow while preserving all button variants/gating (D-01)
+- [Phase ?]: Orders-history empty-state filter-active predicate: selectedStatus.isEmpty && startDate == null && endDate == null
+- [Phase ?]: quote_card_test.dart's dark/light divergence check reads gw.textSecondary, not gw.textPrimary -- textPrimary is mode-invariant across GWColors.dark()/.light() by construction (same root-cause class as 09-01's statusWarning finding).
+- [Phase 09-banxa]: order_details_card.dart: removed bannerColor, added OrderStatusTone? bannerTone driven from order_details_page.dart's initialStatus
+- [Phase 09-banxa]: order_details_page.dart: kept the canGoBack ? null : IconButton(...) two-case AppBar shape (restyled, not collapsed into the single-InkWell recipe used elsewhere in Phase 9)
+- [Phase 09-banxa]: handle_banxa_drawer.dart (D-07) has NO per-file visual contract in 09-UI-SPEC.md; its GWButton mapping and gw.surfaceElevated background were derived by analogy, recorded in a filed todo for Phase 21 to claim
+- [Phase 09-banxa]: handle_banxa_drawer.dart deliberately stays on showModalBottomSheet, NOT ResponsiveDrawer.show -- that helper switches to a centred dialog at/above GeniusBreakpoints.medium, which would restructure the sheet's desktop presentation (PROJECT.md par 65); migration is Phase 21's call
+- [Phase 09-banxa-06]: Both webview hosts' Linux-fallback spacing normalised to one shared token set (space12/space6/space16/space6) so the twins render structurally identical, rather than each keeping its slightly different original literal value
+- [Phase 09-banxa-06]: Cross-mode colour test re-pointed from gw.textPrimary (headline) to gw.textSecondary (body) -- textPrimary reads a global GWAppearance.isLight flag, not the constructed GWColors instance, the same trap 09-03 already recorded
+- [Phase 09-banxa-06]: GAP-05/SCR-05 checkboxes left unchecked in REQUIREMENTS.md despite banxa_payment.dart closing GAP-05's third named file -- SCR-05 explicitly needs the real KYC redirect (D-02 defers it); 09-07 owns final requirement bookkeeping
+- [Phase ?]: 09-07: standing literal gate proven to bite twice (reintroduced Colors.grey, deleted QR white backing), both reverted before commit
+- [Phase ?]: 09-07: 09-OUTSTANDING.md records criteria 1 PARTIAL, criteria 2/3 NOT ADDRESSED; SCR-05 and GAP-05 both left unchecked pending phase verification
 
 ### Pending Todos
 
@@ -296,8 +326,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-25T18:14:14.871Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-07-27T18:57:17.378Z
+Stopped at: Phase 9 executed (human_needed); Banxa redesign recorded as the closeout gate
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -330,8 +360,8 @@ explicit user-authorized overrides (see prior entries in Decisions/Blockers abov
 from that session: a `_basePath` `LateInitializationError` thrown as an unhandled `GoException` on
 every router redirect (likely pre-existing on develop — confirm before attributing it to this
 milestone).
-Resume file: None
-`06-06-SUMMARY.md`). **Next up: Phase 07 (Token screens)** — not yet planned; run `/gsd-plan-phase 07`
+Resume file: 
+.planning/phases/09-banxa/09-OUTSTANDING.md
 (or discuss first) when ready. The `space8`-outside-`ConstrainedBox` gutter pattern was applied across
 06-02..06-05 as planned. The chart-zoom-pan-row
 todo remains open only as a product/UX decision (see Open decisions item 4 below), unrelated to
@@ -399,6 +429,15 @@ Open decisions:
 | Phase 05 P01 | ~20min | 2 tasks | 3 files |
 | Phase 08-swap-bridge P02 | 25min | 3 tasks | 3 files |
 | Phase 08-swap-bridge P03 | 30min | 3 tasks | 3 files |
+| Phase 08-swap-bridge P05 | 25min | 2 tasks | 7 files |
+| Phase 08-swap-bridge P06 | 20min | 2 tasks | 3 files |
+| Phase 09 P01 | 20min | 2 tasks | 5 files |
+| Phase 09-banxa P02 | 20min | 3 tasks | 4 files |
+| Phase 09-banxa P03 | 15min | 2 tasks | 5 files |
+| Phase 09-banxa P04 | 3min | 2 tasks | 3 files |
+| Phase 09-banxa P05 | 25min | 2 tasks | 5 files |
+| Phase 09-banxa P06 | 20min | 2 tasks | 3 files |
+| Phase 09-banxa P07 | 25min | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 

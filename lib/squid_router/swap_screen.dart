@@ -9,8 +9,10 @@ import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/squid_router/held_tokens.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
@@ -19,9 +21,9 @@ import 'package:genius_wallet/squid_router/squid_token_service.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
+import 'package:genius_wallet/squid_router/swap_preselection.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
-import 'package:genius_wallet/squid_router/swap_success_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -45,7 +47,29 @@ List<SquidTokenInfo> tokensForSide(
     all.where((t) => !t.sameAs(otherSide)).toList();
 
 class SwapScreen extends StatefulWidget {
-  const SwapScreen({super.key});
+  const SwapScreen({super.key, this.preselectSymbol, this.preselectChainId});
+
+  /// Seat this token when the screen opens, if the catalogue has it.
+  ///
+  /// Set when arriving from a coin page's Swap button — landing on an empty
+  /// form after tapping Swap ON a specific coin makes the user re-find the
+  /// thing they were already looking at.
+  ///
+  /// **Which side it lands on depends on whether the wallet holds it**, which
+  /// is forced by the pay-side holdings filter (`held_tokens.dart`): seating an
+  /// unheld token on the pay side would put back exactly what that filter
+  /// exists to remove. So a held coin seats as "You Pay" (you are spending it)
+  /// and an unheld one as "You Receive" (you are acquiring it) — both readings
+  /// of "swap this coin", chosen by what the wallet can actually do.
+  ///
+  /// Null-safe by design: an unmatched symbol seats nothing rather than
+  /// guessing. The catalogue is `mockTokens` today (13 entries), so plenty of
+  /// real coins — GNUS among them — have no match at all.
+  final String? preselectSymbol;
+
+  /// Narrows the match when the same symbol exists on several chains, which is
+  /// the normal case (ETH is on 1, 137 and 80001). Ignored when null.
+  final int? preselectChainId;
 
   @override
   State<SwapScreen> createState() => _SwapScreenState();
@@ -87,6 +111,33 @@ class _SwapScreenState extends State<SwapScreen> {
     super.dispose();
   }
 
+  /// Seats [SwapScreen.preselectSymbol] once the catalogue and balances have
+  /// merged — it must run AFTER the merge, or every candidate still has a null
+  /// balance and the held/unheld decision below would always answer "unheld".
+  ///
+  /// Deliberately does nothing when the symbol does not match. Guessing a
+  /// neighbouring token would be worse than an empty form: the user would have
+  /// to notice the wrong one before correcting it.
+  void _applyPreselection() {
+    if (fromToken != null || toToken != null) return;
+
+    final result = resolvePreselection(
+      tokens: tokens,
+      symbol: widget.preselectSymbol,
+      chainId: widget.preselectChainId,
+    );
+    if (result == null) return;
+
+    setState(() {
+      switch (result.side) {
+        case PreselectSide.pay:
+          fromToken = result.token;
+        case PreselectSide.receive:
+          toToken = result.token;
+      }
+    });
+  }
+
   Future<void> _loadTokens() async {
     try {
       final walletState = context.read<WalletDetailsCubit>().state;
@@ -116,6 +167,7 @@ class _SwapScreenState extends State<SwapScreen> {
         tokens = result;
         isLoading = false;
       });
+      _applyPreselection();
     } catch (e) {
       setState(() => isLoading = false);
       if (mounted) {
@@ -255,7 +307,10 @@ class _SwapScreenState extends State<SwapScreen> {
         ],
         timeStamp: DateTime.now(),
         transactionDirection: TransactionDirection.received,
-        fees: fromAmount,
+        // Blank, not fromAmount: nothing executed (D-01), so no network fee
+        // exists to report. The receipt's blank-fee guard (D-20) omits the
+        // row rather than printing what the user pays under "Network Fee".
+        fees: '',
         coinSymbol: walletNetwork!,
         transactionStatus: TransactionStatus.completed,
         type: TransactionType.swap,
@@ -275,19 +330,9 @@ class _SwapScreenState extends State<SwapScreen> {
         type: ToastType.success,
       );
 
-      SwapSuccessDrawer.show(
-        context,
-        fromAmount: fromAmount,
-        toAmount: toAmount,
-        fromIconUrl: fromToken?.logoURI ?? '',
-        toIconUrl: toToken?.logoURI ?? '',
-        fromSymbol: fromToken?.symbol ?? '',
-        toSymbol: toToken?.symbol ?? '',
-        chain: walletNetwork,
-        onClose: () {
-          Navigator.of(context).pop();
-        },
-      );
+      // D-03/D-04: the shared 031-B receipt replaces the superseded
+      // SwapSuccessDrawer, alongside the toast above — never instead of it.
+      if (mounted) showTransactionDetails(context, transaction);
       transactionsCubit.addTransaction(transaction);
 
       // save to hive
@@ -633,14 +678,32 @@ class _SwapScreenState extends State<SwapScreen> {
                                           },
                                           selectedToken: fromToken,
                                           isSelectingFrom: true,
+                                          // The pay side offers ONLY what the
+                                          // wallet can spend (`heldTokens`) —
+                                          // you cannot swap a BNB you do not
+                                          // have, and the old full-catalogue
+                                          // list only revealed that at the CTA.
+                                          // The receive side below is
+                                          // deliberately NOT filtered.
+                                          pickerEmptyTitle:
+                                              'No tokens to swap',
+                                          pickerEmptyMessage:
+                                              'This wallet holds no tokens with '
+                                              'a balance on the selected '
+                                              'network. Receive or buy a token '
+                                              'to start swapping.',
                                           // Hide only the OTHER side's token.
-                                          // This list used to drop `fromToken`
-                                          // too, so the token you had just
-                                          // picked was missing from its own
-                                          // picker - and `selectedToken` above
-                                          // could never render, because the row
-                                          // it marks was filtered out first.
-                                          tokens: tokensForSide(tokens, toToken),
+                                          // The hand-written filter this
+                                          // replaces dropped `fromToken` too,
+                                          // so the token you had just picked
+                                          // was missing from its own picker and
+                                          // `selectedToken` above could never
+                                          // render - the row it marks was
+                                          // filtered out first.
+                                          tokens: tokensForSide(
+                                            heldTokens(tokens),
+                                            toToken,
+                                          ),
                                           onTokenSelected: (token) {
                                             setState(() => fromToken = token);
                                             _debouncedFetchRoute();
@@ -690,8 +753,18 @@ class _SwapScreenState extends State<SwapScreen> {
                                     slippage: slippage.toString(),
                                   ),
                                 if (routeError) _buildRouteErrorNotice(gw),
+                                // The gap the eye reads here is NOT this box
+                                // alone: RouteDetailsCard (and the error notice
+                                // that replaces it) each carry their own
+                                // `vertical: space4` margin, so the space
+                                // between the fees table and the CTA was
+                                // 8 + 24 = 32px. Halved to 16 at the walk
+                                // (Braian, 2026-07-27) by taking this box to
+                                // space4 — 8 + 8. Changing this to space6 would
+                                // have given 20px, not the half that was asked
+                                // for.
                                 const SizedBox(
-                                  height: GeniusWalletConsts.space12,
+                                  height: GeniusWalletConsts.space4,
                                 ),
                                 _buildSwapCta(gw),
                               ],
