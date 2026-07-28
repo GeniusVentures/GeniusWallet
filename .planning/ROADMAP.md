@@ -1030,7 +1030,7 @@ state ownership and money paths are Phase 24.
 
 **Requirements**: ORG-01, ORG-02, ORG-03
 **Depends on:** Phase 21
-**Plans:** 6/8 plans executed
+**Plans:** 7/8 plans executed
 
 **Requirement IDs coined for this phase** (ROADMAP said TBD; REQUIREMENTS.md carries no
 codebase-quality requirement). ORG-01..03 close in Phase 22; ORG-04..05 close in Phase 23:
@@ -1104,6 +1104,8 @@ rewrites across already-verified plans; the resulting `depends_on` chains were r
 
 Plans:
 
+- [ ] 22-07-PLAN.md
+
 - [x] 22-01-PLAN.md — Deletion pass: 14 never-imported files + 3 adjudicated, the dead test file
       (512/1 → 512/0), the dead font dependency, the duplicate radius alias
 
@@ -1123,16 +1125,29 @@ Plans:
 - [x] 22-06-PLAN.md — Hand-fix the ~96 remainder → **analyze 0, exit 0**. Risk-stratified:
       `unawaited()` never `await`; `mounted` guards recorded as the one sanctioned semantic delta
 
-- [ ] 22-07-PLAN.md — Alchemist golden baseline on ~17 design-system primitives, **light and dark**.
-      Blocking human package-legitimacy gate before install
+- [~] 22-07-PLAN.md — **DEFERRED 2026-07-28 at its own blocking-human gate.** Braian declined both
+      the `alchemist` install and the no-dependency fallback. Plan retained unexecuted; full
+      rationale and consequences in `22-07-DEFERRED.md`. **This leaves Phase 23 without its primary
+      verification mechanism** — its seven plans reference goldens 104 times. Phase 23 must
+      reinstate the baseline, be re-planned against human-walk verification, or be narrowed to the
+      provably-safe subset before it can execute.
 
-- [ ] 22-08-PLAN.md — CI teeth: a `quality` job in `build.yml` (format, analyze, brace gate, the 3
-      existing security gates, tests, coverage) + `codecov.yml`. Proven on a real CI run, not locally
+- [x] 22-08-PLAN.md — CI teeth: a `quality` job in `build.yml` (format, analyze, brace gate, the 3
+      existing security gates, tests, coverage) + `codecov.yml`. Proven on a real CI run, not locally.
+      Repointed `depends_on: ["22-06"]` (wave 7 → 6) when 22-07 was deferred
 
-**Phase exit:** analyzer 0 / exit 0, tests 512/0, goldens captured for ~17 primitives in both modes,
-CI gates enforcing. No design-system file changed.
+**Phase exit:** analyzer 0 / exit 0, tests 512/0, brace rule enforced at 0, CI gates enforcing,
+no design-system file changed. **No golden baseline** — see the 22-07 deferral above.
 
 ### Phase 23: Design system consolidation: theme tokens and shared components
+
+> ⚠ **BLOCKED ON A VERIFICATION DECISION.** Phase 22's golden baseline (22-07) was deferred, and
+> every plan below was written to verify against it — 104 golden references across the seven plans.
+> As written, this phase cannot prove it preserved behaviour. Before executing, choose one:
+> (1) reinstate the baseline, (2) re-plan against human-walk verification and accept that
+> spacing/alignment drift can ship undetected, or (3) narrow the phase to the provably-safe subset
+> (23-01 changes zero call sites; 23-03 fixes known-wrong rendering rather than preserving correct
+> rendering). See `.planning/phases/22-.../22-07-DEFERRED.md`.
 
 **Goal:** Collapse the three competing colour sources into one semantic layer and extract the
 genuinely-duplicated components — using the Phase 22 golden baseline as the safety net. Still no

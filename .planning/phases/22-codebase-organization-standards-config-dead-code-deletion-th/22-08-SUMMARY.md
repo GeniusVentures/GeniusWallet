@@ -191,3 +191,9 @@ Phase 22's mechanical-hygiene half is code-complete: analyzer 0, brace rule enfo
 ---
 *Phase: 22-codebase-organization-standards-config-dead-code-deletion-th*
 *Completed: 2026-07-28*
+
+## Self-Check: PASSED
+
+All created/modified files confirmed present on disk (`.github/workflows/build.yml`,
+`codecov.yml`, `tool/check_no_new_key_logging.sh`, `.gitignore`, this SUMMARY). All three task
+commits (`31dea02`, `3250714`) plus this SUMMARY's own commit confirmed present in `git log`.
