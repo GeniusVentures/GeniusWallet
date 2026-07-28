@@ -33,9 +33,11 @@
 #   calls under lib/onboarding/** and in lib/screens/pin_screen.dart, and zero
 #   registered/declared bloc observer anywhere under lib/.
 # CHECK 4 (3.4, finding 19) -- the copy handler's lifecycle guard is still
-#   ADJACENT to the awaited clipboard copy: `if (!mounted) return;` must sit
-#   within the two lines immediately AFTER the awaited FlutterClipboard.copy(...)
-#   call and before the ScaffoldMessenger call. This is an ADJACENCY test, not a
+#   ADJACENT to the awaited clipboard copy: `if (!mounted) return;` (or, since
+#   22-04 made AGENTS.md's brace rule universal, the braced
+#   `if (!mounted) {\n  return;\n}` form) must sit within the two lines
+#   immediately AFTER the awaited FlutterClipboard.copy(...) call and before
+#   the ScaffoldMessenger call. This is an ADJACENCY test, not a
 #   presence test -- a guard that drifted below the snackbar call would pass a
 #   presence check while re-opening exactly the use-after-dispose race finding 19
 #   describes.
@@ -190,8 +192,16 @@ echo "== CHECK 4 (3.4): 'if (!mounted) return;' within 2 lines after the awaited
 # grep -A2 on the awaited copy call and require the guard inside that 3-line
 # window. ADJACENCY, not presence: a guard that drifted below the snackbar call
 # would fall outside the window and fail -- finding 19's exact failure mode.
+#
+# The window is collapsed to a single space-joined line before matching so the
+# ONE regex accepts both the historical one-line form (`if (!mounted) return;`)
+# and the braced multi-line form AGENTS.md's brace rule requires everywhere
+# since 22-04 (`if (!mounted) {` on the guard's own line, `return;` on the
+# next) -- the optional `\{?` is the only difference between the two shapes;
+# adjacency is still enforced by the -A2 window collapsed into that one line.
 copy_window=$(strip_comments "$RECOVERY" | grep -A2 -E 'await[[:space:]]+FlutterClipboard\.copy\(' || true)
-if printf '%s\n' "$copy_window" | grep -qE 'if[[:space:]]*\([[:space:]]*![[:space:]]*mounted[[:space:]]*\)[[:space:]]*return;'; then
+copy_window_collapsed=$(printf '%s\n' "$copy_window" | tr '\n' ' ' | tr -s '[:space:]' ' ')
+if printf '%s' "$copy_window_collapsed" | grep -qE 'if[[:space:]]*\([[:space:]]*![[:space:]]*mounted[[:space:]]*\)[[:space:]]*\{?[[:space:]]*return;'; then
   echo "PASS [3.4]: the mounted guard is adjacent to (<=2 lines after) the awaited copy."
 else
   echo "FAIL [3.4]: no 'if (!mounted) return;' within 2 lines after the awaited FlutterClipboard.copy() in $RECOVERY."
