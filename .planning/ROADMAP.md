@@ -1021,18 +1021,19 @@ Plans:
   receipt rail via `LayoutBuilder`, chip strip retired, Failed-footer fix, and one new page-frame
   widget test (`test/logs/submit_logs_page_frame_test.dart`)
 
-### Phase 22: Codebase organization: standards config, dead code deletion, theme consolidation, shared components
+### Phase 22: Codebase hygiene: standards config, dead code deletion, analyzer to zero, CI gates
 
-**Goal:** Make the codebase's own rules mechanically enforceable, then use that enforcement to
-collapse duplication — without changing behaviour anywhere. Every change in this phase is
-mechanical and reviewable; nothing here touches state ownership or money paths (that is Phase 23).
+**Goal:** Make the codebase's own rules mechanically enforceable and get the tree clean under them —
+without changing behaviour anywhere. Ends with analyzer at zero, a green test suite, a golden
+baseline, and CI actually enforcing. Using that enforcement to collapse duplication is Phase 23;
+state ownership and money paths are Phase 24.
 
-**Requirements**: ORG-01, ORG-02, ORG-03, ORG-04, ORG-05
+**Requirements**: ORG-01, ORG-02, ORG-03
 **Depends on:** Phase 21
-**Plans:** 15 plans (planned 2026-07-28)
+**Plans:** 8 plans (planned 2026-07-28, split from 15)
 
 **Requirement IDs coined for this phase** (ROADMAP said TBD; REQUIREMENTS.md carries no
-codebase-quality requirement, so these are added and closed by 22-15):
+codebase-quality requirement). ORG-01..03 close in Phase 22; ORG-04..05 close in Phase 23:
 - **ORG-01** — the codebase's own rules are mechanically enforced in CI (format, analyze, brace
   rule, raw colours, the three existing security gates, tests, patch coverage)
 - **ORG-02** — dead code removed: no never-imported file, no dead dependency, no hand-written
@@ -1085,38 +1086,12 @@ below were the input; the decomposition is recorded under "Plans" further down.
 required building the parity layer first (22-09), which is why the theme workstream is four plans and
 not one.
 
-**Natural split point:** plans 22-01..22-08 are the mechanical-hygiene half and are independently
-shippable (they end with a green CI and no design-system changes). 22-09..22-15 are the
-consolidation half. If this phase proves too large to run as one, split there.
-
-Workstreams (the original five, as input to the decomposition):
-
-- [ ] 22-01 Config + CI teeth — `analyzer.exclude` for `packages/genius_api/lib/ffi/**`; ~15 targeted
-      lint rules; `tool/check_brace_style.sh` + one-time brace auto-fix (192 sites); `.editorconfig`;
-      coding standards written into `AGENTS.md`; **fix `CLAUDE.md` (currently the bare text
-      `AGENTS.md`, which is not an import and loads nothing — must be `@AGENTS.md`)**; wire
-      `flutter test` + `flutter analyze` + `dart format --set-exit-if-changed` + the three existing
-      `tool/*.sh` security gates into `.github/workflows/build.yml`
-- [ ] 22-02 Deletion pass — 13–14 never-imported files (~1,400 LOC); `test/local_wallet_storage_test.dart`
-      (makes the suite green); dead `google_fonts` dep (Inter is bundled; only ref disables runtime
-      fetching); `GeniusWalletFontSize`; dedupe `radiusXl`/`radius3xl`; **rename the 9 hand-written
-      production widgets named `*.g.dart`** so the analyzer stops excluding them
-- [ ] 22-03 Golden baseline — `alchemist` CI goldens (Ahem font ⇒ platform-independent, so Windows vs
-      CI rendering cannot flake) on the design-system primitives only, not full screens. This is the
-      safety net 22-04 and 22-05 are verified against
-- [ ] 22-04 Theme consolidation — demote `GeniusWalletColors` to private primitives; `context.gw`
-      extension for the 128 lookups (with fallback); fix the 114 mode-breaking sites, worst first
-      (`toast_widget.dart` is a fully inverted palette, `gw_button.dart` hardcodes white, `lib/reown/`
-      has 74 violations in 6 files); replace the forked `_Message` in `swap_settings_drawer.dart` that
-      loses `GWWarningNote`'s documented light-mode amber contrast fix; add a mono type token
-      (JetBrainsMono is bundled but reached by raw string in 6 files); de-hex 9 gradient values in
-      `GWDecorations`. Use `Workiva/dart_codemod` (AST) for bulk call-site rewrites, not regex
-- [ ] 22-05 Component extraction — **Rule of Three: only extract at 3+ call sites.** `GWAppBar` (7),
-      `GWChangePill` (7), `GWCopyRow` (3 forks + 8 raw), `GWHoverable` (9). `GWTimeframeSegment` (2)
-      is extracted as a named exception: it is a character-identical 150-line duplicate, so there is
-      no abstraction to guess at. **Deferred at 2 sites: `GWPriceBlock`, `GWStatRail`.** Extract as
-      real `StatelessWidget`s, never `_buildFoo()` helpers. Migrate hand-rolled `Scaffold`s onto the
-      existing `GWScreen` (currently used exactly once while 20+ screens re-roll it)
+**Split, 2026-07-28.** This phase was planned as 15 plans and then split at the planner's own
+identified boundary. **Phase 22 is now plans 01–08 — the mechanical-hygiene half, independently
+shippable:** it ends with a green CI and zero design-system changes. The consolidation half moved to
+**Phase 23** and the architecture work shifted to **Phase 24**. Splitting cost ~140 cross-reference
+rewrites across already-verified plans; the resulting `depends_on` chains were re-validated
+(`verify plan-structure` = valid on all 15).
 
 Plans:
 
@@ -1137,30 +1112,62 @@ Plans:
       Blocking human package-legitimacy gate before install
 - [ ] 22-08-PLAN.md — CI teeth: a `quality` job in `build.yml` (format, analyze, brace gate, the 3
       existing security gates, tests, coverage) + `codecov.yml`. Proven on a real CI run, not locally
-- [ ] 22-09-PLAN.md — `GWColors` extended to field-for-field parity with the legacy palette, seeded
+
+**Phase exit:** analyzer 0 / exit 0, tests 512/0, goldens captured for ~17 primitives in both modes,
+CI gates enforcing. No design-system file changed.
+
+### Phase 23: Design system consolidation: theme tokens and shared components
+
+**Goal:** Collapse the three competing colour sources into one semantic layer and extract the
+genuinely-duplicated components — using the Phase 22 golden baseline as the safety net. Still no
+behaviour changes.
+
+**Requirements**: ORG-04, ORG-05
+**Depends on:** Phase 22
+**Plans:** 7 plans
+
+**Why this is separate from 22.** The parity premise in the original scoping was wrong:
+`GeniusWalletColors` has ~46 public members and **288** call sites outside `lib/theme/`, while
+`GWColors` has 21 fields. A "mechanical prefix rewrite" only becomes true *after* a parity layer
+exists — hence 23-01 as a zero-diff de-risking plan before the codemod can be mechanical rather than
+288 judgement calls.
+
+**Measured, and larger than first reported:** raw colour references outside `lib/theme/` total
+**525**, not 114. The 114 figure was the `Colors.white/black/grey` subset; the planner measures that
+subset at 83. 23-03 fixes the mode-breaking ones with WCAG evidence; 23-04's gate is
+directory-scoped with a written widening plan. **Full de-hex of all 525 is bigger than this phase**
+and is a candidate for its own.
+
+Plans:
+
+- [ ] 23-01-PLAN.md — `GWColors` extended to field-for-field parity with the legacy palette, seeded
       byte-identically; `context.gw` accessor with a fallback; parity test. **Zero call sites changed**
-- [ ] 22-10-PLAN.md — AST codemod migrating the 288 colour reads onto `context.gw`, directory by
+- [ ] 23-02-PLAN.md — AST codemod migrating the 288 colour reads onto `context.gw`, directory by
       directory, goldens byte-identical each time. Blocking human package-legitimacy gate
-- [ ] 22-11-PLAN.md — Close the codemod residue; fix `toast_widget.dart`, `gw_button.dart` and
+- [ ] 23-03-PLAN.md — Close the codemod residue; fix `toast_widget.dart`, `gw_button.dart` and
       `lib/reown/`; replace the `_Message` fork with `GWWarningNote`. **The only plan permitted to
       move a golden**, and only with a measured WCAG ratio per change
-- [ ] 22-12-PLAN.md — Demote the primitives via `part`/`part of` so the compiler enforces privacy;
+- [ ] 23-04-PLAN.md — Demote the primitives via `part`/`part of` so the compiler enforces privacy;
       mono type token; de-hex `GWDecorations`; `tool/check_raw_colors.sh` scoped to clean directories
       with a written widening plan
-- [ ] 22-13-PLAN.md — Extract `GWHoverable` (9), `GWChangePill` (7), `GWTimeframeSegment` (2, the
-      named exception). `GWPriceBlock`/`GWStatRail` stay deferred at 2 sites
-- [ ] 22-14-PLAN.md — Extract `GWCopyRow` (3 forks + 8 raw clipboard writes; full value always
+- [ ] 23-05-PLAN.md — Extract `GWHoverable` (9), `GWChangePill` (7), `GWTimeframeSegment` (2, the
+      named exception — the plan re-diffs the two copies at execution time and refuses if the
+      character-identical premise no longer holds). `GWPriceBlock`/`GWStatRail` stay deferred at 2 sites
+- [ ] 23-06-PLAN.md — Extract `GWCopyRow` (3 forks + 8 raw clipboard writes; full value always
       copied, nothing logged) and `GWAppBar` (the 7 identical of 17, outliers classified not forced)
-- [ ] 22-15-PLAN.md — `GWScreen` audit of all ~28 `Scaffold` sites with a per-site verdict, migrate
-      only the provably-equivalent, then the phase human walk and closeout
+- [ ] 23-07-PLAN.md — `GWScreen` audit of all ~28 `Scaffold` sites with a per-site verdict, migrate
+      only the provably-equivalent, then the phase human walk and closeout.
+      **Note:** `GWScreen` is *not* a transparent wrapper — it imposes scroll, a 1200px cap, centring,
+      padding and background. Blanket migration would be a layout change, which the
+      no-behaviour-change rule forbids. Hence per-site adjudication, not a sweep.
 
-### Phase 23: Architecture: state ownership, layering, routing, genius_api split
+### Phase 24: Architecture: state ownership, layering, routing, genius_api split
 
 **Goal:** Bring the app onto Flutter's officially recommended layering (UI → repository → service)
 without changing user-visible behaviour, writing the safety net *before* the change in every case.
 
 **Requirements**: TBD
-**Depends on:** Phase 22
+**Depends on:** Phase 23
 **Plans:** 0 plans
 
 **Alignment check.** Flutter's official architecture guidance is MVVM but explicitly
@@ -1183,28 +1190,28 @@ leaving key derivation and signing entirely alone this cycle.**
 
 Plans:
 
-- [ ] 23-01 Characterization tests first — `lib/onboarding/` (2,415 LOC, zero tests), `lib/reown/`
+- [ ] 24-01 Characterization tests first — `lib/onboarding/` (2,415 LOC, zero tests), `lib/reown/`
       (1,374 LOC, zero tests, dApp transaction approval), `lib/hive/`, and the blocs (zero bloc tests
       today). Approval/golden-master style: document *actual* behaviour including existing bugs
-- [ ] 23-02 Layering — 16 widgets reaching past the repository directly into Hive/`File`/HTTP/SDK;
+- [ ] 24-02 Layering — 16 widgets reaching past the repository directly into Hive/`File`/HTTP/SDK;
       make services private members behind repositories; adopt the official `Result` pattern for the
       services that currently return `null`/empty on failure
-- [ ] 23-03 State ownership — triage then lift genuinely-shared state into cubits (`swap_screen` 15
+- [ ] 24-03 State ownership — triage then lift genuinely-shared state into cubits (`swap_screen` 15
       setStates, `bridge_screen` 11, `settings_screen` 19, `reown_connect_button` 11); resolve dual
       ownership of network state (`NetworkProvider` vs `WalletDetailsCubit`); de-duplicate the
       `GeniusApi` double registration at `main.dart:157` and `:319` (note: bloc+provider coexisting is
       **not** a smell — `flutter_bloc` depends on `provider`, and Flutter officially recommends
       `provider` for DI; the defect is only the duplicate registration)
-- [ ] 23-04 Routing — make `redirect` pure (`router.dart:51-71` currently dispatches 5 AppBloc events
+- [ ] 24-04 Routing — make `redirect` pure (`router.dart:51-71` currently dispatches 5 AppBloc events
       as a bootstrap side effect on every navigation); route-name constants for 16 hardcoded literals;
       typed route extras; **gate the unguarded dev routes at `router.dart:199,203`** (`TokenProbeScreen`
       and `/design_gallery` are reachable in release and the 44 KB gallery is retained by the route
       table). Contrast: `responsive_overlay.dart:483` gates `DevToolsBubble` correctly
-- [ ] 23-05 `genius_api` split — 1,257 LOC mixing FFI, secure storage, web3, protobuf, config file IO
+- [ ] 24-05 `genius_api` split — 1,257 LOC mixing FFI, secure storage, web3, protobuf, config file IO
       and pricing, and it imports `package:flutter/material.dart` so the data layer depends on the UI
       framework. Split behind the existing class as a facade (cluster methods by which fields they
       touch); done when the facade holds no instance variables. Callers do not change
-- [ ] 23-06 Error handling — `AppBloc` has no try/catch and no error state on 6 handlers in its
+- [ ] 24-06 Error handling — `AppBloc` has no try/catch and no error state on 6 handlers in its
       critical boot path; the processing timer permanently cancels itself on one transient failure;
       4 empty catch blocks in `web_view_mobile.dart`; 9 `Future`/`StreamBuilder`s with no `hasError`
       branch
