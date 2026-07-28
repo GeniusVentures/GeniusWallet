@@ -1,13 +1,14 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 
-import 'assets.dart';
+import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+
+import 'assets.dart';
 
 Future<List<Network>> readNetworkAssets() async {
   const String assetLocation = 'assets/json/networks/networks.json';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
 class SubmitJobButton extends StatefulWidget {

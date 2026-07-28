@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/pin_cubit.dart';
 import 'package:genius_wallet/bloc/pin_state.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/utils/formatters.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/formatters.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class PinScreen extends StatelessWidget {

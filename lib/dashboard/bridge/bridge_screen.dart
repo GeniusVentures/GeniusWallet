@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
@@ -12,14 +13,13 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_cta_state.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/formatters.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 
 class BridgeScreen extends StatefulWidget {
   final Coin? fromToken;

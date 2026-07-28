@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
-import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:intl/intl.dart';
 
 /// A2 · Market-forward Assets row (sketch 001). The subtitle carries MARKET

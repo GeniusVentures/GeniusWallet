@@ -6,8 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class SubmitJobCubit extends Cubit<SubmitJobState> {
   final WalletDetailsCubit walletDetailsCubit;

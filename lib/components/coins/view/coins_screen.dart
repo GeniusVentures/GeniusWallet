@@ -15,12 +15,12 @@ import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 

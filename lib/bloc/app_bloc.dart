@@ -12,8 +12,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
-import 'package:hive_ce/hive.dart';
-
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
@@ -25,6 +23,7 @@ import 'package:genius_wallet/dev/dev_mock_sgnus.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';

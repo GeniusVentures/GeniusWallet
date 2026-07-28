@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 class SubmitJobScreen extends StatelessWidget {

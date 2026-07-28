@@ -1,11 +1,12 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:html_unescape/html_unescape.dart';
-import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
 const Duration cacheDuration = Duration(minutes: 2);

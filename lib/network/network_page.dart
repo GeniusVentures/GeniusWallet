@@ -1,7 +1,8 @@
 import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';

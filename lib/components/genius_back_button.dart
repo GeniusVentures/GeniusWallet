@@ -5,8 +5,8 @@
 // *********************************************************************************
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/components/custom/genius_back_button_custom.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:genius_wallet/components/custom/genius_back_button_custom.dart';
 
 class GeniusBackButton extends StatefulWidget {
   final BoxConstraints constraints;

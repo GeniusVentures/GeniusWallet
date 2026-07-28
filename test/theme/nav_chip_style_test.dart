@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 

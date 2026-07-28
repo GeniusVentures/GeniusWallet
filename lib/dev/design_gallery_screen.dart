@@ -18,6 +18,7 @@ import 'package:genius_wallet/components/inputs/gw_checkbox.dart';
 import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
+import 'package:genius_wallet/components/loading/gw_spinner.dart';
 // SHADOW IMPORT -- see
 // .planning/phases/03-gw-component-library/03-SHADOW-NAMES.md. This gallery
 // is the ONLY permitted importer of the `Loading` shadow (this path). Develop's
@@ -26,7 +27,6 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 // is a DIFFERENT widget (Phase 2 tokens vs raw values) -- the evidence that
 // makes the shadow hazard concrete rather than theoretical.
 import 'package:genius_wallet/components/loading/loading.dart';
-import 'package:genius_wallet/components/loading/gw_spinner.dart';
 import 'package:genius_wallet/components/overlays/gw_bottom_sheet.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';

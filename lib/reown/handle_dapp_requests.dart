@@ -3,14 +3,14 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/transaction.dart' as model;
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
 import 'package:genius_wallet/reown/utilities.dart';
-import 'package:genius_wallet/navigation/router.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 void Function() handleDappRequests({
   required ReownWalletKit walletKit,

@@ -6,13 +6,13 @@ import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;

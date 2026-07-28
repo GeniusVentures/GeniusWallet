@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_state.dart';
@@ -13,7 +15,6 @@ import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:flutter/services.dart';
 
 class CheckoutQrPage extends StatelessWidget {
   final String checkoutUrl;

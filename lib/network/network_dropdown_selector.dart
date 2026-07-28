@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/network.dart';
-import 'package:genius_wallet/providers/network_provider.dart';
-import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
-import 'package:provider/provider.dart';
-import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 
 class NetworkDropdownSelector extends StatefulWidget {
   final Function(Network selectedNetwork)? onNetworkSelected;

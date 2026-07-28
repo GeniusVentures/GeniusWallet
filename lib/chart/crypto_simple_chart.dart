@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/image_utils.dart';
 // hide TextDirection — intl also declares one, which would shadow the
 // flutter/ui TextDirection used by the trailing Row below (needs .rtl).
 import 'package:intl/intl.dart' hide TextDirection;

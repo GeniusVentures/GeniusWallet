@@ -51,9 +51,12 @@
 // WalletsOverview pair check. Do not add a second importer.
 
 import 'package:flutter/material.dart';
-
 import 'package:genius_wallet/components/continue_button/isactive_false.dart';
 import 'package:genius_wallet/components/continue_button/isactive_true.dart';
+import 'package:genius_wallet/components/custom/genius_back_button_custom.dart';
+import 'package:genius_wallet/components/custom/isactive_false_custom.dart';
+import 'package:genius_wallet/components/custom/isactive_true_custom.dart';
+import 'package:genius_wallet/components/custom/wallet_agreement_custom.dart';
 import 'package:genius_wallet/components/genius_back_button.dart';
 import 'package:genius_wallet/components/incorrect_pin.dart';
 import 'package:genius_wallet/components/recoveryword.dart';
@@ -61,11 +64,6 @@ import 'package:genius_wallet/components/registration_header.dart';
 import 'package:genius_wallet/components/wallet_information.dart';
 import 'package:genius_wallet/components/wallet_preview.dart';
 import 'package:genius_wallet/components/wallets_overview.dart';
-
-import 'package:genius_wallet/components/custom/genius_back_button_custom.dart';
-import 'package:genius_wallet/components/custom/isactive_false_custom.dart';
-import 'package:genius_wallet/components/custom/isactive_true_custom.dart';
-import 'package:genius_wallet/components/custom/wallet_agreement_custom.dart';
 
 /// Every public class the 9 renamed Parabeac-scaffolded widget files + 4 additive
 /// `custom/` siblings export, referenced by `Type` literal. A `Type`

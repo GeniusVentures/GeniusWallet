@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 class BackupPhraseScreen extends StatelessWidget {
   const BackupPhraseScreen({super.key});

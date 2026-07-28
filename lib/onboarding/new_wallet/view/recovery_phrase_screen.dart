@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,26 +14,24 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
-import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
-import 'package:go_router/go_router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/test/dev_overrides.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/theme.dart';
-import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:genius_wallet/web/windows_webview_shutdown.dart';
+import 'package:go_router/go_router.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
-import 'package:device_preview/device_preview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:window_manager/window_manager.dart';
-import 'dart:io';
 
 // ignore: unused_element
 Future<void> _attachSdkLogsToHint(Hint hint) async {

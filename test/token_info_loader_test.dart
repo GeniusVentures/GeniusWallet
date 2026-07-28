@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/tokeninfo/token_info_loader.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:genius_wallet/tokeninfo/token_info_loader.dart';
 
 void main() {
   group('TokenInfoLoader', () {
