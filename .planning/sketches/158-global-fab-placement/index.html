@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>158 · Global swap FAB - placement and the gradient-outline skin</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1240px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .st:hover { color:var(--text-primary); border-color:var(--border-strong); }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+
+  h1 { font:700 20px/28px var(--font); margin-bottom:var(--space-4); }
+  h2 { font:700 15px/22px var(--font); margin:var(--space-16) 0 var(--space-6); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-10); max-width:1000px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bug { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.note{ background:rgba(255,196,46,.16); color:var(--status-warning); }
+
+  .cap { display:flex; align-items:flex-start; gap:10px; margin:0 0 var(--space-8); }
+  .cap .k { font:700 11px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary); flex:none; width:118px; padding-top:1px; }
+  .cap .v { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:930px; }
+
+  /* ---------- window mock: real 1:1 pixels in the corner that matters ---------- */
+  .grid { display:flex; gap:var(--space-8); flex-wrap:wrap; }
+  .cell { width:390px; }
+  .cell > .ttl { font:700 13px/18px var(--font); margin-bottom:2px; display:flex; align-items:center; gap:7px; }
+  .cell > .sub { font:400 12px/18px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); min-height:36px; }
+  .win { position:relative; height:270px; border:1px solid var(--border-strong); border-radius:var(--radius-md);
+    background:var(--surface-base); overflow:hidden; }
+  .win .content { position:absolute; inset:14px; }
+  .win .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+    height:100%; padding:12px; }
+  .win .card .g { height:12px; border-radius:6px; background:var(--skeleton); margin-bottom:9px; }
+  .win .card .g:nth-child(3n) { width:74%; } .win .card .g:nth-child(4n) { width:52%; }
+  /* mobile tab bar - only drawn in the mobile view */
+  .win .tabbar { position:absolute; left:0; right:0; bottom:0; height:60px; border-top:1px solid var(--border-subtle);
+    background:var(--surface-sheen-a); display:flex; align-items:center; justify-content:space-around; }
+  .win .tabbar i { width:22px; height:22px; border-radius:5px; background:var(--skeleton); display:block; }
+
+  /* the FAB itself - real 56px */
+  .fab { position:absolute; width:56px; height:56px; border-radius:50%; display:grid; place-items:center; cursor:pointer;
+    transition:transform .12s ease; z-index:3; }
+  .fab:active { transform:scale(.92); }
+  .fab svg { width:26px; height:26px; }
+
+  /* S0 filled */
+  .fab.s0 { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+    box-shadow:-2px 6px 24px -2px rgba(20,200,255,.25), 2px 6px 24px -2px rgba(43,245,180,.25); color:var(--text-on-brand); }
+  /* S1 gradient ring only - a gradient parent with an inset surface circle (a BorderSide takes ONE Color) */
+  .fab.s1 { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); padding:1.5px; color:var(--brand-secondary); }
+  .fab.s1 .inner { width:100%; height:100%; border-radius:50%; background:var(--surface-base); display:grid; place-items:center; }
+  [data-theme="light"] .fab.s1 { color:#0A6885; }
+  /* S2 ring + brand tint fill */
+  .fab.s2 { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); padding:1.5px; color:var(--brand-secondary);
+    box-shadow:0 6px 20px -4px rgba(10,216,156,.22); }
+  .fab.s2 .inner { width:100%; height:100%; border-radius:50%; display:grid; place-items:center;
+    background:color-mix(in srgb, var(--brand-cta-a) 10%, var(--surface-base)); }
+  [data-theme="light"] .fab.s2 { color:#0A6885; }
+  /* S3 ring + glass */
+  .fab.s3 { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); padding:1.5px; color:var(--brand-secondary); }
+  .fab.s3 .inner { width:100%; height:100%; border-radius:50%; display:grid; place-items:center;
+    background:rgba(255,255,255,.06); backdrop-filter:blur(14px); }
+  [data-theme="light"] .fab.s3 .inner { background:rgba(255,255,255,.55); }
+  [data-theme="light"] .fab.s3 { color:#0A6885; }
+
+  /* measurement overlay */
+  .m { position:absolute; z-index:4; pointer-events:none; }
+  .m.h { height:1px; background:repeating-linear-gradient(90deg, var(--status-warning) 0 4px, transparent 4px 8px); }
+  .m.v { width:1px; background:repeating-linear-gradient(180deg, var(--status-warning) 0 4px, transparent 4px 8px); }
+  .m .t { position:absolute; font:700 10px/1 var(--font-mono); color:var(--status-warning);
+    background:var(--surface-sunken); padding:2px 4px; border-radius:3px; white-space:nowrap; }
+  .m.h .t { top:-16px; left:50%; transform:translateX(-50%); }
+  .m.v .t { left:6px; top:50%; transform:translateY(-50%); }
+  .win:not(.meas) .m { display:none; }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); margin-top:var(--space-10); }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+  pre { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    padding:12px 14px; font:400 12px/19px var(--font-mono); color:var(--text-primary); overflow-x:auto; margin:var(--space-6) 0; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">158 · Global swap FAB</span>
+  <span class="lbl">Skin</span>
+  <button class="st on" data-k="s0">S0 filled</button>
+  <button class="st" data-k="s1">S1 ring</button>
+  <button class="st" data-k="s2">S2 ring + tint</button>
+  <button class="st" data-k="s3">S3 ring + glass</button>
+  <span class="sep"></span>
+  <button class="st on" id="meas">Measure</button>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap">
+  <h1>The floating swap button: where it sits, and what it is made of</h1>
+  <p class="lede">
+    Jakub, 2026-07-27: <b>"kolko - zmiana lokacji bo gap od dolu i od prawej nie jest rowny, zaproponuj
+    design; HTML raz zrob jeden gdzie tylko obramowka jest gradient"</b>. Two separate questions, both
+    answered here: <b>placement</b> (four options, top block) and <b>skin</b> (four options, in the toolbar -
+    switch it and every window below re-skins at once).
+  </p>
+
+  <div class="cap"><span class="k">The cause</span><span class="v">
+    <span class="tag bug">measured</span>
+    <code>global_swap_fab_host.dart:124-128</code> is literally
+    <code>Positioned(right: GeniusWalletConsts.space10, bottom: 80 + bottomInset)</code>.
+    <b>space10 is 20.</b> So the right gap is 20px and the bottom gap is 80px - a <b>4:1 asymmetry</b>, and
+    it is not a rounding slip, it is two different numbers chosen for two different reasons.
+  </span></div>
+
+  <div class="cap"><span class="k">Why 80</span><span class="v">
+    The comment says it: <i>"Clears the 60px bottom nav (+ safe-area) on the main shell"</i>. That bottom nav
+    is <code>_MobileTabBar</code>, and it is mounted <b>only by <code>MobileOverlay</code></b>
+    (<code>responsive_overlay.dart:486</code>). <code>DesktopOverlay</code> has no bottom bar at all - the
+    navigation is the top navbar. <b>So on the desktop app the FAB is clearing a bar that is not there.</b>
+    60 of those 80 pixels are avoidance of nothing.
+  </span></div>
+
+  <div class="cap"><span class="k">Second effect</span><span class="v">
+    The two glows (<code>gw_swap_fab.dart:56-69</code>) are offset <code>(-2, 6)</code> and <code>(2, 6)</code>
+    with a 24px blur, so the button's optical mass hangs about 30px <b>below</b> its box. That does not rescue
+    the gap - it means the visible shape is roughly 50px off the floor and 20px off the wall, still 2.5:1,
+    while the glow itself gets clipped on the right at only 20px of clearance.
+  </span></div>
+
+  <h2>Placement <span style="font:400 13px/22px var(--font); color:var(--text-secondary)">(skin follows the toolbar)</span></h2>
+  <div class="grid" id="grid">
+
+    <div class="cell">
+      <div class="ttl">P0 · Today</div>
+      <div class="sub"><code>right: 20</code> / <code>bottom: 80</code> - desktop. The screenshot.</div>
+      <div class="win meas">
+        <div class="content"><div class="card"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+        <div class="fab" style="right:20px; bottom:80px"></div>
+        <div class="m v" style="right:47px; bottom:0; height:80px"><span class="t">80</span></div>
+        <div class="m h" style="right:0; bottom:107px; width:20px"><span class="t">20</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="ttl">P1 · Equal gutter <span class="tag rec">rec</span></div>
+      <div class="sub"><code>right: space10</code> / <code>bottom: space10 + barHeight</code>, where the bar is 0 on desktop.</div>
+      <div class="win meas">
+        <div class="content"><div class="card"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+        <div class="fab" style="right:20px; bottom:20px"></div>
+        <div class="m v" style="right:47px; bottom:0; height:20px"><span class="t">20</span></div>
+        <div class="m h" style="right:0; bottom:47px; width:20px"><span class="t">20</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="ttl">P2 · Page gutter (24)</div>
+      <div class="sub"><code>space12</code> on both axes - the dashboard's own outer rhythm, more air for the glow.</div>
+      <div class="win meas">
+        <div class="content"><div class="card"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+        <div class="fab" style="right:24px; bottom:24px"></div>
+        <div class="m v" style="right:51px; bottom:0; height:24px"><span class="t">24</span></div>
+        <div class="m h" style="right:0; bottom:51px; width:24px"><span class="t">24</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="ttl">P3 · Optically equal</div>
+      <div class="sub"><code>right: 20</code> / <code>bottom: 26</code> - pays back the 6px the glow offset pushes downward.</div>
+      <div class="win meas">
+        <div class="content"><div class="card"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+        <div class="fab" style="right:20px; bottom:26px"></div>
+        <div class="m v" style="right:47px; bottom:0; height:26px"><span class="t">26</span></div>
+        <div class="m h" style="right:0; bottom:53px; width:20px"><span class="t">20</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="ttl">P4 · Mobile, unchanged</div>
+      <div class="sub">Same rule, tab bar present: <code>20 + 60</code> = the 80 that exists today, now derived instead of hardcoded.</div>
+      <div class="win meas">
+        <div class="content" style="inset:14px 14px 74px"><div class="card"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+        <div class="tabbar"><i></i><i></i><i></i><i></i></div>
+        <div class="fab" style="right:20px; bottom:80px"></div>
+        <div class="m v" style="right:47px; bottom:60px; height:20px"><span class="t">20</span></div>
+        <div class="m h" style="right:0; bottom:107px; width:20px"><span class="t">20</span></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="ttl">P5 · Docked to the frame</div>
+      <div class="sub">Right edge aligns with the page's content column, not the window. At fullscreen it stops drifting into the void.</div>
+      <div class="win meas">
+        <div class="content" style="inset:14px 46px 14px 46px"><div class="card"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+        <div class="fab" style="right:46px; bottom:20px"></div>
+        <div class="m v" style="right:73px; bottom:0; height:20px"><span class="t">20</span></div>
+        <div class="m h" style="right:0; bottom:47px; width:46px"><span class="t">frame</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>The gradient-outline skin, in detail</h2>
+  <p class="lede">
+    All four skins at 1:1 on the three canvases the FAB actually floats over. <b>The middle one is the dark
+    page canvas</b> (<code>surfaceBase #0B0D12</code>), which is where it lives most of the time.
+  </p>
+  <div class="grid">
+    <div class="cell" style="width:auto">
+      <div class="win" style="width:390px; height:150px; display:flex; align-items:center; justify-content:space-around; background:var(--surface-base)">
+        <div class="fab" style="position:static"></div>
+        <div style="position:relative; width:56px; height:56px; background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg)"></div>
+        <div class="fab" style="position:static"></div>
+      </div>
+      <div class="sub" style="margin-top:8px">Over <code>surfaceBase</code> and next to a card, so the ring can be judged against a real hairline.</div>
+    </div>
+    <div class="cell" style="width:auto">
+      <div class="win" style="width:390px; height:150px; display:grid; place-items:center; background:var(--surface-elevated)">
+        <div class="fab" style="position:static"></div>
+      </div>
+      <div class="sub" style="margin-top:8px">Over a <b>card</b> (<code>surfaceElevated</code>) - the FAB overlaps panels on the dashboard.</div>
+    </div>
+    <div class="cell" style="width:auto">
+      <div class="win" style="width:390px; height:150px; display:grid; place-items:center; background:linear-gradient(135deg,#101826,#0a1a2b 60%,#0d2a2a)">
+        <div class="fab" style="position:static"></div>
+      </div>
+      <div class="sub" style="margin-top:8px">Over the <b>mesh</b> canvas - the worst case for a see-through ring.</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <h3>The one technical thing this cannot be built without</h3>
+    <p>
+      <b>A <code>BorderSide</code> takes a single <code>Color</code>.</b> There is no Flutter border that is
+      a gradient, which is exactly why this project already built <code>GWFocusRing</code> during Phase 20.
+      A gradient-outline FAB is therefore <b>not a border</b> - it is a gradient-filled circle with an inset
+      circle of canvas colour on top:
+    </p>
+<pre>Container(                       // the ring
+  width: 56, height: 56,
+  decoration: BoxDecoration(
+    gradient: GeniusWalletGradient.brandCta,
+    shape: BoxShape.circle,
+  ),
+  padding: const EdgeInsets.all(1.5),
+  child: Container(              // the hole
+    decoration: BoxDecoration(
+      color: gw.surfaceBase,     // S1 - or a brand tint for S2
+      shape: BoxShape.circle,
+    ),
+    child: Icon(Icons.swap_vert_rounded, color: ..., size: 26),
+  ),
+)</pre>
+    <p>
+      <span class="tag note">watch</span> The hole is painted with <b>a specific surface colour</b>, so the
+      FAB stops being canvas-agnostic: over the <b>mesh</b> and over a <b>card</b> it will read as a disc of
+      the wrong shade unless the fill is either translucent (S3) or deliberately tinted (S2). That is the
+      real trade this question is about, and it is why the three canvases above are drawn.
+    </p>
+    <p>
+      <span class="tag note">contrast</span> The glyph colour cannot stay <code>textOnBrand #000B18</code> -
+      that is a colour for sitting <i>on</i> the gradient. On the dark canvas <code>brandSecondary #2BF5B4</code>
+      is ~12:1 and fine; <b>in light mode it is ~1.6:1 and fails</b>, so the light branch needs the darkened
+      <code>#0A6885</code> the project already uses for brand-on-surface text. Toggle Light to check.
+    </p>
+  </div>
+</div>
+
+<script>
+let skin = 's0';
+function paint(){
+  document.querySelectorAll('.fab').forEach(f => {
+    f.className = 'fab ' + skin;
+    f.innerHTML = (skin === 's0')
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M7 21l-4-4M7 3l4 4"/><path d="M17 21V3M17 3l4 4M17 21l-4-4"/></svg>'
+      : '<span class="inner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M7 21l-4-4M7 3l4 4"/><path d="M17 21V3M17 3l4 4M17 21l-4-4"/></svg></span>';
+  });
+  document.querySelectorAll('#nav .st[data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === skin));
+}
+document.querySelectorAll('#nav .st[data-k]').forEach(b => b.onclick = () => { skin = b.dataset.k; paint(); });
+document.getElementById('meas').onclick = e => {
+  const on = e.target.classList.toggle('on');
+  document.querySelectorAll('.win').forEach(w => w.classList.toggle('meas', on));
+};
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+paint();
+</script>
+</body>
+</html>

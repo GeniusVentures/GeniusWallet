@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Sketch 065 - komponent kickera</title>
+<style>
+:root{
+  --base:#0B0D12; --elev:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink38:rgba(255,255,255,.38);
+  --sec:#8A8F9D; --border:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --ok:#0AD89C; --err:#FF4D4D; --warn:#FFC42E;
+  --cta:linear-gradient(90deg,#0AD89C,#0AAEE6);
+  --rSm:8px; --rMd:12px; --rLg:15px;
+}
+body.light{
+  --base:#DCE0E6; --elev:#FFFFFF; --menu:#EFF2F6; --sunken:#CFD4DB;
+  --ink:#10131A; --ink70:rgba(16,19,26,.70); --ink38:rgba(16,19,26,.38);
+  --border:rgba(16,19,26,.12); --borderStrong:rgba(16,19,26,.24);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;
+  -webkit-font-smoothing:antialiased;transition:background .2s}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+
+header{position:sticky;top:0;z-index:40;background:rgba(11,13,18,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:14px 28px}
+body.light header{background:rgba(220,224,230,.94)}
+h1{margin:0 0 3px;font-size:17px;font-weight:600}
+.q{margin:0 0 12px;font-size:12px;color:var(--ink38);max-width:80ch}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--border);
+  border-radius:48px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;color:var(--ink70);cursor:pointer;
+  padding:7px 13px;border-radius:48px;font:inherit;font-size:12px;font-weight:500;
+  transition:.15s;white-space:nowrap}
+.seg button:hover{background:rgba(255,255,255,.08)}
+.seg button[aria-selected="true"]{background:var(--cta);color:#000B18;font-weight:600}
+.tog{border:1px solid var(--border);background:transparent;color:var(--ink70);cursor:pointer;
+  padding:8px 14px;border-radius:48px;font:inherit;font-size:12px}
+.tog[aria-pressed="true"]{border-color:var(--ok);color:var(--ok)}
+
+main{max-width:1220px;margin:0 auto;padding:26px 28px 80px}
+
+/* ---------- variant banner ---------- */
+.vb{border:1px solid var(--border);border-radius:var(--rLg);padding:16px 18px;margin:0 0 26px;
+  background:var(--elev)}
+.vb h2{margin:0 0 4px;font-size:16px;font-weight:600}
+.vb p{margin:0;color:var(--ink70);font-size:13px;max-width:88ch;line-height:1.55}
+.vb .spec{margin-top:10px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink38)}
+.star{color:var(--ok)}
+
+/* ---------- the kicker under test ---------- */
+.kicker{
+  font-weight:600;                       /* jedyna wartość zgodna we wszystkich 5 miejscach */
+  color:var(--sec);
+  text-transform:uppercase;
+  font-size:13px; letter-spacing:.4px; line-height:18px;
+  display:flex;align-items:center;gap:10px;
+}
+.kicker .txt{white-space:nowrap}
+.kicker .rule{display:none}
+.kicker .tr{margin-left:auto;font-weight:600}
+
+/* --- warianty --- */
+body[data-v="0"] .kicker{--drift:1}          /* per-surface, patrz niżej */
+body[data-v="A"] .kicker{font-size:13px;letter-spacing:.4px;line-height:18px}
+body[data-v="B"] .kicker{font-size:13px;letter-spacing:.7px;line-height:18px}
+body[data-v="C"] .kicker{font-size:13px;letter-spacing:.5px;line-height:18px}
+body[data-v="C"] .kicker.dense{font-size:11px;letter-spacing:.6px;line-height:16px}
+body[data-v="D"] .kicker{font-size:13px;letter-spacing:.5px;line-height:18px}
+body[data-v="D"] .kicker .rule{display:block;flex:1;height:1px;background:var(--border)}
+body[data-v="D"] .kicker.dense{font-size:11px;letter-spacing:.6px}
+body[data-v="E"] .kicker{text-transform:none;font-size:13px;letter-spacing:0;line-height:18px;
+  color:var(--ink70)}
+
+/* wariant 0 = dzisiejszy dryf, każde miejsce swoje */
+body[data-v="0"] #s-tx .kicker  {font-size:13px;letter-spacing:.7px;line-height:18px}
+body[data-v="0"] #s-tok .kicker {font-size:13px;letter-spacing:.4px;line-height:18px}
+body[data-v="0"] #s-hero .kicker{font-size:10px;letter-spacing:.5px;line-height:14px}
+body[data-v="0"] #s-tab .kicker {font-size:11px;letter-spacing:.6px;line-height:16px}
+body[data-v="0"] #s-rec .kicker {font-size:13px;letter-spacing:.4px;line-height:18px;
+  outline:1px dashed var(--warn);outline-offset:3px}
+
+/* miary */
+body.measure .kicker{position:relative;background:rgba(10,216,156,.10)}
+body.measure .kicker::after{content:attr(data-m);position:absolute;left:0;top:100%;
+  font:400 9px/1.2 ui-monospace,Menlo,monospace;color:var(--ok);letter-spacing:0;
+  text-transform:none;white-space:nowrap;padding-top:2px;z-index:5}
+
+/* ---------- layout ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:20px}
+.panel{background:var(--elev);border:1px solid var(--border);border-radius:var(--rLg);padding:16px}
+.panel.menu{background:var(--menu)}
+.slot{margin:0 0 8px;font:600 11px/1.3 ui-monospace,Menlo,monospace;color:var(--ink38);
+  letter-spacing:.04em}
+.src{font:400 10px/1.4 ui-monospace,Menlo,monospace;color:var(--ink38);margin-top:10px}
+
+/* transakcje */
+.txrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+.txrow:last-child{border-bottom:none}
+.txrow .t{font:400 12px/1 ui-monospace,Menlo,monospace;color:var(--ink38);width:38px;flex:none}
+.txrow .av{width:30px;height:30px;border-radius:50%;background:var(--sunken);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--ink70)}
+.txrow .nm{font-size:14px;font-weight:500}
+.txrow .sb{font-size:12px;color:var(--sec)}
+.txrow .rt{margin-left:auto;text-align:right}
+.txrow .amt{font-size:14px;font-weight:600}
+.txrow .amt.neg{color:var(--ink)}
+.txrow .amt.pos{color:var(--ok)}
+
+/* karta tokenu */
+.tokcard{background:var(--sunken);border:1px solid var(--border);border-radius:var(--rMd);
+  padding:14px;margin-top:10px}
+.kv{display:flex;justify-content:space-between;padding:6px 0;font-size:13px}
+.kv .k{color:var(--ink70)}
+.kv .v{font-weight:500}
+
+/* markets hero */
+.hero{display:flex;gap:26px}
+.hero .cell .val{font-size:20px;font-weight:600;letter-spacing:-.01em;margin-top:3px}
+
+/* tabela */
+table{width:100%;border-collapse:collapse}
+th{text-align:right;padding:0 0 9px;border-bottom:1px solid var(--border);font-weight:600}
+th:first-child{text-align:left}
+td{padding:9px 0;border-bottom:1px solid var(--border);text-align:right;font-size:13px}
+td:first-child{text-align:left;font-weight:500}
+tr:last-child td{border-bottom:none}
+
+/* paragon */
+.receipt .hero2{text-align:center;padding:6px 0 14px}
+.receipt .ic{width:52px;height:52px;border-radius:50%;background:var(--sunken);margin:0 auto 10px;
+  display:flex;align-items:center;justify-content:center}
+.receipt .am{font-size:24px;font-weight:600;letter-spacing:-.01em}
+.receipt .fi{font-size:13px;color:var(--sec);margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:3px 10px;
+  border-radius:999px;font-size:12px;font-weight:500;
+  background:rgba(10,216,156,.14);color:var(--ok)}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.sect{margin-top:16px}
+.sect .rows{margin-top:8px}
+
+.note{border-left:2px solid var(--ok);padding:2px 0 2px 14px;margin:26px 0 0;
+  color:var(--ink70);font-size:13px;max-width:88ch;line-height:1.6}
+.note.warn{border-left-color:var(--warn)}
+.note b{color:var(--ink)}
+h3{font-size:13px;font-weight:600;margin:30px 0 12px;color:var(--ink70);
+  text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body data-v="C">
+
+<header>
+  <h1>Sketch 065 · Komponent kickera</h1>
+  <p class="q">Wersalikowa etykieta sekcji istnieje dziś w <b>pięciu</b> miejscach i w każdym została
+  napisana ręcznie. Zgadzają się co do wagi (w600) i koloru (textSecondary), rozjeżdżają co do
+  rozmiaru (10 / 11 / 13) i rozstrzelenia (0.4 / 0.5 / 0.6 / 0.7 / 0.88). Jaka jedna wartość obsłuży
+  wszystkie pięć plus paragon transakcji z 154-A?</p>
+  <div class="bar">
+    <div class="seg" role="tablist">
+      <button role="tab" data-var="0">0 · Dziś</button>
+      <button role="tab" data-var="A">A · 13 / 0.4</button>
+      <button role="tab" data-var="B">B · 13 / 0.7</button>
+      <button role="tab" data-var="C" aria-selected="true">C · Dwa stopnie ★</button>
+      <button role="tab" data-var="D">D · Z linią</button>
+      <button role="tab" data-var="E">E · Zdaniowo</button>
+    </div>
+    <button class="tog" id="measure" aria-pressed="false">Miary</button>
+    <button class="tog" id="theme" aria-pressed="false">Jasny</button>
+  </div>
+</header>
+
+<main>
+
+<div class="vb" id="banner"></div>
+
+<h3>Pięć powierzchni naraz</h3>
+<div class="grid">
+
+  <!-- 1 -->
+  <section class="panel" id="s-tx">
+    <div class="slot">1 · Transakcje - grupa dnia</div>
+    <div class="kicker" data-m="13 / w600 / 0.7 / textSecondary"><span class="txt">Today</span><span class="rule"></span></div>
+    <div class="txrow"><span class="t">22:30</span><span class="av">GNUS</span>
+      <span><span class="nm">GNUS</span><div class="sb">Job 0xdevm…ck09</div></span>
+      <span class="rt"><div class="amt neg">- 0.42 GNUS</div><div class="sb">$0.36 fee</div></span></div>
+    <div class="txrow"><span class="t">22:21</span><span class="av">ETH</span>
+      <span><span class="nm">ETH</span><div class="sb">0xToMo…ed01</div></span>
+      <span class="rt"><div class="amt neg">- 0.75 ETH</div><div class="sb">$2,400.00</div></span></div>
+    <div class="kicker" style="margin-top:18px" data-m="ten sam"><span class="txt">Yesterday</span><span class="rule"></span></div>
+    <div class="txrow"><span class="t">21:30</span><span class="av">ETH</span>
+      <span><span class="nm">ETH</span><div class="sb">Card purchase · Failed</div></span>
+      <span class="rt"><div class="amt pos">+ 100.00 ETH</div><div class="sb">Not charged</div></span></div>
+    <div class="src">transactions_slim_view.dart:487</div>
+  </section>
+
+  <!-- 2 -->
+  <section class="panel" id="s-tok">
+    <div class="slot">2 · Karta tokenu - sekcja w karcie</div>
+    <div class="kicker" data-m="13 / w600 / 0.4 / textSecondary"><span class="txt">Info</span><span class="rule"></span></div>
+    <div class="tokcard">
+      <div class="kv"><span class="k">Market cap</span><span class="v">$412.8M</span></div>
+      <div class="kv"><span class="k">Volume 24h</span><span class="v">$18.2M</span></div>
+      <div class="kv"><span class="k">Circulating</span><span class="v">92.4M GNUS</span></div>
+    </div>
+    <div class="kicker" style="margin-top:16px" data-m="ten sam"><span class="txt">Convert</span><span class="rule"></span></div>
+    <div class="tokcard">
+      <div class="kv"><span class="k">1 GNUS</span><span class="v">$0.65</span></div>
+    </div>
+    <div class="src">token_info_screen.dart:45 - _buildSectionTitle, dokładnie ta sama robota co paragon</div>
+  </section>
+
+  <!-- 3 -->
+  <section class="panel" id="s-hero">
+    <div class="slot">3 · Markets hero - etykiety liczb</div>
+    <div class="hero">
+      <div class="cell"><div class="kicker dense" data-m="10 / w600 / 0.5"><span class="txt">Market cap</span></div><div class="val">$2.41T</div></div>
+      <div class="cell"><div class="kicker dense" data-m="10"><span class="txt">Volume</span></div><div class="val">$98.6B</div></div>
+      <div class="cell"><div class="kicker dense" data-m="10"><span class="txt">Dominance</span></div><div class="val">54.2%</div></div>
+    </div>
+    <div class="src">markets_hero_card.dart:260 - najmniejszy z pięciu, 10px</div>
+  </section>
+
+  <!-- 4 -->
+  <section class="panel" id="s-tab">
+    <div class="slot">4 · Tabela Marketów - nagłówki kolumn</div>
+    <table>
+      <tr>
+        <th><div class="kicker dense" data-m="11 / w600 / 0.6"><span class="txt">Name</span></div></th>
+        <th><div class="kicker dense" style="justify-content:flex-end"><span class="txt">Price</span></div></th>
+        <th><div class="kicker dense" style="justify-content:flex-end"><span class="txt">24h</span></div></th>
+        <th><div class="kicker dense" style="justify-content:flex-end"><span class="txt">Market cap</span></div></th>
+      </tr>
+      <tr><td>Bitcoin</td><td>$67,204</td><td style="color:var(--ok)">+2.4%</td><td>$1.32T</td></tr>
+      <tr><td>Ethereum</td><td>$3,180</td><td style="color:var(--err)">-0.8%</td><td>$382B</td></tr>
+      <tr><td>GNUS</td><td>$0.65</td><td style="color:var(--ok)">+5.1%</td><td>$412M</td></tr>
+    </table>
+    <div class="src">markets_table.dart:127 - interaktywny (sortowanie), zostaje własnym widgetem; bierze tylko styl</div>
+  </section>
+
+  <!-- 5 -->
+  <section class="panel menu receipt" id="s-rec" style="grid-column:1/-1;max-width:420px">
+    <div class="slot">5 · NOWE - paragon transakcji, 154-A</div>
+    <div class="hero2">
+      <div class="ic">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8A8F9D" stroke-width="2"><path d="M7 17L17 7M17 7H9M17 7v8"/></svg>
+      </div>
+      <div class="am">- 0.75 ETH</div>
+      <div class="fi">$2,400.00</div>
+      <div class="pill"><span class="dot"></span>Completed</div>
+    </div>
+    <div class="sect">
+      <div class="kicker" data-m="wartość do wyboru"><span class="txt">Transaction</span><span class="rule"></span></div>
+      <div class="rows">
+        <div class="kv"><span class="k">Date</span><span class="v">26 Jul 2026, 14:02</span></div>
+        <div class="kv"><span class="k">Status</span><span class="v">Completed</span></div>
+        <div class="kv"><span class="k">To</span><span class="v" style="font-family:ui-monospace,Menlo,monospace">0x71C…4fE9</span></div>
+      </div>
+    </div>
+    <div class="sect">
+      <div class="kicker" data-m="ten sam"><span class="txt">Network</span><span class="rule"></span></div>
+      <div class="rows">
+        <div class="kv"><span class="k">Network</span><span class="v">ETH</span></div>
+        <div class="kv"><span class="k">Network Fee</span><span class="v">0.00042 ETH</span></div>
+        <div class="kv"><span class="k">Hash</span><span class="v" style="font-family:ui-monospace,Menlo,monospace">0x9a3…8c21</span></div>
+      </div>
+    </div>
+    <div class="src">panel na surfaceMenu #171A21 - jedyna z pięciu powierzchni, która nie jest kartą</div>
+  </section>
+
+</div>
+
+<div class="note warn" id="light-note" style="display:none">
+  <b>Tryb jasny łamie AA na wszystkich pięciu.</b> <code>textSecondary</code> to
+  <code>static const Color(0xFF8A8F9D)</code> - nie getter, więc nie zmienia się z trybem. Na jasnej
+  karcie (#FFFFFF) mierzy <b>3.23:1</b>, a 13px/w600 nie kwalifikuje się jako duży tekst (próg to
+  18.66px przy pogrubieniu). To zastana usterka wszystkich pięciu miejsc, nie tego komponentu -
+  ale komponent jest jedynym miejscem, w którym da się ją naprawić raz. Zgodnie z zasadą
+  "najpierw ciemny" nie blokuje decyzji; idzie do przebiegu jasnego jako
+  <code>gw.textSecondary</code> z osobną wartością dla jasnego.
+</div>
+
+<div class="note">
+  <b>Kontrast w ciemnym - wszystkie przechodzą.</b> <code>#8A8F9D</code> na
+  <code>surfaceBase #0B0D12</code> = <b>6.02:1</b>, na <code>surfaceElevated #0C0E14</code> =
+  <b>5.99:1</b>, na <code>surfaceMenu #171A21</code> = <b>5.38:1</b>. Próg AA dla zwykłego
+  tekstu to 4.5:1, więc zapas jest nawet na panelu szuflady, który jest najjaśniejszy.
+</div>
+
+<div class="note">
+  <b>Zakres komponentu.</b> Trzy z pięciu miejsc to statyczne etykiety i one biorą komponent w
+  całości: grupa dnia, sekcja w karcie tokenu, sekcje paragonu. Dwa pozostałe są interaktywne -
+  <code>GWViewAllLink</code> (hover na gradient, podkreślenie, strzałka) i nagłówek sortowalnej
+  kolumny (stan aktywny, strzałka kierunku). One zostają własnymi widgetami i konsumują tylko
+  <b>styl tekstu</b>. Inaczej komponent musiałby przyjąć hover, stan aktywny i dwa różne trailingi,
+  czyli przestałby być etykietą.
+</div>
+
+</main>
+
+<script>
+const V = {
+  "0":{t:"0 · Dziś - pięć wartości, żadnej reguły",
+    d:"Literalny render tego, co jest w kodzie. Ta sama rola typograficzna napisana pięcioma różnymi wartościami: 13/0.7 w transakcjach, 13/0.4 na karcie tokenu, 10/0.5 w hero Marketów, 11/0.6 w tabeli, 11/0.88 w VIEW ALL. Paragon (pole 5) jest obrysowany na żółto, bo dziś nie istnieje - i bez decyzji dołoży szóstą wartość.",
+    s:"referencja, nie propozycja"},
+  "A":{t:"A · Jedna wartość: 13 / w600 / 0.4",
+    d:"Ujednolicenie na wartości z karty tokenu - tej, która dziś robi dokładnie tę samą robotę co paragon: tytuł sekcji wewnątrz karty. Jedna liczba, zero wyjątków, najkrótsza definicja. Koszt: hero Marketów rośnie z 10 na 13, a nagłówki tabeli z 11 na 13 - w kolumnie o stałej szerokości 'MARKET CAP' przy 13px robi się realnie szersze i albo łamie kolumnę, albo ją poszerza.",
+    s:"font-size 13 · w600 · letterSpacing 0.4 · textSecondary · lineHeight 18"},
+  "B":{t:"B · Jedna wartość: 13 / w600 / 0.7",
+    d:"To samo co A, ale rozstrzelenie z transakcji - najczęściej oglądanej powierzchni w apce. Przy wersalikach szersze rozstrzelenie czyta się spokojniej i mocniej odróżnia etykietę od wartości. Ten sam koszt co A na dwóch powierzchniach Marketów, plus 'MARKET CAP' jest jeszcze szersze niż w A.",
+    s:"font-size 13 · w600 · letterSpacing 0.7 · textSecondary · lineHeight 18"},
+  "C":{t:"C · Dwa stopnie: 13 domyślny, 11 dense ★",
+    d:"Jeden komponent, jeden bool. Domyślnie 13/0.5 - tytuł sekcji, oddycha, używają go transakcje, karta tokenu i paragon. Flaga dense daje 11/0.6 dla kontekstów gęstych i tabelarycznych: nagłówki kolumn i hero Marketów. Rozstrzelenie 0.5 to nie kompromis dla samego kompromisu - przy wersalikach optyczny odstęp rośnie razem ze stopniem, więc dwa stopnie chcą dwóch wartości. Żadna z pięciu powierzchni nie zmienia szerokości ani wysokości wiersza.",
+    s:"domyślny: 13 / w600 / 0.5 / lineHeight 18  ·  dense: 11 / w600 / 0.6 / lineHeight 16"},
+  "D":{t:"D · Stopień z linią",
+    d:"C plus hairline biegnąca od etykiety do prawej krawędzi. Etykieta przestaje być podpisem, a staje się przegrodą - grupuje wiersze bez rysowania karty. To jest bezpośrednia odpowiedź na napięcie z rundy 2 sketcha 154: paragon potrzebuje pogrupować wiersze, a wysłane szuflady odrzuciły wypełnione karty. Ale linia dokłada głośności wszędzie tam, gdzie grupowanie już wynika z układu - w tabeli Marketów rysuje drugą linię tuż nad tą, którą ma nagłówek.",
+    s:"jak C + Expanded(Container(height:1, color: gw.borderSubtle))"},
+  "E":{t:"E · Zdaniowo, bez wersalików",
+    d:"Odrzucenie założenia: etykieta pisana zdaniowo, labelMd/w600, w textPrimary70 - język Swap Settings z 063-A. Warto to zobaczyć, zanim się odrzuci. Problem: przy 13/w600 zdaniowo etykieta przestaje się różnić od wiersza wartości obok niej, a apka mówi wersalikami w czterech miejscach naraz, w tym w przypadku identycznym z paragonem. To byłaby większa zmiana niż ta, którą robimy.",
+    s:"font-size 13 · w600 · letterSpacing 0 · bez toUpperCase · textPrimary70"}
+};
+const banner = document.getElementById('banner');
+function render(v){
+  document.body.dataset.v = v;
+  document.querySelectorAll('[data-var]').forEach(b=>
+    b.setAttribute('aria-selected', b.dataset.var===v ? 'true':'false'));
+  const o = V[v];
+  banner.innerHTML = '<h2>'+o.t.replace('★','<span class="star">★</span>')+'</h2><p>'+o.d+'</p><div class="spec">'+o.s+'</div>';
+  location.hash = v;
+}
+document.querySelectorAll('[data-var]').forEach(b=>
+  b.addEventListener('click',()=>render(b.dataset.var)));
+document.getElementById('measure').addEventListener('click',e=>{
+  const on = document.body.classList.toggle('measure');
+  e.currentTarget.setAttribute('aria-pressed', on);
+});
+document.getElementById('theme').addEventListener('click',e=>{
+  const on = document.body.classList.toggle('light');
+  e.currentTarget.setAttribute('aria-pressed', on);
+  e.currentTarget.textContent = on ? 'Ciemny' : 'Jasny';
+  document.getElementById('light-note').style.display = on ? 'block' : 'none';
+});
+render(location.hash.replace('#','') in V ? location.hash.replace('#','') : 'C');
+</script>
+</body>
+</html>

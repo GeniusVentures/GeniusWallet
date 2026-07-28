@@ -389,6 +389,6 @@ radiusMd, 3 vs 4 padding) and briefly read as two design languages on one screen
 the approved shape (sketch 006/008), so the filter bar follows it, never the reverse. The full
 history is written at `transactions_slim_view.dart:601-606`.
 
----
 
 *Convention analysis: 2026-07-15*
+*CTA weight section added 2026-07-27, removed 2026-07-28 at Jakub's request*

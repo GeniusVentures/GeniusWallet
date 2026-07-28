@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>163 · Swap Settings with the control track - three ways</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1340px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+
+  h1 { font:700 20px/28px var(--font); margin-bottom:var(--space-4); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:1020px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.note{ background:rgba(255,196,46,.16); color:var(--status-warning); }
+
+  .cap { display:flex; align-items:flex-start; gap:10px; margin:0 0 var(--space-8); }
+  .cap .k { font:700 11px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary); flex:none; width:112px; padding-top:1px; }
+  .cap .t { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:950px; }
+
+  .outer { display:flex; gap:var(--space-8); align-items:flex-start; }
+  .stage { position:relative; display:flex; justify-content:flex-end; border:1px solid var(--border-strong);
+    border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); min-height:600px; flex:none; width:620px; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.5); }
+  .panel { position:relative; width:420px; flex:none; background:var(--surface-elevated); display:flex; flex-direction:column;
+    border-top-left-radius:24px; border-bottom-left-radius:24px; overflow:hidden; }
+  .p-head { height:56px; flex:none; display:flex; align-items:center; padding:0 20px; position:relative; }
+  .p-head .t { font:600 18px/24px var(--font); margin-right:auto; }
+  .p-head .x { color:var(--text-secondary); font:400 20px/1 var(--font); }
+  .p-head::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:rgba(20,200,255,.12); }
+  .p-body { flex:1; padding:24px 20px 20px; }
+  .p-foot { flex:none; padding:20px; border-top:1px solid var(--border-subtle); }
+
+  /* 154-A section kicker (160-1) */
+  .sec-l { font:700 10px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-primary-54);
+    margin-bottom:var(--space-6); }
+  .hint { font:400 13px/19px var(--font); color:var(--text-secondary); margin-bottom:var(--space-8); }
+
+  /* CONTROL TRACK - CONVENTIONS.md recipe, verbatim:
+     surfaceSunken fill / borderSubtle hairline / radiusPill / 3px track padding / 2px chip gap */
+  .track { display:flex; padding:3px; gap:2px; background:var(--surface-sunken);
+    border:1px solid var(--border-subtle); border-radius:var(--radius-pill); }
+  .track .ch { flex:1; height:40px; display:grid; place-items:center; border-radius:var(--radius-pill);
+    font:600 15px/1 var(--font); color:var(--text-secondary); cursor:pointer; white-space:nowrap;
+    transition:background .15s ease, color .15s ease; }
+  .track .ch.on { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .track .ch:not(.on):hover { background:var(--surface-elevated); color:var(--text-primary); }
+  .track.empty { box-shadow:inset 0 0 0 1px rgba(255,196,46,.0); }
+
+  .field { height:44px; border-radius:var(--radius-sm); background:var(--surface-menu);
+    border:1px solid var(--border-subtle); display:flex; align-items:center; padding:0 12px;
+    font:400 16px/1 var(--font); color:var(--text-primary); transition:border-color .15s ease; }
+  .field.warn { border-color:var(--status-warning); }
+  .field.err  { border-color:var(--status-error); }
+  .field .sfx { margin-left:auto; color:var(--text-secondary); font-weight:600; }
+  .field .ph  { color:var(--text-primary-38); }
+  .msg { display:flex; gap:7px; align-items:flex-start; margin-top:var(--space-4); font:400 13px/19px var(--font); }
+  .msg.warn { color:var(--status-warning); } .msg.err { color:var(--status-error); }
+
+  /* C - inline row */
+  .inline { display:flex; gap:10px; align-items:center; }
+  .inline .track { flex:1; }
+  .inline .field { width:112px; flex:none; }
+
+  .btn { height:52px; border-radius:var(--radius-pill); display:grid; place-items:center;
+    background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; font:700 16px/1 var(--font); cursor:pointer; }
+  .btn.off { background:var(--surface-menu); color:var(--text-primary-38); cursor:not-allowed; }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); flex:1; }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; margin-bottom:var(--space-6); }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">163 · Swap Settings on the control track</span>
+  <button class="vt" data-v="0">0 · 160-1</button>
+  <button class="vt active" data-v="a">A · Track + field</button>
+  <button class="vt" data-v="b">B · Custom slot</button>
+  <button class="vt" data-v="c">C · Inline</button>
+  <span class="sep"></span>
+  <span class="lbl">State</span>
+  <button class="st on" data-s="preset">Preset 0.5%</button>
+  <button class="st" data-s="custom">Custom 2%</button>
+  <button class="st" data-s="warn">High 12%</button>
+  <button class="st" data-s="err">Invalid 0</button>
+  <span class="sep"></span>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap">
+  <h1>Swap Settings, with the presets on a control track</h1>
+  <p class="lede">
+    160-1 is picked - the form wrapped in one <b>154-A section kicker</b>. This round changes one thing:
+    <b>the three presets move into the recessed control track</b>, exactly as drawn in sketch 162.
+    The track recipe is fixed by <code>.planning/codebase/CONVENTIONS.md</code> and used verbatim here:
+    <code>surfaceSunken</code> fill, <code>borderSubtle</code> hairline, <code>radiusPill</code>, <b>3px</b>
+    track padding, <b>2px</b> chip gap. The chips keep the filled <code>brandCta</code> gradient.
+  </p>
+
+  <div class="cap"><span class="k">Deviation</span><span class="t">
+    <span class="tag note">stated</span> The dashboard's two tracks use <b>32px</b> chips. These are
+    <b>40px</b> - the recipe fixes the track's padding, gap, fill, border and radius, but <b>not</b> chip
+    height, and a drawer is a touch surface where 40 is the floor. Same recipe, taller chips. If that reads as
+    drift on the live screen, the fallback is 36.
+  </span></div>
+
+  <div class="cap"><span class="k">The new state</span><span class="t">
+    A track is a switch, and <b>a switch always has a position</b>. Today, typing a custom value leaves
+    <b>no preset selected</b> - which was fine when the presets were three loose boxes, but an empty well
+    reads as broken. <b>Cycle to "Custom 2%" and compare A with B.</b> That single state is the whole argument
+    between them.
+  </span></div>
+
+  <div class="outer">
+    <div class="stage">
+      <div class="scrim"></div>
+      <div class="panel">
+        <div class="p-head"><span class="t">Swap Settings</span><span class="x">&#10005;</span></div>
+        <div class="p-body" id="body"></div>
+        <div class="p-foot"><div class="btn" id="cta">Apply</div></div>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+
+<script>
+const S = {
+  preset: { val:'0.5', chip:'0.5', msg:null, lvl:null, apply:true },
+  custom: { val:'2',   chip:null,  msg:null, lvl:null, apply:true },
+  warn:   { val:'12',  chip:null,  msg:'High - you may lose value to front-running.', lvl:'warn', apply:true },
+  err:    { val:'0',   chip:null,  msg:'Must be above 0 - a 0% tolerance rejects every swap.', lvl:'err', apply:false }
+};
+
+const KICK = '<div class="sec-l">Slippage tolerance</div>'
+  + '<div class="hint">The most the price may move before your swap is cancelled.</div>';
+
+function chips(st, withCustom){
+  const on = c => st.chip === c ? ' on' : '';
+  let h = '<div class="track">'
+    + '<span class="ch' + on('0.1') + '">0.1%</span>'
+    + '<span class="ch' + on('0.5') + '">0.5%</span>'
+    + '<span class="ch' + on('1') + '">1%</span>';
+  if (withCustom) h += '<span class="ch' + (st.chip === null ? ' on' : '') + '">Custom</span>';
+  return h + '</div>';
+}
+
+function field(st, ph){
+  const cls = st.lvl ? ' ' + st.lvl : '';
+  return '<div class="field' + cls + '">' + (st.val ? st.val : '<span class="ph">' + (ph || 'Custom') + '</span>')
+    + ' <span class="sfx">%</span></div>';
+}
+
+function msg(st){
+  if (!st.msg) return '';
+  const g = st.lvl === 'err' ? '&#9888;' : '&#9432;';
+  return '<div class="msg ' + st.lvl + '"><span>' + g + '</span><span>' + st.msg + '</span></div>';
+}
+
+function body(v, st){
+  if (v === '0') {
+    return KICK
+      + '<div style="display:flex; gap:8px">'
+      + ['0.1','0.5','1'].map(c => '<div style="flex:1; height:40px; display:grid; place-items:center; border-radius:8px;'
+          + 'font:600 15px/1 var(--font);'
+          + (st.chip === c ? 'background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; border:1px solid transparent'
+                           : 'color:var(--text-primary); border:1px solid var(--border-subtle)')
+          + '">' + c + '%</div>').join('')
+      + '</div><div style="height:12px"></div>' + field(st) + msg(st);
+  }
+  if (v === 'a') return KICK + chips(st, false) + '<div style="height:12px"></div>' + field(st) + msg(st);
+  if (v === 'b') {
+    const showField = st.chip === null;
+    return KICK + chips(st, true)
+      + (showField ? '<div style="height:12px"></div>' + field(st) + msg(st) : '');
+  }
+  return KICK + '<div class="inline">' + chips(st, false) + field(st, '—') + '</div>' + msg(st);
+}
+
+const NOTES = {
+  '0': { h:'0 · 160-1, for comparison', b:`
+    <p>What was picked before this round: the kicker, then <b>three loose bordered boxes</b>. Each chip carries
+    its own 1px border, so the set reads as three objects that happen to be adjacent.</p>
+    <p>Switch to A and watch the borders disappear into one well.</p>` },
+  'a': { h:'A · Track + field <span class="tag rec">rec</span>', b:`
+    <p>162's proposal, literally. The three presets go into the well; the custom field stays below as the
+    escape hatch 063-A designed it to be.</p>
+    <ul class="spec">
+      <li>track exactly per <code>CONVENTIONS.md</code>; chips lose their individual borders</li>
+      <li>the field is unchanged - same validation, same message, same <code>GWFocusRing</code></li>
+      <li>reading order is intact: <b>presets first, field as the way out</b></li>
+    </ul>
+    <p><b>Cycle to "Custom 2%".</b> The well goes empty - no chip lit - while the field holds the live value.
+    A switch with no position. It is honest (no preset IS selected) but it is the one weak frame in A, and it
+    is exactly what B fixes.</p>` },
+  'b': { h:'B · Custom slot', b:`
+    <p>A fourth slot, <b>Custom</b>, joins the track. The well always has a position, and the field only
+    appears when Custom is the position.</p>
+    <ul class="spec">
+      <li>no empty-well state, ever - <b>cycle every state and the track always has one chip lit</b></li>
+      <li>at rest the panel is <b>one control</b> instead of two - shortest of the three</li>
+      <li>four 40px chips in 380px of track = ~93px each; <code>Custom</code> fits, a longer word would not</li>
+    </ul>
+    <p><b>The cost:</b> the field appears and disappears, so the panel changes height as you switch - and the
+    validation message arrives with it. Watch <b>High 12%</b> and <b>Invalid 0</b>: in B they are only ever
+    visible while Custom is active, which is correct, but the drawer jumps.</p>` },
+  'c': { h:'C · Inline', b:`
+    <p>Track and field on one row - presets on the left, the live value on the right, always visible.</p>
+    <ul class="spec">
+      <li>the current value is <b>always readable</b>, whichever way it was set</li>
+      <li>tightest vertical of the four</li>
+      <li>three chips in ~250px = ~82px each, still fine at 15px</li>
+    </ul>
+    <p><b>The cost:</b> the field stops being an escape hatch and becomes a peer of the presets, which
+    reverses 063-A's premise - <i>"someone opening this is choosing a posture, not tuning a number"</i>. It
+    also leaves the validation message hanging under a row rather than under the thing it is about.</p>` }
+};
+
+let v = 'a', s = 'preset';
+function paint(){
+  const st = S[s];
+  document.getElementById('body').innerHTML = body(v, st);
+  const cta = document.getElementById('cta');
+  cta.className = st.apply ? 'btn' : 'btn off';
+  document.querySelectorAll('#nav .vt').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  document.querySelectorAll('#nav .st[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === s));
+  const n = NOTES[v];
+  document.getElementById('note').innerHTML = '<h3>' + n.h + '</h3>' + n.b;
+}
+document.querySelectorAll('#nav .vt').forEach(b => b.onclick = () => { v = b.dataset.v; location.hash = v; paint(); });
+document.querySelectorAll('#nav .st[data-s]').forEach(b => b.onclick = () => { s = b.dataset.s; paint(); });
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+if (location.hash && NOTES[location.hash.slice(1)]) v = location.hash.slice(1);
+paint();
+</script>
+</body>
+</html>

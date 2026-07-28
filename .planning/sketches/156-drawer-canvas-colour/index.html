@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>156 · Drawer canvas colour - six schemes for the panel, the field and the scrim</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1300px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+
+  h1 { font:700 20px/28px var(--font); margin-bottom:var(--space-4); }
+  h2 { font:700 15px/22px var(--font); margin:var(--space-16) 0 var(--space-6); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-10); max-width:1010px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bug { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.wcag{ background:rgba(255,196,46,.16); color:var(--status-warning); }
+
+  .cap { display:flex; align-items:flex-start; gap:10px; margin:0 0 var(--space-8); }
+  .cap .k { font:700 11px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary); flex:none; width:120px; padding-top:1px; }
+  .cap .v { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:960px; }
+
+  /* ---------- the stage: real app behind, real 420 panel ---------- */
+  .stage { position:relative; display:flex; justify-content:flex-end; border:1px solid var(--border-strong);
+    border-radius:var(--radius-lg); overflow:hidden; background:#0B0D12; min-height:640px; }
+  .app { position:absolute; inset:0; padding:18px; }
+  .app .hdr { height:44px; border-radius:10px; background:#0C0E14; border:1px solid rgba(255,255,255,.12); margin-bottom:14px; }
+  .app .cols { display:flex; gap:12px; height:calc(100% - 58px); }
+  .app .cd { flex:1; border-radius:15px; background:#0C0E14; border:1px solid rgba(255,255,255,.12); padding:14px; }
+  .app .cd .g { height:12px; border-radius:6px; background:rgba(255,255,255,.07); margin-bottom:10px; }
+  .app .cd .g:nth-child(3n) { width:72%; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.54); transition:background .2s ease; }
+
+  .panel { position:relative; width:420px; flex:none; display:flex; flex-direction:column;
+    border-top-left-radius:24px; border-bottom-left-radius:24px; overflow:hidden; transition:background .2s ease; }
+  .p-head { height:56px; flex:none; display:flex; align-items:center; padding:0 20px; position:relative; }
+  .p-head .t { font:600 18px/24px var(--font); color:#fff; margin-right:auto; }
+  .p-head .x { width:36px; height:36px; display:grid; place-items:center; border:0; background:transparent;
+    color:#8A8F9D; cursor:pointer; border-radius:8px; }
+  .p-head .x svg { width:20px; height:20px; }
+  .p-head::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:rgba(20,200,255,.12); }
+  .p-body { flex:1; padding:24px 20px 20px; }
+  .p-foot { flex:none; padding:20px; border-top:1px solid rgba(255,255,255,.12); }
+
+  .lab { font:600 13px/18px var(--font); color:#fff; }
+  .hint { font:400 13px/18px var(--font); color:#8A8F9D; margin-top:4px; }
+  .presets { display:flex; gap:8px; margin-top:12px; }
+  .pc { flex:1; height:40px; display:grid; place-items:center; border-radius:8px; font:600 16px/1 var(--font);
+    color:#fff; border:1px solid rgba(255,255,255,.12); cursor:pointer; transition:all .15s ease; }
+  .pc:hover { background:rgba(20,200,255,.08); border-color:rgba(20,200,255,.32); }
+  .pc.sel { background:linear-gradient(135deg,#0AD89C,#0AAEE6); border-color:transparent; color:#000B18; }
+  .field { margin-top:12px; height:44px; border-radius:8px; display:flex; align-items:center; padding:0 12px;
+    font:400 16px/1 var(--font); color:#fff; transition:all .2s ease; }
+  .field .sfx { margin-left:auto; color:#8A8F9D; }
+  .cta { height:52px; border-radius:var(--radius-pill); display:grid; place-items:center;
+    background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; font:700 16px/1 var(--font); cursor:pointer; }
+
+  /* the six schemes are pure custom-property swaps on .stage */
+  .stage { --pnl:#171A21; --fld:#171A21; --fld-edge:rgba(255,255,255,.12); --pnl-sheen:none;
+           --pnl-edge:transparent; --scrim:rgba(0,0,0,.54); }
+  .stage[data-s="a"] { --pnl:#0C0E14; --fld:#171A21; --fld-edge:rgba(255,255,255,.30); }
+  .stage[data-s="b"] { --pnl:#0B0D12; --fld:#171A21; --fld-edge:rgba(255,255,255,.30); --pnl-edge:rgba(255,255,255,.12); }
+  .stage[data-s="c"] { --pnl:#171A21; --fld:#06080C; --fld-edge:rgba(255,255,255,.30); }
+  .stage[data-s="d"] { --pnl:#0C0E14; --fld:#171A21; --fld-edge:rgba(255,255,255,.30);
+                       --pnl-sheen:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0) 180px); }
+  .stage[data-s="e"] { --scrim:rgba(0,0,0,.72); --pnl-edge:rgba(255,255,255,.12); }
+  .panel { background:var(--pnl); background-image:var(--pnl-sheen); border-left:1px solid var(--pnl-edge); }
+  .field { background:var(--fld); border:1px solid var(--fld-edge); }
+  .scrim { background:var(--scrim); }
+  .stage.nodim .scrim { background:transparent; }
+
+  /* swatch strip */
+  .sw { display:flex; gap:0; border:1px solid var(--border-subtle); border-radius:var(--radius-md); overflow:hidden; margin:var(--space-8) 0 var(--space-10); }
+  .sw div { flex:1; height:74px; display:flex; flex-direction:column; justify-content:flex-end; padding:8px 10px;
+    font:600 10px/14px var(--font-mono); color:rgba(255,255,255,.7); }
+  .sw div span { font:700 11px/15px var(--font); color:#fff; }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); width:440px; flex:none; }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; margin-bottom:var(--space-6); }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+  .outer { display:flex; gap:var(--space-8); align-items:flex-start; }
+  table { border-collapse:collapse; width:100%; margin:var(--space-6) 0; }
+  th, td { text-align:left; font:400 12px/18px var(--font); color:var(--text-secondary); padding:6px 10px;
+    border-bottom:1px solid var(--border-subtle); }
+  th { font-weight:700; color:var(--text-primary); font-size:11px; text-transform:uppercase; letter-spacing:.4px; }
+  td b { color:var(--text-primary); }
+  td.ok { color:var(--status-success); font-weight:600; }
+  td.no { color:var(--status-error); font-weight:600; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">156 · Drawer canvas colour</span>
+  <button class="vt active" data-v="0">0 · Today</button>
+  <button class="vt" data-v="a">A · Card canvas</button>
+  <button class="vt" data-v="b">B · Page canvas</button>
+  <button class="vt" data-v="c">C · Sunken field</button>
+  <button class="vt" data-v="d">D · Sheen card</button>
+  <button class="vt" data-v="e">E · Scrim first</button>
+  <span class="sep"></span>
+  <span class="lbl">Behind</span>
+  <button class="st on" id="dim">Dimmed</button>
+</div>
+
+<div class="wrap">
+  <h1>What colour is a drawer?</h1>
+  <p class="lede">
+    Jakub, 2026-07-27: <b>"Ten drawer jest ok, ale chodzi mi o kolory... poprobuj cos, wydaje mi sie ze
+    ciemniejsze trzeba, bardziej kompatybilne z reszta"</b>. The shape of this drawer was settled by sketch
+    <b>063-A</b> and shipped; nothing structural moves here. Six colour schemes for the same panel - switch
+    them in the toolbar and watch the app behind at the same time.
+  </p>
+
+  <div class="cap"><span class="k">The palette</span><span class="v">
+    Four dark surface tokens exist, and the drawer uses the <b>lightest one</b>.
+  </span></div>
+
+  <div class="sw">
+    <div style="background:#06080C"><span>surfaceSunken</span>#06080C</div>
+    <div style="background:#0B0D12"><span>surfaceBase &middot; the page</span>#0B0D12</div>
+    <div style="background:#0C0E14"><span>surfaceElevated &middot; every card</span>#0C0E14</div>
+    <div style="background:#171A21"><span>surfaceMenu &middot; the drawer</span>#171A21</div>
+  </div>
+
+  <div class="cap"><span class="k">Finding 1</span><span class="v">
+    <span class="tag bug">measured</span>
+    <code>responsive_drawer.dart:139</code> paints the whole panel <code>gw.surfaceMenu</code>
+    (<b>#171A21</b>). Every card in the app is <code>surfaceElevated</code> <b>#0C0E14</b> and the page is
+    <code>surfaceBase</code> <b>#0B0D12</b>. So the drawer is <b>roughly two full steps lighter than
+    anything it opens over</b>, and it is the only large surface in the app at that value. That is the
+    "niekompatybilne z reszta", stated in hex.
+  </span></div>
+
+  <div class="cap"><span class="k">Finding 2</span><span class="v">
+    <span class="tag bug">1.00:1</span>
+    The custom-value field is painted <b>the same colour as the panel it sits on</b>:
+    <code>swap_settings_drawer.dart:193</code> passes <code>background: gw.surfaceMenu</code> to
+    <code>GWFocusRing</code>, and the panel is already <code>surfaceMenu</code>. The field's fill contrast
+    against its own canvas is exactly <b>1.00:1</b> - it is not a box, it is a hairline. On the screenshot the
+    input reads as an outline floating in the panel, and that is literally what it is.
+  </span></div>
+
+  <div class="cap"><span class="k">Finding 3</span><span class="v">
+    <span class="tag wcag">1.4.11</span>
+    That hairline is <code>borderSubtle</code> = <b>white at 12%</b>, which composites to <b>#33363C</b> over
+    #171A21 and measures <b>1.43:1</b> against it. When a hairline is the <i>only</i> thing identifying an
+    input, WCAG 1.4.11 wants <b>3:1</b>. Working backwards on this canvas: <b>white at 30%</b> is the first
+    step that clears it (3.0:1 against #0C0E14). Every scheme below except <b>0</b> uses 30% on the field
+    only - card hairlines stay at 12%, because those are decorative.
+  </span></div>
+
+  <div class="cap"><span class="k">Not a fix</span><span class="v">
+    Two dark fills can never carry an input boundary on their own: <b>#171A21 on #0C0E14 is 1.11:1</b> and
+    #06080C on #0C0E14 is 1.04:1. On a dark canvas the <b>border</b> does the work and the fill only sets the
+    mood. That is why the recommendation below is a pair - a darker panel <i>and</i> a stronger field edge -
+    not either alone.
+  </span></div>
+
+  <div class="outer">
+    <div class="stage" id="stage" data-s="0">
+      <div class="app">
+        <div class="hdr"></div>
+        <div class="cols">
+          <div class="cd"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div>
+          <div class="cd"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div>
+        </div>
+      </div>
+      <div class="scrim"></div>
+      <div class="panel">
+        <div class="p-head">
+          <span class="t">Swap Settings</span>
+          <button class="x"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div class="p-body">
+          <div class="lab">Slippage tolerance</div>
+          <div class="hint">The most the price may move before your swap is cancelled.</div>
+          <div class="presets">
+            <div class="pc">0.1%</div>
+            <div class="pc sel">0.5%</div>
+            <div class="pc">1%</div>
+          </div>
+          <div class="field">0.5 <span class="sfx">%</span></div>
+        </div>
+        <div class="p-foot"><div class="cta">Apply</div></div>
+      </div>
+    </div>
+
+    <div class="note" id="note"></div>
+  </div>
+
+  <h2>The numbers, once</h2>
+  <table>
+    <tr><th>Pairing</th><th>Today</th><th>A / D</th><th>B</th><th>C</th><th>Needs</th></tr>
+    <tr><td>Panel vs the page behind it</td><td><b>#171A21</b> on #0B0D12</td><td>#0C0E14</td><td>#0B0D12</td><td>#171A21</td><td>mood only</td></tr>
+    <tr><td>White text on the panel</td><td class="ok">17.4:1</td><td class="ok">19.3:1</td><td class="ok">19.4:1</td><td class="ok">17.4:1</td><td>4.5:1</td></tr>
+    <tr><td><code>textSecondary</code> on the panel</td><td class="ok">5.4:1</td><td class="ok">6.0:1</td><td class="ok">6.0:1</td><td class="ok">5.4:1</td><td>4.5:1</td></tr>
+    <tr><td>Field fill vs panel fill</td><td class="no">1.00:1</td><td>1.11:1</td><td>1.11:1</td><td>1.04:1</td><td>-</td></tr>
+    <tr><td>Field edge vs panel (12% white)</td><td class="no">1.43:1</td><td class="no">1.58:1</td><td class="no">1.59:1</td><td class="no">1.43:1</td><td class="ok">3:1</td></tr>
+    <tr><td>Field edge vs panel (30% white)</td><td>-</td><td class="ok">3.0:1</td><td class="ok">3.0:1</td><td class="ok">2.8:1</td><td class="ok">3:1</td></tr>
+  </table>
+  <p class="lede" style="margin-top:0">
+    Contrast is computed on the WCAG relative-luminance formula against the composited value of each
+    translucent overlay. <b>C is the one scheme where a 30% edge still misses</b> (2.8:1) - because its panel
+    stays the light #171A21, so there is less headroom to be lighter than.
+  </p>
+</div>
+
+<script>
+const NOTES = {
+  '0': { h:'0 · Today (reference)', b:`
+    <p>What ships. <code>surfaceMenu</code> panel, <code>surfaceMenu</code> field, 12% hairlines, barrier at
+    <code>black54</code>.</p>
+    <ul class="spec">
+      <li>panel <b>#171A21</b> - the lightest dark surface in the token set</li>
+      <li>field <b>#171A21</b> - identical, so the field has no body</li>
+      <li>the panel is the brightest object on screen once the barrier dims the app</li>
+    </ul>
+    <p>Turn <b>Dimmed</b> off to see the honest comparison: the drawer against the app at full brightness,
+    with no scrim flattering it.</p>` },
+  'a': { h:'A · Card canvas <span class="tag rec">rec</span>', b:`
+    <p>The drawer becomes <b>a card</b>. Panel drops to <code>surfaceElevated #0C0E14</code>, which is the
+    exact colour of every panel on the dashboard, and the field steps <i>up</i> to
+    <code>surfaceMenu #171A21</code> - so for the first time the field is a lighter object sitting on a
+    darker surface, which is the direction the rest of the app already reads in.</p>
+    <ul class="spec">
+      <li>panel <b>#0C0E14</b>, field <b>#171A21</b>, field edge <b>white 30%</b></li>
+      <li>answers "ciemniejsze" and "kompatybilne z reszta" with the same move</li>
+      <li>white text goes 17.4 to <b>19.3:1</b>, <code>textSecondary</code> 5.4 to <b>6.0:1</b></li>
+      <li><b>one line in <code>responsive_drawer.dart</code></b> - and it re-skins all ~19 drawers at once</li>
+    </ul>
+    <p><b>The catch, and it is the real one:</b> that single line changes every drawer in the app, and the
+    ~17 that nobody has walked since the header change are the same ~17 here. This has to ride the drawer
+    walk that is already the next session's first task, not be shipped blind.</p>` },
+  'b': { h:'B · Page canvas', b:`
+    <p>Deepest. The panel takes <code>surfaceBase #0B0D12</code> - the page colour - so the drawer reads as a
+    slice of the app sliding in rather than a sheet laid on top. Needs a left hairline to exist at all,
+    because otherwise its edge against the dimmed page is nearly invisible.</p>
+    <ul class="spec">
+      <li>panel <b>#0B0D12</b> + a 12% left border</li>
+      <li>maximum text contrast of the six</li>
+      <li>the cards <i>inside</i> the drawer can then use <code>surfaceElevated</code> and finally look like cards</li>
+    </ul>
+    <p><b>Cost:</b> a drawer that is the same colour as the page has no depth of its own; it depends entirely
+    on the scrim and the left hairline. Turn <b>Dimmed</b> off and the panel and the page merge.</p>` },
+  'c': { h:'C · Sunken field', b:`
+    <p>The minimum intervention: <b>leave the panel alone</b> and fix only Finding 2 - the field goes to
+    <code>surfaceSunken #06080C</code>, a well cut into the panel, with a 30% edge.</p>
+    <ul class="spec">
+      <li>panel unchanged <b>#171A21</b>, field <b>#06080C</b></li>
+      <li>touches <b>one drawer</b>, not all nineteen - no walk needed</li>
+      <li>the 30% edge still lands at <b>2.8:1</b>, just under, because the panel stays light</li>
+    </ul>
+    <p>This is the safe answer if the drawer walk has to happen first. It does <b>not</b> answer "ciemniejsze
+    i bardziej kompatybilne" - the panel is still the brightest thing on screen.</p>` },
+  'd': { h:'D · Sheen card', b:`
+    <p>A plus the app's own top-lit gradient (<code>GWDecorations.surfaceSheen</code>, the treatment the
+    mobile tab bar and the elevated cards already use). The panel gets a light source instead of a flat fill.</p>
+    <ul class="spec">
+      <li>panel <b>#0C0E14</b> + white 5% falling off over the top 180px</li>
+      <li>the header band separates itself without needing a second colour</li>
+      <li>same one-line reach as A, plus a decoration</li>
+    </ul>
+    <p><b>Watch:</b> the sheen is a vertical gradient on a <b>full-height</b> 420px panel. On the tab bar it
+    falls off over 60px; here it has to fall off over ~180px or it turns into a visible band. Judge it with
+    the body scrolled, not empty.</p>` },
+  'e': { h:'E · Scrim first', b:`
+    <p>The minority report: <b>the panel is not too light, the app behind it is not dark enough.</b> Barrier
+    goes from <code>black54</code> to <code>black72</code> and the panel gets a left hairline. Nothing about
+    the drawer changes.</p>
+    <ul class="spec">
+      <li><code>barrierColor: Colors.black54</code> to <code>black72</code> - one line, <code>responsive_drawer.dart:43</code></li>
+      <li>zero risk to the ~19 unwalked drawers</li>
+      <li>makes the drawer feel more modal, not more integrated</li>
+    </ul>
+    <p>It is a real answer to "the drawer stands out too much" and it is worth 20 seconds of looking at. It is
+    not an answer to "bardziej kompatybilne z reszta" - it wins the argument by hiding the rest.</p>` }
+};
+
+let v = '0';
+function show(){
+  document.getElementById('stage').dataset.s = v;
+  document.querySelectorAll('#nav .vt').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  const n = NOTES[v];
+  document.getElementById('note').innerHTML = '<h3>' + n.h + '</h3>' + n.b;
+}
+document.querySelectorAll('#nav .vt').forEach(b => b.onclick = () => { v = b.dataset.v; location.hash = v; show(); });
+document.getElementById('dim').onclick = e => {
+  document.getElementById('stage').classList.toggle('nodim');
+  e.target.classList.toggle('on');
+  e.target.textContent = e.target.classList.contains('on') ? 'Dimmed' : 'Full';
+};
+if (location.hash && NOTES[location.hash.slice(1)]) v = location.hash.slice(1);
+show();
+</script>
+</body>
+</html>

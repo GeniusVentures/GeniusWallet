@@ -54,6 +54,16 @@ Carried forward from the Phase 12 summaries — these are measured, not guessed:
    from ink to white between appearances — which is why the glyph colour is computed rather than
    tabled. Nobody has looked at whether that flip reads well.
 
+7. **`GWDetailGrid`'s key text is 4.23:1 on the light well, under the 4.5 AA bar.** Measured
+   2026-07-28 while implementing sketch 070-A. `textSecondary` light (`#5A606E`) on
+   `surfaceSunken` light (`#CFD4DB`) = **4.23:1**; the same pairing in dark is 6.20:1. **This is not
+   a coin-page finding** - it is the component's, so it applies at every consumer: the transaction
+   receipt (shipped the same day), the coin page's Info card and its Convert total. The value text
+   is fine (12.47:1); it is only the label column. Two candidate fixes, neither costed: darken the
+   light `textSecondary`, or lighten `_surfaceSunkenLight` toward `#E4E8ED`. The second is the
+   bigger blast radius - `surfaceSunken` is also the control-track fill, the PIN screen and every
+   search well.
+
 ## What "the light pass" should be
 
 One walk, whole app, light mode only, with this list in hand — not a per-phase gate. Until then, a

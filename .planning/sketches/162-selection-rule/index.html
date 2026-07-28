@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>162 · Three marks, one rule - what decides how "selected" looks</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1400px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+
+  h1 { font:700 21px/29px var(--font); margin-bottom:var(--space-4); }
+  h2 { font:700 15px/22px var(--font); margin:var(--space-16) 0 var(--space-8); padding-top:var(--space-8);
+    border-top:1px solid var(--border-subtle); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-10); max-width:1040px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ship { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.chg  { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .tag.open { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.open { color:var(--brand-primary); }
+
+  /* the rule */
+  .rule { display:flex; gap:12px; margin:0 0 var(--space-12); }
+  .rc { flex:1; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); background:var(--surface-elevated);
+    padding:16px 18px; position:relative; overflow:hidden; }
+  .rc::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background:linear-gradient(180deg,#0AD89C,#0AAEE6); }
+  .rc .q { font:700 11px/16px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); }
+  .rc .a { font:700 17px/24px var(--font); color:var(--text-primary); margin:5px 0 8px; }
+  .rc .d { font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .rc .d b { color:var(--text-primary); }
+  .rc .demo { margin-top:14px; padding-top:14px; border-top:1px solid var(--border-subtle); }
+
+  table { border-collapse:collapse; width:100%; margin:var(--space-6) 0 var(--space-10); }
+  th,td { text-align:left; font:400 12px/19px var(--font); color:var(--text-secondary); padding:8px 10px;
+    border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  th { font-weight:700; color:var(--text-primary); font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; }
+  td b { color:var(--text-primary); }
+  td:first-child { white-space:nowrap; }
+
+  /* ---------- shared marks ---------- */
+  .bar { position:absolute; left:0; right:0; bottom:0; height:3px; border-radius:3px 3px 0 0;
+    background:linear-gradient(135deg,#0AD89C,#0AAEE6); box-shadow:0 0 10px rgba(10,174,230,.5);
+    transition:opacity .2s ease; }
+
+  /* free-standing: nav tabs / chooser / rail */
+  .tabs { display:flex; gap:22px; height:38px; align-items:flex-start; }
+  .tb { position:relative; font:600 13px/18px var(--font); color:var(--text-secondary); padding-bottom:9px; cursor:pointer; }
+  .tb.on { color:var(--text-primary); font-weight:700; }
+  .segs { display:flex; gap:8px; }
+  .sg { position:relative; flex:1; height:38px; display:grid; place-items:center; border-radius:8px;
+    border:1px solid var(--border-subtle); font:600 13px/1 var(--font); color:var(--text-secondary); cursor:pointer; }
+  .sg.on { color:var(--text-primary); font-weight:700; }
+  .rail .fr { position:relative; display:flex; padding:7px 4px 9px; font:500 13px/19px var(--font);
+    color:var(--text-secondary); cursor:pointer; }
+  .rail .fr.on { color:var(--text-primary); font-weight:700; }
+  .rail .fr .c { margin-left:auto; font:600 12px/19px var(--font-mono); color:var(--text-primary-54); }
+
+  /* control track: recessed well + filled chip (CONVENTIONS.md) */
+  .track { display:inline-flex; padding:3px; gap:2px; background:var(--surface-sunken);
+    border:1px solid var(--border-subtle); border-radius:var(--radius-pill); }
+  .track.wide { display:flex; }
+  .track .ch { flex:1; height:32px; padding:0 14px; display:grid; place-items:center; border-radius:var(--radius-pill);
+    font:600 13px/1 var(--font); color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+  .track .ch.on { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .track .ch:not(.on):hover { background:var(--surface-elevated); color:var(--text-primary); }
+  .track.tall .ch { height:40px; font-size:15px; }
+
+  /* list row: tint + check */
+  .card { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b); overflow:hidden; }
+  .trow { display:flex; align-items:center; gap:12px; padding:10px 16px; border-top:1px solid var(--border-subtle);
+    cursor:pointer; transition:background .12s ease; }
+  .trow:first-child { border-top:0; }
+  .trow:hover { background:rgba(20,200,255,.08); }
+  .trow.on { background:linear-gradient(90deg, rgba(10,216,156,.18), rgba(10,174,230,.18)); }
+  .trow .av { width:30px; height:30px; border-radius:50%; flex:none; display:grid; place-items:center;
+    font:700 11px/1 var(--font); color:#fff; }
+  .trow .n { font:600 13px/19px var(--font); color:var(--text-primary); }
+  .trow .s { font:400 11px/16px var(--font); color:var(--text-secondary); }
+  .trow .bal { margin-left:auto; font:500 13px/19px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .trow .chk { width:18px; height:18px; flex:none; opacity:0; }
+  .trow.on .chk { opacity:1; }
+  .trow .chk svg { width:18px; height:18px; display:block; }
+
+  /* board */
+  .board { display:flex; gap:12px; flex-wrap:wrap; }
+  .bc { flex:1; min-width:305px; border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+    background:var(--surface-elevated); padding:13px 15px; }
+  .bc h4 { font:700 10px/14px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-primary-54);
+    margin-bottom:10px; display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .bc .why { font:400 11px/17px var(--font); color:var(--text-secondary); margin-top:10px; }
+  .bc .why b { color:var(--text-primary); }
+  .bc.chg { border-color:rgba(255,196,46,.5); }
+
+  /* today-vs-rule toggle */
+  [data-mode="today"] .r-only { display:none; }
+  [data-mode="rule"]  .t-only { display:none; }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); margin-top:var(--space-8); }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">162 · Three marks, one rule</span>
+  <span class="lbl">Show</span>
+  <button class="st on" data-m="rule">Under the rule</button>
+  <button class="st" data-m="today">As it ships today</button>
+  <span class="sep"></span>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap" id="root" data-mode="rule">
+  <h1>What decides how "selected" looks</h1>
+  <p class="lede">
+    The walkthrough was right: <b>the nav bar and the filter rail read fine with an underline, and the drawer
+    reads better with a fill.</b> That is not an inconsistency to iron out - it is a rule the app has already
+    been following without writing it down. <b>The container decides the mark.</b> Three containers exist, so
+    three marks exist, and each one is already documented or shipped.
+  </p>
+
+  <div class="rule">
+    <div class="rc">
+      <div class="q">If the options sit</div>
+      <div class="a">on their own</div>
+      <div class="d">Free-standing labels with no container around the set. The mark <b>has</b> to be the mark,
+      because nothing else groups them.<br><br><b>&rarr; 3px gradient underline</b></div>
+      <div class="demo">
+        <div class="tabs"><span class="tb">Dashboard</span><span class="tb on">Transactions<span class="bar"></span></span><span class="tb">Swap</span></div>
+      </div>
+    </div>
+    <div class="rc">
+      <div class="q">If the options sit</div>
+      <div class="a">in a track</div>
+      <div class="d">A recessed pill-shaped well holding small chips. The well already groups them, so the mark
+      is a <b>switch position</b> inside it.<br><br><b>&rarr; filled brandCta chip</b></div>
+      <div class="demo">
+        <div class="track"><span class="ch">1H</span><span class="ch on">1D</span><span class="ch">1W</span><span class="ch">1M</span><span class="ch">1Y</span></div>
+      </div>
+    </div>
+    <div class="rc">
+      <div class="q">If the options sit</div>
+      <div class="a">as rows in a list</div>
+      <div class="d">Wide rows carrying an icon, a name and a value. A solid fill would flood them; a low-alpha
+      tint is the fill at row scale.<br><br><b>&rarr; gradient tint + gradient check</b></div>
+      <div class="demo">
+        <div class="card">
+          <div class="trow on"><span class="av" style="background:#627EEA">E</span>
+            <span><span class="n">Ethereum</span><br><span class="s">ETH</span></span>
+            <span class="bal">1.35</span>
+            <span class="chk"><svg viewBox="0 0 24 24" fill="none"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0AD89C"/><stop offset="100%" stop-color="#0AAEE6"/></linearGradient></defs><circle cx="12" cy="12" r="10" fill="url(#g1)"/><path d="M8 12.5l2.5 2.5 5-5" stroke="#000B18" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <div class="trow"><span class="av" style="background:#2775CA">U</span>
+            <span><span class="n">USD Coin</span><br><span class="s">USDC</span></span>
+            <span class="bal">250.0</span><span class="chk"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="lede" style="margin-bottom:var(--space-6)">
+    <b>The rule is not invented - it is read back out of the code.</b> All three marks already exist and two
+    of the three are written down: the underline is a 25-line <code>AnimatedContainer</code> duplicated
+    verbatim in <code>responsive_overlay.dart:386</code> and <code>submit_logs_screen.dart:713</code>, and the
+    track is a fixed recipe in <code>.planning/codebase/CONVENTIONS.md</code> - <i>"Control track (segmented
+    control / filter bar) ... the recipe is fixed - partial adoption reads as a different design language on
+    the same screen"</i>, with a <b>pairing rule</b> binding the timeframe segment and the transactions filter
+    bar to change together.
+  </p>
+
+  <h2>Every selection surface in the app, under the rule</h2>
+  <div class="board">
+
+    <div class="bc">
+      <h4>Nav tabs <span class="tag ship">no change</span></h4>
+      <div class="tabs"><span class="tb">Dashboard</span><span class="tb on">Transactions<span class="bar"></span></span><span class="tb">Swap</span><span class="tb">Markets</span></div>
+      <div class="why">Free-standing &rarr; <b>underline</b>. Ships (002-B).</div>
+    </div>
+
+    <div class="bc">
+      <h4>Feedback type <span class="tag ship">no change</span></h4>
+      <div class="segs"><span class="sg">Bug</span><span class="sg on">Idea<span class="bar"></span></span><span class="sg">Question</span></div>
+      <div class="why">Three bordered segments, no track &rarr; <b>underline</b>. Ships (064-B, your pick 27 Jul).</div>
+    </div>
+
+    <div class="bc">
+      <h4>Transactions filter rail <span class="tag open">unbuilt</span></h4>
+      <div class="rail">
+        <div class="fr">All<span class="c">12</span></div>
+        <div class="fr on">Sent<span class="c">3</span><span class="bar"></span></div>
+        <div class="fr">Received<span class="c">1</span></div>
+      </div>
+      <div class="why">A column of free-standing labels, no dividers, no card &rarr; <b>underline</b>. Confirms 022-B2.</div>
+    </div>
+
+    <div class="bc">
+      <h4>Markets timeframe <span class="tag ship">no change</span></h4>
+      <div class="track"><span class="ch">1H</span><span class="ch on">1D</span><span class="ch">1W</span><span class="ch">1M</span><span class="ch">1Y</span></div>
+      <div class="why">Recessed track &rarr; <b>filled chip</b>. Ships, and CONVENTIONS.md fixes the recipe.</div>
+    </div>
+
+    <div class="bc">
+      <h4>Transactions filter bar (panel) <span class="tag ship">no change</span></h4>
+      <div class="track"><span class="ch">All</span><span class="ch on">Sent</span><span class="ch">Recv</span><span class="ch">Mint</span></div>
+      <div class="why">Recessed track &rarr; <b>filled chip</b>. Bound to the timeframe segment by the pairing rule.</div>
+    </div>
+
+    <div class="bc chg">
+      <h4>Slippage presets <span class="tag chg">the one change</span></h4>
+      <div class="r-only"><div class="track wide tall"><span class="ch">0.1%</span><span class="ch on">0.5%</span><span class="ch">1%</span></div></div>
+      <div class="t-only"><div class="segs" style="gap:8px">
+        <span class="sg" style="height:40px; font-size:15px; color:var(--text-primary)">0.1%</span>
+        <span class="sg" style="height:40px; font-size:15px; background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; border-color:transparent">0.5%</span>
+        <span class="sg" style="height:40px; font-size:15px; color:var(--text-primary)">1%</span></div></div>
+      <div class="why">Already a filled chip - <b>but with no track under it</b>. Under the rule it gains the
+      recessed well and becomes the third adopter of a recipe that says partial adoption is the failure mode.
+      <b>The fill you like stays exactly as it is.</b> Toggle "As it ships today" to compare.</div>
+    </div>
+
+    <div class="bc">
+      <h4>Select Token / Network / Account <span class="tag ship">no change</span></h4>
+      <div class="card">
+        <div class="trow on"><span class="av" style="background:#627EEA">E</span>
+          <span><span class="n">Ethereum</span><br><span class="s">ETH</span></span><span class="bal">1.35</span>
+          <span class="chk"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="url(#g1)"/><path d="M8 12.5l2.5 2.5 5-5" stroke="#000B18" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        <div class="trow"><span class="av" style="background:#26A17B">T</span>
+          <span><span class="n">Tether USD</span><br><span class="s">USDT</span></span><span class="chk"></span></div>
+      </div>
+      <div class="why">Rows in a card &rarr; <b>tint + check</b>. Ships (032-A1), and the 160-T1 card you picked
+      stays exactly as drawn.</div>
+    </div>
+
+    <div class="bc">
+      <h4>Web tab strip <span class="tag open">unbuilt</span></h4>
+      <div class="tabs" style="gap:6px">
+        <span class="tb" style="padding:6px 12px 11px; border-radius:8px 8px 0 0; background:var(--surface-menu)">gnus.ai</span>
+        <span class="tb on" style="padding:6px 12px 11px; border-radius:8px 8px 0 0; background:var(--surface-elevated)">duckduckgo.com<span class="bar"></span></span>
+      </div>
+      <div class="why">Free-standing tabs &rarr; <b>underline</b>. Confirms 036-A, which already specified it.</div>
+    </div>
+  </div>
+
+  <h2>What this settles</h2>
+  <table>
+    <tr><th>Question</th><th>Answer</th><th>Was it open?</th></tr>
+    <tr><td>Vertical bar in the token list?</td><td><b>No - and no bar at all.</b> A list row takes the tint, so the mixed-orientation worry disappears entirely</td><td>asked today</td></tr>
+    <tr><td>Underline in the drawers?</td><td><b>No.</b> Presets are a track, list rows are rows. Neither container takes a bar</td><td>asked today</td></tr>
+    <tr><td>Does 064-B roll out to the transactions filter chips?</td><td><b>No</b> - they are a track, they keep the chip</td><td><code>HANDOFF.json</code>, open</td></tr>
+    <tr><td>Does it roll out to the markets timeframe tabs?</td><td><b>No</b> - same reason</td><td><code>HANDOFF.json</code>, open</td></tr>
+    <tr><td>Does it roll out to the web tab strip?</td><td><b>Yes</b> - free-standing tabs. 036-A already said so</td><td><code>HANDOFF.json</code>, open</td></tr>
+    <tr><td>Does it roll out to list pickers?</td><td><b>No</b> - confirms the note already in <code>HANDOFF.json</code></td><td>settled, now with a reason</td></tr>
+    <tr><td>Is 022-B2 (underline on the filter rail) still right?</td><td><b>Yes</b> - free-standing labels, no card, no dividers</td><td>chosen, unbuilt</td></tr>
+    <tr><td>Sketch 161's S2 leading bar?</td><td><b>Withdrawn.</b> It solved a collision that only exists if a list row takes a bar, which the rule says it never does</td><td>my own rec, corrected</td></tr>
+  </table>
+
+  <div class="note">
+    <h3>Why three marks is the right number, not a compromise</h3>
+    <p>
+      The instinct behind "one component everywhere" is sound - it is what stops an app looking like four
+      designers. But the three marks are not three styles for one job. <b>They are three answers to three
+      different questions the user is being asked.</b>
+    </p>
+    <ul class="spec">
+      <li><b>Underline</b> answers <i>"which one am I looking at"</i>. It sits on the edge of the item because
+      the item continues to exist either way - a tab is still a tab when it is not active.</li>
+      <li><b>Filled chip</b> answers <i>"which position is the switch in"</i>. The track is a physical
+      metaphor; the fill is the thing that moved.</li>
+      <li><b>Tint + check</b> answers <i>"which one did I pick out of many"</i>. It marks the whole object,
+      and it is the only one of the three that has to survive a list of thirty.</li>
+    </ul>
+    <p>
+      Each is already built. <b>Nothing new gets designed and one thing gets deleted</b> - the slippage
+      presets stop being a fourth variant and become the third user of a documented recipe.
+    </p>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('#nav .st[data-m]').forEach(b => b.onclick = () => {
+  document.getElementById('root').dataset.mode = b.dataset.m;
+  document.querySelectorAll('#nav .st[data-m]').forEach(x => x.classList.toggle('on', x === b));
+});
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+</script>
+</body>
+</html>

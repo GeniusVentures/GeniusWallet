@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-v="A" data-d="net">
+<head>
+<meta charset="utf-8">
+<title>068 · List-picker drawers</title>
+<style>
+:root{
+  --base:#0B0D12; --elev:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink38:rgba(255,255,255,.38);
+  --sec:#8A8F9D;
+  --border:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --borderControl:rgba(255,255,255,.36);
+  --brand:#14C8FF; --brandStrong:#0AAEE6; --mint:#0AD89C;
+  --hoverFill:rgba(20,200,255,.12); --hoverEdge:rgba(20,200,255,.24);
+  --cta:linear-gradient(90deg,#0AD89C 0%,#0AAEE6 100%);
+  --tint:linear-gradient(90deg,rgba(10,216,156,.18) 0%,rgba(10,174,230,.18) 100%);
+  --rSm:8px; --rMd:12px; --rLg:15px; --r3xl:24px;
+  --ok:#0AD89C; --bad:#FF4D4D; --warn:#FFC42E;
+}
+html[data-theme="light"]{
+  --base:#DCE0E6; --elev:#FFFFFF; --menu:#EFF2F6; --sunken:#DCE0E6;
+  --ink:#10131A; --ink70:rgba(16,19,26,.70); --ink38:rgba(16,19,26,.38);
+  --sec:#5A606E;
+  --border:rgba(16,19,26,.12); --borderStrong:rgba(16,19,26,.24);
+  --borderControl:rgba(16,19,26,.46);
+  --ok:#07875F; --bad:#D92D2D;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font:400 14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  padding:0 0 80px}
+
+/* ---------- toolbar ---------- */
+.bar{position:sticky;top:0;z-index:20;background:var(--elev);
+  border-bottom:1px solid var(--border);padding:10px 20px;display:flex;
+  gap:18px;align-items:center;flex-wrap:wrap}
+.grp{display:flex;gap:6px;align-items:center}
+.grp>b{font-size:11px;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--sec);font-weight:600;margin-right:4px}
+.bar button{border:1px solid var(--border);background:transparent;color:var(--ink70);
+  font:500 13px/1 inherit;padding:8px 12px;border-radius:var(--rSm);cursor:pointer;
+  font-family:inherit;transition:.15s}
+.bar button:hover{background:var(--hoverFill);border-color:var(--hoverEdge);color:var(--ink)}
+.bar button.on{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+
+main{padding:22px 20px 0;max-width:1500px}
+h2{font-size:20px;font-weight:600;margin:26px 0 6px}
+h3{font-size:15px;font-weight:600;margin:22px 0 8px}
+p.lead{color:var(--ink70);max-width:96ch;margin:0 0 16px;line-height:1.65}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;
+  background:var(--menu);padding:1px 5px;border-radius:4px}
+.cl{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);
+  font-weight:600;margin:0 0 8px}
+
+.stage{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+.app{background:var(--base);border-radius:var(--rMd);padding:0;
+  position:relative;overflow:hidden;border:1px solid var(--border)}
+
+/* ---------- drawer shell: 030-B1 + 156-A ---------- */
+.dw{width:420px;background:var(--elev);border:1px solid var(--border);
+  border-radius:var(--r3xl) 0 0 var(--r3xl);display:flex;flex-direction:column;
+  height:620px;overflow:hidden}
+.hd{height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;border-bottom:1px solid rgba(20,200,255,.12)}
+.hd .t{font-size:18px;font-weight:600}
+.hd .x{color:var(--ink70);font-size:18px;cursor:pointer;width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;border-radius:50%;margin-right:-6px}
+.hd .x:hover{background:var(--hoverFill)}
+.bd{flex:1;overflow:auto;padding:24px 20px 20px}
+.bd.flush{padding:20px 20px 20px}
+.ft{flex:none;border-top:1px solid var(--border);padding:20px;display:flex;gap:8px}
+
+/* footer buttons = GWButton */
+.btn{flex:1;height:44px;border-radius:var(--rLg);border:1px solid var(--border);
+  background:transparent;color:var(--ink);font:500 14px/1 inherit;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.btn:hover{background:var(--hoverFill);border-color:var(--hoverEdge)}
+.btn.grad{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+
+/* ---------- kicker: GWKicker 065-C ---------- */
+.kick{font-weight:600;color:var(--sec);text-transform:uppercase;font-size:13px;
+  letter-spacing:.5px;line-height:18px;margin:0 0 8px}
+.kick.dense{font-size:11px;letter-spacing:.6px;line-height:16px}
+.desc{font-size:13px;color:var(--sec);line-height:1.55;margin:0 0 12px}
+
+/* ---------- rows ---------- */
+.avatar{width:36px;height:36px;border-radius:50%;flex:none;display:flex;
+  align-items:center;justify-content:center;font:700 12px/1 inherit;color:#00121a}
+.rowmain{flex:1;min-width:0}
+.rowmain .n{font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.rowmain .s{font-size:13px;color:var(--sec);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;font-family:"JetBrains Mono",ui-monospace,monospace}
+.chk{flex:none;width:18px;height:18px}
+.dots{flex:none;color:var(--sec);cursor:pointer;padding:0 2px}
+.eye{flex:none;color:var(--sec);margin-left:6px}
+
+/* A · loose rows (032-A1 _TokenRow verbatim) */
+.loose .row{display:flex;gap:12px;align-items:center;padding:12px;
+  border-radius:var(--rMd);border:1px solid transparent;margin-bottom:4px;cursor:pointer}
+.loose .row:hover{background:var(--hoverFill);border-color:var(--hoverEdge)}
+.loose .row.sel{background:var(--tint);border-color:var(--hoverEdge)}
+
+/* B · ruled well (GWDetailGrid) */
+.well{background:var(--sunken);border:1px solid var(--border);border-radius:var(--rMd);
+  overflow:hidden}
+.well .row{display:flex;gap:12px;align-items:center;padding:12px;cursor:pointer;
+  border-top:1px solid var(--border)}
+.well .row:first-child{border-top:none}
+.well .row:hover{background:var(--hoverFill)}
+.well .row.sel{background:var(--tint)}
+
+/* 0 · today */
+.today0 .row{display:flex;gap:16px;align-items:center;padding:8px 12px}
+.today0 .row .n{font-size:16px;font-weight:500}
+.today0 .row .s{font-size:12px;font-family:inherit}
+.todayW .row{display:flex;gap:12px;align-items:center;padding:12px;
+  background:var(--menu);border-radius:12px;margin-bottom:8px}
+.todayW .row.sel{background:var(--brandStrong)}
+.todayW .row.sel .n,.todayW .row.sel .s{color:#000B18}
+.todayS .hdr{background:var(--menu);padding:12px 16px;display:flex;align-items:center;
+  gap:8px;border-bottom:1px solid var(--border);margin:-20px -20px 12px}
+.todayS .hdr .t{flex:1;text-align:center;font-size:16px;font-weight:500}
+.todayS .card{display:flex;gap:8px;align-items:center;background:var(--menu);
+  border:1px solid var(--border);border-radius:var(--rLg);padding:8px 12px;margin-bottom:4px}
+.todayS .card.sel{border:2px solid var(--brandStrong);padding:7px 11px}
+
+.gap{height:20px}
+.gap.s{height:12px}
+
+/* ---------- tables ---------- */
+table{border-collapse:collapse;width:100%;margin:8px 0 18px;font-size:13px}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--menu);font-weight:600;font-size:12px;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--sec)}
+td.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.ok-b{color:var(--ok);font-weight:600}
+.bad-b{color:var(--bad);font-weight:600}
+.warn-b{color:var(--warn);font-weight:600}
+.note{border-left:3px solid var(--brand);background:var(--menu);padding:12px 14px;
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:14px 0;line-height:1.65;max-width:100ch}
+.note.bad{border-left-color:var(--bad)}
+.note.ok{border-left-color:var(--ok)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="grp"><b>Variant</b>
+    <button data-set="v" data-val="0">0 · Today</button>
+    <button data-set="v" data-val="A" class="on">A · Loose rows ★</button>
+    <button data-set="v" data-val="B">B · Ruled well</button>
+    <button data-set="v" data-val="C">C · Grouped</button>
+  </div>
+  <div class="grp"><b>Drawer</b>
+    <button data-set="d" data-val="net" class="on">Select Network</button>
+    <button data-set="d" data-val="sdk">SDK Accounts</button>
+    <button data-set="d" data-val="wal">Your Accounts</button>
+  </div>
+  <div class="grp">
+    <button id="theme">Light</button>
+  </div>
+</div>
+
+<main>
+  <h2>068 · One list-picker, three drawers</h2>
+  <p class="lead">
+    <b>Design question:</b> Select Network (<code>network_dropdown_selector.dart:93</code>),
+    SDK Accounts (<code>sdk_account_manager.dart:72</code>) and Your Accounts
+    (<code>account_dropdown_selector.dart:164</code>) all do one job — pick one item from a list —
+    and ship <b>three different rows, two different headers and two different footers</b>. None has
+    been looked at since the shell changed. What does one archetype look like on the canvas the
+    drawers took today (156-A panel, <code>surfaceSunken</code> controls, <code>GWKicker</code>,
+    <code>GWDetailGrid</code>) — and where does it stop being one, given two of the three have
+    footers and one has a per-row overflow menu?
+  </p>
+
+  <div class="stage">
+    <div>
+      <p class="cl">Panel at 420px, 1:1</p>
+      <div class="app"><div class="dw" id="panel"></div></div>
+    </div>
+    <div style="flex:1;min-width:380px">
+      <p class="cl">Where every element comes from</p>
+      <table id="prov"></table>
+      <p class="cl" style="margin-top:16px">This variant</p>
+      <div class="note" id="vnote"></div>
+    </div>
+  </div>
+
+  <h2>What ships today, per drawer</h2>
+  <table>
+    <tr><th>&nbsp;</th><th>Select Network</th><th>SDK Accounts</th><th>Your Accounts</th></tr>
+    <tr><td>header</td>
+      <td>shell 030-B1 <span class="ok-b">✓</span></td>
+      <td class="bad-b">its own — <code>BottomDrawer</code>, centred title, ✕ on the LEFT, painted <code>surfaceMenu</code></td>
+      <td>shell 030-B1 <span class="ok-b">✓</span></td></tr>
+    <tr><td>row</td>
+      <td class="bad-b">bare <code>ListTile</code>, raw <code>fontSize:16/12</code>, title colour commented out</td>
+      <td class="warn-b"><code>GWCard</code> + 2px brand border when selected</td>
+      <td class="bad-b"><code>ListTile</code>, <code>selectedTileColor: brandPrimaryStrong</code> — a FLAT brand fill</td></tr>
+    <tr><td>selected reads as</td>
+      <td class="bad-b">nothing at all</td><td>a thicker border</td><td class="bad-b">a solid blue block</td></tr>
+    <tr><td>hover</td><td class="bad-b">Material default</td><td><code>GWCard</code>'s</td><td class="bad-b">Material default</td></tr>
+    <tr><td>footer</td>
+      <td>none</td>
+      <td>2 × <code>GWButton</code> secondary <span class="ok-b">✓</span></td>
+      <td class="bad-b">raw <code>FilledButton.icon</code>, inline <code>fontSize:18</code>, <code>iconSize:28</code></td></tr>
+    <tr><td>per-row extra</td><td>—</td><td><code>MenuAnchor</code> ⋮</td><td><code>MenuAnchor</code> ⋮ + watched eye</td></tr>
+  </table>
+
+  <div class="note bad">
+    <b>The one that is not in the shell at all.</b> SDK Accounts passes no <code>title</code> to
+    <code>ResponsiveDrawer.show</code> — deliberately, so the shell does not draw a competing
+    AppBar — and renders <code>BottomDrawer</code> inside instead. That was a stand-off before
+    today. After <b>156-A</b> it is a visible defect: the panel is <code>surfaceElevated</code>
+    #0C0E14 and <code>BottomDrawer</code> paints itself <code>surfaceMenu</code> #171A21, so the
+    header is now a <b>lighter block sitting inside its own drawer</b>. Every variant here deletes
+    that call and gives the drawer the shell's header, which is also how it gets the ✕ back on the
+    right where the other eighteen have it.
+  </div>
+
+  <div class="note">
+    <b>Sketch 066-C said "no footer — a pick is the action". That is wrong for two of the three.</b>
+    Your Accounts carries <i>Add Wallet</i> and SDK Accounts carries <i>Add with mnemonic</i> +
+    <i>Add with private key</i>. The archetype needs a footer slot that is allowed to be empty, not
+    a rule that there is no footer.
+  </div>
+
+  <h2>Contrast, on the 156-A panel (#0C0E14)</h2>
+  <table>
+    <tr><th>Boundary</th><th>Ratio</th><th>Needs 3:1?</th><th>Note</th></tr>
+    <tr><td>row fill <code>surfaceMenu</code> vs panel</td><td>1.11:1</td><td class="bad-b">no</td>
+      <td>a row's fill has never been what identifies it</td></tr>
+    <tr><td>well fill <code>surfaceSunken</code> vs panel</td><td>1.04:1</td><td class="bad-b">no</td>
+      <td>the hairline does the separating, as in <code>GWDetailGrid</code></td></tr>
+    <tr><td>hairline <code>borderSubtle</code> 12%</td><td>1.30:1</td><td>—</td>
+      <td class="ok-b">decorative separator, no 1.4.11 threshold</td></tr>
+    <tr><td>selection tint <code>0x2E</code> gradient vs panel</td><td>1.39:1</td><td>—</td>
+      <td class="warn-b">not the identifier on its own</td></tr>
+    <tr><td>selection <b>edge</b> <code>hoverEdge</code> 24% brand</td><td>1.60:1</td><td class="bad-b">no</td>
+      <td class="warn-b">this is the gap — see below</td></tr>
+    <tr><td>selection <b>check glyph</b> <code>brandPrimaryStrong</code> #0AAEE6</td><td class="ok-b">6.81:1</td><td class="ok-b">yes</td>
+      <td>a glyph is text-like and clears AA on its own</td></tr>
+  </table>
+
+  <div class="note ok">
+    <b>Why every variant keeps the check glyph, and why that is not decoration.</b> Selection here
+    is a <i>state</i>, and 1.4.11 covers states. The tint measures 1.39:1 and the brand edge 1.60:1
+    — neither can carry it alone, which is exactly the finding sketch 156 made about a field's fill.
+    The glyph at <code>brandPrimaryStrong</code> measures <b>6.81:1</b> and carries it by itself.
+    So: tint + edge for the eye, glyph for the requirement. <code>_TokenRow</code> already ships all
+    three; the other two drawers ship none of them.
+  </div>
+
+  <h2>Variants</h2>
+  <table>
+    <tr><th>&nbsp;</th><th>Variant</th><th>New components</th><th>Reading</th></tr>
+    <tr><td><b>A</b> ★</td><td><b>Loose rows</b></td><td>1 — <code>GWSelectRow</code>, promoted from <code>_TokenRow</code></td>
+      <td>Exactly what Token Selector ships: free-standing rows, gradient tint + brand edge + check on the selected one, the app-wide hover recipe. Three drawers stop having three rows.</td></tr>
+    <tr><td><b>B</b></td><td><b>Ruled well</b></td><td>0 — <code>GWDetailGrid</code> + <code>GWSelectRow</code></td>
+      <td>The rows live inside the receipt's ruled well. Denser, one frame instead of N borders, and the list reads as a single object.</td></tr>
+    <tr><td><b>C</b></td><td><b>Grouped</b></td><td>0 — B + <code>GWKicker</code></td>
+      <td>B split by a dense kicker: <i>Active</i> above, <i>All</i> below. 066-C's "kicker separating connected/active from the rest", drawn.</td></tr>
+  </table>
+</main>
+
+<script>
+const DATA = {
+  net: {
+    title:'Select Network', desc:null, footer:null,
+    activeLabel:'Active network', restLabel:'All networks',
+    rows:[
+      {av:'#627EEA', ini:'ETH', n:'Ethereum', s:'ETH', sel:true},
+      {av:'#F3BA2F', ini:'BNB', n:'BNB Smart Chain', s:'BNB'},
+      {av:'#E84142', ini:'AVA', n:'Avalanche', s:'AVAX'},
+      {av:'#8247E5', ini:'MAT', n:'Polygon', s:'MATIC'},
+      {av:'#0AD89C', ini:'GNU', n:'GNUS Chain', s:'GNUS'}
+    ]
+  },
+  sdk: {
+    title:'SDK Accounts',
+    desc:'Select the account the SDK uses for processing:',
+    footer:[{l:'Add with mnemonic'},{l:'Add with private key'}],
+    activeLabel:'Processing account', restLabel:'Other accounts',
+    rows:[
+      {av:'#0AAEE6', ini:'SDK', n:'0x71C7·6567 … 8976·F44b', s:'Active processing account', sel:true, mono:true},
+      {av:'#3A3F4B', ini:'SDK', n:'0x2546·BcD3 … 1c9D·2A11', s:'', mono:true},
+      {av:'#3A3F4B', ini:'SDK', n:'0xdD87·0fA1 … 74Ba·9C17', s:'', mono:true}
+    ]
+  },
+  wal: {
+    title:'Your Accounts', desc:null,
+    footer:[{l:'Add Wallet', grad:true}],
+    activeLabel:'Selected', restLabel:'All wallets',
+    rows:[
+      {av:'#0AD89C', ini:'MW', n:'Main Wallet', s:'0x71C7·6567 … 8976·F44b', sel:true, dots:true},
+      {av:'#8247E5', ini:'SW', n:'Savings', s:'0x2546·BcD3 … 1c9D·2A11', dots:true},
+      {av:'#3A3F4B', ini:'WO', n:'Watch only', s:'0xdD87·0fA1 … 74Ba·9C17', dots:true, eye:true}
+    ]
+  }
+};
+
+const CHECK = '<svg class="chk" viewBox="0 0 24 24" fill="none" stroke="#0AAEE6" stroke-width="2.4"'
+  + ' stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const DOTS = '<span class="dots">&#8942;</span>';
+const EYE = '<svg class="eye" width="16" height="16" viewBox="0 0 24 24" fill="none"'
+  + ' stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>'
+  + '<circle cx="12" cy="12" r="3"/></svg>';
+
+function avatar(r){
+  return '<div class="avatar" style="background:'+r.av+'">'+r.ini+'</div>';
+}
+function rowInner(r){
+  return avatar(r)
+    + '<div class="rowmain"><div class="n"'+(r.mono?' style="font-family:JetBrains Mono,ui-monospace,monospace;font-size:13px"':'')+'>'+r.n+'</div>'
+    + (r.s ? '<div class="s"'+(r.mono?' style="font-family:inherit"':'')+'>'+r.s+'</div>' : '')
+    + '</div>'
+    + (r.eye ? EYE : '')
+    + (r.sel ? CHECK : '<span class="chk"></span>')
+    + (r.dots ? DOTS : '');
+}
+
+function renderRows(rows, variant){
+  if (variant === 'A') {
+    return '<div class="loose">' + rows.map(function(r){
+      return '<div class="row'+(r.sel?' sel':'')+'">'+rowInner(r)+'</div>';
+    }).join('') + '</div>';
+  }
+  return '<div class="well">' + rows.map(function(r){
+    return '<div class="row'+(r.sel?' sel':'')+'">'+rowInner(r)+'</div>';
+  }).join('') + '</div>';
+}
+
+function todayBody(d, key){
+  if (key === 'net') {
+    return '<div class="today0">' + DATA.net.rows.map(function(r){
+      return '<div class="row">'+avatar(r)+'<div class="rowmain"><div class="n">'+r.n
+        +'</div><div class="s">'+r.s+'</div></div></div>';
+    }).join('') + '</div>';
+  }
+  if (key === 'wal') {
+    return '<div class="todayW">' + DATA.wal.rows.map(function(r){
+      return '<div class="row'+(r.sel?' sel':'')+'">'+avatar(r)
+        +'<div class="rowmain"><div class="n">'+r.n+'</div><div class="s">'+r.s+'</div></div>'
+        +(r.eye?EYE:'')+DOTS+'</div>';
+    }).join('') + '</div>';
+  }
+  return '<div class="todayS"><div class="hdr"><span>&#10005;</span><span class="t">SDK Accounts</span></div>'
+    + '<div class="desc">'+DATA.sdk.desc+'</div>'
+    + DATA.sdk.rows.map(function(r){
+        return '<div class="card'+(r.sel?' sel':'')+'">'+avatar(r)
+          +'<div class="rowmain"><div class="n" style="font-family:JetBrains Mono,ui-monospace,monospace;font-size:13px">'
+          +r.n+'</div>'+(r.s?'<div class="s" style="font-family:inherit">'+r.s+'</div>':'')+'</div>'+DOTS+'</div>';
+      }).join('') + '</div>';
+}
+
+function footerHtml(d){
+  if (!d.footer) return '';
+  return '<div class="ft">' + d.footer.map(function(b){
+    return '<button class="btn'+(b.grad?' grad':'')+'">'+b.l+'</button>';
+  }).join('') + '</div>';
+}
+
+const PROV = {
+  '0': [
+    ['shell / panel','ResponsiveDrawer','bottom_drawer/responsive_drawer.dart'],
+    ['SDK header','<span class="bad-b">BottomDrawer — a SECOND header</span>','bottom_drawer/bottom_drawer.dart'],
+    ['Network row','<span class="bad-b">bare ListTile, raw TextStyle</span>','network_dropdown_selector.dart:93'],
+    ['Wallet row','<span class="bad-b">ListTile + flat brand fill</span>','account_dropdown_selector.dart:243'],
+    ['SDK row','GWCard','cards/gw_card.dart'],
+    ['Add Wallet','<span class="bad-b">raw FilledButton.icon</span>','account_dropdown_selector.dart:196']
+  ],
+  'A': [
+    ['shell / panel / footer rule','ResponsiveDrawer','bottom_drawer/responsive_drawer.dart'],
+    ['row','<b>GWSelectRow</b> <span class="warn-b">new — promoted from _TokenRow</span>','squid_router/token_selector_drawer.dart:206'],
+    ['selection tint + hover','GWDecorations.hoverFill / hoverEdge + brandCta @0x2E','theme/genius_wallet_decorations.dart'],
+    ['check glyph','brandPrimaryStrong','theme/genius_wallet_colors.dart'],
+    ['footer buttons','GWButton','buttons/gw_button.dart'],
+    ['description line','Text · labelMd / textSecondary','—']
+  ],
+  'B': [
+    ['shell / panel / footer rule','ResponsiveDrawer','bottom_drawer/responsive_drawer.dart'],
+    ['the well + rules','<b>GWDetailGrid</b>','cards/gw_detail_grid.dart <span class="ok-b">built today</span>'],
+    ['row','<b>GWSelectRow</b> <span class="warn-b">new</span>','squid_router/token_selector_drawer.dart:206'],
+    ['selection tint + hover','GWDecorations.hoverFill / hoverEdge','theme/genius_wallet_decorations.dart'],
+    ['check glyph','brandPrimaryStrong','theme/genius_wallet_colors.dart'],
+    ['footer buttons','GWButton','buttons/gw_button.dart']
+  ],
+  'C': [
+    ['shell / panel / footer rule','ResponsiveDrawer','bottom_drawer/responsive_drawer.dart'],
+    ['group labels','<b>GWKicker(dense)</b>','cards/gw_kicker.dart <span class="ok-b">built today</span>'],
+    ['the well + rules','<b>GWDetailGrid</b>','cards/gw_detail_grid.dart <span class="ok-b">built today</span>'],
+    ['row','<b>GWSelectRow</b> <span class="warn-b">new</span>','squid_router/token_selector_drawer.dart:206'],
+    ['check glyph','brandPrimaryStrong','theme/genius_wallet_colors.dart'],
+    ['footer buttons','GWButton','buttons/gw_button.dart']
+  ]
+};
+
+const NOTES = {
+  '0': 'Three drawers, three rows, two headers, two footers. Nothing here is a decision — it is '
+     + 'what accumulated. Note that the selected network is <b>completely unmarked</b>: '
+     + '<code>ListTile(selected: true)</code> with no theme behind it paints nothing.',
+  'A': '<b>The 032-A1 row, unchanged, in all three.</b> One component instead of three '
+     + 'implementations, and it already carries the three things selection needs — tint, brand '
+     + 'edge, check glyph. Rows stay free-standing so a long list scrolls without a frame '
+     + 'growing around it, and the footer slot is simply empty for Select Network.',
+  'B': 'The receipt\'s ruled well around the same rows. One frame instead of N borders, and it is '
+     + 'denser. Cost: a scrolling list inside a bordered box has to clip, so the frame is either '
+     + 'inside the scroll viewport (and scrolls away) or outside it (and the list scrolls under '
+     + 'its own bottom edge). A receipt never scrolls; a wallet list does.',
+  'C': 'B plus the split 066-C asked for. It answers "which one am I on" before you read a single '
+     + 'row — but it costs a second group for a list that is often three items, and the check '
+     + 'glyph already answers the same question.'
+};
+
+function render(){
+  const v = document.documentElement.dataset.v;
+  const k = document.documentElement.dataset.d;
+  const d = DATA[k];
+  let body;
+
+  if (v === '0') {
+    body = '<div class="bd'+(k==='sdk'?' flush':'')+'">'+todayBody(d,k)+'</div>';
+  } else {
+    let inner = '';
+    if (d.desc) inner += '<div class="desc">'+d.desc+'</div>';
+    if (v === 'C') {
+      const sel = d.rows.filter(function(r){return r.sel;});
+      const rest = d.rows.filter(function(r){return !r.sel;});
+      inner += '<div class="kick dense">'+d.activeLabel+'</div>' + renderRows(sel,'B')
+             + '<div class="gap"></div>'
+             + '<div class="kick dense">'+d.restLabel+'</div>' + renderRows(rest,'B');
+    } else {
+      inner += renderRows(d.rows, v);
+    }
+    body = '<div class="bd">'+inner+'</div>';
+  }
+
+  const header = (v === '0' && k === 'sdk')
+    ? ''
+    : '<div class="hd"><span class="t">'+d.title+'</span><span class="x">&#10005;</span></div>';
+
+  document.getElementById('panel').innerHTML = header + body + footerHtml(d);
+
+  document.getElementById('prov').innerHTML =
+    '<tr><th>Element</th><th>Component</th><th>File</th></tr>' +
+    PROV[v].map(function(r){
+      return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="mono">'+r[2]+'</td></tr>';
+    }).join('');
+
+  document.getElementById('vnote').innerHTML = NOTES[v];
+}
+
+document.querySelectorAll('.bar button[data-set]').forEach(function(b){
+  b.addEventListener('click', function(){
+    const set = b.dataset.set, val = b.dataset.val;
+    document.querySelectorAll('.bar button[data-set="'+set+'"]').forEach(function(o){
+      o.classList.toggle('on', o === b);
+    });
+    document.documentElement.dataset[set === 'v' ? 'v' : 'd'] = val;
+    render();
+  });
+});
+document.getElementById('theme').addEventListener('click', function(){
+  const el = document.documentElement;
+  const light = el.dataset.theme === 'light';
+  el.dataset.theme = light ? 'dark' : 'light';
+  this.textContent = light ? 'Light' : 'Dark';
+});
+render();
+</script>
+</body>
+</html>

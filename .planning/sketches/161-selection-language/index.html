@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>161 · One mark for "this one is selected" - across the whole app</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1380px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+
+  h1 { font:700 20px/28px var(--font); margin-bottom:var(--space-4); }
+  h2 { font:700 14px/20px var(--font); margin:var(--space-16) 0 var(--space-6); padding-top:var(--space-8);
+    border-top:1px solid var(--border-subtle); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:1030px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec  { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.ship { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.warn { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.note { background:rgba(255,196,46,.16); color:var(--status-warning); }
+
+  .cap { display:flex; align-items:flex-start; gap:10px; margin:0 0 var(--space-8); }
+  .cap .k { font:700 11px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary); flex:none; width:112px; padding-top:1px; }
+  .cap .t { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:960px; }
+
+  .outer { display:flex; gap:var(--space-8); align-items:flex-start; }
+  .stage { position:relative; display:flex; justify-content:flex-end; border:1px solid var(--border-strong);
+    border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); min-height:640px; flex:none; width:640px; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.5); }
+  .panel { position:relative; width:420px; flex:none; background:var(--surface-elevated); display:flex; flex-direction:column;
+    border-top-left-radius:24px; border-bottom-left-radius:24px; overflow:hidden; }
+  .p-head { height:56px; flex:none; display:flex; align-items:center; padding:0 20px; position:relative; }
+  .p-head .t { font:600 18px/24px var(--font); margin-right:auto; }
+  .p-head .x { color:var(--text-secondary); font:400 20px/1 var(--font); }
+  .p-head::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:rgba(20,200,255,.12); }
+  .p-body { flex:1; overflow-y:auto; padding:24px 20px 20px; }
+
+  .search { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-elevated);
+    height:42px; display:flex; align-items:center; gap:9px; padding:0 12px; margin-bottom:var(--space-8);
+    font:400 13px/19px var(--font); color:var(--text-secondary); }
+  .search svg { width:18px; height:18px; flex:none; }
+
+  /* 154-A section + card */
+  .sec-l { font:700 10px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-primary-54);
+    margin-bottom:var(--space-6); }
+  .card { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    overflow:hidden; }
+
+  /* the token row */
+  .trow { position:relative; display:flex; align-items:center; gap:12px; padding:11px var(--space-8);
+    border-top:1px solid var(--border-subtle); cursor:pointer; transition:background .2s ease; }
+  .trow:first-child { border-top:0; }
+  .trow:hover { background:rgba(20,200,255,.08); }
+  .trow .av { width:34px; height:34px; border-radius:50%; flex:none; display:grid; place-items:center;
+    font:700 12px/1 var(--font); color:#fff; }
+  .trow .n { font:600 14px/20px var(--font); color:var(--text-primary); }
+  .trow .s { font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .trow .bal { margin-left:auto; font:500 14px/20px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .trow .chk { width:20px; height:20px; flex:none; display:none; }
+  .trow .chk svg { width:20px; height:20px; display:block; }
+
+  /* ---- the five selection treatments ---- */
+  /* the 3px gradient bar, verbatim: brandCta, rounded top r3, brandPrimaryStrong 50% blur 10, 200ms */
+  .bar { position:absolute; background:linear-gradient(135deg,#0AD89C,#0AAEE6);
+    box-shadow:0 0 10px rgba(10,174,230,.5); transition:opacity .2s ease; }
+  .bar.under { left:0; right:0; bottom:0; height:3px; border-radius:3px 3px 0 0; }
+  .bar.lead  { left:0; top:0; bottom:0; width:3px; border-radius:0 3px 3px 0; }
+
+  [data-sel="s0"] .trow.sel { background:linear-gradient(90deg, rgba(10,216,156,.18), rgba(10,174,230,.18)); }
+  [data-sel="s0"] .trow.sel .chk { display:block; }
+  [data-sel="s1"] .trow.sel .bar.under { display:block; }
+  [data-sel="s1"] .trow.sel .n { font-weight:700; }
+  [data-sel="s2"] .trow.sel .bar.lead { display:block; }
+  [data-sel="s2"] .trow.sel .n { font-weight:700; }
+  [data-sel="s3"] .trow.sel { background:var(--surface-elevated); }
+  [data-sel="s3"] .trow.sel::after { content:""; position:absolute; inset:0; border-radius:8px; padding:1.5px;
+    background:linear-gradient(135deg,#0AD89C,#0AAEE6);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
+  [data-sel="s3"] .trow.sel .chk { display:block; }
+  [data-sel="s4"] .trow.sel .chk { display:block; }
+  [data-sel="s4"] .trow.sel .n { font-weight:700; }
+  .bar { display:none; }
+
+  /* divider collision marker */
+  .clash .trow.sel + .trow { outline:1px dashed rgba(255,77,77,.7); outline-offset:-1px; }
+  .clash .trow.sel .bar.under { box-shadow:0 0 10px rgba(10,174,230,.5), 0 0 0 1px rgba(255,77,77,.9); }
+
+  /* ---------- app-wide strip ---------- */
+  .apps { display:flex; gap:12px; flex-wrap:wrap; }
+  .ap { flex:1; min-width:290px; border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+    background:var(--surface-elevated); padding:12px 14px; }
+  .ap h4 { font:700 10px/14px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-primary-54);
+    margin-bottom:9px; display:flex; align-items:center; gap:7px; }
+  .ap .why { font:400 11px/17px var(--font); color:var(--text-secondary); margin-top:9px; }
+  .ap .why b { color:var(--text-primary); }
+
+  /* nav tabs */
+  .tabs { display:flex; gap:20px; height:40px; align-items:flex-start; }
+  .tb { position:relative; font:600 13px/18px var(--font); color:var(--text-secondary); padding-bottom:9px; }
+  .tb.on { color:var(--text-primary); }
+  /* segmented chooser (feedback 064-B) */
+  .segs { display:flex; gap:8px; }
+  .sg { position:relative; flex:1; height:38px; display:grid; place-items:center; border-radius:8px;
+    border:1px solid var(--border-subtle); font:600 13px/1 var(--font); color:var(--text-secondary); }
+  .sg.on { color:var(--text-primary); }
+  /* preset chips (063-A) */
+  .chips { display:flex; gap:8px; }
+  .cp { position:relative; flex:1; height:38px; display:grid; place-items:center; border-radius:8px;
+    border:1px solid var(--border-subtle); font:600 14px/1 var(--font); color:var(--text-primary); overflow:hidden; }
+  .cp.on { background:linear-gradient(135deg,#0AD89C,#0AAEE6); border-color:transparent; color:#000B18; }
+  /* filter rail (022-B2) */
+  .rail .fr { position:relative; display:flex; padding:7px 4px 9px; font:500 13px/19px var(--font);
+    color:var(--text-secondary); }
+  .rail .fr.on { color:var(--text-primary); font-weight:700; }
+  .rail .fr .c { margin-left:auto; font:600 12px/19px var(--font-mono); color:var(--text-primary-54); }
+
+  /* per-treatment application to the app surfaces */
+  [data-sel="s1"] .tb.on .bar.under, [data-sel="s1"] .sg.on .bar.under,
+  [data-sel="s1"] .fr.on .bar.under, [data-sel="s1"] .cp.on .bar.under { display:block; }
+  [data-sel="s2"] .tb.on .bar.lead, [data-sel="s2"] .sg.on .bar.lead,
+  [data-sel="s2"] .fr.on .bar.lead, [data-sel="s2"] .cp.on .bar.lead { display:block; }
+  [data-sel="s0"] .tb.on .bar.under, [data-sel="s0"] .sg.on .bar.under, [data-sel="s0"] .fr.on .bar.under { display:block; }
+  [data-sel="s3"] .tb.on .bar.under, [data-sel="s3"] .sg.on .bar.under, [data-sel="s3"] .fr.on .bar.under { display:block; }
+  [data-sel="s4"] .tb.on .bar.under, [data-sel="s4"] .sg.on .bar.under, [data-sel="s4"] .fr.on .bar.under { display:block; }
+  [data-sel="s0"] .cp.on, [data-sel="s3"] .cp.on, [data-sel="s4"] .cp.on {
+    background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  [data-sel="s1"] .cp.on, [data-sel="s2"] .cp.on { background:transparent; color:var(--text-primary); border-color:var(--border-subtle); }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); flex:1; }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; margin-bottom:var(--space-6); }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">161 · Selection language</span>
+  <button class="vt" data-v="s0">S0 · Tint fill (today)</button>
+  <button class="vt active" data-v="s1">S1 · Underline</button>
+  <button class="vt" data-v="s2">S2 · Leading bar</button>
+  <button class="vt" data-v="s3">S3 · Gradient ring</button>
+  <button class="vt" data-v="s4">S4 · Check only</button>
+  <span class="sep"></span>
+  <button class="st" id="clash">Mark the clash</button>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap" id="root" data-sel="s1">
+  <h1>One mark for "this one is selected", across the whole app</h1>
+  <p class="lede">
+    <b>Token Selector 1 is picked</b> - the list in one 154-A card. Open question: what marks the selected row.
+    Today it is a gradient tint fill; the ask is whether a <b>gradient underline</b> is better, and whether
+    <b>one component</b> can carry selection everywhere. Each treatment below is applied to the picker
+    <b>and</b> to the four other places in the app that already mark something as chosen - switch and watch
+    both at once.
+  </p>
+
+  <div class="cap"><span class="k">The mark</span><span class="t">
+    <span class="tag ship">shipped</span> The underline is not a proposal, it is a shipped component with an
+    exact spec, used identically in two places: <code>responsive_overlay.dart:386</code> (nav tabs, 002-B) and
+    <code>submit_logs_screen.dart:713</code> (feedback chooser, 064-B). <b>3px, <code>brandCta</code>, rounded
+    top r3, <code>brandPrimaryStrong</code> at 50% with blur 10, 200ms.</b> Both files carry the same comment.
+  </span></div>
+
+  <div class="cap"><span class="k">Precedent</span><span class="t">
+    <span class="tag ship">022-B2</span> <b>The underline was already chosen for a vertical list</b> - the
+    transactions filter rail, "the navbar's active-tab mark copied outright: w700 label never recoloured, 2px
+    gradient rule beneath, glyph untouched". So the instinct has a precedent in this project, on a column of
+    rows, not just on a tab strip.
+  </span></div>
+
+  <div class="cap"><span class="k">Against it</span><span class="t">
+    <span class="tag warn">explicit</span> <code>HANDOFF.json</code> records the opposite decision for exactly
+    this case: roll 064-B out to "transactions filter chips, markets timeframe tabs, web tab strip -
+    <b>NOT to list pickers</b>, 032-A1 decided those separately and differently". This sketch reopens that,
+    which is legitimate - but it is a reversal, not a gap.
+  </span></div>
+
+  <div class="cap"><span class="k">Geometry</span><span class="t">
+    <span class="tag note">measured</span> <b>The filter rail has no dividers and no card. This list has
+    both.</b> A 3px underline sits at the row's bottom edge - which is exactly where the next row's 1px
+    <code>borderSubtle</code> divider is. Press <b>Mark the clash</b> to see the two lines meet. In a tab strip
+    there is nothing below the tab; in a list there always is.
+  </span></div>
+
+  <div class="outer">
+    <div class="stage">
+      <div class="scrim"></div>
+      <div class="panel">
+        <div class="p-head"><span class="t">Select Token</span><span class="x">&#10005;</span></div>
+        <div class="p-body">
+          <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search tokens</div>
+          <div class="sec-l">Tokens</div>
+          <div class="card" id="list"></div>
+        </div>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+
+  <h2>The same treatment, everywhere the app already marks something chosen</h2>
+  <div class="apps">
+    <div class="ap">
+      <h4>Nav tabs <span class="tag ship">002-B shipped</span></h4>
+      <div class="tabs">
+        <span class="tb">Dashboard</span><span class="tb on">Transactions<span class="bar under"></span><span class="bar lead"></span></span>
+        <span class="tb">Swap</span><span class="tb">Markets</span>
+      </div>
+      <div class="why">Means <b>"you are looking at this"</b>. Nothing sits below a tab, so the bar is a mark, not a boundary.</div>
+    </div>
+    <div class="ap">
+      <h4>Feedback chooser <span class="tag ship">064-B shipped</span></h4>
+      <div class="segs">
+        <span class="sg">Bug</span><span class="sg on">Idea<span class="bar under"></span><span class="bar lead"></span></span><span class="sg">Question</span>
+      </div>
+      <div class="why">Means <b>"this is the value you are entering"</b>. Jakub's own call, 27 July - the same underline as the nav bar.</div>
+    </div>
+    <div class="ap">
+      <h4>Slippage presets <span class="tag ship">063-A shipped</span></h4>
+      <div class="chips">
+        <span class="cp">0.1%</span><span class="cp on">0.5%<span class="bar under"></span><span class="bar lead"></span></span><span class="cp">1%</span>
+      </div>
+      <div class="why">Means <b>"this value is applied"</b>. Filled gradient today. Watch what happens when the underline replaces the fill.</div>
+    </div>
+    <div class="ap">
+      <h4>Filter rail <span class="tag ship">022-B2 chosen</span></h4>
+      <div class="rail">
+        <div class="fr">All<span class="c">12</span></div>
+        <div class="fr on">Sent<span class="c">3</span><span class="bar under"></span><span class="bar lead"></span></div>
+        <div class="fr">Received<span class="c">1</span></div>
+      </div>
+      <div class="why">A <b>column of rows</b> with no dividers and no card - the closest existing analogue to the picker.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CHECK = '<svg viewBox="0 0 24 24" fill="none"><defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">'
+  + '<stop offset="0%" stop-color="#0AD89C"/><stop offset="100%" stop-color="#0AAEE6"/></linearGradient></defs>'
+  + '<circle cx="12" cy="12" r="10" fill="url(#cg)"/><path d="M8 12.5l2.5 2.5 5-5" stroke="#000B18" stroke-width="2.2" '
+  + 'stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+
+const TOKENS = [
+  ['ETH','Ethereum','#627EEA','1.35', true],
+  ['USDC','USD Coin','#2775CA','250.0', false],
+  ['GNUS','GeniusAI','linear-gradient(135deg,#0AD89C,#0AAEE6)','1,200.0', false],
+  ['USDT','Tether USD','#26A17B',null, false],
+  ['WBTC','Wrapped Bitcoin','#F7931A',null, false],
+  ['ARB','Arbitrum','#2D374B',null, false]
+];
+
+document.getElementById('list').innerHTML = TOKENS.map(t =>
+  '<div class="trow' + (t[4] ? ' sel' : '') + '">'
+  + '<span class="bar under"></span><span class="bar lead"></span>'
+  + '<span class="av" style="background:' + t[2] + '">' + t[0][0] + '</span>'
+  + '<span><span class="n">' + t[1] + '</span><br><span class="s">' + t[0] + '</span></span>'
+  + (t[3] ? '<span class="bal">' + t[3] + '</span>' : '')
+  + '<span class="chk">' + CHECK + '</span></div>').join('');
+
+const NOTES = {
+  's0': { h:'S0 &middot; Tint fill - what ships today', b:`
+    <p>032-A1: a low-alpha <code>brandCta</code> tint across the row plus a <code>ShaderMask</code> check.
+    The rest of the app keeps its own marks - underline on tabs, filled gradient on chips.</p>
+    <ul class="spec">
+      <li>reads unambiguously in a list: the whole row is lit, so the <b>object</b> is marked, not an edge of it</li>
+      <li>survives any row height and any number of rows</li>
+      <li><b>but</b> it is a fourth vocabulary - tab underline, chip fill, row tint, and the receipt has none</li>
+    </ul>
+    <p>This is the baseline the other four have to beat.</p>` },
+  's1': { h:'S1 &middot; Underline <span class="tag rec">asked for</span>', b:`
+    <p>The shipped 3px bar moved under the selected row. One component, everywhere - which is exactly the ask.</p>
+    <ul class="spec">
+      <li><b>Press "Mark the clash".</b> The bar sits at the row's bottom edge; the next row's
+      <code>borderSubtle</code> divider is at the same y. Two lines, 4px of stacked rules, and the selected
+      row reads as <b>the end of a group</b> rather than as the chosen one</li>
+      <li>on the <b>last</b> row the bar lands on the card's own bottom border - a third collision</li>
+      <li>look at the <b>chips</b> panel below: with the fill replaced by an underline, "0.5% is applied"
+      becomes noticeably weaker than it is today</li>
+      <li>the label goes w700, per 022-B2's rule that the label is never recoloured</li>
+    </ul>
+    <p><b>The honest read:</b> an underline is a boundary mark. In a tab strip nothing is below it, so it reads
+    as "this one". In a divided list it reads as "the list breaks here". That is not taste - it is what the
+    two lines do when they meet.</p>` },
+  's2': { h:'S2 &middot; Leading bar <span class="tag rec">rec</span>', b:`
+    <p>The <b>same 3px gradient bar</b>, same glow, same 200ms - rotated to the row's leading edge instead of
+    its bottom. It is the underline, on the axis a list actually has room for.</p>
+    <ul class="spec">
+      <li><b>no collision:</b> the dividers are horizontal, the mark is vertical - they never meet</li>
+      <li>works identically on row 1 and row 30, and does not care about the card's borders</li>
+      <li>one component with a single <code>axis</code> parameter serves tabs, chooser, rail <b>and</b> rows</li>
+      <li>label goes w700, colour untouched - 022-B2's rule holds</li>
+    </ul>
+    <p><b>The cost, stated plainly:</b> 022 explicitly <i>rejected</i> a leading bar for the filter rail and
+    chose the underline. Taking S2 for the picker means the app has one bar with two orientations, decided by
+    whether the thing is in a row or a column. That is defensible and it is still <b>one component</b> - but
+    it is not literally "one mark".</p>` },
+  's3': { h:'S3 &middot; Gradient ring', b:`
+    <p>The row keeps a plain fill and gains a <b>1.5px gradient outline</b> - the exact technique
+    <code>GWFocusRing</code> already uses, since a <code>BorderSide</code> cannot be a gradient.</p>
+    <ul class="spec">
+      <li>reuses a component that <b>already exists</b> and already ships in four places</li>
+      <li>marks the whole object, like the tint, without flooding it with colour</li>
+      <li><b>collides with meaning, not geometry:</b> that ring currently says <b>"this field has keyboard
+      focus"</b>. Using it for selection makes focus and selection the same picture</li>
+    </ul>
+    <p>Worth 20 seconds because it is free to build; the meaning collision is why it is not the recommendation.</p>` },
+  's4': { h:'S4 &middot; Check only', b:`
+    <p>No fill, no bar. A w700 label and the gradient <code>ShaderMask</code> check at the row's end - the one
+    element every variant here already carries.</p>
+    <ul class="spec">
+      <li>the quietest, and the only one that adds <b>nothing at all</b> to the row's box</li>
+      <li>scales to any list length with no geometry to reason about</li>
+      <li><b>but</b> the mark is 20px at the far right of a 420px panel; on a long list you scan the left edge
+      for names and the mark is nowhere near it</li>
+    </ul>
+    <p>Good as a companion to S2, weak alone. Note that S0, S3 and S4 all carry the check - so the check is not
+    really a variant, it is a constant.</p>` }
+};
+
+let v = 's1';
+function paint(){
+  document.getElementById('root').dataset.sel = v;
+  document.querySelectorAll('#nav .vt').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  const n = NOTES[v];
+  document.getElementById('note').innerHTML = '<h3>' + n.h + '</h3>' + n.b;
+}
+document.querySelectorAll('#nav .vt').forEach(b => b.onclick = () => { v = b.dataset.v; location.hash = v; paint(); });
+document.getElementById('clash').onclick = e => {
+  document.getElementById('root').classList.toggle('clash');
+  e.target.classList.toggle('on');
+};
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+if (location.hash && NOTES[location.hash.slice(1)]) v = location.hash.slice(1);
+paint();
+</script>
+</body>
+</html>
