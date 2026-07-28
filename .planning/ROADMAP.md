@@ -1021,6 +1021,194 @@ Plans:
   receipt rail via `LayoutBuilder`, chip strip retired, Failed-footer fix, and one new page-frame
   widget test (`test/logs/submit_logs_page_frame_test.dart`)
 
+### Phase 22: Codebase organization: standards config, dead code deletion, theme consolidation, shared components
+
+**Goal:** Make the codebase's own rules mechanically enforceable, then use that enforcement to
+collapse duplication — without changing behaviour anywhere. Every change in this phase is
+mechanical and reviewable; nothing here touches state ownership or money paths (that is Phase 23).
+
+**Requirements**: ORG-01, ORG-02, ORG-03, ORG-04, ORG-05
+**Depends on:** Phase 21
+**Plans:** 15 plans (planned 2026-07-28)
+
+**Requirement IDs coined for this phase** (ROADMAP said TBD; REQUIREMENTS.md carries no
+codebase-quality requirement, so these are added and closed by 22-15):
+- **ORG-01** — the codebase's own rules are mechanically enforced in CI (format, analyze, brace
+  rule, raw colours, the three existing security gates, tests, patch coverage)
+- **ORG-02** — dead code removed: no never-imported file, no dead dependency, no hand-written
+  widget wearing a generated-code filename
+- **ORG-03** — `flutter analyze` reports 0 and exits 0, in both packages
+- **ORG-04** — one colour source of truth: semantic tokens via `context.gw`, primitives genuinely
+  private, both appearance modes correct and WCAG AA
+- **ORG-05** — duplicated UI collapsed onto shared `StatelessWidget`s at 3+ call sites
+
+**Why this order.** Research (2026-07-28, 12 parallel audit + research agents) settled the sequence:
+lint/format/CI first because `dart fix --apply` turns each newly-enabled rule into a bulk rewriter;
+then goldens, because they are the published safety net for the two workstreams after them; then
+**theme before components**, so extracted components are born on tokens instead of needing a second
+pass. LeanCode's 4-level framework orders it the same way.
+
+**Measured baseline (2026-07-28, verified not estimated):**
+
+| Metric | Value |
+|--------|-------|
+| `flutter test` | 512 pass / 1 fail (the fail is a fully commented-out file with no `main`) |
+| `flutter analyze --no-pub` | **exit 1**, 408 issues (331 warning / 67 info / 0 error) |
+| — of which from one unexcluded generated FFI file | 214 → real signal is **184** |
+| Brace-less `if` | 192 across 72 files (`else`/`for`/`while` = 0) |
+| Dead code | ~1,400 LOC across 13–14 never-imported files |
+| Mode-breaking `Colors.white/black/grey` | 114 sites, ~50 files |
+| `GWColors` lookups | 128 sites, 81 files |
+| CI quality gates | **zero** — `build.yml` runs no test/analyze/format step |
+
+**Decisions locked (2026-07-28):**
+- **Ruleset:** stay on `flutter_lints`, add ~15 targeted rules each justified by a real finding.
+  `very_good_analysis` (206 rules) was considered and declined as too large a backlog for this phase.
+- **Brace rule enforcement:** CI gate + one-time auto-fix script. **No built-in lint can express this**
+  — `curly_braces_in_flow_control_structures` is already enabled and reports 0, because it permits
+  omitting braces when the statement fits one line with no `else`; all 192 sit in that carve-out.
+  `custom_lint` was declined and is in any case retired (superseded by `analysis_server_plugin`).
+- **CI rollout:** exclude generated FFI (408→184) → `dart fix` → hand-fix remainder → gate ON last.
+  Nothing is blocked while cleaning.
+- **Colours:** do **not** delete `GeniusWalletColors`. Demote it to the private primitive layer and
+  keep `GWColors` as the semantic layer (Material 3 primitive→semantic→component model).
+- **Coverage:** patch-coverage gating (`project: auto` + `patch: 80%`), not VGV's 100%.
+
+**Planned 2026-07-28 — 15 plans, one wave each (this phase is a chain of whole-repo passes; almost
+every plan touches `lib/**`, so genuine parallelism exists only in wave 1).** The five workstreams
+below were the input; the decomposition is recorded under "Plans" further down.
+
+**Measured at planning time, against the phase's own numbers:** dead files 14 at zero references
+(1,213 LOC) + 3 at one reference (273 LOC); analyzer 319 issues of which 223 have automated fixes and
+96 need a human; `GeniusWalletColors` has ~46 public members and **288** call sites outside
+`lib/theme/` while `GWColors` has only **21** fields — so the "field-for-field parity" premise
+required building the parity layer first (22-09), which is why the theme workstream is four plans and
+not one.
+
+**Natural split point:** plans 22-01..22-08 are the mechanical-hygiene half and are independently
+shippable (they end with a green CI and no design-system changes). 22-09..22-15 are the
+consolidation half. If this phase proves too large to run as one, split there.
+
+Workstreams (the original five, as input to the decomposition):
+
+- [ ] 22-01 Config + CI teeth — `analyzer.exclude` for `packages/genius_api/lib/ffi/**`; ~15 targeted
+      lint rules; `tool/check_brace_style.sh` + one-time brace auto-fix (192 sites); `.editorconfig`;
+      coding standards written into `AGENTS.md`; **fix `CLAUDE.md` (currently the bare text
+      `AGENTS.md`, which is not an import and loads nothing — must be `@AGENTS.md`)**; wire
+      `flutter test` + `flutter analyze` + `dart format --set-exit-if-changed` + the three existing
+      `tool/*.sh` security gates into `.github/workflows/build.yml`
+- [ ] 22-02 Deletion pass — 13–14 never-imported files (~1,400 LOC); `test/local_wallet_storage_test.dart`
+      (makes the suite green); dead `google_fonts` dep (Inter is bundled; only ref disables runtime
+      fetching); `GeniusWalletFontSize`; dedupe `radiusXl`/`radius3xl`; **rename the 9 hand-written
+      production widgets named `*.g.dart`** so the analyzer stops excluding them
+- [ ] 22-03 Golden baseline — `alchemist` CI goldens (Ahem font ⇒ platform-independent, so Windows vs
+      CI rendering cannot flake) on the design-system primitives only, not full screens. This is the
+      safety net 22-04 and 22-05 are verified against
+- [ ] 22-04 Theme consolidation — demote `GeniusWalletColors` to private primitives; `context.gw`
+      extension for the 128 lookups (with fallback); fix the 114 mode-breaking sites, worst first
+      (`toast_widget.dart` is a fully inverted palette, `gw_button.dart` hardcodes white, `lib/reown/`
+      has 74 violations in 6 files); replace the forked `_Message` in `swap_settings_drawer.dart` that
+      loses `GWWarningNote`'s documented light-mode amber contrast fix; add a mono type token
+      (JetBrainsMono is bundled but reached by raw string in 6 files); de-hex 9 gradient values in
+      `GWDecorations`. Use `Workiva/dart_codemod` (AST) for bulk call-site rewrites, not regex
+- [ ] 22-05 Component extraction — **Rule of Three: only extract at 3+ call sites.** `GWAppBar` (7),
+      `GWChangePill` (7), `GWCopyRow` (3 forks + 8 raw), `GWHoverable` (9). `GWTimeframeSegment` (2)
+      is extracted as a named exception: it is a character-identical 150-line duplicate, so there is
+      no abstraction to guess at. **Deferred at 2 sites: `GWPriceBlock`, `GWStatRail`.** Extract as
+      real `StatelessWidget`s, never `_buildFoo()` helpers. Migrate hand-rolled `Scaffold`s onto the
+      existing `GWScreen` (currently used exactly once while 20+ screens re-roll it)
+
+Plans:
+
+- [ ] 22-01-PLAN.md — Deletion pass: 14 never-imported files + 3 adjudicated, the dead test file
+      (512/1 → 512/0), the dead font dependency, the duplicate radius alias
+- [ ] 22-02-PLAN.md — `tool/check_brace_style.sh` with `--count` and `--self-test`, plus
+      `.editorconfig`. The self-test is mandatory: a gate that never fails is not a gate
+- [ ] 22-03-PLAN.md — Rename the 9 hand-written `*.g.dart` widgets, move the shadow guard
+      (`verify_additive_boundary.sh` + `shadow-baseline.txt`) with them, retire `GeniusWalletFontSize`.
+      **The one sanctioned analyzer rise in this phase** — un-hiding 9 files sets a new ceiling
+- [ ] 22-04-PLAN.md — Brace auto-fix across `lib/` + `test/` via a `--fix` mode sharing the gate's
+      detector; multi-line and `else` cases refused and hand-closed
+- [ ] 22-05-PLAN.md — `dart fix --apply --code=<rule>`, one rule per commit (~223 issues, 12 commits),
+      in **both** packages; residue inventory written for 22-06
+- [ ] 22-06-PLAN.md — Hand-fix the ~96 remainder → **analyze 0, exit 0**. Risk-stratified:
+      `unawaited()` never `await`; `mounted` guards recorded as the one sanctioned semantic delta
+- [ ] 22-07-PLAN.md — Alchemist golden baseline on ~17 design-system primitives, **light and dark**.
+      Blocking human package-legitimacy gate before install
+- [ ] 22-08-PLAN.md — CI teeth: a `quality` job in `build.yml` (format, analyze, brace gate, the 3
+      existing security gates, tests, coverage) + `codecov.yml`. Proven on a real CI run, not locally
+- [ ] 22-09-PLAN.md — `GWColors` extended to field-for-field parity with the legacy palette, seeded
+      byte-identically; `context.gw` accessor with a fallback; parity test. **Zero call sites changed**
+- [ ] 22-10-PLAN.md — AST codemod migrating the 288 colour reads onto `context.gw`, directory by
+      directory, goldens byte-identical each time. Blocking human package-legitimacy gate
+- [ ] 22-11-PLAN.md — Close the codemod residue; fix `toast_widget.dart`, `gw_button.dart` and
+      `lib/reown/`; replace the `_Message` fork with `GWWarningNote`. **The only plan permitted to
+      move a golden**, and only with a measured WCAG ratio per change
+- [ ] 22-12-PLAN.md — Demote the primitives via `part`/`part of` so the compiler enforces privacy;
+      mono type token; de-hex `GWDecorations`; `tool/check_raw_colors.sh` scoped to clean directories
+      with a written widening plan
+- [ ] 22-13-PLAN.md — Extract `GWHoverable` (9), `GWChangePill` (7), `GWTimeframeSegment` (2, the
+      named exception). `GWPriceBlock`/`GWStatRail` stay deferred at 2 sites
+- [ ] 22-14-PLAN.md — Extract `GWCopyRow` (3 forks + 8 raw clipboard writes; full value always
+      copied, nothing logged) and `GWAppBar` (the 7 identical of 17, outliers classified not forced)
+- [ ] 22-15-PLAN.md — `GWScreen` audit of all ~28 `Scaffold` sites with a per-site verdict, migrate
+      only the provably-equivalent, then the phase human walk and closeout
+
+### Phase 23: Architecture: state ownership, layering, routing, genius_api split
+
+**Goal:** Bring the app onto Flutter's officially recommended layering (UI → repository → service)
+without changing user-visible behaviour, writing the safety net *before* the change in every case.
+
+**Requirements**: TBD
+**Depends on:** Phase 22
+**Plans:** 0 plans
+
+**Alignment check.** Flutter's official architecture guidance is MVVM but explicitly
+package-agnostic — it names `flutter_bloc` as an acceptable choice — so moving state into cubits is
+aligned, not a detour. Three official rules map directly onto findings: *"Views… shouldn't contain
+any business logic"*, *"the service is a private member, so that the UI layer can't bypass the
+repository"*, and single-source-of-truth. Reference implementation: the Compass app in
+`flutter/samples`.
+
+**Scope reducer.** The published triage is that state needed by exactly one widget is *correctly*
+`setState`. The audit already confirmed hover/press `setState` in this repo is correct usage. So the
+raw setState counts below are an upper bound, not a conversion list — triage first.
+
+**⚠ Crypto constraint (applies to every plan in this phase):** never let a private key or mnemonic
+become a field on a Cubit state class — bloc states are equatable, printable, and land in
+`BlocObserver` logs by default. BIP-39/BIP-32 ship official spec vectors that serve as free,
+externally-authoritative characterization tests; pin them before touching anything crypto-adjacent.
+Published guidance is to isolate the signing/key surface rather than modernize it — **consider
+leaving key derivation and signing entirely alone this cycle.**
+
+Plans:
+
+- [ ] 23-01 Characterization tests first — `lib/onboarding/` (2,415 LOC, zero tests), `lib/reown/`
+      (1,374 LOC, zero tests, dApp transaction approval), `lib/hive/`, and the blocs (zero bloc tests
+      today). Approval/golden-master style: document *actual* behaviour including existing bugs
+- [ ] 23-02 Layering — 16 widgets reaching past the repository directly into Hive/`File`/HTTP/SDK;
+      make services private members behind repositories; adopt the official `Result` pattern for the
+      services that currently return `null`/empty on failure
+- [ ] 23-03 State ownership — triage then lift genuinely-shared state into cubits (`swap_screen` 15
+      setStates, `bridge_screen` 11, `settings_screen` 19, `reown_connect_button` 11); resolve dual
+      ownership of network state (`NetworkProvider` vs `WalletDetailsCubit`); de-duplicate the
+      `GeniusApi` double registration at `main.dart:157` and `:319` (note: bloc+provider coexisting is
+      **not** a smell — `flutter_bloc` depends on `provider`, and Flutter officially recommends
+      `provider` for DI; the defect is only the duplicate registration)
+- [ ] 23-04 Routing — make `redirect` pure (`router.dart:51-71` currently dispatches 5 AppBloc events
+      as a bootstrap side effect on every navigation); route-name constants for 16 hardcoded literals;
+      typed route extras; **gate the unguarded dev routes at `router.dart:199,203`** (`TokenProbeScreen`
+      and `/design_gallery` are reachable in release and the 44 KB gallery is retained by the route
+      table). Contrast: `responsive_overlay.dart:483` gates `DevToolsBubble` correctly
+- [ ] 23-05 `genius_api` split — 1,257 LOC mixing FFI, secure storage, web3, protobuf, config file IO
+      and pricing, and it imports `package:flutter/material.dart` so the data layer depends on the UI
+      framework. Split behind the existing class as a facade (cluster methods by which fields they
+      touch); done when the facade holds no instance variables. Callers do not change
+- [ ] 23-06 Error handling — `AppBloc` has no try/catch and no error state on 6 handlers in its
+      critical boot path; the processing timer permanently cancels itself on one transient failure;
+      4 empty catch blocks in `web_view_mobile.dart`; 9 `Future`/`StreamBuilder`s with no `hasError`
+      branch
+
 ---
 
 ### Phase 21: Drawer language rollout - the four decided drawer designs, applied to every drawer
