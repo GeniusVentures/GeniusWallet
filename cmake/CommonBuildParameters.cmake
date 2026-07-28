@@ -78,7 +78,7 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 # Snappy
 set(Snappy_DIR "${THIRDPARTY_BUILD_DIR}/snappy/lib/cmake/Snappy")
 set(Snappy_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/snappy/include")
-find_package(Snappy CONFIG REQUIRED)
+find_package(Snappy CONFIG QUIET)  # not shipped in TestNet-Phase-3.1 thirdparty bundle; rocksdb built without it (if(OFF)) and nothing else consumes it
 
 # rocksdb
 set(RocksDB_DIR "${THIRDPARTY_BUILD_DIR}/rocksdb/lib/cmake/rocksdb")
