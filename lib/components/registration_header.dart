@@ -53,7 +53,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                   left: 30.0,
                   right: 30.0,
                   top: 100.0,
-                  child: Container(
+                  child: SizedBox(
                     width: widget.constraints.maxWidth * 0.84,
                     child: AutoSizeText(
                       widget.ovrSubtitle ??
