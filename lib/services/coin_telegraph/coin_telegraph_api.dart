@@ -45,13 +45,13 @@ Future<List<NewsArticle>> fetchCoinTelegraphNews() async {
     final newsList = items.map((node) {
       final unescape = HtmlUnescape();
       final title = unescape.convert(
-        node.getElement('title')?.text ?? 'No title',
+        node.getElement('title')?.innerText ?? 'No title',
       );
-      final link = node.getElement('link')?.text ?? '';
+      final link = node.getElement('link')?.innerText ?? '';
       final description = unescape.convert(
-        node.getElement('description')?.text ?? '',
+        node.getElement('description')?.innerText ?? '',
       );
-      final rawDate = node.getElement('pubDate')?.text ?? '';
+      final rawDate = node.getElement('pubDate')?.innerText ?? '';
 
       DateTime? parsedDate;
       try {
