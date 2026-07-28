@@ -1,0 +1,33 @@
+# Patch-coverage policy -- Phase 22 plan 08, wiring the locked decision from
+# 22-CONTEXT.md § Coverage into an enforceable Codecov config.
+#
+# `patch.default.target: 80%` gates NEW/CHANGED code: a pull request that adds
+# meaningfully untested logic fails this status check. `project.default.target:
+# auto` with a small `threshold` is a no-regression tripwire on the OVERALL
+# number -- it allows normal noise (a few lines moved, a refactor that shifts
+# coverage-eligible line counts) without failing, but stops the total from
+# quietly sliding backwards.
+#
+# Deliberately NOT Very Good Ventures' 100% patch target. This is an existing
+# ~40k-LOC application with a large pre-existing untested surface; a 100% gate
+# today would demand a big-bang backfill from every future PR author, which is
+# not this phase's job. Phase 22's charge is to stop the bleeding -- nothing
+# NEW ships untested past the 80% bar -- not to retro-test the whole app in
+# one plan. Do not raise this to 100% without a separate, explicit decision.
+#
+# Setup required before this is fully live: a repository owner must add
+# CODECOV_TOKEN as a GitHub Actions repository secret (codecov.io -> the
+# GeniusWallet repository -> Settings -> Repository Upload Token) and enable
+# the repository on codecov.io. Until that happens, the upload step in
+# .github/workflows/build.yml's `quality` job skips itself with a message
+# rather than failing the build -- see 22-08-SUMMARY.md.
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
