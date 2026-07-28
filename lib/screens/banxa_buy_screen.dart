@@ -104,7 +104,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
               state.fiats.isEmpty &&
               state.cryptos.isEmpty;
 
-          final width = GeniusBreakpoints.small * 2 / 3;
+          const width = GeniusBreakpoints.small * 2 / 3;
           return Scaffold(
             // token_info_screen.dart:92-129's back-arrow AppBar recipe,
             // applied unconditionally: this screen is always pushed at

@@ -29,7 +29,7 @@ void main() {
 
       // And the visible span genuinely fills the window: 8% headroom each side
       // leaves the data occupying ~86% of the height.
-      final visibleSpan = 0.79 - 0.65;
+      const visibleSpan = 0.79 - 0.65;
       expect((hi - lo) / visibleSpan, closeTo(1.16, 0.01));
     });
 

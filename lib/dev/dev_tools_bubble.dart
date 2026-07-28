@@ -94,11 +94,11 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
   /// anchored at that corner stays fully below the header and within the
   /// viewport on every edge.
   Offset _clamp(Offset insets, Size screenSize, double width, double height) {
-    final minRight = _edgeInset;
+    const minRight = _edgeInset;
     final maxRightRaw = screenSize.width - width - _edgeInset;
     final maxRight = maxRightRaw < minRight ? minRight : maxRightRaw;
 
-    final minTop = _headerHeight + _edgeInset;
+    const minTop = _headerHeight + _edgeInset;
     final maxTopRaw = screenSize.height - height - _edgeInset;
     final maxTop = maxTopRaw < minTop ? minTop : maxTopRaw;
 

@@ -317,7 +317,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     // Trend tints the % pill only; the chart itself is always mint
     // (see `mintColor` below), decoupled from up/down.
     final Color trendColor = isUptrend ? gw.statusSuccess : gw.statusError;
-    final Color mintColor = GeniusWalletColors.brandSecondary;
+    const Color mintColor = GeniusWalletColors.brandSecondary;
 
     return MouseRegion(
       onExit: _onHoverExit,

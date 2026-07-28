@@ -171,7 +171,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
     final words = context.read<NewWalletBloc>().state.recoveryWords;
     originalWords = List<String>.from(words);
     final random = Random();
-    final int emptyCount = SELECT_WORD_COUNT;
+    const int emptyCount = SELECT_WORD_COUNT;
 
     emptyIndices = <int>{};
     while (emptyIndices.length < emptyCount) {
