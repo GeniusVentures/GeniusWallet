@@ -184,7 +184,7 @@ class _SplashState extends State<Splash> {
                     horizontal: GeniusWalletConsts.space16,
                   ),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
+                    constraints: const BoxConstraints(
                       maxWidth: GeniusBreakpoints.small * 2 / 3,
                     ),
                     child: Image.asset(

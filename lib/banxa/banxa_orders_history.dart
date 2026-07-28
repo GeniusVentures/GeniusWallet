@@ -220,7 +220,9 @@ class _OrdersPageState extends State<OrdersPage> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
+                constraints: const BoxConstraints(
+                  maxWidth: GeniusBreakpoints.xxl,
+                ),
                 child: Column(
                   spacing: 16.0,
                   children: [

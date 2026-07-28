@@ -22,7 +22,7 @@ class _GeniusBackButton extends State<GeniusBackButton> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(),
+      decoration: const BoxDecoration(),
       child: GeniusBackButtonCustom(
         child: Stack(
           children: [

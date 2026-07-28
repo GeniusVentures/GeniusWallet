@@ -163,9 +163,9 @@ class WalletsOverviewState extends State<WalletsOverview> {
             );
           },
         ),
-        SizedBox(height: 20),
-        SGNUSConnectionWidget(),
-        SGNUSConnectionStatusWidget(),
+        const SizedBox(height: 20),
+        const SGNUSConnectionWidget(),
+        const SGNUSConnectionStatusWidget(),
         BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
           builder: (context, state) {
             if (state.selectedWallet != null) {

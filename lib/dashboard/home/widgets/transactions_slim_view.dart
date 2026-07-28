@@ -266,7 +266,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     List<Transaction> txs,
   ) {
     return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
+      constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.medium),
       child: LayoutBuilder(
         builder: (context, constraints) {
           // `_panel` has two hosts with opposite height contracts. On the

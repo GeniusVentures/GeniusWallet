@@ -72,11 +72,11 @@ Widget _boundedHost(double height, {bool withAction = false}) => MaterialApp(
 /// the widget's `LayoutBuilder` is `double.infinity`.
 Widget _unboundedHost() => MaterialApp(
   theme: ThemeData(extensions: [GWColors.dark()]),
-  home: Scaffold(
+  home: const Scaffold(
     body: SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: const [GWEmptyState(title: _title, message: _message)],
+        children: [GWEmptyState(title: _title, message: _message)],
       ),
     ),
   ),

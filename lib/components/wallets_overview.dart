@@ -121,8 +121,8 @@ class WalletsOverviewState extends State<WalletsOverview> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             const Row(children: [Flexible(child: SGNUSConnectionWidget())]),
-            SizedBox(height: 8),
-            SGNUSConnectionStatusWidget(),
+            const SizedBox(height: 8),
+            const SGNUSConnectionStatusWidget(),
             BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
               builder: (context, state) {
                 if (state.selectedWallet != null) {

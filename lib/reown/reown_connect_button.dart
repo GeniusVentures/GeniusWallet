@@ -280,7 +280,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
               ],
             ),
             content: ConstrainedBox(
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 minWidth: GeniusBreakpoints.small * 1 / 2,
               ),
               child: Column(

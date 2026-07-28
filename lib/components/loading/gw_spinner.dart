@@ -70,15 +70,15 @@ class _SpinnerPainter extends CustomPainter {
       ..color = GeniusWalletColors.borderSubtle;
     canvas.drawOval(inset, trackPaint);
 
-    final shader = SweepGradient(
+    final shader = const SweepGradient(
       startAngle: 0,
       endAngle: 2 * math.pi,
-      colors: const [
+      colors: [
         GeniusWalletColors.brandPrimary,
         GeniusWalletColors.brandSecondary,
         GeniusWalletColors.brandSecondaryBright,
       ],
-      stops: const [0.0, 0.6, 1.0],
+      stops: [0.0, 0.6, 1.0],
     ).createShader(rect);
 
     final arcPaint = Paint()

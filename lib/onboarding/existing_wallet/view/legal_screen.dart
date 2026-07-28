@@ -35,7 +35,7 @@ class LegalScreen extends StatelessWidget {
           horizontal: GeniusWalletConsts.space8,
         ),
         child: ConstrainedBox(
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth: GeniusBreakpoints.small * 2 / 3,
           ),
           child: Column(

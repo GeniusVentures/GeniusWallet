@@ -113,7 +113,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
     final height = _expanded ? _panelMaxHeight(screenSize) : _collapsedSize;
     setState(() {
       final current =
-          _position ?? Offset(_edgeInset, _headerHeight + _edgeInset);
+          _position ?? const Offset(_edgeInset, _headerHeight + _edgeInset);
       // Anchor is (rightInset, topInset): moving the pointer right shrinks
       // the right inset; moving it down grows the top inset.
       final updated = Offset(current.dx - delta.dx, current.dy + delta.dy);
@@ -124,7 +124,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
-    _position ??= Offset(_edgeInset, _headerHeight + _edgeInset);
+    _position ??= const Offset(_edgeInset, _headerHeight + _edgeInset);
 
     final panelMaxWidth = _panelMaxWidth(screenSize);
     final panelMaxHeight = _panelMaxHeight(screenSize);

@@ -400,10 +400,10 @@ class TokenInfoScreen extends StatelessWidget {
   /// route, under the same section line, so nothing on the page changes
   /// position between a covered coin and an uncovered one. The actions and the
   /// Info card are still not part of it - Receive does not need a market price.
-  Widget _noMarketData(BuildContext context) => GWCard(
+  Widget _noMarketData(BuildContext context) => const GWCard(
     radius: GeniusWalletConsts.radiusMd,
-    padding: const EdgeInsets.all(GeniusWalletConsts.space8),
-    child: const GWEmptyState(
+    padding: EdgeInsets.all(GeniusWalletConsts.space8),
+    child: GWEmptyState(
       icon: Icons.show_chart,
       title: 'No market data',
       message:

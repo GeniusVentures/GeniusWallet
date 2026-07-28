@@ -78,7 +78,7 @@ class ImportSecurityScreen extends StatelessWidget {
                         horizontal: GeniusWalletConsts.space8,
                       ),
                       child: ConstrainedBox(
-                        constraints: BoxConstraints(
+                        constraints: const BoxConstraints(
                           maxWidth: GeniusBreakpoints.small * 0.8,
                         ),
                         child: Column(

@@ -724,7 +724,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                       ),
                       if (secure) ...[
                         const SizedBox(width: GeniusWalletConsts.space2),
-                        Icon(
+                        const Icon(
                           Icons.lock,
                           color: GeniusWalletColors.statusSuccess,
                           size: 13,

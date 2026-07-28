@@ -81,7 +81,7 @@ class SubmitJobScreen extends StatelessWidget {
               Align(
                 alignment: AlignmentGeometry.topCenter,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
+                  constraints: const BoxConstraints(
                     maxWidth: GeniusBreakpoints.large,
                   ),
                   child: SingleChildScrollView(
@@ -105,7 +105,7 @@ class SubmitJobScreen extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 10.0),
+                            const SizedBox(width: 10.0),
                             const FaIcon(
                               FontAwesomeIcons.gasPump,
                               color: Colors.red,
@@ -165,7 +165,7 @@ class SubmitJobScreen extends StatelessWidget {
                               label: const Text('Purchase'),
                             ),
                           if (!isPurchaseable)
-                            Text(
+                            const Text(
                               '* You do not have enough GNUS',
                               style: TextStyle(
                                 color: Colors.redAccent,

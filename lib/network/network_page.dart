@@ -89,9 +89,11 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
       body: Align(
         alignment: AlignmentGeometry.topCenter,
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
+            constraints: const BoxConstraints(
+              maxWidth: GeniusBreakpoints.medium,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.max,

@@ -23,7 +23,7 @@ class _IncorrectPin extends State<IncorrectPin> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(),
+      decoration: const BoxDecoration(),
       child: Stack(
         children: [
           Positioned(

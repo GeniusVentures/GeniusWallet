@@ -163,9 +163,9 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                   Align(
                     alignment: Alignment.topCenter,
                     child: SingleChildScrollView(
-                      padding: EdgeInsetsGeometry.all(20.0),
+                      padding: const EdgeInsetsGeometry.all(20.0),
                       child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: width),
+                        constraints: const BoxConstraints(maxWidth: width),
                         child: Column(
                           spacing: 20.0,
                           children: [
@@ -325,7 +325,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                               onChanged: (v) => context
                                   .read<MakeOrderCubit>()
                                   .setWalletText(v),
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Wallet Address',
                               ),
                             ),

@@ -124,7 +124,7 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
           GeniusWalletConsts.space4,
         ),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
+          constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

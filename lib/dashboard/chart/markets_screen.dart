@@ -85,7 +85,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
         // into; the last 4 are below visibility at this alpha.
         padding: const EdgeInsets.fromLTRB(0, GeniusWalletConsts.space32, 0, 8),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
+          constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
           child: Column(
             children: [
               // Carries the page gutter itself so it stays on the same axis as

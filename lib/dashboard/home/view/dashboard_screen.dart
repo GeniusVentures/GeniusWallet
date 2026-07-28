@@ -240,9 +240,9 @@ class _OverviewContributionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       spacing: GeniusWalletConsts.space3,
-      children: const [
+      children: [
         // OverviewDashboardView (wallet + processing) STAYS top-left at every
         // width — that is its location, confirmed by Jakub 2026-07-25. Do not
         // reorder this row to chase seam alignment; use _ChartMarketsRow for
@@ -262,9 +262,9 @@ class _ChartMarketsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       spacing: GeniusWalletConsts.space3,
-      children: const [
+      children: [
         // Chart leads, Markets trails. The seam-alignment reorder (sketch 038
         // A2 — Markets first, so both rows split 40/60) was built and walked
         // live on 2026-07-25 and REJECTED: aligned seams were not worth moving
@@ -291,12 +291,12 @@ class OneColumnDashBoardView extends StatelessWidget {
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 300),
-            child: OverviewDashboardView(),
+            child: const OverviewDashboardView(),
           ),
           spacing,
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 300),
-            child: ContributionsDashboardView(),
+            child: const ContributionsDashboardView(),
           ),
           spacing,
           ConstrainedBox(
@@ -499,7 +499,7 @@ class _MarketsDashboardViewState extends State<MarketsDashboardView> {
           // message, icon override or action is passed: this branch has no
           // retry affordance today and this plan adds no new user-facing
           // affordance or copy to it.
-          return DashboardScrollContainer(
+          return const DashboardScrollContainer(
             // Develop's string, byte-for-byte (UI-SPEC §6) -- see the note
             // on the error branch above; the same rule applies here.
             child: GWEmptyState(title: "No market data available"),
@@ -547,11 +547,11 @@ class ChartDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardScrollContainer(
+    return const DashboardScrollContainer(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           _ChartSectionHeader(),
           Expanded(
             child: CryptoLiveChart(

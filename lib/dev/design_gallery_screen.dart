@@ -711,10 +711,10 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                   ],
                 ),
               ),
-              _Section(
+              const _Section(
                 title: 'Token row',
                 child: Column(
-                  children: const [
+                  children: [
                     GWTokenRow(
                       symbol: 'ETH',
                       name: 'Ethereum',
@@ -732,10 +732,10 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                   ],
                 ),
               ),
-              _Section(
+              const _Section(
                 title: 'Wallet card',
                 child: Column(
-                  children: const [
+                  children: [
                     GWWalletCard(walletName: 'Ethereum'),
                     SizedBox(height: GeniusWalletConsts.space4),
                     GWWalletCard(
@@ -749,11 +749,11 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                 title: 'Swap FAB',
                 child: GWSwapFab(onPressed: () {}),
               ),
-              _Section(
+              const _Section(
                 title: 'Empty / Error / Loading states',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
+                  children: [
                     GWEmptyState(title: 'No transactions yet'),
                     SizedBox(height: GeniusWalletConsts.space8),
                     GWErrorState(),
@@ -848,9 +848,9 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                   ],
                 ),
               ),
-              _Section(
+              const _Section(
                 title: 'Loading (duplicate)',
-                child: const Loading(text: 'Shadow Loading — Phase 2 tokens'),
+                child: Loading(text: 'Shadow Loading — Phase 2 tokens'),
               ),
               _Section(
                 title: 'Splash (duplicate)',
@@ -905,12 +905,12 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                   ),
                 ),
               ),
-              _Section(
+              const _Section(
                 title: 'QR',
                 // Finding 16 -- the quiet zone must stay LIGHT in both
                 // appearance modes; develop's crypto_address_qr.dart is
                 // theme-invariant and untouched here.
-                child: const CryptoAddressQR(
+                child: CryptoAddressQR(
                   address: '0x1234567890abcdef1234567890abcdef12345678',
                   network: 'Ethereum',
                   iconPath: 'assets/images/crypto/eth.png',

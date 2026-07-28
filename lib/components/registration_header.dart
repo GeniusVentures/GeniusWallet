@@ -44,7 +44,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                   height: 56,
                   child: Container(
                     width: widget.constraints.maxWidth * 1.0,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: GeniusWalletColors.deepBlueCardColor,
                     ),
                   ),

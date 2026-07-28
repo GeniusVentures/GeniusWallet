@@ -117,5 +117,5 @@ final List<Widget Function()> generatedClosureConstructors =
       () => const Recoveryword(BoxConstraints()),
       () => const RegistrationHeader(BoxConstraints()),
       () => const WalletPreview(),
-      () => WalletInformation(const BoxConstraints(), ovrAddressField: '0x0'),
+      () => const WalletInformation(BoxConstraints(), ovrAddressField: '0x0'),
     ];

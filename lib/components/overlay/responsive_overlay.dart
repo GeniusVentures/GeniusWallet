@@ -142,7 +142,7 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
             const SDKAccountManagerButton(),
             _trackDivider(gw),
           ],
-          AccountDropdownSelector(),
+          const AccountDropdownSelector(),
           _trackDivider(gw),
           ReownConnectButton(
             walletAddress:
