@@ -20,7 +20,7 @@ class BottomDrawer extends StatelessWidget {
     // Fail-soft read: registers the InheritedWidget dependency that forces
     // this widget to rebuild on a live appearance toggle.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Container(
+    return ColoredBox(
       // Remapped from the legacy non-appearance-aware deepBlueTertiary
       // constant to the closest appearance-aware sheet/menu surface token
       // (documented value remap, see 04-04-SUMMARY.md).

@@ -380,7 +380,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                     ),
                   ),
                 if (state.showOverlay || isBootLoading)
-                  Container(
+                  ColoredBox(
                     color: Colors.black45,
                     child: Center(child: Loading(text: state.loadingMessage)),
                   ),

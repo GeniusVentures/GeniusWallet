@@ -663,7 +663,7 @@ class _NewsPhoto extends StatelessWidget {
     return CachedNetworkImage(
       imageUrl: url ?? '',
       fit: BoxFit.cover,
-      placeholder: (context, url) => Container(
+      placeholder: (context, url) => ColoredBox(
         color: gw.surfaceSunken,
         child: const Center(child: Loading()),
       ),
