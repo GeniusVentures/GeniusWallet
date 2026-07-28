@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -330,7 +332,7 @@ class SDKAccountManagerButton extends StatelessWidget {
       return;
     }
     await Clipboard.setData(ClipboardData(text: mnemonic));
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     if (navigator.context.mounted) {
       // `navigator.context` is the ROOT navigator's and outlives the popped
       // drawer, so the guard above is the correct one -- the analyzer

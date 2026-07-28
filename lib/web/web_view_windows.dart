@@ -86,7 +86,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
 
   Future<void> _initializeWebView() async {
     await _controller.initialize();
-    _controller.loadUrl(widget.url);
+    unawaited(_controller.loadUrl(widget.url));
     _urlController.text = widget.url;
 
     // Add the initial tab

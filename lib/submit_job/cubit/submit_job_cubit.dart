@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -216,7 +217,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       return;
     }
 
-    fetchGnusBalanceWithDelay();
+    unawaited(fetchGnusBalanceWithDelay());
 
     emit(state.copyWith(txHash: txHash, isBridgingTokens: false));
   }
@@ -225,7 +226,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   // fetching this immediately after doing a transaction seems to return a stale value
   Future<void> fetchGnusBalanceWithDelay() async {
     await Future.delayed(const Duration(milliseconds: 5000));
-    fetchGnusBalance();
+    unawaited(fetchGnusBalance());
   }
 
   void resetState() {

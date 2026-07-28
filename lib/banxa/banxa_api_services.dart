@@ -237,7 +237,7 @@ class BanxaApiService {
       }
     }
 
-    checkStatus();
+    unawaited(checkStatus());
 
     timer = Timer.periodic(interval, (_) => checkStatus());
 

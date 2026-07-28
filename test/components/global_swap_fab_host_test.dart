@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/buttons/gw_swap_fab.dart';
@@ -112,7 +114,7 @@ void main() {
     expect(find.byType(GWSwapFab), findsOneWidget);
 
     // Exactly what tapping the FAB does — push, not go.
-    router.push('/swap');
+    unawaited(router.push('/swap'));
     await tester.pumpAndSettle();
 
     expect(
@@ -139,7 +141,7 @@ void main() {
     await tester.pumpWidget(_app(router));
     await tester.pump();
 
-    router.push('/swap');
+    unawaited(router.push('/swap'));
     await tester.pumpAndSettle();
     expect(find.byType(GWSwapFab), findsNothing);
 
@@ -172,7 +174,7 @@ void main() {
 
     expect(find.byType(GWSwapFab), findsOneWidget);
 
-    router.push('/token-info');
+    unawaited(router.push('/token-info'));
     await tester.pumpAndSettle();
 
     expect(find.text('token detail placeholder'), findsOneWidget);

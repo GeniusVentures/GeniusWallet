@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/transaction.dart' as model;
@@ -177,11 +179,13 @@ void Function() handleDappRequests({
             type: TransactionType.transfer,
           );
 
-          SwapResultDrawer.show(
-            context: navigatorKey.currentContext!,
-            isSuccess: true,
-            txHash: txHash ?? "",
-            coinSymbol: coinSymbol,
+          unawaited(
+            SwapResultDrawer.show(
+              context: navigatorKey.currentContext!,
+              isSuccess: true,
+              txHash: txHash ?? "",
+              coinSymbol: coinSymbol,
+            ),
           );
 
           pendingRequestIds.remove(requestId);
@@ -205,11 +209,13 @@ void Function() handleDappRequests({
               ),
             ),
           );
-          SwapResultDrawer.show(
-            context: navigatorKey.currentContext!,
-            isSuccess: false,
-            txHash: "",
-            coinSymbol: coinSymbol,
+          unawaited(
+            SwapResultDrawer.show(
+              context: navigatorKey.currentContext!,
+              isSuccess: false,
+              txHash: "",
+              coinSymbol: coinSymbol,
+            ),
           );
           pendingRequestIds.remove(requestId);
           debugPrint('❌ Failed to Swap: ${result.errorMessage}');

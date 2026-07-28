@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -169,7 +170,7 @@ class WebViewMobileState extends State<WebViewMobile> {
           onPageFinished: (String loadedUrl) async {
             debugPrint('[DEBUG] onPageFinished: $loadedUrl');
             _onNav(controller!, loadedUrl);
-            _syncTitle(controller);
+            unawaited(_syncTitle(controller));
             if (!Platform.isMacOS &&
                 url.contains('uniswap.org') &&
                 loadedUrl == 'about:blank') {
@@ -182,7 +183,7 @@ class WebViewMobileState extends State<WebViewMobile> {
               document.title = "DARK MODE SET";
             ''', context: 'uniswap-about-blank-theme');
               await Future.delayed(const Duration(milliseconds: 80));
-              controller.loadRequest(Uri.parse(url));
+              unawaited(controller.loadRequest(Uri.parse(url)));
               return;
             }
 

@@ -111,7 +111,7 @@ void main() {
       // Prime a second listener so the harness's zone does not report the
       // deliberately-thrown error as unhandled before run() awaits it. Futures
       // support multiple independent listeners, so this does not interfere.
-      rejecting.catchError((_) {});
+      unawaited(rejecting.catchError((_) {}));
 
       await expectLater(
         seq.run(onStage: (_, _, _) {}, work: rejecting),

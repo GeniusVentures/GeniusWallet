@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -193,7 +195,7 @@ class WalletInformationState extends State<WalletInformation> {
                     semanticLabel: "Buy GNUS crypto",
                     icon: Icons.attach_money,
                     onPressed: () async {
-                      context.push('/buy');
+                      unawaited(context.push('/buy'));
                     },
                   ),
                   const SizedBox(width: 8),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
@@ -285,7 +286,7 @@ Future<String?> fetchCoinPricesSum({
   final marketData = await fetchCoinsMarketData(coinIds: coinIds);
 
   if (marketData.isEmpty) {
-    geniusApi.updateAccountFetchDate();
+    unawaited(geniusApi.updateAccountFetchDate());
     return null;
   }
 
@@ -295,7 +296,7 @@ Future<String?> fetchCoinPricesSum({
 
   final double totalBalance = calculateTotalBalance(coinBalances, coinPrices);
 
-  geniusApi.saveAccountBalance(totalBalance);
+  unawaited(geniusApi.saveAccountBalance(totalBalance));
 
   return "\$ ${NumberFormat('#,##0.00').format(totalBalance)}";
 }

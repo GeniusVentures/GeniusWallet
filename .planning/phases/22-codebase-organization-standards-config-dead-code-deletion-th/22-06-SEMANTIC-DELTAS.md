@@ -43,8 +43,76 @@ See the Task 3 commit for the full retyping; the sites below are the ones that n
 thought to avoid changing what happens on a malformed payload (all preserved: silent null/empty
 fallback, no new throw introduced).
 
-(Filled in as Task 3's dynamic-calls work proceeds -- see commit messages for the final list.)
+All 20 sites preserved failure behaviour exactly: nothing that returned null/empty on malformed
+data now throws, and nothing that threw before now silently swallows. The only change in *kind* of
+exception is at sites that previously relied on a dynamic method/index dispatch failing with
+`NoSuchMethodError` -- those now fail with `TypeError`/`CastError` from an explicit `as` cast
+instead, since the cast is evaluated eagerly instead of the call being resolved (and failing) at
+the point of use. This is not a behaviour change in the "does it throw" sense, only in the
+exception's runtime type, which nothing in this codebase currently pattern-matches on.
 
-## Phase 23 candidates (sites that looked like they should be sequenced, left `unawaited()` for now)
+Sites that needed active thought (not a mechanical `as Type` bolt-on):
 
-(Filled in as Task 3's `unawaited_futures` work proceeds.)
+- `lib/assets/read_asset.dart` `_fetchTokenData` (5 casts): `Web3.fetchTokenDetailsMulticall`
+  returns `Future<Map<String, dynamic>>` with an already-known concrete shape
+  (`symbol: String, decimals: int, name: String, balance: double`) -- read directly off
+  `web3.dart`'s own construction of that map (`packages/genius_api/lib/web3/web3.dart`) rather than
+  guessed. The `results.length < 4` early-return path there returns `{}`, so a missing key still
+  produces the same throw (now `TypeError: type 'Null' is not a subtype of type 'String'` instead
+  of `NoSuchMethodError` on `.isEmpty`) -- the "could not find token, skip" catch block still fires.
+- `lib/banxa/banxa_model.dart` `BanxaKycResponse.fromJson`: `data`/`account` needed intermediate
+  `Map<String, dynamic>?` typing (not just the leaf casts) since they are reused across two
+  statements each.
+- `lib/services/coin_gecko/coin_gecko_api.dart` historical-price entries: `entry[0] ~/ 1000` relied
+  on `~/`'s dynamic dispatch working identically whether the CoinGecko timestamp arrives as `int` or
+  `double`. `prices.cast<List<dynamic>>()` plus `(entry[0] as num) ~/ 1000` preserves that -- `num`
+  still dispatches `~/` polymorphically, so an int-or-double timestamp both still work, only the
+  cast on the outer `List` element is now explicit.
+- `lib/reown/handle_dapp_requests.dart`: `SessionRequestEvent.params` is declared `dynamic` by the
+  `reown_sign` SDK itself (not this codebase's choice), so the cast boundary is exactly at the
+  SDK/app seam -- `(event.params as List<dynamic>)[0] as Map<String, dynamic>`. This is dApp
+  transaction-approval input; preserving "throws on malformed params" here matters because a
+  swallowed-and-defaulted malformed transaction is a worse failure mode than a visible crash.
+
+## `unawaited_futures` -- 17 sites, all wrapped in `unawaited()`, zero `await` added
+
+`git diff --unified=0 -- lib/ | grep '^\+' | grep -iE '\bawait\b'` returns nothing -- confirmed no
+new `await` anywhere in `lib/`. Every site below is either genuine fire-and-forget UI/telemetry, or
+(one case) a site where adding `await` would have introduced a real bug.
+
+| # | File:Line | Future | Why fire-and-forget |
+|---|---|---|---|
+| 1 | `lib/account/sdk_account_manager.dart:333` | `HapticFeedback.lightImpact()` | Buzz feedback; sequencing it would only delay the snackbar for no benefit |
+| 2 | `lib/banxa/banxa_api_services.dart:240` | `checkStatus()` (local closure) | **Awaiting this would be a bug**, not just a style choice -- see note below |
+| 3 | `lib/components/wallet_information.dart:196` | `context.push('/buy')` | Fire navigation, no follow-up logic in the `onPressed` callback |
+| 4 | `lib/reown/handle_dapp_requests.dart:180` | `SwapResultDrawer.show(...)` (success) | UI toast; awaiting would delay `pendingRequestIds.remove` and the Hive transaction write behind the user dismissing a dialog |
+| 5 | `lib/reown/handle_dapp_requests.dart:208` (now further down after the wrap) | `SwapResultDrawer.show(...)` (failure) | Same reasoning as #4 |
+| 6 | `lib/services/coin_gecko/coin_gecko_api.dart:288` | `geniusApi.updateAccountFetchDate()` | Bookkeeping timestamp write; the function returns `null` right after regardless of when the write lands |
+| 7 | `lib/services/coin_gecko/coin_gecko_api.dart:298` | `geniusApi.saveAccountBalance(...)` | Persist-then-return-a-formatted-string; the UI does not need the persist to finish before showing the balance |
+| 8 | `lib/submit_job/cubit/submit_job_cubit.dart:219` | `fetchGnusBalanceWithDelay()` | The function's own doc comment: a deliberate 5s-delayed background refresh; awaiting it would stall the `emit()` right after by 5 seconds |
+| 9 | `lib/submit_job/cubit/submit_job_cubit.dart:228` | `fetchGnusBalance()` (inside the delayed helper) | Last statement in an already-detached helper; nothing consumes its `double?` result |
+| 10 | `lib/web/web_utils.dart:16` | `context.push('/web', ...)` | Fire navigation from a `void ... async` helper with nothing after it |
+| 11 | `lib/web/web_view_mobile.dart:172` | `_syncTitle(controller)` | Title-cache refresh is independent of the dark-mode JS injection that follows in the same callback |
+| 12 | `lib/web/web_view_mobile.dart:185` | `controller.loadRequest(Uri.parse(url))` | Immediately followed by `return;` -- nothing to sequence against |
+| 13 | `lib/web/web_view_windows.dart:89` | `_controller.loadUrl(widget.url)` | Followed by synchronous tab-list/subscription setup that must not wait on the page load |
+| 14 | `test/boot_sequence_test.dart:114` | `rejecting.catchError((_) {})` | Test-harness technique (see the file's own comment): primes a second listener on the future so the zone doesn't report the deliberately-thrown error as unhandled; the priming itself must not block |
+| 15-17 | `test/components/global_swap_fab_host_test.dart:115,142,175` | `router.push(...)` (GoRouter) | The returned `Future` only resolves when the pushed route is later **popped** -- awaiting it here would hang the test indefinitely; the test only needs the synchronous route-match state, read via the following `pumpAndSettle()` |
+
+### `banxa_api_services.dart` -- confirmed a real bug would have been introduced by `await`
+
+`pollOrderStatus`'s `checkStatus()` closure calls `timer?.cancel()` on success/failure/timeout, then
+`timer = Timer.periodic(...)` is assigned on the very next line, unconditionally, after the initial
+`checkStatus()` call. Tracing what `await checkStatus()` would have done: the assignment of `timer`
+happens *after* the line that calls `checkStatus()`, but `checkStatus()` itself contains an
+`await getOrderStatus(...)`, which is a real network round trip. With `await checkStatus();` in
+place, `pollOrderStatus` would suspend at that call, and if `checkStatus()`'s first run resolved a
+terminal status, its `timer?.cancel()` would fire on a **still-null `timer`** (a harmless no-op,
+since it runs before line `timer = Timer.periodic(...)` ever executes) -- but then `timer =
+Timer.periodic(...)` would run anyway, unconditionally, arming a live periodic poll for an already-
+resolved `Completer`. On the next tick, `checkStatus()` would call `completer.complete(status)` a
+second time on an already-completed `Completer`, throwing `Bad state: Future already completed`
+uncaught inside the `Timer.periodic` callback (the function's own `catch` re-enters
+`completer.completeError`, which throws again for the same reason). This is exactly the class of
+regression the plan's "do not add `await`" rule exists to catch -- confirmed by tracing, not just
+asserted. `unawaited()` is correct here for a reason beyond style: the existing "call once
+synchronously, then start the interval timer" ordering is load-bearing.
