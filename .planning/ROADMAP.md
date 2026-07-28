@@ -1030,7 +1030,7 @@ state ownership and money paths are Phase 24.
 
 **Requirements**: ORG-01, ORG-02, ORG-03
 **Depends on:** Phase 21
-**Plans:** 4/8 plans executed
+**Plans:** 5/8 plans executed
 
 **Requirement IDs coined for this phase** (ROADMAP said TBD; REQUIREMENTS.md carries no
 codebase-quality requirement). ORG-01..03 close in Phase 22; ORG-04..05 close in Phase 23:
@@ -1117,7 +1117,7 @@ Plans:
 - [x] 22-04-PLAN.md — Brace auto-fix across `lib/` + `test/` via a `--fix` mode sharing the gate's
       detector; multi-line and `else` cases refused and hand-closed
 
-- [ ] 22-05-PLAN.md — `dart fix --apply --code=<rule>`, one rule per commit (~223 issues, 12 commits),
+- [x] 22-05-PLAN.md — `dart fix --apply --code=<rule>`, one rule per commit (~223 issues, 12 commits),
       in **both** packages; residue inventory written for 22-06
 
 - [ ] 22-06-PLAN.md — Hand-fix the ~96 remainder → **analyze 0, exit 0**. Risk-stratified:
