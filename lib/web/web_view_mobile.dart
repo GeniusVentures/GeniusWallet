@@ -169,12 +169,12 @@ class WebViewMobileState extends State<WebViewMobile> {
           onPageFinished: (String loadedUrl) async {
             print('[DEBUG] onPageFinished: $loadedUrl');
             _onNav(controller!, loadedUrl);
-            _syncTitle(controller!);
+            _syncTitle(controller);
             if (!Platform.isMacOS &&
                 url.contains('uniswap.org') &&
                 loadedUrl == 'about:blank') {
               print('[DEBUG] Injecting localStorage for Uniswap (about:blank)');
-              await _safeRunJavaScript(controller!, '''
+              await _safeRunJavaScript(controller, '''
               localStorage.setItem("interface_color_theme", "\\"Dark\\"");
               localStorage.setItem("uni-theme", "\\"dark\\"");
               document.title = "DARK MODE SET";
@@ -192,7 +192,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                 );
                 retried = true;
                 await Future.delayed(const Duration(milliseconds: 350));
-                await _safeRunJavaScript(controller!, '''
+                await _safeRunJavaScript(controller, '''
                 if (!document.body.classList.contains('dark')) {
                   localStorage.setItem("interface_color_theme", "\\"Dark\\"");
                   localStorage.setItem("uni-theme", "\\"dark\\"");
