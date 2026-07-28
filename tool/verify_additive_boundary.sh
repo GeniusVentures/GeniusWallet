@@ -11,7 +11,7 @@
 #
 #   Loading               lib/components/loading/loading.dart   vs  lib/components/loading.dart
 #   Splash                 lib/components/splash.dart             vs  lib/screens/splash.dart
-#   WalletsOverview(+State) lib/components/wallets_overview.g.dart vs lib/components/wallet_overview.dart
+#   WalletsOverview(+State) lib/components/wallets_overview.dart vs lib/components/wallet_overview.dart
 #
 # Different import paths mean the Dart compiler and `flutter analyze` see NO collision at all.
 # An import silently repointed from the canonical path to the shadow path -- an IDE
@@ -22,10 +22,14 @@
 # WHY THE ANALYZER CANNOT DO THIS JOB
 # ------------------------------------
 # `flutter analyze` resolves each file's own imports and has no "is this class name already
-# declared elsewhere under a different path" check. It is also explicitly configured blind to
-# `*.g.dart` files (analysis_options.yaml:5) -- and the single most dangerous shadow of the
-# three (WalletsOverview) lives in exactly such a file. That is the whole reason this script
-# exists instead of a lint rule.
+# declared elsewhere under a different path" check -- that structural blind spot is the whole
+# reason this script exists instead of a lint rule, independent of any single file's exclude
+# status. Until Phase 22 plan 03, the WalletsOverview shadow additionally lived at a
+# `*.g.dart` path that `analysis_options.yaml:5` excludes from `flutter analyze` outright,
+# making it briefly the single most dangerous of the three pairs -- Phase 22-03 renamed it to
+# `wallets_overview.dart` (a hand-written widget misnamed as generated output, not real
+# generated code) specifically to close that second blind spot; the path-collision hazard this
+# script guards against is unchanged by the rename.
 #
 # WHAT THIS SCRIPT CHECKS
 # ------------------------
@@ -35,8 +39,9 @@
 #            file happens to start importing the canonical path), and the shadow path's
 #            importer set must be a subset of that pair's allowlist.
 # Check 2 -- the generic gate: re-derive, from the working tree, every public class name
-#            declared in more than one file under lib/ (including *.g.dart -- this check must
-#            NOT honor analysis_options.yaml's exclude), and assert that set is a subset of the
+#            declared in more than one file under lib/ (including genuinely-generated *.g.dart
+#            files, e.g. under lib/hive/models/ -- this check must NOT honor
+#            analysis_options.yaml's exclude), and assert that set is a subset of the
 #            CAPTURED baseline in tool/shadow-baseline.txt. develop's census is *not* empty
 #            before this phase starts (4 pre-existing legitimate parallel bloc-event
 #            duplicates) -- see tool/shadow-baseline.txt and 03-SHADOW-NAMES.md for why those
@@ -129,6 +134,15 @@ echo "== Check 1: shadow import boundary =="
 # the ~9.6s native freeze (13-CONTEXT M1). This is a REAL caller leaving, not
 # a silent path-swap, so the baseline drops 19 -> 18 in the same commit that
 # removed the import. See 13-03-SUMMARY.md.
+#
+# Phase 22 plan 01 (dead-code deletion) deletes lib/dashboard/chart/markets_search_bar.dart
+# as a genuinely never-imported file (its only hit anywhere was a prose comment in
+# lib/components/sliding_drawer_button.dart:11, not a live import -- see 22-01-DELETIONS.md).
+# That plan's own dead-code adjudication did not cross-reference this baseline, so the file's
+# real `Loading` import silently left the canonical set without the baseline being updated in
+# that commit. Phase 22 plan 03 (this rename plan) discovered the drift while re-proving this
+# guard and corrects it here, same class of change as the 13-03 note above: a REAL caller
+# leaving (the whole file was deleted), not a silent path-swap. Baseline drops 18 -> 17.
 LOADING_CANONICAL_EXPECTED='lib/banxa/banxa_orders_history.dart
 lib/banxa/banxa_payment.dart
 lib/banxa/checkout_qr.dart
@@ -137,7 +151,6 @@ lib/components/coins/view/coins_screen.dart
 lib/components/custom_future_builder.dart
 lib/components/sgnus/sgnus_connection_widget.dart
 lib/components/splash.dart
-lib/dashboard/chart/markets_search_bar.dart
 lib/dashboard/news/view/crypto_news_screen.dart
 lib/onboarding/existing_wallet/view/import_security_screen.dart
 lib/onboarding/new_wallet/view/recovery_phrase_screen.dart
@@ -166,7 +179,7 @@ check_pair \
   "WalletsOverview" \
   "package:genius_wallet/components/wallet_overview.dart" \
   "lib/dashboard/home/view/dashboard_screen.dart" \
-  "package:genius_wallet/components/wallets_overview.g.dart" \
+  "package:genius_wallet/components/wallets_overview.dart" \
   "lib/dev/generated_closure_canary.dart"
 
 # ---------------------------------------------------------------------------------------
@@ -174,7 +187,7 @@ check_pair \
 # ---------------------------------------------------------------------------------------
 
 echo ""
-echo "== Check 2: duplicate public class name census (includes .g.dart -- analyzer is blind to those) =="
+echo "== Check 2: duplicate public class name census (includes genuinely-generated *.g.dart files -- analyzer is blind to those) =="
 
 BASELINE_FILE="tool/shadow-baseline.txt"
 if [ ! -f "$BASELINE_FILE" ]; then
