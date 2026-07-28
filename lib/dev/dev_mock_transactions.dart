@@ -92,9 +92,7 @@ class DevMockTransactions {
       Transaction(
         hash: '0xdevmock04',
         fromAddress: '0xFromMocked04',
-        recipients: [
-          TransferRecipients(toAddr: '0xToMocked04', amount: '500'),
-        ],
+        recipients: [TransferRecipients(toAddr: '0xToMocked04', amount: '500')],
         timeStamp: daysAgo(1, 13, 40),
         transactionDirection: TransactionDirection.sent,
         fees: '0.001',
@@ -107,9 +105,7 @@ class DevMockTransactions {
       Transaction(
         hash: '0xdevmock05',
         fromAddress: '0xFromMocked05',
-        recipients: [
-          TransferRecipients(toAddr: '0xToMocked05', amount: '500'),
-        ],
+        recipients: [TransferRecipients(toAddr: '0xToMocked05', amount: '500')],
         timeStamp: daysAgo(1, 17, 5),
         transactionDirection: TransactionDirection.received,
         fees: '0.001',
@@ -122,9 +118,7 @@ class DevMockTransactions {
       Transaction(
         hash: '0xdevmock06',
         fromAddress: '0xFromMocked06',
-        recipients: [
-          TransferRecipients(toAddr: '0xToMocked06', amount: '100'),
-        ],
+        recipients: [TransferRecipients(toAddr: '0xToMocked06', amount: '100')],
         timeStamp: daysAgo(1, 21, 30),
         transactionDirection: TransactionDirection.sent,
         fees: '0.001',
@@ -139,9 +133,7 @@ class DevMockTransactions {
       Transaction(
         hash: '0xdevmock07',
         fromAddress: '0xFromMocked07',
-        recipients: [
-          TransferRecipients(toAddr: '0xToMocked07', amount: '1.0'),
-        ],
+        recipients: [TransferRecipients(toAddr: '0xToMocked07', amount: '1.0')],
         timeStamp: daysAgo(3, 10, 20),
         transactionDirection: TransactionDirection.sent,
         fees: '0.001',
@@ -181,9 +173,7 @@ class DevMockTransactions {
       Transaction(
         hash: '0xdevmock09',
         fromAddress: '0xFromMocked09',
-        recipients: [
-          TransferRecipients(toAddr: '0xToMocked09', amount: '25'),
-        ],
+        recipients: [TransferRecipients(toAddr: '0xToMocked09', amount: '25')],
         timeStamp: minutesAgo(3),
         transactionDirection: TransactionDirection.sent,
         fees: '0.42',
@@ -197,9 +187,7 @@ class DevMockTransactions {
       Transaction(
         hash: '0xdevmock10',
         fromAddress: '0xFromMocked10',
-        recipients: [
-          TransferRecipients(toAddr: '0xToMocked10', amount: '500'),
-        ],
+        recipients: [TransferRecipients(toAddr: '0xToMocked10', amount: '500')],
         timeStamp: minutesAgo(40),
         transactionDirection: TransactionDirection.received,
         fees: '0.001',
@@ -213,9 +201,7 @@ class DevMockTransactions {
       Transaction(
         hash: '0xdevmock11',
         fromAddress: '0xFromMocked11',
-        recipients: [
-          TransferRecipients(toAddr: '0xToMocked11', amount: '3.5'),
-        ],
+        recipients: [TransferRecipients(toAddr: '0xToMocked11', amount: '3.5')],
         timeStamp: daysAgo(3, 19, 10),
         transactionDirection: TransactionDirection.sent,
         fees: '0.001',

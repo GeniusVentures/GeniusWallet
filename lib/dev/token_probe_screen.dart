@@ -53,10 +53,7 @@ class _TokenProbeScreenState extends State<TokenProbeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Design tokens',
-                  style: GeniusWalletTypography.headlineLg,
-                ),
+                Text('Design tokens', style: GeniusWalletTypography.headlineLg),
                 const SizedBox(height: GeniusWalletConsts.space6),
                 Text(
                   'This probe renders the new typography, surface decoration, '
@@ -86,8 +83,9 @@ class _TokenProbeScreenState extends State<TokenProbeScreen> {
                     ),
                     decoration: BoxDecoration(
                       gradient: GeniusWalletGradient.brandCta,
-                      borderRadius:
-                          BorderRadius.circular(GeniusWalletConsts.radiusPill),
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.radiusPill,
+                      ),
                     ),
                     child: Text(
                       'Brand CTA',

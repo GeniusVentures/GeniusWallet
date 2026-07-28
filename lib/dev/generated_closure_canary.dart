@@ -108,16 +108,16 @@ const List<Type> generatedClosureClasses = <Type>[
 /// not prove".
 final List<Widget Function()> generatedClosureConstructors =
     <Widget Function()>[
-  () => const IsactiveFalseCustom(),
-  () => const IsactiveTrueCustom(),
-  () => const GeniusBackButtonCustom(),
-  () => const WalletAgreementCustom(),
-  () => const IsactiveFalse(BoxConstraints()),
-  () => const IsactiveTrue(BoxConstraints()),
-  () => const GeniusBackButton(BoxConstraints()),
-  () => const IncorrectPin(BoxConstraints()),
-  () => const Recoveryword(BoxConstraints()),
-  () => const RegistrationHeader(BoxConstraints()),
-  () => const WalletPreview(),
-  () => WalletInformation(const BoxConstraints(), ovrAddressField: '0x0'),
-];
+      () => const IsactiveFalseCustom(),
+      () => const IsactiveTrueCustom(),
+      () => const GeniusBackButtonCustom(),
+      () => const WalletAgreementCustom(),
+      () => const IsactiveFalse(BoxConstraints()),
+      () => const IsactiveTrue(BoxConstraints()),
+      () => const GeniusBackButton(BoxConstraints()),
+      () => const IncorrectPin(BoxConstraints()),
+      () => const Recoveryword(BoxConstraints()),
+      () => const RegistrationHeader(BoxConstraints()),
+      () => const WalletPreview(),
+      () => WalletInformation(const BoxConstraints(), ovrAddressField: '0x0'),
+    ];

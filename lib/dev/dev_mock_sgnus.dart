@@ -26,8 +26,7 @@ class DevMockSgnus {
 
   /// Clearly-synthetic hex-shaped address with DEV legible in it, so it can
   /// never be mistaken for a real wallet address in a screenshot.
-  static const String address =
-      '0xDEV5GNUS00000000000000000000000000000001';
+  static const String address = '0xDEV5GNUS00000000000000000000000000000001';
 
   /// Mirrors the shape real SGNUS wallets are built with at
   /// `app_bloc.dart:302-311`. `walletName` is a dev-tool label, not product

@@ -122,12 +122,7 @@ class DevMockHoldings {
   void loadMissingIcon() {
     mockMode = true;
     coins = const [
-      Coin(
-        name: 'No Icon Coin',
-        symbol: 'NOICON',
-        iconPath: '',
-        balance: 42.5,
-      ),
+      Coin(name: 'No Icon Coin', symbol: 'NOICON', iconPath: '', balance: 42.5),
     ];
     marketData = {
       'noicon': _fixture(

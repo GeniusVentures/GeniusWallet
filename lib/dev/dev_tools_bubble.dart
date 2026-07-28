@@ -130,7 +130,12 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
     final panelMaxHeight = _panelMaxHeight(screenSize);
     final currentWidth = _expanded ? panelMaxWidth : _collapsedSize;
     final currentHeight = _expanded ? panelMaxHeight : _collapsedSize;
-    final position = _clamp(_position!, screenSize, currentWidth, currentHeight);
+    final position = _clamp(
+      _position!,
+      screenSize,
+      currentWidth,
+      currentHeight,
+    );
 
     return ValueListenableBuilder<GWAppearanceMode>(
       valueListenable: GWAppearance.instance,
@@ -255,58 +260,39 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             balance: DevMockHoldings.instance.totalBalance,
                           );
                         }),
-                        _devButton(
-                          'Long',
-                          () {
-                            DevMockHoldings.instance.loadExtreme();
-                            context
-                                .read<WalletDetailsCubit>()
-                                .injectMockCoins(
-                                  DevMockHoldings.instance.coins,
-                                  balance:
-                                      DevMockHoldings.instance.totalBalance,
-                                );
-                          },
-                          tooltip: 'Long / extreme values',
-                        ),
-                        _devButton(
-                          'No icon',
-                          () {
-                            DevMockHoldings.instance.loadMissingIcon();
-                            context
-                                .read<WalletDetailsCubit>()
-                                .injectMockCoins(
-                                  DevMockHoldings.instance.coins,
-                                  balance:
-                                      DevMockHoldings.instance.totalBalance,
-                                );
-                          },
-                          tooltip: 'Missing icon scenario',
-                        ),
-                        _devButton(
-                          'Mock txns',
-                          () {
-                            context.read<TransactionsCubit>().addTransactions(
-                              DevMockTransactions.instance.batch(
-                                isSgnus: false,
-                              ),
-                            );
-                            final sgnusTxController = context
-                                .read<GeniusApi>()
-                                .getSGNUSTransactionsController();
-                            for (final tx in DevMockTransactions.instance
-                                .batch(isSgnus: true)) {
-                              sgnusTxController.addTransaction(tx);
-                            }
-                            ToastManager.instance.showToast(
-                              context: context,
-                              title: 'Mock transactions added',
-                              message: 'Added 8 mock transactions',
-                              type: ToastType.success,
-                            );
-                          },
-                          tooltip: 'Inject mock transactions batch',
-                        ),
+                        _devButton('Long', () {
+                          DevMockHoldings.instance.loadExtreme();
+                          context.read<WalletDetailsCubit>().injectMockCoins(
+                            DevMockHoldings.instance.coins,
+                            balance: DevMockHoldings.instance.totalBalance,
+                          );
+                        }, tooltip: 'Long / extreme values'),
+                        _devButton('No icon', () {
+                          DevMockHoldings.instance.loadMissingIcon();
+                          context.read<WalletDetailsCubit>().injectMockCoins(
+                            DevMockHoldings.instance.coins,
+                            balance: DevMockHoldings.instance.totalBalance,
+                          );
+                        }, tooltip: 'Missing icon scenario'),
+                        _devButton('Mock txns', () {
+                          context.read<TransactionsCubit>().addTransactions(
+                            DevMockTransactions.instance.batch(isSgnus: false),
+                          );
+                          final sgnusTxController = context
+                              .read<GeniusApi>()
+                              .getSGNUSTransactionsController();
+                          for (final tx in DevMockTransactions.instance.batch(
+                            isSgnus: true,
+                          )) {
+                            sgnusTxController.addTransaction(tx);
+                          }
+                          ToastManager.instance.showToast(
+                            context: context,
+                            title: 'Mock transactions added',
+                            message: 'Added 8 mock transactions',
+                            type: ToastType.success,
+                          );
+                        }, tooltip: 'Inject mock transactions batch'),
                         _devButton(
                           'Fail acct',
                           () {
@@ -344,9 +330,9 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                                 .updateConnection(
                                   DevMockSgnus.instance.connection,
                                 );
-                            context
-                                .read<WalletDetailsCubit>()
-                                .injectMockWallet(DevMockSgnus.instance.wallet);
+                            context.read<WalletDetailsCubit>().injectMockWallet(
+                              DevMockSgnus.instance.wallet,
+                            );
                             context.read<AppBloc>().add(
                               ProcessingStatusTicked(),
                             );
@@ -376,9 +362,9 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                                 .updateConnection(
                                   DevMockSgnus.instance.connection,
                                 );
-                            context
-                                .read<WalletDetailsCubit>()
-                                .injectMockWallet(DevMockSgnus.instance.wallet);
+                            context.read<WalletDetailsCubit>().injectMockWallet(
+                              DevMockSgnus.instance.wallet,
+                            );
                             context.read<AppBloc>().add(
                               ProcessingStatusTicked(),
                             );
@@ -474,9 +460,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               .read<GeniusApi>()
                               .getSGNUSController()
                               .emptyConnection();
-                          context.read<AppBloc>().add(
-                            ProcessingStatusTicked(),
-                          );
+                          context.read<AppBloc>().add(ProcessingStatusTicked());
                         }),
                       ],
                     ),
@@ -486,9 +470,8 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                 _Section(
                   label: 'TEST FLOWS',
                   expanded: _testFlowsExpanded,
-                  onToggle: () => setState(
-                    () => _testFlowsExpanded = !_testFlowsExpanded,
-                  ),
+                  onToggle: () =>
+                      setState(() => _testFlowsExpanded = !_testFlowsExpanded),
                   gw: gw,
                   children: [
                     // Inlined verbatim from the deleted TestTransactionButton
@@ -502,51 +485,39 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                       runSpacing: GeniusWalletConsts.space2,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        _devButton(
-                          'Add tx',
-                          () {
-                            final txController = context
-                                .read<GeniusApi>()
-                                .getSGNUSTransactionsController();
-                            final fakeTx = getFakeTransaction(true);
-                            txController.addTransaction(fakeTx);
-                            ToastManager.instance.showToast(
-                              context: context,
-                              title: 'Transaction Added',
-                              message:
-                                  'Added: ${fakeTx.type} | ${fakeTx.transactionDirection}',
-                              type: ToastType.success,
-                            );
-                          },
-                          tooltip: 'Add SGNUS Test Transaction',
-                        ),
-                        _devButton(
-                          'Conn',
-                          () {
-                            ApproveDappConnectionDrawer.show(
-                              context: context,
-                              dappName: 'uniswap',
-                              dappUrl: 'uniswap.org',
-                              dappDescription:
-                                  'UniSwap is a decentralized exchange protocol that allows users to swap various cryptocurrencies directly from their wallets without the need for an intermediary.',
-                              iconUrl: 'https://uniswap.org/favicon.ico',
-                            );
-                          },
-                          tooltip: 'Test Approve Connection Drawer',
-                        ),
-                        _devButton(
-                          'Swap OK',
-                          () {
-                            SwapResultDrawer.show(
-                              context: context,
-                              isSuccess: true,
-                              txHash:
-                                  '0x0f9b1b9a7c65dd5c1c0c0ef879b1dd73bb7f7f2187bbf1a8329c7edc9b3d4abc',
-                              coinSymbol: 'ETH',
-                            );
-                          },
-                          tooltip: 'Test Swap Result Drawer (Success)',
-                        ),
+                        _devButton('Add tx', () {
+                          final txController = context
+                              .read<GeniusApi>()
+                              .getSGNUSTransactionsController();
+                          final fakeTx = getFakeTransaction(true);
+                          txController.addTransaction(fakeTx);
+                          ToastManager.instance.showToast(
+                            context: context,
+                            title: 'Transaction Added',
+                            message:
+                                'Added: ${fakeTx.type} | ${fakeTx.transactionDirection}',
+                            type: ToastType.success,
+                          );
+                        }, tooltip: 'Add SGNUS Test Transaction'),
+                        _devButton('Conn', () {
+                          ApproveDappConnectionDrawer.show(
+                            context: context,
+                            dappName: 'uniswap',
+                            dappUrl: 'uniswap.org',
+                            dappDescription:
+                                'UniSwap is a decentralized exchange protocol that allows users to swap various cryptocurrencies directly from their wallets without the need for an intermediary.',
+                            iconUrl: 'https://uniswap.org/favicon.ico',
+                          );
+                        }, tooltip: 'Test Approve Connection Drawer'),
+                        _devButton('Swap OK', () {
+                          SwapResultDrawer.show(
+                            context: context,
+                            isSuccess: true,
+                            txHash:
+                                '0x0f9b1b9a7c65dd5c1c0c0ef879b1dd73bb7f7f2187bbf1a8329c7edc9b3d4abc',
+                            coinSymbol: 'ETH',
+                          );
+                        }, tooltip: 'Test Swap Result Drawer (Success)'),
                         _devButton(
                           'Swap fail',
                           () {
@@ -560,26 +531,22 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           },
                           tooltip: 'Test Swap Result Drawer (Failure)',
                         ),
-                        _devButton(
-                          'Appr',
-                          () {
-                            ApproveTransactionDrawer.show(
-                              dappName: 'uniswap',
-                              dappUrl: 'https://uniswap.org',
-                              context: context,
-                              iconUrl: 'https://uniswap.org/favicon.ico',
-                              content: const SendTransactionDetails(
-                                fromAddress: '0x0From',
-                                toAddress: '0X0To',
-                                amount: '1.0',
-                                totalGasFee: '0.001',
-                                priorityFee: '0.001',
-                                maxFeePerGas: '0.001',
-                              ),
-                            );
-                          },
-                          tooltip: 'Test Approve Swap Drawer',
-                        ),
+                        _devButton('Appr', () {
+                          ApproveTransactionDrawer.show(
+                            dappName: 'uniswap',
+                            dappUrl: 'https://uniswap.org',
+                            context: context,
+                            iconUrl: 'https://uniswap.org/favicon.ico',
+                            content: const SendTransactionDetails(
+                              fromAddress: '0x0From',
+                              toAddress: '0X0To',
+                              amount: '1.0',
+                              totalGasFee: '0.001',
+                              priorityFee: '0.001',
+                              maxFeePerGas: '0.001',
+                            ),
+                          );
+                        }, tooltip: 'Test Approve Swap Drawer'),
                         _devButton(
                           'Succeed',
                           () {
@@ -788,9 +755,8 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                 _Section(
                   label: 'NAVIGATE',
                   expanded: _navigateExpanded,
-                  onToggle: () => setState(
-                    () => _navigateExpanded = !_navigateExpanded,
-                  ),
+                  onToggle: () =>
+                      setState(() => _navigateExpanded = !_navigateExpanded),
                   gw: gw,
                   children: [
                     Wrap(

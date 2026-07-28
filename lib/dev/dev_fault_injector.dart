@@ -41,7 +41,9 @@ class DevFaultInjector {
   /// the whole walk rests on. Returns false — and changes nothing — when
   /// nothing is armed, so a second call with no re-arm cannot fail twice.
   bool consumeAccountLoadFailure() {
-    if (_pendingAccountLoadFailures <= 0) return false;
+    if (_pendingAccountLoadFailures <= 0) {
+      return false;
+    }
     _pendingAccountLoadFailures -= 1;
     return true;
   }
