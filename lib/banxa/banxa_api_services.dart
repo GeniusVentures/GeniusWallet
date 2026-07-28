@@ -24,11 +24,11 @@ class BanxaApiService {
   };
 
   static String generateHmacSignature(String message) {
-    var key = utf8.encode(_apiKey);
-    var bytes = utf8.encode(message);
+    final key = utf8.encode(_apiKey);
+    final bytes = utf8.encode(message);
 
-    var hmac = Hmac(sha256, key);
-    var digest = hmac.convert(bytes);
+    final hmac = Hmac(sha256, key);
+    final digest = hmac.convert(bytes);
 
     return digest.toString();
   }

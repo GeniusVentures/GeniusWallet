@@ -99,7 +99,7 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                   stream: connectivityStream,
                   initialData: lastKnownConnectivity,
                   builder: (context, snapshot) {
-                    ConnectivityResult? statusValue =
+                    final ConnectivityResult? statusValue =
                         snapshot.data ?? lastKnownConnectivity;
                     String status = "Checking...";
                     if (statusValue != null) {

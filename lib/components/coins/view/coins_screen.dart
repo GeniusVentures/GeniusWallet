@@ -88,7 +88,7 @@ class CoinsScreenState extends State<CoinsScreen> {
 
     final coinGeckoCoinsList = await fetchAllCoinGeckoCoins();
 
-    List<String> coinGeckoIds = coins
+    final List<String> coinGeckoIds = coins
         .map((walletCoin) {
           // if there is a coin gecko id set use that instead of trying to match ( trying to match can have issues as symbols are not unique and the names may not match )
           if (walletCoin.coinGeckoId != null) {

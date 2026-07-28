@@ -29,7 +29,7 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
       Hive.box<HistoricalPriceCacheEntry>(historicalPricesBox);
 
   // Check for existing cached entry
-  HistoricalPriceCacheEntry? cacheEntry = box.get(coinId);
+  final HistoricalPriceCacheEntry? cacheEntry = box.get(coinId);
 
   if (cacheEntry != null) {
     final cacheAge = now - cacheEntry.timestamp;
@@ -290,11 +290,11 @@ Future<String?> fetchCoinPricesSum({
     return null;
   }
 
-  Map<String, double> coinPrices = marketData.map(
+  final Map<String, double> coinPrices = marketData.map(
     (key, value) => MapEntry(key, value.currentPrice),
   );
 
-  double totalBalance = calculateTotalBalance(coinBalances, coinPrices);
+  final double totalBalance = calculateTotalBalance(coinBalances, coinPrices);
 
   geniusApi.saveAccountBalance(totalBalance);
 

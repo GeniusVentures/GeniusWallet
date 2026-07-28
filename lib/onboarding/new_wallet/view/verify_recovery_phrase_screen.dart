@@ -171,7 +171,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
     final words = context.read<NewWalletBloc>().state.recoveryWords;
     originalWords = List<String>.from(words);
     final random = Random();
-    int emptyCount = SELECT_WORD_COUNT;
+    final int emptyCount = SELECT_WORD_COUNT;
 
     emptyIndices = <int>{};
     while (emptyIndices.length < emptyCount) {
@@ -227,7 +227,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
   void _onEmptyBoxClick(int index) {
     if (emptyIndices.contains(index) && userInputWords[index].isNotEmpty) {
       setState(() {
-        String wordToReturn = userInputWords[index];
+        final String wordToReturn = userInputWords[index];
         userInputWords[index] = '';
         shuffledAvailableWords.add(wordToReturn);
         shuffledAvailableWords.shuffle();

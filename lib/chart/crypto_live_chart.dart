@@ -313,7 +313,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       decimalDigits: tokenDecimals,
     ).format(_displayPrice);
 
-    bool isUptrend = _latestPrice >= _oldestPrice;
+    final bool isUptrend = _latestPrice >= _oldestPrice;
     // Trend tints the % pill only; the chart itself is always mint
     // (see `mintColor` below), decoupled from up/down.
     final Color trendColor = isUptrend ? gw.statusSuccess : gw.statusError;

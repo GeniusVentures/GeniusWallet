@@ -43,7 +43,8 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
           ? null
           : cryptos.where((c) => c.code == initialCryptoCode).firstOrNull;
 
-      List<PaymentMethod> methods = selFiat?.supportedPaymentMethods ?? [];
+      final List<PaymentMethod> methods =
+          selFiat?.supportedPaymentMethods ?? [];
       PaymentMethod? selMethod;
       if (initialPaymentMethodId != null && methods.isNotEmpty) {
         selMethod = methods.firstWhere(

@@ -8,7 +8,7 @@ class WalletUtils {
   }
 
   static String truncateToDecimals(String input, [int decimalPlaces = 5]) {
-    int decimalIndex = input.indexOf('.');
+    final int decimalIndex = input.indexOf('.');
     if (decimalIndex != -1 && input.length > decimalIndex + decimalPlaces + 1) {
       return input.substring(0, decimalIndex + decimalPlaces + 1);
     }

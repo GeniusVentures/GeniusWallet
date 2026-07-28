@@ -5,7 +5,7 @@ Widget buildTokenIcon({String? iconPath, required double size}) {
     return _defaultIcon(size);
   }
 
-  bool isNetworkImage =
+  final bool isNetworkImage =
       iconPath.startsWith('http') || iconPath.startsWith('https');
 
   return ClipOval(

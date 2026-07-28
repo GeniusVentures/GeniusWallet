@@ -19,7 +19,7 @@ Future<List<Network>> readNetworkAssets() async {
 
   final networksJson = await jsonDecode(response);
 
-  List<Network> networkList = List<Network>.from(
+  final List<Network> networkList = List<Network>.from(
     networksJson.map((network) => Network.fromJson(network)),
   );
 
@@ -36,7 +36,7 @@ Future<List<Network>> readNetworkBridgeAssets() async {
 
   final networksJson = await jsonDecode(response);
 
-  List<Network> networkList = List<Network>.from(
+  final List<Network> networkList = List<Network>.from(
     networksJson.map((network) => Network.fromJson(network)),
   );
 
@@ -55,7 +55,7 @@ Future<Token?> getTokenFromNetworkByName({
 
   final tokensJson = await jsonDecode(response);
 
-  List<Token> tokensList = List<Token>.from(
+  final List<Token> tokensList = List<Token>.from(
     tokensJson.map((token) => Token.fromJson(token)),
   );
 
@@ -73,7 +73,7 @@ Future<List<Token>> getTokensFromNetwork({required Network network}) async {
 
   final tokensJson = await jsonDecode(response);
 
-  List<Token> tokensList = List<Token>.from(
+  final List<Token> tokensList = List<Token>.from(
     tokensJson.map((token) => Token.fromJson(token)),
   );
 
@@ -125,7 +125,9 @@ Future<List<Coin>> readTokenAssets({
   required NetworkTokensProvider networkTokensProvider,
 }) async {
   final web3 = Web3();
-  List<Token> tokensList = networkTokensProvider.getTokensByNetwork(network);
+  final List<Token> tokensList = networkTokensProvider.getTokensByNetwork(
+    network,
+  );
 
   // Create futures for native token balance and token contract data
   final List<Future<Coin?>> futures = [

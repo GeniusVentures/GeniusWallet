@@ -753,7 +753,7 @@ class WebViewMobileState extends State<WebViewMobile> {
   }
 
   String _getFaviconUrl(String url) {
-    Uri uri = Uri.parse(url);
+    final Uri uri = Uri.parse(url);
     return "https://www.google.com/s2/favicons?domain=${uri.host}&sz=32";
   }
 }

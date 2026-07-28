@@ -187,7 +187,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       }
 
       if (isProcessing) {
-        double percentage = statusInfo.percentage;
+        final double percentage = statusInfo.percentage;
         emit(state.copyWith(processingPercentage: percentage));
       }
     } catch (_) {
