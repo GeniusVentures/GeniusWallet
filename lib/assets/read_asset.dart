@@ -18,7 +18,7 @@ Future<List<Network>> readNetworkAssets() async {
     return List.empty();
   }
 
-  final networksJson = await jsonDecode(response);
+  final networksJson = await jsonDecode(response) as List<dynamic>;
 
   final List<Network> networkList = List<Network>.from(
     networksJson.map((network) => Network.fromJson(network)),
@@ -35,7 +35,7 @@ Future<List<Network>> readNetworkBridgeAssets() async {
     return List.empty();
   }
 
-  final networksJson = await jsonDecode(response);
+  final networksJson = await jsonDecode(response) as List<dynamic>;
 
   final List<Network> networkList = List<Network>.from(
     networksJson.map((network) => Network.fromJson(network)),
@@ -54,7 +54,7 @@ Future<Token?> getTokenFromNetworkByName({
     return null;
   }
 
-  final tokensJson = await jsonDecode(response);
+  final tokensJson = await jsonDecode(response) as List<dynamic>;
 
   final List<Token> tokensList = List<Token>.from(
     tokensJson.map((token) => Token.fromJson(token)),
@@ -72,7 +72,7 @@ Future<List<Token>> getTokensFromNetwork({required Network network}) async {
     return List.empty();
   }
 
-  final tokensJson = await jsonDecode(response);
+  final tokensJson = await jsonDecode(response) as List<dynamic>;
 
   final List<Token> tokensList = List<Token>.from(
     tokensJson.map((token) => Token.fromJson(token)),
@@ -185,17 +185,17 @@ Future<Coin?> _fetchTokenData(
       rpcUrl: network.rpcUrl!,
     );
 
-    if (result['symbol'].isEmpty) {
+    if ((result['symbol'] as String).isEmpty) {
       debugPrint("❌ Could not find token ${tokenContract.name}, skipping");
       return null;
     }
 
     return Coin(
-      decimals: result['decimals'].toString(),
-      balance: result['balance'],
+      decimals: (result['decimals'] as int).toString(),
+      balance: result['balance'] as double,
       address: tokenContract.address,
-      name: result['name'],
-      symbol: result['symbol'],
+      name: result['name'] as String,
+      symbol: result['symbol'] as String,
       networkSymbol: network.symbol,
       iconPath: tokenContract.iconPath,
       coinGeckoId: tokenContract.coinGeckoId,

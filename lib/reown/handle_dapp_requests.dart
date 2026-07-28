@@ -34,7 +34,8 @@ void Function() handleDappRequests({
     pendingRequestIds.add(requestId);
 
     try {
-      final Map<String, dynamic> tx = event.params[0];
+      final Map<String, dynamic> tx =
+          (event.params as List<dynamic>)[0] as Map<String, dynamic>;
       final String method = event.method;
       final String topic = event.topic;
       final dappMetadata = walletKit.getActiveSessions()[topic]?.peer.metadata;

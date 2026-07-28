@@ -91,7 +91,8 @@ void main() {
       final clipboardCall = platformCalls.firstWhere(
         (call) => call.method == 'Clipboard.setData',
       );
-      expect(clipboardCall.arguments['text'], checkoutUrl);
+      final clipboardArgs = clipboardCall.arguments as Map<dynamic, dynamic>;
+      expect(clipboardArgs['text'], checkoutUrl);
 
       await tester.pumpAndSettle();
       expect(find.text('Continue to checkout'), findsNothing);

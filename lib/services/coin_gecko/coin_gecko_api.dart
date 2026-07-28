@@ -53,8 +53,8 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
       final List<dynamic> prices = data['prices'];
 
       final Map<int, double> historicalPrices = {
-        for (var entry in prices)
-          (entry[0] ~/ 1000): (entry[1] as num).toDouble(),
+        for (var entry in prices.cast<List<dynamic>>())
+          (entry[0] as num) ~/ 1000: (entry[1] as num).toDouble(),
       };
 
       final newCacheEntry = HistoricalPriceCacheEntry.fromIntMap(
@@ -211,15 +211,14 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
     if (response.statusCode == 200) {
       final coins = json.decode(response.body) as List<dynamic>;
 
-      final coinList = coins
-          .map(
-            (coin) => CoinGeckoCoin(
-              id: coin['id'] ?? '',
-              symbol: coin['symbol'] ?? '',
-              name: coin['name'] ?? '',
-            ),
-          )
-          .toList();
+      final coinList = coins.map((raw) {
+        final coin = raw as Map<String, dynamic>;
+        return CoinGeckoCoin(
+          id: coin['id'] ?? '',
+          symbol: coin['symbol'] ?? '',
+          name: coin['name'] ?? '',
+        );
+      }).toList();
 
       // Cache the new list and expiry time
       await box.put(coinListBoxKey, coinList);
