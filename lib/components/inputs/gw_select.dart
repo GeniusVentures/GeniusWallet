@@ -44,7 +44,7 @@ class GWSelect<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final field = DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       isExpanded: expand,
       onChanged: enabled ? onChanged : null,
       icon: const Icon(
