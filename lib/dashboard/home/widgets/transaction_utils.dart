@@ -30,14 +30,18 @@ String getExplorerUrl(String coinSymbol, String txHash) {
   };
 
   final baseUrl = explorerMap[lowercaseSymbol];
-  if (baseUrl == null || txHash.isEmpty) return '';
+  if (baseUrl == null || txHash.isEmpty) {
+    return '';
+  }
 
   return '$baseUrl$txHash';
 }
 
 String formatAmount(String amountStr) {
   final amount = double.tryParse(amountStr);
-  if (amount == null) return amountStr;
+  if (amount == null) {
+    return amountStr;
+  }
 
   final fixed = amount.toStringAsFixed(8); // preserve small precision
 
@@ -80,12 +84,20 @@ const String _amountFloorLabel = '<0.000001';
 String formatTxAmount(String raw) {
   final trimmed = raw.trim();
   final value = double.tryParse(trimmed);
-  if (value == null || value.isNaN || value.isInfinite) return trimmed;
-  if (value == 0) return '0.00';
+  if (value == null || value.isNaN || value.isInfinite) {
+    return trimmed;
+  }
+  if (value == 0) {
+    return '0.00';
+  }
 
   final magnitude = value.abs();
-  if (magnitude >= 1000) return _bigAmountFormat.format(magnitude);
-  if (magnitude < _amountFloor) return _amountFloorLabel;
+  if (magnitude >= 1000) {
+    return _bigAmountFormat.format(magnitude);
+  }
+  if (magnitude < _amountFloor) {
+    return _amountFloorLabel;
+  }
   return _smallAmountFormat.format(magnitude);
 }
 
@@ -484,7 +496,9 @@ TxRowContent txRowContent(
 /// row then prints NO value line, which is the honest outcome. Never `$0.00`.
 String? _fiatLine(String rawAmount, String symbol, Map<String, double> prices) {
   final parsed = double.tryParse(rawAmount.trim());
-  if (parsed == null || parsed.isNaN || parsed.isInfinite) return null;
+  if (parsed == null || parsed.isNaN || parsed.isInfinite) {
+    return null;
+  }
   final value = fiatValue(
     symbol: symbol,
     amount: parsed,
@@ -520,10 +534,14 @@ bool _sameCalendarDay(DateTime a, DateTime b) =>
 String txDayLabel(DateTime day, DateTime now) {
   final local = day.toLocal();
   final today = now.toLocal();
-  if (_sameCalendarDay(local, today)) return 'Today';
+  if (_sameCalendarDay(local, today)) {
+    return 'Today';
+  }
 
   final yesterday = DateTime(today.year, today.month, today.day - 1);
-  if (_sameCalendarDay(local, yesterday)) return 'Yesterday';
+  if (_sameCalendarDay(local, yesterday)) {
+    return 'Yesterday';
+  }
 
   return local.year == today.year
       ? _dayFormat.format(local)
@@ -548,7 +566,9 @@ class TxDay {
 /// reordered under it. [now] is injectable so tests are not time-of-day
 /// dependent.
 List<TxDay> groupTransactionsByDay(List<Transaction> txs, {DateTime? now}) {
-  if (txs.isEmpty) return const [];
+  if (txs.isEmpty) {
+    return const [];
+  }
 
   final reference = now ?? DateTime.now();
   final sorted = List<Transaction>.of(txs)

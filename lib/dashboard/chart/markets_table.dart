@@ -19,14 +19,14 @@ class MarketRow {
   final MarketRowData sort;
 
   MarketRow(this.coin, this.data)
-      : sort = MarketRowData(
-          rank: data.marketCapRank,
-          name: coin.name,
-          price: data.currentPrice,
-          changePct: data.priceChangePercentage24h,
-          marketCap: data.marketCap,
-          volume: data.totalVolume,
-        );
+    : sort = MarketRowData(
+        rank: data.marketCapRank,
+        name: coin.name,
+        price: data.currentPrice,
+        changePct: data.priceChangePercentage24h,
+        marketCap: data.marketCap,
+        volume: data.totalVolume,
+      );
 }
 
 // Fixed column widths (px). Below their sum the whole table scrolls
@@ -40,7 +40,8 @@ const double _wSpark = 120;
 const double _wCoinMin = 172;
 // _wChange * 3 = 1h + 24h + 7d change columns (1h/7d are placeholders for now).
 // + 8 inter-column gaps (Row spacing space6) between the 9 columns.
-const double _minTableWidth = _wRank +
+const double _minTableWidth =
+    _wRank +
     _wCoinMin +
     _wPrice +
     _wChange * 3 +
@@ -93,13 +94,14 @@ class _MarketsTableState extends State<MarketsTable> {
 
     return LayoutBuilder(
       builder: (context, c) {
-        if (c.maxWidth >= _minTableWidth) return table;
+        if (c.maxWidth >= _minTableWidth) {
+          return table;
+        }
         // Narrow: keep columns legible and let the table scroll sideways.
         // scrollbars:false — the desktop ScrollBehavior draws a horizontal bar
         // by default; hide it (the row still scrolls by trackpad/drag).
         return ScrollConfiguration(
-          behavior:
-              ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(width: _minTableWidth, child: table),
@@ -111,23 +113,32 @@ class _MarketsTableState extends State<MarketsTable> {
 
   // ---- header ----
   Widget _header(GWColors gw) {
-    Widget cell(String label, MarketSort? sort, double? width,
-        {bool alignEnd = true}) {
+    Widget cell(
+      String label,
+      MarketSort? sort,
+      double? width, {
+      bool alignEnd = true,
+    }) {
       final active = sort != null && sort == _sort;
       // Takes GWKicker's shared TYPE but not the widget: this header is
       // interactive (sort state + direction arrow), and a label component that
       // grew those would stop being a label. Values are byte-identical to what
       // this file carried before sketch 065 — 11 / w600 / 0.6 IS the dense
       // step; only the active-state colour is overridden here.
-      final style = GWKicker.style(gw, dense: true).copyWith(
-        color: active ? gw.textPrimary : gw.textSecondary,
-      );
+      final style = GWKicker.style(
+        gw,
+        dense: true,
+      ).copyWith(color: active ? gw.textPrimary : gw.textSecondary);
       final child = Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(
-            child: Text(label.toUpperCase(),
-                style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: Text(
+              label.toUpperCase(),
+              style: style,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           if (active)
             // gradient-tinted sort arrow (ShaderMask — a Gradient can't be a
@@ -135,8 +146,10 @@ class _MarketsTableState extends State<MarketsTable> {
             ShaderMask(
               shaderCallback: (bounds) =>
                   GeniusWalletGradient.brandCta.createShader(bounds),
-              child: Text(_ascending ? ' ↑' : ' ↓',
-                  style: style.copyWith(color: Colors.white)),
+              child: Text(
+                _ascending ? ' ↑' : ' ↓',
+                style: style.copyWith(color: Colors.white),
+              ),
             ),
         ],
       );
@@ -153,7 +166,9 @@ class _MarketsTableState extends State<MarketsTable> {
                 ),
               ),
       );
-      return width == null ? Expanded(child: aligned) : SizedBox(width: width, child: aligned);
+      return width == null
+          ? Expanded(child: aligned)
+          : SizedBox(width: width, child: aligned);
     }
 
     return Container(
@@ -210,8 +225,9 @@ class _MarketsTableState extends State<MarketsTable> {
               width: _wRank,
               child: Text(
                 '${data.marketCapRank}',
-                style: GeniusWalletTypography.numericBody
-                    .copyWith(color: gw.textSecondary),
+                style: GeniusWalletTypography.numericBody.copyWith(
+                  color: gw.textSecondary,
+                ),
               ),
             ),
             // coin identity
@@ -227,15 +243,17 @@ class _MarketsTableState extends State<MarketsTable> {
                       children: [
                         Text(
                           row.coin.name,
-                          style: GeniusWalletTypography.titleMd
-                              .copyWith(color: gw.textPrimary),
+                          style: GeniusWalletTypography.titleMd.copyWith(
+                            color: gw.textPrimary,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           row.coin.symbol.toUpperCase(),
-                          style: GeniusWalletTypography.labelMd
-                              .copyWith(color: gw.textSecondary),
+                          style: GeniusWalletTypography.labelMd.copyWith(
+                            color: gw.textSecondary,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -269,8 +287,10 @@ class _MarketsTableState extends State<MarketsTable> {
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: changeColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
@@ -292,8 +312,9 @@ class _MarketsTableState extends State<MarketsTable> {
               child: Text(
                 _compact(data.marketCap),
                 textAlign: TextAlign.right,
-                style: GeniusWalletTypography.numericBody
-                    .copyWith(color: gw.textPrimary),
+                style: GeniusWalletTypography.numericBody.copyWith(
+                  color: gw.textPrimary,
+                ),
               ),
             ),
             SizedBox(
@@ -301,8 +322,9 @@ class _MarketsTableState extends State<MarketsTable> {
               child: Text(
                 _compact(data.totalVolume),
                 textAlign: TextAlign.right,
-                style: GeniusWalletTypography.numericBody
-                    .copyWith(color: gw.textSecondary),
+                style: GeniusWalletTypography.numericBody.copyWith(
+                  color: gw.textSecondary,
+                ),
               ),
             ),
             // Right-align the sparkline like every numeric column (and like the
@@ -316,8 +338,10 @@ class _MarketsTableState extends State<MarketsTable> {
                 alignment: Alignment.centerRight,
                 child: SizedBox(
                   width: 72,
-                  child:
-                      _MiniSpark(sparkline: data.sparkline, color: changeColor),
+                  child: _MiniSpark(
+                    sparkline: data.sparkline,
+                    color: changeColor,
+                  ),
                 ),
               ),
             ),
@@ -336,22 +360,34 @@ class _MarketsTableState extends State<MarketsTable> {
       child: Text(
         '-',
         textAlign: TextAlign.right,
-        style: GeniusWalletTypography.numericBody
-            .copyWith(color: gw.textSecondary),
+        style: GeniusWalletTypography.numericBody.copyWith(
+          color: gw.textSecondary,
+        ),
       ),
     );
   }
 
   String _price(double v) {
     final decimals = v >= 1 ? 2 : 6;
-    return NumberFormat.currency(symbol: '\$', decimalDigits: decimals).format(v);
+    return NumberFormat.currency(
+      symbol: '\$',
+      decimalDigits: decimals,
+    ).format(v);
   }
 
   String _compact(double v) {
-    if (v >= 1e12) return '\$${(v / 1e12).toStringAsFixed(2)}T';
-    if (v >= 1e9) return '\$${(v / 1e9).toStringAsFixed(1)}B';
-    if (v >= 1e6) return '\$${(v / 1e6).toStringAsFixed(1)}M';
-    if (v >= 1e3) return '\$${(v / 1e3).toStringAsFixed(1)}K';
+    if (v >= 1e12) {
+      return '\$${(v / 1e12).toStringAsFixed(2)}T';
+    }
+    if (v >= 1e9) {
+      return '\$${(v / 1e9).toStringAsFixed(1)}B';
+    }
+    if (v >= 1e6) {
+      return '\$${(v / 1e6).toStringAsFixed(1)}M';
+    }
+    if (v >= 1e3) {
+      return '\$${(v / 1e3).toStringAsFixed(1)}K';
+    }
     return NumberFormat.currency(symbol: '\$', decimalDigits: 0).format(v);
   }
 }
@@ -364,7 +400,9 @@ class _MiniSpark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = sparkline;
-    if (data == null || data.isEmpty) return const SizedBox.shrink();
+    if (data == null || data.isEmpty) {
+      return const SizedBox.shrink();
+    }
     final spots = List<FlSpot>.generate(
       data.length,
       (i) => FlSpot(i.toDouble(), data[i]),

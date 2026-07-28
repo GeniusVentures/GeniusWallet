@@ -79,10 +79,12 @@ enum Filters {
     // `direction == sent`, so "Sent" listed 7 of the 11 fixtures instead of 3
     // and the categories stopped being categories. Every transaction now
     // belongs to exactly one type filter.
-    sent => _isPlainTransfer(tx) &&
-        tx.transactionDirection == TransactionDirection.sent,
-    received => _isPlainTransfer(tx) &&
-        tx.transactionDirection == TransactionDirection.received,
+    sent =>
+      _isPlainTransfer(tx) &&
+          tx.transactionDirection == TransactionDirection.sent,
+    received =>
+      _isPlainTransfer(tx) &&
+          tx.transactionDirection == TransactionDirection.received,
     mint => tx.type == TransactionType.mint,
     jobs => tx.type == TransactionType.process,
     // Escrow deliberately spans BOTH types; that must not regress.
@@ -361,7 +363,9 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         // The narrow branch reuses the panel outright rather than duplicating
         // a third layout, so a phone-width /transactions route looks exactly
         // like the dashboard panel.
-        if (!wide) return _panel(context, gw, scoped, txs);
+        if (!wide) {
+          return _panel(context, gw, scoped, txs);
+        }
 
         return Row(
           // start, NOT stretch. stretch forced both cards to the full window
@@ -415,6 +419,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     GWColors gw,
     List<Transaction> scoped,
     List<Transaction> txs, {
+
     /// True for the dashboard PANEL, whose card is a fixed height, so the list
     /// must scroll inside it. False for the PAGE, which scrolls as a whole
     /// (sketch 023-V3) — there the list is a plain Column and the card sizes
@@ -502,9 +507,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         // No divider after a day's LAST row — the next day header is itself
         // the separator there, and a rule as well would double it.
         if (i != day.items.length - 1) {
-          entries.add(
-            Divider(height: 1, thickness: 1, color: gw.borderSubtle),
-          );
+          entries.add(Divider(height: 1, thickness: 1, color: gw.borderSubtle));
         }
       }
     }
@@ -684,7 +687,6 @@ class _TransactionFilterBar extends StatelessWidget {
     );
   }
 
-
   PopupMenuItem<Filters> _header(GWColors gw, String text) {
     return PopupMenuItem<Filters>(
       enabled: false,
@@ -696,9 +698,7 @@ class _TransactionFilterBar extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: GeniusWalletTypography.labelMd.copyWith(
-          color: gw.textSecondary,
-        ),
+        style: GeniusWalletTypography.labelMd.copyWith(color: gw.textSecondary),
       ),
     );
   }
@@ -796,7 +796,8 @@ class _FilterChipState extends State<_FilterChip> {
     final bool lifted = _hovered && !active;
 
     final Color fg = active
-        ? GeniusWalletColors.textOnBrand // 10.6:1 / 7.7:1 on the two stops
+        ? GeniusWalletColors
+              .textOnBrand // 10.6:1 / 7.7:1 on the two stops
         : (lifted ? gw.textPrimary : gw.textSecondary);
 
     return Semantics(

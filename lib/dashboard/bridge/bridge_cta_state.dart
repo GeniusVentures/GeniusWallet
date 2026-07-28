@@ -48,7 +48,9 @@ BridgeCtaState resolveBridgeCtaState({
   required bool isSubmitting,
 }) {
   // Submitting outranks everything — the closure is mid-flight.
-  if (isSubmitting) return BridgeCtaState.submitting;
+  if (isSubmitting) {
+    return BridgeCtaState.submitting;
+  }
 
   final parsedAmount = double.tryParse(amount);
   if (amount.isEmpty || parsedAmount == null) {
@@ -61,11 +63,17 @@ BridgeCtaState resolveBridgeCtaState({
     return BridgeCtaState.insufficientBalance;
   }
 
-  if (isEstimating) return BridgeCtaState.estimatingGas;
+  if (isEstimating) {
+    return BridgeCtaState.estimatingGas;
+  }
 
-  if (isError) return BridgeCtaState.gasError;
+  if (isError) {
+    return BridgeCtaState.gasError;
+  }
 
-  if (hasEstimate) return BridgeCtaState.ready;
+  if (hasEstimate) {
+    return BridgeCtaState.ready;
+  }
 
   // A valid, affordable amount with no estimate in flight, none failed and
   // none received yet (the pre-debounce window). Reads as still-estimating

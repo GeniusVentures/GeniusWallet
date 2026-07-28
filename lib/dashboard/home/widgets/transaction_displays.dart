@@ -138,7 +138,9 @@ Widget _coinImage(String symbol, GWColors gw, {BoxFit fit = BoxFit.contain}) {
   // `symbol` arrives ALREADY sanitised by 12-02's `sanitizeCoinAsset` (a-z0-9,
   // max 12). Never re-derive this path from `tx.coinSymbol` — that raw value is
   // attacker-influenced and this is a filesystem path (T-12-01).
-  if (symbol.isEmpty) return _fallbackDot(gw);
+  if (symbol.isEmpty) {
+    return _fallbackDot(gw);
+  }
   return Image.asset(
     'assets/images/crypto/$symbol.png',
     fit: fit,
@@ -616,12 +618,16 @@ void showTransactionDetails(BuildContext context, Transaction tx) {
   final netRows = <Widget>[];
 
   void add(List<Widget> into, String label, String value, {Color? valueColor}) {
-    if (value.trim().isEmpty) return;
+    if (value.trim().isEmpty) {
+      return;
+    }
     into.add(_buildRow(context, label, value, valueColor: valueColor));
   }
 
   void addCopy(List<Widget> into, String label, String value) {
-    if (value.trim().isEmpty) return;
+    if (value.trim().isEmpty) {
+      return;
+    }
     into.add(_CopyRow(label: label, value: value.trim()));
   }
 

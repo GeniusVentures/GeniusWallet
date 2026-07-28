@@ -780,9 +780,7 @@ class _TimeframeTabState extends State<_TimeframeTab> {
                 ? null
                 : (lifted ? widget.hoverColor : Colors.transparent),
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-            boxShadow: (selected || lifted)
-                ? GeniusWalletElevation.card
-                : null,
+            boxShadow: (selected || lifted) ? GeniusWalletElevation.card : null,
           ),
           child: Text(
             widget.label,

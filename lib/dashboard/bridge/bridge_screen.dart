@@ -163,17 +163,15 @@ class BridgeScreenState extends State<BridgeScreen> {
           ),
           if (onTap != null) ...[
             const SizedBox(width: GeniusWalletConsts.space2),
-            Icon(
-              Icons.keyboard_arrow_down,
-              color: gw.textSecondary,
-              size: 14,
-            ),
+            Icon(Icons.keyboard_arrow_down, color: gw.textSecondary, size: 14),
           ],
         ],
       ),
     );
 
-    if (onTap == null) return chip;
+    if (onTap == null) {
+      return chip;
+    }
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
@@ -299,7 +297,9 @@ class BridgeScreenState extends State<BridgeScreen> {
         shouldMintTokens: true,
       );
 
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        return;
+      }
 
       final isSuccess = bridgeTokensResponse.isSuccess;
       final errorMessage = bridgeTokensResponse.errorMessage;
@@ -307,7 +307,8 @@ class BridgeScreenState extends State<BridgeScreen> {
       // ever surfaced the response's real error text -- routing to 031-B
       // without carrying it into the toast would silently discard the only
       // diagnostic a user gets from a genuine on-chain failure.
-      final failureMessage = (errorMessage != null && errorMessage.trim().isNotEmpty)
+      final failureMessage =
+          (errorMessage != null && errorMessage.trim().isNotEmpty)
           ? errorMessage
           : 'Bridge transaction failed.';
 
@@ -354,7 +355,9 @@ class BridgeScreenState extends State<BridgeScreen> {
       // On FAILURE the entered amount is left in place so the user can
       // correct and retry.
     } finally {
-      if (mounted) setState(() => isSubmitting = false);
+      if (mounted) {
+        setState(() => isSubmitting = false);
+      }
     }
   }
 
@@ -368,7 +371,11 @@ class BridgeScreenState extends State<BridgeScreen> {
   // getBrigeOutGasCost arguments, same success/failure branches -- only
   // `isEstimating` is added around the call (added state, not changed
   // mechanics, per Task 3 (a)).
-  Widget _buildPayCard(BuildContext context, GWColors gw, WalletDetailsState state) {
+  Widget _buildPayCard(
+    BuildContext context,
+    GWColors gw,
+    WalletDetailsState state,
+  ) {
     final heroStyle = GeniusWalletTypography.numericDisplay.copyWith(
       fontSize: 38,
       height: 1.0,
@@ -414,16 +421,29 @@ class BridgeScreenState extends State<BridgeScreen> {
                     }
 
                     // Start a new debounce timer
-                    _debounce = Timer(const Duration(milliseconds: 300), () async {
-                      // If an API call is already in progress, do nothing
-                      if (_isApiCallInProgress) return;
+                    _debounce = Timer(
+                      const Duration(milliseconds: 300),
+                      () async {
+                        // If an API call is already in progress, do nothing
+                        if (_isApiCallInProgress) {
+                          return;
+                        }
 
-                      // Validate input immediately
-                      try {
-                        if ((double.parse(value)) >
-                                (fromToken?.balance ?? 0) ||
-                            fromToken?.balance == null) {
-                          // Not enough balance or invalid balance
+                        // Validate input immediately
+                        try {
+                          if ((double.parse(value)) >
+                                  (fromToken?.balance ?? 0) ||
+                              fromToken?.balance == null) {
+                            // Not enough balance or invalid balance
+                            setState(() {
+                              transactionCost = null;
+                              toAmountController.text = '';
+                              isError = true;
+                            });
+                            return;
+                          }
+                        } catch (e) {
+                          // Input wasn't a proper double
                           setState(() {
                             transactionCost = null;
                             toAmountController.text = '';
@@ -431,51 +451,43 @@ class BridgeScreenState extends State<BridgeScreen> {
                           });
                           return;
                         }
-                      } catch (e) {
-                        // Input wasn't a proper double
-                        setState(() {
-                          transactionCost = null;
-                          toAmountController.text = '';
-                          isError = true;
-                        });
-                        return;
-                      }
 
-                      // Set API call in progress
-                      _isApiCallInProgress = true;
-                      setState(() => isEstimating = true);
+                        // Set API call in progress
+                        _isApiCallInProgress = true;
+                        setState(() => isEstimating = true);
 
-                      // Make the API call
-                      final api = context.read<GeniusApi>();
-                      final gasCostResponse = await api.getBrigeOutGasCost(
-                        sourceChainId: state.selectedNetwork?.chainId ?? 0,
-                        contractAddress: fromToken?.address ?? "",
-                        rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
-                        address: state.selectedWallet?.address ?? "",
-                        amountToBurn: value,
-                        destinationChainId: toNetwork?.chainId ?? 0,
-                      );
+                        // Make the API call
+                        final api = context.read<GeniusApi>();
+                        final gasCostResponse = await api.getBrigeOutGasCost(
+                          sourceChainId: state.selectedNetwork?.chainId ?? 0,
+                          contractAddress: fromToken?.address ?? "",
+                          rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
+                          address: state.selectedWallet?.address ?? "",
+                          amountToBurn: value,
+                          destinationChainId: toNetwork?.chainId ?? 0,
+                        );
 
-                      // Reset API call progress
-                      _isApiCallInProgress = false;
+                        // Reset API call progress
+                        _isApiCallInProgress = false;
 
-                      // Handle API response
-                      if (gasCostResponse.isSuccess) {
-                        setState(() {
-                          toAmountController.text = value;
-                          transactionCost = gasCostResponse.data;
-                          isError = false;
-                          isEstimating = false;
-                        });
-                      } else {
-                        setState(() {
-                          transactionCost = null;
-                          toAmountController.text = '';
-                          isError = true;
-                          isEstimating = false;
-                        });
-                      }
-                    });
+                        // Handle API response
+                        if (gasCostResponse.isSuccess) {
+                          setState(() {
+                            toAmountController.text = value;
+                            transactionCost = gasCostResponse.data;
+                            isError = false;
+                            isEstimating = false;
+                          });
+                        } else {
+                          setState(() {
+                            transactionCost = null;
+                            toAmountController.text = '';
+                            isError = true;
+                            isEstimating = false;
+                          });
+                        }
+                      },
+                    );
                   },
                 ),
               ),
@@ -631,9 +643,7 @@ class BridgeScreenState extends State<BridgeScreen> {
         ),
         Text(
           value,
-          style: GeniusWalletTypography.labelMd.copyWith(
-            color: gw.textPrimary,
-          ),
+          style: GeniusWalletTypography.labelMd.copyWith(color: gw.textPrimary),
         ),
       ],
     );
@@ -671,7 +681,11 @@ class BridgeScreenState extends State<BridgeScreen> {
   // the real `GWButton(variant: GWButtonVariant.gradient)`; every disabled
   // rung reuses the shipped textPrimary38-on-surfaceMenu treatment, except
   // insufficientBalance/gasError which swap in the statusError pair.
-  Widget _buildCta(BuildContext context, GWColors gw, WalletDetailsState state) {
+  Widget _buildCta(
+    BuildContext context,
+    GWColors gw,
+    WalletDetailsState state,
+  ) {
     final ctaState = resolveBridgeCtaState(
       amount: fromAmountController.text,
       balance: fromToken?.balance,
@@ -692,7 +706,8 @@ class BridgeScreenState extends State<BridgeScreen> {
       );
     }
 
-    final isErrorTone = ctaState == BridgeCtaState.insufficientBalance ||
+    final isErrorTone =
+        ctaState == BridgeCtaState.insufficientBalance ||
         ctaState == BridgeCtaState.gasError;
     final background = isErrorTone
         ? gw.statusError.withValues(alpha: 0.12)
@@ -755,18 +770,18 @@ class BridgeScreenState extends State<BridgeScreen> {
                     vertical: GeniusWalletConsts.space10,
                   ),
                   child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildNetworkRouteBar(context, gw, state.selectedNetwork),
-                    const SizedBox(height: GeniusWalletConsts.space10),
-                    _buildPayCard(context, gw, state),
-                    const SizedBox(height: GeniusWalletConsts.space8),
-                    _buildReceiveCard(gw),
-                    const SizedBox(height: GeniusWalletConsts.space10),
-                    _buildGasCard(gw),
-                    const SizedBox(height: GeniusWalletConsts.space10),
-                    _buildCta(context, gw, state),
-                  ],
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildNetworkRouteBar(context, gw, state.selectedNetwork),
+                      const SizedBox(height: GeniusWalletConsts.space10),
+                      _buildPayCard(context, gw, state),
+                      const SizedBox(height: GeniusWalletConsts.space8),
+                      _buildReceiveCard(gw),
+                      const SizedBox(height: GeniusWalletConsts.space10),
+                      _buildGasCard(gw),
+                      const SizedBox(height: GeniusWalletConsts.space10),
+                      _buildCta(context, gw, state),
+                    ],
                   ),
                 ),
               ),
@@ -776,7 +791,6 @@ class BridgeScreenState extends State<BridgeScreen> {
       ),
     );
   }
-
 }
 
 /// Task 2 (d): one tappable row per `availableBridgeNetworks` entry inside
@@ -808,10 +822,7 @@ class _NetworkPickerRow extends StatelessWidget {
             : null,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 4,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Image.asset(
           network.iconPath ?? "",
           height: 36,
@@ -822,9 +833,7 @@ class _NetworkPickerRow extends StatelessWidget {
         ),
         title: Text(
           network.name ?? '',
-          style: GeniusWalletTypography.labelMd.copyWith(
-            color: gw.textPrimary,
-          ),
+          style: GeniusWalletTypography.labelMd.copyWith(color: gw.textPrimary),
         ),
         trailing: isSelected
             ? Icon(Icons.check, color: gw.textPrimary, size: 18)

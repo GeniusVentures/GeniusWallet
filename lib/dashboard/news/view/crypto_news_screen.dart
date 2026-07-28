@@ -60,7 +60,9 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
     final future = fetchCoinTelegraphNews();
     _newsFuture = future;
     future.whenComplete(() {
-      if (mounted) setState(() => _lastUpdated = DateTime.now());
+      if (mounted) {
+        setState(() => _lastUpdated = DateTime.now());
+      }
     });
   }
 
@@ -75,7 +77,9 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
   void _onSearchChanged(String value) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 220), () {
-      if (mounted) setState(() => _query = value);
+      if (mounted) {
+        setState(() => _query = value);
+      }
     });
   }
 
@@ -91,7 +95,9 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
   /// across the headline and the dek.
   List<NewsArticle> _filter(List<NewsArticle> articles) {
     final q = _query.trim().toLowerCase();
-    if (q.isEmpty) return articles;
+    if (q.isEmpty) {
+      return articles;
+    }
     return articles
         .where(
           (a) =>
@@ -209,7 +215,9 @@ class _UpdatedStampState extends State<_UpdatedStamp> {
   void initState() {
     super.initState();
     _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -304,7 +312,9 @@ class _NewsMagazine extends StatelessWidget {
                 if (!wide) {
                   // Narrow: single column. One result is just the hero; more
                   // results stack "Next up" beneath it.
-                  if (nextUp.isEmpty) return heroCard;
+                  if (nextUp.isEmpty) {
+                    return heroCard;
+                  }
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

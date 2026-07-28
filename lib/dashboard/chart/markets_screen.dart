@@ -46,7 +46,9 @@ class _MarketsScreenState extends State<MarketsScreen> {
   }
 
   void _retryMarketData() {
-    if (_cachedCoinIds == null || _cachedCoinIds!.isEmpty) return;
+    if (_cachedCoinIds == null || _cachedCoinIds!.isEmpty) {
+      return;
+    }
     setState(() {
       _marketDataFuture = fetchCoinsMarketData(coinIds: _cachedCoinIds!);
     });
@@ -81,12 +83,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
         // rather than raised. Same class of bug as quick 260720-gzq. Moving the
         // gutter inside the viewport gives the shadow 12 of its 16 to render
         // into; the last 4 are below visibility at this alpha.
-        padding: const EdgeInsets.fromLTRB(
-          0,
-          GeniusWalletConsts.space32,
-          0,
-          8,
-        ),
+        padding: const EdgeInsets.fromLTRB(0, GeniusWalletConsts.space32, 0, 8),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
           child: Column(
@@ -161,10 +158,14 @@ class _MarketsScreenState extends State<MarketsScreen> {
 
     final rows = <MarketRow>[];
     for (final c in coins) {
-      if (featuredCoin != null && c.id == featuredCoin.id) continue;
+      if (featuredCoin != null && c.id == featuredCoin.id) {
+        continue;
+      }
       final d = lookup(c);
       // hide coins with no market data (as the dashboard panel does)
-      if (d == null) continue;
+      if (d == null) {
+        continue;
+      }
       rows.add(MarketRow(c, d));
     }
 
@@ -202,7 +203,9 @@ class _MarketsScreenState extends State<MarketsScreen> {
             ],
             const GWSectionTitle(title: 'All Markets'),
             MarketsTable(
-                rows: rows, onTapRow: (r) => _openToken(r.coin, r.data)),
+              rows: rows,
+              onTapRow: (r) => _openToken(r.coin, r.data),
+            ),
           ],
         ),
       ),
