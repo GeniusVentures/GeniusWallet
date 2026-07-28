@@ -4,7 +4,6 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
-import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 
 /// WCAG relative-luminance contrast ratio. Uses [Color.computeLuminance],
@@ -92,9 +91,7 @@ void main() {
 
       final style = navContextChipStyle(capturedContext);
       // No GWColors ThemeExtension registered on the default MaterialApp
-      // theme -- navContextChipStyle fails soft to GWColors.dark(), so
-      // compare against that same fallback instance.
-      final gw = GWColors.dark();
+      // theme -- navContextChipStyle fails soft to GWColors.dark().
 
       final restBackground = style.backgroundColor?.resolve({});
       expect(restBackground, Colors.transparent);

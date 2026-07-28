@@ -134,7 +134,7 @@ void main() {
       expect(tokens2, equals(tokens1));
 
       // Third call with expired cache
-      final tokens3 = await loader.loadTokensWithCache(
+      await loader.loadTokensWithCache(
         cachedTokens: tokens1,
         lastFetch: DateTime.now().subtract(const Duration(hours: 2)),
         cacheDuration: const Duration(hours: 1),
