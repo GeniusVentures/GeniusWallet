@@ -77,7 +77,7 @@ class _GWMeshBackgroundState extends State<GWMeshBackground>
         RepaintBoundary(
           child: AnimatedBuilder(
             animation: _controller,
-            builder: (_, __) => CustomPaint(
+            builder: (_, _) => CustomPaint(
               painter: _MeshPainter(
                 t: _controller.value,
                 intensity: widget.intensity.clamp(0.0, 1.0),

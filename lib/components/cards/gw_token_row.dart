@@ -51,7 +51,7 @@ class GWTokenRow extends StatelessWidget {
                         ? Image.asset(
                             iconAsset!,
                             semanticLabel: symbol,
-                            errorBuilder: (_, __, ___) => const _FallbackDot(),
+                            errorBuilder: (_, _, _) => const _FallbackDot(),
                           )
                         : const _FallbackDot()),
               ),

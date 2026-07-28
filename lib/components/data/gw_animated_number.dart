@@ -58,7 +58,7 @@ class _GWAnimatedNumberState extends State<GWAnimatedNumber> {
       tween: Tween<double>(begin: _from, end: widget.value.toDouble()),
       duration: widget.duration,
       curve: widget.curve,
-      builder: (_, v, __) => Text(
+      builder: (_, v, _) => Text(
         '${widget.prefix}${formatter.format(v)}${widget.suffix}',
         style: widget.style ?? GeniusWalletTypography.numericDisplay,
         textAlign: widget.textAlign,
