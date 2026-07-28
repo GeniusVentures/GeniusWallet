@@ -3,6 +3,7 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - lib/**/*.g.dart
+    - lib/*.g.dart
     - lib/**/*.freezed.dart
     - banxa
     - squidrouter
@@ -10,6 +11,13 @@ analyzer:
     # analysis_options.yaml. The analyzer resolves the *nearest* options file to
     # each source file, so an entry here never applied to it — which is why the
     # old `packages/genius_api/lib/proto` line did nothing.
+    #
+    # NOTE (22-06): `lib/**/*.g.dart` alone does not match a *.g.dart file
+    # sitting directly in lib/ with zero intervening directories (a `**`-glob
+    # quirk) -- lib/hive_registrar.g.dart kept reporting directives_ordering
+    # despite "matching" the exclude in intent. `lib/*.g.dart` covers that
+    # zero-nesting case explicitly; both lines are kept since `**` still
+    # correctly covers the nested case (e.g. lib/hive/models/*.g.dart).
 
 linter:
   rules:
