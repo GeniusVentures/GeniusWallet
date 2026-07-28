@@ -27,7 +27,9 @@ class _OrderDetailCardState extends State<OrderDetailCard> {
   bool _showFullWallet = false;
 
   String _maskWallet(String wallet) {
-    if (wallet.length <= 10) return wallet;
+    if (wallet.length <= 10) {
+      return wallet;
+    }
     return '${wallet.substring(0, 6)}...${wallet.substring(wallet.length - 4)}';
   }
 

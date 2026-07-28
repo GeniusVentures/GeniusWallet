@@ -85,7 +85,9 @@ class OrdersCubit extends Cubit<OrdersState> {
   }
 
   void applyFilters({String? status, DateTime? startDate, DateTime? endDate}) {
-    if (state.orders == null) return;
+    if (state.orders == null) {
+      return;
+    }
 
     List<Order> filtered = state.orders!.orders;
 

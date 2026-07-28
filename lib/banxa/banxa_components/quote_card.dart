@@ -20,7 +20,9 @@ class QuoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!state.hasQuote) return const SizedBox();
+    if (!state.hasQuote) {
+      return const SizedBox();
+    }
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return GWCard(
       child: Column(

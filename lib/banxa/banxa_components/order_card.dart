@@ -25,7 +25,9 @@ class OrderCard extends StatelessWidget {
   String get crypto => "${order.cryptoAmount} ${order.crypto.id}";
 
   String formatDate(DateTime? dateTime) {
-    if (dateTime == null) return '';
+    if (dateTime == null) {
+      return '';
+    }
     try {
       return DateFormat('MMM dd, yyyy • hh:mm a').format(dateTime.toLocal());
     } catch (_) {
@@ -34,7 +36,9 @@ class OrderCard extends StatelessWidget {
   }
 
   String _shortId(String id, {int head = 6, int tail = 4}) {
-    if (id.length <= head + tail + 1) return id;
+    if (id.length <= head + tail + 1) {
+      return id;
+    }
     return '${id.substring(0, head)}…${id.substring(id.length - tail)}';
   }
 

@@ -56,7 +56,9 @@ class CryptoCurrency {
   }
 
   Blockchain? get defaultBlockchain {
-    if (blockchains.isEmpty) return null;
+    if (blockchains.isEmpty) {
+      return null;
+    }
     return blockchains.firstWhere(
       (b) => b.isDefault,
       orElse: () => blockchains.first,

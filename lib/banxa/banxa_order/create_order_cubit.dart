@@ -15,7 +15,9 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
     String? initialAmount,
     String? initialWalletAddress,
   }) async {
-    if (isClosed) return;
+    if (isClosed) {
+      return;
+    }
     emit(
       state.copyWith(
         step: MakeOrderStep.loadingCurrencies,
@@ -30,7 +32,9 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       final fiats = await _service.getFiatCurrencies();
       final cryptos = await _service.getCryptoCurrencies();
 
-      if (isClosed) return;
+      if (isClosed) {
+        return;
+      }
       final FiatCurrency? selFiat = initialFiatCode == null
           ? null
           : fiats.where((f) => f.code == initialFiatCode).firstOrNull;
@@ -64,7 +68,9 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         ),
       );
     } catch (e) {
-      if (isClosed) return;
+      if (isClosed) {
+        return;
+      }
       emit(
         state.copyWith(
           step: MakeOrderStep.error,

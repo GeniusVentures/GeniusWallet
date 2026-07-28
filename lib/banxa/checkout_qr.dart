@@ -160,9 +160,7 @@ class CheckoutQrPage extends StatelessWidget {
                   label: 'Copy Link',
                   expand: true,
                   onPressed: () async {
-                    await Clipboard.setData(
-                      ClipboardData(text: checkoutUrl),
-                    );
+                    await Clipboard.setData(ClipboardData(text: checkoutUrl));
                     if (context.mounted) {
                       showAppSnackBar(context, 'Link copied');
                     }

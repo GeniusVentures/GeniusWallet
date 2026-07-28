@@ -136,11 +136,17 @@ class MakeOrderState {
 
   bool get isAmountWithinRange {
     final amt = amountValue;
-    if (amt == null) return false;
+    if (amt == null) {
+      return false;
+    }
     final min = minAmount;
     final max = maxAmount;
-    if (min != null && amt < min) return false;
-    if (max != null && amt > max) return false;
+    if (min != null && amt < min) {
+      return false;
+    }
+    if (max != null && amt > max) {
+      return false;
+    }
     return true;
   }
 

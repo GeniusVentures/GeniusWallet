@@ -86,7 +86,8 @@ class _BanxaPaymentWebViewState extends State<BanxaPaymentWebView> {
       centerTitle: false,
       title: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
+          horizontal:
+              MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
               ? GeniusWalletConsts.space10
               : GeniusWalletConsts.space8,
         ),

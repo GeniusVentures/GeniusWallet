@@ -41,7 +41,10 @@ OrderStatusTone orderStatusTone(String status) {
 ({Color fg, Color bg}) orderStatusPaint(OrderStatusTone tone, GWColors gw) {
   switch (tone) {
     case OrderStatusTone.success:
-      return (fg: gw.statusSuccess, bg: gw.statusSuccess.withValues(alpha: 0.14));
+      return (
+        fg: gw.statusSuccess,
+        bg: gw.statusSuccess.withValues(alpha: 0.14),
+      );
     case OrderStatusTone.warning:
       return (
         fg: GeniusWalletColors.statusWarning,
@@ -106,9 +109,15 @@ class OrderStatusPill extends StatelessWidget {
 /// would return null.
 OrderStatusTone? bannerTone(String? initialStatus) {
   final s = initialStatus?.toLowerCase();
-  if (s == 'cancel') return OrderStatusTone.warning;
-  if (s == 'failure' || s == 'failed') return OrderStatusTone.error;
-  if (s == 'success' || s == 'completed') return OrderStatusTone.success;
+  if (s == 'cancel') {
+    return OrderStatusTone.warning;
+  }
+  if (s == 'failure' || s == 'failed') {
+    return OrderStatusTone.error;
+  }
+  if (s == 'success' || s == 'completed') {
+    return OrderStatusTone.success;
+  }
   return null;
 }
 

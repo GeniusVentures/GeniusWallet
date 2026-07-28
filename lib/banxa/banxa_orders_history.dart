@@ -127,7 +127,8 @@ class _OrdersPageState extends State<OrdersPage> {
       centerTitle: false,
       title: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
+          horizontal:
+              MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
               ? GeniusWalletConsts.space10
               : GeniusWalletConsts.space8,
         ),
@@ -183,11 +184,7 @@ class _OrdersPageState extends State<OrdersPage> {
       IconButton(
         onPressed: () => context.push('/createOrder'),
         icon: const Row(
-          children: [
-            Icon(Icons.add),
-            SizedBox(width: 4),
-            Text('New Order'),
-          ],
+          children: [Icon(Icons.add), SizedBox(width: 4), Text('New Order')],
         ),
         tooltip: 'Create new order',
       ),
