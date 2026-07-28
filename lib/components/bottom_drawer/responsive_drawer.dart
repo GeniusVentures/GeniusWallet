@@ -5,6 +5,89 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
+/// The drawer body's inset, owned by the SHELL rather than by each caller.
+///
+/// 20 on the sides and bottom, **24 on top** because the header hairline sits
+/// directly above and at a flat 20 the first label read as glued to it. The
+/// value is not new — it is `_SlippageForm`'s, the one drawer that got this
+/// right, promoted to the shared default.
+///
+/// **This reverses a decision, deliberately.** 07-06 prohibited a blanket body
+/// padding here on the grounds that some of the ~19 callers already pad
+/// themselves. The prohibition held right up until a caller *forgot*: the
+/// transaction receipt (`transaction_displays.dart`) pads vertically only, so
+/// its labels touch the panel's left edge and its values slam the right one.
+/// "Every caller remembers" is a rule with no enforcement, and it has now
+/// measurably failed once with seventeen unwalked drawers behind it. The
+/// default is the safe case; forgetting now produces a correct drawer.
+///
+/// Pass [EdgeInsets.zero] when the body owns a SCROLLING viewport — a long
+/// picker's inset has to live on the `ListView` so it scrolls with the content
+/// and the rows still reach the panel edge. That is the half of 07-06's
+/// prohibition that was right, and it is why this is a parameter and not a
+/// hardcoded `Padding`.
+const EdgeInsets kDrawerBodyPadding = EdgeInsets.fromLTRB(
+  GeniusWalletConsts.space10,
+  GeniusWalletConsts.space12,
+  GeniusWalletConsts.space10,
+  GeniusWalletConsts.space10,
+);
+
+/// The footer's inset, owned by the SHELL for exactly the reason
+/// [kDrawerBodyPadding] is: three callers padded their own footers and the rest
+/// did not, so the transaction receipt's `View on Explorer` ran edge to edge
+/// while Swap Settings' `Apply` sat correctly inset 20.
+///
+/// Unlike the body this takes no opt-out. A footer holds one or two actions; it
+/// is never a scrolling viewport, so the case that forced the body's
+/// `EdgeInsets.zero` escape hatch cannot arise here.
+const EdgeInsets kDrawerFooterPadding = EdgeInsets.all(
+  GeniusWalletConsts.space10,
+);
+
+/// The drawer panel is painted in THREE places -- the desktop `Container`, the
+/// mobile sheet's `backgroundColor`, and the `Scaffold` inside both. Sketch
+/// **156-A "Card canvas"** moved all three from `surfaceMenu` #171A21 to
+/// `surfaceElevated` #0C0E14, which is Jakub's *"ciemniejsze, bardziej
+/// kompatybilne z resztą"* taken literally: the drawer was the ONLY large
+/// surface in the app at #171A21, roughly two steps lighter than anything it
+/// ever opened over. It is now the same value as every card on the dashboard.
+///
+/// **The hairline is not decoration; it is the consequence.** Two near-blacks
+/// cannot separate by fill -- the same arithmetic sketch 156 used to kill a
+/// darker field also applies to the panel against the scrimmed page behind it:
+///
+/// | panel edge, against `black54` over the page (#050608) | contrast |
+/// |---|---|
+/// | old #171A21, no border | 1.16:1 |
+/// | new #0C0E14, no border | **1.05:1** -- the silhouette dissolves |
+/// | new #0C0E14 + **`borderSubtle` 12%** -- shipped | **1.30:1** |
+/// | new #0C0E14 + `borderStrong` 24% | 2.01:1 |
+///
+/// So the panel takes a card's WHOLE recipe, fill and hairline, not half of it.
+/// It first shipped at `borderStrong`, on the reasoning that 1.05 was the
+/// number that had to move and 24% moved it furthest. **Jakub overruled that
+/// on a live look (2026-07-28): use the swap boxes' border.** Those are
+/// `GWCard`s at `borderSubtle` width 1, and if the drawer is a card then that
+/// is its hairline - a heavier one makes it a card that is trying harder than
+/// every other card on screen.
+///
+/// The cost is real and is accepted: **1.30:1, not 2.01:1**. A modal sheet is
+/// identified by its scrim, its position and its content rather than by its
+/// outline, so no WCAG threshold applies to it - this is a legibility call, and
+/// it was made with the panel on screen rather than in a table.
+///
+/// **The FIELD edge is a different question and does not follow this.** It
+/// stays at [GeniusWalletColors.borderControl] (36%, 3.30:1), because a card's
+/// border is decoration while an input's border is the only thing that says
+/// "this is an input" - 1.4.11 applies to one and not the other.
+///
+/// Two knock-ons ride with the fill change, both already applied at their call
+/// sites: an input's own fill goes UP to `surfaceMenu` (it becomes the lighter
+/// object on a darker panel, which is how a control on a card reads everywhere
+/// else in this app), and its edge goes to
+/// [GeniusWalletColors.borderControl] -- because at 1.11:1 the fill cannot
+/// identify the field and the border has to carry 1.4.11 alone.
 class ResponsiveDrawer {
   static Future<T?> show<T>({
     required BuildContext context,
@@ -16,6 +99,7 @@ class ResponsiveDrawer {
     bool useRootNavigator = true,
     bool isDismissible = true,
     bool enableDrag = true,
+    EdgeInsetsGeometry bodyPadding = kDrawerBodyPadding,
   }) {
     final isDesktop =
         MediaQuery.sizeOf(context).width >= GeniusBreakpoints.medium;
@@ -33,6 +117,7 @@ class ResponsiveDrawer {
       title: title,
       actions: actions,
       footer: footer,
+      bodyPadding: bodyPadding,
       child: child,
     );
 
@@ -50,12 +135,17 @@ class ResponsiveDrawer {
               child: Container(
                 width: desktopWidth,
                 height: double.infinity,
-                // Remapped from the legacy non-appearance-aware
-                // deepBlueTertiary constant to the closest appearance-aware
-                // sheet/menu surface token (documented value remap, see
-                // 04-04-SUMMARY.md). No longer const -- takes a runtime Color.
+                // Sketch 156-A "Card canvas": `surfaceElevated`, the same value
+                // as every card in the app. See the class doc for the panel/
+                // scrim arithmetic that forces the hairline to come with it.
                 decoration: BoxDecoration(
-                  color: gw.surfaceMenu,
+                  color: gw.surfaceElevated,
+                  // The swap boxes' edge, literally: `swap_field.dart` builds a
+                  // GWCard with `Border.all(color: gw.borderSubtle, width: 1)`
+                  // on a `surfaceElevated` fill. Jakub, live 2026-07-28 -- the
+                  // drawer is a card, so it wears a card's hairline, not a
+                  // heavier one. See the class doc for what this costs.
+                  border: Border.all(color: gw.borderSubtle, width: 1),
                   borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(GeniusWalletConsts.radius3xl),
                   ),
@@ -76,12 +166,13 @@ class ResponsiveDrawer {
       enableDrag: enableDrag,
       useSafeArea: true,
       isScrollControlled: true,
-      // Remapped from the legacy non-appearance-aware deepBlueTertiary
-      // constant to the closest appearance-aware sheet/menu surface token
-      // (documented value remap, see 04-04-SUMMARY.md).
-      backgroundColor: gw.surfaceMenu,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
+      // 156-A, mirroring the desktop branch: card fill, and the same hairline
+      // for the same reason -- the sheet's top edge is the only thing that
+      // separates it from the scrimmed page behind it.
+      backgroundColor: gw.surfaceElevated,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: gw.borderSubtle, width: 1),
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(GeniusWalletConsts.radius3xl),
         ),
       ),
@@ -95,12 +186,14 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
   final String? title;
   final List<Widget>? actions;
   final Widget? footer;
+  final EdgeInsetsGeometry bodyPadding;
 
   const _ResponsiveDrawerScaffold({
     required this.child,
     this.title,
     this.actions,
     this.footer,
+    this.bodyPadding = kDrawerBodyPadding,
   });
 
   // Sketch 030-B1 "Quiet band" (.planning/sketches/030-drawer-shell,
@@ -110,14 +203,14 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
   // that gone and the title at its specified 18px, 48 left the title crowded
   // between the panel's top edge and the hairline — the band stopped reading
   // as a zone and started reading as a strip. 56 gives the title the same
-  // breathing room the body below it has. Header chrome ONLY -- no blanket
-  // body padding is added here; that stays each caller's responsibility.
+  // breathing room the body below it has -- which the shell now supplies
+  // itself, see kDrawerBodyPadding.
   static const double _compactToolbarHeight = 56;
 
   /// The title's left edge.
   ///
   /// Material's default `titleSpacing` is 16 (`NavigationToolbar.kMiddleSpacing`)
-  /// while every drawer body in this app pads itself with `space10` (20), so
+  /// while the body is inset by `space10` (20) via [kDrawerBodyPadding], so
   /// the title sat 4px inside its own content's left edge — close enough to
   /// look like a mistake rather than a decision, which is exactly how it read
   /// on a live walk. Pinning it to the same token puts the two on one axis.
@@ -133,18 +226,17 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
     // ResponsiveDrawer.show()).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Scaffold(
-      // Remapped from the legacy non-appearance-aware deepBlueTertiary
-      // constant to the closest appearance-aware sheet/menu surface token
-      // (documented value remap, see 04-04-SUMMARY.md).
-      backgroundColor: gw.surfaceMenu,
+      // 156-A. This is the third of the three panel paints and the one that is
+      // actually visible behind the content -- the two in `show()` only cover
+      // the corners this Scaffold does not reach.
+      backgroundColor: gw.surfaceElevated,
 
       // Native Material app bar -- sketch 030-B1 "Quiet band": left-aligned
       // title, a small close ✕ at TOP-RIGHT (replacing the old big
       // 56px-wide leading close), a faint 1px brand hairline under the
-      // header, compact toolbar height. Header chrome ONLY -- no blanket
-      // body padding is added here; that stays each caller's responsibility
-      // (see 07-06-PLAN.md prohibitions -- some of the ~19 callers already
-      // pad their own bodies).
+      // header, compact toolbar height. Body inset is the shell's too now --
+      // see kDrawerBodyPadding for why 07-06's prohibition was reversed and
+      // which half of it survived as the `EdgeInsets.zero` opt-out.
       appBar: title != null
           ? AppBar(
               automaticallyImplyLeading: false,
@@ -176,16 +268,34 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
               // replacing them.
               actions: [
                 ...?actions,
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  iconSize: 20,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
+                // The ✕ sits on the SAME axis as the title, measured glyph to
+                // glyph: the title starts `_titleInset` (20) from the left, so
+                // the icon ends 20 from the right. Walk finding 2026-07-27 --
+                // with `padding: EdgeInsets.zero` and 36x36 constraints the box
+                // sat flush to the panel edge and its hover circle bled over it.
+                //
+                // Why 6 and not the 12 the arithmetic suggests (20 minus the
+                // glyph's 8-per-side inset in a 36 box): `AppBar` contributes
+                // its own 6 to the actions slot. That is measured, not assumed,
+                // and it is pinned by the close-button case in
+                // `responsive_drawer_body_padding_test.dart` -- if a Flutter
+                // upgrade changes it, that test fails instead of the ✕ drifting.
+                Padding(
+                  padding: const EdgeInsets.only(
+                    right: GeniusWalletConsts.space3,
                   ),
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                  onPressed: Navigator.of(context).pop,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    iconSize: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
+                    tooltip:
+                        MaterialLocalizations.of(context).closeButtonTooltip,
+                    onPressed: Navigator.of(context).pop,
+                  ),
                 ),
               ],
               // Faint 1px brand-primary-subtle hairline under the header
@@ -204,12 +314,26 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
             )
           : null,
 
-      // Content decides its own scrolling
-      body: child,
+      // Content decides its own scrolling; the shell decides its inset.
+      // `EdgeInsets.zero` is the opt-out for bodies that own a scrolling
+      // viewport -- see kDrawerBodyPadding.
+      body: Padding(padding: bodyPadding, child: child),
 
       // Native Material footer area
+      // The footer's inset AND its top rule are the shell's, not each
+      // caller's -- 030-B1 specified "footer with a top border" and exactly one
+      // of the callers implemented it. See kDrawerFooterPadding.
       bottomNavigationBar: footer != null
-          ? SafeArea(top: false, child: footer!)
+          ? SafeArea(
+              top: false,
+              child: Container(
+                padding: kDrawerFooterPadding,
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: gw.borderSubtle)),
+                ),
+                child: footer!,
+              ),
+            )
           : null,
     );
   }

@@ -6,6 +6,7 @@
 // settled). Do not reintroduce it, and do not swap in a FittedBox either.
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 // ponytail: imported for `DashboardScrollContainer` (the page's two cards),
@@ -482,15 +483,10 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
           ),
           // 13px labelMd, not the sketch's 11px: genius_wallet_typography.dart
           // records the floor was deliberately raised from 12 to 13 because
-          // 12px read too small on a touchscreen. Same deviation 12-03 took.
-          child: Text(
-            day.label.toUpperCase(),
-            style: GeniusWalletTypography.labelMd.copyWith(
-              color: gw.textSecondary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.7,
-            ),
-          ),
+          // 12px read too small on a touchscreen. Same deviation 12-03 took —
+          // and it is exactly GWKicker's default step (sketch 065). Tracking
+          // moved 0.7 -> 0.5 to join the one shared value.
+          child: GWKicker(day.label),
         ),
       );
       for (var i = 0; i < day.items.length; i++) {

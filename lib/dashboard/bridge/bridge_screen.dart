@@ -190,6 +190,9 @@ class BridgeScreenState extends State<BridgeScreen> {
     final networks = availableBridgeNetworks ?? const <Network>[];
     return ResponsiveDrawer.show<void>(
       context: context,
+      // Owns a scrolling viewport: the inset lives on the list so it scrolls
+      // with the content and rows still reach the panel edge (kDrawerBodyPadding).
+      bodyPadding: EdgeInsets.zero,
       title: 'Select destination network',
       child: ListView(
         shrinkWrap: true,
