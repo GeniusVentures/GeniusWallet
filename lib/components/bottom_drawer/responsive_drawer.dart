@@ -147,7 +147,7 @@ class ResponsiveDrawer {
                   // heavier one. See the class doc for what this costs.
                   border: Border.all(color: gw.borderSubtle, width: 1),
                   borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(GeniusWalletConsts.radius3xl),
+                    left: Radius.circular(GeniusWalletConsts.radiusXl),
                   ),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -173,7 +173,7 @@ class ResponsiveDrawer {
       shape: RoundedRectangleBorder(
         side: BorderSide(color: gw.borderSubtle, width: 1),
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(GeniusWalletConsts.radius3xl),
+          top: Radius.circular(GeniusWalletConsts.radiusXl),
         ),
       ),
       builder: (_) => content,

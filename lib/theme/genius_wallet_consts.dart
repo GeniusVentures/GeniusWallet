@@ -36,7 +36,7 @@ class GeniusWalletConsts {
 
   // ---------------------------------------------------------------------------
   // Radius tokens. `radiusBase` (10px) matches the gnus.ai default
-  // (`--radius: .625rem`); pair with `radius2xl` / `radius3xl` for cards.
+  // (`--radius: .625rem`); pair with `radius2xl` / `radiusXl` for cards.
   // ---------------------------------------------------------------------------
   static const double radiusXs = 4.0;
   static const double radiusSm = 8.0;
@@ -44,7 +44,6 @@ class GeniusWalletConsts {
   static const double radiusMd = 12.0;
   static const double radiusLg = 15.0;
   static const double radius2xl = 16.0; // gnus.ai --radius-2xl
-  static const double radiusXl = 24.0;
-  static const double radius3xl = 24.0; // gnus.ai --radius-3xl alias
+  static const double radiusXl = 24.0; // gnus.ai --radius-3xl
   static const double radiusPill = 48.0;
 }
