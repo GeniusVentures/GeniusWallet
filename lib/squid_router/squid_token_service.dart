@@ -6,9 +6,6 @@ import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 
 class SquidTokenService {
-  static const _baseUrl = 'https://api.squidrouter.com/v1';
-  static const _testNetBaseUrl = 'https://testnet.api.squidrouter.com/v1';
-
   static Future<List<SquidTokenInfo>> fetchTokens() async {
     // 🧪 MOCKED TOKEN DATA
     return mockTokens;

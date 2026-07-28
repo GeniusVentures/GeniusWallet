@@ -12,7 +12,7 @@ class HistoricalPriceCacheEntry {
 
   HistoricalPriceCacheEntry({required this.data, required this.timestamp});
 
-  /// Convert from Map<int, double> to Map<String, double>
+  /// Convert from `Map<int, double>` to `Map<String, double>`
   factory HistoricalPriceCacheEntry.fromIntMap(
     Map<int, double> intMap,
     int timestamp,
@@ -23,7 +23,7 @@ class HistoricalPriceCacheEntry {
     return HistoricalPriceCacheEntry(data: stringMap, timestamp: timestamp);
   }
 
-  /// Convert to Map<int, double> for app use
+  /// Convert to `Map<int, double>` for app use
   Map<int, double> toIntMap() {
     return data.map((key, value) => MapEntry(int.parse(key), value));
   }

@@ -20,122 +20,122 @@ class PublicKey {
   }
 
   PublicKey.createWithData(Pointer<Void> data, TWPublicKeyType publicKeyType) {
-    nativehandle = ffiBridgePrebuilt.tw_lib
+    nativehandle = ffiBridgePrebuilt.twLib
         .TWPublicKeyCreateWithData(data, publicKeyType)
         .cast();
   }
 
   static bool isValid(Uint8List data, TWPublicKeyType publicKeyType) {
-    final twData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final twData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       data.toPointerUint8(),
       data.length,
     );
-    final result = ffiBridgePrebuilt.tw_lib.TWPublicKeyIsValid(
+    final result = ffiBridgePrebuilt.twLib.TWPublicKeyIsValid(
       data.toPointerUint8().cast(),
       publicKeyType,
     );
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(twData);
+    ffiBridgePrebuilt.twLib.TWDataDelete(twData);
     return result;
   }
 
   Uint8List data() {
-    final data = ffiBridgePrebuilt.tw_lib.TWPublicKeyData(nativehandle.cast());
-    return ffiBridgePrebuilt.tw_lib
+    final data = ffiBridgePrebuilt.twLib.TWPublicKeyData(nativehandle.cast());
+    return ffiBridgePrebuilt.twLib
         .TWDataBytes(data)
-        .asTypedList(ffiBridgePrebuilt.tw_lib.TWDataSize(data));
+        .asTypedList(ffiBridgePrebuilt.twLib.TWDataSize(data));
   }
 
   static Pointer<Void>? recover(Uint8List signature, Uint8List message) {
-    final signatureData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final signatureData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       signature.toPointerUint8(),
       signature.length,
     );
-    final messageData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final messageData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       message.toPointerUint8(),
       message.length,
     );
-    final result = ffiBridgePrebuilt.tw_lib.TWPublicKeyRecover(
+    final result = ffiBridgePrebuilt.twLib.TWPublicKeyRecover(
       signatureData,
       messageData,
     );
     if (result.address == 0) {
       return null;
     }
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(signatureData);
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(messageData);
+    ffiBridgePrebuilt.twLib.TWDataDelete(signatureData);
+    ffiBridgePrebuilt.twLib.TWDataDelete(messageData);
     return result.cast();
   }
 
   bool isCompressed() {
-    return ffiBridgePrebuilt.tw_lib.TWPublicKeyIsCompressed(
+    return ffiBridgePrebuilt.twLib.TWPublicKeyIsCompressed(
       nativehandle.cast(),
     );
   }
 
   Pointer<Void> compressed() {
-    return ffiBridgePrebuilt.tw_lib
+    return ffiBridgePrebuilt.twLib
         .TWPublicKeyCompressed(nativehandle.cast())
         .cast();
   }
 
   Pointer<Void> unCompressed() {
-    return ffiBridgePrebuilt.tw_lib
+    return ffiBridgePrebuilt.twLib
         .TWPublicKeyUncompressed(nativehandle.cast())
         .cast();
   }
 
   TWPublicKeyType keyType() {
-    return ffiBridgePrebuilt.tw_lib.TWPublicKeyKeyType(nativehandle.cast());
+    return ffiBridgePrebuilt.twLib.TWPublicKeyKeyType(nativehandle.cast());
   }
 
   String description() {
     return StringUtil.toDartString(
-      ffiBridgePrebuilt.tw_lib
+      ffiBridgePrebuilt.twLib
           .TWPublicKeyDescription(nativehandle.cast())
           .cast(),
     );
   }
 
   void delete() {
-    ffiBridgePrebuilt.tw_lib.TWPublicKeyDelete(nativehandle.cast());
+    ffiBridgePrebuilt.twLib.TWPublicKeyDelete(nativehandle.cast());
     nativehandle = nullptr;
   }
 
   bool verify(Uint8List signature, Uint8List message) {
-    final signatureData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final signatureData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       signature.toPointerUint8(),
       signature.length,
     );
-    final messageData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final messageData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       message.toPointerUint8(),
       message.length,
     );
-    final result = ffiBridgePrebuilt.tw_lib.TWPublicKeyVerify(
+    final result = ffiBridgePrebuilt.twLib.TWPublicKeyVerify(
       nativehandle.cast(),
       signatureData,
       messageData,
     );
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(signatureData);
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(messageData);
+    ffiBridgePrebuilt.twLib.TWDataDelete(signatureData);
+    ffiBridgePrebuilt.twLib.TWDataDelete(messageData);
     return result;
   }
 
   bool verifySchnorr(Uint8List signature, Uint8List message) {
-    final signatureData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final signatureData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       signature.toPointerUint8(),
       signature.length,
     );
-    final messageData = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final messageData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       message.toPointerUint8(),
       message.length,
     );
-    final result = ffiBridgePrebuilt.tw_lib.TWPublicKeyVerifyZilliqaSchnorr(
+    final result = ffiBridgePrebuilt.twLib.TWPublicKeyVerifyZilliqaSchnorr(
       nativehandle.cast(),
       signatureData,
       messageData,
     );
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(signatureData);
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(messageData);
+    ffiBridgePrebuilt.twLib.TWDataDelete(signatureData);
+    ffiBridgePrebuilt.twLib.TWDataDelete(messageData);
     return result;
   }
 }

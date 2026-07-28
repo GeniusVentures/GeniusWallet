@@ -158,7 +158,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
   late final Set<int> emptyIndices;
   late final List<String> originalWords;
   late final List<String> shuffledAvailableWords;
-  static const SELECT_WORD_COUNT = 4;
+  static const selectWordCount = 4;
   int? highlightedEmptyIndex;
 
   @override
@@ -171,7 +171,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
     final words = context.read<NewWalletBloc>().state.recoveryWords;
     originalWords = List<String>.from(words);
     final random = Random();
-    const int emptyCount = SELECT_WORD_COUNT;
+    const int emptyCount = selectWordCount;
 
     emptyIndices = <int>{};
     while (emptyIndices.length < emptyCount) {

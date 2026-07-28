@@ -7,7 +7,7 @@ class CoinUtil {
 
   static String getSymbol(TWCoinType coinType) {
     return StringUtil.toDartString(
-      ffiBridgePrebuilt.tw_lib
+      ffiBridgePrebuilt.twLib
           .TWCoinTypeConfigurationGetSymbol(coinType)
           .cast(),
     );

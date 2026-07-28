@@ -13,8 +13,8 @@ class PrivateKey {
   late Pointer<Void> nativehandle;
 
   static bool isValid(Uint8List data, TWCurve curve) {
-    return ffiBridgePrebuilt.tw_lib.TWPrivateKeyIsValid(
-      ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    return ffiBridgePrebuilt.twLib.TWPrivateKeyIsValid(
+      ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
         data.toPointerUint8(),
         data.length,
       ),
@@ -27,18 +27,18 @@ class PrivateKey {
   }
 
   PrivateKey() {
-    nativehandle = ffiBridgePrebuilt.tw_lib.TWPrivateKeyCreate().cast();
+    nativehandle = ffiBridgePrebuilt.twLib.TWPrivateKeyCreate().cast();
     if (nativehandle.hashCode == 0) {
       throw Exception(["PrivateKey nativehandle is null"]);
     }
   }
 
   PrivateKey.createWithData(Uint8List bytes) {
-    final data = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final data = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       bytes.toPointerUint8(),
       bytes.length,
     );
-    nativehandle = ffiBridgePrebuilt.tw_lib
+    nativehandle = ffiBridgePrebuilt.twLib
         .TWPrivateKeyCreateWithData(data)
         .cast();
     if (nativehandle.hashCode == 0) {
@@ -47,7 +47,7 @@ class PrivateKey {
   }
 
   PrivateKey.createCopy(Pointer<Void> key) {
-    nativehandle = ffiBridgePrebuilt.tw_lib
+    nativehandle = ffiBridgePrebuilt.twLib
         .TWPrivateKeyCreateCopy(key.cast())
         .cast();
     if (nativehandle.hashCode == 0) {
@@ -56,10 +56,10 @@ class PrivateKey {
   }
 
   Uint8List data() {
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeyData(nativehandle.cast());
-    return ffiBridgePrebuilt.tw_lib
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeyData(nativehandle.cast());
+    return ffiBridgePrebuilt.twLib
         .TWDataBytes(data)
-        .asTypedList(ffiBridgePrebuilt.tw_lib.TWDataSize(data));
+        .asTypedList(ffiBridgePrebuilt.twLib.TWDataSize(data));
   }
 
   PublicKey getTWPublicKey(TWCurve curve, [bool compressed = false]) {
@@ -82,7 +82,7 @@ class PrivateKey {
   }
 
   PublicKey getTWPublicKeySecp256k1(bool compressed) {
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeyGetPublicKeySecp256k1(
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeyGetPublicKeySecp256k1(
       nativehandle.cast(),
       compressed,
     );
@@ -90,40 +90,40 @@ class PrivateKey {
   }
 
   PublicKey getTWPublicKeyNist256p1() {
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeyGetPublicKeyNist256p1(
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeyGetPublicKeyNist256p1(
       nativehandle.cast(),
     );
     return PublicKey(data.cast());
   }
 
   PublicKey getTWPublicKeyNistEd25519() {
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeyGetPublicKeyEd25519(
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeyGetPublicKeyEd25519(
       nativehandle.cast(),
     );
     return PublicKey(data.cast());
   }
 
   PublicKey getTWPublicKeyNistEd25519Blake2b() {
-    final data = ffiBridgePrebuilt.tw_lib
+    final data = ffiBridgePrebuilt.twLib
         .TWPrivateKeyGetPublicKeyEd25519Blake2b(nativehandle.cast());
     return PublicKey(data.cast());
   }
 
   PublicKey getTWPublicKeyEd25519Cardano() {
-    final data = ffiBridgePrebuilt.tw_lib
+    final data = ffiBridgePrebuilt.twLib
         .TWPrivateKeyGetPublicKeyEd25519Cardano(nativehandle.cast());
     return PublicKey(data.cast());
   }
 
   PublicKey getTWPublicKeyCurve25519() {
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeyGetPublicKeyCurve25519(
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeyGetPublicKeyCurve25519(
       nativehandle.cast(),
     );
     return PublicKey(data.cast());
   }
 
   PublicKey getShareKey(PublicKey twPublicKey, TWCurve curve) {
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeyGetSharedKey(
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeyGetSharedKey(
       nativehandle.cast(),
       twPublicKey.pointer.cast(),
       curve,
@@ -132,56 +132,56 @@ class PrivateKey {
   }
 
   Uint8List sign(Uint8List digest, TWCurve curve) {
-    final digestPoint = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final digestPoint = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       digest.toPointerUint8(),
       digest.length,
     );
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeySign(
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeySign(
       nativehandle.cast(),
       digestPoint,
       curve,
     );
-    final res = ffiBridgePrebuilt.tw_lib
+    final res = ffiBridgePrebuilt.twLib
         .TWDataBytes(data)
-        .asTypedList(ffiBridgePrebuilt.tw_lib.TWDataSize(data));
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(digestPoint);
+        .asTypedList(ffiBridgePrebuilt.twLib.TWDataSize(data));
+    ffiBridgePrebuilt.twLib.TWDataDelete(digestPoint);
     return res;
   }
 
   Uint8List signAsDER(Uint8List digest) {
-    final digestPoint = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final digestPoint = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       digest.toPointerUint8(),
       digest.length,
     );
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeySignAsDER(
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeySignAsDER(
       nativehandle.cast(),
       digestPoint,
     );
-    final res = ffiBridgePrebuilt.tw_lib
+    final res = ffiBridgePrebuilt.twLib
         .TWDataBytes(data)
-        .asTypedList(ffiBridgePrebuilt.tw_lib.TWDataSize(data));
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(digestPoint);
+        .asTypedList(ffiBridgePrebuilt.twLib.TWDataSize(data));
+    ffiBridgePrebuilt.twLib.TWDataDelete(digestPoint);
     return res;
   }
 
   Uint8List signZilliqaSchnorr(Uint8List digest) {
-    final digestPoint = ffiBridgePrebuilt.tw_lib.TWDataCreateWithBytes(
+    final digestPoint = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       digest.toPointerUint8(),
       digest.length,
     );
-    final data = ffiBridgePrebuilt.tw_lib.TWPrivateKeySignZilliqaSchnorr(
+    final data = ffiBridgePrebuilt.twLib.TWPrivateKeySignZilliqaSchnorr(
       nativehandle.cast(),
       digestPoint,
     );
-    final res = ffiBridgePrebuilt.tw_lib
+    final res = ffiBridgePrebuilt.twLib
         .TWDataBytes(data)
-        .asTypedList(ffiBridgePrebuilt.tw_lib.TWDataSize(data));
-    ffiBridgePrebuilt.tw_lib.TWDataDelete(digestPoint);
+        .asTypedList(ffiBridgePrebuilt.twLib.TWDataSize(data));
+    ffiBridgePrebuilt.twLib.TWDataDelete(digestPoint);
     return res;
   }
 
   void delete() {
-    ffiBridgePrebuilt.tw_lib.TWPrivateKeyDelete(nativehandle.cast());
+    ffiBridgePrebuilt.twLib.TWPrivateKeyDelete(nativehandle.cast());
     nativehandle = nullptr;
   }
 }

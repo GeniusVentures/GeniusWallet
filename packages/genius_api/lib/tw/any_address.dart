@@ -14,14 +14,14 @@ class AnyAddress {
 
   AnyAddress.createWithString(String address, TWCoinType coinType) {
     final twAddress = StringUtil.toTWString(address);
-    nativehandle = ffiBridgePrebuilt.tw_lib
+    nativehandle = ffiBridgePrebuilt.twLib
         .TWAnyAddressCreateWithString(twAddress.cast(), coinType)
         .cast();
     StringUtil.delete(twAddress);
   }
 
   AnyAddress.createWithPublicKey(PublicKey publicKey, TWCoinType coinType) {
-    nativehandle = ffiBridgePrebuilt.tw_lib
+    nativehandle = ffiBridgePrebuilt.twLib
         .TWAnyAddressCreateWithPublicKey(
           publicKey.nativehandle.cast(),
           coinType,
@@ -36,7 +36,7 @@ class AnyAddress {
   ) {
     PrivateKey pk = PrivateKey.createWithData(privateKeyData);
     PublicKey publicKey = pk.getTWPublicKey(curve);
-    nativehandle = ffiBridgePrebuilt.tw_lib
+    nativehandle = ffiBridgePrebuilt.twLib
         .TWAnyAddressCreateWithPublicKey(
           publicKey.nativehandle.cast(),
           coinType,
@@ -46,7 +46,7 @@ class AnyAddress {
 
   static bool isValid(String address, TWCoinType coinType) {
     final twAddress = StringUtil.toTWString(address);
-    final result = ffiBridgePrebuilt.tw_lib.TWAnyAddressIsValid(
+    final result = ffiBridgePrebuilt.twLib.TWAnyAddressIsValid(
       twAddress.cast(),
       coinType,
     );
@@ -55,23 +55,23 @@ class AnyAddress {
   }
 
   Uint8List data() {
-    final addressData = ffiBridgePrebuilt.tw_lib.TWAnyAddressData(
+    final addressData = ffiBridgePrebuilt.twLib.TWAnyAddressData(
       nativehandle.cast(),
     );
-    return ffiBridgePrebuilt.tw_lib
+    return ffiBridgePrebuilt.twLib
         .TWDataBytes(addressData)
-        .asTypedList(ffiBridgePrebuilt.tw_lib.TWDataSize(addressData));
+        .asTypedList(ffiBridgePrebuilt.twLib.TWDataSize(addressData));
   }
 
   String description() {
-    final twString = ffiBridgePrebuilt.tw_lib.TWAnyAddressDescription(
+    final twString = ffiBridgePrebuilt.twLib.TWAnyAddressDescription(
       nativehandle.cast(),
     );
     return StringUtil.toDartString(twString.cast());
   }
 
   void delete() {
-    ffiBridgePrebuilt.tw_lib.TWAnyAddressDelete(nativehandle.cast());
+    ffiBridgePrebuilt.twLib.TWAnyAddressDelete(nativehandle.cast());
     nativehandle = nullptr;
   }
 }

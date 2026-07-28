@@ -223,7 +223,7 @@ class GeniusApi {
         return;
       }
       final mnemonicPtr = mnemonic.toNativeUtf8();
-      retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithMnemonic(
+      retVal = _ffiBridgePrebuilt.sgnsLib.GeniusSDKInitWithMnemonic(
         basePathPtr.cast(),
         devConfigPtr.cast(),
         mnemonicPtr.cast(),
@@ -239,7 +239,7 @@ class GeniusApi {
           .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
           .join();
       final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
-      retVal = _ffiBridgePrebuilt.sgns_lib.GeniusSDKInitWithKey(
+      retVal = _ffiBridgePrebuilt.sgnsLib.GeniusSDKInitWithKey(
         basePathPtr.cast(),
         devConfigPtr.cast(),
         privateKeyAsPtr.cast(),
@@ -254,7 +254,7 @@ class GeniusApi {
       return;
     }
 
-    var rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
+    var rawAddress = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetAddress();
     _address = rawAddress.address.toDartString(131);
 
     getSGNUSController().updateConnection(
@@ -435,7 +435,7 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return;
     }
-    _ffiBridgePrebuilt.sgns_lib.GeniusSDKLoadLogConfig();
+    _ffiBridgePrebuilt.sgnsLib.GeniusSDKLoadLogConfig();
   }
 
   Future<double> getGasFees() async {
@@ -452,14 +452,14 @@ class GeniusApi {
   Future<bool> userExists() async => await _secureStorage.pinExists();
 
   String? getHRPStrideValue() {
-    return _ffiBridgePrebuilt.tw_lib
+    return _ffiBridgePrebuilt.twLib
         .stringForHRP(TWHRP.TWHRPStride)
         .cast<Utf8>()
         .toDartString();
   }
 
   Pointer<Void> createWalletWithSize(int size) {
-    return _ffiBridgePrebuilt.tw_lib.TWDataCreateWithSize(size);
+    return _ffiBridgePrebuilt.twLib.TWDataCreateWithSize(size);
   }
 
   GeniusNodeReturnValue mintTokens(
@@ -484,7 +484,7 @@ class GeniusApi {
       tokenIdData.ref.data[i] = int.parse(hexByte, radix: 16);
     }
 
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKMint(
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKMint(
       amount,
       transhash as Pointer<Char>,
       chainid as Pointer<Char>,
@@ -505,7 +505,7 @@ class GeniusApi {
   }
 
   GeniusNodeReturnValue shutdownSDK() {
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKShutdown();
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKShutdown();
     final mappedResult = _mapNodeReturnValue(result);
     debugPrint("Shutting Down SDK: $mappedResult");
     dispose();
@@ -526,7 +526,7 @@ class GeniusApi {
 
     try {
       // Call the native function
-      final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKProcess(jsonPointer);
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKProcess(jsonPointer);
       return _mapNodeReturnValue(result);
     } finally {
       // Free the allocated memory to prevent memory leaks
@@ -546,7 +546,7 @@ class GeniusApi {
 
     try {
       // Call the native function
-      cost = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetCost(jsonPointer);
+      cost = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetCost(jsonPointer);
     } catch (e, stackTrace) {
       // Handle the exception gracefully, e.g., log it
       debugPrint("Error in GeniusSDKGetCost: $e");
@@ -758,7 +758,7 @@ class GeniusApi {
       }
     }
 
-    final balance = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalance(
+    final balance = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetBalance(
       tokenIdData.ref,
     );
     calloc.free(tokenIdData);
@@ -769,7 +769,7 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return "0";
     }
-    GeniusTokenValue tokenValue = _ffiBridgePrebuilt.sgns_lib
+    GeniusTokenValue tokenValue = _ffiBridgePrebuilt.sgnsLib
         .GeniusSDKGetBalanceGNUS();
     return tokenValue.value.toDartString(22);
   }
@@ -807,7 +807,7 @@ class GeniusApi {
       return;
     }
 
-    var transactions = _ffiBridgePrebuilt.sgns_lib
+    var transactions = _ffiBridgePrebuilt.sgnsLib
         .GeniusSDKGetOutTransactions();
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
@@ -871,7 +871,7 @@ class GeniusApi {
     // Sort by timestamp, newest first
     ret.sort((a, b) => a.timeStamp.compareTo(b.timeStamp));
 
-    _ffiBridgePrebuilt.sgns_lib.GeniusSDKFreeTransactions(transactions);
+    _ffiBridgePrebuilt.sgnsLib.GeniusSDKFreeTransactions(transactions);
 
     getSGNUSTransactionsController().setTransactions(ret);
   }
@@ -907,7 +907,7 @@ class GeniusApi {
       }
     }
 
-    final ret = _ffiBridgePrebuilt.sgns_lib.GeniusSDKTransfer(
+    final ret = _ffiBridgePrebuilt.sgnsLib.GeniusSDKTransfer(
       amount,
       convertedAddress,
       tokenIdData.ref,
@@ -923,14 +923,14 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return 0.0;
     }
-    return _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetGNUSPrice();
+    return _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetGNUSPrice();
   }
 
   String getBalanceGNUSString() {
     if (!_isSdkInitialized) {
       return "0";
     }
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetBalanceGNUSString();
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetBalanceGNUSString();
     return result.cast<Utf8>().toDartString();
   }
 
@@ -941,12 +941,12 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return [];
     }
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAvailableAccounts();
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetAvailableAccounts();
     if (result == nullptr) {
       return [];
     }
     final rawString = result.cast<Utf8>().toDartString();
-    _ffiBridgePrebuilt.sgns_lib.GeniusSDKFree(result.cast<ffi.Void>());
+    _ffiBridgePrebuilt.sgnsLib.GeniusSDKFree(result.cast<ffi.Void>());
     return rawString
         .split('\n')
         .map((s) => s.trim())
@@ -963,7 +963,7 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKSelectGeniusAccount(
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKSelectGeniusAccount(
       addressPtr,
     );
     malloc.free(addressPtr);
@@ -996,7 +996,7 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final mnemonicPtr = mnemonic.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKAddAccountWithMnemonic(
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKAddAccountWithMnemonic(
       mnemonicPtr,
     );
     malloc.free(mnemonicPtr);
@@ -1009,7 +1009,7 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final keyPtr = privateKey.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgns_lib
+    final result = _ffiBridgePrebuilt.sgnsLib
         .GeniusSDKAddAccountWithPrivateKey(keyPtr);
     malloc.free(keyPtr);
     return _mapNodeReturnValue(result);
@@ -1022,7 +1022,7 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKDeleteAccount(
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKDeleteAccount(
       addressPtr,
     );
     malloc.free(addressPtr);
@@ -1036,7 +1036,7 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKSetPayoutAddress(
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKSetPayoutAddress(
       addressPtr,
     );
     malloc.free(addressPtr);
@@ -1049,7 +1049,7 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return null;
     }
-    final rawAddress = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetAddress();
+    final rawAddress = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetAddress();
     return rawAddress.address.toDartString(GENIUS_SDK_ADDRESS_SIZE);
   }
 
@@ -1057,7 +1057,7 @@ class GeniusApi {
     if (!_isSdkInitialized) {
       return null;
     }
-    final rawMnemonic = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetMnemonic();
+    final rawMnemonic = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetMnemonic();
     if (rawMnemonic.mnemonic[0] == 0) {
       return null;
     }
@@ -1091,7 +1091,7 @@ class GeniusApi {
       }
     }
 
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKPayDev(
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKPayDev(
       amount,
       tokenIdData.ref,
     );
@@ -1204,37 +1204,28 @@ class GeniusApi {
   }
 
   GeniusProcessingStatusInfo getProcessingStatus() {
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetProcessingStatus();
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetProcessingStatus();
     return result;
   }
 
   /// Returns the current SDK initialization status.
   GeniusInitStatus getInitializationStatus() {
-    final result = _ffiBridgePrebuilt.sgns_lib
+    final result = _ffiBridgePrebuilt.sgnsLib
         .GeniusSDKGetInitializationStatus();
     final message = result.message.cast<Utf8>().toDartString();
-    _ffiBridgePrebuilt.sgns_lib.GeniusSDKFree(result.message.cast<ffi.Void>());
+    _ffiBridgePrebuilt.sgnsLib.GeniusSDKFree(result.message.cast<ffi.Void>());
     return GeniusInitStatus(percentage: result.percentage, message: message);
   }
 
   GeniusTransactionManagerState getTransactionManagerState() {
-    final result = _ffiBridgePrebuilt.sgns_lib
+    final result = _ffiBridgePrebuilt.sgnsLib
         .GeniusSDKGetTransactionManagerState();
     return _mapTransactionManagerState(result);
   }
 
   GeniusNodeState getNodeState() {
-    final result = _ffiBridgePrebuilt.sgns_lib.GeniusSDKGetNodeState();
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetNodeState();
     return _mapNodeState(result);
-  }
-
-  GeniusProcessingStatus _mapProcessingStatus(int value) {
-    try {
-      return GeniusProcessingStatus.fromValue(value);
-    } catch (e) {
-      debugPrint("Unknown GeniusProcessingStatus: $value");
-      return GeniusProcessingStatus.GENIUS_PR_STATUS_DISABLED;
-    }
   }
 
   GeniusTransactionManagerState _mapTransactionManagerState(int value) {
