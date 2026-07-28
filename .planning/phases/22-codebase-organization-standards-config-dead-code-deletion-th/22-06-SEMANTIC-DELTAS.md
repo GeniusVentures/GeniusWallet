@@ -2,9 +2,10 @@
 
 Every change in this plan that is not strictly behaviour-identical, per the plan's
 `use_build_context_synchronously` and `avoid_dynamic_calls` acceptance criteria. Nothing in
-`unawaited_futures` appears here as a delta (no `await` was added; every site got `unawaited()`),
-except where a site looked like it genuinely should be sequenced -- those are called out as Phase 23
-candidates below, still wrapped in `unawaited()` for now per the plan's instruction.
+`unawaited_futures` counts as a behaviour delta (no `await` was added anywhere; every discarded
+Future got `unawaited()`), but the full site-by-site table is included below for completeness and
+audit -- no site was judged to genuinely need sequencing, so there are no Phase 23 candidates from
+this rule family.
 
 ## `mounted` / `context.mounted` guards added (`use_build_context_synchronously`, 5 sites)
 
