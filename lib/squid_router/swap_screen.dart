@@ -30,6 +30,20 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
+/// The list one side of the swap may pick from: everything except the token the
+/// OTHER side already holds.
+///
+/// Pure and top-level so the rule can be pinned by a test, the same shape
+/// `sdkRowActions` took. It exists because the rule was previously written
+/// inline, twice, and both copies also excluded THIS side's own token - so the
+/// token you had just chosen vanished from its own picker and the `selectedToken`
+/// the drawer is handed could never match a row.
+List<SquidTokenInfo> tokensForSide(
+  List<SquidTokenInfo> all,
+  SquidTokenInfo? otherSide,
+) =>
+    all.where((t) => !t.sameAs(otherSide)).toList();
+
 class SwapScreen extends StatefulWidget {
   const SwapScreen({super.key});
 
@@ -619,26 +633,14 @@ class _SwapScreenState extends State<SwapScreen> {
                                           },
                                           selectedToken: fromToken,
                                           isSelectingFrom: true,
-                                          // filter out the selected toToken, and the token that is already selected
-                                          tokens: tokens
-                                              .where(
-                                                (t) =>
-                                                    (toToken == null ||
-                                                        t.address
-                                                                .toLowerCase() !=
-                                                            toToken!.address
-                                                                .toLowerCase() ||
-                                                        t.chainId !=
-                                                            toToken!.chainId) &&
-                                                    (fromToken == null ||
-                                                        t.address
-                                                                .toLowerCase() !=
-                                                            fromToken!.address
-                                                                .toLowerCase() ||
-                                                        t.chainId !=
-                                                            fromToken!.chainId),
-                                              )
-                                              .toList(),
+                                          // Hide only the OTHER side's token.
+                                          // This list used to drop `fromToken`
+                                          // too, so the token you had just
+                                          // picked was missing from its own
+                                          // picker - and `selectedToken` above
+                                          // could never render, because the row
+                                          // it marks was filtered out first.
+                                          tokens: tokensForSide(tokens, toToken),
                                           onTokenSelected: (token) {
                                             setState(() => fromToken = token);
                                             _debouncedFetchRoute();
@@ -659,27 +661,13 @@ class _SwapScreenState extends State<SwapScreen> {
                                           emptyPlaceholder: routeError
                                               ? '—'
                                               : null,
-                                          // filter out the selected fromToken, and the token that is already selected
-                                          tokens: tokens
-                                              .where(
-                                                (t) =>
-                                                    (fromToken == null ||
-                                                        t.address
-                                                                .toLowerCase() !=
-                                                            fromToken!.address
-                                                                .toLowerCase() ||
-                                                        t.chainId !=
-                                                            fromToken!
-                                                                .chainId) &&
-                                                    (toToken == null ||
-                                                        t.address
-                                                                .toLowerCase() !=
-                                                            toToken!.address
-                                                                .toLowerCase() ||
-                                                        t.chainId !=
-                                                            toToken!.chainId),
-                                              )
-                                              .toList(),
+                                          // Mirror of the You Pay list: hide the
+                                          // other side only, keep this side's
+                                          // own token so it can show selected.
+                                          tokens: tokensForSide(
+                                            tokens,
+                                            fromToken,
+                                          ),
                                           onTokenSelected: (token) {
                                             setState(() => toToken = token);
                                             _debouncedFetchRoute();

@@ -76,7 +76,7 @@ SlippageState slippageState(String? raw) {
   if (n <= 0) {
     return const SlippageState._(
       SlippageLevel.error,
-      'Must be above 0 — a 0% tolerance rejects every swap.',
+      'Must be above 0 - a 0% tolerance rejects every swap.',
       null,
     );
   }
@@ -90,16 +90,31 @@ SlippageState slippageState(String? raw) {
   if (n > kSlippageWarnAbove) {
     return SlippageState._(
       SlippageLevel.warning,
-      'High — you may lose value to front-running.',
+      'High - you may lose value to front-running.',
       n,
     );
   }
   if (n < kSlippageWarnBelow) {
     return SlippageState._(
       SlippageLevel.warning,
-      'Very low — the swap will often fail to fill.',
+      'Very low - the swap will often fail to fill.',
       n,
     );
   }
-  return SlippageState._(SlippageLevel.ok, null, n);
+  // The comfortable band SPEAKS, and says so quietly. Sketch 067-A draws this
+  // line and the shipped drawer did not have it, because `ok` was written as
+  // "nothing to say".
+  //
+  // Two reasons it earns its place. It confirms rather than corrects, which is
+  // the only feedback a settings field can give someone who got it right. And
+  // it holds the row: without it the panel's height JUMPS the moment a typed
+  // value crosses into the warning band, which reads as the drawer flinching.
+  //
+  // Note this is NOT the empty case above -- empty stays silent. Nothing typed,
+  // nothing to confirm.
+  return SlippageState._(
+    SlippageLevel.ok,
+    'Typical for most pairs.',
+    n,
+  );
 }

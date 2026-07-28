@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
-import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -52,6 +51,9 @@ class TokenSelectorDrawer extends StatefulWidget {
   }) {
     ResponsiveDrawer.show<void>(
       context: context,
+      // Owns a scrolling viewport: the inset lives on the list so it scrolls
+      // with the content and rows still reach the panel edge (kDrawerBodyPadding).
+      bodyPadding: EdgeInsets.zero,
       title: title,
       // No outer ListView any more. The old shape was a ListView wrapping a
       // Column wrapping a shrink-wrapped ListView.builder with scrolling
@@ -74,14 +76,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
 
   String _query = '';
 
-  bool _isSelected(SquidTokenInfo token) {
-    final selected = widget.selectedToken;
-    if (selected == null) return false;
-    // Address alone is not identity across chains — the same address can exist
-    // on several, and this list is explicitly cross-chain.
-    return token.address.toLowerCase() == selected.address.toLowerCase() &&
-        token.chainId == selected.chainId;
-  }
+  bool _isSelected(SquidTokenInfo token) => token.sameAs(widget.selectedToken);
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +108,13 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
           ),
           child: GWFocusRing(
             radius: GeniusWalletConsts.radiusMd,
-            background: gw.surfaceElevated,
+            // Recessed, not raised -- the same call Jakub made live on the
+            // slippage field, kept here so the two drawer inputs stay one
+            // control. `surfaceSunken` is the app's existing well fill.
+            background: gw.surfaceSunken,
+            // The fill is 1.11:1 from the panel, so the edge carries 1.4.11 on
+            // its own. See GeniusWalletColors.borderControl.
+            restingColor: gw.borderControl,
             child: TextField(
               onChanged: (val) => setState(() => _query = val),
               style: GeniusWalletTypography.bodySm.copyWith(
@@ -200,7 +201,16 @@ class _EmptyResult extends StatelessWidget {
   }
 }
 
-class _TokenRow extends StatefulWidget {
+/// The token row: `GWSelectRow` plus the two things only a token has - remote
+/// logo art with its own loading/error states, and a balance that is ABSENT
+/// rather than "0" when the wallet does not hold the token.
+///
+/// Everything that used to live here - the gradient selection tint, the
+/// app-wide hover recipe, the always-present transparent border, the
+/// `ShaderMask` check - moved into `GWSelectRow` (sketch 068-A) so Select
+/// Network, SDK Accounts and Your Accounts could stop hand-rolling their own.
+/// This file authored that row; it is now one of four consumers.
+class _TokenRow extends StatelessWidget {
   const _TokenRow({
     required this.token,
     required this.selected,
@@ -212,132 +222,43 @@ class _TokenRow extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_TokenRow> createState() => _TokenRowState();
-}
-
-class _TokenRowState extends State<_TokenRow> {
-  /// A1's selection tint: the REAL `brandCta` stops at low alpha, so selection
-  /// and the gradient check below it are the same brand statement. Built here
-  /// rather than added to `GeniusWalletGradient` — one consumer does not earn
-  /// a shared token, and a second one would be the moment to promote it.
-  static const LinearGradient _selectionTint = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [Color(0x2E0AD89C), Color(0x2E0AAEE6)],
-  );
-
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final balance = widget.token.balance;
+    final balance = token.balance;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: GeniusWalletConsts.space2),
-          padding: const EdgeInsets.symmetric(
-            horizontal: GeniusWalletConsts.space6,
-            vertical: GeniusWalletConsts.space6,
-          ),
-          decoration: BoxDecoration(
-            // A1: selection is a rounded gradient TINT, not a full-bleed fill
-            // and not an accent bar. Resting is transparent — a row painted
-            // `surfaceMenu` on a `surfaceMenu` panel is decoration nobody sees.
-            gradient: widget.selected ? _selectionTint : null,
-            color: widget.selected
-                ? null
-                : (_hovered ? GWDecorations.hoverFill : Colors.transparent),
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-            border: Border.all(
-              color: widget.selected || _hovered
-                  ? GWDecorations.hoverEdge
-                  : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              ClipOval(
-                child: Image.network(
-                  widget.token.logoURI,
-                  width: 36,
-                  height: 36,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, progress) => progress == null
-                      ? child
-                      : Container(width: 36, height: 36, color: gw.surfaceMenu),
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 36,
-                    height: 36,
-                    color: gw.surfaceMenu,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.broken_image,
-                      color: gw.textSecondary,
-                      size: 16,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: GeniusWalletConsts.space6),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.token.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GeniusWalletTypography.bodySm.copyWith(
-                        color: gw.textPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      widget.token.symbol,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GeniusWalletTypography.labelMd.copyWith(
-                        color: gw.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // A balance the wallet does not hold is ABSENT, not "0" — the
-              // same rule the transaction rows follow for a missing fiat line.
-              if (balance != null) ...[
-                const SizedBox(width: GeniusWalletConsts.space4),
-                Text(
-                  balance.displayBalance,
-                  style: GeniusWalletTypography.numericBody.copyWith(
-                    color: gw.textPrimary,
-                  ),
-                ),
-              ],
-              if (widget.selected) ...[
-                const SizedBox(width: GeniusWalletConsts.space4),
-                ShaderMask(
-                  shaderCallback: (bounds) =>
-                      GeniusWalletGradient.brandCta.createShader(bounds),
-                  child: const Icon(
-                    Icons.check_circle,
-                    size: 20,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ],
+    return GWSelectRow(
+      selected: selected,
+      onTap: onTap,
+      leading: ClipOval(
+        child: Image.network(
+          token.logoURI,
+          width: 36,
+          height: 36,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, progress) => progress == null
+              ? child
+              : Container(width: 36, height: 36, color: gw.surfaceMenu),
+          errorBuilder: (context, error, stackTrace) => Container(
+            width: 36,
+            height: 36,
+            color: gw.surfaceMenu,
+            alignment: Alignment.center,
+            child: Icon(Icons.broken_image, color: gw.textSecondary, size: 16),
           ),
         ),
       ),
+      title: token.name,
+      subtitle: token.symbol,
+      // A balance the wallet does not hold is ABSENT, not "0" - the same rule
+      // the transaction rows follow for a missing fiat line.
+      trailing: balance == null
+          ? null
+          : Text(
+              balance.displayBalance,
+              style: GeniusWalletTypography.numericBody.copyWith(
+                color: gw.textPrimary,
+              ),
+            ),
     );
   }
 }

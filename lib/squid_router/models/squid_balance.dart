@@ -35,12 +35,26 @@ class SquidBalance {
     };
   }
 
-  double get amountAsDouble =>
-      double.tryParse(balance)! / (pow(10, decimals) as double);
+  /// The balance as a number, or **null** when [balance] is not parseable.
+  ///
+  /// Nullable rather than `0`, because the one consumer that reasons about the
+  /// value - the swap CTA - must not say "Insufficient ETH" on data it never
+  /// received. `swap_screen.dart`'s `fromBalanceAmount` already declares that
+  /// rule; this getter is what makes it true.
+  ///
+  /// `pow(int, int)` returns a `num` that is an **int** at runtime whenever the
+  /// result fits in an int64, i.e. for every `decimals <= 18` - which is every
+  /// real token. So the old `as double` cast threw a `TypeError` on literally
+  /// every call. It read as data-dependent only because two of the three
+  /// callers swallow it in a `catch` and print `0`.
+  double? get amountAsDouble {
+    final raw = double.tryParse(balance);
+    return raw == null ? null : raw / pow(10, decimals).toDouble();
+  }
 
   @override
   String toString() =>
-      '$symbol on chain $chainId: ${amountAsDouble.toStringAsFixed(4)}';
+      '$symbol on chain $chainId: ${amountAsDouble?.toStringAsFixed(4) ?? '?'}';
 }
 
 extension SquidBalanceFormatter on SquidBalance {
@@ -88,7 +102,7 @@ extension SquidBalanceFormatter on SquidBalance {
   String get displayBalance {
     try {
       final value = amountAsDouble;
-      if (value == 0) return '0';
+      if (value == null || value == 0) return '0';
       if (value < 0.000001) return '<0.000001';
       if (value == value.roundToDouble()) return value.toInt().toString();
       return value

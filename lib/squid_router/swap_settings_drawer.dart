@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/squid_router/slippage_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -74,26 +75,25 @@ class _ApplyFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    // No GWColors read here any more: the only consumer was the footer's top
+    // rule, which the shell now draws (kDrawerFooterPadding). GWButton makes
+    // its own appearance-aware read.
     return ValueListenableBuilder<String>(
       valueListenable: raw,
       builder: (context, value, _) {
         final state = slippageState(value);
-        return Container(
-          padding: const EdgeInsets.all(GeniusWalletConsts.space10),
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: gw.borderSubtle, width: 1)),
-          ),
-          child: GWButton(
-            variant: GWButtonVariant.gradient,
-            size: GWButtonSize.lg,
-            expand: true,
-            label: 'Apply',
-            // The old Apply was always live and silently did nothing when the
-            // value would not parse. Refusing is only honest if the control
-            // says so.
-            onPressed: state.canApply ? () => onApply(state.value!) : null,
-          ),
+        // Padding and the top rule both moved to the shell
+        // (kDrawerFooterPadding) -- this drawer was the only one of the ~19
+        // that drew them, which is why every other footer ran edge to edge.
+        return GWButton(
+          variant: GWButtonVariant.gradient,
+          size: GWButtonSize.lg,
+          expand: true,
+          label: 'Apply',
+          // The old Apply was always live and silently did nothing when the
+          // value would not parse. Refusing is only honest if the control
+          // says so.
+          onPressed: state.canApply ? () => onApply(state.value!) : null,
         );
       },
     );
@@ -137,31 +137,32 @@ class _SlippageFormState extends State<_SlippageForm> {
     final Color edge = switch (state.level) {
       SlippageLevel.error => gw.statusError,
       SlippageLevel.warning => GeniusWalletColors.statusWarning,
-      SlippageLevel.ok => gw.borderSubtle,
+      // borderControl, not borderSubtle: on the 156-A panel the field's fill
+      // sits 1.11:1 from the panel's, so the edge is the ONLY thing saying
+      // "this is an input" and it has to clear 1.4.11 by itself. 12% measured
+      // 1.36:1; this is 3.30:1.
+      SlippageLevel.ok => gw.borderControl,
     };
 
     return SingleChildScrollView(
-      // Extra air at the top: the header hairline sits directly above, and at
-      // a flat space10 the first label read as glued to it. Bottom padding is
-      // light because the footer supplies its own.
-      padding: const EdgeInsets.fromLTRB(
-        GeniusWalletConsts.space10,
-        GeniusWalletConsts.space12,
-        GeniusWalletConsts.space10,
-        GeniusWalletConsts.space10,
-      ),
+      // Body inset removed: this exact value -- extra air at the top because
+      // the header hairline sits directly above, and at a flat space10 the
+      // first label read as glued to it -- was promoted to the shell as
+      // `kDrawerBodyPadding`. Keeping it here would double it to 40/48.
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'Slippage tolerance',
-            style: GeniusWalletTypography.labelMd.copyWith(
-              color: gw.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: GeniusWalletConsts.space2),
+          // Sketch 067-A "Kicker only": the section is a label and a gap, no
+          // container. A card here measures 1.00:1 against the 156-A panel --
+          // the same colour -- so the only 1.4.11-compliant box would need a
+          // white-36% border, which makes the section louder than Apply. A gap
+          // has no contrast threshold to meet.
+          const GWKicker('Slippage tolerance'),
+          // 12, not the 4 this had: with no container the gap IS the grouping,
+          // so it has to be big enough to read as one.
+          const SizedBox(height: GeniusWalletConsts.space6),
           // The old panel said "Slippage Tolerance (%)" and stopped. A unit is
           // not an explanation: nothing told the user what the number governs
           // or which way is safer.
@@ -188,9 +189,41 @@ class _SlippageFormState extends State<_SlippageForm> {
             ],
           ),
           const SizedBox(height: GeniusWalletConsts.space6),
+          // The field's own label. 067-A drew it and the shipped drawer did not
+          // have it -- the field carried a `Custom` PLACEHOLDER instead, which
+          // is invisible the moment the field has a value, and it always does
+          // (a preset is selected on open). A placeholder is not a label.
+          // `labelMd`/`textSecondary`, NOT the sketch's 13/w500/ink70.
+          //
+          // 067's mockup drew a fourth value for this role, and the app has
+          // already settled it three times identically: `GWTextField` renders
+          // exactly this (label, then `space4`), and `swap_field.dart` ("You
+          // Pay") and `submit_logs_screen.dart` ("Message") both hand-copy the
+          // same two values because they wrap `GWFocusRing` and cannot use the
+          // component. Taking the mockup literally here would have recreated,
+          // one sketch later, precisely the drift 065 was written to end.
+          Text(
+            'Custom value',
+            style: GeniusWalletTypography.labelMd.copyWith(
+              color: gw.textSecondary,
+            ),
+          ),
+          const SizedBox(height: GeniusWalletConsts.space4),
           GWFocusRing(
             radius: GeniusWalletConsts.radiusSm,
-            background: gw.surfaceMenu,
+            // DARKER than the panel, not lighter (Jakub, live, 2026-07-28).
+            //
+            // 156-A shipped this as `surfaceMenu` -- the lighter object on a
+            // darker canvas. On screen it read as a raised tile rather than
+            // something you type into. `surfaceSunken` is this app's existing
+            // recipe for a recessed control (pin_screen, token_info_screen's
+            // fields, the control-track standard), and it is sketch 156's own
+            // scheme C, so this is a return to a rule rather than a deviation.
+            //
+            // The edge is unaffected: GWFocusRing paints its ring as an outer
+            // DecoratedBox, so the ring composites over the PANEL, not over the
+            // fill. borderControl stays 3.30:1 whatever this value is.
+            background: gw.surfaceSunken,
             // An invalid value keeps the refusal colour even while focused —
             // the gradient says "you are here", the red says "this will not
             // apply", and the second outranks the first.
@@ -209,10 +242,9 @@ class _SlippageFormState extends State<_SlippageForm> {
                 color: gw.textPrimary,
               ),
               decoration: InputDecoration(
-                hintText: 'Custom',
-                hintStyle: GeniusWalletTypography.titleMd.copyWith(
-                  color: gw.textPrimary38,
-                ),
+                // No hint any more: the label above says `Custom value`, and a
+                // placeholder repeating it would be the same word twice for a
+                // state (empty field) that lasts one keystroke.
                 suffixText: '%',
                 suffixStyle: GeniusWalletTypography.titleMd.copyWith(
                   color: gw.textSecondary,
@@ -250,13 +282,20 @@ class _Message extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isError = state.isError;
-    final color = isError ? gw.statusError : GeniusWalletColors.statusWarning;
+    // Three tones now, not two. `ok` used to be unreachable here because the
+    // validator returned a null message for the comfortable band; it confirms
+    // instead, so this needs a neutral colour rather than falling through to
+    // amber and painting reassurance as a warning.
+    final color = switch (state.level) {
+      SlippageLevel.error => gw.statusError,
+      SlippageLevel.warning => GeniusWalletColors.statusWarning,
+      SlippageLevel.ok => gw.textSecondary, // 5.97:1 on the 156-A panel
+    };
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
-          isError ? Icons.error_outline : Icons.info_outline,
+          state.isError ? Icons.error_outline : Icons.info_outline,
           size: 16,
           color: color,
         ),
