@@ -12,11 +12,47 @@ class GWPageHeader extends StatelessWidget {
     required this.title,
     this.trailing,
     this.subtitle,
+    this.leading,
+    this.titleTrailing,
     this.centered = false,
   });
 
   final String title;
   final Widget? trailing;
+
+  /// Optional glyph before the title, vertically centred against the WHOLE
+  /// identity block (title + subtitle) rather than against the title line - a
+  /// coin's logo beside a name with a symbol under it reads as belonging to
+  /// both, which is how `markets_hero_card` and `markets_table` already place
+  /// theirs.
+  ///
+  /// **One consumer, and that is deliberate.** This is under the 3+ promotion
+  /// bar `GWKicker`, `GWSelectRow` and `GWWarningNote` each had to clear, but
+  /// the alternative is not a local widget - it is the coin page hand-rolling
+  /// a title row again, which is the exact thing this component exists to stop
+  /// and which 071-B deleted. Additive and defaulted to null, so every
+  /// existing caller renders the identical tree.
+  ///
+  /// Pass this only on the left-aligned form. With [centered] the glyph sits
+  /// left of the centred column and the text centres in what is left, which is
+  /// not what a centred header wants; no caller does that today.
+  final Widget? leading;
+
+  /// Sits immediately after the title, **on the title's own line** - not below
+  /// it with the subtitle, and not at the far right where [trailing] goes.
+  ///
+  /// Jakub, 2026-07-28: *"powinny być w jednej linii z tytułem, w tej samej
+  /// linii."* The title row is laid out `CrossAxisAlignment.center`, so this
+  /// and the title share a vertical centre however tall [trailing] makes the
+  /// row - which is what "the same line" means once the right-hand side is a
+  /// two-line price block.
+  ///
+  /// **This is the SECOND coin-page-only slot on this component, and that is
+  /// the honest cost of the choice.** The alternative is not a local widget -
+  /// it is the coin page hand-rolling its own title row again, which is the
+  /// thing this component exists to stop and which 071-B deleted. Both slots
+  /// are additive and null-defaulted, so no other caller's tree changes.
+  final Widget? titleTrailing;
 
   /// Centres the title (and subtitle) instead of left-aligning it, with
   /// [trailing] pinned to the right edge. For the focused-form tabs (Swap,
@@ -66,7 +102,12 @@ class GWPageHeader extends StatelessWidget {
             ? titleText
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: [titleText, const Spacer(), ?trailing],
+                children: [
+                  Flexible(child: titleText),
+                  ?titleTrailing,
+                  const Spacer(),
+                  ?trailing,
+                ],
               ),
         if (subtitleText != null) ...[
           const SizedBox(height: GeniusWalletConsts.space2),
@@ -74,6 +115,20 @@ class GWPageHeader extends StatelessWidget {
         ],
       ],
     );
+
+    // The glyph sits beside the whole block, not inside the title Row, so it
+    // centres against title + subtitle together. `Expanded` keeps the trailing
+    // widget pinned to the right edge exactly as it is without a leading.
+    final Widget identityBlock = leading == null
+        ? titleBlock
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              leading!,
+              const SizedBox(width: GeniusWalletConsts.space6),
+              Expanded(child: titleBlock),
+            ],
+          );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,12 +140,12 @@ class GWPageHeader extends StatelessWidget {
             children: [
               // Full width, so the centred text centres on the column and not
               // on whatever space the trailing widget leaves over.
-              SizedBox(width: double.infinity, child: titleBlock),
+              SizedBox(width: double.infinity, child: identityBlock),
               trailing!,
             ],
           )
         else
-          SizedBox(width: double.infinity, child: titleBlock),
+          SizedBox(width: double.infinity, child: identityBlock),
         const SizedBox(height: GeniusWalletConsts.space8),
       ],
     );

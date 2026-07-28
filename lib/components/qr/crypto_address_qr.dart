@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
-import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -56,17 +56,9 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
-    // 034-A2's "bordered amber note". GeniusWalletColors.statusWarning
-    // (#FFC42E) is a FILL-ONLY token tuned for the dark badge canvas
-    // (~13:1 there) and fails WCAG non-text contrast (~1.6:1) on white — so
-    // this mirrors the same light/dark divergence GWColors.light()/.dark()
-    // already applies to statusSuccess/statusError: a darkened amber for
-    // light-mode text/icon use (7.1:1 on white), the vivid token for dark
-    // mode. Scoped locally (not added to GWColors — out of this file's
-    // reskin boundary).
-    final warningColor = GWAppearance.isLight
-        ? const Color(0xFF92400E) // ~7.1:1 on white
-        : GeniusWalletColors.statusWarning; // ~13.2:1 on the dark canvas
+    // The amber this file worked out -- statusWarning is a FILL token and
+    // measures ~1.6:1 on white -- now lives in `GWWarningNote`, along with the
+    // note that used it. See that component for the reasoning and the ceiling.
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -106,7 +98,14 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
           // scannable by a phone camera over the dark drawer. NEVER an
           // appearance token.
           backgroundColor: Colors.white,
-          embeddedImage: AssetImage(widget.iconPath ?? ""),
+          // `AssetImage("")` when there is no icon - which is every coin
+          // without an asset, and every drawer opened from Markets - throws
+          // *"Unable to load asset"* into the log on every build. `null` is
+          // the API's own way to say "no embedded logo"; the empty string was
+          // a `??` reaching for a non-nullable type that did not need one.
+          embeddedImage: widget.iconPath == null
+              ? null
+              : AssetImage(widget.iconPath!),
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(36, 36)),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
@@ -163,30 +162,11 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
         // Network warning — quiet bordered amber note (034-A2). Copy-only
         // footer stays the caller's CopyButton/ActionButton; this widget adds
         // no Share / set-default action (respects the documented audit gap).
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: GeniusWalletConsts.space6,
-            vertical: GeniusWalletConsts.space4,
-          ),
-          decoration: BoxDecoration(
-            border: Border.all(color: warningColor.withValues(alpha: 0.5)),
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.warning_amber_rounded, size: 16, color: warningColor),
-              const SizedBox(width: GeniusWalletConsts.space4),
-              Flexible(
-                child: Text(
-                  "Only send ${widget.network}-network assets to this address.",
-                  style: GeniusWalletTypography.bodySm.copyWith(
-                    color: gw.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        // This note WAS this treatment; it is now `GWWarningNote`, which took
+        // its values verbatim so nothing here moves a pixel. The light-mode
+        // amber worked out in this file is the reason the component exists.
+        GWWarningNote(
+          "Only send ${widget.network}-network assets to this address.",
         ),
       ],
     );

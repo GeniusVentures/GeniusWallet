@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -57,8 +58,10 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
               children: [
                 Text(
                   widget.coin.name,
-                  style: GeniusWalletTypography.titleLg
-                      .copyWith(color: gw.textPrimary, letterSpacing: -0.2),
+                  style: GeniusWalletTypography.titleLg.copyWith(
+                    color: gw.textPrimary,
+                    letterSpacing: -0.2,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -89,13 +92,17 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _ChangePill(percent: data.priceChangePercentage24h, color: changeColor),
+            _ChangePill(
+              percent: data.priceChangePercentage24h,
+              color: changeColor,
+            ),
             const SizedBox(width: GeniusWalletConsts.space6),
             Flexible(
               child: Text(
                 '${_absChange(data)} · 24h',
-                style: GeniusWalletTypography.bodySm
-                    .copyWith(color: gw.textSecondary),
+                style: GeniusWalletTypography.bodySm.copyWith(
+                  color: gw.textSecondary,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -108,15 +115,32 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         // 2×2 stat block
         Row(
           children: [
-            Expanded(child: _Stat(label: 'Rank', value: '#${data.marketCapRank}')),
-            Expanded(child: _Stat(label: 'Market Cap', value: _compact(data.marketCap))),
+            Expanded(
+              child: GWStatTile(label: 'Rank', value: '#${data.marketCapRank}'),
+            ),
+            Expanded(
+              child: GWStatTile(
+                label: 'Market Cap',
+                value: _compact(data.marketCap),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: GeniusWalletConsts.space10),
         Row(
           children: [
-            Expanded(child: _Stat(label: 'Volume 24h', value: _compact(data.totalVolume))),
-            Expanded(child: _Stat(label: 'All-Time High', value: _price(data.ath))),
+            Expanded(
+              child: GWStatTile(
+                label: 'Volume 24h',
+                value: _compact(data.totalVolume),
+              ),
+            ),
+            Expanded(
+              child: GWStatTile(
+                label: 'All-Time High',
+                value: _price(data.ath),
+              ),
+            ),
           ],
         ),
       ],
@@ -136,7 +160,9 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Align(
-              alignment: Alignment.centerRight, child: _TimeframeSegment()),
+            alignment: Alignment.centerRight,
+            child: _TimeframeSegment(),
+          ),
           const SizedBox(height: GeniusWalletConsts.space8),
           if (fill) const Spacer(),
           SizedBox(height: 180, child: _HeroChart(sparkline: data.sparkline)),
@@ -192,8 +218,9 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
           borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
           onTap: widget.onTap,
           child: Container(
-            decoration:
-                GWDecorations.surface(radius: GeniusWalletConsts.radiusLg),
+            decoration: GWDecorations.surface(
+              radius: GeniusWalletConsts.radiusLg,
+            ),
             padding: const EdgeInsets.all(GeniusWalletConsts.space16),
             child: content,
           ),
@@ -204,7 +231,10 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
 
   String _price(double v) {
     final decimals = v >= 1 ? 2 : 6;
-    return NumberFormat.currency(symbol: '\$', decimalDigits: decimals).format(v);
+    return NumberFormat.currency(
+      symbol: '\$',
+      decimalDigits: decimals,
+    ).format(v);
   }
 
   String _absChange(CoinGeckoMarketData d) {
@@ -237,48 +267,11 @@ class _ChangePill extends StatelessWidget {
       ),
       child: Text(
         '${percent >= 0 ? '+' : ''}${percent.toStringAsFixed(2)}%',
-        style: GeniusWalletTypography.labelMd
-            .copyWith(color: color, fontWeight: FontWeight.w600),
+        style: GeniusWalletTypography.labelMd.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  final String label;
-  final String value;
-  const _Stat({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label.toUpperCase(),
-          style: GeniusWalletTypography.labelMd.copyWith(
-            color: gw.textSecondary,
-            fontSize: 10,
-            height: 14 / 10,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          value,
-          style: GeniusWalletTypography.numericBody.copyWith(
-            color: gw.textPrimary,
-            fontSize: 15,
-            height: 20 / 15,
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
     );
   }
 }
@@ -298,7 +291,9 @@ class _HeroChart extends StatelessWidget {
       return Center(
         child: Text(
           'Chart unavailable',
-          style: GeniusWalletTypography.bodySm.copyWith(color: gw.textSecondary),
+          style: GeniusWalletTypography.bodySm.copyWith(
+            color: gw.textSecondary,
+          ),
         ),
       );
     }
@@ -307,7 +302,10 @@ class _HeroChart extends StatelessWidget {
       (i) => FlSpot(i.toDouble(), data[i]),
     );
     const gradient = LinearGradient(
-      colors: [GeniusWalletColors.gradientGreen, GeniusWalletColors.gradientBlue],
+      colors: [
+        GeniusWalletColors.gradientGreen,
+        GeniusWalletColors.gradientBlue,
+      ],
     );
 
     // Hover tooltip (same effect as the dashboard's CryptoLiveChart): a touched
@@ -365,8 +363,9 @@ class _HeroChart extends StatelessWidget {
                     radius: 4,
                     color: GeniusWalletColors.gradientGreen,
                     strokeWidth: 3,
-                    strokeColor:
-                        GeniusWalletColors.gradientGreen.withValues(alpha: 0.26),
+                    strokeColor: GeniusWalletColors.gradientGreen.withValues(
+                      alpha: 0.26,
+                    ),
                   ),
                 ),
               );
@@ -380,10 +379,12 @@ class _HeroChart extends StatelessWidget {
             getTooltipColor: (touchedSpot) => gw.surfaceElevated,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
-                final double pct =
-                    first > 0 ? ((spot.y - first) / first) * 100 : 0;
-                final Color pctColor =
-                    pct >= 0 ? gw.statusSuccess : gw.statusError;
+                final double pct = first > 0
+                    ? ((spot.y - first) / first) * 100
+                    : 0;
+                final Color pctColor = pct >= 0
+                    ? gw.statusSuccess
+                    : gw.statusError;
                 final int decimals = spot.y >= 1 ? 2 : 6;
                 return LineTooltipItem(
                   '${DateFormat('MMM d, h:mm a').format(timeAt(spot.x))}\n',
@@ -532,8 +533,7 @@ class _TimeframeTabState extends State<_TimeframeTab> {
                 ? null
                 : (lifted ? widget.hoverColor : Colors.transparent),
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-            boxShadow:
-                (selected || lifted) ? GeniusWalletElevation.card : null,
+            boxShadow: (selected || lifted) ? GeniusWalletElevation.card : null,
           ),
           child: Text(
             widget.label,

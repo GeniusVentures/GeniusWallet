@@ -238,33 +238,39 @@ final geniusWalletRouter = GoRouter(
         GoRoute(path: '/news', builder: (_, _) => const CryptoNewsScreen()),
         GoRoute(path: '/logs', builder: (_, _) => const SubmitLogsScreen()),
         GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+        // Moved INSIDE the shell on 2026-07-28 (sketch 071). It was the only
+        // screen in the app outside it, which is why it was the only screen
+        // with no navigation: from a coin you could not reach News without
+        // going back first. Inside the shell it pushes onto the shell's own
+        // Navigator, so the overlay stays mounted and `context.pop()` returns
+        // to Markets with the chrome never unmounting.
+        GoRoute(
+          path: '/token-info',
+          builder: (context, state) {
+            final extra = state.extra != null
+                ? state.extra as Map<String, dynamic>
+                : <String, dynamic>{};
+
+            final marketDataRaw = extra["marketData"];
+            final CoinGeckoMarketData? marketData;
+            if (marketDataRaw == null) {
+              marketData = null;
+            } else if (marketDataRaw is CoinGeckoMarketData) {
+              marketData = marketDataRaw;
+            } else if (marketDataRaw is Map<String, dynamic>) {
+              marketData = CoinGeckoMarketData.fromJson(marketDataRaw);
+            } else {
+              marketData = null;
+            }
+
+            return TokenInfoScreen(
+              walletDetailsCubit: context.read<WalletDetailsCubit>(),
+              isGnusWalletConnected: extra["isGnusWalletConnected"],
+              marketData: marketData,
+            );
+          },
+        ),
       ],
-    ),
-    GoRoute(
-      path: '/token-info',
-      builder: (context, state) {
-        final extra = state.extra != null
-            ? state.extra as Map<String, dynamic>
-            : <String, dynamic>{};
-
-        final marketDataRaw = extra["marketData"];
-        final CoinGeckoMarketData? marketData;
-        if (marketDataRaw == null) {
-          marketData = null;
-        } else if (marketDataRaw is CoinGeckoMarketData) {
-          marketData = marketDataRaw;
-        } else if (marketDataRaw is Map<String, dynamic>) {
-          marketData = CoinGeckoMarketData.fromJson(marketDataRaw);
-        } else {
-          marketData = null;
-        }
-
-        return TokenInfoScreen(
-          walletDetailsCubit: context.read<WalletDetailsCubit>(),
-          isGnusWalletConnected: extra["isGnusWalletConnected"],
-          marketData: marketData,
-        );
-      },
     ),
     GoRoute(
       path: '/bridge',

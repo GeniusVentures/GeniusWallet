@@ -72,18 +72,31 @@ class _MarketsScreenState extends State<MarketsScreen> {
       alignment: Alignment.topCenter,
       child: Padding(
         // top space32 (64) — navbar→title gap unified with Transactions/Swap.
+        //
+        // Horizontal gutter is 0 HERE and 12 on each child instead. It used to
+        // be 12 here, which put it OUTSIDE the data view's SingleChildScrollView
+        // — and a scroll viewport clips. The hero card carries
+        // `GeniusWalletElevation.card` (blurRadius 16), so its shadow was being
+        // sliced flat against the viewport edge and the card read as cut off
+        // rather than raised. Same class of bug as quick 260720-gzq. Moving the
+        // gutter inside the viewport gives the shadow 12 of its 16 to render
+        // into; the last 4 are below visibility at this alpha.
         padding: const EdgeInsets.fromLTRB(
-          12,
+          0,
           GeniusWalletConsts.space32,
-          12,
+          0,
           8,
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
           child: Column(
             children: [
-              const GWPageHeader(
-                title: "Markets",
+              // Carries the page gutter itself so it stays on the same axis as
+              // the hero card and the table, which now carry it inside the
+              // scroll viewport (see the Padding above).
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: GWPageHeader(title: "Markets"),
               ),
               // Expanded at the COLUMN level so EVERY state — the loading
               // spinner, the error/empty `_centered`, and the data scroll view
@@ -165,13 +178,15 @@ class _MarketsScreenState extends State<MarketsScreen> {
     return ScrollConfiguration(
       behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
       child: SingleChildScrollView(
-        // No horizontal inset: the hero + table align with the 'Markets' page
-        // title above them (which sits at the outer 12px gutter), instead of
-        // being pushed 8px further in.
+        // 12 horizontal: the page gutter now lives INSIDE the viewport rather
+        // than outside it, so the hero card's blurRadius-16 shadow has room to
+        // render instead of being clipped flat by the scroll viewport. The
+        // 'Markets' title carries the same 12, so the alignment the previous
+        // comment protected is unchanged — only the clipping is.
         padding: const EdgeInsets.fromLTRB(
-          0,
+          12,
           GeniusWalletConsts.space6,
-          0,
+          12,
           GeniusWalletConsts.space20,
         ),
         child: Column(

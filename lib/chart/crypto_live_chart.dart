@@ -39,6 +39,57 @@ double compactPriceFontSize({
   return min(priceHeight, maxHeight * 0.45).floorToDouble();
 }
 
+/// The chart's vertical window, as `(minY, maxY)`.
+///
+/// **It is computed over the points inside the CURRENT X view, and that is the
+/// whole fix.** It used to reduce over the entire series while the X window
+/// showed only the last 50 points (`_fetchHistoricalData` sets it that way), so
+/// the ruler was set by prices that were not on screen. On a coin sitting 98%
+/// below its all-time high, that turns the visible slice into a flat line
+/// pinned to the bottom of the card - Jakub, 2026-07-28: *"ten chart jest
+/// bardzo płaski"*. The data was not flat; the scale was wrong.
+///
+/// The old padding was `* 0.999` / `* 1.001`, which is effectively none, so the
+/// line also ran edge to edge. 8% of the visible span on each side gives the
+/// curve somewhere to move while still filling ~86% of the height.
+///
+/// A genuinely flat slice - one point, or a stablecoin that has not moved - has
+/// zero span and cannot be scaled at all, so it falls back to ±1% of the value
+/// and the line lands mid-card instead of fl_chart dividing by zero. That case
+/// is not hypothetical: it is every chart between the first paint and the
+/// second live tick.
+///
+/// Top-level and pure so the rule can be tested. A y-window bug looks like a
+/// working chart in every screenshot - this one shipped that way.
+(double, double) chartYBounds(
+  List<FlSpot> data, {
+  double? viewMinX,
+  double? viewMaxX,
+}) {
+  if (data.isEmpty) return (0, 1);
+
+  final lo = viewMinX ?? data.first.x;
+  final hi = viewMaxX ?? data.last.x;
+
+  var visible = data
+      .where((s) => s.x >= lo && s.x <= hi)
+      .map((s) => s.y)
+      .toList();
+  // Pan/zoom cannot empty this, but a bad window should degrade to the whole
+  // series rather than throw out of `reduce`.
+  if (visible.isEmpty) visible = data.map((s) => s.y).toList();
+
+  final lowest = visible.reduce(min);
+  final highest = visible.reduce(max);
+  final span = highest - lowest;
+
+  if (span <= 0) {
+    final pad = highest.abs() * 0.01;
+    return (lowest - (pad > 0 ? pad : 1), highest + (pad > 0 ? pad : 1));
+  }
+  return (lowest - span * 0.08, highest + span * 0.08);
+}
+
 class CryptoLiveChart extends StatefulWidget {
   final String coinGeckoCoinId;
   final String tokenSymbol;
@@ -77,6 +128,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   double? _viewMinX, _viewMaxX;
 
   bool get _hasData => _priceData.isNotEmpty;
+
+  (double, double) _yBounds() =>
+      chartYBounds(_priceData, viewMinX: _viewMinX, viewMaxX: _viewMaxX);
 
   @override
   void initState() {
@@ -380,10 +434,8 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                             maxX:
                                 _viewMaxX ??
                                 (_priceData.isNotEmpty ? _priceData.last.x : 1),
-                            minY:
-                                _priceData.map((e) => e.y).reduce(min) * 0.999,
-                            maxY:
-                                _priceData.map((e) => e.y).reduce(max) * 1.001,
+                            minY: _yBounds().$1,
+                            maxY: _yBounds().$2,
                             lineBarsData: [
                               LineChartBarData(
                                 spots: _priceData,

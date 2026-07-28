@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -113,12 +114,13 @@ class _MarketsTableState extends State<MarketsTable> {
     Widget cell(String label, MarketSort? sort, double? width,
         {bool alignEnd = true}) {
       final active = sort != null && sort == _sort;
-      final style = GeniusWalletTypography.labelMd.copyWith(
+      // Takes GWKicker's shared TYPE but not the widget: this header is
+      // interactive (sort state + direction arrow), and a label component that
+      // grew those would stop being a label. Values are byte-identical to what
+      // this file carried before sketch 065 — 11 / w600 / 0.6 IS the dense
+      // step; only the active-state colour is overridden here.
+      final style = GWKicker.style(gw, dense: true).copyWith(
         color: active ? gw.textPrimary : gw.textSecondary,
-        fontSize: 11,
-        height: 16 / 11,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.6,
       );
       final child = Row(
         mainAxisSize: MainAxisSize.min,
