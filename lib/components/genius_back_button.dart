@@ -11,8 +11,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class GeniusBackButton extends StatefulWidget {
   final BoxConstraints constraints;
   final Widget? ovrWhiteArrowBack;
-  const GeniusBackButton(this.constraints, {Key? key, this.ovrWhiteArrowBack})
-    : super(key: key);
+  const GeniusBackButton(this.constraints, {super.key, this.ovrWhiteArrowBack});
   @override
   _GeniusBackButton createState() => _GeniusBackButton();
 }

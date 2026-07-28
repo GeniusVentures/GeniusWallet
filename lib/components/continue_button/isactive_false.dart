@@ -8,8 +8,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 class IsactiveFalse extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrContinue;
-  const IsactiveFalse(this.constraints, {Key? key, this.ovrContinue})
-    : super(key: key);
+  const IsactiveFalse(this.constraints, {super.key, this.ovrContinue});
   @override
   _IsactiveFalse createState() => _IsactiveFalse();
 }

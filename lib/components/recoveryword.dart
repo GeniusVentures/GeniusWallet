@@ -8,10 +8,10 @@ class Recoveryword extends StatefulWidget {
   final bool isEnabled;
   const Recoveryword(
     this.constraints, {
-    Key? key,
+    super.key,
     this.ovrWord,
     this.isEnabled = true,
-  }) : super(key: key);
+  });
   @override
   _Recoveryword createState() => _Recoveryword();
 }

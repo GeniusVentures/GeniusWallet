@@ -12,8 +12,7 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 class IncorrectPin extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrIncorrectPinLabel;
-  const IncorrectPin(this.constraints, {Key? key, this.ovrIncorrectPinLabel})
-    : super(key: key);
+  const IncorrectPin(this.constraints, {super.key, this.ovrIncorrectPinLabel});
   @override
   _IncorrectPin createState() => _IncorrectPin();
 }

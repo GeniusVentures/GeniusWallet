@@ -10,8 +10,7 @@ class IsactiveTrue extends StatefulWidget {
   final BoxConstraints constraints;
   final String? ovrContinue;
 
-  const IsactiveTrue(this.constraints, {Key? key, this.ovrContinue})
-    : super(key: key);
+  const IsactiveTrue(this.constraints, {super.key, this.ovrContinue});
 
   @override
   _IsactiveTrue createState() => _IsactiveTrue();

@@ -22,7 +22,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class Loading extends StatelessWidget {
   final String? text;
-  const Loading({Key? key, this.text}) : super(key: key);
+  const Loading({super.key, this.text});
 
   @override
   Widget build(BuildContext context) {

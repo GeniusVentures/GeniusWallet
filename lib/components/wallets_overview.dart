@@ -18,10 +18,10 @@ class WalletsOverview extends StatefulWidget {
   final Account? account;
   final GeniusApi geniusApi;
   const WalletsOverview({
-    Key? key,
+    super.key,
     required this.geniusApi,
     required this.account,
-  }) : super(key: key);
+  });
   @override
   WalletsOverviewState createState() => WalletsOverviewState();
 }

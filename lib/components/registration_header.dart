@@ -13,10 +13,10 @@ class RegistrationHeader extends StatefulWidget {
   final String? ovrTitle;
   const RegistrationHeader(
     this.constraints, {
-    Key? key,
+    super.key,
     this.ovrSubtitle,
     this.ovrTitle,
-  }) : super(key: key);
+  });
   @override
   _RegistrationHeader createState() => _RegistrationHeader();
 }

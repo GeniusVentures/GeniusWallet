@@ -18,7 +18,7 @@ class WalletPreview extends StatefulWidget {
   final bool? isShowSymbol;
 
   const WalletPreview({
-    Key? key,
+    super.key,
     this.isConnected,
     this.walletType,
     this.walletBalance,
@@ -26,7 +26,7 @@ class WalletPreview extends StatefulWidget {
     this.walletAddress,
     this.walletName = "",
     this.isShowSymbol,
-  }) : super(key: key);
+  });
 
   @override
   WalletPreviewState createState() => WalletPreviewState();

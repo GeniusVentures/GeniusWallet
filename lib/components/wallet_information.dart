@@ -29,12 +29,12 @@ class WalletInformation extends StatefulWidget {
   final WalletType walletType;
   const WalletInformation(
     this.constraints, {
-    Key? key,
+    super.key,
     this.ovrShowMoreIcon,
     this.totalBalance,
     required this.ovrAddressField,
     this.walletType = WalletType.tracking,
-  }) : super(key: key);
+  });
   @override
   WalletInformationState createState() => WalletInformationState();
 }
