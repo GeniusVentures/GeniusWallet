@@ -71,6 +71,10 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
       ),
     );
 
+    if (!mounted) {
+      return;
+    }
+
     if (selected != null && selected != selectedNetwork) {
       setState(() => selectedNetwork = selected);
 
@@ -80,15 +84,13 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
 
       walletCubit.selectNetwork(selected);
 
-      if (context.mounted) {
-        ToastManager.instance.showToast(
-          context: context,
-          title: 'Network Changed',
-          message:
-              'Switched to ${selected.name ?? selected.symbol ?? "network"}.',
-          type: ToastType.success,
-        );
-      }
+      ToastManager.instance.showToast(
+        context: context,
+        title: 'Network Changed',
+        message:
+            'Switched to ${selected.name ?? selected.symbol ?? "network"}.',
+        type: ToastType.success,
+      );
 
       final box = Hive.box(networkBoxName);
       await box.put(selectedNetworkKeyChainId, selected.chainId);

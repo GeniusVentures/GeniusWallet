@@ -50,6 +50,9 @@ class _OrdersPageState extends State<OrdersPage> {
     );
 
     if (picked != null) {
+      if (!context.mounted) {
+        return;
+      }
       setState(() {
         startDate = picked.start;
         endDate = picked.end;

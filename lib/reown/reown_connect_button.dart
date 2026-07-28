@@ -163,11 +163,13 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
         if (approved == null || !approved) {
           debugPrint("❌ Connection request rejected by user");
-          showAppSnackBar(
-            context,
-            "DApp connection was rejected.",
-            backgroundColor: GeniusWalletColors.statusError,
-          );
+          if (mounted) {
+            showAppSnackBar(
+              context,
+              "DApp connection was rejected.",
+              backgroundColor: GeniusWalletColors.statusError,
+            );
+          }
 
           await walletKit.rejectSession(
             id: event.id,
@@ -413,6 +415,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                         return;
                       }
                       _didManualPair = true;
+                      if (!mounted) {
+                        return;
+                      }
                       Navigator.of(context).pop();
                     } catch (e) {
                       setInnerState(() {
