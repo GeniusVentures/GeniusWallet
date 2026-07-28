@@ -13,15 +13,24 @@
 
 include: package:lints/recommended.yaml
 
+analyzer:
+  # Machine-generated bindings. These are not hand-edited, and linting them is
+  # pure noise: on 2026-07-28 `lib/ffi/trust_wallet_api_ffi.dart` alone produced
+  # 214 of the repo's 408 analyzer issues.
+  #
+  # These excludes MUST live in this file, not the repo-root analysis_options.yaml.
+  # The analyzer resolves the *nearest* options file to each source file, so the
+  # root file's excludes never applied to anything under packages/genius_api/ —
+  # which is why the root's `packages/genius_api/lib/proto` entry did nothing.
+  exclude:
+    - lib/ffi/**
+    - lib/proto/**
+
 # Uncomment the following section to specify additional rules.
 
 # linter:
 #   rules:
 #     - camel_case_types
-
-# analyzer:
-#   exclude:
-#     - path/to/excluded/files/**
 
 # For more information about the core and recommended set of lints, see
 # https://dart.dev/go/core-lints

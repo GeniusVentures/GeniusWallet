@@ -6,7 +6,55 @@ analyzer:
     - lib/**/*.freezed.dart
     - banxa
     - squidrouter
-    - packages/genius_api/lib/proto
+    # NOTE: excludes for packages/genius_api live in that package's own
+    # analysis_options.yaml. The analyzer resolves the *nearest* options file to
+    # each source file, so an entry here never applied to it — which is why the
+    # old `packages/genius_api/lib/proto` line did nothing.
+
+linter:
+  rules:
+    # Every rule below is justified by a real finding in the 2026-07-28 audit.
+    # Baseline that day: flutter analyze = 408 issues; excluding the generated
+    # FFI/proto bindings in packages/genius_api dropped it to 85.
+    #
+    # NOT enabled, deliberately:
+    #   public_member_api_docs  - brutal on an app; fine only for packages
+    #   prefer_single_quotes    - ~1105 sites, pure churn, no defect class
+    #   require_trailing_commas - deprecated; the formatter owns this now
+    #   avoid_catches_without_on_clauses - measured at 64 sites, none
+    #     auto-fixable, and most broad catches at a boundary are legitimate.
+    #     The real defect is the 4 *empty* catches in web_view_mobile.dart,
+    #     which Phase 23-06 fixes directly. Bad signal-to-noise as a lint.
+    #
+    # The team's "brace every if, body on its own line" rule is NOT here and
+    # cannot be. curly_braces_in_flow_control_structures is already enabled via
+    # flutter_lints and reports 0, because it permits omitting braces when the
+    # statement fits on one line with no else. All 192 violations sit in that
+    # carve-out. tool/check_brace_style.sh is the enforcement.
+
+    # --- async correctness: unawaited futures, undisposed streams ---
+    unawaited_futures: true          # main.dart:165 startListening() unawaited
+    cancel_subscriptions: true       # SDK/stream subscriptions never cancelled
+    close_sinks: true
+
+    # --- error handling ---
+    only_throw_errors: true
+
+    # --- const correctness / widget rebuild cost ---
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    use_colored_box: true
+    sized_box_shrink_expand: true
+
+    # --- consistency ---
+    directives_ordering: true        # 51 files out of order
+    prefer_final_locals: true        # only 44 `var` locals across 307 files
+    unnecessary_this: true
+    avoid_returning_null_for_void: true
+
+    # --- type safety ---
+    avoid_dynamic_calls: true
 
 formatter:
   page_width: 80

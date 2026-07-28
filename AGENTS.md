@@ -23,6 +23,58 @@ Not lazy about: input validation at trust boundaries, error handling that preven
 Do not create commits.
 Files under `/banxa` and `/squidrouter` are auto-generated. Do not change them.
 
+## Dart coding standards
+
+Baseline is Effective Dart + `flutter_lints`; `dart format` owns all whitespace. Only the rules
+below are non-obvious, project-specific, or stricter than the tooling — everything else you can
+infer from the code. Enforcement lives in `analysis_options.yaml`, `tool/*.sh` and CI, not here.
+
+**YOU MUST brace every `if`, with the body on its own line.**
+
+```dart
+if (!mounted) { return; }        // NO  — one line
+if (!mounted)                    // NO  — no braces
+  return;
+
+if (!mounted) {                  // YES
+  return;
+}
+```
+
+Same-line `{` is correct — Allman style is *not* wanted. Two reasons this is a hard rule: you cannot
+set a breakpoint on the true-branch otherwise, and a `log()` almost always ends up in there later.
+No Dart lint can express this (`curly_braces_in_flow_control_structures` is already on and permits
+the one-line form); `tool/check_brace_style.sh` is the enforcement.
+
+**Widgets, not helper methods.** Extract to a `StatelessWidget`, never a `_buildFoo()` returning a
+`Widget`. A helper rebuilds the whole enclosing widget, can't be `const`, and is invisible to the
+DevTools inspector.
+
+**Rule of Three for extraction.** Two occurrences do not justify a shared component; three do.
+Duplication is cheaper than the wrong abstraction. If the shared version needs a boolean flag to
+serve both callers, or you can't name it clearly, don't extract it.
+
+**Colours and spacing come from tokens.** Read via `Theme.of(context).extension<GWColors>()`.
+No `Colors.*` or `Color(0x…)` outside `lib/theme/`. Every colour must be correct in **both**
+appearance modes and meet WCAG AA — light mode is where this repo has historically broken.
+Never cache a theme-derived value in a long-lived object; re-read it inside `build`.
+
+**Widgets do not reach past the repository layer.** No `Hive.box(…)`, `File`/`Directory`, `http`,
+or direct SDK calls inside a widget or its `State`. Go through a bloc/cubit → repository. Flutter's
+own guidance: *"Views shouldn't contain any business logic."*
+
+**Wallet safety — these are not style preferences:**
+- A private key or mnemonic MUST NOT become a field on a Cubit/Bloc state class. States are
+  equatable, printable, and land in `BlocObserver` logs by default.
+- Never log, `toString()`, or send to Sentry anything derived from a seed phrase or key.
+- `Random.secure()` only. A plain `Random()` in key generation is how a real Flutter wallet
+  (Proton) shipped a 32-bit key.
+- Prefer `Uint8List` over `String` for secrets — `String` is immutable and cannot be zeroed.
+
+**Before you call anything done:** `dart format`, `flutter analyze` (it exits non-zero on infos —
+that is intentional), and `flutter test`. Quote real output; never claim a baseline you didn't run.
+Note the Flutter SDK is not on `PATH` by default in this repo's environment.
+
 ## Working in parallel sessions
 
 Two or more Claude sessions may run against this repo at once. On 2026-07-22 two sessions collided
