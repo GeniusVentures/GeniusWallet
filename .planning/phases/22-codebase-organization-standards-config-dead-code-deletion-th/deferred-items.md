@@ -54,3 +54,30 @@ phase's threat model cares about — Loading, Splash, WalletsOverview) passes cl
 Loading-baseline drift from 22-01's dead-code deletion that 22-03 also corrected in-scope (see
 22-03-SUMMARY.md). WalletsOverview specifically was proven to still enforce by injecting and then
 reverting a probe second-importer file.
+
+## From 22-04 (brace every `if`)
+
+Re-ran `tool/verify_additive_boundary.sh` as part of Task 3's verification. Same two pre-existing
+Check 2 / Check 3 findings as 22-03 documented above, byte-for-byte identical — confirmed by
+diffing the failure output and by checking commit `8b53828` (the state right after Task 1's
+`--fix` mode landed, before any `lib/`/`test/` file was touched by this plan): the WIRE-02 comment
+is at the identical line 21 of `global_swap_fab_host.dart`, and all 6 duplicate private-class names
+already existed in the same files. Neither is caused by bracing an `if`; both are re-logged here
+rather than fixed, per this plan's scope (mechanical brace insertion only — no renames, no baseline
+edits). Still recommend a future plan pick up the 22-03 recommendation (baseline the 6, or exclude
+`_`-prefixed names from Check 2's census regex).
+
+### `tool/check_no_new_key_logging.sh` requires a file-path argument the plan's verify command omits
+
+22-04-PLAN.md's Task 3 `<verify>` block runs `bash tool/check_no_new_key_logging.sh` with no
+argument. The script has required a `<file-path>` positional argument since it was created
+(`ac425c1`, Phase 4-06) — running it bare always prints `usage: ... <file-path>` and exits 1; this
+is a plan-authoring gap, not a regression this plan's sweep introduced (the script's signature
+predates 22-04 entirely). Ran it correctly against the one file in this plan's diff that touches
+key-material handling, `lib/account/sdk_account_manager.dart` (8 brace fixes, all in guard clauses
+around SDK account-manager dialogs): `OK: no new key logging (no diff for
+lib/account/sdk_account_manager.dart)` — exit 0, confirming this plan's diff introduces no new
+print/debugPrint-family call. **Recommendation:** a future plan (22-08, which wires these gates
+into CI, is the natural owner) should either fix the acceptance-criteria verify command to pass a
+file path, or give the script a no-argument "scan everything staged/changed" mode so it can run
+unconditionally like the other two gates.
