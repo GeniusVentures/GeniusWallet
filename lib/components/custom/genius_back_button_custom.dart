@@ -6,8 +6,7 @@ class GeniusBackButtonCustom extends StatefulWidget {
   const GeniusBackButtonCustom({super.key, this.child});
 
   @override
-  State<GeniusBackButtonCustom> createState() =>
-      _GeniusBackButtonCustomState();
+  State<GeniusBackButtonCustom> createState() => _GeniusBackButtonCustomState();
 }
 
 class _GeniusBackButtonCustomState extends State<GeniusBackButtonCustom> {

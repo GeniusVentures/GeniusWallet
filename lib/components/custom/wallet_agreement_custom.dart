@@ -16,8 +16,7 @@ class WalletAgreementCustom extends StatefulWidget {
   });
 
   @override
-  State<WalletAgreementCustom> createState() =>
-      _WalletAgreementCustomState();
+  State<WalletAgreementCustom> createState() => _WalletAgreementCustomState();
 }
 
 class _WalletAgreementCustomState extends State<WalletAgreementCustom> {
