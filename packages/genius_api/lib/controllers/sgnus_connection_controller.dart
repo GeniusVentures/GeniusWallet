@@ -4,7 +4,9 @@ import 'package:rxdart/rxdart.dart';
 
 class SGNUSConnectionController {
   // Private StreamController
-  final _controller = BehaviorSubject<SGNUSConnection>.seeded(SGNUSConnection.empty());
+  final _controller = BehaviorSubject<SGNUSConnection>.seeded(
+    SGNUSConnection.empty(),
+  );
 
   // Expose the stream for listeners
   Stream<SGNUSConnection> get stream => _controller.stream;
