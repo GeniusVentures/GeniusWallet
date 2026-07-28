@@ -657,7 +657,11 @@ class GeniusApi {
     return true;
   }
 
-  Future<bool> importWalletFromAddress(address, walletName, coinType) async {
+  Future<bool> importWalletFromAddress(
+    String address,
+    String walletName,
+    TWCoinType coinType,
+  ) async {
     if (!AnyAddress.isValid(address, coinType)) {
       debugPrint('Invalid Address');
       return false;
@@ -807,8 +811,7 @@ class GeniusApi {
       return;
     }
 
-    var transactions = _ffiBridgePrebuilt.sgnsLib
-        .GeniusSDKGetOutTransactions();
+    var transactions = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetOutTransactions();
 
     List<Transaction> ret = List.generate(transactions.size, (i) {
       var buffer = transactions.ptr[i].ptr.asTypedList(
@@ -1009,8 +1012,9 @@ class GeniusApi {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final keyPtr = privateKey.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgnsLib
-        .GeniusSDKAddAccountWithPrivateKey(keyPtr);
+    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKAddAccountWithPrivateKey(
+      keyPtr,
+    );
     malloc.free(keyPtr);
     return _mapNodeReturnValue(result);
   }
