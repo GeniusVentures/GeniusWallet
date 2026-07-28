@@ -1141,21 +1141,20 @@ no design-system file changed. **No golden baseline** — see the 22-07 deferral
 
 ### Phase 23: Design system consolidation: theme tokens and shared components
 
-> ⚠ **BLOCKED ON A VERIFICATION DECISION.** Phase 22's golden baseline (22-07) was deferred, and
-> every plan below was written to verify against it — 104 golden references across the seven plans.
-> As written, this phase cannot prove it preserved behaviour. Before executing, choose one:
-> (1) reinstate the baseline, (2) re-plan against human-walk verification and accept that
-> spacing/alignment drift can ship undetected, or (3) narrow the phase to the provably-safe subset
-> (23-01 changes zero call sites; 23-03 fixes known-wrong rendering rather than preserving correct
-> rendering). See `.planning/phases/22-.../22-07-DEFERRED.md`.
+> **RE-PLANNED 2026-07-28, no longer blocked.** The golden baseline (22-07) was declined twice and is
+> permanently deferred, voiding the 104 golden references in the original seven-plan cut (now moved to
+> `superseded-golden-based/`). This phase took **option 2 narrowed by option 3**: verification rests on
+> value equality, compiler enforcement, measured WCAG ratios, the existing 512-test suite, and
+> load-bearing human walks — and the workstreams that could not be honestly verified were cut rather
+> than shipped on faith. See `23-CONTEXT.md` and `.planning/phases/22-.../22-07-DEFERRED.md`.
 
-**Goal:** Collapse the three competing colour sources into one semantic layer and extract the
-genuinely-duplicated components — using the Phase 22 golden baseline as the safety net. Still no
-behaviour changes.
+**Goal:** Collapse the three competing colour sources into one compiler-enforced semantic layer, fix
+the mode-breaking colour defects with measured WCAG evidence, and collapse the one duplicated pattern
+that can be proven paint-preserving without a visual baseline. Still no behaviour changes.
 
-**Requirements**: ORG-04, ORG-05
+**Requirements**: ORG-04, ORG-05 (ORG-05 partial by design — see 23-05's extraction audit)
 **Depends on:** Phase 22
-**Plans:** 7 plans
+**Plans:** 6 plans
 
 **Why this is separate from 22.** The parity premise in the original scoping was wrong:
 `GeniusWalletColors` has ~46 public members and **288** call sites outside `lib/theme/`, while
@@ -1169,34 +1168,43 @@ subset at 83. 23-03 fixes the mode-breaking ones with WCAG evidence; 23-04's gat
 directory-scoped with a written widening plan. **Full de-hex of all 525 is bigger than this phase**
 and is a candidate for its own.
 
+**What the re-plan cut, and why.** Measurement at planning time refuted three of the original
+extraction premises outright. The two timeframe-selector copies are **not** character-identical (four
+labels versus five, different track colour, a hairline border in only one) — so the phase's one
+sanctioned below-threshold exception is refused by its own rule. There are **two** forked copy-row
+widgets, not three — below the Rule of Three floor, and the other clipboard writers are heterogeneous
+(a checkout URL, a Sentry event id, a seed phrase behind its own warning, one that *clears* the
+clipboard). The change pill resolves to three sites whose colour rule is already uniform, so there is
+no correctness value to centralise and reconciling them needs a padding parameter. `GWAppBar` and the
+`GWScreen` sweep are deferred: both are layout-visible with no automated proof, and Phase 24's routing
+work opens the same files. All verdicts land in `23-05-EXTRACTION-AUDIT.md` with re-runnable evidence.
+
 Plans:
 
-- [ ] 23-01-PLAN.md — `GWColors` extended to field-for-field parity with the legacy palette, seeded
-      byte-identically; `context.gw` accessor with a fallback; parity test. **Zero call sites changed**
+- [ ] 23-01-PLAN.md — `GWColors` extended to field-for-field name parity, seeded from the existing
+      primitives; `context.gw` accessor with a fallback; the **parity test that replaces the golden
+      baseline** by proving value equality per token in both modes. **Zero call sites changed**
 
-- [ ] 23-02-PLAN.md — AST codemod migrating the 288 colour reads onto `context.gw`, directory by
-      directory, goldens byte-identical each time. Blocking human package-legitimacy gate
+- [ ] 23-02-PLAN.md — AST rewriter (`package:analyzer`, already resolvable transitively — **no package
+      install, no pubspec change, no blocking gate**) moving ~260 colour reads onto `context.gw`,
+      one commit per directory, closing with an eight-screen appearance-toggle walk
 
 - [ ] 23-03-PLAN.md — Close the codemod residue; fix `toast_widget.dart`, `gw_button.dart` and
-      `lib/reown/`; replace the `_Message` fork with `GWWarningNote`. **The only plan permitted to
-      move a golden**, and only with a measured WCAG ratio per change
+      `lib/reown/`; replace the forked warning widget with `GWWarningNote`. Every touched pair gets a
+      **measured WCAG ratio asserted** in the existing `test/theme/theme_contrast_test.dart`
 
-- [ ] 23-04-PLAN.md — Demote the primitives via `part`/`part of` so the compiler enforces privacy;
-      mono type token; de-hex `GWDecorations`; `tool/check_raw_colors.sh` scoped to clean directories
-      with a written widening plan
+- [ ] 23-04-PLAN.md — Demote the primitives via `part`/`part of` so the **compiler** enforces privacy
+      (six test files migrated off the legacy palette first); mono type token; de-hex `GWDecorations`;
+      `tool/check_raw_colors.sh` scoped to clean directories with a written widening plan
 
-- [ ] 23-05-PLAN.md — Extract `GWHoverable` (9), `GWChangePill` (7), `GWTimeframeSegment` (2, the
-      named exception — the plan re-diffs the two copies at execution time and refuses if the
-      character-identical premise no longer holds). `GWPriceBlock`/`GWStatRail` stay deferred at 2 sites
+- [ ] 23-05-PLAN.md — The extraction adjudication (every candidate re-measured, four refused or
+      deferred on evidence), then extract `GWHoverable` — 12 sites, promoted from the private shim
+      that already exists in `swap_field.dart`, builder-shaped so each call site's paint moves
+      verbatim, with hit area and cursor pinned in an ordinary widget test
 
-- [ ] 23-06-PLAN.md — Extract `GWCopyRow` (3 forks + 8 raw clipboard writes; full value always
-      copied, nothing logged) and `GWAppBar` (the 7 identical of 17, outliers classified not forced)
-
-- [ ] 23-07-PLAN.md — `GWScreen` audit of all ~28 `Scaffold` sites with a per-site verdict, migrate
-      only the provably-equivalent, then the phase human walk and closeout.
-      **Note:** `GWScreen` is *not* a transparent wrapper — it imposes scroll, a 1200px cap, centring,
-      padding and background. Blanket migration would be a layout change, which the
-      no-behaviour-change rule forbids. Hence per-site adjudication, not a sweep.
+- [ ] 23-06-PLAN.md — Phase closeout: the twelve-item human walk in both modes and at two widths,
+      every gate re-run from a clean tree with output quoted, ORG-01..ORG-05 traceability
+      (ORG-05 **partial**), and the handover list including the visual-regression gap itself
 
 ### Phase 24: Architecture: state ownership, layering, routing, genius_api split
 
