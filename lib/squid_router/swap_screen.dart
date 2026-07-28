@@ -43,8 +43,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 List<SquidTokenInfo> tokensForSide(
   List<SquidTokenInfo> all,
   SquidTokenInfo? otherSide,
-) =>
-    all.where((t) => !t.sameAs(otherSide)).toList();
+) => all.where((t) => !t.sameAs(otherSide)).toList();
 
 class SwapScreen extends StatefulWidget {
   const SwapScreen({super.key, this.preselectSymbol, this.preselectChainId});
@@ -119,14 +118,18 @@ class _SwapScreenState extends State<SwapScreen> {
   /// neighbouring token would be worse than an empty form: the user would have
   /// to notice the wrong one before correcting it.
   void _applyPreselection() {
-    if (fromToken != null || toToken != null) return;
+    if (fromToken != null || toToken != null) {
+      return;
+    }
 
     final result = resolvePreselection(
       tokens: tokens,
       symbol: widget.preselectSymbol,
       chainId: widget.preselectChainId,
     );
-    if (result == null) return;
+    if (result == null) {
+      return;
+    }
 
     setState(() {
       switch (result.side) {
@@ -206,13 +209,17 @@ class _SwapScreenState extends State<SwapScreen> {
       double.tryParse(fromAmount) != null;
 
   SquidSwapParams? get swapParams {
-    if (!canSwap) return null;
+    if (!canSwap) {
+      return null;
+    }
 
     final walletState = context.read<WalletDetailsCubit>().state;
     final fromAddress = walletState.selectedWallet?.address;
     final toAddress = walletState.selectedWallet?.address;
 
-    if (fromAddress == null || toAddress == null) return null;
+    if (fromAddress == null || toAddress == null) {
+      return null;
+    }
 
     return SquidSwapParams(
       fromChain: fromToken!.chainId,
@@ -227,10 +234,14 @@ class _SwapScreenState extends State<SwapScreen> {
   }
 
   Future<void> _fetchRoute() async {
-    if (!canSwap) return;
+    if (!canSwap) {
+      return;
+    }
 
     final params = swapParams;
-    if (params == null) return;
+    if (params == null) {
+      return;
+    }
 
     setState(() {
       isFetchingRoute = true;
@@ -272,7 +283,9 @@ class _SwapScreenState extends State<SwapScreen> {
   }
 
   void _debouncedFetchRoute() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    if (_debounce?.isActive ?? false) {
+      _debounce!.cancel();
+    }
     _debounce = Timer(const Duration(milliseconds: 500), () {
       _fetchRoute();
     });
@@ -285,7 +298,9 @@ class _SwapScreenState extends State<SwapScreen> {
   /// rung for exactly as long as this genuinely takes.
   Future<void> _submitSwap() async {
     final params = swapParams;
-    if (params == null) return;
+    if (params == null) {
+      return;
+    }
 
     setState(() => isSubmitting = true);
     try {
@@ -332,7 +347,9 @@ class _SwapScreenState extends State<SwapScreen> {
 
       // D-03/D-04: the shared 031-B receipt replaces the superseded
       // SwapSuccessDrawer, alongside the toast above — never instead of it.
-      if (mounted) showTransactionDetails(context, transaction);
+      if (mounted) {
+        showTransactionDetails(context, transaction);
+      }
       transactionsCubit.addTransaction(transaction);
 
       // save to hive
@@ -341,7 +358,9 @@ class _SwapScreenState extends State<SwapScreen> {
         transaction,
       );
     } finally {
-      if (mounted) setState(() => isSubmitting = false);
+      if (mounted) {
+        setState(() => isSubmitting = false);
+      }
     }
   }
 
@@ -685,8 +704,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                           // list only revealed that at the CTA.
                                           // The receive side below is
                                           // deliberately NOT filtered.
-                                          pickerEmptyTitle:
-                                              'No tokens to swap',
+                                          pickerEmptyTitle: 'No tokens to swap',
                                           pickerEmptyMessage:
                                               'This wallet holds no tokens with '
                                               'a balance on the selected '

@@ -43,12 +43,16 @@ Preselection? resolvePreselection({
   int? chainId,
 }) {
   final wanted = symbol?.trim();
-  if (wanted == null || wanted.isEmpty) return null;
+  if (wanted == null || wanted.isEmpty) {
+    return null;
+  }
 
   final matches = tokens
       .where((t) => t.symbol.toLowerCase() == wanted.toLowerCase())
       .toList();
-  if (matches.isEmpty) return null;
+  if (matches.isEmpty) {
+    return null;
+  }
 
   SquidTokenInfo? pick;
 

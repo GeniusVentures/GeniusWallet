@@ -39,8 +39,12 @@ List<SquidTokenInfo> heldTokens(List<SquidTokenInfo> tokens) =>
 /// data ever returns a shape this rejects, fix the parse — do not loosen this.
 bool hasSpendableBalance(SquidTokenInfo token) {
   final balance = token.balance;
-  if (balance == null) return false;
+  if (balance == null) {
+    return false;
+  }
   final raw = double.tryParse(balance.balance);
-  if (raw == null) return false;
+  if (raw == null) {
+    return false;
+  }
   return raw > 0;
 }

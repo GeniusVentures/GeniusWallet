@@ -112,9 +112,5 @@ SlippageState slippageState(String? raw) {
   //
   // Note this is NOT the empty case above -- empty stays silent. Nothing typed,
   // nothing to confirm.
-  return SlippageState._(
-    SlippageLevel.ok,
-    'Typical for most pairs.',
-    n,
-  );
+  return SlippageState._(SlippageLevel.ok, 'Typical for most pairs.', n);
 }

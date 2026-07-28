@@ -230,7 +230,9 @@ class SwapField extends StatelessWidget {
                                     // idea of "no logo" rather than inventing a
                                     // second one.
                                     loadingBuilder: (context, child, progress) {
-                                      if (progress == null) return child;
+                                      if (progress == null) {
+                                        return child;
+                                      }
                                       return Container(
                                         width: 32,
                                         height: 32,

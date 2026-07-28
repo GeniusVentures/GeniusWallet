@@ -120,53 +120,54 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (!nothingToOffer) Padding(
-          // Matches the title's own inset in the shell's header, so the search
-          // field's left edge and the drawer title sit on one axis.
-          padding: const EdgeInsets.fromLTRB(
-            GeniusWalletConsts.space10,
-            GeniusWalletConsts.space10,
-            GeniusWalletConsts.space10,
-            GeniusWalletConsts.space6,
-          ),
-          child: GWFocusRing(
-            radius: GeniusWalletConsts.radiusMd,
-            // Recessed, not raised -- the same call Jakub made live on the
-            // slippage field, kept here so the two drawer inputs stay one
-            // control. `surfaceSunken` is the app's existing well fill.
-            background: gw.surfaceSunken,
-            // The fill is 1.11:1 from the panel, so the edge carries 1.4.11 on
-            // its own. See GeniusWalletColors.borderControl.
-            restingColor: gw.borderControl,
-            child: TextField(
-              onChanged: (val) => setState(() => _query = val),
-              style: GeniusWalletTypography.bodySm.copyWith(
-                color: gw.textPrimary,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Search tokens',
-                hintStyle: GeniusWalletTypography.bodySm.copyWith(
-                  color: gw.textSecondary,
+        if (!nothingToOffer)
+          Padding(
+            // Matches the title's own inset in the shell's header, so the search
+            // field's left edge and the drawer title sit on one axis.
+            padding: const EdgeInsets.fromLTRB(
+              GeniusWalletConsts.space10,
+              GeniusWalletConsts.space10,
+              GeniusWalletConsts.space10,
+              GeniusWalletConsts.space6,
+            ),
+            child: GWFocusRing(
+              radius: GeniusWalletConsts.radiusMd,
+              // Recessed, not raised -- the same call Jakub made live on the
+              // slippage field, kept here so the two drawer inputs stay one
+              // control. `surfaceSunken` is the app's existing well fill.
+              background: gw.surfaceSunken,
+              // The fill is 1.11:1 from the panel, so the edge carries 1.4.11 on
+              // its own. See GeniusWalletColors.borderControl.
+              restingColor: gw.borderControl,
+              child: TextField(
+                onChanged: (val) => setState(() => _query = val),
+                style: GeniusWalletTypography.bodySm.copyWith(
+                  color: gw.textPrimary,
                 ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: gw.textSecondary,
-                  size: 20,
+                decoration: InputDecoration(
+                  hintText: 'Search tokens',
+                  hintStyle: GeniusWalletTypography.bodySm.copyWith(
+                    color: gw.textSecondary,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: gw.textSecondary,
+                    size: 20,
+                  ),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: GeniusWalletConsts.space6,
+                  ),
+                  // The ring is the border. All four silenced so the theme's
+                  // app-wide focusedBorder cannot paint a flat one inside it.
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
                 ),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: GeniusWalletConsts.space6,
-                ),
-                // The ring is the border. All four silenced so the theme's
-                // app-wide focusedBorder cannot paint a flat one inside it.
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
               ),
             ),
           ),
-        ),
         Expanded(
           child: nothingToOffer
               ? GWEmptyState(

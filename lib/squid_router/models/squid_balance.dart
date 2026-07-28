@@ -112,9 +112,15 @@ extension SquidBalanceFormatter on SquidBalance {
   String get displayBalance {
     try {
       final value = amountAsDouble;
-      if (value == null || value == 0) return '0';
-      if (value < 0.000001) return '<0.000001';
-      if (value == value.roundToDouble()) return value.toInt().toString();
+      if (value == null || value == 0) {
+        return '0';
+      }
+      if (value < 0.000001) {
+        return '<0.000001';
+      }
+      if (value == value.roundToDouble()) {
+        return value.toInt().toString();
+      }
       return value
           .toStringAsFixed(6)
           .replaceFirst(RegExp(r'0+$'), '')

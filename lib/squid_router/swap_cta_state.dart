@@ -40,7 +40,9 @@ SwapCtaState resolveSwapCtaState({
   required bool isSubmitting,
 }) {
   // Submitting outranks everything — the closure is mid-flight.
-  if (isSubmitting) return SwapCtaState.submitting;
+  if (isSubmitting) {
+    return SwapCtaState.submitting;
+  }
 
   final parsedAmount = double.tryParse(fromAmount);
   if (!hasBothTokens || fromAmount.isEmpty || parsedAmount == null) {
@@ -48,14 +50,18 @@ SwapCtaState resolveSwapCtaState({
   }
 
   // The field is in error, not the button — surfaces as an enabled Retry.
-  if (routeError) return SwapCtaState.routeError;
+  if (routeError) {
+    return SwapCtaState.routeError;
+  }
 
   // Never accuse the user on missing balance data (fromBalance == null).
   if (fromBalance != null && parsedAmount > fromBalance) {
     return SwapCtaState.insufficientBalance;
   }
 
-  if (isFetchingRoute) return SwapCtaState.findingRoute;
+  if (isFetchingRoute) {
+    return SwapCtaState.findingRoute;
+  }
 
   return SwapCtaState.ready;
 }
@@ -70,7 +76,9 @@ String swapCtaLabel(SwapCtaState state, {String? symbol}) {
       return 'Enter an amount';
     case SwapCtaState.insufficientBalance:
       final hasSymbol = symbol != null && symbol.isNotEmpty;
-      return hasSymbol ? 'Insufficient $symbol balance' : 'Insufficient balance';
+      return hasSymbol
+          ? 'Insufficient $symbol balance'
+          : 'Insufficient balance';
     case SwapCtaState.findingRoute:
       return 'Finding best route…';
     case SwapCtaState.ready:
