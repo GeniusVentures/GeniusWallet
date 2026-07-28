@@ -193,7 +193,7 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
               const _Section(
                 title: 'Brand colors',
                 child: _ColorRow(
-                  swatches: const [
+                  swatches: [
                     _Swatch('Primary', GeniusWalletColors.brandPrimary),
                     _Swatch(
                       'Primary strong',
@@ -229,7 +229,7 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
               const _Section(
                 title: 'Status',
                 child: _ColorRow(
-                  swatches: const [
+                  swatches: [
                     _Swatch('Success', GeniusWalletColors.statusSuccess),
                     _Swatch('Error', GeniusWalletColors.statusError),
                     _Swatch('Warning', GeniusWalletColors.statusWarning),
