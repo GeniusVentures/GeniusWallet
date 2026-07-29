@@ -56,8 +56,12 @@ const double _wideAmountWidth = 184;
     fg: gw.statusSuccess,
     wash: gw.statusSuccess.withValues(alpha: 0.14),
   ),
+  // Foreground is statusWarningText, NOT statusWarning: the latter is
+  // fill-tuned (~1.6:1 on a light canvas) and was invisible as pill text in
+  // light mode -- the exact consumer gw_warning_note.dart's note said was
+  // "waiting for" this token. The wash stays statusWarning: it IS a fill.
   TransactionStatus.pending => (
-    fg: gw.statusWarning,
+    fg: gw.statusWarningText,
     wash: gw.statusWarning.withValues(alpha: 0.16),
   ),
   TransactionStatus.failed => (

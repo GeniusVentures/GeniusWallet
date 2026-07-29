@@ -107,8 +107,14 @@ void main() {
     });
 
     testWidgets(
-      'warning foreground is the same in both hosts (mode-invariant static, '
-      'recorded as a fact rather than a defect)',
+      // Was: "warning foreground is the same in both hosts (mode-invariant
+      // static, recorded as a fact rather than a defect)". It WAS a defect.
+      // The pill painted its label in `statusWarning`, a FILL-tuned token
+      // measuring ~1.47:1 against its own wash on a light canvas -- the label
+      // was effectively invisible in light mode. Fixed 2026-07-29 by reading
+      // `statusWarningText`, so the warning tone now varies by appearance
+      // exactly like the error tone asserted directly above.
+      'warning foreground differs between hosts, like every other tone',
       (tester) async {
         await tester.pumpWidget(
           gwHost(const OrderStatusPill(status: 'pending'), gw: GWColors.dark()),
@@ -131,7 +137,7 @@ void main() {
             .style!
             .color;
 
-        expect(darkWarning, equals(lightWarning));
+        expect(darkWarning, isNot(equals(lightWarning)));
       },
     );
   });

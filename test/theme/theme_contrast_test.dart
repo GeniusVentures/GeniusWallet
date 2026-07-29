@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_widget.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -32,6 +35,11 @@ ThemeData themeFor(GWAppearanceMode mode) {
   addTearDown(() => GWAppearance.instance.value = GWAppearanceMode.dark);
   return getThemeData();
 }
+
+/// `orderStatusPaint` names its fill `bg`; `txStatusColors` names it `wash`.
+/// Normalised here so both can go through the same assertion loop.
+({Color fg, Color wash}) _asPair(({Color fg, Color bg}) p) =>
+    (fg: p.fg, wash: p.bg);
 
 void main() {
   group('Part 2: foreground-on-brand-fill pairings clear 4.5:1 (both modes)', () {
@@ -578,4 +586,91 @@ void main() {
       }
     },
   );
+
+  group('Part 8: status-pill foregrounds on their own wash (23-03 follow-up)', () {
+    // The two pill palettes are separate functions that must not drift --
+    // order_status_style.dart says outright it was "copied verbatim from the
+    // shipped _statusPill". Both go through one loop so a fix to one that
+    // misses the other fails here.
+    //
+    // The wash is TRANSLUCENT and must be composited over the surface it sits
+    // on before it has a luminance; computeLuminance() ignores alpha (same
+    // reason as the borderControl handling above).
+    //
+    // Threshold is 4.5:1, not 3:1: the pill label is labelMd (13px) at w600,
+    // and WCAG large text starts at 18.66px bold -- 13px bold does not
+    // qualify, so the body-text ratio applies.
+    const tones = ['success', 'warning', 'error'];
+
+    ({Color fg, Color wash}) orderPair(String tone, GWColors gw) =>
+        switch (tone) {
+          'success' => _asPair(orderStatusPaint(OrderStatusTone.success, gw)),
+          'warning' => _asPair(orderStatusPaint(OrderStatusTone.warning, gw)),
+          _ => _asPair(orderStatusPaint(OrderStatusTone.error, gw)),
+        };
+    ({Color fg, Color wash}) txPair(String tone, GWColors gw) => switch (tone) {
+      'success' => txStatusColors(TransactionStatus.completed, gw),
+      'warning' => txStatusColors(TransactionStatus.pending, gw),
+      _ => txStatusColors(TransactionStatus.failed, gw),
+    };
+
+    Map<String, Color> surfacesOf(GWColors gw) => {
+      'surfaceElevated': gw.surfaceElevated,
+      'surfaceMenu': gw.surfaceMenu,
+      'surfaceBase': gw.surfaceBase,
+    };
+
+    // Dark mode: every tone already clears AA (measured min 4.54:1 on
+    // surfaceMenu/error). Asserted so a token change cannot silently break it.
+    test('every tone clears 4.5:1 in dark mode', () {
+      final gw = themeFor(GWAppearanceMode.dark).extension<GWColors>()!;
+      for (final tone in tones) {
+        for (final pair in [orderPair(tone, gw), txPair(tone, gw)]) {
+          for (final surface in surfacesOf(gw).entries) {
+            expect(
+              contrastRatio(
+                pair.fg,
+                Color.alphaBlend(pair.wash, surface.value),
+              ),
+              greaterThanOrEqualTo(4.5),
+              reason: '$tone pill on ${surface.key} in dark mode',
+            );
+          }
+        }
+      }
+    });
+
+    // Light mode: ONLY the warning tone is asserted, because only the warning
+    // tone has been fixed. It reads statusWarningText (#92400E) and measures
+    // 6.56 / 5.93 / 5.15 on elevated / menu / base -- it was 1.47:1 (order)
+    // and 1.59:1 (tx) when both painted the fill-tuned statusWarning.
+    //
+    // ponytail: success and error are NOT asserted in light mode because they
+    // DO NOT PASS, and an assertion tuned down to let them through would be
+    // the unearned PASS this project forbids. Measured 2026-07-29:
+    //   success  3.77 / 3.39 / 2.91   (elevated / menu / base)
+    //   error    3.89 / 3.49 / 2.99
+    // All six are below the 4.5:1 body-text floor and the two surfaceBase
+    // figures are below even the 3:1 non-text floor. This is PRE-EXISTING and
+    // was not introduced by 23-03. Ceiling: the light-mode statusSuccess /
+    // statusError values are already AA-divergent and still miss on a
+    // translucent wash of their own colour. Upgrade path: statusSuccessText /
+    // statusErrorText tokens mirroring statusWarningText, then extend this
+    // group to all three tones in both modes and delete this note. See
+    // .planning/todos/pending/2026-07-29-status-pill-success-error-fail-aa-in-light-mode.md
+    test('warning tone clears 4.5:1 in light mode (was 1.47:1 / 1.59:1)', () {
+      final gw = themeFor(GWAppearanceMode.light).extension<GWColors>()!;
+      for (final pair in [orderPair('warning', gw), txPair('warning', gw)]) {
+        for (final surface in surfacesOf(gw).entries) {
+          expect(
+            contrastRatio(pair.fg, Color.alphaBlend(pair.wash, surface.value)),
+            greaterThanOrEqualTo(4.5),
+            reason:
+                'warning pill label ${pair.fg} on its wash composited over '
+                '${surface.key} ${surface.value} in light mode',
+          );
+        }
+      }
+    });
+  });
 }

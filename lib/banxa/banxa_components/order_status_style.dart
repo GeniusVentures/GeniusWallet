@@ -44,7 +44,11 @@ OrderStatusTone orderStatusTone(String status) {
       );
     case OrderStatusTone.warning:
       return (
-        fg: gw.statusWarning,
+        // Foreground is statusWarningText, NOT statusWarning: the latter is
+        // fill-tuned (~1.6:1 on a light canvas) and was invisible as pill
+        // text in light mode. The wash stays statusWarning -- it IS a fill,
+        // which is exactly what that token is for.
+        fg: gw.statusWarningText,
         bg: gw.statusWarning.withValues(alpha: 0.16),
       );
     case OrderStatusTone.error:
