@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/data/gw_status_dot.dart';
 import 'package:genius_wallet/dashboard/compute/compute_panel.dart';
 import 'package:genius_wallet/dashboard/compute/compute_state.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -16,7 +15,7 @@ import 'theme_contrast_test.dart' show contrastRatio, themeFor;
 
 /// Proves `ComputePanel`'s contrast in both appearance modes, without
 /// golden/pixel tooling: every colour it draws is either read straight off
-/// [GWColors]/[GeniusWalletColors] (the text/link foregrounds - identical to
+/// [GWColors] (the text/link foregrounds - identical to
 /// what `14-UI-SPEC.md §5.1` already measured, re-verified here rather than
 /// quoted) or pulled off the REAL rendered widgets (`GWStatusDot.color`, the
 /// bar's fill gradient) so a drift in `compute_panel.dart`'s own dot/bar
@@ -78,8 +77,7 @@ void main() {
                   'number, the no-wallet placeholder)':
               gw.textPrimary,
           'gw.textSecondary (every sub-line)': gw.textSecondary,
-          'brandPrimaryOnSurface (inline links)':
-              GeniusWalletColors.brandPrimaryOnSurface,
+          'brandPrimaryOnSurface (inline links)': gw.brandPrimaryOnSurface,
         };
 
         for (final entry in foregrounds.entries) {

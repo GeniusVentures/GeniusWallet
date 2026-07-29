@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -8,16 +7,28 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 // THIS FILE IS THE LOAD-BEARING PROOF OF THE ENTIRE COLOUR WORKSTREAM.
 //
 // Phase 23 has no golden/snapshot baseline (declined, see 23-CONTEXT.md § "NO
-// GOLDEN TESTS"). The proof that 23-02's 260+ call-site rewrite paints
-// nothing differently is VALUE EQUALITY, not pixel comparison: if every token
-// resolves to an identical `Color` reading it through the old
+// GOLDEN TESTS"). The proof that 23-02's 260+ call-site rewrite painted
+// nothing differently was VALUE EQUALITY, not pixel comparison: every token
+// resolving to an identical `Color` reading it through the old
 // `GeniusWalletColors` static path or the new `GWColors` extension path, in
-// BOTH appearance modes, then an AST codemod that only rewrites the *access
-// path* cannot change what gets painted. This is a stronger guarantee than a
-// golden image, which only samples a handful of widgets -- this samples
-// every token. Do not delete this file because it "looks like a boring
-// equality test" -- it is the reason 23-02 is a mechanical rewrite instead of
-// 260 individual judgement calls.
+// BOTH appearance modes, proved an AST codemod that only rewrites the
+// *access path* could not change what gets painted.
+//
+// 23-04 UPDATE: `GeniusWalletColors` is now a private `part of` `gw_colors.dart`
+// (23-04-PLAN.md Task 2) -- its members are unreachable from this file, which
+// lives outside `lib/theme/` on purpose (a test file must not be part of the
+// production library it tests). The comparisons below are now pinned against
+// FROZEN LITERAL values instead of a live `GeniusWalletColors.<field>` read.
+// This is not a weaker guard: every literal here was captured from the exact
+// `GeniusWalletColors` source this file used to read live, so a value drift
+// still fails here exactly as before. What moved inside the library boundary
+// is the LIVE cross-check -- `gw_colors.dart`'s own `GWColors.light()`/
+// `.dark()` factories carry the identical field-by-field `assert(...)`
+// comparing the constructed instance against `GeniusWalletColors` from
+// WITHIN the library, where private access remains legal. That assert (not
+// this file) is now the thing that fires the moment a future edit changes one
+// side and not the other; this file's job is only to pin what "correct"
+// currently means, in the open.
 //
 // See `.planning/phases/23-.../23-01-TOKEN-MAP.md` for the full token map
 // this file is driven by, including the one deliberate exclusion
@@ -28,9 +39,8 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 /// `theme_contrast_test.dart`'s `themeFor` helper so no later test file in
 /// the same shard inherits a leaked appearance flip. Unlike `themeFor`, this
 /// does not build a `ThemeData` -- the parity checks below compare `GWColors`
-/// instances directly against `GeniusWalletColors` accessors, which is a
-/// cheaper and more direct comparison than round-tripping through
-/// `getThemeData()`.
+/// instances directly against frozen literal values, which is a cheaper and
+/// more direct comparison than round-tripping through `getThemeData()`.
 void setAppearance(GWAppearanceMode mode) {
   GWAppearance.instance.value = mode;
   addTearDown(() => GWAppearance.instance.value = GWAppearanceMode.dark);
@@ -133,141 +143,123 @@ void main() {
   });
 
   group('Fixed (non-appearance-aware) tokens match legacy in both modes', () {
-    // legacy name -> (GWColors accessor, GeniusWalletColors accessor). Value
-    // is identical in both modes for every field in this map, so a single
-    // comparison per mode covers the "light value" and "dark value" columns
-    // of the token map simultaneously.
+    // legacy name -> (GWColors accessor, frozen literal). Every literal below
+    // was captured verbatim from `GeniusWalletColors`'s source at the time
+    // `GeniusWalletColors` became private (23-04) -- see this file's header
+    // comment for why a live `GeniusWalletColors.<field>` read is no longer
+    // possible from outside `lib/theme/`. Value is identical in both modes
+    // for every field in this map, so a single comparison per mode covers the
+    // "light value" and "dark value" columns of the token map simultaneously.
     final fixedFields = <String, (Color Function(GWColors), Color)>{
-      'lightGreenPrimary': (
-        (gw) => gw.lightGreenPrimary,
-        GeniusWalletColors.lightGreenPrimary,
-      ),
+      'lightGreenPrimary': ((gw) => gw.lightGreenPrimary, Colors.greenAccent),
       'lightGreenSecondary': (
         (gw) => gw.lightGreenSecondary,
-        GeniusWalletColors.lightGreenSecondary,
+        const Color(0xFF54C48E),
       ),
-      'mutedGreen': ((gw) => gw.mutedGreen, GeniusWalletColors.mutedGreen),
+      'mutedGreen': ((gw) => gw.mutedGreen, const Color(0xFF2EBE7B)),
       'deepBlueTertiary': (
         (gw) => gw.deepBlueTertiary,
-        GeniusWalletColors.deepBlueTertiary,
+        const Color(0xff05090F),
       ),
       'deepBlueCardColor': (
         (gw) => gw.deepBlueCardColor,
-        GeniusWalletColors.deepBlueCardColor,
+        const Color.fromRGBO(10, 18, 31, 1),
       ),
-      'deepBlueMenu': (
-        (gw) => gw.deepBlueMenu,
-        GeniusWalletColors.deepBlueMenu,
+      'deepBlueMenu': ((gw) => gw.deepBlueMenu, const Color(0xff0F1B2E)),
+      'deepBlue': ((gw) => gw.deepBlue, const Color.fromRGBO(20, 37, 61, 1)),
+      'grayPrimary': (
+        (gw) => gw.grayPrimary,
+        const Color.fromRGBO(21, 30, 41, 1),
       ),
-      'deepBlue': ((gw) => gw.deepBlue, GeniusWalletColors.deepBlue),
-      'grayPrimary': ((gw) => gw.grayPrimary, GeniusWalletColors.grayPrimary),
-      'btnText': ((gw) => gw.btnText, GeniusWalletColors.btnText),
-      'btnDisabled': ((gw) => gw.btnDisabled, GeniusWalletColors.btnDisabled),
+      'btnText': ((gw) => gw.btnText, const Color.fromRGBO(0, 9, 20, 1)),
+      'btnDisabled': (
+        (gw) => gw.btnDisabled,
+        const Color.fromRGBO(188, 188, 188, 1),
+      ),
       'btnTextDisabled': (
         (gw) => gw.btnTextDisabled,
-        GeniusWalletColors.btnTextDisabled,
+        const Color.fromRGBO(101, 101, 101, 1),
       ),
       'btnGradientBlue': (
         (gw) => gw.btnGradientBlue,
-        GeniusWalletColors.btnGradientBlue,
+        const Color.fromRGBO(0, 104, 239, 1),
       ),
       'btnGradientGreen': (
         (gw) => gw.btnGradientGreen,
-        GeniusWalletColors.btnGradientGreen,
+        const Color.fromRGBO(1, 221, 166, 1),
       ),
       'btnFilterSelected': (
         (gw) => gw.btnFilterSelected,
-        GeniusWalletColors.btnFilterSelected,
+        Colors.greenAccent.withValues(alpha: 0.1),
       ),
-      'foundationError': (
-        (gw) => gw.foundationError,
-        GeniusWalletColors.foundationError,
+      'foundationError': ((gw) => gw.foundationError, const Color(0xff920000)),
+      'borderGrey': (
+        (gw) => gw.borderGrey,
+        const Color.fromRGBO(255, 255, 255, 0.30),
       ),
-      'borderGrey': ((gw) => gw.borderGrey, GeniusWalletColors.borderGrey),
-      'brandPrimary': (
-        (gw) => gw.brandPrimary,
-        GeniusWalletColors.brandPrimary,
-      ),
+      'brandPrimary': ((gw) => gw.brandPrimary, const Color(0xFF14C8FF)),
       'brandPrimaryStrong': (
         (gw) => gw.brandPrimaryStrong,
-        GeniusWalletColors.brandPrimaryStrong,
+        const Color(0xFF0AAEE6),
       ),
       'brandPrimaryMuted': (
         (gw) => gw.brandPrimaryMuted,
-        GeniusWalletColors.brandPrimaryMuted,
+        const Color(0xFF14C8FF).withAlpha(61),
       ),
       'brandPrimarySubtle': (
         (gw) => gw.brandPrimarySubtle,
-        GeniusWalletColors.brandPrimarySubtle,
+        const Color(0xFF14C8FF).withAlpha(31),
       ),
-      'brandSecondary': (
-        (gw) => gw.brandSecondary,
-        GeniusWalletColors.brandSecondary,
-      ),
+      'brandSecondary': ((gw) => gw.brandSecondary, const Color(0xFF2BF5B4)),
       'brandSecondaryStrong': (
         (gw) => gw.brandSecondaryStrong,
-        GeniusWalletColors.brandSecondaryStrong,
+        const Color(0xFF0AD89C),
       ),
       'brandSecondaryBright': (
         (gw) => gw.brandSecondaryBright,
-        GeniusWalletColors.brandSecondaryBright,
+        const Color(0xFF5BFFD0),
       ),
       'brandSecondaryMuted': (
         (gw) => gw.brandSecondaryMuted,
-        GeniusWalletColors.brandSecondaryMuted,
+        const Color(0xFF2BF5B4).withAlpha(61),
       ),
       'brandSecondarySubtle': (
         (gw) => gw.brandSecondarySubtle,
-        GeniusWalletColors.brandSecondarySubtle,
+        const Color(0xFF2BF5B4).withAlpha(31),
       ),
-      'brandTertiary': (
-        (gw) => gw.brandTertiary,
-        GeniusWalletColors.brandTertiary,
-      ),
+      'brandTertiary': ((gw) => gw.brandTertiary, const Color(0xFFC28FFF)),
       'brandTertiaryMuted': (
         (gw) => gw.brandTertiaryMuted,
-        GeniusWalletColors.brandTertiaryMuted,
+        const Color(0xFFC28FFF).withAlpha(61),
       ),
       'brandTertiarySubtle': (
         (gw) => gw.brandTertiarySubtle,
-        GeniusWalletColors.brandTertiarySubtle,
+        const Color(0xFFC28FFF).withAlpha(31),
       ),
-      'gradientBlue': (
-        (gw) => gw.gradientBlue,
-        GeniusWalletColors.gradientBlue,
-      ),
-      'gradientGreen': (
-        (gw) => gw.gradientGreen,
-        GeniusWalletColors.gradientGreen,
-      ),
-      'gray500': ((gw) => gw.gray500, GeniusWalletColors.gray500),
+      'gradientBlue': ((gw) => gw.gradientBlue, const Color(0xFF0AAEE6)),
+      'gradientGreen': ((gw) => gw.gradientGreen, const Color(0xFF0AD89C)),
+      'gray500': ((gw) => gw.gray500, const Color(0xFF8A8F9D)),
       'textTertiary': (
         (gw) => gw.textTertiary,
-        GeniusWalletColors.textTertiary,
+        const Color.fromARGB(255, 53, 54, 61),
       ),
-      'textDisabled': (
-        (gw) => gw.textDisabled,
-        GeniusWalletColors.textDisabled,
-      ),
-      'textOnBrand': ((gw) => gw.textOnBrand, GeniusWalletColors.textOnBrand),
-      'borderBrand': ((gw) => gw.borderBrand, GeniusWalletColors.borderBrand),
-      'statusWarning': (
-        (gw) => gw.statusWarning,
-        GeniusWalletColors.statusWarning,
-      ),
-      'statusInfo': ((gw) => gw.statusInfo, GeniusWalletColors.statusInfo),
-      'brandGreen': ((gw) => gw.brandGreen, GeniusWalletColors.brandGreen),
+      'textDisabled': ((gw) => gw.textDisabled, const Color(0xFF2A2B31)),
+      'textOnBrand': ((gw) => gw.textOnBrand, const Color(0xFF000B18)),
+      'borderBrand': ((gw) => gw.borderBrand, const Color(0xFF14C8FF)),
+      'statusWarning': ((gw) => gw.statusWarning, const Color(0xFFFFC42E)),
+      'statusInfo': ((gw) => gw.statusInfo, const Color(0xFF14C8FF)),
+      'brandGreen': ((gw) => gw.brandGreen, const Color(0xFF2BF5B4)),
       'brandGreenStrong': (
         (gw) => gw.brandGreenStrong,
-        GeniusWalletColors.brandGreenStrong,
+        const Color(0xFF0AD89C),
       ),
       'brandGreenMuted': (
         (gw) => gw.brandGreenMuted,
-        GeniusWalletColors.brandGreenMuted,
+        const Color(0xFF2BF5B4).withAlpha(61),
       ),
       'brandGreenSubtle': (
         (gw) => gw.brandGreenSubtle,
-        GeniusWalletColors.brandGreenSubtle,
+        const Color(0xFF2BF5B4).withAlpha(31),
       ),
     };
 
@@ -284,37 +276,32 @@ void main() {
   });
 
   group('Appearance-aware new tokens match legacy per-mode', () {
+    // Frozen literals (see header comment) -- both pinned values in each
+    // pair used to be cross-checked against a live GeniusWalletColors read;
+    // they now pin the same two known-good values against each other.
     test('btnFilter -- light', () {
       setAppearance(GWAppearanceMode.light);
       expect(GWColors.light().btnFilter, const Color(0xFFEFF2F6));
-      expect(GWColors.light().btnFilter, GeniusWalletColors.btnFilter);
     });
 
     test('btnFilter -- dark', () {
       setAppearance(GWAppearanceMode.dark);
       expect(GWColors.dark().btnFilter, const Color.fromARGB(255, 19, 33, 53));
-      expect(GWColors.dark().btnFilter, GeniusWalletColors.btnFilter);
     });
 
     test('brandPrimaryOnSurface -- light', () {
       setAppearance(GWAppearanceMode.light);
       expect(GWColors.light().brandPrimaryOnSurface, const Color(0xFF0A6885));
-      expect(
-        GWColors.light().brandPrimaryOnSurface,
-        GeniusWalletColors.brandPrimaryOnSurface,
-      );
     });
 
     test('brandPrimaryOnSurface -- dark', () {
       setAppearance(GWAppearanceMode.dark);
+      // Dark brandPrimaryOnSurface is documented to equal brandPrimaryStrong.
       expect(
         GWColors.dark().brandPrimaryOnSurface,
-        GeniusWalletColors.brandPrimaryStrong,
+        GWColors.dark().brandPrimaryStrong,
       );
-      expect(
-        GWColors.dark().brandPrimaryOnSurface,
-        GeniusWalletColors.brandPrimaryOnSurface,
-      );
+      expect(GWColors.dark().brandPrimaryOnSurface, const Color(0xFF0AAEE6));
     });
   });
 
@@ -338,7 +325,9 @@ void main() {
       test('dark mode matches the legacy mode-invariant value', () {
         setAppearance(GWAppearanceMode.dark);
         final gw = GWColors.dark();
-        expect(gw.textSecondary, GeniusWalletColors.textSecondary);
+        // gray500/textSecondary's mode-invariant legacy value (frozen
+        // literal -- see header comment).
+        expect(gw.textSecondary, const Color(0xFF8A8F9D));
         expect(gw.statusSuccess, const Color(0xFF0AD89C));
         expect(gw.statusError, const Color(0xFFFF4D4D));
       });

@@ -19,10 +19,10 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/test/dev_overrides.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -243,11 +243,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // RECOVERY-SCREEN ROBUSTNESS: ErrorWidget.builder is global and may
     // replace a widget ABOVE MaterialApp/Theme, so no Theme ancestor is
-    // guaranteed here. This screen therefore reads colors from the
-    // appearance-aware GeniusWalletColors STATIC GETTERS (GWAppearance
-    // global singleton, no BuildContext dependency) rather than a
-    // Theme-extension context read — deliberate inverse of the 04-02
-    // context-read migration (see 04-07-PLAN.md). GWButton below performs
+    // guaranteed here. Most of this screen reads through context.gw, whose
+    // fail-soft fallback (Theme-extension-or-dark) tolerates a missing
+    // ancestor; the one const icon color below instead reads
+    // GWColors.fixedStatusError, a static const this screen's own const
+    // requirement forces (23-04: the legacy GeniusWalletColors.statusError
+    // this replaced is now private to lib/theme/). GWButton below performs
     // its own internal, pre-existing, fail-soft Theme-extension-or-dark-
     // fallback read; that is unchanged by this plan and does not affect
     // this screen's own color access.
@@ -262,7 +263,7 @@ class MyApp extends StatelessWidget {
               children: [
                 const GWIcon.material(
                   Icons.error_outline,
-                  color: GeniusWalletColors.statusError,
+                  color: GWColors.fixedStatusError,
                   size: 64,
                 ),
                 const SizedBox(height: GeniusWalletConsts.space8),

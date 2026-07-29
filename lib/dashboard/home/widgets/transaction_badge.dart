@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// The nine badge identities: all seven `TransactionType` values plus the two
@@ -44,7 +43,7 @@ TransactionBadgeSpec badgeSpec(TransactionBadgeKind kind, GWColors gw) {
   switch (kind) {
     case TransactionBadgeKind.sent:
       return const TransactionBadgeSpec(
-        fill: GeniusWalletColors.statusNeutral,
+        fill: GWColors.statusNeutral,
         icon: Icons.north_east,
         label: 'Sent',
       );
@@ -72,7 +71,7 @@ TransactionBadgeSpec badgeSpec(TransactionBadgeKind kind, GWColors gw) {
       );
     case TransactionBadgeKind.escrow:
       return const TransactionBadgeSpec(
-        fill: GeniusWalletColors.statusNeutral,
+        fill: GWColors.statusNeutral,
         icon: Icons.lock,
         label: 'Escrow',
       );
@@ -80,7 +79,7 @@ TransactionBadgeSpec badgeSpec(TransactionBadgeKind kind, GWColors gw) {
       // Not in the ROADMAP badge table (it enumerates only the seven locked
       // ones) — fill/glyph come from sketch 014's live TX rows.
       return const TransactionBadgeSpec(
-        fill: GeniusWalletColors.statusNeutral,
+        fill: GWColors.statusNeutral,
         icon: Icons.swap_horiz,
         label: 'Swapped',
       );

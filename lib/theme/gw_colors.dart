@@ -729,4 +729,35 @@ class GWColors extends ThemeExtension<GWColors> {
     }
     return t < 0.5 ? this : other;
   }
+
+  // ---------------------------------------------------------------------
+  // 23-04: two narrow, named, STATIC (not instance-field) exceptions to full
+  // primitive closure. Both exist because a `const` call site needs a
+  // compile-time constant and cannot take a BuildContext/Theme read at all --
+  // a plain instance field would not help there, and inlining the hex at the
+  // call site would violate AGENTS.md's "no raw hex outside lib/theme". Each
+  // has exactly one documented consumer; this is not a reopening of the
+  // primitive layer for general use.
+  // ---------------------------------------------------------------------
+
+  /// [GeniusWalletColors.statusNeutral]'s mode-invariant, FILL-ONLY value,
+  /// exposed as a static const rather than promoted to a `GWColors` INSTANCE
+  /// field -- 23-01-TOKEN-MAP.md's "Excluded" section and the primitive's own
+  /// doc comment both record that exclusion as deliberate (no per-appearance
+  /// divergent value is ever needed for this fill). Sole consumer:
+  /// `transaction_badge.dart`'s three `const TransactionBadgeSpec(...)` badge
+  /// kinds (Sent/Escrow/Swapped), which need `fill` to stay a compile-time
+  /// constant.
+  static const Color statusNeutral = Color(0xFF64748B);
+
+  /// [GeniusWalletColors.statusError]'s ORIGINAL mode-invariant value
+  /// (`#FF4D4D`), distinct from this class's own appearance-aware
+  /// [statusError] INSTANCE field (which diverges in light mode for WCAG AA
+  /// -- see that field's doc comment). Sole consumer: `lib/main.dart`'s
+  /// `ErrorWidget.builder`, which may replace a widget ABOVE
+  /// `MaterialApp`/`Theme` and therefore cannot guarantee a `Theme` ancestor
+  /// to read through -- its icon color must stay `const`, so neither a
+  /// context read nor a `GWColors.dark()` factory call (itself not `const`)
+  /// can serve here.
+  static const Color fixedStatusError = Color(0xFFFF4D4D);
 }
