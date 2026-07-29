@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -48,9 +47,9 @@ class GWSelect<T> extends StatelessWidget {
       initialValue: value,
       isExpanded: expand,
       onChanged: enabled ? onChanged : null,
-      icon: const Icon(
+      icon: Icon(
         Icons.keyboard_arrow_down_rounded,
-        color: GeniusWalletColors.textSecondary,
+        color: context.gw.textSecondary,
       ),
       dropdownColor: context.gw.surfaceMenu,
       borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),

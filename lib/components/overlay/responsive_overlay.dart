@@ -13,7 +13,6 @@ import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_tools_bubble.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -201,9 +200,7 @@ class _MobileTabBar extends StatelessWidget {
         onTap: (index) => context.go(destinations[index].path),
         selectedItemColor: context.gw.brandPrimaryStrong,
         unselectedItemColor: gw.textSecondary,
-        selectedIconTheme: const IconThemeData(
-          color: GeniusWalletColors.brandPrimaryStrong,
-        ),
+        selectedIconTheme: IconThemeData(color: gw.brandPrimaryStrong),
         unselectedIconTheme: IconThemeData(color: gw.textSecondary),
         selectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
           color: context.gw.brandPrimaryStrong,

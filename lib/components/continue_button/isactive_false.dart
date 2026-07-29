@@ -1,7 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/custom/isactive_false_custom.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -49,11 +48,11 @@ class _IsactiveFalse extends State<IsactiveFalse> {
                   fit: BoxFit.scaleDown,
                   child: AutoSizeText(
                     widget.ovrContinue ?? GeniusWalletText.btnContinue,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: GeniusWalletFontSize.medium,
                       fontWeight: FontWeight.w400,
                       letterSpacing: 0.1375,
-                      color: GeniusWalletColors.btnTextDisabled,
+                      color: context.gw.btnTextDisabled,
                     ),
                     textAlign: TextAlign.center,
                     maxLines: 1,

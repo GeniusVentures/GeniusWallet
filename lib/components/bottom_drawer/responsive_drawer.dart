@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -79,7 +78,7 @@ const EdgeInsets kDrawerFooterPadding = EdgeInsets.all(
 /// it was made with the panel on screen rather than in a table.
 ///
 /// **The FIELD edge is a different question and does not follow this.** It
-/// stays at [GeniusWalletColors.borderControl] (36%, 3.30:1), because a card's
+/// stays at `context.gw.borderControl` (36%, 3.30:1), because a card's
 /// border is decoration while an input's border is the only thing that says
 /// "this is an input" - 1.4.11 applies to one and not the other.
 ///
@@ -87,7 +86,7 @@ const EdgeInsets kDrawerFooterPadding = EdgeInsets.all(
 /// sites: an input's own fill goes UP to `surfaceMenu` (it becomes the lighter
 /// object on a darker panel, which is how a control on a card reads everywhere
 /// else in this app), and its edge goes to
-/// [GeniusWalletColors.borderControl] -- because at 1.11:1 the fill cannot
+/// `context.gw.borderControl` -- because at 1.11:1 the fill cannot
 /// identify the field and the border has to carry 1.4.11 alone.
 class ResponsiveDrawer {
   static Future<T?> show<T>({

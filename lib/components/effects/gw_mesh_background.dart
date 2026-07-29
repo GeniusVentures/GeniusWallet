@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Animated brand-color mesh that lives behind a screen's content. Three
@@ -83,6 +83,7 @@ class _GWMeshBackgroundState extends State<GWMeshBackground>
                 t: _controller.value,
                 intensity: widget.intensity.clamp(0.0, 1.0),
                 dimAlpha: widget.dimAlpha,
+                gw: context.gw,
               ),
               size: Size.infinite,
             ),
@@ -95,11 +96,23 @@ class _GWMeshBackgroundState extends State<GWMeshBackground>
 }
 
 class _MeshPainter extends CustomPainter {
-  _MeshPainter({required this.t, required this.intensity, this.dimAlpha});
+  _MeshPainter({
+    required this.t,
+    required this.intensity,
+    required this.gw,
+    this.dimAlpha,
+  });
 
   final double t;
   final double intensity;
   final int? dimAlpha;
+
+  /// Threaded in from the nearest caller with a `BuildContext`
+  /// (`_GWMeshBackgroundState.build`) -- a `CustomPainter` never has one of
+  /// its own. brandPrimary/Secondary/Tertiary are mode-invariant fixed
+  /// tokens, so this is a pure access-path move: same values as the legacy
+  /// `GeniusWalletColors` statics, just read through the migrated token.
+  final GWColors gw;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -136,13 +149,9 @@ class _MeshPainter extends CustomPainter {
       canvas.drawRect(rect, paint);
     }
 
-    drawBlob(color: GeniusWalletColors.brandPrimary, phase: 0.00);
-    drawBlob(color: GeniusWalletColors.brandSecondary, phase: 0.33);
-    drawBlob(
-      color: GeniusWalletColors.brandTertiary,
-      phase: 0.66,
-      radiusScale: 0.80,
-    );
+    drawBlob(color: gw.brandPrimary, phase: 0.00);
+    drawBlob(color: gw.brandSecondary, phase: 0.33);
+    drawBlob(color: gw.brandTertiary, phase: 0.66, radiusScale: 0.80);
 
     // Vignette-style dim overlay that's stronger toward the center to anchor
     // foreground content without flattening the blobs at the edges.
@@ -159,5 +168,8 @@ class _MeshPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MeshPainter old) =>
-      old.t != t || old.intensity != intensity || old.dimAlpha != dimAlpha;
+      old.t != t ||
+      old.intensity != intensity ||
+      old.dimAlpha != dimAlpha ||
+      old.gw != gw;
 }

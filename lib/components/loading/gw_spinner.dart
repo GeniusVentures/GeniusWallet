@@ -1,7 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Branded loading spinner — a sweep-gradient arc rotating through cyan and
 /// mint. Replace ad-hoc [CircularProgressIndicator] usages with this so the
@@ -47,7 +48,10 @@ class _GWSpinnerState extends State<GWSpinner>
       child: RotationTransition(
         turns: _controller,
         child: CustomPaint(
-          painter: _SpinnerPainter(strokeWidth: widget.strokeWidth),
+          painter: _SpinnerPainter(
+            strokeWidth: widget.strokeWidth,
+            gw: context.gw,
+          ),
         ),
       ),
     );
@@ -55,8 +59,15 @@ class _GWSpinnerState extends State<GWSpinner>
 }
 
 class _SpinnerPainter extends CustomPainter {
-  _SpinnerPainter({required this.strokeWidth});
+  _SpinnerPainter({required this.strokeWidth, required this.gw});
   final double strokeWidth;
+
+  /// Threaded in from the nearest caller with a `BuildContext`
+  /// (`_GWSpinnerState.build`) -- a `CustomPainter` never has one of its
+  /// own. Every field read below is a mode-invariant fixed token, so this is
+  /// a pure access-path move: same values as the legacy `GeniusWalletColors`
+  /// statics, just read through the migrated token.
+  final GWColors gw;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -67,18 +78,14 @@ class _SpinnerPainter extends CustomPainter {
     final trackPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..color = GeniusWalletColors.borderSubtle;
+      ..color = gw.borderSubtle;
     canvas.drawOval(inset, trackPaint);
 
-    final shader = const SweepGradient(
+    final shader = SweepGradient(
       startAngle: 0,
       endAngle: 2 * math.pi,
-      colors: [
-        GeniusWalletColors.brandPrimary,
-        GeniusWalletColors.brandSecondary,
-        GeniusWalletColors.brandSecondaryBright,
-      ],
-      stops: [0.0, 0.6, 1.0],
+      colors: [gw.brandPrimary, gw.brandSecondary, gw.brandSecondaryBright],
+      stops: const [0.0, 0.6, 1.0],
     ).createShader(rect);
 
     final arcPaint = Paint()
@@ -93,5 +100,5 @@ class _SpinnerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SpinnerPainter oldDelegate) =>
-      oldDelegate.strokeWidth != strokeWidth;
+      oldDelegate.strokeWidth != strokeWidth || oldDelegate.gw != gw;
 }

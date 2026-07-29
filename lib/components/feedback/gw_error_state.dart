@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -38,11 +37,7 @@ class GWErrorState extends StatelessWidget {
                 color: context.gw.statusError.withAlpha(31),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.error_outline,
-                size: 32,
-                color: GeniusWalletColors.statusError,
-              ),
+              child: Icon(Icons.error_outline, size: 32, color: gw.statusError),
             ),
             const SizedBox(height: GeniusWalletConsts.space8),
             Text(
@@ -96,11 +91,7 @@ class GWErrorBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.error_outline,
-            size: 18,
-            color: GeniusWalletColors.statusError,
-          ),
+          Icon(Icons.error_outline, size: 18, color: context.gw.statusError),
           const SizedBox(width: GeniusWalletConsts.space4),
           Expanded(
             child: Text(
@@ -113,11 +104,7 @@ class GWErrorBanner extends StatelessWidget {
           if (onDismiss != null)
             IconButton(
               tooltip: 'Close',
-              icon: const Icon(
-                Icons.close,
-                size: 18,
-                color: GeniusWalletColors.statusError,
-              ),
+              icon: Icon(Icons.close, size: 18, color: context.gw.statusError),
               onPressed: onDismiss,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),

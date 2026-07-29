@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_motion.dart';
@@ -215,9 +214,7 @@ class GWTextField extends StatelessWidget {
       background: fill ?? gw.surfaceElevated,
       // The fill is a step from its canvas at best, so the edge carries WCAG
       // 1.4.11 on its own -- the same reasoning as the drawer fields.
-      restingColor: errorText == null
-          ? gw.borderControl
-          : GeniusWalletColors.statusError,
+      restingColor: errorText == null ? gw.borderControl : gw.statusError,
       enabled: enabled,
       child: field,
     );

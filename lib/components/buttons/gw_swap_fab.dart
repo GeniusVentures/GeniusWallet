@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_motion.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -70,9 +69,9 @@ class _GWSwapFabState extends State<GWSwapFab> {
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.swap_vert_rounded,
-              color: GeniusWalletColors.textOnBrand,
+              color: context.gw.textOnBrand,
               size: 26,
             ),
           ),
