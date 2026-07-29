@@ -9,9 +9,9 @@ import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/components/pulsing_skeleton.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:intl/intl.dart';
 
 /// Price font size for the compact (height-starved) chart card, snapped to
@@ -386,7 +386,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                               decoration: BoxDecoration(
                                 gradient: RadialGradient(
                                   colors: [
-                                    GeniusWalletColors.brandPrimary.withValues(
+                                    context.gw.brandPrimary.withValues(
                                       alpha: 0.42,
                                     ),
                                     Colors.transparent,
