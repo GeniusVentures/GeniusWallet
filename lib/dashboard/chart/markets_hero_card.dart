@@ -4,13 +4,13 @@ import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:intl/intl.dart';
@@ -552,7 +552,7 @@ class _TimeframeTabState extends State<_TimeframeTab> {
   Widget build(BuildContext context) {
     final selected = widget.selected;
     final Color labelColor = selected
-        ? GeniusWalletColors.textOnBrand
+        ? context.gw.textOnBrand
         : (_hovered ? widget.hoverTextColor : widget.unselectedColor);
     final bool lifted = _hovered && !selected;
     return MouseRegion(

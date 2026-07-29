@@ -24,11 +24,11 @@ import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 /// The ten filter identities.
@@ -681,7 +681,7 @@ class _TransactionFilterBar extends StatelessWidget {
         child: Icon(
           Icons.more_horiz,
           size: 15,
-          color: filtered ? GeniusWalletColors.textOnBrand : gw.textSecondary,
+          color: filtered ? context.gw.textOnBrand : gw.textSecondary,
         ),
       ),
     );
@@ -796,7 +796,8 @@ class _FilterChipState extends State<_FilterChip> {
     final bool lifted = _hovered && !active;
 
     final Color fg = active
-        ? GeniusWalletColors
+        ? context
+              .gw
               .textOnBrand // 10.6:1 / 7.7:1 on the two stops
         : (lifted ? gw.textPrimary : gw.textSecondary);
 

@@ -11,6 +11,7 @@ import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// The dashboard's first card - the twin-tile compute panel
 /// (`14-UI-SPEC.md §3.1`, sketch 077's P1). Renders the section kicker, the
@@ -379,7 +380,7 @@ class _SublineRow extends StatelessWidget {
             child: Text(
               linkLabel,
               style: style.copyWith(
-                color: GeniusWalletColors.brandPrimaryOnSurface,
+                color: context.gw.brandPrimaryOnSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
