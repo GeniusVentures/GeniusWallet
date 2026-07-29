@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -13,6 +14,27 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:intl/intl.dart';
+
+/// The hero chart's own height.
+///
+/// **Still 180 — 078-S6's "grow to 253 for free" hypothesis was FALSIFIED by
+/// `test/dashboard/markets_hero_height_test.dart`, not shipped.** The plan's
+/// derivation (left column 301 = 46 icon + 20 + 48 price + 16 + 24 pill + 24
+/// + 1 rule + 24 + 39 stat + 20 + 39 stat; right column 48 + chart; `Spacer`
+/// at `:168` absorbing the 73px difference) predicted the WIDE card would be
+/// the exact same height at 180 and at 253. Measured instead of trusted: the
+/// test recorded the real card height at the shipped 180 first
+/// (`tester.getSize`, not arithmetic), then flipped this constant to 253 and
+/// re-ran the SAME assertion — and the wide card grew by 73px, the full
+/// amount the `Spacer` was supposed to be absorbing. The `IntrinsicHeight`
+/// row's actual cross-axis intrinsic-height computation with a flex-child
+/// `Spacer` does not zero out the way the derivation assumed.
+///
+/// Per this task's own instruction — "if the wide-layout card grows, STOP
+/// and report it; do not accept a taller card and do not adjust the constant
+/// to match" — this stays at 180 pending Jakub's decision. See
+/// `260729-gt4-SUMMARY.md` for the full writeup.
+const double kMarketsHeroChartHeight = 180;
 
 /// Markets hero (sketch 103 · H1 "Refined split"): identity + oversized price
 /// + a 2×2 stat block on the left, the 7d chart with a timeframe selector on
@@ -165,7 +187,10 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
           ),
           const SizedBox(height: GeniusWalletConsts.space8),
           if (fill) const Spacer(),
-          SizedBox(height: 180, child: _HeroChart(sparkline: data.sparkline)),
+          SizedBox(
+            height: kMarketsHeroChartHeight,
+            child: _HeroChart(sparkline: data.sparkline),
+          ),
         ],
       );
     }
@@ -309,12 +334,17 @@ class _HeroChart extends StatelessWidget {
       data.length,
       (i) => FlSpot(i.toDouble(), data[i]),
     );
-    const gradient = LinearGradient(
-      colors: [
-        GeniusWalletColors.gradientGreen,
-        GeniusWalletColors.gradientBlue,
-      ],
-    );
+    // One trend-colour rule now covers every chart surface (078-S2). Before
+    // this, the hero ran a THIRD rule of its own — a fixed
+    // gradientGreen -> gradientBlue regardless of direction — while
+    // `CryptoLiveChart` was always mint and the two sparklines (
+    // `crypto_simple_chart.dart:53-55`) colour by sign. Uses the LOCAL `up`
+    // (first vs last point of the plotted 7d sparkline), not
+    // `data.priceChangePercentage24h`: the series on screen is 7 days, so a
+    // 24h-signed colour on a 7d line would be the same class of lie this
+    // whole task is removing.
+    final bool up = data.last >= data.first;
+    final Color trend = up ? gw.statusSuccess : gw.statusError;
 
     // Hover tooltip (same effect as the dashboard's CryptoLiveChart): a touched
     // point shows its time, price, and % change vs the window start. The
@@ -340,7 +370,7 @@ class _HeroChart extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            gradient: gradient,
+            color: trend,
             barWidth: 2.5,
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
@@ -349,9 +379,14 @@ class _HeroChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  GeniusWalletColors.gradientGreen.withValues(alpha: 0.24),
-                  GeniusWalletColors.gradientGreen.withValues(alpha: 0.0),
+                  trend.withValues(alpha: 0.18),
+                  trend.withValues(alpha: 0.0),
                 ],
+                // Same non-zero-baseline honesty as the main chart
+                // (`crypto_live_chart.dart`): this widget sets no `minY`/
+                // `maxY`, so an edge-to-edge fill would otherwise run to a
+                // floor the scale never claims.
+                stops: const [0.0, kChartFillFadeStop],
               ),
             ),
           ),
@@ -365,15 +400,16 @@ class _HeroChart extends StatelessWidget {
           getTouchedSpotIndicator: (barData, spotIndexes) {
             return spotIndexes.map((index) {
               return TouchedSpotIndicatorData(
-                FlLine(color: gw.borderStrong, strokeWidth: 1),
+                // borderControl (3.30:1 dark / 3.10:1 light) clears WCAG
+                // 1.4.11's 3:1 gate; borderStrong (2.10:1) did not — same
+                // token, same reason as the main chart's crosshair.
+                FlLine(color: gw.borderControl, strokeWidth: 1),
                 FlDotData(
                   getDotPainter: (spot, percent, bar, i) => FlDotCirclePainter(
                     radius: 4,
-                    color: GeniusWalletColors.gradientGreen,
+                    color: trend,
                     strokeWidth: 3,
-                    strokeColor: GeniusWalletColors.gradientGreen.withValues(
-                      alpha: 0.26,
-                    ),
+                    strokeColor: trend.withValues(alpha: 0.26),
                   ),
                 ),
               );

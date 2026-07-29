@@ -4,6 +4,9 @@ import 'dart:ui';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:genius_wallet/chart/chart_axis.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/components/pulsing_skeleton.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
@@ -102,11 +105,16 @@ class CryptoLiveChart extends StatefulWidget {
   final Widget? child;
   final double priceHeight;
 
-  /// When false, the chart's built-in hero price + 24h% pill header is not
-  /// rendered, leaving just the optional [child] and the plot (with its
-  /// existing zoom/pan controls). Lets a caller (e.g. the token-detail hero
-  /// card, sketch 152) own the price display without duplicating it. Defaults
-  /// to true so every existing caller renders byte-for-behavior identically.
+  /// When false, the chart renders its OWN compact header — price, %, the
+  /// hovered sample's time, and the timeframe segment — above the plot,
+  /// instead of the built-in hero price + 24h% pill. The rule is one
+  /// sentence, and it holds at both call sites today: **either the host owns
+  /// the chart's chrome, or the chart does.** The coin page passes
+  /// `showPriceHeader: false` and has no chrome of its own
+  /// (`token_info_screen.dart:416-423`); the dashboard leaves it true and its
+  /// `_ChartSectionHeader` already carries both the identity and a timeframe
+  /// segment, so it must NOT get a second one. Defaults to true so every
+  /// existing caller renders byte-for-behavior identically.
   final bool showPriceHeader;
 
   const CryptoLiveChart({
@@ -127,10 +135,20 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   double _latestPrice = 0.0;
   double _oldestPrice = 0.0;
   double? _hoveredPrice;
+  double? _hoveredX;
   bool _isHovering = false;
   Timer? _timer;
 
-  // For zoom/pan
+  // Set once the first fetch resolves (success, empty, or error) so the empty
+  // state can distinguish "still loading" from "the fetch came back with
+  // nothing" — before this flag, an empty/failed response pulsed the loading
+  // skeleton forever.
+  bool _loadAttempted = false;
+
+  // The visible X window. No zoom/pan controls drive this anymore (the four
+  // buttons were replaced by the timeframe segment, 078-S1) — it still
+  // initialises to "the last 50 points" and moves with each live tick, which
+  // is what `chartYBounds`, `minX` and `maxX` read.
   double? _viewMinX, _viewMaxX;
 
   bool get _hasData => _priceData.isNotEmpty;
@@ -152,30 +170,44 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   Future<void> _fetchHistoricalData() async {
-    final historicalPrices = await fetchHistoricalPrices(
-      widget.coinGeckoCoinId,
-    );
+    try {
+      final historicalPrices = await fetchHistoricalPrices(
+        widget.coinGeckoCoinId,
+      );
 
-    if (historicalPrices.isNotEmpty) {
-      final historicalData = historicalPrices.entries
-          .map((entry) => FlSpot(entry.key.toDouble(), entry.value))
-          .toList();
+      if (historicalPrices.isNotEmpty) {
+        final historicalData = historicalPrices.entries
+            .map((entry) => FlSpot(entry.key.toDouble(), entry.value))
+            .toList();
 
-      if (!mounted) {
-        return;
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _priceData = historicalData;
+          _latestPrice = _priceData.last.y;
+          _oldestPrice = _priceData.first.y;
+
+          // Set initial zoom window (show last 50 points)
+          final totalPoints = _priceData.length;
+          _viewMinX = totalPoints > 50
+              ? _priceData[totalPoints - 50].x
+              : _priceData.first.x;
+          _viewMaxX = _priceData.last.x;
+        });
       }
-      setState(() {
-        _priceData = historicalData;
-        _latestPrice = _priceData.last.y;
-        _oldestPrice = _priceData.first.y;
-
-        // Set initial zoom window (show last 50 points)
-        final totalPoints = _priceData.length;
-        _viewMinX = totalPoints > 50
-            ? _priceData[totalPoints - 50].x
-            : _priceData.first.x;
-        _viewMaxX = _priceData.last.x;
-      });
+    } catch (_) {
+      // The user-visible state is a fixed "No price history" string (see
+      // `_loadAttempted` below) — nothing about the caught error is rendered
+      // or logged. No key, mnemonic or seed-derived value is anywhere near
+      // this code path, but the rule holds regardless: never log a caught
+      // network error into anything that could later carry wallet data.
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadAttempted = true;
+        });
+      }
     }
   }
 
@@ -224,7 +256,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       _oldestPrice > 0 ? (priceChange / _oldestPrice) * 100 : 0;
 
   /// Per-point % change vs [_oldestPrice] — same series the hero price uses,
-  /// reused by the hover tooltip so each touched point gets its own %.
+  /// reused by the header readout so the hovered point gets its own %.
   double _percentAt(double price) =>
       _oldestPrice > 0 ? ((price - _oldestPrice) / _oldestPrice) * 100 : 0;
 
@@ -233,6 +265,13 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     return DateFormat('h:mm a').format(dateTime);
   }
 
+  /// The hovered sample's time, or `Latest` when nothing is hovered — the
+  /// header readout's third field on both the built-in and the chart-owned
+  /// header.
+  String get _hoverTimeLabel => _isHovering && _hoveredX != null
+      ? _formatTime(_hoveredX!.round())
+      : 'Latest';
+
   void _onHover(FlTouchEvent event, LineTouchResponse? touchResponse) {
     if (touchResponse == null ||
         touchResponse.lineBarSpots == null ||
@@ -240,6 +279,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       setState(() {
         _isHovering = false;
         _hoveredPrice = null;
+        _hoveredX = null;
       });
       return;
     }
@@ -248,6 +288,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     setState(() {
       _isHovering = true;
       _hoveredPrice = hoveredSpot.y;
+      _hoveredX = hoveredSpot.x;
     });
   }
 
@@ -255,52 +296,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     setState(() {
       _isHovering = false;
       _hoveredPrice = null;
-    });
-  }
-
-  void _zoomIn() {
-    if (!_hasData) {
-      return;
-    }
-    final range = (_viewMaxX! - _viewMinX!) * 0.8;
-    final mid = (_viewMaxX! + _viewMinX!) / 2;
-    setState(() {
-      _viewMinX = max(_priceData.first.x, mid - range / 2);
-      _viewMaxX = min(_priceData.last.x, mid + range / 2);
-    });
-  }
-
-  void _zoomOut() {
-    if (!_hasData) {
-      return;
-    }
-    final range = (_viewMaxX! - _viewMinX!) / 0.8;
-    final mid = (_viewMaxX! + _viewMinX!) / 2;
-    setState(() {
-      _viewMinX = max(_priceData.first.x, mid - range / 2);
-      _viewMaxX = min(_priceData.last.x, mid + range / 2);
-    });
-  }
-
-  void _panLeft() {
-    if (!_hasData) {
-      return;
-    }
-    final step = (_viewMaxX! - _viewMinX!) * 0.2;
-    setState(() {
-      _viewMinX = max(_priceData.first.x, _viewMinX! - step);
-      _viewMaxX = max(_viewMinX! + 1, _viewMaxX! - step);
-    });
-  }
-
-  void _panRight() {
-    if (!_hasData) {
-      return;
-    }
-    final step = (_viewMaxX! - _viewMinX!) * 0.2;
-    setState(() {
-      _viewMinX = min(_priceData.last.x - 1, _viewMinX! + step);
-      _viewMaxX = min(_priceData.last.x, _viewMaxX! + step);
+      _hoveredX = null;
     });
   }
 
@@ -314,10 +310,15 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     ).format(_displayPrice);
 
     final bool isUptrend = _latestPrice >= _oldestPrice;
-    // Trend tints the % pill only; the chart itself is always mint
-    // (see `mintColor` below), decoupled from up/down.
+    // Trend colour now reaches the line, its gradient AND the touched dot
+    // (078-S2) — not just the % pill. Reversed from an earlier "always mint"
+    // call, made the same session it was proposed: mint was picked because
+    // the % pill already states direction, but the Markets sparklines colour
+    // by sign ON PURPOSE, to mirror the Assets panel
+    // (`crypto_simple_chart.dart:53-55`, "Assets-mirror up/down"). An
+    // always-mint line here would have sat directly above red sparklines
+    // reporting the same fact. One rule now covers every surface.
     final Color trendColor = isUptrend ? gw.statusSuccess : gw.statusError;
-    const Color mintColor = GeniusWalletColors.brandSecondary;
 
     return MouseRegion(
       onExit: _onHoverExit,
@@ -348,29 +349,29 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
             crossAxisAlignment: CrossAxisAlignment.center,
             spacing: isCompact ? 0 : 2,
             children: [
-              // Hero price over a soft cyan glow. The glow is a Positioned/
-              // IgnorePointer overlay behind the price — layout-neutral, so it
-              // adds no height to this Column and cannot re-open the compact
-              // overflow the 260720-uhe task closed.
-              //
-              // Gated on showPriceHeader so a caller (e.g. token-detail hero
-              // card, sketch 152) can hide the built-in price + % pill and own
-              // them itself. Default true keeps every existing caller intact.
-              if (widget.showPriceHeader)
+              // Either the host owns the chart's chrome (showPriceHeader
+              // true — the built-in hero price + % pill below), or the chart
+              // does (showPriceHeader false — its own compact header row).
+              // Never both.
+              if (widget.showPriceHeader) ...[
+                // Hero price over a soft cyan glow. The glow is a Positioned/
+                // IgnorePointer overlay behind the price — layout-neutral, so
+                // it adds no height to this Column and cannot re-open the
+                // compact overflow the 260720-uhe task closed.
                 Stack(
                   alignment: Alignment.center,
-                  // Without Clip.none the Stack clips to the price text's tight
-                  // bounds and cuts the blurred glow halo — the reason it read
-                  // as absent. Clip.none lets the glow bleed out behind the
-                  // price.
+                  // Without Clip.none the Stack clips to the price text's
+                  // tight bounds and cuts the blurred glow halo — the reason
+                  // it read as absent. Clip.none lets the glow bleed out
+                  // behind the price.
                   clipBehavior: Clip.none,
                   children: [
-                    // Positioned.fill keeps this layer at the price's size (so
-                    // it adds NO height — the uhe overflow guard stays intact),
-                    // while OverflowBox lets the glow paint larger (280x96) and
-                    // CENTERED behind the price. A bare Positioned(width,height)
-                    // did not reliably center and the glow rendered off the
-                    // price.
+                    // Positioned.fill keeps this layer at the price's size
+                    // (so it adds NO height — the uhe overflow guard stays
+                    // intact), while OverflowBox lets the glow paint larger
+                    // (280x96) and CENTERED behind the price. A bare
+                    // Positioned(width,height) did not reliably center and
+                    // the glow rendered off the price.
                     Positioned.fill(
                       child: IgnorePointer(
                         child: OverflowBox(
@@ -398,15 +399,16 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                         ),
                       ),
                     ),
-                    // Text, not AutoSizeText. `priceFontSize` is already snapped
-                    // to a bounded set by [compactPriceFontSize] (37639d5), but
-                    // that only bounded the HEIGHT-derived input: AutoSizeText
-                    // then ran its own search to fit the available WIDTH, which
-                    // a drag-resize also varies continuously — so it kept
-                    // minting a distinct TextStyle per frame and the
-                    // ParagraphCache thrash the commit set out to kill survived.
-                    // The regression guard missed it because it tests the pure
-                    // function, not this widget. Ellipsis over shrink-to-fit.
+                    // Text, not AutoSizeText. `priceFontSize` is already
+                    // snapped to a bounded set by [compactPriceFontSize]
+                    // (37639d5), but that only bounded the HEIGHT-derived
+                    // input: AutoSizeText then ran its own search to fit the
+                    // available WIDTH, which a drag-resize also varies
+                    // continuously — so it kept minting a distinct TextStyle
+                    // per frame and the ParagraphCache thrash the commit set
+                    // out to kill survived. The regression guard missed it
+                    // because it tests the pure function, not this widget.
+                    // Ellipsis over shrink-to-fit.
                     Text(
                       _hasData ? formattedPrice : 'Loading...',
                       maxLines: 1,
@@ -420,202 +422,101 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                     ),
                   ],
                 ),
-              if (widget.showPriceHeader && _hasData && !isCompact)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: GeniusWalletConsts.space4,
-                    vertical: GeniusWalletConsts.space2,
+                if (_hasData && !isCompact)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: GeniusWalletConsts.space4,
+                          vertical: GeniusWalletConsts.space2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: trendColor.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(
+                            GeniusWalletConsts.radiusXs,
+                          ),
+                        ),
+                        child: Text(
+                          "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: trendColor,
+                          ),
+                        ),
+                      ),
+                      // The hovered sample's time — or `Latest` — as a
+                      // sibling in the SAME row as the pill, so it adds ZERO
+                      // height: this card is height-starved (files
+                      // RenderFlex overflows at boot) and the `isCompact`
+                      // assert above depends on the header's existing
+                      // budget.
+                      const SizedBox(width: GeniusWalletConsts.space4),
+                      Text(
+                        _hoverTimeLabel,
+                        style: TextStyle(fontSize: 11, color: gw.textSecondary),
+                      ),
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: trendColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(
-                      GeniusWalletConsts.radiusXs,
-                    ),
-                  ),
-                  child: Text(
-                    "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: trendColor,
-                    ),
-                  ),
+              ] else
+                _ChartHeaderRow(
+                  hasData: _hasData,
+                  formattedPrice: _hasData ? formattedPrice : 'Loading...',
+                  percentChange: _percentAt(_displayPrice),
+                  trendColor: trendColor,
+                  timeLabel: _hoverTimeLabel,
                 ),
               if (widget.child != null) widget.child!,
               if (_hasData)
                 Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Expanded(
-                        child: LineChart(
-                          LineChartData(
-                            clipData: const FlClipData.all(),
-                            minX: _viewMinX ?? 0,
-                            maxX:
-                                _viewMaxX ??
-                                (_priceData.isNotEmpty ? _priceData.last.x : 1),
-                            minY: _yBounds().$1,
-                            maxY: _yBounds().$2,
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: _priceData,
-                                isCurved: false,
-                                color: mintColor,
-                                barWidth: 2.4,
-                                belowBarData: BarAreaData(
-                                  show: true,
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      mintColor.withValues(alpha: 0.3),
-                                      Colors.transparent,
-                                    ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                  ),
-                                ),
-                                dotData: const FlDotData(show: false),
-                              ),
-                            ],
-                            gridData: const FlGridData(show: false),
-                            borderData: FlBorderData(show: false),
-                            titlesData: const FlTitlesData(
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                            ),
-                            lineTouchData: LineTouchData(
-                              enabled: true,
-                              handleBuiltInTouches: true,
-                              touchCallback: _onHover,
-                              getTouchedSpotIndicator: (barData, spotIndexes) {
-                                return spotIndexes.map((index) {
-                                  return TouchedSpotIndicatorData(
-                                    FlLine(
-                                      color: gw.borderStrong,
-                                      strokeWidth: 1,
-                                    ),
-                                    FlDotData(
-                                      getDotPainter:
-                                          (spot, percent, bar, index) =>
-                                              FlDotCirclePainter(
-                                                radius: 5,
-                                                color: mintColor,
-                                                strokeWidth: 4,
-                                                strokeColor: mintColor
-                                                    .withValues(alpha: 0.26),
-                                              ),
-                                    ),
-                                  );
-                                }).toList();
-                              },
-                              touchTooltipData: LineTouchTooltipData(
-                                fitInsideHorizontally: true,
-                                fitInsideVertically: true,
-                                tooltipBorderRadius: BorderRadius.circular(10),
-                                tooltipBorder: BorderSide(
-                                  color: gw.borderSubtle,
-                                ),
-                                getTooltipColor: (touchedSpot) =>
-                                    gw.surfaceElevated,
-                                // ponytail: fl_chart's LineTouchTooltipData has
-                                // no first-class drop-shadow like the sketch's
-                                // .tip bubble (only color + border + radius).
-                                // Ceiling: no shadow under the bubble. Upgrade
-                                // path: a custom overlay-positioned tooltip
-                                // widget if the shadow is ever needed.
-                                getTooltipItems: (touchedSpots) {
-                                  return touchedSpots.map((spot) {
-                                    final pointPercent = _percentAt(spot.y);
-                                    final pointTrendColor = pointPercent >= 0
-                                        ? gw.statusSuccess
-                                        : gw.statusError;
-                                    return LineTooltipItem(
-                                      '${_formatTime(spot.x.toInt())}\n',
-                                      TextStyle(
-                                        color: gw.textSecondary,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: NumberFormat.currency(
-                                            symbol: "\$",
-                                            decimalDigits: tokenDecimals,
-                                          ).format(spot.y),
-                                          style: TextStyle(
-                                            color: gw.textPrimary,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text:
-                                              '  ${pointPercent >= 0 ? "+" : ""}${pointPercent.toStringAsFixed(2)}%',
-                                          style: TextStyle(
-                                            color: pointTrendColor,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }).toList();
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.zoom_in,
-                              color: Colors.white,
-                            ),
-                            onPressed: _zoomIn,
-                            tooltip: "Zoom In",
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.zoom_out,
-                              color: Colors.white,
-                            ),
-                            onPressed: _zoomOut,
-                            tooltip: "Zoom Out",
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back_ios,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            onPressed: _panLeft,
-                            tooltip: "Pan Left",
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            onPressed: _panRight,
-                            tooltip: "Pan Right",
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, plotConstraints) {
+                      final (yLo, yHi) = _yBounds();
+                      // The box THIS measures is the PLOT box, not the card:
+                      // the card's padding and header row are already spent
+                      // by the time this builder runs. A measurement, not a
+                      // per-surface parameter (078-S4) — `ChartDashboardView`
+                      // is rendered at dashboard_screen.dart:223
+                      // (two-column), :273 (three-column) and :303
+                      // (one-column, capped at 350); the two-column call site
+                      // is `(viewport - 324) / 2` with no floor at all, so a
+                      // parameter would silently re-break the moment a layout
+                      // moved.
+                      if (chartUsesFrame(plotConstraints.maxHeight)) {
+                        return _TradingFrameChart(
+                          data: _priceData,
+                          viewMinX: _viewMinX,
+                          viewMaxX: _viewMaxX,
+                          yBounds: (yLo, yHi),
+                          trendColor: trendColor,
+                          gw: gw,
+                          onHover: _onHover,
+                          formatTime: _formatTime,
+                          plotHeight: plotConstraints.maxHeight,
+                        );
+                      }
+                      return _SparklineChart(
+                        data: _priceData,
+                        viewMinX: _viewMinX,
+                        viewMaxX: _viewMaxX,
+                        yBounds: (yLo, yHi),
+                        trendColor: trendColor,
+                        gw: gw,
+                        onHover: _onHover,
+                        plotHeight: plotConstraints.maxHeight,
+                      );
+                    },
+                  ),
+                )
+              else if (_loadAttempted)
+                const Expanded(
+                  child: GWEmptyState(
+                    icon: Icons.show_chart,
+                    title: 'No price history',
+                    message:
+                        'The market data provider returned no series for '
+                        'this range.',
                   ),
                 )
               else
@@ -636,6 +537,522 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
           return chartContent;
         },
+      ),
+    );
+  }
+}
+
+/// The chart's OWN compact header (used when `showPriceHeader` is false —
+/// today, the coin page). Replaces the old zoom/pan button row, which is
+/// where this used to sit visually (below the plot); this sits ABOVE it.
+/// Left to right: price, signed %, the hovered sample's time (or `Latest`),
+/// then the timeframe segment. A `StatelessWidget`, never a `_buildFoo()`
+/// helper (`AGENTS.md`).
+class _ChartHeaderRow extends StatelessWidget {
+  const _ChartHeaderRow({
+    required this.hasData,
+    required this.formattedPrice,
+    required this.percentChange,
+    required this.trendColor,
+    required this.timeLabel,
+  });
+
+  final bool hasData;
+  final String formattedPrice;
+  final double percentChange;
+  final Color trendColor;
+  final String timeLabel;
+
+  // Below this card width, the five-tab timeframe segment and a six-figure
+  // price cannot both fit alongside every readout field, so the hovered
+  // timestamp drops and the price steps down one size — the same rule
+  // `.chartcard.narrow` codifies in the sketch, measured there at the 366px
+  // mobile card (`.planning/sketches/078-chart-restyle/index.html:65-71`).
+  static const double _narrowWidth = 420;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool narrow = constraints.maxWidth < _narrowWidth;
+        return Row(
+          children: [
+            Flexible(
+              child: Text(
+                formattedPrice,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: narrow ? 15 : 17,
+                  fontWeight: FontWeight.bold,
+                  color: gw.textPrimary,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+            if (hasData) ...[
+              const SizedBox(width: GeniusWalletConsts.space4),
+              Text(
+                "${percentChange >= 0 ? "+" : ""}${percentChange.toStringAsFixed(2)}%",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: trendColor,
+                ),
+              ),
+              if (!narrow) ...[
+                const SizedBox(width: GeniusWalletConsts.space4),
+                Text(
+                  timeLabel,
+                  style: TextStyle(fontSize: 11, color: gw.textSecondary),
+                ),
+              ],
+            ],
+            const Spacer(),
+            const GWTimeframeSegment(),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Scheme B, the trading frame (078-S1): a right Y axis on nice-rounded
+/// ticks, horizontal-only gridlines on those same values, and a bottom time
+/// row. Chosen at runtime by `chartUsesFrame` — see the `LayoutBuilder` in
+/// [CryptoLiveChartState.build]. Kept as its own `StatelessWidget` (rather
+/// than a branch in one build method) so the DevTools inspector can tell it
+/// apart from [_SparklineChart] and neither rebuilds the other.
+class _TradingFrameChart extends StatelessWidget {
+  const _TradingFrameChart({
+    required this.data,
+    required this.viewMinX,
+    required this.viewMaxX,
+    required this.yBounds,
+    required this.trendColor,
+    required this.gw,
+    required this.onHover,
+    required this.formatTime,
+    required this.plotHeight,
+  });
+
+  final List<FlSpot> data;
+  final double? viewMinX;
+  final double? viewMaxX;
+  final (double, double) yBounds;
+  final Color trendColor;
+  final GWColors gw;
+  final void Function(FlTouchEvent, LineTouchResponse?) onHover;
+  final String Function(int) formatTime;
+  final double plotHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final (yLo, yHi) = yBounds;
+    final minX = viewMinX ?? (data.isNotEmpty ? data.first.x : 0);
+    final maxX = viewMaxX ?? (data.isNotEmpty ? data.last.x : 1);
+    var visible = data.where((s) => s.x >= minX && s.x <= maxX).toList();
+    if (visible.isEmpty) {
+      visible = data;
+    }
+
+    // Grid lines and side titles BOTH iterate from the axis baseline by
+    // `interval` (`axis_chart_helper.dart`, `side_titles_widget.dart:161`),
+    // so handing them the SAME step makes every label land on a gridline by
+    // construction — no tick values are drawn by hand.
+    final (_, step) = chartTickStep(
+      yLo,
+      yHi,
+      chartYTickCount(plotHeight - kChartTimeRowHeight),
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: LineChart(
+            LineChartData(
+              clipData: const FlClipData.all(),
+              minX: minX,
+              maxX: maxX,
+              minY: yLo,
+              maxY: yHi,
+              lineBarsData: [
+                LineChartBarData(
+                  spots: data,
+                  isCurved: false,
+                  color: trendColor,
+                  barWidth: 2,
+                  belowBarData: BarAreaData(
+                    show: true,
+                    gradient: LinearGradient(
+                      colors: [
+                        trendColor.withValues(alpha: 0.18),
+                        trendColor.withValues(alpha: 0.0),
+                      ],
+                      // fl_chart shades this gradient over
+                      // `belowBarLargestRect` (top of the highest spot -> the
+                      // plot floor) — the SAME box the sketch's SVG
+                      // `objectBoundingBox` gradient spanned, so 0.62 ports
+                      // 1:1. Do not "fix" this stop later without re-deriving
+                      // that equivalence.
+                      stops: const [0.0, kChartFillFadeStop],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                  dotData: const FlDotData(show: false),
+                ),
+              ],
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: step,
+                getDrawingHorizontalLine: (_) => FlLine(
+                  // 6% is a legitimate choice, not a shortcut: WCAG 1.4.11's
+                  // own Understanding document exempts graduated (grid)
+                  // lines from the 3:1 gate, and no design system publishes
+                  // a numeric dark-mode gridline opacity. Derived from the
+                  // token rather than a colour literal so it stays correct
+                  // in both appearance modes.
+                  color: gw.borderSubtle.withValues(alpha: 0.06),
+                  strokeWidth: 1,
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                leftTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                // On the RIGHT because on a time series the newest value sits
+                // at the right edge and would otherwise be furthest from its
+                // own scale — a strong de-facto convention, NOT a documented
+                // standard (Highcharts still defaults yAxis to the left).
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: kChartAxisGutter,
+                    interval: step,
+                    // MUST be false, or fl_chart ALSO prints the raw
+                    // 8%-padded minY/maxY, which are not on the nice-number
+                    // ladder — an off-ladder label nobody could explain.
+                    minIncluded: false,
+                    maxIncluded: false,
+                    getTitlesWidget: (value, meta) => SideTitleWidget(
+                      meta: meta,
+                      space: 8,
+                      child: Text(
+                        axisMoneyLabel(value, step),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: gw.textSecondary,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              lineTouchData: LineTouchData(
+                enabled: true,
+                handleBuiltInTouches: true,
+                touchCallback: onHover,
+                // Full-height crosshair: the line runs floor to ceiling
+                // instead of stopping at the touched spot.
+                getTouchLineStart: (barData, index) => yLo,
+                getTouchLineEnd: (barData, index) => yHi,
+                getTouchedSpotIndicator: (barData, spotIndexes) {
+                  return spotIndexes.map((index) {
+                    return TouchedSpotIndicatorData(
+                      // borderControl (3.30:1 dark / 3.10:1 light) clears
+                      // WCAG 1.4.11's 3:1 gate for a meaningful graphical
+                      // object; borderStrong (2.10:1) did not.
+                      FlLine(color: gw.borderControl, strokeWidth: 1),
+                      FlDotData(
+                        getDotPainter: (spot, percent, bar, index) =>
+                            FlDotCirclePainter(
+                              // Same radius/strokeWidth as the shipped dot —
+                              // only the colour changes, mint -> trendColor,
+                              // ring alpha unchanged (078-S2).
+                              radius: 5,
+                              color: trendColor,
+                              strokeWidth: 4,
+                              strokeColor: trendColor.withValues(alpha: 0.26),
+                            ),
+                      ),
+                    );
+                  }).toList();
+                },
+                touchTooltipData: LineTouchTooltipData(
+                  // The floating bubble is replaced by the card's own header
+                  // readout — no box should paint over the data at all.
+                  getTooltipColor: (touchedSpot) => Colors.transparent,
+                  tooltipBorder: BorderSide.none,
+                  tooltipPadding: EdgeInsets.zero,
+                  getTooltipItems: (touchedSpots) =>
+                      touchedSpots.map((_) => null).toList(),
+                ),
+              ),
+            ),
+          ),
+        ),
+        // A plain Row of Texts, NOT fl_chart's bottom titles — fl_chart
+        // anchors its x intervals to `baselineX`, which cannot be made to
+        // line up with epoch-second sample positions without fighting the
+        // library.
+        SizedBox(
+          height: kChartTimeRowHeight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: kChartAxisGutter),
+            child: LayoutBuilder(
+              builder: (context, rowConstraints) {
+                final int count = chartXLabelCount(
+                  plotWidth: rowConstraints.maxWidth,
+                  sampleCount: visible.length,
+                );
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(count, (b) {
+                    final int ix = count > 1
+                        ? ((b / (count - 1)) * (visible.length - 1)).round()
+                        : 0;
+                    final spot = visible[ix];
+                    return Text(
+                      formatTime(spot.x.round()),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: gw.textSecondary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    );
+                  }),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Scheme A, the axis-free fallback (078-S4, 078-S5): today's geometry, plus
+/// reserved 17px label bands so the line can never reach the H/L labels.
+///
+/// **This is the SECOND attempt at the label-overlap defect, and the first
+/// one was wrong.** An opaque plate alone was tried and rejected by Jakub,
+/// because the line still ran through the plate — the plate merely hid that
+/// stretch of the series. Hiding data behind a caption is not a fix. The
+/// bands (`chartBandedBounds`) reserve the gutter in the Y window itself, so
+/// no data shape can ever reach a label.
+class _SparklineChart extends StatelessWidget {
+  const _SparklineChart({
+    required this.data,
+    required this.viewMinX,
+    required this.viewMaxX,
+    required this.yBounds,
+    required this.trendColor,
+    required this.gw,
+    required this.onHover,
+    required this.plotHeight,
+  });
+
+  final List<FlSpot> data;
+  final double? viewMinX;
+  final double? viewMaxX;
+  final (double, double) yBounds;
+  final Color trendColor;
+  final GWColors gw;
+  final void Function(FlTouchEvent, LineTouchResponse?) onHover;
+  final double plotHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final (bandedLo, bandedHi) = chartBandedBounds(yBounds, plotHeight);
+    final minX = viewMinX ?? (data.isNotEmpty ? data.first.x : 0);
+    final maxX = viewMaxX ?? (data.isNotEmpty ? data.last.x : 1);
+
+    final extremes = visibleExtremes(
+      data,
+      viewMinX: viewMinX,
+      viewMaxX: viewMaxX,
+    );
+    // Precision for the H/L labels: derived from the (unbanded) window, the
+    // same window-derived rule the axis itself uses — never from the
+    // value's magnitude.
+    final (yLo, yHi) = yBounds;
+    final double labelStep = (yHi - yLo) / 4;
+
+    double fractionOf(double x) {
+      if (maxX <= minX) {
+        return 0;
+      }
+      return (((x - minX) / (maxX - minX)) * 2 - 1).clamp(-1.0, 1.0);
+    }
+
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: LineChart(
+            LineChartData(
+              clipData: const FlClipData.all(),
+              minX: minX,
+              maxX: maxX,
+              minY: bandedLo,
+              maxY: bandedHi,
+              lineBarsData: [
+                LineChartBarData(
+                  spots: data,
+                  isCurved: false,
+                  color: trendColor,
+                  barWidth: 2.4,
+                  belowBarData: BarAreaData(
+                    show: true,
+                    gradient: LinearGradient(
+                      colors: [
+                        trendColor.withValues(alpha: 0.18),
+                        trendColor.withValues(alpha: 0.0),
+                      ],
+                      stops: const [0.0, kChartFillFadeStop],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                  dotData: const FlDotData(show: false),
+                ),
+              ],
+              gridData: const FlGridData(show: false),
+              borderData: FlBorderData(show: false),
+              titlesData: const FlTitlesData(
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+              ),
+              lineTouchData: LineTouchData(
+                enabled: true,
+                handleBuiltInTouches: true,
+                touchCallback: onHover,
+                getTouchLineStart: (barData, index) => bandedLo,
+                getTouchLineEnd: (barData, index) => bandedHi,
+                getTouchedSpotIndicator: (barData, spotIndexes) {
+                  return spotIndexes.map((index) {
+                    return TouchedSpotIndicatorData(
+                      FlLine(color: gw.borderControl, strokeWidth: 1),
+                      FlDotData(
+                        getDotPainter: (spot, percent, bar, index) =>
+                            FlDotCirclePainter(
+                              // Same radius/strokeWidth as the shipped dot —
+                              // only the colour changes, mint -> trendColor,
+                              // ring alpha unchanged (078-S2).
+                              radius: 5,
+                              color: trendColor,
+                              strokeWidth: 4,
+                              strokeColor: trendColor.withValues(alpha: 0.26),
+                            ),
+                      ),
+                    );
+                  }).toList();
+                },
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipColor: (touchedSpot) => Colors.transparent,
+                  tooltipBorder: BorderSide.none,
+                  tooltipPadding: EdgeInsets.zero,
+                  getTooltipItems: (touchedSpots) =>
+                      touchedSpots.map((_) => null).toList(),
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (extremes != null) ...[
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: kChartLabelBand,
+            child: IgnorePointer(
+              child: _HighLowPlate(
+                glyph: 'H',
+                value: axisMoneyLabel(extremes.$1.y, labelStep),
+                fx: fractionOf(extremes.$1.x),
+                gw: gw,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: kChartLabelBand,
+            child: IgnorePointer(
+              child: _HighLowPlate(
+                glyph: 'L',
+                value: axisMoneyLabel(extremes.$2.y, labelStep),
+                fx: fractionOf(extremes.$2.x),
+                gw: gw,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// One H/L label plate, pinned proportionally along its own reserved band
+/// (`Align` positions it AND keeps it inside the box for free — the sketch's
+/// clamp at `index.html:1086`, with no text measurement needed). The plate
+/// stays even though the bands now prevent overlap, because the area fill
+/// still runs under the bottom band and bare text over a chart has no
+/// defined background — its contrast ratio cannot even be computed.
+class _HighLowPlate extends StatelessWidget {
+  const _HighLowPlate({
+    required this.glyph,
+    required this.value,
+    required this.fx,
+    required this.gw,
+  });
+
+  final String glyph;
+  final String value;
+  final double fx;
+  final GWColors gw;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment(fx, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        decoration: BoxDecoration(
+          color: gw.surfaceElevated.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: Text(
+          '$glyph $value',
+          style: TextStyle(
+            fontSize: 10,
+            color: gw.textSecondary,
+            height: 1,
+            letterSpacing: 0.6,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
       ),
     );
   }

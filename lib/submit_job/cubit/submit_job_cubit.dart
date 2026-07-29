@@ -15,6 +15,13 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   final GnusCubit gnusCubit;
   final GeniusApi geniusApi;
 
+  // ponytail: a synchronous JSON parse on the UI isolate, gated only by the
+  // length check below. A file just under the cap can still block the UI
+  // thread while it parses. Upgrade path: parse off-isolate (compute() /
+  // Isolate.run) once a job file large enough to matter shows up in
+  // practice.
+  static const int _maxJobFileBytes = 5 * 1024 * 1024; // 5 MB
+
   SubmitJobCubit({
     required this.walletDetailsCubit,
     required this.gnusCubit,
@@ -34,7 +41,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final balance = resp?.balance;
 
     if (balance == null) {
-      setFilePickerError('Unable to fetch GNUS balance');
+      setCostError('Unable to fetch GNUS balance');
       return 0;
     }
 
@@ -51,18 +58,22 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final info = await gnusCubit.fetchGnusInfo();
 
     if (info == null) {
-      setFilePickerError('Unable to fetch token information');
+      setCostError('Unable to fetch token information');
       return;
     }
 
-    emit(state.copyWith(gnusTokenDetails: info));
+    if (!isClosed) {
+      emit(state.copyWith(gnusTokenDetails: info));
+    }
   }
 
   Future<void> openFilePicker() async {
-    emit(state.copyWith(isFilePickerOpen: true)); // Indicate picker is open
+    if (!isClosed) {
+      emit(state.copyWith(isFilePickerOpen: true)); // Indicate picker is open
+    }
 
     try {
-      emit(state.copyWith(filePickerError: null)); // Clear previous errors
+      resetFileError(); // Clear previous errors
 
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
@@ -73,6 +84,18 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
       if (result != null && result.files.isNotEmpty) {
         final file = File(result.files.single.path!);
+
+        // Trust boundary: a user-picked file. Check its length before
+        // reading it fully into memory - the extension filter above is not
+        // a size check.
+        final fileLength = await file.length();
+        if (fileLength > _maxJobFileBytes) {
+          setFileError(
+            'File is too large (max ${_maxJobFileBytes ~/ (1024 * 1024)} MB).',
+          );
+          return;
+        }
+
         final content = await file.readAsString();
         final jsonData = jsonDecode(content);
 
@@ -86,32 +109,36 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
             jobCost != 0;
 
         if (!isGasFetchable) {
-          setFilePickerError('Unable to retrieve job cost');
+          setCostError('Unable to retrieve job cost');
           return;
         }
 
         // Get gas cost associated with uploaded job
         await getBridgeOutGasCost(jobCost);
 
-        emit(
-          state.copyWith(
-            uploadedFileName: result.files.single.name,
-            uploadedJson: jsonData,
-            jobCost: jobCost,
-          ),
-        );
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              uploadedFileName: result.files.single.name,
+              uploadedJson: jsonData,
+              jobCost: jobCost,
+            ),
+          );
+        }
       } else {
-        setFilePickerError('No file selected.');
+        setFileError('No file selected.');
       }
     } catch (e) {
       if (e.runtimeType == FormatException) {
-        return setFilePickerError('The Selected File is not valid json');
+        return setFileError('The Selected File is not valid json');
       }
-      setFilePickerError('Failed to pick file: ${e.runtimeType}');
+      setFileError('Failed to pick file: ${e.runtimeType}');
     } finally {
-      emit(
-        state.copyWith(isFilePickerOpen: false),
-      ); // Indicate picker is closed
+      if (!isClosed) {
+        emit(
+          state.copyWith(isFilePickerOpen: false),
+        ); // Indicate picker is closed
+      }
     }
   }
 
@@ -128,7 +155,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         gnusAddress == null ||
         walletAddress == null ||
         rpcUrl == null) {
-      setFilePickerError(
+      setCostError(
         'Missing required data for bridge gas estimation. Please select a wallet and network.',
       );
       return;
@@ -146,15 +173,28 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final jobGasCost = resp.data;
 
     if (!resp.isSuccess || jobGasCost == null) {
-      setFilePickerError('Failed to estimate bridge gas cost.');
+      // Pass through the underlying reason (e.g. "Not enough funds for gas
+      // to bridge tokens" from web3.dart's hasEnoughFundsForGas check)
+      // instead of replacing it with a generic line - that check already
+      // runs, the only thing missing was its message reaching the user.
+      final underlyingReason = resp.errorMessage;
+      setCostError(
+        underlyingReason != null && underlyingReason.isNotEmpty
+            ? underlyingReason
+            : 'Failed to estimate bridge gas cost.',
+      );
       return;
     }
 
-    emit(state.copyWith(jobGasCost: jobGasCost));
+    if (!isClosed) {
+      emit(state.copyWith(jobGasCost: jobGasCost));
+    }
   }
 
   Future<void> bridgeTokens() async {
-    emit(state.copyWith(isBridgingTokens: true));
+    if (!isClosed) {
+      emit(state.copyWith(isBridgingTokens: true));
+    }
     final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
     final chainId = selectedNetwork?.chainId;
     final rpcUrl = selectedNetwork?.rpcUrl;
@@ -170,14 +210,15 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         rpcUrl == null ||
         state.jobCost == 0 ||
         uploadedJson.isEmpty) {
-      emit(
-        state.copyWith(
-          isBridgingTokens: false,
-          filePickerError: const FilePickerError(
-            'Missing required data. Please select a wallet and network.',
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            isBridgingTokens: false,
+            submitError:
+                'Missing required data. Please select a wallet and network.',
           ),
-        ),
-      );
+        );
+      }
       return;
     }
 
@@ -193,12 +234,17 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     final txHash = resp.data;
 
     if (!resp.isSuccess || txHash == null) {
-      emit(
-        state.copyWith(
-          isBridgingTokens: false,
-          processErrorMessage: 'Bridge transaction failed. Please try again.',
-        ),
-      );
+      // Nothing was spent - both hash fields stay untouched (still empty on
+      // a fresh state).
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            isBridgingTokens: false,
+            outcome: SubmitOutcome.bridgeFailed,
+            submitError: 'Bridge transaction failed. Please try again.',
+          ),
+        );
+      }
 
       return;
     }
@@ -208,18 +254,37 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       jobJson: jsonEncode(uploadedJson),
     );
     if (processResult != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      emit(
-        state.copyWith(
-          isBridgingTokens: false,
-          processErrorMessage: _processErrorMessage(processResult),
-        ),
-      );
+      // The bridge succeeded - tokens are already burned - but the job
+      // never started. Preserve the bridge hash as proof (deliberately NOT
+      // txHash, so nothing downstream reading a non-empty txHash as "job
+      // started" is fooled), and refresh the balance since a burn happened
+      // here too even though no job was requested.
+      unawaited(fetchGnusBalanceWithDelay());
+
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            isBridgingTokens: false,
+            outcome: SubmitOutcome.bridgedNotProcessed,
+            bridgeHash: txHash,
+            submitError: _processErrorMessage(processResult),
+          ),
+        );
+      }
       return;
     }
 
     unawaited(fetchGnusBalanceWithDelay());
 
-    emit(state.copyWith(txHash: txHash, isBridgingTokens: false));
+    if (!isClosed) {
+      emit(
+        state.copyWith(
+          txHash: txHash,
+          outcome: SubmitOutcome.done,
+          isBridgingTokens: false,
+        ),
+      );
+    }
   }
 
   // used to fetch the gnus balance of the wallet with some delay
@@ -230,29 +295,50 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   }
 
   void resetState() {
-    emit(
-      state.copyWith(
-        jobCost: 0,
-        uploadedJson: {},
-        uploadedFileName: '',
-        jobGasCost: '',
-        txHash: '',
-        filePickerError: null,
-        processErrorMessage: '',
-      ),
-    );
+    if (!isClosed) {
+      emit(
+        state.copyWith(
+          jobCost: 0,
+          uploadedJson: {},
+          uploadedFileName: '',
+          jobGasCost: '',
+          txHash: '',
+          bridgeHash: '',
+          outcome: SubmitOutcome.notSubmitted,
+          submitError: '',
+        ),
+      );
+    }
   }
 
-  void setFilePickerError(String errorMessage) {
-    emit(state.copyWith(filePickerError: FilePickerError(errorMessage)));
+  void setFileError(String errorMessage) {
+    if (!isClosed) {
+      emit(state.copyWith(fileError: errorMessage));
+    }
   }
 
-  void resetFilePickerError() {
-    setFilePickerError("");
+  void setCostError(String errorMessage) {
+    if (!isClosed) {
+      emit(state.copyWith(costError: errorMessage));
+    }
   }
 
-  void resetProcessError() {
-    emit(state.copyWith(processErrorMessage: ''));
+  void setSubmitError(String errorMessage) {
+    if (!isClosed) {
+      emit(state.copyWith(submitError: errorMessage));
+    }
+  }
+
+  void resetFileError() {
+    setFileError('');
+  }
+
+  void resetCostError() {
+    setCostError('');
+  }
+
+  void resetSubmitError() {
+    setSubmitError('');
   }
 
   String _processErrorMessage(GeniusNodeReturnValue result) {

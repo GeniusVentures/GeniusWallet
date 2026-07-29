@@ -16,6 +16,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/dashboard/compute/compute_state.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_fault_injector.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
@@ -35,6 +36,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   final NetworkProvider networkProvider;
 
   Timer? _processingTimer;
+  Timer? _initTimer;
   StreamSubscription<SGNUSConnection>? _sgnusConnectionSubscription;
   List<Wallet> _baseWallets = [];
 
@@ -51,6 +53,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<StartSGNUSTransactionsStream>(_onStartSGNUSTransactionsStream);
     on<RunFFITest>(_onRunFFITest);
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
+    on<RetryProcessingStatus>(_onRetryProcessingStatus);
+    on<InitializationStatusTicked>(_onInitializationStatusTicked);
     on<DeleteWallet>(_onDeleteWallet);
     on<RenameWallet>(_onRenameWallet);
     on<SgnusConnectionChanged>(_onSgnusConnectionChanged);
@@ -60,6 +64,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<DeleteSDKAccount>(_onDeleteSDKAccount);
     on<RefreshSDKAccounts>(_onRefreshSDKAccounts);
     on<SetSDKPayoutAddress>(_onSetSDKPayoutAddress);
+
+    // Starts as soon as `api` is available, mirroring
+    // `sgnus_connection_widget.dart:30-35`'s `didChangeDependencies` start
+    // point - initialization progress does not depend on wallets being
+    // loaded (unlike `_processingTimer`, started from `_onLoadWallets`
+    // below), so there is no later, more-correct point to start it from.
+    _startInitPolling();
   }
 
   Future<void> _onInitializeSDK(
@@ -140,6 +151,25 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     });
   }
 
+  /// Maps the raw FFI status int (`GeniusProcessingStatusInfo.status`,
+  /// `packages/genius_api/lib/ffi/genius_api_ffi.dart:1111-1119`) onto the
+  /// pure [NodeProcessingReading] `compute_state.dart` deals in, so that
+  /// module stays free of the genius_api/FFI dependency. `fromValue`
+  /// throwing on an unrecognised int is intentional here - it is caught by
+  /// the `catch` in [_onProcessingStatusTicked], which is the correct
+  /// outcome for a status this build does not know how to interpret.
+  NodeProcessingReading _toNodeProcessingReading(int rawStatus) {
+    final geniusStatus = GeniusProcessingStatus.fromValue(rawStatus);
+    return switch (geniusStatus) {
+      GeniusProcessingStatus.GENIUS_PR_STATUS_DISABLED =>
+        NodeProcessingReading.disabled,
+      GeniusProcessingStatus.GENIUS_PR_STATUS_IDLE =>
+        NodeProcessingReading.idle,
+      GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING =>
+        NodeProcessingReading.processing,
+    };
+  }
+
   FutureOr<void> _onProcessingStatusTicked(
     ProcessingStatusTicked event,
     Emitter<AppState> emit,
@@ -154,21 +184,44 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     //   (1) it sits ahead of the `try` so `api.getProcessingStatus()` —
     //       which has NO `_isSdkInitialized` guard — is never reached while
     //       the override is armed;
-    //   (2) the existing `catch` cancels `_processingTimer` permanently, so
-    //       once a real read has thrown, no future tick will ever arrive on
-    //       its own; the dev bubble therefore dispatches
-    //       `ProcessingStatusTicked()` itself rather than depending on a
-    //       timer that may already be dead.
+    //   (2) the `catch` below cancels `_processingTimer` and flags the feed
+    //       unavailable rather than cancelling it permanently with no way
+    //       back, so the dev bubble dispatches `ProcessingStatusTicked()`
+    //       itself rather than depending on a timer that may already be
+    //       dead.
+    //
+    // Extended this plan to also cover the two new sticky overrides
+    // (`initPercentageOverride`, `feedUnavailableOverride`) added alongside
+    // `processingOverride` - see `dev_mock_sgnus.dart`. All three must set
+    // `processingFeedStatus` correctly, or the mock renders a combination
+    // the real feed can never produce, and a walk against it proves
+    // nothing.
+    final mock = DevMockSgnus.instance;
     if (kDebugMode &&
         kShowDevTools &&
-        DevMockSgnus.instance.processingOverride != null) {
-      final isProcessing = DevMockSgnus.instance.processingOverride!;
+        (mock.processingOverride != null ||
+            mock.initPercentageOverride != null ||
+            mock.feedUnavailableOverride == true)) {
+      if (mock.feedUnavailableOverride == true) {
+        emit(
+          state.copyWith(
+            isProcessing: false,
+            processingPercentage: 0.0,
+            processingFeedStatus: ProcessingFeedStatus.unavailable,
+          ),
+        );
+        return;
+      }
+
+      final isProcessing = mock.processingOverride ?? false;
       emit(
         state.copyWith(
           isProcessing: isProcessing,
           processingPercentage: isProcessing
               ? DevMockSgnus.processingPercentage
               : 0.0,
+          processingFeedStatus: ProcessingFeedStatus.live,
+          initPercentage: mock.initPercentageOverride,
         ),
       );
       return;
@@ -177,21 +230,138 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     try {
       final statusInfo = api.getProcessingStatus();
 
-      final isProcessing =
-          statusInfo.status ==
-          GeniusProcessingStatus.GENIUS_PR_STATUS_PROCESSING.value;
+      final nodeReading = _toNodeProcessingReading(statusInfo.status);
+      final isProcessing = nodeReading == NodeProcessingReading.processing;
 
-      if (state.isProcessing != isProcessing) {
-        emit(state.copyWith(isProcessing: isProcessing));
+      // Compare against state.isProcessing BEFORE the emit below - after
+      // the emit the previous value is gone. didProcessingJustComplete is
+      // the pure completion-edge rule pinned by
+      // test/dashboard/compute_feed_state_test.dart, extracted to
+      // compute_state.dart rather than inlined so it is testable without a
+      // bloc harness.
+      final justCompleted = didProcessingJustComplete(
+        wasProcessing: state.isProcessing,
+        isProcessingNow: isProcessing,
+      );
+
+      // Both this success path and the catch below funnel through the
+      // same pure resolveProcessingFeedReading, so the "unavailable"
+      // determination has exactly one implementation - see
+      // compute_state.dart.
+      final feedReading = resolveProcessingFeedReading(
+        readThrew: false,
+        nodeReading: nodeReading,
+      );
+      final feedStatus = feedReading == ProcessingFeedReading.unavailable
+          ? ProcessingFeedStatus.unavailable
+          : ProcessingFeedStatus.live;
+
+      if (state.isProcessing != isProcessing ||
+          state.nodeProcessingStatus != nodeReading ||
+          state.processingFeedStatus != feedStatus) {
+        emit(
+          state.copyWith(
+            isProcessing: isProcessing,
+            nodeProcessingStatus: nodeReading,
+            processingFeedStatus: feedStatus,
+            processingCompletedAt: justCompleted ? DateTime.now() : null,
+          ),
+        );
       }
 
       if (isProcessing) {
         final double percentage = statusInfo.percentage;
+        // Leftover percentage after processing stops is a known,
+        // permanent trap here - copyWith cannot null this field (see the
+        // doc comment on AppState.processingFeedStatus for why). The rule
+        // that a non-processing state must never render a bar from it
+        // lives in compute_state.dart's viewForComputeState (showBar is
+        // derived from ComputeState alone), not here. Do not "fix" this
+        // branch by trying to null the percentage on stop - fix the
+        // resolver if this rule is ever violated.
         emit(state.copyWith(processingPercentage: percentage));
       }
     } catch (_) {
+      // Cancel so a failing FFI call is not hammered once a second - but
+      // unlike before this phase, the exception no longer kills the feed
+      // permanently. RetryProcessingStatus (_onRetryProcessingStatus)
+      // re-arms it. The unavailable flag is what lets the UI tell a dead
+      // feed apart from a healthy idle node
+      // (compute_state.dart's ComputeState.unavailable).
       _processingTimer?.cancel();
-      emit(state.copyWith(isProcessing: false, processingPercentage: 0.0));
+      final feedReading = resolveProcessingFeedReading(
+        readThrew: true,
+        nodeReading: null,
+      );
+      emit(
+        state.copyWith(
+          isProcessing: false,
+          processingPercentage: 0.0,
+          processingFeedStatus: feedReading == ProcessingFeedReading.unavailable
+              ? ProcessingFeedStatus.unavailable
+              : ProcessingFeedStatus.live,
+        ),
+      );
+    }
+  }
+
+  /// Re-arms the poll the catch block above cancels on a throw.
+  /// `_startProcessingPolling()` cancels before it re-creates (above), so
+  /// it is idempotent by construction and cannot leak a timer - it already
+  /// runs on every pull-to-refresh via `_onLoadWallets` (below),
+  /// `dashboard_screen.dart:112`, which makes this call path load-bearing
+  /// and proven in production, not merely inferred.
+  FutureOr<void> _onRetryProcessingStatus(
+    RetryProcessingStatus event,
+    Emitter<AppState> emit,
+  ) {
+    _startProcessingPolling();
+    // Clears the unavailable flag back to its pre-read value so the UI
+    // stops showing the error state before the first new tick lands.
+    emit(
+      state.copyWith(processingFeedStatus: ProcessingFeedStatus.neverTicked),
+    );
+  }
+
+  /// Starts the 3s initialization poll. 3s matches
+  /// `sgnus_connection_widget.dart:42`, the only shipped consumer of this
+  /// feed and therefore the only measured cadence for it - deliberately
+  /// NOT `_processingTimer`'s 1000ms, which belongs to a different feed.
+  /// Self-cancels once initialization completes (see
+  /// [_onInitializationStatusTicked]) and does not restart, mirroring
+  /// `sgnus_connection_widget.dart:37-59`. Cancelled in [close] alongside
+  /// `_processingTimer`.
+  void _startInitPolling() {
+    _initTimer?.cancel();
+    _initTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      add(InitializationStatusTicked());
+    });
+  }
+
+  FutureOr<void> _onInitializationStatusTicked(
+    InitializationStatusTicked event,
+    Emitter<AppState> emit,
+  ) {
+    try {
+      final status = api.getInitializationStatus();
+      emit(
+        state.copyWith(
+          initPercentage: status.percentage,
+          initMessage: status.message,
+        ),
+      );
+      if (status.percentage >= 1.0) {
+        _initTimer?.cancel();
+      }
+    } catch (_) {
+      // Swallow and retry next tick, mirroring
+      // sgnus_connection_widget.dart:55-58. getInitializationStatus() is a
+      // raw FFI call with no fail-soft wrapper - unlike getNodeState() and
+      // getTransactionManagerState(), which route through mapping
+      // functions with their own guards - so the caller is the only guard
+      // there is. It also frees a native string on every call
+      // (genius_api.dart:1219), so a throw between the read and the free
+      // is a real path, not a theoretical one.
     }
   }
 
@@ -452,6 +622,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   @override
   Future<void> close() {
     _processingTimer?.cancel();
+    _initTimer?.cancel();
     _sgnusConnectionSubscription?.cancel();
     return super.close();
   }

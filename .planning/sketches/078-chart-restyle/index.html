@@ -1,0 +1,1309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 078 - Chart restyle</title>
+<style>
+  :root{
+    --surface-base:#0B0D12; --surface-elevated:#0C0E14; --surface-menu:#171A21; --surface-sunken:#06080C;
+    --text-primary:#FFFFFF; --text-secondary:#8A8F9D;
+    --border-subtle:rgba(255,255,255,.12); --border-strong:rgba(255,255,255,.24); --border-control:rgba(255,255,255,.36);
+    --brand:#14C8FF; --success:#0AD89C; --error:#FF4D4D; --warning:#FFC42E;
+    --grid:rgba(255,255,255,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface-base);color:var(--text-primary);
+       font:14px/20px -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1400px;margin:0 auto;padding:32px 24px 140px}
+  h1{font-size:26px;line-height:34px;margin:0 0 6px;letter-spacing:-.02em}
+  h2{font-size:18px;line-height:26px;margin:32px 0 8px}
+  h3{font-size:14px;line-height:20px;margin:20px 0 6px}
+  p{margin:0 0 10px}
+  .lede{color:var(--text-secondary);max-width:90ch}
+  .note{color:var(--text-secondary);font-size:12px;line-height:18px}
+  code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:var(--surface-menu);
+       padding:1px 5px;border-radius:4px;color:#CBD2DC}
+
+  .bar-ctl{display:flex;gap:22px;flex-wrap:wrap;align-items:center;margin:20px 0 8px;
+           padding:14px 16px;background:var(--surface-elevated);border:1px solid var(--border-subtle);border-radius:12px;
+           position:sticky;top:0;z-index:20}
+  .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .grp > .lab{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+              color:var(--text-secondary);margin-right:2px}
+  .chip{padding:6px 12px;border:1px solid var(--border-subtle);border-radius:999px;background:transparent;
+        color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .chip[aria-pressed="true"]{border-color:var(--brand);color:var(--brand);background:rgba(20,200,255,.10)}
+  .chip.err[aria-pressed="true"]{border-color:var(--error);color:var(--error);background:rgba(255,77,77,.10)}
+  /* the two "after reclaim" surfaces - green because they are the proposal, not the status quo */
+  .chip.ok[aria-pressed="true"]{border-color:var(--success);color:var(--success);background:rgba(10,216,156,.10)}
+
+  /* ---------- the stage: 1:1, no scaling anywhere ---------- */
+  .stage{margin-top:20px;padding:24px;border-radius:12px;background:var(--surface-base);
+         border:1px dashed rgba(20,200,255,.30);overflow-x:auto}
+  /* before/after pairs: same .stage vars so the cards are coloured identically
+     to the main stage, but laid out as a row of real-size cards. */
+  .cmpstage{margin-top:14px}
+  .cmprow{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+  .cmprow.stack{flex-direction:column}
+  .cmpcell{flex:none}
+  .cmpcap{font:600 11px/16px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.04em;
+          margin-bottom:8px;text-transform:uppercase}
+  .cmpcap.bad{color:var(--error)} .cmpcap.good{color:var(--success)}
+  .cmpwhy{max-width:88ch;margin-top:12px}
+  .stage.light{--surface-base:#DCE0E6;--surface-elevated:#FFFFFF;--surface-menu:#EFF2F6;--surface-sunken:#CFD4DB;
+        --text-primary:#10131A;--text-secondary:#5A606E;
+        --border-subtle:rgba(16,19,26,.12);--border-strong:rgba(16,19,26,.24);--border-control:rgba(16,19,26,.46);
+        --success:#07875F;--error:#D92D2D;--brand:#0A6885;--grid:rgba(16,19,26,.08)}
+  .stage.light .chartcard{color:#10131A}
+
+  /* GWCard: radius radiusMd=12, padding space8=16, surfaceElevated, borderSubtle hairline
+     (token_info_screen.dart:387-388 `_chartCard`). */
+  .chartcard{background:var(--surface-elevated);border:1px solid var(--border-subtle);border-radius:12px;
+             padding:16px;position:relative;color:var(--text-primary)}
+  .cardhead{height:32px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .readout{display:flex;align-items:baseline;gap:8px;min-width:0;flex:1 1 auto;overflow:hidden}
+  /* Below 420px of card width the five tabs plus a six-figure price do not both
+     fit, so the timestamp drops and the price steps down one size. Measured in
+     the browser at the 366px mobile card, where the segment was overlapping the
+     "%" before this rule existed. */
+  .chartcard.narrow .readout .rt{display:none}
+  .chartcard.narrow .readout .rp{font-size:15px}
+  .chartcard.narrow .tf button{padding:5px 8px}
+  .readout .rt{font-size:11px;line-height:14px;color:var(--text-secondary);letter-spacing:.02em;
+               font-variant-numeric:tabular-nums;white-space:nowrap}
+  .readout .rp{font-size:16px;line-height:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .readout .rc{font-size:12px;line-height:16px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* control track: surfaceSunken well + borderSubtle hairline + radiusPill,
+     matching dashboard_screen.dart:_TimeframeSegment (the one that is on-convention). */
+  .tf{display:flex;gap:2px;padding:3px;background:var(--surface-sunken);border:1px solid var(--border-subtle);
+      border-radius:48px;flex:none}
+  .tf button{border:0;background:transparent;color:var(--text-secondary);font:600 11px/14px inherit;
+             padding:5px 10px;border-radius:48px;cursor:pointer;font-family:inherit}
+  .tf button[aria-pressed="true"]{background:linear-gradient(135deg,#14C8FF,#0AD89C);color:#04121A}
+  .stage.light .tf button[aria-pressed="true"]{color:#04121A}
+
+  .plotwrap{position:relative}
+  .plotwrap svg{display:block}
+  .empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;text-align:center;
+         border:1px dashed var(--border-subtle);border-radius:12px;color:var(--text-secondary)}
+  .skel{background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.10),rgba(255,255,255,.04));
+        border-radius:8px;animation:sk 1.4s ease-in-out infinite}
+  @keyframes sk{0%,100%{opacity:.5}50%{opacity:1}}
+
+  /* measured annotations */
+  .ann{position:absolute;font:600 10px/12px "JetBrains Mono",ui-monospace,monospace;color:var(--brand);
+       letter-spacing:.02em;pointer-events:none;white-space:nowrap}
+  .annline{position:absolute;pointer-events:none;border-color:rgba(20,200,255,.45)}
+  .measured .ann,.measured .annline{display:block}
+  .ann,.annline{display:none}
+
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0 4px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--border-subtle);vertical-align:top}
+  th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-secondary);font-weight:600}
+  td.num{font-variant-numeric:tabular-nums;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+  .pass{color:var(--success);font-weight:700}
+  .fail{color:var(--error);font-weight:700}
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:8px}
+  .box{background:var(--surface-elevated);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 16px}
+  .box h4{margin:0 0 6px;font-size:13px}
+  .box .tag{display:inline-block;font:700 10px/14px inherit;letter-spacing:.06em;text-transform:uppercase;
+            padding:2px 8px;border-radius:999px;background:rgba(20,200,255,.12);color:#14C8FF;margin-bottom:8px}
+  .box ul{margin:6px 0 0;padding-left:16px;font-size:12px;line-height:18px;color:#B9BFCB}
+  .box li{margin-bottom:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Sketch 078 - Chart restyle</h1>
+<p class="lede">
+  Four whole positions for the price chart, at 1:1 on the coin page's real card geometry.
+  Every colour is a live token value, every size below is derived from code that is cited underneath.
+  Switch scheme, data state, surface size and theme; hover the plot to drive the crosshair.
+</p>
+
+<div class="bar-ctl">
+  <div class="grp"><span class="lab">Scheme</span>
+    <button class="chip" data-k="scheme" data-v="A">A · Honest sparkline</button>
+    <button class="chip" data-k="scheme" data-v="B">B · Trading frame</button>
+    <button class="chip" data-k="scheme" data-v="C">C · Baseline band</button>
+    <button class="chip" data-k="scheme" data-v="D">D · Last-price rail</button>
+    <button class="chip err" data-k="scheme" data-v="X">X · Shipped today</button>
+  </div>
+  <div class="grp"><span class="lab">Data</span>
+    <button class="chip" data-k="state" data-v="up">Up trend</button>
+    <button class="chip" data-k="state" data-v="down">Down trend</button>
+    <button class="chip" data-k="state" data-v="flat">Flat</button>
+    <button class="chip" data-k="state" data-v="few">4 points</button>
+    <button class="chip" data-k="state" data-v="none">No data</button>
+  </div>
+  <div class="grp"><span class="lab">Surface</span>
+    <button class="chip" data-k="size" data-v="wide">Coin, wide 997</button>
+    <button class="chip" data-k="size" data-v="stacked">Coin, stacked 876x558</button>
+    <button class="chip" data-k="size" data-v="mobile">Coin, mobile 366x260</button>
+    <button class="chip" data-k="size" data-v="dash">Dashboard 1-col - plot 202</button>
+    <button class="chip err" data-k="size" data-v="dash2col">Dashboard 2-col @900 - plot 140</button>
+    <button class="chip" data-k="size" data-v="dash3col">Dashboard 3-col floor - plot 232</button>
+    <button class="chip" data-k="size" data-v="hero">Markets hero - plot 180</button>
+  </div>
+  <div class="grp"><span class="lab">Surface, after reclaim</span>
+    <button class="chip ok" data-k="size" data-v="dashFit">Dashboard - plot 234</button>
+    <button class="chip ok" data-k="size" data-v="heroFit">Markets hero - plot 253</button>
+  </div>
+  <div class="grp"><span class="lab">View</span>
+    <button class="chip" data-k="theme" data-v="dark">Dark</button>
+    <button class="chip" data-k="theme" data-v="light">Light</button>
+    <button class="chip" data-k="measured" data-v="on">Measurements</button>
+  </div>
+</div>
+<p class="note" id="fitnote"></p>
+<p class="note" id="sizenote"></p>
+
+<div class="stage" id="stage"></div>
+
+<h2>Before and after, at 1:1</h2>
+<p class="note" style="max-width:88ch;margin-bottom:14px">
+  Every card below is drawn at its real pixel size, side by side, in whatever theme and data state the
+  switcher is on. Left is what the surface gives scheme B <b>today</b>; right is what it gives after
+  the change described under it. Nothing here is scaled.
+</p>
+<div id="compare"></div>
+
+<h2>Rollout - where B goes, and what it costs to put it there</h2>
+<p class="note" style="max-width:88ch;margin-bottom:14px">
+  B was chosen on 2026-07-29. The question left open was whether the surfaces have room for it.
+  Checking that turned up something that changes the shape of the answer: <b>the dashboard chart does
+  not have <i>a</i> height.</b> <code>ChartDashboardView</code> has three call sites under three
+  different height regimes (<code>dashboard_screen.dart:223</code>, <code>:273</code>,
+  <code>:303</code>), and only one of them is the 350 cap the earlier analysis used. So "does B fit
+  the dashboard" has no single answer, and no per-surface setting can give it one.
+  The floor is <b>220px of plot</b>: B spends 22px on the time-label row, and under roughly 198px of
+  remaining graph the ladder collapses to 3 labels across an 8%-padded window, at which point the
+  axis is decoration rather than a reference frame. Everything below was read out of the tree at
+  <code>8ed02e78</code> on 2026-07-29.
+</p>
+
+<table style="margin-bottom:10px">
+  <tr><th>Surface</th><th>Plot</th><th>Verdict</th><th>What has to happen</th></tr>
+
+  <tr><td>Coin page, wide<br><span class="note">997 x 530</span></td>
+      <td><b>454</b></td>
+      <td style="color:#0AD89C;font-weight:600;white-space:nowrap">B, free</td>
+      <td>Nothing. 234px of headroom.</td></tr>
+
+  <tr><td>Coin page, stacked<br><span class="note">876 x 558</span></td>
+      <td><b>482</b></td>
+      <td style="color:#0AD89C;font-weight:600;white-space:nowrap">B, free</td>
+      <td>Nothing.</td></tr>
+
+  <tr><td>Markets hero, wide<br><span class="note">right column</span></td>
+      <td><b>180 &rarr; 253</b></td>
+      <td style="color:#0AD89C;font-weight:600;white-space:nowrap">B, free</td>
+      <td>Spend slack that is already being thrown away. The right column sits in an
+      <code>IntrinsicHeight</code> row whose height comes from the taller left column
+      (<code>markets_hero_card.dart:157-170</code>): left = <b>301</b>, right fixed = <b>228</b>, so
+      the <code>Spacer</code> holds <b>73px of nothing</b>. The card does not grow. Its only consumer
+      is <code>markets_screen.dart:197</code>, inside a <code>SingleChildScrollView</code> with no
+      height cap - nothing downstream can be squeezed by this. Narrow layout has no
+      <code>Spacer</code>, so there the +73 is paid for real.</td></tr>
+
+  <tr><td>Coin page, mobile<br><span class="note">366 x 260, &lt;=768</span></td>
+      <td><b>184</b></td>
+      <td style="color:#14C8FF;font-weight:600;white-space:nowrap">A, permanently</td>
+      <td><code>coinChartHeight</code> returns a hard <code>260</code> below 768 by design -
+      <i>"the chart is a station on the way down, not the page"</i>
+      (<code>token_info_screen.dart:72-80</code>). On a 366px card B's 62px right gutter is also 17%
+      of the width. A is the correct chart at this size, not a consolation.</td></tr>
+
+  <tr><td>Dashboard, 3-column<br><span class="note">&gt;1536 wide</span></td>
+      <td><b>232+</b></td>
+      <td style="color:#0AD89C;font-weight:600;white-space:nowrap">B, free</td>
+      <td><code>minHeight: 380</code> on the row (<code>:186-190</code>) puts the floor at 232.
+      B already fits, with no reclaim at all.</td></tr>
+
+  <tr><td>Dashboard, 1-column<br><span class="note">maxHeight 350</span></td>
+      <td><b>202</b></td>
+      <td style="color:#FFC42E;font-weight:600;white-space:nowrap">B after 32px</td>
+      <td>Releasing 32 of the header's 48px override gives <b>234</b>. Reverses a request Jakub made,
+      so it is his call - but see the row below before answering it.</td></tr>
+
+  <tr><td>Dashboard, 2-column<br><span class="note">no minimum at all</span></td>
+      <td style="color:#FF4D4D"><b>140</b></td>
+      <td style="color:#FF4D4D;font-weight:600;white-space:nowrap">broken already</td>
+      <td><b>This surface has an open bug, filed twice and unfixed.</b> The chart is
+      <code>(viewport - 324) / 2</code> with no floor, so at a 900px-tall window the plot is 140 and
+      32px of reclaim only lifts it to 172. In the wild it goes much further: the filed traces have
+      the chart's Column handed <b>h=6.5</b> and throwing <i>"RenderFlex overflowed by 33 pixels"</i>
+      at every boot
+      (<code>todos/pending/2026-07-21-bitcoin-chart-card-height-dashboard-vertical-budget.md</code>,
+      <code>2026-07-24-dashboard-bitcoin-chart-renderflex-overflow.md</code>). Both todos say the same
+      thing: <b>the slot is broken, not the chart</b>, and the fix is a floor height on the dashboard
+      side.</td></tr>
+</table>
+
+<p class="note" style="max-width:88ch;margin-bottom:26px">
+  <b style="color:#0AD89C">&#9733; Recommendation - ship the two free surfaces, make the rest
+  automatic, and do not touch the dashboard's padding yet.</b><br><br>
+  <b>1. B on the coin page (wide and stacked) and the Markets hero now.</b> All three are free, none
+  is blocked, and they are where somebody actually goes to read a chart.<br>
+  <b>2. Make A-versus-B a runtime rule, not a per-surface setting</b> - the chart reads the box it was
+  actually handed and picks B above 220px of plot, A below. That is not extra work invented here; it
+  is already B's own documented reduction. It makes the dashboard correct at every window size without
+  anyone choosing a number, and it is the only form of the fix that survives a layout with no minimum
+  height.<br>
+  <b>3. Leave the dashboard's 48px alone for now.</b> Trimming padding on a card that is filing
+  RenderFlex overflows at boot is polishing something that is broken underneath. Once that card gets
+  the floor height both todos ask for, rule 2 gives it B for free - and the 32px stops being a
+  decision and becomes at most a small improvement to the window size at which B kicks in (1060px tall
+  &rarr; 996px).<br><br>
+  <b>Runner-up: a cut-down B</b> - drop the time-label row, narrow the gutter to 46, floor ticks at 3 -
+  so every surface keeps the frame. Rejected because it produces a second chart language that
+  <i>looks</i> like B but cannot be read like B, and it would ship exactly where a misread costs most.
+  <b>Rejected: B on the coin page only</b>, leaving the dashboard and hero on today's always-mint
+  chart. That keeps three chart languages in one product and leaves the failing
+  <code>borderStrong</code> touched-spot indicator (2.10:1 against a 3:1 gate) in place.
+</p>
+
+<h2>What each scheme is</h2>
+<div class="cols" id="schemeboxes"></div>
+
+<h2>What exists, what gets adapted, what must be built</h2>
+<p class="note" style="max-width:82ch;margin-bottom:14px">
+  Provenance legend: <b style="color:#0AD89C">Existing</b> = shipped, reused as-is ·
+  <b style="color:#14C8FF">Adapted</b> = shipped component or library feature, configuration changed ·
+  <b style="color:#FFC42E">New</b> = must be written. Every line below was read out of the tree at
+  <code>8ed02e78</code>, not inherited from a planning doc.
+</p>
+
+<table style="margin-bottom:10px">
+  <tr><th>Item</th><th>Status</th><th>Needed by</th><th>Evidence</th></tr>
+
+  <tr><td><code>fl_chart</code> 1.2.0</td>
+      <td style="color:#0AD89C;font-weight:600;white-space:nowrap">Existing</td>
+      <td>all</td>
+      <td>Grid, right-hand axis widgets, full-height crosshair, suppressible tooltip, <code>extraLinesData</code> labels and <code>cutOffY</code> two-tone fill are all in the installed version. <b>No new dependency for any scheme.</b></td></tr>
+
+  <tr><td><code>chartYBounds</code></td>
+      <td style="color:#0AD89C;font-weight:600;white-space:nowrap">Existing</td>
+      <td>all</td>
+      <td><code>crypto_live_chart.dart:66</code>, wired at <code>:139</code>, 5 tests in <code>test/chart/chart_y_bounds_test.dart</code>. The 070/071 fix (ruler from the VISIBLE slice) is intact - every scheme reuses it verbatim.</td></tr>
+
+  <tr><td><code>GWCard</code>, <code>GWKicker</code></td>
+      <td style="color:#0AD89C;font-weight:600;white-space:nowrap">Existing</td>
+      <td>all</td>
+      <td>The card and its <code>PRICE</code> label are already base components. Untouched by every scheme.</td></tr>
+
+  <tr><td>Trend colour on the line</td>
+      <td style="color:#14C8FF;font-weight:600;white-space:nowrap">Adapted</td>
+      <td>A B C D</td>
+      <td><b>Wiring, not building.</b> <code>trendColor</code> is already computed at <code>crypto_live_chart.dart:319</code> - and reaches only the % pill (<code>:430</code>, <code>:440</code>). The line, its gradient and its dot take a constant <code>mintColor</code> at <code>:464</code>, <code>:470</code>, <code>:512</code>. The value exists; it just never arrives.</td></tr>
+
+  <tr><td>Touched-spot indicator colour</td>
+      <td style="color:#14C8FF;font-weight:600;white-space:nowrap">Adapted</td>
+      <td>A B C D</td>
+      <td>One token swap at <code>crypto_live_chart.dart:504</code>: <code>borderStrong</code> (white 24%, <b>2.10:1</b>) fails the 3:1 gate for a meaningful graphical object. <code>borderControl</code> is already in the palette at 3.30:1.</td></tr>
+
+  <tr><td>Area fill fade</td>
+      <td style="color:#14C8FF;font-weight:600;white-space:nowrap">Adapted</td>
+      <td>A B D</td>
+      <td>Today's gradient runs edge to edge at 30% alpha (<code>:470</code>). Every scheme ramps it to zero by 62% of plot height, because a full fill reads as sitting on zero and <code>chartYBounds</code> is deliberately non-zero. <b>C is exempt</b> - its fill is bounded by the open price, a real reference.</td></tr>
+
+  <tr><td>Timeframe segment</td>
+      <td style="color:#FFC42E;font-weight:600;white-space:nowrap">New</td>
+      <td>A B C D</td>
+      <td>Replaces the zoom/pan row. Two forks exist with <b>different label arrays</b> (<code>1H/1D/1W/1M/1Y</code> vs <code>24H/7D/30D/1Y</code>) and different tracks. This sketch settles it: the dashboard's array and its <code>surfaceSunken</code> track win. Closes the pending <code>unify-timeframe-segment-component</code> todo. <b>Unification work, and it is real.</b></td></tr>
+
+  <tr><td>Y-axis tick ladder</td>
+      <td style="color:#FFC42E;font-weight:600;white-space:nowrap">New</td>
+      <td>B, D</td>
+      <td>Nice-number rounding that keeps the tick count inside 2-8 at any range. <b>This is where a naive implementation breaks</b> - a 1-2-5-10 ladder collapsed 6 ticks to 2 in this sketch's own browser sweep, and a stablecoin printed <code>$1.00</code> four times.</td></tr>
+
+  <tr><td>Pinned header readout</td>
+      <td style="color:#FFC42E;font-weight:600;white-space:nowrap">New</td>
+      <td>A B</td>
+      <td>The value follows the crosshair into the card header instead of a floating bubble. Small, but it is a new widget - and the current floating tooltip has to be suppressed, which <code>fl_chart</code> supports by returning nulls.</td></tr>
+
+  <tr><td>Direct high/low labels</td>
+      <td style="color:#FFC42E;font-weight:600;white-space:nowrap">New</td>
+      <td>A</td>
+      <td>Anchored to their own points. <code>extraLinesData</code> gives the mechanism; the collision handling at narrow widths does not exist and is the fiddly part.</td></tr>
+
+  <tr><td>Baseline band</td>
+      <td style="color:#FFC42E;font-weight:600;white-space:nowrap">New</td>
+      <td>C</td>
+      <td><code>BarAreaData.cutOffY</code> / <code>applyCutOffY</code> give the split for free, so the fill is cheap. The dashed open-price line with its label is the new part.</td></tr>
+
+  <tr><td>Last-price rail + chip</td>
+      <td style="color:#FFC42E;font-weight:600;white-space:nowrap">New</td>
+      <td>D</td>
+      <td>64px gutter, pinned chip, dashed extension. The most new code of any scheme, for the scheme recommended against.</td></tr>
+</table>
+
+<p class="note" style="max-width:82ch">
+  <b style="color:#FFF">Read the "Needed by" column before picking.</b> A needs 2 new pieces, B needs 2,
+  C needs 1, D needs 2 - but C's one piece is the cheapest of the lot and B's tick ladder is the one
+  with a proven failure mode. Nothing here needs a new dependency, and nothing here touches
+  <code>chartYBounds</code>, which is the only part of this chart that has ever been correct.
+</p>
+
+<h2>Contrast, measured, both themes</h2>
+<p class="note">
+  Computed with the WCAG 2.x relative-luminance formula, alpha values composited over the card
+  they sit on (dark card <code>#0C0E14</code>, light card <code>#FFFFFF</code>).
+  Text targets 4.5:1 (SC 1.4.3). A graphical object that carries meaning targets 3:1 (SC 1.4.11).
+  Gridlines carry no information the axis labels do not already carry, so they are decoration and
+  are not gated - they are listed so the number is on the record.
+</p>
+<table id="ctable"></table>
+
+<h2>Where the code stands today</h2>
+<table id="findings"></table>
+
+<h2>What fl_chart 1.2.0 can actually do</h2>
+<p class="note">
+  Read off the installed package at
+  <code>~/.pub-cache/hosted/pub.dev/fl_chart-1.2.0/</code>, not from memory.
+  Everything below exists in the version that is pinned in <code>pubspec.lock</code>, so no scheme
+  here needs a dependency bump or a custom painter.
+</p>
+<table id="api"></table>
+
+<h2>Sources</h2>
+<table id="sources"></table>
+<p class="note">
+  Not verified, and therefore not relied on anywhere above: any published tick count for
+  Coinbase / Binance / Apple Stocks at a given chart size (nobody documents it); a numeric
+  dark-mode gridline opacity from any design system (none exists - the 6% here is chosen as
+  the faintest step that still reads, which is legitimate precisely because gridlines are
+  exempt from 1.4.11); a documented preference for a pinned header readout over a floating
+  tooltip (strongly implied by how Robinhood and Coinbase behave, written down nowhere);
+  and Bloomberg's colour-blindness work, whose source returned HTTP 403.
+</p>
+
+</div>
+
+<script>
+"use strict";
+
+/* --------------------------------------------------------------------------
+   Geometry, all derived from code (citations in README).
+
+   Coin page wide (>=1024, token_info_screen.dart:260-272):
+     ConstrainedBox maxWidth 1536 (GeniusBreakpoints.xxl)
+       - EdgeInsets.symmetric(horizontal: 12) x2      = 1512
+       - Row spacing space8 = 16                      = 1496
+     Expanded flex 2 : flex 1  ->  997.33 : 498.67    -> chart card 997
+   Card padding space8 = 16 all round                 -> content 965 wide
+
+   Coin page stacked (768..1023, token_info_screen.dart:286):
+     card width  = viewport - 24     (900 -> 876)
+     card height = coinChartHeight(viewportHeight, true)
+                 = max(300, viewportHeight - 342)     (900 -> 558)
+
+   Coin page mobile (<=768): coinChartHeight -> 260, width 390 - 24 = 366.
+
+   Dashboard Bitcoin card: 597 is the measured constraint width from the live
+   overflow dump in
+   .planning/todos/pending/2026-07-21-chart-zoom-pan-row-overflows-34px.md
+   ("constraints: BoxConstraints(0.0<=w<=597.0, h=6.5)").
+   -------------------------------------------------------------------------- */
+var SIZES = {
+  wide:    {w: 997, h: 530, label: "Coin page, wide (>=1024)",
+            derived: "width 997 derived: 1536 - 24 gutter - 16 gap, flex 2 of 3. " +
+                     "HEIGHT IS NOT STATICALLY DERIVABLE - the wide layout wraps the chart in IntrinsicHeight " +
+                     "(token_info_screen.dart:260) so the Info+Convert column sets it. 530 is a placeholder, not a measurement."},
+  stacked: {w: 876, h: 558, label: "Coin page, stacked (768-1023), 900x900 viewport",
+            derived: "coinChartHeight(viewportHeight: 900, isDesktop: true) = max(300, 900 - 342) = 558. Width 900 - 24 = 876."},
+  mobile:  {w: 366, h: 260, label: "Coin page, mobile (<=768), 390pt wide",
+            derived: "coinChartHeight(..., isDesktop: false) = 260, fixed. Width 390 - 24 = 366."},
+  dash:    {w: 597, h: 324, chrome: 122, label: "Dashboard Bitcoin card - MEASURED 2026-07-29",
+            derived: "597 is the real constrained width from the live RenderFlex dump in the 34px-overflow todo. " +
+                     "HEIGHT NOW MEASURED, not guessed: card maxHeight 350 (dashboard_screen.dart:303) " +
+                     "- 24 DashboardScrollContainer padding - 2 border = 324 usable. Chrome 122 = header 94 " +
+                     "(padding 2 + minHeight 44 + space24 48, dashboard_screen.dart:578-596) + priceHeight 28 " +
+                     "(:557-561). PLOT = 202px, which is BELOW scheme B's ~220px floor. " +
+                     "The 48px is a deliberate 'per request' override that shrinks this chart - reclaim it " +
+                     "and the plot is 250px and B fits."},
+  /* h is the CARD height in this sketch and chrome is what the card spends
+     above the plot (16 pad + 32 head + 12 gap + 16 pad = 76). The hero has no
+     card of its own - its 180 IS the plot - so h carries the +76 to keep the
+     plot honest at 180. The approximation is close to the real thing: the live
+     right column spends 32 (timeframe segment) + 16 above the chart = 48. */
+  hero:    {w: 1180, h: 256, chrome: 76, label: "Markets hero backdrop - MEASURED 2026-07-29",
+            derived: "HEIGHT MEASURED: SizedBox(height: 180, child: _HeroChart(...)) at " +
+                     "markets_hero_card.dart:168 - the 180 IS the plot box, there is no chrome inside it. " +
+                     "PLOT = 180px, comfortably below scheme B's floor and not reclaimable from padding. " +
+                     "Width 1180 is a placeholder, not derived. This surface also runs its own colour rule " +
+                     "today: a fixed gradientGreen -> gradientBlue at markets_hero_card.dart:312-315."},
+
+  /* ---- the two surfaces AFTER reclaiming space, 2026-07-29 ----------------
+     Added to answer the only question that was still open after B was chosen:
+     "does the room exist, or does B have to be cut down?" It exists on both,
+     and neither reclaim invents pixels - each takes back space that a comment
+     in the shipped code already describes as a deliberate shrink. */
+  dashFit: {w: 597, h: 324, chrome: 90, label: "Dashboard card - AFTER restoring the section rhythm",
+            derived: "The bottom padding of _ChartSectionHeader is space24 (48), and its own doc comment " +
+                     "says the class 'reproduces GWSectionTitle's exact geometry' and then overrides that " +
+                     "one value '(per request) ... shrinks the chart, which was taking too much height' " +
+                     "(dashboard_screen.dart:578-596). Put it back to the shared space8 (16) and the header " +
+                     "costs 62 instead of 94, so chrome = 62 + 28 priceHeight = 90 and PLOT = 234. " +
+                     "That clears B's 220 floor with 14px to spare, and it does NOT reclaim all 48 - " +
+                     "32 of them, keeping a real gap under the title. REVERSES A JAKUB REQUEST: needs his call."},
+
+  /* ---- the dashboard chart is NOT one height, it is three ------------------
+     Found 2026-07-29 while checking whether the 32px reclaim breaks anything
+     else. `ChartDashboardView` has THREE call sites under three different
+     height regimes (dashboard_screen.dart:223, :273, :303), and only one of
+     them is the 350 cap the earlier analysis used. Card chrome is the same in
+     all three: 26 (24 DashboardScrollContainer padding + 2 border) + 94 header
+     + 28 priceHeight = 148. */
+  dash3col: {w: 597, h: 380, chrome: 148, label: "Dashboard, 3-column (>1536 wide) - the FLOOR of that layout",
+             derived: "_ChartMarketsRow sits in Expanded(flex:55) under BoxConstraints(minHeight: 380) " +
+                      "(dashboard_screen.dart:186-190). 380 - 148 = PLOT 232, and that is the SMALLEST it " +
+                      "gets - a taller window gives more. B already fits this layout with no reclaim at all."},
+
+  dash2col: {w: 597, h: 288, chrome: 148, label: "Dashboard, 2-column on a 900px-tall window - THE WORST CASE",
+             derived: "_twoColumnLayout (dashboard_screen.dart:205-233) has NO minHeight on the chart. " +
+                      "Height = (viewport - 12 padding - 6 spacing - 300 top row - 6 spacing) / 2. " +
+                      "At 900 that is 288, so PLOT = 140 - and 32px of reclaim only lifts it to 172. " +
+                      "B cannot be pinned to this surface by configuration at all; the threshold is a " +
+                      "VIEWPORT, not a card. B starts fitting here at a 1060px-tall window, or 996 after " +
+                      "the reclaim. This is why the rule has to be evaluated at runtime."},
+
+  heroFit: {w: 1180, h: 329, chrome: 76, label: "Markets hero - AFTER spending the Spacer, wide layout",
+            derived: "DERIVED, not yet measured in a running app. In the wide layout the right column is " +
+                     "[_TimeframeSegment, space8, Spacer, SizedBox(180, chart)] inside an IntrinsicHeight " +
+                     "Row whose height is set by the TALLER left column (markets_hero_card.dart:157-170). " +
+                     "Left = 46 icon + 20 + 48 price + 16 + 24 pill + 24 + 1 rule + 24 + 39 stat + 20 + 39 stat " +
+                     "= 301. Right fixed = 32 segment (3+3 pad + 1+1 border + 24 tab) + 16 + 180 = 228. " +
+                     "The Spacer is therefore holding 73px of slack, so the chart can grow 180 -> 253 and " +
+                     "THE CARD DOES NOT GET ANY TALLER. Free on wide. On NARROW there is no Spacer " +
+                     "(fill:false) and the same +73 is paid in full - that is the one real cost."}
+};
+
+var HEAD_H = 32, HEAD_GAP = 12, CARD_PAD = 16;
+
+/* ---- deterministic series so a scheme switch never reshuffles the data ---- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+
+function series(kind){
+  if (kind === "none") { return []; }
+  var rnd = mulberry32(20260728);
+  var n, drift, vol, base;
+  if (kind === "few")      { n = 4;  drift =  0.004; vol = 0.006; base = 63000; }
+  else if (kind === "flat"){ n = 50; drift =  0.000; vol = 0.00012; base = 1.0002; }
+  else if (kind === "up")  { n = 50; drift =  0.0013; vol = 0.0032; base = 60800; }
+  else                     { n = 50; drift = -0.00036; vol = 0.0030; base = 64700; }
+  var out = [], v = base;
+  // t0 chosen so the window ends at a stable wall-clock: 19:35 local, matching
+  // the tooltip Jakub read off the shipped build ("7:35 PM").
+  var end = new Date(2026, 6, 28, 19, 35, 0).getTime();
+  var stepMs = (kind === "few") ? 30*60*1000 : 9*60*1000;
+  for (var i = 0; i < n; i++){
+    v = v * (1 + drift + (rnd() - 0.5) * 2 * vol);
+    out.push({ t: end - (n - 1 - i) * stepMs, y: v });
+  }
+  return out;
+}
+
+/* ---- chartYBounds, ported 1:1 from crypto_live_chart.dart:66-97 ----
+   The 8% headroom and the flat-slice fallback are the shipped rule; this
+   sketch must not silently propose a different scale. */
+function chartYBounds(data){
+  if (!data.length) { return [0, 1]; }
+  var ys = data.map(function(d){ return d.y; });
+  var lowest = Math.min.apply(null, ys), highest = Math.max.apply(null, ys);
+  var span = highest - lowest;
+  if (span <= 0){
+    var pad = Math.abs(highest) * 0.01;
+    return [lowest - (pad > 0 ? pad : 1), highest + (pad > 0 ? pad : 1)];
+  }
+  return [lowest - span * 0.08, highest + span * 0.08];
+}
+
+/* ---- formatting, mirroring the app's NumberFormat.currency rules ---- */
+function money(v){
+  var d = v >= 1 ? 2 : 6;
+  return "$" + v.toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+}
+/* Axis precision comes from the TICK STEP, not from the value's magnitude.
+   Deriving it from the value is the bug that made a stablecoin's axis read
+   "$1.00 / $1.00 / $1.00 / $1.00" - four different prices, one label. Caught by
+   the "Flat" state in the switcher above, which is the whole reason it is there. */
+function axisMoney(v, step){
+  var d;
+  if (step === undefined) { d = v >= 1000 ? 0 : v >= 1 ? 2 : 4; }
+  else if (step >= 1)     { d = 0; }
+  else                    { d = Math.min(8, Math.ceil(-Math.log10(step)) + 1); }
+  return "$" + v.toLocaleString("en-US", {minimumFractionDigits: d, maximumFractionDigits: d});
+}
+function clock(ts){
+  var d = new Date(ts), h = d.getHours(), m = d.getMinutes();
+  var ap = h >= 12 ? "PM" : "AM"; h = h % 12; if (h === 0) { h = 12; }
+  return h + ":" + (m < 10 ? "0" : "") + m + " " + ap;
+}
+function pct(v){ return (v >= 0 ? "+" : "") + v.toFixed(2) + "%"; }
+
+/* ---- "nice" tick values, so the axis reads 64,250 not 64,187.4413 ----
+   The ladder includes 2.5 deliberately. A plain 1-2-5-10 ladder jumps from 200
+   to 500 at norm=2.01, and on a real BTC window (span 1274) that collapsed a
+   6-tick request into 2 labels - below the 2-to-8 band the EU data-viz guide
+   asks for. Measured in the browser, not guessed. */
+function ticks(lo, hi, want){
+  var span = hi - lo;
+  if (span <= 0) { return { vals: [lo], step: 1 }; }
+  var mag = Math.pow(10, Math.floor(Math.log10(span / want)));
+  var best = null;
+  [1, 1.5, 2, 2.5, 3, 4, 5, 10].forEach(function(m){
+    var step = m * mag;
+    var vals = [], v = Math.ceil(lo / step) * step;
+    for (; v <= hi + step * 1e-9; v += step) { vals.push(v); }
+    if (vals.length < 2) { return; }
+    var err = Math.abs(vals.length - want);
+    if (best === null || err < best.err) { best = { vals: vals, step: step, err: err }; }
+  });
+  if (best === null) { return { vals: [lo, hi], step: span }; }
+  return { vals: best.vals, step: best.step };
+}
+
+var S = { scheme: "B", state: "down", size: "wide", theme: "dark", measured: false, tf: 1, hover: null };
+
+/* The contested label set, settled on evidence rather than taste.
+   Robinhood's own documented set is 1H / 1D / 1W / 1M / 3M / 1Y / 5Y
+   (https://www.robinhood.com/eu/en/support/articles/using-charts) - the "1X"
+   grammar, not "24H/7D/30D". The dashboard copy already uses that grammar
+   (dashboard_screen.dart:678); the markets copy does not
+   (markets_hero_card.dart:449). So the dashboard's set wins, and the markets
+   card is the one that changes. */
+var TF = ["1H", "1D", "1W", "1M", "1Y"];
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* --------------------- before / after, at 1:1 ----------------------------
+   Built 2026-07-29 because "pick one of three ways out" is not a thing anyone
+   can answer from a table of pixel counts. Each pair draws the SAME surface
+   twice at real size: what scheme B gets there today, and what it gets after
+   the change. No scaling, no thumbnails. */
+function surfaceCard(key, schemeOverride, data, light){
+  var sz = SIZES[key];
+  var keep = S.scheme;
+  S.scheme = schemeOverride;                 // plot() reads S.scheme
+  var innerW = sz.w - CARD_PAD * 2;
+  var chrome = (sz.chrome != null) ? sz.chrome : (CARD_PAD * 2 + HEAD_H + HEAD_GAP);
+  var plotH  = Math.max(40, sz.h - chrome);
+  var drawH  = CARD_PAD * 2 + HEAD_H + HEAD_GAP + plotH;
+  var up  = data.length > 1 ? data[data.length - 1].y >= data[0].y : true;
+  var hex = light ? (up ? "#07875F" : "#D92D2D") : (up ? "#0AD89C" : "#FF4D4D");
+  var chg = data.length > 1 ? ((data[data.length-1].y - data[0].y) / data[0].y) * 100 : 0;
+  var pcol = chg >= 0 ? "var(--success)" : "var(--error)";
+  var h = '<div class="chartcard' + (sz.w < 420 ? ' narrow' : '')
+        + '" style="width:' + sz.w + 'px;height:' + drawH + 'px">'
+        + '<div class="cardhead"><div class="readout">'
+        + (data.length
+            ? '<span class="rp">' + esc(money(data[data.length-1].y)) + '</span>'
+              + '<span class="rc" style="color:' + pcol + '">' + esc(pct(chg)) + '</span>'
+              + '<span class="rt">Latest</span>'
+            : '<span class="rt">No price data</span>')
+        + '</div><div class="tf">' + TF.map(function(l, i){
+            return '<button aria-pressed="' + (i === S.tf) + '">' + l + '</button>';
+          }).join("") + '</div></div>'
+        + '<div class="plotwrap">' + plot(data, innerW, plotH, hex, light) + '</div>'
+        + '</div>';
+  S.scheme = keep;
+  return h;
+}
+
+function cmpPair(title, a, b, why, stack){
+  var data = series(S.state), light = S.theme === "light";
+  return '<h3 style="margin:30px 0 0;font-size:15px">' + esc(title) + '</h3>'
+    + '<div class="stage cmpstage' + (light ? " light" : "") + '">'
+    + '<div class="cmprow' + (stack ? " stack" : "") + '">'
+    + '<div class="cmpcell"><div class="cmpcap bad">' + esc(a[2]) + '</div>'
+    + surfaceCard(a[0], a[1], data, light) + '</div>'
+    + '<div class="cmpcell"><div class="cmpcap good">' + esc(b[2]) + '</div>'
+    + surfaceCard(b[0], b[1], data, light) + '</div>'
+    + '</div></div>'
+    + '<p class="note cmpwhy">' + why + '</p>';
+}
+
+var cmpSig = null;
+function renderCompare(){
+  var el = document.getElementById("compare");
+  if (!el) { return; }
+  var sig = S.state + "|" + S.theme + "|" + S.tf;   // hover and scheme do not affect these pairs
+  if (sig === cmpSig) { return; }
+  cmpSig = sig;
+
+  el.innerHTML =
+      cmpPair("1 · Dashboard Bitcoin card, one-column layout",
+        ["dash", "B", "Today - card 324, plot 202, B short by 18"],
+        ["dashFit", "B", "After releasing 32px - card 324, plot 234, B fits"],
+        'The card does <b>not</b> change size. The only edit is the bottom padding of '
+        + '<code>_ChartSectionHeader</code>, <code>space24</code> (48) back to the shared '
+        + '<code>space8</code> (16) - the value its own doc comment says was overridden '
+        + '<i>"(per request) ... shrinks the chart, which was taking too much height"</i> '
+        + '(<code>dashboard_screen.dart:578-596</code>). Price and timeframe row simply sit closer to '
+        + 'the title. <b>This reverses a request Jakub made, so it is his call.</b>')
+
+    + cmpPair("2 · Markets hero, wide layout",
+        ["hero", "B", "Today - plot 180, B short by 40"],
+        ["heroFit", "B", "After spending Spacer slack - plot 253, B fits"],
+        '<b>This one is free.</b> The right column lives in an <code>IntrinsicHeight</code> row whose '
+        + 'height comes from the taller LEFT column (<code>markets_hero_card.dart:157-170</code>): left '
+        + '= 301, right fixed = 228, so the <code>Spacer</code> at <code>:168</code> is holding <b>73px '
+        + 'of nothing</b>. Growing the chart 180 -> 253 spends that and the card does not get taller. '
+        + 'Derived from the tree at <code>8ed02e78</code>, <b>not yet confirmed in a running app</b>. '
+        + 'The narrow (stacked) layout has no <code>Spacer</code>, so there the +73 is paid in full.',
+        true)
+
+    + cmpPair("3 · Coin page, mobile - the surface that can never take B",
+        ["mobile", "B", "B forced in - plot 184, gutter is 17% of the width"],
+        ["mobile", "A", "A, which is what it actually gets"],
+        '<code>coinChartHeight</code> returns a hard <code>260</code> below 768 on purpose - '
+        + '<i>"the chart is a station on the way down, not the page"</i> '
+        + '(<code>token_info_screen.dart:72-80</code>). Left is what pinning B everywhere would look '
+        + 'like; right is scheme A, which keeps the trend colour, the honest fill and the high/low '
+        + 'labels, and drops only the frame. <b>A is not a downgrade here, it is the correct chart for '
+        + 'the size.</b>')
+
+    + cmpPair("4 · Dashboard, two-column layout on a 900px-tall window",
+        ["dash2col", "B", "B forced in - plot 140. Reclaim only lifts it to 172"],
+        ["dash2col", "A", "A, chosen at runtime by the same rule"],
+        '<b>The finding that decides the shape of the fix.</b> <code>ChartDashboardView</code> has three '
+        + 'call sites under three different height regimes (<code>dashboard_screen.dart:223</code>, '
+        + '<code>:273</code>, <code>:303</code>) and only one is the 350 cap. Three-column has '
+        + '<code>minHeight: 380</code> so its plot never drops below 232 and B already fits with no '
+        + 'reclaim at all. Two-column has <b>no minimum</b> - the chart is '
+        + '<code>(viewport - 324) / 2</code>, so B starts fitting at a 1060px-tall window, or 996 after '
+        + 'the reclaim. <b>No per-surface setting can express that.</b> The threshold has to be read '
+        + 'from the box the chart is actually given, which is what the rule below does.');
+}
+
+/* ------------------------------- render ---------------------------------- */
+function render(){
+  var stage = document.getElementById("stage");
+  var sz = SIZES[S.size];
+  var data = series(S.state);
+  var themeLight = S.theme === "light";
+
+  stage.className = "stage" + (themeLight ? " light" : "") + (S.measured ? " measured" : "");
+  document.getElementById("sizenote").textContent = sz.label + " - " + sz.derived;
+
+  var innerW = sz.w - CARD_PAD * 2;
+  /* Scheme X gives the zoom/pan row its real 48px (Flutter's default IconButton
+     is 48x48 - the arithmetic behind the live 34px RenderFlex overflow). The
+     four proposals spend that budget on a 32px header + 12px gap instead, so
+     they cost 4px LESS vertical chrome than what ships today. */
+  // A surface may declare its OWN chrome (measured from the real widget tree)
+  // instead of the sketch's generic header assumption. The dashboard card and
+  // the Markets hero both do - their headers are nothing like 32+12.
+  var chrome = (sz.chrome != null)
+    ? sz.chrome
+    : (CARD_PAD * 2 + (S.scheme === "X" ? 48 : HEAD_H + HEAD_GAP));
+  var plotH  = sz.h - chrome;
+  if (plotH < 40) { plotH = 40; }
+
+  /* ---- does this surface clear scheme B's floor? --------------------------
+     B's floor is 220px of PLOT. It is not a taste number: B spends 22px on the
+     time-label row, and below ~198px of remaining graph the tick ladder drops
+     to 3 labels covering an 8%-padded window, which is the point where the
+     axis stops being a reference frame and becomes decoration. Stated here, on
+     the sketch, because "B does not fit two of three surfaces" was the one
+     thing blocking the decision and it should not live only in a README. */
+  var B_FLOOR = 220;
+  var fitEl = document.getElementById("fitnote");
+  if (S.scheme === "B"){
+    var over = plotH - B_FLOOR;
+    fitEl.style.color = over >= 0 ? "var(--success)" : "var(--error)";
+    fitEl.textContent = over >= 0
+      ? "B FITS - plot " + plotH + "px, " + over + "px over the 220px floor."
+      : (S.size === "mobile"
+          ? "B DOES NOT FIT - plot " + plotH + "px, short by " + (-over) + "px, AND THE ROOM CANNOT BE "
+            + "RECLAIMED: coinChartHeight returns a hard 260 below 768 on purpose "
+            + "(token_info_screen.dart:72-80 - 'a station on the way down, not the page'). This surface "
+            + "degrades to scheme A. Click A to see what mobile actually gets."
+          : "B DOES NOT FIT - plot " + plotH + "px, short by " + (-over) + "px. "
+            + "Use the 'Surface, after reclaim' row to see the same surface with the room taken back.");
+  } else {
+    fitEl.style.color = "";
+    fitEl.textContent = "Floor check applies to scheme B only (the chosen one). Plot here is " + plotH + "px.";
+  }
+
+  var up = data.length > 1 ? data[data.length - 1].y >= data[0].y : true;
+  var trend = up ? "var(--success)" : "var(--error)";
+  var trendHex = themeLight ? (up ? "#07875F" : "#D92D2D") : (up ? "#0AD89C" : "#FF4D4D");
+  // DECIDED 2026-07-29 by Jakub, after reversing an earlier same-day call.
+  // First decision was "line always green". Reversed once the consequence was
+  // shown: the Markets sparklines colour by sign on purpose, to mirror the
+  // Assets panel (crypto_simple_chart.dart:53-55), so an always-green hero
+  // chart would sit on the same screen as red sparklines saying the same thing.
+  // The line now takes the trend colour, and ONE rule covers every surface.
+  var lineHex = trendHex;
+  var changePct = data.length > 1 ? ((data[data.length-1].y - data[0].y) / data[0].y) * 100 : 0;
+
+  /* The DRAWN height is the proposal's own chrome plus the plot, not the real
+     card height. On the surfaces that declare their own chrome - the dashboard
+     card and the Markets hero - the app spends far more above the plot than
+     this sketch's 32+12 header does (the dashboard's section header alone is
+     94px, and it is NOT part of the chart widget). Drawing those cards at their
+     full real height left an 88px band of nothing under the chart, which read
+     as a rendering fault. Jakub caught it on 2026-07-29. The plot itself is
+     still the measured value, at 1:1 - only the dead chrome band is dropped,
+     and the annotation states the real card height. */
+  var drawH = CARD_PAD * 2 + (S.scheme === "X" ? 48 : HEAD_H + HEAD_GAP) + plotH;
+  var html = '<div class="chartcard' + (sz.w < 420 ? ' narrow' : '')
+    + '" style="width:' + sz.w + 'px;height:' + drawH + 'px">';
+
+  /* --- card header: what replaces the zoom/pan row --- */
+  if (S.scheme !== "X"){
+    var hv = (S.hover !== null && data[S.hover]) ? data[S.hover] : null;
+    var showY = hv ? hv.y : (data.length ? data[data.length-1].y : 0);
+    var showP = hv && data.length ? ((hv.y - data[0].y) / data[0].y) * 100 : changePct;
+    var showT = hv ? clock(hv.t) : (data.length ? "Latest" : "");
+    var pcol = showP >= 0 ? "var(--success)" : "var(--error)";
+    html += '<div class="cardhead">'
+      + '<div class="readout">'
+      + (data.length
+          ? '<span class="rp">' + esc(money(showY)) + '</span>'
+            + '<span class="rc" style="color:' + pcol + '">' + esc(pct(showP)) + '</span>'
+            + '<span class="rt">' + esc(showT) + '</span>'
+          : '<span class="rt">No price data</span>')
+      + '</div>'
+      + '<div class="tf">' + TF.map(function(l,i){
+          return '<button data-tf="' + i + '" aria-pressed="' + (i === S.tf) + '">' + l + '</button>';
+        }).join("") + '</div>'
+      + '</div>';
+  }
+
+  html += '<div class="plotwrap" id="plotwrap">' + plot(data, innerW, plotH, lineHex, themeLight) + '</div>';
+
+  /* --- shipped-today extras: the zoom/pan row --- */
+  if (S.scheme === "X"){
+    html += '<div style="display:flex;justify-content:center;gap:4px;margin-top:2px">'
+      + ['+','-','‹','›'].map(function(g){
+          return '<span style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;'
+            + 'color:#FFFFFF;font-size:18px">' + g + '</span>';
+        }).join("")
+      + '</div>';
+  }
+
+  /* --- measured annotations --- */
+  html += '<span class="ann" style="left:0;top:-16px">card ' + sz.w + ' x ' + sz.h
+       +  (drawH !== sz.h ? ' (drawn ' + drawH + ', ' + (sz.h - drawH) + ' is app chrome above)' : '')
+       +  '</span>'
+       +  '<span class="ann" style="right:0;top:-16px">plot ' + innerW + ' x ' + plotH + '</span>'
+       +  '<span class="annline" style="left:16px;top:0;bottom:0;border-left:1px dashed"></span>'
+       +  '<span class="annline" style="right:16px;top:0;bottom:0;border-right:1px dashed"></span>'
+       +  '<span class="ann" style="left:0;bottom:-16px">padding 16 (space8) &middot; header 32 + gap 12</span>';
+
+  html += '</div>';
+  stage.innerHTML = html;
+  renderCompare();
+
+  var pw = document.getElementById("plotwrap");
+  if (pw && data.length > 1){
+    pw.addEventListener("mousemove", function(e){
+      var r = pw.getBoundingClientRect();
+      var x = e.clientX - r.left;
+      var frac = Math.max(0, Math.min(1, x / innerW));
+      var idx = Math.round(frac * (data.length - 1));
+      if (idx !== S.hover){ S.hover = idx; render(); }
+    });
+    pw.addEventListener("mouseleave", function(){
+      if (S.hover !== null){ S.hover = null; render(); }
+    });
+  }
+  Array.prototype.forEach.call(stage.querySelectorAll("[data-tf]"), function(b){
+    b.addEventListener("click", function(){ S.tf = parseInt(b.getAttribute("data-tf"), 10); render(); });
+  });
+}
+
+/* ------------------------------- the plot -------------------------------- */
+function plot(data, W, H, trendHex, light){
+  if (!data.length){
+    /* The no-data state. Today this is a full-width PulsingSkeleton
+       (crypto_live_chart.dart:622-624), which says "loading" forever even when
+       the fetch came back empty. */
+    return '<div class="empty" style="width:' + W + 'px;height:' + H + 'px">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--text-primary)">No price history</div>'
+      + '<div style="font-size:12px;max-width:34ch">The market data provider returned no series for this range.</div>'
+      + '<div class="skel" style="width:' + Math.min(220, W - 40) + 'px;height:6px;margin-top:6px"></div>'
+      + '</div>';
+  }
+
+  var sc = S.scheme;
+  var gutterR = (sc === "B") ? 62 : (sc === "D") ? 64 : 0;
+  var gutterB = (sc === "B") ? 22 : (sc === "C" || sc === "D") ? 18 : 0;
+  var pw = Math.max(40, W - gutterR), ph = Math.max(30, H - gutterB);
+
+  /* ---- scheme A's label bands, added 2026-07-29 ---------------------------
+     A plate behind the text was not enough, and Jakub was right to push back.
+     An opaque plate stops the digits being unreadable, but the line still ran
+     THROUGH it - measured, not guessed: on the mobile, dashboard and hero
+     surfaces the series entered both label plates in almost every data state.
+     Hiding a chunk of the series behind a label is not a fix, it is erasing
+     data to make room for a caption.
+
+     So the labels now get their own gutters, exactly the way B's axis does.
+     17px is reserved top and bottom; the line is drawn only between them, so
+     it CANNOT reach the labels at any data shape. Cost is 34px of line travel,
+     which on a 140px plot is real but is the price of two anchored numbers -
+     and it costs no card height, which is what these surfaces do not have. */
+  var bandT = (sc === "A") ? 17 : 0;
+  var bandB = (sc === "A") ? 17 : 0;
+  var lineH = Math.max(20, ph - bandT - bandB);
+
+  var bounds = chartYBounds(data);
+  var lo = bounds[0], hi = bounds[1], span = (hi - lo) || 1;
+  /* Precision for any label that is NOT on a tick ladder (A's high/low, C's
+     open, D's chip). Same rule as the axis: derived from the window, not the
+     magnitude - see axisMoney. */
+  var labStep = span / 4;
+  var n = data.length;
+  var X = function(i){ return n === 1 ? pw / 2 : (i / (n - 1)) * pw; };
+  var Y = function(v){ return bandT + lineH - ((v - lo) / span) * lineH; };
+
+  var pts = data.map(function(d, i){ return [X(i), Y(d.y)]; });
+  var linePath = pts.map(function(p, i){ return (i ? "L" : "M") + p[0].toFixed(2) + " " + p[1].toFixed(2); }).join(" ");
+  var areaPath = linePath + " L" + pw.toFixed(2) + " " + ph + " L0 " + ph + " Z";
+
+  var gridCol = light ? "rgba(16,19,26,.08)" : "rgba(255,255,255,.06)";
+  var axisCol = light ? "#5A606E" : "#8A8F9D";
+  var crossCol = light ? "rgba(16,19,26,.46)" : "rgba(255,255,255,.36)";
+  var uid = "g" + sc + (light ? "l" : "d");
+
+  var s = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" '
+        + 'aria-label="Price series, ' + (data[n-1].y >= data[0].y ? "rising" : "falling") + '">';
+
+  /* The fill ramps to ZERO alpha at 62% of the plot height, not at the bottom
+     edge. A filled area reads as sitting on ground level, and this chart's Y
+     domain is NOT zero-based - `chartYBounds` fits it to the visible slice
+     (crypto_live_chart.dart:88-96). A fill that touches the frame's floor on a
+     non-zero axis is the documented misleading case
+     (https://www.chadskelton.com/2018/06/bar-charts-should-always-start-at-zero.html,
+     https://flowingdata.com/2024/03/06/line-chart-baselines/). Fading out early
+     keeps the fill as decoration that cannot be measured.
+     Today's shipped fill goes edge to edge (crypto_live_chart.dart:466-476) -
+     switch to scheme X to see the difference. */
+  s += '<defs>'
+    + '<linearGradient id="' + uid + 'fill" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0" stop-color="' + trendHex + '" stop-opacity="' + (sc === "A" ? .22 : sc === "B" ? .18 : .16) + '"/>'
+    + '<stop offset="0.62" stop-color="' + trendHex + '" stop-opacity="0"/></linearGradient>'
+    + '<linearGradient id="' + uid + 'up" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0" stop-color="' + (light ? "#07875F" : "#0AD89C") + '" stop-opacity=".20"/>'
+    + '<stop offset="1" stop-color="' + (light ? "#07875F" : "#0AD89C") + '" stop-opacity=".02"/></linearGradient>'
+    + '<linearGradient id="' + uid + 'dn" x1="0" y1="1" x2="0" y2="0">'
+    + '<stop offset="0" stop-color="' + (light ? "#D92D2D" : "#FF4D4D") + '" stop-opacity=".18"/>'
+    + '<stop offset="1" stop-color="' + (light ? "#D92D2D" : "#FF4D4D") + '" stop-opacity=".02"/></linearGradient>'
+    + '<clipPath id="' + uid + 'clipUp"><rect x="0" y="0" width="' + pw + '" height="' + ph + '"/></clipPath>'
+    + '</defs>';
+
+  var lineCol = trendHex;
+  var lineW = 2.4;
+
+  /* ---------- X · shipped today: always mint, no frame, no axis ---------- */
+  if (sc === "X"){
+    lineCol = "#2BF5B4"; /* GeniusWalletColors.brandSecondary, crypto_live_chart.dart:320 */
+    s += '<defs><linearGradient id="' + uid + 'x" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0" stop-color="#2BF5B4" stop-opacity=".30"/>'
+      + '<stop offset="1" stop-color="#2BF5B4" stop-opacity="0"/></linearGradient></defs>'
+      + '<path d="' + areaPath + '" fill="url(#' + uid + 'x)"/>'
+      + '<path d="' + linePath + '" fill="none" stroke="#2BF5B4" stroke-width="2.4" '
+      + 'stroke-linejoin="round" stroke-linecap="round"/>';
+  }
+
+  /* ---------- A · Honest sparkline: no axes, direct high/low labels ---------- */
+  if (sc === "A"){
+    s += '<path d="' + areaPath + '" fill="url(#' + uid + 'fill)"/>'
+      + '<path d="' + linePath + '" fill="none" stroke="' + lineCol + '" stroke-width="' + lineW + '" '
+      + 'stroke-linejoin="round" stroke-linecap="round"/>';
+    var iHi = 0, iLo = 0;
+    for (var a = 1; a < n; a++){ if (data[a].y > data[iHi].y) { iHi = a; } if (data[a].y < data[iLo].y) { iLo = a; } }
+    if (data[iHi].y > data[iLo].y){
+      var hiTxt = axisMoney(data[iHi].y, labStep), loTxt = axisMoney(data[iLo].y, labStep);
+      /* The labels live IN THE BANDS, not beside their points: H pinned to the
+         top strip, L to the bottom strip, each still tracking its own point's x
+         so you can see which sample it belongs to. The line is confined between
+         the bands, so no data shape can reach a label. The plate stays, because
+         the area fill still runs under the bottom band. */
+      var bH = tagBox(X(iHi), 0, hiTxt, "H", pw, ph, "band");
+      var bL = tagBox(X(iLo), ph - 14, loTxt, "L", pw, ph, "band");
+      s += tagSvg(bH, axisCol) + tagSvg(bL, axisCol);
+    }
+  }
+
+  /* ---------- B · Trading frame: right Y axis + horizontal grid + X labels ---------- */
+  if (sc === "B"){
+    var tk = ticks(lo, hi, Math.max(3, Math.min(6, Math.round(ph / 76))));
+    tk.vals.forEach(function(v){
+      var y = Y(v);
+      if (y < -1 || y > ph + 1) { return; }
+      s += '<line x1="0" y1="' + y.toFixed(1) + '" x2="' + pw + '" y2="' + y.toFixed(1)
+        + '" stroke="' + gridCol + '" stroke-width="1"/>'
+        + '<text x="' + (pw + 8) + '" y="' + (y + 4).toFixed(1) + '" fill="' + axisCol
+        + '" font-size="11" font-family="ui-monospace,monospace">' + esc(axisMoney(v, tk.step)) + '</text>';
+    });
+    s += '<path d="' + areaPath + '" fill="url(#' + uid + 'fill)"/>'
+      + '<path d="' + linePath + '" fill="none" stroke="' + lineCol + '" stroke-width="2" '
+      + 'stroke-linejoin="round" stroke-linecap="round"/>';
+    /* clamped to n as well as to width - with 4 samples, 6 slots produced
+       "6:35 PM" twice. Caught by the "4 points" state. */
+    var xn = Math.max(2, Math.min(6, Math.floor(pw / 110), n));
+    for (var b = 0; b < xn; b++){
+      var ix = Math.round((b / (xn - 1)) * (n - 1));
+      var xx = X(ix), anch = b === 0 ? "start" : (b === xn - 1 ? "end" : "middle");
+      s += '<text x="' + xx.toFixed(1) + '" y="' + (ph + 15) + '" fill="' + axisCol + '" font-size="11" '
+        + 'text-anchor="' + anch + '" font-family="ui-monospace,monospace">' + esc(clock(data[ix].t)) + '</text>';
+    }
+  }
+
+  /* ---------- C · Baseline band: the open price is the only reference ---------- */
+  if (sc === "C"){
+    var open = data[0].y, yOpen = Y(open);
+    var upAbove = linePath + " L" + pw.toFixed(2) + " " + yOpen.toFixed(2) + " L0 " + yOpen.toFixed(2) + " Z";
+    s += '<clipPath id="' + uid + 'ca"><rect x="0" y="0" width="' + pw + '" height="' + Math.max(0, yOpen).toFixed(2) + '"/></clipPath>'
+      + '<clipPath id="' + uid + 'cb"><rect x="0" y="' + Math.max(0, yOpen).toFixed(2) + '" width="' + pw
+      + '" height="' + Math.max(0, ph - yOpen).toFixed(2) + '"/></clipPath>'
+      + '<path d="' + upAbove + '" fill="url(#' + uid + 'up)" clip-path="url(#' + uid + 'ca)"/>'
+      + '<path d="' + upAbove + '" fill="url(#' + uid + 'dn)" clip-path="url(#' + uid + 'cb)"/>'
+      + '<line x1="0" y1="' + yOpen.toFixed(1) + '" x2="' + pw + '" y2="' + yOpen.toFixed(1)
+      + '" stroke="' + axisCol + '" stroke-width="1" stroke-dasharray="4 4"/>'
+      /* Flips to below the baseline when the open IS the high, which is every
+         down trend. It was clipping off the top of the 366x260 and 597x220
+         cards before this - caught by the browser sweep, not by looking. */
+      + '<text x="2" y="' + (yOpen < 16 ? yOpen + 13 : yOpen - 6).toFixed(1) + '" fill="' + axisCol
+      + '" font-size="10" font-family="ui-monospace,monospace" letter-spacing=".06em">OPEN '
+      + esc(axisMoney(open, labStep)) + '</text>'
+      + '<path d="' + linePath + '" fill="none" stroke="' + lineCol + '" stroke-width="2.2" '
+      + 'stroke-linejoin="round" stroke-linecap="round"/>';
+    /* Window extremes, parked in the two RIGHT corners. They used to sit at
+       x=2 pinned to their own data point, which collided with the OPEN label
+       and with the line itself the moment a series opened at its high - the
+       "Down trend" state. Corners never collide. */
+    var tkc = [["H", hi - span * 0.08, 12], ["L", lo + span * 0.08, ph - 5]];
+    tkc.forEach(function(r){
+      s += '<text x="' + pw + '" y="' + r[2].toFixed(1) + '" text-anchor="end" fill="' + axisCol
+        + '" font-size="11" font-family="ui-monospace,monospace" letter-spacing=".04em">'
+        + r[0] + ' ' + esc(axisMoney(r[1], labStep)) + '</text>';
+    });
+    s += '<text x="0" y="' + (ph + 13) + '" fill="' + axisCol + '" font-size="11" '
+      + 'font-family="ui-monospace,monospace">' + esc(clock(data[0].t)) + '</text>'
+      + '<text x="' + pw + '" y="' + (ph + 13) + '" fill="' + axisCol + '" font-size="11" text-anchor="end" '
+      + 'font-family="ui-monospace,monospace">' + esc(clock(data[n-1].t)) + '</text>';
+  }
+
+  /* ---------- D · Last-price rail ---------- */
+  if (sc === "D"){
+    s += '<path d="' + areaPath + '" fill="url(#' + uid + 'fill)"/>'
+      + '<path d="' + linePath + '" fill="none" stroke="' + lineCol + '" stroke-width="2.2" '
+      + 'stroke-linejoin="round" stroke-linecap="round"/>'
+      + '<line x1="' + pw + '" y1="0" x2="' + pw + '" y2="' + ph + '" stroke="' + gridCol + '" stroke-width="1"/>';
+    var tkd = ticks(lo, hi, Math.max(3, Math.min(5, Math.round(ph / 90))));
+    tkd.vals.forEach(function(v){
+      var y = Y(v);
+      if (y < 6 || y > ph - 6) { return; }
+      s += '<text x="' + (pw + 8) + '" y="' + (y + 4).toFixed(1) + '" fill="' + axisCol
+        + '" font-size="11" font-family="ui-monospace,monospace">' + esc(axisMoney(v, tkd.step)) + '</text>';
+    });
+    var last = data[n-1].y, yl = Y(last);
+    s += '<line x1="0" y1="' + yl.toFixed(1) + '" x2="' + pw + '" y2="' + yl.toFixed(1)
+      + '" stroke="' + lineCol + '" stroke-width="1" stroke-dasharray="3 4" opacity=".7"/>'
+      + '<rect x="' + (pw + 3) + '" y="' + (yl - 9).toFixed(1) + '" width="' + (gutterR - 6)
+      + '" height="18" rx="4" fill="' + lineCol + '"/>'
+      + '<text x="' + (pw + 3 + (gutterR - 6) / 2) + '" y="' + (yl + 4).toFixed(1)
+      + '" text-anchor="middle" font-size="10" font-weight="700" font-family="ui-monospace,monospace" '
+      + 'fill="' + (light ? "#FFFFFF" : "#04121A") + '">' + esc(axisMoney(last, labStep)) + '</text>'
+      + '<text x="0" y="' + (ph + 13) + '" fill="' + axisCol + '" font-size="11" '
+      + 'font-family="ui-monospace,monospace">' + esc(clock(data[0].t)) + '</text>'
+      + '<text x="' + pw + '" y="' + (ph + 13) + '" fill="' + axisCol + '" font-size="11" text-anchor="end" '
+      + 'font-family="ui-monospace,monospace">' + esc(clock(data[n-1].t)) + '</text>';
+  }
+
+  /* ---------- crosshair, shared by A-D. X keeps the floating bubble. ---------- */
+  if (S.hover !== null && data[S.hover]){
+    var hx = X(S.hover), hy = Y(data[S.hover].y);
+    if (sc === "X"){
+      /* Today: a short indicator line at borderStrong (white 24% = 2.10:1) plus a
+         large floating bubble. Both reproduced here so the difference is visible. */
+      s += '<line x1="' + hx.toFixed(1) + '" y1="' + hy.toFixed(1) + '" x2="' + hx.toFixed(1) + '" y2="' + ph
+        + '" stroke="' + (light ? "rgba(16,19,26,.24)" : "rgba(255,255,255,.24)") + '" stroke-width="1"/>'
+        + '<circle cx="' + hx.toFixed(1) + '" cy="' + hy.toFixed(1) + '" r="5" fill="#2BF5B4" '
+        + 'stroke="rgba(43,245,180,.26)" stroke-width="4"/>';
+      var bx = Math.min(Math.max(hx - 78, 2), pw - 158), by = Math.max(6, hy - 84);
+      var hp = ((data[S.hover].y - data[0].y) / data[0].y) * 100;
+      s += '<g><rect x="' + bx.toFixed(1) + '" y="' + by.toFixed(1) + '" width="156" height="66" rx="10" '
+        + 'fill="' + (light ? "#FFFFFF" : "#0C0E14") + '" stroke="' + (light ? "rgba(16,19,26,.12)" : "rgba(255,255,255,.12)") + '"/>'
+        + '<text x="' + (bx + 12) + '" y="' + (by + 22) + '" font-size="11" fill="' + axisCol + '">' + esc(clock(data[S.hover].t)) + '</text>'
+        + '<text x="' + (bx + 12) + '" y="' + (by + 42) + '" font-size="14" font-weight="700" fill="' + (light ? "#10131A" : "#FFFFFF") + '">'
+        + esc(money(data[S.hover].y)) + '</text>'
+        + '<text x="' + (bx + 12) + '" y="' + (by + 58) + '" font-size="11" font-weight="700" fill="'
+        + (hp >= 0 ? (light ? "#07875F" : "#0AD89C") : (light ? "#D92D2D" : "#FF4D4D")) + '">' + esc(pct(hp)) + '</text></g>';
+    } else {
+      /* Full-height crosshair at borderControl (white 36% = 3.30:1), the value
+         read out in the card header rather than in a bubble over the data. */
+      s += '<line x1="' + hx.toFixed(1) + '" y1="0" x2="' + hx.toFixed(1) + '" y2="' + ph
+        + '" stroke="' + crossCol + '" stroke-width="1"/>'
+        + '<circle cx="' + hx.toFixed(1) + '" cy="' + hy.toFixed(1) + '" r="4.5" fill="' + lineCol + '" '
+        + 'stroke="' + (light ? "#FFFFFF" : "#0C0E14") + '" stroke-width="2"/>';
+    }
+  }
+
+  /* ---------- the 4-point case: mark the actual samples ---------- */
+  if (n <= 8 && sc !== "X"){
+    pts.forEach(function(p){
+      s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3" fill="' + lineCol + '"/>';
+    });
+  }
+
+  s += '</svg>';
+  return s;
+}
+
+/* a direct label pinned to a data point, used by scheme A */
+/* ---- scheme A's high/low labels -----------------------------------------
+   REWRITTEN 2026-07-29 after Jakub read the sketch: "wykres robi overlap z
+   liczbami" on the mobile pair and the dashboard pair. He was right, and the
+   scheme's own cost list already admitted it ("high/low labels collide on a
+   whipsawing series at small widths") - which made it a known defect nobody
+   had fixed, not a surprise.
+
+   Two changes, and both are things a label over a data area needs anyway:
+
+   1. Every label now sits on an opaque plate. Bare text over a line and a
+      gradient fill is unreadable the moment the series passes behind it, and
+      it is also a 1.4.3 contrast problem: the text's contrast ratio is
+      undefined when its background is whatever the chart happens to paint.
+      The plate makes the background a known token.
+   2. When the two plates would touch - or when the plot is too short for them
+      to be apart at all - they merge into ONE plate reading "H $x  L $y".
+      Merging beats dropping a label: both numbers are the point of scheme A,
+      and on a 140px dashboard plot there is no honest way to pin them
+      separately. */
+function tagBox(x, y, text, glyph, pw, ph, side){
+  var t = glyph + " " + text;
+  var w = t.length * 6.2 + 10, h = 14;
+  var tx = Math.min(Math.max(x - w / 2, 0), Math.max(0, pw - w));
+  /* Clamped to the plot box on BOTH edges. The low label used to sit at y+10,
+     which fell off the bottom whenever the minimum was also the last point -
+     visible at the 366x260 mobile card in the "4 points" state. */
+  var ty = side === "above" ? Math.max(0, y - h) : Math.min(Math.max(0, ph - h), y);
+  return { x: tx, y: ty, w: w, h: h, t: t };
+}
+
+function tagSvg(b, col){
+  /* style="fill:var(...)" rather than the fill ATTRIBUTE - var() is not
+     reliable in SVG presentation attributes, but it is in a CSS declaration. */
+  return '<rect x="' + b.x.toFixed(1) + '" y="' + b.y.toFixed(1) + '" width="' + b.w.toFixed(1)
+    + '" height="' + b.h + '" rx="3" style="fill:var(--surface-elevated)" fill-opacity=".92"/>'
+    + '<text x="' + (b.x + 5).toFixed(1) + '" y="' + (b.y + 10).toFixed(1) + '" fill="' + col
+    + '" font-size="10" font-family="ui-monospace,monospace" letter-spacing=".06em">'
+    + esc(b.t) + '</text>';
+}
+
+/* ------------------------------ static tables ---------------------------- */
+var VERDICTS = {
+  A: ["fallback",  "#8A8F9D", "Not a competitor - B's documented reduction below ~220px of plot height (dashboard card, mobile). Ship it as B's small-size branch, not instead of B."],
+  B: ["★ recommended", "#0AD89C", "\"Clunky\" is four separate problems. All four schemes fix three of them. B is the only one that fixes the fourth - you cannot read a value off the chart - and that is what a 997x530 card is for."],
+  C: ["runner-up", "#14C8FF", "Best idea, weaker answer. Direction carried by shape survives a colour-blind read, and the baseline costs no new data. It would win if the coin page card were decorative; it is not. Strongest candidate for the Markets hero."],
+  D: ["rejected",  "#FF4D4D", "64px gutter of labels with no gridlines under them - the scale floats free of the data. And it puts the price in a THIRD place on one screen: page header, card header, rail chip."]
+};
+
+var SCHEMES = [
+  { k: "A", name: "Honest sparkline", tag: "no axes",
+    what: "Keeps the axis-free plot and fixes only the lies: the line takes the trend colour, the zoom/pan row becomes a timeframe segment, the floating bubble becomes a header readout, and the high and low get direct labels pinned to their own points.",
+    fixes: ["Line colour finally agrees with the % pill", "Zoom/pan row gone - closes three open todos at once", "Two anchored values (high, low) where there were none", "Fits every surface, including the 220px dashboard card"],
+    costs: ["You still cannot read an arbitrary point without hovering", "No time reference at all until you hover", "FIXED 2026-07-29, in two passes. The high/low labels were bare text painted straight onto the line and the fill. A plate behind the text fixed legibility but NOT the overlap - the line still ran through it, which only hid that stretch of the series. The labels now get their own 17px gutters top and bottom, the way B's axis has one: the line is drawn only between them, so no data shape can reach a label. Costs 34px of line travel and no card height. Verified by sampling the line path against both label rects across every surface, state and theme: 0 intersections."],
+    suits: "Dashboard Bitcoin card, Markets hero backdrop, coin page mobile (260px)." },
+  { k: "B", name: "Trading frame", tag: "axes + grid",
+    what: "A real reference frame. Right-aligned Y axis with nice-rounded ticks, horizontal-only gridlines, time labels along the bottom, trend-coloured line, soft area fill, full-height crosshair with the value read out in the card header.",
+    fixes: ["Every one of the four things Jakub named", "You can read a price off the card without touching it", "Axis on the RIGHT because the newest price sits at the right edge and would otherwise be furthest from its scale (data.europa.eu). Not because it is a documented standard - Highcharts still defaults yAxis to the left", "Tick count stays inside the 2-to-8 band the EU guide gives; 4-6 at these heights", "Crosshair at 3.30:1 replaces today's 2.10:1 indicator"],
+    costs: ["56px right gutter + 22px bottom gutter come out of the plot", "Below about 220px of plot height the ticks crowd - needs a documented reduction to A", "More paint per frame on a card that already re-renders on every live tick", "The area fill has to fade out early or it lies about a non-zero baseline"],
+    suits: "Coin page at 997x530 and 876x558. Markets hero when it is given real height." },
+  { k: "C", name: "Baseline band", tag: "shape, not hue",
+    what: "One reference: the window's opening price, drawn as a dashed baseline. The area fills green above it and red below it, so direction is carried by which side of a line the shape sits on, not only by hue. Two floated price labels, two time labels at the ends.",
+    fixes: ["Direction survives a colour-blind or monochrome read - WCAG 1.4.1 without argument", "The baseline is the same number the % is already computed against, so it costs no new data", "Reads as one confident graphic rather than a grid"],
+    costs: ["Two anchored prices only - still not a full scale", "A series that crosses the open repeatedly turns into stripes", "Unusual for crypto; needs explaining once"],
+    suits: "Coin page. Also the strongest candidate for the Markets hero card, which is decorative anyway." },
+  { k: "D", name: "Last-price rail", tag: "TradingView idiom",
+    what: "No gridlines. A 64px rail down the right edge carries the tick labels, and the current price rides it as a filled chip with a dashed extension line across the plot.",
+    fixes: ["The one number people actually want is impossible to miss", "Feels live, which suits a chart that ticks every 60s", "Reads as a trading product"],
+    costs: ["64px of a 965px card, and 64 of 334 on mobile", "The chip is a third place the price appears - page header, card header, and now the rail", "Rail labels without gridlines float free of the data they scale"],
+    suits: "Coin page desktop only. Actively bad below 600px." }
+];
+
+var CONTRAST = [
+  ["Line, up",              "statusSuccess #0AD89C",       "10.39:1", "statusSuccess #07875F", "4.53:1", "1.4.11 graphical object, 3:1", true],
+  ["Line, down",            "statusError #FF4D4D",         "5.90:1",  "statusError #D92D2D",  "4.81:1", "1.4.11 graphical object, 3:1", true],
+  ["Line, shipped today",   "brandSecondary #2BF5B4",      "13.62:1", "brandSecondary #2BF5B4","1.86:1", "passes 3:1 dark, FAILS light and means nothing in either", false],
+  ["Axis label",            "textSecondary #8A8F9D",       "5.97:1",  "textSecondary #5A606E", "6.30:1", "1.4.3 text, 4.5:1", true],
+  ["Header readout price",  "textPrimary #FFFFFF",         "19.29:1", "ink #10131A",           "18.58:1","1.4.3 text, 4.5:1", true],
+  ["Crosshair, proposed",   "borderControl white 36%",     "3.30:1",  "borderControl ink 46%", "3.10:1", "1.4.11 graphical object, 3:1", true],
+  ["Crosshair, today",      "borderStrong white 24%",      "2.10:1",  "borderStrong ink 24%",  "1.70:1", "1.4.11 graphical object, 3:1", false],
+  ["Gridline",              "white 6%",                    "1.14:1",  "ink 8%",                "1.18:1", "decorative, not gated", null],
+  ["Area fill peak",        "success 18% over card",       "1.39:1",  "success 18% over white","1.27:1", "decorative, not gated", null],
+  ["Last-price chip text",  "#04121A on #0AD89C",          "10.23:1", "#FFFFFF on #07875F",    "4.53:1", "1.4.3 text, 4.5:1", true]
+];
+
+var FINDINGS = [
+  ["The line is mint no matter what the price did",
+   "<code>lib/chart/crypto_live_chart.dart:320</code>",
+   "<code>const Color mintColor = GeniusWalletColors.brandSecondary;</code> (#2BF5B4). The comment on :317-318 says so out loud: \"the chart itself is always mint, decoupled from up/down\". <code>trendColor</code> on :319 tints the % pill only."],
+  ["No axes, no grid, no border",
+   "<code>lib/chart/crypto_live_chart.dart:480-495</code>",
+   "<code>gridData: FlGridData(show: false)</code>, <code>borderData: FlBorderData(show: false)</code>, and all four <code>AxisTitles</code> set <code>showTitles: false</code>. Nothing on the card carries a number except the tooltip."],
+  ["Zoom/pan instead of timeframes",
+   "<code>lib/chart/crypto_live_chart.dart:579-617</code>",
+   "Four default <code>IconButton</code>s (48x48 each) in a centred Row, with <code>color: Colors.white</code> hardcoded. Three open todos point at these same four buttons: the 34px RenderFlex overflow, the raw whites, and \"is zoom/pan redundant once ranges are wired\"."],
+  ["The timeframe segment exists twice, with different labels AND different tracks",
+   "<code>dashboard_screen.dart:678</code> vs <code>markets_hero_card.dart:449</code>",
+   "Dashboard: <code>['1H','1D','1W','1M','1Y']</code> on <code>surfaceSunken</code>. Markets hero: <code>['24H','7D','30D','1Y']</code> on <code>surfaceMenu</code>. The repo's own control-track convention (CONVENTIONS.md, quoted at dashboard_screen.dart:697-700) says sunken. Both are visual-only."],
+  ["The touched-spot indicator is under the 1.4.11 threshold",
+   "<code>lib/chart/crypto_live_chart.dart:504</code>",
+   "<code>FlLine(color: gw.borderStrong, strokeWidth: 1)</code> - white 24% over #0C0E14 measures 2.10:1. It identifies which point you are reading, so it is a meaningful graphical object and wants 3:1. <code>borderControl</code> (white 36%) is already in the palette at 3.30:1."],
+  ["The y-window fix from 070/071 still holds",
+   "<code>lib/chart/crypto_live_chart.dart:66-97</code>, used at <code>:458-459</code>",
+   "<code>chartYBounds</code> reduces over the VISIBLE slice and pads 8% each side; <code>test/chart/chart_y_bounds_test.dart</code> has 5 tests including the GNUS -98.53% case. Re-read and re-run mentally against the source: intact, nothing in this sketch changes it. Note the two sparkline surfaces set no minY/maxY at all, which is correct there because the whole series is the view."],
+  ["The empty state is a skeleton that never resolves",
+   "<code>lib/chart/crypto_live_chart.dart:621-624</code>",
+   "When <code>_priceData</code> is empty the card shows a <code>PulsingSkeleton</code>. <code>_fetchHistoricalData</code> only calls <code>setState</code> when the response is non-empty, so an empty or failed fetch pulses forever with no error and no retry."]
+];
+
+var API = [
+  ["Horizontal-only gridlines, custom stroke",
+   "<code>FlGridData(drawHorizontalLine, horizontalInterval, getDrawingHorizontalLine, drawVerticalLine, checkToShowHorizontalLine)</code>",
+   "axis_chart_data.dart:684-699", "B"],
+  ["Right-hand price axis with custom widgets",
+   "<code>AxisTitles(sideTitles: SideTitles(showTitles, interval, reservedSize, getTitlesWidget))</code>, <code>drawBelowEverything</code>, <code>sideTitleAlignment</code>",
+   "axis_chart_data.dart:198-225, 356-380", "B, D"],
+  ["Full-height crosshair instead of a stub under the dot",
+   "<code>LineTouchData.getTouchLineStart / getTouchLineEnd</code>",
+   "line_chart_data.dart:940-944", "A, B, C, D"],
+  ["Suppress the floating bubble and read out in the header instead",
+   "<code>GetLineTooltipItems</code> returns <code>List&lt;LineTooltipItem?&gt;</code> - returning nulls draws nothing",
+   "line_chart_data.dart:1157-1159", "A, B, C, D"],
+  ["Dashed reference line with its own label",
+   "<code>LineChartData.extraLinesData</code> -&gt; <code>HorizontalLine(y, dashArray, strokeCap, label: HorizontalLineLabel(alignment, padding, style, direction))</code>",
+   "axis_chart_data.dart:66, 1072-1140, 1234", "C, D"],
+  ["Two-tone fill split at a baseline",
+   "<code>BarAreaData(cutOffY, applyCutOffY)</code> on <code>belowBarData</code> / <code>aboveBarData</code>",
+   "line_chart_data.dart:366-369, 587-590", "C"],
+  ["Shaded band rather than a line",
+   "<code>RangeAnnotations</code> / <code>HorizontalRangeAnnotation</code>",
+   "axis_chart_data.dart:881, 933", "C alt"],
+  ["Gradient along the line, and control of the gradient's extent",
+   "<code>LineChartBarData.gradient</code> + <code>gradientArea</code> (<code>enum LineChartGradientArea { rectAroundTheLine, wholeChart }</code>)",
+   "line_chart_data.dart:187, 335-340", "all"],
+  ["Dashed / stepped / shadowed series",
+   "<code>dashArray</code>, <code>isStepLineChart</code> + <code>lineChartStepData</code>, <code>shadow</code>, <code>curveSmoothness</code>, <code>preventCurveOverShooting</code>",
+   "line_chart_data.dart:347-391", "all"],
+  ["Pin a tooltip open without a touch (e.g. always show the last point)",
+   "<code>LineChartData.showingTooltipIndicators</code> + <code>LineChartBarData.showingIndicators</code>",
+   "line_chart_data.dart:84, 379", "D"],
+  ["Clip the series to the visible window",
+   "<code>FlClipData.all()</code> - already used at crypto_live_chart.dart:453",
+   "in use today", "all"]
+];
+
+var SOURCES = [
+  ["WCAG 2.2 SC 1.4.11 Non-text Contrast, and its worked line-chart example",
+   "\"The lines should have 3:1 contrast against their background, but as there is little overlap with other lines they do not need to contrast with each other or the graduated lines.\" This is why the price line is gated at 3:1 and the gridlines are not.",
+   "https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html"],
+  ["WCAG 2.2 SC 1.4.1 Use of Color",
+   "\"Color is not used as the only visual means of conveying information...\" The signed percentage in the card header is the compliance path for a green/red line; scheme C adds a second, non-hue one.",
+   "https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html"],
+  ["European Commission data-visualisation guide, axes and grids",
+   "\"Numerical and date axes should at least have 2 labels and up to 8 at most.\" Also the rationale for moving the Y axis to the right on a time series, and the four ways to mute gridlines (grey, transparency, thin stroke, dashing).",
+   "https://data.europa.eu/apps/data-visualisation-guide/axes-grids-and-legends"],
+  ["Chad Skelton / FlowingData on filled areas and baselines",
+   "\"Any base-aligned chart with a solid fill should start at zero because that filled shape will be interpreted by your audience as sitting at ground level.\" This chart's domain is not zero-based, so the fill fades out at 62%.",
+   "https://flowingdata.com/2024/03/06/line-chart-baselines/"],
+  ["Tufte, sparkline theory and practice",
+   "\"A small intense, simple, word-sized graphic\"; \"max[data], min[design]\"; \"strong frames produce melodramatic but content-diminishing visual effects.\" His own medical example adds a grey normal-range band - the moment the reader has to judge whether a value is abnormal, a sparkline needs a reference. That is exactly the coin page's question.",
+   "https://www.edwardtufte.com/notebook/sparkline-theory-and-practice-edward-tufte/"],
+  ["Highcharts: crosshairs are off by default in Highcharts, ON by default in Highcharts Stock",
+   "Direct evidence that a crosshair is the financial-charting norm rather than a general charting one.",
+   "https://www.highcharts.com/docs/chart-concepts/tooltip"],
+  ["Highcharts yAxis.opposite defaults to null - \"The normal is on the left side for vertical axes\"",
+   "Counter-evidence: right-alignment is a strong de-facto convention with a good rationale, NOT a documented standard. Scheme B's copy says so.",
+   "https://api.highcharts.com/highstock/yAxis.opposite"],
+  ["Robinhood, using charts",
+   "Documented timeframe set is 1H / 1D / 1W / 1M / 3M / 1Y / 5Y - the \"1X\" grammar. Settles the two-label-arrays question in favour of the dashboard's array.",
+   "https://www.robinhood.com/eu/en/support/articles/using-charts"],
+  ["Colour Blind Awareness: ~1 in 12 men (8%), 1 in 200 women; red-green types are ~98% of cases",
+   "The size of the population a hue-only up/down signal fails.",
+   "https://www.colourblindawareness.org/colour-blindness/"],
+  ["Wong CVD-safe palette (blue #0072B2, orange #E69F00, vermillion #D55E00, bluish green #009E73)",
+   "Noted, NOT proposed: adopting it would mean new tokens and a break with the % pill, the badges and the Assets rows, which all already use statusSuccess/statusError. Scheme C solves the same problem with shape instead.",
+   "https://www.nceas.ucsb.edu/sites/default/files/2022-06/Colorblind%20Safe%20Color%20Schemes.pdf"],
+  ["East Asian colour inversion: red = up, green = down in CN / JP / KR / TW",
+   "Only relevant if the wallet ever localises for those markets. Recorded so the decision is deliberate rather than forgotten.",
+   "https://medium.com/@danvim/deep-dive-into-the-opposing-color-schemes-in-asian-vs-western-stock-market-prices-part-1-origin-4e3ccdb27c99"]
+];
+
+function paintStatic(){
+  document.getElementById("api").innerHTML =
+    '<tr><th style="width:26%">Capability</th><th style="width:44%">API on fl_chart 1.2.0</th><th>Verified at</th><th>Used by</th></tr>'
+    + API.map(function(r){
+        return '<tr><td>' + esc(r[0]) + '</td><td>' + r[1] + '</td><td class="num">' + esc(r[2]) + '</td><td class="num">' + esc(r[3]) + '</td></tr>';
+      }).join("");
+
+  document.getElementById("sources").innerHTML =
+    '<tr><th style="width:30%">Source</th><th>What it establishes</th></tr>'
+    + SOURCES.map(function(r){
+        return '<tr><td>' + esc(r[0]) + '<div class="note" style="margin-top:4px;word-break:break-all">' + esc(r[2]) + '</div></td><td>' + esc(r[1]) + '</td></tr>';
+      }).join("");
+
+  document.getElementById("schemeboxes").innerHTML = SCHEMES.map(function(x){
+    var v = VERDICTS[x.k];
+    return '<div class="box"' + (x.k === "B" ? ' style="border-color:rgba(10,216,156,.5)"' : '') + '>'
+      + '<span class="tag">' + x.k + ' &middot; ' + esc(x.tag) + '</span>'
+      + '<span class="tag" style="border-color:' + v[1] + ';color:' + v[1] + '">' + esc(v[0]) + '</span>'
+      + '<h4>' + esc(x.name) + '</h4>'
+      + '<p style="font-size:12px;line-height:18px;color:' + v[1] + ';margin:0 0 8px;font-weight:500">' + esc(v[2]) + '</p>'
+      + '<p style="font-size:12px;line-height:18px;color:#B9BFCB;margin:0">' + esc(x.what) + '</p>'
+      + '<div style="margin-top:8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#0AD89C">Fixes</div>'
+      + '<ul>' + x.fixes.map(function(f){ return '<li>' + esc(f) + '</li>'; }).join("") + '</ul>'
+      + '<div style="margin-top:8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#FF4D4D">Costs</div>'
+      + '<ul>' + x.costs.map(function(f){ return '<li>' + esc(f) + '</li>'; }).join("") + '</ul>'
+      + '<div style="margin-top:8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8A8F9D">Suits</div>'
+      + '<ul><li>' + esc(x.suits) + '</li></ul></div>';
+  }).join("");
+
+  document.getElementById("ctable").innerHTML =
+    '<tr><th>Element</th><th>Dark value</th><th>on #0C0E14</th><th>Light value</th><th>on #FFFFFF</th><th>Gate</th></tr>'
+    + CONTRAST.map(function(r){
+        var cls = r[6] === null ? "" : (r[6] ? "pass" : "fail");
+        return '<tr><td>' + esc(r[0]) + '</td><td class="num">' + esc(r[1]) + '</td><td class="num ' + cls + '">' + esc(r[2])
+          + '</td><td class="num">' + esc(r[3]) + '</td><td class="num ' + cls + '">' + esc(r[4]) + '</td><td>' + esc(r[5]) + '</td></tr>';
+      }).join("");
+
+  document.getElementById("findings").innerHTML =
+    '<tr><th style="width:26%">Finding</th><th style="width:24%">Where</th><th>What the code says</th></tr>'
+    + FINDINGS.map(function(r){ return '<tr><td>' + esc(r[0]) + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td></tr>'; }).join("");
+}
+
+/* ------------------------------- wiring ---------------------------------- */
+document.addEventListener("click", function(e){
+  var b = e.target.closest ? e.target.closest(".chip") : null;
+  if (!b) { return; }
+  var k = b.getAttribute("data-k"), v = b.getAttribute("data-v");
+  if (k === "measured") { S.measured = !S.measured; }
+  else { S[k] = v; S.hover = null; }
+  syncChips();
+  render();
+});
+
+function syncChips(){
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(b){
+    var k = b.getAttribute("data-k"), v = b.getAttribute("data-v");
+    b.setAttribute("aria-pressed", k === "measured" ? String(S.measured) : String(S[k] === v));
+  });
+}
+
+paintStatic();
+syncChips();
+render();
+</script>
+</body>
+</html>

@@ -384,6 +384,59 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               "true — the tallest shape of WalletsOverview's "
                               'SGNUS branch.',
                         ),
+                        // DEV-ONLY: the two states plan 14-02 made
+                        // representable but that no walk can reach, because
+                        // both need the real node to misbehave. Same
+                        // load-bearing order as the two buttons above: arm
+                        // the override BEFORE dispatching
+                        // ProcessingStatusTicked, or the tick reads a null
+                        // override. The bloc's dev branch
+                        // (app_bloc.dart:199-227) is what consumes them.
+                        _devButton(
+                          'SGNUS init',
+                          () {
+                            DevMockSgnus.instance.armInitPercentage(37);
+                            context.read<AppBloc>().add(
+                              ProcessingStatusTicked(),
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Initialization fixture armed (37%)',
+                              message:
+                                  'The node reads as starting up. Sticky — '
+                                  'press Clear to release it.',
+                              type: ToastType.success,
+                            );
+                          },
+                          tooltip:
+                              'Forces initPercentage: 37, so the starting-up '
+                              'state can be walked without catching the real '
+                              'node mid-boot.',
+                        ),
+                        _devButton(
+                          'Feed dead',
+                          () {
+                            DevMockSgnus.instance.armFeedUnavailable();
+                            context.read<AppBloc>().add(
+                              ProcessingStatusTicked(),
+                            );
+                            ToastManager.instance.showToast(
+                              context: context,
+                              title: 'Processing feed armed unavailable',
+                              message:
+                                  'A dead feed is now distinguishable from a '
+                                  'healthy idle node. Retry re-arms the timer '
+                                  'but this STICKY override re-asserts '
+                                  'unavailable on the next tick — press Clear '
+                                  'to watch it actually recover.',
+                              type: ToastType.warning,
+                            );
+                          },
+                          tooltip:
+                              'Forces ProcessingFeedStatus.unavailable — the '
+                              'state the permanent timer cancellation used to '
+                              'produce silently.',
+                        ),
                         // DEV-ONLY: forces MarketsDashboardView's error and
                         // empty branches (05-08 Task 3's GWErrorState /
                         // GWEmptyState skin), previously unreachable in any
@@ -446,6 +499,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           DevFaultInjector.instance.disarm();
                           DevFaultInjector.instance.disarmMarketsFault();
                           DevMockSgnus.instance.clear();
+                          // The two 14-02 overrides are separate fields with
+                          // separate clears — `clear()` only releases
+                          // `processingOverride`. Miss these and 'Clear'
+                          // leaves the node stuck starting-up or feed-dead,
+                          // which is worse than no Clear button at all.
+                          DevMockSgnus.instance.clearInitPercentage();
+                          DevMockSgnus.instance.clearFeedUnavailable();
                           context.read<WalletDetailsCubit>().clearMock();
                           context.read<TransactionsCubit>().clear();
                           context

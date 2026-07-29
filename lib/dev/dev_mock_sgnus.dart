@@ -74,4 +74,44 @@ class DevMockSgnus {
   void clear() {
     processingOverride = null;
   }
+
+  /// Sticky override for `AppState.initPercentage`, 0.0-1.0 to match the
+  /// real feed's scale (`genius_api.dart:81-82`). `null` means "no
+  /// override, read the SDK poll". Makes `ComputeState.startingUp`
+  /// walkable - before this plan the shipped app had no dev entry point
+  /// for the initialization feed at all. Consumed in the same
+  /// dev-override branch as [processingOverride]
+  /// (`app_bloc.dart#_onProcessingStatusTicked`), not the real init
+  /// timer's handler, for the same reason documented on
+  /// [processingOverride]: that branch already returns before touching
+  /// the FFI, and dispatches its own tick rather than trusting a timer
+  /// that may already be dead.
+  double? initPercentageOverride;
+
+  /// Sticky override forcing `AppState.processingFeedStatus` to its
+  /// unavailable value. `null`/`false` means "no override". Makes
+  /// `ComputeState.unavailable` walkable - the real feed only reaches
+  /// that state after a live FFI read throws, which a walker cannot
+  /// trigger on demand.
+  bool? feedUnavailableOverride;
+
+  /// Arms the sticky initialization-percentage override.
+  void armInitPercentage(double percentage) {
+    initPercentageOverride = percentage;
+  }
+
+  /// Clears the initialization-percentage override.
+  void clearInitPercentage() {
+    initPercentageOverride = null;
+  }
+
+  /// Arms the sticky feed-unavailable override.
+  void armFeedUnavailable() {
+    feedUnavailableOverride = true;
+  }
+
+  /// Clears the feed-unavailable override.
+  void clearFeedUnavailable() {
+    feedUnavailableOverride = null;
+  }
 }
