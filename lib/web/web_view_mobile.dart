@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/web/web_chrome_helpers.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -352,7 +353,7 @@ class WebViewMobileState extends State<WebViewMobile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueTertiary,
+      backgroundColor: context.gw.deepBlueTertiary,
       body: SafeArea(
         child: Column(
           children: [
@@ -376,7 +377,7 @@ class WebViewMobileState extends State<WebViewMobile> {
   Widget _buildTabStrip() {
     return Container(
       height: 46,
-      color: GeniusWalletColors.deepBlueCardColor,
+      color: context.gw.deepBlueCardColor,
       // space6 matches the omnibox bar below so the first tab's left edge lines
       // up with the omnibox field's left edge.
       padding: const EdgeInsets.symmetric(
@@ -399,14 +400,14 @@ class WebViewMobileState extends State<WebViewMobile> {
                   Container(
                     width: 1,
                     height: 20,
-                    color: GeniusWalletColors.borderSubtle,
+                    color: context.gw.borderSubtle,
                   ),
                   const SizedBox(width: GeniusWalletConsts.space2),
                   IconButton(
                     icon: Icon(
                       Icons.add,
                       size: 20,
-                      color: GeniusWalletColors.textPrimary,
+                      color: context.gw.textPrimary,
                     ),
                     constraints: const BoxConstraints(
                       minWidth: 36,
@@ -431,8 +432,8 @@ class WebViewMobileState extends State<WebViewMobile> {
     final active = index == _currentTabIndex;
     final hovered = index == _hoveredTabIndex;
     final labelColor = active
-        ? GeniusWalletColors.textPrimary
-        : GeniusWalletColors.textPrimary60;
+        ? context.gw.textPrimary
+        : context.gw.textPrimary60;
     return MouseRegion(
       onEnter: (_) => setState(() => _hoveredTabIndex = index),
       onExit: (_) => setState(() {
@@ -450,14 +451,10 @@ class WebViewMobileState extends State<WebViewMobile> {
           // regardless of how the ListView constrains item cross-axis height.
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: active
-                ? GeniusWalletColors.surfaceElevated
-                : Colors.transparent,
+            color: active ? context.gw.surfaceElevated : Colors.transparent,
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
             border: Border.all(
-              color: active
-                  ? Colors.transparent
-                  : GeniusWalletColors.borderSubtle,
+              color: active ? Colors.transparent : context.gw.borderSubtle,
             ),
           ),
           // Stack: content vertically centered in the band; the active underline
@@ -505,7 +502,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                         child: Container(
                           padding: const EdgeInsets.all(1),
                           decoration: BoxDecoration(
-                            color: GeniusWalletColors.surfaceElevated,
+                            color: context.gw.surfaceElevated,
                             borderRadius: BorderRadius.circular(
                               GeniusWalletConsts.radiusXs,
                             ),
@@ -513,7 +510,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                           child: Icon(
                             Icons.close,
                             size: 17,
-                            color: GeniusWalletColors.textPrimary,
+                            color: context.gw.textPrimary,
                           ),
                         ),
                       ),
@@ -558,10 +555,10 @@ class WebViewMobileState extends State<WebViewMobile> {
   // surfaceMenu's luminance as the appearance proxy (not a new GWColors import),
   // so this cannot disagree with the shipped mark.
   LinearGradient _activeUnderlineGradient() {
-    if (GeniusWalletColors.surfaceMenu.computeLuminance() <= 0.5) {
+    if (context.gw.surfaceMenu.computeLuminance() <= 0.5) {
       return GeniusWalletGradient.brandCta;
     }
-    final safe = GeniusWalletColors.brandPrimaryOnSurface;
+    final safe = context.gw.brandPrimaryOnSurface;
     return LinearGradient(colors: [safe, safe]);
   }
 
@@ -571,7 +568,7 @@ class WebViewMobileState extends State<WebViewMobile> {
   // still routes through _loadUrl and no navigation mechanic changed.
   Widget _buildSearchBar() {
     return Container(
-      color: GeniusWalletColors.deepBlueCardColor,
+      color: context.gw.deepBlueCardColor,
       padding: const EdgeInsets.symmetric(
         horizontal: GeniusWalletConsts.space6,
         vertical: GeniusWalletConsts.space4,
@@ -590,9 +587,9 @@ class WebViewMobileState extends State<WebViewMobile> {
       // The outer field stays neutral on focus — only the inner text area lights
       // up (see _buildOmniboxCenter). Jakub: highlight the inner, not the bar.
       decoration: BoxDecoration(
-        color: GeniusWalletColors.surfaceSunken,
+        color: context.gw.surfaceSunken,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
-        border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
+        border: Border.all(color: context.gw.borderSubtle, width: 1),
       ),
       child: Row(
         children: [
@@ -631,8 +628,8 @@ class WebViewMobileState extends State<WebViewMobile> {
             icon,
             size: 18,
             color: enabled
-                ? GeniusWalletColors.brandPrimaryOnSurface
-                : GeniusWalletColors.textPrimary38,
+                ? context.gw.brandPrimaryOnSurface
+                : context.gw.textPrimary38,
           ),
           constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           padding: EdgeInsets.zero,
@@ -645,7 +642,7 @@ class WebViewMobileState extends State<WebViewMobile> {
 
   Widget _omniboxGhostButton(IconData icon, VoidCallback onPressed) {
     return IconButton(
-      icon: Icon(icon, size: 18, color: GeniusWalletColors.textPrimary),
+      icon: Icon(icon, size: 18, color: context.gw.textPrimary),
       constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
       padding: EdgeInsets.zero,
       splashRadius: 18,
@@ -677,7 +674,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
         border: Border.all(
-          color: editing ? GeniusWalletColors.brandPrimary : Colors.transparent,
+          color: editing ? context.gw.brandPrimary : Colors.transparent,
           width: 1.5,
         ),
       ),
@@ -690,10 +687,7 @@ class WebViewMobileState extends State<WebViewMobile> {
           TextField(
             controller: _urlController,
             focusNode: _urlFocusNode,
-            style: TextStyle(
-              color: GeniusWalletColors.textPrimary,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: context.gw.textPrimary, fontSize: 14),
             textAlignVertical: TextAlignVertical.center,
             decoration: const InputDecoration(
               isDense: true,
@@ -711,7 +705,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                 behavior: HitTestBehavior.opaque,
                 onTap: () => _urlFocusNode.requestFocus(),
                 child: Container(
-                  color: GeniusWalletColors.surfaceSunken,
+                  color: context.gw.surfaceSunken,
                   padding: const EdgeInsets.symmetric(
                     horizontal: GeniusWalletConsts.space2,
                   ),
@@ -723,7 +717,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                         height: 16,
                         errorBuilder: (context, error, stackTrace) => Icon(
                           Icons.language,
-                          color: GeniusWalletColors.textPrimary60,
+                          color: context.gw.textPrimary60,
                           size: 16,
                         ),
                       ),
@@ -742,7 +736,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: GeniusWalletColors.textPrimary,
+                            color: context.gw.textPrimary,
                             fontSize: 14,
                           ),
                         ),

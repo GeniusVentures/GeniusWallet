@@ -5,6 +5,7 @@ import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/web/web_chrome_helpers.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:webview_windows/webview_windows.dart';
@@ -211,13 +212,13 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   Widget build(BuildContext context) {
     final includeBackButton = widget.includeBackButton ?? false;
     return Scaffold(
-      backgroundColor: GeniusWalletColors.deepBlueCardColor,
+      backgroundColor: context.gw.deepBlueCardColor,
       body: SafeArea(
         child: Column(
           children: [
             Container(
               height: 70,
-              color: GeniusWalletColors.deepBlueCardColor,
+              color: context.gw.deepBlueCardColor,
               padding: const EdgeInsets.only(left: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -279,7 +280,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         _buildIconButton(
           Icons.more_horiz,
           _showTabSwitcher,
-          color: GeniusWalletColors.textPrimary60,
+          color: context.gw.textPrimary60,
           size: 20,
         ),
       ],
@@ -290,18 +291,16 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: GeniusWalletColors.surfaceSunken,
+        color: context.gw.surfaceSunken,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
         border: Border.all(
-          color: editing
-              ? GeniusWalletColors.brandPrimary
-              : GeniusWalletColors.borderSubtle,
+          color: editing ? context.gw.brandPrimary : context.gw.borderSubtle,
           width: editing ? 2 : 1,
         ),
         boxShadow: editing
             ? [
                 BoxShadow(
-                  color: GeniusWalletColors.brandPrimarySubtle,
+                  color: context.gw.brandPrimarySubtle,
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
@@ -316,23 +315,23 @@ class _WebViewWindowsState extends State<WebViewWindows> {
             Icons.arrow_back,
             canGoBack() ? goBack : null,
             color: canGoBack()
-                ? GeniusWalletColors.brandPrimaryOnSurface
-                : GeniusWalletColors.textPrimary38,
+                ? context.gw.brandPrimaryOnSurface
+                : context.gw.textPrimary38,
             size: 18,
           ),
           _buildIconButton(
             Icons.arrow_forward,
             canGoForward() ? goForward : null,
             color: canGoForward()
-                ? GeniusWalletColors.brandPrimaryOnSurface
-                : GeniusWalletColors.textPrimary38,
+                ? context.gw.brandPrimaryOnSurface
+                : context.gw.textPrimary38,
             size: 18,
           ),
           Expanded(child: _buildOmniboxCenter(editing)),
           _buildIconButton(
             Icons.refresh,
             _controller.reload,
-            color: GeniusWalletColors.textPrimary,
+            color: context.gw.textPrimary,
             size: 18,
           ),
           const SizedBox(width: GeniusWalletConsts.space2),
@@ -354,7 +353,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         TextField(
           controller: _urlController,
           focusNode: _urlFocusNode,
-          style: TextStyle(color: GeniusWalletColors.textPrimary, fontSize: 14),
+          style: TextStyle(color: context.gw.textPrimary, fontSize: 14),
           textAlignVertical: TextAlignVertical.center,
           decoration: const InputDecoration(
             isDense: true,
@@ -372,7 +371,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
               behavior: HitTestBehavior.opaque,
               onTap: () => _urlFocusNode.requestFocus(),
               child: Container(
-                color: GeniusWalletColors.surfaceSunken,
+                color: context.gw.surfaceSunken,
                 padding: const EdgeInsets.symmetric(
                   horizontal: GeniusWalletConsts.space2,
                 ),
@@ -384,7 +383,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                       height: 16,
                       errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.language,
-                        color: GeniusWalletColors.textPrimary60,
+                        color: context.gw.textPrimary60,
                         size: 16,
                       ),
                     ),
@@ -403,7 +402,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: GeniusWalletColors.textPrimary,
+                          color: context.gw.textPrimary,
                           fontSize: 14,
                         ),
                       ),
@@ -425,13 +424,13 @@ class _WebViewWindowsState extends State<WebViewWindows> {
   }) {
     return IconButton(
       icon: Icon(icon),
-      color: color ?? GeniusWalletColors.lightGreenPrimary,
+      color: color ?? context.gw.lightGreenPrimary,
       iconSize: size,
       constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
       padding: EdgeInsets.zero,
       onPressed: onPressed,
-      hoverColor: GeniusWalletColors.deepBlueCardColor.withValues(alpha: 0.3),
-      splashColor: GeniusWalletColors.deepBlueCardColor.withValues(alpha: 0.5),
+      hoverColor: context.gw.deepBlueCardColor.withValues(alpha: 0.3),
+      splashColor: context.gw.deepBlueCardColor.withValues(alpha: 0.5),
     );
   }
 
@@ -441,7 +440,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       barrierDismissible: true,
       builder: (context) {
         return Dialog(
-          backgroundColor: GeniusWalletColors.deepBlueCardColor,
+          backgroundColor: context.gw.deepBlueCardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
@@ -471,7 +470,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: index == currentTabIndex
-                                ? GeniusWalletColors.lightGreenPrimary
+                                ? context.gw.lightGreenPrimary
                                 : Colors.white,
                           ),
                         ),
