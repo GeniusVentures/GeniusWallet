@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 09
-current_phase_name: banxa
-status: verifying
+current_phase: 23
+current_phase_name: design-system-consolidation-theme-tokens-shared-components
+status: executing
 stopped_at: Completed 22-08-PLAN.md
-last_updated: "2026-07-28T17:18:51.677Z"
-last_activity: 2026-07-27
-last_activity_desc: "Phase 09 execution resumed (wave continue) — AND, on a parallel branch merged 2026-07-28, Completed quick tasks 260727-w58 (GWKicker), 260728-0vd (drawer shell insets + close button), 260728-13f (Markets hero shadow clearance) 260728-q7c (sketches 067-A + 156-A: drawer card canvas, section kicker, new borderControl token) 260728-r4k (transaction receipt on 154-A + 154-D copyable) 260728-p2m (sketch 068-A: three list pickers onto one GWSelectRow) 260728-s9k (sketch 069-A: the SDK Accounts section, plus 4 bugs) 260728-t3n (sketch 070-A: the coin page on base components, glyphs to one accent, plus 3 swap walk bugs) 260728-u8p (sketch 071-B: the whole coin page screen - into the ShellRoute, one page frame, the 480 literal replaced, a stat rail, GWStatTile promoted, and an explicit no-data state) and 260728-v6c (sketch 074-C2: the coin page's actions onto the section line above the chart - Receive/Swap/Bridge as icon buttons, NO Send, TokenActionBar and the More drawer deleted)"
+last_updated: "2026-07-29T13:33:31.448Z"
+last_activity: 2026-07-29
+last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 24
-  completed_phases: 16
-  total_plans: 101
-  completed_plans: 87
-  percent: 67
+  completed_phases: 17
+  total_plans: 107
+  completed_plans: 93
+  percent: 71
 ---
 
 # Project State
@@ -24,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 09 — banxa
+**Current focus:** Phase 23 — design-system-consolidation-theme-tokens-shared-components
 
 ## Current Position
 
@@ -58,8 +58,8 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
-Phase: 09 (banxa) — EXECUTING
-Plan: 09-01..09-06 of 7 COMPLETE. 09-01 `b479266`/`9c246e3` (test/banxa/ floor + shared
+Phase: 23 (design-system-consolidation-theme-tokens-shared-components) — EXECUTING
+Plan: 2 of 6
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -73,7 +73,7 @@ drifts independently of the phases dir per the project's dual-track note; verify
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
-Status: Phase complete — ready for verification
+Status: Ready to execute
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
 `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
@@ -115,7 +115,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-27 — Phase 09 execution resumed (wave continue) — AND, on a parallel branch merged 2026-07-28, Completed quick tasks 260727-w58 (GWKicker), 260728-0vd (drawer shell insets + close button), 260728-13f (Markets hero shadow clearance) 260728-q7c (sketches 067-A + 156-A: drawer card canvas, section kicker, new borderControl token) 260728-r4k (transaction receipt on 154-A + 154-D copyable) 260728-p2m (sketch 068-A: three list pickers onto one GWSelectRow) 260728-s9k (sketch 069-A: the SDK Accounts section, plus 4 bugs) 260728-t3n (sketch 070-A: the coin page on base components, glyphs to one accent, plus 3 swap walk bugs) 260728-u8p (sketch 071-B: the whole coin page screen - into the ShellRoute, one page frame, the 480 literal replaced, a stat rail, GWStatTile promoted, and an explicit no-data state) and 260728-v6c (sketch 074-C2: the coin page's actions onto the section line above the chart - Receive/Swap/Bridge as icon buttons, NO Send, TokenActionBar and the More drawer deleted)
+Last activity: 2026-07-29 — Phase 23 execution started
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
@@ -217,6 +217,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: No golden CI step added (22-07 deferred, no baseline exists) -- a step running zero golden tests would pass vacuously
 - [Phase ?]: verify_additive_boundary.sh wired non-blocking (continue-on-error) with an in-file explanation -- 2 known pre-existing false positives from Phase 8/16, unrelated to this plan
 - [Phase ?]: CI proof of the quality job is outstanding -- pushing was not authorized this session; all gates proven locally only
+- [Phase ?]: test decision
+- [Phase 23]: 23-01: excluded statusNeutral from GWColors parity per its own pre-existing locked ponytail note (mode-invariant, fill-only, glyph-derivation would duplicate a hand-maintained token) rather than forcing blanket name parity
+- [Phase 23]: 23-01: gave each of the 7 legacy value-aliases (gray500, borderBrand, statusInfo, brandGreen/Strong/Muted/Subtle) their own GWColors field rather than deduplicating, per the plan's mechanical-codemod-safety rationale
 
 ### Pending Todos
 
@@ -340,7 +343,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-28T17:18:51.665Z
+Last session: 2026-07-29T13:32:26.142Z
 Stopped at: Completed 22-08-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
@@ -458,6 +461,8 @@ Open decisions:
 | Phase 22 P05 | ~21min | 3 tasks | 92 files |
 | Phase 22 P06 | 190min | 3 tasks | 51 files |
 | Phase 22-codebase-organization-standards-config-dead-code-deletion-th P08 | 35min | 3 tasks | 4 files |
+| Phase 23 P01 | 45 | 3 tasks | 4 files |
+| Phase 23 P01 | ~40min | 3 tasks | 4 files |
 
 ### Roadmap Evolution
 

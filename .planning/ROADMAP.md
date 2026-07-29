@@ -1164,7 +1164,7 @@ that can be proven paint-preserving without a visual baseline. Still no behaviou
 
 **Requirements**: ORG-04, ORG-05 (ORG-05 partial by design — see 23-05's extraction audit)
 **Depends on:** Phase 22
-**Plans:** 6 plans
+**Plans:** 0/6 plans executed
 
 **Why this is separate from 22.** The parity premise in the original scoping was wrong:
 `GeniusWalletColors` has ~46 public members and **288** call sites outside `lib/theme/`, while
