@@ -77,14 +77,26 @@ const double _wideAmountWidth = 184;
 /// reusing the badge palette so pill and badge never disagree on what "failed"
 /// looks like. Used by the wide transactions row AND by the receipt hero.
 ///
-/// completed/failed use the appearance-aware `gw.*` colours (AA in both
-/// themes); cancelled uses `textSecondary` (also AA-tuned). pending uses the
-/// mode-invariant `statusWarning` fill. All four come from [txStatusColors].
-/// ponytail: `statusWarning` (#FFC42E) is AA as a label on the dark wash, but
-/// as a label on the LIGHT wash it is too pale (~1.8:1). Deferred to the light
-/// pass with the rest of the light-mode work; in dark mode — the current focus
-/// — it clears AA. Upgrade path: a darker light-mode amber (≈#B26A00) behind a
-/// `gw.statusWarning` getter, mirroring `gw.statusSuccess`/`gw.statusError`.
+/// All four tones come from [txStatusColors]: completed/failed use the
+/// appearance-aware `gw.*` colours, cancelled uses `textSecondary`, and
+/// pending uses `statusWarningText`.
+///
+/// The pending case USED to read the mode-invariant `statusWarning` fill and
+/// measured 1.59:1 as a label on the light wash — this comment previously
+/// deferred that "to the light pass". It was fixed on 2026-07-29 instead: the
+/// upgrade path it predicted (a darker light-mode amber behind its own token)
+/// is exactly what `statusWarningText` is — #92400E, landing at 6.56 / 5.93 /
+/// 5.15 on surfaceElevated / surfaceMenu / surfaceBase.
+///
+/// ponytail: completed and failed still do NOT clear AA as labels in light
+/// mode — measured 3.77 / 3.39 / 2.91 and 3.89 / 3.49 / 2.99 against a 4.5:1
+/// floor (13px w600 is below WCAG's 18.66px large-text threshold). Their
+/// light values are already AA-divergent and still miss, because the wash is a
+/// translucent tint of the same hue. Ceiling: only the pending tone is proven
+/// in light mode. Upgrade path: `statusSuccessText`/`statusErrorText`
+/// mirroring `statusWarningText`, then extend Part 8 of
+/// `test/theme/theme_contrast_test.dart` to all three tones in both modes. See
+/// `.planning/todos/pending/2026-07-29-status-pill-success-error-fail-aa-in-light-mode.md`.
 Widget _statusPill(TransactionStatus status, GWColors gw) {
   final (:fg, :wash) = txStatusColors(status, gw);
   return Container(
