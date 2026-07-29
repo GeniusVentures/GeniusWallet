@@ -18,6 +18,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
@@ -191,9 +192,7 @@ class SDKAccountManagerButton extends StatelessWidget {
       },
       leading: GWIcon.material(
         Icons.account_balance_wallet,
-        color: isSelected
-            ? GeniusWalletColors.brandPrimaryStrong
-            : gw.textSecondary,
+        color: isSelected ? context.gw.brandPrimaryStrong : gw.textSecondary,
       ),
       // The address IS the title here, so it takes the mono treatment through
       // the row's own escape hatch rather than a hand-built Column.
@@ -730,9 +729,7 @@ class _AddAccountFormState extends State<_AddAccountForm> {
           child: Text(
             label,
             style: GeniusWalletTypography.labelMd.copyWith(
-              color: selected
-                  ? GeniusWalletColors.textOnBrand
-                  : gw.textSecondary,
+              color: selected ? context.gw.textOnBrand : gw.textSecondary,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
             ),
           ),

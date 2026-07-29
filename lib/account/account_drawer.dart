@@ -15,6 +15,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:go_router/go_router.dart';
@@ -396,7 +397,7 @@ class AccountAvatar extends StatelessWidget {
     final isWatched = wallet.walletType == WalletType.tracking;
     return CircleAvatar(
       radius: size / 2 - 2,
-      backgroundColor: GeniusWalletColors.brandPrimaryStrong,
+      backgroundColor: context.gw.brandPrimaryStrong,
       child: isWatched
           ? const Icon(
               Icons.remove_red_eye_outlined,
