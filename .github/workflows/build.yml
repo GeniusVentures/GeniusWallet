@@ -1404,6 +1404,16 @@ jobs:
       - name: Enforce brace-every-if style (AGENTS.md Dart coding standards)
         run: bash tool/check_brace_style.sh
 
+      - name: Self-test the raw-colour detector (tool/check_raw_colors.sh --self-test)
+        run: bash tool/check_raw_colors.sh --self-test
+
+      # Scoped to the directories 23-04-GATE-SCOPE.md measured clean -- see
+      # that document for the covered/uncovered split, per-directory counts,
+      # and the widening plan. Never covers lib/theme/, where raw colours are
+      # the primitive layer and correct by design.
+      - name: Enforce no raw Colors.*/Color(0x...) outside lib/theme/ (AGENTS.md, scoped -- see 23-04-GATE-SCOPE.md)
+        run: bash tool/check_raw_colors.sh
+
       - name: Security gate -- no key-material console logging in the SDK account manager
         run: bash tool/check_no_new_key_logging.sh --scan-tree
 
