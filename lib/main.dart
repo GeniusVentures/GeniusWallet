@@ -23,6 +23,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/theme.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
@@ -252,7 +253,7 @@ class MyApp extends StatelessWidget {
     // this screen's own color access.
     ErrorWidget.builder = (FlutterErrorDetails details) {
       return Material(
-        color: GeniusWalletColors.surfaceBase,
+        color: context.gw.surfaceBase,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(GeniusWalletConsts.space12),
@@ -268,7 +269,7 @@ class MyApp extends StatelessWidget {
                 Text(
                   'Something went wrong',
                   style: GeniusWalletTypography.titleLg.copyWith(
-                    color: GeniusWalletColors.textPrimary,
+                    color: context.gw.textPrimary,
                   ),
                 ),
                 const SizedBox(height: GeniusWalletConsts.space12),
