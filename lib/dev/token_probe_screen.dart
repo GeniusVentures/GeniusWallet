@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Dev-only probe surface (UI-SPEC §9). Proves the new token layer resolves
 /// at runtime and flips live with [GWAppearance] — without touching, or being
@@ -39,9 +39,9 @@ class _TokenProbeScreenState extends State<TokenProbeScreen> {
       builder: (context, mode, _) {
         final isLight = GWAppearance.isLight;
         return Scaffold(
-          backgroundColor: GeniusWalletColors.surfaceBase,
+          backgroundColor: context.gw.surfaceBase,
           appBar: AppBar(
-            backgroundColor: GeniusWalletColors.surfaceBase,
+            backgroundColor: context.gw.surfaceBase,
             elevation: 0,
             title: Text(
               'Design tokens',
@@ -90,7 +90,7 @@ class _TokenProbeScreenState extends State<TokenProbeScreen> {
                     child: Text(
                       'Brand CTA',
                       style: GeniusWalletTypography.titleMd.copyWith(
-                        color: GeniusWalletColors.textOnBrand,
+                        color: context.gw.textOnBrand,
                       ),
                     ),
                   ),

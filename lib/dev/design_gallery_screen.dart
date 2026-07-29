@@ -47,6 +47,7 @@ import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Living catalogue of every component in the GW design system. Reach this
 /// screen via the `Gallery` button in the `Dev` row inside `DevToolsWidget`
@@ -112,7 +113,7 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
           // toggle. (D-02 re-walk finding.)
           appBar: AppBar(
             title: const Text('Design Gallery'),
-            backgroundColor: GeniusWalletColors.surfaceElevated,
+            backgroundColor: context.gw.surfaceElevated,
             actions: [
               IconButton(
                 tooltip: isLight ? 'Switch to dark' : 'Switch to light',
@@ -142,7 +143,7 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                       Text(
                         'Total balance',
                         style: GeniusWalletTypography.labelMd.copyWith(
-                          color: GeniusWalletColors.textSecondary,
+                          color: context.gw.textSecondary,
                         ),
                       ),
                       const SizedBox(height: GeniusWalletConsts.space4),
@@ -216,13 +217,10 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                 title: 'Surfaces',
                 child: _ColorRow(
                   swatches: [
-                    _Swatch('Base (canvas)', GeniusWalletColors.surfaceBase),
-                    _Swatch(
-                      'Elevated (card)',
-                      GeniusWalletColors.surfaceElevated,
-                    ),
-                    _Swatch('Menu / sheet', GeniusWalletColors.surfaceMenu),
-                    _Swatch('Sunken', GeniusWalletColors.surfaceSunken),
+                    _Swatch('Base (canvas)', context.gw.surfaceBase),
+                    _Swatch('Elevated (card)', context.gw.surfaceElevated),
+                    _Swatch('Menu / sheet', context.gw.surfaceMenu),
+                    _Swatch('Sunken', context.gw.surfaceSunken),
                   ],
                 ),
               ),
@@ -627,7 +625,7 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                           'mode — toggle appearance to compare.',
                           textAlign: TextAlign.center,
                           style: GeniusWalletTypography.bodySm.copyWith(
-                            color: GeniusWalletColors.textSecondary,
+                            color: context.gw.textSecondary,
                           ),
                         ),
                       ),
@@ -651,7 +649,7 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                           'above, which is the actual noise.png consumer.',
                           textAlign: TextAlign.center,
                           style: GeniusWalletTypography.bodySm.copyWith(
-                            color: GeniusWalletColors.textPrimary,
+                            color: context.gw.textPrimary,
                           ),
                         ),
                       ),
@@ -995,7 +993,7 @@ class _ColorRow extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: GWDecorations.surfaceSheen,
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
-            border: Border.all(color: GeniusWalletColors.borderSubtle),
+            border: Border.all(color: context.gw.borderSubtle),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1014,7 +1012,7 @@ class _ColorRow extends StatelessWidget {
               Text(
                 hex,
                 style: GeniusWalletTypography.bodySm.copyWith(
-                  color: GeniusWalletColors.textSecondary,
+                  color: context.gw.textSecondary,
                 ),
               ),
             ],
