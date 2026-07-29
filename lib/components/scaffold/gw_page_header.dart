@@ -103,10 +103,11 @@ class GWPageHeader extends StatelessWidget {
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // The only flex child here, so it gets ALL the space
+                  // titleTrailing does not need and ellipsizes instead of
+                  // overflowing once the row runs out.
                   Flexible(child: titleText),
                   ?titleTrailing,
-                  const Spacer(),
-                  ?trailing,
                 ],
               ),
         if (subtitleText != null) ...[
@@ -116,17 +117,42 @@ class GWPageHeader extends StatelessWidget {
       ],
     );
 
-    // The glyph sits beside the whole block, not inside the title Row, so it
-    // centres against title + subtitle together. `Expanded` keeps the trailing
-    // widget pinned to the right edge exactly as it is without a leading.
-    final Widget identityBlock = leading == null
+    // [leading] and [trailing] both sit beside the WHOLE identity block, not
+    // inside the title Row, so both centre against title + subtitle together.
+    //
+    // For [trailing] that placement is also what keeps the subtitle tight.
+    // Inside the title Row it set the ROW's height, and with
+    // `CrossAxisAlignment.center` a tall trailing - the coin page's two-line
+    // price block is ~62px against a 32px title line - centred the title in
+    // the row and parked ~15px of dead row between the title and the `space2`
+    // spacer below it. Measured 19px where the token says 4. Out here the
+    // column is exactly `title + space2 + subtitle` tall whatever the price
+    // block does. See `gw_page_header_subtitle_gap_test.dart`.
+    //
+    // The identity takes ONE `Expanded` slot and [trailing] takes the rest, so
+    // trailing lands on the row's right edge - the same edge the body below
+    // the header uses. It must not be a flat `[Flexible(identity), Spacer,
+    // trailing]` row: `Flexible` and `Spacer` both default to flex 1, so they
+    // split the free space 50/50, and a LOOSE `Flexible` whose Text does not
+    // spend its whole allowance leaves the remainder parked at the END of the
+    // row (default `MainAxisAlignment.start`). That is why "Updated now ⟳"
+    // stopped near the middle of a 1900px window while the search field under
+    // it spanned the full width.
+    //
+    // With [centered] the trailing goes in the Stack below instead, so the
+    // centred text centres on the full width rather than on what is left.
+    final bool trailingBesideIdentity = !centered && trailing != null;
+    final Widget identityBlock = leading == null && !trailingBesideIdentity
         ? titleBlock
         : Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              leading!,
-              const SizedBox(width: GeniusWalletConsts.space6),
+              if (leading != null) ...[
+                leading!,
+                const SizedBox(width: GeniusWalletConsts.space6),
+              ],
               Expanded(child: titleBlock),
+              if (trailingBesideIdentity) trailing!,
             ],
           );
 

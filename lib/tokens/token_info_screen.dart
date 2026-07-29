@@ -480,8 +480,25 @@ class TokenInfoScreen extends StatelessWidget {
     // taller than the title - while the button still measures 48. `md` rather
     // than `sm` because `sm`'s glyph is 16px, too faint beside a 24px title;
     // `md` gives 20px and a 48px target, above the floor rather than below it.
-    // The row costs no height either way: the header line is already 62px,
-    // driven by the two-line price block opposite.
+    // **The row used to cost no height - that stopped being true on
+    // 2026-07-29.** The claim here was that the header line is already 62px,
+    // driven by the two-line price block opposite. It was, because `trailing`
+    // sat INSIDE `GWPageHeader`'s title Row and dragged the whole line to its
+    // own height, which is exactly what put 19px between "GENIUS AI" and
+    // "GNUS · Ethereum". The price block now sits beside the identity block
+    // instead, so the title line is `max(title 32, these buttons 48)` = 48 and
+    // the 48px target is what keeps 8px under the title.
+    //
+    // **Jakub was asked and chose to keep it, 2026-07-29.** Shown the gap at
+    // 12px and offered 4px for `height: 32` (or 8px for 40), he kept 48. So
+    // the 12px under the title is a paid-for accessibility margin, not an
+    // oversight - do not "tidy" it away without reopening the decision.
+    //
+    // Leaving it at 48 anyway: 8px of transparent tap padding is the cheaper
+    // side of the trade against dropping below the 44px floor this comment
+    // already argued once. If Jakub wants the last 8px, `height: 32` on these
+    // two buttons is the whole change - it clears 2.5.8 (AA) and fails 2.5.5
+    // (AAA), which is the decision, not a tweak.
     //
     // The accepted cost: at rest the icons have no boundary, and the hover
     // circle is the only edge. That is fine under 1.4.11 - a control's edge
