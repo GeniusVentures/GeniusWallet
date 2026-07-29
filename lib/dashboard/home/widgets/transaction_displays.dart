@@ -8,7 +8,6 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -58,8 +57,8 @@ const double _wideAmountWidth = 184;
     wash: gw.statusSuccess.withValues(alpha: 0.14),
   ),
   TransactionStatus.pending => (
-    fg: GeniusWalletColors.statusWarning,
-    wash: GeniusWalletColors.statusWarning.withValues(alpha: 0.16),
+    fg: gw.statusWarning,
+    wash: gw.statusWarning.withValues(alpha: 0.16),
   ),
   TransactionStatus.failed => (
     fg: gw.statusError,

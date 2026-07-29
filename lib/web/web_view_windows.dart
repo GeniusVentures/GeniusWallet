@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/web/web_chrome_helpers.dart';
@@ -389,9 +388,9 @@ class _WebViewWindowsState extends State<WebViewWindows> {
                     ),
                     if (secure) ...[
                       const SizedBox(width: GeniusWalletConsts.space2),
-                      const Icon(
+                      Icon(
                         Icons.lock,
-                        color: GeniusWalletColors.statusSuccess,
+                        color: context.gw.statusSuccess,
                         size: 13,
                       ),
                     ],

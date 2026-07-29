@@ -5,7 +5,6 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/data/gw_animated_number.dart';
 import 'package:genius_wallet/components/data/gw_status_dot.dart';
 import 'package:genius_wallet/dashboard/compute/compute_state.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -130,11 +129,11 @@ Color _dotColorFor(ComputeDotRole role, GWColors gw) {
     case ComputeDotRole.neutral:
       return gw.textSecondary;
     case ComputeDotRole.warning:
-      return _warningDotColor();
+      return _warningDotColor(gw);
     case ComputeDotRole.success:
       return gw.statusSuccess;
     case ComputeDotRole.brand:
-      return GeniusWalletColors.brandPrimaryOnSurface;
+      return gw.brandPrimaryOnSurface;
     case ComputeDotRole.error:
       return gw.statusError;
   }
@@ -155,10 +154,10 @@ Color _dotColorFor(ComputeDotRole role, GWColors gw) {
 /// fails on light. Upgrade path: the appearance-aware `gw.statusWarning`
 /// getter both this and `GWWarningNote` are waiting for, after which both
 /// calls fold into it.
-Color _warningDotColor() {
+Color _warningDotColor(GWColors gw) {
   return GWAppearance.isLight
       ? const Color(0xFF92400E) // ~7.1:1 on white, matches GWWarningNote
-      : GeniusWalletColors.statusWarning; // ~13:1 on the dark canvas
+      : gw.statusWarning; // ~13:1 on the dark canvas
 }
 
 /// The sunken, non-elevated well both tiles share (`14-UI-SPEC.md §1.3`).

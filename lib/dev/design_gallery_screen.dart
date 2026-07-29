@@ -40,7 +40,6 @@ import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 // path.
 import 'package:genius_wallet/components/splash.dart';
 import 'package:genius_wallet/dev/generated_closure_canary.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -191,25 +190,22 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                   ],
                 ),
               ),
-              const _Section(
+              _Section(
                 title: 'Brand colors',
                 child: _ColorRow(
                   swatches: [
-                    _Swatch('Primary', GeniusWalletColors.brandPrimary),
-                    _Swatch(
-                      'Primary strong',
-                      GeniusWalletColors.brandPrimaryStrong,
-                    ),
-                    _Swatch('Secondary', GeniusWalletColors.brandSecondary),
+                    _Swatch('Primary', context.gw.brandPrimary),
+                    _Swatch('Primary strong', context.gw.brandPrimaryStrong),
+                    _Swatch('Secondary', context.gw.brandSecondary),
                     _Swatch(
                       'Secondary strong',
-                      GeniusWalletColors.brandSecondaryStrong,
+                      context.gw.brandSecondaryStrong,
                     ),
                     _Swatch(
                       'Secondary bright',
-                      GeniusWalletColors.brandSecondaryBright,
+                      context.gw.brandSecondaryBright,
                     ),
-                    _Swatch('Tertiary', GeniusWalletColors.brandTertiary),
+                    _Swatch('Tertiary', context.gw.brandTertiary),
                   ],
                 ),
               ),
@@ -224,14 +220,14 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                   ],
                 ),
               ),
-              const _Section(
+              _Section(
                 title: 'Status',
                 child: _ColorRow(
                   swatches: [
-                    _Swatch('Success', GeniusWalletColors.statusSuccess),
-                    _Swatch('Error', GeniusWalletColors.statusError),
-                    _Swatch('Warning', GeniusWalletColors.statusWarning),
-                    _Swatch('Info', GeniusWalletColors.statusInfo),
+                    _Swatch('Success', context.gw.statusSuccess),
+                    _Swatch('Error', context.gw.statusError),
+                    _Swatch('Warning', context.gw.statusWarning),
+                    _Swatch('Info', context.gw.statusInfo),
                   ],
                 ),
               ),

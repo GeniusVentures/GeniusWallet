@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -50,11 +49,7 @@ class _TokenFlipButtonState extends State<TokenFlipButton> {
                 ),
                 border: Border.all(color: gw.surfaceElevated, width: 5),
               ),
-              child: const Icon(
-                Icons.swap_vert,
-                color: GeniusWalletColors.textOnBrand,
-                size: 20,
-              ),
+              child: Icon(Icons.swap_vert, color: gw.textOnBrand, size: 20),
             ),
           ),
         ),

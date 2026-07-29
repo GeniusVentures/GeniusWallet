@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:go_router/go_router.dart';
@@ -73,9 +72,9 @@ class SwapResultDrawer {
               ),
               minimumSize: const Size.fromHeight(48),
             ),
-            child: const Text(
+            child: Text(
               "Go to Transactions",
-              style: TextStyle(color: GeniusWalletColors.deepBlueTertiary),
+              style: TextStyle(color: context.gw.deepBlueTertiary),
             ),
           ),
           const SizedBox(height: 12),

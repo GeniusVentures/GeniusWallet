@@ -8,7 +8,6 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -902,10 +901,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
                 color: context.gw.brandSecondaryMuted,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check_rounded,
-                color: GeniusWalletColors.brandSecondaryStrong,
-              ),
+              child: Icon(Icons.check_rounded, color: gw.brandSecondaryStrong),
             ),
             const SizedBox(width: GeniusWalletConsts.space8),
             Expanded(

@@ -10,7 +10,6 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -316,9 +315,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(
+                                      icon: Icon(
                                         Icons.paste,
-                                        color: GeniusWalletColors.brandPrimary,
+                                        color: ctx.gw.brandPrimary,
                                       ),
                                       tooltip: "Paste from clipboard",
                                       onPressed: () async {
@@ -373,10 +372,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                       ),
                       backgroundColor: Colors.transparent,
                     ),
-                    icon: const Icon(
-                      Icons.link,
-                      color: GeniusWalletColors.brandPrimary,
-                    ),
+                    icon: Icon(Icons.link, color: ctx.gw.brandPrimary),
                     label: Text(
                       showManualInput ? "Show QR Code" : "Enter URI Manually",
                     ),

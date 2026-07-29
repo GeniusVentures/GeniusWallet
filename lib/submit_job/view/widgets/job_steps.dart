@@ -10,7 +10,6 @@ import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 import 'package:genius_wallet/submit_job/submit_job_cta_state.dart';
 import 'package:genius_wallet/submit_job/view/widgets/job_step_list.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -352,9 +351,8 @@ class JobResultBody extends StatelessWidget {
   /// effectively invisible on a light canvas (~1.6:1); this local constant is
   /// the same documented workaround until an appearance-aware
   /// `gw.statusWarning` token exists (`14-UI-SPEC.md` §5.3's open item).
-  static Color _amber() => GWAppearance.isLight
-      ? const Color(0xFF92400E)
-      : GeniusWalletColors.statusWarning;
+  static Color _amber(GWColors gw) =>
+      GWAppearance.isLight ? const Color(0xFF92400E) : gw.statusWarning;
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +384,10 @@ class JobResultBody extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            GWStatusDot(color: _amber(), label: 'Tokens sent, job not started'),
+            GWStatusDot(
+              color: _amber(gw),
+              label: 'Tokens sent, job not started',
+            ),
             const SizedBox(height: GeniusWalletConsts.space6),
             const GWWarningNote(
               'Your GNUS was bridged but the job did not start. The '

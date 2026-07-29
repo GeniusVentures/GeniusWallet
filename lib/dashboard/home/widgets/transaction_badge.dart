@@ -57,16 +57,16 @@ TransactionBadgeSpec badgeSpec(TransactionBadgeKind kind, GWColors gw) {
     case TransactionBadgeKind.mint:
       // Sketch 012 recommended the server for Mint; Jakub overrode it. The
       // pickaxe is on MINT and the server is on JOB — do not re-litigate.
-      return const TransactionBadgeSpec(
-        fill: GeniusWalletColors.brandTertiary,
+      return TransactionBadgeSpec(
+        fill: gw.brandTertiary,
         svgAsset: 'assets/images/pickaxe.svg',
         label: 'Mint',
       );
     case TransactionBadgeKind.job:
       // Icons.dns is Material's server rack — matches the sketch's two
       // stacked rects, so no FontAwesome import is needed.
-      return const TransactionBadgeSpec(
-        fill: GeniusWalletColors.brandPrimaryStrong,
+      return TransactionBadgeSpec(
+        fill: gw.brandPrimaryStrong,
         icon: Icons.dns,
         label: 'Job',
       );
@@ -92,8 +92,8 @@ TransactionBadgeSpec badgeSpec(TransactionBadgeKind kind, GWColors gw) {
         label: 'Purchased',
       );
     case TransactionBadgeKind.pending:
-      return const TransactionBadgeSpec(
-        fill: GeniusWalletColors.statusWarning,
+      return TransactionBadgeSpec(
+        fill: gw.statusWarning,
         icon: Icons.schedule,
         label: 'Pending',
       );
@@ -116,16 +116,16 @@ TransactionBadgeSpec badgeSpec(TransactionBadgeKind kind, GWColors gw) {
 /// fill-vs-surface. A hardcoded white glyph on `statusError` is exactly the
 /// regression quick task 260720-k81 shipped and 05-VERIFICATION logged as
 /// Gap 1.
-Color badgeGlyphColor(Color fill) {
+Color badgeGlyphColor(Color fill, GWColors gw) {
   final lf = fill.computeLuminance();
   double ratio(Color c) {
     final lc = c.computeLuminance();
     return (lc > lf ? (lc + 0.05) / (lf + 0.05) : (lf + 0.05) / (lc + 0.05));
   }
 
-  return ratio(Colors.white) >= ratio(GeniusWalletColors.textOnBrand)
+  return ratio(Colors.white) >= ratio(gw.textOnBrand)
       ? Colors.white
-      : GeniusWalletColors.textOnBrand;
+      : gw.textOnBrand;
 }
 
 /// Paints [spec]'s glyph, whether it is an [IconData] or an SVG asset.
@@ -180,7 +180,11 @@ class TransactionBadge extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: ringColor ?? gw.surfaceElevated, width: 2),
         ),
-        child: badgeGlyph(spec, color: badgeGlyphColor(spec.fill), size: 11),
+        child: badgeGlyph(
+          spec,
+          color: badgeGlyphColor(spec.fill, gw),
+          size: 11,
+        ),
       ),
     );
   }

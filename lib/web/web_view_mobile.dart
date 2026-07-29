@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -723,9 +722,9 @@ class WebViewMobileState extends State<WebViewMobile> {
                       ),
                       if (secure) ...[
                         const SizedBox(width: GeniusWalletConsts.space2),
-                        const Icon(
+                        Icon(
                           Icons.lock,
-                          color: GeniusWalletColors.statusSuccess,
+                          color: context.gw.statusSuccess,
                           size: 13,
                         ),
                       ],

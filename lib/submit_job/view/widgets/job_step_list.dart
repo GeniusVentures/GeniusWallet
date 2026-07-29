@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -194,11 +193,7 @@ class _StepBadge extends StatelessWidget {
           color: gw.statusSuccess,
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.check,
-          size: 12,
-          color: GeniusWalletColors.textOnBrand,
-        ),
+        child: Icon(Icons.check, size: 12, color: gw.textOnBrand),
       );
     }
     return Container(

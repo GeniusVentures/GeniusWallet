@@ -20,7 +20,6 @@ import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -842,7 +841,7 @@ class CoinInfoCard extends StatelessWidget {
   ///
   /// The accepted cost, stated: the card reads quieter, and rows lose per-row
   /// colour coding.
-  static Color get _glyph => GeniusWalletColors.brandPrimaryOnSurface;
+  static Color _glyph(GWColors gw) => gw.brandPrimaryOnSurface;
 
   @override
   Widget build(BuildContext context) {
@@ -870,7 +869,9 @@ class CoinInfoCard extends StatelessWidget {
           children: [
             SizedBox(
               width: 22,
-              child: Center(child: SketchIcon(svg, size: 16, color: _glyph)),
+              child: Center(
+                child: SketchIcon(svg, size: 16, color: _glyph(gw)),
+              ),
             ),
             const SizedBox(width: GeniusWalletConsts.space6),
             Expanded(
@@ -900,7 +901,7 @@ class CoinInfoCard extends StatelessWidget {
           address: address!,
           keyStyle: keyStyle,
           valStyle: valStyle,
-          glyph: _glyph,
+          glyph: _glyph(gw),
         ),
       statRow(
         SketchIcons.marketCap,

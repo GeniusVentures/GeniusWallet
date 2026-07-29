@@ -7,7 +7,6 @@ import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/screens/boot_sequence.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -270,11 +269,11 @@ class _SplashState extends State<Splash> {
                                 builder: (context, value, child) => Container(
                                   width: constraints.maxWidth * value,
                                   height: 2,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        GeniusWalletColors.brandPrimary,
-                                        GeniusWalletColors.brandSecondary,
+                                        context.gw.brandPrimary,
+                                        context.gw.brandSecondary,
                                       ],
                                     ),
                                   ),

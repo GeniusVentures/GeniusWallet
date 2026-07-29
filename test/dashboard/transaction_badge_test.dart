@@ -24,7 +24,7 @@ void main() {
         test('${kind.name} glyph vs fill -- $mode', () {
           final gw = colorsFor(mode);
           final spec = badgeSpec(kind, gw);
-          final glyph = badgeGlyphColor(spec.fill);
+          final glyph = badgeGlyphColor(spec.fill, gw);
           expect(
             contrastRatio(glyph, spec.fill),
             greaterThanOrEqualTo(4.5),
