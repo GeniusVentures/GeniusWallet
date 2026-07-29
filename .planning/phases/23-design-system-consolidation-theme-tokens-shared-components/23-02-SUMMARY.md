@@ -96,26 +96,32 @@ coverage:
     description: "Every screen touched by this migration still flips correctly on the appearance toggle, in both modes -- the one failure mode (a colour hoisted out of build()) no automated check in this repo can see"
     verification:
       - kind: manual_procedural
-        ref: "Task 4's eight-screen, both-mode appearance-toggle walk -- checklist provided in this SUMMARY's 'Task 4' section below"
-        status: unknown
+        ref: "Task 4's eight-screen, both-mode appearance-toggle walk, walked live by Braian (debug build, PID 30692, GW_DEV_TOOLS=true) -- 'all good', every screen repainted on dark->light->dark with no re-navigation needed"
+        status: pass
+      - kind: other
+        ref: "Orchestrator's independent static hoist check (before the walk): no class-level field/State-field holds a context.gw value; no context.gw read inside initState/didChangeDependencies/dispose; the one non-build-signature helper (_activeUnderlineGradient() in lib/web/web_view_mobile.dart:557) is called from inside build() at line 531 on a State subclass and recomputes per call, so the Theme.of dependency registers correctly"
+        status: pass
+      - kind: other
+        ref: "Orchestrator's log monitor during the walk, filtering for RenderFlex overflowed / EXCEPTION CAUGHT / Failed assertion / Null check operator / LateInitializationError / _TypeError / No GWColors -- zero events"
+        status: pass
     human_judgment: true
-    rationale: "Compile-time analyze and the 693-test suite prove the value read is unchanged and the code compiles, but neither can observe whether a widget actually repaints live when the appearance mode is toggled in the running app -- that is exactly what Task 4's blocking-human walk exists to catch, and it has not been performed yet."
+    rationale: "Compile-time analyze and the 693-test suite prove the value read is unchanged and the code compiles, but only a live walk can observe whether a widget actually repaints live when the appearance mode is toggled in the running app -- performed and PASSED, with one recorded caveat (see 'Task 4' section: market-data-dependent surfaces were walked but inconclusive due to a live API/RPC outage, unrelated to this migration)."
 
-duration: ~1h 40min (Tasks 1-3 only; Task 4 is a blocking-human checkpoint, not yet performed)
+duration: ~1h 40min (Tasks 1-3, autonomous) + Task 4 walked live by Braian, approved by the orchestrator
 completed: 2026-07-29
-status: blocked
+status: complete
 ---
 
 # Phase 23 Plan 02: AST codemod moves 179 GeniusWalletColors call sites onto context.gw Summary
 
-**A `package:analyzer`-based AST rewriter (no package install) migrated 179 of `lib/`'s 251 measured colour-read call sites from the static `GeniusWalletColors` palette onto the semantic `context.gw` accessor, across 12 directories plus `lib/main.dart`, leaving a reconciled 72-site residue (45 const-context, 27 no-BuildContext) for 23-03.**
+**A `package:analyzer`-based AST rewriter (no package install) migrated 179 of `lib/`'s 251 measured colour-read call sites from the static `GeniusWalletColors` palette onto the semantic `context.gw` accessor, across 12 directories plus `lib/main.dart`, leaving a reconciled 72-site residue (45 const-context, 27 no-BuildContext) for 23-03. The eight-screen appearance-toggle walk (Task 4) PASSED live, with one recorded caveat.**
 
-Tasks 1-3 (all `type="auto"`) are complete and committed. **Task 4 — the eight-screen, both-mode appearance-toggle walk — is a `checkpoint:human-verify` (`gate="blocking"`) and has NOT been performed.** This SUMMARY documents the auto-task work only; the live walk that confirms no colour got hoisted out of `build()` remains outstanding.
+Tasks 1-3 (all `type="auto"`) plus Task 4 (`checkpoint:human-verify`, `gate="blocking"`) are all complete. Task 4 was walked live by Braian and independently corroborated by the orchestrator (log monitor + static hoist check) — see the "Task 4" section below for the full record, including the one caveat (market-data-dependent surfaces inconclusive due to a live infrastructure outage, unrelated to this migration).
 
 ## Performance
 
-- **Duration:** ~1h 40min (Tasks 1-3)
-- **Tasks:** 3 of 4 (Task 4 pending human verification)
+- **Duration:** ~1h 40min (Tasks 1-3, autonomous execution) + Task 4 walked live with the user
+- **Tasks:** 4 of 4 complete
 - **Files modified:** 47 `lib/` files + 1 new tool file + 1 new residue doc
 
 ## Accomplishments
@@ -133,7 +139,7 @@ Tasks 1-3 (all `type="auto"`) are complete and committed. **Task 4 — the eight
 2. **Task 2: Apply directory by directory** - one commit per directory (see list below), plus `984443e` for `lib/main.dart` (deviation, see below)
 3. **Task 3: Write the residue inventory for 23-03** - `102543e` (docs)
 
-**Task 4: the eight-screen appearance-toggle walk — NOT YET PERFORMED** (`checkpoint:human-verify`, `gate="blocking"`). No plan-metadata commit has been made yet; STATE.md/ROADMAP.md are owned by the orchestrator.
+4. **Task 4: the eight-screen appearance-toggle walk — PASSED** (`checkpoint:human-verify`, `gate="blocking"`), walked live by Braian, corroborated by the orchestrator. See the "Task 4" section below for the full record and its one caveat. No `.dart`/tool changes in this task; STATE.md/ROADMAP.md updates and this SUMMARY's revision are tracked in the metadata commits below.
 
 ### Per-directory commits (Task 2)
 
@@ -240,34 +246,27 @@ None beyond the plan's own `<threat_model>` (T-23-07 through T-23-12), all mitig
 
 None — no external service configuration required.
 
-## Task 4: Eight-Screen Appearance-Toggle Walk — OUTSTANDING (blocking-human checkpoint)
+## Task 4: Eight-Screen Appearance-Toggle Walk — PASSED (2026-07-29, with user)
 
-**Not performed.** This requires building and running the app interactively, which an autonomous execution session cannot do. The walk script below is exactly what the plan specifies — hand this to the developer:
+Performed live by Braian in a debug build (`flutter run -d windows --debug --dart-define=GW_DEV_TOOLS=true`, PID 30692, window title "Genius Wallet", build 36.8s), toggling appearance in place. The orchestrator gathered independent corroborating evidence in parallel:
 
-Start in **dark** mode. On each screen, note what it looks like. Then go to Settings and toggle appearance to **light**. Return to each screen and confirm it changed. Then toggle back to dark and confirm it changed back. A screen that looks correct in dark and correct in light is fine; a screen that looks correct in dark and is STILL DARK after the toggle is the bug (a frozen colour, hoisted out of `build()`).
+- **Live walk verdict — PASS.** "All good" — every screen repainted on dark → light → dark. No screen required navigating away and back to pick up the new colour. That is precisely the hoisted-colour failure mode this walk exists to catch, and it did not occur.
+- **Orchestrator's static hoist check (independent, before the walk) — PASS.** No class-level field or `State` field holds a `context.gw`-derived value; no `context.gw` read inside `initState`/`didChangeDependencies`/`dispose`. The one helper in the migrated set that reads `context.gw` outside a `build()` method signature — `_activeUnderlineGradient()` in `lib/web/web_view_mobile.dart:557` — sits on `WebViewMobileState extends State<...>` and is called from inside `build()` at line 531, recomputing on every call, so the `Theme.of` dependency registers on the element that actually rebuilds. Confirms, independently of the walk, that this migration did not introduce the one failure class no automated gate here can see.
+- **Orchestrator's log monitor during the walk — PASS.** Filtered for `RenderFlex overflowed`, `EXCEPTION CAUGHT`, `Failed assertion`, `Null check operator`, `LateInitializationError`, `_TypeError`, `No GWColors` — zero events. Silence here is meaningful: a throwing toggle would have surfaced even on a screen that looked visually correct.
 
-1. **Dashboard** — balance header, holdings list, transactions list, markets table (check the coloured percentage cells specifically), news cards.
-2. **A token detail screen** — chart, price header, address row, stat rows.
-3. **Settings** — the screen you toggle from; confirm it repaints under you, not just on re-entry.
-4. **Swap** — the two amount fields, token selectors, and the settings drawer.
-5. **One onboarding screen** — recovery-phrase or verify-recovery-phrase screen.
-6. **Submit logs** (Settings → logs) — monospace family + a status colour.
-7. **A toast** — trigger any success or error toast. (Expected to look WRONG in light mode — `toast_widget.dart` has an inverted light palette, 23-03 fixes it. Just confirm it *changes*.)
-8. **A dApp connect prompt**, if reachable — `lib/reown/` was the last money-path directory migrated.
+**Caveat, recorded honestly rather than upgraded to a clean pass:** market data did not load during the walk — CoinGecko returned `TimeoutException after 0:00:03`, a TLS `HandshakeException: Connection terminated during handshake` occurred, and the RPC returned `RPCError: got code 30 with msg "Request timeout on the free plan, please upgrade to paid plan"`. **These are infrastructure failures, not code failures caused by this migration** (per this project's standing "don't manufacture diagnoses" rule — an API 500/timeout is infra, not a defect in the code under test). Their consequence for this gate: screen 1's coloured percentage cells (markets table) and screen 2's chart could not be fully exercised, because the surfaces that carry those specific colours had no live data to render against. Every other item in the eight-screen checklist WAS exercised and passed. **Recorded as walked-but-inconclusive-on-price-coloured-cells** (dashboard markets table % cells, token detail chart) — flagged here so 23-06's closeout walk knows to re-check those two specific surfaces once the API/RPC cooperates. This is not a blocker for this plan (the migration's own correctness is proven by value-parity + the AST rewrite's construction, independent of whether the API responded), but it is an honest gap in what this specific walk could observe.
 
-Also confirm any hover effect (dashboard cards, markets rows) still changes the row on hover — a frozen hover colour is the same bug wearing a different hat.
-
-**Resume signal:** "approved", or list the screen numbers that did not change with the toggle.
+**Gate outcome: Task 4 is CLOSED.** All eight checklist items were exercised in both appearance modes; every item that had live data to render against changed correctly on the toggle; hover effects were unaffected; the two market-data-dependent surfaces are recorded as inconclusive-not-failed, with the reason, for 23-06 to re-check.
 
 ## Next Phase Readiness
 
-Tasks 1-3 are complete: the codemod exists and is proven correct (`--self-test`, empirically validated against every file 22-05 flagged in advance), 179 sites are migrated across 13 directories with analyzer/brace/format/test gates green after every commit, and the 72-site residue is precisely enumerated and reconciled for 23-03 to consume directly (grouped by reason, per-file, with closing notes). The six `test/` files 23-04 will break are flagged with their exact member reads.
+All four tasks are complete. Tasks 1-3 landed the AST codemod (proven correct via `--self-test`, empirically validated against every file 22-05 flagged in advance) and migrated 179 sites across 13 directories with analyzer/brace/format/test gates green after every commit; the 72-site residue is precisely enumerated and reconciled for 23-03 to consume directly (grouped by reason, per-file, with closing notes). Task 4's live walk confirmed no colour was hoisted out of `build()`, with one recorded caveat (market-data-dependent surfaces inconclusive due to a live API/RPC outage — re-check in 23-06). The six `test/` files 23-04 will break are flagged with their exact member reads. **23-03 may now proceed against `23-02-RESIDUE.md`.**
 
-**Blocker:** Task 4 (the eight-screen appearance-toggle walk) has not been performed and must complete before this plan can be considered fully closed. Recorded as an honest outstanding gap, not assumed passing — consistent with this project's standing practice (see PROJECT.md's Phase 5 closure precedent and 04-02-SUMMARY.md's own `status: blocked` precedent for the same checkpoint type).
+Four re-measured gates (orchestrator, at the final commit, do not re-quote the executor's own numbers over these): `flutter analyze --no-pub` "No issues found!" (32.3s); `bash tool/check_brace_style.sh --count` 0; `dart format --output=none --set-exit-if-changed lib test` exit 0; `flutter test --no-pub` 693 pass / 0 fail. `pubspec.yaml`/`pubspec.lock` verified byte-untouched across the whole commit range — the no-new-dependency rule held without needing a refusal.
 
 ---
 *Phase: 23-design-system-consolidation-theme-tokens-shared-components*
-*Completed: 2026-07-29 (Tasks 1-3; Task 4 outstanding)*
+*Completed: 2026-07-29 (Tasks 1-4, all complete; Task 4 walked live and approved)*
 
 ## Self-Check: PASSED
 
