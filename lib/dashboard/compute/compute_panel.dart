@@ -8,7 +8,6 @@ import 'package:genius_wallet/dashboard/compute/compute_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
-import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
@@ -129,7 +128,7 @@ Color _dotColorFor(ComputeDotRole role, GWColors gw) {
     case ComputeDotRole.neutral:
       return gw.textSecondary;
     case ComputeDotRole.warning:
-      return _warningDotColor(gw);
+      return gw.statusWarningText;
     case ComputeDotRole.success:
       return gw.statusSuccess;
     case ComputeDotRole.brand:
@@ -137,27 +136,6 @@ Color _dotColorFor(ComputeDotRole role, GWColors gw) {
     case ComputeDotRole.error:
       return gw.statusError;
   }
-}
-
-/// The warning dot's colour. `GWColors` carries no `statusWarning` token
-/// yet - `GeniusWalletColors.statusWarning` (#FFC42E) is a FILL-tuned
-/// primitive that measures ~12:1 on the dark canvas but only ~1.6:1 on a
-/// light one (`14-UI-SPEC.md §5.3`), so the dot would simply not be there
-/// in light mode. `GWWarningNote` hit this first and solved it with a local
-/// darkened amber (`gw_warning_note.dart:40-42`); mirrored verbatim here
-/// rather than re-derived. Option A (promoting a `gw.statusWarning` token)
-/// touches Phase 3's file and needs a nod that has not come
-/// (`14-UI-SPEC.md §5.3`, §9.3) - this is the documented default, option B.
-///
-/// ponytail: a THIRD hand-derivation of the same value, not a shared token.
-/// Ceiling: any other consumer of `statusWarning` as a foreground still
-/// fails on light. Upgrade path: the appearance-aware `gw.statusWarning`
-/// getter both this and `GWWarningNote` are waiting for, after which both
-/// calls fold into it.
-Color _warningDotColor(GWColors gw) {
-  return GWAppearance.isLight
-      ? const Color(0xFF92400E) // ~7.1:1 on white, matches GWWarningNote
-      : gw.statusWarning; // ~13:1 on the dark canvas
 }
 
 /// The sunken, non-elevated well both tiles share (`14-UI-SPEC.md §1.3`).

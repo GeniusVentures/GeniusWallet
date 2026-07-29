@@ -12,7 +12,6 @@ import 'package:genius_wallet/submit_job/submit_job_cta_state.dart';
 import 'package:genius_wallet/submit_job/view/widgets/job_step_list.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
-import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Resolves which of the five job-flow steps is current.
@@ -345,15 +344,6 @@ class JobResultBody extends StatelessWidget {
 
   final SubmitJobState state;
 
-  /// The amber used for T2's dot and warning note - mirrors
-  /// [GWWarningNote]'s own light/dark split (`gw_warning_note.dart:40-42`).
-  /// `GeniusWalletColors.statusWarning` is a fill-tuned token that is
-  /// effectively invisible on a light canvas (~1.6:1); this local constant is
-  /// the same documented workaround until an appearance-aware
-  /// `gw.statusWarning` token exists (`14-UI-SPEC.md` §5.3's open item).
-  static Color _amber(GWColors gw) =>
-      GWAppearance.isLight ? const Color(0xFF92400E) : gw.statusWarning;
-
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
@@ -385,7 +375,7 @@ class JobResultBody extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             GWStatusDot(
-              color: _amber(gw),
+              color: gw.statusWarningText,
               label: 'Tokens sent, job not started',
             ),
             const SizedBox(height: GeniusWalletConsts.space6),

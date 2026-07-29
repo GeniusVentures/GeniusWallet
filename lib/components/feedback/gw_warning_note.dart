@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
-import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// A bordered amber note: "this is fine, but read it before you continue".
 ///
@@ -37,9 +35,9 @@ class GWWarningNote extends StatelessWidget {
     // Fail-soft read: registers the InheritedWidget dependency that forces this
     // subtree to rebuild on a live appearance toggle (04-04 discipline).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final amber = GWAppearance.isLight
-        ? const Color(0xFF92400E) // ~7.1:1 on white
-        : context.gw.statusWarning; // ~13:1 on the dark canvas
+    // 7.09:1 on white / ~13:1 on the dark canvas -- the split lives in
+    // GWColors.light()/dark(), not here.
+    final amber = gw.statusWarningText;
 
     return Container(
       padding: const EdgeInsets.symmetric(

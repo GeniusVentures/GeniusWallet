@@ -90,6 +90,7 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.textOnBrand,
     required this.borderBrand,
     required this.statusWarning,
+    required this.statusWarningText,
     required this.statusInfo,
     required this.brandGreen,
     required this.brandGreenStrong,
@@ -214,6 +215,25 @@ class GWColors extends ThemeExtension<GWColors> {
   final Color borderBrand;
 
   final Color statusWarning;
+
+  /// The AA-safe FOREGROUND partner to [statusWarning] — for a warning icon,
+  /// border or label, never for a fill.
+  ///
+  /// [statusWarning] (#FFC42E) is FILL-tuned: ~13:1 on the dark canvas but
+  /// **~1.6:1 on white**, so as a foreground on a light surface it is simply
+  /// not there. It cannot be given a divergent light value the way
+  /// [statusSuccess]/[statusError] were, because it IS still used as a fill —
+  /// `order_status_style.dart` and `transaction_badge.dart` both paint with
+  /// it, and darkening it would darken those fills. Hence a second, explicitly
+  /// foreground-purposed token rather than a divergent value on the first.
+  ///
+  /// Light is the darkened amber `#92400E` (7.09:1 on `surfaceElevated`
+  /// #FFFFFF) that `crypto_address_qr.dart` originally worked out by hand;
+  /// dark keeps [statusWarning] itself. Introduced by 23-03 follow-up after
+  /// that literal had been hand-copied into four separate files, which is the
+  /// duplication 23-01 warned about and 23-04's raw-colour gate would trip on.
+  final Color statusWarningText;
+
   final Color statusInfo;
 
   // Backwards-compatibility aliases -- see genius_wallet_colors.dart's own
@@ -303,6 +323,7 @@ class GWColors extends ThemeExtension<GWColors> {
       textOnBrand: GeniusWalletColors.textOnBrand,
       borderBrand: GeniusWalletColors.borderBrand,
       statusWarning: GeniusWalletColors.statusWarning,
+      statusWarningText: const Color(0xFF92400E),
       statusInfo: GeniusWalletColors.statusInfo,
       brandGreen: GeniusWalletColors.brandGreen,
       brandGreenStrong: GeniusWalletColors.brandGreenStrong,
@@ -464,6 +485,7 @@ class GWColors extends ThemeExtension<GWColors> {
       textOnBrand: GeniusWalletColors.textOnBrand,
       borderBrand: GeniusWalletColors.borderBrand,
       statusWarning: GeniusWalletColors.statusWarning,
+      statusWarningText: GeniusWalletColors.statusWarning,
       statusInfo: GeniusWalletColors.statusInfo,
       brandGreen: GeniusWalletColors.brandGreen,
       brandGreenStrong: GeniusWalletColors.brandGreenStrong,
@@ -620,6 +642,7 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? textOnBrand,
     Color? borderBrand,
     Color? statusWarning,
+    Color? statusWarningText,
     Color? statusInfo,
     Color? brandGreen,
     Color? brandGreenStrong,
@@ -687,6 +710,7 @@ class GWColors extends ThemeExtension<GWColors> {
       textOnBrand: textOnBrand ?? this.textOnBrand,
       borderBrand: borderBrand ?? this.borderBrand,
       statusWarning: statusWarning ?? this.statusWarning,
+      statusWarningText: statusWarningText ?? this.statusWarningText,
       statusInfo: statusInfo ?? this.statusInfo,
       brandGreen: brandGreen ?? this.brandGreen,
       brandGreenStrong: brandGreenStrong ?? this.brandGreenStrong,

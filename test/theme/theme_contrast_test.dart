@@ -327,9 +327,7 @@ void main() {
     // occurrence of the documented light-mode amber workaround (see the
     // widget's own ponytail note).
     Color warningAccentFor(GWAppearanceMode mode, GWColors gw) =>
-        mode == GWAppearanceMode.light
-        ? const Color(0xFF92400E)
-        : gw.statusWarning;
+        gw.statusWarningText;
 
     for (final mode in GWAppearanceMode.values) {
       for (final type in ToastType.values) {
@@ -548,9 +546,7 @@ void main() {
                 'render the shared GWWarningNote ($mode)',
           );
 
-          final expectedAmber = mode == GWAppearanceMode.light
-              ? const Color(0xFF92400E)
-              : theme.extension<GWColors>()!.statusWarning;
+          final expectedAmber = theme.extension<GWColors>()!.statusWarningText;
           final icon = tester.widget<Icon>(
             find.descendant(
               of: find.byType(GWWarningNote),

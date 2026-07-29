@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
-import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
@@ -40,24 +39,9 @@ class ToastWidget extends StatelessWidget {
       case ToastType.error:
         return gw.statusError;
       case ToastType.warning:
-        return _warningAccent(gw);
+        return gw.statusWarningText;
     }
   }
-
-  // ponytail: a FOURTH hand-derivation of the same light-mode amber
-  // workaround (`GWWarningNote`, `compute_panel.dart`'s `_warningDotColor`,
-  // `job_steps.dart`'s `_amber` are the three that already carry this exact
-  // note). `gw.statusWarning` (#FFC42E) is a fill-tuned token that measures
-  // ~13:1 on the dark canvas but only ~1.6:1 on light — invisible as an icon
-  // or a border there. Ceiling: any OTHER consumer of `statusWarning` as a
-  // foreground still fails light mode. Upgrade path: promote to an
-  // appearance-aware `gw.statusWarning` getter mirroring
-  // `gw.statusSuccess`/`gw.statusError`, after which all four calls fold
-  // into it — now past the Rule-of-Three line, so that promotion is the
-  // next thing to actually do, not just note.
-  Color _warningAccent(GWColors gw) => GWAppearance.isLight
-      ? const Color(0xFF92400E) // ~7.1:1 on white, matches GWWarningNote
-      : gw.statusWarning; // ~13:1 on the dark canvas
 
   IconData _getIcon() {
     switch (type) {
