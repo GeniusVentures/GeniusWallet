@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 class GeniusWalletGradient {
+  // 23-04: btnGradientBlue/btnGradientGreen/gradientGreen/gradientBlue/
+  // brandPrimary/brandSecondaryBright below were `GeniusWalletColors.<name>`
+  // references -- fixed (mode-invariant) primitives, now private to
+  // gw_colors.dart's library. Several consumers below need these as
+  // compile-time constants (default parameter values, `static const`
+  // fields used at 20+ call sites app-wide), which a `GWColors` INSTANCE
+  // field read cannot satisfy. Inlined as literals, each labelled with the
+  // legacy name it mirrors, rather than growing GWColors with matching
+  // static consts for values that already live as instance fields there.
   static LinearGradient greenBlueGreenGradient = const LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: <Color>[
-      GeniusWalletColors.btnGradientBlue,
-      GeniusWalletColors.btnGradientGreen,
+      Color.fromRGBO(0, 104, 239, 1), // btnGradientBlue
+      Color.fromRGBO(1, 221, 166, 1), // btnGradientGreen
     ],
   );
 
@@ -17,8 +27,8 @@ class GeniusWalletGradient {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: <Color>[
-      GeniusWalletColors.gradientGreen,
-      GeniusWalletColors.gradientBlue,
+      Color(0xFF0AD89C), // gradientGreen
+      Color(0xFF0AAEE6), // gradientBlue
     ],
   );
 
@@ -45,8 +55,13 @@ class GeniusWalletGradient {
     if (appearanceProxy.computeLuminance() <= 0.5) {
       return brandCta;
     }
-    // Not const: brandPrimaryOnSurface is an appearance-aware getter.
-    final safe = GeniusWalletColors.brandPrimaryOnSurface;
+    // Not const: brandPrimaryOnSurface is an appearance-aware getter. No
+    // BuildContext reaches this static method, so -- like GWDecorations --
+    // it reads the live GWColors instance for the current global appearance
+    // directly, matching whichever mode already agrees with the code path
+    // that got here.
+    final safe = (GWAppearance.isLight ? GWColors.light() : GWColors.dark())
+        .brandPrimaryOnSurface;
     return LinearGradient(colors: [safe, safe]);
   }
 
@@ -56,19 +71,19 @@ class GeniusWalletGradient {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: <Color>[
-      GeniusWalletColors.brandPrimary,
-      GeniusWalletColors.brandSecondaryBright,
+      Color(0xFF14C8FF), // brandPrimary
+      Color(0xFF5BFFD0), // brandSecondaryBright
     ],
   );
 
   /// Subtle background wash for hero sections — fades the brand teal into the
   /// darker contained surface so cards still feel anchored.
-  static LinearGradient get heroWash => LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: <Color>[
-      GeniusWalletColors.surfaceBase,
-      GeniusWalletColors.surfaceElevated,
-    ],
-  );
+  static LinearGradient get heroWash {
+    final gw = GWAppearance.isLight ? GWColors.light() : GWColors.dark();
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: <Color>[gw.surfaceBase, gw.surfaceElevated],
+    );
+  }
 }

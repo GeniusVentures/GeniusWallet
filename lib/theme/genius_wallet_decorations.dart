@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Depth & material primitives that lift surfaces off the flat canvas.
 ///
@@ -14,20 +14,27 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 class GWDecorations {
   GWDecorations._();
 
+  /// Live [GWColors] for the current global [GWAppearance] -- every member of
+  /// this class is `static`, so no `BuildContext` ever reaches here. Reads
+  /// through the same appearance-aware factory selection
+  /// `theme.dart#getThemeData()` uses, rather than a `Theme` lookup. 23-04:
+  /// replaces what used to be direct `GeniusWalletColors.<field>` reads, now
+  /// that class is private to `gw_colors.dart`'s library.
+  static GWColors get _gw =>
+      GWAppearance.isLight ? GWColors.light() : GWColors.dark();
+
   // --- canvas -------------------------------------------------------------
 
   /// _canvasDark/_canvasLight/_surfaceSheenDark/_surfaceSheenLight below each
-  /// read their matching stop straight off the corresponding appearance-aware
-  /// `GeniusWalletColors` getter instead of retyping its hex, wherever the
-  /// stop's value is an EXACT duplicate of an existing token -- so the two
-  /// cannot drift apart (23-04). Safe as a non-const getter, not a
-  /// duplication risk: each of these four private getters is reached ONLY
-  /// through its own already-live `canvas`/`surfaceSheen` getter one level
-  /// up, which selects it exactly when `GWAppearance.isLight` already agrees
-  /// with the branch -- Dart is single-threaded, so no toggle can land
-  /// between that check and this read. Stops with no matching token are left
-  /// as literals and named as findings inline (23-04-PLAN.md Task 1) rather
-  /// than inventing a token for them.
+  /// read their matching stop straight off [_gw] instead of retyping its
+  /// hex, wherever the stop's value is an EXACT duplicate of an existing
+  /// token -- so the two cannot drift apart (23-04). Safe even though each of
+  /// these four private getters is reached ONLY through its own already-live
+  /// `canvas`/`surfaceSheen` getter one level up: `_gw` re-reads
+  /// `GWAppearance.isLight` itself, so it always agrees with the branch that
+  /// called it -- Dart is single-threaded, so no toggle can land in between.
+  /// Stops with no matching token are left as literals and named as findings
+  /// inline (23-04-PLAN.md Task 1) rather than inventing a token for them.
   ///
   /// Dark: a quiet vertical wash on a true-black base — a touch lifted at the
   /// top, deepest at the bottom — so the canvas reads as a lit space instead
@@ -38,7 +45,7 @@ class GWDecorations {
     colors: [
       // finding: no matching token for the lifted near-black top stop.
       const Color(0xFF14171E),
-      GeniusWalletColors.surfaceBase, // exact match: surfaceBase (dark)
+      _gw.surfaceBase, // exact match: surfaceBase (dark)
       // finding: 0xFF07090D is close to but distinct from surfaceSunken's
       // dark value (0xFF06080C) -- not an exact match, left as a literal.
       const Color(0xFF07090D),
@@ -53,7 +60,7 @@ class GWDecorations {
     end: Alignment.bottomCenter,
     colors: [
       const Color(0xFFE3E6EB), // finding: no matching token
-      GeniusWalletColors.surfaceBase, // exact match: surfaceBase (light)
+      _gw.surfaceBase, // exact match: surfaceBase (light)
       const Color(0xFFD3D7DE), // finding: no matching token
     ],
     stops: const [0.0, 0.4, 1.0],
@@ -102,8 +109,8 @@ class GWDecorations {
     // Both stops are the same flat fill — see the doc comment above
     // _canvasDark for why reading the live getter here is safe.
     colors: [
-      GeniusWalletColors.surfaceElevated, // exact match: surfaceElevated (dark)
-      GeniusWalletColors.surfaceElevated, // same stop — flat, no sheen
+      _gw.surfaceElevated, // exact match: surfaceElevated (dark)
+      _gw.surfaceElevated, // same stop — flat, no sheen
     ],
   );
 
@@ -112,8 +119,7 @@ class GWDecorations {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      GeniusWalletColors
-          .surfaceElevated, // exact match: surfaceElevated (light)
+      _gw.surfaceElevated, // exact match: surfaceElevated (light)
       const Color(0xFFF5F7FA), // finding: no matching token
     ],
   );
@@ -132,7 +138,7 @@ class GWDecorations {
     gradient: surfaceSheen,
     borderRadius: BorderRadius.circular(radius),
     border: Border.all(
-      color: border ?? GeniusWalletColors.borderSubtle, // hairline @ 12%
+      color: border ?? _gw.borderSubtle, // hairline @ 12%
       width: 1,
     ),
     boxShadow: elevated ? GeniusWalletElevation.card : null,
@@ -167,8 +173,8 @@ class GWDecorations {
   /// The hairline is not decoration on decoration: a 12% tint alone, on a list
   /// row over `surfaceElevated`, sits at the edge of visibility. The border is
   /// what says "this row, not its neighbour".
-  static Color get hoverFill => GeniusWalletColors.brandPrimarySubtle; // ~12%
-  static Color get hoverEdge => GeniusWalletColors.brandPrimaryMuted; //  ~24%
+  static Color get hoverFill => _gw.brandPrimarySubtle; // ~12%
+  static Color get hoverEdge => _gw.brandPrimaryMuted; //  ~24%
 
   /// [hoverFill] + [hoverEdge] as a decoration, for consumers that paint a
   /// `BoxDecoration` (nav tabs, cards). Button-based controls read the two
@@ -187,14 +193,11 @@ class GWDecorations {
   static BoxDecoration actionCircle({bool glow = false}) => BoxDecoration(
     gradient: surfaceSheen,
     shape: BoxShape.circle,
-    border: Border.all(color: GeniusWalletColors.borderSubtle, width: 1),
+    border: Border.all(color: _gw.borderSubtle, width: 1),
     boxShadow: [
       ...GeniusWalletElevation.card,
       if (glow)
-        BoxShadow(
-          color: GeniusWalletColors.brandPrimary.withAlpha(36),
-          blurRadius: 18,
-        ),
+        BoxShadow(color: _gw.brandPrimary.withAlpha(36), blurRadius: 18),
     ],
   );
 

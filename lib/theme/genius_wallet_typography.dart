@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Typography aligned with the GNUS marketing site (gnus.ai), which uses the
 /// Inter variable font with a Tailwind-style scale (text-xs … text-5xl).
 ///
 /// Styles are getters (not cached finals) so the default text colour follows
-/// the appearance-aware `GeniusWalletColors.textPrimary` when the user toggles
+/// the appearance-aware [GWColors.textPrimary] when the user toggles
 /// dark/light in Preferences.
 class GeniusWalletTypography {
   GeniusWalletTypography._();
@@ -30,13 +31,20 @@ class GeniusWalletTypography {
   /// website's `--tracking-tight` (-0.025em) treatment on large headings.
   static const double _trackingTight = -0.4;
 
-  /// Bakes a default text color from the appearance-aware
-  /// `GeniusWalletColors.textPrimary` STATIC GETTER when [color] is omitted.
-  /// This is a BACKWARD-COMPAT fallback only, kept for the many call sites
-  /// not yet migrated to context-resolved color -- it does NOT itself make
-  /// text re-skin live on a `const` widget (see the GWColors ThemeExtension
-  /// migration, 04-02). Live-re-skin call sites must instead pass an
-  /// explicit `color` sourced from `Theme.of(context).extension<GWColors>()`
+  /// Live [GWColors] for the current global [GWAppearance] -- every member of
+  /// this class is `static`, so no `BuildContext` ever reaches here. 23-04:
+  /// replaces what used to be direct `GeniusWalletColors.<field>` reads, now
+  /// that class is private to `gw_colors.dart`'s library.
+  static GWColors get _gw =>
+      GWAppearance.isLight ? GWColors.light() : GWColors.dark();
+
+  /// Bakes a default text color from the appearance-aware [_gw]`.textPrimary`
+  /// when [color] is omitted. This is a BACKWARD-COMPAT fallback only, kept
+  /// for the many call sites not yet migrated to context-resolved color --
+  /// it does NOT itself make text re-skin live on a `const` widget (see the
+  /// GWColors ThemeExtension migration, 04-02). Live-re-skin call sites must
+  /// instead pass an explicit `color` sourced from
+  /// `Theme.of(context).extension<GWColors>()`
   /// (e.g. `GeniusWalletTypography.titleMd.copyWith(color: gw.textPrimary)`),
   /// which overrides this baked default and rides the registered `Theme`
   /// InheritedWidget dependency.
@@ -52,7 +60,7 @@ class GeniusWalletTypography {
     fontSize: fontSize,
     height: height,
     fontWeight: fontWeight,
-    color: color ?? GeniusWalletColors.textPrimary,
+    color: color ?? _gw.textPrimary,
     letterSpacing: letterSpacing,
     fontFeatures: fontFeatures,
   );
@@ -104,7 +112,11 @@ class GeniusWalletTypography {
     fontSize: 14,
     height: 20 / 14,
     fontWeight: FontWeight.w400,
-    color: GeniusWalletColors.textSecondary,
+    // The legacy mode-invariant value (fixedTextSecondary), not
+    // _gw.textSecondary -- see GWColors.fixedTextSecondary's doc comment;
+    // bodySm's colour has never diverged by appearance and must not start
+    // now ("nothing here may repaint").
+    color: GWColors.fixedTextSecondary,
   );
 
   // --- Label -----------------------------------------------------------------

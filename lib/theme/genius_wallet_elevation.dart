@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 class GeniusWalletElevation {
   GeniusWalletElevation._();
@@ -25,9 +25,12 @@ class GeniusWalletElevation {
     ),
   ];
 
+  // brandPrimary/brandSecondary are fixed (mode-invariant), so either
+  // GWColors instance works -- .dark() picked arbitrarily, matching
+  // GWDecorations' own context-free static access pattern.
   static List<BoxShadow> glowBrand = [
     BoxShadow(
-      color: GeniusWalletColors.brandPrimary.withAlpha(46), // ~18%
+      color: GWColors.dark().brandPrimary.withAlpha(46), // ~18%
       blurRadius: 24,
     ),
   ];
@@ -35,12 +38,12 @@ class GeniusWalletElevation {
   /// Cyan→mint glow used under hero CTAs to echo the brand gradient.
   static List<BoxShadow> glowGradient = [
     BoxShadow(
-      color: GeniusWalletColors.brandPrimary.withAlpha(38),
+      color: GWColors.dark().brandPrimary.withAlpha(38),
       blurRadius: 28,
       offset: const Offset(-6, 8),
     ),
     BoxShadow(
-      color: GeniusWalletColors.brandSecondary.withAlpha(38),
+      color: GWColors.dark().brandSecondary.withAlpha(38),
       blurRadius: 28,
       offset: const Offset(6, 8),
     ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -86,7 +85,10 @@ ButtonStyle navContextChipStyle(BuildContext context) {
 /// (clears AA on the dark `surfaceElevated`, 0xFF0C0E14). Light uses a
 /// darker brand so the outline+label clear AA on light's pure-white
 /// `surfaceElevated` -- raw `brandPrimaryStrong` is only 2.56:1 there.
-/// Delegates to the shared `GeniusWalletColors.brandPrimaryOnSurface` token.
+/// Delegates to the shared `GWColors.brandPrimaryOnSurface` token, read
+/// through [context] with the same fail-soft fallback [navContextChipStyle]
+/// above uses.
 Color connectBrandColor(BuildContext context) {
-  return GeniusWalletColors.brandPrimaryOnSurface;
+  final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+  return gw.brandPrimaryOnSurface;
 }

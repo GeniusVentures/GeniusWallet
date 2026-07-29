@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -10,43 +9,53 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// resolve for the active mode.
 ThemeData getThemeData() {
   final isLight = GWAppearance.isLight;
+  // Built once and reused everywhere below (23-04: GeniusWalletColors is now
+  // private to lib/theme/, so this function -- like every other consumer
+  // outside genius_wallet_colors.dart itself -- reads through GWColors).
+  // Safe to read the SAME instance the `extensions:` list below constructs,
+  // since both happen synchronously within this one function call.
+  final gw = isLight ? GWColors.light() : GWColors.dark();
   final colorScheme = isLight
       ? ColorScheme.light(
-          primary: GeniusWalletColors.brandPrimary,
-          onPrimary: GeniusWalletColors.textOnBrand,
-          secondary: GeniusWalletColors.brandSecondary,
-          onSecondary: GeniusWalletColors.textOnBrand,
-          tertiary: GeniusWalletColors.brandTertiary,
-          onTertiary: GeniusWalletColors.textPrimary,
-          surface: GeniusWalletColors.surfaceElevated,
-          onSurface: GeniusWalletColors.textPrimary,
-          surfaceContainerHighest: GeniusWalletColors.surfaceMenu,
-          error: GeniusWalletColors.statusError,
+          primary: gw.brandPrimary,
+          onPrimary: gw.textOnBrand,
+          secondary: gw.brandSecondary,
+          onSecondary: gw.textOnBrand,
+          tertiary: gw.brandTertiary,
+          onTertiary: gw.textPrimary,
+          surface: gw.surfaceElevated,
+          onSurface: gw.textPrimary,
+          surfaceContainerHighest: gw.surfaceMenu,
+          // The legacy mode-invariant value (fixedStatusError), not
+          // gw.statusError -- gw.statusError diverges in light mode for WCAG
+          // AA, and this ColorScheme.error read has always resolved to the
+          // SAME literal on both branches (nothing here may repaint).
+          error: GWColors.fixedStatusError,
           // Kept as develop's original literal value (not Alex's
           // GeniusWalletColors.foundationWhite, which does not exist in this
           // codebase and would be a new token addition outside this
           // theme-only plan's file scope) -- functionally identical: white
           // text always reads on the saturated error red in both modes.
           onError: Colors.white,
-          outline: GeniusWalletColors.brandPrimary,
-          outlineVariant: GeniusWalletColors.surfaceMenu,
+          outline: gw.brandPrimary,
+          outlineVariant: gw.surfaceMenu,
         )
       : ColorScheme.dark(
-          primary: GeniusWalletColors.brandPrimary,
+          primary: gw.brandPrimary,
           // textOnBrand (near-black), matching the light scheme — white on the
           // bright brand fill failed WCAG AA for Material widgets in dark mode.
-          onPrimary: GeniusWalletColors.textOnBrand,
-          secondary: GeniusWalletColors.brandSecondary,
-          onSecondary: GeniusWalletColors.textOnBrand,
-          tertiary: GeniusWalletColors.brandTertiary,
-          onTertiary: GeniusWalletColors.textPrimary,
-          surface: GeniusWalletColors.surfaceElevated,
-          onSurface: GeniusWalletColors.textPrimary,
-          surfaceContainerHighest: GeniusWalletColors.surfaceMenu,
-          error: GeniusWalletColors.statusError,
+          onPrimary: gw.textOnBrand,
+          secondary: gw.brandSecondary,
+          onSecondary: gw.textOnBrand,
+          tertiary: gw.brandTertiary,
+          onTertiary: gw.textPrimary,
+          surface: gw.surfaceElevated,
+          onSurface: gw.textPrimary,
+          surfaceContainerHighest: gw.surfaceMenu,
+          error: GWColors.fixedStatusError,
           onError: Colors.white,
-          outline: GeniusWalletColors.brandPrimary,
-          outlineVariant: GeniusWalletColors.surfaceMenu,
+          outline: gw.brandPrimary,
+          outlineVariant: gw.surfaceMenu,
         );
 
   return ThemeData(
@@ -54,7 +63,7 @@ ThemeData getThemeData() {
     brightness: isLight ? Brightness.light : Brightness.dark,
     // Solid canvas for interior screens (black in dark mode, white in light).
     // Auth / Landing wrap the body in GWMeshBackground for the branded mesh.
-    scaffoldBackgroundColor: GeniusWalletColors.surfaceBase,
+    scaffoldBackgroundColor: gw.surfaceBase,
     primarySwatch: Colors.blue,
     colorScheme: colorScheme,
     // GWColors ThemeExtension -- makes the appearance-aware tokens available
@@ -67,9 +76,7 @@ ThemeData getThemeData() {
     // so this one conditional entry covers both; a missing attachment would
     // leave consumers on their fail-soft `?? GWColors.dark()` default, which
     // is dark-only, silently rendering the app dark in light mode too.
-    extensions: <ThemeExtension<dynamic>>[
-      isLight ? GWColors.light() : GWColors.dark(),
-    ],
+    extensions: <ThemeExtension<dynamic>>[gw],
     textTheme: GeniusWalletTypography.toMaterialTextTheme(),
     // Not const: the on-surface brand getter below is appearance-aware, not
     // a compile-time constant. Light was 1.96/1.74/1.48:1 on
@@ -77,50 +84,45 @@ ThemeData getThemeData() {
     // 6.30/5.61/4.76:1. Dark moves brandPrimary -> brandPrimaryStrong,
     // 9.86 -> 7.54:1, still well clear.
     progressIndicatorTheme: ProgressIndicatorThemeData(
-      color: GeniusWalletColors.brandPrimaryOnSurface,
+      color: gw.brandPrimaryOnSurface,
     ),
     tabBarTheme: TabBarThemeData(
       unselectedLabelStyle: GeniusWalletTypography.titleMd,
       labelStyle: GeniusWalletTypography.titleMd,
       indicatorSize: TabBarIndicatorSize.tab,
-      labelColor: GeniusWalletColors.textPrimary,
+      labelColor: gw.textPrimary,
       dividerColor: Colors.transparent,
-      unselectedLabelColor: GeniusWalletColors.textSecondary,
+      // The legacy mode-invariant value (fixedTextSecondary), not
+      // gw.textSecondary -- see GWColors.fixedTextSecondary's doc comment.
+      unselectedLabelColor: GWColors.fixedTextSecondary,
       // Light was 2.56/2.28/1.93:1 (AA fail); the token clears
       // 6.30/5.61/4.76:1. Dark byte-identical (token = brandPrimaryStrong).
-      indicatorColor: GeniusWalletColors.brandPrimaryOnSurface,
+      indicatorColor: gw.brandPrimaryOnSurface,
     ),
     datePickerTheme: DatePickerThemeData(
-      inputDecorationTheme: const InputDecorationTheme(
+      // Not const: brandPrimary is now an instance-field read.
+      inputDecorationTheme: InputDecorationTheme(
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: GeniusWalletColors.brandPrimary,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: gw.brandPrimary, width: 2),
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: GeniusWalletColors.brandPrimary,
-            width: 1,
-          ),
+          borderSide: BorderSide(color: gw.brandPrimary, width: 1),
         ),
       ),
-      backgroundColor: GeniusWalletColors.surfaceElevated,
-      headerBackgroundColor: GeniusWalletColors.brandPrimaryStrong,
+      backgroundColor: gw.surfaceElevated,
+      headerBackgroundColor: gw.brandPrimaryStrong,
       // theme.dart:36-38 already rejects white-on-brandPrimaryStrong for
       // ColorScheme.onPrimary (2.56:1, AA fail); this header foreground had
       // the same defect. The near-black on-brand foreground below moves it
       // 2.56 -> 7.74:1 in dark, 7.26 -> 7.74:1 in light.
-      headerForegroundColor: GeniusWalletColors.textOnBrand,
-      todayBorder: const BorderSide(
-        color: GeniusWalletColors.brandPrimary,
-        width: 2,
-      ),
+      headerForegroundColor: gw.textOnBrand,
+      // Not const: brandPrimary is now an instance-field read.
+      todayBorder: BorderSide(color: gw.brandPrimary, width: 2),
       todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return GeniusWalletColors.brandPrimaryStrong;
+          return gw.brandPrimaryStrong;
         }
-        return GeniusWalletColors.brandPrimary.withAlpha(33);
+        return gw.brandPrimary.withAlpha(33);
       }),
       dayForegroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
@@ -130,27 +132,25 @@ ThemeData getThemeData() {
           // moves it 2.56 -> 7.74:1 in dark, 7.26 -> 7.74:1 in light.
           // Disabled/default branches below sit on a transparent cell over
           // surfaceElevated and stay as-is.
-          return GeniusWalletColors.textOnBrand;
+          return gw.textOnBrand;
         }
         if (states.contains(WidgetState.disabled)) {
-          return GeniusWalletColors.textTertiary;
+          return gw.textTertiary;
         }
-        return GeniusWalletColors.textPrimary;
+        return gw.textPrimary;
       }),
       dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return GeniusWalletColors.brandPrimaryStrong;
+          return gw.brandPrimaryStrong;
         }
         if (states.contains(WidgetState.dragged)) {
-          return GeniusWalletColors.brandPrimary.withAlpha(51);
+          return gw.brandPrimary.withAlpha(51);
         }
         return Colors.transparent;
       }),
-      rangeSelectionBackgroundColor: GeniusWalletColors.brandPrimary.withAlpha(
-        38,
-      ),
+      rangeSelectionBackgroundColor: gw.brandPrimary.withAlpha(38),
       rangeSelectionOverlayColor: WidgetStateProperty.all(
-        GeniusWalletColors.brandPrimary.withAlpha(51),
+        gw.brandPrimary.withAlpha(51),
       ),
     ),
     appBarTheme: AppBarTheme(
@@ -158,8 +158,8 @@ ThemeData getThemeData() {
       titleTextStyle: GeniusWalletTypography.titleLg,
       titleSpacing: GeniusWalletConsts.space4,
       centerTitle: true,
-      surfaceTintColor: GeniusWalletColors.surfaceElevated,
-      backgroundColor: GeniusWalletColors.surfaceElevated,
+      surfaceTintColor: gw.surfaceElevated,
+      backgroundColor: gw.surfaceElevated,
     ),
     // --- Preserved from develop (absent from Alex's reference; each has a
     // live consumer in this repo per 04-RESEARCH.md §1) -----------------
@@ -174,7 +174,7 @@ ThemeData getThemeData() {
         // permanently-dark theme); made appearance-aware here so
         // sdk_account_manager.dart's two footer OutlinedButton.icon widgets
         // (which set no inline style) stay legible in light mode too (D-03).
-        foregroundColor: GeniusWalletColors.textPrimary,
+        foregroundColor: gw.textPrimary,
       ),
     ),
     toggleButtonsTheme: ToggleButtonsThemeData(
@@ -210,10 +210,11 @@ ThemeData getThemeData() {
             vertical: GeniusWalletConsts.space10,
           ),
         ),
-        shape: const WidgetStatePropertyAll(
+        // Not const: brandPrimary is now an instance-field read.
+        shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(
-            side: BorderSide(color: GeniusWalletColors.brandPrimary, width: 1),
-            borderRadius: BorderRadius.all(
+            side: BorderSide(color: gw.brandPrimary, width: 1),
+            borderRadius: const BorderRadius.all(
               Radius.circular(GeniusWalletConsts.radiusLg),
             ),
           ),
@@ -221,12 +222,12 @@ ThemeData getThemeData() {
         backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
         foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.disabled)) {
-            return GeniusWalletColors.textTertiary;
+            return gw.textTertiary;
           }
-          return GeniusWalletColors.textPrimary;
+          return gw.textPrimary;
         }),
         iconSize: const WidgetStatePropertyAll(20),
-        iconColor: WidgetStatePropertyAll(GeniusWalletColors.textPrimary),
+        iconColor: WidgetStatePropertyAll(gw.textPrimary),
       ),
     ),
     // Not const: the on-surface brand getter below is appearance-aware, not
@@ -240,7 +241,7 @@ ThemeData getThemeData() {
         // Widest blast radius in this task -- every TextField/TextFormField
         // app-wide. Light was 2.56/2.28/1.93:1 (AA fail); the token clears
         // 6.30/5.61/4.76:1. Dark byte-identical.
-        borderSide: BorderSide(color: GeniusWalletColors.brandPrimaryOnSurface),
+        borderSide: BorderSide(color: gw.brandPrimaryOnSurface),
       ),
       border: const OutlineInputBorder(
         borderRadius: BorderRadius.all(
@@ -269,16 +270,16 @@ ThemeData getThemeData() {
           ),
         ),
         backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-          (states) => GeniusWalletColors.btnFilter,
+          (states) => gw.btnFilter,
         ),
         foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.disabled)) {
-            return GeniusWalletColors.textTertiary;
+            return gw.textTertiary;
           }
-          return GeniusWalletColors.textPrimary;
+          return gw.textPrimary;
         }),
         iconSize: const WidgetStatePropertyAll(16),
-        iconColor: WidgetStatePropertyAll(GeniusWalletColors.textPrimary),
+        iconColor: WidgetStatePropertyAll(gw.textPrimary),
       ),
     ),
     searchBarTheme: SearchBarThemeData(
@@ -293,20 +294,19 @@ ThemeData getThemeData() {
           ),
         ),
       ),
-      backgroundColor: WidgetStatePropertyAll(
-        GeniusWalletColors.surfaceElevated,
-      ),
+      backgroundColor: WidgetStatePropertyAll(gw.surfaceElevated),
     ),
-    textSelectionTheme: const TextSelectionThemeData(
-      cursorColor: GeniusWalletColors.brandPrimary,
-      selectionColor: GeniusWalletColors.textSecondary,
+    // Not const: brandPrimary is now an instance-field read. selectionColor
+    // reads the legacy mode-invariant value (fixedTextSecondary), not
+    // gw.textSecondary -- see GWColors.fixedTextSecondary's doc comment.
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: gw.brandPrimary,
+      selectionColor: GWColors.fixedTextSecondary,
     ),
     dropdownMenuTheme: DropdownMenuThemeData(
       textStyle: GeniusWalletTypography.bodyLg,
       menuStyle: MenuStyle(
-        backgroundColor: WidgetStatePropertyAll(
-          GeniusWalletColors.surfaceElevated,
-        ),
+        backgroundColor: WidgetStatePropertyAll(gw.surfaceElevated),
       ),
       // Not const: the on-surface brand getter below is appearance-aware,
       // not a compile-time constant.
@@ -317,9 +317,7 @@ ThemeData getThemeData() {
           ),
           // Light was 2.56/2.28/1.93:1 (AA fail); the token clears
           // 6.30/5.61/4.76:1. Dark byte-identical.
-          borderSide: BorderSide(
-            color: GeniusWalletColors.brandPrimaryOnSurface,
-          ),
+          borderSide: BorderSide(color: gw.brandPrimaryOnSurface),
         ),
         contentPadding: const EdgeInsets.only(left: GeniusWalletConsts.space10),
         border: const OutlineInputBorder(
@@ -330,19 +328,15 @@ ThemeData getThemeData() {
       ),
     ),
     navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: GeniusWalletColors.surfaceElevated,
+      backgroundColor: gw.surfaceElevated,
       indicatorColor: Colors.transparent,
-      selectedLabelTextStyle: const TextStyle(
-        color: GeniusWalletColors.brandPrimaryStrong,
-      ),
+      // Not const: brandPrimaryStrong is now an instance-field read.
+      selectedLabelTextStyle: TextStyle(color: gw.brandPrimaryStrong),
       labelType: NavigationRailLabelType.none,
       useIndicator: false,
-      selectedIconTheme: const IconThemeData(
-        color: GeniusWalletColors.brandPrimaryStrong,
-        size: 30,
-      ),
+      selectedIconTheme: IconThemeData(color: gw.brandPrimaryStrong, size: 30),
       unselectedIconTheme: IconThemeData(
-        color: GeniusWalletColors.textPrimary,
+        color: gw.textPrimary,
         opacity: 1,
         size: 30,
       ),
@@ -354,22 +348,17 @@ ThemeData getThemeData() {
       showUnselectedLabels: false,
       landscapeLayout: BottomNavigationBarLandscapeLayout.spread,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: GeniusWalletColors.brandPrimaryStrong,
-      selectedIconTheme: const IconThemeData(
-        size: 35,
-        color: GeniusWalletColors.brandPrimaryStrong,
-      ),
-      unselectedIconTheme: IconThemeData(
-        size: 35,
-        color: GeniusWalletColors.textPrimary,
-      ),
+      selectedItemColor: gw.brandPrimaryStrong,
+      // Not const: brandPrimaryStrong is now an instance-field read.
+      selectedIconTheme: IconThemeData(size: 35, color: gw.brandPrimaryStrong),
+      unselectedIconTheme: IconThemeData(size: 35, color: gw.textPrimary),
     ),
     checkboxTheme: CheckboxThemeData(
       // Not const: the on-surface brand getter below is appearance-aware,
       // not a compile-time constant. Light was 1.96/1.74/1.48:1 (AA fail);
       // the token clears 6.30/5.61/4.76:1. Dark moves brandPrimary ->
       // brandPrimaryStrong, 9.86 -> 7.54:1, still well clear.
-      side: BorderSide(color: GeniusWalletColors.brandPrimaryOnSurface),
+      side: BorderSide(color: gw.brandPrimaryOnSurface),
       checkColor: WidgetStateProperty.resolveWith((states) {
         if (!states.contains(WidgetState.selected)) {
           return Colors.transparent;
@@ -378,13 +367,13 @@ ThemeData getThemeData() {
         // ColorScheme.onPrimary (2.56:1, AA fail); the checkmark had the
         // same defect. The near-black on-brand foreground below moves it
         // 2.56 -> 7.74:1 in dark, 7.26 -> 7.74:1 in light.
-        return GeniusWalletColors.textOnBrand;
+        return gw.textOnBrand;
       }),
       fillColor: WidgetStateProperty.resolveWith((states) {
         if (!states.contains(WidgetState.selected)) {
           return Colors.transparent;
         }
-        return GeniusWalletColors.brandPrimaryStrong;
+        return gw.brandPrimaryStrong;
       }),
     ),
     // Preserved from develop (absent from Alex's reference) -- settings_screen.dart

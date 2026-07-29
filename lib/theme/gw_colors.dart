@@ -760,4 +760,16 @@ class GWColors extends ThemeExtension<GWColors> {
   /// context read nor a `GWColors.dark()` factory call (itself not `const`)
   /// can serve here.
   static const Color fixedStatusError = Color(0xFFFF4D4D);
+
+  /// [GeniusWalletColors.textSecondary]'s ORIGINAL mode-invariant value
+  /// (`#8A8F9D`), distinct from this class's own appearance-aware
+  /// [textSecondary] INSTANCE field (which diverges in light mode for WCAG
+  /// AA). Sole consumer: `theme.dart`'s `tabBarTheme.unselectedLabelColor`
+  /// and `textSelectionTheme.selectionColor`, which read the legacy
+  /// mode-invariant value on both branches TODAY (i.e. before 23-04, in both
+  /// `ColorScheme.light()`/`.dark()` calls) -- preserved verbatim rather
+  /// than switched to the AA-adjusted instance field, since either would be
+  /// a behaviour change ("nothing here may repaint") outside this plan's
+  /// reachability-and-naming scope.
+  static const Color fixedTextSecondary = Color(0xFF8A8F9D);
 }
