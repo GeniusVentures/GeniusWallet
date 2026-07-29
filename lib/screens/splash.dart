@@ -10,6 +10,7 @@ import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
@@ -238,7 +239,7 @@ class _SplashState extends State<Splash> {
                               // than inherited from a default that could
                               // change.
                               style: GeniusWalletTypography.bodySm.copyWith(
-                                color: GeniusWalletColors.textSecondary,
+                                color: context.gw.textSecondary,
                               ),
                             ),
                           ),

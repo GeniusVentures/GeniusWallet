@@ -12,10 +12,10 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
@@ -69,7 +69,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             showAppSnackBar(
               context,
               state.errorMessage,
-              backgroundColor: GeniusWalletColors.statusError,
+              backgroundColor: context.gw.statusError,
             );
 
             context.read<MakeOrderCubit>().clearError();
@@ -345,8 +345,8 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                                             "a separate third-party platform. By proceeding, you acknowledge that you have read and agreed to "
                                             "Banxa's Terms of Use and Privacy & Cookies Policy.",
                                         confirmText: "Continue",
-                                        activeColor: GeniusWalletColors
-                                            .brandPrimaryOnSurface,
+                                        activeColor:
+                                            context.gw.brandPrimaryOnSurface,
                                       );
 
                                       if (!accepted) {
