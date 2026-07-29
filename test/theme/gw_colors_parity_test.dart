@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 // THIS FILE IS THE LOAD-BEARING PROOF OF THE ENTIRE COLOUR WORKSTREAM.
 //
@@ -342,4 +343,54 @@ void main() {
       });
     },
   );
+
+  group('context.gw accessor', () {
+    testWidgets(
+      'inside the app\'s real theme, returns the registered GWColors',
+      (tester) async {
+        setAppearance(GWAppearanceMode.dark);
+        late BuildContext capturedContext;
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(extensions: [GWColors.dark()]),
+            home: Builder(
+              builder: (context) {
+                capturedContext = context;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final registered = Theme.of(capturedContext).extension<GWColors>();
+        expect(registered, isNotNull);
+        expect(capturedContext.gw, registered);
+        expect(capturedContext.gw.surfaceBase, registered!.surfaceBase);
+      },
+    );
+
+    testWidgets(
+      'inside a bare MaterialApp with no extension registered, falls back '
+      'without throwing',
+      (tester) async {
+        late BuildContext capturedContext;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) {
+                capturedContext = context;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(Theme.of(capturedContext).extension<GWColors>(), isNull);
+        expect(() => capturedContext.gw, returnsNormally);
+        expect(capturedContext.gw.surfaceBase, GWColors.dark().surfaceBase);
+      },
+    );
+  });
 }
