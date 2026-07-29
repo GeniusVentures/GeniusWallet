@@ -6,14 +6,14 @@ current_phase: 23
 current_phase_name: design-system-consolidation-theme-tokens-shared-components
 status: executing
 stopped_at: Completed 23-03-PLAN.md
-last_updated: "2026-07-29T15:43:37.119Z"
+last_updated: "2026-07-29T18:54:19.412Z"
 last_activity: 2026-07-29
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 24
   completed_phases: 17
   total_plans: 107
-  completed_plans: 96
+  completed_plans: 97
   percent: 71
 ---
 
@@ -59,7 +59,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 23 (design-system-consolidation-theme-tokens-shared-components) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -224,6 +224,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: gw.foundationError adopted as GWButton destructive's fill (was 0 call sites) -- gw.statusError is foreground-tuned, not fill-safe; measured 9.45:1 in both modes vs the prior 3.27/3.86:1 failures
 - [Phase ?]: swap_settings_drawer's private _Message deleted; warning tone now shares GWWarningNote directly (no new parameter added); error/ok moved to a small local _SlippageStatusRow
 - [Phase ?]: lib/main.dart:265 deliberately left reading GeniusWalletColors.statusError -- ErrorWidget.builder has no guaranteed Theme ancestor; sole entry on the 23-04 allowlist
+- [Phase ?]: statusNeutral/fixedStatusError/fixedTextSecondary are STATIC consts on GWColors, not instance fields, to avoid reopening the locked statusNeutral exclusion and to serve const-context/no-Theme-ancestor consumers without repainting an AA-adjusted value.
+- [Phase ?]: test/theme/gw_colors_parity_test.dart (not named in the plan) converted from live GeniusWalletColors comparison to frozen-literal pinning, since its architecture became impossible once the primitive layer went private.
+- [Phase ?]: The raw-colour gate's covered scope (16 lib/ subdirectories + main.dart, 0 references) was measured with the gate's own comment/string-stripping matcher, not a naive grep; 66 references remain across 10 directories, tracked with a widening plan in 23-04-GATE-SCOPE.md.
 
 ### Pending Todos
 
@@ -347,7 +350,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-29T15:43:37.107Z
+Last session: 2026-07-29T18:50:58.786Z
 Stopped at: Completed 23-03-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
@@ -468,6 +471,7 @@ Open decisions:
 | Phase 23 P01 | 45 | 3 tasks | 4 files |
 | Phase 23 P01 | ~40min | 3 tasks | 4 files |
 | Phase 23 P03 | 110min | 3 tasks | 44 files |
+| Phase 23 P04 | 150min | 3 tasks | 36 files |
 
 ### Roadmap Evolution
 
