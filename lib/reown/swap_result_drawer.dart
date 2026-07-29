@@ -12,9 +12,10 @@ class SwapResultDrawer {
     required String txHash,
     required String coinSymbol,
   }) async {
+    final gw = context.gw;
     final message = isSuccess ? "Swap Success" : "Swap Failed";
     final icon = isSuccess ? Icons.check_circle : Icons.error;
-    final iconColor = isSuccess ? Colors.greenAccent : Colors.redAccent;
+    final iconColor = isSuccess ? gw.statusSuccess : gw.statusError;
     final explorerUrl = (txHash.isNotEmpty)
         ? getExplorerUrl(coinSymbol, txHash)
         : '';
@@ -41,9 +42,15 @@ class SwapResultDrawer {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: context.gw.deepBlueMenu,
+                color: gw.deepBlueMenu,
                 borderRadius: BorderRadius.circular(12),
               ),
+              // deepBlueMenu is a FIXED dark-navy fill (does not flip with
+              // appearance -- see the token map), so the text on it must
+              // stay fixed white too: a mode-following gw.textPrimary would
+              // go ink-on-dark-navy in light mode. Documented fixed
+              // exception, matching this plan's own "text on a fixed dark
+              // scrim" guidance.
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -66,7 +73,7 @@ class SwapResultDrawer {
           ElevatedButton(
             onPressed: () => context.push("/transactions"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.greenAccent,
+              backgroundColor: gw.statusSuccess,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -74,7 +81,7 @@ class SwapResultDrawer {
             ),
             child: Text(
               "Go to Transactions",
-              style: TextStyle(color: context.gw.deepBlueTertiary),
+              style: TextStyle(color: gw.deepBlueTertiary),
             ),
           ),
           const SizedBox(height: 12),
@@ -85,12 +92,12 @@ class SwapResultDrawer {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                side: const BorderSide(color: Colors.greenAccent),
+                side: BorderSide(color: gw.statusSuccess),
                 minimumSize: const Size.fromHeight(48),
               ),
-              child: const Text(
+              child: Text(
                 "View on Explorer",
-                style: TextStyle(color: Colors.greenAccent),
+                style: TextStyle(color: gw.statusSuccess),
               ),
             ),
         ],

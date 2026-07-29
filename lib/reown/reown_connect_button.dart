@@ -354,6 +354,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                 maxHeight: 250,
                               ),
                               child: QrImageView(
+                                // Fixed white regardless of appearance: a QR
+                                // code needs a light quiet zone around dark
+                                // modules to scan reliably -- this is a
+                                // scannability requirement, not a style
+                                // choice, so it does not follow gw.
                                 backgroundColor: Colors.white,
                                 data: wcUri,
                                 version: QrVersions.auto,
@@ -370,6 +375,8 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                         horizontal: 12,
                         vertical: 4,
                       ),
+                      // transparent carries no colour decision -- nothing
+                      // here to flip between modes.
                       backgroundColor: Colors.transparent,
                     ),
                     icon: Icon(Icons.link, color: ctx.gw.brandPrimary),
@@ -607,6 +614,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                   gw.surfaceMenu,
                 ).createShader(bounds),
                 blendMode: BlendMode.srcIn,
+                // Fixed white regardless of appearance: BlendMode.srcIn
+                // recolors every opaque pixel with the shader above, using
+                // only this text's alpha channel -- the RGB value never
+                // reaches the screen (same pattern as GWButton's
+                // gradientOutline pre-mask placeholder).
                 child: const Text(
                   'Connect',
                   style: TextStyle(

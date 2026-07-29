@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class SendTransactionDetails extends StatelessWidget {
@@ -23,29 +24,30 @@ class SendTransactionDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = context.gw;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 24),
-        _labeledBox(label: "From", value: fromAddress),
+        _labeledBox(gw, label: "From", value: fromAddress),
         const SizedBox(height: 12),
-        _labeledBox(label: "To", value: toAddress),
+        _labeledBox(gw, label: "To", value: toAddress),
         const SizedBox(height: 24),
         Center(
           child: Column(
             children: [
               Text(
                 amount,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: gw.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 "Estimated changes",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+                style: TextStyle(color: gw.textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 8),
               Container(
@@ -55,9 +57,13 @@ class SendTransactionDetails extends StatelessWidget {
                   horizontal: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: context.gw.deepBlueCardColor,
+                  color: gw.deepBlueCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
+                // deepBlueCardColor is a FIXED dark fill (does not flip with
+                // appearance), so every text row inside it stays fixed white
+                // regardless of mode -- documented exception, mirroring
+                // swap_result_drawer.dart's deepBlueMenu card.
                 child: Column(
                   children: [
                     _fieldRow("You send", "$amount ETH"),
@@ -81,22 +87,26 @@ class SendTransactionDetails extends StatelessWidget {
     );
   }
 
-  Widget _labeledBox({required String label, required String value}) {
+  Widget _labeledBox(
+    GWColors gw, {
+    required String label,
+    required String value,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+        Text(label, style: TextStyle(color: gw.textSecondary, fontSize: 14)),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.all(12),
           width: double.infinity,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade700),
+            border: Border.all(color: gw.borderStrong),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: gw.textPrimary),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -104,6 +114,8 @@ class SendTransactionDetails extends StatelessWidget {
     );
   }
 
+  // Fixed white regardless of appearance -- these rows are painted inside
+  // the deepBlueCardColor card above, a fixed dark fill (see its comment).
   Widget _fieldRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

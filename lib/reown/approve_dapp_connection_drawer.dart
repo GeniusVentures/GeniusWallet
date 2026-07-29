@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class ApproveDappConnectionDrawer {
   static Future<bool?> show({
@@ -10,6 +11,7 @@ class ApproveDappConnectionDrawer {
     String? dappDescription,
     String? iconUrl,
   }) {
+    final gw = context.gw;
     return ResponsiveDrawer.show<bool>(
       context: context,
       title: "Connection Request",
@@ -45,10 +47,7 @@ class ApproveDappConnectionDrawer {
                       Flexible(
                         child: Text(
                           dappName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
+                          style: TextStyle(color: gw.textPrimary, fontSize: 20),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -57,7 +56,7 @@ class ApproveDappConnectionDrawer {
                   Flexible(
                     child: Text(
                       dappUrl,
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      style: TextStyle(color: gw.textSecondary, fontSize: 14),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -69,7 +68,7 @@ class ApproveDappConnectionDrawer {
           if (dappDescription != null && dappDescription.isNotEmpty) ...[
             Text(
               dappDescription,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: gw.textPrimary70, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -80,7 +79,7 @@ class ApproveDappConnectionDrawer {
         children: [
           Text(
             "Allow $dappName to connect to your wallet?",
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: gw.textPrimary, fontSize: 16),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -90,11 +89,11 @@ class ApproveDappConnectionDrawer {
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(false),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.grey),
+                    side: BorderSide(color: gw.borderStrong),
                   ),
-                  child: const Text(
+                  child: Text(
                     "Deny",
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: gw.textSecondary),
                   ),
                 ),
               ),
@@ -103,9 +102,14 @@ class ApproveDappConnectionDrawer {
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(true),
                   style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent,
-                    side: const BorderSide(color: Colors.greenAccent),
+                    backgroundColor: gw.statusSuccess,
+                    side: BorderSide(color: gw.statusSuccess),
                   ),
+                  // Fixed black regardless of appearance: statusSuccess is
+                  // the fill here (not a surface), and black is the only
+                  // foreground that clears 4.5:1 against BOTH its dark-mode
+                  // and light-mode values (measured in 23-03-CONTRAST.md) --
+                  // matches this file's planner-discipline-allowed exception.
                   child: const Text(
                     "Allow",
                     style: TextStyle(color: Colors.black),

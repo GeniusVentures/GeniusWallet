@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class ApproveTransactionDrawer {
   static Future<bool?> show({
@@ -10,6 +11,7 @@ class ApproveTransactionDrawer {
     required String dappUrl,
     String? iconUrl,
   }) async {
+    final gw = context.gw;
     return ResponsiveDrawer.show<bool>(
       context: context,
       title: "Transaction Request",
@@ -26,7 +28,7 @@ class ApproveTransactionDrawer {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
+                      border: Border.all(color: gw.borderStrong),
                       borderRadius: BorderRadius.circular(
                         GeniusWalletConsts.borderRadiusButton,
                       ),
@@ -50,8 +52,8 @@ class ApproveTransactionDrawer {
                         Flexible(
                           child: Text(
                             dappUrl,
-                            style: const TextStyle(
-                              color: Colors.grey,
+                            style: TextStyle(
+                              color: gw.textSecondary,
                               fontSize: 16,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -74,9 +76,9 @@ class ApproveTransactionDrawer {
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(false),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.grey),
+                side: BorderSide(color: gw.borderStrong),
               ),
-              child: const Text("Reject", style: TextStyle(color: Colors.grey)),
+              child: Text("Reject", style: TextStyle(color: gw.textSecondary)),
             ),
           ),
           const SizedBox(width: 12),
@@ -84,9 +86,12 @@ class ApproveTransactionDrawer {
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
-                side: const BorderSide(color: Colors.greenAccent),
+                backgroundColor: gw.statusSuccess,
+                side: BorderSide(color: gw.statusSuccess),
               ),
+              // Fixed black regardless of appearance -- see
+              // approve_dapp_connection_drawer.dart's identical Allow
+              // button for the measured ratios (23-03-CONTRAST.md).
               child: const Text(
                 "Approve",
                 style: TextStyle(color: Colors.black),
