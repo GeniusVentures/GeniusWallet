@@ -17,6 +17,16 @@ class StartSGNUSTransactionsStream extends AppEvent {}
 
 class ProcessingStatusTicked extends AppEvent {}
 
+/// Re-arms the polling timer an exception permanently cancelled
+/// (`app_bloc.dart:192-195`'s catch) and clears the feed's unavailable flag
+/// back to its pre-read value. See `AppBloc._onRetryProcessingStatus`.
+class RetryProcessingStatus extends AppEvent {}
+
+/// Dispatched by the initialization poll's `Timer.periodic`
+/// (`AppBloc._startInitPolling`), mirroring `ProcessingStatusTicked`'s
+/// existing shape.
+class InitializationStatusTicked extends AppEvent {}
+
 class DeleteWallet extends AppEvent {
   final String address;
 
