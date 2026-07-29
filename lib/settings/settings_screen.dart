@@ -11,10 +11,10 @@ import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 /// SPD log levels exposed in dropdown order (most verbose → silent).
@@ -354,9 +354,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // flips on a live toggle instead of rendering stale.
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: status.contains('✅')
-                      ? GeniusWalletColors.statusSuccess
+                      ? context.gw.statusSuccess
                       : status.contains('Error')
-                      ? GeniusWalletColors.statusError
+                      ? context.gw.statusError
                       : gw.textSecondary,
                 ),
               ),
