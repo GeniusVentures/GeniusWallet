@@ -1164,7 +1164,7 @@ that can be proven paint-preserving without a visual baseline. Still no behaviou
 
 **Requirements**: ORG-04, ORG-05 (ORG-05 partial by design — see 23-05's extraction audit)
 **Depends on:** Phase 22
-**Plans:** 0/6 plans executed
+**Plans:** 1/6 plans executed
 
 **Why this is separate from 22.** The parity premise in the original scoping was wrong:
 `GeniusWalletColors` has ~46 public members and **288** call sites outside `lib/theme/`, while
@@ -1191,7 +1191,7 @@ work opens the same files. All verdicts land in `23-05-EXTRACTION-AUDIT.md` with
 
 Plans:
 
-- [ ] 23-01-PLAN.md — `GWColors` extended to field-for-field name parity, seeded from the existing
+- [x] 23-01-PLAN.md — `GWColors` extended to field-for-field name parity, seeded from the existing
       primitives; `context.gw` accessor with a fallback; the **parity test that replaces the golden
       baseline** by proving value equality per token in both modes. **Zero call sites changed**
 
