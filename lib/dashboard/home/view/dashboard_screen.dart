@@ -14,6 +14,7 @@ import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
+import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/components/wallet_overview.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
@@ -23,11 +24,8 @@ import 'package:genius_wallet/dev/dev_fault_injector.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/screens/loading_screen.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
-import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
-import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -591,7 +589,7 @@ class _ChartSectionHeader extends StatelessWidget {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [_CoinIdentity(), _TimeframeSegment()],
+          children: [_CoinIdentity(), GWTimeframeSegment()],
         ),
       ),
     );
@@ -658,141 +656,6 @@ class _CoinIdentity extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Visual-only 1H·1D·1W·1M·1Y segmented control (sketch 006 `.tf`). Tapping a
-/// tab only moves the selected chip -- the plotted series in [CryptoLiveChart]
-/// below is UNCHANGED this task; wiring real ranges is a captured follow-up
-/// (see .planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-
-/// crypto-live-chart.md).
-///
-/// ponytail: this segment only changes its own selected state -- it does not
-/// re-fetch or re-window the series. Ceiling: non-functional tabs. Upgrade
-/// path: the follow-up todo wires real ranges into CryptoLiveChart.
-class _TimeframeSegment extends StatefulWidget {
-  const _TimeframeSegment();
-
-  @override
-  State<_TimeframeSegment> createState() => _TimeframeSegmentState();
-}
-
-class _TimeframeSegmentState extends State<_TimeframeSegment> {
-  static const _labels = ['1H', '1D', '1W', '1M', '1Y'];
-  int _selected = 1; // '1D', matching the sketch's default.
-
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        // Control-track standard: surfaceSunken (recessed well), not
-        // surfaceMenu (raised chip). Recipe + rationale in
-        // .planning/codebase/CONVENTIONS.md ("Control track"). Keep in sync
-        // with the filter track in transactions_slim_view.dart — the two are
-        // deliberately identical.
-        color: gw.surfaceSunken,
-        // Hairline border so the five tabs read as ONE connected segmented
-        // "baton" (a single track holding the options), not five loose chips.
-        border: Border.all(color: gw.borderSubtle),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < _labels.length; i++) ...[
-            if (i > 0) const SizedBox(width: 2),
-            _TimeframeTab(
-              label: _labels[i],
-              selected: i == _selected,
-              // Selected chip wears the brand CTA gradient with textOnBrand
-              // (near-black) -- AA-safe in BOTH modes, so no light-mode fallback
-              // is needed. Hover raises an unselected tab onto surfaceElevated.
-              unselectedColor: gw.textSecondary,
-              hoverColor: gw.surfaceElevated,
-              hoverTextColor: gw.textPrimary,
-              onTap: () => setState(() => _selected = i),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _TimeframeTab extends StatefulWidget {
-  const _TimeframeTab({
-    required this.label,
-    required this.selected,
-    required this.unselectedColor,
-    required this.hoverColor,
-    required this.hoverTextColor,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final Color unselectedColor;
-  final Color hoverColor;
-  final Color hoverTextColor;
-  final VoidCallback onTap;
-
-  @override
-  State<_TimeframeTab> createState() => _TimeframeTabState();
-}
-
-class _TimeframeTabState extends State<_TimeframeTab> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final selected = widget.selected;
-    // Unselected label: muted normally, lifts to hoverTextColor on hover.
-    final Color labelColor = selected
-        ? GeniusWalletColors.textOnBrand
-        : (_hovered ? widget.hoverTextColor : widget.unselectedColor);
-
-    // Design-system hover = "lift chip" (sketch 008 variant D): an unselected
-    // tab rises onto surfaceElevated with the card shadow and a 1px lift, so
-    // hover and the selected gradient chip share a raised material.
-    final bool lifted = _hovered && !selected;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          transformAlignment: Alignment.center,
-          transform: lifted
-              ? Matrix4.translationValues(0, -1, 0)
-              : Matrix4.identity(),
-          padding: const EdgeInsets.symmetric(
-            horizontal: GeniusWalletConsts.space4,
-            vertical: GeniusWalletConsts.space3,
-          ),
-          decoration: BoxDecoration(
-            gradient: selected ? GeniusWalletGradient.brandCta : null,
-            color: selected
-                ? null
-                : (lifted ? widget.hoverColor : Colors.transparent),
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-            boxShadow: (selected || lifted) ? GeniusWalletElevation.card : null,
-          ),
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              color: labelColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              height: 1,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
