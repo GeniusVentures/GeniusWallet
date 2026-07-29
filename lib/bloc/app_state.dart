@@ -131,8 +131,7 @@ class AppState extends Equatable {
       processingPercentage: processingPercentage ?? this.processingPercentage,
       isProcessing: isProcessing ?? this.isProcessing,
       processingFeedStatus: processingFeedStatus ?? this.processingFeedStatus,
-      nodeProcessingStatus:
-          nodeProcessingStatus ?? this.nodeProcessingStatus,
+      nodeProcessingStatus: nodeProcessingStatus ?? this.nodeProcessingStatus,
       processingCompletedAt:
           processingCompletedAt ?? this.processingCompletedAt,
       initPercentage: initPercentage ?? this.initPercentage,

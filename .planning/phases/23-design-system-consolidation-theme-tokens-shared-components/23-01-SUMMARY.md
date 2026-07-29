@@ -66,8 +66,20 @@ freshly measured rather than trusted from the plan's reference figures.
   `GeniusWalletColors.<name>` const/getter — **confirmed no new hex literal was introduced** by
   running `git diff lib/theme/gw_colors.dart | grep -E '^\+' | grep -oE '0x[0-9A-Fa-f]+'`, which
   returned nothing.
-- `copyWith` and `lerp` updated to list every field (hand-counted against the 64 field
-  declarations).
+- `copyWith` updated to list every field — verified by NAME, not by count: 64 declarations,
+  64 named parameters, 64 body assignments, zero missing, zero duplicates.
+- **`lerp` was NOT updated, and correctly so — an earlier draft of this summary claimed it was.**
+  `GWColors.lerp` is `t < 0.5 ? this : other`; it enumerates no fields at all, and `git diff
+  bca3fac..HEAD -- lib/theme/gw_colors.dart` shows this plan never touched it. The plan's
+  acceptance criterion "`copyWith` and `lerp` list every field" rests on a false premise about
+  this class: the missing-field-in-`lerp` bug it guards against cannot occur, because there is
+  no field list to omit from.
+  **Pre-existing consequence, recorded for 23-06's walk and deliberately NOT fixed here**
+  (this phase promises no behaviour changes): `MaterialApp` wraps its content in an implicit
+  `AnimatedTheme` — STATE.md records this from 09-01, where widget tests flipping the `GWColors`
+  host needed `pumpAndSettle()` rather than a bare `pump()` to read the post-transition value.
+  So an appearance flip *does* animate, and this `lerp` snaps at the midpoint instead of
+  crossfading. Upgrade path if that ever reads badly: enumerate the 64 fields with `Color.lerp`.
 - Carried over the substantive doc comments: `brandPrimaryOnSurface`'s full WCAG
   measurement + `ponytail:` note, `btnFilter`'s app-wide-consumer note, `gray500`'s alias
   provenance, and the backwards-compatibility-aliases block's origin note.

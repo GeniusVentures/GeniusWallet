@@ -10,30 +10,21 @@ void main() {
   group('didProcessingJustComplete - completion-edge rule', () {
     test('a true-to-false transition reports a completion', () {
       expect(
-        didProcessingJustComplete(
-          wasProcessing: true,
-          isProcessingNow: false,
-        ),
+        didProcessingJustComplete(wasProcessing: true, isProcessingNow: false),
         isTrue,
       );
     });
 
     test('a false-to-true transition does not report a completion', () {
       expect(
-        didProcessingJustComplete(
-          wasProcessing: false,
-          isProcessingNow: true,
-        ),
+        didProcessingJustComplete(wasProcessing: false, isProcessingNow: true),
         isFalse,
       );
     });
 
     test('a false-to-false non-transition does not report a completion', () {
       expect(
-        didProcessingJustComplete(
-          wasProcessing: false,
-          isProcessingNow: false,
-        ),
+        didProcessingJustComplete(wasProcessing: false, isProcessingNow: false),
         isFalse,
       );
     });
@@ -81,24 +72,27 @@ void main() {
       },
     );
 
-    test('the disabled reading and the idle reading map to different results', () {
-      // The bug this pins: app_bloc.dart:180-182's
-      // `statusInfo.status == GENIUS_PR_STATUS_PROCESSING.value` collapses
-      // GENIUS_PR_STATUS_DISABLED and GENIUS_PR_STATUS_IDLE into the same
-      // `false` - this is the fourth value that comparison destroys.
-      final disabled = resolveProcessingFeedReading(
-        readThrew: false,
-        nodeReading: NodeProcessingReading.disabled,
-      );
-      final idle = resolveProcessingFeedReading(
-        readThrew: false,
-        nodeReading: NodeProcessingReading.idle,
-      );
+    test(
+      'the disabled reading and the idle reading map to different results',
+      () {
+        // The bug this pins: app_bloc.dart:180-182's
+        // `statusInfo.status == GENIUS_PR_STATUS_PROCESSING.value` collapses
+        // GENIUS_PR_STATUS_DISABLED and GENIUS_PR_STATUS_IDLE into the same
+        // `false` - this is the fourth value that comparison destroys.
+        final disabled = resolveProcessingFeedReading(
+          readThrew: false,
+          nodeReading: NodeProcessingReading.disabled,
+        );
+        final idle = resolveProcessingFeedReading(
+          readThrew: false,
+          nodeReading: NodeProcessingReading.idle,
+        );
 
-      expect(disabled, isNot(equals(idle)));
-      expect(disabled, ProcessingFeedReading.disabled);
-      expect(idle, ProcessingFeedReading.idle);
-    });
+        expect(disabled, isNot(equals(idle)));
+        expect(disabled, ProcessingFeedReading.disabled);
+        expect(idle, ProcessingFeedReading.idle);
+      },
+    );
 
     test('a healthy processing reading maps through unchanged', () {
       expect(

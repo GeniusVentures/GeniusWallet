@@ -11,53 +11,47 @@ import 'package:genius_wallet/dashboard/compute/compute_state.dart';
 /// exhaustive-enum group.
 void main() {
   group('compute state view models — pairwise distinct', () {
-    test(
-      'every ComputeState.values member renders a distinct '
-      '(dotRole, label, subline, trailing, showBar) tuple',
-      () {
-        // Iterating `values` — rather than a hand-written list of the eight
-        // states — means this test fails automatically the moment someone
-        // adds a ninth ComputeState member without differentiating it from
-        // the existing eight. That includes whoever un-parks the stalled
-        // state: the moment it gets a real ComputeState.stalled member, this
-        // test starts enforcing that ITS tuple is distinct too, with zero
-        // changes needed here.
-        final tuples = ComputeState.values.map((state) {
-          final view = viewForComputeState(
-            state,
-            // Plausible mid-flight values so startingUp/processing render a
-            // real bar rather than clamping to 0 — the tuple must still be
-            // distinct under realistic inputs, not just at the edges.
-            initStatusMessage: 'Connecting to the SGNUS network',
-            initPercentage: 0.5,
-            processingPercentage: 50.0,
-          );
-          return (
-            view.dotRole,
-            view.label,
-            view.subline,
-            view.trailing,
-            view.showBar,
-          );
-        }).toSet();
+    test('every ComputeState.values member renders a distinct '
+        '(dotRole, label, subline, trailing, showBar) tuple', () {
+      // Iterating `values` — rather than a hand-written list of the eight
+      // states — means this test fails automatically the moment someone
+      // adds a ninth ComputeState member without differentiating it from
+      // the existing eight. That includes whoever un-parks the stalled
+      // state: the moment it gets a real ComputeState.stalled member, this
+      // test starts enforcing that ITS tuple is distinct too, with zero
+      // changes needed here.
+      final tuples = ComputeState.values.map((state) {
+        final view = viewForComputeState(
+          state,
+          // Plausible mid-flight values so startingUp/processing render a
+          // real bar rather than clamping to 0 — the tuple must still be
+          // distinct under realistic inputs, not just at the edges.
+          initStatusMessage: 'Connecting to the SGNUS network',
+          initPercentage: 0.5,
+          processingPercentage: 50.0,
+        );
+        return (
+          view.dotRole,
+          view.label,
+          view.subline,
+          view.trailing,
+          view.showBar,
+        );
+      }).toSet();
 
-        expect(tuples.length, ComputeState.values.length);
-      },
-    );
+      expect(tuples.length, ComputeState.values.length);
+    });
 
-    test(
-      'unavailable and ready differ on the dot role, the label AND the '
-      'sub-line — not merely on one of them. Today both render the same '
-      'grey word (sgnus_connection_widget.dart:125-127); this is the pair '
-      'this phase exists to separate.',
-      () {
-        final unavailable = viewForComputeState(ComputeState.unavailable);
-        final ready = viewForComputeState(ComputeState.ready);
+    test('unavailable and ready differ on the dot role, the label AND the '
+        'sub-line — not merely on one of them. Today both render the same '
+        'grey word (sgnus_connection_widget.dart:125-127); this is the pair '
+        'this phase exists to separate.', () {
+      final unavailable = viewForComputeState(ComputeState.unavailable);
+      final ready = viewForComputeState(ComputeState.ready);
 
-        expect(unavailable.dotRole, isNot(ready.dotRole));
-        expect(unavailable.label, isNot(ready.label));
-        expect(unavailable.subline, isNot(ready.subline));
-      },
-    );
+      expect(unavailable.dotRole, isNot(ready.dotRole));
+      expect(unavailable.label, isNot(ready.label));
+      expect(unavailable.subline, isNot(ready.subline));
+    });
   });
 }

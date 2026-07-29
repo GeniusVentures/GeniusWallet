@@ -295,8 +295,7 @@ ComputeStatusView viewForComputeState(
       link = ComputeLink.retry;
     case ComputeState.startingUp:
       label = 'Starting up';
-      subline =
-          (initStatusMessage != null && initStatusMessage.isNotEmpty)
+      subline = (initStatusMessage != null && initStatusMessage.isNotEmpty)
           ? initStatusMessage
           : startingUpFallbackMessage;
       dotRole = ComputeDotRole.brand;

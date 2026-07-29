@@ -165,26 +165,23 @@ void main() {
   });
 
   group('resolveComputeState — the four precedence cases that matter', () {
-    test(
-      '1. disconnected outranks not-linked when the node reports an empty '
-      'wallet address (wallet_overview.dart:179 passes connection?.walletAddress '
-      "?? '' when there is no connection — without this ordering every wallet "
-      'tests as not-linked and the user is falsely accused)',
-      () {
-        final state = resolveComputeState(
-          hasSelectedWallet: true,
-          isNodeConnected: false,
-          nodeWalletAddress: '',
-          selectedWalletAddress: '0xWallet',
-          isProcessingUnavailable: false,
-          initPercentage: 1.0,
-          isProcessing: false,
-          sinceJobFinished: null,
-        );
-        expect(state, ComputeState.disconnected);
-        expect(state, isNot(ComputeState.notLinked));
-      },
-    );
+    test('1. disconnected outranks not-linked when the node reports an empty '
+        'wallet address (wallet_overview.dart:179 passes connection?.walletAddress '
+        "?? '' when there is no connection — without this ordering every wallet "
+        'tests as not-linked and the user is falsely accused)', () {
+      final state = resolveComputeState(
+        hasSelectedWallet: true,
+        isNodeConnected: false,
+        nodeWalletAddress: '',
+        selectedWalletAddress: '0xWallet',
+        isProcessingUnavailable: false,
+        initPercentage: 1.0,
+        isProcessing: false,
+        sinceJobFinished: null,
+      );
+      expect(state, ComputeState.disconnected);
+      expect(state, isNot(ComputeState.notLinked));
+    });
 
     test('2. unavailable outranks ready', () {
       final state = resolveComputeState(
@@ -214,23 +211,20 @@ void main() {
       expect(state, ComputeState.unavailable);
     });
 
-    test(
-      '4a. job-complete outranks ready inside the completion window '
-      '(boundary inclusive)',
-      () {
-        final state = resolveComputeState(
-          hasSelectedWallet: true,
-          isNodeConnected: true,
-          nodeWalletAddress: '0xNode',
-          selectedWalletAddress: '0xNode',
-          isProcessingUnavailable: false,
-          initPercentage: 1.0,
-          isProcessing: false,
-          sinceJobFinished: jobCompleteWindow,
-        );
-        expect(state, ComputeState.jobComplete);
-      },
-    );
+    test('4a. job-complete outranks ready inside the completion window '
+        '(boundary inclusive)', () {
+      final state = resolveComputeState(
+        hasSelectedWallet: true,
+        isNodeConnected: true,
+        nodeWalletAddress: '0xNode',
+        selectedWalletAddress: '0xNode',
+        isProcessingUnavailable: false,
+        initPercentage: 1.0,
+        isProcessing: false,
+        sinceJobFinished: jobCompleteWindow,
+      );
+      expect(state, ComputeState.jobComplete);
+    });
 
     test(
       '4b. job-complete decays to ready outside the completion window '
@@ -279,23 +273,20 @@ void main() {
   });
 
   group('viewForComputeState — the scale test', () {
-    test(
-      'an initialization reading of 0.525 and a processing reading of 52.5 '
-      'both produce a bar value of 0.525 — the whole defence against the '
-      'hundred-times error between the two native scales',
-      () {
-        final startingUpView = viewForComputeState(
-          ComputeState.startingUp,
-          initPercentage: 0.525,
-        );
-        expect(startingUpView.barValue, 0.525);
+    test('an initialization reading of 0.525 and a processing reading of 52.5 '
+        'both produce a bar value of 0.525 — the whole defence against the '
+        'hundred-times error between the two native scales', () {
+      final startingUpView = viewForComputeState(
+        ComputeState.startingUp,
+        initPercentage: 0.525,
+      );
+      expect(startingUpView.barValue, 0.525);
 
-        final processingView = viewForComputeState(
-          ComputeState.processing,
-          processingPercentage: 52.5,
-        );
-        expect(processingView.barValue, 0.525);
-      },
-    );
+      final processingView = viewForComputeState(
+        ComputeState.processing,
+        processingPercentage: 52.5,
+      );
+      expect(processingView.barValue, 0.525);
+    });
   });
 }
