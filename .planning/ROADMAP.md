@@ -1164,7 +1164,7 @@ that can be proven paint-preserving without a visual baseline. Still no behaviou
 
 **Requirements**: ORG-04, ORG-05 (ORG-05 partial by design — see 23-05's extraction audit)
 **Depends on:** Phase 22
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 **Why this is separate from 22.** The parity premise in the original scoping was wrong:
 `GeniusWalletColors` has ~46 public members and **288** call sites outside `lib/theme/`, while
@@ -1199,7 +1199,7 @@ Plans:
       install, no pubspec change, no blocking gate**) moving ~260 colour reads onto `context.gw`,
       one commit per directory, closing with an eight-screen appearance-toggle walk
 
-- [ ] 23-03-PLAN.md — Close the codemod residue; fix `toast_widget.dart`, `gw_button.dart` and
+- [x] 23-03-PLAN.md — Close the codemod residue; fix `toast_widget.dart`, `gw_button.dart` and
       `lib/reown/`; replace the forked warning widget with `GWWarningNote`. Every touched pair gets a
       **measured WCAG ratio asserted** in the existing `test/theme/theme_contrast_test.dart`
 

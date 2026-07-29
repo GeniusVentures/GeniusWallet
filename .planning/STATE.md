@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 23
 current_phase_name: design-system-consolidation-theme-tokens-shared-components
 status: executing
-stopped_at: Completed 22-08-PLAN.md
-last_updated: "2026-07-29T14:46:36.581Z"
+stopped_at: Completed 23-03-PLAN.md
+last_updated: "2026-07-29T15:43:37.119Z"
 last_activity: 2026-07-29
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 24
   completed_phases: 17
   total_plans: 107
-  completed_plans: 95
+  completed_plans: 96
   percent: 71
 ---
 
@@ -59,7 +59,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 23 (design-system-consolidation-theme-tokens-shared-components) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -221,6 +221,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase 23]: 23-01: excluded statusNeutral from GWColors parity per its own pre-existing locked ponytail note (mode-invariant, fill-only, glyph-derivation would duplicate a hand-maintained token) rather than forcing blanket name parity
 - [Phase 23]: 23-01: gave each of the 7 legacy value-aliases (gray500, borderBrand, statusInfo, brandGreen/Strong/Muted/Subtle) their own GWColors field rather than deduplicating, per the plan's mechanical-codemod-safety rationale
 - [Phase ?]: 23-02: package:analyzer AST codemod (no install) migrated 179/251 lib/ GeniusWalletColors sites to context.gw; 72 refused (45 const, 27 no-context) reconciled in 23-02-RESIDUE.md for 23-03; Task 4 walk PASSED live with one recorded caveat (market-data surfaces inconclusive, infra outage)
+- [Phase ?]: gw.foundationError adopted as GWButton destructive's fill (was 0 call sites) -- gw.statusError is foreground-tuned, not fill-safe; measured 9.45:1 in both modes vs the prior 3.27/3.86:1 failures
+- [Phase ?]: swap_settings_drawer's private _Message deleted; warning tone now shares GWWarningNote directly (no new parameter added); error/ok moved to a small local _SlippageStatusRow
+- [Phase ?]: lib/main.dart:265 deliberately left reading GeniusWalletColors.statusError -- ErrorWidget.builder has no guaranteed Theme ancestor; sole entry on the 23-04 allowlist
 
 ### Pending Todos
 
@@ -344,8 +347,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-29T14:46:24.686Z
-Stopped at: Completed 22-08-PLAN.md
+Last session: 2026-07-29T15:43:37.107Z
+Stopped at: Completed 23-03-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -464,6 +467,7 @@ Open decisions:
 | Phase 22-codebase-organization-standards-config-dead-code-deletion-th P08 | 35min | 3 tasks | 4 files |
 | Phase 23 P01 | 45 | 3 tasks | 4 files |
 | Phase 23 P01 | ~40min | 3 tasks | 4 files |
+| Phase 23 P03 | 110min | 3 tasks | 44 files |
 
 ### Roadmap Evolution
 
