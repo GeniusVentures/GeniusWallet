@@ -137,3 +137,91 @@ pairing changed. `tertiary`/`icon` (`gw.textPrimary` on `gw.surfaceElevated`)
 and `ghost` (`gw.textPrimary` on whatever it sits atop) are the app's most
 common text/surface pairing (near-white on near-black, or near-black on
 white) and clear AA by a wide margin in both modes — no new failure found.
+
+## Task 3: `lib/reown/` re-measured raw-colour count
+
+`grep -vE '^\s*//' lib/reown/*.dart lib/reown/**/*.dart | grep -cE 'Colors\.[a-zA-Z]|Color\(0x'`
+went from a heavy fixed-palette concentration (every approve/reject drawer,
+the tx-details card and the session-request fallback content painting
+`Colors.white`/`white70`/`grey` regardless of appearance) to **12**, every
+one of which is a documented always-one-mode exception with an inline
+comment, or a `GWColors.dark()`-fallback false positive the grep's regex
+also matches (it contains the substring `Colors.dark`):
+
+| File | Survivor | Reason |
+|---|---|---|
+| `approve_dapp_connection_drawer.dart` | `Colors.black` (Allow label) | fixed black clears 4.5:1 against BOTH `statusSuccess` values (measured below); a mode-following `gw.textPrimary` would not |
+| `approve_transaction_drawer.dart` | `Colors.black` (Approve label) | same as above |
+| `handle_dapp_requests.dart` | `Colors.white70` (params card row) | `deepBlueCardColor` is a fixed dark fill |
+| `send_transaction_details.dart` (x2) | `Colors.white70`/`Colors.white` (`_fieldRow`) | same fixed-dark-fill card |
+| `swap_result_drawer.dart` (x2) | `Colors.white70`/`Colors.white` (tx-hash card) | `deepBlueMenu` is a fixed dark fill |
+| `reown_connect_button.dart` (x2) | `GWColors.dark()` | fallback-pattern false positive, not a literal colour |
+| `reown_connect_button.dart` | `Colors.white` (QR background) | scannability requirement (quiet zone), not a style choice |
+| `reown_connect_button.dart` | `Colors.transparent` (button bg) | carries no colour decision |
+| `reown_connect_button.dart` | `Colors.white` (ShaderMask text) | `BlendMode.srcIn` pre-mask placeholder — RGB never reaches the screen |
+
+### Approve/Allow button fill + label (new pairing, replaces `Colors.greenAccent`/`Colors.black`)
+
+| Mode | Foreground | Background | Ratio | Threshold | Verdict |
+|---|---|---|---|---|---|
+| dark | `Colors.black` (fixed) | `statusSuccess` `#0AD89C` | 10.66:1 | 4.5:1 | PASS |
+| light | `Colors.black` (fixed) | `statusSuccess` `#07875F` | 4.64:1 | 4.5:1 | PASS |
+
+Not asserted in `theme_contrast_test.dart` (no public widget boundary to
+pump without a live `ReownWalletKit`/`GeniusApi` — see
+`url_bar_focus_remount_test.dart`'s header comment for the same limitation
+on this package's dApp-adjacent widgets) — recorded here as the by-hand
+evidence instead, per this plan's own note that the missing golden baseline
+costs nothing where a measured ratio is the deliverable.
+
+## Task 3: the forked warning widget (`swap_settings_drawer.dart`)
+
+The private `_Message` class (three tones: error/warning/ok) re-derived the
+warning tone from the raw, un-fixed `statusWarning` token instead of reusing
+`GWWarningNote`'s documented light-mode amber (`gw_warning_note.dart:17-21`).
+Replaced: the warning tone now renders `GWWarningNote(state.message!)`
+directly; error/ok keep a small inline `_SlippageStatusRow` (neither needs
+the amber workaround — `statusError`/`textSecondary` are already
+appearance-aware). `GWWarningNote` gained no new parameter.
+
+| State | Foreground | Background | Ratio | Threshold | Verdict |
+|---|---|---|---|---|---|
+| Before (light) | raw `statusWarning` `#FFC42E` | `surfaceElevated` `#FFFFFF` (156-A drawer panel) | 1.59:1 | 3:1 | **FAIL** |
+| After (light) | `GWWarningNote`'s local amber `#92400E` | `surfaceElevated` `#FFFFFF` | 7.09:1 | 3:1 | PASS |
+| After (dark) | `GWWarningNote`'s `gw.statusWarning` `#FFC42E` | `surfaceElevated` `#0C0E14` | 12.11:1 | 3:1 | PASS |
+
+Asserted end-to-end in `test/theme/theme_contrast_test.dart` Part 7: drives
+the real `SwapSettingsDrawer.show` with `initialSlippage: 10.0` (above
+`kSlippageWarnAbove`), confirms exactly one `GWWarningNote` renders, and
+asserts both icon-colour identity and ratio against the painted drawer
+panel, in both modes.
+
+**On the live walk this plan asks for:** this executor has no interactive
+device/screen-control tool -- the environment brief for this run explicitly
+prohibits spawning a new `flutter run`/`flutter build windows` (a
+`genius_wallet.exe` is already running under the orchestrator's control, and
+a second build fails on the DLL lock). No human clicked through the app
+during this task. What WAS done, stated per surface rather than "looks
+fine":
+
+- Swap settings drawer, light mode: `test/theme/theme_contrast_test.dart`
+  Part 7 drives the real `SwapSettingsDrawer.show` end to end with
+  `initialSlippage: 10.0` (above `kSlippageWarnAbove`), pumps the actual
+  widget tree, and reads the ACTUAL painted `Icon.color` off it -- not a
+  value asserted from source. Measured 7.09:1 (light) / 12.11:1 (dark)
+  against the drawer's own painted panel colour, vs. 1.59:1 before this fix.
+- dApp connect flow (`ApproveDappConnectionDrawer`/`ApproveTransactionDrawer`):
+  no live widget test was added (both need a `ReownWalletKit`/`GeniusApi`
+  instance to reach via their real call sites, which no existing test in
+  this repo constructs -- the same limitation
+  `url_bar_focus_remount_test.dart`'s own header comment names for
+  `WebViewMobile`). Verified instead by `flutter analyze`/`flutter test`
+  (compiles, no raw-colour literal escapes the documented-exception list
+  above) and the by-hand ratio table for the Allow/Approve button.
+  **This is the gap in this plan's evidence** -- a human walk of this
+  specific flow (both modes) is the one verification this task could not
+  perform and should be the first thing checked live before this plan is
+  considered fully proven.
+- `lib/reown/`'s known x64 WalletConnect architectural finding (WalletConnect
+  disabled via an arch-based skip on x64 desktop) was left untouched -- out
+  of this plan's scope, as the plan requires.

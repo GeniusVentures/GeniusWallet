@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_widget.dart';
+import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -502,4 +504,82 @@ void main() {
       });
     }
   });
+
+  // 23-03: swap_settings_drawer.dart's private `_Message` fork re-derived the
+  // warning tone from raw `statusWarning` (~1.59:1 on light's white
+  // surfaceElevated -- effectively invisible) instead of reusing
+  // GWWarningNote's documented light-mode amber fix. This end-to-end test
+  // drives the real drawer and asserts the warning path now renders a
+  // GWWarningNote with the fixed amber icon.
+  group(
+    'Part 7: swap_settings_drawer warning uses GWWarningNote\'s amber fix (23-03)',
+    () {
+      for (final mode in GWAppearanceMode.values) {
+        testWidgets('high slippage warning -- $mode', (tester) async {
+          final theme = themeFor(mode);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: theme,
+              home: Scaffold(
+                body: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => SwapSettingsDrawer.show(
+                      context,
+                      // Above kSlippageWarnAbove (5.0) -- triggers the "High"
+                      // warning message on open, no typing needed.
+                      initialSlippage: 10.0,
+                      onSlippageChanged: (_) {},
+                    ),
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.tap(find.text('open'));
+          await tester.pumpAndSettle();
+
+          expect(
+            find.byType(GWWarningNote),
+            findsOneWidget,
+            reason:
+                'the private _Message fork is gone; the warning tone must '
+                'render the shared GWWarningNote ($mode)',
+          );
+
+          final expectedAmber = mode == GWAppearanceMode.light
+              ? const Color(0xFF92400E)
+              : theme.extension<GWColors>()!.statusWarning;
+          final icon = tester.widget<Icon>(
+            find.descendant(
+              of: find.byType(GWWarningNote),
+              matching: find.byIcon(Icons.warning_amber_rounded),
+            ),
+          );
+          expect(
+            icon.color,
+            expectedAmber,
+            reason: 'GWWarningNote icon colour ($mode)',
+          );
+
+          final panel = tester
+              .widget<Scaffold>(
+                find.ancestor(
+                  of: find.byType(AppBar),
+                  matching: find.byType(Scaffold),
+                ),
+              )
+              .backgroundColor!;
+          expect(
+            contrastRatio(icon.color!, panel),
+            greaterThanOrEqualTo(3.0),
+            reason:
+                'GWWarningNote icon $expectedAmber on drawer panel $panel '
+                'in $mode mode -- was 1.59:1 before this fix in light mode',
+          );
+        });
+      }
+    },
+  );
 }

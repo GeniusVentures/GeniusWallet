@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/squid_router/slippage_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -275,7 +276,21 @@ class _SlippageFormState extends State<_SlippageForm> {
           ),
           if (state.message != null) ...[
             const SizedBox(height: GeniusWalletConsts.space4),
-            _Message(state: state, gw: gw),
+            // 23-03: the warning tone now goes through the shared
+            // GWWarningNote (its documented light-mode amber contrast fix
+            // -- gw_warning_note.dart:17-21 -- replaces the private fork
+            // this used to carry, which re-derived the raw, un-fixed
+            // `statusWarning` here instead and lost that fix). error/ok
+            // keep their own inline treatment: neither needs the amber
+            // workaround (statusError and textSecondary are already
+            // appearance-aware), and GWWarningNote has exactly one shape
+            // (a bordered amber note) -- forcing it to also cover error/ok
+            // would mean adding a variant flag to a shared component for a
+            // single caller, which is the wrong abstraction (Rule of Three).
+            if (state.level == SlippageLevel.warning)
+              GWWarningNote(state.message!)
+            else
+              _SlippageStatusRow(state: state, gw: gw),
           ],
         ],
       ),
@@ -283,22 +298,27 @@ class _SlippageFormState extends State<_SlippageForm> {
   }
 }
 
-class _Message extends StatelessWidget {
-  const _Message({required this.state, required this.gw});
+/// The error/ok tones only -- warning goes through the shared
+/// [GWWarningNote] instead (see its call site above). Neither tone needs an
+/// amber-style contrast workaround: `statusError` and `textSecondary` are
+/// already appearance-aware.
+class _SlippageStatusRow extends StatelessWidget {
+  const _SlippageStatusRow({required this.state, required this.gw});
 
   final SlippageState state;
   final GWColors gw;
 
   @override
   Widget build(BuildContext context) {
-    // Three tones now, not two. `ok` used to be unreachable here because the
-    // validator returned a null message for the comfortable band; it confirms
-    // instead, so this needs a neutral colour rather than falling through to
-    // amber and painting reassurance as a warning.
+    // `ok` used to be unreachable here because the validator returned a null
+    // message for the comfortable band; it confirms instead, so this needs a
+    // neutral colour.
     final color = switch (state.level) {
       SlippageLevel.error => gw.statusError,
-      SlippageLevel.warning => context.gw.statusWarning,
       SlippageLevel.ok => gw.textSecondary, // 5.97:1 on the 156-A panel
+      SlippageLevel.warning => throw StateError(
+        'warning is handled by GWWarningNote at the call site',
+      ),
     };
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
