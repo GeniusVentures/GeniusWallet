@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Animated brand-color mesh that lives behind a screen's content. Three
 /// large radial blobs (cyan, mint, purple) drift on independent loops over
@@ -73,7 +74,7 @@ class _GWMeshBackgroundState extends State<GWMeshBackground>
     return Stack(
       fit: StackFit.expand,
       children: [
-        ColoredBox(color: widget.baseColor ?? GeniusWalletColors.surfaceBase),
+        ColoredBox(color: widget.baseColor ?? context.gw.surfaceBase),
         RepaintBoundary(
           child: AnimatedBuilder(
             animation: _controller,

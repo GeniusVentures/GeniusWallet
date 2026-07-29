@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Brand-styled dropdown selector. Wraps Material's [DropdownButtonFormField]
 /// with the GNUS surface / radius / focus tokens so callers don't reinvent
@@ -51,7 +52,7 @@ class GWSelect<T> extends StatelessWidget {
         Icons.keyboard_arrow_down_rounded,
         color: GeniusWalletColors.textSecondary,
       ),
-      dropdownColor: GeniusWalletColors.surfaceMenu,
+      dropdownColor: context.gw.surfaceMenu,
       borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
       style: GeniusWalletTypography.bodyLg,
       items: items
@@ -71,8 +72,8 @@ class GWSelect<T> extends StatelessWidget {
                       item.label,
                       style: GeniusWalletTypography.bodyLg.copyWith(
                         color: item.enabled
-                            ? GeniusWalletColors.textPrimary
-                            : GeniusWalletColors.textTertiary,
+                            ? context.gw.textPrimary
+                            : context.gw.textTertiary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -85,28 +86,28 @@ class GWSelect<T> extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GeniusWalletTypography.bodyLg.copyWith(
-          color: GeniusWalletColors.textSecondary,
+          color: context.gw.textSecondary,
         ),
         prefixIcon: leading,
         filled: true,
-        fillColor: GeniusWalletColors.surfaceElevated,
+        fillColor: context.gw.surfaceElevated,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: GeniusWalletConsts.space8,
           vertical: GeniusWalletConsts.space8,
         ),
-        border: _border(GeniusWalletColors.borderSubtle),
-        enabledBorder: _border(GeniusWalletColors.borderSubtle),
-        focusedBorder: _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
-        errorBorder: _border(GeniusWalletColors.statusError),
-        focusedErrorBorder: _border(GeniusWalletColors.statusError, width: 2),
-        disabledBorder: _border(GeniusWalletColors.borderSubtle),
+        border: _border(context.gw.borderSubtle),
+        enabledBorder: _border(context.gw.borderSubtle),
+        focusedBorder: _border(context.gw.brandPrimaryStrong, width: 2),
+        errorBorder: _border(context.gw.statusError),
+        focusedErrorBorder: _border(context.gw.statusError, width: 2),
+        disabledBorder: _border(context.gw.borderSubtle),
         errorText: errorText,
         errorStyle: GeniusWalletTypography.bodySm.copyWith(
-          color: GeniusWalletColors.statusError,
+          color: context.gw.statusError,
         ),
         helperText: errorText == null ? helper : null,
         helperStyle: GeniusWalletTypography.bodySm.copyWith(
-          color: GeniusWalletColors.textSecondary,
+          color: context.gw.textSecondary,
         ),
       ),
     );
@@ -122,7 +123,7 @@ class GWSelect<T> extends StatelessWidget {
         Text(
           label!,
           style: GeniusWalletTypography.labelMd.copyWith(
-            color: GeniusWalletColors.textSecondary,
+            color: context.gw.textSecondary,
           ),
         ),
         const SizedBox(height: GeniusWalletConsts.space4),

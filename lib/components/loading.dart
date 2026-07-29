@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 /// Canonical shared loading spinner — 19 importers (see
@@ -22,8 +22,8 @@ class Loading extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         LoadingAnimationWidget.flickr(
-          leftDotColor: GeniusWalletColors.brandGreen,
-          rightDotColor: GeniusWalletColors.statusInfo,
+          leftDotColor: context.gw.brandGreen,
+          rightDotColor: context.gw.statusInfo,
           size: 50,
         ),
         if (text != null) Text(text!, style: GeniusWalletTypography.headlineLg),

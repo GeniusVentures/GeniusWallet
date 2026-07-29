@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_motion.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Signature floating swap action.
 ///
@@ -56,13 +57,13 @@ class _GWSwapFabState extends State<GWSwapFab> {
               boxShadow: [
                 // glow/gradient — dual brand glow lifted from the gnus.ai hero.
                 BoxShadow(
-                  color: GeniusWalletColors.brandPrimary.withAlpha(64),
+                  color: context.gw.brandPrimary.withAlpha(64),
                   blurRadius: 24,
                   spreadRadius: -2,
                   offset: const Offset(-2, 6),
                 ),
                 BoxShadow(
-                  color: GeniusWalletColors.brandSecondary.withAlpha(64),
+                  color: context.gw.brandSecondary.withAlpha(64),
                   blurRadius: 24,
                   spreadRadius: -2,
                   offset: const Offset(2, 6),

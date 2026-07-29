@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/wallet_type_icon.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 
 class WalletPreview extends StatefulWidget {
@@ -40,7 +40,7 @@ class WalletPreviewState extends State<WalletPreview> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: GeniusWalletColors.surfaceElevated,
+        color: context.gw.surfaceElevated,
         borderRadius: const BorderRadius.all(
           Radius.circular(GeniusWalletConsts.borderRadiusCard),
         ),
@@ -86,7 +86,7 @@ class WalletPreviewState extends State<WalletPreview> {
                               message:
                                   'This wallet is connected to the SGNUS network',
                               textStyle: GeniusWalletTypography.bodyLg.copyWith(
-                                color: GeniusWalletColors.textOnBrand,
+                                color: context.gw.textOnBrand,
                               ),
                               child: const CheckmarkAnimation(),
                             ),
@@ -126,7 +126,7 @@ class WalletPreviewState extends State<WalletPreview> {
                                 (" ${widget.ovrCoinSymbol}"),
                                 maxLines: 1,
                                 style: GeniusWalletTypography.bodyMd.copyWith(
-                                  color: GeniusWalletColors.textSecondary,
+                                  color: context.gw.textSecondary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),

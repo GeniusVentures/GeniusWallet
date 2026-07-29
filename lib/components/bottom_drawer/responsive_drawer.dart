@@ -3,6 +3,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 /// The drawer body's inset, owned by the SHELL rather than by each caller.
@@ -309,7 +310,7 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
                 preferredSize: const Size.fromHeight(1),
                 child: Container(
                   height: 1,
-                  color: GeniusWalletColors.brandPrimarySubtle,
+                  color: context.gw.brandPrimarySubtle,
                 ),
               ),
             )

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Unified screen wrapper. Provides: SafeArea, optional AppBar, a max content
 /// width for wide viewports, and consistent horizontal padding.
@@ -54,7 +54,7 @@ class GWScreen extends StatelessWidget {
 
     return Scaffold(
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-      backgroundColor: background ?? GeniusWalletColors.surfaceBase,
+      backgroundColor: background ?? context.gw.surfaceBase,
       appBar: appBar,
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomNavigationBar,

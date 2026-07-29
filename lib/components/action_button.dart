@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 enum ActionButtonAnimation { none, rotate }
 
@@ -83,7 +84,7 @@ class _ActionButtonState extends State<ActionButton>
     // glyph, secondary-text caption — all appearance-aware. Caller overrides win.
     final Color enabledFill = widget.backgroundColor ?? gw.surfaceElevated;
     final Color enabledGlyph =
-        widget.iconColor ?? GeniusWalletColors.brandPrimaryOnSurface;
+        widget.iconColor ?? context.gw.brandPrimaryOnSurface;
     final Color enabledCaption = widget.textColor ?? gw.textSecondary;
 
     // Disabled treatment (Send / Swap / gated More): a recessed surface with a

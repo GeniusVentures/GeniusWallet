@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class GWDialog extends StatelessWidget {
   const GWDialog({
@@ -35,7 +35,7 @@ class GWDialog extends StatelessWidget {
     return showDialog<T>(
       context: context,
       barrierDismissible: barrierDismissible,
-      barrierColor: GeniusWalletColors.surfaceOverlay,
+      barrierColor: context.gw.surfaceOverlay,
       builder: (_) => GWDialog(
         title: title,
         message: message,
@@ -70,7 +70,7 @@ class GWDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 32, color: GeniusWalletColors.brandGreen),
+                Icon(icon, size: 32, color: context.gw.brandGreen),
                 const SizedBox(height: GeniusWalletConsts.space6),
               ],
               Text(

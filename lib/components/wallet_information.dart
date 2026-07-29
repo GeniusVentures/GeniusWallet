@@ -18,6 +18,7 @@ import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
@@ -59,7 +60,7 @@ class WalletInformationState extends State<WalletInformation> {
                 Text(
                   'Total Balance',
                   style: GeniusWalletTypography.bodyLg.copyWith(
-                    color: GeniusWalletColors.textPrimary70,
+                    color: context.gw.textPrimary70,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -90,7 +91,7 @@ class WalletInformationState extends State<WalletInformation> {
                   Text(
                     'No funds available',
                     style: GeniusWalletTypography.labelMd.copyWith(
-                      color: GeniusWalletColors.statusError,
+                      color: context.gw.statusError,
                     ),
                   ),
                 const SizedBox(height: 8),
@@ -124,7 +125,7 @@ class WalletInformationState extends State<WalletInformation> {
                             borderRadius: BorderRadius.circular(
                               GeniusWalletConsts.borderRadiusCard,
                             ),
-                            color: GeniusWalletColors.surfaceElevated,
+                            color: context.gw.surfaceElevated,
                           ),
                           child: Text(
                             "You are watching this account",
@@ -245,7 +246,7 @@ class WalletInformationState extends State<WalletInformation> {
                                   },
                                 );
                               },
-                              color: GeniusWalletColors.statusError,
+                              color: context.gw.statusError,
                               icon: FontAwesomeIcons.trash.data,
                               label: "Delete Wallet",
                             ),

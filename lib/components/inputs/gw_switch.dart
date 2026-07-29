@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Brand-styled toggle switch. Use for binary settings (notifications,
 /// biometric unlock, network toggles). Prefers a label-on-left layout so the
@@ -33,8 +33,8 @@ class GWSwitch extends StatelessWidget {
     final toggle = Switch.adaptive(
       value: value,
       onChanged: disabled ? null : onChanged,
-      activeThumbColor: GeniusWalletColors.brandPrimaryStrong,
-      activeTrackColor: GeniusWalletColors.brandPrimaryStrong.withAlpha(140),
+      activeThumbColor: context.gw.brandPrimaryStrong,
+      activeTrackColor: context.gw.brandPrimaryStrong.withAlpha(140),
       inactiveThumbColor: gw.textPrimary,
       inactiveTrackColor: gw.surfaceMenu,
       trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
@@ -68,7 +68,7 @@ class GWSwitch extends StatelessWidget {
                       label!,
                       style: GeniusWalletTypography.bodyMd.copyWith(
                         color: disabled
-                            ? GeniusWalletColors.textTertiary
+                            ? context.gw.textTertiary
                             : gw.textPrimary,
                       ),
                     ),

@@ -22,8 +22,8 @@ import 'package:genius_wallet/components/app_screen_view.dart';
 // `{String? text}` constructor, so the `const Loading()` call site below is
 // unchanged.
 import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:go_router/go_router.dart';
 
 class Splash extends StatefulWidget {
@@ -68,7 +68,7 @@ class _SplashState extends State<Splash> {
         }
       },
       child: Scaffold(
-        backgroundColor: GeniusWalletColors.deepBlue,
+        backgroundColor: context.gw.deepBlue,
         body: AppScreenView(
           body: SizedBox(
             width: MediaQuery.of(context).size.width,

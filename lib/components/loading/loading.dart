@@ -15,9 +15,9 @@
 // re-running `tool/verify_additive_boundary.sh` in the same commit.
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class Loading extends StatelessWidget {
@@ -31,8 +31,8 @@ class Loading extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         LoadingAnimationWidget.flickr(
-          leftDotColor: GeniusWalletColors.brandGreen,
-          rightDotColor: GeniusWalletColors.statusInfo,
+          leftDotColor: context.gw.brandGreen,
+          rightDotColor: context.gw.statusInfo,
           size: 50,
         ),
         AutoSizeText(text ?? "", style: GeniusWalletTypography.headlineLg),

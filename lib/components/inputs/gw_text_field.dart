@@ -7,6 +7,7 @@ import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_motion.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class GWTextField extends StatelessWidget {
   const GWTextField({
@@ -154,7 +155,7 @@ class GWTextField extends StatelessWidget {
             enableIMEPersonalizedLearning: enableIMEPersonalizedLearning,
             textCapitalization: textCapitalization,
             style: GeniusWalletTypography.bodyLg,
-            cursorColor: GeniusWalletColors.brandPrimary,
+            cursorColor: context.gw.brandPrimary,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GeniusWalletTypography.bodyLg.copyWith(
@@ -173,19 +174,19 @@ class GWTextField extends StatelessWidget {
               enabledBorder: _borderless ? _noBorder : _border(gw.borderSubtle),
               focusedBorder: _borderless
                   ? _noBorder
-                  : _border(GeniusWalletColors.brandPrimaryStrong, width: 2),
+                  : _border(context.gw.brandPrimaryStrong, width: 2),
               errorBorder: _borderless
                   ? _noBorder
-                  : _border(GeniusWalletColors.statusError),
+                  : _border(context.gw.statusError),
               focusedErrorBorder: _borderless
                   ? _noBorder
-                  : _border(GeniusWalletColors.statusError, width: 2),
+                  : _border(context.gw.statusError, width: 2),
               disabledBorder: _borderless
                   ? _noBorder
                   : _border(gw.borderSubtle),
               errorText: errorText,
               errorStyle: GeniusWalletTypography.bodySm.copyWith(
-                color: GeniusWalletColors.statusError,
+                color: context.gw.statusError,
               ),
               helperText: errorText == null ? helper : null,
               helperStyle: GeniusWalletTypography.bodySm.copyWith(

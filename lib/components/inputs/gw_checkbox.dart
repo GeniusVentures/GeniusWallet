@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Brand-styled checkbox with optional label / description. Styling follows
 /// the GNUS palette (cyan brand fill, white check, subtle outline when off).
@@ -40,9 +40,7 @@ class GWCheckbox extends StatelessWidget {
       tristate: tristate,
       onChanged: disabled ? null : onChanged,
       side: BorderSide(
-        color: disabled
-            ? gw.borderSubtle
-            : GeniusWalletColors.brandPrimaryStrong,
+        color: disabled ? gw.borderSubtle : context.gw.brandPrimaryStrong,
         width: 1.5,
       ),
       shape: RoundedRectangleBorder(
@@ -53,7 +51,7 @@ class GWCheckbox extends StatelessWidget {
           return gw.borderSubtle;
         }
         if (states.contains(WidgetState.selected)) {
-          return GeniusWalletColors.brandPrimaryStrong;
+          return context.gw.brandPrimaryStrong;
         }
         return Colors.transparent;
       }),
@@ -72,9 +70,7 @@ class GWCheckbox extends StatelessWidget {
           Text(
             label!,
             style: GeniusWalletTypography.bodyMd.copyWith(
-              color: disabled
-                  ? GeniusWalletColors.textTertiary
-                  : gw.textPrimary,
+              color: disabled ? context.gw.textTertiary : gw.textPrimary,
             ),
           ),
         if (description != null) ...[

@@ -4,6 +4,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class GWErrorState extends StatelessWidget {
   const GWErrorState({
@@ -34,7 +35,7 @@ class GWErrorState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: GeniusWalletColors.statusError.withAlpha(31),
+                color: context.gw.statusError.withAlpha(31),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -89,11 +90,9 @@ class GWErrorBanner extends StatelessWidget {
         vertical: GeniusWalletConsts.space4,
       ),
       decoration: BoxDecoration(
-        color: GeniusWalletColors.statusError.withAlpha(31),
+        color: context.gw.statusError.withAlpha(31),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        border: Border.all(
-          color: GeniusWalletColors.statusError.withAlpha(100),
-        ),
+        border: Border.all(color: context.gw.statusError.withAlpha(100)),
       ),
       child: Row(
         children: [
@@ -107,7 +106,7 @@ class GWErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: GeniusWalletTypography.bodySm.copyWith(
-                color: GeniusWalletColors.statusError,
+                color: context.gw.statusError,
               ),
             ),
           ),

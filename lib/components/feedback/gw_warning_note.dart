@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// A bordered amber note: "this is fine, but read it before you continue".
 ///
@@ -39,7 +39,7 @@ class GWWarningNote extends StatelessWidget {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final amber = GWAppearance.isLight
         ? const Color(0xFF92400E) // ~7.1:1 on white
-        : GeniusWalletColors.statusWarning; // ~13:1 on the dark canvas
+        : context.gw.statusWarning; // ~13:1 on the dark canvas
 
     return Container(
       padding: const EdgeInsets.symmetric(

@@ -6,6 +6,7 @@ import 'package:genius_wallet/components/genius_back_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class RegistrationHeader extends StatefulWidget {
   final BoxConstraints constraints;
@@ -62,7 +63,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                         fontSize: 14.0,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 0.13750000298023224,
-                        color: GeniusWalletColors.textPrimary,
+                        color: context.gw.textPrimary,
                       ),
                     ),
                   ),
@@ -80,7 +81,7 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                         fontSize: GeniusWalletFontSize.title,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.13750000298023224,
-                        color: GeniusWalletColors.textPrimary,
+                        color: context.gw.textPrimary,
                       ),
                       textAlign: TextAlign.center,
                     ),

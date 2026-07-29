@@ -4,6 +4,7 @@ import 'package:genius_wallet/components/custom/isactive_false_custom.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class IsactiveFalse extends StatefulWidget {
   final BoxConstraints constraints;
@@ -31,7 +32,7 @@ class _IsactiveFalse extends State<IsactiveFalse> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(48),
-                  color: GeniusWalletColors.btnDisabled,
+                  color: context.gw.btnDisabled,
                 ),
               ),
             ),

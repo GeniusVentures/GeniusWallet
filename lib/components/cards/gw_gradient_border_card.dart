@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Card surface with a thin brand-gradient outline — the signature treatment
 /// the GNUS marketing site uses for highlight cards (`border-gradient-primary-to`).
@@ -65,8 +65,8 @@ class GWGradientBorderCard extends StatelessWidget {
     );
 
     final innerBg = glass
-        ? (background ?? GeniusWalletColors.surfaceElevated).withAlpha(115)
-        : (background ?? GeniusWalletColors.surfaceElevated);
+        ? (background ?? context.gw.surfaceElevated).withAlpha(115)
+        : (background ?? context.gw.surfaceElevated);
 
     Widget innerSurface = Container(
       decoration: BoxDecoration(color: innerBg, borderRadius: innerRadius),

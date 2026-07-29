@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class GWBottomSheet {
   GWBottomSheet._();
@@ -18,7 +18,7 @@ class GWBottomSheet {
       context: context,
       isScrollControlled: isScrollControlled,
       backgroundColor: Colors.transparent,
-      barrierColor: GeniusWalletColors.surfaceOverlay,
+      barrierColor: context.gw.surfaceOverlay,
       builder: (_) =>
           _SheetContainer(title: title, showHandle: showHandle, child: child),
     );
@@ -48,7 +48,7 @@ class _SheetContainer extends StatelessWidget {
           top: Radius.circular(GeniusWalletConsts.radiusXl),
         ),
         border: Border(
-          top: BorderSide(color: GeniusWalletColors.borderSubtle, width: 1),
+          top: BorderSide(color: context.gw.borderSubtle, width: 1),
         ),
       ),
       child: SafeArea(
@@ -62,7 +62,7 @@ class _SheetContainer extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.borderStrong,
+                  color: context.gw.borderStrong,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

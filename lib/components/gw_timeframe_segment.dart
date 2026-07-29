@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Visual-only 1H·1D·1W·1M·1Y segmented control (sketch 006 `.tf`), extracted
 /// from `dashboard_screen.dart`'s private `_TimeframeSegment` — this is now
@@ -122,7 +122,7 @@ class _TimeframeTabState extends State<_TimeframeTab> {
     final selected = widget.selected;
     // Unselected label: muted normally, lifts to hoverTextColor on hover.
     final Color labelColor = selected
-        ? GeniusWalletColors.textOnBrand
+        ? context.gw.textOnBrand
         : (_hovered ? widget.hoverTextColor : widget.unselectedColor);
 
     // Design-system hover = "lift chip" (sketch 008 variant D): an unselected

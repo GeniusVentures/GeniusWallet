@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -145,7 +145,7 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
                     : SketchIcon(
                         SketchIcons.copy,
                         size: 16,
-                        color: GeniusWalletColors.brandPrimaryOnSurface,
+                        color: context.gw.brandPrimaryOnSurface,
                       ),
                 const SizedBox(width: GeniusWalletConsts.space2),
                 Text(

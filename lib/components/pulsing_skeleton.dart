@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class PulsingSkeleton extends StatefulWidget {
   final double height;
@@ -51,7 +51,7 @@ class _PulsingSkeletonState extends State<PulsingSkeleton>
           width: widget.width,
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: GeniusWalletColors.deepBlue,
+            color: context.gw.deepBlue,
             borderRadius: BorderRadius.circular(8),
           ),
         ),

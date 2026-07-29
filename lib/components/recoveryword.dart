@@ -1,6 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class Recoveryword extends StatefulWidget {
   final BoxConstraints constraints;
@@ -28,11 +28,8 @@ class _Recoveryword extends State<Recoveryword> {
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(48)),
           border: widget.isEnabled
-              ? Border.all(
-                  color: GeniusWalletColors.lightGreenSecondary,
-                  width: 1.0,
-                )
-              : Border.all(color: GeniusWalletColors.borderGrey, width: 1.0),
+              ? Border.all(color: context.gw.lightGreenSecondary, width: 1.0)
+              : Border.all(color: context.gw.borderGrey, width: 1.0),
         ),
         child: AutoSizeText(
           widget.ovrWord ?? '1 limb',
@@ -40,9 +37,7 @@ class _Recoveryword extends State<Recoveryword> {
             fontSize: 16.0,
             fontWeight: FontWeight.w300,
             letterSpacing: 0.0,
-            color: widget.isEnabled
-                ? Colors.white
-                : GeniusWalletColors.btnTextDisabled,
+            color: widget.isEnabled ? Colors.white : context.gw.btnTextDisabled,
           ),
           textAlign: TextAlign.center,
         ),

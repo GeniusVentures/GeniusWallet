@@ -19,6 +19,7 @@ import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
@@ -198,14 +199,14 @@ class _MobileTabBar extends StatelessWidget {
         showUnselectedLabels: true,
         currentIndex: selected,
         onTap: (index) => context.go(destinations[index].path),
-        selectedItemColor: GeniusWalletColors.brandPrimaryStrong,
+        selectedItemColor: context.gw.brandPrimaryStrong,
         unselectedItemColor: gw.textSecondary,
         selectedIconTheme: const IconThemeData(
           color: GeniusWalletColors.brandPrimaryStrong,
         ),
         unselectedIconTheme: IconThemeData(color: gw.textSecondary),
         selectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
-          color: GeniusWalletColors.brandPrimaryStrong,
+          color: context.gw.brandPrimaryStrong,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
@@ -414,7 +415,8 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                                                     boxShadow: isSelected
                                                         ? [
                                                             BoxShadow(
-                                                              color: GeniusWalletColors
+                                                              color: context
+                                                                  .gw
                                                                   .brandPrimaryStrong
                                                                   .withValues(
                                                                     alpha: 0.5,

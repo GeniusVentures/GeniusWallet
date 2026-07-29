@@ -10,8 +10,8 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/animation/checkmark_animation.dart';
 import 'package:genius_wallet/components/animation/x_animation.dart';
 import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:go_router/go_router.dart';
 
 class SGNUSConnectionWidget extends StatefulWidget {
@@ -89,7 +89,7 @@ class SGNUSConnectionState extends State<SGNUSConnectionWidget> {
             child: CircularProgressIndicator(
               value: _initPercentage,
               strokeWidth: 3.0,
-              color: GeniusWalletColors.brandPrimary,
+              color: context.gw.brandPrimary,
             ),
           );
           label =
