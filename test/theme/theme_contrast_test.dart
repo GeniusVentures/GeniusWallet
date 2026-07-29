@@ -9,7 +9,6 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_widget.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/theme.dart';
@@ -113,7 +112,7 @@ void main() {
           'identity: five properties equal brandPrimaryOnSurface -- $mode',
           () {
             final theme = themeFor(mode);
-            final token = GeniusWalletColors.brandPrimaryOnSurface;
+            final token = theme.extension<GWColors>()!.brandPrimaryOnSurface;
 
             final inputFocus =
                 (theme.inputDecorationTheme.focusedBorder!
@@ -157,9 +156,10 @@ void main() {
           'five properties clear 4.5:1 on surfaceElevated/surfaceMenu/surfaceBase -- $mode',
           () {
             final theme = themeFor(mode);
-            final surfaceElevated = GeniusWalletColors.surfaceElevated;
-            final surfaceMenu = GeniusWalletColors.surfaceMenu;
-            final surfaceBase = GeniusWalletColors.surfaceBase;
+            final gw = theme.extension<GWColors>()!;
+            final surfaceElevated = gw.surfaceElevated;
+            final surfaceMenu = gw.surfaceMenu;
+            final surfaceBase = gw.surfaceBase;
 
             final inputFocus =
                 (theme.inputDecorationTheme.focusedBorder!
@@ -211,9 +211,10 @@ void main() {
         GWAppearance.instance.value = mode;
         addTearDown(() => GWAppearance.instance.value = GWAppearanceMode.dark);
 
+        final theme = getThemeData();
         await tester.pumpWidget(
           MaterialApp(
-            theme: getThemeData(),
+            theme: theme,
             home: Scaffold(
               body: GWButton(
                 label: 'Secondary',
@@ -224,7 +225,7 @@ void main() {
           ),
         );
 
-        final token = GeniusWalletColors.brandPrimaryOnSurface;
+        final token = theme.extension<GWColors>()!.brandPrimaryOnSurface;
 
         final textWidget = tester.widget<Text>(find.text('Secondary'));
         expect(
@@ -307,7 +308,10 @@ void main() {
 
         // borderControl is translucent, so it has to be composited before it
         // has a luminance -- computeLuminance() ignores alpha.
-        final edge = Color.alphaBlend(GeniusWalletColors.borderControl, panel!);
+        final edge = Color.alphaBlend(
+          theme.extension<GWColors>()!.borderControl,
+          panel!,
+        );
         expect(
           contrastRatio(edge, panel),
           greaterThanOrEqualTo(3.0),

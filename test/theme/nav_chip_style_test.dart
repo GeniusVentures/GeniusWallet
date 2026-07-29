@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 
 /// WCAG relative-luminance contrast ratio. Uses [Color.computeLuminance],
@@ -138,23 +138,24 @@ void main() {
     // Light: token against all three consumer surfaces, not white alone --
     // white alone is exactly the check that let the superseded #0B6E8F's
     // surfaceBase miss (4.35:1) go unnoticed.
+    final lightGw = GWColors.light();
     expect(
       contrastRatio(
-        GeniusWalletColors.brandPrimaryOnSurface,
+        lightGw.brandPrimaryOnSurface,
         const Color(0xFFFFFFFF), // surfaceElevated
       ),
       greaterThanOrEqualTo(4.5),
     );
     expect(
       contrastRatio(
-        GeniusWalletColors.brandPrimaryOnSurface,
+        lightGw.brandPrimaryOnSurface,
         const Color(0xFFEFF2F6), // surfaceMenu
       ),
       greaterThanOrEqualTo(4.5),
     );
     expect(
       contrastRatio(
-        GeniusWalletColors.brandPrimaryOnSurface,
+        lightGw.brandPrimaryOnSurface,
         const Color(0xFFDCE0E6), // surfaceBase
       ),
       greaterThanOrEqualTo(4.5),
@@ -164,11 +165,9 @@ void main() {
 
     // Dark: token (brandPrimaryStrong) on the dark surfaceElevated
     // (0xFF0C0E14).
+    final darkGw = GWColors.dark();
     expect(
-      contrastRatio(
-        GeniusWalletColors.brandPrimaryOnSurface,
-        const Color(0xFF0C0E14),
-      ),
+      contrastRatio(darkGw.brandPrimaryOnSurface, const Color(0xFF0C0E14)),
       greaterThanOrEqualTo(4.5),
     );
   });

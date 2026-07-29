@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_details_card.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:intl/intl.dart';
 
@@ -43,8 +42,9 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(gwHost(cardFor('pendingpayment')));
+    final gw = GWColors.dark();
     final statusText = tester.widget<Text>(find.text('pendingpayment'));
-    expect(statusText.style?.color, GeniusWalletColors.statusWarning);
+    expect(statusText.style?.color, gw.statusWarning);
     expect(tester.takeException(), isNull);
   });
 

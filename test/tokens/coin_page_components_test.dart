@@ -18,7 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
@@ -59,7 +58,8 @@ void main() {
       1,
       reason: 'the rainbow is back: ${glyphs.length} glyph colours',
     );
-    expect(glyphs.single, GeniusWalletColors.brandPrimaryOnSurface);
+    // _host always pumps GWColors.dark() -- see its own theme: above.
+    expect(glyphs.single, GWColors.dark().brandPrimaryOnSurface);
   });
 
   testWidgets('the Convert card has exactly one gradient focus ring, on the '
