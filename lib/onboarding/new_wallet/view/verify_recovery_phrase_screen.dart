@@ -257,7 +257,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
         (isNarrow
                 ? GeniusWalletTypography.bodySm
                 : GeniusWalletTypography.bodyLg)
-            .copyWith(fontFamily: 'JetBrainsMono');
+            .copyWith(fontFamily: GeniusWalletTypography.monoFamily);
 
     return Column(
       spacing: 16.0,

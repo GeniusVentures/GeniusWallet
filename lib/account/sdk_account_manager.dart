@@ -197,7 +197,7 @@ class SDKAccountManagerButton extends StatelessWidget {
       // the row's own escape hatch rather than a hand-built Column.
       title: WalletUtils.getAddressForDisplay(address),
       titleStyle: GeniusWalletTypography.bodySm.copyWith(
-        fontFamily: 'JetBrainsMono',
+        fontFamily: GeniusWalletTypography.monoFamily,
         color: gw.textPrimary,
         fontWeight: FontWeight.w500,
       ),

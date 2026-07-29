@@ -218,7 +218,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             flex: 3,
             child: Text(
               entry.key,
-              style: const TextStyle(fontFamily: 'JetBrainsMono'),
+              style: const TextStyle(
+                fontFamily: GeniusWalletTypography.monoFamily,
+              ),
             ),
           ),
           Expanded(

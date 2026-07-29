@@ -134,7 +134,10 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
             (isNarrow
                     ? GeniusWalletTypography.bodySm
                     : GeniusWalletTypography.bodyLg)
-                .copyWith(fontFamily: "JetBrainsMono", color: gw.textPrimary);
+                .copyWith(
+                  fontFamily: GeniusWalletTypography.monoFamily,
+                  color: gw.textPrimary,
+                );
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.center,

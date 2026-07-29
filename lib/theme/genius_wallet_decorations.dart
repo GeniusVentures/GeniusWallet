@@ -16,27 +16,47 @@ class GWDecorations {
 
   // --- canvas -------------------------------------------------------------
 
+  /// _canvasDark/_canvasLight/_surfaceSheenDark/_surfaceSheenLight below each
+  /// read their matching stop straight off the corresponding appearance-aware
+  /// `GeniusWalletColors` getter instead of retyping its hex, wherever the
+  /// stop's value is an EXACT duplicate of an existing token -- so the two
+  /// cannot drift apart (23-04). Safe as a non-const getter, not a
+  /// duplication risk: each of these four private getters is reached ONLY
+  /// through its own already-live `canvas`/`surfaceSheen` getter one level
+  /// up, which selects it exactly when `GWAppearance.isLight` already agrees
+  /// with the branch -- Dart is single-threaded, so no toggle can land
+  /// between that check and this read. Stops with no matching token are left
+  /// as literals and named as findings inline (23-04-PLAN.md Task 1) rather
+  /// than inventing a token for them.
+  ///
   /// Dark: a quiet vertical wash on a true-black base — a touch lifted at the
   /// top, deepest at the bottom — so the canvas reads as a lit space instead
   /// of one flat fill.
-  static const LinearGradient _canvasDark = LinearGradient(
+  static LinearGradient get _canvasDark => LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF14171E), // lifted near-black at the top
-      Color(0xFF0B0D12), // surfaceBase (dark)
-      Color(0xFF07090D), // settling toward sunken at the bottom
+      // finding: no matching token for the lifted near-black top stop.
+      const Color(0xFF14171E),
+      GeniusWalletColors.surfaceBase, // exact match: surfaceBase (dark)
+      // finding: 0xFF07090D is close to but distinct from surfaceSunken's
+      // dark value (0xFF06080C) -- not an exact match, left as a literal.
+      const Color(0xFF07090D),
     ],
-    stops: [0.0, 0.4, 1.0],
+    stops: const [0.0, 0.4, 1.0],
   );
 
   /// Light: a soft cool-gray wash (≈15% off white, user-tuned) so the white
   /// cards separate clearly from the page.
-  static const LinearGradient _canvasLight = LinearGradient(
+  static LinearGradient get _canvasLight => LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFE3E6EB), Color(0xFFDCE0E6), Color(0xFFD3D7DE)],
-    stops: [0.0, 0.4, 1.0],
+    colors: [
+      const Color(0xFFE3E6EB), // finding: no matching token
+      GeniusWalletColors.surfaceBase, // exact match: surfaceBase (light)
+      const Color(0xFFD3D7DE), // finding: no matching token
+    ],
+    stops: const [0.0, 0.4, 1.0],
   );
 
   /// Page background wash. Replaces `backgroundColor: surfaceBase`.
@@ -47,6 +67,15 @@ class GWDecorations {
   /// glow that fades out by mid-screen, so the hero area reads as lit.
   /// Layered over [canvas] (dark mode only; a vignette would read as dirt on
   /// white).
+  ///
+  /// finding (23-04): the first stop, `0x1FFFFFFF`, numerically equals
+  /// `GeniusWalletColors.textPrimary12`'s dark-mode value, but that is a
+  /// coincidence, not a duplicate -- textPrimary12 is a text-opacity ladder
+  /// step, and this is an unrelated radial background glow. Wiring them
+  /// together would let a future accessibility-driven change to the text
+  /// ladder silently repaint this glow. Left as a literal deliberately; also
+  /// must stay `const` regardless, since it is consumed by a `const
+  /// DecoratedBox` below.
   static const RadialGradient canvasTopLight = RadialGradient(
     center: Alignment(0, -0.9),
     radius: 1.0,
@@ -67,20 +96,26 @@ class GWDecorations {
   /// Kept as a LinearGradient rather than switched to a solid `color:` so the
   /// change stays one edit instead of rewriting every consumer's decoration.
   /// The previous top-lit pair was 0xFF181B24 -> 0xFF0C0E14 (~8 L* delta).
-  static const LinearGradient _surfaceSheenDark = LinearGradient(
+  static LinearGradient get _surfaceSheenDark => LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
+    // Both stops are the same flat fill — see the doc comment above
+    // _canvasDark for why reading the live getter here is safe.
     colors: [
-      Color(0xFF0C0E14), // surfaceElevated (dark)
-      Color(0xFF0C0E14), // same stop — flat, no sheen
+      GeniusWalletColors.surfaceElevated, // exact match: surfaceElevated (dark)
+      GeniusWalletColors.surfaceElevated, // same stop — flat, no sheen
     ],
   );
 
   /// Light: white settling into a faint cool gray at the bottom edge.
-  static const LinearGradient _surfaceSheenLight = LinearGradient(
+  static LinearGradient get _surfaceSheenLight => LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFFFFFFF), Color(0xFFF5F7FA)],
+    colors: [
+      GeniusWalletColors
+          .surfaceElevated, // exact match: surfaceElevated (light)
+      const Color(0xFFF5F7FA), // finding: no matching token
+    ],
   );
 
   /// Top-lit sheen for elevated surfaces, simulating a soft overhead light.

@@ -132,7 +132,7 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GeniusWalletTypography.bodySm.copyWith(
-                      fontFamily: 'JetBrainsMono',
+                      fontFamily: GeniusWalletTypography.monoFamily,
                       color: gw.textPrimary,
                     ),
                   ),

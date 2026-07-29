@@ -226,7 +226,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       title: wallet.walletName,
       subtitle: wallet.address.isEmpty ? null : wallet.address,
       subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
-        fontFamily: 'JetBrainsMono',
+        fontFamily: GeniusWalletTypography.monoFamily,
         color: gw.textSecondary,
       ),
       trailing: Row(

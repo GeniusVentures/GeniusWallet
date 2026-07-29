@@ -543,10 +543,9 @@ class _CopyRowState extends State<_CopyRow> {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     // The address treatment already used by the account drawers: bodySm in
-    // JetBrainsMono. There is no mono token to reach for -- every call site
-    // names the family, and this one does not invent a sixth way.
+    // the shared mono token (GeniusWalletTypography.monoFamily).
     final mono = GeniusWalletTypography.bodySm.copyWith(
-      fontFamily: 'JetBrainsMono',
+      fontFamily: GeniusWalletTypography.monoFamily,
     );
 
     return MouseRegion(

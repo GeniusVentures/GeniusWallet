@@ -57,7 +57,7 @@ class GWSelectRow extends StatefulWidget {
   final TextStyle? titleStyle;
 
   /// Same escape hatch for the second line - the wallet picker's address wants
-  /// JetBrainsMono where a token's symbol does not.
+  /// the mono treatment where a token's symbol does not.
   final TextStyle? subtitleStyle;
 
   /// INFORMATION, drawn before the state glyph: a balance, a "watched" eye.

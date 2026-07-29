@@ -10,6 +10,20 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 class GeniusWalletTypography {
   GeniusWalletTypography._();
 
+  /// The bundled monospace family, named here ONCE. Seed phrases, addresses,
+  /// transaction hashes, log output and job payloads all render in this font
+  /// so their characters line up in fixed-width columns -- the alignment IS
+  /// the verification aid, and a typo'd family string falls back silently to
+  /// a proportional font with no error and no test failure. Read this token
+  /// instead of the bundled family name by string literal (see
+  /// `pubspec.yaml`'s `fonts:` block for the asset declaration).
+  ///
+  /// A `static const String` (not a `TextStyle`) because call sites diverge
+  /// on base style/color/weight -- e.g. `bodySm` vs `bodyLg` vs a bare
+  /// `TextStyle`, with or without an explicit `color:` -- so no single
+  /// complete `TextStyle` clears the Rule of Three across all eight sites.
+  static const String monoFamily = 'JetBrainsMono';
+
   static const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
 
   /// Slightly tightened tracking for display/headline sizes — matches the
