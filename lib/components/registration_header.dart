@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:genius_wallet/components/custom/genius_back_button_custom.dart';
 import 'package:genius_wallet/components/genius_back_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_font_size.dart';
 import 'package:genius_wallet/theme/genius_wallet_text.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -45,8 +44,8 @@ class _RegistrationHeader extends State<RegistrationHeader> {
                   height: 56,
                   child: Container(
                     width: widget.constraints.maxWidth * 1.0,
-                    decoration: const BoxDecoration(
-                      color: GeniusWalletColors.deepBlueCardColor,
+                    decoration: BoxDecoration(
+                      color: context.gw.deepBlueCardColor,
                     ),
                   ),
                 ),

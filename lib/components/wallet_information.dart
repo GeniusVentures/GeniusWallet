@@ -15,7 +15,6 @@ import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -182,12 +181,12 @@ class WalletInformationState extends State<WalletInformation> {
                   ),
                   const SizedBox(width: 8),
                   // No send flow yet — muted/disabled rather than a dead button.
-                  const ActionButton(
+                  ActionButton(
                     text: 'Send',
                     icon: Icons.send,
                     semanticLabel: "Send",
-                    iconColor: GeniusWalletColors.textSecondary,
-                    textColor: GeniusWalletColors.textSecondary,
+                    iconColor: context.gw.textSecondary,
+                    textColor: context.gw.textSecondary,
                     onPressed: null,
                   ),
                   const SizedBox(width: 8),

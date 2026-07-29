@@ -9,7 +9,6 @@ import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/job/submit_job_dashboard_button.dart';
 import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
@@ -86,12 +85,12 @@ class WalletsOverviewState extends State<WalletsOverview> {
                           : NumberFormat.simpleCurrency().format(balance);
 
                       if (balance == 0) {
-                        return const Padding(
-                          padding: EdgeInsets.only(top: 4),
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             'No funds available',
                             style: TextStyle(
-                              color: GeniusWalletColors.statusError,
+                              color: context.gw.statusError,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),

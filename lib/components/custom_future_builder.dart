@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class FutureStateWidget<T> extends StatelessWidget {
   final Future<T> future;
@@ -37,9 +37,9 @@ class FutureStateWidget<T> extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 error ??
-                    const Icon(
+                    Icon(
                       Icons.error_outline,
-                      color: GeniusWalletColors.statusError,
+                      color: context.gw.statusError,
                       size: 48,
                     ),
                 if (onRetry != null) ...[

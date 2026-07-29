@@ -1,6 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -14,7 +13,7 @@ class ActionButton extends StatefulWidget {
 
   /// Optional overrides. When null, colors resolve from the appearance-aware
   /// design system in [build] (fill → [GWColors.surfaceElevated], icon glyph →
-  /// [GeniusWalletColors.brandPrimaryOnSurface], caption → [GWColors.textSecondary]).
+  /// `context.gw.brandPrimaryOnSurface`, caption → [GWColors.textSecondary]).
   final Color? backgroundColor;
   final Color? iconColor;
   final Color? textColor;

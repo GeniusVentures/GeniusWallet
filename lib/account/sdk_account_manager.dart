@@ -13,7 +13,6 @@ import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -288,7 +287,7 @@ class SDKAccountManagerButton extends StatelessWidget {
     // trash glyph, which is exactly how it looked on the walk.
     final fg = !enabled
         ? gw.textSecondary.withValues(alpha: 0.5)
-        : (danger ? GeniusWalletColors.statusError : gw.textPrimary);
+        : (danger ? gw.statusError : gw.textPrimary);
     return MenuItemButton(
       leadingIcon: GWIcon.material(icon, color: fg),
       style: MenuItemButton.styleFrom(

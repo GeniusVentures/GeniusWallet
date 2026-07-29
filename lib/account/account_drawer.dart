@@ -11,7 +11,6 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -320,15 +319,15 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                   ),
                 if (wallet.walletType != WalletType.sgnus)
                   MenuItemButton(
-                    leadingIcon: const Icon(
+                    leadingIcon: Icon(
                       Icons.delete_outline,
                       size: 20,
-                      color: GeniusWalletColors.statusError,
+                      color: gw.statusError,
                     ),
                     onPressed: () => _confirmDeleteWallet(context, wallet),
-                    child: const Text(
+                    child: Text(
                       'Delete',
-                      style: TextStyle(color: GeniusWalletColors.statusError),
+                      style: TextStyle(color: gw.statusError),
                     ),
                   ),
               ],
@@ -399,10 +398,10 @@ class AccountAvatar extends StatelessWidget {
       radius: size / 2 - 2,
       backgroundColor: context.gw.brandPrimaryStrong,
       child: isWatched
-          ? const Icon(
+          ? Icon(
               Icons.remove_red_eye_outlined,
               size: 20,
-              color: GeniusWalletColors.textOnBrand,
+              color: context.gw.textOnBrand,
             )
           : Image.asset(
               'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png',

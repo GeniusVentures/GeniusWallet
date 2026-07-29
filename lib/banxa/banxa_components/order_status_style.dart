@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -36,8 +35,6 @@ OrderStatusTone orderStatusTone(String status) {
 
 /// The foreground/background paint for a tone, copied verbatim from the
 /// shipped `_statusPill` (`lib/dashboard/home/widgets/transaction_displays.dart`).
-/// Warning intentionally reads the mode-invariant `GeniusWalletColors.statusWarning`
-/// static — [GWColors] has no matching field of its own for that token.
 ({Color fg, Color bg}) orderStatusPaint(OrderStatusTone tone, GWColors gw) {
   switch (tone) {
     case OrderStatusTone.success:
@@ -47,8 +44,8 @@ OrderStatusTone orderStatusTone(String status) {
       );
     case OrderStatusTone.warning:
       return (
-        fg: GeniusWalletColors.statusWarning,
-        bg: GeniusWalletColors.statusWarning.withValues(alpha: 0.16),
+        fg: gw.statusWarning,
+        bg: gw.statusWarning.withValues(alpha: 0.16),
       );
     case OrderStatusTone.error:
       return (fg: gw.statusError, bg: gw.statusError.withValues(alpha: 0.14));
