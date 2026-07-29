@@ -8,10 +8,10 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
@@ -237,7 +237,7 @@ class ImportSecurityScreen extends StatelessWidget {
               // value.
               return SizedBox.expand(
                 child: ColoredBox(
-                  color: GeniusWalletColors.surfaceOverlay,
+                  color: context.gw.surfaceOverlay,
                   child: Center(
                     child: AlertDialog(
                       content: Column(

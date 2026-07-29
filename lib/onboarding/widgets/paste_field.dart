@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class PasteField extends StatelessWidget {
   final String hintText;
@@ -68,7 +68,7 @@ class PasteField extends StatelessWidget {
                 enableIMEPersonalizedLearning: false,
                 textCapitalization: TextCapitalization.none,
                 style: GeniusWalletTypography.bodyLg,
-                cursorColor: GeniusWalletColors.brandPrimary,
+                cursorColor: context.gw.brandPrimary,
                 decoration: InputDecoration(
                   hintText: hintText,
                   hintStyle: GeniusWalletTypography.bodyLg.copyWith(

@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
 class VerifyRecoveryPhraseScreen extends StatefulWidget {
@@ -300,17 +300,16 @@ class _InputAndWordsState extends State<_InputAndWords> {
                       border: Border.all(
                         color: isEmpty
                             ? (isHighlighted
-                                  ? GeniusWalletColors.brandPrimaryStrong
+                                  ? context.gw.brandPrimaryStrong
                                   : (hasUserInput
-                                        ? GeniusWalletColors.brandGreen
+                                        ? context.gw.brandGreen
                                         : gw.borderSubtle))
                             : gw.borderSubtle,
                         width: isHighlighted ? 2.0 : 1.0,
                       ),
                       color: isEmpty
                           ? (isHighlighted
-                                ? GeniusWalletColors.brandPrimaryStrong
-                                      .withAlpha(26)
+                                ? context.gw.brandPrimaryStrong.withAlpha(26)
                                 : gw.surfaceSunken)
                           : gw.surfaceSunken,
                     ),
