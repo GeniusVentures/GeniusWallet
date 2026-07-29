@@ -14,6 +14,7 @@ import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -728,8 +729,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
                       boxShadow: active
                           ? [
                               BoxShadow(
-                                color: GeniusWalletColors.brandPrimaryStrong
-                                    .withValues(alpha: 0.5),
+                                color: context.gw.brandPrimaryStrong.withValues(
+                                  alpha: 0.5,
+                                ),
                                 blurRadius: 10,
                               ),
                             ]
@@ -867,7 +869,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
-        color: GeniusWalletColors.brandSecondaryMuted,
+        color: context.gw.brandSecondaryMuted,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusXs),
       ),
       child: Text(
@@ -897,7 +899,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
               decoration: BoxDecoration(
                 // brandSecondaryMuted is a runtime withAlpha value, so the
                 // decoration cannot be const.
-                color: GeniusWalletColors.brandSecondaryMuted,
+                color: context.gw.brandSecondaryMuted,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
