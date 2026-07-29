@@ -171,12 +171,35 @@ class RefusalSite {
   final String reason;
 }
 
-/// Result of scanning one file: what it would rewrite and what it refuses.
+/// One `import` directive's URI and its `[offset, end)` span in the
+/// ORIGINAL file content -- imports always sit before any expression that
+/// could be rewritten, so these offsets stay valid after body rewrites are
+/// applied (see `applyReport`).
+class ImportInfo {
+  ImportInfo(this.offset, this.end, this.uri);
+  final int offset;
+  final int end;
+  final String uri;
+}
+
+/// Result of scanning one file: what it would rewrite, what it refuses, its
+/// existing imports (for import bookkeeping), and whether every
+/// `GeniusWalletColors` reference in the file -- migrated or not -- was
+/// accounted for as a rewrite (used to decide whether the legacy import
+/// becomes dead).
 class FileReport {
-  FileReport(this.path, this.rewrites, this.refusals);
+  FileReport(
+    this.path,
+    this.rewrites,
+    this.refusals,
+    this.imports,
+    this.totalLegacyRefs,
+  );
   final String path;
   final List<RewriteSite> rewrites;
   final List<RefusalSite> refusals;
+  final List<ImportInfo> imports;
+  final int totalLegacyRefs;
 }
 
 /// Walks a parsed compilation unit looking for `GeniusWalletColors.<token>`
@@ -189,6 +212,12 @@ class _ColorAccessVisitor extends RecursiveAstVisitor<void> {
   final List<RewriteSite> rewrites = [];
   final List<RefusalSite> refusals = [];
 
+  /// Every `GeniusWalletColors.<anything>` reference seen, including names
+  /// outside the 64-name token map (e.g. `statusNeutral`). If this count
+  /// exceeds `rewrites.length`, something still needs the legacy import
+  /// after this codemod runs.
+  int totalLegacyRefs = 0;
+
   void _consider(
     Expression node,
     SimpleIdentifier prefix,
@@ -197,6 +226,7 @@ class _ColorAccessVisitor extends RecursiveAstVisitor<void> {
     if (prefix.name != _legacyClass) {
       return;
     }
+    totalLegacyRefs++;
     final symbol = property.name;
     if (!_tokenNames.contains(symbol)) {
       // Not one of the 64 migrated names (e.g. `statusNeutral`) -- leave
@@ -320,7 +350,24 @@ FileReport? scanContent(String path, String content) {
   }
   final visitor = _ColorAccessVisitor(path, result.lineInfo);
   result.unit.accept(visitor);
-  return FileReport(path, visitor.rewrites, visitor.refusals);
+
+  final imports = <ImportInfo>[];
+  for (final directive in result.unit.directives) {
+    if (directive is ImportDirective) {
+      final uri = directive.uri.stringValue;
+      if (uri != null) {
+        imports.add(ImportInfo(directive.offset, directive.end, uri));
+      }
+    }
+  }
+
+  return FileReport(
+    path,
+    visitor.rewrites,
+    visitor.refusals,
+    imports,
+    visitor.totalLegacyRefs,
+  );
 }
 
 FileReport? scanFile(String path) {
@@ -328,22 +375,98 @@ FileReport? scanFile(String path) {
   return scanContent(path, content);
 }
 
+const _contextExtensionUri =
+    'package:genius_wallet/theme/gw_context_extension.dart';
+const _legacyImportUri =
+    'package:genius_wallet/theme/genius_wallet_colors.dart';
+
+/// Returns the offset at which to insert a new import with URI [newUri],
+/// keeping the file's existing alphabetical `import` ordering (this repo's
+/// `directives_ordering` lint requires it). Returns the offset of the first
+/// existing import that sorts after [newUri], or just past the last import
+/// (by its position in the file) if [newUri] sorts last.
+int _importInsertionOffset(List<ImportInfo> imports, String newUri) {
+  if (imports.isEmpty) {
+    return 0;
+  }
+  final byUri = [...imports]..sort((a, b) => a.uri.compareTo(b.uri));
+  for (final imp in byUri) {
+    if (newUri.compareTo(imp.uri) < 0) {
+      return imp.offset;
+    }
+  }
+  final lastByPosition = imports.reduce((a, b) => a.end > b.end ? a : b);
+  return lastByPosition.end + 1;
+}
+
 /// Applies [report]'s rewrites to [path]'s content, back-to-front by offset
-/// so earlier edits never invalidate later offsets, and writes the result.
+/// so earlier edits never invalidate later offsets, then reconciles the two
+/// imports every rewrite site depends on:
+///   - adds `gw_context_extension.dart` (for `context.gw`) if this file
+///     didn't already have it and at least one rewrite happened.
+///   - drops the legacy `genius_wallet_colors.dart` import if every
+///     `GeniusWalletColors` reference in the file (rewrites + refusals +
+///     excluded names) was a rewrite, i.e. nothing is left that still needs
+///     it.
+/// Writes the result. No-ops entirely if there was nothing to rewrite.
 void applyReport(String path, FileReport report) {
   if (report.rewrites.isEmpty) {
     return;
   }
   var content = File(path).readAsStringSync();
-  final sorted = [...report.rewrites]
+
+  // 1. Body rewrites, back-to-front. All offsets here are strictly after
+  //    the import block, so the import bookkeeping below (computed from the
+  //    same original parse) stays valid through this step.
+  final sortedRewrites = [...report.rewrites]
     ..sort((a, b) => b.offset.compareTo(a.offset));
-  for (final site in sorted) {
+  for (final site in sortedRewrites) {
     content = content.replaceRange(
       site.offset,
       site.end,
       'context.gw.${site.symbol}',
     );
   }
+
+  // 2. Import bookkeeping.
+  final needsContextImport = !report.imports.any(
+    (i) => i.uri == _contextExtensionUri,
+  );
+  final legacyImports = report.imports.where((i) => i.uri == _legacyImportUri);
+  final legacyNowDead =
+      report.totalLegacyRefs == report.rewrites.length &&
+      legacyImports.isNotEmpty;
+
+  var insertOffset = needsContextImport
+      ? _importInsertionOffset(report.imports, _contextExtensionUri)
+      : -1;
+
+  if (legacyNowDead) {
+    final imp = legacyImports.single;
+    var end = imp.end;
+    if (end < content.length && content[end] == '\n') {
+      end++;
+    }
+    final start = imp.offset;
+    content = content.replaceRange(start, end, '');
+    if (insertOffset >= end) {
+      insertOffset -= end - start;
+    } else if (insertOffset > start) {
+      // Shouldn't happen (insertion offset always targets some OTHER
+      // import's start), but never insert into the middle of a span we
+      // just deleted.
+      insertOffset = start;
+    }
+  }
+
+  if (needsContextImport) {
+    content = content.replaceRange(
+      insertOffset,
+      insertOffset,
+      "import '$_contextExtensionUri';\n",
+    );
+  }
+
   File(path).writeAsStringSync(content);
 }
 
@@ -580,6 +703,78 @@ class Foo extends StatelessWidget {
     '9-excluded-name-untouched',
     case9.rewrites.isEmpty && case9.refusals.isEmpty,
   );
+
+  // Case 10 (apply, real files): applying a rewrite adds the
+  // `gw_context_extension.dart` import and drops the now-dead legacy import
+  // when nothing else in the file still needs it.
+  final tmp10 = Directory.systemTemp.createTempSync('codemod_colors_test_10');
+  final file10 = File('${tmp10.path}/case10.dart');
+  file10.writeAsStringSync('''
+import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+
+class Foo extends StatelessWidget {
+  const Foo({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Container(color: GeniusWalletColors.brandPrimary);
+  }
+}
+''');
+  final report10 = scanFile(file10.path)!;
+  applyReport(file10.path, report10);
+  final rewritten10 = file10.readAsStringSync();
+  check(
+    '10-apply-adds-context-import',
+    rewritten10.contains(
+      "import 'package:genius_wallet/theme/gw_context_extension.dart';",
+    ),
+  );
+  check(
+    '10-apply-drops-dead-legacy-import',
+    !rewritten10.contains('genius_wallet_colors.dart'),
+  );
+  check(
+    '10-apply-rewrites-body',
+    rewritten10.contains('context.gw.brandPrimary'),
+  );
+  tmp10.deleteSync(recursive: true);
+
+  // Case 11 (apply, real files): when a refusal remains (here, a const
+  // site), the legacy import stays -- it's still needed.
+  final tmp11 = Directory.systemTemp.createTempSync('codemod_colors_test_11');
+  final file11 = File('${tmp11.path}/case11.dart');
+  file11.writeAsStringSync('''
+import 'package:flutter/material.dart';
+import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+
+class Foo extends StatelessWidget {
+  const Foo({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(color: GeniusWalletColors.brandPrimary),
+        const ColoredBox(color: GeniusWalletColors.brandSecondary),
+      ],
+    );
+  }
+}
+''');
+  final report11 = scanFile(file11.path)!;
+  applyReport(file11.path, report11);
+  final rewritten11 = file11.readAsStringSync();
+  check(
+    '11-apply-keeps-legacy-import-when-still-needed',
+    rewritten11.contains('genius_wallet_colors.dart') &&
+        rewritten11.contains('GeniusWalletColors.brandSecondary'),
+  );
+  check(
+    '11-apply-adds-context-import-alongside-legacy',
+    rewritten11.contains('gw_context_extension.dart') &&
+        rewritten11.contains('context.gw.brandPrimary'),
+  );
+  tmp11.deleteSync(recursive: true);
 
   print('');
   if (failures == 0) {
