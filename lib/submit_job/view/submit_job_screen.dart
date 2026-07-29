@@ -1,208 +1,66 @@
-import 'dart:convert';
-
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
+import 'package:genius_wallet/components/scaffold/gw_screen.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
-import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/submit_job/view/widgets/job_steps.dart';
 
-class SubmitJobScreen extends StatelessWidget {
+/// `/submit_job` - the full-screen host for deep links and narrow viewports,
+/// kept per `018-A`. Renders the IDENTICAL [JobFlowBody]/[JobFlowFooter] pair
+/// the drawer host (`job_drawer.dart`) renders - one flow, two hosts
+/// (`14-UI-SPEC.md` §6.7).
+///
+/// Unlike the drawer, this host's [SubmitJobCubit] stays route-scoped
+/// (`router.dart:299-312`, unchanged by this plan) - the cubit already lives
+/// directly above this widget in the same nested Navigator, so none of
+/// `job_drawer.dart`'s root-navigator/dual-subtree hazards apply here.
+///
+/// Replaces the hand-rolled frame this file used to build (a `ConstrainedBox`
+/// at `GeniusBreakpoints.large` wrapped in a `SingleChildScrollView` inside an
+/// `Align`) with [GWScreen] - not a new layout import, a deletion of an
+/// equivalent one already built by hand. The content cap narrows to 640
+/// because a five-step vertical list at 1200px is a very long line
+/// (`14-UI-SPEC.md:756`).
+///
+/// The two toast listeners this file used to carry are gone. Every error now
+/// renders inline at the step that produced it, and a result is a step that
+/// stays on screen, not a toast that fades - see `job_steps.dart`'s
+/// `JobResultBody`/`JobChooseFileBody`/`JobCostBody`.
+class SubmitJobScreen extends StatefulWidget {
   const SubmitJobScreen({super.key});
 
   @override
+  State<SubmitJobScreen> createState() => _SubmitJobScreenState();
+}
+
+class _SubmitJobScreenState extends State<SubmitJobScreen> {
+  late final ValueNotifier<int> _manualIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    final cubit = context.read<SubmitJobCubit>();
+    _manualIndex = ValueNotifier<int>(cubit.state.uploadedJson.isEmpty ? 0 : 1);
+  }
+
+  @override
+  void dispose() {
+    _manualIndex.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SubmitJobCubit, SubmitJobState>(
-      listenWhen: (previous, current) =>
-          (previous.filePickerError != current.filePickerError) ||
-          (previous.processErrorMessage != current.processErrorMessage) ||
-          (previous.txHash != current.txHash),
-      listener: (context, state) {
-        final submitJobCubit = context.read<SubmitJobCubit>();
-
-        // listen for file picker errors
-        if (state.filePickerError.message.isNotEmpty) {
-          submitJobCubit.resetFilePickerError();
-          ToastManager.instance.showToast(
-            context: context,
-            title: "File Picker Error",
-            message: state.filePickerError.message,
-            type: ToastType.error,
-          );
-        }
-
-        if (state.processErrorMessage.isNotEmpty) {
-          submitJobCubit.resetProcessError();
-          ToastManager.instance.showToast(
-            context: context,
-            title: "Job Submission Error",
-            message: state.processErrorMessage,
-            type: ToastType.error,
-          );
-        }
-
-        if (state.txHash.isNotEmpty) {
-          submitJobCubit.resetState();
-          ToastManager.instance.showToast(
-            context: context,
-            title: "Job Successfully Submitted",
-            message: state.txHash,
-            type: ToastType.success,
-          );
-        }
-      },
-      builder: (context, state) {
-        final submitJobCubit = context.read<SubmitJobCubit>();
-        final uploadedFileName = state.uploadedFileName;
-        final uploadedJson = state.uploadedJson;
-        final jobCost = state.jobCost;
-        final gnusBalance = state.gnusBalance;
-        final isBridgingTokens = state.isBridgingTokens;
-        final isPurchaseable = jobCost != 0 && jobCost < gnusBalance;
-        final isFilePickerOpen = state.isFilePickerOpen;
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text("Submit a New Job"),
-            actions: [
-              TextButton.icon(
-                onPressed: submitJobCubit.openFilePicker,
-                icon: const Icon(Icons.upload),
-                label: const Text('Upload'),
-              ),
-            ],
-          ),
-          body: Stack(
-            children: [
-              Align(
-                alignment: AlignmentGeometry.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: GeniusBreakpoints.large,
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      spacing: 12.0,
-                      children: [
-                        Row(
-                          spacing: 8.0,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.asset(
-                              'assets/images/crypto/gnus.png',
-                              height: 25,
-                              width: 25,
-                            ),
-                            Text(
-                              '$gnusBalance',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 10.0),
-                            const FaIcon(
-                              FontAwesomeIcons.gasPump,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                            AutoSizeText(
-                              maxLines: 1,
-                              state.jobGasCost,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (uploadedFileName.isNotEmpty) ...[
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const AutoSizeText(
-                                'Uploaded File: ',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              AutoSizeText(
-                                uploadedFileName,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: GeniusWalletColors.lightGreenPrimary,
-                                  fontFamily: "JetBrainsMono",
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const AutoSizeText(
-                                'Cost: ',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              AutoSizeText(
-                                "$jobCost GNUS",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.redAccent,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (uploadedJson.isNotEmpty)
-                            FilledButton.icon(
-                              onPressed: !isPurchaseable || isBridgingTokens
-                                  ? null
-                                  : () {
-                                      submitJobCubit.bridgeTokens();
-                                    },
-                              label: const Text('Purchase'),
-                            ),
-                          if (!isPurchaseable)
-                            const Text(
-                              '* You do not have enough GNUS',
-                              style: TextStyle(
-                                color: Colors.redAccent,
-                                fontSize: 14,
-                              ),
-                            ),
-                        ],
-                        if (uploadedJson.isNotEmpty)
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: SelectableText(
-                                const JsonEncoder.withIndent(
-                                  '  ',
-                                ).convert(uploadedJson),
-                                style: const TextStyle(
-                                  fontFamily: 'JetBrainsMono',
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              if (isFilePickerOpen)
-                ModalBarrier(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  dismissible: false,
-                ),
-              if (isFilePickerOpen)
-                const Center(child: Loading(text: "Preparing AI job...")),
-            ],
-          ),
-        );
-      },
+    return GWScreen(
+      maxContentWidth: 640,
+      bottomNavigationBar: JobFlowFooter(manualIndex: _manualIndex),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const GWPageHeader(title: 'New processing job'),
+          JobFlowBody(manualIndex: _manualIndex),
+        ],
+      ),
     );
   }
 }
