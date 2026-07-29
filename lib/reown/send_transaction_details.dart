@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class SendTransactionDetails extends StatelessWidget {
   final String fromAddress;
@@ -55,7 +55,7 @@ class SendTransactionDetails extends StatelessWidget {
                   horizontal: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
+                  color: context.gw.deepBlueCardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(

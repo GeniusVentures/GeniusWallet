@@ -14,6 +14,7 @@ import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -167,7 +168,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             showAppSnackBar(
               context,
               "DApp connection was rejected.",
-              backgroundColor: GeniusWalletColors.statusError,
+              backgroundColor: context.gw.statusError,
             );
           }
 
@@ -241,7 +242,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         showAppSnackBar(
           context,
           "WalletKit failed to initialize. Please restart the app.",
-          backgroundColor: GeniusWalletColors.statusError,
+          backgroundColor: context.gw.statusError,
         );
       }
       return;
@@ -451,7 +452,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             showAppSnackBar(
               context,
               "Wallet connection failed. Please try again.",
-              backgroundColor: GeniusWalletColors.statusError,
+              backgroundColor: context.gw.statusError,
             );
           }
         }
@@ -529,19 +530,19 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
     if (isConnected) {
       icon = Icons.link_off;
-      stateColor = GeniusWalletColors.statusError;
+      stateColor = context.gw.statusError;
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
-      stateColor = GeniusWalletColors.statusWarning;
+      stateColor = context.gw.statusWarning;
       text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
-      stateColor = GeniusWalletColors.statusWarning;
+      stateColor = context.gw.statusWarning;
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
-      stateColor = GeniusWalletColors.statusError;
+      stateColor = context.gw.statusError;
       text = 'Retry Connect';
     } else {
       // Appearance-aware brand outline & text/icon so it clears AA in BOTH
