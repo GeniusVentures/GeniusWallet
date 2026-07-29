@@ -26,7 +26,7 @@ fixed `Colors.green.shade50`-style palette that never varied with appearance.
 | Toast error | icon + border | dark | `statusError` `#FF4D4D` | `surfaceElevated` `#0C0E14` | 5.90:1 | 3:1 | PASS |
 | Toast error | icon + border | light | `statusError` `#D92D2D` (AA-divergent light value) | `surfaceElevated` `#FFFFFF` | 4.81:1 | 3:1 | PASS |
 | Toast warning | icon + border | dark | `statusWarning` `#FFC42E` | `surfaceElevated` `#0C0E14` | 12.11:1 | 3:1 | PASS |
-| Toast warning | icon + border | light | local darkened amber `#92400E` (matches `GWWarningNote`, NOT the raw `statusWarning`) | `surfaceElevated` `#FFFFFF` | 7.09:1 | 3:1 | PASS |
+| Toast warning | icon + border | light | `gw.statusWarningText` `#92400E` — see the **Follow-up** section below; landed as a local hand-copied literal, since promoted to a `GWColors` field | `surfaceElevated` `#FFFFFF` | 7.09:1 | 3:1 | PASS |
 
 All ten pairs asserted in `test/theme/theme_contrast_test.dart` — Part 5,
 `ToastWidget clears AA in both appearances`, parametrised over
@@ -225,3 +225,150 @@ fine":
 - `lib/reown/`'s known x64 WalletConnect architectural finding (WalletConnect
   disabled via an arch-based skip on x64 desktop) was left untouched -- out
   of this plan's scope, as the plan requires.
+
+## Follow-up (orchestrator, `8d154b7`): `statusWarningText` token promotion
+
+This plan's own fix for the light-mode amber problem landed correctly in
+substance but wrong in shape: `GWAppearance.isLight ? const Color(0xFF92400E)
+: gw.statusWarning` was hand-copied into FOUR files (`gw_warning_note.dart`,
+`toast_widget.dart`, `compute_panel.dart`, `job_steps.dart`) plus two test
+sites, rather than being promoted to a token as this plan's own comments
+said it should be. That is a raw hex literal outside `lib/theme/`
+(`AGENTS.md` forbids it), four copies past the Rule of Three, and exactly
+the class of duplication 23-01 warned about.
+
+**Why a second token rather than a divergent light value on `statusWarning`
+itself** (the way `statusSuccess`/`statusError` were handled): `statusWarning`
+is still read as a **fill** by `order_status_style.dart` and
+`transaction_badge.dart` — darkening it for light mode would have darkened
+those fills too. `GWColors` gained `statusWarningText` instead: a second,
+explicitly foreground-purposed token, light `#92400E` / dark `statusWarning`
+itself, declared once in the `GWColors` factories in `lib/theme/gw_colors.dart`
+alongside `statusSuccess`/`statusError`.
+
+All four call sites now read `gw.statusWarningText` in place of their local
+literal; this deleted four `GWAppearance.isLight` branches, three
+single-call-site helper functions (`_warningAccent`, `_warningDotColor`,
+`_amber`), and five now-unused imports. `test/theme/gw_colors_parity_test.dart`'s
+compile-time field-count tripwire (a required-named-argument probe) went
+64 → 65 as designed — it failed the build until `statusWarningText` was
+declared on both the constructor and the `.light()`/`.dark()` factories.
+
+**Every ratio in this document's Toast/`GWWarningNote`/`compute_panel`/
+`job_steps` amber rows is unchanged in value** (`#92400E` light / `#FFC42E`
+dark, same measurements as recorded above and in the swap-settings section)
+— only the access path moved, from a hand-copied literal to a token. No
+re-measurement was needed or performed; this is documented here because the
+plan's own text repeatedly named the promotion as outstanding work
+("the next thing to actually do, not just note" — `toast_widget.dart`'s own
+comment, quoted back).
+
+Gates at this commit: `flutter analyze --no-pub` → "No issues found!";
+`tool/check_brace_style.sh --count` → 0; `dart format
+--output=none --set-exit-if-changed lib test` → exit 0; `flutter test --no-pub`
+→ 705/0 (unchanged from this plan's own count — no tests added, three
+helper functions and their assertions collapsed into the token read).
+
+## Follow-up (orchestrator, `b6995c9`): status-pill warning label + a NEW pre-existing finding
+
+`gw_warning_note.dart`'s own doc comment had explicitly predicted two more
+consumers of the light-mode amber problem by name — `order_status_style.dart`
+and `transaction_displays.dart`'s status pills. Both existed and both were
+broken: each painted its pill **label** in `statusWarning` (a fill-tuned
+token) on a translucent wash of that same colour, rather than in the new
+`statusWarningText`.
+
+| Function | Tone | Mode | Foreground (before) | Composited wash background | Ratio (before) | Threshold | Verdict |
+|---|---|---|---|---|---|---|---|
+| `orderStatusPaint` (`order_status_style.dart`) | warning | light | `statusWarning` `#FFC42E` | `statusWarning`-tinted wash over `surfaceElevated` | 1.47:1 | 4.5:1 | **FAIL** |
+| `txStatusColors` (`transaction_displays.dart`) | warning | light | `statusWarning` `#FFC42E` | `statusWarning`-tinted wash over `surfaceElevated` | 1.59:1 | 4.5:1 | **FAIL** |
+
+Threshold is 4.5:1, not 3:1, because the pill label is `labelMd` (13px) at
+`w600` — WCAG large text starts at 18.66px bold, so 13px bold does not
+qualify for the relaxed floor. Fixed by changing only `fg` to
+`gw.statusWarningText` in both functions; the wash stays `statusWarning`
+(a genuine fill, which is what that token is tuned for).
+
+| Function | Tone | Mode | Foreground (after) | Ratio (after, worst surface) | Threshold | Verdict |
+|---|---|---|---|---|---|---|
+| `orderStatusPaint` | warning | light | `statusWarningText` `#92400E` | 5.93:1 (surfaceMenu, worst of the three) | 4.5:1 | PASS |
+| `txStatusColors` | warning | light | `statusWarningText` `#92400E` | 5.93:1 (surfaceMenu, worst of the three) | 4.5:1 | PASS |
+
+`test/banxa/order_status_style_test.dart` had been **asserting the bug**:
+`expect(darkWarning, equals(lightWarning))` under the title "mode-invariant
+static, recorded as a fact rather than a defect." It was a defect —
+flipped to `isNot(equals(...))`, matching the error-tone assertion directly
+above it in the same file.
+
+`test/theme/theme_contrast_test.dart` gained **Part 8**
+("status-pill foregrounds on their own wash"), which composites each
+translucent wash with `Color.alphaBlend` (`computeLuminance` ignores alpha)
+before measuring, and asserts:
+- all three tones (success/warning/error) clear 4.5:1 in **dark** mode, for
+  both pill functions, across `surfaceElevated`/`surfaceMenu`/`surfaceBase`;
+- the **warning** tone clears 4.5:1 in **light** mode, same coverage.
+
+Neither pill function had any test at all before this commit.
+
+### A NEW finding, deliberately NOT fixed here — recorded, not closed
+
+Part 8 does **not** assert light-mode success/error, because they fail —
+tuning the assertion down to admit them would be the unearned PASS this
+project forbids. Measured 2026-07-29 (label vs its own translucent wash,
+composited per surface):
+
+| Tone | Mode | surfaceElevated | surfaceMenu | surfaceBase |
+|---|---|---|---|---|
+| success | light | 3.77 | 3.39 | **2.91** |
+| error | light | 3.89 | 3.49 | **2.99** |
+| warning | light | 6.56 | 5.93 | 5.15 | ← fixed by this follow-up |
+| success | dark | 8.20 | 7.16 | 8.29 | PASS |
+| warning | dark | 8.79 | 7.62 | 8.89 | PASS |
+| error | dark | 5.12 | 4.54 | 5.17 | PASS |
+
+All six light-mode success/error figures are below the 4.5:1 body-text
+floor, and **both `surfaceBase` figures are below even the 3:1 non-text
+floor**. This is **pre-existing** — not introduced by 23-03 — and traces to
+a structural cause, not a tuning slip: the light-mode `statusSuccess`/
+`statusError` values are already AA-divergent (see their field docs in
+`gw_colors.dart`), and still miss, because the wash is a translucent tint of
+the **same hue** as the label, so darkening the label and lightening its
+backdrop move together — the fix that worked for `statusWarning` (a
+foreground-purposed sibling token with a genuinely different value) doesn't
+apply until `statusSuccessText`/`statusErrorText` exist the same way.
+
+Filed as
+`.planning/todos/pending/2026-07-29-status-pill-success-error-fail-aa-in-light-mode.md`
+with the full table and upgrade path (mirror `statusWarningText`: add
+`statusSuccessText`/`statusErrorText`, repoint the two `fg:` slots, extend
+Part 8 to all three tones in both modes, delete its exclusion note).
+
+**This means the "every touched pair clears its threshold" claim in this
+plan's Task 2/3 sections above does NOT extend to the status-pill success
+and error tones** — those pills were not among the pairs Task 2/3 touched
+directly (Task 1's residue pass moved `order_status_style.dart`'s
+`statusWarning` read onto `gw.statusWarning` as a pure access-path move, per
+Task 1's own no-different-token rule; it did not touch `fg` for
+success/error, and had no mandate to re-derive the pairing). The failure was
+already there before this plan started and remains open now, tracked by the
+todo above, not by this document's Task 2/3 tables.
+
+Gates at this commit (quoting the orchestrator's own measurement, since it
+post-dates this executor's own run): `flutter analyze --no-pub` → "No
+issues found!"; `tool/check_brace_style.sh --count` → 0; `dart format
+--output=none --set-exit-if-changed lib test` → exit 0; `flutter test
+--no-pub` → **707/0** (705 + 2 new Part 8 tests).
+
+## Raw-colour counts are a moving target, not a closed number
+
+The `lib/reown/` count recorded in this document's Task 3 section (12
+survivors) is unaffected by either follow-up commit (neither touched
+`lib/reown/`) and remains accurate as of `b6995c9`. But the phase's
+raw-colour picture as a whole is **not final** at this document's original
+count: this plan's own fix introduced a new hand-copied-hex violation (the
+four-file amber duplication), caught and fixed by the first follow-up
+commit, and the second follow-up commit found a second, pre-existing
+violation class (fill-tuned tokens used as foregrounds on translucent
+washes) in two files this plan had already touched for an unrelated reason.
+Treat any single count in this document as a snapshot at the stated commit,
+not a claim that the phase's colour surface is now exhaustively audited.
