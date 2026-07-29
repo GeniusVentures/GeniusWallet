@@ -1,6 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
+/// A toast card: an opaque `surfaceElevated` panel (so it reads correctly
+/// regardless of whatever screen it floats over — it is painted straight
+/// into the root `Overlay`, above any page content) with a type-coloured
+/// accent (border + icon) and `textPrimary`/`textSecondary` copy.
+///
+/// Re-derived 23-03 from a fully inverted light-mode palette: every colour
+/// here used to be a fixed `Colors.green.shade50`-style literal tuned only
+/// for a dark canvas, so light mode painted a near-white toast that read as
+/// broken against the light app. See `23-03-CONTRAST.md` for the measured
+/// ratio behind every pair below, in both appearance modes.
 class ToastWidget extends StatelessWidget {
   final String title;
   final String message;
@@ -15,27 +29,35 @@ class ToastWidget extends StatelessWidget {
     required this.onDismiss,
   });
 
-  Color _getBackgroundColor() {
+  /// The one colour that varies by [type]: the accent used for the border,
+  /// the leading icon and (mirrored on the close affordance) nothing else —
+  /// title/message/close stay on the neutral `textPrimary`/`textSecondary`
+  /// ladder so the toast never depends on a status colour for legibility.
+  Color _accentColor(GWColors gw) {
     switch (type) {
       case ToastType.success:
-        return Colors.green.shade50;
+        return gw.statusSuccess;
       case ToastType.error:
-        return Colors.red.shade50;
+        return gw.statusError;
       case ToastType.warning:
-        return Colors.yellow.shade50;
+        return _warningAccent(gw);
     }
   }
 
-  Color _getBorderColor() {
-    switch (type) {
-      case ToastType.success:
-        return Colors.green.shade400;
-      case ToastType.error:
-        return Colors.red.shade400;
-      case ToastType.warning:
-        return Colors.yellow.shade400;
-    }
-  }
+  // ponytail: a FOURTH hand-derivation of the same light-mode amber
+  // workaround (`GWWarningNote`, `compute_panel.dart`'s `_warningDotColor`,
+  // `job_steps.dart`'s `_amber` are the three that already carry this exact
+  // note). `gw.statusWarning` (#FFC42E) is a fill-tuned token that measures
+  // ~13:1 on the dark canvas but only ~1.6:1 on light — invisible as an icon
+  // or a border there. Ceiling: any OTHER consumer of `statusWarning` as a
+  // foreground still fails light mode. Upgrade path: promote to an
+  // appearance-aware `gw.statusWarning` getter mirroring
+  // `gw.statusSuccess`/`gw.statusError`, after which all four calls fold
+  // into it — now past the Rule-of-Three line, so that promotion is the
+  // next thing to actually do, not just note.
+  Color _warningAccent(GWColors gw) => GWAppearance.isLight
+      ? const Color(0xFF92400E) // ~7.1:1 on white, matches GWWarningNote
+      : gw.statusWarning; // ~13:1 on the dark canvas
 
   IconData _getIcon() {
     switch (type) {
@@ -50,20 +72,20 @@ class ToastWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = context.gw;
+    final accent = _accentColor(gw);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _getBackgroundColor(),
-        border: Border.all(color: _getBorderColor(), width: 2),
+        color: gw.surfaceElevated,
+        border: Border.all(color: accent, width: 2),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
-        ],
+        boxShadow: GeniusWalletElevation.card,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(_getIcon(), color: _getBorderColor(), size: 36),
+          Icon(_getIcon(), color: accent, size: 36),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -71,16 +93,16 @@ class ToastWidget extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: gw.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 SelectableText(
                   message,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: TextStyle(fontSize: 14, color: gw.textSecondary),
                 ),
               ],
             ),
@@ -89,11 +111,7 @@ class ToastWidget extends StatelessWidget {
             onTap: onDismiss,
             child: Container(
               padding: const EdgeInsets.all(4), // Padding inside the square
-              child: const Icon(
-                Icons.close,
-                color: Colors.black, // Icon color
-                size: 20, // Icon size
-              ),
+              child: Icon(Icons.close, color: gw.textSecondary, size: 20),
             ),
           ),
         ],

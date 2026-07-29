@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_motion.dart';
@@ -125,10 +124,15 @@ class GWButton extends StatelessWidget {
       case GWButtonVariant.primary:
         // App-wide primary CTA now paints the brand CTA gradient (was the flat
         // neon brandPrimary fill) — single central edit propagates everywhere.
+        // background is a dead value here (the gradient always wins in
+        // build(), see `hasGradient`) but the field is required, so it reads
+        // the same token the gradient's blue stop uses.
         return _Palette(
-          background: GeniusWalletColors.gradientBlue,
+          background: gw.gradientBlue,
           // Near-black on the bright CTA gradient (white failed WCAG AA).
-          foreground: GeniusWalletColors.textOnBrand,
+          // Fixed in both modes: 6.06:1 (green stop) / 7.74:1 (blue stop) --
+          // see 23-03-CONTRAST.md.
+          foreground: gw.textOnBrand,
           border: null,
           gradient: GeniusWalletGradient.brandCta,
         );
@@ -141,11 +145,8 @@ class GWButton extends StatelessWidget {
         // token value. Dark is unchanged (token == brandPrimaryStrong there).
         return _Palette(
           background: Colors.transparent,
-          foreground: GeniusWalletColors.brandPrimaryOnSurface,
-          border: BorderSide(
-            color: GeniusWalletColors.brandPrimaryOnSurface,
-            width: 1.5,
-          ),
+          foreground: gw.brandPrimaryOnSurface,
+          border: BorderSide(color: gw.brandPrimaryOnSurface, width: 1.5),
         );
       case GWButtonVariant.tertiary:
         return _Palette(
@@ -160,9 +161,21 @@ class GWButton extends StatelessWidget {
           border: null,
         );
       case GWButtonVariant.destructive:
+        // 23-03: was `gw.statusError` (a foreground/icon-tuned token, meant
+        // to sit ON a surface, not to have text painted ON it) foreground
+        // `gw.textPrimary` -- measured 3.27:1 (dark, white-on-#FF4D4D) and
+        // 3.86:1 (light, ink-on-#D92D2D), both below the 4.5:1 body-text
+        // floor (23-03-CONTRAST.md). `foundationError` (#920000) is the
+        // FILL-purposed dark-red token already in the palette for exactly
+        // this job -- fixed in both modes, 9.45:1 against white.
         return _Palette(
-          background: GeniusWalletColors.statusError,
-          foreground: gw.textPrimary,
+          background: gw.foundationError,
+          // Always white regardless of appearance: the fill is a fixed dark
+          // scrim in both modes (`gw.foundationError` does not flip), so a
+          // mode-following `gw.textPrimary` would go ink-on-dark-red in
+          // light mode and fail badly. Documented fixed exception per this
+          // plan's own guidance -- annotated, not tokenized.
+          foreground: Colors.white,
           border: null,
         );
       case GWButtonVariant.icon:
@@ -173,16 +186,22 @@ class GWButton extends StatelessWidget {
         );
       case GWButtonVariant.gradient:
         return _Palette(
-          background: GeniusWalletColors.gradientBlue,
+          background: gw.gradientBlue,
           // Near-black on the bright CTA gradient (white failed WCAG AA).
-          foreground: GeniusWalletColors.textOnBrand,
+          // Fixed in both modes -- see the `primary` case above.
+          foreground: gw.textOnBrand,
           border: null,
           gradient: GeniusWalletGradient.brandCta,
         );
       case GWButtonVariant.gradientOutline:
         // Border + label are painted opaque white then recolored by a srcIn
         // ShaderMask in build(); the transparent fill stays transparent under
-        // the mask. Values here are pre-mask placeholders.
+        // the mask. Values here are pre-mask placeholders, not the rendered
+        // colour -- documented fixed exception: this MUST stay
+        // mode-invariant opaque white regardless of appearance, because the
+        // mask reads only the alpha channel (BlendMode.srcIn) and repaints
+        // every opaque pixel with the brand gradient. A token here would be
+        // pure noise -- its RGB value never reaches the screen.
         return _Palette(
           background: Colors.transparent,
           foreground: Colors.white,
@@ -197,7 +216,13 @@ class GWButton extends StatelessWidget {
     final palette = _palette(gw);
     final disabled = onPressed == null || isLoading;
     final hasGradient = palette.gradient != null;
-    final bg = disabled && variant != GWButtonVariant.ghost
+    // 23-03: `.withAlpha(140)` REPLACES the alpha channel rather than
+    // scaling it, so a transparent background (ghost, secondary,
+    // gradientOutline) jumped from alpha 0 to alpha 140 -- an unintended
+    // black wash on disabled outline/ghost buttons. Guard on the actual
+    // value instead of enumerating variants one at a time (the `ghost`-only
+    // guard this replaces had already missed `secondary`).
+    final bg = disabled && palette.background != Colors.transparent
         ? palette.background.withAlpha(140)
         : palette.background;
     final fg = disabled

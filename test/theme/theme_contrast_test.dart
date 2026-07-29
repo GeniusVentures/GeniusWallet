@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/components/toast/toast_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -303,6 +305,199 @@ void main() {
               'field edge $edge on drawer panel $panel in $mode mode -- an '
               'input whose fill is 1.11:1 from its panel is identified by its '
               'border alone',
+        );
+      });
+    }
+  });
+
+  // 23-03: the toast widget used to hardcode a fully inverted light-mode
+  // palette (Colors.green.shade50-style literals, always painted regardless
+  // of appearance). Re-derived from context.gw; this group is the
+  // replacement evidence -- see 23-03-CONTRAST.md for the by-hand ratios.
+  group('Part 5: ToastWidget clears AA in both appearances (23-03)', () {
+    IconData iconFor(ToastType type) => switch (type) {
+      ToastType.success => Icons.check_circle_outline_outlined,
+      ToastType.error => Icons.error_outline_outlined,
+      ToastType.warning => Icons.warning_amber_outlined,
+    };
+
+    // Mirrors ToastWidget's own private `_warningAccent` -- the fourth
+    // occurrence of the documented light-mode amber workaround (see the
+    // widget's own ponytail note).
+    Color warningAccentFor(GWAppearanceMode mode, GWColors gw) =>
+        mode == GWAppearanceMode.light
+        ? const Color(0xFF92400E)
+        : gw.statusWarning;
+
+    for (final mode in GWAppearanceMode.values) {
+      for (final type in ToastType.values) {
+        testWidgets('${type.name} toast -- $mode', (tester) async {
+          final theme = themeFor(mode);
+          final gw = theme.extension<GWColors>()!;
+          final accent = switch (type) {
+            ToastType.success => gw.statusSuccess,
+            ToastType.error => gw.statusError,
+            ToastType.warning => warningAccentFor(mode, gw),
+          };
+
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: theme,
+              home: Scaffold(
+                body: ToastWidget(
+                  title: 'Title',
+                  message: 'Message',
+                  type: type,
+                  onDismiss: () {},
+                ),
+              ),
+            ),
+          );
+
+          final card = tester
+              .widgetList<Container>(find.byType(Container))
+              .firstWhere((c) => c.decoration != null);
+          final decoration = card.decoration as BoxDecoration;
+          final surface = decoration.color;
+          expect(
+            surface,
+            gw.surfaceElevated,
+            reason: 'toast card surface ($mode)',
+          );
+
+          final icon = tester.widget<Icon>(find.byIcon(iconFor(type)));
+          expect(icon.color, accent, reason: '${type.name} accent ($mode)');
+          expect(
+            contrastRatio(icon.color!, surface!),
+            greaterThanOrEqualTo(3.0),
+            reason:
+                '${type.name} icon $accent on toast surface $surface '
+                'in $mode mode (non-text UI, 3:1 floor)',
+          );
+
+          final title = tester.widget<Text>(find.text('Title'));
+          expect(
+            title.style?.color,
+            gw.textPrimary,
+            reason: 'toast title colour ($mode)',
+          );
+          expect(
+            contrastRatio(title.style!.color!, surface),
+            greaterThanOrEqualTo(4.5),
+            reason: 'toast title on surface $surface in $mode mode',
+          );
+
+          final message = tester.widget<SelectableText>(
+            find.byType(SelectableText),
+          );
+          expect(
+            message.style?.color,
+            gw.textSecondary,
+            reason: 'toast message colour ($mode)',
+          );
+          expect(
+            contrastRatio(message.style!.color!, surface),
+            greaterThanOrEqualTo(4.5),
+            reason: 'toast message on surface $surface in $mode mode',
+          );
+        });
+      }
+    }
+  });
+
+  // 23-03: gw_button.dart's design-system offenders -- primary/gradient's
+  // on-brand text and the destructive fill/foreground pairing this plan
+  // replaced (was 3.27:1 / 3.86:1, both below 4.5:1 -- see
+  // 23-03-CONTRAST.md).
+  group('Part 6: GWButton primary + destructive clear AA (23-03)', () {
+    for (final mode in GWAppearanceMode.values) {
+      testWidgets('primary variant label vs brand CTA gradient -- $mode', (
+        tester,
+      ) async {
+        final theme = themeFor(mode);
+        final gw = theme.extension<GWColors>()!;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: Scaffold(
+              body: GWButton(
+                label: 'Primary',
+                variant: GWButtonVariant.primary,
+                onPressed: () {},
+              ),
+            ),
+          ),
+        );
+
+        final textWidget = tester.widget<Text>(find.text('Primary'));
+        expect(
+          textWidget.style?.color,
+          gw.textOnBrand,
+          reason: 'GWButton primary label color ($mode)',
+        );
+
+        final container = tester.widget<AnimatedContainer>(
+          find.byType(AnimatedContainer),
+        );
+        final decoration = container.decoration as BoxDecoration;
+        final gradient = decoration.gradient! as LinearGradient;
+        for (final stop in gradient.colors) {
+          expect(
+            contrastRatio(textWidget.style!.color!, stop),
+            greaterThanOrEqualTo(4.5),
+            reason:
+                'GWButton primary label ${textWidget.style!.color} on '
+                'gradient stop $stop ($mode) -- fixed in both modes',
+          );
+        }
+      });
+
+      testWidgets('destructive variant fill + label clear AA -- $mode', (
+        tester,
+      ) async {
+        final theme = themeFor(mode);
+        final gw = theme.extension<GWColors>()!;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: Scaffold(
+              body: GWButton(
+                label: 'Delete',
+                variant: GWButtonVariant.destructive,
+                onPressed: () {},
+              ),
+            ),
+          ),
+        );
+
+        final container = tester.widget<AnimatedContainer>(
+          find.byType(AnimatedContainer),
+        );
+        final decoration = container.decoration as BoxDecoration;
+        expect(
+          decoration.color,
+          gw.foundationError,
+          reason: 'GWButton destructive fill ($mode)',
+        );
+
+        final textWidget = tester.widget<Text>(find.text('Delete'));
+        expect(
+          textWidget.style?.color,
+          Colors.white,
+          reason:
+              'GWButton destructive label is a documented fixed exception '
+              '($mode) -- gw.foundationError does not flip, so the label '
+              'must not follow gw.textPrimary either',
+        );
+        expect(
+          contrastRatio(textWidget.style!.color!, decoration.color!),
+          greaterThanOrEqualTo(4.5),
+          reason:
+              'GWButton destructive label on ${decoration.color} in $mode '
+              'mode -- was 3.27:1 (dark) / 3.86:1 (light) against '
+              'gw.statusError before this plan',
         );
       });
     }
