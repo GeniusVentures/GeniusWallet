@@ -4,12 +4,12 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/squid_router/slippage_state.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/formatters.dart';
 
 /// Swap settings — sketch 063 variant A, the "form" drawer archetype.
@@ -145,7 +145,7 @@ class _SlippageFormState extends State<_SlippageForm> {
 
     final Color edge = switch (state.level) {
       SlippageLevel.error => gw.statusError,
-      SlippageLevel.warning => GeniusWalletColors.statusWarning,
+      SlippageLevel.warning => context.gw.statusWarning,
       // borderControl, not borderSubtle: on the 156-A panel the field's fill
       // sits 1.11:1 from the panel's, so the edge is the ONLY thing saying
       // "this is an input" and it has to clear 1.4.11 by itself. 12% measured
@@ -297,7 +297,7 @@ class _Message extends StatelessWidget {
     // amber and painting reassurance as a warning.
     final color = switch (state.level) {
       SlippageLevel.error => gw.statusError,
-      SlippageLevel.warning => GeniusWalletColors.statusWarning,
+      SlippageLevel.warning => context.gw.statusWarning,
       SlippageLevel.ok => gw.textSecondary, // 5.97:1 on the 156-A panel
     };
     return Row(
@@ -370,9 +370,7 @@ class _PresetChipState extends State<_PresetChip> {
           child: Text(
             widget.label,
             style: GeniusWalletTypography.titleMd.copyWith(
-              color: widget.selected
-                  ? GeniusWalletColors.textOnBrand
-                  : gw.textPrimary,
+              color: widget.selected ? context.gw.textOnBrand : gw.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),

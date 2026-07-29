@@ -24,11 +24,11 @@ import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_preselection.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -559,10 +559,8 @@ class _SwapScreenState extends State<SwapScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    GeniusWalletColors.brandPrimaryStrong.withValues(
-                      alpha: cyanAlpha,
-                    ),
-                    GeniusWalletColors.brandPrimaryStrong.withValues(alpha: 0),
+                    context.gw.brandPrimaryStrong.withValues(alpha: cyanAlpha),
+                    context.gw.brandPrimaryStrong.withValues(alpha: 0),
                   ],
                 ),
               ),
@@ -577,12 +575,10 @@ class _SwapScreenState extends State<SwapScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    GeniusWalletColors.brandSecondaryStrong.withValues(
+                    context.gw.brandSecondaryStrong.withValues(
                       alpha: mintAlpha,
                     ),
-                    GeniusWalletColors.brandSecondaryStrong.withValues(
-                      alpha: 0,
-                    ),
+                    context.gw.brandSecondaryStrong.withValues(alpha: 0),
                   ],
                 ),
               ),

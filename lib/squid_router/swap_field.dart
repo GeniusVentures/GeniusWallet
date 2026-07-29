@@ -5,11 +5,11 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/token_selector_drawer.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/formatters.dart';
 
 class SwapField extends StatelessWidget {
@@ -317,8 +317,7 @@ class SwapField extends StatelessWidget {
                                     // .hoverFill`), so re-tinting would say nothing.
                                     // Hover adds the recipe's other half — the brand
                                     // hairline — and the control still answers.
-                                    color:
-                                        GeniusWalletColors.brandPrimarySubtle,
+                                    color: context.gw.brandPrimarySubtle,
                                     borderRadius: BorderRadius.circular(
                                       GeniusWalletConsts.radiusSm,
                                     ),
@@ -342,8 +341,8 @@ class SwapField extends StatelessWidget {
                                     "MAX",
                                     style: GeniusWalletTypography.labelMd
                                         .copyWith(
-                                          color: GeniusWalletColors
-                                              .brandPrimaryOnSurface,
+                                          color:
+                                              context.gw.brandPrimaryOnSurface,
                                         ),
                                   ),
                                 ),
