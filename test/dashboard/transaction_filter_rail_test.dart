@@ -301,7 +301,8 @@ void main() {
     // And RED if it is wrapped in a ShaderMask. This needs its own assertion
     // rather than riding on the colour one: the `srcIn` convention `_menuItem`
     // uses sets the masked child to `Colors.white`, and in DARK
-    // `gw.textPrimary` IS `Colors.white` (`genius_wallet_colors.dart:133`) — so
+    // `gw.textPrimary` IS `Colors.white` (the theme primitive layer's dark
+    // branch) — so
     // the line above cannot tell the two apart. The rail paints its gradient
     // into the 2px rule and nowhere else.
     expect(
@@ -427,8 +428,8 @@ void main() {
             contrastRatio(stop, surface),
             greaterThanOrEqualTo(3.0),
             // RED if the rule is painted with `GeniusWalletGradient.brandCta`
-            // unconditionally: its blue stop `#0AAEE6`
-            // (`genius_wallet_colors.dart:85-86`) measures 2.56:1 on white.
+            // unconditionally: its blue stop `#0AAEE6` (the theme primitive
+            // layer's gradientBlue) measures 2.56:1 on white.
             reason:
                 'rule stop $stop on $surface in ${mode.name} — WCAG 1.4.11 '
                 'wants 3:1 for a non-text UI mark',

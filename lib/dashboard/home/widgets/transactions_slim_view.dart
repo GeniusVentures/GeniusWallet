@@ -550,9 +550,9 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
 /// FILE-SCOPE, not a method, because it has a SECOND consumer: the page
 /// filter rail's active-row underline (15-04, sketch 022 variant B2). That
 /// mark is NON-TEXT, so it answers to WCAG 1.4.11's 3:1 rather than AA's
-/// 4.5:1 — and `brandCta`'s blue stop `#0AAEE6`
-/// (`GeniusWalletColors.gradientBlue`, `genius_wallet_colors.dart:85-86`) is
-/// **2.56:1** on white and fails even that, while the degraded `#0A6885` is
+/// 4.5:1 — and `brandCta`'s blue stop `#0AAEE6` (the theme primitive layer's
+/// gradientBlue) is **2.56:1** on white and fails even that, while the
+/// degraded `#0A6885` is
 /// 6.30:1 and passes. Routing the underline through here is what stops it
 /// becoming a second, separately-drifting colour decision.
 ///

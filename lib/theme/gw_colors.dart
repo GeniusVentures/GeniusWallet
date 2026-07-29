@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
+
+part 'genius_wallet_colors.dart';
 
 /// Appearance-aware color tokens as a [ThemeExtension], mirroring the
 /// appearance-aware STATIC GETTERS on [GeniusWalletColors] (surfaces, the
@@ -21,12 +22,19 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 /// single source of truth and stays in place (no big-bang removal) --
 /// unmigrated call sites keep working exactly as before.
 ///
-/// 23-01 EXTENDS this class to full name parity with the legacy public
-/// palette -- see `.planning/phases/23-.../23-01-TOKEN-MAP.md` for the
-/// complete mapping, including the one deliberate exclusion (`statusNeutral`,
-/// which carries its own pre-existing "do not add" note in
+/// 23-01 EXTENDS this class to full name parity with the legacy palette --
+/// see `.planning/phases/23-.../23-01-TOKEN-MAP.md` for the complete
+/// mapping, including the one deliberate exclusion (`statusNeutral`, which
+/// carries its own pre-existing "do not add" note in
 /// `genius_wallet_colors.dart`). Name parity (not renaming) is the point: it
 /// turns 23-02's 260+ call-site migration into a mechanical prefix rewrite.
+///
+/// 23-04 DEMOTES `GeniusWalletColors` from a standalone public class to a
+/// `part` of this file, with every formerly-public field/getter
+/// underscore-prefixed -- the primitive layer this class mirrors is no
+/// longer independently importable or readable from outside `lib/theme/`;
+/// this class is now the ONLY supported way to read a colour from anywhere
+/// else in the app. See `genius_wallet_colors.dart`'s own header comment.
 @immutable
 class GWColors extends ThemeExtension<GWColors> {
   const GWColors({
@@ -119,7 +127,7 @@ class GWColors extends ThemeExtension<GWColors> {
 
   // ponytail: statusSuccess/statusError (and light-mode textSecondary) live
   // ONLY here as appearance-aware tokens; the source constants
-  // GeniusWalletColors.textSecondary/statusSuccess/statusError stay
+  // GeniusWalletColors._textSecondary/statusSuccess/statusError stay
   // mode-invariant for their non-migrated consumers. Ceiling: those call
   // sites still fail WCAG AA in light mode. Upgrade path: a dedicated token
   // pass that converts the source getters appearance-aware (or migrates those
@@ -131,7 +139,7 @@ class GWColors extends ThemeExtension<GWColors> {
   final Color borderStrong;
 
   /// The 3:1 edge for a control whose fill cannot identify it -- see
-  /// [GeniusWalletColors.borderControl] for the measurements.
+  /// [GeniusWalletColors._borderControl] for the measurements.
   final Color borderControl;
 
   // ---------------------------------------------------------------------
@@ -257,78 +265,78 @@ class GWColors extends ThemeExtension<GWColors> {
   /// Strips in release; zero-cost in production.
   factory GWColors.light() {
     final instance = GWColors(
-      surfaceBase: GeniusWalletColors.surfaceBase,
-      surfaceElevated: GeniusWalletColors.surfaceElevated,
-      surfaceMenu: GeniusWalletColors.surfaceMenu,
-      surfaceSunken: GeniusWalletColors.surfaceSunken,
-      surfaceOverlay: GeniusWalletColors.surfaceOverlay,
-      textPrimary: GeniusWalletColors.textPrimary,
-      textPrimary80: GeniusWalletColors.textPrimary80,
-      textPrimary70: GeniusWalletColors.textPrimary70,
-      textPrimary60: GeniusWalletColors.textPrimary60,
-      textPrimary54: GeniusWalletColors.textPrimary54,
-      textPrimary38: GeniusWalletColors.textPrimary38,
-      textPrimary30: GeniusWalletColors.textPrimary30,
-      textPrimary24: GeniusWalletColors.textPrimary24,
-      textPrimary12: GeniusWalletColors.textPrimary12,
-      textPrimary10: GeniusWalletColors.textPrimary10,
+      surfaceBase: GeniusWalletColors._surfaceBase,
+      surfaceElevated: GeniusWalletColors._surfaceElevated,
+      surfaceMenu: GeniusWalletColors._surfaceMenu,
+      surfaceSunken: GeniusWalletColors._surfaceSunken,
+      surfaceOverlay: GeniusWalletColors._surfaceOverlay,
+      textPrimary: GeniusWalletColors._textPrimary,
+      textPrimary80: GeniusWalletColors._textPrimary80,
+      textPrimary70: GeniusWalletColors._textPrimary70,
+      textPrimary60: GeniusWalletColors._textPrimary60,
+      textPrimary54: GeniusWalletColors._textPrimary54,
+      textPrimary38: GeniusWalletColors._textPrimary38,
+      textPrimary30: GeniusWalletColors._textPrimary30,
+      textPrimary24: GeniusWalletColors._textPrimary24,
+      textPrimary12: GeniusWalletColors._textPrimary12,
+      textPrimary10: GeniusWalletColors._textPrimary10,
       // AA fix: light-mode textSecondary deliberately diverges from the
-      // mode-invariant GeniusWalletColors.textSecondary (3.0:1 X) to 6.3:1.
+      // mode-invariant GeniusWalletColors._textSecondary (3.0:1 X) to 6.3:1.
       textSecondary: const Color(0xFF5A606E),
       statusSuccess: const Color(0xFF07875F), // 4.5:1 on white
       statusError: const Color(0xFFD92D2D), // 4.8:1 on white
-      borderSubtle: GeniusWalletColors.borderSubtle,
-      borderStrong: GeniusWalletColors.borderStrong,
-      borderControl: GeniusWalletColors.borderControl,
+      borderSubtle: GeniusWalletColors._borderSubtle,
+      borderStrong: GeniusWalletColors._borderStrong,
+      borderControl: GeniusWalletColors._borderControl,
       // 23-01 additions -- fixed tokens read the same const/getter in both
       // modes; appearance-aware ones (btnFilter, brandPrimaryOnSurface) read
       // through the legacy getter, which resolves for whichever mode is
       // active when this factory runs -- identical pattern to the 21
       // pre-existing fields above.
-      lightGreenPrimary: GeniusWalletColors.lightGreenPrimary,
-      lightGreenSecondary: GeniusWalletColors.lightGreenSecondary,
-      mutedGreen: GeniusWalletColors.mutedGreen,
-      deepBlueTertiary: GeniusWalletColors.deepBlueTertiary,
-      deepBlueCardColor: GeniusWalletColors.deepBlueCardColor,
-      deepBlueMenu: GeniusWalletColors.deepBlueMenu,
-      deepBlue: GeniusWalletColors.deepBlue,
-      grayPrimary: GeniusWalletColors.grayPrimary,
-      btnText: GeniusWalletColors.btnText,
-      btnDisabled: GeniusWalletColors.btnDisabled,
-      btnTextDisabled: GeniusWalletColors.btnTextDisabled,
-      btnGradientBlue: GeniusWalletColors.btnGradientBlue,
-      btnGradientGreen: GeniusWalletColors.btnGradientGreen,
-      btnFilter: GeniusWalletColors.btnFilter,
-      btnFilterSelected: GeniusWalletColors.btnFilterSelected,
-      foundationError: GeniusWalletColors.foundationError,
-      borderGrey: GeniusWalletColors.borderGrey,
-      brandPrimary: GeniusWalletColors.brandPrimary,
-      brandPrimaryStrong: GeniusWalletColors.brandPrimaryStrong,
-      brandPrimaryMuted: GeniusWalletColors.brandPrimaryMuted,
-      brandPrimarySubtle: GeniusWalletColors.brandPrimarySubtle,
-      brandPrimaryOnSurface: GeniusWalletColors.brandPrimaryOnSurface,
-      brandSecondary: GeniusWalletColors.brandSecondary,
-      brandSecondaryStrong: GeniusWalletColors.brandSecondaryStrong,
-      brandSecondaryBright: GeniusWalletColors.brandSecondaryBright,
-      brandSecondaryMuted: GeniusWalletColors.brandSecondaryMuted,
-      brandSecondarySubtle: GeniusWalletColors.brandSecondarySubtle,
-      brandTertiary: GeniusWalletColors.brandTertiary,
-      brandTertiaryMuted: GeniusWalletColors.brandTertiaryMuted,
-      brandTertiarySubtle: GeniusWalletColors.brandTertiarySubtle,
-      gradientBlue: GeniusWalletColors.gradientBlue,
-      gradientGreen: GeniusWalletColors.gradientGreen,
-      gray500: GeniusWalletColors.gray500,
-      textTertiary: GeniusWalletColors.textTertiary,
-      textDisabled: GeniusWalletColors.textDisabled,
-      textOnBrand: GeniusWalletColors.textOnBrand,
-      borderBrand: GeniusWalletColors.borderBrand,
-      statusWarning: GeniusWalletColors.statusWarning,
+      lightGreenPrimary: GeniusWalletColors._lightGreenPrimary,
+      lightGreenSecondary: GeniusWalletColors._lightGreenSecondary,
+      mutedGreen: GeniusWalletColors._mutedGreen,
+      deepBlueTertiary: GeniusWalletColors._deepBlueTertiary,
+      deepBlueCardColor: GeniusWalletColors._deepBlueCardColor,
+      deepBlueMenu: GeniusWalletColors._deepBlueMenu,
+      deepBlue: GeniusWalletColors._deepBlue,
+      grayPrimary: GeniusWalletColors._grayPrimary,
+      btnText: GeniusWalletColors._btnText,
+      btnDisabled: GeniusWalletColors._btnDisabled,
+      btnTextDisabled: GeniusWalletColors._btnTextDisabled,
+      btnGradientBlue: GeniusWalletColors._btnGradientBlue,
+      btnGradientGreen: GeniusWalletColors._btnGradientGreen,
+      btnFilter: GeniusWalletColors._btnFilter,
+      btnFilterSelected: GeniusWalletColors._btnFilterSelected,
+      foundationError: GeniusWalletColors._foundationError,
+      borderGrey: GeniusWalletColors._borderGrey,
+      brandPrimary: GeniusWalletColors._brandPrimary,
+      brandPrimaryStrong: GeniusWalletColors._brandPrimaryStrong,
+      brandPrimaryMuted: GeniusWalletColors._brandPrimaryMuted,
+      brandPrimarySubtle: GeniusWalletColors._brandPrimarySubtle,
+      brandPrimaryOnSurface: GeniusWalletColors._brandPrimaryOnSurface,
+      brandSecondary: GeniusWalletColors._brandSecondary,
+      brandSecondaryStrong: GeniusWalletColors._brandSecondaryStrong,
+      brandSecondaryBright: GeniusWalletColors._brandSecondaryBright,
+      brandSecondaryMuted: GeniusWalletColors._brandSecondaryMuted,
+      brandSecondarySubtle: GeniusWalletColors._brandSecondarySubtle,
+      brandTertiary: GeniusWalletColors._brandTertiary,
+      brandTertiaryMuted: GeniusWalletColors._brandTertiaryMuted,
+      brandTertiarySubtle: GeniusWalletColors._brandTertiarySubtle,
+      gradientBlue: GeniusWalletColors._gradientBlue,
+      gradientGreen: GeniusWalletColors._gradientGreen,
+      gray500: GeniusWalletColors._gray500,
+      textTertiary: GeniusWalletColors._textTertiary,
+      textDisabled: GeniusWalletColors._textDisabled,
+      textOnBrand: GeniusWalletColors._textOnBrand,
+      borderBrand: GeniusWalletColors._borderBrand,
+      statusWarning: GeniusWalletColors._statusWarning,
       statusWarningText: const Color(0xFF92400E),
-      statusInfo: GeniusWalletColors.statusInfo,
-      brandGreen: GeniusWalletColors.brandGreen,
-      brandGreenStrong: GeniusWalletColors.brandGreenStrong,
-      brandGreenMuted: GeniusWalletColors.brandGreenMuted,
-      brandGreenSubtle: GeniusWalletColors.brandGreenSubtle,
+      statusInfo: GeniusWalletColors._statusInfo,
+      brandGreen: GeniusWalletColors._brandGreen,
+      brandGreenStrong: GeniusWalletColors._brandGreenStrong,
+      brandGreenMuted: GeniusWalletColors._brandGreenMuted,
+      brandGreenSubtle: GeniusWalletColors._brandGreenSubtle,
     );
     // NB: textSecondary is intentionally OMITTED from the value-preservation
     // assert below -- light-mode textSecondary deliberately diverges from the
@@ -336,84 +344,85 @@ class GWColors extends ThemeExtension<GWColors> {
     // and statusError are omitted for the same reason (see their field docs).
     assert(
       !GWAppearance.isLight ||
-          (instance.surfaceBase == GeniusWalletColors.surfaceBase &&
-              instance.surfaceElevated == GeniusWalletColors.surfaceElevated &&
-              instance.surfaceMenu == GeniusWalletColors.surfaceMenu &&
-              instance.surfaceSunken == GeniusWalletColors.surfaceSunken &&
-              instance.surfaceOverlay == GeniusWalletColors.surfaceOverlay &&
-              instance.textPrimary == GeniusWalletColors.textPrimary &&
-              instance.textPrimary80 == GeniusWalletColors.textPrimary80 &&
-              instance.textPrimary70 == GeniusWalletColors.textPrimary70 &&
-              instance.textPrimary60 == GeniusWalletColors.textPrimary60 &&
-              instance.textPrimary54 == GeniusWalletColors.textPrimary54 &&
-              instance.textPrimary38 == GeniusWalletColors.textPrimary38 &&
-              instance.textPrimary30 == GeniusWalletColors.textPrimary30 &&
-              instance.textPrimary24 == GeniusWalletColors.textPrimary24 &&
-              instance.textPrimary12 == GeniusWalletColors.textPrimary12 &&
-              instance.textPrimary10 == GeniusWalletColors.textPrimary10 &&
-              instance.borderSubtle == GeniusWalletColors.borderSubtle &&
-              instance.borderStrong == GeniusWalletColors.borderStrong &&
-              instance.borderControl == GeniusWalletColors.borderControl &&
+          (instance.surfaceBase == GeniusWalletColors._surfaceBase &&
+              instance.surfaceElevated == GeniusWalletColors._surfaceElevated &&
+              instance.surfaceMenu == GeniusWalletColors._surfaceMenu &&
+              instance.surfaceSunken == GeniusWalletColors._surfaceSunken &&
+              instance.surfaceOverlay == GeniusWalletColors._surfaceOverlay &&
+              instance.textPrimary == GeniusWalletColors._textPrimary &&
+              instance.textPrimary80 == GeniusWalletColors._textPrimary80 &&
+              instance.textPrimary70 == GeniusWalletColors._textPrimary70 &&
+              instance.textPrimary60 == GeniusWalletColors._textPrimary60 &&
+              instance.textPrimary54 == GeniusWalletColors._textPrimary54 &&
+              instance.textPrimary38 == GeniusWalletColors._textPrimary38 &&
+              instance.textPrimary30 == GeniusWalletColors._textPrimary30 &&
+              instance.textPrimary24 == GeniusWalletColors._textPrimary24 &&
+              instance.textPrimary12 == GeniusWalletColors._textPrimary12 &&
+              instance.textPrimary10 == GeniusWalletColors._textPrimary10 &&
+              instance.borderSubtle == GeniusWalletColors._borderSubtle &&
+              instance.borderStrong == GeniusWalletColors._borderStrong &&
+              instance.borderControl == GeniusWalletColors._borderControl &&
               instance.lightGreenPrimary ==
-                  GeniusWalletColors.lightGreenPrimary &&
+                  GeniusWalletColors._lightGreenPrimary &&
               instance.lightGreenSecondary ==
-                  GeniusWalletColors.lightGreenSecondary &&
-              instance.mutedGreen == GeniusWalletColors.mutedGreen &&
+                  GeniusWalletColors._lightGreenSecondary &&
+              instance.mutedGreen == GeniusWalletColors._mutedGreen &&
               instance.deepBlueTertiary ==
-                  GeniusWalletColors.deepBlueTertiary &&
+                  GeniusWalletColors._deepBlueTertiary &&
               instance.deepBlueCardColor ==
-                  GeniusWalletColors.deepBlueCardColor &&
-              instance.deepBlueMenu == GeniusWalletColors.deepBlueMenu &&
-              instance.deepBlue == GeniusWalletColors.deepBlue &&
-              instance.grayPrimary == GeniusWalletColors.grayPrimary &&
-              instance.btnText == GeniusWalletColors.btnText &&
-              instance.btnDisabled == GeniusWalletColors.btnDisabled &&
-              instance.btnTextDisabled == GeniusWalletColors.btnTextDisabled &&
-              instance.btnGradientBlue == GeniusWalletColors.btnGradientBlue &&
+                  GeniusWalletColors._deepBlueCardColor &&
+              instance.deepBlueMenu == GeniusWalletColors._deepBlueMenu &&
+              instance.deepBlue == GeniusWalletColors._deepBlue &&
+              instance.grayPrimary == GeniusWalletColors._grayPrimary &&
+              instance.btnText == GeniusWalletColors._btnText &&
+              instance.btnDisabled == GeniusWalletColors._btnDisabled &&
+              instance.btnTextDisabled == GeniusWalletColors._btnTextDisabled &&
+              instance.btnGradientBlue == GeniusWalletColors._btnGradientBlue &&
               instance.btnGradientGreen ==
-                  GeniusWalletColors.btnGradientGreen &&
-              instance.btnFilter == GeniusWalletColors.btnFilter &&
+                  GeniusWalletColors._btnGradientGreen &&
+              instance.btnFilter == GeniusWalletColors._btnFilter &&
               instance.btnFilterSelected ==
-                  GeniusWalletColors.btnFilterSelected &&
-              instance.foundationError == GeniusWalletColors.foundationError &&
-              instance.borderGrey == GeniusWalletColors.borderGrey &&
-              instance.brandPrimary == GeniusWalletColors.brandPrimary &&
+                  GeniusWalletColors._btnFilterSelected &&
+              instance.foundationError == GeniusWalletColors._foundationError &&
+              instance.borderGrey == GeniusWalletColors._borderGrey &&
+              instance.brandPrimary == GeniusWalletColors._brandPrimary &&
               instance.brandPrimaryStrong ==
-                  GeniusWalletColors.brandPrimaryStrong &&
+                  GeniusWalletColors._brandPrimaryStrong &&
               instance.brandPrimaryMuted ==
-                  GeniusWalletColors.brandPrimaryMuted &&
+                  GeniusWalletColors._brandPrimaryMuted &&
               instance.brandPrimarySubtle ==
-                  GeniusWalletColors.brandPrimarySubtle &&
+                  GeniusWalletColors._brandPrimarySubtle &&
               instance.brandPrimaryOnSurface ==
-                  GeniusWalletColors.brandPrimaryOnSurface &&
-              instance.brandSecondary == GeniusWalletColors.brandSecondary &&
+                  GeniusWalletColors._brandPrimaryOnSurface &&
+              instance.brandSecondary == GeniusWalletColors._brandSecondary &&
               instance.brandSecondaryStrong ==
-                  GeniusWalletColors.brandSecondaryStrong &&
+                  GeniusWalletColors._brandSecondaryStrong &&
               instance.brandSecondaryBright ==
-                  GeniusWalletColors.brandSecondaryBright &&
+                  GeniusWalletColors._brandSecondaryBright &&
               instance.brandSecondaryMuted ==
-                  GeniusWalletColors.brandSecondaryMuted &&
+                  GeniusWalletColors._brandSecondaryMuted &&
               instance.brandSecondarySubtle ==
-                  GeniusWalletColors.brandSecondarySubtle &&
-              instance.brandTertiary == GeniusWalletColors.brandTertiary &&
+                  GeniusWalletColors._brandSecondarySubtle &&
+              instance.brandTertiary == GeniusWalletColors._brandTertiary &&
               instance.brandTertiaryMuted ==
-                  GeniusWalletColors.brandTertiaryMuted &&
+                  GeniusWalletColors._brandTertiaryMuted &&
               instance.brandTertiarySubtle ==
-                  GeniusWalletColors.brandTertiarySubtle &&
-              instance.gradientBlue == GeniusWalletColors.gradientBlue &&
-              instance.gradientGreen == GeniusWalletColors.gradientGreen &&
-              instance.gray500 == GeniusWalletColors.gray500 &&
-              instance.textTertiary == GeniusWalletColors.textTertiary &&
-              instance.textDisabled == GeniusWalletColors.textDisabled &&
-              instance.textOnBrand == GeniusWalletColors.textOnBrand &&
-              instance.borderBrand == GeniusWalletColors.borderBrand &&
-              instance.statusWarning == GeniusWalletColors.statusWarning &&
-              instance.statusInfo == GeniusWalletColors.statusInfo &&
-              instance.brandGreen == GeniusWalletColors.brandGreen &&
+                  GeniusWalletColors._brandTertiarySubtle &&
+              instance.gradientBlue == GeniusWalletColors._gradientBlue &&
+              instance.gradientGreen == GeniusWalletColors._gradientGreen &&
+              instance.gray500 == GeniusWalletColors._gray500 &&
+              instance.textTertiary == GeniusWalletColors._textTertiary &&
+              instance.textDisabled == GeniusWalletColors._textDisabled &&
+              instance.textOnBrand == GeniusWalletColors._textOnBrand &&
+              instance.borderBrand == GeniusWalletColors._borderBrand &&
+              instance.statusWarning == GeniusWalletColors._statusWarning &&
+              instance.statusInfo == GeniusWalletColors._statusInfo &&
+              instance.brandGreen == GeniusWalletColors._brandGreen &&
               instance.brandGreenStrong ==
-                  GeniusWalletColors.brandGreenStrong &&
-              instance.brandGreenMuted == GeniusWalletColors.brandGreenMuted &&
-              instance.brandGreenSubtle == GeniusWalletColors.brandGreenSubtle),
+                  GeniusWalletColors._brandGreenStrong &&
+              instance.brandGreenMuted == GeniusWalletColors._brandGreenMuted &&
+              instance.brandGreenSubtle ==
+                  GeniusWalletColors._brandGreenSubtle),
       'GWColors.light() value drifted from GeniusWalletColors in light mode',
     );
     return instance;
@@ -424,73 +433,73 @@ class GWColors extends ThemeExtension<GWColors> {
   /// [GWColors.light] -- see its doc comment for the assert rationale.
   factory GWColors.dark() {
     final instance = GWColors(
-      surfaceBase: GeniusWalletColors.surfaceBase,
-      surfaceElevated: GeniusWalletColors.surfaceElevated,
-      surfaceMenu: GeniusWalletColors.surfaceMenu,
-      surfaceSunken: GeniusWalletColors.surfaceSunken,
-      surfaceOverlay: GeniusWalletColors.surfaceOverlay,
-      textPrimary: GeniusWalletColors.textPrimary,
-      textPrimary80: GeniusWalletColors.textPrimary80,
-      textPrimary70: GeniusWalletColors.textPrimary70,
-      textPrimary60: GeniusWalletColors.textPrimary60,
-      textPrimary54: GeniusWalletColors.textPrimary54,
-      textPrimary38: GeniusWalletColors.textPrimary38,
-      textPrimary30: GeniusWalletColors.textPrimary30,
-      textPrimary24: GeniusWalletColors.textPrimary24,
-      textPrimary12: GeniusWalletColors.textPrimary12,
-      textPrimary10: GeniusWalletColors.textPrimary10,
+      surfaceBase: GeniusWalletColors._surfaceBase,
+      surfaceElevated: GeniusWalletColors._surfaceElevated,
+      surfaceMenu: GeniusWalletColors._surfaceMenu,
+      surfaceSunken: GeniusWalletColors._surfaceSunken,
+      surfaceOverlay: GeniusWalletColors._surfaceOverlay,
+      textPrimary: GeniusWalletColors._textPrimary,
+      textPrimary80: GeniusWalletColors._textPrimary80,
+      textPrimary70: GeniusWalletColors._textPrimary70,
+      textPrimary60: GeniusWalletColors._textPrimary60,
+      textPrimary54: GeniusWalletColors._textPrimary54,
+      textPrimary38: GeniusWalletColors._textPrimary38,
+      textPrimary30: GeniusWalletColors._textPrimary30,
+      textPrimary24: GeniusWalletColors._textPrimary24,
+      textPrimary12: GeniusWalletColors._textPrimary12,
+      textPrimary10: GeniusWalletColors._textPrimary10,
       // Dark-mode textSecondary keeps the invariant (0xFF8A8F9D passes AA on
       // the dark surface); the status tokens are the original dark values.
-      textSecondary: GeniusWalletColors.textSecondary,
+      textSecondary: GeniusWalletColors._textSecondary,
       statusSuccess: const Color(0xFF0AD89C),
       statusError: const Color(0xFFFF4D4D),
-      borderSubtle: GeniusWalletColors.borderSubtle,
-      borderStrong: GeniusWalletColors.borderStrong,
-      borderControl: GeniusWalletColors.borderControl,
-      lightGreenPrimary: GeniusWalletColors.lightGreenPrimary,
-      lightGreenSecondary: GeniusWalletColors.lightGreenSecondary,
-      mutedGreen: GeniusWalletColors.mutedGreen,
-      deepBlueTertiary: GeniusWalletColors.deepBlueTertiary,
-      deepBlueCardColor: GeniusWalletColors.deepBlueCardColor,
-      deepBlueMenu: GeniusWalletColors.deepBlueMenu,
-      deepBlue: GeniusWalletColors.deepBlue,
-      grayPrimary: GeniusWalletColors.grayPrimary,
-      btnText: GeniusWalletColors.btnText,
-      btnDisabled: GeniusWalletColors.btnDisabled,
-      btnTextDisabled: GeniusWalletColors.btnTextDisabled,
-      btnGradientBlue: GeniusWalletColors.btnGradientBlue,
-      btnGradientGreen: GeniusWalletColors.btnGradientGreen,
-      btnFilter: GeniusWalletColors.btnFilter,
-      btnFilterSelected: GeniusWalletColors.btnFilterSelected,
-      foundationError: GeniusWalletColors.foundationError,
-      borderGrey: GeniusWalletColors.borderGrey,
-      brandPrimary: GeniusWalletColors.brandPrimary,
-      brandPrimaryStrong: GeniusWalletColors.brandPrimaryStrong,
-      brandPrimaryMuted: GeniusWalletColors.brandPrimaryMuted,
-      brandPrimarySubtle: GeniusWalletColors.brandPrimarySubtle,
-      brandPrimaryOnSurface: GeniusWalletColors.brandPrimaryOnSurface,
-      brandSecondary: GeniusWalletColors.brandSecondary,
-      brandSecondaryStrong: GeniusWalletColors.brandSecondaryStrong,
-      brandSecondaryBright: GeniusWalletColors.brandSecondaryBright,
-      brandSecondaryMuted: GeniusWalletColors.brandSecondaryMuted,
-      brandSecondarySubtle: GeniusWalletColors.brandSecondarySubtle,
-      brandTertiary: GeniusWalletColors.brandTertiary,
-      brandTertiaryMuted: GeniusWalletColors.brandTertiaryMuted,
-      brandTertiarySubtle: GeniusWalletColors.brandTertiarySubtle,
-      gradientBlue: GeniusWalletColors.gradientBlue,
-      gradientGreen: GeniusWalletColors.gradientGreen,
-      gray500: GeniusWalletColors.gray500,
-      textTertiary: GeniusWalletColors.textTertiary,
-      textDisabled: GeniusWalletColors.textDisabled,
-      textOnBrand: GeniusWalletColors.textOnBrand,
-      borderBrand: GeniusWalletColors.borderBrand,
-      statusWarning: GeniusWalletColors.statusWarning,
-      statusWarningText: GeniusWalletColors.statusWarning,
-      statusInfo: GeniusWalletColors.statusInfo,
-      brandGreen: GeniusWalletColors.brandGreen,
-      brandGreenStrong: GeniusWalletColors.brandGreenStrong,
-      brandGreenMuted: GeniusWalletColors.brandGreenMuted,
-      brandGreenSubtle: GeniusWalletColors.brandGreenSubtle,
+      borderSubtle: GeniusWalletColors._borderSubtle,
+      borderStrong: GeniusWalletColors._borderStrong,
+      borderControl: GeniusWalletColors._borderControl,
+      lightGreenPrimary: GeniusWalletColors._lightGreenPrimary,
+      lightGreenSecondary: GeniusWalletColors._lightGreenSecondary,
+      mutedGreen: GeniusWalletColors._mutedGreen,
+      deepBlueTertiary: GeniusWalletColors._deepBlueTertiary,
+      deepBlueCardColor: GeniusWalletColors._deepBlueCardColor,
+      deepBlueMenu: GeniusWalletColors._deepBlueMenu,
+      deepBlue: GeniusWalletColors._deepBlue,
+      grayPrimary: GeniusWalletColors._grayPrimary,
+      btnText: GeniusWalletColors._btnText,
+      btnDisabled: GeniusWalletColors._btnDisabled,
+      btnTextDisabled: GeniusWalletColors._btnTextDisabled,
+      btnGradientBlue: GeniusWalletColors._btnGradientBlue,
+      btnGradientGreen: GeniusWalletColors._btnGradientGreen,
+      btnFilter: GeniusWalletColors._btnFilter,
+      btnFilterSelected: GeniusWalletColors._btnFilterSelected,
+      foundationError: GeniusWalletColors._foundationError,
+      borderGrey: GeniusWalletColors._borderGrey,
+      brandPrimary: GeniusWalletColors._brandPrimary,
+      brandPrimaryStrong: GeniusWalletColors._brandPrimaryStrong,
+      brandPrimaryMuted: GeniusWalletColors._brandPrimaryMuted,
+      brandPrimarySubtle: GeniusWalletColors._brandPrimarySubtle,
+      brandPrimaryOnSurface: GeniusWalletColors._brandPrimaryOnSurface,
+      brandSecondary: GeniusWalletColors._brandSecondary,
+      brandSecondaryStrong: GeniusWalletColors._brandSecondaryStrong,
+      brandSecondaryBright: GeniusWalletColors._brandSecondaryBright,
+      brandSecondaryMuted: GeniusWalletColors._brandSecondaryMuted,
+      brandSecondarySubtle: GeniusWalletColors._brandSecondarySubtle,
+      brandTertiary: GeniusWalletColors._brandTertiary,
+      brandTertiaryMuted: GeniusWalletColors._brandTertiaryMuted,
+      brandTertiarySubtle: GeniusWalletColors._brandTertiarySubtle,
+      gradientBlue: GeniusWalletColors._gradientBlue,
+      gradientGreen: GeniusWalletColors._gradientGreen,
+      gray500: GeniusWalletColors._gray500,
+      textTertiary: GeniusWalletColors._textTertiary,
+      textDisabled: GeniusWalletColors._textDisabled,
+      textOnBrand: GeniusWalletColors._textOnBrand,
+      borderBrand: GeniusWalletColors._borderBrand,
+      statusWarning: GeniusWalletColors._statusWarning,
+      statusWarningText: GeniusWalletColors._statusWarning,
+      statusInfo: GeniusWalletColors._statusInfo,
+      brandGreen: GeniusWalletColors._brandGreen,
+      brandGreenStrong: GeniusWalletColors._brandGreenStrong,
+      brandGreenMuted: GeniusWalletColors._brandGreenMuted,
+      brandGreenSubtle: GeniusWalletColors._brandGreenSubtle,
     );
     // NB: textSecondary is OMITTED from the value-preservation assert below to
     // mirror light() -- the light branch deliberately diverges it for AA, so
@@ -498,84 +507,85 @@ class GWColors extends ThemeExtension<GWColors> {
     // value). statusSuccess/statusError are omitted for the same reason.
     assert(
       GWAppearance.isLight ||
-          (instance.surfaceBase == GeniusWalletColors.surfaceBase &&
-              instance.surfaceElevated == GeniusWalletColors.surfaceElevated &&
-              instance.surfaceMenu == GeniusWalletColors.surfaceMenu &&
-              instance.surfaceSunken == GeniusWalletColors.surfaceSunken &&
-              instance.surfaceOverlay == GeniusWalletColors.surfaceOverlay &&
-              instance.textPrimary == GeniusWalletColors.textPrimary &&
-              instance.textPrimary80 == GeniusWalletColors.textPrimary80 &&
-              instance.textPrimary70 == GeniusWalletColors.textPrimary70 &&
-              instance.textPrimary60 == GeniusWalletColors.textPrimary60 &&
-              instance.textPrimary54 == GeniusWalletColors.textPrimary54 &&
-              instance.textPrimary38 == GeniusWalletColors.textPrimary38 &&
-              instance.textPrimary30 == GeniusWalletColors.textPrimary30 &&
-              instance.textPrimary24 == GeniusWalletColors.textPrimary24 &&
-              instance.textPrimary12 == GeniusWalletColors.textPrimary12 &&
-              instance.textPrimary10 == GeniusWalletColors.textPrimary10 &&
-              instance.borderSubtle == GeniusWalletColors.borderSubtle &&
-              instance.borderStrong == GeniusWalletColors.borderStrong &&
-              instance.borderControl == GeniusWalletColors.borderControl &&
+          (instance.surfaceBase == GeniusWalletColors._surfaceBase &&
+              instance.surfaceElevated == GeniusWalletColors._surfaceElevated &&
+              instance.surfaceMenu == GeniusWalletColors._surfaceMenu &&
+              instance.surfaceSunken == GeniusWalletColors._surfaceSunken &&
+              instance.surfaceOverlay == GeniusWalletColors._surfaceOverlay &&
+              instance.textPrimary == GeniusWalletColors._textPrimary &&
+              instance.textPrimary80 == GeniusWalletColors._textPrimary80 &&
+              instance.textPrimary70 == GeniusWalletColors._textPrimary70 &&
+              instance.textPrimary60 == GeniusWalletColors._textPrimary60 &&
+              instance.textPrimary54 == GeniusWalletColors._textPrimary54 &&
+              instance.textPrimary38 == GeniusWalletColors._textPrimary38 &&
+              instance.textPrimary30 == GeniusWalletColors._textPrimary30 &&
+              instance.textPrimary24 == GeniusWalletColors._textPrimary24 &&
+              instance.textPrimary12 == GeniusWalletColors._textPrimary12 &&
+              instance.textPrimary10 == GeniusWalletColors._textPrimary10 &&
+              instance.borderSubtle == GeniusWalletColors._borderSubtle &&
+              instance.borderStrong == GeniusWalletColors._borderStrong &&
+              instance.borderControl == GeniusWalletColors._borderControl &&
               instance.lightGreenPrimary ==
-                  GeniusWalletColors.lightGreenPrimary &&
+                  GeniusWalletColors._lightGreenPrimary &&
               instance.lightGreenSecondary ==
-                  GeniusWalletColors.lightGreenSecondary &&
-              instance.mutedGreen == GeniusWalletColors.mutedGreen &&
+                  GeniusWalletColors._lightGreenSecondary &&
+              instance.mutedGreen == GeniusWalletColors._mutedGreen &&
               instance.deepBlueTertiary ==
-                  GeniusWalletColors.deepBlueTertiary &&
+                  GeniusWalletColors._deepBlueTertiary &&
               instance.deepBlueCardColor ==
-                  GeniusWalletColors.deepBlueCardColor &&
-              instance.deepBlueMenu == GeniusWalletColors.deepBlueMenu &&
-              instance.deepBlue == GeniusWalletColors.deepBlue &&
-              instance.grayPrimary == GeniusWalletColors.grayPrimary &&
-              instance.btnText == GeniusWalletColors.btnText &&
-              instance.btnDisabled == GeniusWalletColors.btnDisabled &&
-              instance.btnTextDisabled == GeniusWalletColors.btnTextDisabled &&
-              instance.btnGradientBlue == GeniusWalletColors.btnGradientBlue &&
+                  GeniusWalletColors._deepBlueCardColor &&
+              instance.deepBlueMenu == GeniusWalletColors._deepBlueMenu &&
+              instance.deepBlue == GeniusWalletColors._deepBlue &&
+              instance.grayPrimary == GeniusWalletColors._grayPrimary &&
+              instance.btnText == GeniusWalletColors._btnText &&
+              instance.btnDisabled == GeniusWalletColors._btnDisabled &&
+              instance.btnTextDisabled == GeniusWalletColors._btnTextDisabled &&
+              instance.btnGradientBlue == GeniusWalletColors._btnGradientBlue &&
               instance.btnGradientGreen ==
-                  GeniusWalletColors.btnGradientGreen &&
-              instance.btnFilter == GeniusWalletColors.btnFilter &&
+                  GeniusWalletColors._btnGradientGreen &&
+              instance.btnFilter == GeniusWalletColors._btnFilter &&
               instance.btnFilterSelected ==
-                  GeniusWalletColors.btnFilterSelected &&
-              instance.foundationError == GeniusWalletColors.foundationError &&
-              instance.borderGrey == GeniusWalletColors.borderGrey &&
-              instance.brandPrimary == GeniusWalletColors.brandPrimary &&
+                  GeniusWalletColors._btnFilterSelected &&
+              instance.foundationError == GeniusWalletColors._foundationError &&
+              instance.borderGrey == GeniusWalletColors._borderGrey &&
+              instance.brandPrimary == GeniusWalletColors._brandPrimary &&
               instance.brandPrimaryStrong ==
-                  GeniusWalletColors.brandPrimaryStrong &&
+                  GeniusWalletColors._brandPrimaryStrong &&
               instance.brandPrimaryMuted ==
-                  GeniusWalletColors.brandPrimaryMuted &&
+                  GeniusWalletColors._brandPrimaryMuted &&
               instance.brandPrimarySubtle ==
-                  GeniusWalletColors.brandPrimarySubtle &&
+                  GeniusWalletColors._brandPrimarySubtle &&
               instance.brandPrimaryOnSurface ==
-                  GeniusWalletColors.brandPrimaryOnSurface &&
-              instance.brandSecondary == GeniusWalletColors.brandSecondary &&
+                  GeniusWalletColors._brandPrimaryOnSurface &&
+              instance.brandSecondary == GeniusWalletColors._brandSecondary &&
               instance.brandSecondaryStrong ==
-                  GeniusWalletColors.brandSecondaryStrong &&
+                  GeniusWalletColors._brandSecondaryStrong &&
               instance.brandSecondaryBright ==
-                  GeniusWalletColors.brandSecondaryBright &&
+                  GeniusWalletColors._brandSecondaryBright &&
               instance.brandSecondaryMuted ==
-                  GeniusWalletColors.brandSecondaryMuted &&
+                  GeniusWalletColors._brandSecondaryMuted &&
               instance.brandSecondarySubtle ==
-                  GeniusWalletColors.brandSecondarySubtle &&
-              instance.brandTertiary == GeniusWalletColors.brandTertiary &&
+                  GeniusWalletColors._brandSecondarySubtle &&
+              instance.brandTertiary == GeniusWalletColors._brandTertiary &&
               instance.brandTertiaryMuted ==
-                  GeniusWalletColors.brandTertiaryMuted &&
+                  GeniusWalletColors._brandTertiaryMuted &&
               instance.brandTertiarySubtle ==
-                  GeniusWalletColors.brandTertiarySubtle &&
-              instance.gradientBlue == GeniusWalletColors.gradientBlue &&
-              instance.gradientGreen == GeniusWalletColors.gradientGreen &&
-              instance.gray500 == GeniusWalletColors.gray500 &&
-              instance.textTertiary == GeniusWalletColors.textTertiary &&
-              instance.textDisabled == GeniusWalletColors.textDisabled &&
-              instance.textOnBrand == GeniusWalletColors.textOnBrand &&
-              instance.borderBrand == GeniusWalletColors.borderBrand &&
-              instance.statusWarning == GeniusWalletColors.statusWarning &&
-              instance.statusInfo == GeniusWalletColors.statusInfo &&
-              instance.brandGreen == GeniusWalletColors.brandGreen &&
+                  GeniusWalletColors._brandTertiarySubtle &&
+              instance.gradientBlue == GeniusWalletColors._gradientBlue &&
+              instance.gradientGreen == GeniusWalletColors._gradientGreen &&
+              instance.gray500 == GeniusWalletColors._gray500 &&
+              instance.textTertiary == GeniusWalletColors._textTertiary &&
+              instance.textDisabled == GeniusWalletColors._textDisabled &&
+              instance.textOnBrand == GeniusWalletColors._textOnBrand &&
+              instance.borderBrand == GeniusWalletColors._borderBrand &&
+              instance.statusWarning == GeniusWalletColors._statusWarning &&
+              instance.statusInfo == GeniusWalletColors._statusInfo &&
+              instance.brandGreen == GeniusWalletColors._brandGreen &&
               instance.brandGreenStrong ==
-                  GeniusWalletColors.brandGreenStrong &&
-              instance.brandGreenMuted == GeniusWalletColors.brandGreenMuted &&
-              instance.brandGreenSubtle == GeniusWalletColors.brandGreenSubtle),
+                  GeniusWalletColors._brandGreenStrong &&
+              instance.brandGreenMuted == GeniusWalletColors._brandGreenMuted &&
+              instance.brandGreenSubtle ==
+                  GeniusWalletColors._brandGreenSubtle),
       'GWColors.dark() value drifted from GeniusWalletColors in dark mode',
     );
     return instance;
@@ -740,7 +750,7 @@ class GWColors extends ThemeExtension<GWColors> {
   // primitive layer for general use.
   // ---------------------------------------------------------------------
 
-  /// [GeniusWalletColors.statusNeutral]'s mode-invariant, FILL-ONLY value,
+  /// [GeniusWalletColors._statusNeutral]'s mode-invariant, FILL-ONLY value,
   /// exposed as a static const rather than promoted to a `GWColors` INSTANCE
   /// field -- 23-01-TOKEN-MAP.md's "Excluded" section and the primitive's own
   /// doc comment both record that exclusion as deliberate (no per-appearance
@@ -748,9 +758,9 @@ class GWColors extends ThemeExtension<GWColors> {
   /// `transaction_badge.dart`'s three `const TransactionBadgeSpec(...)` badge
   /// kinds (Sent/Escrow/Swapped), which need `fill` to stay a compile-time
   /// constant.
-  static const Color statusNeutral = Color(0xFF64748B);
+  static const Color statusNeutral = GeniusWalletColors._statusNeutral;
 
-  /// [GeniusWalletColors.statusError]'s ORIGINAL mode-invariant value
+  /// [GeniusWalletColors._statusError]'s ORIGINAL mode-invariant value
   /// (`#FF4D4D`), distinct from this class's own appearance-aware
   /// [statusError] INSTANCE field (which diverges in light mode for WCAG AA
   /// -- see that field's doc comment). Sole consumer: `lib/main.dart`'s
@@ -759,9 +769,9 @@ class GWColors extends ThemeExtension<GWColors> {
   /// to read through -- its icon color must stay `const`, so neither a
   /// context read nor a `GWColors.dark()` factory call (itself not `const`)
   /// can serve here.
-  static const Color fixedStatusError = Color(0xFFFF4D4D);
+  static const Color fixedStatusError = GeniusWalletColors._statusError;
 
-  /// [GeniusWalletColors.textSecondary]'s ORIGINAL mode-invariant value
+  /// [GeniusWalletColors._textSecondary]'s ORIGINAL mode-invariant value
   /// (`#8A8F9D`), distinct from this class's own appearance-aware
   /// [textSecondary] INSTANCE field (which diverges in light mode for WCAG
   /// AA). Sole consumer: `theme.dart`'s `tabBarTheme.unselectedLabelColor`
@@ -771,5 +781,5 @@ class GWColors extends ThemeExtension<GWColors> {
   /// than switched to the AA-adjusted instance field, since either would be
   /// a behaviour change ("nothing here may repaint") outside this plan's
   /// reachability-and-naming scope.
-  static const Color fixedTextSecondary = Color(0xFF8A8F9D);
+  static const Color fixedTextSecondary = GeniusWalletColors._textSecondary;
 }
