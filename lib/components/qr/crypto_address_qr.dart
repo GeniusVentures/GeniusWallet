@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -11,9 +10,13 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 /// Sketch 034-A2 "Grouped address" (.planning/sketches/034-receive-qr,
 /// .planning/sketches/drawers-final): a CONTAINED QR with the coin/network
-/// chip ABOVE it, the full address below as a tappable 4-char-chunked mono
-/// block (first/last chunks emphasized, copy-only), and a quiet bordered
-/// amber network-mismatch note. Copy-only — no Share, no set-default (the
+/// chip ABOVE it, and the full address below as a tappable, borderless
+/// 4-character-chunked mono block -- every character on screen, wrapped
+/// across lines rather than middle-truncated, with the first two and last
+/// two groups emphasised (copy-only). This is the panel a person uses to
+/// eyeball-verify an address against one they already hold, which is exactly
+/// the case where a truncated form is useless. A quiet bordered amber
+/// network-mismatch note follows. Copy-only — no Share, no set-default (the
 /// widget has no such logic to wire; respected audit gap).
 class CryptoAddressQR extends StatefulWidget {
   final String address;
@@ -46,15 +49,10 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
     });
   }
 
-  /// Middle-truncated address for a clean single-line display (the copy action
-  /// still copies the FULL address): 0x1234…5678.
-  String _shortAddress(String address) => address.length > 16
-      ? '${address.substring(0, 8)}…${address.substring(address.length - 6)}'
-      : address;
-
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final groups = _addressGroups(widget.address);
 
     // The amber this file worked out -- statusWarning is a FILL token and
     // measures ~1.6:1 on white -- now lives in `GWWarningNote`, along with the
@@ -109,53 +107,63 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(36, 36)),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
-        // Full address — a clean tap-to-copy pill: middle-truncated mono
-        // address + a Copy affordance (the whole row copies the FULL address).
+        // Full address — borderless, wrapped 4-char groups (034-A2). The
+        // whole block is one tap target; tapping still copies the FULL
+        // address via the unchanged `_copyAddress`/`_copied` cycle.
+        //
+        // Token pair for the sketch's `gap: 6px 10px` (row-gap, column-gap):
+        // there is no 10px step on the 4-pt scale, so `space4` (8) stands in
+        // for the horizontal gap and `space3` (6, the scale's one documented
+        // half-step) is exact for the vertical one.
         GestureDetector(
           onTap: _copyAddress,
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: GeniusWalletConsts.space8,
-              vertical: GeniusWalletConsts.space6,
-            ),
-            decoration: GWDecorations.surface(
-              radius: GeniusWalletConsts.radiusLg,
-              elevated: false,
-              border: gw.borderSubtle,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: Text(
-                    _shortAddress(widget.address),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GeniusWalletTypography.bodySm.copyWith(
-                      fontFamily: GeniusWalletTypography.monoFamily,
-                      color: gw.textPrimary,
+          behavior: HitTestBehavior.opaque,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: GeniusWalletConsts.space4,
+            runSpacing: GeniusWalletConsts.space3,
+            children: [
+              for (var i = 0; i < groups.length; i++)
+                Text(
+                  groups[i],
+                  style: GeniusWalletTypography.bodySm.copyWith(
+                    fontFamily: GeniusWalletTypography.monoFamily,
+                    color: _isEmphasised(i, groups.length)
+                        ? gw.textPrimary
+                        : gw.textSecondary,
+                    fontWeight: _isEmphasised(i, groups.length)
+                        ? FontWeight.w700
+                        : FontWeight.w400,
+                  ),
+                ),
+              // The copy glyph trails the last group, same flowing block —
+              // sketch's `groupAddr()` appends its `.icon-btn.copy` span the
+              // same way, after the chunk loop rather than beside it.
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(width: GeniusWalletConsts.space2),
+                  // Copied → keep the Material check (sketch has no check
+                  // glyph); resting → the sketch 152 `.copy` SVG, same tint
+                  // as before.
+                  _copied
+                      ? Icon(Icons.check, size: 16, color: gw.statusSuccess)
+                      : SketchIcon(
+                          SketchIcons.copy,
+                          size: 16,
+                          color: context.gw.brandPrimaryOnSurface,
+                        ),
+                  const SizedBox(width: GeniusWalletConsts.space2),
+                  Text(
+                    _copied ? "Copied" : "Copy",
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      color: _copied ? gw.statusSuccess : gw.textSecondary,
                     ),
                   ),
-                ),
-                const SizedBox(width: GeniusWalletConsts.space6),
-                // Copied → keep the Material check (sketch has no check glyph);
-                // resting → the sketch 152 `.copy` SVG, same tint as before.
-                _copied
-                    ? Icon(Icons.check, size: 16, color: gw.statusSuccess)
-                    : SketchIcon(
-                        SketchIcons.copy,
-                        size: 16,
-                        color: context.gw.brandPrimaryOnSurface,
-                      ),
-                const SizedBox(width: GeniusWalletConsts.space2),
-                Text(
-                  _copied ? "Copied" : "Copy",
-                  style: GeniusWalletTypography.labelMd.copyWith(
-                    color: _copied ? gw.statusSuccess : gw.textSecondary,
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
@@ -172,3 +180,19 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
     );
   }
 }
+
+/// Splits [address] into 4-character groups over the WHOLE string, including
+/// any `0x` prefix — the sketch's own `groupAddr()` runs
+/// `ADDR.match(/.{1,4}/g)` over the full value, so the first group is
+/// literally `0x1d`, not a bare prefix plus a shifted grid. The final group
+/// is short rather than padded when the length is not a multiple of 4.
+List<String> _addressGroups(String address) => [
+  for (var i = 0; i < address.length; i += 4)
+    address.substring(i, i + 4 > address.length ? address.length : i + 4),
+];
+
+/// A group is emphasised at index 0, 1, or one of the final two — the
+/// sketch's own `i === 0 || i === 1 || i >= chunks.length - 2`: the two ends
+/// a person actually checks an address against.
+bool _isEmphasised(int index, int length) =>
+    index == 0 || index == 1 || index >= length - 2;
