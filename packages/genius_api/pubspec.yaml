@@ -6,6 +6,12 @@ environment:
   sdk: "^3.10.0"
 
 dev_dependencies:
+  # analysis_options.yaml opens with `include: package:lints/recommended.yaml`,
+  # so this package needs `lints` declared. It resolved by accident through the
+  # root's package config until a re-resolution dropped it and `flutter analyze`
+  # started exiting 1 on `include_file_not_found`. Same class of fix as 22-06's
+  # depend_on_referenced_packages pass: declare what you reference.
+  lints: ^6.1.0
   ffigen: ^20.1.1
   build_runner: ^2.8.0
   freezed: ^3.2.3
