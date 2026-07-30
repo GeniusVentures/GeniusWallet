@@ -1157,7 +1157,7 @@ that can be proven paint-preserving without a visual baseline. Still no behaviou
 
 **Requirements**: ORG-04, ORG-05 (ORG-05 partial by design — see 23-05's extraction audit)
 **Depends on:** Phase 22
-**Plans:** 6/6 plans complete — CLOSED 2026-07-30 (`23-06-CLOSEOUT.md`: fourteen-item human walk ALL
+**Plans:** 6/6 plans complete
 PASSED, every gate re-run from a clean tree, ORG-01..05 traceability written)
 
 **Why this is separate from 22.** The parity premise in the original scoping was wrong:
