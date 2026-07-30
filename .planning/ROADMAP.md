@@ -504,7 +504,7 @@ above; tracked separately (see the per-phase detail sections below):
 | 17. News page (B2) | ahead-of-plan | Implemented & committed; walk + verification outstanding | `651541c` |
 | 18. Web tab chrome | 0/TBD | Sketched (035-B/036-A/037-B); not planned | - |
 | 19. Feedback tab (card, 150-D) | 1/1 | ✓ Complete (19-VERIFICATION passed 6/6, walk 4/4) | 2026-07-25 |
-| 20. Feedback page frame (153-B) | 1/1 planned | Planned 2026-07-26; supersedes 19's "centered header" clause only | - |
+| 20. Feedback page frame (153-B) | 1/1 | Complete    | 2026-07-30 |
 | 21. Drawer language rollout | 0/TBD | Added 2026-07-26; 030-B1 shell shipped in 07-06, the four content patterns did not | - |
 
 ### Phase 12: Transactions redesign
@@ -728,6 +728,7 @@ Plans:
 - [x] 14-04-PLAN.md — `AccountDrawer.show` public entry point. Its lib work shipped inside `21a7f4f`,
       a commit that never names 14-04; its SUMMARY and test landed 2026-07-30 (`25ee51a`, `cce8154`)
       after three executor agents died on a `testWidgets`/Hive hang, closed by hive_ce's in-memory backend
+
 - [x] 14-05-PLAN.md — submit-job cubit, CTA state ladder, error taxonomy
 - [x] 14-06-PLAN.md — the step drawer (018-A) and the `/submit_job` full-screen host
 - [x] 14-07-PLAN.md — job step list and step bodies
@@ -1040,11 +1041,11 @@ findings and the full pantry inventory).
 **Depends on:** Phase 19 (the card this page frames); Phase 4 (`GWPageHeader`, navbar); Phase 3
 (`GWCard`, `GWButton`).
 **Supersedes:** the "centered `GWPageHeader`" clause of Phase 19's goal — and **only** that clause.
-**Plans:** 1 plan - 20-01 (planned 2026-07-26). One file under `lib/`, three tasks, test-first.
+**Plans:** 1/1 plans complete
 
 Plans:
 
-- [ ] 20-01-PLAN.md - Focused frame: cap at `large`, title back on the frame's left edge, composer +
+- [x] 20-01-PLAN.md - Focused frame: cap at `large`, title back on the frame's left edge, composer +
   receipt rail via `LayoutBuilder`, chip strip retired, Failed-footer fix, and one new page-frame
   widget test (`test/logs/submit_logs_page_frame_test.dart`)
 

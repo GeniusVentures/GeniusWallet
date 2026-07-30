@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 12
-current_phase_name: Transactions redesign
+current_phase: 21
+current_phase_name: Drawer language rollout - the four decided drawer designs, applied to every drawer
 status: verifying
 stopped_at: Completed 23-06-PLAN.md — Phase 23 CLOSED
-last_updated: "2026-07-30T13:44:09.202Z"
+last_updated: "2026-07-30T14:37:47.835Z"
 last_activity: 2026-07-30
-last_activity_desc: Phase 9 complete, transitioned to Phase 12
+last_activity_desc: Phase 20 complete, transitioned to Phase 21
 progress:
   total_phases: 23
   completed_phases: 18
   total_plans: 107
-  completed_plans: 99
+  completed_plans: 100
   percent: 78
 ---
 
@@ -64,7 +64,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
-Phase: 12 — Transactions redesign
+Phase: 21 — Drawer language rollout - the four decided drawer designs, applied to every drawer
 Plan: Not started
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
@@ -121,7 +121,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-30 — Phase 9 complete, transitioned to Phase 12
+Last activity: 2026-07-30 — Phase 20 complete, transitioned to Phase 21
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
