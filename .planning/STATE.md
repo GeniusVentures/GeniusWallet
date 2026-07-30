@@ -53,7 +53,13 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   **15 (6/6 ✓ — dark walk APPROVED 2026-07-24 all 3 checkpoints; 15-06-SUMMARY written, light
 >   deferred)**, **16 Markets shipped (`aa78eec`), walk PENDING**, **17 News shipped (`651541c`),
 >   dark walk APPROVED 2026-07-24 (17-VERIFICATION.md written, light deferred)**;
->   14 is design-only (unplanned); **18 Web tab chrome added 2026-07-24 — sketched (035-B/036-A/037-B),
+>   **14 (Compute panel & job flow) UPDATE 2026-07-30: no longer design-only — planned and
+>   executed 7/8 (14-01..07 have SUMMARYs; 14-01-04/07's lib/ work committed under one squashed
+>   message `21a7f4f`; 14-04's own missing test landed 2026-07-30 in `25ee51a` after a first
+>   attempt stalled on a real-Hive-I/O-inside-testWidgets hang, now resolved and recorded in
+>   `.planning/todos/completed/2026-07-29-real-hive-io-inside-testwidgets-hangs-forever.md`;
+>   14-08, the compute-panel's own wiring of AccountDrawer.show + RetryProcessingStatus etc., is
+>   NOT yet executed).** **18 Web tab chrome added 2026-07-24 — sketched (035-B/036-A/037-B),
 >   NOT planned yet.** See ROADMAP Phases 12-18 for detail.
 >   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.

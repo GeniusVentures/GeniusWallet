@@ -498,7 +498,7 @@ above; tracked separately (see the per-phase detail sections below):
 |-------|----------------|--------|-----------|
 | 12. Transactions redesign | 5/6 | Executed — 12-06 walk next | `8cb4222` |
 | 13. Boot & loading sequence | 2/5 | 13-01/02/03 committed; 13-04/05 outstanding | `29b183b` |
-| 14. Compute panel & job flow | 0/TBD | Design-only (sketches 016-018); unplanned | - |
+| 14. Compute panel & job flow | 7/8 | 01-04/07's lib/ work committed under one squashed message (`21a7f4f`); 04's own test landed 2026-07-30 (`25ee51a`); 05/06 have SUMMARYs and are reflected in the tree (`deeba91` etc.); 14-08 (compute-panel wiring) not yet executed | `21a7f4f` |
 | 15. Transactions tab | 5/6 | Executed — 15-06 walk next | `8cb4222` |
 | 16. Markets page (H1) | ahead-of-plan | Implemented & committed; walk + verification outstanding | `aa78eec` |
 | 17. News page (B2) | ahead-of-plan | Implemented & committed; walk + verification outstanding | `651541c` |
