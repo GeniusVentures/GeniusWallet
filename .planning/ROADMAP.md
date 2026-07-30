@@ -505,7 +505,7 @@ above; tracked separately (see the per-phase detail sections below):
 | 18. Web tab chrome | 0/TBD | Sketched (035-B/036-A/037-B); not planned | - |
 | 19. Feedback tab (card, 150-D) | 1/1 | ✓ Complete (19-VERIFICATION passed 6/6, walk 4/4) | 2026-07-25 |
 | 20. Feedback page frame (153-B) | 1/1 | Complete    | 2026-07-30 |
-| 21. Drawer language rollout | 1/6 | In Progress|  |
+| 21. Drawer language rollout | 2/6 | In Progress|  |
 
 ### Phase 12: Transactions redesign
 
@@ -1311,22 +1311,32 @@ primitives) and the 15 caller files listed above.
 **Surface note:** cuts across surfaces owned by Phases 8 (swap drawers), 9 (Banxa), 10 (Reown) and
 12/15 (transactions). Phase 21 owns **drawer chrome and content pattern** only; each drawer's
 mechanics stay with its owning phase.
-**Plans:** 1/6 plans executed
-parallel; wave 3 is Receive, the unpatterned leftovers, and the invariant sweep. No two plans in a
-wave touch the same file.
+**Plans:** 2/6 plans executed
+it actually stood; the originals are in `superseded-stale-file-inventory/` with a README recording
+the measured drift. The design contract (030/031/032/033/034 + 154-A) was NOT re-opened - only the
+file inventory and the task breakdown. Waves: **1** is the four remaining patterns in parallel
+(21-02..21-05, zero file overlap); **2** is the invariant sweep (21-06).
 
-**Planning corrected the inventory above.** `coins_screen.dart` has no "Assets" list drawer (that is
-an inline `GWSectionTitle`), and three of D-09's four "fits none" entries are not drawers at all -
-Rename/Delete are `GWDialog`, "Network Changed" is a toast, "No coins yet" is an inline empty state.
-Two undocumented drawers exist in `wallet_information.g.dart` (generated, analyzer-excluded, not
-mounted on any live route - deliberately excepted). Real totals: **6 receipt · 5 list · 2 confirm ·
-2 receive · 5 unpatterned = 20 call sites across 18 files.** Full table in `21-06-PLAN.md`.
+**Planning corrected the inventory above — twice.** `coins_screen.dart` has no "Assets" list drawer
+(that is an inline `GWSectionTitle`), and three of D-09's four "fits none" entries are not drawers at
+all - Rename/Delete are `GWDialog`, "Network Changed" is a toast, "No coins yet" is an inline empty
+state. The two undocumented drawers are in `wallet_information.**dart**` - a live, hand-written file
+on the dashboard route, not the generated `.g.dart` the first pass assumed - and one of them is a
+**third** Receive drawer. `token_info_screen.dart`'s "More Options" drawer no longer exists (Bridge
+replaced it). Two 031-B1 targets, `squid_router/swap_success_drawer.dart` and `swap_fail_drawer.dart`,
+were deleted by `9ff7c04` and repointed at the shared receipt, which satisfies D-02 for them by the
+strongest available means. Measured totals at HEAD `08f6df5`: **4 receipt · 5 list · 2 confirm ·
+3 receive · 4 unpatterned = 18 call sites across 17 files.** Full census lands in `21-06-SUMMARY.md`.
+
+**Already complete before the re-plan, verified in code:** `showTransactionDetails` (full 031-B1 —
+pill, section cards, fiat line, exact amount, 154-D copy rows) and four of the five list pickers
+(Select Network, Your Accounts, SDK Accounts, the token picker).
 
 Plans:
 
-- [x] 21-01-PLAN.md — Wave 1: the shared padded body (`padBody` + `bodyPadding`) and the five drawer content primitives, proven on the token picker
-- [ ] 21-02-PLAN.md — Wave 2: 032-A1 list picker across the four remaining pickers (network, account, SDK accounts, bridge destination)
-- [ ] 21-03-PLAN.md — Wave 2: 031-B1 receipt for `showTransactionDetails` — pill, section cards, the fiat line and exact amount it already computes and discards
-- [ ] 21-04-PLAN.md — Wave 2: 031-B1 for the five result drawers (swap success/fail, Banxa success/cancelled, Reown swap result) + the D-03 neutral-amount guard
-- [ ] 21-05-PLAN.md — Wave 2: 033-B1 for the two signing drawers, with a threat model and a behavioural-identity contract test
-- [ ] 21-06-PLAN.md — Wave 3: 034-A2 receive (4-char chunks), the three unpatterned drawers, and the padding invariant proven across every caller at once
+- [x] 21-01-PLAN.md — Wave 1: `GWDrawerStatusPill` + `GWDrawerReceiptHead`, mobile-sheet coverage for the already-shipped `bodyPadding`, and the token picker inlined onto `GWSelectRow`
+- [x] 21-02-PLAN.md — Wave 1: 032-A1 for the one picker still hand-rolled — the bridge destination list
+- [ ] 21-03-PLAN.md — Wave 1: 031-B1 for the three remaining result receipts (Reown swap result, Banxa success/cancelled), one status palette via `txStatusColors`, and `lib/banxa/banxa_components` added to the raw-colour gate
+- [ ] 21-04-PLAN.md — Wave 1: 033-B1 for the two signing drawers, with a threat model and a six-outcome behavioural-identity contract test
+- [ ] 21-05-PLAN.md — Wave 1: 034-A2 receive — real 4-char chunking, the third Receive caller's ad-hoc wrapper deleted, More Options confirmed inset-only
+- [ ] 21-06-PLAN.md — Wave 2: the legacy `BottomDrawer` shell deleted and the padding invariant proven across every call site at once
