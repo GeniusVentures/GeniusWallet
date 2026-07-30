@@ -1151,20 +1151,14 @@ no design-system file changed. **No golden baseline** — 22-07 was cancelled; s
 
 ### Phase 23: Design system consolidation: theme tokens and shared components
 
-> **RE-PLANNED 2026-07-28, no longer blocked.** The golden baseline (22-07) was declined twice and is
-> permanently deferred, voiding the 104 golden references in the original seven-plan cut (now moved to
-> `superseded-golden-based/`). This phase took **option 2 narrowed by option 3**: verification rests on
-> value equality, compiler enforcement, measured WCAG ratios, the existing 512-test suite, and
-> load-bearing human walks — and the workstreams that could not be honestly verified were cut rather
-> than shipped on faith. See `23-CONTEXT.md` and `.planning/phases/22-.../22-07-DEFERRED.md`.
-
 **Goal:** Collapse the three competing colour sources into one compiler-enforced semantic layer, fix
 the mode-breaking colour defects with measured WCAG evidence, and collapse the one duplicated pattern
 that can be proven paint-preserving without a visual baseline. Still no behaviour changes.
 
 **Requirements**: ORG-04, ORG-05 (ORG-05 partial by design — see 23-05's extraction audit)
 **Depends on:** Phase 22
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans executed — CLOSED 2026-07-30 (`23-06-CLOSEOUT.md`: fourteen-item human walk
+ALL PASSED, every gate re-run from a clean tree, ORG-01..05 traceability written)
 
 **Why this is separate from 22.** The parity premise in the original scoping was wrong:
 `GeniusWalletColors` has ~46 public members and **288** call sites outside `lib/theme/`, while
@@ -1212,9 +1206,10 @@ Plans:
       that already exists in `swap_field.dart`, builder-shaped so each call site's paint moves
       verbatim, with hit area and cursor pinned in an ordinary widget test
 
-- [ ] 23-06-PLAN.md — Phase closeout: the twelve-item human walk in both modes and at two widths,
-      every gate re-run from a clean tree with output quoted, ORG-01..ORG-05 traceability
-      (ORG-05 **partial**), and the handover list including the visual-regression gap itself
+- [x] 23-06-PLAN.md — Phase closeout: the fourteen-item human walk (twelve plan items plus 23-05's
+      two added sub-items) in both modes and at two widths — ALL PASSED, every gate re-run from a
+      clean tree with output quoted, ORG-01..ORG-05 traceability (ORG-05 **partial**), and the
+      handover list including the visual-regression gap itself
 
 ### Phase 24: Architecture: state ownership, layering, routing, genius_api split
 

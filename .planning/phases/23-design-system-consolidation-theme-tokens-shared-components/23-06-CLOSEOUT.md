@@ -400,5 +400,116 @@ spacing), because the next phase plans against this document.
 
 ---
 
+## 6. Requirement traceability — ORG-01..ORG-05
+
+Written into `.planning/REQUIREMENTS.md` (scoped edit — a new "Organizational & Codebase Quality
+(ORG)" section, five new Traceability table rows, and one Coverage note; `git diff` on that file
+touches only those three locations):
+
+| Requirement | Phase | Status |
+|---|---|---|
+| ORG-01 — rules mechanically enforced in CI | Phase 22 | ✓ Complete (CI `quality` job wired; extended by Phase 23's raw-colour gate) |
+| ORG-02 — dead code removed | Phase 22 | ✓ Complete |
+| ORG-03 — analyzer clean, both packages | Phase 22 | ✓ Complete |
+| ORG-04 — one colour source of truth | Phase 23, plans 01-04 | ✓ Complete |
+| ORG-05 — duplicated UI collapsed at 3+ call sites | Phase 23, plan 05 | **PARTIAL** — one extraction shipped (`GWHoverable`, 13 sites); four candidates refused/deferred on measured grounds. See `23-05-EXTRACTION-AUDIT.md`. |
+
+ORG-05 is recorded PARTIAL, not complete, because that is what actually happened: one extraction
+crossed the Rule-of-Three floor and shipped with zero repaints, and four others — `GWTimeframeSegment`
+(the two live copies genuinely diverge on track fill and label set), `GWCopyRow` (out of this plan's
+fence, not below the floor — it now exists, built independently), `GWAppBar` (deferred to Phase 24,
+which reopens the same 15 files), and the `GWScreen` sweep (deferred whole — a layout change with no
+automated proof) — did not. A row claiming ORG-05 complete would misstate what this phase actually
+closed.
+
+## 7. Handover list — everything this phase found and deliberately did not fix
+
+Each item below names its source document so a future reader can check the reasoning rather than
+re-derive it.
+
+1. **The raw-colour gate's uncovered directories.** 66 raw colour references remain across 29 files
+   in 10 `lib/` subdirectories (`lib/account` 1, `lib/banxa` 10, `lib/components` 21, `lib/dashboard`
+   6, `lib/network` 6, `lib/reown` 9, `lib/screens` 4, `lib/utils` 2, `lib/wallets` 2, `lib/web` 5),
+   re-measured for this closeout and unchanged from 23-04's own count. A full de-hex of everything
+   remaining across `lib/` is larger than one phase. `tool/check_raw_colors.sh`'s `COVERED_DIRS` list
+   widens by appending a directory the moment its own count hits zero — do not widen speculatively
+   ahead of the actual work. Ordered widening plan (smallest/most self-contained first) and per-file
+   detail: `23-04-GATE-SCOPE.md`.
+
+2. **Four refused or deferred extractions, with their measured reasons.**
+   - `GWTimeframeSegment` — REFUSED. The dashboard/coin-page copy and the Markets hero's own private
+     copy diverge on track fill (`surfaceSunken` vs `surfaceMenu`) and label set (5 ranges vs 4); the
+     border divergence the original premise cited has since closed (both copies now carry it). Folding
+     them would drop a domain each screen expresses or force a reconciling parameter — the exact
+     Rule-of-Three stop signal. Tracked follow-up:
+     `.planning/todos/pending/2026-07-24-unify-timeframe-segment-component.md`.
+     Source: `23-05-EXTRACTION-AUDIT.md`.
+   - `GWCopyRow` — REFUSED as an invention, because it already exists (built independently for a
+     bridge-hash row, Phase 14 plan 06). Migrating `transaction_displays.dart`'s `_CopyRow` and
+     `token_info_screen.dart`'s `_CopyAddressRow` onto it is a legitimate zero-repaint follow-up, not
+     yet filed as a todo. Source: `23-05-EXTRACTION-AUDIT.md`.
+   - `GWAppBar` — DEFERRED. 15 files construct an `AppBar` directly (count corrected from the
+     planning-time 16); Phase 24's routing work opens the same files, so extracting now is still
+     churn ahead of that phase. Source: `23-05-EXTRACTION-AUDIT.md`.
+   - `GWScreen` sweep — DEFERRED whole. `GWScreen` imposes scroll, a 1200px width cap, centring,
+     padding and a background — adopting it where a screen's shape does not already match is a
+     layout change, and this phase's own boundary (`23-CONTEXT.md`) forbids layout changes. 25
+     screens hand-roll `Scaffold`; only 2 already use `GWScreen`. Needs a functional test net first.
+     Source: `23-05-EXTRACTION-AUDIT.md`.
+
+3. **The `GWScreen` scaffold sweep's own reason, stated again because it recurs above:** it is a
+   layout change with no automated proof available in this phase (no golden baseline), so it needs a
+   functional test net (e.g. layout-value assertions in ordinary widget tests, per `23-CONTEXT.md`'s
+   own suggestion) before a future phase attempts it. Source: `23-CONTEXT.md`, `23-05-EXTRACTION-AUDIT.md`.
+
+4. **The platform-generic monospace reference in the Banxa order-details card.**
+   `lib/banxa/banxa_components/order_details_card.dart:125`'s `'monospace'` string is a different
+   thing from the bundled `JetBrainsMono` family (`GeniusWalletTypography.monoFamily`) and was
+   deliberately left untouched — tokenizing a platform-generic fallback would change its meaning, not
+   just its spelling. Source: `23-04-SUMMARY.md`.
+
+5. **The clipboard-logging finding — CLOSED, not outstanding.** 23-05's extraction audit found
+   `lib/web/web_view_windows.dart:75` logging a clipboard-read WalletConnect pairing URI to the
+   console. The orchestrator's follow-up commit `0bde805` (landed between 23-05 and this plan, with
+   the developer's explicit approval) fixed it, and in the process found and fixed a **second** site
+   `23-05` did not name — `lib/reown/reown_connect_button.dart`, which printed a freshly minted
+   pairing URI. Both are fixed; this item does not carry forward. Source: `23-05-EXTRACTION-AUDIT.md`
+   (the finding), this closeout §2 (the fix).
+
+6. **A deliberate context-free colour consumer served by a narrow named accessor.** Three static
+   accessors on `GWColors` — `statusNeutral`, `fixedStatusError`, `fixedTextSecondary` — exist
+   specifically for `const`-context or no-`Theme`-ancestor consumers that cannot read the
+   appearance-aware instance layer (three `const TransactionBadgeSpec` sites, `lib/main.dart`'s
+   `ErrorWidget.builder` icon, and two mode-invariant `theme.dart` reads). These are a deliberate,
+   documented exception to "always read `context.gw`," not an oversight. Source: `23-04-SUMMARY.md`.
+
+7. **The known x64 WalletConnect architectural finding in `lib/reown/`, untouched by design.**
+   Finding 3 in `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` — WalletKit is skipped by an
+   architecture check on x64 desktop — is owned by Phase 10 (dApp connectivity), not this phase.
+   Phase 23 touched `lib/reown/`'s **colours** only (23-03's raw-colour migration); the architectural
+   defect itself is out of this phase's scope by ROADMAP assignment. Source: `ROADMAP.md` Phase 10,
+   `.planning/reference/REVIEW_FINDINGS_REDESIGN.md`.
+
+8. **The golden/visual-regression gap itself — a standing decision, stated with its consequence.**
+   Braian declined the `alchemist` install and the no-dependency `matchesGoldenFile` fallback twice
+   at 22-07's blocking-human gate, the second time after a full explanation ("no need to test it
+   design diff wise"). No replacement test infrastructure was authorized either — no
+   `integration_test`, no `patrol`, no browser-driver approach. **Consequence:** layout and spacing
+   changes in this phase, and in every phase since, ship with no automated proof — value equality,
+   compiler enforcement, measured WCAG ratios and the existing test suite prove everything *except*
+   geometry and paint layout, which only a human walk can catch, and only for the one build it was
+   run against. This is *why* `GWAppBar` and three of the four extraction candidates above are
+   deferred rather than shipped: each is layout-visible with nothing in this phase's toolkit able to
+   prove it stayed correct. If a future phase wants those extractions, **it needs a functional test
+   net first.** The Flutter-native candidates the developer already named as a someday item are
+   `integration_test` (in-SDK) and `patrol`; a browser-driver approach (Playwright or equivalent) is
+   explicitly the wrong tool for Flutter, because Flutter renders its entire UI to a single `<canvas>`
+   with no DOM nodes for a browser driver to select. Source: `23-CONTEXT.md`
+   ("NO GOLDEN TESTS — locked, 2026-07-28" and "NO NEW TEST INFRASTRUCTURE EITHER — locked"),
+   `.planning/phases/22-.../22-07-DEFERRED.md`, §5 above.
+
+---
+
 *Phase: 23-design-system-consolidation-theme-tokens-shared-components*
 *Task 2 completed: 2026-07-30*
+*Task 3 (requirement traceability + handover list) completed: 2026-07-30*

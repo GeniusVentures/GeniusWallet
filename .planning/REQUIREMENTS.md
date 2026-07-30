@@ -125,6 +125,20 @@ numbers.
 - [ ] **BEH-01**: The 37 findings in `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` are used as a checklist — each is confirmed non-regressed as its component lands. They are real, evidenced defects in this design-vs-develop surface (3 are blockers: wallets vanishing at startup, the Banxa KYC redirect stuck on a placeholder, WalletConnect dead on x64), each with a file:line and a fix
 - [x] **BEH-02**: 3 verified fixes are ported with their components — `7a63b4f` (`!_dirty` crash guard → NAV), `f3fd16f` (dev-tools gating → BLD-03), `d8db88c` (assets/textures → DS-04). They sit on branch `ui-redesign-3.514-develop`, which exists only as a source for these three commits
 
+### Organizational & Codebase Quality (ORG)
+
+**Coined 2026-07-28** during Phase 22 planning — the ROADMAP said requirement IDs TBD for the
+codebase-hygiene work, and this file carried no codebase-quality category at all until now. ORG-04
+and ORG-05 were split to Phase 23 when that phase itself split off Phase 22's original 15-plan cut.
+Tracked as a second, later-discovered batch alongside the original 24 v1 requirements below — not
+folded into that count, the same treatment WIRE-01/02 already get (see Coverage).
+
+- [x] **ORG-01**: The codebase's own rules are mechanically enforced in CI (format, analyze, brace rule, raw colours, the three existing security gates, tests, patch coverage) — shipped Phase 22 (`22-08-SUMMARY.md`), extended by Phase 23's raw-colour gate (`23-04-SUMMARY.md`)
+- [x] **ORG-02**: Dead code removed — no never-imported file, no dead dependency, no hand-written widget wearing a generated-code filename — Phase 22 (`22-01-SUMMARY.md`, `22-03-SUMMARY.md`)
+- [x] **ORG-03**: `flutter analyze` reports 0 and exits 0, in both packages — Phase 22 (`22-06-SUMMARY.md`)
+- [x] **ORG-04**: One colour source of truth — semantic tokens via `context.gw`, primitives genuinely private (a compile error to reach from outside `lib/theme/`, not a convention), both appearance modes correct and WCAG AA — Phase 23, plans 01-04
+- [ ] **ORG-05**: Duplicated UI collapsed onto shared `StatelessWidget`s at 3+ call sites — Phase 23, plan 05. **PARTIAL, not complete**: one extraction shipped (`GWHoverable`, 13 hover-plumbing sites, zero repaints); four other candidates (`GWTimeframeSegment`, `GWCopyRow`, `GWAppBar`, the `GWScreen` sweep) were refused or deferred on measured grounds, each re-verified at execution time rather than inherited from planning. See `23-05-EXTRACTION-AUDIT.md` for every candidate's verdict and evidence — a row claiming this complete would be the unearned PASS this project has a standing rule against.
+
 ## v2 Requirements
 
 Deferred to future milestones.
@@ -179,6 +193,11 @@ Deferred to future milestones.
 | GAP-05 | Phase 9 — Banxa | In progress (09-02: `banxa_orders_history.dart` + `order_card.dart` re-skinned and closed; 09-03: `screens/banxa_buy_screen.dart` re-skinned and closed; 09-06: `banxa_payment.dart` re-skinned and closed — all three named files done; box stays unchecked until phase verification per 09-CONTEXT.md `<scope_reduction>`, mirroring SCR-05's pattern) |
 | SCR-06 | Phase 10 — dApp connectivity | Pending |
 | BEH-01 | Phase 11 — Port closeout | Pending |
+| ORG-01 | Phase 22 — Codebase hygiene | ✓ Complete (CI `quality` job wired; extended by Phase 23's raw-colour gate) |
+| ORG-02 | Phase 22 — Codebase hygiene | ✓ Complete |
+| ORG-03 | Phase 22 — Codebase hygiene | ✓ Complete |
+| ORG-04 | Phase 23 — Design system consolidation | ✓ Complete (plans 01-04) |
+| ORG-05 | Phase 23 — Design system consolidation | **PARTIAL** — plan 05; see `23-05-EXTRACTION-AUDIT.md` |
 
 **Cross-cutting requirements — where they close:**
 
@@ -203,6 +222,7 @@ Deferred to future milestones.
 - Mapped to phases: **24/24 ✓** — every v1 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases (official track): 11 — **5 complete (1, 2, 4, 5, 6)**, Phase 3 executed/walk-gated, 7-11 remaining. The redesign track (Phases 12-17) is tracked separately in ROADMAP.md.
 - Note: WIRE-01/WIRE-02 are tracked as guard requirements outside the 24 v1 count by design (they are "do-not-port" guards, not deliverables).
+- Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — 3 complete (Phase 22), 1 complete and 1 PARTIAL (Phase 23).
 
 ---
-*Last updated: 2026-07-23 — coverage counts + GAP-04 reconciled against shipped code; test-harness claim corrected*
+*Last updated: 2026-07-30 — ORG-01..05 traceability added (Phase 23 closeout); the previous 2026-07-23 entry's coverage counts + GAP-04 reconciliation + test-harness correction stand unchanged*
