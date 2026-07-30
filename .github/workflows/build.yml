@@ -368,7 +368,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           channel: master
-          flutter-version: 3.38.10
+          flutter-version: 3.41.9
 
       - name: Set current branch
         shell: bash
@@ -1387,7 +1387,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           channel: master
-          flutter-version: 3.38.10
+          flutter-version: 3.41.9
 
       - name: Get Flutter Dependencies
         run: flutter pub get
