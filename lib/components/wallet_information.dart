@@ -161,17 +161,20 @@ class WalletInformationState extends State<WalletInformation> {
                     onPressed: () {
                       ResponsiveDrawer.show<void>(
                         context: context,
-                        title: "Your ${state.selectedNetwork?.name} address",
-                        child: Container(
-                          margin: EdgeInsets.only(
-                            top: MediaQuery.of(context).size.height * .15,
-                          ),
-                          alignment: Alignment.center,
-                          child: CryptoAddressQR(
-                            iconPath: state.selectedNetwork?.iconPath,
-                            address: state.selectedWallet?.address ?? "",
-                            network: state.selectedNetwork?.name ?? "",
-                          ),
+                        title: "Receive",
+                        // The fractional-window-height Container this used to
+                        // wrap CryptoAddressQR in is gone: CryptoAddressQR is
+                        // already a mainAxisSize.min centred Column, so the
+                        // alignment did nothing, and the margin was a
+                        // hand-typed inset competing with the shell's
+                        // kDrawerBodyPadding. Pass it bare, matching
+                        // coins_screen.dart and token_info_screen.dart -- the
+                        // other two receive drawers, and the last one D-06
+                        // counted (this file was the third, uncounted, caller).
+                        child: CryptoAddressQR(
+                          iconPath: state.selectedNetwork?.iconPath,
+                          address: state.selectedWallet?.address ?? "",
+                          network: state.selectedNetwork?.name ?? "",
                         ),
                       );
                     },
