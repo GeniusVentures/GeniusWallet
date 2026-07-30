@@ -1,7 +1,49 @@
 ---
 phase: 09-banxa
 verified: 2026-07-27T00:00:00Z
-status: human_needed
+walk_performed: 2026-07-30
+status: passed
+closed_by: developer-walk
+resolution_2026_07_30:
+  summary: >
+    The dark-mode walk that this report was blocked on was performed by the developer on
+    2026-07-30 against a Windows build of `2be45ce`, and every surface reached passed. Two of the
+    seven human-verification items are now closed; five remain genuinely open and are NOT claimed
+    by this closure.
+  item_1_ten_surface_walk: >
+    CLOSED — PASSED. Walked in dark mode (light remains deferred project-wide, so no light-mode
+    claim is made). The developer reported no defects on any surface reached, including the
+    checkout QR's white backing, which was called out ahead of the walk because a themed backing
+    would break scanning. HONEST LIMIT: the walker did not enumerate WHICH of the ten surfaces
+    were reachable — much of the Banxa flow needs a funded wallet and live Banxa state — so this
+    records "every surface reached passed", not "all ten surfaces were seen". Do not later read
+    this as ten-of-ten coverage.
+  item_4_statuswarning_contrast: >
+    CLOSED — but by Phase 23, not by Phase 9, which is why it still read as open here. Phase 9
+    correctly identified that `statusWarning` (#FFC42E) had never been measured by any phase.
+    23-03's follow-up measured it (~13:1 on the dark canvas, ~1.6:1 on white — unusable as a
+    light-mode foreground) and introduced `statusWarningText` (#92400E) as its AA-safe foreground
+    partner rather than diverging the fill token, because `order_status_style.dart` still paints
+    with the fill. The Banxa ORDER pill specifically now measures 6.56 / 5.93 / 5.15 on
+    surfaceElevated / surfaceMenu / surfaceBase in light mode, up from 1.47:1. Asserted in
+    `test/theme/theme_contrast_test.dart` Part 8 ("warning tone clears 4.5:1 in light mode (was
+    1.47:1 / 1.59:1)"), re-run green by the orchestrator 2026-07-30 — 28/28.
+  item_5_gwemptystate_compact_tier: >
+    STILL OPEN. The walk did not confirm a narrow-width render of the orders grid, so no verdict
+    is recorded. Unchanged from the original report.
+  items_2_3_6_7: >
+    STILL OPEN, all four environmentally blocked, unchanged: the enabled Create Order rung and the
+    live redirect banner both need a Banxa sandbox that D-03 forbids; the QR scan needs a phone
+    camera plus the deferred light-mode pass; the Linux fallback needs a Linux host that does not
+    exist here. The three overrides accepted 2026-07-27 already cover these for closure purposes —
+    the FINDINGS remain unresolved and are named in `09-OUTSTANDING.md`.
+  requirements_unchanged: >
+    SCR-05 stays UNCHECKED — its wording includes the KYC redirect, which D-02 deferred and this
+    walk does not touch. GAP-05 also stays UNCHECKED: its definition requires the re-skin plus a
+    before/after showing the same items in the same order, and because the walk's reachable subset
+    was not enumerated, this report cannot attest that all three GAP-05 files
+    (`banxa_orders_history.dart`, `banxa_payment.dart`, `banxa_buy_screen.dart`) were among the
+    surfaces seen. One confirmation from the developer that those three were walked would close it.
 score: 7 of 8 must-haves verified (4 verified + 3 accepted overrides); 1 present-but-unwalked
 behavior_unverified: 0 # no state-transition/cancellation invariant truths in this phase; the open items are visual/dynamic-render judgments, listed under Human Verification instead
 overrides_applied: 3
