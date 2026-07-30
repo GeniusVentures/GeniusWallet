@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 21
 current_phase_name: Drawer language rollout - the four decided drawer designs, applied to every drawer
 status: verifying
-stopped_at: Completed 21-03-PLAN.md — Phase 21 result-drawer receipts done, 3/6 plans
-last_updated: "2026-07-30T16:07:46.987Z"
+stopped_at: Completed 21-04-PLAN.md
+last_updated: "2026-07-30T16:28:44.453Z"
 last_activity: 2026-07-30
 last_activity_desc: Phase 20 complete, transitioned to Phase 21
 progress:
   total_phases: 23
   completed_phases: 18
   total_plans: 107
-  completed_plans: 103
+  completed_plans: 104
   percent: 78
 ---
 
@@ -95,8 +95,24 @@ repoint 9ff7c04 gave the squid twins (Phase 10 mechanics, out of this phase's fe
 SEQUENTIALLY (not the plan's assumed 4-way parallel wave) per this session's explicit dispatch
 override — see 21-03-SUMMARY.md Deviations. See `21-03-SUMMARY.md`. analyze 0/0 (root +
 genius_api); full test 740/740 (734 baseline + 2 Task 1 + 4 Task 4); all gates 0/PASS; format
-clean. Human visual walk OUTSTANDING (no live app instance this session). Plans 21-04..21-06 NOT
-yet executed.
+clean. Human visual walk OUTSTANDING (no live app instance this session).
+**21-04 complete (`af1f5f5`/`e56b9a3`/`0fa14c9`)** — the two dApp signing drawers
+(`approve_transaction_drawer.dart`, `approve_dapp_connection_drawer.dart`, `send_transaction_details.dart`)
+re-skinned onto 033-B1: borderless dApp identity with a `gw.borderSubtle` hairline, borderless neutral
+amount hero, one merged `GWDetailGrid` (From/To via `GWCopyRow` + 5 fee rows) replacing five boxes,
+`GWButton` footers (gradient affirmative / gradientOutline negative). `test/reown/` created for the
+first time — `approve_drawer_contract_test.dart`, 14 cases proving all six approve/reject/dismiss
+outcomes on both drawers, both desktop and mobile branches, via real `show()` + real gestures; plus
+string-integrity and no-fiat/no-computed-number guards. A real Rule 1 bug (found by writing this
+test) was fixed: deleting the transaction drawer's zero-inset `Padding` also removed the `Column`
+giving its pre-existing `Flexible(child: content)` a Flex ancestor, throwing a `ParentDataWidget`
+error — re-wrapped in a `Column`, Padding stays deleted. Both `show()` signatures and both
+`pop(true)`/`pop(false)` values verified byte-identical to pre-plan HEAD by direct file diff, not
+just `git diff`. `GWWarningNote` kept as-is (not forked, no boolean flag) per the plan's own
+Rule-of-Three refusal. Executed SEQUENTIALLY per this session's dispatch override — see
+`21-04-SUMMARY.md` Deviations. analyze 0/0 (root + genius_api); full test 754/754 (740 baseline + 14
+new); all gates 0/PASS; format clean. Human visual walk OUTSTANDING (no live app instance this
+session, checklist recorded in `21-04-SUMMARY.md`). Plans 21-05..21-06 NOT yet executed.
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -274,6 +290,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: Bridge destination picker became the fifth GWSelectRow call site; private _NetworkPickerRow deleted
 - [Phase ?]: 21-03: GWDrawerReceiptHead.amount/amountColor made an omittable slot (String?/Color?) rather than a hasAmount flag -- three of six D-02 receipts carry no amount in their APIs
 - [Phase ?]: 21-03: BuySuccessDrawerContent/BuyCancelledDrawerContent kept const -- a const widget still registers a live Theme.of(context) dependency in build(); removing const only tripped an analyzer info, it did not fix any correctness gap
+- [Phase ?]: 21-04: GWWarningNote kept as-is (no borderless mode, no boolean flag) -- fourth consumer would need a flag, which AGENTS.md's own Rule of Three names as the case NOT to extract
 
 ### Pending Todos
 
@@ -397,8 +414,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T16:04:32.982Z
-Stopped at: Completed 23-06-PLAN.md — Phase 23 CLOSED
+Last session: 2026-07-30T16:28:44.442Z
+Stopped at: Completed 21-04-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -524,6 +541,7 @@ Open decisions:
 | Phase 21 P01 | 50min | 3 tasks | 4 files |
 | Phase 21 P02 | 15min | 2 tasks | 2 files |
 | Phase 21 P03 | 55min | 4 tasks | 8 files |
+| Phase 21 P04 | 25min | 3 tasks | 4 files |
 
 ### Roadmap Evolution
 
