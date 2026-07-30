@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
@@ -142,7 +143,12 @@ BoxDecoration _cardDecoration({
 /// The interactive, hover-reactive GWCard. Kept private and only reached via
 /// `GWCard(hoverLift: true, onTap: ...)` so the common stateless path pays no
 /// `State`/`MouseRegion` cost.
-class _HoverLiftCard extends StatefulWidget {
+///
+/// Hover plumbing moved into `GWHoverable` (23-05) -- this widget only
+/// supplies the builder, which is the exact surface + Material + InkWell tree
+/// it built directly before the migration. Demoted to `StatelessWidget`:
+/// once hover moved out, this widget held no state of its own.
+class _HoverLiftCard extends StatelessWidget {
   const _HoverLiftCard({
     required this.child,
     required this.onTap,
@@ -172,59 +178,51 @@ class _HoverLiftCard extends StatefulWidget {
   final GWColors gw;
 
   @override
-  State<_HoverLiftCard> createState() => _HoverLiftCardState();
-}
-
-class _HoverLiftCardState extends State<_HoverLiftCard> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final surface = AnimatedContainer(
-      duration: GeniusWalletMotion.fast,
-      curve: GeniusWalletMotion.standard,
-      width: widget.width,
-      height: widget.height,
-      padding: widget.padding,
-      // The 2px lift is gone (2026-07-26). Hover is now the app-wide
-      // decorative recipe — brand tint painted OVER the card plus the brand
-      // hairline in the decoration below — so a card, a nav tab and a chip in
-      // the navbar's control track all answer a pointer identically. The tint
-      // rides in `foregroundDecoration` because the card's own surface may be
-      // a gradient, and a BoxDecoration cannot hold both a gradient and a
-      // colour.
-      foregroundDecoration: _hovered
-          ? BoxDecoration(
-              color: GWDecorations.hoverFill,
-              borderRadius: BorderRadius.circular(widget.radius),
-            )
-          : null,
-      decoration: _cardDecoration(
-        gw: widget.gw,
-        useDefaultSurface: widget.useDefaultSurface,
-        elevated: widget.elevated,
-        hovered: _hovered,
-        gradient: widget.gradient,
-        background: widget.background,
-        border: widget.border,
-        radius: widget.radius,
-      ),
-      child: widget.child,
-    );
+    return GWHoverable(
+      builder: (hovered) {
+        final surface = AnimatedContainer(
+          duration: GeniusWalletMotion.fast,
+          curve: GeniusWalletMotion.standard,
+          width: width,
+          height: height,
+          padding: padding,
+          // The 2px lift is gone (2026-07-26). Hover is now the app-wide
+          // decorative recipe — brand tint painted OVER the card plus the brand
+          // hairline in the decoration below — so a card, a nav tab and a chip in
+          // the navbar's control track all answer a pointer identically. The tint
+          // rides in `foregroundDecoration` because the card's own surface may be
+          // a gradient, and a BoxDecoration cannot hold both a gradient and a
+          // colour.
+          foregroundDecoration: hovered
+              ? BoxDecoration(
+                  color: GWDecorations.hoverFill,
+                  borderRadius: BorderRadius.circular(radius),
+                )
+              : null,
+          decoration: _cardDecoration(
+            gw: gw,
+            useDefaultSurface: useDefaultSurface,
+            elevated: elevated,
+            hovered: hovered,
+            gradient: gradient,
+            background: background,
+            border: border,
+            radius: radius,
+          ),
+          child: child,
+        );
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(widget.radius),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(widget.radius),
-          onTap: widget.onTap,
-          child: surface,
-        ),
-      ),
+        return Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(radius),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(radius),
+            onTap: onTap,
+            child: surface,
+          ),
+        );
+      },
     );
   }
 }

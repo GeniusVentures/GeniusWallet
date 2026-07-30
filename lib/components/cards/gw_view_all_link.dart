@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/theme/genius_wallet_motion.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -15,7 +16,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// Hover needs mutable state, hence StatefulWidget + [MouseRegion]. We use
 /// [MouseRegion]+[GestureDetector] rather than [InkWell] on purpose: InkWell
 /// paints a hover/splash box, which this "no background box" design forbids.
-class GWViewAllLink extends StatefulWidget {
+class GWViewAllLink extends StatelessWidget {
   const GWViewAllLink({
     super.key,
     required this.onTap,
@@ -24,19 +25,6 @@ class GWViewAllLink extends StatefulWidget {
 
   final VoidCallback onTap;
   final String label;
-
-  @override
-  State<GWViewAllLink> createState() => _GWViewAllLinkState();
-}
-
-class _GWViewAllLinkState extends State<GWViewAllLink> {
-  bool _hovered = false;
-
-  void _setHover(bool value) {
-    if (_hovered != value) {
-      setState(() => _hovered = value);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,13 +48,15 @@ class _GWViewAllLinkState extends State<GWViewAllLink> {
       dense: true,
     ).copyWith(height: 1.0, color: Colors.white);
 
-    return MouseRegion(
+    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
+    // other state, so it is a `StatelessWidget` now. Its no-op guard
+    // (`_setHover`, only rebuilding on an actual change) is carried by
+    // `GWHoverable` for every migrated site now, not just this one.
+    return GWHoverable(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) => _setHover(true),
-      onExit: (_) => _setHover(false),
-      child: GestureDetector(
+      builder: (hovered) => GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
+        onTap: onTap,
         // srcIn ShaderMask recolors the opaque-white children: brand-CTA
         // gradient on hover (matches the CTAs), a flat textSecondary gradient
         // at rest (so it reads as plain secondary text).
@@ -75,7 +65,7 @@ class _GWViewAllLinkState extends State<GWViewAllLink> {
           shaderCallback: (bounds) => LinearGradient(
             // Lights up to WHITE (textPrimary) on hover -- same "light up white"
             // language as the nav bar; not the brand gradient.
-            colors: _hovered
+            colors: hovered
                 ? [gw.textPrimary, gw.textPrimary]
                 : [gw.textSecondary, gw.textSecondary],
           ).createShader(bounds),
@@ -95,7 +85,7 @@ class _GWViewAllLinkState extends State<GWViewAllLink> {
                   children: [
                     // No underline: on hover the label + arrow simply light up
                     // white (arrow slides). Boxless, underline-free link.
-                    Text(widget.label.toUpperCase(), style: labelStyle),
+                    Text(label.toUpperCase(), style: labelStyle),
                   ],
                 ),
               ),
@@ -106,7 +96,7 @@ class _GWViewAllLinkState extends State<GWViewAllLink> {
                 duration: GeniusWalletMotion.base,
                 curve: GeniusWalletMotion.standard,
                 transform: Matrix4.translationValues(
-                  _hovered ? 3.0 : 0.0,
+                  hovered ? 3.0 : 0.0,
                   0.0,
                   0.0,
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -42,7 +43,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// itself does not pad its rows).
 ///
 /// **Call site owns:** wrapping this in a [GWDetailGrid].
-class GWCopyRow extends StatefulWidget {
+class GWCopyRow extends StatelessWidget {
   const GWCopyRow({
     super.key,
     required this.label,
@@ -62,19 +63,12 @@ class GWCopyRow extends StatefulWidget {
   /// this flag - truncation is display-only, by construction.
   final bool shorten;
 
-  @override
-  State<GWCopyRow> createState() => _GWCopyRowState();
-}
-
-class _GWCopyRowState extends State<GWCopyRow> {
-  bool _hovered = false;
-
   String get _displayValue {
-    final v = widget.value;
+    final v = value;
     // Truncation rule copied verbatim from `_CopyAddressRow`
     // (`token_info_screen.dart:999-1001`): only when the value exceeds
     // twelve characters, six from each end.
-    if (!widget.shorten || v.length <= 12) {
+    if (!shorten || v.length <= 12) {
       return v;
     }
     return '${v.substring(0, 6)}...${v.substring(v.length - 6)}';
@@ -89,17 +83,16 @@ class _GWCopyRowState extends State<GWCopyRow> {
       fontFamily: GeniusWalletTypography.monoFamily,
     );
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
+    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
+    // other state, so it is a `StatelessWidget` now.
+    return GWHoverable(
+      builder: (hovered) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           // The FULL value goes to the clipboard, never the truncated
           // display form - this is the security property Phase 23 audited.
-          Clipboard.setData(ClipboardData(text: widget.value));
-          showAppSnackBar(context, '${widget.label} copied');
+          Clipboard.setData(ClipboardData(text: value));
+          showAppSnackBar(context, '$label copied');
         },
         // The inset is INSIDE the detector, so the whole grid cell is the
         // target - see kGWDetailRowPadding's doc for why GWDetailGrid does
@@ -110,7 +103,7 @@ class _GWCopyRowState extends State<GWCopyRow> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                widget.label,
+                label,
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: gw.textPrimary70,
                 ),
@@ -132,7 +125,7 @@ class _GWCopyRowState extends State<GWCopyRow> {
                     Icon(
                       Icons.copy_rounded,
                       size: 14,
-                      color: _hovered ? gw.textPrimary : gw.textSecondary,
+                      color: hovered ? gw.textPrimary : gw.textSecondary,
                     ),
                   ],
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
@@ -170,7 +171,7 @@ class SwapField extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    _Hoverable(
+                    GWHoverable(
                       builder: (hovered) => InkWell(
                         onTap: () {
                           TokenSelectorDrawer.show(
@@ -295,7 +296,7 @@ class SwapField extends StatelessWidget {
                           ),
                           if (showMax) ...[
                             const SizedBox(width: GeniusWalletConsts.space4),
-                            _Hoverable(
+                            GWHoverable(
                               builder: (hovered) => InkWell(
                                 onTap: () {
                                   final formatted =
@@ -370,33 +371,4 @@ class SwapField extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Reports pointer hover to [builder] so a plain `Container` can take the
-/// app-wide hover recipe.
-///
-/// The nav bar gets this for free because its controls are buttons, and a
-/// `ButtonStyle` resolves `WidgetState.hovered` on its own. These two are an
-/// `InkWell` wrapping a decorated `Container`, which has no such channel — and
-/// `InkWell.onHover` cannot repaint a decoration it does not own. Kept private:
-/// this is a local shim, not a component, and it disappears the day these two
-/// controls become buttons.
-class _Hoverable extends StatefulWidget {
-  const _Hoverable({required this.builder});
-
-  final Widget Function(bool hovered) builder;
-
-  @override
-  State<_Hoverable> createState() => _HoverableState();
-}
-
-class _HoverableState extends State<_Hoverable> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) => MouseRegion(
-    onEnter: (_) => setState(() => _hovered = true),
-    onExit: (_) => setState(() => _hovered = false),
-    child: widget.builder(_hovered),
-  );
 }

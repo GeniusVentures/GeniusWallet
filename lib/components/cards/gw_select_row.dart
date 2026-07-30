@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -30,7 +31,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// **The border is always present and usually transparent.** A row that gains
 /// a 1px border on hover shifts its own contents by a pixel every time the
 /// pointer crosses it.
-class GWSelectRow extends StatefulWidget {
+class GWSelectRow extends StatelessWidget {
   const GWSelectRow({
     super.key,
     required this.leading,
@@ -72,11 +73,6 @@ class GWSelectRow extends StatefulWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  @override
-  State<GWSelectRow> createState() => _GWSelectRowState();
-}
-
-class _GWSelectRowState extends State<GWSelectRow> {
   /// The REAL `brandCta` stops at low alpha, so selection and the gradient
   /// check below it are the same brand statement. Built here rather than added
   /// to `GeniusWalletGradient` - one consumer does not earn a shared token, and
@@ -87,19 +83,17 @@ class _GWSelectRowState extends State<GWSelectRow> {
     colors: [Color(0x2E0AD89C), Color(0x2E0AAEE6)],
   );
 
-  bool _hovered = false;
-
   @override
   Widget build(BuildContext context) {
     // Fail-soft read: registers the InheritedWidget dependency that forces this
     // row to rebuild on a live appearance toggle while the drawer stays open.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: InkWell(
-        onTap: widget.onTap,
+    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
+    // other state, so it is a `StatelessWidget` now.
+    return GWHoverable(
+      builder: (hovered) => InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
         child: Container(
           margin: const EdgeInsets.only(bottom: GeniusWalletConsts.space2),
@@ -111,13 +105,13 @@ class _GWSelectRowState extends State<GWSelectRow> {
             // Resting is transparent: a row painted the panel's own colour is
             // decoration nobody sees. Unselected hover is THE app-wide recipe
             // (sketch 044) - brand tint + brand hairline, no geometry.
-            gradient: widget.selected ? _selectionTint : null,
-            color: widget.selected
+            gradient: selected ? _selectionTint : null,
+            color: selected
                 ? null
-                : (_hovered ? GWDecorations.hoverFill : Colors.transparent),
+                : (hovered ? GWDecorations.hoverFill : Colors.transparent),
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
             border: Border.all(
-              color: widget.selected || _hovered
+              color: selected || hovered
                   ? GWDecorations.hoverEdge
                   : Colors.transparent,
               width: 1,
@@ -125,7 +119,7 @@ class _GWSelectRowState extends State<GWSelectRow> {
           ),
           child: Row(
             children: [
-              widget.leading,
+              leading,
               const SizedBox(width: GeniusWalletConsts.space6),
               Expanded(
                 child: Column(
@@ -133,23 +127,23 @@ class _GWSelectRowState extends State<GWSelectRow> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      widget.title,
+                      title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style:
-                          widget.titleStyle ??
+                          titleStyle ??
                           GeniusWalletTypography.bodySm.copyWith(
                             color: gw.textPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                     ),
-                    if (widget.subtitle != null)
+                    if (subtitle != null)
                       Text(
-                        widget.subtitle!,
+                        subtitle!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style:
-                            widget.subtitleStyle ??
+                            subtitleStyle ??
                             GeniusWalletTypography.labelMd.copyWith(
                               color: gw.textSecondary,
                             ),
@@ -157,11 +151,11 @@ class _GWSelectRowState extends State<GWSelectRow> {
                   ],
                 ),
               ),
-              if (widget.trailing != null) ...[
+              if (trailing != null) ...[
                 const SizedBox(width: GeniusWalletConsts.space4),
-                widget.trailing!,
+                trailing!,
               ],
-              if (widget.selected) ...[
+              if (selected) ...[
                 const SizedBox(width: GeniusWalletConsts.space4),
                 ShaderMask(
                   shaderCallback: (bounds) =>
@@ -173,9 +167,9 @@ class _GWSelectRowState extends State<GWSelectRow> {
                   ),
                 ),
               ],
-              if (widget.action != null) ...[
+              if (action != null) ...[
                 const SizedBox(width: GeniusWalletConsts.space2),
-                widget.action!,
+                action!,
               ],
             ],
           ),

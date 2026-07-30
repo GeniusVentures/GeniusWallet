@@ -115,9 +115,7 @@ void main() {
     );
   });
 
-  testWidgets('a redundant enter does not cost an extra build', (
-    tester,
-  ) async {
+  testWidgets('a redundant enter does not cost an extra build', (tester) async {
     var buildCount = 0;
     await tester.pumpWidget(_host(onBuild: (_) => buildCount++));
     expect(buildCount, 1, reason: 'the initial build');
