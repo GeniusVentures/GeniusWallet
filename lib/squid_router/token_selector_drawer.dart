@@ -122,8 +122,13 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
       children: [
         if (!nothingToOffer)
           Padding(
-            // Matches the title's own inset in the shell's header, so the search
-            // field's left edge and the drawer title sit on one axis.
+            // This drawer opts OUT of the shell's own `kDrawerBodyPadding`
+            // (`bodyPadding: EdgeInsets.zero` above) because it owns a
+            // SCROLLING viewport, so the horizontal inset has to live here
+            // and on the list below rather than on a wrapping `Padding` that
+            // would scroll the content out from under it. The value is still
+            // `kDrawerBodyPadding`'s own `space10`, so the field's left edge
+            // and the drawer title still sit on one axis.
             padding: const EdgeInsets.fromLTRB(
               GeniusWalletConsts.space10,
               GeniusWalletConsts.space10,
@@ -178,6 +183,12 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
               : filtered.isEmpty
               ? _EmptyResult(query: _query, gw: gw)
               : ListView.builder(
+                  // Same reason as the search field's own padding above: this
+                  // is the opt-out half of `kDrawerBodyPadding`
+                  // (`responsive_drawer.dart`) — the inset lives on the
+                  // scrolling list itself, at the shell's own `space10`, so
+                  // the rows still reach the panel edge when scrolled and the
+                  // list's left edge still sits on the title's axis at rest.
                   padding: const EdgeInsets.fromLTRB(
                     GeniusWalletConsts.space10,
                     0,
@@ -185,15 +196,61 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                     GeniusWalletConsts.space10,
                   ),
                   itemCount: filtered.length,
+                  // Inlined from the former `_TokenRow` (sketch 032-A1): its
+                  // gradient tint, hover recipe and gradient check moved into
+                  // `GWSelectRow` when Select Network, SDK Accounts and Your
+                  // Accounts needed the same row (068-A) — this file authored
+                  // it and is now one of four consumers, not a fifth wrapper
+                  // class around it.
                   itemBuilder: (context, index) {
                     final token = filtered[index];
-                    return _TokenRow(
-                      token: token,
+                    final balance = token.balance;
+                    return GWSelectRow(
                       selected: _isSelected(token),
                       onTap: () {
                         Navigator.of(context).pop();
                         widget.onTokenSelected(token);
                       },
+                      leading: ClipOval(
+                        child: Image.network(
+                          token.logoURI,
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) =>
+                              progress == null
+                              ? child
+                              : Container(
+                                  width: 36,
+                                  height: 36,
+                                  color: gw.surfaceMenu,
+                                ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                width: 36,
+                                height: 36,
+                                color: gw.surfaceMenu,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.broken_image,
+                                  color: gw.textSecondary,
+                                  size: 16,
+                                ),
+                              ),
+                        ),
+                      ),
+                      title: token.name,
+                      subtitle: token.symbol,
+                      // A balance the wallet does not hold is ABSENT, not "0"
+                      // - the same rule the transaction rows follow for a
+                      // missing fiat line.
+                      trailing: balance == null
+                          ? null
+                          : Text(
+                              balance.displayBalance,
+                              style: GeniusWalletTypography.numericBody
+                                  .copyWith(color: gw.textPrimary),
+                            ),
                     );
                   },
                 ),
@@ -227,68 +284,6 @@ class _EmptyResult extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// The token row: `GWSelectRow` plus the two things only a token has - remote
-/// logo art with its own loading/error states, and a balance that is ABSENT
-/// rather than "0" when the wallet does not hold the token.
-///
-/// Everything that used to live here - the gradient selection tint, the
-/// app-wide hover recipe, the always-present transparent border, the
-/// `ShaderMask` check - moved into `GWSelectRow` (sketch 068-A) so Select
-/// Network, SDK Accounts and Your Accounts could stop hand-rolling their own.
-/// This file authored that row; it is now one of four consumers.
-class _TokenRow extends StatelessWidget {
-  const _TokenRow({
-    required this.token,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final SquidTokenInfo token;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final balance = token.balance;
-
-    return GWSelectRow(
-      selected: selected,
-      onTap: onTap,
-      leading: ClipOval(
-        child: Image.network(
-          token.logoURI,
-          width: 36,
-          height: 36,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, progress) => progress == null
-              ? child
-              : Container(width: 36, height: 36, color: gw.surfaceMenu),
-          errorBuilder: (context, error, stackTrace) => Container(
-            width: 36,
-            height: 36,
-            color: gw.surfaceMenu,
-            alignment: Alignment.center,
-            child: Icon(Icons.broken_image, color: gw.textSecondary, size: 16),
-          ),
-        ),
-      ),
-      title: token.name,
-      subtitle: token.symbol,
-      // A balance the wallet does not hold is ABSENT, not "0" - the same rule
-      // the transaction rows follow for a missing fiat line.
-      trailing: balance == null
-          ? null
-          : Text(
-              balance.displayBalance,
-              style: GeniusWalletTypography.numericBody.copyWith(
-                color: gw.textPrimary,
-              ),
-            ),
     );
   }
 }
