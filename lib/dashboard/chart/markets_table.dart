@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
+import 'package:genius_wallet/components/effects/gw_hover_row.dart';
 import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -207,7 +208,16 @@ class _MarketsTableState extends State<MarketsTable> {
     final up = data.priceChangePercentage24h >= 0;
     final changeColor = up ? gw.statusSuccess : gw.statusError;
 
-    return InkWell(
+    // Was a bare `InkWell` with no `borderRadius`, which is the whole of the
+    // "market ma proste rogi" finding on 2026-07-30: Material clips a
+    // highlight to the radius it is given, and given none it paints the row as
+    // a full-bleed rectangle while the Transactions list painted rounded.
+    //
+    // The bottom hairline stays full-width under the rounded highlight on
+    // purpose - it is the table's row RULE, not the row's edge, and a divider
+    // that stopped short of the column edges would stop separating the columns
+    // it is there to separate.
+    return GWHoverRow(
       onTap: () => widget.onTapRow(row),
       child: Container(
         padding: const EdgeInsets.symmetric(

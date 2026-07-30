@@ -5,6 +5,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
+import 'package:genius_wallet/components/effects/gw_hover_row.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
@@ -290,135 +291,138 @@ class TransactionRow extends StatelessWidget {
       ],
     );
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        onTap: onTap,
-        mouseCursor: SystemMouseCursors.click,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: GeniusWalletConsts.space6,
-            vertical: GeniusWalletConsts.space4,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // BOOLEAN from constraints, never a per-frame dimension — the
-              // freeze rule (37639d5) bans continuous sizes, not breakpoints.
-              final bool wide = constraints.maxWidth >= _wideRowThreshold;
-              return Row(
-                children: [
-                  // Time leads the row: it is fixed-width and tabular, so the
-                  // token icons line up in a straight column behind it and the
-                  // eye can scan either "when" or "what" down a single edge.
-                  SizedBox(
-                    width: 44,
-                    child: Text(
-                      content.time,
-                      textAlign: TextAlign.left,
-                      maxLines: 1,
-                      style: GeniusWalletTypography.numericBody.copyWith(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        // Not the sketch's --text-primary-38 (~3.0:1): the
-                        // timestamp is meaningful text and must clear AA.
-                        color: gw.textSecondary,
-                      ),
+    // The hover treatment moved into `GWHoverRow` on 2026-07-30 and this row is
+    // where it came from: of the app's three tappable lists, this was the only
+    // one that carried its own transparent `Material` and passed a `radiusMd`,
+    // which is why it was the only one whose highlight was both visible and
+    // rounded. Nothing here changes shape - the component states the hover
+    // colour explicitly instead of inheriting `ThemeData`'s 4% default, so the
+    // highlight is one step stronger and identical across all three lists.
+    return GWHoverRow(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.space6,
+          vertical: GeniusWalletConsts.space4,
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // BOOLEAN from constraints, never a per-frame dimension — the
+            // freeze rule (37639d5) bans continuous sizes, not breakpoints.
+            final bool wide = constraints.maxWidth >= _wideRowThreshold;
+            return Row(
+              children: [
+                // Time leads the row: it is fixed-width and tabular, so the
+                // token icons line up in a straight column behind it and the
+                // eye can scan either "when" or "what" down a single edge.
+                SizedBox(
+                  width: 44,
+                  child: Text(
+                    content.time,
+                    textAlign: TextAlign.left,
+                    maxLines: 1,
+                    style: GeniusWalletTypography.numericBody.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      // Not the sketch's --text-primary-38 (~3.0:1): the
+                      // timestamp is meaningful text and must clear AA.
+                      color: gw.textSecondary,
                     ),
                   ),
-                  const SizedBox(width: GeniusWalletConsts.space6),
-                  _identity(content, gw, size: 40),
-                  const SizedBox(width: GeniusWalletConsts.space6),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            // Token-first (010-A): the asset is the headline, the
-                            // action a quiet chip beside it.
-                            Flexible(
+                ),
+                const SizedBox(width: GeniusWalletConsts.space6),
+                _identity(content, gw, size: 40),
+                const SizedBox(width: GeniusWalletConsts.space6),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          // Token-first (010-A): the asset is the headline, the
+                          // action a quiet chip beside it.
+                          Flexible(
+                            child: Text(
+                              content.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GeniusWalletTypography.titleMd.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: gw.textPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: GeniusWalletConsts.space4),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: GeniusWalletConsts.space2,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: gw.surfaceMenu,
+                                borderRadius: BorderRadius.circular(
+                                  GeniusWalletConsts.radiusXs,
+                                ),
+                              ),
                               child: Text(
-                                content.title,
+                                content.action,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GeniusWalletTypography.titleMd.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: gw.textPrimary,
+                                style: GeniusWalletTypography.labelMd.copyWith(
+                                  color: gw.textSecondary,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: GeniusWalletConsts.space4),
-                            Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: GeniusWalletConsts.space2,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: gw.surfaceMenu,
-                                  borderRadius: BorderRadius.circular(
-                                    GeniusWalletConsts.radiusXs,
-                                  ),
-                                ),
-                                child: Text(
-                                  content.action,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GeniusWalletTypography.labelMd
-                                      .copyWith(color: gw.textSecondary),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: GeniusWalletConsts.space2),
-                        Text(
-                          // On the wide page the Status pill carries the status, so
-                          // the subtitle drops the ` · Failed` suffix (no double
-                          // statement). On the panel it keeps it — no pill there.
-                          wide ? content.subtitleBase : content.subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GeniusWalletTypography.bodySm.copyWith(
-                            color: gw.textSecondary,
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: GeniusWalletConsts.space2),
+                      Text(
+                        // On the wide page the Status pill carries the status, so
+                        // the subtitle drops the ` · Failed` suffix (no double
+                        // statement). On the panel it keeps it — no pill there.
+                        wide ? content.subtitleBase : content.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GeniusWalletTypography.bodySm.copyWith(
+                          color: gw.textSecondary,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  // Right side.
-                  //
-                  // WIDE page (sketch 030-A2): a Status pill, then a fixed
-                  // `space6` (12px, the same gap as time↔coin) gap, then a
-                  // fixed-width amount column. Because the amount column is a fixed
-                  // width sitting flush right and `Expanded` above absorbs all the
-                  // slack, the pill's right edge lands on ONE vertical line a
-                  // constant space6 off the amount — "every status respects one
-                  // place", whatever the label's width.
-                  //
-                  // NARROW panel: the amount takes an `Expanded` (tight) so it
-                  // right-aligns to the card edge and ellipsises when the row is
-                  // genuinely narrow (the 320px case) instead of overflowing; no
-                  // pill — the status stays folded into the subtitle there.
-                  //
-                  // Neither branch derives a dimension from constraints; the split
-                  // is one boolean and the amount width is a constant (37639d5).
-                  if (wide) ...[
-                    const SizedBox(width: GeniusWalletConsts.space6),
-                    _statusPill(content.status, gw),
-                    const SizedBox(width: GeniusWalletConsts.space6),
-                    SizedBox(width: _wideAmountWidth, child: amountColumn),
-                  ] else ...[
-                    const SizedBox(width: GeniusWalletConsts.space4),
-                    Expanded(child: amountColumn),
-                  ],
+                ),
+                // Right side.
+                //
+                // WIDE page (sketch 030-A2): a Status pill, then a fixed
+                // `space6` (12px, the same gap as time↔coin) gap, then a
+                // fixed-width amount column. Because the amount column is a fixed
+                // width sitting flush right and `Expanded` above absorbs all the
+                // slack, the pill's right edge lands on ONE vertical line a
+                // constant space6 off the amount — "every status respects one
+                // place", whatever the label's width.
+                //
+                // NARROW panel: the amount takes an `Expanded` (tight) so it
+                // right-aligns to the card edge and ellipsises when the row is
+                // genuinely narrow (the 320px case) instead of overflowing; no
+                // pill — the status stays folded into the subtitle there.
+                //
+                // Neither branch derives a dimension from constraints; the split
+                // is one boolean and the amount width is a constant (37639d5).
+                if (wide) ...[
+                  const SizedBox(width: GeniusWalletConsts.space6),
+                  _statusPill(content.status, gw),
+                  const SizedBox(width: GeniusWalletConsts.space6),
+                  SizedBox(width: _wideAmountWidth, child: amountColumn),
+                ] else ...[
+                  const SizedBox(width: GeniusWalletConsts.space4),
+                  Expanded(child: amountColumn),
                 ],
-              );
-            },
-          ),
+              ],
+            );
+          },
         ),
       ),
     );

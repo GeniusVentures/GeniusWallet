@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/effects/gw_hover_row.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -30,84 +31,84 @@ class GWTokenRow extends StatelessWidget {
     // Fail-soft read: registers the InheritedWidget dependency that forces
     // this const-instanced widget to rebuild on a live appearance toggle.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: GeniusWalletConsts.space6,
-            vertical: GeniusWalletConsts.space4,
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 40,
-                height: 40,
-                child:
-                    iconWidget ??
-                    (iconAsset != null
-                        ? Image.asset(
-                            iconAsset!,
-                            semanticLabel: symbol,
-                            errorBuilder: (_, _, _) => const _FallbackDot(),
-                          )
-                        : const _FallbackDot()),
-              ),
-              const SizedBox(width: GeniusWalletConsts.space6),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      symbol,
-                      style: GeniusWalletTypography.titleMd.copyWith(
-                        color: gw.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+    // Migrated to `GWHoverRow` with the three live lists on 2026-07-30 rather
+    // than left behind. This row only renders in the dev gallery today, and a
+    // gallery showing the OLD hover while every shipped list shows the new one
+    // would be the reference disagreeing with the thing it references.
+    return GWHoverRow(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: GeniusWalletConsts.space6,
+          vertical: GeniusWalletConsts.space4,
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 40,
+              height: 40,
+              child:
+                  iconWidget ??
+                  (iconAsset != null
+                      ? Image.asset(
+                          iconAsset!,
+                          semanticLabel: symbol,
+                          errorBuilder: (_, _, _) => const _FallbackDot(),
+                        )
+                      : const _FallbackDot()),
+            ),
+            const SizedBox(width: GeniusWalletConsts.space6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    symbol,
+                    style: GeniusWalletTypography.titleMd.copyWith(
+                      color: gw.textPrimary,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    name,
+                    style: GeniusWalletTypography.bodySm.copyWith(
+                      color: gw.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (trailing != null)
+              trailing!
+            else if (balance != null)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    balance!,
+                    style: GeniusWalletTypography.numericBody.copyWith(
+                      color: gw.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (subBalance != null)
                     Text(
-                      name,
+                      subBalance!,
                       style: GeniusWalletTypography.bodySm.copyWith(
                         color: gw.textSecondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
+                ],
               ),
-              if (trailing != null)
-                trailing!
-              else if (balance != null)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      balance!,
-                      style: GeniusWalletTypography.numericBody.copyWith(
-                        color: gw.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (subBalance != null)
-                      Text(
-                        subBalance!,
-                        style: GeniusWalletTypography.bodySm.copyWith(
-                          color: gw.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );
