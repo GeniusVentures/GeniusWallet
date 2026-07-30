@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 21
 current_phase_name: Drawer language rollout - the four decided drawer designs, applied to every drawer
 status: verifying
-stopped_at: Completed 23-06-PLAN.md — Phase 23 CLOSED
-last_updated: "2026-07-30T15:43:43.446Z"
+stopped_at: Completed 21-03-PLAN.md — Phase 21 result-drawer receipts done, 3/6 plans
+last_updated: "2026-07-30T16:07:46.987Z"
 last_activity: 2026-07-30
 last_activity_desc: Phase 20 complete, transitioned to Phase 21
 progress:
   total_phases: 23
   completed_phases: 18
   total_plans: 107
-  completed_plans: 102
+  completed_plans: 103
   percent: 78
 ---
 
@@ -80,8 +80,23 @@ rectangle + untinted check) is deleted, replaced by an inline `GWSelectRow` loop
 `network_dropdown_selector.dart`'s shape (bodyPadding: EdgeInsets.zero + ListView's own space10
 inset). New test `bridge_destination_picker_test.dart` (2 tests) proves selection is keyed by
 chainId and the tap-pops-with-tapped-network path is unchanged. See `21-02-SUMMARY.md`. analyze
-0/0; full test 734/734 (732 baseline + 2 new); all gates 0/PASS; format clean. Plans
-21-03..21-06 NOT yet executed.
+0/0; full test 734/734 (732 baseline + 2 new); all gates 0/PASS; format clean.
+**21-03 complete (`c082475`/`aaae508`/`5d8da5f`/`30e8c38`)** — the three remaining result drawers
+(Reown swap result, both Banxa purchase outcomes) re-skinned onto 21-01's `GWDrawerReceiptHead`/
+`GWDrawerStatusPill`, coloured from one shared `txStatusColors` source; `GWDrawerReceiptHead.amount`/
+`amountColor` made an omittable slot (String?/Color?) rather than forcing a fabricated figure. All
+six D-02 receipts are now on 031-B1 (3 converted here, `showTransactionDetails` already done, both
+squid swap drawers deleted-and-repointed by `9ff7c04`). Two dead-button defects fixed (Banxa
+success/cancelled footers now actually close the drawer). `lib/banxa/banxa_components` added to
+`check_raw_colors.sh`'s standing gate. Two findings recorded, not acted on: the two Banxa result
+drawers have no production caller (dev-tools-only); `handle_dapp_requests.dart` builds a complete
+`Transaction` before calling `SwapResultDrawer.show`, meaning it could take the same delete-and-
+repoint 9ff7c04 gave the squid twins (Phase 10 mechanics, out of this phase's fence). Executed
+SEQUENTIALLY (not the plan's assumed 4-way parallel wave) per this session's explicit dispatch
+override — see 21-03-SUMMARY.md Deviations. See `21-03-SUMMARY.md`. analyze 0/0 (root +
+genius_api); full test 740/740 (734 baseline + 2 Task 1 + 4 Task 4); all gates 0/PASS; format
+clean. Human visual walk OUTSTANDING (no live app instance this session). Plans 21-04..21-06 NOT
+yet executed.
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -257,6 +272,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: [Phase 21-01]: GWDrawerListRow/GWDrawerSection/GWDrawerDetailRow not built - GWSelectRow (068-A) and GWKicker+GWDetailGrid already ship, tested, adopted by 4+ callers each (commits 8044bdb/bd501d7/d7903fc, pre-dating this plan's execution)
 - [Phase ?]: [Phase 21-01]: Shell's padded body is opt-out (bodyPadding default kDrawerBodyPadding, EdgeInsets.zero to escape), not the plan's opt-in padBody bool - already shipped, more robust resolution of 07-06; token_selector_drawer.dart keeps its own horizontal padding as the documented opt-out for a scrolling body
 - [Phase ?]: Bridge destination picker became the fifth GWSelectRow call site; private _NetworkPickerRow deleted
+- [Phase ?]: 21-03: GWDrawerReceiptHead.amount/amountColor made an omittable slot (String?/Color?) rather than a hasAmount flag -- three of six D-02 receipts carry no amount in their APIs
+- [Phase ?]: 21-03: BuySuccessDrawerContent/BuyCancelledDrawerContent kept const -- a const widget still registers a live Theme.of(context) dependency in build(); removing const only tripped an analyzer info, it did not fix any correctness gap
 
 ### Pending Todos
 
@@ -380,7 +397,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T15:42:46.171Z
+Last session: 2026-07-30T16:04:32.982Z
 Stopped at: Completed 23-06-PLAN.md — Phase 23 CLOSED
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
@@ -506,6 +523,7 @@ Open decisions:
 | Phase 23 P06 | 55min | 2 tasks | 3 files |
 | Phase 21 P01 | 50min | 3 tasks | 4 files |
 | Phase 21 P02 | 15min | 2 tasks | 2 files |
+| Phase 21 P03 | 55min | 4 tasks | 8 files |
 
 ### Roadmap Evolution
 
