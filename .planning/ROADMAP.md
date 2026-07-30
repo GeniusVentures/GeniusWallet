@@ -714,11 +714,38 @@ linked, initializing, ready, processing, disconnected). Three need new code: *st
 *job complete* (edge-detect on `isProcessing` true→false + tx correlation), *unavailable* (the
 restartable timer above).
 
-**Plans:** TBD
+**Plans:** 7/8 executed — **CLOSED WITH GAPS 2026-07-30** (`14-VERIFICATION.md`: `gaps_found`, 1/8
+must-haves verified). The compute panel is built, height-measured and contrast-proven, and **nothing
+under `lib/` renders it** — `ComputePanel` is referenced only by its own two test files. The phase
+goal ("the dashboard's first section stops lying") is NOT met, because the dashboard's first section
+is unchanged. Closed in this state at the developer's explicit instruction, not because it was done.
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 14 to break down)
+- [x] 14-01-PLAN.md — compute state model and the nine-state ladder
+- [x] 14-02-PLAN.md — the panel's twin-tile layout (016-B2) inside the 276px budget
+- [x] 14-03-PLAN.md — dot+label status component (017-A); the determinate ring is refused
+- [x] 14-04-PLAN.md — `AccountDrawer.show` public entry point. Its lib work shipped inside `21a7f4f`,
+      a commit that never names 14-04; its SUMMARY and test landed 2026-07-30 (`25ee51a`, `cce8154`)
+      after three executor agents died on a `testWidgets`/Hive hang, closed by hive_ce's in-memory backend
+- [x] 14-05-PLAN.md — submit-job cubit, CTA state ladder, error taxonomy
+- [x] 14-06-PLAN.md — the step drawer (018-A) and the `/submit_job` full-screen host
+- [x] 14-07-PLAN.md — job step list and step bodies
+- [ ] 14-08-PLAN.md — **NEVER EXECUTED.** The integration: render the panel in the dashboard's first
+      card, wire the switch-wallet and retry affordances, delete the three superseded widgets, add
+      `compute_panel_wiring_test.dart`. This is the single plan between the phase and its users
+
+**Known-shipping consequences of closing here** (all five phase bugs still ship — see
+`14-VERIFICATION.md`): `ComputeLink.switchWallet` is produced at `compute_state.dart:290` and
+labelled `'Switch wallet ›'` with no host handling it, so it is a dead affordance in the live UI;
+`RetryProcessingStatus` has a correct, unit-tested handler at `app_bloc.dart:314` and **zero dispatch
+sites**, so the fix is inert; and `SGNUSConnectionStatusWidget` is still live at three call sites, two
+of them (`wallets_overview.dart:125`, `wallet_information.dart:106`) outside 14-08's declared fence.
+One accidental partial win: the rewritten five-step `/submit_job` flow IS reachable, because the old
+`SubmitJobDashboardButton` still pushes that route (`submit_job_dashboard_button.dart:36`).
+
+**CMP-01..CMP-10 were never written to `REQUIREMENTS.md`** — the whole compute requirement family is
+orphaned, and this phase has no closeout plan that would have caught it.
 
 ### Phase 15: Transactions tab — page frame, filter rail, empty-state anchor, amount honesty
 
