@@ -1034,7 +1034,7 @@ never actually run — it needs a push, which was not authorised.
 
 **Requirements**: ORG-01, ORG-02, ORG-03
 **Depends on:** Phase 21
-**Plans:** 7/8 plans executed
+**Plans:** 7/7 plans complete
 
 **Requirement IDs coined for this phase** (ROADMAP said TBD; REQUIREMENTS.md carries no
 codebase-quality requirement). ORG-01..03 close in Phase 22; ORG-04..05 close in Phase 23:
