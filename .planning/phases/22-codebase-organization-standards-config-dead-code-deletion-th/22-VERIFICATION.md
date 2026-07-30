@@ -1,10 +1,14 @@
 ---
 phase: 22-codebase-organization-standards-config-dead-code-deletion-th
 verified: 2026-07-30T12:21:22Z
-status: human_needed
-score: 6/7 truths verified (1 present, behavior-unverified)
+status: passed
+closed_by: developer-judgement
+score: 6/7 truths verified automatically; truth 7 closed on developer judgement, not on observed evidence
 behavior_unverified: 1
-overrides_applied: 0
+overrides_applied: 1
+overrides:
+  - truth: "CI actually enforces the codebase's own rules (ORG-01)."
+    disposition: "CLOSED ON DEVELOPER JUDGEMENT, 2026-07-30. The developer elected to close ORG-01 on the strength of the locally green gates after being shown that no GitHub Actions run containing the `quality` job has ever executed. This is a recorded decision, NOT a verification. The item below stands unchanged and unretracted — nothing observed the job run, and the Flutter 3.38.10-vs-3.41.9 pin mismatch remains untested. Standing todo: `.planning/todos/pending/2026-07-30-ci-quality-job-pins-flutter-3-38-10-not-3-41-9.md`. If the first real run goes red, this is the entry that explains why nobody knew."
 behavior_unverified_items:
   - truth: "CI actually enforces the codebase's own rules (ORG-01): a PR that breaks format/analyze/brace-rule/a security gate/tests cannot merge green."
     test: "Trigger the `quality` job in `.github/workflows/build.yml` for real — e.g. open a PR against `develop`/`main`, or temporarily add a `workflow_dispatch`/push trigger for this branch — and observe a real GitHub Actions run."
@@ -18,7 +22,11 @@ behavior_unverified_items:
 them — without changing behaviour anywhere. Ends with analyzer at zero, a green test suite, and CI
 actually enforcing.
 **Verified:** 2026-07-30T12:21:22Z
-**Status:** human_needed
+**Status:** passed — 6 of 7 truths verified automatically; truth 7 (ORG-01) **closed on developer
+judgement 2026-07-30**, not on observed evidence. The developer was shown that no GitHub Actions run
+containing the `quality` job has ever executed, and elected to close it on the strength of the
+locally green gates. Truth 7's finding below is left standing and unretracted so that a future
+reader sees what was and was not proven. The SDK-pin mismatch remains an open todo.
 **Re-verification:** No — initial verification (phase shipped 2026-07-28; `verify` step never ran until now)
 
 ## Goal Achievement
