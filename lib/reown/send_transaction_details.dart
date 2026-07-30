@@ -95,10 +95,7 @@ class SendTransactionDetails extends StatelessWidget {
             if (amount.isNotEmpty)
               _PlainDetailRow(label: 'You send', value: '$amount ETH'),
             if (receiveTokenSymbol != null && receiveTokenSymbol!.isNotEmpty)
-              _PlainDetailRow(
-                label: 'You receive',
-                value: receiveTokenSymbol!,
-              ),
+              _PlainDetailRow(label: 'You receive', value: receiveTokenSymbol!),
             if (totalGasFee.isNotEmpty)
               _PlainDetailRow(label: 'Gas Fee', value: '$totalGasFee ETH'),
             if (maxFeePerGas.isNotEmpty)
@@ -107,10 +104,7 @@ class SendTransactionDetails extends StatelessWidget {
                 value: '$maxFeePerGas ETH',
               ),
             if (priorityFee.isNotEmpty)
-              _PlainDetailRow(
-                label: 'Priority Fee',
-                value: '$priorityFee ETH',
-              ),
+              _PlainDetailRow(label: 'Priority Fee', value: '$priorityFee ETH'),
           ],
         ),
       ],

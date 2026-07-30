@@ -19,47 +19,56 @@ class ApproveTransactionDrawer {
       title: "Transaction Request",
       child: ListView(
         children: [
-          // 033-B1: the dApp identity is borderless -- favicon, url, a hairline
-          // under it, no pill, no box. The bordered Container this used to sit
-          // in is gone.
-          Row(
+          // `Flexible(child: content)` below needs a Flex ancestor -- a bare
+          // `ListView.children` list is a sliver list, not a Flex, so this
+          // Column (not the deleted zero-inset Padding) is what the shell's
+          // single scrolling body item actually is.
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                // The errorBuilder collapsing to nothing is a mitigation
-                // (T-21-12), not decoration: it stops a hostile dApp placing a
-                // broken-image glyph or an oversized failed-load box on a
-                // signing prompt.
-                child: Image.network(
-                  iconUrl ?? "",
-                  height: 24,
-                  width: 24,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const SizedBox.shrink();
-                  },
-                ),
-              ),
-              const SizedBox(width: GeniusWalletConsts.space6),
-              Flexible(
-                child: Text(
-                  dappUrl,
-                  style: GeniusWalletTypography.bodyMd.copyWith(
-                    color: gw.textSecondary,
+              // 033-B1: the dApp identity is borderless -- favicon, url, a
+              // hairline under it, no pill, no box. The bordered Container
+              // this used to sit in is gone.
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    // The errorBuilder collapsing to nothing is a mitigation
+                    // (T-21-12), not decoration: it stops a hostile dApp
+                    // placing a broken-image glyph or an oversized
+                    // failed-load box on a signing prompt.
+                    child: Image.network(
+                      iconUrl ?? "",
+                      height: 24,
+                      width: 24,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const SizedBox.shrink();
+                      },
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                  const SizedBox(width: GeniusWalletConsts.space6),
+                  Flexible(
+                    child: Text(
+                      dappUrl,
+                      style: GeniusWalletTypography.bodyMd.copyWith(
+                        color: gw.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: GeniusWalletConsts.space4),
+              Container(height: 1, color: gw.borderSubtle),
+              const SizedBox(height: GeniusWalletConsts.space6),
+              // `content` is caller-supplied (`handle_dapp_requests.dart:116`)
+              // and must keep rendering whatever it is handed, including the
+              // debug-dump branch -- this drawer does not know or care which.
+              Flexible(fit: FlexFit.loose, child: content),
             ],
           ),
-          const SizedBox(height: GeniusWalletConsts.space4),
-          Container(height: 1, color: gw.borderSubtle),
-          const SizedBox(height: GeniusWalletConsts.space6),
-          // `content` is caller-supplied (`handle_dapp_requests.dart:116`) and
-          // must keep rendering whatever it is handed, including the
-          // debug-dump branch -- this drawer does not know or care which.
-          Flexible(fit: FlexFit.loose, child: content),
         ],
       ),
       footer: Row(
