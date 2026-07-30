@@ -1,10 +1,39 @@
 ---
 phase: 20-feedback-page-frame-153-b-focused-frame-left-title-receipt-r
 verified: 2026-07-27T19:07:14Z
-status: human_needed
-score: 6/8 must-haves verified
+walk_performed: 2026-07-30
+status: passed
+closed_by: developer-walk
+score: 6/8 verified automatically; the layout walk closed 2026-07-30; 2 behavior items remain unexercised
 behavior_unverified: 2
 overrides_applied: 0
+resolution_2026_07_30:
+  summary: >
+    The human walk this report was blocked on was performed by the developer on 2026-07-30 against a
+    Windows build of `3017f9f`, and every item reached passed. The layout questions — the ones the
+    widget test could establish geometrically but not judge — are now closed. The two behaviour items
+    below are NOT closed by this walk and are not claimed to be.
+  closed_by_the_walk: >
+    The frame reads as one frame at maximised width (title on the frame's left edge at the same X as
+    the composer, rail beside it, no leftover band reading as a hole rather than a margin); the rail
+    drops under the composer through the ~1020 seam without overflow, RenderFlex stripe or clipped
+    row; and the five-state composer flow (chooser / message / send / Success + Copy / Send another)
+    still behaves as Phase 19 left it, now inside Phase 20's new frame. The widget test already
+    pinned cap=1024, title.dx == composer.dx and card levelling — what it could not do was judge
+    whether the leftover space reads as margin, which is the question the walk answered.
+  still_unexercised: >
+    Both original `behavior_unverified_items` stand, unchanged and unclaimed. (1) The SDK-RUNNING
+    branch of `_buildRail` — the `probes != null && probes.isNotEmpty` loop that renders per-probe
+    rows — has still never been rendered by any check, automated or human, that this repository has a
+    record of; the widget test cannot reach it because `_StoppedSdkApi` always returns
+    `isSdkInitialized=false`. (2) The Failed-state footer with its real ~130-character message,
+    reachable only via a live Sentry round-trip that throws or returns an empty `SentryId`; test 3
+    proved the arrangement with a 78-character stand-in on the same unconditional code path.
+  honest_limit: >
+    The walker did not enumerate which items were reached, so this records "every item reached
+    passed", not "all five were exercised". Items 3 and 4 above require conditions (a running SDK; a
+    failing Sentry round-trip) that were not confirmed during the walk. Do not later read this
+    closure as coverage of the SDK-running rail.
 behavior_unverified_items:
   - truth: "The rail shows at most two log rows plus SDK and Platform, and says why there are no log rows when the SDK is stopped (D-04)."
     test: "Run the app with the SDK actually running and at least one of sgnslog.log / sgnslog2.log present on disk (one whole, one tail-trimmed or empty), then read the rail."
