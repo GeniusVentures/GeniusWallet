@@ -112,6 +112,10 @@ set(MNN_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/MNN/include")
 set(MNN_DIR "${THIRDPARTY_BUILD_DIR}/MNN/lib/cmake/MNN")
 find_package(MNN CONFIG REQUIRED)
 
+# vk-bootstrap
+set(vk-bootstrap_DIR "${THIRDPARTY_BUILD_DIR}/vk-bootstrap/lib/cmake/vk-bootstrap")
+find_package(vk-bootstrap CONFIG REQUIRED)
+
 # stb
 include_directories(${THIRDPARTY_BUILD_DIR}/stb/include)
 
