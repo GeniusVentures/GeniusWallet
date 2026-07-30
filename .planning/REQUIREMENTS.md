@@ -133,7 +133,7 @@ and ORG-05 were split to Phase 23 when that phase itself split off Phase 22's or
 Tracked as a second, later-discovered batch alongside the original 24 v1 requirements below — not
 folded into that count, the same treatment WIRE-01/02 already get (see Coverage).
 
-- [x] **ORG-01**: The codebase's own rules are mechanically enforced in CI (format, analyze, brace rule, raw colours, the three existing security gates, tests, patch coverage) — shipped Phase 22 (`22-08-SUMMARY.md`), extended by Phase 23's raw-colour gate (`23-04-SUMMARY.md`)
+- [ ] **ORG-01**: The codebase's own rules are mechanically enforced in CI (format, analyze, brace rule, raw colours, the three existing security gates, tests) — wired Phase 22 (`22-08-SUMMARY.md`), extended by Phase 23's raw-colour gate (`23-04-SUMMARY.md`). **PARTIAL — wired but never once executed**: `build.yml`'s `quality` job triggers only on push/PR to `develop`/`main`, and `ui-redesign-port` has never touched either, so `gh run list` shows zero runs. The job reads as correct (valid syntax, every tool script present and executable) but nothing has observed it run, and it pins Flutter **3.38.10** while every green number this project quotes was measured on **3.41.9**. Closing this needs one real CI run. See `22-VERIFICATION.md` (`PRESENT_BEHAVIOR_UNVERIFIED`). *"patch coverage" was removed from this requirement's text: `codecov.yml` and the coverage step were both deleted 2026-07-28 in `0212e3c`, so it was never enforced.*
 - [x] **ORG-02**: Dead code removed — no never-imported file, no dead dependency, no hand-written widget wearing a generated-code filename — Phase 22 (`22-01-SUMMARY.md`, `22-03-SUMMARY.md`)
 - [x] **ORG-03**: `flutter analyze` reports 0 and exits 0, in both packages — Phase 22 (`22-06-SUMMARY.md`)
 - [x] **ORG-04**: One colour source of truth — semantic tokens via `context.gw`, primitives genuinely private (a compile error to reach from outside `lib/theme/`, not a convention), both appearance modes correct and WCAG AA — Phase 23, plans 01-04
@@ -193,7 +193,7 @@ Deferred to future milestones.
 | GAP-05 | Phase 9 — Banxa | In progress (09-02: `banxa_orders_history.dart` + `order_card.dart` re-skinned and closed; 09-03: `screens/banxa_buy_screen.dart` re-skinned and closed; 09-06: `banxa_payment.dart` re-skinned and closed — all three named files done; box stays unchecked until phase verification per 09-CONTEXT.md `<scope_reduction>`, mirroring SCR-05's pattern) |
 | SCR-06 | Phase 10 — dApp connectivity | Pending |
 | BEH-01 | Phase 11 — Port closeout | Pending |
-| ORG-01 | Phase 22 — Codebase hygiene | ✓ Complete (CI `quality` job wired; extended by Phase 23's raw-colour gate) |
+| ORG-01 | Phase 22 — Codebase hygiene | **PARTIAL** — `quality` job wired and blocking but never executed once; see `22-VERIFICATION.md` |
 | ORG-02 | Phase 22 — Codebase hygiene | ✓ Complete |
 | ORG-03 | Phase 22 — Codebase hygiene | ✓ Complete |
 | ORG-04 | Phase 23 — Design system consolidation | ✓ Complete (plans 01-04) |
@@ -222,7 +222,7 @@ Deferred to future milestones.
 - Mapped to phases: **24/24 ✓** — every v1 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases (official track): 11 — **5 complete (1, 2, 4, 5, 6)**, Phase 3 executed/walk-gated, 7-11 remaining. The redesign track (Phases 12-17) is tracked separately in ROADMAP.md.
 - Note: WIRE-01/WIRE-02 are tracked as guard requirements outside the 24 v1 count by design (they are "do-not-port" guards, not deliverables).
-- Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — 3 complete (Phase 22), 1 complete and 1 PARTIAL (Phase 23).
+- Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — Phase 22: 2 complete (ORG-02, ORG-03) and 1 PARTIAL (ORG-01, CI never executed); Phase 23: 1 complete (ORG-04) and 1 PARTIAL (ORG-05, four extractions refused/deferred).
 
 ---
 *Last updated: 2026-07-30 — ORG-01..05 traceability added (Phase 23 closeout); the previous 2026-07-23 entry's coverage counts + GAP-04 reconciliation + test-harness correction stand unchanged*

@@ -1113,8 +1113,6 @@ rewrites across already-verified plans; the resulting `depends_on` chains were r
 
 Plans:
 
-- [ ] 22-07-PLAN.md
-
 - [x] 22-01-PLAN.md — Deletion pass: 14 never-imported files + 3 adjudicated, the dead test file
       (512/1 → 512/0), the dead font dependency, the duplicate radius alias
 
