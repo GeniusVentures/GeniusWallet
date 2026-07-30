@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 21
 current_phase_name: Drawer language rollout - the four decided drawer designs, applied to every drawer
 status: verifying
-stopped_at: Completed 21-04-PLAN.md
-last_updated: "2026-07-30T16:28:44.453Z"
+stopped_at: Completed 21-05-PLAN.md
+last_updated: "2026-07-30T16:39:58.224Z"
 last_activity: 2026-07-30
 last_activity_desc: Phase 20 complete, transitioned to Phase 21
 progress:
   total_phases: 23
   completed_phases: 18
   total_plans: 107
-  completed_plans: 104
+  completed_plans: 105
   percent: 78
 ---
 
@@ -112,7 +112,20 @@ just `git diff`. `GWWarningNote` kept as-is (not forked, no boolean flag) per th
 Rule-of-Three refusal. Executed SEQUENTIALLY per this session's dispatch override — see
 `21-04-SUMMARY.md` Deviations. analyze 0/0 (root + genius_api); full test 754/754 (740 baseline + 14
 new); all gates 0/PASS; format clean. Human visual walk OUTSTANDING (no live app instance this
-session, checklist recorded in `21-04-SUMMARY.md`). Plans 21-05..21-06 NOT yet executed.
+session, checklist recorded in `21-04-SUMMARY.md`).
+**21-05 complete (`69fcdd3`/`1c65c62`)** — `CryptoAddressQR`'s `_shortAddress` middle-truncation pill
+replaced with the real 034-A2 grouped 4-char address block (whole address wrapped in a `Wrap`, first
+two and last two groups emphasised via `_addressGroups`/`_isEmphasised`), fixing the file's own
+docstring which had been claiming the chunking already shipped. `wallet_information.dart`'s third
+receive drawer (D-06's uncounted caller) drops its fractional-window-height `Container` wrapper and
+is retitled "Receive", matching `coins_screen.dart`. More Options drawer (D-09) measured and left
+unchanged — no ad-hoc inset found. No footer "Copy address" CTA added (deliberate, recorded). No
+shared chunking helper extracted with `transaction_displays.dart`'s `_valueChunks` (Rule of Three
+refusal honoured). New `test/components/crypto_address_chunks_test.dart` (4 tests). Executed
+SEQUENTIALLY per this session's dispatch override — see `21-05-SUMMARY.md` Deviations. analyze 0/0
+(root + genius_api); full test 758/758 (754 baseline + 4 new); all gates 0/PASS; format clean. Human
+visual walk OUTSTANDING (no live app instance this session, checklist recorded in
+`21-05-SUMMARY.md`). Plan 21-06 NOT yet executed.
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -291,6 +304,10 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 21-03: GWDrawerReceiptHead.amount/amountColor made an omittable slot (String?/Color?) rather than a hasAmount flag -- three of six D-02 receipts carry no amount in their APIs
 - [Phase ?]: 21-03: BuySuccessDrawerContent/BuyCancelledDrawerContent kept const -- a const widget still registers a live Theme.of(context) dependency in build(); removing const only tripped an analyzer info, it did not fix any correctness gap
 - [Phase ?]: 21-04: GWWarningNote kept as-is (no borderless mode, no boolean flag) -- fourth consumer would need a flag, which AGENTS.md's own Rule of Three names as the case NOT to extract
+- [Phase ?]: No footer Copy address CTA added to CryptoAddressQR (D-06 copy-only, footer belongs to the callers)
+- [Phase ?]: Token pair for the sketch's gap: 6px 10px is space4 (8px) horizontal + space3 (6px) vertical -- no exact 10px step exists on the 4-pt scale
+- [Phase ?]: More Options drawer (D-09) measured and left unchanged: no ad-hoc inset found at HEAD
+- [Phase ?]: No shared chunking helper extracted between crypto_address_qr.dart and transaction_displays.dart's _valueChunks (Rule of Three refusal honoured)
 
 ### Pending Todos
 
@@ -414,8 +431,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T16:28:44.442Z
-Stopped at: Completed 21-04-PLAN.md
+Last session: 2026-07-30T16:39:58.212Z
+Stopped at: Completed 21-05-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -542,6 +559,7 @@ Open decisions:
 | Phase 21 P02 | 15min | 2 tasks | 2 files |
 | Phase 21 P03 | 55min | 4 tasks | 8 files |
 | Phase 21 P04 | 25min | 3 tasks | 4 files |
+| Phase 21 P05 | 45min | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 

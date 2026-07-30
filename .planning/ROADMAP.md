@@ -505,7 +505,7 @@ above; tracked separately (see the per-phase detail sections below):
 | 18. Web tab chrome | 0/TBD | Sketched (035-B/036-A/037-B); not planned | - |
 | 19. Feedback tab (card, 150-D) | 1/1 | ✓ Complete (19-VERIFICATION passed 6/6, walk 4/4) | 2026-07-25 |
 | 20. Feedback page frame (153-B) | 1/1 | Complete    | 2026-07-30 |
-| 21. Drawer language rollout | 4/6 | In Progress|  |
+| 21. Drawer language rollout | 5/6 | In Progress|  |
 
 ### Phase 12: Transactions redesign
 
@@ -1311,7 +1311,7 @@ primitives) and the 15 caller files listed above.
 **Surface note:** cuts across surfaces owned by Phases 8 (swap drawers), 9 (Banxa), 10 (Reown) and
 12/15 (transactions). Phase 21 owns **drawer chrome and content pattern** only; each drawer's
 mechanics stay with its owning phase.
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 it actually stood; the originals are in `superseded-stale-file-inventory/` with a README recording
 the measured drift. The design contract (030/031/032/033/034 + 154-A) was NOT re-opened - only the
 file inventory and the task breakdown. Waves: **1** is the four remaining patterns in parallel
@@ -1338,5 +1338,5 @@ Plans:
 - [x] 21-02-PLAN.md — Wave 1: 032-A1 for the one picker still hand-rolled — the bridge destination list
 - [x] 21-03-PLAN.md — Wave 1: 031-B1 for the three remaining result receipts (Reown swap result, Banxa success/cancelled), one status palette via `txStatusColors`, and `lib/banxa/banxa_components` added to the raw-colour gate
 - [x] 21-04-PLAN.md — Wave 1: 033-B1 for the two signing drawers, with a threat model and a six-outcome behavioural-identity contract test
-- [ ] 21-05-PLAN.md — Wave 1: 034-A2 receive — real 4-char chunking, the third Receive caller's ad-hoc wrapper deleted, More Options confirmed inset-only
+- [x] 21-05-PLAN.md — Wave 1: 034-A2 receive — real 4-char chunking, the third Receive caller's ad-hoc wrapper deleted, More Options confirmed inset-only
 - [ ] 21-06-PLAN.md — Wave 2: the legacy `BottomDrawer` shell deleted and the padding invariant proven across every call site at once
