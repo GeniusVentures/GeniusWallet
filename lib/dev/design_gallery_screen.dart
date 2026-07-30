@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/app_screen_view.dart';
-import 'package:genius_wallet/components/bottom_drawer/bottom_drawer.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/buttons/gw_swap_fab.dart';
@@ -869,19 +868,24 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
               ),
               _Section(
                 title: 'Drawer',
-                // Findings 13/25/26 -- opened via develop's existing,
-                // unmodified ResponsiveDrawer.show(), never Alex's
-                // regressed responsive_drawer.dart. title/actions are
-                // deliberately omitted so _ResponsiveDrawerScaffold
-                // renders no AppBar competing with BottomDrawer's own
-                // header (UI-SPEC §4.1).
+                // 21-06: the legacy BottomDrawer shell (its own centred
+                // title, its own left-side close ✕) is deleted. This demo
+                // now shows the shipped shell's own vocabulary -- a title
+                // passed straight to ResponsiveDrawer.show() and a plain
+                // scrolling ListView, exactly like the app's five list
+                // pickers.
                 child: GWButton(
                   label: 'Open drawer demo',
                   variant: GWButtonVariant.secondary,
                   onPressed: () => ResponsiveDrawer.show(
                     context: context,
-                    child: BottomDrawer(
-                      title: 'Drawer demo',
+                    title: 'Drawer demo',
+                    // Owns a scrolling viewport: the inset lives on the list
+                    // so it scrolls with the content and rows still reach
+                    // the panel edge (kDrawerBodyPadding).
+                    bodyPadding: EdgeInsets.zero,
+                    child: ListView(
+                      padding: const EdgeInsets.all(GeniusWalletConsts.space10),
                       children: List.generate(
                         20,
                         (i) => Padding(
