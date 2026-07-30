@@ -119,28 +119,49 @@ class GWDrawerStatusPill extends StatelessWidget {
 /// refinement table. That trailing gap is the caller's, not this widget's,
 /// exactly as `showTransactionDetails` already places its own gap before
 /// `GWKicker('Transaction')` today.
+///
+/// **`amount`/`amountColor` are an optional SLOT, not a mode flag (21-03).**
+/// Three of the six receipts D-02 names — both Banxa results and the Reown
+/// swap result — carry no amount at all in their APIs: `BuySuccessDrawer.show`
+/// takes only an optional `onClose`, `BuyCancelledDrawer.show` takes nothing,
+/// `SwapResultDrawer.show` takes `isSuccess`/`txHash`/`coinSymbol`. The
+/// rejected alternative was requiring every caller to supply an amount, which
+/// would have forced either a fabricated figure (21-CONTEXT's scope fence
+/// forbids inventing data) or three receipts built outside this family —
+/// exactly the fragmentation D-02 exists to remove. Omitting the slot
+/// entirely, the same way [fiat]/[exact]/[pill] already behave when null, is
+/// the one option that needs neither.
 class GWDrawerReceiptHead extends StatelessWidget {
   const GWDrawerReceiptHead({
     super.key,
     required this.identity,
-    required this.amount,
-    required this.amountColor,
+    this.amount,
+    this.amountColor,
     this.pill,
     this.fiat,
     this.exact,
-  });
+  }) : assert(
+         amount == null || amountColor != null,
+         'amountColor is required whenever amount is supplied — a caller '
+         'must never pass an amount and silently inherit a derived colour '
+         '(D-03 exists precisely because a derived amount colour is the '
+         'failure mode).',
+       );
 
   /// One coin, or two overlapped for a swap, with its badge — the same shape
   /// `_identity()` in `transaction_displays.dart` already builds. This widget
   /// does not build it; the caller does, exactly as it does today.
   final Widget identity;
 
-  final String amount;
+  /// Omitted entirely (not a placeholder, not a fabricated `0`) when the
+  /// caller's own data carries no amount. See the class doc.
+  final String? amount;
 
   /// D-03: the caller's own colour. Never derive this from a status here —
   /// the amount stays neutral in every receipt; colour rides on the icon
-  /// badge, the pill and the Status row only.
-  final Color amountColor;
+  /// badge, the pill and the Status row only. Required whenever [amount] is
+  /// supplied — enforced by the constructor's assert.
+  final Color? amountColor;
 
   /// Typically a [GWDrawerStatusPill]. Any widget so a receipt with no status
   /// concept at all can omit it entirely rather than pass an empty one.
@@ -156,16 +177,18 @@ class GWDrawerReceiptHead extends StatelessWidget {
       children: [
         const SizedBox(height: GeniusWalletConsts.space16),
         identity,
-        const SizedBox(height: GeniusWalletConsts.space6),
-        Text(
-          amount,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GeniusWalletTypography.numericHeadline.copyWith(
-            color: amountColor,
+        if (amount != null) ...[
+          const SizedBox(height: GeniusWalletConsts.space6),
+          Text(
+            amount!,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GeniusWalletTypography.numericHeadline.copyWith(
+              color: amountColor,
+            ),
           ),
-        ),
+        ],
         if (fiat != null) ...[
           const SizedBox(height: GeniusWalletConsts.space2),
           _QuietLine(fiat!),

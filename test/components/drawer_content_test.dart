@@ -44,11 +44,16 @@ void main() {
   });
 
   group('GWDrawerReceiptHead', () {
-    Widget host({String? fiat, String? exact, Widget? pill}) => MaterialApp(
+    Widget host({
+      String? amount = '1.234 ETH',
+      String? fiat,
+      String? exact,
+      Widget? pill,
+    }) => MaterialApp(
       home: Scaffold(
         body: GWDrawerReceiptHead(
           identity: const SizedBox(width: 60, height: 60, key: Key('id')),
-          amount: '1.234 ETH',
+          amount: amount,
           amountColor: const Color(0xFFAA00AA),
           fiat: fiat,
           exact: exact,
@@ -89,5 +94,37 @@ void main() {
       final amountText = tester.widget<Text>(find.text('1.234 ETH'));
       expect(amountText.style!.color, const Color(0xFFAA00AA));
     });
+
+    testWidgets('an omitted amount renders no amount text at all (21-03)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(amount: null));
+
+      // identity is a bare SizedBox with no Text descendant, and every other
+      // optional slot is also omitted here, so there must be NO Text in the
+      // tree at all — exactly the same "omitted entirely" rule the fiat/
+      // exact/pill slots already follow above.
+      expect(find.byType(Text), findsNothing);
+      expect(find.byKey(const Key('id')), findsOneWidget);
+    });
+
+    testWidgets(
+      'an amount that IS supplied still renders in the caller-supplied '
+      'colour, unaffected by amount becoming optional (21-03)',
+      (tester) async {
+        await tester.pumpWidget(
+          host(
+            amount: '0.005 BTC',
+            pill: const Text('Completed', key: Key('p')),
+          ),
+        );
+
+        final amountText = tester.widget<Text>(find.text('0.005 BTC'));
+        expect(amountText.style!.color, const Color(0xFFAA00AA));
+        // The pill still renders alongside a supplied amount — the two
+        // optional slots are independent of one another.
+        expect(find.byKey(const Key('p')), findsOneWidget);
+      },
+    );
   });
 }
