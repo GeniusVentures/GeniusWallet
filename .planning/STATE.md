@@ -5,16 +5,16 @@ milestone_name: milestone
 current_phase: 21
 current_phase_name: Drawer language rollout - the four decided drawer designs, applied to every drawer
 status: verifying
-stopped_at: Completed 21-05-PLAN.md
-last_updated: "2026-07-30T16:39:58.224Z"
+stopped_at: Completed 21-06-PLAN.md (phase 21 closed, 6/6 plans)
+last_updated: "2026-07-30T16:58:17.018Z"
 last_activity: 2026-07-30
 last_activity_desc: Phase 20 complete, transitioned to Phase 21
 progress:
   total_phases: 23
-  completed_phases: 18
+  completed_phases: 19
   total_plans: 107
-  completed_plans: 105
-  percent: 78
+  completed_plans: 106
+  percent: 83
 ---
 
 # Project State
@@ -125,7 +125,23 @@ refusal honoured). New `test/components/crypto_address_chunks_test.dart` (4 test
 SEQUENTIALLY per this session's dispatch override — see `21-05-SUMMARY.md` Deviations. analyze 0/0
 (root + genius_api); full test 758/758 (754 baseline + 4 new); all gates 0/PASS; format clean. Human
 visual walk OUTSTANDING (no live app instance this session, checklist recorded in
-`21-05-SUMMARY.md`). Plan 21-06 NOT yet executed.
+`21-05-SUMMARY.md`).
+**21-06 complete (`268b6bf`/`089cc3a`)** — the phase's closeout: a hand-written, tree-walk-verified
+census of all 17 files / 18 `ResponsiveDrawer.show` call sites in `lib/` now backs a 4-test
+source-scanning gate (`test/components/drawer_padding_invariant_test.dart`), and the legacy
+`BottomDrawer` shell (its own centred title, left-side close ✕, one live consumer — the dev
+gallery's demo) is deleted, closing 21-01-SUMMARY's third OUTSTANDING item. The census matched the
+plan's own pre-wave-1 measured table exactly, byte-accurate after all five wave-1 plans landed — 6
+`ownsScrollingViewport` + 11 `shellInset` (`wallet_information.dart` holding 2 call sites). Named,
+not silently converted: `handle_banxa_drawer.dart`'s `showCheckoutOptionsSheet` stays a raw
+`showModalBottomSheet` (Rule-4 architectural fence — adopting the shell would silently turn it into
+a centred desktop dialog); the two Banxa result drawers still have no production caller. See
+`21-06-SUMMARY.md` for the full closing census table and the ONE consolidated, screen-organised,
+37-item human walk checklist covering 21-01 through 21-06 — the phase's entire outstanding
+human-verification debt in one document. analyze 0/0 (root + genius_api); full test 788/788 (758
+baseline + 30 new); all gates 0/PASS; format clean. **Phase 21 is now fully executed, 6/6 plans;
+the human walk (all 37 items) remains OUTSTANDING — no live app instance was available this
+session for any of the six plans.**
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -308,6 +324,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: Token pair for the sketch's gap: 6px 10px is space4 (8px) horizontal + space3 (6px) vertical -- no exact 10px step exists on the 4-pt scale
 - [Phase ?]: More Options drawer (D-09) measured and left unchanged: no ad-hoc inset found at HEAD
 - [Phase ?]: No shared chunking helper extracted between crypto_address_qr.dart and transaction_displays.dart's _valueChunks (Rule of Three refusal honoured)
+- [Phase ?]: 21-06: hand-written census diffed against a live lib/ tree-walk (not a glob-as-census) proves the drawer body-padding invariant complete across all 17 files/18 call sites
+- [Phase ?]: 21-06: legacy BottomDrawer shell deleted after grep-verifying zero live callers beyond the one dev-gallery demo
+- [Phase ?]: 21-06: handle_banxa_drawer.dart's showCheckoutOptionsSheet stays a raw showModalBottomSheet, not ResponsiveDrawer.show -- adopting the shell would silently change its desktop presentation to a centred dialog, a Rule-4 architectural change outside this re-skin-only phase's fence
 
 ### Pending Todos
 
@@ -431,8 +450,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T16:39:58.212Z
-Stopped at: Completed 21-05-PLAN.md
+Last session: 2026-07-30T16:58:17.006Z
+Stopped at: Completed 21-06-PLAN.md (phase 21 closed, 6/6 plans)
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -560,6 +579,7 @@ Open decisions:
 | Phase 21 P03 | 55min | 4 tasks | 8 files |
 | Phase 21 P04 | 25min | 3 tasks | 4 files |
 | Phase 21 P05 | 45min | 2 tasks | 3 files |
+| Phase 21 P06 | 35min | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 
