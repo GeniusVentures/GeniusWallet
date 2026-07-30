@@ -1,26 +1,21 @@
-// The claim under test: growing the Markets hero chart from 180 to 253 would
-// cost the WIDE card no height, because the right column sits in an
-// `IntrinsicHeight` row whose height comes from the taller LEFT column, and
-// the `Spacer` at markets_hero_card.dart:167 is holding 73px of slack.
+// The claim: growing the Markets hero chart from 180 to 253 costs the WIDE
+// card no height, because the right column sits in an `IntrinsicHeight` row
+// whose height comes from the taller LEFT column, and the `Spacer` in
+// `buildRight` absorbs the 73px difference.
 //
-// That number was DERIVED from the widget tree at 8ed02e78, not measured in a
-// running app — and 253 consumed the slack EXACTLY (left column 301 = 32
-// segment + 16 gap + 253 chart), landing on the boundary with zero margin. A
-// derivation that lands exactly on a boundary is precisely the kind that must
-// be measured, not trusted — and this one did not survive being measured.
+// **This file previously recorded that claim as FALSIFIED. It was not, and the
+// error was here rather than in the claim.** The old host wrapped the card in
+// `SizedBox(width: 1200)` and its comments asserted that width "clears
+// GeniusBreakpoints.medium (768), so this is the WIDE (IntrinsicHeight row)
+// layout". It never set `tester.view.physicalSize`, which defaults to 800x600,
+// so the `SizedBox` was clamped and the card rendered **stacked**. The stacked
+// branch passes `fill: false` - no `Spacer`, no `IntrinsicHeight` - so the card
+// grew by exactly the chart's delta, which is correct behaviour for the one
+// layout the claim was never about. 619.0 and 692.0 are stacked-layout numbers.
 //
-// **RESULT: the hypothesis was FALSIFIED.** This test was written and run
-// FIRST against the shipped 180px chart, recording the real card height as
-// `measuredCardHeight` below. Flipping `kMarketsHeroChartHeight` to 253 and
-// re-running the SAME assertion showed the wide card growing by 73px — the
-// exact amount the `Spacer` was supposed to be absorbing — so the "free on
-// wide" claim does not hold. Per this task's own instruction ("if the
-// wide-layout card grows, STOP and report it; do not accept a taller card
-// and do not adjust the constant to match"), `kMarketsHeroChartHeight` stays
-// at 180. This test now guards that regression: if a future change makes the
-// card grow at the SHIPPED height, or silently bumps the constant without
-// re-verifying the claim, this fails. See `260729-gt4-SUMMARY.md` for the
-// full writeup and the two candidate fixes.
+// The lesson is the one this repo keeps re-learning: a widget test that does
+// not set its surface is not testing the width it says it is. Both layouts are
+// now pinned, at surfaces that actually produce them.
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -35,8 +30,7 @@ CoinGeckoCoin _coin() =>
     CoinGeckoCoin(id: 'bitcoin', symbol: 'btc', name: 'Bitcoin');
 
 /// A 30-point RISING sparkline — `up` reads true, so the chart takes
-/// `statusSuccess`, matching the deterministic trend-colour rule under test
-/// in the implementation (not asserted directly here; the height claim is).
+/// `statusSuccess`, matching the deterministic trend-colour rule.
 List<double> _risingSparkline() =>
     List<double>.generate(30, (i) => 60000.0 + i * 120.0);
 
@@ -75,66 +69,108 @@ CoinGeckoMarketData _marketData() {
   );
 }
 
-/// The same shape as the hero's only real consumer, `markets_screen.dart:197`
-/// — a fixed-width column inside a `SingleChildScrollView`, which hands its
-/// child unbounded height in the scroll direction. 1200px clears
-/// `GeniusBreakpoints.medium` (768), so this is the WIDE (`IntrinsicHeight`
-/// row) layout, not the narrow stacked one.
+/// The same shape as the hero's only real consumer, `markets_screen.dart:197` —
+/// a column inside a `SingleChildScrollView`, which hands its child unbounded
+/// height in the scroll direction.
 Widget _host() => MaterialApp(
   theme: ThemeData(extensions: [GWColors.dark()]),
   home: Scaffold(
-    body: SizedBox(
-      width: 1200,
-      child: SingleChildScrollView(
-        child: MarketsHeroCard(coin: _coin(), data: _marketData()),
-      ),
+    body: SingleChildScrollView(
+      child: MarketsHeroCard(coin: _coin(), data: _marketData()),
     ),
   ),
 );
 
+extension on WidgetTester {
+  /// Sets the surface for real. Without this the default 800x600 decides the
+  /// layout branch no matter what the widget tree asks for — the whole reason
+  /// this file's earlier conclusion was wrong.
+  Future<void> pumpHeroAt(Size size) async {
+    view.physicalSize = size;
+    view.devicePixelRatio = 1.0;
+    addTearDown(view.reset);
+    await pumpWidget(_host());
+    await pump();
+  }
+}
+
 void main() {
-  group(
-    'wide markets hero: the "grow to 253 for free" hypothesis, measured',
-    () {
-      // Measured on this machine, 2026-07-29, against the SHIPPED
-      // `kMarketsHeroChartHeight = 180` at markets_hero_card.dart. Flipping
-      // the constant to 253 grew this by 73px (692.0) instead of holding —
-      // that is the falsified hypothesis this file documents. The constant
-      // stays at 180 pending Jakub's decision, so this pins the CURRENT,
-      // correct height.
-      const measuredCardHeight = 619.0;
+  group('wide markets hero: the Spacer really does absorb the chart', () {
+    // Measured 2026-07-30 at a surface actually set to 1400x1000. The card is
+    // the same height with a 180px chart and with a 253px one — re-verified by
+    // flipping the constant and re-running, which is the check the old version
+    // of this test believed it was doing.
+    const wideCardHeight = 367.0;
+    const intrinsicRowHeight = 301.0;
 
-      testWidgets('the card holds this height (measured, not derived)', (
-        tester,
-      ) async {
-        await tester.pumpWidget(_host());
-        await tester.pump();
+    testWidgets('the card holds its height at the shipped chart size', (
+      tester,
+    ) async {
+      await tester.pumpHeroAt(const Size(1400, 1000));
 
-        // A right column taller than the row would overflow the
-        // `IntrinsicHeight` row's own height and throw.
-        expect(tester.takeException(), isNull);
-
-        final cardSize = tester.getSize(find.byType(MarketsHeroCard));
-        expect(cardSize.height, measuredCardHeight);
-      });
-
-      testWidgets(
-        'the chart itself is the expected height — a squeezed chart cannot '
-        'pass by shrinking',
-        (tester) async {
-          await tester.pumpWidget(_host());
-          await tester.pump();
-
-          expect(tester.takeException(), isNull);
-
-          final chartSize = tester.getSize(find.byType(LineChart));
-          // Pinned to the SAME constant `markets_hero_card.dart` uses for its
-          // `SizedBox(height: ...)` around `_HeroChart` — 180 today, 253
-          // after Task 4(a). Read from the shipped literal so this test fails
-          // loudly (rather than silently) if the two constants ever diverge.
-          expect(chartSize.height, kMarketsHeroChartHeight);
-        },
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getSize(find.byType(MarketsHeroCard)).height,
+        wideCardHeight,
       );
-    },
-  );
+    });
+
+    testWidgets('the IntrinsicHeight row is driven by the LEFT column', (
+      tester,
+    ) async {
+      await tester.pumpHeroAt(const Size(1400, 1000));
+
+      // 301 is the left column's derived height to the pixel — 46 icon + 20 +
+      // 48 price + 16 + 24 pill + 24 + 1 rule + 24 + 39 stat + 20 + 39 stat.
+      // If the RIGHT column ever became the taller one this number moves, and
+      // the "free" chart height stops being free — which is the actual
+      // invariant behind the constant, not the card height alone.
+      expect(
+        tester.getSize(find.byType(IntrinsicHeight)).height,
+        intrinsicRowHeight,
+        reason:
+            'the right column now drives the row: the chart is no longer '
+            'free and kMarketsHeroChartHeight must be re-measured',
+      );
+    });
+
+    testWidgets('the chart fills the wide height and gets the frame', (
+      tester,
+    ) async {
+      await tester.pumpHeroAt(const Size(1400, 1000));
+
+      expect(tester.takeException(), isNull);
+
+      // The frame splits the box into plot + time row, so the LineChart is
+      // shorter than the SizedBox by exactly the time row. Asserting the
+      // relationship rather than a literal keeps this honest if either
+      // constant moves.
+      final chartHeight = tester.getSize(find.byType(LineChart)).height;
+      expect(chartHeight, lessThan(kMarketsHeroChartHeight));
+      expect(chartHeight, greaterThan(kMarketsHeroChartHeight - 40));
+
+      // The right axis is the frame's most visible promise: money labels on
+      // nice-rounded values down the right edge.
+      expect(find.textContaining(r'$6'), findsWidgets);
+    });
+  });
+
+  group('stacked markets hero: no Spacer, so no free height', () {
+    testWidgets('the stacked chart keeps 180 and stays axis-free', (
+      tester,
+    ) async {
+      await tester.pumpHeroAt(const Size(600, 1200));
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(IntrinsicHeight), findsNothing);
+
+      // 180 is below kChartFrameMinHeight, so the runtime rule gives this the
+      // axis-free chart — the LineChart takes the whole box with no time row
+      // beneath it.
+      expect(
+        tester.getSize(find.byType(LineChart)).height,
+        kMarketsHeroChartHeightStacked,
+      );
+    });
+  });
 }
