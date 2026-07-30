@@ -505,7 +505,7 @@ above; tracked separately (see the per-phase detail sections below):
 | 18. Web tab chrome | 0/TBD | Sketched (035-B/036-A/037-B); not planned | - |
 | 19. Feedback tab (card, 150-D) | 1/1 | ✓ Complete (19-VERIFICATION passed 6/6, walk 4/4) | 2026-07-25 |
 | 20. Feedback page frame (153-B) | 1/1 | Complete    | 2026-07-30 |
-| 21. Drawer language rollout | 0/TBD | Added 2026-07-26; 030-B1 shell shipped in 07-06, the four content patterns did not | - |
+| 21. Drawer language rollout | 1/6 | In Progress|  |
 
 ### Phase 12: Transactions redesign
 
@@ -1311,7 +1311,7 @@ primitives) and the 15 caller files listed above.
 **Surface note:** cuts across surfaces owned by Phases 8 (swap drawers), 9 (Banxa), 10 (Reown) and
 12/15 (transactions). Phase 21 owns **drawer chrome and content pattern** only; each drawer's
 mechanics stay with its owning phase.
-**Plans:** 6 plans in 3 waves. Wave 1 is the shared primitive; wave 2 is the four patterns in
+**Plans:** 1/6 plans executed
 parallel; wave 3 is Receive, the unpatterned leftovers, and the invariant sweep. No two plans in a
 wave touch the same file.
 
@@ -1324,7 +1324,7 @@ mounted on any live route - deliberately excepted). Real totals: **6 receipt · 
 
 Plans:
 
-- [ ] 21-01-PLAN.md — Wave 1: the shared padded body (`padBody` + `bodyPadding`) and the five drawer content primitives, proven on the token picker
+- [x] 21-01-PLAN.md — Wave 1: the shared padded body (`padBody` + `bodyPadding`) and the five drawer content primitives, proven on the token picker
 - [ ] 21-02-PLAN.md — Wave 2: 032-A1 list picker across the four remaining pickers (network, account, SDK accounts, bridge destination)
 - [ ] 21-03-PLAN.md — Wave 2: 031-B1 receipt for `showTransactionDetails` — pill, section cards, the fiat line and exact amount it already computes and discards
 - [ ] 21-04-PLAN.md — Wave 2: 031-B1 for the five result drawers (swap success/fail, Banxa success/cancelled, Reown swap result) + the D-03 neutral-amount guard

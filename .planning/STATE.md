@@ -6,14 +6,14 @@ current_phase: 21
 current_phase_name: Drawer language rollout - the four decided drawer designs, applied to every drawer
 status: verifying
 stopped_at: Completed 23-06-PLAN.md — Phase 23 CLOSED
-last_updated: "2026-07-30T14:37:47.835Z"
+last_updated: "2026-07-30T14:56:26.670Z"
 last_activity: 2026-07-30
 last_activity_desc: Phase 20 complete, transitioned to Phase 21
 progress:
   total_phases: 23
   completed_phases: 18
   total_plans: 107
-  completed_plans: 100
+  completed_plans: 101
   percent: 78
 ---
 
@@ -65,7 +65,15 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 21 — Drawer language rollout - the four decided drawer designs, applied to every drawer
-Plan: Not started
+Plan: 21-01 complete (`e108553`/`e752fd4`/`20b85c2`) — WAVE 1 shared primitives, substantially
+re-scoped: most of the plan's named artifacts (padded body, list row, section/detail row) were
+found already shipped ahead of GSD tracking by direct commits `8044bdb`/`bd501d7`/`d7903fc`
+(2026-07-27/28). Only `GWDrawerStatusPill` + `GWDrawerReceiptHead`
+(`lib/components/bottom_drawer/drawer_content.dart`) and mobile-branch padding test coverage were
+genuinely new. See `21-01-SUMMARY.md` for the full account and a recommendation to re-check
+21-02..21-06 against the current tree before executing them — their target files may also be
+further along than their plans assume. analyze 0/0 (root + genius_api); full test 732/732 (726
+baseline + 6 new); all gates 0/PASS; format clean. Plans 21-02..21-06 NOT yet executed.
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -238,6 +246,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 23-05: GWHoverable migration scope expanded from 12 planned sites to 13 -- one planned site (dashboard_screen.dart) was already migrated by prior work, two unplanned sites (gw_copy_row.dart, gw_timeframe_segment.dart) carried the identical pattern and were folded in
 - [Phase 23]: 23-06 closeout: fourteen-item walk (twelve plan items + 23-05's two OUTSTANDING sub-item groups) ALL PASSED in one pass — Developer's explicit call at the checkpoint: all three 23-05 batches were already committed and green, so the per-batch bisect rationale no longer applied
 - [Phase 23]: ORG-05 recorded PARTIAL in REQUIREMENTS.md, pointing at 23-05-EXTRACTION-AUDIT.md — One extraction (GWHoverable, 13 sites) shipped; four candidates refused/deferred on measured grounds -- a complete row would be the unearned PASS this project forbids
+- [Phase ?]: [Phase 21-01]: GWDrawerListRow/GWDrawerSection/GWDrawerDetailRow not built - GWSelectRow (068-A) and GWKicker+GWDetailGrid already ship, tested, adopted by 4+ callers each (commits 8044bdb/bd501d7/d7903fc, pre-dating this plan's execution)
+- [Phase ?]: [Phase 21-01]: Shell's padded body is opt-out (bodyPadding default kDrawerBodyPadding, EdgeInsets.zero to escape), not the plan's opt-in padBody bool - already shipped, more robust resolution of 07-06; token_selector_drawer.dart keeps its own horizontal padding as the documented opt-out for a scrolling body
 
 ### Pending Todos
 
@@ -361,7 +371,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T11:44:24.144Z
+Last session: 2026-07-30T14:55:15.480Z
 Stopped at: Completed 23-06-PLAN.md — Phase 23 CLOSED
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
@@ -485,6 +495,7 @@ Open decisions:
 | Phase 23 P04 | 150min | 3 tasks | 36 files |
 | Phase 23 P05 | 45m | 3 tasks | 12 files |
 | Phase 23 P06 | 55min | 2 tasks | 3 files |
+| Phase 21 P01 | 50min | 3 tasks | 4 files |
 
 ### Roadmap Evolution
 
