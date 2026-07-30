@@ -550,7 +550,7 @@ homepage `Divider` pattern this phase reuses verbatim. Not blocked by Phase 6.
 `{all, sent, received, escrow, mint}` while `TransactionType` has seven values — `swap`, `purchase`
 and `process` are unreachable by any filter today.
 
-**Plans:** 6 plans
+**Plans:** 7/7 plans complete
 
 Plans:
 
