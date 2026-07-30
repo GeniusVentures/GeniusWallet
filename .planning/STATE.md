@@ -2,13 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 22
-current_phase_name: "Codebase hygiene: standards config, dead code deletion, analyzer to zero, CI gates"
-status: verifying
-stopped_at: Completed 21-06-PLAN.md (phase 21 closed, 6/6 plans)
-last_updated: "2026-07-30T17:37:14.248Z"
+current_phase: 14
+current_phase_name: "Compute panel & job flow — CLOSED WITH GAPS (14-08 never executed)"
+status: idle
+stopped_at: "No active phase. 19/23 complete. Open: 1, 10, 11 never started (original port track); 14 gaps_found — the compute panel is built and tested but rendered nowhere, 14-08 is the one plan between it and users."
+last_updated: "2026-07-30T18:15:34.568Z"
 last_activity: 2026-07-30
-last_activity_desc: Phase 21 complete, transitioned to Phase 22
 progress:
   total_phases: 23
   completed_phases: 19
@@ -155,7 +154,7 @@ drifts independently of the phases dir per the project's dual-track note; verify
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
-Status: Phase complete — ready for verification
+Status: idle
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
 `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
@@ -197,7 +196,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-30 — Phase 21 complete, transitioned to Phase 22
+Last activity: 2026-07-30
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
