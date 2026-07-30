@@ -1,169 +1,53 @@
 {
   "version": "1.0",
-  "timestamp": "2026-07-27T07:05:55.278Z",
-  "phase": "20",
-  "phase_name": "Feedback page frame - 153-B \"Focused frame\" (left title + receipt rail)",
-  "phase_dir": ".planning/phases/20-feedback-page-frame-153-b-focused-frame-left-title-receipt-r",
-  "plan": 1,
-  "task": 3,
-  "total_tasks": 3,
-  "status": "committed_and_pr_open",
-  "note_on_this_file": "OVERWRITES the 2026-07-26 08:30 morning-session handoff (backup: /tmp/HANDOFF-morning-backup.json). That session ended ~15h before this one and its narrative survives in .planning/HANDOFF-260726-navbar-hover-web.md, so nothing was lost. THIS session's narrative is .planning/HANDOFF-260726-swap-polish-and-drawer-archetype.md - read that first; this file carries only machine-readable resume state.",
+  "timestamp": "2026-07-30T18:23:25.951Z",
+  "phase": null,
+  "phase_name": "No active phase — 19 of 23 complete",
+  "phase_dir": null,
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "note_on_this_file": "OVERWRITES the 2026-07-27 phase-20 handoff. Nothing lost: that session's narrative survives at .planning/HANDOFF-260726-swap-polish-and-drawer-archetype.md, and phase 20 has since CLOSED (9345ed4). This session's narrative is .planning/HANDOFF-260730-five-phases-closed-and-three-tooling-bugs.md — read that FIRST; this file carries only machine-readable resume state. NOTE: .planning/.continue-here.md was deliberately NOT touched — it holds Jakub's 2026-07-29 handoff from branch redesign/jakub-260728, and overwriting it would be the one-slot-two-sessions collision AGENTS.md documents.",
   "completed_tasks": [
-    {
-      "id": 1,
-      "name": "Phase 20 Task 1 - the page-frame widget test written FIRST and watched fail (RED) for three correct reasons: header measured 560 not 1024, the rail title finder found zero widgets, the send button sat at 758 beside a status ending at 842",
-      "status": "done",
-      "commit": null
-    },
-    {
-      "id": 2,
-      "name": "Phase 20 Task 2 - frame xxl->large (1024), title out of the 560 Center and back on the frame's left edge, LayoutBuilder two-column/stacked, new _buildRail + _railRow, chip strip deleted (_buildReceipt/_logChip/_metaChip removed; _tailBadge kept and reused)",
-      "status": "done",
-      "commit": null
-    },
-    {
-      "id": 3,
-      "name": "Phase 20 Task 3 - Failed-state footer: status line and send button unstacked from one Row (a 130-char message parked the button mid-block). All 3 plan tests GREEN",
-      "status": "done",
-      "commit": null
-    },
-    {
-      "id": "064",
-      "name": "Sketch 064 built, variant B chosen by Jakub: the feedback type chooser now carries the nav bar's exact active-tab language (3px brandCta underline, rounded top, brandPrimaryStrong glow at 50% blur 10, 200ms) plus GWDecorations.hover on inactive tabs",
-      "status": "done",
-      "commit": null
-    },
-    {
-      "id": "064-fixes",
-      "name": "Walk fixes: constant-width border (a BoxDecoration border INSETS its child, so the label twitched 1px on hover), SizedBox(width: infinity) inside the Stack (loose constraints made textAlign:center a no-op), space12->space16 under the chooser, hintStyle textPrimary38 + italic",
-      "status": "done",
-      "commit": null
-    },
-    {
-      "id": "focus-ring",
-      "name": "GWFocusRing (new, lib/components/inputs/) - a gradient focus ring, needed because a BorderSide takes one Color so no InputBorder can be a gradient. Wired into the Swap amount card, the slippage field, the token search and the feedback message",
-      "status": "done",
-      "commit": null
-    },
-    {
-      "id": "drawers",
-      "name": "swap_settings_drawer -> sketch 063-A (presets + validated custom field, Apply in the shell footer via a ValueNotifier); token_selector_drawer -> 032-A1 (padding, visible rows, selection state, displayBalance)",
-      "status": "done",
-      "commit": null
-    },
-    {
-      "id": "swap-form",
-      "name": "Swap form polish: DecimalTextInputFormatter moved bridge->utils (+comma->dot, +decimalRange), You Receive readOnly, hover on the token pill and MAX, theme focusedBorder leak silenced, three 16px horizontal insets removed from the route card / error notice / both CTA branches",
-      "status": "done",
-      "commit": null
-    }
+    {"id": 1, "name": "Phase 23 closed — verification passed 5/5 must-haves", "status": "done", "commit": "2110316"},
+    {"id": 2, "name": "Phase 22 closed — ORG-01 on developer judgement, CI gap left on the record", "status": "done", "commit": "6bcc146"},
+    {"id": 3, "name": "Phase 24 removed to backlog with its four unsettled questions", "status": "done", "commit": "2be45ce"},
+    {"id": 4, "name": "Phase 09 closed — Banxa walk performed, 2 of 7 human items closed", "status": "done", "commit": "f81e015"},
+    {"id": 5, "name": "Phase 14 closed WITH GAPS — compute panel is rendered nowhere", "status": "done", "commit": "1e06904"},
+    {"id": 6, "name": "Phase 20 closed — Feedback frame walk closed the layout questions", "status": "done", "commit": "9345ed4"},
+    {"id": 7, "name": "Phase 21 re-planned mid-flight, 6/6 executed, verification passed", "status": "done", "commit": "262a13d"},
+    {"id": 8, "name": "reown_walletkit 1.3.9 -> 1.4.0 (adds transitive walletconnect_pay 1.0.0)", "status": "done", "commit": "3017f9f"},
+    {"id": 9, "name": "SECURITY: stop printing WalletConnect pairing URIs (carry symKey) to console, 2 sites", "status": "done", "commit": "0bde805"},
+    {"id": 10, "name": "reown money-math test floor — first coverage of the amount shown before signing", "status": "done", "commit": "2a3e14a"},
+    {"id": 11, "name": "CI Flutter pin 3.38.10 -> 3.41.9, both jobs together", "status": "done", "commit": "c9831a0"},
+    {"id": 12, "name": "STATE.md drift corrected — it named a phase that had already closed", "status": "done", "commit": "0b4f90b"}
   ],
   "remaining_tasks": [
-    {
-      "id": "walk",
-      "name": "NEXT SESSION STARTS HERE (Jakub, 2026-07-27). Human walk of the ~17 drawers affected by the responsive_drawer shell change - nobody has looked at them. Do it BEFORE Phase 21, which builds further on the same shell",
-      "status": "not_started"
-    },
-    {
-      "id": "20-verification",
-      "name": "Write 20-VERIFICATION.md. 20-01-SUMMARY.md is DONE (2026-07-27); the verification still needs the SDK-running rail rows, the Failed status string, light mode and the send path - all listed in the summary's 'What the live walk still owes'",
-      "status": "not_started"
-    },
-    {
-      "id": "08-05-remainder",
-      "name": "08-05 Tasks 1 and 2 remain outstanding: the receipt wiring in swap_screen.dart, and deleting the three superseded swap drawers plus the dev-bubble repoint. Task 3 is annotated as superseded and must NOT be run",
-      "status": "not_started"
-    },
-    {
-      "id": "rollout",
-      "name": "Decide whether sketch 064-B rolls out to the other tab/segment controls: transactions filter chips, markets timeframe tabs, web tab strip. NOT to list pickers - 032-A1 decided those separately and differently",
-      "status": "not_started"
-    }
-  ],
-  "resolved_2026_07_27": [
-    {
-      "was": "THREE-WAY FILE COLLISION",
-      "resolution": "Two thirds of it was a phantom. File timestamps settle it: 21-01 and 21-06 were authored 2026-07-27 00:11-00:20, AFTER this session's rewrites, and their read_first sections describe THIS SESSION's code - 21-01 cites `_titleInset = GeniusWalletConsts.space10` at responsive_drawer.dart:124 and `_TokenRowState._selectionTint`; 21-06 cites the ValueNotifier bridge and the whenComplete disposal in swap_settings_drawer.dart. Phase 21 BUILDS ON the tree. Verified by grep that every symbol those plans require to be present, is. Only 08-05 (authored 2026-07-25 22:14) was genuinely stale, and only its Task 3 - now marked type=\"skip\" in the plan file with a banner recording the two divergences: the quick-chip row it says to skip WAS built (sketch 063-A, Jakub's pick), and its `double.tryParse` gate is stale because parsing moved to slippage_state.dart, which also closed the slippage-range todo."
-    },
-    {
-      "was": "D-22 vs 08-07-PLAN.md contradiction",
-      "resolution": "Not a contradiction. D-22 is the decision (Braian, 2026-07-25: 'lets just switch the design we dont need to test it fully'); 08-07-PLAN.md is the walk D-22 declined to run. The plan file was written the same day and simply never carried the descope. A banner now says so and repeats D-22's non-optional recording rule: 08-VERIFICATION.md records the walk as DELIBERATELY SKIPPED, never as performed or passed; Phase 8 closes at human_needed or at passed with an explicit D-22 override; automated gates still run. The plan file is KEPT as the record of what a full walk would check."
-    },
-    {
-      "was": "Phase 20 reporting as `planned`",
-      "resolution": "20-01-SUMMARY.md written 2026-07-27, with the real gate output (analyze: No issues found on both touched files; flutter test test/logs/ + gw_page_header_centered_test.dart: 11/11), the rail row order per SDK state, the footer arrangement and its rejected alternative, and two recorded deviations from the plan's scope."
-    }
+    {"id": 13, "name": "14-08 — render the compute panel in the dashboard, wire switch-wallet + retry, delete the 3 superseded widgets, add the wiring test", "status": "not_started"},
+    {"id": 14, "name": "Phases 1, 10, 11 — the original port track, never started, 0 plans each", "status": "not_started"},
+    {"id": 15, "name": "reown: handle_dapp_requests dispatch and reown_connect_button pairing still untested", "status": "not_started"},
+    {"id": 16, "name": "GWAppBar and GWScreen sweep — filed as todos; both need a functional test net FIRST", "status": "not_started"}
   ],
   "blockers": [
-    {
-      "description": "The responsive_drawer.dart shell change has a blast radius of ~19 drawers: title 16px/w500 -> 18px/w600 (what 030-B1 specified; the shell was never re-measured against the sketch), titleSpacing 16 -> 20 (Material's default vs every body's space10, so the title sat 4px inside its own content), toolbarHeight 48 -> 56.",
-      "type": "technical",
-      "workaround": "Only Swap Settings and Token Selector have been looked at. The other ~17 (Select Network, Account, dApp approvals, Banxa receipts) are UNWALKED with the new header."
-    }
+    {"description": "CI quality job has NEVER executed once. build.yml triggers only on push/PR to develop/main; this branch is 626 commits ahead of origin/develop and 2 behind.", "type": "external", "workaround": "First real signal arrives at the develop PR. Do NOT use workflow_dispatch to force it — that path deletes and recreates a GitHub release."},
+    {"description": "Compute panel (phase 14) is built, height-measured and contrast-proven but referenced ONLY by tests. No user has ever seen it.", "type": "technical", "workaround": "14-08 is the single plan between it and users."}
   ],
   "async_jobs": [],
   "human_actions_pending": [
-    {
-      "action": "Walk the ~17 drawers nobody has seen since the shell header change (18px title, 56px toolbar, titleSpacing 20). THE NEXT SESSION STARTS HERE - Jakub's instruction, 2026-07-27.",
-      "context": "Widest-reach visual change of the session and the only one with no eyes on it. Check three things per drawer: the 18px/w600 title does not clip or collide with a caller action, the 56px toolbar has not squeezed the body, and the title sits on the same left axis as the body content. Record the whole list before fixing anything. Do this BEFORE Phase 21, which builds further on the same shell.",
-      "blocking": true
-    },
-    {
-      "action": "Decide whether 064-B rolls out to the transactions filter chips / markets timeframe tabs / web tab strip.",
-      "context": "Jakub said B 'should be the standard'. Worth knowing: GWDecorations.hover() is used in exactly TWO places app-wide (nav tabs + this chooser) - sketch 044's 'one app-wide recipe' never actually rolled out.",
-      "blocking": false
-    }
+    {"action": "Decide whether the two Banxa result drawers get wired to production, stay dev-only, or are removed", "context": "Re-skinned in 21-03 but only dev_tools_bubble.dart calls them; sketch 066-B draws Paid/Method/Order rows no caller supplies", "blocking": false},
+    {"action": "Answer whether Reject/Deny reads as equally affirmative as Approve/Allow on the two signing drawers", "context": "drawers-final/README.md flagged this open. The phase 21 walk reported no failure, which is NOT the same as the question being answered.", "blocking": false},
+    {"action": "PR into develop to give the CI quality job its first execution", "context": "626-commit reconciliation is its own piece of work; needs authorization", "blocking": false}
   ],
   "decisions": [
-    {
-      "decision": "Phase 20 executed WITHOUT commits",
-      "rationale": "CLAUDE.md forbids commits and the tree carries three sources' uncommitted work; a GSD executor committing atomically would sweep up files it does not own. Chosen by Jakub over the with-commits option.",
-      "phase": "20"
-    },
-    {
-      "decision": "Feedback type chooser = sketch 064 variant B, gradient underline",
-      "rationale": "Chosen by Jakub. The old control broke two standards at once: no hover at all (sketch 044's recipe is app-wide) and a FLAT mint accent, while drawers-final rules that the accent is the gradient.",
-      "phase": "20"
-    },
-    {
-      "decision": "The Message label moved ABOVE the field",
-      "rationale": "Not taste. GWTextField - the app's own component, used by Settings, Markets search, the account manager and onboarding across 7 files - renders labels this way. Feedback used a raw TextField(labelText:), which picks up theme.dart's floatingLabelBehavior: always and notches the label into the outline.",
-      "phase": "20"
-    },
-    {
-      "decision": "'What gets sent' -> 'Attached automatically'",
-      "rationale": "Carries the one thing the user cannot know: that they need do nothing. Recovers the sense of the deleted 'SDK logs attached automatically' header without the word SDK, which means nothing to someone reporting a bug.",
-      "phase": "20"
-    },
-    {
-      "decision": "GWFocusRing rather than an InputBorder",
-      "rationale": "A BorderSide takes a single Color, so no InputBorder can be a gradient. The ring also reserves its 1.5px in BOTH states, so focus never nudges the content it surrounds.",
-      "phase": "20"
-    },
-    {
-      "decision": "formattedBalance left untouched; a separate displayBalance added",
-      "rationale": "MAX puts formattedBalance straight into the amount field, so rounding it there would strand dust or over-ask. The exact value keeps its getter; the rounded one is for eyes only.",
-      "phase": "08"
-    }
+    {"decision": "ORG-01 closed on developer judgement despite the CI job never running", "rationale": "Local gates green. Recorded as closed_by: developer-judgement with truth 7's finding left standing and unretracted, so a future reader sees what was and was not proven.", "phase": "22"},
+    {"decision": "Phase 24 removed to backlog rather than deleted", "rationale": "Its findings were measured and every line number still verified against the tree; re-deriving would mean redoing the audit.", "phase": "24"},
+    {"decision": "Phase 14 closed with gaps rather than executing 14-08", "rationale": "Developer instruction. Recorded as gaps_found so it cannot later read as done.", "phase": "14"},
+    {"decision": "Phase 21's 21-02..21-06 retired and re-planned against the live tree", "rationale": "Their files_modified named files commit 9ff7c04 deleted a phase earlier. Adapting in-flight is right when drift means 'already done', wrong when it means 'the files are gone'.", "phase": "21"},
+    {"decision": "CI Flutter pin moved UP to 3.41.9 rather than local moving down", "rationale": "3.41.9 is what all 798 tests / analyzer 0 were measured on. Trades a CI-proven version for a locally-proven one; both get their first signal at the same develop PR.", "phase": null},
+    {"decision": "Three loose items closed inline rather than through GSD", "rationale": "Deviation, acknowledged. /gsd-quick exists for this shape of work. The commits are sound but carry no plan, executor or verification record.", "phase": null}
   ],
-  "uncommitted_files": [
-    "cmake/CommonBuildParameters.cmake and cmake/DownloadDependencies.cmake ONLY - deliberately held out of PR #216. Snappy is not shipped in the TestNet-Phase-3.1 thirdparty bundle so find_package moved REQUIRED -> QUIET, and the 300MB archive download timeout went 300s -> 3600s. Build-environment work, not redesign work; should land on its own."
-  ],
-  "next_action": "START WITH THE DRAWER WALK - Jakub's instruction, 2026-07-27. Open the ~17 drawers nobody has seen since the responsive_drawer shell change (Select Network, Select Account, the dApp approval drawers, the Banxa receipts, token 'More Options', Receive) and record what the 18px/w600 title, the 56px toolbar and titleSpacing 20 did to each. Fix nothing until the list is complete. Then Phase 21, or 08-05 Tasks 1-2 (Task 3 is superseded - do not run it). Gate: flutter analyze lib = 59, flutter test = 323 pass / 1 fail (test/local_wallet_storage_test.dart is a main()-less stub from the baseline, untouched).",
-  "context_notes": "Facts worth not re-deriving. (1) theme.dart:242 sets an app-wide focusedBorder, and a PER-STATE border always beats InputDecoration's `border` fallback - that is why 'borderless' fields grew a blue box on focus; any field claiming to be borderless must silence all four states. (2) A BoxDecoration carrying a border INSETS its child by the border width, so animating from no-border to border makes content twitch - keep the border present and transparent instead. (3) A Stack gives non-positioned children LOOSE constraints, so a Text inside one shrink-wraps and textAlign:center does nothing. (4) Hot reload is `kill -USR1 42347`; SIGUSR2 and `R` are a RESTART and crash the app on the RocksDB lock. Proof a reload landed: a fresh app.dill.incremental.dill under /var/folders/.../flutter_tools.d6tXkT/. (5) Chrome for Testing EXISTS at ~/Library/Caches/ms-playwright/chromium_headless_shell-1228/ so sketches can be rendered headless; an earlier session wrongly reported no Chrome because it only checked /Applications. (6) swap_screen.dart:243 writes `fees: fromAmount` and transaction_displays.dart:474 renders it as 'Network Fee' - the swap detail drawer shows a wrong number TODAY; todo filed. (7) Swap history is real and persisted, but swap_screen.dart:227 is still `// TODO: invoke Squid API`, so every record describes a swap that never happened.",
-  "pr": {
-    "url": "https://github.com/GeniusVentures/GeniusWallet/pull/216",
-    "branch": "redesign/jakub-260726b",
-    "base": "main",
-    "opened": "2026-07-27",
-    "commits": [
-      "c028cb22 feat(components): a centered GWPageHeader and a gradient focus ring",
-      "cf49b8aa feat(swap): numeric-only amounts, a gradient focus ring, and hover on the pill",
-      "bd501d78 feat(drawers): the settings form archetype (063-A) and the list picker (032-A1)",
-      "d71537fd feat(feedback): Phase 20 page frame (153-B) and the 064-B gradient underline",
-      "76745cb8 docs(planning): Phase 20 record, sketches 040/041/060-064/153/154, plan corrections"
-    ],
-    "gates": "flutter analyze lib = 59 (baseline <= 61); flutter test = 323 pass / 1 fail (test/local_wallet_storage_test.dart, a main()-less stub from the baseline, untouched)"
-  }
+  "uncommitted_files": [],
+  "next_action": "Run /gsd-progress. If picking up code, 14-08 is the highest-value single plan in the project — it ships roughly 2,500 lines of already-built, already-tested compute panel that no user can currently see.",
+  "context_notes": "Five phases closed, one removed. Baseline moved 512 -> 798 tests with analyzer 0 throughout and every gate green. THE MOST IMPORTANT CARRY-FORWARD IS NOT THE PHASE WORK: three GSD/tooling bugs were found that all produce SILENT wrong results — see the anti-patterns table in .planning/.continue-here.md. Working tree clean, nothing pushed, no PR open."
 }
