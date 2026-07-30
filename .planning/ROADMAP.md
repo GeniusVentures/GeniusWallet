@@ -1026,7 +1026,8 @@ Plans:
 **Goal:** Make the codebase's own rules mechanically enforceable and get the tree clean under them —
 without changing behaviour anywhere. Ends with analyzer at zero, a green test suite, and CI actually
 enforcing. Using that enforcement to collapse duplication is Phase 23; state ownership and money
-paths are Phase 24.
+paths were Phase 24, removed from the roadmap 2026-07-30 and parked in
+`.planning/backlog/architecture-state-ownership-layering-routing-genius-api-split.md`.
 
 **Shipped 2026-07-28** — analyzer **0 / exit 0** (from 408), tests **512/0** (from 512/1), brace-less
 `if` **0** (from 192), **−1,744 LOC**, CI `quality` job wired and blocking. One caveat: the CI job has
@@ -1107,7 +1108,8 @@ not one.
 **Split, 2026-07-28.** This phase was planned as 15 plans and then split at the planner's own
 identified boundary. **Phase 22 is now plans 01–08 — the mechanical-hygiene half, independently
 shippable:** it ends with a green CI and zero design-system changes. The consolidation half moved to
-**Phase 23** and the architecture work shifted to **Phase 24**. Splitting cost ~140 cross-reference
+**Phase 23** and the architecture work shifted to **Phase 24** (since removed — see the backlog).
+Splitting cost ~140 cross-reference
 rewrites across already-verified plans; the resulting `depends_on` chains were re-validated
 (`verify plan-structure` = valid on all 15).
 
@@ -1180,6 +1182,10 @@ clipboard). The change pill resolves to three sites whose colour rule is already
 no correctness value to centralise and reconciling them needs a padding parameter. `GWAppBar` and the
 `GWScreen` sweep are deferred: both are layout-visible with no automated proof, and Phase 24's routing
 work opens the same files. All verdicts land in `23-05-EXTRACTION-AUDIT.md` with re-runnable evidence.
+**Note (2026-07-30):** Phase 24 was removed from the roadmap, so these two deferrals no longer have a
+destination phase. They are recorded in
+`.planning/backlog/architecture-state-ownership-layering-routing-genius-api-split.md`; whichever phase
+next opens the routing/app-bar files inherits the "extract while the files are open" argument.
 
 Plans:
 
@@ -1208,68 +1214,6 @@ Plans:
       two added sub-items) in both modes and at two widths — ALL PASSED, every gate re-run from a
       clean tree with output quoted, ORG-01..ORG-05 traceability (ORG-05 **partial**), and the
       handover list including the visual-regression gap itself
-
-### Phase 24: Architecture: state ownership, layering, routing, genius_api split
-
-**Goal:** Bring the app onto Flutter's officially recommended layering (UI → repository → service)
-without changing user-visible behaviour, writing the safety net *before* the change in every case.
-
-**Requirements**: TBD
-**Depends on:** Phase 23
-**Plans:** 0 plans
-
-**Alignment check.** Flutter's official architecture guidance is MVVM but explicitly
-package-agnostic — it names `flutter_bloc` as an acceptable choice — so moving state into cubits is
-aligned, not a detour. Three official rules map directly onto findings: *"Views… shouldn't contain
-any business logic"*, *"the service is a private member, so that the UI layer can't bypass the
-repository"*, and single-source-of-truth. Reference implementation: the Compass app in
-`flutter/samples`.
-
-**Scope reducer.** The published triage is that state needed by exactly one widget is *correctly*
-`setState`. The audit already confirmed hover/press `setState` in this repo is correct usage. So the
-raw setState counts below are an upper bound, not a conversion list — triage first.
-
-**⚠ Crypto constraint (applies to every plan in this phase):** never let a private key or mnemonic
-become a field on a Cubit state class — bloc states are equatable, printable, and land in
-`BlocObserver` logs by default. BIP-39/BIP-32 ship official spec vectors that serve as free,
-externally-authoritative characterization tests; pin them before touching anything crypto-adjacent.
-Published guidance is to isolate the signing/key surface rather than modernize it — **consider
-leaving key derivation and signing entirely alone this cycle.**
-
-Plans:
-
-- [ ] 24-01 Characterization tests first — `lib/onboarding/` (2,415 LOC, zero tests), `lib/reown/`
-      (1,374 LOC, zero tests, dApp transaction approval), `lib/hive/`, and the blocs (zero bloc tests
-      today). Approval/golden-master style: document *actual* behaviour including existing bugs
-
-- [ ] 24-02 Layering — 16 widgets reaching past the repository directly into Hive/`File`/HTTP/SDK;
-      make services private members behind repositories; adopt the official `Result` pattern for the
-      services that currently return `null`/empty on failure
-
-- [ ] 24-03 State ownership — triage then lift genuinely-shared state into cubits (`swap_screen` 15
-      setStates, `bridge_screen` 11, `settings_screen` 19, `reown_connect_button` 11); resolve dual
-      ownership of network state (`NetworkProvider` vs `WalletDetailsCubit`); de-duplicate the
-      `GeniusApi` double registration at `main.dart:157` and `:319` (note: bloc+provider coexisting is
-      **not** a smell — `flutter_bloc` depends on `provider`, and Flutter officially recommends
-      `provider` for DI; the defect is only the duplicate registration)
-
-- [ ] 24-04 Routing — make `redirect` pure (`router.dart:51-71` currently dispatches 5 AppBloc events
-      as a bootstrap side effect on every navigation); route-name constants for 16 hardcoded literals;
-      typed route extras; **gate the unguarded dev routes at `router.dart:199,203`** (`TokenProbeScreen`
-      and `/design_gallery` are reachable in release and the 44 KB gallery is retained by the route
-      table). Contrast: `responsive_overlay.dart:483` gates `DevToolsBubble` correctly
-
-- [ ] 24-05 `genius_api` split — 1,257 LOC mixing FFI, secure storage, web3, protobuf, config file IO
-      and pricing, and it imports `package:flutter/material.dart` so the data layer depends on the UI
-      framework. Split behind the existing class as a facade (cluster methods by which fields they
-      touch); done when the facade holds no instance variables. Callers do not change
-
-- [ ] 24-06 Error handling — `AppBloc` has no try/catch and no error state on 6 handlers in its
-      critical boot path; the processing timer permanently cancels itself on one transient failure;
-      4 empty catch blocks in `web_view_mobile.dart`; 9 `Future`/`StreamBuilder`s with no `hasError`
-      branch
-
----
 
 ### Phase 21: Drawer language rollout - the four decided drawer designs, applied to every drawer
 
