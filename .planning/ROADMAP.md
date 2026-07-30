@@ -1164,7 +1164,7 @@ that can be proven paint-preserving without a visual baseline. Still no behaviou
 
 **Requirements**: ORG-04, ORG-05 (ORG-05 partial by design — see 23-05's extraction audit)
 **Depends on:** Phase 22
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 
 **Why this is separate from 22.** The parity premise in the original scoping was wrong:
 `GeniusWalletColors` has ~46 public members and **288** call sites outside `lib/theme/`, while
@@ -1207,7 +1207,7 @@ Plans:
       (six test files migrated off the legacy palette first); mono type token; de-hex `GWDecorations`;
       `tool/check_raw_colors.sh` scoped to clean directories with a written widening plan
 
-- [ ] 23-05-PLAN.md — The extraction adjudication (every candidate re-measured, four refused or
+- [x] 23-05-PLAN.md — The extraction adjudication (every candidate re-measured, four refused or
       deferred on evidence), then extract `GWHoverable` — 12 sites, promoted from the private shim
       that already exists in `swap_field.dart`, builder-shaped so each call site's paint moves
       verbatim, with hit area and cursor pinned in an ordinary widget test

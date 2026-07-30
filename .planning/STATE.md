@@ -5,9 +5,9 @@ milestone_name: milestone
 current_phase: 23
 current_phase_name: design-system-consolidation-theme-tokens-shared-components
 status: executing
-stopped_at: Completed 23-03-PLAN.md
-last_updated: "2026-07-29T18:54:19.412Z"
-last_activity: 2026-07-29
+stopped_at: Completed 23-05-PLAN.md
+last_updated: "2026-07-30T11:06:59.549Z"
+last_activity: 2026-07-30
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 24
@@ -59,7 +59,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
 Phase: 23 (design-system-consolidation-theme-tokens-shared-components) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 order-status ladder); 09-02 (order_card/banxa_orders_history); 09-03 (buy screen/quote_card);
 09-04 (order_details_card/order_details_page); 09-05 `dc7421d`/`3536bbe` (checkout_qr.dart +
 handle_banxa_drawer.dart D-07 — see 09-05-SUMMARY.md; finding 6 stays OUTSTANDING); 09-06
@@ -115,7 +115,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-29 — Phase 23 execution started
+Last activity: 2026-07-30 — Phase 23 execution started
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
@@ -227,6 +227,9 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: statusNeutral/fixedStatusError/fixedTextSecondary are STATIC consts on GWColors, not instance fields, to avoid reopening the locked statusNeutral exclusion and to serve const-context/no-Theme-ancestor consumers without repainting an AA-adjusted value.
 - [Phase ?]: test/theme/gw_colors_parity_test.dart (not named in the plan) converted from live GeniusWalletColors comparison to frozen-literal pinning, since its architecture became impossible once the primitive layer went private.
 - [Phase ?]: The raw-colour gate's covered scope (16 lib/ subdirectories + main.dart, 0 references) was measured with the gate's own comment/string-stripping matcher, not a naive grep; 66 references remain across 10 directories, tracked with a widening plan in 23-04-GATE-SCOPE.md.
+- [Phase ?]: 23-05: GWTimeframeSegment refused after re-diffing live copies -- track fill and label set diverge (surfaceSunken/5 ranges vs surfaceMenu/4 ranges); border divergence claimed at planning time has since closed
+- [Phase ?]: 23-05: GWCopyRow already exists (built by unrelated Phase 14 work); this plan does not extend it onto its two remaining forks -- out of this plan's fence, flagged as a clean follow-up
+- [Phase ?]: 23-05: GWHoverable migration scope expanded from 12 planned sites to 13 -- one planned site (dashboard_screen.dart) was already migrated by prior work, two unplanned sites (gw_copy_row.dart, gw_timeframe_segment.dart) carried the identical pattern and were folded in
 
 ### Pending Todos
 
@@ -350,8 +353,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-29T18:50:58.786Z
-Stopped at: Completed 23-03-PLAN.md
+Last session: 2026-07-30T11:06:49.008Z
+Stopped at: Completed 23-05-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -472,6 +475,7 @@ Open decisions:
 | Phase 23 P01 | ~40min | 3 tasks | 4 files |
 | Phase 23 P03 | 110min | 3 tasks | 44 files |
 | Phase 23 P04 | 150min | 3 tasks | 36 files |
+| Phase 23 P05 | 45m | 3 tasks | 12 files |
 
 ### Roadmap Evolution
 
