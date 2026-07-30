@@ -505,7 +505,7 @@ above; tracked separately (see the per-phase detail sections below):
 | 18. Web tab chrome | 0/TBD | Sketched (035-B/036-A/037-B); not planned | - |
 | 19. Feedback tab (card, 150-D) | 1/1 | ✓ Complete (19-VERIFICATION passed 6/6, walk 4/4) | 2026-07-25 |
 | 20. Feedback page frame (153-B) | 1/1 | Complete    | 2026-07-30 |
-| 21. Drawer language rollout | 6/6 | Complete   | 2026-07-30 |
+| 21. Drawer language rollout | 6/6 | Complete    | 2026-07-30 |
 
 ### Phase 12: Transactions redesign
 

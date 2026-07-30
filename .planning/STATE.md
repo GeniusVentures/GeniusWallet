@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 21
-current_phase_name: Drawer language rollout - the four decided drawer designs, applied to every drawer
+current_phase: 22
+current_phase_name: "Codebase hygiene: standards config, dead code deletion, analyzer to zero, CI gates"
 status: verifying
 stopped_at: Completed 21-06-PLAN.md (phase 21 closed, 6/6 plans)
-last_updated: "2026-07-30T16:58:17.018Z"
+last_updated: "2026-07-30T17:37:14.248Z"
 last_activity: 2026-07-30
-last_activity_desc: Phase 20 complete, transitioned to Phase 21
+last_activity_desc: Phase 21 complete, transitioned to Phase 22
 progress:
   total_phases: 23
   completed_phases: 19
@@ -64,8 +64,8 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 >   Walk order this session (Jakub): 12 → 15 → 16 → 17 (walk-only), then 13 (code). Light = one
 >   dedicated app-wide pass after dark, per the light-verification-backlog todo.
 
-Phase: 21 — Drawer language rollout - the four decided drawer designs, applied to every drawer
-Plan: 21-01 complete (`e108553`/`e752fd4`/`20b85c2`) — WAVE 1 shared primitives, substantially
+Phase: 22 — Codebase hygiene: standards config, dead code deletion, analyzer to zero, CI gates
+Plan: Not started
 re-scoped: most of the plan's named artifacts (padded body, list row, section/detail row) were
 found already shipped ahead of GSD tracking by direct commits `8044bdb`/`bd501d7`/`d7903fc`
 (2026-07-27/28). Only `GWDrawerStatusPill` + `GWDrawerReceiptHead`
@@ -197,7 +197,7 @@ walk. Any later plan needing genuine first-run state must clear all four persist
 **Carried into Phase 4 (do not lose):** the light-mode dark-only COUNT is NOT DERIVABLE until
 `theme.dart` is wired — wire it EARLY, before re-skinning any screen, then re-walk the gallery.
 Branch: `ui-redesign-port` (off develop) — `branching_strategy: none`, phases land here
-Last activity: 2026-07-30 — Phase 20 complete, transitioned to Phase 21
+Last activity: 2026-07-30 — Phase 21 complete, transitioned to Phase 22
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
 Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
