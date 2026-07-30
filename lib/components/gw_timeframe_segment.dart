@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -93,7 +94,9 @@ class _GWTimeframeSegmentState extends State<GWTimeframeSegment> {
   }
 }
 
-class _TimeframeTab extends StatefulWidget {
+/// Hover plumbing moved into `GWHoverable` (23-05); this widget held no other
+/// state, so it is a `StatelessWidget` now.
+class _TimeframeTab extends StatelessWidget {
   const _TimeframeTab({
     required this.label,
     required this.selected,
@@ -111,59 +114,55 @@ class _TimeframeTab extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_TimeframeTab> createState() => _TimeframeTabState();
-}
-
-class _TimeframeTabState extends State<_TimeframeTab> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final selected = widget.selected;
-    // Unselected label: muted normally, lifts to hoverTextColor on hover.
-    final Color labelColor = selected
-        ? context.gw.textOnBrand
-        : (_hovered ? widget.hoverTextColor : widget.unselectedColor);
+    return GWHoverable(
+      builder: (hovered) {
+        // Unselected label: muted normally, lifts to hoverTextColor on hover.
+        final Color labelColor = selected
+            ? context.gw.textOnBrand
+            : (hovered ? hoverTextColor : unselectedColor);
 
-    // Design-system hover = "lift chip" (sketch 008 variant D): an unselected
-    // tab rises onto surfaceElevated with the card shadow and a 1px lift, so
-    // hover and the selected gradient chip share a raised material.
-    final bool lifted = _hovered && !selected;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          transformAlignment: Alignment.center,
-          transform: lifted
-              ? Matrix4.translationValues(0, -1, 0)
-              : Matrix4.identity(),
-          padding: const EdgeInsets.symmetric(
-            horizontal: GeniusWalletConsts.space4,
-            vertical: GeniusWalletConsts.space3,
-          ),
-          decoration: BoxDecoration(
-            gradient: selected ? GeniusWalletGradient.brandCta : null,
-            color: selected
-                ? null
-                : (lifted ? widget.hoverColor : Colors.transparent),
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-            boxShadow: (selected || lifted) ? GeniusWalletElevation.card : null,
-          ),
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              color: labelColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              height: 1,
+        // Design-system hover = "lift chip" (sketch 008 variant D): an
+        // unselected tab rises onto surfaceElevated with the card shadow and
+        // a 1px lift, so hover and the selected gradient chip share a raised
+        // material.
+        final bool lifted = hovered && !selected;
+        return GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            transformAlignment: Alignment.center,
+            transform: lifted
+                ? Matrix4.translationValues(0, -1, 0)
+                : Matrix4.identity(),
+            padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space4,
+              vertical: GeniusWalletConsts.space3,
+            ),
+            decoration: BoxDecoration(
+              gradient: selected ? GeniusWalletGradient.brandCta : null,
+              color: selected
+                  ? null
+                  : (lifted ? hoverColor : Colors.transparent),
+              borderRadius: BorderRadius.circular(
+                GeniusWalletConsts.radiusPill,
+              ),
+              boxShadow: (selected || lifted)
+                  ? GeniusWalletElevation.card
+                  : null,
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: labelColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                height: 1,
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

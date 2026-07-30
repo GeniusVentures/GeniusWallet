@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 // ponytail: imported for `DashboardScrollContainer` (the page's two cards),
 // which closes an import cycle — dashboard_screen -> transactions_stream ->
@@ -764,12 +765,13 @@ class _TransactionFilterBar extends StatelessWidget {
 /// chip that grows on tap shoves its neighbours sideways under the cursor. The
 /// tooltip carries the name.
 ///
-/// Stateful only to own the hover flag: the design-system hover is the "lift
-/// chip" (sketch 008 variant D), which is the standard for ALL interactive
+/// Hover plumbing moved into `GWHoverable` (23-05); this widget held no other
+/// state, so it is a `StatelessWidget` now. The design-system hover is still
+/// the "lift chip" (sketch 008 variant D), the standard for ALL interactive
 /// chrome — so an unselected chip lifts onto `surfaceElevated` exactly the way
-/// `_TimeframeTab` does on the chart. Without it these two controls sit on the
-/// same dashboard behaving differently under the same cursor.
-class _FilterChip extends StatefulWidget {
+/// `_TimeframeTab` does on the chart, and the two controls keep behaving
+/// identically under the same cursor.
+class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.filter,
     required this.active,
@@ -783,61 +785,53 @@ class _FilterChip extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_FilterChip> createState() => _FilterChipState();
-}
-
-class _FilterChipState extends State<_FilterChip> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final bool active = widget.active;
-    final bool lifted = _hovered && !active;
-
-    final Color fg = active
-        ? context
-              .gw
-              .textOnBrand // 10.6:1 / 7.7:1 on the two stops
-        : (lifted ? gw.textPrimary : gw.textSecondary);
 
     return Semantics(
-      label: widget.filter.label,
+      label: filter.label,
       button: true,
       selected: active,
       child: Tooltip(
-        message: widget.filter.label,
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: GestureDetector(
-            onTap: widget.onTap,
-            child: AnimatedContainer(
-              // 120ms matches _TimeframeTab; the two controls must settle at
-              // the same speed or the dashboard feels assembled from parts.
-              duration: const Duration(milliseconds: 120),
-              height: widget.size,
-              width: widget.size,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                // Active is the brandCta GRADIENT, never a flat blue — the
-                // app-wide rule the 260721-0ze brand sweep established.
-                gradient: active ? GeniusWalletGradient.brandCta : null,
-                color: active
-                    ? null
-                    : (lifted ? gw.surfaceElevated : Colors.transparent),
-                borderRadius: BorderRadius.circular(
-                  GeniusWalletConsts.radiusPill,
+        message: filter.label,
+        child: GWHoverable(
+          builder: (hovered) {
+            final bool lifted = hovered && !active;
+
+            final Color fg = active
+                ? context
+                      .gw
+                      .textOnBrand // 10.6:1 / 7.7:1 on the two stops
+                : (lifted ? gw.textPrimary : gw.textSecondary);
+
+            return GestureDetector(
+              onTap: onTap,
+              child: AnimatedContainer(
+                // 120ms matches _TimeframeTab; the two controls must settle at
+                // the same speed or the dashboard feels assembled from parts.
+                duration: const Duration(milliseconds: 120),
+                height: size,
+                width: size,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  // Active is the brandCta GRADIENT, never a flat blue — the
+                  // app-wide rule the 260721-0ze brand sweep established.
+                  gradient: active ? GeniusWalletGradient.brandCta : null,
+                  color: active
+                      ? null
+                      : (lifted ? gw.surfaceElevated : Colors.transparent),
+                  borderRadius: BorderRadius.circular(
+                    GeniusWalletConsts.radiusPill,
+                  ),
+                ),
+                child: badgeGlyph(
+                  badgeSpec(filter.badgeKind!, gw),
+                  color: fg,
+                  size: 15,
                 ),
               ),
-              child: badgeGlyph(
-                badgeSpec(widget.filter.badgeKind!, gw),
-                color: fg,
-                size: 15,
-              ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -943,11 +937,12 @@ class _FilterRail extends StatelessWidget {
 /// One rail row: `_menuItem`'s geometry byte for byte, plus the navbar's
 /// active-tab mark.
 ///
-/// Stateful only to own the hover flag, exactly like [_FilterChip] — the
+/// Hover plumbing moved into `GWHoverable` (23-05); this widget held no other
+/// state, so it is a `StatelessWidget` now, exactly like [_FilterChip] — the
 /// sketch-008 "lift chip" at 120ms, which is the standard for ALL interactive
 /// chrome in this app and is matched to `_TimeframeTab` so the controls settle
 /// at one speed.
-class _RailRow extends StatefulWidget {
+class _RailRow extends StatelessWidget {
   const _RailRow({
     required this.filter,
     required this.count,
@@ -961,17 +956,8 @@ class _RailRow extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_RailRow> createState() => _RailRowState();
-}
-
-class _RailRowState extends State<_RailRow> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final bool active = widget.active;
-    final bool lifted = _hovered && !active;
 
     // The glyph NEVER changes with selection: same mark, same
     // `textSecondary`, active or not. That is the rule locked at `_menuItem`
@@ -984,124 +970,127 @@ class _RailRowState extends State<_RailRow> {
     // so it collides with no existing meaning. The alternative was a blank
     // glyph slot, which reads as a missing icon rather than as a deliberate
     // absence.
-    final Widget glyph = widget.filter.badgeKind == null
+    final Widget glyph = filter.badgeKind == null
         ? Icon(Icons.list_alt_outlined, size: 14, color: gw.textSecondary)
         : badgeGlyph(
-            badgeSpec(widget.filter.badgeKind!, gw),
+            badgeSpec(filter.badgeKind!, gw),
             color: gw.textSecondary,
             size: 14,
           );
 
     return Semantics(
-      label: widget.filter.label,
+      label: filter.label,
       button: true,
       selected: active,
       // No Tooltip, unlike `_FilterChip`: the rail SHOWS its labels, which is
       // the entire reason it exists.
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          // No `behavior: HitTestBehavior.opaque` — measured as redundant, not
-          // forgotten. The default `deferToChild` already covers the whole 40px
-          // row, because `RenderDecoratedBox.hitTestSelf` delegates to the
-          // decoration's SHAPE and ignores its colour, so the AnimatedContainer
-          // hit-tests across its full area even while its fill is transparent.
-          // A tap in the dead zone between the label and the count selects the
-          // row either way. `_FilterChip` relies on the same thing.
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            // 120ms, matched to `_FilterChip` and `_TimeframeTab`.
-            duration: const Duration(milliseconds: 120),
-            height: GeniusWalletConsts.space20,
-            decoration: BoxDecoration(
-              // The fill spans the row's full width so the lift reads as a
-              // chip, not as a text highlight. `lifted` excludes the active
-              // row: hover and active must not collapse into one fill, which
-              // is the collision that killed sketch 022's variant E.
-              color: lifted ? gw.surfaceElevated : Colors.transparent,
-              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space6,
+      child: GWHoverable(
+        builder: (hovered) {
+          final bool lifted = hovered && !active;
+
+          return GestureDetector(
+            // No `behavior: HitTestBehavior.opaque` — measured as redundant, not
+            // forgotten. The default `deferToChild` already covers the whole 40px
+            // row, because `RenderDecoratedBox.hitTestSelf` delegates to the
+            // decoration's SHAPE and ignores its colour, so the AnimatedContainer
+            // hit-tests across its full area even while its fill is transparent.
+            // A tap in the dead zone between the label and the count selects the
+            // row either way. `_FilterChip` relies on the same thing.
+            onTap: onTap,
+            child: AnimatedContainer(
+              // 120ms, matched to `_FilterChip` and `_TimeframeTab`.
+              duration: const Duration(milliseconds: 120),
+              height: GeniusWalletConsts.space20,
+              decoration: BoxDecoration(
+                // The fill spans the row's full width so the lift reads as a
+                // chip, not as a text highlight. `lifted` excludes the active
+                // row: hover and active must not collapse into one fill, which
+                // is the collision that killed sketch 022's variant E.
+                color: lifted ? gw.surfaceElevated : Colors.transparent,
+                borderRadius: BorderRadius.circular(
+                  GeniusWalletConsts.radiusSm,
+                ),
               ),
-              child: Row(
-                children: [
-                  glyph,
-                  const SizedBox(width: GeniusWalletConsts.space4),
-                  // B2, the navbar's active-tab mark copied outright
-                  // (`responsive_overlay.dart:301-368`): a bold white label
-                  // with a gradient rule under it, and the rule is the width of
-                  // the WORD. Same IntrinsicWidth + stretch content-tracking
-                  // the navbar uses.
-                  //
-                  // IntrinsicWidth is NOT the 37639d5 pattern: it is a
-                  // layout-only intrinsic pass over a two-child subtree, and it
-                  // derives no font size, scale or dimension from the incoming
-                  // constraints. The `Spacer()` after it is what keeps the
-                  // count right-aligned once the label stops filling the row.
-                  IntrinsicWidth(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.filter.label,
-                          style: GeniusWalletTypography.labelMd.copyWith(
-                            // `textPrimary` in BOTH states — the label is NEVER
-                            // recoloured, and no ShaderMask. That is the whole
-                            // difference between B2 and the rejected B, and it
-                            // is why the rail carries no text degradation that
-                            // has to stay in sync with the underline's.
-                            color: gw.textPrimary,
-                            fontWeight: active
-                                ? FontWeight.w700
-                                : FontWeight.w500,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space6,
+                ),
+                child: Row(
+                  children: [
+                    glyph,
+                    const SizedBox(width: GeniusWalletConsts.space4),
+                    // B2, the navbar's active-tab mark copied outright
+                    // (`responsive_overlay.dart:301-368`): a bold white label
+                    // with a gradient rule under it, and the rule is the width of
+                    // the WORD. Same IntrinsicWidth + stretch content-tracking
+                    // the navbar uses.
+                    //
+                    // IntrinsicWidth is NOT the 37639d5 pattern: it is a
+                    // layout-only intrinsic pass over a two-child subtree, and it
+                    // derives no font size, scale or dimension from the incoming
+                    // constraints. The `Spacer()` after it is what keeps the
+                    // count right-aligned once the label stops filling the row.
+                    IntrinsicWidth(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            filter.label,
+                            style: GeniusWalletTypography.labelMd.copyWith(
+                              // `textPrimary` in BOTH states — the label is NEVER
+                              // recoloured, and no ShaderMask. That is the whole
+                              // difference between B2 and the rejected B, and it
+                              // is why the rail carries no text degradation that
+                              // has to stay in sync with the underline's.
+                              color: gw.textPrimary,
+                              fontWeight: active
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Container(
-                          height: 2,
-                          decoration: BoxDecoration(
-                            // ALWAYS rendered, transparent when inactive, so
-                            // every row is the same height and the rail does
-                            // not twitch when selection moves — a layout jump
-                            // under the cursor is exactly what the 120ms hover
-                            // exists to avoid.
-                            //
-                            // Painted through `_activeLabelShader`, NOT through
-                            // `brandCta` directly. This rule is a NON-TEXT mark
-                            // and answers to WCAG 1.4.11's 3:1; the raw blue
-                            // stop fails that on white while the function's
-                            // light degradation passes. See its doc comment for
-                            // the measured ratios.
-                            gradient: active ? _activeLabelShader(gw) : null,
+                          const SizedBox(height: 2),
+                          Container(
+                            height: 2,
+                            decoration: BoxDecoration(
+                              // ALWAYS rendered, transparent when inactive, so
+                              // every row is the same height and the rail does
+                              // not twitch when selection moves — a layout jump
+                              // under the cursor is exactly what the 120ms hover
+                              // exists to avoid.
+                              //
+                              // Painted through `_activeLabelShader`, NOT through
+                              // `brandCta` directly. This rule is a NON-TEXT mark
+                              // and answers to WCAG 1.4.11's 3:1; the raw blue
+                              // stop fails that on white while the function's
+                              // light degradation passes. See its doc comment for
+                              // the measured ratios.
+                              gradient: active ? _activeLabelShader(gw) : null,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${widget.count}',
-                    // Tabular figures so the count column does not jitter.
-                    // Never gradient, never bold, never changed by selection:
-                    // `filterCounts()` runs over the UNFILTERED list on
-                    // purpose, so these numbers do not move when you filter and
-                    // marking state on one would promise a motion that never
-                    // comes (sketch 022 rejected variant C for exactly this).
-                    style: GeniusWalletTypography.numericBody.copyWith(
-                      fontSize: 13,
-                      color: gw.textSecondary,
+                    const Spacer(),
+                    Text(
+                      '$count',
+                      // Tabular figures so the count column does not jitter.
+                      // Never gradient, never bold, never changed by selection:
+                      // `filterCounts()` runs over the UNFILTERED list on
+                      // purpose, so these numbers do not move when you filter and
+                      // marking state on one would promise a motion that never
+                      // comes (sketch 022 rejected variant C for exactly this).
+                      style: GeniusWalletTypography.numericBody.copyWith(
+                        fontSize: 13,
+                        color: gw.textSecondary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

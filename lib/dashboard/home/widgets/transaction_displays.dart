@@ -6,6 +6,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/effects/gw_hover_row.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
@@ -539,7 +540,7 @@ List<TextSpan> _valueChunks(String raw, GWColors gw, TextStyle base) {
 /// `HitTestBehavior.opaque` makes the whole row the target, not just the
 /// painted glyph: the panel gives us 380px of width and there is no reason to
 /// hand the user a 14px one.
-class _CopyRow extends StatefulWidget {
+class _CopyRow extends StatelessWidget {
   const _CopyRow({required this.label, required this.value});
 
   final String label;
@@ -547,13 +548,6 @@ class _CopyRow extends StatefulWidget {
   /// The FULL value. What is drawn is [_valueChunks]' short form; what is
   /// copied is this.
   final String value;
-
-  @override
-  State<_CopyRow> createState() => _CopyRowState();
-}
-
-class _CopyRowState extends State<_CopyRow> {
-  bool _hovered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -564,15 +558,14 @@ class _CopyRowState extends State<_CopyRow> {
       fontFamily: GeniusWalletTypography.monoFamily,
     );
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
+    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
+    // other state, so it is a `StatelessWidget` now.
+    return GWHoverable(
+      builder: (hovered) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          Clipboard.setData(ClipboardData(text: widget.value));
-          showAppSnackBar(context, '${widget.label} copied');
+          Clipboard.setData(ClipboardData(text: value));
+          showAppSnackBar(context, '$label copied');
         },
         // The inset is INSIDE the detector, so the whole grid cell is the
         // target -- see kGWDetailRowPadding for why the grid does not pad.
@@ -582,7 +575,7 @@ class _CopyRowState extends State<_CopyRow> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                widget.label,
+                label,
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: gw.textPrimary70,
                 ),
@@ -593,9 +586,7 @@ class _CopyRowState extends State<_CopyRow> {
                   children: [
                     Flexible(
                       child: Text.rich(
-                        TextSpan(
-                          children: _valueChunks(widget.value, gw, mono),
-                        ),
+                        TextSpan(children: _valueChunks(value, gw, mono)),
                         textAlign: TextAlign.right,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -605,7 +596,7 @@ class _CopyRowState extends State<_CopyRow> {
                     Icon(
                       Icons.copy_rounded,
                       size: 14,
-                      color: _hovered ? gw.textPrimary : gw.textSecondary,
+                      color: hovered ? gw.textPrimary : gw.textSecondary,
                     ),
                   ],
                 ),
