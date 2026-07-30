@@ -4,17 +4,17 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 23
 current_phase_name: design-system-consolidation-theme-tokens-shared-components
-status: executing
-stopped_at: Completed 23-05-PLAN.md
-last_updated: "2026-07-30T11:06:59.549Z"
+status: verifying
+stopped_at: Completed 23-06-PLAN.md — Phase 23 CLOSED
+last_updated: "2026-07-30T11:44:24.156Z"
 last_activity: 2026-07-30
 last_activity_desc: Phase 23 execution started
 progress:
   total_phases: 24
-  completed_phases: 17
+  completed_phases: 18
   total_plans: 107
-  completed_plans: 97
-  percent: 71
+  completed_plans: 99
+  percent: 75
 ---
 
 # Project State
@@ -73,7 +73,7 @@ drifts independently of the phases dir per the project's dual-track note; verify
 fresh-install end-to-end walk PASSED all four ROADMAP criteria (RUN A create dark+light, RUN B import;
 no onboarding overflow; clean seed/PIN console). See `06-06-SUMMARY.md`. **Next: Phase 07 (Token
 screens), not yet planned.** Historical note preserved below records the 06-01 walk detail.
-Status: Ready to execute
+Status: Phase complete — ready for verification
 2026-07-21.** Walked and APPROVED on a genuine fresh install — all four independent wallet
 persistence layers cleared (it took four attempts; see
 `.planning/todos/pending/2026-07-21-four-independent-wallet-persistence-layers-with-no-documente.md`).
@@ -230,6 +230,8 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 23-05: GWTimeframeSegment refused after re-diffing live copies -- track fill and label set diverge (surfaceSunken/5 ranges vs surfaceMenu/4 ranges); border divergence claimed at planning time has since closed
 - [Phase ?]: 23-05: GWCopyRow already exists (built by unrelated Phase 14 work); this plan does not extend it onto its two remaining forks -- out of this plan's fence, flagged as a clean follow-up
 - [Phase ?]: 23-05: GWHoverable migration scope expanded from 12 planned sites to 13 -- one planned site (dashboard_screen.dart) was already migrated by prior work, two unplanned sites (gw_copy_row.dart, gw_timeframe_segment.dart) carried the identical pattern and were folded in
+- [Phase 23]: 23-06 closeout: fourteen-item walk (twelve plan items + 23-05's two OUTSTANDING sub-item groups) ALL PASSED in one pass — Developer's explicit call at the checkpoint: all three 23-05 batches were already committed and green, so the per-batch bisect rationale no longer applied
+- [Phase 23]: ORG-05 recorded PARTIAL in REQUIREMENTS.md, pointing at 23-05-EXTRACTION-AUDIT.md — One extraction (GWHoverable, 13 sites) shipped; four candidates refused/deferred on measured grounds -- a complete row would be the unearned PASS this project forbids
 
 ### Pending Todos
 
@@ -353,8 +355,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T11:06:49.008Z
-Stopped at: Completed 23-05-PLAN.md
+Last session: 2026-07-30T11:44:24.144Z
+Stopped at: Completed 23-06-PLAN.md — Phase 23 CLOSED
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -476,6 +478,7 @@ Open decisions:
 | Phase 23 P03 | 110min | 3 tasks | 44 files |
 | Phase 23 P04 | 150min | 3 tasks | 36 files |
 | Phase 23 P05 | 45m | 3 tasks | 12 files |
+| Phase 23 P06 | 55min | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 
