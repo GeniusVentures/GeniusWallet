@@ -72,13 +72,14 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     _isClipboardPairing = true;
     try {
       await WalletKitInstance().initOnce();
-      debugPrint('📋 WalletConnect URI from clipboard: $text');
+      // The pairing URI carries a symKey — never log it, and never log an
+      // exception that could echo it back (Uri.parse quotes its source).
       await WalletKitInstance().walletKit.pair(uri: Uri.parse(text));
       _lastHandledWalletConnectUri = text;
       // Clear the clipboard after processing to avoid repeated connections.
       await Clipboard.setData(const ClipboardData(text: ''));
     } catch (e) {
-      debugPrint('❌ Clipboard WalletConnect pair failed: $e');
+      debugPrint('❌ Clipboard WalletConnect pair failed: ${e.runtimeType}');
     } finally {
       _isClipboardPairing = false;
     }

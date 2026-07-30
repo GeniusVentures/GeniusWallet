@@ -249,8 +249,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
     try {
       final CreateResponse pairingInfo = await walletKit.core.pairing.create();
+      // The pairing URI carries a symKey — it goes to the QR and the manual
+      // copy field, never to the console.
       final wcUri = pairingInfo.uri.toString();
-      debugPrint("🔗 WalletConnect URI: $wcUri");
       String? manualInputError;
       bool showManualInput = _isDesktopOrIot;
 
