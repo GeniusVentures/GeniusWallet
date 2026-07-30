@@ -9,6 +9,7 @@ import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_cta_state.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
@@ -193,15 +194,34 @@ class BridgeScreenState extends State<BridgeScreen> {
       title: 'Select destination network',
       child: ListView(
         shrinkWrap: true,
+        // The inset the rows used to carry as `contentPadding` now lives on
+        // the viewport, so it scrolls with the content (kDrawerBodyPadding).
+        padding: const EdgeInsets.all(GeniusWalletConsts.space10),
+        // D-04/068-A: the old row painted selection as a `borderStrong`
+        // rectangle (1.60:1 on this panel) plus an untinted `textPrimary`
+        // check, so nothing here carried WCAG 1.4.11 on its own. `GWSelectRow`
+        // is the fifth and last 032-A1 call site: its gradient-masked check
+        // measures 6.81:1 (`gw_select_row_test.dart`), so selection is finally
+        // provable, not just plausible.
         children: [
           for (final network in networks)
-            _NetworkPickerRow(
-              network: network,
-              isSelected: network.chainId == toNetwork?.chainId,
+            GWSelectRow(
+              selected: network.chainId == toNetwork?.chainId,
               onTap: () {
                 setState(() => toNetwork = network);
                 Navigator.of(context).pop();
               },
+              leading: SizedBox(
+                width: 36,
+                height: 36,
+                child: Image.asset(
+                  network.iconPath ?? "",
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox(width: 36, height: 36),
+                ),
+              ),
+              title: network.name ?? '',
             ),
         ],
       ),
@@ -788,57 +808,6 @@ class BridgeScreenState extends State<BridgeScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-/// Task 2 (d): one tappable row per `availableBridgeNetworks` entry inside
-/// the destination-network `ResponsiveDrawer`. Mirrors
-/// `token_selector_drawer.dart`'s row treatment (`gw.surfaceMenu` fill,
-/// `gw.textPrimary`/`gw.textSecondary` text) without importing that
-/// `SquidTokenInfo`-typed widget -- this row is `Network`-typed.
-class _NetworkPickerRow extends StatelessWidget {
-  final Network network;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _NetworkPickerRow({
-    required this.network,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Container(
-      margin: const EdgeInsets.only(bottom: GeniusWalletConsts.space4),
-      decoration: BoxDecoration(
-        color: gw.surfaceMenu,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        border: isSelected
-            ? Border.all(color: gw.borderStrong, width: 1)
-            : null,
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Image.asset(
-          network.iconPath ?? "",
-          height: 36,
-          width: 36,
-          errorBuilder: (context, error, stackTrace) {
-            return const SizedBox(height: 36, width: 36);
-          },
-        ),
-        title: Text(
-          network.name ?? '',
-          style: GeniusWalletTypography.labelMd.copyWith(color: gw.textPrimary),
-        ),
-        trailing: isSelected
-            ? Icon(Icons.check, color: gw.textPrimary, size: 18)
-            : null,
-        onTap: onTap,
       ),
     );
   }
