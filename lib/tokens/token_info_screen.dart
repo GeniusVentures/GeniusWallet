@@ -499,16 +499,41 @@ class TokenInfoScreen extends StatelessWidget {
     // two buttons is the whole change - it clears 2.5.8 (AA) and fails 2.5.5
     // (AAA), which is the decision, not a tweak.
     //
-    // The accepted cost: at rest the icons have no boundary, and the hover
-    // circle is the only edge. That is fine under 1.4.11 - a control's edge
-    // must clear 3:1 only when the EDGE is what identifies the control, and
-    // here the glyph is, at 15.8:1 dark / 16.1:1 light. Same argument
-    // `GWSelectRow` recorded for its check mark.
+    // **That accepted cost was cashed in on 2026-07-29 and is now paid off.**
+    // The paragraph above used to end here saying the icons have no boundary at
+    // rest and that this is fine under 1.4.11, because the GLYPH identifies the
+    // control, not its edge. The standards argument still holds. What did not
+    // hold is the product one: the walk found both actions by eye as "nie halo"
+    // - two bare glyphs floating beside a 26px coin name, reading as decoration
+    // rather than buttons. Sketch 164-C adds the boundary back.
+    //
+    // **It adds it at 32px inside the 48px target, and that split is the whole
+    // point.** Switching to `GWButtonVariant.icon` was the obvious move and it
+    // would have reversed the 2026-07-28 decision recorded above - Jakub's
+    // *"te ikony powinny być wysokości tytułu, nie większe"* - because that
+    // variant paints its box at the button's full 48. So the TARGET stays 48
+    // (2.5.5 AAA, kept on Jakub's explicit call) and the PAINTED box is 32,
+    // which is the title's own height. Nothing is reversed.
+    //
+    // **The edge carries it, not the fill**, and that is measured rather than
+    // chosen: this row sits on the PAGE (`surfaceBase` #0B0D12), and
+    // `variant: icon`'s own `surfaceElevated` fill is #0C0E14 - **1.01:1**
+    // against it, i.e. not a box at all. `surfaceMenu` is 1.12:1, a lift and no
+    // more. Only `borderControl` draws, at **3.28:1**, and that is precisely
+    // the token's documented job: *"the edge of a CONTROL whose fill cannot
+    // identify it"*.
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         GWButton.icon(
-          icon: const Icon(Icons.qr_code_2),
+          // `call_received` replaces `Icons.qr_code_2` (Jakub, 2026-07-29).
+          // The old glyph is a finder-square-plus-data-field matrix - roughly
+          // twenty sub-3px shapes inside a 20px box - which rasterised into
+          // noise at this size. Two strokes resolve at any size. The cost is
+          // named, not hidden: the matrix said "there is a code to scan" and
+          // the drawer this opens IS a QR code, so the arrow trades a little
+          // specificity for legibility.
+          icon: const _ActionGlyph(Icons.call_received),
           variant: GWButtonVariant.ghost,
           size: GWButtonSize.md,
           tooltip: 'Receive',
@@ -541,7 +566,9 @@ class TokenInfoScreen extends StatelessWidget {
           ),
         ),
         GWButton.icon(
-          icon: const Icon(Icons.swap_horiz),
+          // `swap_horiz` kept verbatim (Jakub, 2026-07-29): it reads fine at
+          // 20px, so only the container and the tint change here.
+          icon: const _ActionGlyph(Icons.swap_horiz),
           variant: GWButtonVariant.ghost,
           size: GWButtonSize.md,
           tooltip: 'Swap',
@@ -581,7 +608,14 @@ class TokenInfoScreen extends StatelessWidget {
         ),
         if (isGnusBridgeEnabled)
           GWButton.icon(
-            icon: const Icon(Icons.alt_route),
+            // Bridge was not in the 164 brief, but it stands in the same row on
+            // GNUS-enabled coins. Leaving it bare next to two bounded siblings
+            // would read as a broken third button rather than a restrained one,
+            // so it takes the same treatment. Flagged rather than assumed.
+            icon: _ActionGlyph(
+              Icons.alt_route,
+              enabled: selectedCoin?.balance != 0,
+            ),
             variant: GWButtonVariant.ghost,
             size: GWButtonSize.md,
             tooltip: selectedCoin?.balance == 0
@@ -646,27 +680,32 @@ class CoinConvertCard extends StatefulWidget {
 
 class CoinConvertCardState extends State<CoinConvertCard> {
   late TextEditingController _tokenAmountController;
-  late TextEditingController _tokenPriceController;
 
   double _totalValue = 0;
 
   @override
   void initState() {
     super.initState();
-    _tokenPriceController = TextEditingController(
-      text: widget.tokenPrice.toString(),
-    );
     _tokenAmountController = TextEditingController(text: "1");
     _calculateTotalValue();
   }
 
+  @override
+  void dispose() {
+    _tokenAmountController.dispose();
+    super.dispose();
+  }
+
+  /// Reads the price straight off the widget. It used to be parsed back out of
+  /// `_tokenPriceController.text`, which only existed because the display was
+  /// an input - a `double` stringified into a controller and re-parsed on every
+  /// keystroke. 164-A made the display a fact, so the round trip went with it.
   void _calculateTotalValue() {
     final double tokenAmount =
         double.tryParse(_tokenAmountController.text) ?? 0;
-    final double tokenPrice = double.tryParse(_tokenPriceController.text) ?? 0;
 
     setState(() {
-      _totalValue = tokenAmount * tokenPrice;
+      _totalValue = tokenAmount * widget.tokenPrice;
     });
   }
 
@@ -687,64 +726,64 @@ class CoinConvertCardState extends State<CoinConvertCard> {
           Column(
             spacing: GeniusWalletConsts.space6,
             children: [
-              // Read-only display of marketData.currentPrice (sketch 152: only
-              // Token Amount is editable).
+              // The live price is a FACT, not a field (sketch 164-A, Jakub
+              // 2026-07-29). It used to be a `GWTextField(readOnly: true)`
+              // wearing a bordered `READ-ONLY` chip in its `suffix`, and the
+              // chip was carrying the whole message on its own: the box was the
+              // same height, the same radius and nearly the same edge as the
+              // field directly beneath it, which you CAN type in.
               //
-              // 070-A: both fields left the notched Material floating label -
-              // the only pattern of its kind in the app besides
-              // `custom_drop_down.dart` - for `GWTextField`, which puts the
-              // label ABOVE the box at labelMd/textSecondary/space4 like every
-              // other field the app ships.
+              // A `GWDetailGrid` row settles it structurally instead of
+              // labelling it. Three things follow, and the third is the reason
+              // this beat the alternatives:
               //
-              // The READ-ONLY chip rides in `suffix` rather than beside the
-              // label because `GWTextField.label` is a `String`, not a `Widget`;
-              // growing it for one consumer fails the promotion test everything
-              // else this week was held to. It also lands on the thing it
-              // describes.
+              //  1. The card already speaks this language one row down - the
+              //     `Total` below is the same grid - so the price joins the
+              //     facts rather than impersonating an input.
+              //  2. The value keeps `textPrimary`. Sketch 164 measured the
+              //     obvious rival (keep the box, grey the value): that is
+              //     `textSecondary` on `surfaceSunken`, **6.20:1 dark but
+              //     4.23:1 light** - under the 4.5:1 body floor. This variant
+              //     has no such debt in either mode.
+              //  3. **A `readOnly` field still takes focus in Flutter.** The
+              //     old box could be tabbed into and would light up promising
+              //     an edit that cannot happen; the comment that used to live
+              //     here said so while shipping it anyway. A row cannot be
+              //     focused, so the defect is gone rather than annotated.
               //
-              // **The two fields rest at different edge weights on purpose.**
-              // The editable one is `borderControl` (3.30:1) via `focusRing`;
-              // this one keeps the component's `borderSubtle` default (1.32:1).
-              // A read-only display is not a UI component under 1.4.11, and the
-              // difference is information - the louder edge is the one you can
-              // type in. `focusRing` here was rejected deliberately: a
-              // `readOnly` field still takes focus in Flutter, so it would light
-              // a gradient promising an edit that cannot happen.
-              GWTextField(
-                controller: _tokenPriceController,
-                label: "Token price",
-                readOnly: true,
-                fill: gw.surfaceSunken,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                suffix: Padding(
-                  padding: const EdgeInsets.only(
-                    right: GeniusWalletConsts.space6,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    widthFactor: 1,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: GeniusWalletConsts.space2,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: gw.borderSubtle),
-                        borderRadius: BorderRadius.circular(
-                          GeniusWalletConsts.radiusXs,
+              // It also drops `_tokenPriceController`: the price arrived as a
+              // double, went through `toString()` into a controller and came
+              // back out through `double.tryParse` - a round trip that existed
+              // only because the display was an input.
+              GWDetailGrid(
+                rows: [
+                  Padding(
+                    padding: kGWDetailRowPadding,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Token price",
+                          style: GeniusWalletTypography.bodySm.copyWith(
+                            color: gw.textSecondary,
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        "READ-ONLY",
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: gw.textPrimary54,
+                        Text(
+                          NumberFormat.currency(
+                            locale: "en_US",
+                            symbol: "\$",
+                            decimalDigits: widget.tokenPrice >= 1 ? 2 : 6,
+                          ).format(widget.tokenPrice),
+                          style: GeniusWalletTypography.bodySm.copyWith(
+                            color: gw.textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ),
               // The one editable control on this card, so it is the one that
               // gets the brand GRADIENT on focus. It lit a FLAT
@@ -1244,28 +1283,127 @@ class _StatRail extends StatelessWidget {
             : 2;
         final double gap = GeniusWalletConsts.space6.toDouble();
         final double w = (constraints.maxWidth - gap * (perRow - 1)) / perRow;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (final t in tiles)
-              SizedBox(
-                width: w,
-                child: GWCard(
-                  radius: GeniusWalletConsts.radiusMd,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: GeniusWalletConsts.space6,
-                    vertical: GeniusWalletConsts.space6,
-                  ),
-                  child: t,
-                ),
+        // Chunked Rows under IntrinsicHeight, NOT a Wrap. A `Wrap` places its
+        // children at their natural size and neither stretches nor equalises
+        // them, so the one tile carrying the range bar (`space4` + a 4px track
+        // = 12px more than the shared `GWStatTile`) stood 77px tall in a row of
+        // 65s. That single proud card is what read as broken on the 2026-07-29
+        // walk. `IntrinsicHeight` + `stretch` gives every card in a run the
+        // tallest one's height, and it is safe here in a way it is not around a
+        // chart: these subtrees are Text and a Container, all of which answer
+        // an intrinsic-height query cheaply.
+        final rows = <Widget>[];
+        for (var i = 0; i < tiles.length; i += perRow) {
+          final chunk = tiles.sublist(i, math.min(i + perRow, tiles.length));
+          rows.add(
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var j = 0; j < chunk.length; j++) ...[
+                    if (j > 0) SizedBox(width: gap),
+                    SizedBox(
+                      width: w,
+                      child: GWCard(
+                        radius: GeniusWalletConsts.radiusMd,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: GeniusWalletConsts.space6,
+                          vertical: GeniusWalletConsts.space6,
+                        ),
+                        child: chunk[j],
+                      ),
+                    ),
+                  ],
+                ],
               ),
+            ),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var r = 0; r < rows.length; r++) ...[
+              if (r > 0) SizedBox(height: gap),
+              rows[r],
+            ],
           ],
         );
       },
     );
   }
 }
+
+/// The identity row's action glyph (sketch 164-C): a 32px bounded box carrying
+/// the brand gradient, riding inside `GWButton`'s 48px transparent target.
+///
+/// **Why a box at 32 rather than `GWButtonVariant.icon` at 48.** That variant
+/// paints at the button's full height, which would put a 48px chip beside a
+/// 32px title and reverse Jakub's 2026-07-28 call (*"te ikony powinny być
+/// wysokości tytułu, nie większe"*). Splitting them keeps the 48px tap target
+/// he separately chose to keep on 2026-07-29 AND a painted box no taller than
+/// the word next to it.
+///
+/// **Why the edge and not the fill.** On the page canvas (`surfaceBase`
+/// #0B0D12) `surfaceElevated` measures **1.01:1** and `surfaceMenu` **1.12:1** -
+/// neither is a boundary. `borderControl` is **3.28:1**, clearing 1.4.11's 3:1
+/// for the edge that now identifies the control. The fill is a lift, the border
+/// is the statement.
+///
+/// **Why `brandCtaText` and not `brandCta`.** The raw CTA gradient's two stops
+/// measure 10.39:1 and 7.54:1 on the dark canvas and **1.65:1 / 2.28:1 on a
+/// light one** - unreadable. `brandCtaText` collapses to the flat light-safe
+/// `brandPrimaryOnSurface` (#0A6885, 6.30:1) above the luminance threshold, so
+/// one paint path covers both appearances with no branch in the widget tree.
+///
+/// The [Icon] deliberately sets NO colour: `GWButton` supplies it through
+/// `IconTheme` and drops it to alpha 140 when disabled, and a `srcIn`
+/// `ShaderMask` masks the gradient by its child's alpha - so the disabled state
+/// keeps dimming rather than being painted over at full strength.
+class _ActionGlyph extends StatelessWidget {
+  const _ActionGlyph(this.icon, {this.enabled = true});
+
+  final IconData icon;
+
+  /// The box does not learn `onPressed == null` from `GWButton`, so the one
+  /// call site that can be disabled (Bridge, on a zero balance) passes it.
+  /// Without this the border would stay full strength around a dimmed glyph.
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces this
+    // subtree to rebuild on a live appearance toggle (04-04 discipline).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final Color edge = enabled
+        ? gw.borderControl
+        : gw.borderControl.withAlpha(140);
+    return Container(
+      width: 32,
+      height: 32,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: gw.surfaceMenu,
+        border: Border.all(color: edge),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+      ),
+      child: ShaderMask(
+        blendMode: BlendMode.srcIn,
+        shaderCallback: (bounds) => GeniusWalletGradient.brandCtaText(
+          gw.surfaceMenu,
+        ).createShader(bounds),
+        child: Icon(icon, size: 18),
+      ),
+    );
+  }
+}
+
+/// The 24h-range track and its position marker, keyed so the layout claims in
+/// `test/tokens/coin_page_range_tile_test.dart` can measure them.
+///
+/// Both were invisible to every other kind of check: the track's collapse to
+/// zero width is a `Stack` loose-constraint result, not a value anything reads.
+const Key kCoinRangeTrackKey = Key('coin-range-track');
+const Key kCoinRangeMarkerKey = Key('coin-range-marker');
 
 /// The 24h low/high tile: a [GWStatTile] with a position bar under it.
 ///
@@ -1297,22 +1435,43 @@ class _RangeTile extends StatelessWidget {
         if (known) ...[
           const SizedBox(height: GeniusWalletConsts.space4),
           // A 4px track with the current price's position along it. Decorative:
-          // the numbers above say the same thing, so 1.4.11 does not apply and
-          // borderSubtle is the right weight.
-          LayoutBuilder(
-            builder: (context, c) => Stack(
+          // the numbers above say the same thing, so 1.4.11 does not bind.
+          //
+          // **The track is `borderStrong`, not `surfaceSunken`.** The original
+          // painted the rail in the DEEPEST surface (#06080C) on top of a
+          // `surfaceElevated` card (#0C0E14) — a darker-on-dark fill about
+          // 1.1:1 against its own background, with a `borderSubtle` hairline
+          // (1.36:1) as its only edge. It was not a faint rail; on the walk it
+          // was no rail at all, and the 6px marker read as a teal dot floating
+          // under the numbers with nothing beneath it. Light mode hid the bug:
+          // there `surfaceSunken` is #CFD4DB, plainly visible on a white card.
+          // `borderStrong` is 24% of the ink/white axis, so it reads on BOTH
+          // canvases — which is the property the old pairing lacked, not extra
+          // weight for its own sake.
+          // `Align` on a fractional x, NOT a `LayoutBuilder` + `Positioned`.
+          // Alignment.x runs -1..1 across the free space with the child's own
+          // width already discounted, so `2t - 1` places the marker exactly
+          // where `left: (maxWidth - 6) * t` did — and it gets there without
+          // measuring. That matters: `LayoutBuilder` refuses intrinsic queries
+          // outright ("does not support returning intrinsic dimensions"), so
+          // one inside this tile threw the moment `_StatRail` wrapped the run
+          // in `IntrinsicHeight` to equalise the six card heights.
+          SizedBox(
+            height: 4,
+            child: Stack(
               children: [
                 Container(
+                  key: kCoinRangeTrackKey,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: gw.surfaceSunken,
+                    color: gw.borderStrong,
                     borderRadius: BorderRadius.circular(2),
-                    border: Border.all(color: gw.borderSubtle, width: 0.5),
                   ),
                 ),
-                Positioned(
-                  left: (c.maxWidth - 6) * t,
+                Align(
+                  alignment: Alignment(2 * t - 1, 0),
                   child: Container(
+                    key: kCoinRangeMarkerKey,
                     width: 6,
                     height: 4,
                     decoration: BoxDecoration(
