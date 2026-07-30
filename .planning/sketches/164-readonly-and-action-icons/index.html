@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 164 - Read-only field + coin-page action icons</title>
+<style>
+  :root{
+    --surface-base:#0B0D12; --surface-elevated:#0C0E14; --surface-menu:#171A21; --surface-sunken:#06080C;
+    --text-primary:#FFFFFF; --text-secondary:#8A8F9D; --text-p54:rgba(255,255,255,.54);
+    --border-subtle:rgba(255,255,255,.12); --border-strong:rgba(255,255,255,.24); --border-control:rgba(255,255,255,.36);
+    --brand:#14C8FF; --success:#0AD89C; --error:#FF4D4D;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface-base);color:var(--text-primary);
+       font:14px/20px -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1360px;margin:0 auto;padding:32px 24px 140px}
+  h1{font-size:26px;line-height:34px;margin:0 0 6px;letter-spacing:-.02em}
+  h2{font-size:18px;line-height:26px;margin:36px 0 8px}
+  h3{font-size:14px;line-height:20px;margin:22px 0 6px}
+  p{margin:0 0 10px}
+  .lede{color:var(--text-secondary);max-width:92ch}
+  .note{color:var(--text-secondary);font-size:12px;line-height:18px;max-width:92ch}
+  code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:var(--surface-menu);
+       padding:1px 5px;border-radius:4px;color:#CBD2DC}
+  table{border-collapse:collapse;margin:10px 0 14px;font-size:12px}
+  th,td{border:1px solid rgba(255,255,255,.12);padding:5px 10px;text-align:left}
+  th{color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:10px}
+  .pass{color:#0AD89C;font-weight:700} .fail{color:#FF4D4D;font-weight:700}
+
+  .bar-ctl{display:flex;gap:22px;flex-wrap:wrap;align-items:center;margin:20px 0 8px;
+           padding:14px 16px;background:var(--surface-elevated);border:1px solid var(--border-subtle);border-radius:12px;
+           position:sticky;top:0;z-index:20}
+  .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .grp > .lab{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+              color:var(--text-secondary);margin-right:2px}
+  .chip{padding:6px 12px;border:1px solid var(--border-subtle);border-radius:999px;background:transparent;
+        color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .chip[aria-pressed="true"]{border-color:var(--brand);color:var(--brand);background:rgba(20,200,255,.10)}
+
+  /* ---------- stage: 1:1, never scaled ---------- */
+  .stage{margin-top:16px;padding:24px;border-radius:12px;background:var(--surface-base);
+         border:1px dashed rgba(20,200,255,.30);overflow-x:auto}
+  .stage.light{--surface-base:#DCE0E6;--surface-elevated:#FFFFFF;--surface-menu:#EFF2F6;--surface-sunken:#CFD4DB;
+        --text-primary:#10131A;--text-secondary:#5A606E;--text-p54:rgba(16,19,26,.54);
+        --border-subtle:rgba(16,19,26,.12);--border-strong:rgba(16,19,26,.24);--border-control:rgba(16,19,26,.46);
+        --brand:#0A6885;--success:#07875F;--error:#D92D2D}
+  .stage.light .card{color:#10131A}
+  .row{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+  .cell{flex:none}
+  .cap{font:600 11px/16px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.04em;
+       margin-bottom:8px;text-transform:uppercase;color:var(--text-secondary)}
+  .cap.good{color:var(--success)} .cap.bad{color:var(--error)} .cap.rec{color:var(--brand)}
+
+  /* ---------- GWCard: radiusMd 12, padding space8 16, surfaceElevated + borderSubtle ---------- */
+  .card{width:462px;background:var(--surface-elevated);border:1px solid var(--border-subtle);
+        border-radius:12px;padding:16px}
+  .sect{font:600 13px/18px inherit;letter-spacing:.5px;text-transform:uppercase;color:var(--text-secondary);
+        margin-bottom:12px}
+
+  /* ---------- GWTextField: label above at labelMd/textSecondary, box radiusMd ---------- */
+  .fld{margin-bottom:12px}
+  .fld .flabel{font:600 12px/16px inherit;color:var(--text-secondary);margin-bottom:8px}
+  .box{height:48px;border-radius:12px;background:var(--surface-sunken);border:1px solid var(--border-subtle);
+       display:flex;align-items:center;padding:0 14px;gap:10px}
+  .box .val{font:400 16px/20px "JetBrains Mono",ui-monospace,monospace;flex:1}
+  .box.editable{border-color:var(--border-control)}
+  .box.noborder{border-color:transparent}
+  .val.dim{color:var(--text-secondary)}
+  .tag{font:600 10px/14px inherit;letter-spacing:.06em;color:var(--text-p54);
+       border:1px solid var(--border-subtle);border-radius:4px;padding:1px 4px}
+
+  /* GWDetailGrid row: kGWDetailRowPadding, hairline between rows */
+  .dgrid{border:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;background:var(--surface-sunken)}
+  .drow{display:flex;justify-content:space-between;align-items:center;padding:12px 14px}
+  .drow + .drow{border-top:1px solid var(--border-subtle)}
+  .drow .k{font:400 13px/18px inherit;color:var(--text-secondary)}
+  .drow .v{font:600 15px/20px "JetBrains Mono",ui-monospace,monospace;color:var(--text-primary)}
+  .drow.total .k{color:var(--text-primary)}
+
+  /* ---------- GWButton.icon: md = 48x48, glyph 20px ---------- */
+  .idrow{display:flex;align-items:center;gap:0}
+  .ibtn{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;
+        background:transparent;border:1px solid transparent;cursor:pointer}
+  .ibtn svg{width:20px;height:20px;display:block}
+  .ibtn.ghost{background:transparent;border-color:transparent}
+  .ibtn.contained{background:var(--surface-elevated);border-color:var(--border-subtle)}
+  .ibtn.contained.onelev{background:var(--surface-menu)}
+  .ibtn.tint svg{color:var(--brand)}
+  .hovered .ibtn.ghost{background:var(--surface-menu)}
+  .hovered .ibtn.contained{background:var(--surface-menu);border-color:var(--border-control);transform:translateY(-1px)}
+  .idrow.spaced{gap:8px}
+  .pill{height:48px;border-radius:12px;display:inline-flex;align-items:center;gap:8px;padding:0 16px;
+        background:var(--surface-elevated);border:1px solid var(--border-subtle);cursor:pointer}
+  .pill svg{width:20px;height:20px} .pill span{font:600 15px/20px inherit}
+
+  /* identity row so the icons are judged in situ, never in a vacuum */
+  .ident{display:flex;align-items:center;gap:12px}
+  .ident .dot{width:40px;height:40px;border-radius:999px;background:#F7931A;display:grid;place-items:center;
+              font:700 18px/1 inherit;color:#101319}
+  .ident .nm{font:700 26px/32px inherit;letter-spacing:-.02em}
+  .glyphrow{display:flex;gap:22px;align-items:flex-end;flex-wrap:wrap}
+  .gcell{text-align:center;width:120px}
+  .gcell .gbox{width:48px;height:48px;margin:0 auto 6px;display:grid;place-items:center;
+               border:1px dashed rgba(20,200,255,.30);border-radius:12px}
+  .gcell .gbox svg{width:20px;height:20px}
+  .gcell .gname{font:600 10px/14px "JetBrains Mono",ui-monospace,monospace;color:var(--text-secondary)}
+  .rec{border-left:3px solid var(--brand);padding:2px 0 2px 14px;margin:14px 0}
+  .rej{border-left:3px solid var(--error);padding:2px 0 2px 14px;margin:14px 0}
+  .run{border-left:3px solid var(--text-secondary);padding:2px 0 2px 14px;margin:14px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Sketch 164 · Read-only field + coin-page action icons</h1>
+<p class="lede">
+  Two questions off the 2026-07-29 walk, both on the coin page, both about the same thing:
+  <strong>a control has to say what it is before it says anything else.</strong>
+  S1 asks how a value you cannot edit should look. S2 asks how the Receive / Swap actions should look
+  when they sit next to a 26px coin name. Everything below is at 1:1 and built from the real tokens.
+</p>
+
+<div class="bar-ctl">
+  <div class="grp"><span class="lab">Theme</span>
+    <button class="chip" id="t-dark" aria-pressed="true">Dark</button>
+    <button class="chip" id="t-light" aria-pressed="false">Light</button>
+  </div>
+  <div class="grp"><span class="lab">Icon state</span>
+    <button class="chip" id="s-rest" aria-pressed="true">Rest</button>
+    <button class="chip" id="s-hover" aria-pressed="false">Hover</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<h2>S1 · The read-only Token price</h2>
+<p class="note">
+  Today: a <code>GWTextField</code> with <code>readOnly: true</code>, a <code>surfaceSunken</code> fill, the
+  component's default <code>borderSubtle</code> edge, the value at full <code>textPrimary</code>, and a
+  bordered <strong>READ-ONLY</strong> chip in the <code>suffix</code> slot. The chip is doing the entire job of
+  saying "not yours", because nothing else on the box says it - it is the same height, the same radius and
+  nearly the same edge as the field directly beneath it, which you <em>can</em> type in.
+</p>
+
+<h3>The constraint that decides this</h3>
+<p class="note">
+  The obvious move - grey the value out - is not free. Measured against the fill it would sit on:
+</p>
+<table>
+  <tr><th>pairing</th><th>dark</th><th>light</th><th>AA body 4.5:1</th></tr>
+  <tr><td><code>textSecondary</code> on <code>surfaceSunken</code></td><td>6.20:1</td><td>4.23:1</td>
+      <td><span class="pass">pass</span> / <span class="fail">FAIL light</span></td></tr>
+  <tr><td><code>textPrimary</code> on <code>surfaceSunken</code></td><td>20.04:1</td><td>12.47:1</td>
+      <td><span class="pass">pass both</span></td></tr>
+  <tr><td><code>textPrimary54</code> on <code>surfaceSunken</code> (today's chip)</td><td>6.03:1</td><td>-</td>
+      <td><span class="pass">pass</span></td></tr>
+</table>
+<p class="note">
+  So "just grey the font" ships an AA failure in light mode at <strong>4.23:1</strong>. Any variant below that
+  dims the value has to carry that cost or pick a different fill; the ones that keep the value at
+  <code>textPrimary</code> and change the <em>frame</em> instead have no such problem.
+</p>
+
+<div class="stage" id="stage1">
+  <div class="row">
+
+    <div class="cell">
+      <div class="cap bad">Today · chip carries it all</div>
+      <div class="card">
+        <div class="sect">Convert</div>
+        <div class="fld"><div class="flabel">Token price</div>
+          <div class="box"><span class="val">63514.0</span><span class="tag">READ-ONLY</span></div></div>
+        <div class="fld"><div class="flabel">Token amount</div>
+          <div class="box editable"><span class="val">1</span></div></div>
+        <div class="dgrid"><div class="drow total"><span class="k">Total</span><span class="v">$63,514.00</span></div></div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="cap rec">A · Detail row (recommended)</div>
+      <div class="card">
+        <div class="sect">Convert</div>
+        <div class="dgrid" style="margin-bottom:12px">
+          <div class="drow"><span class="k">Token price</span><span class="v">$63,514.00</span></div>
+        </div>
+        <div class="fld"><div class="flabel">Token amount</div>
+          <div class="box editable"><span class="val">1</span></div></div>
+        <div class="dgrid"><div class="drow total"><span class="k">Total</span><span class="v">$63,514.00</span></div></div>
+      </div>
+      <p class="note" style="width:462px;margin-top:10px">
+        Stops being a field. The card already speaks this language one row down - <code>Total</code> is a
+        <code>GWDetailGrid</code> row - so the price joins the facts instead of impersonating an input.
+        Value stays <code>textPrimary</code>, so no contrast cost in either mode.
+      </p>
+    </div>
+
+    <div class="cell">
+      <div class="cap">B · Quiet field · dimmed, no edge</div>
+      <div class="card">
+        <div class="sect">Convert</div>
+        <div class="fld"><div class="flabel">Token price</div>
+          <div class="box noborder"><span class="val dim">63514.0</span></div></div>
+        <div class="fld"><div class="flabel">Token amount</div>
+          <div class="box editable"><span class="val">1</span></div></div>
+        <div class="dgrid"><div class="drow total"><span class="k">Total</span><span class="v">$63,514.00</span></div></div>
+      </div>
+      <p class="note" style="width:462px;margin-top:10px">
+        Jakub's own description: no tag, greyed font, a background that reads as inert. Removing the edge is
+        what makes it work - a dimmed value inside a bordered box still looks like a disabled input you could
+        re-enable. <strong>Carries the 4.23:1 light-mode failure.</strong>
+      </p>
+    </div>
+
+    <div class="cell">
+      <div class="cap">C · Locked field</div>
+      <div class="card">
+        <div class="sect">Convert</div>
+        <div class="fld"><div class="flabel">Token price</div>
+          <div class="box"><span class="val dim">63514.0</span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 style="color:var(--text-secondary)">
+              <rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          </div></div>
+        <div class="fld"><div class="flabel">Token amount</div>
+          <div class="box editable"><span class="val">1</span></div></div>
+        <div class="dgrid"><div class="drow total"><span class="k">Total</span><span class="v">$63,514.00</span></div></div>
+      </div>
+      <p class="note" style="width:462px;margin-top:10px">
+        Swaps six words of shouting for one 16px glyph and keeps the two fields visually symmetrical.
+        Same light-mode contrast cost as B.
+      </p>
+    </div>
+
+    <div class="cell">
+      <div class="cap">D · Prefixed, full weight</div>
+      <div class="card">
+        <div class="sect">Convert</div>
+        <div class="fld"><div class="flabel">Token price · live</div>
+          <div class="box noborder"><span class="val" style="color:var(--text-secondary)">$</span><span class="val" style="flex:0">63,514.00</span><span style="flex:1"></span></div></div>
+        <div class="fld"><div class="flabel">Token amount</div>
+          <div class="box editable"><span class="val">1</span></div></div>
+        <div class="dgrid"><div class="drow total"><span class="k">Total</span><span class="v">$63,514.00</span></div></div>
+      </div>
+      <p class="note" style="width:462px;margin-top:10px">
+        Keeps full contrast and leans entirely on absence-of-affordance plus a "· live" qualifier.
+        Honest about where the number comes from, weakest at saying you cannot touch it.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<div class="rec">
+  <strong>★ A · Detail row.</strong> Four reasons, in order of weight: it is the only variant where the control
+  <em>is not an input</em>, which is a stronger statement than any label on an input can make; the card already
+  ships that exact row one line below, so it costs no new language and no new component; it keeps the value at
+  <code>textPrimary</code> and therefore has no light-mode contrast debt; and it removes a wart the code comments
+  already complain about - a <code>readOnly</code> field still takes focus in Flutter, so today's box can be
+  tabbed into and light up promising an edit that cannot happen.
+</div>
+<div class="run">
+  <strong>Runner-up: C · Locked field.</strong> If the two-field symmetry of the Convert card is worth keeping -
+  and there is a real argument that it is, since the card is a calculator and calculators have input rows - C is
+  the cheapest honest version. It needs a light-mode answer for the dimmed value first.
+</div>
+<div class="rej">
+  <strong>Rejected: D · Prefixed.</strong> A box with no tag, no lock and a full-weight value is close to the
+  state that made someone add the READ-ONLY chip in the first place. Removing the chip without replacing the
+  signal re-opens the original defect.
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<h2>S2 · The Receive / Swap action icons</h2>
+<p class="note">
+  Today both are <code>GWButton.icon(variant: ghost, size: md)</code> - 48x48, glyph 20px,
+  <code>textPrimary</code>, <strong>transparent fill and no border at rest</strong>. Two separate things are wrong
+  and they need separating, because fixing one does not fix the other.
+</p>
+<p class="note">
+  <strong>1 · The glyph.</strong> <code>Icons.qr_code_2</code> is a dense 2D matrix - finder squares plus a data
+  field. Rasterised into 20px it stops being a QR code and becomes noise, which is exactly what the walk
+  screenshot shows. <strong>2 · The container.</strong> <code>ghost</code> draws nothing at rest, so both actions
+  float beside a 26px coin name with no edge to say they are pressable.
+</p>
+
+<h3>The Receive glyph, at the real 20px</h3>
+<div class="stage" id="stage2a">
+  <div class="glyphrow">
+    <div class="gcell"><div class="gbox">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h7v7H3V3zm2 2v3h3V5H5zM3 14h7v7H3v-7zm2 2v3h3v-3H5zM14 3h7v7h-7V3zm2 2v3h3V5h-3zM14 14h2v2h-2v-2zm3 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-5 1h2v2h-2v-2zm3 1h2v3h-2v-3zm-3 3h2v2h-2v-2zm3 0h4v2h-4v-2z"/></svg>
+    </div><div class="gname">qr_code_2<br>TODAY</div></div>
+    <div class="gcell"><div class="gbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M20 20h1M17 20v1"/></svg>
+    </div><div class="gname">qr_code<br>lighter matrix</div></div>
+    <div class="gcell"><div class="gbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L7 17"/><path d="M17 17H7V7"/></svg>
+    </div><div class="gname">call_received<br>arrow in</div></div>
+    <div class="gcell"><div class="gbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/></svg>
+    </div><div class="gname">download / to-line<br>arrow to floor</div></div>
+    <div class="gcell"><div class="gbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/></svg>
+    </div><div class="gname">swap_horiz<br>SWAP · unchanged</div></div>
+  </div>
+  <p class="note" style="margin-top:16px">
+    Read them small and the ranking is not close. <code>qr_code_2</code> fills its 20px box with 20-odd
+    sub-3px shapes; <code>call_received</code> resolves at any size because it is two strokes. The counter-argument
+    is meaning: an arrow says "incoming", a matrix says "there is a code to scan", and the drawer this opens
+    <em>is</em> a QR code. That is a real trade and it belongs to Jakub, not to me.
+  </p>
+</div>
+
+<h3>The container, judged in situ</h3>
+<div class="stage" id="stage2b">
+  <div class="row">
+
+    <div class="cell">
+      <div class="cap bad">Today · ghost, no edge</div>
+      <div class="ident">
+        <div class="dot">B</div><div class="nm">Bitcoin</div>
+        <div class="idrow">
+          <div class="ibtn ghost"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h7v7H3V3zm2 2v3h3V5H5zM3 14h7v7H3v-7zm2 2v3h3v-3H5zM14 3h7v7h-7V3zm2 2v3h3V5h-3zM14 14h2v2h-2v-2zm3 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-5 1h2v2h-2v-2zm3 1h2v3h-2v-3zm-3 3h2v2h-2v-2zm3 0h4v2h-4v-2z"/></svg></div>
+          <div class="ibtn ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cell">
+      <div class="cap">A · Contained</div>
+      <div class="ident">
+        <div class="dot">B</div><div class="nm">Bitcoin</div>
+        <div class="idrow spaced">
+          <div class="ibtn contained"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L7 17"/><path d="M17 17H7V7"/></svg></div>
+          <div class="ibtn contained"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/></svg></div>
+        </div>
+      </div>
+      <p class="note" style="width:340px;margin-top:12px">
+        <code>variant: ghost</code> → <code>variant: icon</code>. That variant already exists in
+        <code>GWButton</code> - <code>surfaceElevated</code> fill, <code>borderSubtle</code> edge - so this is a
+        one-word change, not a new component.
+      </p>
+    </div>
+
+    <div class="cell">
+      <div class="cap rec">C · Contained + brand glyph (recommended)</div>
+      <div class="ident">
+        <div class="dot">B</div><div class="nm">Bitcoin</div>
+        <div class="idrow spaced">
+          <div class="ibtn contained tint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L7 17"/><path d="M17 17H7V7"/></svg></div>
+          <div class="ibtn contained tint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/></svg></div>
+        </div>
+      </div>
+      <p class="note" style="width:340px;margin-top:12px">
+        A plus the colour that was asked for. <code>brandPrimary</code> on <code>surfaceElevated</code> measures
+        <strong>9.86:1 dark / 6.30:1 light</strong> - far above the 3:1 a non-text glyph needs, and it is the
+        app's own accent rather than a new hue. The tint stays on the <em>glyph</em>: a filled brand button here
+        would break the CTA weight rule, which reserves fill for commitment and allows one per surface.
+      </p>
+    </div>
+
+    <div class="cell">
+      <div class="cap">D · Labelled pills</div>
+      <div class="ident">
+        <div class="dot">B</div><div class="nm">Bitcoin</div>
+        <div class="idrow spaced">
+          <div class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L7 17"/><path d="M17 17H7V7"/></svg><span>Receive</span></div>
+          <div class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"/><path d="M13 4l4 4-4 4"/><path d="M20 16H7"/><path d="M11 12l-4 4 4 4"/></svg><span>Swap</span></div>
+        </div>
+      </div>
+      <p class="note" style="width:340px;margin-top:12px">
+        Unambiguous, and it removes the glyph question entirely. Costs about 210px of the identity row and turns
+        a coin heading into a toolbar - and there is a third button (Bridge) on GNUS-enabled coins.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<div class="rec">
+  <strong>★ C · Contained + brand glyph, with <code>call_received</code> for Receive.</strong> The container is the
+  half that matters: a control identified only by its glyph has no resting boundary, and the walk found it by
+  eye without being told to look. Tinting the glyph answers the "add some colour" ask without spending the one
+  filled CTA a surface is allowed. The glyph swap is separable - take the container and keep
+  <code>qr_code_2</code> if the QR meaning is worth more than the legibility, but do not leave both as they are.
+</div>
+<div class="run">
+  <strong>Runner-up: A · Contained, glyph unchanged.</strong> Everything C fixes structurally, none of the
+  colour. Pick this if the brand tint on two secondary actions reads as too loud next to the price.
+</div>
+<div class="rej">
+  <strong>Rejected: D · Labelled pills.</strong> Not because it is wrong - it is the most legible option on the
+  page - but because the identity row already carries a 26px name, a symbol, a network and a 30px price, and a
+  third action appears on GNUS coins. Three labelled pills there is a toolbar competing with the heading.
+</div>
+
+<h2>What this sketch does NOT decide</h2>
+<p class="note">
+  The Markets hero chart. It is a different question with a measured blocker attached - the card grows by the
+  chart's full delta, so any taller frame there is a layout decision, not a styling one - and it is written up
+  separately rather than smuggled in here.
+</p>
+
+<script>
+  (function () {
+    var stages = ['stage1', 'stage2a', 'stage2b'].map(function (id) { return document.getElementById(id); });
+
+    function setTheme(light) {
+      stages.forEach(function (s) { if (s) { s.classList.toggle('light', light); } });
+      document.getElementById('t-dark').setAttribute('aria-pressed', String(!light));
+      document.getElementById('t-light').setAttribute('aria-pressed', String(light));
+    }
+
+    function setHover(on) {
+      stages.forEach(function (s) { if (s) { s.classList.toggle('hovered', on); } });
+      document.getElementById('s-rest').setAttribute('aria-pressed', String(!on));
+      document.getElementById('s-hover').setAttribute('aria-pressed', String(on));
+    }
+
+    document.getElementById('t-dark').addEventListener('click', function () { setTheme(false); });
+    document.getElementById('t-light').addEventListener('click', function () { setTheme(true); });
+    document.getElementById('s-rest').addEventListener('click', function () { setHover(false); });
+    document.getElementById('s-hover').addEventListener('click', function () { setHover(true); });
+
+    setTheme(false);
+    setHover(false);
+  })();
+</script>
+
+</div>
+</body>
+</html>
