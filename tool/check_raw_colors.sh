@@ -81,6 +81,12 @@ cd "$(git rev-parse --show-toplevel)" || exit 1
 # NOT in this list, and what closing each one would take.
 COVERED_DIRS=(
   "lib/assets"
+  # Cleared 2026-07-30 by 21-03-PLAN.md (buy_success_drawer(_content).dart,
+  # buy_cancelled_drawer(_content).dart re-skinned onto txStatusColors +
+  # GWDrawerReceiptHead/GWDrawerStatusPill). lib/reown is deliberately NOT
+  # added alongside it: 3 offenders remain in handle_dapp_requests.dart and
+  # reown_connect_button.dart, neither touched by any plan in this phase.
+  "lib/banxa/banxa_components"
   "lib/bloc"
   "lib/chart"
   "lib/dev"
