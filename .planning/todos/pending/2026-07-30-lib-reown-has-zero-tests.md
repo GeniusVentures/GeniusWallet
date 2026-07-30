@@ -1,12 +1,29 @@
-# `lib/reown/` has zero tests — 1,444 lines of dApp connection and transaction approval
+# `lib/reown/` is mostly untested — the approval drawers are now covered, the rest is not
 
 **Created:** 2026-07-30, while bumping `reown_walletkit` 1.3.9 → 1.4.0 (`3017f9f`).
+**Updated:** 2026-07-30 — **partly closed by 21-04.**
 **Area:** testing / security
-**Severity:** no regression net on a money path
+**Severity:** reduced — the signing surfaces have a contract test; the request pipeline does not
 
-## The gap
+## Partly closed
 
-There is no `test/reown/` directory. Nothing in the 726-test suite touches `lib/reown/` at all:
+Plan 21-04 created `test/reown/approve_drawer_contract_test.dart`, the first test this directory has
+ever had. It asserts approve / reject / dismiss on both the desktop panel and mobile sheet branches
+for `approve_transaction_drawer.dart` and `approve_dapp_connection_drawer.dart`.
+
+It earned its keep on the first run: writing it caught a live `Incorrect use of ParentDataWidget`
+that the re-skin had just introduced — deleting a zero-inset `Padding` also removed the `Column` that
+gave a pre-existing `Flexible` its Flex ancestor (`ListView.children` is a sliver list, not a Flex).
+On a signing drawer with no golden baseline, nothing else we run would have seen it.
+
+**Still uncovered**, and this is the part that matters most:
+`handle_dapp_requests.dart` (253 LOC) — the method dispatch that decides which RPC request reaches
+which handler — and `reown_connect_button.dart` (675 LOC), the pairing surface. A remote dApp reaches
+those before it ever reaches a drawer.
+
+## The original gap
+
+There was no `test/reown/` directory at all. Nothing in the then-726-test suite touched `lib/reown/`:
 
 | File | LOC |
 |---|---|
@@ -35,12 +52,20 @@ a human session or ships unverified.
 Not full coverage — a floor. Enough that a breaking change in the pairing/session API fails a test
 instead of a walk:
 
+- ~~The approval drawers render their request details and the reject path returns a rejection rather
+  than silently closing.~~ **DONE — 21-04, `test/reown/approve_drawer_contract_test.dart`.**
 - `WalletKitInstance.initOnce()` is idempotent — a second call returns the same in-flight future and
-  does not re-init (`reown_walletkit_instance.dart:22-31`). Cheap, pure, no network.
-- The approval drawers render their request details for a synthetic session-request payload, and the
-  reject path returns a rejection rather than silently closing.
+  does not re-init (`reown_walletkit_instance.dart:22-31`). Cheap, pure, no network. **Still open.**
 - `handle_dapp_requests.dart`'s method dispatch maps each supported RPC method to its handler, with an
-  unknown method rejected rather than ignored.
+  unknown method rejected rather than ignored. **Still open, and the highest-value one remaining** —
+  it is the gate every dApp request passes through before any drawer is shown.
+
+## Also still true
+
+`lib/reown/` is NOT covered by `tool/check_raw_colors.sh`. Three known raw-colour offenders remain in
+`handle_dapp_requests.dart` and `reown_connect_button.dart`; 21-03 deliberately did not widen the
+gate to that directory because those files were outside every plan's fence. So a green raw-colour
+gate does not mean this directory is clean.
 
 Prior art for a no-network approach to a hard dependency: `test/account/account_drawer_show_test.dart`
 uses hive_ce's in-memory backend (`Hive.openBox(name, bytes: Uint8List(0))`) to avoid real I/O
