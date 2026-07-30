@@ -14,6 +14,7 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
@@ -1012,7 +1013,7 @@ class CoinInfoCard extends StatelessWidget {
 /// Ceiling: they can drift, and only a walk would notice.
 /// Upgrade path: a third consumer makes the component worth building, and at
 /// that point the glyph slot and the truncation strategy become its parameters.
-class _CopyAddressRow extends StatefulWidget {
+class _CopyAddressRow extends StatelessWidget {
   const _CopyAddressRow({
     required this.address,
     required this.keyStyle,
@@ -1026,25 +1027,17 @@ class _CopyAddressRow extends StatefulWidget {
   final Color glyph;
 
   @override
-  State<_CopyAddressRow> createState() => _CopyAddressRowState();
-}
-
-class _CopyAddressRowState extends State<_CopyAddressRow> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final a = widget.address;
+    final a = address;
     final short = a.length > 12
         ? "${a.substring(0, 6)}...${a.substring(a.length - 6)}"
         : a;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
+    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
+    // other state, so it is a `StatelessWidget` now.
+    return GWHoverable(
+      builder: (hovered) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           // The FULL address goes to the clipboard, never the truncated form.
@@ -1062,18 +1055,18 @@ class _CopyAddressRowState extends State<_CopyAddressRow> {
                   child: SketchIcon(
                     SketchIcons.address,
                     size: 16,
-                    color: widget.glyph,
+                    color: glyph,
                   ),
                 ),
               ),
               const SizedBox(width: GeniusWalletConsts.space6),
-              Expanded(child: Text("Address", style: widget.keyStyle)),
-              Text(short, style: widget.valStyle),
+              Expanded(child: Text("Address", style: keyStyle)),
+              Text(short, style: valStyle),
               const SizedBox(width: GeniusWalletConsts.space3),
               Icon(
                 Icons.copy_rounded,
                 size: 14,
-                color: _hovered ? gw.textPrimary : gw.textSecondary,
+                color: hovered ? gw.textPrimary : gw.textSecondary,
               ),
             ],
           ),
@@ -1089,19 +1082,14 @@ class _CopyAddressRowState extends State<_CopyAddressRow> {
 /// ShellRoute the go_router call is the one that means "back in the route
 /// stack", where the raw Navigator call pops whichever Navigator happens to be
 /// nearest - which after 071-B's route move is the shell's, not the root's.
-class _BackToMarkets extends StatefulWidget {
+class _BackToMarkets extends StatelessWidget {
   const _BackToMarkets();
-
-  @override
-  State<_BackToMarkets> createState() => _BackToMarketsState();
-}
-
-class _BackToMarketsState extends State<_BackToMarkets> {
-  bool _hovered = false;
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
+    // other state, so it is a `StatelessWidget` now.
     return Align(
       alignment: Alignment.centerLeft,
       child: Padding(
@@ -1111,11 +1099,8 @@ class _BackToMarketsState extends State<_BackToMarkets> {
           12,
           GeniusWalletConsts.space4,
         ),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: GestureDetector(
+        child: GWHoverable(
+          builder: (hovered) => GestureDetector(
             onTap: () => context.pop(),
             child: Container(
               padding: const EdgeInsets.symmetric(
@@ -1127,10 +1112,10 @@ class _BackToMarketsState extends State<_BackToMarkets> {
                 // border is ALWAYS 1px, transparent at rest, because a
                 // BoxDecoration border is layout - appearing on hover would
                 // grow the chip and shift the header under the cursor.
-                color: _hovered ? GWDecorations.hoverFill : Colors.transparent,
+                color: hovered ? GWDecorations.hoverFill : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
-                  color: _hovered ? GWDecorations.hoverEdge : gw.borderSubtle,
+                  color: hovered ? GWDecorations.hoverEdge : gw.borderSubtle,
                   width: 1,
                 ),
               ),
@@ -1140,13 +1125,13 @@ class _BackToMarketsState extends State<_BackToMarkets> {
                   Icon(
                     Icons.chevron_left,
                     size: 16,
-                    color: _hovered ? gw.textPrimary : gw.textSecondary,
+                    color: hovered ? gw.textPrimary : gw.textSecondary,
                   ),
                   const SizedBox(width: GeniusWalletConsts.space3),
                   Text(
                     'Markets',
                     style: GeniusWalletTypography.labelMd.copyWith(
-                      color: _hovered ? gw.textPrimary : gw.textSecondary,
+                      color: hovered ? gw.textPrimary : gw.textSecondary,
                     ),
                   ),
                 ],

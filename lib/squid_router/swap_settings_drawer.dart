@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
+import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/squid_router/slippage_state.dart';
@@ -342,7 +343,7 @@ class _SlippageStatusRow extends StatelessWidget {
 
 /// A preset. Selected takes the real `brandCta` gradient — the app's accent is
 /// the gradient, not a flat blue (`drawers-final/README.md`'s global rule).
-class _PresetChip extends StatefulWidget {
+class _PresetChip extends StatelessWidget {
   const _PresetChip({
     required this.label,
     required this.selected,
@@ -354,43 +355,36 @@ class _PresetChip extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_PresetChip> createState() => _PresetChipState();
-}
-
-class _PresetChipState extends State<_PresetChip> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: InkWell(
-        onTap: widget.onTap,
+    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
+    // other state, so it is a `StatelessWidget` now.
+    return GWHoverable(
+      builder: (hovered) => InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
         child: Container(
           height: 40,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            gradient: widget.selected ? GeniusWalletGradient.brandCta : null,
+            gradient: selected ? GeniusWalletGradient.brandCta : null,
             // Unselected hover is THE app-wide recipe (sketch 044): brand tint
             // + brand hairline, no geometry.
-            color: widget.selected
+            color: selected
                 ? null
-                : (_hovered ? GWDecorations.hoverFill : Colors.transparent),
+                : (hovered ? GWDecorations.hoverFill : Colors.transparent),
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
             border: Border.all(
-              color: widget.selected
+              color: selected
                   ? Colors.transparent
-                  : (_hovered ? GWDecorations.hoverEdge : gw.borderSubtle),
+                  : (hovered ? GWDecorations.hoverEdge : gw.borderSubtle),
               width: 1,
             ),
           ),
           child: Text(
-            widget.label,
+            label,
             style: GeniusWalletTypography.titleMd.copyWith(
-              color: widget.selected ? context.gw.textOnBrand : gw.textPrimary,
+              color: selected ? context.gw.textOnBrand : gw.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
