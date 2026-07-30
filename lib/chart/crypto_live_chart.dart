@@ -576,40 +576,65 @@ class _ChartHeaderRow extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final bool narrow = constraints.maxWidth < _narrowWidth;
+        // The readouts take ONE `Expanded`; the segment takes what is left.
+        //
+        // This was a loose `Flexible` for the price followed by a `Spacer`, and
+        // that is the identical defect `gw_page_header.dart` was fixed for on
+        // 2026-07-29: both default to `flex: 1`, so they split the row's free
+        // space 50/50. A price that does not spend its half does not hand the
+        // remainder back — `RenderFlex` distributes the shortfall by
+        // `MainAxisAlignment`, which defaults to `start`, so it lands AFTER the
+        // last child. The segment was therefore parked short of the right edge
+        // with a band of dead space beyond it, which is exactly what the walk
+        // caught ("time frame to the right"). One flex child cannot mis-split
+        // anything.
         return Row(
           children: [
-            Flexible(
-              child: Text(
-                formattedPrice,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: narrow ? 15 : 17,
-                  fontWeight: FontWeight.bold,
-                  color: gw.textPrimary,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      formattedPrice,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: narrow ? 15 : 17,
+                        fontWeight: FontWeight.bold,
+                        color: gw.textPrimary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                  if (hasData) ...[
+                    const SizedBox(width: GeniusWalletConsts.space4),
+                    Text(
+                      "${percentChange >= 0 ? "+" : ""}${percentChange.toStringAsFixed(2)}%",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: trendColor,
+                      ),
+                    ),
+                    if (!narrow) ...[
+                      const SizedBox(width: GeniusWalletConsts.space4),
+                      Flexible(
+                        child: Text(
+                          timeLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: gw.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ],
               ),
             ),
-            if (hasData) ...[
-              const SizedBox(width: GeniusWalletConsts.space4),
-              Text(
-                "${percentChange >= 0 ? "+" : ""}${percentChange.toStringAsFixed(2)}%",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: trendColor,
-                ),
-              ),
-              if (!narrow) ...[
-                const SizedBox(width: GeniusWalletConsts.space4),
-                Text(
-                  timeLabel,
-                  style: TextStyle(fontSize: 11, color: gw.textSecondary),
-                ),
-              ],
-            ],
-            const Spacer(),
+            const SizedBox(width: GeniusWalletConsts.space4),
             const GWTimeframeSegment(),
           ],
         );
