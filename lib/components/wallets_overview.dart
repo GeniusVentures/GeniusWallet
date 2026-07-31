@@ -5,10 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
-import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
-import 'package:genius_wallet/components/job/submit_job_dashboard_button.dart';
-import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
@@ -117,36 +114,18 @@ class WalletsOverviewState extends State<WalletsOverview> {
             ),
           ],
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            const Row(children: [Flexible(child: SGNUSConnectionWidget())]),
-            const SizedBox(height: 8),
-            const SGNUSConnectionStatusWidget(),
-            BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-              builder: (context, state) {
-                if (state.selectedWallet != null) {
-                  return StreamBuilder<SGNUSConnection>(
-                    stream: context
-                        .read<GeniusApi>()
-                        .getSGNUSConnectionStream(),
-                    builder: (context, snapshot) {
-                      final connection = snapshot.data;
-                      return SubmitJobDashboardButton(
-                        walletDetailsCubit: context.read<WalletDetailsCubit>(),
-                        walletAddress: state.selectedWallet!.address,
-                        gnusConnectedWalletAddress:
-                            connection?.walletAddress ?? "",
-                      );
-                    },
-                  );
-                } else {
-                  return const SizedBox.shrink();
-                }
-              },
-            ),
-          ],
-        ),
+        // 14-08: the two SGNUS connection status widgets and the dashboard
+        // job button that used to sit here (formerly
+        // lib/components/sgnus/sgnus_connection_widget.dart and
+        // lib/components/job/submit_job_dashboard_button.dart) were deleted -
+        // three of the five shipped bugs 14-08 closes lived in those files;
+        // the compute panel that replaces all three lives in
+        // lib/dashboard/compute/ and lib/components/wallet_overview.dart.
+        // This shadow file (GAP-06, `03-SHADOW-NAMES.md`) is dead code
+        // reachable only from lib/dev/generated_closure_canary.dart's `Type`
+        // literal - never mounted in the running app - so this is a
+        // compile-only stub, not a UI regression.
+        const SizedBox.shrink(),
       ],
     );
   }

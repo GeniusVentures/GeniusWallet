@@ -125,7 +125,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
             : IconButton(
                 icon: Icon(Icons.arrow_back, color: gw.textSecondary),
                 onPressed: () {
-                  context.go('/buy');
+                  // 09-08 deviation (Rule 1): `/buy` is now the BUY FORM, not
+                  // the orders list — this root-fallback (no back stack, e.g.
+                  // reached from a checkout redirect) must keep landing on
+                  // the orders history, which moved to `/buy/orders`.
+                  context.go('/buy/orders');
                 },
               ),
       ),

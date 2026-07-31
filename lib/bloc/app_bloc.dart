@@ -190,38 +190,90 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     //       itself rather than depending on a timer that may already be
     //       dead.
     //
-    // Extended this plan to also cover the two new sticky overrides
-    // (`initPercentageOverride`, `feedUnavailableOverride`) added alongside
-    // `processingOverride` - see `dev_mock_sgnus.dart`. All three must set
-    // `processingFeedStatus` correctly, or the mock renders a combination
-    // the real feed can never produce, and a walk against it proves
-    // nothing.
+    // Extended this plan to also cover the sticky overrides
+    // (`initPercentageOverride`, `feedUnavailableOverride`,
+    // `jobCompleteOverride`) added alongside `processingOverride` - see
+    // `dev_mock_sgnus.dart`. All four must set `processingFeedStatus`
+    // correctly, or the mock renders a combination the real feed can never
+    // produce, and a walk against it proves nothing.
     final mock = DevMockSgnus.instance;
     if (kDebugMode &&
         kShowDevTools &&
         (mock.processingOverride != null ||
             mock.initPercentageOverride != null ||
-            mock.feedUnavailableOverride == true)) {
+            mock.feedUnavailableOverride == true ||
+            mock.jobCompleteOverride == true ||
+            mock.initReleasePending ||
+            mock.staleCompletionPending)) {
+      // Consumed at the very TOP of the branch, before the
+      // feedUnavailableOverride early return below, so a pending release
+      // can never be stranded behind that return. `copyWith` cannot null
+      // `initPercentage`, and the real init timer self-cancels once a
+      // reading reaches 1.0, so on a node that already finished
+      // initialising there is no further poll to correct the released
+      // value - 1.0 is the only value that releases the `< 1.0` gate, and
+      // it is self-correcting: if the node is genuinely still initialising,
+      // the real 3s poll resumes the tick after this and overwrites it with
+      // the truth.
+      final releasedInit = mock.consumeInitRelease();
+      // Consumed here, alongside releasedInit, for the identical reason -
+      // see DevMockSgnus.armReady's doc comment for what this defeats.
+      final staleCompletion = mock.consumeStaleCompletion();
+
       if (mock.feedUnavailableOverride == true) {
         emit(
           state.copyWith(
             isProcessing: false,
             processingPercentage: 0.0,
             processingFeedStatus: ProcessingFeedStatus.unavailable,
+            initPercentage: releasedInit ? 1.0 : mock.initPercentageOverride,
+          ),
+        );
+        return;
+      }
+
+      if (mock.jobCompleteOverride == true) {
+        emit(
+          state.copyWith(
+            isProcessing: false,
+            processingPercentage: 0.0,
+            processingFeedStatus: ProcessingFeedStatus.live,
+            // startingUp outranks jobComplete in resolveComputeState, and
+            // copyWith cannot null initPercentage, so a leftover sub-1.0
+            // reading would mask this state permanently. 1.0 is also the
+            // only honest value for a node that has just finished a job.
+            initPercentage: 1.0,
+            // Refreshed on EVERY tick while armed - this is what makes the
+            // override sticky in the same sense as the other three: the
+            // walker holds the state while resizing and toggling
+            // appearance. Once Clear releases the override, this timestamp
+            // stops refreshing, the real 60s jobCompleteWindow runs out,
+            // and wallet_overview.dart's 10s balance timer forces the
+            // rebuild that lets the panel decay to Ready on its own.
+            processingCompletedAt: DateTime.now(),
           ),
         );
         return;
       }
 
       final isProcessing = mock.processingOverride ?? false;
+      // This branch emits unconditionally and AppState is Equatable, so a
+      // changing percentage is what produces a rebuild each tick and
+      // therefore a bar that visibly moves - a constant value here would
+      // emit an equal state and paint nothing.
       emit(
         state.copyWith(
           isProcessing: isProcessing,
-          processingPercentage: isProcessing
-              ? DevMockSgnus.processingPercentage
-              : 0.0,
+          processingPercentage: isProcessing ? mock.processingPercentage : 0.0,
           processingFeedStatus: ProcessingFeedStatus.live,
-          initPercentage: mock.initPercentageOverride,
+          initPercentage: releasedInit ? 1.0 : mock.initPercentageOverride,
+          // Only set when SGNUS ready's stale-completion flag was just
+          // consumed - `copyWith`'s `?? this.x` means passing null here
+          // (the ordinary case) leaves any existing value untouched, exactly
+          // like every other field in this emit.
+          processingCompletedAt: staleCompletion
+              ? DateTime.now().subtract(jobCompleteWindow * 2)
+              : null,
         ),
       );
       return;
@@ -311,6 +363,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   /// runs on every pull-to-refresh via `_onLoadWallets` (below),
   /// `dashboard_screen.dart:112`, which makes this call path load-bearing
   /// and proven in production, not merely inferred.
+  ///
+  /// **No backoff on repeated failure - settled, with evidence
+  /// (`14-09-PLAN.md` Task 1f).** A hammering tap cannot happen: this
+  /// handler only calls `_startProcessingPolling()`, which starts a single
+  /// 1s timer; `_onProcessingStatusTicked`'s own `catch` cancels that timer
+  /// immediately on the next throw. So one tap costs at most ONE further
+  /// FFI call before the feed goes quiet again - there is no automatic
+  /// retry loop for a backoff to rate-limit, because the cancel-on-throw
+  /// above already is the most aggressive backoff possible (stop
+  /// immediately, every time). Adding a failure counter would mean new
+  /// `AppState`, a disabled/cooling-down rendering of the `Reconnect ›`
+  /// link, and copy for a condition that cannot occur - and it would cost
+  /// the one case that most plausibly recovers: a user who just brought
+  /// the node back up tapping once, immediately.
   FutureOr<void> _onRetryProcessingStatus(
     RetryProcessingStatus event,
     Emitter<AppState> emit,
@@ -342,6 +408,19 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     InitializationStatusTicked event,
     Emitter<AppState> emit,
   ) {
+    // DEV-ONLY, release-safe: same guard shape and the same reason as
+    // `_onProcessingStatusTicked` above - this handler's own 3s poll has no
+    // dev guard of its own, so without this it would overwrite an armed
+    // `initPercentageOverride` on its next tick, re-emitting the real
+    // reading every 3s and flickering the walk between the fixture and the
+    // real feed. The FFI read must not be reached while the override is
+    // armed.
+    final mock = DevMockSgnus.instance;
+    if (kDebugMode && kShowDevTools && mock.initPercentageOverride != null) {
+      emit(state.copyWith(initPercentage: mock.initPercentageOverride));
+      return null;
+    }
+
     try {
       final status = api.getInitializationStatus();
       emit(

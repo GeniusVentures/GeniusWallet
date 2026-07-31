@@ -239,16 +239,28 @@ void main() {
   });
 
   group('file channel', () {
-    test('no file selected -> fileError only', () async {
+    test('cancelling the picker leaves no error (2026-07-31 D-05: a dismissed '
+        'OS dialog is a decision, not a failure) and a previously held file '
+        'survives the cancel', () async {
       final harness = _build();
       addTearDown(harness.dispose);
-      fakeFilePicker.resultBuilder = () => null;
+      final file = File('${tempDir.path}/job.json')
+        ..writeAsStringSync('{"job":"spec"}');
+      fakeFilePicker.resultBuilder = () => FilePickerResult([
+        PlatformFile(path: file.path, name: 'job.json', size: 14),
+      ]);
+      await harness.cubit.openFilePicker();
+      expect(harness.cubit.state.uploadedFileName, 'job.json');
 
+      fakeFilePicker.resultBuilder = () => null;
       await harness.cubit.openFilePicker();
 
-      expect(harness.cubit.state.fileError, 'No file selected.');
+      expect(harness.cubit.state.fileError, isEmpty);
       expect(harness.cubit.state.costError, isEmpty);
       expect(harness.cubit.state.submitError, isEmpty);
+      // The substantive half of D-05 - the held file is not discarded by a
+      // cancel.
+      expect(harness.cubit.state.uploadedFileName, 'job.json');
     });
 
     test('invalid JSON -> fileError only', () async {
@@ -338,12 +350,15 @@ void main() {
       expect(harness.cubit.state.submitError, isEmpty);
     });
 
-    test('cost lookup returns zero -> costError only', () async {
+    test('cost lookup returns zero -> costError set, and the file is KEPT '
+        '(2026-07-31: openFilePicker no longer discards a picked file on a '
+        'pricing failure - "only" above used to mean the file was dropped, '
+        'which is exactly the bug this test now pins the fix for)', () async {
       final harness = _build();
       addTearDown(harness.dispose);
       // A valid, priceable-looking token detail must already be on the
-      // cubit's own state (not just gnusCubit's) for isGasFetchable's other
-      // two conditions to hold, isolating the jobCost == 0 cause.
+      // cubit's own state (not just gnusCubit's) for isGasFetchable's
+      // other two conditions to hold, isolating the jobCost == 0 cause.
       await harness.cubit.fetchGnusTokenInfo();
       harness.geniusApi.requestGeniusSDKCostResponse = 0;
       final file = File('${tempDir.path}/job.json')
@@ -357,9 +372,14 @@ void main() {
       expect(harness.cubit.state.costError, 'Unable to retrieve job cost');
       expect(harness.cubit.state.fileError, isEmpty);
       expect(harness.cubit.state.submitError, isEmpty);
+      // The fix: the file survives a pricing failure.
+      expect(harness.cubit.state.uploadedFileName, 'job.json');
+      expect(harness.cubit.state.uploadedJson, isNotEmpty);
+      expect(harness.cubit.state.jobCost, 0);
     });
 
-    test('missing preconditions for gas estimation -> costError only', () async {
+    test('missing preconditions for gas estimation -> costError set, file KEPT '
+        '(2026-07-31: same fix as the cost-lookup-zero case above)', () async {
       final harness = _build(selectNetworkAndWallet: false);
       addTearDown(harness.dispose);
       await harness.cubit.fetchGnusTokenInfo();
@@ -378,6 +398,8 @@ void main() {
       );
       expect(harness.cubit.state.fileError, isEmpty);
       expect(harness.cubit.state.submitError, isEmpty);
+      expect(harness.cubit.state.uploadedFileName, 'job.json');
+      expect(harness.cubit.state.uploadedJson, isNotEmpty);
     });
 
     test(
@@ -408,8 +430,35 @@ void main() {
         );
         expect(harness.cubit.state.fileError, isEmpty);
         expect(harness.cubit.state.submitError, isEmpty);
+        // This path already kept the file before 2026-07-31 (the gas-failure
+        // branch never returned early) - added here as the contrast case now
+        // that the asymmetry with the two tests above is gone.
+        expect(harness.cubit.state.uploadedFileName, 'job.json');
       },
     );
+
+    test('1c regression guard: a first pick that fails pricing followed by a '
+        'second pick that succeeds does not carry the stale costError forward '
+        '- the exact retry scenario a walker hits', () async {
+      final harness = _build();
+      addTearDown(harness.dispose);
+      await harness.cubit.fetchGnusTokenInfo();
+      harness.geniusApi.requestGeniusSDKCostResponse = 0;
+      final file = File('${tempDir.path}/job.json')
+        ..writeAsStringSync('{"job":"spec"}');
+      fakeFilePicker.resultBuilder = () => FilePickerResult([
+        PlatformFile(path: file.path, name: 'job.json', size: 14),
+      ]);
+
+      await harness.cubit.openFilePicker();
+      expect(harness.cubit.state.costError, isNotEmpty);
+
+      harness.geniusApi.requestGeniusSDKCostResponse = 10;
+      await harness.cubit.openFilePicker();
+
+      expect(harness.cubit.state.costError, isEmpty);
+      expect(harness.cubit.state.jobCost, 10);
+    });
   });
 
   group('submit channel', () {

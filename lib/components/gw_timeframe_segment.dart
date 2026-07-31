@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
+import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -57,39 +58,27 @@ class _GWTimeframeSegmentState extends State<GWTimeframeSegment> {
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        // Control-track standard: surfaceSunken (recessed well), not
-        // surfaceMenu (raised chip). Recipe + rationale in
-        // .planning/codebase/CONVENTIONS.md ("Control track"). Keep in sync
-        // with the filter track in transactions_slim_view.dart — the two are
-        // deliberately identical.
-        color: gw.surfaceSunken,
-        // Hairline border so the five tabs read as ONE connected segmented
-        // "baton" (a single track holding the options), not five loose chips.
-        border: Border.all(color: gw.borderSubtle),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < _labels.length; i++) ...[
-            if (i > 0) const SizedBox(width: 2),
-            _TimeframeTab(
-              label: _labels[i],
-              selected: i == _selected,
-              // Selected chip wears the brand CTA gradient with textOnBrand
-              // (near-black) -- AA-safe in BOTH modes, so no light-mode fallback
-              // is needed. Hover raises an unselected tab onto surfaceElevated.
-              unselectedColor: gw.textSecondary,
-              hoverColor: gw.surfaceElevated,
-              hoverTextColor: gw.textPrimary,
-              onTap: () => setState(() => _selected = i),
-            ),
-          ],
-        ],
-      ),
+    // Geometry lives in GWControlTrack now (`lib/components/gw_control_track.dart`)
+    // - the same container as the transactions filter bar
+    // (`transactions_slim_view.dart`'s `_TransactionFilterBar`), the Buy
+    // GNUS orders track and the Compute panel's balance unit track
+    // (`260731-kc5`), so the four can no longer drift apart by editing one
+    // file.
+    return GWControlTrack(
+      children: [
+        for (var i = 0; i < _labels.length; i++)
+          _TimeframeTab(
+            label: _labels[i],
+            selected: i == _selected,
+            // Selected chip wears the brand CTA gradient with textOnBrand
+            // (near-black) -- AA-safe in BOTH modes, so no light-mode fallback
+            // is needed. Hover raises an unselected tab onto surfaceElevated.
+            unselectedColor: gw.textSecondary,
+            hoverColor: gw.surfaceElevated,
+            hoverTextColor: gw.textPrimary,
+            onTap: () => setState(() => _selected = i),
+          ),
+      ],
     );
   }
 }

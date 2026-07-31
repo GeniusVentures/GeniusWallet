@@ -78,7 +78,7 @@ enum ComputeLink {
   chooseWallet,
   switchWallet,
   seeNodeStatus,
-  retry;
+  reconnect;
 
   /// Affordance copy from the copy contract (`14-UI-SPEC.md:775-783`).
   /// `null` for [ComputeLink.none] - there is nothing to render.
@@ -87,7 +87,7 @@ enum ComputeLink {
     ComputeLink.chooseWallet => 'Choose a wallet ›',
     ComputeLink.switchWallet => 'Switch wallet ›',
     ComputeLink.seeNodeStatus => 'See node status ›',
-    ComputeLink.retry => 'Retry ›',
+    ComputeLink.reconnect => 'Reconnect ›',
   };
 }
 
@@ -96,12 +96,6 @@ enum ComputeLink {
 /// open item 6's proposal - a transient acknowledgement, not a record, so it
 /// is fine that a restart loses it.
 const Duration jobCompleteWindow = Duration(seconds: 60);
-
-/// Fallback sub-line for [ComputeState.startingUp] when the SDK's own
-/// `initStatus.message` arrives empty. Nothing has ever read that message in
-/// a shipped build (`14-UI-SPEC.md:862-864`), so an empty value is reachable
-/// and must not render a blank line.
-const String startingUpFallbackMessage = 'Preparing the compute node';
 
 /// Resolves the compute node's state from the screen's raw inputs.
 ///
@@ -189,8 +183,15 @@ class ComputeStatusView {
   /// The affordance the sub-line links to, if any.
   final ComputeLink link;
 
-  /// Whether the determinate progress bar renders. Only [ComputeState.startingUp]
-  /// and [ComputeState.processing] ever render a bar.
+  /// Whether the determinate progress bar renders. Only
+  /// [ComputeState.processing] ever renders a bar: there the denominator is
+  /// real (`N of M`, sourced from the SDK's job-progress feed), so a
+  /// determinate bar tells the truth. [ComputeState.startingUp] used to
+  /// render one too, but the SDK's init feed climbs to a ceiling (`0.525` in
+  /// the shipped build) and stops - a determinate bar there is a claim about
+  /// a denominator that does not exist, so this state renders no bar at all
+  /// and keeps only its percentage as [trailing]. See [barValue]'s own doc
+  /// comment for the field-level half of this rule.
   final bool showBar;
 
   /// The bar's value, normalised to 0.0-1.0. Non-null if and only if
@@ -203,10 +204,16 @@ class ComputeStatusView {
   final String? trailing;
 
   /// Whether the balance tile shows its `≈ $` fiat sub-line. This is the
-  /// negation of [showBar] - the tallest states (bar visible) drop the fiat
-  /// line to stay inside the 276px height budget
-  /// (`14-CONTEXT.md` "The 3px overflow"). Derived here so a later plan
-  /// cannot forget it.
+  /// negation of [showBar]. That used to be justified as "the tallest
+  /// states (bar visible) drop the fiat line to stay inside the height
+  /// budget" - after this plan the claim is backwards: the one bar-showing
+  /// state, [ComputeState.processing], measures as the SHORTEST non-empty
+  /// state in the panel (234px per `14-08-SUMMARY.md`'s table), not the
+  /// tallest. The real reason to keep `!showBar` is simpler than a height
+  /// budget: a state already showing a determinate bar (with its own
+  /// trailing `%`) has nothing left for a second, unrelated readout to say,
+  /// so the fiat line stays reserved for the states that have no bar to
+  /// speak for them. Derived here so a later plan cannot forget it.
   final bool showBalanceFiatSubline;
 
   /// Whether the panel's "New processing job" CTA is enabled. Only
@@ -249,18 +256,21 @@ class ComputeStatusView {
 /// [state] alone, never from a percentage being non-zero.
 ComputeStatusView viewForComputeState(
   ComputeState state, {
-  String? initStatusMessage,
   double? initPercentage,
   double? processingPercentage,
 }) {
-  final showBar =
-      state == ComputeState.startingUp || state == ComputeState.processing;
+  final showBar = state == ComputeState.processing;
 
   double? barValue;
   String? percentageTrailing;
   if (state == ComputeState.startingUp) {
-    barValue = (initPercentage ?? 0.0).clamp(0.0, 1.0);
-    percentageTrailing = '${(barValue * 100).round()}%';
+    // No bar for this state (see [ComputeStatusView.showBar]'s doc
+    // comment), but the percentage survives as [trailing] - a number that
+    // stops moving is self-evidently stuck in a way a bar parked at 52%
+    // is not. barValue stays null: a non-null value here would violate
+    // ComputeStatusView.barValue's own "non-null iff showBar" contract.
+    final clampedInitPercentage = (initPercentage ?? 0.0).clamp(0.0, 1.0);
+    percentageTrailing = '${(clampedInitPercentage * 100).round()}%';
   } else if (state == ComputeState.processing) {
     barValue = ((processingPercentage ?? 0.0) / 100.0).clamp(0.0, 1.0);
     percentageTrailing = '${(barValue * 100).round()}%';
@@ -290,14 +300,12 @@ ComputeStatusView viewForComputeState(
       link = ComputeLink.switchWallet;
     case ComputeState.unavailable:
       label = 'Status unavailable';
-      subline = 'Lost contact with the node';
+      subline = 'Feed stopped';
       dotRole = ComputeDotRole.error;
-      link = ComputeLink.retry;
+      link = ComputeLink.reconnect;
     case ComputeState.startingUp:
       label = 'Starting up';
-      subline = (initStatusMessage != null && initStatusMessage.isNotEmpty)
-          ? initStatusMessage
-          : startingUpFallbackMessage;
+      subline = 'Feed live';
       dotRole = ComputeDotRole.brand;
     case ComputeState.processing:
       label = 'Processing';

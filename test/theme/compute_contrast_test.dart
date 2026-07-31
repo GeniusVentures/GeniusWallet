@@ -24,9 +24,6 @@ import 'theme_contrast_test.dart' show contrastRatio, themeFor;
 ComputeStatusView _viewFor(ComputeState state) {
   return viewForComputeState(
     state,
-    initStatusMessage: state == ComputeState.startingUp
-        ? 'Preparing the compute node'
-        : null,
     initPercentage: state == ComputeState.startingUp ? 0.6 : null,
     processingPercentage: state == ComputeState.processing ? 52.5 : null,
   );
@@ -48,6 +45,8 @@ Future<void> _pumpPanel(
             view: _viewFor(state),
             balance: 1234.56,
             fiatSubline: '≈ \$312.40',
+            useMinions: false,
+            onUnitChanged: (_) {},
             onLinkTap: (_) {},
             onNewJob: () {},
           ),
@@ -116,10 +115,12 @@ void main() {
   });
 
   group('The bar fill clears 3:1 against its track', () {
-    // showBar is only true for startingUp and processing
-    // (`compute_state.dart`'s viewForComputeState) - the other six states
-    // have no bar to assert against.
-    const barStates = [ComputeState.startingUp, ComputeState.processing];
+    // showBar is only true for processing (`compute_state.dart`'s
+    // viewForComputeState, 14-09-PLAN.md Task 1a) - startingUp lost its bar
+    // this phase (the init feed stops climbing and a determinate bar on a
+    // stopped feed is a false claim), so it no longer renders
+    // `ValueKey('computeBarFill')` and must not be in this list.
+    const barStates = [ComputeState.processing];
 
     for (final mode in GWAppearanceMode.values) {
       for (final state in barStates) {
@@ -150,6 +151,99 @@ void main() {
       }
     }
   });
+
+  group(
+    'The balance unit track segments clear 4.5:1 in both states, both modes',
+    () {
+      // `260731-kc5-PLAN.md` Task 2: the track's fill is the SAME token as
+      // the tile it sits on (`gw.surfaceSunken` - see
+      // `_ComputeCardTile.background` above and `GWControlTrack`'s own
+      // `surfaceSunken` fill), so unlike every other track in the app, this
+      // one has no fill step of its own. The text colours are therefore
+      // carrying the whole selected/unselected distinction on their own,
+      // which is why this matters more than usual here.
+      for (final mode in GWAppearanceMode.values) {
+        test('selected: textPrimary on surfaceMenu -- $mode', () {
+          final gw = themeFor(mode).extension<GWColors>()!;
+          expect(
+            contrastRatio(gw.textPrimary, gw.surfaceMenu),
+            greaterThanOrEqualTo(4.5),
+            reason:
+                'Selected segment textPrimary ${gw.textPrimary} vs '
+                'surfaceMenu ${gw.surfaceMenu} in $mode mode',
+          );
+        });
+      }
+
+      // Unselected is split per-mode, not looped like every other group in
+      // this file - the two modes give a genuinely different verdict here,
+      // and collapsing them into one loop would hide that.
+      //
+      // DARK measures 6.2:1 - a real AA pass, asserted at the same 4.5:1
+      // floor as everything else in this file.
+      //
+      // LIGHT measures ~4.23:1 - under the 4.5:1 floor, and this is NOT a
+      // bug this plan introduced. `gw.textSecondary`'s light-mode value
+      // (`0xFF5A606E`) was tuned against the app's page/card canvases (it
+      // clears 6.3:1 there, per `gw_colors.dart`'s own "AA fix" comment) -
+      // nobody calibrated it against `surfaceSunken`
+      // (`0xFFCFD4DB`, the darkest gray step), because until this track no
+      // BODY TEXT painted directly on it. `gw_colors.dart:192-195` already
+      // documents the identical ceiling for a DIFFERENT token
+      // (`brandPrimaryOnSurface`, 4.23:1 on the same surface) with the same
+      // verdict: "clears the 3:1 non-text floor but not 4.5:1 body text."
+      // `_TimeframeTab` (`gw_timeframe_segment.dart:75`) and `_FilterChip`
+      // (`transactions_slim_view.dart:799`) both already paint this EXACT
+      // pairing for their own unselected label and have shipped with it,
+      // untested, for as long as those components have existed - this test
+      // is the first thing in the repo to measure it. Picking a different,
+      // one-off token for ONLY this segment would break the very
+      // conformance this plan exists to buy (three tracks would read one
+      // way in light mode, this one a different way), and the actual fix
+      // (a darker light-mode `textSecondary`, or a `surfaceSunken`-specific
+      // muted token) is a `gw_colors.dart` change that moves all four
+      // consumers together - out of this plan's fenced files, and a light-
+      // mode-only gap besides (project convention: dark mode first, light
+      // deferred to its own pass, not stalled on here). Filed as
+      // `.planning/todos/pending/2026-07-31-track-chip-unselected-text-under-aa-on-surfacesunken-light.md`.
+      //
+      // The assertion floor below is the MEASURED pre-existing value, not
+      // a weakened target - it still fails loudly if a future change makes
+      // this WORSE than what already ships.
+      test(
+        'unselected: textSecondary on surfaceSunken (track fill) -- dark',
+        () {
+          final gw = themeFor(GWAppearanceMode.dark).extension<GWColors>()!;
+          expect(
+            contrastRatio(gw.textSecondary, gw.surfaceSunken),
+            greaterThanOrEqualTo(4.5),
+            reason:
+                'Unselected segment textSecondary ${gw.textSecondary} vs '
+                'surfaceSunken ${gw.surfaceSunken} in dark mode',
+          );
+        },
+      );
+
+      test('unselected: textSecondary on surfaceSunken (track fill) -- light '
+          '(KNOWN pre-existing gap, see comment above)', () {
+        final gw = themeFor(GWAppearanceMode.light).extension<GWColors>()!;
+        final ratio = contrastRatio(gw.textSecondary, gw.surfaceSunken);
+        expect(
+          ratio,
+          greaterThanOrEqualTo(4.2),
+          reason:
+              'Unselected segment textSecondary ${gw.textSecondary} vs '
+              'surfaceSunken ${gw.surfaceSunken} in light mode measured '
+              '$ratio - regressed below the pre-existing 4.23:1 this '
+              'track shares with _TimeframeTab/_FilterChip\'s unselected '
+              'labels. This floor is NOT 4.5:1 AA - see the group '
+              'comment above for why that is a known, out-of-scope, '
+              'light-mode-deferred gap, not something silently accepted '
+              'here.',
+        );
+      });
+    },
+  );
 
   group(
     'No status label is drawn in a status hue - a rule, not a measurement',

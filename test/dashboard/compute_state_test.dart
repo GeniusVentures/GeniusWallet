@@ -274,19 +274,25 @@ void main() {
 
   group('viewForComputeState — the scale test', () {
     test('an initialization reading of 0.525 and a processing reading of 52.5 '
-        'both produce a bar value of 0.525 — the whole defence against the '
-        'hundred-times error between the two native scales', () {
+        'both round to the same trailing percentage — the whole defence '
+        'against the hundred-times error between the two native scales. '
+        '`startingUp` no longer has a barValue to compare (14-09-PLAN.md Task '
+        '1a deletes its bar), so this re-points at the readout that survives: '
+        'trailing.', () {
       final startingUpView = viewForComputeState(
         ComputeState.startingUp,
         initPercentage: 0.525,
       );
-      expect(startingUpView.barValue, 0.525);
+      expect(startingUpView.barValue, isNull);
+      expect(startingUpView.showBar, isFalse);
 
       final processingView = viewForComputeState(
         ComputeState.processing,
         processingPercentage: 52.5,
       );
       expect(processingView.barValue, 0.525);
+
+      expect(startingUpView.trailing, processingView.trailing);
     });
   });
 }

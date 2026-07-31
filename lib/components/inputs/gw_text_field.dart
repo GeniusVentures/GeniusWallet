@@ -17,6 +17,7 @@ class GWTextField extends StatelessWidget {
     this.hint,
     this.helper,
     this.errorText,
+    this.leadingIcon,
     this.prefix,
     this.suffix,
     this.obscureText = false,
@@ -38,6 +39,7 @@ class GWTextField extends StatelessWidget {
     this.borderless = false,
     this.focusRing = false,
     this.fill,
+    this.textStyle,
     // IME-hardening opt-ins (06-04 §3.6). Every default below is Flutter's own
     // TextFormField stock default, so existing call sites — including
     // GWPasswordField and GWSearchField — behave byte-identically unless a
@@ -54,6 +56,30 @@ class GWTextField extends StatelessWidget {
   final String? hint;
   final String? helper;
   final String? errorText;
+
+  /// The leading ICON slot, in its own gutter: vertically CENTRED inside a
+  /// 48x48 minimum box, sized for a tap target rather than for its content.
+  /// That is right for an icon and wrong for text - a one-character `Text`
+  /// dropped in here gets a 48px column to itself and sits off the value's
+  /// baseline. For a currency symbol, a dial code or a scheme, use [prefix].
+  final Widget? leadingIcon;
+
+  /// The INLINE prefix slot: laid out on the input's own baseline, sized to
+  /// its content, and styled by this component (see `prefixStyle` in `build`),
+  /// so a bare `Text` renders at the field's own type step in
+  /// `gw.textSecondary`. For an icon that wants a 48px tap target, use
+  /// [leadingIcon].
+  ///
+  /// This deliberately means the same thing Material's own
+  /// `InputDecoration.prefix` means. It did NOT before 260731-vty: `prefix`
+  /// used to be routed into `prefixIcon`, the identically spelled parameter
+  /// four lines away in the same decoration, which is exactly how the Buy GNUS
+  /// hero's `$` ended up in a gutter. The rename exists to close that trap.
+  ///
+  /// Material fades this slot out while the field is empty and unfocused, and
+  /// fades it back in on focus or on the first character. Opacity is not
+  /// layout, so the box is reserved throughout and no digit shifts when the
+  /// symbol appears.
   final Widget? prefix;
   final Widget? suffix;
   final bool obscureText;
@@ -101,6 +127,17 @@ class GWTextField extends StatelessWidget {
   /// `ResponsiveDrawer`'s class doc for the 1.00:1 arithmetic.
   final Color? fill;
 
+  /// The type step the VALUE and the HINT render at. Defaults to `bodyLg`
+  /// (16px) - today's hardcoded value - so every existing call site is
+  /// unchanged.
+  ///
+  /// It applies to the hint as well as the value on purpose: a hero field that
+  /// styled only its value would drop its placeholder back to 16px, so an
+  /// empty field and a filled one would sit at two different sizes. Added for
+  /// the Buy GNUS "You spend" field, which is the design's hero and cannot be
+  /// built from a component that hardcodes body size (260731-uhe).
+  final TextStyle? textStyle;
+
   /// See the constructor note. [enableIMEPersonalizedLearning] is the
   /// load-bearing one for key material — it maps to Android's
   /// `IME_FLAG_NO_PERSONALIZED_LEARNING`, the actual switch on the keyboard's
@@ -115,6 +152,13 @@ class GWTextField extends StatelessWidget {
     // Fail-soft read: registers the InheritedWidget dependency that forces
     // this const-instanced widget to rebuild on a live appearance toggle.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    // The field's own type step in the secondary ink - what the HINT renders
+    // at, and what the inline [prefix] renders at. Material's own fallback for
+    // `prefixStyle` is `hintStyle`, so today the two would coincide even if
+    // only one were stated; it is stated anyway because a private fallback is
+    // not a contract.
+    final secondaryStyle = (textStyle ?? GeniusWalletTypography.bodyLg)
+        .copyWith(color: gw.textSecondary);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -153,14 +197,14 @@ class GWTextField extends StatelessWidget {
             enableSuggestions: enableSuggestions,
             enableIMEPersonalizedLearning: enableIMEPersonalizedLearning,
             textCapitalization: textCapitalization,
-            style: GeniusWalletTypography.bodyLg,
+            style: textStyle ?? GeniusWalletTypography.bodyLg,
             cursorColor: context.gw.brandPrimary,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: GeniusWalletTypography.bodyLg.copyWith(
-                color: gw.textSecondary,
-              ),
-              prefixIcon: prefix,
+              hintStyle: secondaryStyle,
+              prefixIcon: leadingIcon,
+              prefix: prefix,
+              prefixStyle: secondaryStyle,
               suffixIcon: suffix,
               counterText: '',
               filled: true,
@@ -369,7 +413,7 @@ class _GWSearchFieldState extends State<GWSearchField> {
         focusNode: _focusNode,
         onChanged: widget.onChanged,
         borderless: true,
-        prefix: Icon(Icons.search, size: 20, color: gw.textSecondary),
+        leadingIcon: Icon(Icons.search, size: 20, color: gw.textSecondary),
         suffix: widget.onClear != null
             ? IconButton(
                 tooltip: 'Clear',

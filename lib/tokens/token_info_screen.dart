@@ -16,17 +16,19 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
+import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -124,22 +126,113 @@ Widget _buildSectionTitle(BuildContext context, String text) =>
     // transaction receipt (154-A) needs done too.
     GWKicker(text);
 
-class TokenInfoScreen extends StatelessWidget {
-  final bool? isGnusWalletConnected;
-  final CoinGeckoMarketData? marketData;
+class TokenInfoScreen extends StatefulWidget {
+  final TokenInfoArgs args;
   final WalletDetailsCubit walletDetailsCubit;
+  final bool isGnusWalletConnected;
+
+  /// Injectable market-data resolver - the seam
+  /// `test/tokens/coin_page_entry_parity_test.dart` uses to drive loading,
+  /// failed and retry without Hive or the network. Production callers never
+  /// pass this; [_TokenInfoScreenState.initState] defaults it to the real
+  /// fetch.
+  final Future<Map<String, CoinGeckoMarketData?>> Function(
+    List<String> coinIds,
+  )?
+  resolveMarketData;
 
   const TokenInfoScreen({
     super.key,
     required this.walletDetailsCubit,
-    this.marketData,
-    this.isGnusWalletConnected,
+    required this.args,
+    required this.isGnusWalletConnected,
+    this.resolveMarketData,
   });
+
+  @override
+  State<TokenInfoScreen> createState() => _TokenInfoScreenState();
+}
+
+/// The coin page's own read on its market data - distinct from
+/// [WalletDetailsState], which is about the user's wallet, not what this
+/// page is showing.
+///
+///  * [ready] - `args.marketData` arrived non-null. Markets and the
+///    dashboard Markets panel always take this branch (neither ever opens a
+///    coin with no data), so this plan adds zero new requests on those
+///    routes.
+///  * [loading] - `args.marketData` is null but `args.coinGeckoId` names a
+///    real coin, so the page asks for it.
+///  * [failed] - the ask came back with no entry for this coin, or threw.
+///    Retryable - this is the branch that used to be indistinguishable from
+///    [uncovered], which is the whole reason "not covered by our market data
+///    provider" used to print over a rate-limited request.
+///  * [uncovered] - no data AND nothing to ask for. The one state actually
+///    allowed to say the provider does not cover this token.
+enum _MarketDataStatus { ready, loading, failed, uncovered }
+
+class _TokenInfoScreenState extends State<TokenInfoScreen> {
+  late _MarketDataStatus _status;
+  CoinGeckoMarketData? _marketData;
+
+  @override
+  void initState() {
+    super.initState();
+    _marketData = widget.args.marketData;
+    if (_marketData != null) {
+      _status = _MarketDataStatus.ready;
+    } else if (widget.args.coinGeckoId != null) {
+      _status = _MarketDataStatus.loading;
+      _fetch();
+    } else {
+      _status = _MarketDataStatus.uncovered;
+    }
+  }
+
+  Future<void> _fetch() async {
+    final resolver =
+        widget.resolveMarketData ??
+        (List<String> ids) => fetchCoinsMarketData(coinIds: ids);
+    try {
+      final result = await resolver([widget.args.coinGeckoId!]);
+      // Symbol key first, coin-id key second - the same order
+      // `markets_screen.dart:146` keeps a dual lookup for, because
+      // `fetchCoinsMarketData`'s own returned maps are keyed by symbol.
+      final data =
+          result[widget.args.symbol?.toLowerCase()] ??
+          result[widget.args.coinGeckoId];
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        if (data != null) {
+          _marketData = data;
+          _status = _MarketDataStatus.ready;
+        } else {
+          _status = _MarketDataStatus.failed;
+        }
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _status = _MarketDataStatus.failed);
+    }
+  }
+
+  /// Re-enters [_MarketDataStatus.loading], which unmounts the Retry button
+  /// on the very next frame - that is what makes a held cursor unable to fire
+  /// a second request (T-hsb-04), not a manual disabled flag: the control a
+  /// second tap would need no longer exists once the first tap lands.
+  void _retry() {
+    setState(() => _status = _MarketDataStatus.loading);
+    _fetch();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: walletDetailsCubit,
+      value: widget.walletDetailsCubit,
       child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
         builder: (context, state) {
           return _buildScreenWithCubit(context, state);
@@ -156,7 +249,7 @@ class TokenInfoScreen extends StatelessWidget {
     final walletDetailsCubit = context.read<WalletDetailsCubit>();
 
     final isGnusBridgeEnabled =
-        (isGnusWalletConnected ?? false) &&
+        widget.isGnusWalletConnected &&
         selectedCoin?.symbol?.toLowerCase() == 'gnus';
 
     return Scaffold(
@@ -196,9 +289,21 @@ class TokenInfoScreen extends StatelessWidget {
             // title lands on the same x as "Markets" on the page you came from.
             // It used to be `EdgeInsets.all(space10)` around a 1200-wide centred
             // column, which put the title ~170px further in on a 1500px window.
+            // Top `space32` (64) is the shared navbar->title gap every content
+            // page uses - `transactions_screen.dart`'s own comment names it as
+            // such, and Markets/News inherit it. This page carried `space6`
+            // (12), so it sat 52px tighter under the nav bar than every tab it
+            // is reached from (Jakub, 2026-07-31).
+            //
+            // NOTE: the coin NAME still lands lower than those pages' titles,
+            // because `_BackToMarkets` occupies the first ~26px inside this
+            // padding and no other page has a back link. Aligning the name
+            // itself would mean shrinking this pad below the shared value,
+            // which trades one mismatch for another - left as the shared gap
+            // deliberately, not overlooked.
             padding: const EdgeInsets.fromLTRB(
               0,
-              GeniusWalletConsts.space6,
+              GeniusWalletConsts.space32,
               0,
               GeniusWalletConsts.space20,
             ),
@@ -211,19 +316,32 @@ class TokenInfoScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const _BackToMarkets(),
-                    _header(
-                      context,
-                      selectedCoin,
-                      selectedWallet,
-                      selectedNetwork,
-                      isGnusBridgeEnabled,
-                      walletDetailsCubit,
+                    GWBackLink(
+                      label: widget.args.originLabel,
+                      onTap: () => context.pop(),
                     ),
-                    if (marketData != null) ...[
+                    _header(context, selectedCoin),
+                    // sketch 165 Synthesis, change 3: the actions sit on their
+                    // own row under the identity block, not on the title's
+                    // line, and mount OUTSIDE the `marketData != null` guard -
+                    // Receive needs no market price and must survive the
+                    // no-data route.
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: _CoinActionRow(
+                        selectedCoin: selectedCoin,
+                        selectedWallet: selectedWallet,
+                        selectedNetwork: selectedNetwork,
+                        isGnusBridgeEnabled: isGnusBridgeEnabled,
+                        walletDetailsCubit: walletDetailsCubit,
+                        marketData: _marketData,
+                      ),
+                    ),
+                    const SizedBox(height: GeniusWalletConsts.space8),
+                    if (_marketData != null) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: _StatRail(data: marketData!),
+                        child: _StatRail(data: _marketData!),
                       ),
                       const SizedBox(height: GeniusWalletConsts.space8),
                     ],
@@ -238,7 +356,7 @@ class TokenInfoScreen extends StatelessWidget {
                     const SizedBox(height: GeniusWalletConsts.space4),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: isWide && marketData != null
+                      child: isWide && _marketData != null
                           // >=1024: chart | Info+Convert side by side, and the
                           // chart is EXACTLY as tall as the column beside it.
                           //
@@ -264,33 +382,28 @@ class TokenInfoScreen extends StatelessWidget {
                                   Expanded(flex: 2, child: _chartCard(null)),
                                   Expanded(
                                     flex: 1,
-                                    child: _buildActionSection(
-                                      marketData,
-                                      selectedCoin,
-                                      selectedNetwork,
-                                    ),
+                                    child: _buildActionSection(_marketData),
                                   ),
                                 ],
                               ),
                             )
-                          // <1024 (and the no-market-data case): one column.
+                          // <1024 (and the loading/failed/no-market-data
+                          // cases, which never take the wide branch above
+                          // since it requires _marketData != null): one
+                          // column.
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               spacing: GeniusWalletConsts.space8,
                               children: [
-                                // The card under the line is the chart, or - on
-                                // the route that reaches this page from the
-                                // wallet's own Assets list - the empty state
-                                // saying why there is none.
-                                if (marketData != null)
-                                  _chartCard(chartHeight)
-                                else
-                                  _noMarketData(context),
-                                _buildActionSection(
-                                  marketData,
-                                  selectedCoin,
-                                  selectedNetwork,
-                                ),
+                                // The card under the line is the chart, a
+                                // loading spinner, a retryable error, or -
+                                // on the route that reaches this page from
+                                // the wallet's own Assets list for a token
+                                // the provider genuinely does not cover -
+                                // the empty state saying so. See
+                                // `_chartSlot`.
+                                _chartSlot(chartHeight),
+                                _buildActionSection(_marketData),
                               ],
                             ),
                     ),
@@ -304,39 +417,99 @@ class TokenInfoScreen extends StatelessWidget {
     );
   }
 
-  /// Identity + actions + price, in the app's page header instead of an AppBar
-  /// crumb.
-  Widget _header(
-    BuildContext context,
-    Coin? selectedCoin,
-    Wallet? selectedWallet,
-    Network? selectedNetwork,
-    bool isGnusBridgeEnabled,
-    WalletDetailsCubit walletDetailsCubit,
-  ) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+  /// The single-column chart slot, keyed to [_status] rather than a bare
+  /// null check on [_marketData] - the whole point of Task 2. A null
+  /// [_marketData] used to mean exactly one thing ("not covered"); now it
+  /// can also mean "still asking" or "the ask failed", and each gets its own
+  /// card instead of being flattened into the same false claim.
+  Widget _chartSlot(double chartHeight) {
+    switch (_status) {
+      case _MarketDataStatus.ready:
+        return _chartCard(chartHeight);
+      case _MarketDataStatus.loading:
+        return _loadingCard();
+      case _MarketDataStatus.failed:
+        return _failedCard();
+      case _MarketDataStatus.uncovered:
+        return _noMarketData(context);
+    }
+  }
+
+  /// Same chrome as [_noMarketData] - a `GWCard` in the chart's slot - so the
+  /// page does not restyle itself between "still asking" and "gave up".
+  Widget _loadingCard() => const GWCard(
+    radius: GeniusWalletConsts.radiusMd,
+    padding: EdgeInsets.all(GeniusWalletConsts.space8),
+    child: Padding(
+      padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space20),
+      child: Center(child: Loading()),
+    ),
+  );
+
+  /// **T-hsb-03: this is the card that stops the app lying.** A rate limit
+  /// or a timeout used to land here and print "not covered by our market
+  /// data provider" - a false statement about a network failure. This card
+  /// says what actually happened and offers a way back to [ready] instead of
+  /// leaving the page terminal.
+  Widget _failedCard() => GWCard(
+    radius: GeniusWalletConsts.radiusMd,
+    padding: const EdgeInsets.all(GeniusWalletConsts.space8),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const GWEmptyState(
+          icon: Icons.cloud_off,
+          title: 'Price could not be loaded',
+          message:
+              'This looks like a temporary problem reaching our market '
+              'data provider, not a token we do not cover. Try again.',
+        ),
+        const SizedBox(height: GeniusWalletConsts.space8),
+        // gradientOutline/sm - the same weight the action row's Receive and
+        // Bridge already carry, so Swap stays the one filled control on this
+        // surface (CTA weight rule).
+        GWButton(
+          variant: GWButtonVariant.gradientOutline,
+          size: GWButtonSize.sm,
+          label: 'Retry',
+          leading: const Icon(Icons.refresh),
+          onPressed: _retry,
+        ),
+      ],
+    ),
+  );
+
+  /// Identity + price, in the app's page header instead of an AppBar crumb.
+  ///
+  /// **sketch 165 Synthesis, change 3: the actions no longer ride here.** They
+  /// used to sit in `titleTrailing`, on the title's own line behind a
+  /// hairline; they are now `_CoinActionRow`, mounted below this header on its
+  /// own row. `titleTrailing` reverts to null at this call site - it is not
+  /// deleted from `GWPageHeader` itself, which still has two tests of its own
+  /// exercising it.
+  Widget _header(BuildContext context, Coin? selectedCoin) {
     // marketData is what can be missing, not the coin - so the title falls back
     // to the wallet's own record rather than to "Token".
     final String title =
-        marketData?.name ??
+        _marketData?.name ??
         selectedCoin?.name ??
         selectedCoin?.symbol ??
         'Token';
-    // Symbol and network only. **Rank left the subtitle on 2026-07-28** - the
-    // stat rail's first tile is Rank, so the page was printing it twice, six
-    // pixels apart. The rail is the better home: it formats 0 as "N/A" through
-    // the shared rule, where a subtitle segment could only be present or
-    // absent.
-    final parts = <String>[
-      (marketData?.symbol ?? selectedCoin?.symbol ?? '').toUpperCase(),
-      if (selectedNetwork?.name != null) selectedNetwork!.name!,
-    ].where((s) => s.isNotEmpty).toList();
+    // **sketch 165 Synthesis, change 2: the subtitle is the ticker alone.**
+    // The chain used to ride along here as `BTC  ·  Ethereum`, impersonating
+    // part of the coin's own name directly under the title. It still appears
+    // on the page exactly once - in Info's Network row, where a fact about
+    // the token belongs. **Rank left the subtitle on 2026-07-28** - the stat
+    // rail's first tile is Rank, so the page was printing it twice, six
+    // pixels apart.
+    final String symbol = (_marketData?.symbol ?? selectedCoin?.symbol ?? '')
+        .toUpperCase();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: GWPageHeader(
         title: title,
-        subtitle: parts.isEmpty ? null : parts.join('  ·  '),
+        subtitle: symbol.isEmpty ? null : symbol,
         // Jakub 2026-07-28: *"Przed Genius AI powinna być ikona tokenu,
         // zawsze."* `buildTokenIcon` is the helper Markets already uses for
         // exactly this - it takes a URL or an asset path, and falls back to a
@@ -347,33 +520,18 @@ class TokenInfoScreen extends StatelessWidget {
         // record is what names the coin in the title, so the glyph beside it
         // should come from the same source.
         leading: buildTokenIcon(
-          iconPath: (marketData?.imageUrl.isNotEmpty ?? false)
-              ? marketData!.imageUrl
+          iconPath: (_marketData?.imageUrl.isNotEmpty ?? false)
+              ? _marketData!.imageUrl
               : selectedCoin?.iconPath,
           size: 40,
         ),
-        // **075-E2: the actions ride the title's own line**, separated from the
-        // name by a hairline. Without it they read as part of the name -
-        // "Receive" beside "GENIUS AI" as a label about the coin rather than an
-        // action on your wallet. The rule is one `borderSubtle` line, the same
-        // weight every card edge in the app uses.
-        titleTrailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(width: GeniusWalletConsts.space6),
-            Container(width: 1, height: 24, color: gw.borderSubtle),
-            const SizedBox(width: GeniusWalletConsts.space4),
-            _buildActionRow(
-              context,
-              selectedCoin,
-              selectedWallet,
-              selectedNetwork,
-              isGnusBridgeEnabled,
-              walletDetailsCubit,
-            ),
-          ],
-        ),
-        trailing: marketData == null ? null : _PriceBlock(data: marketData!),
+        // Sketch 168 E1 (Jakub, 2026-07-31): the price is pulled up against
+        // the identity block and separated from it by a vertical hairline,
+        // instead of hanging off the far right edge.
+        trailingHugsTitle: true,
+        trailing: _marketData == null
+            ? null
+            : _IdentityPriceGroup(data: _marketData!),
       ),
     );
   }
@@ -384,12 +542,56 @@ class TokenInfoScreen extends StatelessWidget {
   /// layout, where `IntrinsicHeight` has already sized the row from the
   /// Info+Convert column. A number is for the stacked layouts, which have no
   /// column to line up with.
+  ///
+  /// **sketch 165 Synthesis, change 5: the 24h low/high footer mounts here,
+  /// inside this card, not in `crypto_live_chart.dart`.** Two reasons, either
+  /// sufficient on its own: `CryptoLiveChart` takes a coin id and symbol and
+  /// fetches its own series - it has no `CoinGeckoMarketData`, so a footer
+  /// there means two new parameters threaded in for exactly one consumer. And
+  /// `.planning/ROADMAP.md` assigns `crypto_live_chart.dart` to Phase 5 and
+  /// fences Phase 7 out of it.
+  ///
+  /// The footer sits OUTSIDE the chart's own height (the `Expanded`/`SizedBox`
+  /// below), never inside it: inside, it would eat into the plot's height and
+  /// could push it under `kChartFrameMinHeight` (220), the runtime threshold
+  /// that decides whether the chart draws the trading frame or the axis-free
+  /// sparkline. Outside it, the card grows by the footer's height and
+  /// `coinChartHeight` keeps returning exactly what it always has.
   Widget _chartCard(double? height) => GWCard(
     radius: GeniusWalletConsts.radiusMd,
     padding: const EdgeInsets.all(GeniusWalletConsts.space8),
     child: height == null
-        ? _FillHeight(child: _buildGraphSection(marketData!))
-        : SizedBox(height: height, child: _buildGraphSection(marketData!)),
+        ? Column(
+            children: [
+              // `_FillHeight` still answers zero to an intrinsic-height query,
+              // and `Expanded` propagates that zero rather than masking it
+              // (a flex child's contribution to a Column's own intrinsic
+              // height is its intrinsic size divided by its flex - zero
+              // divided by anything is zero) - so the wide layout's
+              // `IntrinsicHeight` row still takes its height from the
+              // Info+Convert column, not from this card. Only the footer's
+              // own height counts.
+              Expanded(
+                child: _FillHeight(child: _buildGraphSection(_marketData!)),
+              ),
+              _ChartRangeFooter(
+                low: _marketData!.low24h,
+                high: _marketData!.high24h,
+                now: _marketData!.currentPrice,
+              ),
+            ],
+          )
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: height, child: _buildGraphSection(_marketData!)),
+              _ChartRangeFooter(
+                low: _marketData!.low24h,
+                high: _marketData!.high24h,
+                now: _marketData!.currentPrice,
+              ),
+            ],
+          ),
   );
 
   /// Jakub 2026-07-28: *"wtedy no data czy coś"*. Says so, instead of dropping
@@ -423,157 +625,116 @@ class TokenInfoScreen extends StatelessWidget {
     );
   }
 
-  /// **074-C2's action row: only what the code can actually do.**
+  /// Desktop (>=768, sketch 152 A) right column: Info above Convert, together.
+  Widget _buildActionSection(CoinGeckoMarketData? marketData) {
+    return Column(
+      spacing: GeniusWalletConsts.space8,
+      children: [
+        _buildInfoSection(marketData),
+        _buildConvertSection(marketData),
+      ],
+    );
+  }
+
+  /// The Info card alone — reused standalone on mobile (sketch 152 D) so it
+  /// can be interleaved with the graph and Convert card.
   ///
-  /// Jakub's rule, 2026-07-28: *"Jeśli czegoś nie ma w kodzie, to nie
-  /// uwzględniamy designu."* Sketch 072 traced all four of the old tiles:
-  ///
-  ///  * **Receive** is real - the QR drawer, and it needs no market price, so
-  ///    it works on every route including the no-data one.
-  ///  * **Send is gone.** There is no send screen and no route;
-  ///    `send_transaction_details.dart` is the WalletConnect *request* view, and
-  ///    `GeniusApi.transferTokens` has zero callers in the repository. It is a
-  ///    feature, not a wiring job, so it leaves the design rather than shipping
-  ///    as a fourth grey box.
-  ///  * **Swap** was built and never wired. It is wired here - but
-  ///    `SwapScreen` takes no parameters, so this opens an EMPTY form and the
-  ///    coin is not preselected. Nothing on screen promises otherwise.
-  ///  * **Bridge** replaces the "More Options" drawer, which held exactly one
-  ///    row. A drawer to reach one item was a click that bought nothing.
-  ///
-  /// **Bridge is ABSENT rather than disabled when the coin is not GNUS.** A
-  /// permanently-grey button on Bitcoin says "unavailable", when the truth is
-  /// "does not apply" - the old bar collapsed three different truths into one
-  /// grey box (072 finding 3). Zero balance is the one case that IS a disabled
-  /// state, because it is a state the user can change, so it lands on
-  /// `onPressed: null`.
-  ///
-  /// The glyphs are Material icons, not the sketch-152 SVGs the old bar used:
-  /// `GWButton` drives icon colour and size through an `IconTheme`, which a
-  /// `SketchIcon` cannot read (it takes a required `color`), so an SVG would be
-  /// the one glyph in the row that does not dim when Bridge is disabled.
-  Widget _buildActionRow(
-    BuildContext context,
-    Coin? selectedCoin,
-    Wallet? selectedWallet,
-    Network? selectedNetwork,
-    bool isGnusBridgeEnabled,
-    WalletDetailsCubit walletDetailsCubit,
-  ) {
-    // Icon-only, so each button must say its own name: `tooltip` for the mouse,
-    // `semanticLabel` for the screen reader.
-    //
-    // **`ghost`, not `icon`, and `md`, not `sm` - both because of one
-    // constraint.** Jakub, 2026-07-28: *"te ikony powinny być [...] wysokości
-    // tytułu, nie większe."* `headlineLg` is 24/32, so a 44px filled chip
-    // stands 12px taller than the line it sits on and the header reads as if
-    // the buttons were the headline.
-    //
-    // Shrinking the BUTTON to 32 was the obvious answer and is the wrong one:
-    // `GWButton`'s `sm` carries `return 44; // was 36 — touch floor (iOS 44)`,
-    // a decision this repository already made and reversed once. 32 clears
-    // WCAG 2.5.8 (AA, 24x24) but drops below 2.5.5 (AAA, 44x44), on a page
-    // that also renders on a phone.
-    //
-    // So the PAINTED box goes and the TARGET stays. `ghost` is transparent
-    // fill, no border, leaving only the glyph - there is nothing left to be
-    // taller than the title - while the button still measures 48. `md` rather
-    // than `sm` because `sm`'s glyph is 16px, too faint beside a 24px title;
-    // `md` gives 20px and a 48px target, above the floor rather than below it.
-    // **The row used to cost no height - that stopped being true on
-    // 2026-07-29.** The claim here was that the header line is already 62px,
-    // driven by the two-line price block opposite. It was, because `trailing`
-    // sat INSIDE `GWPageHeader`'s title Row and dragged the whole line to its
-    // own height, which is exactly what put 19px between "GENIUS AI" and
-    // "GNUS · Ethereum". The price block now sits beside the identity block
-    // instead, so the title line is `max(title 32, these buttons 48)` = 48 and
-    // the 48px target is what keeps 8px under the title.
-    //
-    // **Jakub was asked and chose to keep it, 2026-07-29.** Shown the gap at
-    // 12px and offered 4px for `height: 32` (or 8px for 40), he kept 48. So
-    // the 12px under the title is a paid-for accessibility margin, not an
-    // oversight - do not "tidy" it away without reopening the decision.
-    //
-    // Leaving it at 48 anyway: 8px of transparent tap padding is the cheaper
-    // side of the trade against dropping below the 44px floor this comment
-    // already argued once. If Jakub wants the last 8px, `height: 32` on these
-    // two buttons is the whole change - it clears 2.5.8 (AA) and fails 2.5.5
-    // (AAA), which is the decision, not a tweak.
-    //
-    // **That accepted cost was cashed in on 2026-07-29 and is now paid off.**
-    // The paragraph above used to end here saying the icons have no boundary at
-    // rest and that this is fine under 1.4.11, because the GLYPH identifies the
-    // control, not its edge. The standards argument still holds. What did not
-    // hold is the product one: the walk found both actions by eye as "nie halo"
-    // - two bare glyphs floating beside a 26px coin name, reading as decoration
-    // rather than buttons. Sketch 164-C adds the boundary back.
-    //
-    // **It adds it at 32px inside the 48px target, and that split is the whole
-    // point.** Switching to `GWButtonVariant.icon` was the obvious move and it
-    // would have reversed the 2026-07-28 decision recorded above - Jakub's
-    // *"te ikony powinny być wysokości tytułu, nie większe"* - because that
-    // variant paints its box at the button's full 48. So the TARGET stays 48
-    // (2.5.5 AAA, kept on Jakub's explicit call) and the PAINTED box is 32,
-    // which is the title's own height. Nothing is reversed.
-    //
-    // **The edge carries it, not the fill**, and that is measured rather than
-    // chosen: this row sits on the PAGE (`surfaceBase` #0B0D12), and
-    // `variant: icon`'s own `surfaceElevated` fill is #0C0E14 - **1.01:1**
-    // against it, i.e. not a box at all. `surfaceMenu` is 1.12:1, a lift and no
-    // more. Only `borderControl` draws, at **3.28:1**, and that is precisely
-    // the token's documented job: *"the edge of a CONTROL whose fill cannot
-    // identify it"*.
+  /// **Address and Network come from `widget.args`, not `state.selectedCoin`
+  /// / `state.selectedNetwork` (T-hsb-02).** The wallet cubit's selection is
+  /// whatever the wallet last had selected, which has nothing to do with the
+  /// coin this page is showing when it was opened from Markets - printing it
+  /// there was stating a foreign address as if it were this token's own.
+  /// `args.walletCoin` is null from both Markets surfaces, so `CoinInfoCard`
+  /// (which already omits any row whose value is null) simply drops these
+  /// two rows rather than lying with them.
+  Widget _buildInfoSection(CoinGeckoMarketData? marketData) {
+    return CoinInfoCard(
+      marketData: marketData,
+      address: widget.args.walletCoin?.address,
+      network: widget.args.network,
+    );
+  }
+
+  /// The Convert card alone — reused standalone on mobile (sketch 152 D) so it
+  /// can render directly below the chart, above the Info card.
+  Widget _buildConvertSection(CoinGeckoMarketData? marketData) {
+    return CoinConvertCard(tokenPrice: marketData?.currentPrice ?? 0.0);
+  }
+}
+
+/// **sketch 165 Synthesis, change 3: labelled buttons on their own row under
+/// the identity block, not bare glyphs riding the title line.**
+///
+/// Replaces `_buildActionRow` (074-C2/164-C's icon-only bar). Order is Swap,
+/// then Receive, matching the Synthesis board. Swap is the page's one filled
+/// control (`GWButtonVariant.gradient`); Receive is its outline twin
+/// (`gradientOutline`) - the same pairing `coins_screen.dart` already ships
+/// for Receive/Buy GNUS. Both `onPressed` bodies are unchanged from the
+/// glyph-era row, comments included: only the chrome around them is new.
+///
+///  * **Receive** needs no market price, so it renders on the no-market-data
+///    route too.
+///  * **Bridge** is absent unless `isGnusBridgeEnabled`, `onPressed: null` on
+///    a zero balance rather than hidden (a balance is a state the user can
+///    change, absence is not). Sketch 165 never drew a third action; Bridge
+///    takes the same `gradientOutline` treatment as Receive, the call this
+///    file already made for the identical situation in sketch 164. **Flagged
+///    for the walk, not settled** - two outlines beside one fill is still one
+///    fill under the CTA weight rule, but nobody has judged it in place yet.
+///
+/// **`size: sm` (44), settled on the walk 2026-07-31.** Jakub read the 48px
+/// row as too tall against the rest of the page and asked for the height the
+/// homepage uses. That is `GWButtonSize.sm` - the same step the compute
+/// panel's `New processing job` CTA carries (`compute_panel.dart`), so the two
+/// primary surfaces now agree rather than each picking their own.
+///
+/// This is a size STEP on the shared component, never a hand-set height: the
+/// 44 lives in `gw_button.dart`'s own ladder (`sm` 44 / `md` 48 / `lg` 56) and
+/// changing it there still moves every caller together.
+///
+/// It does not weaken the accessibility floor DECISION constraint 2 was
+/// protecting. 44x44 is exactly WCAG 2.5.5 Target Size (Enhanced, AAA), and
+/// `gw_button.dart:86` records the same number as the iOS touch floor. The
+/// mockup's 40 was the option that would have dropped to 2.5.8 (Minimum); it
+/// stays rejected.
+///
+/// **`GWButton`'s disabled handling replaces `_ActionGlyph`'s `enabled`
+/// field.** The old icon-only row painted its own 32px box with a manually
+/// dimmed border; a labelled `GWButton` dims its own gradient/border/label
+/// together whenever `onPressed == null`, so Bridge's zero-balance gate needs
+/// nothing extra here.
+///
+/// **Tooltips and semantic labels are dropped.** The label is now the visible
+/// text, so a `tooltip` would repeat it to the mouse and a `semanticLabel`
+/// would repeat it to a screen reader - both read twice for no reason.
+class _CoinActionRow extends StatelessWidget {
+  const _CoinActionRow({
+    required this.selectedCoin,
+    required this.selectedWallet,
+    required this.selectedNetwork,
+    required this.isGnusBridgeEnabled,
+    required this.walletDetailsCubit,
+    required this.marketData,
+  });
+
+  final Coin? selectedCoin;
+  final Wallet? selectedWallet;
+  final Network? selectedNetwork;
+  final bool isGnusBridgeEnabled;
+  final WalletDetailsCubit walletDetailsCubit;
+  final CoinGeckoMarketData? marketData;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      spacing: GeniusWalletConsts.space4,
       children: [
-        GWButton.icon(
-          // `call_received` replaces `Icons.qr_code_2` (Jakub, 2026-07-29).
-          // The old glyph is a finder-square-plus-data-field matrix - roughly
-          // twenty sub-3px shapes inside a 20px box - which rasterised into
-          // noise at this size. Two strokes resolve at any size. The cost is
-          // named, not hidden: the matrix said "there is a code to scan" and
-          // the drawer this opens IS a QR code, so the arrow trades a little
-          // specificity for legibility.
-          icon: const _ActionGlyph(Icons.call_received),
-          variant: GWButtonVariant.ghost,
-          size: GWButtonSize.md,
-          tooltip: 'Receive',
-          semanticLabel: 'Receive',
-          // The child goes in BARE, exactly as `coins_screen.dart` passes it.
-          // This used to arrive wrapped in `Align(topCenter)` + `Padding(8)` +
-          // `SizedBox(width: small * 0.5)`, all three of which are now the
-          // shell's business or nobody's: the drawer applies
-          // `kDrawerBodyPadding` itself (so the 8 was a second inset on top of
-          // 20/24), `CryptoAddressQR` is a `mainAxisSize.min` centred Column
-          // (so the Align did nothing), and the 300px cap squeezed the warning
-          // note narrower than the panel it sits in.
-          onPressed: () => ResponsiveDrawer.show<void>(
-            context: context,
-            // **The name comes from `selectedCoin` ONLY, never `marketData`.**
-            // The QR shows the WALLET's address on the wallet's network, and
-            // arriving here from Markets that network has nothing to do with
-            // the coin you were reading about - titling this "Receive Bitcoin"
-            // over an Ethereum address would be worse than saying less. When
-            // there is no coin the title is just "Receive", which is what put
-            // **"Receive null"** on screen before this.
-            title: selectedCoin?.name == null
-                ? 'Receive'
-                : 'Receive ${selectedCoin!.name}',
-            child: CryptoAddressQR(
-              iconPath: selectedCoin?.iconPath,
-              address: selectedWallet?.address ?? "",
-              network: selectedNetwork?.name ?? "",
-            ),
-          ),
-        ),
-        GWButton.icon(
-          // `swap_horiz` kept verbatim (Jakub, 2026-07-29): it reads fine at
-          // 20px, so only the container and the tint change here.
-          icon: const _ActionGlyph(Icons.swap_horiz),
-          variant: GWButtonVariant.ghost,
-          size: GWButtonSize.md,
-          tooltip: 'Swap',
-          semanticLabel: 'Swap',
+        GWButton(
+          variant: GWButtonVariant.gradient,
+          size: GWButtonSize.sm,
+          label: 'Swap',
+          leading: const Icon(Icons.swap_horiz),
           // **Preselection, gained in the 2026-07-28 merge.** Sketch 072 said
           // no variant may promise it, because `SwapScreen` took no parameters
           // - that was true of this branch and false of the base, which built
@@ -607,63 +768,46 @@ class TokenInfoScreen extends StatelessWidget {
             },
           ),
         ),
+        GWButton(
+          variant: GWButtonVariant.gradientOutline,
+          size: GWButtonSize.sm,
+          label: 'Receive',
+          leading: const Icon(Icons.call_received),
+          onPressed: () => ResponsiveDrawer.show<void>(
+            context: context,
+            // **The name comes from `selectedCoin` ONLY, never `marketData`.**
+            // The QR shows the WALLET's address on the wallet's network, and
+            // arriving here from Markets that network has nothing to do with
+            // the coin you were reading about - titling this "Receive Bitcoin"
+            // over an Ethereum address would be worse than saying less. When
+            // there is no coin the title is just "Receive", which is what put
+            // **"Receive null"** on screen before this.
+            title: selectedCoin?.name == null
+                ? 'Receive'
+                : 'Receive ${selectedCoin!.name}',
+            child: CryptoAddressQR(
+              iconPath: selectedCoin?.iconPath,
+              address: selectedWallet?.address ?? "",
+              network: selectedNetwork?.name ?? "",
+            ),
+          ),
+        ),
         if (isGnusBridgeEnabled)
-          GWButton.icon(
+          GWButton(
             // Bridge was not in the 164 brief, but it stands in the same row on
             // GNUS-enabled coins. Leaving it bare next to two bounded siblings
             // would read as a broken third button rather than a restrained one,
             // so it takes the same treatment. Flagged rather than assumed.
-            icon: _ActionGlyph(
-              Icons.alt_route,
-              enabled: selectedCoin?.balance != 0,
-            ),
-            variant: GWButtonVariant.ghost,
-            size: GWButtonSize.md,
-            tooltip: selectedCoin?.balance == 0
-                ? 'Bridge - no balance to move'
-                : 'Bridge',
-            semanticLabel: 'Bridge tokens',
+            variant: GWButtonVariant.gradientOutline,
+            size: GWButtonSize.sm,
+            label: 'Bridge',
+            leading: const Icon(Icons.alt_route),
             onPressed: selectedCoin?.balance == 0
                 ? null
                 : () => _pushBridgeScreen(context, walletDetailsCubit),
           ),
       ],
     );
-  }
-
-  /// Desktop (>=768, sketch 152 A) right column: Info above Convert, together.
-  Widget _buildActionSection(
-    CoinGeckoMarketData? marketData,
-    Coin? selectedCoin,
-    Network? selectedNetwork,
-  ) {
-    return Column(
-      spacing: GeniusWalletConsts.space8,
-      children: [
-        _buildInfoSection(marketData, selectedCoin, selectedNetwork),
-        _buildConvertSection(marketData),
-      ],
-    );
-  }
-
-  /// The Info card alone — reused standalone on mobile (sketch 152 D) so it
-  /// can be interleaved with the graph and Convert card.
-  Widget _buildInfoSection(
-    CoinGeckoMarketData? marketData,
-    Coin? selectedCoin,
-    Network? selectedNetwork,
-  ) {
-    return CoinInfoCard(
-      marketData: marketData,
-      address: selectedCoin?.address,
-      network: selectedNetwork?.name,
-    );
-  }
-
-  /// The Convert card alone — reused standalone on mobile (sketch 152 D) so it
-  /// can render directly below the chart, above the Info card.
-  Widget _buildConvertSection(CoinGeckoMarketData? marketData) {
-    return CoinConvertCard(tokenPrice: marketData?.currentPrice ?? 0.0);
   }
 }
 
@@ -852,13 +996,12 @@ class CoinInfoCard extends StatelessWidget {
 
   const CoinInfoCard({super.key, this.marketData, this.network, this.address});
 
-  /// ONE accent for every info-row glyph, chosen by Jakub 2026-07-28 on sketch
-  /// 070's four-panel comparison.
-  ///
-  /// **This replaces a deliberate per-row rainbow that was Jakub's own earlier
-  /// request, so here is the measurement it was replaced on rather than a silent
-  /// revert.** Five of the six colours were raw constants tuned against the dark
-  /// canvas, and on the light well (`#CFD4DB`) they collapse:
+  /// **sketch 165 Synthesis, change 8 (Jakub, 2026-07-30): no icons at all.**
+  /// This card used to carry ONE accent for every info-row glyph
+  /// (`brandPrimaryOnSurface`), chosen on sketch 070's four-panel comparison
+  /// after a deliberate per-row rainbow measured badly in light mode - worth
+  /// recording rather than losing outright, since change 8 supersedes that
+  /// conclusion rather than disagreeing with it:
   ///
   /// | glyph | dark | light |
   /// |---|---|---|
@@ -869,20 +1012,12 @@ class CoinInfoCard extends StatelessWidget {
   /// | `statusNeutral` (Volume) | 4.21 | 3.19 |
   /// | `brandPrimaryOnSurface` (Network) | 10.25 | **4.23** |
   ///
-  /// Network was the tell: it is the ONLY appearance-aware colour in the set
-  /// (`#14C8FF` dark / `#0A6885` light) and the only one that survives. So the
-  /// real choice was five new light-mode tokens, or the one colour that already
-  /// carries both - and it is this one.
-  ///
-  /// None of this is a WCAG failure: every row is fully identified by its label,
-  /// so the glyphs are decorative under 1.4.11. It is legibility, plus one
-  /// semantic gain - `statusError` red is the app's ERROR tone and it was being
-  /// spent on Total Supply, where nothing is wrong.
-  ///
-  /// The accepted cost, stated: the card reads quieter, and rows lose per-row
-  /// colour coding.
-  static Color _glyph(GWColors gw) => gw.brandPrimaryOnSurface;
-
+  /// Network was the tell: it was the ONLY appearance-aware colour in that
+  /// set and the only one that survived. The choice then was five new
+  /// light-mode tokens, or the one colour that already carried both; the
+  /// choice now is neither - every row is fully identified by its label
+  /// alone (the glyphs were always decorative under 1.4.11), so the 22px
+  /// slot and its `space6` gap are gone rather than recoloured again.
   @override
   Widget build(BuildContext context) {
     // Fail-soft read: registers the InheritedWidget dependency that forces this
@@ -902,18 +1037,15 @@ class CoinInfoCard extends StatelessWidget {
     /// One row of the grid. The 11/12 padding this used to hard-code was
     /// `kGWDetailRowPadding` written out by hand; the row applies it itself so a
     /// TAPPABLE row's hit area covers the whole cell (see the constant's doc).
-    Widget statRow(String svg, String label, Widget value) {
+    ///
+    /// **The 22px glyph slot is gone (sketch 165 Synthesis, change 8).** Every
+    /// row's label now starts at the card's own left edge, with no reserved
+    /// column ahead of it.
+    Widget statRow(String label, Widget value) {
       return Padding(
         padding: kGWDetailRowPadding,
         child: Row(
           children: [
-            SizedBox(
-              width: 22,
-              child: Center(
-                child: SketchIcon(svg, size: 16, color: _glyph(gw)),
-              ),
-            ),
-            const SizedBox(width: GeniusWalletConsts.space6),
             Expanded(
               child: Text(
                 label,
@@ -930,26 +1062,18 @@ class CoinInfoCard extends StatelessWidget {
     }
 
     final infoTiles = <Widget>[
-      if (network != null)
-        statRow(
-          SketchIcons.network,
-          "Network",
-          Text(network!, style: valStyle),
-        ),
+      if (network != null) statRow("Network", Text(network!, style: valStyle)),
       if (address != null)
         _CopyAddressRow(
           address: address!,
           keyStyle: keyStyle,
           valStyle: valStyle,
-          glyph: _glyph(gw),
         ),
       statRow(
-        SketchIcons.marketCap,
         "Market Cap",
         Text(formatCompactCurrency(marketData?.marketCap), style: valStyle),
       ),
       statRow(
-        SketchIcons.circulating,
         "Circulating Supply",
         Text(
           formatCompactDecimal(marketData?.circulatingSupply),
@@ -957,12 +1081,10 @@ class CoinInfoCard extends StatelessWidget {
         ),
       ),
       statRow(
-        SketchIcons.totalSupply,
         "Total Supply",
         Text(formatCompactDecimal(marketData?.totalSupply), style: valStyle),
       ),
       statRow(
-        SketchIcons.volume,
         "Volume",
         Text(formatCompactCurrency(marketData?.totalVolume), style: valStyle),
       ),
@@ -992,7 +1114,7 @@ class CoinInfoCard extends StatelessWidget {
   }
 }
 
-/// The Address row: the WHOLE row copies, and the glyph is there at rest.
+/// The Address row: the WHOLE row copies, and the copy glyph is there at rest.
 ///
 /// It used to be an inline 15px `IconButton` at the end of the value - a target
 /// you had to hit precisely, on a row whose remaining ~330px did nothing. The
@@ -1001,30 +1123,33 @@ class CoinInfoCard extends StatelessWidget {
 /// hit area is the whole grid cell, which is exactly why `GWDetailGrid` makes
 /// its ROWS apply [kGWDetailRowPadding] instead of padding them itself.
 ///
+/// **sketch 165 Synthesis, change 8 (2026-07-30) dropped the LEADING glyph
+/// column** - the 22px slot every other Info row also lost. The TRAILING
+/// `Icons.copy_rounded` is untouched: it is the copy affordance itself, not
+/// decoration, and change 8 was never about it.
+///
 /// **`_CopyRow` is deliberately NOT promoted out of `transaction_displays.dart`
 /// to serve both.** That would put it at TWO consumers, under the 3+ bar
 /// `GWKicker`, `GWSelectRow` and `GWWarningNote` each had to clear - and the two
-/// rows are not the same shape anyway: this one carries a leading glyph and
-/// truncates 6…6, the receipt's carries none and chunks 8+8 in four-character
-/// groups. Sharing them would mean two new parameters for one extra consumer.
-/// What is shared is the BEHAVIOUR, which is the part a user can tell apart.
+/// rows are not the same shape anyway: this one truncates 6…6, the receipt's
+/// chunks 8+8 in four-character groups. Sharing them would mean two new
+/// parameters for one extra consumer. What is shared is the BEHAVIOUR, which
+/// is the part a user can tell apart.
 ///
 /// ponytail: two implementations of one affordance, on purpose.
 /// Ceiling: they can drift, and only a walk would notice.
 /// Upgrade path: a third consumer makes the component worth building, and at
-/// that point the glyph slot and the truncation strategy become its parameters.
+/// that point the truncation strategy becomes its parameter.
 class _CopyAddressRow extends StatelessWidget {
   const _CopyAddressRow({
     required this.address,
     required this.keyStyle,
     required this.valStyle,
-    required this.glyph,
   });
 
   final String address;
   final TextStyle keyStyle;
   final TextStyle valStyle;
-  final Color glyph;
 
   @override
   Widget build(BuildContext context) {
@@ -1049,17 +1174,6 @@ class _CopyAddressRow extends StatelessWidget {
           padding: kGWDetailRowPadding,
           child: Row(
             children: [
-              SizedBox(
-                width: 22,
-                child: Center(
-                  child: SketchIcon(
-                    SketchIcons.address,
-                    size: 16,
-                    color: glyph,
-                  ),
-                ),
-              ),
-              const SizedBox(width: GeniusWalletConsts.space6),
               Expanded(child: Text("Address", style: keyStyle)),
               Text(short, style: valStyle),
               const SizedBox(width: GeniusWalletConsts.space3),
@@ -1076,75 +1190,45 @@ class _CopyAddressRow extends StatelessWidget {
   }
 }
 
-/// "‹ Markets" - the way back, now that the AppBar's chevron is gone.
+/// The price and its 24h pill, in `GWPageHeader`'s trailing slot.
+/// Sketch 168 **E1**: a vertical hairline, then the price - the pair that gets
+/// pulled up against the identity block by `trailingHugsTitle`.
 ///
-/// `context.pop()` rather than `Navigator.of(context).maybePop()`: inside a
-/// ShellRoute the go_router call is the one that means "back in the route
-/// stack", where the raw Navigator call pops whichever Navigator happens to be
-/// nearest - which after 071-B's route move is the shell's, not the root's.
-class _BackToMarkets extends StatelessWidget {
-  const _BackToMarkets();
+/// **The rule is a `SizedBox` + `ColoredBox`, deliberately not a `Border` on a
+/// container.** A bordered box would inherit that box's padding and stop
+/// matching the identity block's own height, which is the one thing this rule
+/// has to do: E2's shorter rule was rejected on the walk because at 28px it
+/// read as a stray tick beside the change pill rather than as a boundary
+/// between two blocks.
+///
+/// 44 is the identity block's height (a 40px token icon, and a 24/32 title
+/// over a 14/20 subtitle comes to 56 - the rule tracks the icon, which is what
+/// the eye reads as the block's edge).
+class _IdentityPriceGroup extends StatelessWidget {
+  const _IdentityPriceGroup({required this.data});
+
+  final CoinGeckoMarketData data;
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
-    // other state, so it is a `StatelessWidget` now.
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          12,
-          0,
-          12,
-          GeniusWalletConsts.space4,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(width: GeniusWalletConsts.space10),
+        SizedBox(
+          width: 1,
+          height: 44,
+          child: ColoredBox(color: gw.borderSubtle),
         ),
-        child: GWHoverable(
-          builder: (hovered) => GestureDetector(
-            onTap: () => context.pop(),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space6,
-                vertical: GeniusWalletConsts.space3,
-              ),
-              decoration: BoxDecoration(
-                // The app-wide hover recipe: brand tint + brand hairline. The
-                // border is ALWAYS 1px, transparent at rest, because a
-                // BoxDecoration border is layout - appearing on hover would
-                // grow the chip and shift the header under the cursor.
-                color: hovered ? GWDecorations.hoverFill : Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: hovered ? GWDecorations.hoverEdge : gw.borderSubtle,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.chevron_left,
-                    size: 16,
-                    color: hovered ? gw.textPrimary : gw.textSecondary,
-                  ),
-                  const SizedBox(width: GeniusWalletConsts.space3),
-                  Text(
-                    'Markets',
-                    style: GeniusWalletTypography.labelMd.copyWith(
-                      color: hovered ? gw.textPrimary : gw.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+        const SizedBox(width: GeniusWalletConsts.space10),
+        _PriceBlock(data: data),
+      ],
     );
   }
 }
 
-/// The price and its 24h pill, in `GWPageHeader`'s trailing slot.
 class _PriceBlock extends StatelessWidget {
   const _PriceBlock({required this.data});
 
@@ -1157,8 +1241,12 @@ class _PriceBlock extends StatelessWidget {
     final up = pct >= 0;
     final tone = up ? gw.statusSuccess : gw.statusError;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
+    // Sketch 168 E1: price and change sit on ONE line, side by side, not
+    // stacked. Stacked they made this block ~60px tall, which was invisible
+    // while it hung on the far right of the header but would rear up the
+    // moment it moved next to a 52px identity block.
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
@@ -1171,7 +1259,7 @@ class _PriceBlock extends StatelessWidget {
           ),
         ),
         if (pct != 0) ...[
-          const SizedBox(height: GeniusWalletConsts.space3),
+          const SizedBox(width: GeniusWalletConsts.space6),
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: GeniusWalletConsts.space4,
@@ -1205,7 +1293,9 @@ class _PriceBlock extends StatelessWidget {
   }
 }
 
-/// Sketch 071-B's stat rail: six tiles of data the app was already paying for.
+/// Sketch 071-B's stat rail: five tiles of data the app was already paying
+/// for. **Sixth on to sketch 165 Synthesis, change 4: the range tile moved
+/// out** to become `_ChartRangeFooter`, mounted under the chart instead.
 ///
 /// **Every field here was already parsed and already cached** - the request at
 /// `coin_gecko_api.dart:140` is `/coins/markets`, which returns all of them by
@@ -1254,32 +1344,43 @@ class _StatRail extends StatelessWidget {
             ? null
             : (ath > 0 ? gw.statusSuccess : gw.statusError),
       ),
-      _RangeTile(low: data.low24h, high: data.high24h, now: data.currentPrice),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Six across needs roughly 150 each; below that they wrap rather than
-        // ellipsing every value at once.
+        // Five across needs roughly 150 each; below that they wrap rather
+        // than ellipsing every value at once. **The old 6/3/2 ladder divided
+        // six exactly, so every row was always full.** Five tiles has no
+        // three-step ladder with that property - 5's only divisors are 1 and
+        // 5 - so `perRow` here is a target column count, not a promise that
+        // every row fills it, and the width below is computed per ROW rather
+        // than from `perRow`. That is the actual fix for the ragged tail: a
+        // partial last row asks for its OWN share of the width instead of the
+        // share a full row would have gotten, so it always reaches the same
+        // right edge as the rows above it.
         final int perRow = constraints.maxWidth >= 900
-            ? 6
+            ? 5
             : constraints.maxWidth >= 600
             ? 3
             : 2;
         final double gap = GeniusWalletConsts.space6.toDouble();
-        final double w = (constraints.maxWidth - gap * (perRow - 1)) / perRow;
         // Chunked Rows under IntrinsicHeight, NOT a Wrap. A `Wrap` places its
         // children at their natural size and neither stretches nor equalises
-        // them, so the one tile carrying the range bar (`space4` + a 4px track
-        // = 12px more than the shared `GWStatTile`) stood 77px tall in a row of
-        // 65s. That single proud card is what read as broken on the 2026-07-29
-        // walk. `IntrinsicHeight` + `stretch` gives every card in a run the
-        // tallest one's height, and it is safe here in a way it is not around a
-        // chart: these subtrees are Text and a Container, all of which answer
-        // an intrinsic-height query cheaply.
+        // them, so a taller tile in the run would stand proud of its
+        // neighbours (the defect the 2026-07-29 walk found). `IntrinsicHeight`
+        // + `stretch` gives every card in a run the tallest one's height, and
+        // it is safe here in a way it is not around a chart: these subtrees
+        // are Text and a Container, all of which answer an intrinsic-height
+        // query cheaply.
         final rows = <Widget>[];
         for (var i = 0; i < tiles.length; i += perRow) {
           final chunk = tiles.sublist(i, math.min(i + perRow, tiles.length));
+          // Computed from THIS row's own tile count, not `perRow` - a row of
+          // 2 in a nominally-3-wide band gets wider tiles than a full row of
+          // 3, and both span the rail's full width. That is what keeps a
+          // partial last row from leaving a tile-sized hole at the right edge.
+          final double w =
+              (constraints.maxWidth - gap * (chunk.length - 1)) / chunk.length;
           rows.add(
             IntrinsicHeight(
               child: Row(
@@ -1318,70 +1419,6 @@ class _StatRail extends StatelessWidget {
   }
 }
 
-/// The identity row's action glyph (sketch 164-C): a 32px bounded box carrying
-/// the brand gradient, riding inside `GWButton`'s 48px transparent target.
-///
-/// **Why a box at 32 rather than `GWButtonVariant.icon` at 48.** That variant
-/// paints at the button's full height, which would put a 48px chip beside a
-/// 32px title and reverse Jakub's 2026-07-28 call (*"te ikony powinny być
-/// wysokości tytułu, nie większe"*). Splitting them keeps the 48px tap target
-/// he separately chose to keep on 2026-07-29 AND a painted box no taller than
-/// the word next to it.
-///
-/// **Why the edge and not the fill.** On the page canvas (`surfaceBase`
-/// #0B0D12) `surfaceElevated` measures **1.01:1** and `surfaceMenu` **1.12:1** -
-/// neither is a boundary. `borderControl` is **3.28:1**, clearing 1.4.11's 3:1
-/// for the edge that now identifies the control. The fill is a lift, the border
-/// is the statement.
-///
-/// **Why `brandCtaText` and not `brandCta`.** The raw CTA gradient's two stops
-/// measure 10.39:1 and 7.54:1 on the dark canvas and **1.65:1 / 2.28:1 on a
-/// light one** - unreadable. `brandCtaText` collapses to the flat light-safe
-/// `brandPrimaryOnSurface` (#0A6885, 6.30:1) above the luminance threshold, so
-/// one paint path covers both appearances with no branch in the widget tree.
-///
-/// The [Icon] deliberately sets NO colour: `GWButton` supplies it through
-/// `IconTheme` and drops it to alpha 140 when disabled, and a `srcIn`
-/// `ShaderMask` masks the gradient by its child's alpha - so the disabled state
-/// keeps dimming rather than being painted over at full strength.
-class _ActionGlyph extends StatelessWidget {
-  const _ActionGlyph(this.icon, {this.enabled = true});
-
-  final IconData icon;
-
-  /// The box does not learn `onPressed == null` from `GWButton`, so the one
-  /// call site that can be disabled (Bridge, on a zero balance) passes it.
-  /// Without this the border would stay full strength around a dimmed glyph.
-  final bool enabled;
-
-  @override
-  Widget build(BuildContext context) {
-    // Fail-soft read: registers the InheritedWidget dependency that forces this
-    // subtree to rebuild on a live appearance toggle (04-04 discipline).
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final Color edge = enabled
-        ? gw.borderControl
-        : gw.borderControl.withAlpha(140);
-    return Container(
-      width: 32,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: gw.surfaceMenu,
-        border: Border.all(color: edge),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
-      ),
-      child: ShaderMask(
-        blendMode: BlendMode.srcIn,
-        shaderCallback: (bounds) => GeniusWalletGradient.brandCtaText(
-          gw.surfaceMenu,
-        ).createShader(bounds),
-        child: Icon(icon, size: 18),
-      ),
-    );
-  }
-}
-
 /// The 24h-range track and its position marker, keyed so the layout claims in
 /// `test/tokens/coin_page_range_tile_test.dart` can measure them.
 ///
@@ -1390,12 +1427,29 @@ class _ActionGlyph extends StatelessWidget {
 const Key kCoinRangeTrackKey = Key('coin-range-track');
 const Key kCoinRangeMarkerKey = Key('coin-range-marker');
 
-/// The 24h low/high tile: a [GWStatTile] with a position bar under it.
+/// The chart's fixed-24h-window footer (sketch 165 Synthesis, change 5). Was
+/// `_RangeTile`, a stat-rail tile; the same `low`/`high`/`now` fields and the
+/// same `known = low > 0 && high > low` guard move here, under the chart
+/// instead of into the rail.
 ///
-/// Composed rather than given to `GWStatTile` as a `footer` slot, which would
-/// have been a parameter for exactly one consumer.
-class _RangeTile extends StatelessWidget {
-  const _RangeTile({required this.low, required this.high, required this.now});
+/// **The window is fixed at 24h, whatever timeframe the chart shows.**
+/// DECISION constraint 3 was RESOLVED by Jakub on 2026-07-30: tracking the
+/// selected timeframe was investigated and rejected on design grounds, not
+/// cost. Where the chart renders its trading frame, it already draws in-plot
+/// H/L plates for the SELECTED window; a footer scoped to that same window
+/// would restate those two numbers in a larger font. A footer fixed at 24h is
+/// a second reference the plot does not carry - the divergence on 1W/1Y is
+/// the feature, not a bug.
+///
+/// `known == false` renders nothing at all - no hairline, no track, no N/A
+/// pair. The chart card is the one place on this page that must not gain
+/// furniture it cannot back up.
+class _ChartRangeFooter extends StatelessWidget {
+  const _ChartRangeFooter({
+    required this.low,
+    required this.high,
+    required this.now,
+  });
 
   final double low;
   final double high;
@@ -1405,70 +1459,93 @@ class _RangeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final bool known = low > 0 && high > low;
-    final double t = known ? ((now - low) / (high - low)).clamp(0.0, 1.0) : 0;
+    if (!known) {
+      return const SizedBox.shrink();
+    }
+    final double t = ((now - low) / (high - low)).clamp(0.0, 1.0);
+    // The mockup's 13px, against `GWStatTile`'s 15 - the footer spans the
+    // whole card rather than a tile, so the full-precision `formatPrice`
+    // replaces the tile's compact form.
+    final TextStyle valueStyle = GeniusWalletTypography.numericBody.copyWith(
+      color: gw.textPrimary,
+      fontSize: 13,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        GWStatTile(
-          label: '24h range',
-          value: known
-              ? '${formatCompactCurrency(low)} - ${formatCompactCurrency(high)}'
-              : 'N/A',
+        const SizedBox(height: GeniusWalletConsts.space6),
+        // The hairline that separates the plot from the footer. A childless,
+        // widthless `Container` expands to fill what it is offered - the same
+        // rule that keeps the track below spanning its row rather than
+        // collapsing to zero.
+        Container(height: 1, color: gw.borderSubtle),
+        const SizedBox(height: GeniusWalletConsts.space6),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            GWKicker('24h low', dense: true),
+            GWKicker('24h high', dense: true),
+          ],
         ),
-        if (known) ...[
-          const SizedBox(height: GeniusWalletConsts.space4),
-          // A 4px track with the current price's position along it. Decorative:
-          // the numbers above say the same thing, so 1.4.11 does not bind.
-          //
-          // **The track is `borderStrong`, not `surfaceSunken`.** The original
-          // painted the rail in the DEEPEST surface (#06080C) on top of a
-          // `surfaceElevated` card (#0C0E14) — a darker-on-dark fill about
-          // 1.1:1 against its own background, with a `borderSubtle` hairline
-          // (1.36:1) as its only edge. It was not a faint rail; on the walk it
-          // was no rail at all, and the 6px marker read as a teal dot floating
-          // under the numbers with nothing beneath it. Light mode hid the bug:
-          // there `surfaceSunken` is #CFD4DB, plainly visible on a white card.
-          // `borderStrong` is 24% of the ink/white axis, so it reads on BOTH
-          // canvases — which is the property the old pairing lacked, not extra
-          // weight for its own sake.
-          // `Align` on a fractional x, NOT a `LayoutBuilder` + `Positioned`.
-          // Alignment.x runs -1..1 across the free space with the child's own
-          // width already discounted, so `2t - 1` places the marker exactly
-          // where `left: (maxWidth - 6) * t` did — and it gets there without
-          // measuring. That matters: `LayoutBuilder` refuses intrinsic queries
-          // outright ("does not support returning intrinsic dimensions"), so
-          // one inside this tile threw the moment `_StatRail` wrapped the run
-          // in `IntrinsicHeight` to equalise the six card heights.
-          SizedBox(
-            height: 4,
-            child: Stack(
-              children: [
-                Container(
-                  key: kCoinRangeTrackKey,
+        const SizedBox(height: GeniusWalletConsts.space4),
+        // A 4px track with the current price's position along it. Decorative:
+        // the numbers below say the same thing, so 1.4.11 does not bind.
+        //
+        // **The track is `borderStrong`, not `surfaceSunken`.** The original
+        // painted the rail in the DEEPEST surface (#06080C) on top of a
+        // `surfaceElevated` card (#0C0E14) — a darker-on-dark fill about
+        // 1.1:1 against its own background, with a `borderSubtle` hairline
+        // (1.36:1) as its only edge. It was not a faint rail; on the walk it
+        // was no rail at all, and the 6px marker read as a teal dot floating
+        // under the numbers with nothing beneath it. Light mode hid the bug:
+        // there `surfaceSunken` is #CFD4DB, plainly visible on a white card.
+        // `borderStrong` is 24% of the ink/white axis, so it reads on BOTH
+        // canvases — which is the property the old pairing lacked, not extra
+        // weight for its own sake.
+        // `Align` on a fractional x, NOT a `LayoutBuilder` + `Positioned`.
+        // Alignment.x runs -1..1 across the free space with the child's own
+        // width already discounted, so `2t - 1` places the marker exactly
+        // where `left: (maxWidth - 6) * t` did — and it gets there without
+        // measuring. That matters: `LayoutBuilder` refuses intrinsic queries
+        // outright ("does not support returning intrinsic dimensions"), and
+        // the wide chart card sits under an `IntrinsicHeight` too.
+        SizedBox(
+          height: 4,
+          child: Stack(
+            children: [
+              Container(
+                key: kCoinRangeTrackKey,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: gw.borderStrong,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Align(
+                alignment: Alignment(2 * t - 1, 0),
+                child: Container(
+                  key: kCoinRangeMarkerKey,
+                  width: 6,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: gw.borderStrong,
+                    gradient: GeniusWalletGradient.brandCta,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                Align(
-                  alignment: Alignment(2 * t - 1, 0),
-                  child: Container(
-                    key: kCoinRangeMarkerKey,
-                    width: 6,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      gradient: GeniusWalletGradient.brandCta,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
+        const SizedBox(height: GeniusWalletConsts.space4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(formatPrice(low), style: valueStyle),
+            Text(formatPrice(high), style: valueStyle),
+          ],
+        ),
       ],
     );
   }

@@ -156,9 +156,16 @@ class _JobStepTile extends StatelessWidget {
             ),
             const SizedBox(width: GeniusWalletConsts.space6),
             Expanded(
+              // `GestureDetector`, not `InkWell` (2026-07-31 walk): a step
+              // row is a progress indicator, not an interactive list row -
+              // `InkWell`'s hover/splash paint promised a click target the
+              // ACTIVE step does not have (tapping it while it is already
+              // current is a no-op in `job_steps.dart`'s `onTapStep`).
+              // `GestureDetector` keeps tapping back to a completed step
+              // working exactly as before, with no ink paint at all.
               child: onTap == null
                   ? titleAndContent
-                  : InkWell(onTap: onTap, child: titleAndContent),
+                  : GestureDetector(onTap: onTap, child: titleAndContent),
             ),
           ],
         ),

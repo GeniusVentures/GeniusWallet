@@ -23,10 +23,9 @@ void main() {
       final tuples = ComputeState.values.map((state) {
         final view = viewForComputeState(
           state,
-          // Plausible mid-flight values so startingUp/processing render a
-          // real bar rather than clamping to 0 — the tuple must still be
-          // distinct under realistic inputs, not just at the edges.
-          initStatusMessage: 'Connecting to the SGNUS network',
+          // Plausible mid-flight values so processing renders a real bar
+          // rather than clamping to 0 — the tuple must still be distinct
+          // under realistic inputs, not just at the edges.
           initPercentage: 0.5,
           processingPercentage: 50.0,
         );

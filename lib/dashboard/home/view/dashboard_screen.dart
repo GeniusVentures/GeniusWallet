@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
@@ -30,6 +29,28 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+
+/// The fixed height of the Overview (Compute) and Contributions panel slots,
+/// in both the one- and two-column layouts.
+///
+/// **Raised 300 -> 340 on 2026-07-31 (Jakub).** The Compute panel's title was
+/// a `GWKicker` (18px line box, no padding of its own) while Assets, Markets,
+/// Transactions and the Bitcoin chart all use `GWSectionTitle`, which reserves
+/// a 44px header and owns a `space8` bottom gap. That left Balance starting
+/// ~38px higher than the first Assets coin: 2+44+16 there against 18+6 here.
+/// Adopting the shared title costs those 38px, and the old 300 slot had no
+/// room for them - the panel would have gone quietly scrollable inside its own
+/// box (it sits in a `SingleChildScrollView`, so it never throws an overflow),
+/// pushing the CTA below the fold and re-opening the "vanishing primary
+/// action" bug plan 14-08 had just closed.
+///
+/// The two-column layout constrains Overview and Contributions as ONE row
+/// (`_OverviewContributionsRow`), so they cannot differ there; the one-column
+/// sites use the same constant so the two layouts stay in agreement.
+///
+/// `test/dashboard/compute_panel_height_test.dart` derives the panel's own
+/// content budget from this number and asserts every state against it.
+const double kDashboardPanelSlotHeight = 340;
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -146,7 +167,13 @@ class ResponsiveDashboardView extends StatelessWidget {
   }
 
   Widget _threeColumnLayout() {
-    const topRowMinHeight = 300.0;
+    // Tracks the slot constant rather than repeating 300: this row holds the
+    // same `_OverviewContributionsRow` the other two layouts cap, and it is a
+    // FLOOR here (the row sits in an `Expanded`, so a tall window gives it
+    // more). Left at 300 it would be the one layout where the Compute panel
+    // can still be handed less height than its content needs, which on a short
+    // window pushes the CTA below the fold - the bug 14-08 closed.
+    const topRowMinHeight = kDashboardPanelSlotHeight;
     const bottomRowMinHeight = 380.0;
     const totalMinHeight = topRowMinHeight + bottomRowMinHeight;
 
@@ -207,7 +234,9 @@ class ResponsiveDashboardView extends StatelessWidget {
         spacing: GeniusWalletConsts.space3,
         children: [
           ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 300),
+            constraints: const BoxConstraints(
+              maxHeight: kDashboardPanelSlotHeight,
+            ),
             child: const _OverviewContributionsRow(),
           ),
           const Expanded(
@@ -288,12 +317,16 @@ class OneColumnDashBoardView extends StatelessWidget {
         padding: const EdgeInsets.all(GeniusWalletConsts.space3),
         children: [
           ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 300),
+            constraints: const BoxConstraints(
+              maxHeight: kDashboardPanelSlotHeight,
+            ),
             child: const OverviewDashboardView(),
           ),
           spacing,
           ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 300),
+            constraints: const BoxConstraints(
+              maxHeight: kDashboardPanelSlotHeight,
+            ),
             child: const ContributionsDashboardView(),
           ),
           spacing,
@@ -665,24 +698,14 @@ class ContributionsDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardScrollContainer(
-      child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
-        builder: (context, walletState) {
-          final selectedWallet = walletState.selectedWallet;
-          return StreamBuilder<SGNUSConnection>(
-            stream: context.read<GeniusApi>().getSGNUSConnectionStream(),
-            builder: (context, snapshot) {
-              final connection = snapshot.data;
-              return CoinsScreen(
-                isUseDivider: true,
-                isGnusWalletConnected:
-                    (connection?.walletAddress ?? false) ==
-                    selectedWallet?.address,
-              );
-            },
-          );
-        },
-      ),
+    // The BlocBuilder<WalletDetailsCubit> + StreamBuilder<SGNUSConnection>
+    // this used to wrap `CoinsScreen` in existed solely to compute the
+    // `isGnusWalletConnected` flag - `router.dart`'s `/token-info` route
+    // derives that itself now (quick task 260731-hsb), so this collapses to
+    // the plain container. `CoinsScreen` runs its own `BlocBuilder`
+    // internally, so it keeps rebuilding on wallet state exactly as before.
+    return const DashboardScrollContainer(
+      child: CoinsScreen(isUseDivider: true),
     );
   }
 }

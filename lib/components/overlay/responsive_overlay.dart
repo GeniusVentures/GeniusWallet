@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -9,8 +8,6 @@ import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
-import 'package:genius_wallet/dev/dev_flags.dart';
-import 'package:genius_wallet/dev/dev_tools_bubble.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -487,12 +484,15 @@ class MobileOverlay extends StatelessWidget {
               ),
             ],
           ),
-          body: Stack(
-            children: [
-              child,
-              if (kDebugMode && kShowDevTools) const DevToolsBubble(),
-            ],
-          ),
+          // Single-child Stack kept deliberately (D-05, quick task
+          // 260731-gow): the dev bubble that used to be this Stack's second
+          // child now mounts above the root Navigator via
+          // lib/dev/dev_tools_host.dart, so a drawer's ModalBarrier no
+          // longer eats its taps. Scaffold lays its body out under LOOSE
+          // constraints, so a Stack expands to the full body box while a
+          // bare child may size to itself - dropping this Stack would
+          // silently change body sizing for every page in the shell.
+          body: Stack(children: [child]),
           bottomNavigationBar: const _MobileTabBar(),
         );
       },
@@ -510,6 +510,14 @@ class DesktopOverlay extends StatelessWidget {
     return Scaffold(
       backgroundColor: gw.surfaceBase,
       appBar: const _DesktopTopBar(),
+      // Single-child Stack kept deliberately (D-05, quick task 260731-gow):
+      // the dev bubble that used to be this Stack's second child now mounts
+      // above the root Navigator via lib/dev/dev_tools_host.dart, so a
+      // drawer's ModalBarrier no longer eats its taps. Scaffold lays its
+      // body out under LOOSE constraints, so a Stack expands to the full
+      // body box while a bare child may size to itself - dropping this
+      // Stack would silently change body sizing for every page in the
+      // shell.
       body: Stack(
         children: [
           BlocBuilder<AppBloc, AppState>(
@@ -517,7 +525,6 @@ class DesktopOverlay extends StatelessWidget {
               return child;
             },
           ),
-          if (kDebugMode && kShowDevTools) const DevToolsBubble(),
         ],
       ),
     );

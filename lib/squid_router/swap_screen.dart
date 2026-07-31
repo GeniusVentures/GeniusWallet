@@ -22,6 +22,7 @@ import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_preselection.dart';
+import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -672,88 +673,88 @@ class _SwapScreenState extends State<SwapScreen> {
                                   ),
                                 ),
                                 // The two amount cards, with the flip control in
-                                // the seam between them (D-07) — a Column of both
-                                // cards inside a Stack, the flip control centred
-                                // on the Stack's bounding box via
-                                // Alignment.center. Because the two cards render
-                                // at (near-)equal heights, that centre point
-                                // lands on the seam itself; no hardcoded pixel
-                                // offset is involved anywhere in this layout.
-                                Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        SwapField(
-                                          label: "You Pay",
-                                          controller: fromAmountController,
-                                          onChanged: (val) {
-                                            setState(() => fromAmount = val);
-                                            _debouncedFetchRoute();
-                                          },
-                                          selectedToken: fromToken,
-                                          isSelectingFrom: true,
-                                          // The pay side offers ONLY what the
-                                          // wallet can spend (`heldTokens`) —
-                                          // you cannot swap a BNB you do not
-                                          // have, and the old full-catalogue
-                                          // list only revealed that at the CTA.
-                                          // The receive side below is
-                                          // deliberately NOT filtered.
-                                          pickerEmptyTitle: 'No tokens to swap',
-                                          pickerEmptyMessage:
-                                              'This wallet holds no tokens with '
-                                              'a balance on the selected '
-                                              'network. Receive or buy a token '
-                                              'to start swapping.',
-                                          // Hide only the OTHER side's token.
-                                          // The hand-written filter this
-                                          // replaces dropped `fromToken` too,
-                                          // so the token you had just picked
-                                          // was missing from its own picker and
-                                          // `selectedToken` above could never
-                                          // render - the row it marks was
-                                          // filtered out first.
-                                          tokens: tokensForSide(
-                                            heldTokens(tokens),
-                                            toToken,
-                                          ),
-                                          onTokenSelected: (token) {
-                                            setState(() => fromToken = token);
-                                            _debouncedFetchRoute();
-                                          },
-                                        ),
-                                        const SizedBox(
-                                          height: GeniusWalletConsts.space8,
-                                        ),
-                                        SwapField(
-                                          label: "You Receive",
-                                          controller: toAmountController,
-                                          onChanged: (val) =>
-                                              setState(() => toAmount = val),
-                                          selectedToken: toToken,
-                                          isSelectingFrom: false,
-                                          // D-09: on a failed route fetch the field
-                                          // shows an em dash, never a stale amount.
-                                          emptyPlaceholder: routeError
-                                              ? '—'
-                                              : null,
-                                          // Mirror of the You Pay list: hide the
-                                          // other side only, keep this side's
-                                          // own token so it can show selected.
-                                          tokens: tokensForSide(
-                                            tokens,
-                                            fromToken,
-                                          ),
-                                          onTokenSelected: (token) {
-                                            setState(() => toToken = token);
-                                            _debouncedFetchRoute();
-                                          },
-                                        ),
-                                      ],
+                                // the seam between them (D-07). SwapSeam
+                                // computes that seam as the pay card's
+                                // laid-out height plus half the gap, so the
+                                // control cannot drift as the two cards
+                                // diverge in height - which they do the moment
+                                // a pay token is selected and its pill gains a
+                                // logo.
+                                //
+                                // Two approaches were rejected, both for
+                                // reasons worth not rediscovering. The control
+                                // is NOT put inside the Column behind an
+                                // overflowing wrapper: a RenderBox refuses
+                                // hits outside its own size, so most of the
+                                // 44px target would have been dead to taps
+                                // while looking perfectly correct. And it is
+                                // NOT positioned from a measured height fed
+                                // back through setState: that costs a frame of
+                                // lag on every height change and puts a
+                                // derived number back into the layout.
+                                //
+                                // No hardcoded pixel offset exists here. The
+                                // only numbers are the space8 token below and
+                                // the children's own measured sizes.
+                                SwapSeam(
+                                  gap: GeniusWalletConsts.space8,
+                                  payCard: SwapField(
+                                    label: "You Pay",
+                                    controller: fromAmountController,
+                                    onChanged: (val) {
+                                      setState(() => fromAmount = val);
+                                      _debouncedFetchRoute();
+                                    },
+                                    selectedToken: fromToken,
+                                    isSelectingFrom: true,
+                                    // The pay side offers ONLY what the wallet
+                                    // can spend (`heldTokens`) - you cannot
+                                    // swap a BNB you do not have, and the old
+                                    // full-catalogue list only revealed that at
+                                    // the CTA. The receive side below is
+                                    // deliberately NOT filtered.
+                                    pickerEmptyTitle: 'No tokens to swap',
+                                    pickerEmptyMessage:
+                                        'This wallet holds no tokens with '
+                                        'a balance on the selected '
+                                        'network. Receive or buy a token '
+                                        'to start swapping.',
+                                    // Hide only the OTHER side's token. The
+                                    // hand-written filter this replaces dropped
+                                    // `fromToken` too, so the token you had
+                                    // just picked was missing from its own
+                                    // picker and `selectedToken` above could
+                                    // never render - the row it marks was
+                                    // filtered out first.
+                                    tokens: tokensForSide(
+                                      heldTokens(tokens),
+                                      toToken,
                                     ),
-                                    TokenFlipButton(onFlip: _flipTokens),
-                                  ],
+                                    onTokenSelected: (token) {
+                                      setState(() => fromToken = token);
+                                      _debouncedFetchRoute();
+                                    },
+                                  ),
+                                  receiveCard: SwapField(
+                                    label: "You Receive",
+                                    controller: toAmountController,
+                                    onChanged: (val) =>
+                                        setState(() => toAmount = val),
+                                    selectedToken: toToken,
+                                    isSelectingFrom: false,
+                                    // D-09: on a failed route fetch the field
+                                    // shows an em dash, never a stale amount.
+                                    emptyPlaceholder: routeError ? '—' : null,
+                                    // Mirror of the You Pay list: hide the
+                                    // other side only, keep this side's own
+                                    // token so it can show selected.
+                                    tokens: tokensForSide(tokens, fromToken),
+                                    onTokenSelected: (token) {
+                                      setState(() => toToken = token);
+                                      _debouncedFetchRoute();
+                                    },
+                                  ),
+                                  control: TokenFlipButton(onFlip: _flipTokens),
                                 ),
                                 // D-09: the route card never shows figures derived
                                 // from a route that just failed.

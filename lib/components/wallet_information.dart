@@ -13,7 +13,6 @@ import 'package:genius_wallet/components/custom/wallet_address_custom.dart';
 import 'package:genius_wallet/components/job/submit_job_button.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
-import 'package:genius_wallet/components/sgnus/sgnus_connection_widget.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -94,20 +93,16 @@ class WalletInformationState extends State<WalletInformation> {
                     ),
                   ),
                 const SizedBox(height: 8),
-                const Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: 220,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        SGNUSConnectionWidget(),
-                        SizedBox(height: 8),
-                        SGNUSConnectionStatusWidget(),
-                      ],
-                    ),
-                  ),
-                ),
+                // 14-08: the two SGNUS connection status widgets that used
+                // to sit here (formerly lib/components/sgnus/sgnus_connection_widget.dart)
+                // were deleted - the 52.5% determinate-ring lie one of them
+                // drew is one of the five shipped bugs 14-08 closes; the
+                // compute panel that replaces it lives in
+                // lib/dashboard/compute/. This file is dead code reachable
+                // only from lib/dev/generated_closure_canary.dart (never
+                // mounted in the running app, see that file's header), so
+                // this is a compile-only stub, not a UI regression.
+                const SizedBox.shrink(),
               ],
             ),
             const SizedBox(height: 20),
@@ -198,7 +193,9 @@ class WalletInformationState extends State<WalletInformation> {
                     semanticLabel: "Buy GNUS crypto",
                     icon: Icons.attach_money,
                     onPressed: () async {
-                      unawaited(context.push('/buy'));
+                      unawaited(
+                        context.push('/buy', extra: {'origin': 'HOME'}),
+                      );
                     },
                   ),
                   const SizedBox(width: 8),

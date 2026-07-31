@@ -17,7 +17,19 @@ class ToastManager {
     Duration duration = const Duration(seconds: 5),
     VoidCallback? onClose,
   }) {
-    final overlay = Overlay.of(context);
+    // Every existing caller passes an in-page context that has an ancestor
+    // Overlay (the app shell's own), so `Overlay.maybeOf` resolves on the
+    // first branch and keeps working exactly as `Overlay.of` did. The
+    // fallback is for a context that IS the root Navigator's own element -
+    // dev_tools_bubble.dart's actions run from one at the new mount point
+    // above the root Navigator (quick task 260731-gow), where there is no
+    // Overlay ancestor to find. `Navigator.of(context).overlay` is that
+    // Navigator's own internal Overlay, so the resulting OverlayEntry is
+    // inserted at the top of the same root overlay toasts already use -
+    // nothing about where a toast renders changes. Deliberately no early
+    // return if neither path resolves: throwing is what Overlay.of(context)
+    // already did today, and swallowing the toast silently would be worse.
+    final overlay = Overlay.maybeOf(context) ?? Navigator.of(context).overlay!;
     final topOffset = 100.0 + _toasts.length * 85.0;
 
     late final _ActiveToast toast;

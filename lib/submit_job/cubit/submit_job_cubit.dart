@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
+import 'package:genius_wallet/dev/dev_flags.dart';
+import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -14,6 +17,18 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
   final WalletDetailsCubit walletDetailsCubit;
   final GnusCubit gnusCubit;
   final GeniusApi geniusApi;
+
+  // flutter_bloc does not re-export kDebugMode, hence the explicit
+  // foundation.dart import above (same idiom as app_bloc.dart:10).
+  //
+  // Task 2 (2026-07-31): resolves the armed DevMockJob scenario, or null
+  // when nothing is armed or dev tools are unavailable. Gated here, in ONE
+  // place, so `kDebugMode && kShowDevTools` cannot be forgotten at an
+  // individual interception site (T-elz-01) - fetchGnusBalance,
+  // openFilePicker and bridgeTokens all read this same getter rather than
+  // repeating the gate.
+  DevJobScenario? get _devJobScenario =>
+      (kDebugMode && kShowDevTools) ? DevMockJob.instance.scenario.value : null;
 
   // ponytail: a synchronous JSON parse on the UI isolate, gated only by the
   // length check below. A file just under the cap can still block the UI
@@ -28,6 +43,14 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     required this.geniusApi,
   }) : super(const SubmitJobState()) {
     _initialize();
+    if (kDebugMode && kShowDevTools) {
+      // Task 1 (2026-07-31): this cubit is constructed per-subtree in two
+      // places (`wallet_overview.dart:60`, `router.dart:369`) and both
+      // instances can be alive at once. The listener is removed in close()
+      // below, under the identical gate, so a listener never outlives its
+      // cubit.
+      DevMockJob.instance.scenario.addListener(_onDevScenarioChanged);
+    }
   }
 
   Future<void> _initialize() async {
@@ -35,8 +58,60 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     await fetchGnusBalance();
   }
 
+  // Synchronous on purpose - ValueNotifier.addListener requires a `void
+  // Function()`, not a `Future<void> Function()`. The real work is async and
+  // is fired-and-forgotten through `unawaited`, which this file already
+  // imports via `dart:async`.
+  void _onDevScenarioChanged() {
+    unawaited(_repriceForDevScenario());
+  }
+
+  // Task 1 (2026-07-31): re-prices whatever file is already chosen when the
+  // armed JOB scenario changes (including changing to null, i.e. Clear).
+  // Order is load-bearing: reset first, then balance, then cost - resetting
+  // AFTER the cost would erase the very answer this method just computed.
+  Future<void> _repriceForDevScenario() async {
+    if (isClosed) {
+      return;
+    }
+    if (state.uploadedJson.isEmpty) {
+      // No file chosen - nothing to price. This is the no-op the constraint
+      // demands: arming with no file chosen does nothing at all.
+      return;
+    }
+
+    // Reset the cost-derived fields to their declared defaults BEFORE
+    // re-pricing. Without this, a failed real re-price (e.g. Clear with no
+    // native node running) would leave the fixture's 42.42 Gwei on screen
+    // under a real error - this is what makes Clear honest.
+    if (!isClosed) {
+      emit(state.copyWith(jobCost: 0, jobGasCost: '0.00 Gwei', costError: ''));
+    }
+
+    // Re-runs the real balance (or the fixture's, if a different scenario is
+    // now armed) - this is what unsticks the fixture's 99999.99 balance on
+    // Clear.
+    await fetchGnusBalance();
+
+    final jobCost = await _resolveJobCost(state.uploadedJson);
+    if (!isClosed) {
+      emit(state.copyWith(jobCost: jobCost));
+    }
+  }
+
   // Fetches and updates balance from gnusCubit
   Future<double?> fetchGnusBalance() async {
+    if (_devJobScenario != null) {
+      // DEV-ONLY (Task 2, 2026-07-31): answers from the fixture instead of
+      // gnusCubit, so `_initialize()` never parks a stale "Unable to fetch
+      // GNUS balance" error on the state before the walk even starts.
+      final balance = DevMockJob.instance.balance;
+      if (!isClosed) {
+        emit(state.copyWith(gnusBalance: balance));
+      }
+      return balance;
+    }
+
     final resp = await gnusCubit.fetchGnusBalance();
     final balance = resp?.balance;
 
@@ -74,6 +149,12 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
     try {
       resetFileError(); // Clear previous errors
+      // 1c (2026-07-31): also clear a stale cost error from a prior pick (or
+      // from _initialize's fetchGnusTokenInfo/fetchGnusBalance, both of
+      // which fail without a live SDK). After 1b below, costError outranks
+      // costUnknown, so a leftover error from an earlier attempt would
+      // outrank a fresh, successful pick's own emit.
+      resetCostError();
 
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
@@ -99,22 +180,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         final content = await file.readAsString();
         final jsonData = jsonDecode(content);
 
-        final jobCost = geniusApi.requestGeniusSDKCost(
-          jobJson: jsonEncode(jsonData),
-        );
-
-        final isGasFetchable =
-            jsonData != null &&
-            state.gnusTokenDetails.address != null &&
-            jobCost != 0;
-
-        if (!isGasFetchable) {
-          setCostError('Unable to retrieve job cost');
-          return;
-        }
-
-        // Get gas cost associated with uploaded job
-        await getBridgeOutGasCost(jobCost);
+        final jobCost = await _resolveJobCost(jsonData);
 
         if (!isClosed) {
           emit(
@@ -126,7 +192,19 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
           );
         }
       } else {
-        setFileError('No file selected.');
+        // 2026-07-31 (D-05): cancelling the OS picker sets no error at all.
+        // A dismissed dialog is a deliberate choice, not a failure - there is
+        // nothing to fix, nothing to retry, and nothing was lost, so there
+        // is nothing to warn about. The state keeps whatever it already
+        // held; the `finally` block's `isFilePickerOpen: false` below is the
+        // whole transition. This also means a cancel after a genuine
+        // rejection lands the user back in a clean RESTING state, because
+        // `resetFileError()` above already ran on entry to this call - they
+        // reopened the picker precisely to get past that rejection, and
+        // backing out of it is not a reason to re-assert it. The size cap
+        // above and the `FormatException` branch below still set
+        // `fileError` - this only removes the cancel path, not file
+        // rejection in general.
       }
     } catch (e) {
       if (e.runtimeType == FormatException) {
@@ -140,6 +218,90 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         ); // Indicate picker is closed
       }
     }
+  }
+
+  // Task 1 (2026-07-31): extracted out of `openFilePicker` so
+  // `_repriceForDevScenario` above can call it again after a pick, when a
+  // JOB scenario is armed (or changed, or cleared) with a file already
+  // chosen - the whole point of this quick task. `jsonData` stays `dynamic`,
+  // not `Map<String, dynamic>`: the real branch's `isGasFetchable` includes
+  // a `jsonData != null` check whose current meaning depends on that.
+  Future<int> _resolveJobCost(dynamic jsonData) async {
+    final int jobCost;
+    final devScenario = _devJobScenario;
+
+    if (devScenario != null) {
+      // DEV-ONLY (Task 2, 2026-07-31): a DevJobScenario is armed. Skip
+      // both requestGeniusSDKCost and getBridgeOutGasCost entirely and
+      // answer from the fixture instead, so the whole flow runs with no
+      // native SDK.
+      final fixture = DevMockJob.instance;
+      if (fixture.costShouldFail) {
+        // Pricing-failure scenario: lands the walk on exactly the state
+        // Task 1 made visible - a kept file, jobCost 0, costError set.
+        // If Task 1 regresses, this button reproduces a blank step 1
+        // again, which is why the two tasks verify each other.
+        jobCost = 0;
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              costError: DevMockJob.costErrorMessage,
+              gnusBalance: fixture.balance,
+            ),
+          );
+        }
+      } else {
+        jobCost = DevMockJob.jobCost;
+        // Balance is emitted in the SAME emit as the gas string, not a
+        // separate call - this is still the one detail that makes the panel
+        // usable mid-walk. What changed here (Task 1, 2026-07-31): arming a
+        // scenario AFTER a file is already chosen used to do nothing,
+        // because this whole branch only ran once, at pick time. It now
+        // also runs from `_repriceForDevScenario`, reached through the
+        // listener registered in the constructor above - a scenario armed
+        // (or cleared) after a pick pushes a re-price through that listener,
+        // which is the half that was missing and the half that stuck a real
+        // walk.
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              jobGasCost: DevMockJob.jobGasCost,
+              gnusBalance: fixture.balance,
+            ),
+          );
+        }
+      }
+    } else {
+      jobCost = geniusApi.requestGeniusSDKCost(jobJson: jsonEncode(jsonData));
+
+      final isGasFetchable =
+          jsonData != null &&
+          state.gnusTokenDetails.address != null &&
+          jobCost != 0;
+
+      // 1a (2026-07-31): a gas-estimate failure one line below already
+      // sets costError and falls through to the emit rather than
+      // returning early - that is the precedent this now matches. Before
+      // this change, a pricing failure returned here instead, discarding
+      // the picked file: uploadedFileName/uploadedJson/jobCost are only
+      // written by the emit below, so returning early meant the file
+      // vanished with no visible trace. That silence mattered beyond this
+      // method - job_steps.dart's auto-advance listener and its step 0
+      // footer both gate on uploadedJson being non-empty, and costError
+      // only renders in step 2, so a discarded file also made step 2
+      // unreachable. isGasFetchable is now used only to decide whether to
+      // ATTEMPT the gas estimate, never to abandon the method.
+      if (isGasFetchable) {
+        // Get gas cost associated with uploaded job
+        await getBridgeOutGasCost(jobCost);
+      } else {
+        // Do not call getBridgeOutGasCost with a zero cost - a pointless
+        // RPC round trip against an amount of nothing.
+        setCostError('Unable to retrieve job cost');
+      }
+    }
+
+    return jobCost;
   }
 
   Future<void> getBridgeOutGasCost(int jobCost) async {
@@ -195,6 +357,69 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
     if (!isClosed) {
       emit(state.copyWith(isBridgingTokens: true));
     }
+
+    final devScenario = _devJobScenario;
+    if (devScenario != null) {
+      // DEV-ONLY (Task 2, 2026-07-31): at the very top, BEFORE the
+      // precondition guard below. That guard exists only to protect the two
+      // SDK calls this fixture replaces (bridgeOut, requestGeniusSDKProcess)
+      // - in a dev environment with no token info it would reject every
+      // submission before step 4 could ever render, which is exactly the
+      // validation guard a reviewer must see justified rather than discover.
+      final fixture = DevMockJob.instance;
+      await Future.delayed(DevMockJob.inFlightDelay);
+
+      switch (fixture.outcome) {
+        case SubmitOutcome.done:
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                txHash: DevMockJob.txHash,
+                outcome: SubmitOutcome.done,
+                isBridgingTokens: false,
+              ),
+            );
+          }
+        case SubmitOutcome.bridgeFailed:
+          // Nothing was spent - both hash fields stay untouched, byte
+          // identical to the production bridge-failure message.
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                isBridgingTokens: false,
+                outcome: SubmitOutcome.bridgeFailed,
+                submitError: 'Bridge transaction failed. Please try again.',
+              ),
+            );
+          }
+        case SubmitOutcome.bridgedNotProcessed:
+          // The fixture bridge hash on bridgeHash and NOT on txHash -
+          // deliberately, so nothing downstream reading a non-empty txHash
+          // as "job started" is fooled. The submit error is produced by
+          // passing the fixture's process-failure value through the
+          // cubit's own private message mapper, so this terminal shows
+          // exactly what a genuine failure shows rather than dev prose.
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                isBridgingTokens: false,
+                outcome: SubmitOutcome.bridgedNotProcessed,
+                bridgeHash: DevMockJob.bridgeHash,
+                submitError: _processErrorMessage(DevMockJob.processFailure),
+              ),
+            );
+          }
+        case SubmitOutcome.notSubmitted:
+          // Unreachable - DevMockJob.outcome never returns notSubmitted.
+          break;
+      }
+
+      // No delayed balance refetch here, unlike the production path below:
+      // the balance is fixture-driven and intercepted in fetchGnusBalance,
+      // so the refetch would sleep 5s and re-emit the identical number.
+      return;
+    }
+
     final selectedNetwork = walletDetailsCubit.state.selectedNetwork;
     final chainId = selectedNetwork?.chainId;
     final rpcUrl = selectedNetwork?.rpcUrl;
@@ -358,5 +583,20 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       case GeniusNodeReturnValue.GENIUS_NODE_RET_OK:
         return "";
     }
+  }
+
+  @override
+  Future<void> close() {
+    if (kDebugMode && kShowDevTools) {
+      // Dart canonicalises instance method tear-offs from the same object,
+      // so this removes the exact closure the constructor's addListener
+      // added - the gate here must stay identical to the one guarding that
+      // add, or the two go out of step. This cubit is constructed
+      // per-subtree at `wallet_overview.dart:60` and `router.dart:369`, both
+      // instances can be alive at once, and a leaked listener would emit on
+      // a closed cubit the second time either drawer opens.
+      DevMockJob.instance.scenario.removeListener(_onDevScenarioChanged);
+    }
+    return super.close();
   }
 }
