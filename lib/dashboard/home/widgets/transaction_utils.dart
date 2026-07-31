@@ -217,6 +217,7 @@ class TxRowContent {
     required this.valueLine,
     required this.iconSymbols,
     required this.time,
+    this.statusLabel,
   });
 
   final TransactionBadgeKind badge;
@@ -259,6 +260,42 @@ class TxRowContent {
   /// Sanitised asset symbols; two of them for a swap so both tokens can show.
   final List<String> iconSymbols;
   final String time;
+
+  /// The display label for [status] when the enum's own name is not the
+  /// truthful one. NULL means "use the enum name", which is what
+  /// [txRowContent] always produces - this exists for a caller that builds
+  /// the record itself.
+  ///
+  /// The case it was added for: a Banxa order's `Expired` folds onto
+  /// [TransactionStatus.failed] (it is red today and must stay red), but the
+  /// row would then read "Failed" for an order that merely ran out of time.
+  /// The label rides here rather than as a parameter on the row/drawer so
+  /// both presentations - the wide row's pill and the drawer's Status row -
+  /// read one source and cannot drift.
+  final String? statusLabel;
+}
+
+/// One drawer detail row as DATA, not as a widget.
+///
+/// `showTransactionDetails` renders these through its own `add()`/`addCopy()`
+/// helpers, and that is the point: those helpers already return early on a
+/// blank value, so a field an external API did not provide becomes NO ROW -
+/// not a dash, not `Unknown`, not an empty row. A caller supplying extras
+/// therefore writes no null-guards of its own, and cannot build the wrong
+/// widget either (`_buildRow` and `_CopyRow` are private to the drawer's own
+/// file).
+@immutable
+class TxDetailRow {
+  const TxDetailRow(this.label, this.value, {this.copy = false});
+
+  final String label;
+
+  /// The FULL value. A copy row prints a shortened form and copies this.
+  final String value;
+
+  /// Whether the value belongs in the clipboard rather than only on screen -
+  /// an address, an order id, a hash.
+  final bool copy;
 }
 
 TransactionBadgeKind _badgeForType(TransactionType? type, bool isSent) {

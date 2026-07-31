@@ -591,6 +591,36 @@ void main() {
     },
   );
 
+  group('Part 7b: GWTextField hint and inline prefix on the field fill', () {
+    // 260731-vty gave `GWTextField` a real inline `prefix` slot and styled it
+    // from the component (`prefixStyle`), in the same `textSecondary` the
+    // hint already used, on the same `surfaceElevated` default fill. The plan
+    // for that task assumed this pairing was already inside Part 3's
+    // "five properties clear 4.5:1 on surfaceElevated/..." sweep. IT IS NOT:
+    // that sweep covers focus borders, tab indicators, checkbox sides and the
+    // progress colour, all of which are CHROME, not text. This is the
+    // assertion that closes the gap rather than a claim of coverage that was
+    // not there.
+    //
+    // Threshold is 4.5:1, the BODY-text floor, even though the Buy GNUS hero
+    // renders its `$` at 24px w600 and would qualify for the 3:1 large-text
+    // floor. The slot's DEFAULT type step is `bodyLg` (16px), which is not
+    // large text, so the general caller sets the requirement, not the one
+    // caller that happens to be bigger.
+    for (final mode in GWAppearanceMode.values) {
+      test('textSecondary on surfaceElevated -- $mode', () {
+        final gw = themeFor(mode).extension<GWColors>()!;
+        expect(
+          contrastRatio(gw.textSecondary, gw.surfaceElevated),
+          greaterThanOrEqualTo(4.5),
+          reason:
+              'GWTextField hint/prefix ink ${gw.textSecondary} on its default '
+              'fill ${gw.surfaceElevated} in $mode mode',
+        );
+      });
+    }
+  });
+
   group('Part 8: status-pill foregrounds on their own wash (23-03 follow-up)', () {
     // The two pill palettes are separate functions that must not drift --
     // order_status_style.dart says outright it was "copied verbatim from the

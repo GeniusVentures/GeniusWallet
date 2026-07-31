@@ -313,6 +313,117 @@ void main() {
       expect(find.text('No file selected.'), findsOneWidget);
       expect(find.byType(SnackBar), findsNothing);
     });
+
+    testWidgets(
+      'a rejected file offers a working way to choose another - the warning '
+      'is not a dead end',
+      (tester) async {
+        var tapped = false;
+        await tester.pumpWidget(
+          _host(
+            JobChooseFileBody(
+              state: const SubmitJobState(
+                fileError: 'The Selected File is not valid json',
+              ),
+              onChooseFile: () => tapped = true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('The Selected File is not valid json'),
+          findsOneWidget,
+        );
+        expect(find.text('Choose a JSON file'), findsOneWidget);
+        final button = tester.widget<GWButton>(find.byType(GWButton));
+        // A disabled escape is not an escape.
+        expect(button.onPressed, isNotNull);
+
+        await tester.tap(find.text('Choose a JSON file'));
+        expect(tapped, isTrue);
+      },
+    );
+
+    testWidgets(
+      'a rejection arriving on top of a held file keeps the file visible - '
+      'the body must not erase what the footer still points at',
+      (tester) async {
+        var tapped = false;
+        await tester.pumpWidget(
+          _host(
+            JobChooseFileBody(
+              state: const SubmitJobState(
+                uploadedFileName: 'job-payload.json',
+                fileError: 'File is too large (max 5 MB).',
+              ),
+              onChooseFile: () => tapped = true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('File selected'), findsOneWidget);
+        expect(find.text('job-payload.json'), findsOneWidget);
+        expect(find.text('File is too large (max 5 MB).'), findsOneWidget);
+        expect(find.text('Choose a JSON file'), findsOneWidget);
+        final button = tester.widget<GWButton>(find.byType(GWButton));
+        expect(button.onPressed, isNotNull);
+
+        await tester.tap(find.text('Choose a JSON file'));
+        expect(tapped, isTrue);
+      },
+    );
+
+    testWidgets(
+      'the resting state (no file, no error, picker closed) shows what file '
+      'is expected and a way to choose one, not a blank body',
+      (tester) async {
+        var tapped = false;
+        await tester.pumpWidget(
+          _host(
+            JobChooseFileBody(
+              state: const SubmitJobState(),
+              onChooseFile: () => tapped = true,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Upload a JSON file describing the job you want to run.'),
+          findsOneWidget,
+        );
+        expect(find.text('Choose a JSON file'), findsOneWidget);
+
+        await tester.tap(find.text('Choose a JSON file'));
+        expect(tapped, isTrue);
+      },
+    );
+
+    testWidgets(
+      'a file already held (revisiting a completed step 1) shows its name '
+      'and a way to replace it, reading only uploadedFileName',
+      (tester) async {
+        await tester.pumpWidget(
+          _host(
+            const JobChooseFileBody(
+              state: SubmitJobState(uploadedFileName: 'job-payload.json'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('File selected'), findsOneWidget);
+        expect(find.text('job-payload.json'), findsOneWidget);
+        expect(find.text('Choose a JSON file'), findsOneWidget);
+        // Not the resting-state description - a file is already held.
+        expect(
+          find.text('Upload a JSON file describing the job you want to run.'),
+          findsNothing,
+        );
+      },
+    );
   });
 
   group('JobCostBody', () {
@@ -380,15 +491,19 @@ void main() {
 
   group('JobInFlightBody', () {
     testWidgets(
-      'renders the bridge and the job start as two separately labelled '
-      'operations',
+      'renders one spinner over a quiet numbered list naming the bridge and '
+      'the job start as two separate operations',
       (tester) async {
         await tester.pumpWidget(_host(const JobInFlightBody()));
         await tester.pump();
 
+        expect(find.text('Starting your job'), findsOneWidget);
         expect(find.text('Bridging GNUS'), findsOneWidget);
         expect(find.text('Starting the job'), findsOneWidget);
-        expect(find.byType(GWSpinner), findsNWidgets(2));
+        // One spinner, not two - 14-09-PLAN.md Task 3a (sketch 166 board F
+        // option B): two spinners would read as two parallel operations,
+        // which is not what happens.
+        expect(find.byType(GWSpinner), findsOneWidget);
       },
     );
   });
@@ -435,7 +550,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Tokens sent, job not started'), findsOneWidget);
+        expect(find.text('Bridged · job not started yet'), findsOneWidget);
         expect(find.byType(GWCopyRow), findsOneWidget);
         expect(
           find.text(
@@ -539,9 +654,15 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Tokens sent, job not started'), findsOneWidget);
+        expect(find.text('Bridged · job not started yet'), findsOneWidget);
         expect(harness.cubit.state.bridgeHash, isNotEmpty);
         expect(find.text('Close'), findsOneWidget);
+        // The footer's new way forward (14-09-PLAN.md Task 3c) - routed to
+        // the Feedback tab with the failure prefilled, not tapped here
+        // (tapping it requires a GoRouter ancestor this hermetic host does
+        // not provide; the router handle is captured lazily inside
+        // onPressed, so building/rendering this button never reaches it).
+        expect(find.text('Get help'), findsOneWidget);
         // The whole point of the override: no retry CTA anywhere in the
         // rendered tree, body or footer.
         expect(find.text('Try starting the job again'), findsNothing);
@@ -621,6 +742,52 @@ void main() {
         expect(manualIndex.value, 2);
       },
     );
+
+    testWidgets(
+      'step 1 footer reads Continue (sketch 166 s1), disabled with no file '
+      'and enabled once one is held',
+      (tester) async {
+        final noFile = _build();
+        addTearDown(noFile.dispose);
+
+        final manualIndex = ValueNotifier<int>(0);
+        addTearDown(manualIndex.dispose);
+        await tester.pumpWidget(
+          _host(
+            BlocProvider<SubmitJobCubit>.value(
+              value: noFile.cubit,
+              child: JobFlowFooter(manualIndex: manualIndex),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Continue'), findsOneWidget);
+        expect(find.text('Choose a JSON file'), findsNothing);
+        final disabled = tester.widget<GWButton>(find.byType(GWButton));
+        expect(disabled.onPressed, isNull);
+
+        final withFile = _build(seedUploadedJson: const {'job': 'spec'});
+        addTearDown(withFile.dispose);
+        await tester.pumpWidget(
+          _host(
+            BlocProvider<SubmitJobCubit>.value(
+              value: withFile.cubit,
+              child: JobFlowFooter(manualIndex: manualIndex),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final enabled = tester.widget<GWButton>(find.byType(GWButton));
+        expect(enabled.onPressed, isNotNull);
+
+        await tester.tap(find.text('Continue'));
+        await tester.pump();
+
+        expect(manualIndex.value, 1);
+      },
+    );
   });
 
   group('JobDrawer - the provider hazard with no precedent in this repo', () {
@@ -657,7 +824,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(harness.cubit.state.fileError, 'No file selected.');
+      // This test exists to prove both subtrees resolve the same cubit, not
+      // to pin the cancel copy - the tap above dismisses the (faked) OS
+      // picker, and 2026-07-31's D-05 fix means that no longer raises
+      // fileError at all. An empty fileError plus no exception is still
+      // proof the tap reached the real cubit.
+      expect(harness.cubit.state.fileError, isEmpty);
     });
 
     testWidgets(
@@ -753,6 +925,41 @@ void main() {
         // Flush the load-bearing 5s delayed balance refetch before the test
         // ends - see the earlier terminal-reachability tests.
         await tester.pump(const Duration(seconds: 6));
+      },
+    );
+
+    testWidgets(
+      'the choose-another escape reaches the real cubit through the real '
+      'drawer, not just a callback in a widget test',
+      (tester) async {
+        var pickCalls = 0;
+        fakeFilePicker.resultBuilder = () {
+          pickCalls++;
+          return null;
+        };
+        final harness = _build();
+        addTearDown(harness.dispose);
+
+        await tester.pumpWidget(_drawerHost(harness.cubit));
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        // Seeded directly via the cubit's own public setter, independent of
+        // whether the cancel-is-not-an-error fix (Task 3) has landed.
+        harness.cubit.setFileError('The Selected File is not valid json');
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('The Selected File is not valid json'),
+          findsOneWidget,
+        );
+        expect(find.text('Choose a JSON file'), findsOneWidget);
+
+        await tester.tap(find.text('Choose a JSON file'));
+        await tester.pumpAndSettle();
+
+        expect(pickCalls, 1);
+        expect(tester.takeException(), isNull);
       },
     );
   });

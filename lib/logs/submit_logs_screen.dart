@@ -102,7 +102,15 @@ String attachmentNameFor(String fileName, AttachmentDisposition disposition) {
 const List<String> _candidateLogNames = ['sgnslog.log', 'sgnslog2.log'];
 
 class SubmitLogsScreen extends StatefulWidget {
-  const SubmitLogsScreen({super.key});
+  const SubmitLogsScreen({super.key, this.initialMessage});
+
+  /// Pre-fills the message field, e.g. from the job flow's `Get help`
+  /// button on its `bridgedNotProcessed` terminal (`14-09-PLAN.md` Task
+  /// 3c). Null for every other entry point (nav bar, direct navigation) -
+  /// this is a courtesy, not a requirement; every existing behaviour below,
+  /// including the empty-message guard in `_submitFeedback`, is unaffected
+  /// and simply gets satisfied by the prefill when present.
+  final String? initialMessage;
 
   @override
   State<SubmitLogsScreen> createState() => _SubmitLogsScreenState();
@@ -142,6 +150,9 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialMessage != null) {
+      _feedbackController.text = widget.initialMessage!;
+    }
     _probeAttachments();
   }
 

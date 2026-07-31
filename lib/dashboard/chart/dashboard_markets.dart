@@ -7,6 +7,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:go_router/go_router.dart';
 
 class DashboardMarkets extends StatefulWidget {
@@ -77,12 +78,16 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
 
                   return CryptoSparkLineChart(
                     onTap: () {
+                      // Same payload shape as `markets_screen.dart`'s
+                      // `_openToken` - this panel had no `coin` key at all
+                      // before, so it gains an identity it never carried.
                       context.push(
                         '/token-info',
-                        extra: {
-                          "isGnusWalletConnected": false,
-                          "marketData": data,
-                        },
+                        extra: TokenInfoArgs(
+                          coinGeckoId: coin.id,
+                          symbol: coin.symbol,
+                          marketData: data,
+                        ),
                       );
                     },
                     title: coin.name,

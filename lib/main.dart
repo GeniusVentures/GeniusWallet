@@ -14,6 +14,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/dev/dev_tools_host.dart';
 import 'package:genius_wallet/hive/init.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -350,9 +351,17 @@ class MyApp extends StatelessWidget {
               locale: DevicePreview.locale(context),
               builder: (context, child) => DevicePreview.appBuilder(
                 context,
-                GlobalSwapFabHost(
+                // Dev host OUTSIDE the swap host so a debug tool is never
+                // occluded by a product affordance, and INSIDE
+                // DevicePreview.appBuilder so it stays within the simulated
+                // device frame like the FAB does. Defaults `enabled` to
+                // kDebugMode && kShowDevTools - see DevToolsBubbleHost's doc.
+                DevToolsBubbleHost(
                   router: geniusWalletRouter,
-                  child: child ?? const SizedBox.shrink(),
+                  child: GlobalSwapFabHost(
+                    router: geniusWalletRouter,
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               ),
               title: 'Genius Wallet',

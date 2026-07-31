@@ -99,7 +99,12 @@ const double _wideAmountWidth = 184;
 /// mirroring `statusWarningText`, then extend Part 8 of
 /// `test/theme/theme_contrast_test.dart` to all three tones in both modes. See
 /// `.planning/todos/pending/2026-07-29-status-pill-success-error-fail-aa-in-light-mode.md`.
-Widget _statusPill(TransactionStatus status, GWColors gw) {
+///
+/// [label] overrides the text only - never the paint, which stays the four-tone
+/// ladder above. Null keeps today's behaviour (the enum's own name); a caller
+/// supplies it when the enum name is not the truthful word for the state, e.g.
+/// a Banxa `Expired` order folded onto [TransactionStatus.failed].
+Widget _statusPill(TransactionStatus status, GWColors gw, {String? label}) {
   final (:fg, :wash) = txStatusColors(status, gw);
   return Container(
     padding: const EdgeInsets.symmetric(
@@ -120,7 +125,7 @@ Widget _statusPill(TransactionStatus status, GWColors gw) {
         ),
         const SizedBox(width: 5),
         Text(
-          _capitalizeStatus(status),
+          label ?? _capitalizeStatus(status),
           maxLines: 1,
           softWrap: false,
           style: GeniusWalletTypography.labelMd.copyWith(
@@ -239,17 +244,35 @@ Widget _identity(TxRowContent content, GWColors gw, {required double size}) {
 /// Geometry matches `GWTokenRow` (40px icon slot, space6/space4 padding,
 /// radiusMd InkWell) so Assets and Transactions read as one system.
 class TransactionRow extends StatelessWidget {
-  const TransactionRow({super.key, required this.tx, this.onTap});
+  const TransactionRow({
+    super.key,
+    required this.tx,
+    this.onTap,
+    this.contentOverride,
+  });
 
   final Transaction tx;
   final VoidCallback? onTap;
+
+  /// A record built by the CALLER, used verbatim in place of [txRowContent]'s
+  /// derivation. Supplying it means the caller owns the whole record - the row
+  /// still decides nothing, which is the property that keeps this file free of
+  /// per-source branches.
+  ///
+  /// The one caller today is the Buy GNUS orders rail: a Banxa order's value
+  /// line is the fiat actually PAID, which is a different FACT from the price
+  /// map's estimate rather than an override of it (D-03). `??` short-circuits,
+  /// so a row with an override never calls `livePricesBySymbol()` and never
+  /// touches Hive.
+  final TxRowContent? contentOverride;
 
   @override
   Widget build(BuildContext context) {
     // Fail-soft read: registers the InheritedWidget dependency that re-skins
     // this row on a live appearance toggle.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final content = txRowContent(tx, prices: livePricesBySymbol());
+    final content =
+        contentOverride ?? txRowContent(tx, prices: livePricesBySymbol());
 
     final Widget amountText = Text(
       content.amount,
@@ -414,7 +437,7 @@ class TransactionRow extends StatelessWidget {
                 // is one boolean and the amount width is a constant (37639d5).
                 if (wide) ...[
                   const SizedBox(width: GeniusWalletConsts.space6),
-                  _statusPill(content.status, gw),
+                  _statusPill(content.status, gw, label: content.statusLabel),
                   const SizedBox(width: GeniusWalletConsts.space6),
                   SizedBox(width: _wideAmountWidth, child: amountColumn),
                 ] else ...[
@@ -611,9 +634,33 @@ class _CopyRow extends StatelessWidget {
 
 /// ONE detail drawer for all seven types, replacing the three divergent
 /// `_show*TransactionDetails` methods.
-void showTransactionDetails(BuildContext context, Transaction tx) {
+///
+/// The four optional parameters are how a caller whose source carries MORE
+/// than a `Transaction` can hold (a Banxa order: a payment method, a fiat
+/// pair, two fiat fees, an order id) reaches this drawer instead of writing a
+/// lookalike. Each defaults to today's behaviour exactly:
+///   - [contentOverride] null -> the price-map derivation, as before.
+///   - the two extras lists empty -> the emitted rows are byte-identical to
+///     today's, which is why `transactions_slim_view.dart`, `swap_screen.dart`,
+///     `bridge_screen.dart` and `dev_tools_bubble.dart` are untouched.
+///   - [footer] null -> the View on Explorer button, as before.
+///
+/// The extras are [TxDetailRow] DATA and are rendered through this function's
+/// own `add`/`addCopy` closures, so a value the source did not provide is
+/// dropped rather than printed as an empty row - the caller writes no
+/// null-guards. Nothing Banxa-shaped is imported here; the mapping lives in
+/// `lib/banxa/banxa_helpers/order_transaction_mapping.dart`.
+void showTransactionDetails(
+  BuildContext context,
+  Transaction tx, {
+  TxRowContent? contentOverride,
+  List<TxDetailRow> extraTransactionRows = const [],
+  List<TxDetailRow> extraNetworkRows = const [],
+  Widget? footer,
+}) {
   final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-  final content = txRowContent(tx, prices: livePricesBySymbol());
+  final content =
+      contentOverride ?? txRowContent(tx, prices: livePricesBySymbol());
   final status = tx.transactionStatus;
   // `isDead` is gone with it: the Status row's colour no longer comes from a
   // failed/cancelled test here, it comes from txStatusColors like the pill's.
@@ -648,7 +695,7 @@ void showTransactionDetails(BuildContext context, Transaction tx) {
   add(
     txRows,
     'Status',
-    _capitalizeStatus(status),
+    content.statusLabel ?? _capitalizeStatus(status),
     valueColor: txStatusColors(status, gw).fg,
   );
   // 154-A: "the exact number belongs on a receipt". `exactAmount` is non-null
@@ -685,6 +732,20 @@ void showTransactionDetails(BuildContext context, Transaction tx) {
     addCopy(txRows, isSent ? 'To' : 'From', counterparty);
   }
 
+  // Caller-supplied extras, APPENDED after the base rows. Empty by default,
+  // so every existing call site emits exactly what it emitted before.
+  void addExtras(List<Widget> into, List<TxDetailRow> extras) {
+    for (final row in extras) {
+      if (row.copy) {
+        addCopy(into, row.label, row.value);
+      } else {
+        add(into, row.label, row.value);
+      }
+    }
+  }
+
+  addExtras(txRows, extraTransactionRows);
+
   add(netRows, 'Network', tx.coinSymbol);
   // Where the fee lives now that it is off the resting row. A blank `fees`
   // means "no fee is known" (e.g. the D-01 unwired swap path) - skip the row
@@ -694,6 +755,10 @@ void showTransactionDetails(BuildContext context, Transaction tx) {
   if (tx.fees.trim().isNotEmpty) {
     add(netRows, 'Network Fee', '${formatTxAmount(tx.fees)} ${tx.coinSymbol}');
   }
+  // Network extras are INSERTED here, above the hash: the hash is the group's
+  // terminal identifier and the explorer footer's subject. With the default
+  // empty list this loop emits nothing and the row order below is unchanged.
+  addExtras(netRows, extraNetworkRows);
   // For a processing job the hash IS the job reference — one row, not the same
   // value printed twice under two labels.
   addCopy(
@@ -742,7 +807,7 @@ void showTransactionDetails(BuildContext context, Transaction tx) {
         // `_statusPill` was written, correct for all four states, and used only
         // on wide rows. The amount stays neutral on purpose (031 round 2): the
         // colour rides on the icon badge, this pill and the Status row.
-        Center(child: _statusPill(status, gw)),
+        Center(child: _statusPill(status, gw, label: content.statusLabel)),
         const SizedBox(height: GeniusWalletConsts.space12),
 
         // A kicker over a ruled well, which is 154-A's grouping restored
@@ -760,28 +825,35 @@ void showTransactionDetails(BuildContext context, Transaction tx) {
         GWDetailGrid(rows: netRows),
       ],
     ),
+    // A caller-supplied footer REPLACES the explorer button rather than
+    // stacking above it: the callers that supply one have no settled hash, so
+    // there is no explorer URL to lose, and two full-width `lg` buttons in a
+    // drawer footer is not a pattern this app has anywhere.
+    //
     // Suppressed rather than rendered dead: on a chain missing from
     // `explorerMap` the old button opened nothing at all.
-    footer: explorerUrl.isEmpty
-        ? null
-        : GWButton(
-            onPressed: () {
-              final uri = Uri.tryParse(explorerUrl);
-              if (uri?.scheme.startsWith('http') ?? false) {
-                launchWebSite(context, uri.toString());
-              }
-            },
-            label: 'View on Explorer',
-            leading: const Icon(Icons.open_in_new),
-            // gradientOutline, not secondary (Jakub, 2026-07-28): this is the
-            // panel's ONLY action, so it carries the brand signature — hollow,
-            // because opening a block explorer commits to nothing.
-            variant: GWButtonVariant.gradientOutline,
-            // lg = 56, matching Swap Settings' Apply and both account drawers.
-            // Without it this took the `md` default and was the ONE drawer
-            // footer in the app 8px shorter than its neighbours.
-            size: GWButtonSize.lg,
-            expand: true,
-          ),
+    footer:
+        footer ??
+        (explorerUrl.isEmpty
+            ? null
+            : GWButton(
+                onPressed: () {
+                  final uri = Uri.tryParse(explorerUrl);
+                  if (uri?.scheme.startsWith('http') ?? false) {
+                    launchWebSite(context, uri.toString());
+                  }
+                },
+                label: 'View on Explorer',
+                leading: const Icon(Icons.open_in_new),
+                // gradientOutline, not secondary (Jakub, 2026-07-28): this is the
+                // panel's ONLY action, so it carries the brand signature — hollow,
+                // because opening a block explorer commits to nothing.
+                variant: GWButtonVariant.gradientOutline,
+                // lg = 56, matching Swap Settings' Apply and both account drawers.
+                // Without it this took the `md` default and was the ONE drawer
+                // footer in the app 8px shorter than its neighbours.
+                size: GWButtonSize.lg,
+                expand: true,
+              )),
   );
 }

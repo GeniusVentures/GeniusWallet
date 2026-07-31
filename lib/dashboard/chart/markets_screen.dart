@@ -12,6 +12,7 @@ import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 
@@ -55,9 +56,17 @@ class _MarketsScreenState extends State<MarketsScreen> {
   }
 
   void _openToken(CoinGeckoCoin coin, CoinGeckoMarketData data) {
+    // `TokenInfoArgs` replaces the old `coin` key, which the route never
+    // actually read (Findings 1) - `coinGeckoId`/`symbol` are the two fields
+    // anything downstream needs. `isGnusWalletConnected` is gone too: the
+    // route derives it now. `originLabel` takes its default, 'MARKETS'.
     context.push(
       '/token-info',
-      extra: {"isGnusWalletConnected": false, "marketData": data, "coin": coin},
+      extra: TokenInfoArgs(
+        coinGeckoId: coin.id,
+        symbol: coin.symbol,
+        marketData: data,
+      ),
     );
   }
 

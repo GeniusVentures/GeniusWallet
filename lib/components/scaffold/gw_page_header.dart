@@ -15,6 +15,7 @@ class GWPageHeader extends StatelessWidget {
     this.leading,
     this.titleTrailing,
     this.centered = false,
+    this.trailingHugsTitle = false,
   });
 
   final String title;
@@ -61,6 +62,19 @@ class GWPageHeader extends StatelessWidget {
   /// (Transactions / Markets / News) render exactly what they render today.
   final bool centered;
 
+  /// Pulls [trailing] up against the title instead of pushing it to the far
+  /// right edge (sketch 168 E1, Jakub 2026-07-31).
+  ///
+  /// Default false, so every existing caller keeps the edge-to-edge header it
+  /// was written for. Only the coin page opts in: there the trailing is the
+  /// coin's PRICE, which belongs to the name it sits beside, and separating
+  /// the two by the full width of the page made the eye travel ~1200px to
+  /// connect two facts about the same token.
+  ///
+  /// Has no effect when [centered] is true - that path puts the trailing in a
+  /// `Stack` instead of the row, so there is nothing to hug.
+  final bool trailingHugsTitle;
+
   /// Optional one-line subtitle rendered under the title row. Defaults to
   /// null so every existing caller (Transactions, Markets, News, and Swap as
   /// it stands today) renders exactly the widget tree it produces today —
@@ -102,6 +116,15 @@ class GWPageHeader extends StatelessWidget {
             ? titleText
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
+                // Default `MainAxisSize.max` claims the full width, which is
+                // right for an edge-to-edge header and wrong for a hugging
+                // one: with `trailingHugsTitle` the outer `Flexible` cannot
+                // pull the trailing in while this Row is still expanding to
+                // meet it, so the gap survives the outer fix (measured ~470px
+                // on the coin page before this line existed).
+                mainAxisSize: trailingHugsTitle
+                    ? MainAxisSize.min
+                    : MainAxisSize.max,
                 children: [
                   // The only flex child here, so it gets ALL the space
                   // titleTrailing does not need and ellipsizes instead of
@@ -151,8 +174,22 @@ class GWPageHeader extends StatelessWidget {
                 leading!,
                 const SizedBox(width: GeniusWalletConsts.space6),
               ],
-              Expanded(child: titleBlock),
+              // [trailingHugsTitle] is the whole difference between the two
+              // arrangements. `Expanded` makes the title claim every spare
+              // pixel, which is what pins the trailing to the far right edge -
+              // on a 1536px coin page that put ~1200px of empty row between a
+              // coin's name and its price. `Flexible` lets the title take only
+              // what it needs, so the trailing lands immediately after it and
+              // the `Spacer` absorbs the remainder instead.
+              //
+              // Flexible, not `mainAxisSize: min`: a long title must still be
+              // allowed to shrink and ellipsize rather than overflow the row.
+              if (trailingHugsTitle)
+                Flexible(child: titleBlock)
+              else
+                Expanded(child: titleBlock),
               if (trailingBesideIdentity) trailing!,
+              if (trailingHugsTitle) const Spacer(),
             ],
           );
 

@@ -18,9 +18,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -45,8 +47,10 @@ Widget _host() => BlocProvider(
         walletDetailsCubit: context.read<WalletDetailsCubit>(),
         // The state this test exists for. Reachable from the wallet's own
         // Assets list, which looks the coin up by symbol and passes null
-        // when CoinGecko does not cover it.
-        marketData: null,
+        // when CoinGecko does not cover it. No `coinGeckoId` either, so the
+        // page goes straight to `uncovered` rather than fetching.
+        args: const TokenInfoArgs(),
+        isGnusWalletConnected: false,
       ),
     ),
   ),
@@ -117,10 +121,10 @@ void main() {
     // Jakub's condition on the decision: what still works must stay. Receive
     // does not need a market price.
     //
-    // 074-C2: the four-tile bar is gone, so this asks for the ACTION rather
-    // than the widget - `byTooltip` is also the only check that fails if the
-    // tooltip is dropped, which for an icon-only button is the whole label.
-    expect(find.byTooltip('Receive'), findsOneWidget);
+    // sketch 165 Synthesis, change 3: the actions carry visible labels now, so
+    // this asks for a BUTTON saying the word rather than a tooltip - a
+    // `find.text` alone would also match the drawer title.
+    expect(find.widgetWithText(GWButton, 'Receive'), findsOneWidget);
     expect(find.byType(CoinInfoCard), findsOneWidget);
   });
 
@@ -138,14 +142,20 @@ void main() {
     // Send has no screen and no route - `GeniusApi.transferTokens` has zero
     // callers - so it must not appear at all, including as a disabled box.
     // This is the check that fails if someone "restores" the missing tile.
-    expect(find.byTooltip('Send'), findsNothing);
+    //
+    // A `find.byTooltip` finder would pass vacuously now that no action
+    // carries a tooltip at all (sketch 165, change 3) - the wrong reason to
+    // be green - so this asserts against the label directly.
+    expect(find.widgetWithText(GWButton, 'Send'), findsNothing);
 
     // Swap is wired and works from every route.
-    expect(find.byTooltip('Swap'), findsOneWidget);
+    expect(find.widgetWithText(GWButton, 'Swap'), findsOneWidget);
 
-    // Bridge is ABSENT, not greyed: `isGnusWalletConnected` is null here, so
-    // the action does not apply rather than being unavailable.
-    expect(find.byTooltip('Bridge'), findsNothing);
+    // Bridge is ABSENT, not greyed: no coin is selected here, so
+    // `isGnusBridgeEnabled`'s symbol check is false regardless of
+    // `isGnusWalletConnected` - the action does not apply rather than being
+    // unavailable.
+    expect(find.widgetWithText(GWButton, 'Bridge'), findsNothing);
   });
 
   testWidgets('the Receive drawer never says "Receive null"', (tester) async {
@@ -161,10 +171,24 @@ void main() {
     // the wallet cubit's `selectedCoin` has nothing to do with the coin you
     // were reading about. `"Receive ${selectedCoin?.name}"` interpolated the
     // null straight into the header.
-    await tester.tap(find.byTooltip('Receive'));
+    //
+    // **The trap this replaces:** once the BUTTON also renders the word
+    // "Receive" (sketch 165, change 3), a bare `find.text('Receive')` matches
+    // two widgets - the button's own label and the drawer's title - and the
+    // old assertion (`findsOneWidget`) would fail on a change it was never
+    // about. Tap the button by its widget+text pair, then assert the null
+    // interpolation never happened and that the drawer's own title renders.
+    await tester.tap(find.widgetWithText(GWButton, 'Receive'));
     await tester.pumpAndSettle();
 
     expect(find.text('Receive null'), findsNothing);
-    expect(find.text('Receive'), findsOneWidget);
+    // The drawer's own title Text lives inside its `AppBar` -
+    // `ResponsiveDrawer` renders one whenever `title` is non-null - which the
+    // button (a `GWButton`, no `AppBar` in its tree) cannot match.
+    final drawerTitle = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.text('Receive'),
+    );
+    expect(drawerTitle, findsOneWidget);
   });
 }

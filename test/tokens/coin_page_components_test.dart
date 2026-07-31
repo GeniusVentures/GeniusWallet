@@ -1,19 +1,20 @@
-// The ONE check sketch 070-A owes.
+// The checks sketch 070-A and sketch 165 Synthesis (change 8) both own.
 //
-// Two of its five findings are invisible in the mode we develop in, which is
-// exactly how both survived on a shipped screen:
+// Findings invisible in the mode we develop in are exactly how they survive on
+// a shipped screen:
 //
-//  * The Info card's six glyphs used SIX different colours, five of them raw
-//    constants tuned on the dark canvas. On dark they all read (10.8 / 8.3 /
-//    7.8 / 6.1 / 4.2 / 10.3), so nothing looks wrong. On the light well they
-//    are 1.25 / 1.63 / 1.72 / 2.19 - four of the six simply are not there.
-//    A screenshot of dark mode would never catch a regression back to that.
+//  * The Info card USED TO carry six glyphs in six different colours, five of
+//    them raw constants tuned on the dark canvas - on dark they all read fine,
+//    on the light well four of the six simply were not there. Jakub's
+//    2026-07-28 fix collapsed all six to one shared colour; his 2026-07-30
+//    call (sketch 165 Synthesis, change 8) went further and removed the
+//    glyphs outright. This file's first check inverts accordingly: it now
+//    asserts NO icon renders in the card, rather than that the icons share one
+//    colour.
 //
 //  * The Token Amount field lit a FLAT `brandPrimaryStrong` on focus rather
 //    than the brand gradient, which also looks perfectly fine in isolation.
-//
-// So both are asserted structurally rather than visually: one glyph colour for
-// the whole card, and the editable field actually wrapped in a `GWFocusRing`.
+//    Unaffected by change 8 - still asserted structurally below.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,37 +31,38 @@ Widget _host(Widget child) => MaterialApp(
 );
 
 void main() {
-  testWidgets('every Info glyph is the SAME colour, and it is the one that '
-      'survives light mode', (tester) async {
-    // `marketData: null` on purpose - the four numeric rows print "N/A" and
-    // still render their glyphs, so all six are in the tree without standing up
-    // a 24-field Hive model to assert a colour.
-    await tester.pumpWidget(
-      _host(const CoinInfoCard(network: 'Ethereum', address: _address)),
-    );
-    await tester.pumpAndSettle();
+  testWidgets(
+    'the Info card renders no icons at all, and its six rows still stand',
+    (tester) async {
+      // `marketData: null` on purpose - the four numeric rows print "N/A" and
+      // still render their labels, so all six rows are in the tree without
+      // standing up a 24-field Hive model.
+      await tester.pumpWidget(
+        _host(const CoinInfoCard(network: 'Ethereum', address: _address)),
+      );
+      await tester.pumpAndSettle();
 
-    // Six rows: Network, Address, Market Cap, Circulating, Total Supply,
-    // Volume. If a row is ever dropped, the set below could collapse to one
-    // colour for the wrong reason.
-    expect(find.byType(SketchIcon), findsNWidgets(6));
+      // **sketch 165 Synthesis, change 8 (Jakub, 2026-07-30): no icons.** This
+      // replaces the old "one shared glyph colour" assertion - the rainbow's
+      // fix was itself replaced by removing the glyphs entirely, not by
+      // recolouring them again.
+      expect(
+        find.byType(SketchIcon),
+        findsNothing,
+        reason: 'the Info card must render no icons at all',
+      );
 
-    final glyphs = tester
-        .widgetList<SketchIcon>(find.byType(SketchIcon))
-        .map((g) => g.color)
-        .toSet();
-
-    // ONE entry, not "all pass contrast" - a contrast assertion would still be
-    // satisfied by five different colours that each happen to clear a bar in
-    // dark, which is precisely the state this replaced.
-    expect(
-      glyphs.length,
-      1,
-      reason: 'the rainbow is back: ${glyphs.length} glyph colours',
-    );
-    // _host always pumps GWColors.dark() -- see its own theme: above.
-    expect(glyphs.single, GWColors.dark().brandPrimaryOnSurface);
-  });
+      // The icon assertion alone would pass on an empty card, so the six rows
+      // - Network, Address, Market Cap, Circulating Supply, Total Supply,
+      // Volume - are asserted by their labels too.
+      expect(find.text('Network'), findsOneWidget);
+      expect(find.text('Address'), findsOneWidget);
+      expect(find.text('Market Cap'), findsOneWidget);
+      expect(find.text('Circulating Supply'), findsOneWidget);
+      expect(find.text('Total Supply'), findsOneWidget);
+      expect(find.text('Volume'), findsOneWidget);
+    },
+  );
 
   testWidgets('the Convert card has exactly one gradient focus ring, on the '
       'field you can actually edit', (tester) async {

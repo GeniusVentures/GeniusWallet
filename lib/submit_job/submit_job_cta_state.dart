@@ -63,7 +63,18 @@ double _roundToPrecision(num value, int decimals) {
 /// Resolves the Submit Job CTA's state from the cubit's raw inputs.
 ///
 /// Precedence, top to bottom: `submitting` -> `noFileChosen` ->
-/// `costUnknown` -> `costError` -> `insufficientFunds` -> `ready`.
+/// `costError` -> `costUnknown` -> `insufficientFunds` -> `ready`.
+///
+/// **Reversed 2026-07-31, deliberately - do not "fix" this back.**
+/// `costError` now outranks `costUnknown`. Before this date,
+/// `SubmitJobCubit.openFilePicker` discarded the picked file on a pricing
+/// failure, so a zero `jobCost` paired with a set `costError` could not
+/// happen in practice and the order didn't matter. Once that discard was
+/// removed (submit_job_cubit.dart, 1a), a pricing failure leaves `jobCost`
+/// at `0` AND sets `costError` in the same emit - the old order would read
+/// that state as `costUnknown` forever, showing a permanent "Working out
+/// what this job costs" spinner over a job whose pricing has already
+/// definitively failed. That is a worse lie than the silence it replaced.
 SubmitJobCtaState resolveSubmitJobCtaState({
   required bool isSubmitting,
   required bool hasFileChosen,
@@ -80,15 +91,20 @@ SubmitJobCtaState resolveSubmitJobCtaState({
     return SubmitJobCtaState.noFileChosen;
   }
 
-  // A cost of zero means "not priced yet", never "free" and never
-  // "unaffordable" - checked before costError so an in-flight/never-run
-  // lookup never gets mistaken for a hard failure.
-  if (jobCost == 0) {
-    return SubmitJobCtaState.costUnknown;
-  }
-
+  // costError is checked before the zero-cost rung (reversed 2026-07-31,
+  // see the doc comment above resolveSubmitJobCtaState for the full
+  // reasoning). A zero cost means "not priced yet" ONLY while nothing on
+  // the cost channel has failed - after the cubit stopped discarding files
+  // on a pricing failure, a failed pricing attempt leaves jobCost at zero
+  // too, and the failure is the more specific, more useful fact to report.
   if (costError.isNotEmpty) {
     return SubmitJobCtaState.costError;
+  }
+
+  // A cost of zero (with no cost-channel failure) means "not priced yet",
+  // never "free" and never "unaffordable".
+  if (jobCost == 0) {
+    return SubmitJobCtaState.costUnknown;
   }
 
   final roundedCost = _roundToPrecision(jobCost, 4);

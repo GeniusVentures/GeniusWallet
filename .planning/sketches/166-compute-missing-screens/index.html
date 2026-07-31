@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 166 — Compute, the missing screens</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   Sketch 166 — the compute surfaces 076/077 did NOT cover.
+
+   NOT a re-design. P1 · Twin tiles and F1 · Drawer, vertical steps were chosen
+   by Jakub 2026-07-29 and 6 of Phase 14's 8 plans are executed against them.
+   Everything here is additive: the states the shipped ladder cannot express.
+
+   Measurements lifted from the shipped code, not invented:
+     panel tile well ....... surfaceSunken, GWCard        compute_panel.dart:141-176
+     kicker dense .......... 11/16 w600 ls .6             gw_kicker.dart:54-56
+     kicker→status ......... 3px                          compute_panel.dart:282
+     status row ............ GWStatusDot, labelMd 13/18   compute_panel.dart:290-294
+     subline gap ........... space2 = 4                   compute_panel.dart:297
+     bar gap ............... space3 = 6                   compute_panel.dart:307
+     progress bar .......... 4px, surfaceSunken track,
+                             0.5px borderSubtle, brandCtaText fill
+                                                          compute_panel.dart:378-430
+     card radius / pad ..... radiusMd 12 / space8 16      GWCard
+   ─────────────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--surface-base); color: var(--text-primary);
+  font-family: var(--font); padding-top: 96px; -webkit-font-smoothing: antialiased;
+}
+#tabs {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+  background: #05070A; border-bottom: 1px solid rgba(255,255,255,.14); padding: 8px 12px 0;
+}
+#tabs .row { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab {
+  background: transparent; border: 1px solid transparent; color: #8A8F9D;
+  font: 600 12px/16px var(--font); letter-spacing: .3px; padding: 7px 11px;
+  border-radius: 8px 8px 0 0; cursor: pointer; transition: all .15s ease; white-space: nowrap;
+}
+.tab:hover { background: rgba(20,200,255,.08); color: #fff; }
+.tab.active { background: var(--surface-base); color: #fff;
+  border-color: rgba(255,255,255,.14); border-bottom-color: var(--surface-base); }
+#tabs .meta { font: 400 11px/24px var(--font); color: #5A606E; padding: 2px 4px 6px; }
+
+#tools {
+  position: fixed; bottom: 12px; right: 12px; z-index: 9999; font: 400 12px/1 var(--font);
+  background: rgba(0,0,0,.82); color: #fff; padding: 8px 10px; border-radius: 10px;
+  opacity: .35; transition: opacity .2s; display: flex; gap: 8px; align-items: center;
+  border: 1px solid rgba(255,255,255,.14);
+}
+#tools:hover { opacity: 1; }
+#tools button, #tools select {
+  background: rgba(255,255,255,.09); color: #fff; border: 1px solid rgba(255,255,255,.18);
+  border-radius: 6px; padding: 5px 8px; font: 500 11px/1 var(--font); cursor: pointer;
+}
+#tools button:hover { background: rgba(20,200,255,.22); }
+#tools button.on { background: #14C8FF; color: #05070A; border-color: #14C8FF; }
+
+.board { display: none; max-width: 1100px; margin: 0 auto; padding: 0 16px 60px; }
+.board.active { display: block; }
+.thesis {
+  margin: 0 0 20px; padding: 12px 14px; border-left: 3px solid var(--brand-primary);
+  background: rgba(20,200,255,.06); border-radius: 0 8px 8px 0;
+}
+.thesis h2 { margin: 0 0 4px; font: 600 15px/20px var(--font); }
+.thesis p  { margin: 0 0 6px; font: 400 13px/19px var(--font); color: var(--text-secondary); }
+.thesis .cost { font: 600 11px/16px var(--font-mono); color: var(--brand-secondary); }
+
+.sectionTitle {
+  font: 600 13px/18px var(--font); letter-spacing: .5px; text-transform: uppercase;
+  color: var(--text-secondary); margin: 26px 0 10px;
+}
+.kicker      { font: 600 13px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color: var(--text-secondary); }
+.kickerDense { font: 600 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase; color: var(--text-secondary); }
+
+/* The shipped panel — GWCard + two sunken tiles */
+.panel {
+  background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 16px; max-width: 520px;
+}
+.tiles2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.well {
+  background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm); padding: 12px;
+}
+.statusRow { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+.dot { width: 8px; height: 8px; border-radius: 4px; flex: none; }
+.dot.neutral { background: var(--status-neutral); }
+.dot.warning { background: var(--status-warning); }
+.dot.success { background: var(--status-success); }
+.dot.brand   { background: var(--brand-primary); }
+.dot.error   { background: var(--status-error); }
+.dot.pulse   { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+.stLabel { font: 500 13px/18px var(--font); color: var(--text-primary); }
+.stTrail { font: 500 13px/18px var(--font); font-variant-numeric: tabular-nums;
+           color: var(--text-secondary); margin-left: auto; }
+.subline { font: 400 12px/17px var(--font); color: var(--text-secondary); margin-top: 4px;
+           display: flex; align-items: baseline; gap: 6px; }
+.subline .lnk { color: var(--brand-primary); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.subline .lnk:hover { text-decoration: underline; }
+
+/* 4px determinate bar — compute_panel.dart:378-430 */
+.bar { height: 4px; margin-top: 6px; border-radius: 2px; background: var(--surface-sunken);
+       border: .5px solid var(--border-subtle); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 2px;
+           background: linear-gradient(90deg, var(--brand-cta-a), var(--brand-cta-b)); }
+/* Indeterminate — deliberately NOT a percentage */
+.barIndet { height: 4px; margin-top: 6px; border-radius: 2px; background: var(--surface-sunken);
+            border: .5px solid var(--border-subtle); overflow: hidden; position: relative; }
+.barIndet::after {
+  content: ''; position: absolute; inset: 0 auto 0 0; width: 34%; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand-cta-b), transparent);
+  animation: sweep 1.5s ease-in-out infinite;
+}
+@keyframes sweep { 0%{transform:translateX(-100%)} 100%{transform:translateX(320%)} }
+/* Frozen bar — the lie, kept for the control board */
+.barFrozen > i { background: var(--border-strong); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 32px; padding: 0 12px; border-radius: 999px; cursor: pointer;
+  font: 600 13px/18px var(--font); transition: all .15s ease;
+  border: 1px solid var(--border-strong); background: transparent; color: var(--text-primary);
+}
+.btn:hover { background: rgba(20,200,255,.10); border-color: rgba(20,200,255,.45); }
+.btn.fill { background: linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+            border-color: transparent; color: var(--text-on-brand); }
+.btn.fill:hover { filter: brightness(1.09); }
+.btn.wide { width: 100%; height: 40px; font-size: 14px; }
+
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 900px) { .compare { grid-template-columns: 1fr; } }
+.caseLabel { font: 600 11px/16px var(--font-mono); color: var(--brand-secondary);
+             letter-spacing: .3px; margin-bottom: 6px; }
+.caseLabel.bad { color: var(--status-error); }
+
+.note {
+  margin-top: 12px; padding: 10px 12px; border-radius: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--border-subtle);
+  font: 400 12px/18px var(--font); color: var(--text-secondary);
+}
+.note b { color: var(--text-primary); font-weight: 600; }
+.note code { font: 400 11px/1.5 var(--font-mono); color: var(--brand-primary); }
+
+/* Job drawer terminal states */
+.drawer {
+  width: 420px; background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 16px;
+}
+.stepHead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.stepNum {
+  width: 22px; height: 22px; border-radius: 11px; display: grid; place-items: center;
+  font: 600 11px/1 var(--font); flex: none;
+  background: var(--surface-sunken); border: 1px solid var(--border-subtle); color: var(--text-secondary);
+}
+.stepNum.on { background: linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+              border-color: transparent; color: var(--text-on-brand); }
+.stepNum.err { background: var(--status-error-fill); border-color: var(--status-error); color: var(--status-error); }
+.stepTitle { font: 600 14px/20px var(--font); }
+.grid { background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm); overflow: hidden; }
+.grid .r { display: flex; align-items: center; gap: 12px; padding: 11px 12px;
+           border-bottom: 1px solid var(--border-subtle); }
+.grid .r:last-child { border-bottom: 0; }
+.grid .k { font: 400 14px/20px var(--font); color: var(--text-secondary); flex: 1; }
+.grid .v { font: 400 14px/20px var(--font); font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.banner {
+  border-radius: var(--radius-sm); padding: 11px 12px; font: 400 13px/19px var(--font);
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.banner.err  { background: var(--status-error-fill);   border: 1px solid var(--status-error);   color: var(--text-primary); }
+.banner.warn { background: rgba(255,196,46,.13);       border: 1px solid var(--status-warning); color: var(--text-primary); }
+.banner.ok   { background: var(--status-success-fill); border: 1px solid var(--status-success); color: var(--text-primary); }
+.banner b { display: block; margin-bottom: 2px; }
+.hashRow { font: 400 12px/1.5 var(--font-mono); color: var(--brand-primary); word-break: break-all; }
+
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface-menu); border: 1px solid rgba(20,200,255,.45); color: #fff;
+  padding: 10px 18px; border-radius: 999px; font: 600 13px/18px var(--font);
+  z-index: 9999; transition: transform .25s ease; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="tabs"><div class="row" id="tabRow"></div><div class="meta" id="tabMeta"></div></div>
+<div id="stage"></div>
+<div class="toast" id="toast"></div>
+
+<div id="tools">
+  <select id="themeSel"><option value="dark">Dark</option><option value="light">Light</option></select>
+  <button id="simBtn" title="Run the 52.5% freeze live">▶ Simulate freeze</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Sketch 166 — the compute states the shipped ladder cannot express.
+
+   Grounding, all from the live code:
+     compute_state.dart:13-24  "Eight states, not nine." State 04 (Stalled) is
+                               parked; the enum has no member for it on purpose.
+     compute_state.dart:48-53  `unavailable` exists because app_bloc.dart:192-195
+                               cancels _processingTimer permanently on ANY
+                               exception and emits isProcessing:false — which is
+                               "otherwise pixel-identical to a healthy idle node".
+     app_bloc.dart:138         _processingTimer polls getProcessingStatus() at 1s.
+     todo 2026-07-29           the "161 polls / 40s" figure describes a 250ms
+                               SPIKE trace, not any shipped timer. So N cannot be
+                               picked from it. THIS is why the state is parked.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const say = m => { const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('show');
+  clearTimeout(window._t); window._t = setTimeout(()=>t.classList.remove('show'),1600); };
+
+/* One panel tile. Every board composes the SAME shipped anatomy:
+   kicker → 3px → status row → 4px → subline → 6px → bar. */
+function tile(o) {
+  return `<div class="well">
+    <div class="kickerDense">Compute node</div>
+    <div class="statusRow">
+      <span class="dot ${o.dot}${o.pulse?' pulse':''}"></span>
+      <span class="stLabel">${o.label}</span>
+      ${o.trail ? `<span class="stTrail">${o.trail}</span>` : ''}
+    </div>
+    ${o.subline ? `<div class="subline"><span>${o.subline}</span>${
+      o.link ? `<span class="lnk" onclick="say('${o.link}')">${o.link}</span>` : ''}</div>` : ''}
+    ${o.bar === 'det'   ? `<div class="bar"><i style="width:${o.pctv}%"></i></div>` : ''}
+    ${o.bar === 'froz'  ? `<div class="bar barFrozen"><i style="width:${o.pctv}%"></i></div>` : ''}
+    ${o.bar === 'indet' ? `<div class="barIndet"></div>` : ''}
+    ${o.cta ? `<div style="margin-top:10px">${o.cta}</div>` : ''}
+  </div>`;
+}
+
+const balanceTile = () => `<div class="well">
+  <div class="kickerDense">Balance</div>
+  <div class="statusRow"><span class="stLabel"
+    style="font:600 20px/26px var(--font);font-variant-numeric:tabular-nums">1,284.50</span></div>
+  <div class="subline"><span>≈ $412.77</span></div></div>`;
+
+const panel = inner => `<div class="panel">
+  <div class="kicker">Compute</div>
+  <div class="tiles2">${balanceTile()}${inner}</div>
+  <div style="margin-top:12px"><button class="btn fill wide"
+    onclick="say('New processing job → JobDrawer')">New processing job</button></div>
+</div>`;
+
+/* ═══ THE BOARDS ═══════════════════════════════════════════════════════════ */
+const BOARDS = [
+  {
+    id:'today', tab:'0 · Today', name:'Today — the 52.5% lie, still on screen',
+    cost:'CONTROL · what ships now',
+    thesis:'The shipped ladder has eight states and no ninth. When the SDK freezes at 52.5% the panel keeps painting a determinate bar that promises it will reach 100%. Nothing tells the user, nothing offers a way out, and a permanently-cancelled feed is pixel-identical to a healthy idle node.',
+    body: () => `<div class="compare">
+      <div><div class="caseLabel bad">FROZEN AT 52.5% — indistinguishable from progress</div>
+        ${panel(tile({dot:'brand',pulse:true,label:'Starting up',trail:'52.5%',
+          subline:'Initializing node',bar:'det',pctv:52.5}))}</div>
+      <div><div class="caseLabel bad">FEED DEAD — indistinguishable from idle</div>
+        ${panel(tile({dot:'success',label:'Ready'}))}</div>
+    </div>
+    <div class="note"><b>Both panels above are lies, and neither is detectable by looking.</b>
+      Left: <code>compute_state.dart</code> resolves <code>startingUp</code> from a percentage
+      below 1.0 and the bar is determinate by contract - a caller with no live reading
+      <i>cannot construct the widget at all</i>. That guard works; what is missing is anything
+      that notices the reading stopped <i>changing</i>. Right: <code>app_bloc.dart:192-195</code>
+      cancels <code>_processingTimer</code> permanently on any exception and emits
+      <code>isProcessing:false</code>. The <code>unavailable</code> state exists for exactly this,
+      but nothing sets it when the timer dies silently.</div>`
+  },
+  {
+    id:'a', tab:'A · Last updated', name:'A · Timestamp, no threshold',
+    cost:'CHEAPEST · no N to choose, no bloc change beyond a stamp',
+    thesis:'Do not detect a stall at all. Show when the reading last CHANGED, and let the user judge. This is the only option that ships without answering the question the todo says cannot be answered honestly yet - there is no N, no threshold, nothing to tune.',
+    body: () => `<div class="compare">
+      <div><div class="caseLabel">HEALTHY — stamp stays fresh</div>
+        ${panel(tile({dot:'brand',pulse:true,label:'Starting up',trail:'52.5%',
+          subline:'Updated just now',bar:'det',pctv:52.5}))}</div>
+      <div><div class="caseLabel">FROZEN — the stamp is the tell</div>
+        ${panel(tile({dot:'brand',label:'Starting up',trail:'52.5%',
+          subline:'Updated 4 min ago',link:'Retry',bar:'det',pctv:52.5}))}</div>
+    </div>
+    <div class="note"><b>Why this is the honest floor.</b> The todo parks state 04 because N
+      cannot be picked from the "161 polls / 40s" figure - that describes a 250ms spike trace,
+      while <code>app_bloc.dart:138</code> polls at 1s. This board sidesteps N entirely: a
+      timestamp is a fact, not a judgement. <b>Cost:</b> one <code>lastChangedAt</code> field on
+      the state, set when the percentage differs from the previous poll. No new enum member, so
+      <code>compute_state_distinct_test.dart</code>'s exhaustive guard is untouched.</div>`
+  },
+  {
+    id:'b', tab:'B · Ninth state', name:'B · The ninth state, properly',
+    cost:'FULL FIX · needs N, blocked on the traced feed',
+    thesis:'Add ComputeState.stalled as the ninth member, slotted above startingUp in the precedence ladder. The bar goes indeterminate because an indeterminate bar makes no promise, and the sub-line names both the fact and the remedy.',
+    body: () => `<div class="compare">
+      <div><div class="caseLabel">STALLED — warning dot, indeterminate bar</div>
+        ${panel(tile({dot:'warning',label:'Still starting up',trail:'52.5%',
+          subline:'No change for 4 min',link:'Retry',bar:'indet'}))}</div>
+      <div><div class="caseLabel">RETRYING — after the tap</div>
+        ${panel(tile({dot:'brand',pulse:true,label:'Reconnecting',
+          subline:'Re-arming the processing feed',bar:'indet'}))}</div>
+    </div>
+    <div class="note"><b>The indeterminate bar is the load-bearing part, not the dot.</b>
+      <code>compute_panel.dart:378-430</code> forbids an indeterminate mode on purpose - "a
+      determinate indicator on a feed that has stopped is a false statement about a job the user
+      paid for". This board takes that argument seriously and inverts it: once we KNOW the feed
+      stopped, determinate is exactly the wrong shape, so the widget needs a second, sweeping
+      form. <b>Blocked:</b> shipping this needs an N, and the todo says N cannot be chosen until
+      the processing feed is traced against the real 1s timer.</div>`
+  },
+  {
+    id:'c', tab:'C · Bar deleted', name:'C · Delete the bar, keep the number',
+    cost:'CHEAP · pure UI, no bloc change at all',
+    thesis:'The first half of the 52.5% fix is pure UI and the todo says it ships regardless: delete the determinate bar. The percentage stays as a trailing readout, because a number that stops moving is self-evidently stuck in a way a bar at 52% is not.',
+    body: () => `<div class="compare">
+      <div><div class="caseLabel">STARTING UP — number only, no promise</div>
+        ${panel(tile({dot:'brand',pulse:true,label:'Starting up',trail:'52.5%',
+          subline:'Initializing node'}))}</div>
+      <div><div class="caseLabel">PROCESSING — the bar survives where it is true</div>
+        ${panel(tile({dot:'brand',pulse:true,label:'Processing',trail:'3 of 8',
+          subline:'Rendering frames',bar:'det',pctv:37.5}))}</div>
+    </div>
+    <div class="note"><b>The distinction this board draws.</b> A bar is a promise about a
+      denominator. During <code>processing</code> the denominator is real and known (3 of 8
+      chunks), so the bar tells the truth. During <code>startingUp</code> the denominator is the
+      SDK's own opaque percentage, which demonstrably stops at 0.525 and never moves - there IS
+      no denominator, so there should be no bar. <b>This is the only board here that can ship
+      today</b>, with no N and no new state.</div>`
+  },
+  {
+    id:'d', tab:'D · Feed health', name:'D · Feed health as its own line',
+    cost:'MEDIUM · one bloc field, no threshold',
+    thesis:'Stop trying to infer node health from the percentage. Say two separate things: what the node reports, and whether we are still hearing from it. A dead feed becomes a first-class statement instead of an inference.',
+    body: () => `<div class="compare">
+      <div><div class="caseLabel">FEED ALIVE</div>
+        ${panel(tile({dot:'brand',pulse:true,label:'Starting up',trail:'52.5%',
+          subline:'Feed live · 1s',bar:'det',pctv:52.5}))}</div>
+      <div><div class="caseLabel">FEED DEAD — no longer looks like idle</div>
+        ${panel(tile({dot:'error',label:'Starting up',trail:'52.5%',
+          subline:'Feed stopped',link:'Reconnect',bar:'froz',pctv:52.5}))}</div>
+    </div>
+    <div class="note"><b>This is the board that fixes the second lie.</b> The right-hand panel on
+      board 0 - a dead feed rendering as "Ready" - is arguably worse than the frozen bar, because
+      the user has no reason to doubt it. <code>compute_state.dart:48-53</code> already models
+      <code>unavailable</code> for this and documents that it is "otherwise pixel-identical to a
+      healthy idle node". <b>Cost:</b> the timer's <code>catch</code> at
+      <code>app_bloc.dart:192-195</code> must set a flag instead of only cancelling. The greyed
+      bar keeps the last known reading visible without animating it.</div>`
+  },
+  {
+    id:'e', tab:'E · Terminals', name:'E · Job flow terminals, incl. burned tokens',
+    cost:'DESIGN ONLY · states exist in code, never drawn',
+    thesis:'SubmitOutcome has four members and the worst one has never been designed. bridgedNotProcessed means the bridge took the money and the job never ran - the user is out real tokens with nothing to show. It currently renders as a generic error alongside failures that cost nothing.',
+    body: () => `<div class="compare">
+      <div><div class="caseLabel bad">bridgedNotProcessed — TOKENS SPENT, NO JOB</div>
+        <div class="drawer">
+          <div class="stepHead"><span class="stepNum err">5</span>
+            <span class="stepTitle">Result</span></div>
+          <div class="banner warn"><span>⚠</span><span><b>Bridged, but not processed</b>
+            Your tokens were bridged and spent. The processing job did not start. This is not
+            reversible from the wallet - keep the hash below.</span></div>
+          <div style="height:12px"></div>
+          <div class="grid">
+            <div class="r"><span class="k">Bridged</span><span class="v">12.40 GNUS</span></div>
+            <div class="r"><span class="k">Status</span><span class="v">Spent</span></div>
+          </div>
+          <div style="height:10px"></div>
+          <div class="kickerDense">Bridge transaction</div>
+          <div class="hashRow" style="margin-top:4px">0x9f2c…a41b</div>
+          <div style="height:12px"></div>
+          <button class="btn wide" onclick="say('hash copied')">Copy hash</button>
+        </div></div>
+      <div><div class="caseLabel">bridgeFailed — NOTHING SPENT</div>
+        <div class="drawer">
+          <div class="stepHead"><span class="stepNum err">5</span>
+            <span class="stepTitle">Result</span></div>
+          <div class="banner err"><span>✕</span><span><b>Bridge failed</b>
+            Nothing was spent. Your balance is unchanged.</span></div>
+          <div style="height:12px"></div>
+          <div class="grid">
+            <div class="r"><span class="k">Would have cost</span><span class="v">12.40 GNUS</span></div>
+            <div class="r"><span class="k">Charged</span><span class="v">Nothing</span></div>
+          </div>
+          <div style="height:12px"></div>
+          <button class="btn fill wide" onclick="say('retry job')">Try again</button>
+        </div></div>
+    </div>
+    <div class="note"><b>The two panels must not look alike, and today they nearly do.</b>
+      <code>submit_job_state.dart:15-33</code> introduced <code>bridgedNotProcessed</code>
+      precisely because "a single hash field cannot tell those two outcomes apart". The design
+      has to carry that distinction: <b>warning tone + a hash to keep</b> when money is gone and
+      the only useful action is preserving evidence, <b>error tone + Try again</b> when nothing
+      was spent and retrying is free. Giving the burned-tokens case a "Try again" button would
+      invite the user to pay twice.</div>`
+  },
+  {
+    id:'f', tab:'F · Recommended', name:'F · C + D, shipped together',
+    cost:'★ SHIPPABLE NOW · no N required',
+    thesis:'Board C deletes the bar that lies. Board D makes a dead feed say so. Neither needs a threshold, so together they close both halves of the 52.5% problem without waiting for the traced feed the ninth state is blocked on. Board B stays on the shelf until that trace exists.',
+    body: () => `<div class="compare">
+      <div><div class="caseLabel">STARTING UP — no bar, live feed</div>
+        ${panel(tile({dot:'brand',pulse:true,label:'Starting up',trail:'52.5%',
+          subline:'Feed live'}))}</div>
+      <div><div class="caseLabel">FEED STOPPED — states it plainly</div>
+        ${panel(tile({dot:'error',label:'Starting up',trail:'52.5%',
+          subline:'Feed stopped',link:'Reconnect'}))}</div>
+    </div>
+    <div class="note"><b>Why this pair and not the ninth state.</b> Every honest problem on board
+      0 is solved here: nothing promises a denominator it does not have, and a dead feed no longer
+      impersonates a healthy one. What is deliberately NOT solved is distinguishing "slow" from
+      "stuck" while the feed is still alive - that genuinely needs an N, and picking one today
+      means inventing a number the todo says cannot yet be derived. <b>This board ships; board B
+      is the follow-up once the feed is traced.</b></div>`
+  }
+];
+
+/* ═══ RENDER ═══════════════════════════════════════════════════════════════ */
+document.getElementById('stage').innerHTML = BOARDS.map(b => `
+  <div class="board" id="b-${b.id}">
+    <div class="thesis"><h2>${b.name}</h2><p>${b.thesis}</p>
+      <div class="cost">${b.cost}</div></div>
+    ${b.body()}
+  </div>`).join('');
+document.getElementById('tabRow').innerHTML = BOARDS.map((b,i) =>
+  `<button class="tab ${i===0?'active':''}" ${b.id==='f'?'style="color:#0AD89C"':''}
+    onclick="show('${b.id}',this)">${b.tab}</button>`).join('');
+document.getElementById('tabMeta').textContent =
+  'Sketch 166 · compute, the missing screens · ' + BOARDS.length + ' boards · '
+  + 'P1 Twin tiles + F1 Drawer are NOT reopened - everything here is additive';
+document.getElementById('b-' + BOARDS[0].id).classList.add('active');
+
+function show(id, el) {
+  document.querySelectorAll('.board').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('b-' + id).classList.add('active');
+  el.classList.add('active'); window.scrollTo(0,0);
+}
+document.getElementById('themeSel').addEventListener('change', function(){
+  document.documentElement.setAttribute('data-theme', this.value);
+});
+
+/* Live freeze simulation — climbs to 52.5% then stops, exactly like the SDK.
+   Runs on whichever board is open, so each design can be judged in motion. */
+let simTimer = null;
+document.getElementById('simBtn').addEventListener('click', function () {
+  const on = this.classList.toggle('on');
+  clearInterval(simTimer);
+  if (!on) { say('simulation stopped'); return; }
+  let p = 0;
+  say('climbing to 52.5%, then freezing - like the real SDK');
+  simTimer = setInterval(() => {
+    p = Math.min(52.5, p + 3.5);
+    document.querySelectorAll('.board.active .bar > i')
+      .forEach(el => el.style.width = p + '%');
+    document.querySelectorAll('.board.active .stTrail')
+      .forEach(el => { if (/%$/.test(el.textContent)) el.textContent = p.toFixed(1) + '%'; });
+    if (p >= 52.5) { clearInterval(simTimer); say('frozen at 52.5% - it never moves again'); }
+  }, 220);
+});
+</script>
+</body>
+</html>

@@ -507,6 +507,24 @@ above; tracked separately (see the per-phase detail sections below):
 | 20. Feedback page frame (153-B) | 1/1 | Complete    | 2026-07-30 |
 | 21. Drawer language rollout | 6/6 | Complete    | 2026-07-30 |
 
+> **Two approved designs are queued as extensions of their owning phases, not as new phases**
+> (2026-07-31). The surface ownership map above is the binding rule: a new phase for either would
+> create the second owner it exists to prevent.
+>
+> - **Sketch 165 (coin page Synthesis)** → **Phase 7**, which owns "Token detail". Touches
+>   `token_info_screen.dart`, plus an additive 24h low/high footer in `crypto_live_chart.dart`
+>   (Phase 5's surface, inherited by Phase 7 - already the documented arrangement).
+>   Approved 2026-07-30, decision and rejected alternatives in
+>   `.planning/sketches/165-coin-page-schemes/DECISION.md`.
+> - **Sketch 166 (compute panel honesty, board F)** → **Phase 14**, which owns the
+>   "Compute / wallet-overview first card". Strictly additive to the P1/F1 choices Phase 14 already
+>   executed against. Approved 2026-07-30, decision in
+>   `.planning/sketches/166-compute-missing-screens/DECISION.md`.
+>
+> Phase 24 stays retired and is not reused for either: it held the architecture work removed on
+> 2026-07-30 to `.planning/backlog/`, and passages below still cite "Phase 24's routing work" as the
+> reason `GWAppBar` and the `GWScreen` sweep were deferred.
+
 ### Phase 12: Transactions redesign
 
 > **CANONICAL OWNER of the transactions surface (2026-07-23).** Supersedes Phase 5's first-pass

@@ -21,6 +21,10 @@ import 'package:flutter_test/flutter_test.dart';
 /// Plus two companion checks named in the plan: no raw Material button
 /// widget survives (except one named, reasoned exemption), and the file
 /// list itself never drifts onto a fenced Phase-21/cubit/service path.
+// `quote_card.dart` was removed from this list (and from `lib/`) by 09-08
+// Task 4: it was dead code with zero callers (its own header comment said
+// so), and the quote grid `banxa_buy_screen.dart` now renders is what it
+// existed to become. Nine files, not ten, from here on.
 const _inScopeFiles = <String>[
   'lib/screens/banxa_buy_screen.dart',
   'lib/banxa/banxa_orders_history.dart',
@@ -29,7 +33,6 @@ const _inScopeFiles = <String>[
   'lib/banxa/user_kyc/kyc_registration.dart',
   'lib/banxa/banxa_components/order_card.dart',
   'lib/banxa/banxa_components/order_details_card.dart',
-  'lib/banxa/banxa_components/quote_card.dart',
   'lib/banxa/handle_banxa_drawer.dart',
   'lib/screens/order_details_page.dart',
 ];
@@ -78,7 +81,15 @@ const _fencedPathSubstrings = <String>[
 /// character, and there is no such transition where "Colors" is immediately
 /// preceded by another word character ("W" in "GWColors", "t" in
 /// "GeniusWalletColors") — both are letters, so no boundary exists there.
-final _forbiddenColorPattern = RegExp(r'\bColors\.');
+///
+/// `Colors.transparent` is excluded (09-08), matching `tool/check_raw_colors.sh`'s
+/// own documented, unconditional exemption: it carries no hue and is
+/// appearance-neutral by definition (0 alpha reads identically in every
+/// mode). Without this exclusion this gate would be STRICTER than the
+/// project's authoritative colour rule for no reason — `Material(color:
+/// Colors.transparent)` is the standard idiom this app's own `GWCard`/
+/// `GWButton` already use to let an `InkWell`'s ripple show through.
+final _forbiddenColorPattern = RegExp(r'\bColors\.(?!transparent\b)');
 
 /// The two named pre-redesign semantic-token literals this phase replaced
 /// with the 4-bucket ladder / typography tokens.
@@ -113,7 +124,7 @@ void main() {
     test(
       'names all ten in-scope files and none of the fenced Phase-21/cubit/service paths',
       () {
-        expect(_inScopeFiles.length, equals(10));
+        expect(_inScopeFiles.length, equals(9));
         for (final path in _inScopeFiles) {
           expect(
             File(path).existsSync(),

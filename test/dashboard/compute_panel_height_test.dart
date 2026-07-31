@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/dashboard/compute/compute_panel.dart';
 import 'package:genius_wallet/dashboard/compute/compute_state.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/theme.dart';
 
 /// Measures `ComputePanel`, not estimates it. Every member of
@@ -15,12 +16,17 @@ import 'package:genius_wallet/theme/theme.dart';
 /// sketches and the context document all carry.
 ///
 /// ---------------------------------------------------------------------
-/// DERIVING 274, NOT 276 - the number this file actually asserts against.
+/// DERIVING 314, NOT 316 - the number this file actually asserts against.
 /// ---------------------------------------------------------------------
 ///
-/// `dashboard_screen.dart:210/212` caps the panel's slot at
-/// `ConstrainedBox(maxHeight: 300)` (also `:293`/`:298` in the one-column
-/// layout). `DashboardScrollContainer` (`dashboard_screen.dart:320-345`) is a
+/// **Re-derived 2026-07-31**, when the slot went 300 -> 340 so the Compute
+/// panel could adopt `GWSectionTitle` and put Balance on the same baseline as
+/// the first Assets coin. The arithmetic below is unchanged; only the slot it
+/// starts from moved. The old numbers were `300 - 26 = 274`.
+///
+/// The slot is `kDashboardPanelSlotHeight` (`dashboard_screen.dart`), imported
+/// here rather than copied, so this file cannot silently disagree with the
+/// layout again. `DashboardScrollContainer` (`dashboard_screen.dart`) is a
 /// `Container` whose `decoration` is `GWDecorations.surface(...)`, which sets
 /// `border: Border.all(width: 1)` (`genius_wallet_decorations.dart:99-102`),
 /// and separately applies `padding: EdgeInsets.all(GeniusWalletConsts.space6)`
@@ -35,13 +41,13 @@ import 'package:genius_wallet/theme/theme.dart';
 /// `DashboardScrollContainer` is inset by `padding + border width` per side,
 /// not `padding` alone: `(12 + 1) * 2 = 26`, not `12 * 2 = 24`.
 ///
-/// `300 - 26 = 274` - the number this file asserts, and **not the 276px
-/// carried by the roadmap, the sketches and `14-CONTEXT.md`**, all of which
-/// only counted the `EdgeInsets.all(space6)` padding and missed the border's
-/// own fold-in. Losing those 2px matters: the inherited design had 3px of
+/// `340 - 26 = 314` - the number this file asserts, and **not the 316px a
+/// padding-only reading gives**, which counts only the `EdgeInsets.all(space6)`
+/// padding and misses the border's own fold-in. Losing those 2px matters: the
+/// inherited design had 3px of
 /// slack and this phase's own tile-padding lever (`compute_panel.dart`'s
 /// `_ComputeCardTile`, `vertical: space4` instead of `space6`) is what buys
-/// the ~6px of headroom the worst state actually has against 274.
+/// the headroom the worst state actually has against the budget.
 ///
 /// `test/dashboard/transaction_filter_rail_test.dart`'s own comment ("the
 /// rail CARD is 220 and its content box is 194... 194, not the 196 a
@@ -81,31 +87,40 @@ const double _kRealisticPanelWidth = 320;
 const double _kNarrowPanelWidth = 290;
 
 /// The panel's own budget, independent of the container's - see the file
-/// doc comment above for the full derivation. `300 - 2*(12 + 1) = 274`.
-const double _kPanelContentBudget = 274;
-const double _kContainerBudget = 300;
+/// doc comment above for the full derivation: slot - 2*(space6 + 1px border).
+///
+/// Derived from the production constant, never re-typed: if someone changes
+/// the slot again, this file follows instead of asserting against a number
+/// the layout no longer uses.
+const double _kContainerBudget = kDashboardPanelSlotHeight;
+const double _kPanelContentBudget =
+    _kContainerBudget - 2 * (GeniusWalletConsts.space6 + 1);
 
-/// Builds the view model for [state] with plain, fixed inputs. Only
-/// [ComputeState.startingUp] takes free-form caller input
-/// (`initStatusMessage`); every other state's label/sub-line/trailing is
-/// fully determined by `viewForComputeState`'s own switch, so there is
-/// nothing else for a test fixture to vary. The starting-up message is
-/// deliberately longer than the SDK's own fallback string
-/// (`startingUpFallbackMessage`) to exercise the ellipsis path rather than
-/// merely the short default.
+/// Builds the view model for [state] with plain, fixed inputs. Every
+/// state's label/sub-line/trailing is fully determined by
+/// `viewForComputeState`'s own switch, so there is nothing for a test
+/// fixture to vary beyond the two native-scale percentages.
+///
+/// `startingUp` no longer takes a free-form `initStatusMessage` -
+/// `14-09-PLAN.md` Task 1b replaced its sub-line with the fixed `Feed live`
+/// copy and deleted the parameter entirely, so the ellipsis path this
+/// fixture used to exercise (a long message forced to truncate) no longer
+/// exists for this state: `Feed live` is short and fixed, never long
+/// enough to wrap or truncate.
 ComputeStatusView _viewFor(ComputeState state) {
   return viewForComputeState(
     state,
-    initStatusMessage: state == ComputeState.startingUp
-        ? 'Connecting to the SuperGenius network and preparing the local '
-              'compute node for the next job'
-        : null,
     initPercentage: state == ComputeState.startingUp ? 0.6 : null,
     processingPercentage: state == ComputeState.processing ? 52.5 : null,
   );
 }
 
-Future<void> _pump(WidgetTester tester, ComputeState state, double width) {
+Future<void> _pump(
+  WidgetTester tester,
+  ComputeState state,
+  double width, {
+  bool useMinions = false,
+}) {
   return tester.pumpWidget(
     MaterialApp(
       theme: getThemeData(),
@@ -123,6 +138,8 @@ Future<void> _pump(WidgetTester tester, ComputeState state, double width) {
                 view: _viewFor(state),
                 balance: 1234.56,
                 fiatSubline: '≈ \$312.40',
+                useMinions: useMinions,
+                onUnitChanged: (_) {},
                 onLinkTap: (_) {},
                 onNewJob: () {},
               ),
@@ -135,41 +152,55 @@ Future<void> _pump(WidgetTester tester, ComputeState state, double width) {
 }
 
 void main() {
+  // `useMinions: true` is included below (`14-08-PLAN.md` Task 3's
+  // extension) because the "MINIONS" label is longer than "GNUS" and the
+  // unit toggle now costs real height (>=24px hit area, not the free
+  // inline suffix originally proposed) - both are stress conditions the
+  // pre-Task-3 fixture never exercised. A state over the content budget in
+  // either unit is a failure, not a rounding error.
   for (final width in [_kRealisticPanelWidth, _kNarrowPanelWidth]) {
     for (final state in ComputeState.values) {
-      testWidgets('${state.name} fits the height budget at ${width}px', (
-        tester,
-      ) async {
-        await _pump(tester, state, width);
-        await tester.pump();
+      for (final useMinions in [false, true]) {
+        final unitLabel = useMinions ? 'minions' : 'GNUS';
+        testWidgets(
+          '${state.name} fits the height budget at ${width}px ($unitLabel)',
+          (tester) async {
+            await _pump(tester, state, width, useMinions: useMinions);
+            await tester.pump();
 
-        expect(tester.takeException(), isNull);
+            expect(tester.takeException(), isNull);
 
-        final container = tester.getSize(find.byType(DashboardScrollContainer));
-        final panel = tester.getSize(find.byType(ComputePanel));
+            final container = tester.getSize(
+              find.byType(DashboardScrollContainer),
+            );
+            final panel = tester.getSize(find.byType(ComputePanel));
 
-        // The outer assertion is the REAL constraint the dashboard enforces
-        // and cannot be got wrong by arithmetic; the inner one is the
-        // diagnostic that says which side of the container's inset a
-        // regression came from.
-        expect(
-          container.height,
-          lessThanOrEqualTo(_kContainerBudget),
-          reason:
-              'DashboardScrollContainer measured ${container.height} for '
-              '${state.name} at ${width}px - over the dashboard\'s own '
-              '$_kContainerBudget cap (dashboard_screen.dart:210/212).',
+            // The outer assertion is the REAL constraint the dashboard
+            // enforces and cannot be got wrong by arithmetic; the inner one
+            // is the diagnostic that says which side of the container's
+            // inset a regression came from.
+            expect(
+              container.height,
+              lessThanOrEqualTo(_kContainerBudget),
+              reason:
+                  'DashboardScrollContainer measured ${container.height} for '
+                  '${state.name} ($unitLabel) at ${width}px - over the '
+                  'dashboard\'s own $_kContainerBudget cap '
+                  '(dashboard_screen.dart:210/212).',
+            );
+            expect(
+              panel.height,
+              lessThanOrEqualTo(_kPanelContentBudget),
+              reason:
+                  'ComputePanel measured ${panel.height} for ${state.name} '
+                  '($unitLabel) at ${width}px - over the '
+                  '$_kPanelContentBudget budget derived in this file\'s doc '
+                  'comment (slot - 2*(space6 + border), not the '
+                  'inherited 276).',
+            );
+          },
         );
-        expect(
-          panel.height,
-          lessThanOrEqualTo(_kPanelContentBudget),
-          reason:
-              'ComputePanel measured ${panel.height} for ${state.name} at '
-              '${width}px - over the $_kPanelContentBudget budget derived '
-              'in this file\'s doc comment (300 - 2*(space6 + border) = '
-              '274, not the inherited 276).',
-        );
-      });
+      }
     }
   }
 

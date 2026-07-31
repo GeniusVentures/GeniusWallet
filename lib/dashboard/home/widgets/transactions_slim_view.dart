@@ -10,6 +10,7 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/gw_control_track.dart';
 // ponytail: imported for `DashboardScrollContainer` (the page's two cards),
 // which closes an import cycle — dashboard_screen -> transactions_stream ->
 // this file -> dashboard_screen. Dart permits cycles and there is no
@@ -603,36 +604,50 @@ class _TransactionFilterBar extends StatelessWidget {
     // drifting apart — pill vs radiusMd, 3 vs 4 padding — which read as two
     // different design languages on one screen. Timeframe is the approved
     // shape (sketch 006/008), so the filter bar moves to it, not the reverse.
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        // Control-track standard, per .planning/codebase/CONVENTIONS.md
-        // ("Control track") — see the matching note on _TimeframeSegment in
-        // dashboard_screen.dart, these two tracks change together.
-        color: gw.surfaceSunken,
-        border: Border.all(color: gw.borderSubtle),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < Filters.primary.length; i++) ...[
-            if (i > 0) const SizedBox(width: 2),
-            _chip(gw, Filters.primary[i]),
+    //
+    // The container itself now lives in `GWControlTrack`
+    // (`lib/components/gw_control_track.dart`) — the same one
+    // `_TimeframeSegment` and the Buy GNUS orders track build on, so this
+    // track and the other two can no longer drift apart by editing one file.
+    //
+    // GWControlTrack inserts its 2px gap between EVERY top-level child it is
+    // given. This bar's old geometry only ever had that gap between the
+    // PRIMARY CHIPS — the divider supplies its own `space2` horizontal
+    // padding on both sides (that IS its separation from its neighbours;
+    // there was never a second, additional 2px gap on top of it) and the
+    // overflow trigger sits flush against the divider's padding too. Passing
+    // chips/divider/trigger as three separate top-level children to
+    // GWControlTrack would add two 2px gaps that never existed before,
+    // widening this bar by 4px (proven by `transaction_filters_test.dart`'s
+    // pixel-pinned `expect(bar.width, 183)`, which is the authority here).
+    // So the pre-existing inner `Row` — chips with their own gaps, then the
+    // divider, then the trigger — is passed to `GWControlTrack` as a SINGLE
+    // child, keeping its rendered geometry byte-for-byte unchanged while
+    // still routing the outer fill/border/radius/track-padding through the
+    // shared container.
+    return GWControlTrack(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < Filters.primary.length; i++) ...[
+              if (i > 0) const SizedBox(width: 2),
+              _chip(gw, Filters.primary[i]),
+            ],
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space2,
+              ),
+              child: SizedBox(
+                width: 1,
+                height: 20,
+                child: ColoredBox(color: gw.borderSubtle),
+              ),
+            ),
+            _overflowTrigger(context, gw),
           ],
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: GeniusWalletConsts.space2,
-            ),
-            child: SizedBox(
-              width: 1,
-              height: 20,
-              child: ColoredBox(color: gw.borderSubtle),
-            ),
-          ),
-          _overflowTrigger(context, gw),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 168 — Coin page identity header</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   Sketch 168 — the coin page identity header, after sketch 165 shipped.
+
+   Every measurement is lifted from the SHIPPED Dart at HEAD (plan 07-09,
+   uncommitted), not invented:
+     back link       11/16 w600 ls .6 upper   token_info_screen.dart _BackToMarkets
+     title           24/32 w600 ls -.4        genius_wallet_typography.dart headlineLg
+     subtitle        14/20 w400 secondary     genius_wallet_typography.dart
+     title→subtitle  space2 = 4               gw_page_header.dart
+     price           28/34 w600 tabular       token_info_screen.dart _PriceBlock
+     change pill     12/16 w600, radius pill
+     action button   height 44 (GWButtonSize.sm), gap space4 = 8
+     header inset    12 horizontal            token_info_screen.dart :220
+     card            radius 12 (radiusMd), 1px borderSubtle
+     stat card pad   space6 = 12
+   Colours come from ../themes/default.css, which mirrors gw_colors.dart.
+
+   EVERY BLOCK BELOW IS RENDERED AT 1:1. No thumbnails, no scaling - a header
+   judged at 60% is not judged.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-family: var(--font);
+  padding-top: 104px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Sketch chrome (not part of the design) ─────────────────────────────── */
+#tabs {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+  background: #05070A; border-bottom: 1px solid rgba(255,255,255,.14);
+  padding: 8px 12px 0; font-family: var(--font);
+}
+#tabs .row { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab {
+  background: transparent; border: 1px solid transparent; color: #8A8F9D;
+  font: 600 12px/16px var(--font); letter-spacing: .3px;
+  padding: 7px 11px; border-radius: 8px 8px 0 0; cursor: pointer;
+  transition: all .15s ease; white-space: nowrap;
+}
+.tab:hover { background: rgba(20,200,255,.08); color: #fff; }
+.tab.active {
+  background: var(--surface-base); color: #fff;
+  border-color: rgba(255,255,255,.14); border-bottom-color: var(--surface-base);
+}
+#tabs .meta { font: 400 11px/24px var(--font); color: #5A606E; padding: 2px 4px 6px; }
+
+.panel { display: none; padding: 0 0 120px; }
+.panel.active { display: block; }
+
+.wrap { max-width: 1536px; margin: 0 auto; padding: 0 12px; }
+
+.note {
+  max-width: 1536px; margin: 0 auto 20px; padding: 14px 16px;
+  border-left: 2px solid var(--brand-primary);
+  background: rgba(255,255,255,.03);
+  font: 400 13px/20px var(--font); color: var(--text-primary-70);
+}
+.note b { color: var(--text-primary); font-weight: 600; }
+.note code {
+  font: 400 12px/18px var(--font-mono); color: var(--brand-primary);
+  background: rgba(255,255,255,.05); padding: 1px 5px; border-radius: 4px;
+}
+.note .warn { color: var(--status-warning); font-weight: 600; }
+
+.rule {
+  max-width: 1536px; margin: 34px auto 14px; padding: 0 0 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  font: 600 11px/16px var(--font); letter-spacing: .6px; text-transform: uppercase;
+  color: var(--text-primary-54);
+}
+
+/* ── Real components, 1:1 ───────────────────────────────────────────────── */
+.backlink {
+  font: 600 11px/16px var(--font); letter-spacing: .6px; text-transform: uppercase;
+  color: var(--text-primary-54); cursor: pointer; display: inline-block;
+  margin-bottom: 10px; transition: color .15s ease; background: none; border: 0; padding: 0;
+}
+.backlink:hover { color: var(--text-primary); }
+
+.title    { font: 600 24px/32px var(--font); letter-spacing: -.4px; color: var(--text-primary); }
+.subtitle { font: 400 14px/20px var(--font); color: var(--text-secondary); margin-top: 4px; }
+.price    { font: 600 28px/34px var(--font); font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.price.sm { font: 600 22px/28px var(--font); font-variant-numeric: tabular-nums; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 3px;
+  font: 600 12px/16px var(--font); font-variant-numeric: tabular-nums;
+  padding: 3px 8px; border-radius: var(--radius-pill);
+  color: var(--status-error); background: var(--status-error-fill);
+}
+
+.avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex: 0 0 40px;
+  background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-cta-b));
+  display: flex; align-items: center; justify-content: center;
+  font: 700 13px/1 var(--font); color: #04121A;
+}
+
+/* GWButton, height 44 = GWButtonSize.sm (the walk's 2026-07-31 call) */
+.btn {
+  height: 44px; padding: 0 18px; border-radius: 10px; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  font: 600 14px/1 var(--font); white-space: nowrap;
+  transition: filter .15s ease, transform .15s ease;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn-fill    { background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-cta-b)); color: #04121A; }
+.btn-outline {
+  background: transparent; color: var(--text-primary);
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--surface-base), var(--surface-base)),
+    linear-gradient(135deg, var(--brand-cta-a), var(--brand-cta-b));
+  background-origin: border-box; background-clip: padding-box, border-box;
+}
+/* 44x44 icon-only - still clears WCAG 2.5.5 Enhanced (AAA) at exactly 44 */
+.btn-icon { width: 44px; height: 44px; padding: 0; justify-content: center; }
+
+.card {
+  background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 16px;
+}
+.statrail { display: flex; gap: 12px; }
+.stat { flex: 1; background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md); padding: 12px; }
+.kick { font: 600 11px/16px var(--font); letter-spacing: .6px; text-transform: uppercase; color: var(--text-secondary); }
+.sval { font: 600 15px/20px var(--font); font-variant-numeric: tabular-nums; margin-top: 3px; }
+.sval.neg { color: var(--status-error); }
+
+.rowline { display: flex; align-items: center; justify-content: space-between; }
+.ident   { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+/* The vertical rule of scheme E. 1px wide, never a border on a box - a box
+   would inherit padding and stop matching the identity block's own height. */
+.vrule { width: 1px; flex: 0 0 1px; margin: 0 8px; border-radius: 1px; }
+
+/* Annotation callouts */
+.ann {
+  position: relative; display: inline-block;
+  font: 600 10px/14px var(--font-mono); letter-spacing: .3px;
+  color: #04121A; background: var(--brand-primary);
+  padding: 1px 5px; border-radius: 4px; vertical-align: middle; margin-left: 8px;
+}
+.measure {
+  font: 400 11px/16px var(--font-mono); color: var(--text-primary-38);
+  margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<div id="tabs">
+  <div class="row">
+    <button class="tab active" data-p="now">Today (shipped)</button>
+    <button class="tab" data-p="a">A · Price on the title line</button>
+    <button class="tab" data-p="b">B · Price + icon actions</button>
+    <button class="tab" data-p="c">C · Price under the name</button>
+    <button class="tab" data-p="d">D · One fill survives</button>
+    <button class="tab" data-p="e">E · Vertical rule ★</button>
+    <button class="tab" data-p="compare">Side by side</button>
+  </div>
+  <div class="meta">Sketch 168 · coin page identity header · every block rendered 1:1 · dark only (light pass deferred)</div>
+</div>
+
+<!-- ══════════════════════════ TODAY ══════════════════════════ -->
+<div class="panel active" id="p-now">
+  <div class="note">
+    <b>What ships today</b>, after plan 07-09. The identity block and the price sit at
+    <b>opposite ends</b> of the header: the price is <code>GWPageHeader</code>'s
+    <code>trailing</code> slot, so on a 1536px page roughly <b>1200px of empty row</b> separates a
+    coin's name from its price. The actions then take a whole third row underneath.
+    <br><br>
+    That gap is what the annotated screenshot marks, and it costs the header
+    <b>3 stacked rows</b> before a single stat is shown.
+  </div>
+  <div class="wrap">
+    <button class="backlink">‹ MARKETS</button>
+    <div class="rowline">
+      <div class="ident">
+        <div class="avatar">GNUS</div>
+        <div>
+          <div class="title">GENIUS AI</div>
+          <div class="subtitle">GNUS</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="price">$0.59</div>
+        <div style="margin-top:6px"><span class="pill">▾ -1.50%</span></div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:16px">
+      <button class="btn btn-fill">⇄ Swap</button>
+      <button class="btn btn-outline">↙ Receive</button>
+    </div>
+    <div class="measure">3 rows · identity row 52px + action row 44px + gaps = ~124px before the stat rail</div>
+    <div style="height:20px"></div>
+    <div class="statrail">
+      <div class="stat"><div class="kick">Rank</div><div class="sval">#1323</div></div>
+      <div class="stat"><div class="kick">24h change</div><div class="sval neg">-1.50%</div></div>
+      <div class="stat"><div class="kick">Volume 24h</div><div class="sval">$420</div></div>
+      <div class="stat"><div class="kick">Market cap</div><div class="sval">$8.9M</div></div>
+      <div class="stat"><div class="kick">From ATH</div><div class="sval neg">-98.71%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ A ══════════════════════════ -->
+<div class="panel" id="p-a">
+  <div class="note">
+    <b>A · Price on the title line, actions gone.</b> The literal reading of the annotation: the
+    price moves to sit immediately after the name, and the Swap/Receive row is deleted.
+    <br><br>
+    The header collapses from <b>3 rows to 1</b>. Name, price and change read as one sentence,
+    left to right, the way a quote is spoken.
+    <br><br>
+    <span class="warn">The cost, stated plainly:</span> the coin page loses <b>every action</b>.
+    Swap still exists on its own tab and Receive in the wallet drawer, so nothing becomes
+    unreachable - but a user standing on a coin they hold can no longer act on it from here.
+    This page becomes a <b>read-only quote sheet with a calculator</b>. That is a legitimate
+    product position, but it must be chosen, not slipped in.
+  </div>
+  <div class="wrap">
+    <button class="backlink">‹ MARKETS</button>
+    <div class="ident">
+      <div class="avatar">GNUS</div>
+      <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+        <div class="title">GENIUS AI</div>
+        <div class="subtitle" style="margin:0">GNUS</div>
+        <div class="price">$0.59</div>
+        <span class="pill">▾ -1.50%</span>
+      </div>
+    </div>
+    <div class="measure">1 row · 52px total · 72px saved against today, and the eye never travels 1200px</div>
+    <div style="height:20px"></div>
+    <div class="statrail">
+      <div class="stat"><div class="kick">Rank</div><div class="sval">#1323</div></div>
+      <div class="stat"><div class="kick">24h change</div><div class="sval neg">-1.50%</div></div>
+      <div class="stat"><div class="kick">Volume 24h</div><div class="sval">$420</div></div>
+      <div class="stat"><div class="kick">Market cap</div><div class="sval">$8.9M</div></div>
+      <div class="stat"><div class="kick">From ATH</div><div class="sval neg">-98.71%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ B ══════════════════════════ -->
+<div class="panel" id="p-b">
+  <div class="note">
+    <b>B · Price after the name, actions as 44px icon buttons at the far right.</b> The price moves
+    where you asked, and the row's now-empty right end takes the actions instead of leaving
+    1200px of nothing.
+    <br><br>
+    Still <b>one row</b>. The actions survive, and the header stops being three-deep.
+    <br><br>
+    <span class="warn">The honest objection:</span> sketch 165 explicitly rejected bare glyphs -
+    <i>"Labels, not bare glyphs"</i> was change 3, because two 32px <code>_ActionGlyph</code>s
+    wedged onto the title line were the thing being fixed. This walks part of the way back.
+    Two things make it a different proposal rather than a relapse: these are <b>44px</b>, not 32
+    (WCAG 2.5.5 Enhanced is met exactly), and they are real <code>GWButton</code>s with the
+    gradient fill and outline treatments, not hand-painted boxes. But it is still a glyph without
+    a word, and that was a decision you already made once.
+  </div>
+  <div class="wrap">
+    <button class="backlink">‹ MARKETS</button>
+    <div class="rowline">
+      <div class="ident">
+        <div class="avatar">GNUS</div>
+        <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+          <div class="title">GENIUS AI</div>
+          <div class="subtitle" style="margin:0">GNUS</div>
+          <div class="price">$0.59</div>
+          <span class="pill">▾ -1.50%</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px">
+        <button class="btn btn-fill btn-icon" title="Swap">⇄</button>
+        <button class="btn btn-outline btn-icon" title="Receive">↙</button>
+      </div>
+    </div>
+    <div class="measure">1 row · 52px · actions keep a 44x44 target · tooltip carries the word the button lost</div>
+    <div style="height:20px"></div>
+    <div class="statrail">
+      <div class="stat"><div class="kick">Rank</div><div class="sval">#1323</div></div>
+      <div class="stat"><div class="kick">24h change</div><div class="sval neg">-1.50%</div></div>
+      <div class="stat"><div class="kick">Volume 24h</div><div class="sval">$420</div></div>
+      <div class="stat"><div class="kick">Market cap</div><div class="sval">$8.9M</div></div>
+      <div class="stat"><div class="kick">From ATH</div><div class="sval neg">-98.71%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ C ══════════════════════════ -->
+<div class="panel" id="p-c">
+  <div class="note">
+    <b>C · Price stacked under the name, actions gone from the header.</b> The identity becomes one
+    block read top to bottom - name, then price, then ticker and change on one quiet line. The
+    price is <i>beside</i> the name in the sense that matters: they belong to each other and the
+    eye never leaves the left edge.
+    <br><br>
+    This is the only scheme where the price keeps its full <b>28px</b> weight without competing
+    with the title on the same baseline. In A and B the two large types sit side by side and
+    fight; here the hierarchy is unambiguous.
+    <br><br>
+    <span class="warn">Cost:</span> 2 rows, not 1 - it saves less height than A. And it leaves the
+    header's right end empty, which on a 1536px page is a lot of nothing unless something else
+    claims it later.
+  </div>
+  <div class="wrap">
+    <button class="backlink">‹ MARKETS</button>
+    <div class="ident" style="align-items:flex-start">
+      <div class="avatar" style="margin-top:4px">GNUS</div>
+      <div>
+        <div class="title">GENIUS AI</div>
+        <div style="display:flex; align-items:baseline; gap:12px; margin-top:2px">
+          <div class="price">$0.59</div>
+          <span class="pill">▾ -1.50%</span>
+        </div>
+        <div class="subtitle" style="margin-top:4px">GNUS</div>
+      </div>
+    </div>
+    <div class="measure">2 rows · ~96px · price at full 28px weight, no baseline competition with the title</div>
+    <div style="height:20px"></div>
+    <div class="statrail">
+      <div class="stat"><div class="kick">Rank</div><div class="sval">#1323</div></div>
+      <div class="stat"><div class="kick">24h change</div><div class="sval neg">-1.50%</div></div>
+      <div class="stat"><div class="kick">Volume 24h</div><div class="sval">$420</div></div>
+      <div class="stat"><div class="kick">Market cap</div><div class="sval">$8.9M</div></div>
+      <div class="stat"><div class="kick">From ATH</div><div class="sval neg">-98.71%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ D ══════════════════════════ -->
+<div class="panel" id="p-d">
+  <div class="note">
+    <b>D · Price after the name, and exactly one labelled action survives.</b> Receive leaves the
+    header; Swap stays, keeps its word, and takes the right end of the same row.
+    <br><br>
+    This is the scheme that respects the <b>CTA weight rule</b> as it was already written for this
+    page: <i>"the filled gradient Swap is the coin page's single filled control."</i> Sketch 165
+    said that about a page with three buttons. Here it is literally true - there is one control,
+    and it is the one a user on a coin page most plausibly wants.
+    <br><br>
+    Receive is not deleted, it is <b>demoted</b>: it belongs to the wallet, not to a coin's quote,
+    and it already lives in the account drawer. Bridge follows Receive out, which also disposes of
+    the "two outlines beside one fill" question 07-09 left open for the walk.
+    <br><br>
+    <span class="warn">Cost:</span> Receive from a coin page becomes two taps instead of one. Worth
+    measuring against how often anyone actually did it from here.
+  </div>
+  <div class="wrap">
+    <button class="backlink">‹ MARKETS</button>
+    <div class="rowline">
+      <div class="ident">
+        <div class="avatar">GNUS</div>
+        <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+          <div class="title">GENIUS AI</div>
+          <div class="subtitle" style="margin:0">GNUS</div>
+          <div class="price">$0.59</div>
+          <span class="pill">▾ -1.50%</span>
+        </div>
+      </div>
+      <button class="btn btn-fill">⇄ Swap</button>
+    </div>
+    <div class="measure">1 row · 52px · one fill, one word, no outline pair left to adjudicate</div>
+    <div style="height:20px"></div>
+    <div class="statrail">
+      <div class="stat"><div class="kick">Rank</div><div class="sval">#1323</div></div>
+      <div class="stat"><div class="kick">24h change</div><div class="sval neg">-1.50%</div></div>
+      <div class="stat"><div class="kick">Volume 24h</div><div class="sval">$420</div></div>
+      <div class="stat"><div class="kick">Market cap</div><div class="sval">$8.9M</div></div>
+      <div class="stat"><div class="kick">From ATH</div><div class="sval neg">-98.71%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ E ══════════════════════════ -->
+<div class="panel" id="p-e">
+  <div class="note">
+    <b>E · A vertical rule, and the price pulled up against it.</b> The second annotation, drawn
+    2026-07-31: a hairline immediately after the identity block, with the price dragged left to
+    meet it.
+    <br><br>
+    This is the scheme that keeps the price at <b>full 28px weight</b> and still reads as one
+    group - the rule does the work that 1200px of empty row was doing badly. A divider says
+    "different kind of fact, same subject", which is exactly the relationship between a coin's name
+    and its price. It also survives a long coin name gracefully: the rule and the price simply
+    travel right with it, instead of the price staying pinned to a far edge that no longer relates
+    to anything.
+    <br><br>
+    Three treatments of the rule itself below. They differ only in how loud the divider is - the
+    layout is identical, so judge the hairline, not the arrangement.
+  </div>
+
+  <div class="rule">E1 · Hairline matched to the identity block (borderSubtle, 44px)</div>
+  <div class="wrap">
+    <button class="backlink">‹ MARKETS</button>
+    <div class="ident">
+      <div class="avatar">GNUS</div>
+      <div>
+        <div class="title">GENIUS AI</div>
+        <div class="subtitle">GNUS</div>
+      </div>
+      <div class="vrule" style="height:44px; background:var(--border-subtle)"></div>
+      <div style="display:flex; align-items:baseline; gap:12px">
+        <div class="price">$0.59</div>
+        <span class="pill">▾ -1.50%</span>
+      </div>
+    </div>
+    <div class="measure">rule 1x44 · gap 20 either side · price keeps full 28px · nothing pinned to the right edge</div>
+  </div>
+
+  <div class="rule">E2 · Shorter, brighter rule (borderStrong, 28px, centred)</div>
+  <div class="wrap">
+    <div class="ident">
+      <div class="avatar">GNUS</div>
+      <div>
+        <div class="title">GENIUS AI</div>
+        <div class="subtitle">GNUS</div>
+      </div>
+      <div class="vrule" style="height:28px; background:var(--border-strong)"></div>
+      <div style="display:flex; align-items:baseline; gap:12px">
+        <div class="price">$0.59</div>
+        <span class="pill">▾ -1.50%</span>
+      </div>
+    </div>
+    <div class="measure">rule 1x28 · reads as punctuation rather than structure · survives a two-line name better</div>
+  </div>
+
+  <div class="rule">E3 · Rule + price demoted to 22px, so the name stays the loudest thing</div>
+  <div class="wrap">
+    <div class="ident">
+      <div class="avatar">GNUS</div>
+      <div>
+        <div class="title">GENIUS AI</div>
+        <div class="subtitle">GNUS</div>
+      </div>
+      <div class="vrule" style="height:44px; background:var(--border-subtle)"></div>
+      <div style="display:flex; align-items:baseline; gap:12px">
+        <div class="price sm">$0.59</div>
+        <span class="pill">▾ -1.50%</span>
+      </div>
+    </div>
+    <div class="measure">price 22/28 · removes the 24-vs-28 baseline competition A and D have · costs the price its shout</div>
+  </div>
+
+  <div style="height:8px"></div>
+  <div class="wrap">
+    <div style="display:flex; gap:8px; margin-top:16px">
+      <button class="btn btn-fill">⇄ Swap</button>
+      <button class="btn btn-outline">↙ Receive</button>
+    </div>
+    <div class="measure">The action row is drawn here only to show E composes with it - whether it stays is scheme D's question, not this one.</div>
+    <div style="height:20px"></div>
+    <div class="statrail">
+      <div class="stat"><div class="kick">Rank</div><div class="sval">#1323</div></div>
+      <div class="stat"><div class="kick">24h change</div><div class="sval neg">-1.50%</div></div>
+      <div class="stat"><div class="kick">Volume 24h</div><div class="sval">$420</div></div>
+      <div class="stat"><div class="kick">Market cap</div><div class="sval">$8.9M</div></div>
+      <div class="stat"><div class="kick">From ATH</div><div class="sval neg">-98.71%</div></div>
+    </div>
+  </div>
+
+  <div style="height:24px"></div>
+  <div class="note">
+    <b>Pick E1.</b> The rule matches the identity block's own height, so it reads as a boundary
+    between two blocks rather than a mark floating between two words. E2's shorter rule starts
+    looking like a stray tick once the change pill sits beside it. E3 solves a real problem - the
+    24px title and 28px price do compete on the same baseline - but it solves it by making the
+    price quieter, and the price is the reason anyone opens this page.
+    <br><br>
+    <span class="warn">One thing to check on the walk:</span> a two-line coin name. Every block
+    here uses a single-line name; `align-items: center` on the row means a taller identity block
+    pushes the rule and the price down with it, which is correct, but nobody has seen it.
+  </div>
+</div>
+
+<!-- ══════════════════════════ COMPARE ══════════════════════════ -->
+<div class="panel" id="p-compare">
+  <div class="note">
+    All five headers at <b>1:1</b>, stacked, so the height each one costs is directly comparable.
+    Nothing here is scaled down.
+  </div>
+
+  <div class="rule">Today · 3 rows · ~124px</div>
+  <div class="wrap">
+    <button class="backlink">‹ MARKETS</button>
+    <div class="rowline">
+      <div class="ident">
+        <div class="avatar">GNUS</div>
+        <div><div class="title">GENIUS AI</div><div class="subtitle">GNUS</div></div>
+      </div>
+      <div style="text-align:right">
+        <div class="price">$0.59</div><div style="margin-top:6px"><span class="pill">▾ -1.50%</span></div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:16px">
+      <button class="btn btn-fill">⇄ Swap</button>
+      <button class="btn btn-outline">↙ Receive</button>
+    </div>
+  </div>
+
+  <div class="rule">A · 1 row · ~52px · no actions</div>
+  <div class="wrap">
+    <div class="ident">
+      <div class="avatar">GNUS</div>
+      <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+        <div class="title">GENIUS AI</div><div class="subtitle" style="margin:0">GNUS</div>
+        <div class="price">$0.59</div><span class="pill">▾ -1.50%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">B · 1 row · ~52px · icon actions</div>
+  <div class="wrap">
+    <div class="rowline">
+      <div class="ident">
+        <div class="avatar">GNUS</div>
+        <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+          <div class="title">GENIUS AI</div><div class="subtitle" style="margin:0">GNUS</div>
+          <div class="price">$0.59</div><span class="pill">▾ -1.50%</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px">
+        <button class="btn btn-fill btn-icon" title="Swap">⇄</button>
+        <button class="btn btn-outline btn-icon" title="Receive">↙</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">C · 2 rows · ~96px · price stacked</div>
+  <div class="wrap">
+    <div class="ident" style="align-items:flex-start">
+      <div class="avatar" style="margin-top:4px">GNUS</div>
+      <div>
+        <div class="title">GENIUS AI</div>
+        <div style="display:flex; align-items:baseline; gap:12px; margin-top:2px">
+          <div class="price">$0.59</div><span class="pill">▾ -1.50%</span>
+        </div>
+        <div class="subtitle" style="margin-top:4px">GNUS</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule">D · 1 row · ~52px · one labelled fill ★</div>
+  <div class="wrap">
+    <div class="rowline">
+      <div class="ident">
+        <div class="avatar">GNUS</div>
+        <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap">
+          <div class="title">GENIUS AI</div><div class="subtitle" style="margin:0">GNUS</div>
+          <div class="price">$0.59</div><span class="pill">▾ -1.50%</span>
+        </div>
+      </div>
+      <button class="btn btn-fill">⇄ Swap</button>
+    </div>
+  </div>
+
+  <div style="height:28px"></div>
+  <div class="note">
+    <b>Recommendation: ★ D.</b> It does everything you asked - the price sits with the name, the
+    Receive/Bridge row is gone, the header drops from three rows to one - while leaving the page
+    able to do the one thing a user on a coin page most plausibly came to do. It also settles, by
+    deletion, the open question 07-09 flagged for this walk: with Receive and Bridge gone there is
+    no outline pair left to adjudicate against the one fill.
+    <br><br>
+    <b>Runner-up: A.</b> Cleanest header of the five and the literal reading of your annotation.
+    Choose it if you want the coin page to be a quote sheet, and say so out loud - it is a product
+    decision, not a layout tweak.
+    <br><br>
+    <b>Rejected: B.</b> Sketch 165 already decided this page uses labels, not bare glyphs, and
+    change 3 exists specifically because icon-only actions on the title line were the problem.
+    Making them 44px instead of 32px answers the accessibility half of that objection and none of
+    the comprehension half.
+    <br><br>
+    <b>C is not wrong, it is a different question.</b> It is the only scheme where the price keeps
+    full weight without sharing a baseline with the title - worth keeping in the drawer if A or D
+    ever read as cramped on a long coin name.
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(function (t) {
+  t.addEventListener('click', function () {
+    document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
+    document.querySelectorAll('.panel').forEach(function (x) { x.classList.remove('active'); });
+    t.classList.add('active');
+    document.getElementById('p-' + t.dataset.p).classList.add('active');
+    window.scrollTo(0, 0);
+  });
+});
+</script>
+</body>
+</html>

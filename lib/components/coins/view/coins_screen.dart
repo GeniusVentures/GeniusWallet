@@ -20,6 +20,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -28,13 +29,11 @@ class CoinsScreen extends StatefulWidget {
   final Function(Coin)? onCoinSelected;
   final List<Coin?>? filterCoins;
   final bool? isUseDivider;
-  final bool? isGnusWalletConnected;
 
   const CoinsScreen({
     super.key,
     this.onCoinSelected,
     this.filterCoins,
-    this.isGnusWalletConnected,
     this.isUseDivider,
   });
 
@@ -297,15 +296,22 @@ class CoinsScreenState extends State<CoinsScreen> {
                       if (widget.onCoinSelected != null) {
                         widget.onCoinSelected!(coin);
                       } else {
+                        // Still load-bearing for `/bridge`
+                        // (`BridgeScreen(fromToken: ...selectedCoin)`,
+                        // `router.dart`) and the Swap preselection fallback -
+                        // this selection is a WALLET action, unrelated to the
+                        // coin-page payload below.
                         walletCubit.selectCoin(coin);
                         context.push(
                           '/token-info',
-                          extra: {
-                            "isGnusWalletConnected":
-                                widget.isGnusWalletConnected,
-                            "marketData":
-                                _marketData[coin.symbol?.toLowerCase()],
-                          },
+                          extra: TokenInfoArgs(
+                            coinGeckoId: coin.coinGeckoId,
+                            symbol: coin.symbol,
+                            marketData: _marketData[coin.symbol?.toLowerCase()],
+                            walletCoin: coin,
+                            network: state.selectedNetwork?.name,
+                            originLabel: 'ASSETS',
+                          ),
                         );
                       }
                     },
@@ -351,7 +357,10 @@ class CoinsScreenState extends State<CoinsScreen> {
                             size: GWButtonSize.sm,
                             label: 'Buy GNUS',
                             expand: true,
-                            onPressed: () => context.push('/buy'),
+                            onPressed: () => context.push(
+                              '/buy',
+                              extra: {'origin': 'MARKETS'},
+                            ),
                           ),
                         ),
                       ],

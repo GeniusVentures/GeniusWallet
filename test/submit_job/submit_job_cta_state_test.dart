@@ -36,6 +36,11 @@ void main() {
   });
 
   group('resolveSubmitJobCtaState — costUnknown rung', () {
+    // These two cases are load-bearing in a second way after the 2026-07-31
+    // precedence reversal below: passing an EMPTY costError here pins that
+    // the reversal did not collapse the genuinely-unpriced case into the
+    // failure case. If a later edit made costUnknown disappear entirely,
+    // these would catch it.
     test('job cost of zero -> costUnknown, NEVER insufficientFunds', () {
       final state = resolveSubmitJobCtaState(
         isSubmitting: false,
@@ -73,6 +78,25 @@ void main() {
       expect(state, SubmitJobCtaState.costError);
       expect(state, isNot(SubmitJobCtaState.costUnknown));
       expect(submitJobCtaEnabled(state), isFalse);
+    });
+
+    // Precedence reversed deliberately on 2026-07-31: after the cubit
+    // stopped discarding the picked file on a pricing failure
+    // (submit_job_cubit.dart 1a), that failure leaves jobCost at 0 too, so
+    // costError must now be checked BEFORE the jobCost == 0 rung. The old
+    // order rendered a permanent "Pricing job…" spinner over a job whose
+    // pricing had already definitively failed.
+    test('zero cost WITH a cost error -> costError, not costUnknown '
+        '(precedence reversed 2026-07-31)', () {
+      final state = resolveSubmitJobCtaState(
+        isSubmitting: false,
+        hasFileChosen: true,
+        jobCost: 0,
+        gnusBalance: 0,
+        costError: 'Unable to retrieve job cost',
+      );
+      expect(state, SubmitJobCtaState.costError);
+      expect(state, isNot(SubmitJobCtaState.costUnknown));
     });
   });
 
