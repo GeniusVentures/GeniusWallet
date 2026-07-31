@@ -85,53 +85,45 @@ void main() {
     },
   );
 
-  test(
-    'fixtures survive an SDK refresh that returns a real transaction '
-    '(FAILS today)',
-    () async {
-      for (final tx in DevMockTransactions.instance.batch(isSgnus: true)) {
-        controller.addTransaction(tx);
-      }
+  test('fixtures survive an SDK refresh that returns a real transaction '
+      '(FAILS today)', () async {
+    for (final tx in DevMockTransactions.instance.batch(isSgnus: true)) {
+      controller.addTransaction(tx);
+    }
 
-      controller.setTransactions([realTransaction()]);
+    controller.setTransactions([realTransaction()]);
 
-      final emitted = await emittedOf(controller);
-      final hashes = emitted.map((tx) => tx.hash).toSet();
-      expect(
-        emitted.length,
-        12,
-        reason:
-            '11 fixtures plus the real transaction should both be emitted; '
-            'got: $hashes',
-      );
-      expect(hashes.contains('0xreal01'), isTrue);
-    },
-  );
+    final emitted = await emittedOf(controller);
+    final hashes = emitted.map((tx) => tx.hash).toSet();
+    expect(
+      emitted.length,
+      12,
+      reason:
+          '11 fixtures plus the real transaction should both be emitted; '
+          'got: $hashes',
+    );
+    expect(hashes.contains('0xreal01'), isTrue);
+  });
 
-  test(
-    'a real transaction from the SDK is still replaced by the next SDK '
-    'refresh (PASSES today, must keep passing)',
-    () async {
-      controller.setTransactions([realTransaction()]);
-      expect(
-        (await emittedOf(controller)).map((tx) => tx.hash).contains(
-          '0xreal01',
-        ),
-        isTrue,
-      );
+  test('a real transaction from the SDK is still replaced by the next SDK '
+      'refresh (PASSES today, must keep passing)', () async {
+    controller.setTransactions([realTransaction()]);
+    expect(
+      (await emittedOf(controller)).map((tx) => tx.hash).contains('0xreal01'),
+      isTrue,
+    );
 
-      // Next poll: the SDK no longer reports that transaction.
-      controller.setTransactions([]);
-      final hashes = (await emittedOf(controller)).map((tx) => tx.hash);
-      expect(
-        hashes.contains('0xreal01'),
-        isFalse,
-        reason:
-            'the SDK feed set must still be replaced wholesale by '
-            'setTransactions - only locally-added transactions are sticky',
-      );
-    },
-  );
+    // Next poll: the SDK no longer reports that transaction.
+    controller.setTransactions([]);
+    final hashes = (await emittedOf(controller)).map((tx) => tx.hash);
+    expect(
+      hashes.contains('0xreal01'),
+      isFalse,
+      reason:
+          'the SDK feed set must still be replaced wholesale by '
+          'setTransactions - only locally-added transactions are sticky',
+    );
+  });
 
   test(
     'Clear releases the fixtures (PASSES today, must keep passing)',
@@ -147,28 +139,25 @@ void main() {
     },
   );
 
-  test(
-    'two presses of the button do not duplicate: 11 rows, not 22 '
-    '(FAILS today)',
-    () async {
-      for (final tx in DevMockTransactions.instance.batch(isSgnus: true)) {
-        controller.addTransaction(tx);
-      }
-      for (final tx in DevMockTransactions.instance.batch(isSgnus: true)) {
-        controller.addTransaction(tx);
-      }
+  test('two presses of the button do not duplicate: 11 rows, not 22 '
+      '(FAILS today)', () async {
+    for (final tx in DevMockTransactions.instance.batch(isSgnus: true)) {
+      controller.addTransaction(tx);
+    }
+    for (final tx in DevMockTransactions.instance.batch(isSgnus: true)) {
+      controller.addTransaction(tx);
+    }
 
-      final emitted = await emittedOf(controller);
-      final hashes = emitted.map((tx) => tx.hash).toSet();
-      expect(
-        emitted.length,
-        11,
-        reason:
-            'a second press should replace the 11 fixtures by hash, not '
-            'append a second identity-distinct copy; got '
-            '${emitted.length} entries, ${hashes.length} unique hashes: '
-            '$hashes',
-      );
-    },
-  );
+    final emitted = await emittedOf(controller);
+    final hashes = emitted.map((tx) => tx.hash).toSet();
+    expect(
+      emitted.length,
+      11,
+      reason:
+          'a second press should replace the 11 fixtures by hash, not '
+          'append a second identity-distinct copy; got '
+          '${emitted.length} entries, ${hashes.length} unique hashes: '
+          '$hashes',
+    );
+  });
 }

@@ -33,17 +33,12 @@ void main() {
 
   group('processingPercentageForElapsed - pure ramp arithmetic', () {
     test('0s is 0', () {
-      expect(
-        DevMockSgnus.processingPercentageForElapsed(Duration.zero),
-        0.0,
-      );
+      expect(DevMockSgnus.processingPercentageForElapsed(Duration.zero), 0.0);
     });
 
     test('1s is 4', () {
       expect(
-        DevMockSgnus.processingPercentageForElapsed(
-          const Duration(seconds: 1),
-        ),
+        DevMockSgnus.processingPercentageForElapsed(const Duration(seconds: 1)),
         4.0,
       );
     });
@@ -176,36 +171,30 @@ void main() {
       expect(DevMockSgnus.instance.consumeInitRelease(), isFalse);
     });
 
-    test(
-      'armInitPercentage after a clearInitPercentage leaves no release '
-      'pending',
-      () {
-        DevMockSgnus.instance.armInitPercentage(0.37);
-        DevMockSgnus.instance.clearInitPercentage();
-        DevMockSgnus.instance.armInitPercentage(0.5);
-        expect(DevMockSgnus.instance.initReleasePending, isFalse);
-      },
-    );
+    test('armInitPercentage after a clearInitPercentage leaves no release '
+        'pending', () {
+      DevMockSgnus.instance.armInitPercentage(0.37);
+      DevMockSgnus.instance.clearInitPercentage();
+      DevMockSgnus.instance.armInitPercentage(0.5);
+      expect(DevMockSgnus.instance.initReleasePending, isFalse);
+    });
   });
 
   group('the SGNUS init button resolves to startingUp', () {
-    test(
-      'resolveComputeState reaches startingUp from the value the button '
-      'arms',
-      () {
-        final state = resolveComputeState(
-          hasSelectedWallet: true,
-          isNodeConnected: true,
-          nodeWalletAddress: DevMockSgnus.address,
-          selectedWalletAddress: DevMockSgnus.address,
-          isProcessingUnavailable: false,
-          initPercentage: 0.37,
-          isProcessing: false,
-          sinceJobFinished: null,
-        );
-        expect(state, ComputeState.startingUp);
-      },
-    );
+    test('resolveComputeState reaches startingUp from the value the button '
+        'arms', () {
+      final state = resolveComputeState(
+        hasSelectedWallet: true,
+        isNodeConnected: true,
+        nodeWalletAddress: DevMockSgnus.address,
+        selectedWalletAddress: DevMockSgnus.address,
+        isProcessingUnavailable: false,
+        initPercentage: 0.37,
+        isProcessing: false,
+        sinceJobFinished: null,
+      );
+      expect(state, ComputeState.startingUp);
+    });
   });
 
   group('armReady - forces every override ComputeState.ready needs', () {
@@ -274,22 +263,19 @@ void main() {
       },
     );
 
-    test(
-      'resolveComputeState reaches ready with no prior job completion at '
-      'all',
-      () {
-        final state = resolveComputeState(
-          hasSelectedWallet: true,
-          isNodeConnected: true,
-          nodeWalletAddress: DevMockSgnus.address,
-          selectedWalletAddress: DevMockSgnus.address,
-          isProcessingUnavailable: false,
-          initPercentage: 1.0,
-          isProcessing: false,
-          sinceJobFinished: null,
-        );
-        expect(state, ComputeState.ready);
-      },
-    );
+    test('resolveComputeState reaches ready with no prior job completion at '
+        'all', () {
+      final state = resolveComputeState(
+        hasSelectedWallet: true,
+        isNodeConnected: true,
+        nodeWalletAddress: DevMockSgnus.address,
+        selectedWalletAddress: DevMockSgnus.address,
+        isProcessingUnavailable: false,
+        initPercentage: 1.0,
+        isProcessing: false,
+        sinceJobFinished: null,
+      );
+      expect(state, ComputeState.ready);
+    });
   });
 }
