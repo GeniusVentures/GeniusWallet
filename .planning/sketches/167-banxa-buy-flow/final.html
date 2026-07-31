@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 167 · Buy GNUS — combined</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   THE COMBINED DESIGN — Jakub, 2026-07-30.
+
+   Left  = the buy card from index.html's synthesis scheme (amount, quick chips,
+           Currency, Payment method, the quote grid, one gradient CTA).
+   Right = the orders rail from layout-v3 option A (View all, counted filters,
+           four rows with a chevron).
+
+   ONE behavioural decision was needed to make the left card honest, because the
+   picture shows a single CTA while the code has two gates:
+
+     MakeOrderCubit.getQuote()   guarded by canGetQuote     (:148 / state:153)
+     MakeOrderCubit.createOrder() guarded by canCreateOrder (:202 / state:155)
+
+   Rather than split the button in two (v2's answer), the ONE button changes
+   role: "Get quote" until a quote exists, "Buy GNUS" once it does. Same single
+   CTA the picture shows; both gates still expressed. The quote grid is present
+   in both states — placeholders before, numbers after — so the card never
+   changes height and nothing below it jumps.
+
+   Constraints inherited from v2, all read out of the code:
+     · No verification STATUS anywhere — nothing reads a KYC state back
+       (banxa_api_services.dart:36 posts and returns; nothing stores).
+       "Verify with Banxa" is offered as an ACTION, which asserts nothing.
+     · Filter counts kept — state.orders holds the list, applyFilters already
+       filters by status (banxa_order_cubit.dart:87-95); only a groupBy is new.
+
+   Page frame is the app's shared one:
+     Align(topCenter) → Padding(12, 64, 12, 16) → ConstrainedBox(1536)
+   ─────────────────────────────────────────────────────────────────────────── */
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; }
+body { background:var(--surface-base); color:var(--text-primary); font-family:var(--font);
+       padding-top:96px; -webkit-font-smoothing:antialiased; }
+
+#bar { position:fixed; top:0; left:0; right:0; z-index:9998; background:#05070A;
+  border-bottom:1px solid rgba(255,255,255,.14); padding:10px 14px; }
+#bar h1 { margin:0; font:600 13px/18px var(--font); }
+#bar p { margin:3px 0 0; font:400 11px/16px var(--font); color:#5A606E; }
+#bar b { color:#0AD89C; }
+
+#tools { position:fixed; bottom:12px; right:12px; z-index:9999; font:400 12px/1 var(--font);
+  background:rgba(0,0,0,.85); color:#fff; padding:8px 10px; border-radius:10px; opacity:.4;
+  transition:opacity .2s; display:flex; gap:8px; align-items:center;
+  border:1px solid rgba(255,255,255,.14); }
+#tools:hover { opacity:1; }
+#tools button, #tools select { background:rgba(255,255,255,.09); color:#fff;
+  border:1px solid rgba(255,255,255,.18); border-radius:6px; padding:5px 8px;
+  font:500 11px/1 var(--font); cursor:pointer; }
+#tools button.on { background:#14C8FF; color:#05070A; border-color:#14C8FF; }
+
+.fitWrap { overflow:hidden; }
+body.fit .fitWrap > .viewport { transform-origin: top center; }
+.viewport { margin:0 auto; background:var(--surface-base); position:relative;
+  border:1px solid rgba(255,255,255,.10); border-radius:6px; overflow:hidden; }
+.scaleNote { text-align:center; font:600 10px/16px var(--font-mono); color:#5A606E;
+  margin:8px 0 26px; }
+.vpLabel { position:absolute; top:6px; right:8px; z-index:5;
+  font:600 9px/1 var(--font-mono); color:#5A606E; }
+.navbar { height:68px; border-bottom:1px solid var(--border-subtle);
+  background:var(--surface-elevated); display:flex; align-items:center; padding:0 20px; gap:18px; }
+.navbar .brand { font:700 15px/1 var(--font); color:var(--brand-primary); }
+.navbar .nav { font:500 12px/1 var(--font); color:var(--text-secondary); }
+.navbar .nav.on { color:var(--text-primary); }
+.frame { padding:64px 12px 16px; }
+.cap { max-width:1536px; margin:0 auto; }
+
+.pageTitle { font:600 24px/32px var(--font); letter-spacing:-.4px; margin:0; }
+.pageSub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:2px; }
+.hdr { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.kicker { font:600 13px/18px var(--font); letter-spacing:.5px; text-transform:uppercase;
+  color:var(--text-secondary); }
+.kickerDense { font:600 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase;
+  color:var(--text-secondary); }
+.card { background:var(--surface-elevated); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md); padding:16px; }
+
+/* GWTextField — replaces the raw TextField at banxa_buy_screen.dart:240 */
+.field { width:100%; height:52px; border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); display:flex; align-items:center; padding:0 14px;
+  font:600 19px/1 var(--font); font-variant-numeric:tabular-nums; transition:all .15s ease; }
+.field:hover { border-color:rgba(20,200,255,.35); }
+/* GWSelect — replaces the raw DropdownMenu at banxa_buy_screen.dart:174/196/218 */
+.selBox { width:100%; height:52px; border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); display:flex; align-items:center; gap:8px; padding:0 14px;
+  font:400 15px/1 var(--font); cursor:pointer; transition:all .15s ease; }
+.selBox:hover { border-color:rgba(20,200,255,.45); }
+.selBox .cv { margin-left:auto; color:var(--text-secondary); font:400 13px/1 var(--font); }
+.selBox .g { color:var(--text-secondary); }
+
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:40px;
+  padding:0 16px; border-radius:999px; cursor:pointer; font:600 14px/20px var(--font);
+  border:1px solid var(--border-strong); background:transparent; color:var(--text-primary);
+  transition:all .15s ease; }
+.btn:hover { background:rgba(20,200,255,.10); border-color:rgba(20,200,255,.45); }
+.btn.fill { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+  border-color:transparent; color:var(--text-on-brand); }
+.btn.fill:hover { filter:brightness(1.08); }
+.btn.wide { width:100%; height:52px; font-size:15px; }
+.btn.sm { height:34px; padding:0 14px; font-size:13px; }
+
+.chipRow { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { font:600 13px/18px var(--font); padding:7px 13px; border-radius:999px;
+  background:var(--surface-menu); border:1px solid var(--border-subtle);
+  color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+.chip:hover { color:#fff; border-color:rgba(20,200,255,.45); background:rgba(20,200,255,.10); }
+.chip.on { color:#fff; border-color:rgba(20,200,255,.55); background:rgba(20,200,255,.16); }
+.chip.sm { font-size:12px; padding:5px 11px; }
+
+.grid { background:var(--surface-sunken); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm); overflow:hidden; }
+.grid .r { display:flex; justify-content:space-between; gap:12px; padding:13px 14px;
+  border-bottom:1px solid var(--border-subtle); }
+.grid .r:last-child { border-bottom:0; }
+.grid .k { font:400 14px/20px var(--font); color:var(--text-primary-70); }
+.grid .v { font:400 14px/20px var(--font); font-variant-numeric:tabular-nums;
+  color:var(--text-primary); }
+.grid .v.ph { color:var(--text-primary-38); }
+
+.pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+  font:600 12px/17px var(--font); white-space:nowrap; }
+.pill.ok{background:var(--status-success-fill);color:var(--status-success)}
+.pill.warn{background:rgba(255,196,46,.14);color:var(--status-warning)}
+.pill.err{background:var(--status-error-fill);color:var(--status-error)}
+.dot { width:7px;height:7px;border-radius:4px; }
+.dot.ok{background:var(--status-success)} .dot.warn{background:var(--status-warning)}
+.dot.err{background:var(--status-error)}
+
+/* Orders rail rows — OrderCard's data, denser */
+.oRow { display:flex; align-items:center; gap:12px; padding:14px 0;
+  border-bottom:1px solid var(--border-subtle); cursor:pointer; transition:background .15s ease;
+  margin:0 -8px; padding-left:8px; padding-right:8px; border-radius:6px; }
+.oRow:last-child { border-bottom:0; }
+.oRow:hover { background:rgba(20,200,255,.06); }
+.oRow .amt { font:600 16px/22px var(--font); font-variant-numeric:tabular-nums; margin-top:7px; }
+.oRow .amt span { color:var(--text-secondary); font-weight:400; }
+.oRow .chev { color:var(--text-secondary); font-size:17px; }
+
+.note { max-width:1180px; margin:0 auto 26px; padding:11px 13px; border-radius:8px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border-subtle);
+  font:400 12px/18px var(--font); color:var(--text-secondary); }
+.note b { color:var(--text-primary); font-weight:600; }
+.note code { font:400 11px/1.5 var(--font-mono); color:var(--brand-primary); }
+</style>
+</head>
+<body class="fit">
+
+<div id="bar">
+  <h1>Buy GNUS — combined: synthesis buy card (left) + orders rail (right)</h1>
+  <p>One CTA that changes role: <b>Get quote</b> → <b>Buy GNUS</b> ·
+     new components: <b>0</b> · backend work: <b>none</b></p>
+</div>
+
+<div id="stage"></div>
+
+<div id="tools">
+  <select id="vp"><option value="1920">1920</option><option value="1600" selected>1600</option>
+    <option value="1280">1280</option><option value="1024">1024</option></select>
+  <button id="fitBtn" class="on">Fit</button>
+  <button id="qBtn">Quote fetched</button>
+</div>
+
+<script>
+let quoted = false;
+
+const ORDERS = [
+  ['Completed','ok','$500.00','1,540.02 GNUS','30 JUL, 14:22'],
+  ['Awaiting payment','warn','$250.00','770.01 GNUS','29 JUL, 09:10'],
+  ['Declined','err','$100.00','—','27 JUL, 18:44'],
+  ['Completed','ok','$1,000.00','3,081.30 GNUS','24 JUL, 11:02']
+];
+
+const navbar = () => `<div class="navbar"><span class="brand">GENIUS</span>
+  <span class="nav">Dashboard</span><span class="nav">Transactions</span>
+  <span class="nav">Markets</span><span class="nav">News</span>
+  <span class="nav on">Buy GNUS</span>
+  <span style="margin-left:auto" class="nav">0x7a3f…c209</span></div>`;
+
+/* ── LEFT: the buy card, exactly the synthesis shape ─────────────────────── */
+const buyCard = () => `<div class="card">
+  <span class="kickerDense" style="display:block;margin-bottom:8px">You spend</span>
+  <div class="field">$500.00</div>
+  <div style="height:12px"></div>
+  <div class="chipRow">
+    <span class="chip">$100</span><span class="chip on">$500</span>
+    <span class="chip">$1,000</span><span class="chip">$5,000</span></div>
+  <div style="height:18px"></div>
+
+  <span class="kickerDense" style="display:block;margin-bottom:8px">Currency</span>
+  <div class="selBox">US Dollar<span class="cv">USD</span><span class="g">▾</span></div>
+  <div style="height:16px"></div>
+
+  <span class="kickerDense" style="display:block;margin-bottom:8px">Payment method</span>
+  <div class="selBox">Visa •••• 4471<span class="g" style="margin-left:auto">▾</span></div>
+  <div style="height:18px"></div>
+
+  <!-- The quote grid is present in BOTH states so the card never changes
+       height. Before a quote it shows placeholders, not zeros: a zeroed rate
+       would be a number the app is asserting, and it does not have one. -->
+  <div class="grid">
+    <div class="r"><span class="k">You get</span>
+      <span class="v ${quoted?'':'ph'}">${quoted?'1,540.02 GNUS':'—'}</span></div>
+    <div class="r"><span class="k">Rate</span>
+      <span class="v ${quoted?'':'ph'}">${quoted?'1 GNUS = $0.3247':'—'}</span></div>
+    <div class="r"><span class="k">Banxa fee</span>
+      <span class="v ${quoted?'':'ph'}">${quoted?'$7.45':'—'}</span></div>
+  </div>
+  <div style="height:18px"></div>
+
+  <!-- ONE button, two roles. canGetQuote gates the first, canCreateOrder the
+       second (create_order_state.dart:153-155). -->
+  <button class="btn fill wide" onclick="toggleQuote()">${quoted?'Buy GNUS':'Get quote'}</button>
+  ${quoted ? `<div style="height:10px"></div>
+    <div style="text-align:center;font:400 12px/17px var(--font);color:var(--text-secondary)">
+      You will finish payment on Banxa.</div>` : ''}
+</div>`;
+
+/* ── RIGHT: the orders rail ──────────────────────────────────────────────── */
+const ordersRail = () => `<div class="card">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+    <span class="kicker" style="flex:1">Your orders</span>
+    <button class="btn sm">View all</button></div>
+  <div class="chipRow" style="margin-bottom:6px">
+    <span class="chip sm on">All · 4</span><span class="chip sm">Pending · 1</span>
+    <span class="chip sm">Done · 2</span></div>
+  ${ORDERS.map(o=>`<div class="oRow">
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="pill ${o[1]}"><span class="dot ${o[1]}"></span>${o[0]}</span>
+        <span class="kickerDense">${o[4]}</span></div>
+      <div class="amt">${o[2]} <span>→ ${o[3]}</span></div>
+    </div><span class="chev">›</span></div>`).join('')}
+</div>`;
+
+const page = () => `<div class="fitWrap"><div class="viewport" style="width:var(--vpw)">
+  <span class="vpLabel">${document.getElementById('vp').value}px window</span>
+  ${navbar()}
+  <div class="frame"><div class="cap">
+    <div class="hdr">
+      <div style="flex:1"><h1 class="pageTitle">Buy GNUS</h1>
+        <div class="pageSub">Powered by Banxa</div></div>
+      <button class="btn sm">Verify with Banxa</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+      <div>${buyCard()}</div>
+      <div>${ordersRail()}</div>
+    </div>
+  </div></div></div></div>
+  <div class="scaleNote" id="scaleNote"></div>`;
+
+/* ═══ RENDER ══════════════════════════════════════════════════════════════ */
+function render() {
+  document.getElementById('stage').innerHTML = page() + `
+    <div class="note"><b>Two things resolved while combining these.</b>
+      (1) <b>The header link is gone.</b> Your screenshot had <code>Your orders · 3</code> in the
+      header, but with the rail on the right that link pointed at something already on screen.
+      Its slot now carries <b>Verify with Banxa</b> — the one affordance that had nowhere to live
+      once the verification card was cut.
+      (2) <b>One CTA, two roles.</b> <code>getQuote()</code> and <code>createOrder()</code> are
+      separate calls behind separate guards, but your picture shows one button — so the button
+      changes label instead of multiplying. The quote grid stays visible in both states with
+      placeholders, so the card holds its height and the rail beside it never shifts.
+      <br><br><b>Press the CTA</b> (or "Quote fetched" in the toolbar) to move between the two
+      states.</div>`;
+  applyFit();
+}
+function toggleQuote(){ quoted=!quoted; render();
+  document.getElementById('qBtn').classList.toggle('on', quoted); }
+function applyFit() {
+  const v = document.querySelector('.fitWrap > .viewport');
+  const wrap = document.querySelector('.fitWrap');
+  const note = document.getElementById('scaleNote');
+  if (!v || !wrap) return;
+  const mockW = parseInt(document.getElementById('vp').value, 10);
+  const on = document.body.classList.contains('fit');
+  const k = on ? Math.min(1, Math.max(320, window.innerWidth - 48) / mockW) : 1;
+  v.style.transform = k < 1 ? `scale(${k})` : 'none';
+  wrap.style.height = k < 1 ? (v.offsetHeight * k) + 'px' : 'auto';
+  if (note) note.textContent = k < 1
+    ? `${mockW}px mock shown at ${Math.round(k*100)}% — turn off "Fit" for 1:1`
+    : `${mockW}px mock at 1:1`;
+}
+function setVp(){ document.documentElement.style.setProperty('--vpw',
+  document.getElementById('vp').value+'px'); render(); }
+document.getElementById('vp').addEventListener('change', setVp);
+document.getElementById('qBtn').addEventListener('click', toggleQuote);
+document.getElementById('fitBtn').addEventListener('click', function(){
+  document.body.classList.toggle('fit'); this.classList.toggle('on'); applyFit(); });
+window.addEventListener('resize', applyFit);
+setVp();
+</script>
+</body>
+</html>
