@@ -69,7 +69,9 @@ flutter:
     - assets/images/
     # Asset dir declarations are not recursive, so subdirectories need their own
     # entry. Without this, assets/images/textures/noise.png is never bundled and
-    # GWDecorations' mesh background fails at runtime.
+    # GWCanvasBackground's grain layer fails at runtime. (Not GWMeshBackground,
+    # which an earlier version of this comment named — that one is procedural
+    # CustomPaint and has no asset dependency at all.)
     - assets/images/textures/
     - assets/images/crypto/
     - packages/genius_wallet/assets/images/mask2.png

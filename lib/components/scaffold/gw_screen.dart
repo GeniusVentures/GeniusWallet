@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Unified screen wrapper. Provides: SafeArea, optional AppBar, a max content
@@ -52,13 +53,22 @@ class GWScreen extends StatelessWidget {
       content = SingleChildScrollView(child: content);
     }
 
+    Widget body = SafeArea(child: content);
+    // A caller that names its own [background] asked for that exact fill and
+    // keeps it. Everyone else gets the layered canvas the design system
+    // defines as THE page background (wash + overhead light + grain) rather
+    // than the flat `surfaceBase` the Scaffold would paint on its own.
+    if (background == null) {
+      body = GWCanvasBackground(child: body);
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       backgroundColor: background ?? context.gw.surfaceBase,
       appBar: appBar,
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomNavigationBar,
-      body: SafeArea(child: content),
+      body: body,
     );
   }
 }

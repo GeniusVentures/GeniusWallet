@@ -492,7 +492,7 @@ class MobileOverlay extends StatelessWidget {
           // constraints, so a Stack expands to the full body box while a
           // bare child may size to itself - dropping this Stack would
           // silently change body sizing for every page in the shell.
-          body: Stack(children: [child]),
+          body: GWCanvasBackground(child: Stack(children: [child])),
           bottomNavigationBar: const _MobileTabBar(),
         );
       },
@@ -518,14 +518,16 @@ class DesktopOverlay extends StatelessWidget {
       // body box while a bare child may size to itself - dropping this
       // Stack would silently change body sizing for every page in the
       // shell.
-      body: Stack(
-        children: [
-          BlocBuilder<AppBloc, AppState>(
-            builder: (context, state) {
-              return child;
-            },
-          ),
-        ],
+      body: GWCanvasBackground(
+        child: Stack(
+          children: [
+            BlocBuilder<AppBloc, AppState>(
+              builder: (context, state) {
+                return child;
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -614,10 +614,12 @@ class _DesignGalleryScreenState extends State<DesignGalleryScreen> {
                     child: GWCanvasBackground(
                       child: Center(
                         child: Text(
-                          'GWCanvasBackground — first instantiation in this '
-                          'repo. Consumes assets/images/textures/noise.png '
-                          '(DS-04). The grain overlay only renders in dark '
-                          'mode — toggle appearance to compare.',
+                          'GWCanvasBackground — the app shell and GWScreen '
+                          'both mount this, so it is the page background you '
+                          'are already looking at. Consumes '
+                          'assets/images/textures/noise.png (DS-04). The '
+                          'grain overlay only renders in dark mode — toggle '
+                          'appearance to compare.',
                           textAlign: TextAlign.center,
                           style: GeniusWalletTypography.bodySm.copyWith(
                             color: context.gw.textSecondary,
