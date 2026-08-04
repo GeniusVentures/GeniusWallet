@@ -39,21 +39,21 @@ List<String> getAllMarketDataCoinIds() {
   return topCoinsByCapitalization;
 }
 
-// This will only return a subset of coins for now.
-Future<List<CoinGeckoCoin>> getDashboardMarketCoins() async {
-  // DEV-ONLY, release-safe: kDebugMode and kShowDevTools are both
-  // compile-time const bools and they lead this && chain exactly as the
-  // account-load fault guard in app_bloc.dart's _onFetchAccount does, so in
-  // a release build (or any debug build without the GW_DEV_TOOLS define)
-  // this whole block constant-folds to false and the compiler eliminates
-  // it entirely — DevFaultInjector.instance.marketsFault is never read and
-  // this function's executed behavior is byte-for-byte what it is at HEAD.
-  // Scoped to THIS function deliberately: getMarketCoins() below serves
-  // other screens and must stay untouched, so this fault can only ever
-  // affect the dashboard Markets panel that calls getDashboardMarketCoins().
-  if (kDebugMode && kShowDevTools) {
-    final fault = DevFaultInjector.instance.marketsFault.value;
-    if (fault == DevMarketsFault.error) {
+/// DEV-ONLY: the injected-fault half of [getDashboardMarketCoins], extracted
+/// out of it so that function reads as the real fetch with one guarded call
+/// at the top. Returns the response the armed fault demands, or `null` when
+/// no fault is armed and the caller should do the real fetch. Throws for
+/// [DevMarketsFault.error], which is the whole point of that fault.
+///
+/// Only ever called behind `kDebugMode && kShowDevTools` at that one call
+/// site - the gate stays there rather than moving in here, because the gate
+/// at the call site is what lets the compiler drop this from a release
+/// build. Scoped to that one caller deliberately: getMarketCoins() below
+/// serves other screens and must stay untouched, so an armed fault can only
+/// ever affect the dashboard Markets panel.
+List<CoinGeckoCoin>? _injectedDashboardMarketsFault() {
+  switch (DevFaultInjector.instance.marketsFault.value) {
+    case DevMarketsFault.error:
       // Any throw type works — MarketsDashboardView's FutureStateWidget
       // catch path (custom_future_builder.dart:30) is untyped and swallows
       // this identically to a real failure. Do not "improve" this into a
@@ -62,9 +62,26 @@ Future<List<CoinGeckoCoin>> getDashboardMarketCoins() async {
         'DEV-ONLY: injected by dev_fault_injector.dart (armed via the '
         'dev-tools bubble MOCK section) — not a real markets-load failure.',
       );
-    }
-    if (fault == DevMarketsFault.empty) {
+    case DevMarketsFault.empty:
       return const <CoinGeckoCoin>[];
+    case null:
+      return null;
+  }
+}
+
+// This will only return a subset of coins for now.
+Future<List<CoinGeckoCoin>> getDashboardMarketCoins() async {
+  // DEV-ONLY, release-safe: kDebugMode and kShowDevTools are both
+  // compile-time const bools and they lead this && chain exactly as the
+  // account-load fault guard in app_bloc.dart's _onFetchAccount does, so in
+  // a release build (or any debug build without the GW_DEV_TOOLS define)
+  // this condition constant-folds to false, _injectedDashboardMarketsFault
+  // is never called, and this function's executed behavior is byte-for-byte
+  // what it is at HEAD. Everything below is the real fetch.
+  if (kDebugMode && kShowDevTools) {
+    final injected = _injectedDashboardMarketsFault();
+    if (injected != null) {
+      return injected;
     }
   }
 

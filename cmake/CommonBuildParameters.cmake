@@ -78,7 +78,20 @@ include_directories(${OPENSSL_INCLUDE_DIR})
 # Snappy
 set(Snappy_DIR "${THIRDPARTY_BUILD_DIR}/snappy/lib/cmake/Snappy")
 set(Snappy_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/snappy/include")
-find_package(Snappy CONFIG QUIET)  # not shipped in TestNet-Phase-3.1 thirdparty bundle; rocksdb built without it (if(OFF)) and nothing else consumes it
+# Optional: not shipped in the TestNet-Phase-3.1 thirdparty bundle. rocksdb is
+# built without it (if(OFF)) and nothing else consumes it, so a missing Snappy
+# is not an error - but it is reported rather than skipped silently, so a build
+# that later fails on a Snappy symbol has a breadcrumb. Set -DGW_REQUIRE_SNAPPY=ON
+# to turn the absence back into a hard failure.
+option(GW_REQUIRE_SNAPPY "Fail the configure step when Snappy is not found" OFF)
+if(GW_REQUIRE_SNAPPY)
+    find_package(Snappy CONFIG REQUIRED)
+else()
+    find_package(Snappy CONFIG QUIET)
+    if(NOT Snappy_FOUND)
+        message(STATUS "Snappy not found in ${Snappy_DIR} - continuing without it (rocksdb is built with Snappy disabled). Configure with -DGW_REQUIRE_SNAPPY=ON to make this fatal.")
+    endif()
+endif()
 
 # rocksdb
 set(RocksDB_DIR "${THIRDPARTY_BUILD_DIR}/rocksdb/lib/cmake/rocksdb")

@@ -11,6 +11,7 @@ import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_state.dart';
+import 'package:genius_wallet/submit_job/view/widgets/job_steps.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// Hand-written fake for [GeniusApi] - the only two calls `bridgeTokens()`
@@ -202,6 +203,41 @@ void main() {
     expect(harness.cubit.state.outcome, SubmitOutcome.done);
     expect(harness.cubit.state.txHash, '0xDONEHASH');
     expect(harness.cubit.state.bridgeHash, isEmpty);
+  });
+
+  // The bridge-failure footer's `Try again` calls `bridgeTokens()` a second
+  // time, and `resolveJobStepIndex` reads `outcome` BEFORE `isBridgingTokens`.
+  // If the retry does not clear the terminal outcome, the flow stays pinned on
+  // step 4 for the whole attempt: the in-flight step never renders and the
+  // retry button stays live over an in-flight bridge. Asserting through the
+  // resolver rather than the raw fields is deliberate - the resolver's field
+  // precedence is the half that made this a bug.
+  test('retry after a bridge failure enters the in-flight step instead of '
+      'staying on the failure footer', () async {
+    final harness = _build(
+      bridgeOutResponse: ApiResponse.error(
+        'Bridge transaction failed. Please try again.',
+      ),
+      processResponse: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    );
+    addTearDown(harness.dispose);
+
+    await harness.cubit.bridgeTokens();
+    expect(harness.cubit.state.outcome, SubmitOutcome.bridgeFailed);
+    expect(resolveJobStepIndex(harness.cubit.state, 2), 4);
+
+    final emitted = <SubmitJobState>[];
+    final subscription = harness.cubit.stream.listen(emitted.add);
+    await harness.cubit.bridgeTokens();
+    await subscription.cancel();
+
+    final inFlight = emitted.first;
+    expect(inFlight.isBridgingTokens, isTrue);
+    expect(inFlight.outcome, SubmitOutcome.notSubmitted);
+    // The previous failure's toast text must not outlive the attempt it
+    // described.
+    expect(inFlight.submitError, isEmpty);
+    expect(resolveJobStepIndex(inFlight, 2), 3);
   });
 
   test('resetState clears outcome and both hash fields', () async {

@@ -355,68 +355,36 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
 
   Future<void> bridgeTokens() async {
     if (!isClosed) {
-      emit(state.copyWith(isBridgingTokens: true));
+      // Clearing `outcome` here is load-bearing, not tidiness. This method is
+      // also the RETRY entry point, from the bridge-failure footer's `Try
+      // again` (`job_steps.dart`'s `_ResultFooter`), and
+      // `resolveJobStepIndex` reads `outcome` BEFORE `isBridgingTokens`. A
+      // terminal `bridgeFailed` left in place would therefore pin the UI on
+      // the result step for the whole retry: the in-flight step would never
+      // render, the retry button would stay enabled, and a second tap would
+      // dispatch an overlapping `bridgeOut` against tokens the first attempt
+      // may already be burning. `submitError` is cleared in the same emit so
+      // the previous failure's toast text cannot outlive the attempt it
+      // described.
+      emit(
+        state.copyWith(
+          isBridgingTokens: true,
+          outcome: SubmitOutcome.notSubmitted,
+          submitError: '',
+        ),
+      );
     }
 
-    final devScenario = _devJobScenario;
-    if (devScenario != null) {
-      // DEV-ONLY (Task 2, 2026-07-31): at the very top, BEFORE the
-      // precondition guard below. That guard exists only to protect the two
-      // SDK calls this fixture replaces (bridgeOut, requestGeniusSDKProcess)
-      // - in a dev environment with no token info it would reject every
-      // submission before step 4 could ever render, which is exactly the
-      // validation guard a reviewer must see justified rather than discover.
-      final fixture = DevMockJob.instance;
-      await Future.delayed(DevMockJob.inFlightDelay);
-
-      switch (fixture.outcome) {
-        case SubmitOutcome.done:
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                txHash: DevMockJob.txHash,
-                outcome: SubmitOutcome.done,
-                isBridgingTokens: false,
-              ),
-            );
-          }
-        case SubmitOutcome.bridgeFailed:
-          // Nothing was spent - both hash fields stay untouched, byte
-          // identical to the production bridge-failure message.
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                isBridgingTokens: false,
-                outcome: SubmitOutcome.bridgeFailed,
-                submitError: 'Bridge transaction failed. Please try again.',
-              ),
-            );
-          }
-        case SubmitOutcome.bridgedNotProcessed:
-          // The fixture bridge hash on bridgeHash and NOT on txHash -
-          // deliberately, so nothing downstream reading a non-empty txHash
-          // as "job started" is fooled. The submit error is produced by
-          // passing the fixture's process-failure value through the
-          // cubit's own private message mapper, so this terminal shows
-          // exactly what a genuine failure shows rather than dev prose.
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                isBridgingTokens: false,
-                outcome: SubmitOutcome.bridgedNotProcessed,
-                bridgeHash: DevMockJob.bridgeHash,
-                submitError: _processErrorMessage(DevMockJob.processFailure),
-              ),
-            );
-          }
-        case SubmitOutcome.notSubmitted:
-          // Unreachable - DevMockJob.outcome never returns notSubmitted.
-          break;
-      }
-
-      // No delayed balance refetch here, unlike the production path below:
-      // the balance is fixture-driven and intercepted in fetchGnusBalance,
-      // so the refetch would sleep 5s and re-emit the identical number.
+    // DEV-ONLY, release-safe: `_devJobScenario` is null unless both
+    // `kDebugMode` and `kShowDevTools` are true, so this call and the method
+    // behind it are unreachable in a release build. It sits at the very top,
+    // BEFORE the precondition guard below: that guard exists only to protect
+    // the two SDK calls the fixture replaces (bridgeOut,
+    // requestGeniusSDKProcess), and in a dev environment with no token info
+    // it would otherwise reject every submission before step 4 could render.
+    // Everything from here down is the real bridge.
+    if (_devJobScenario != null) {
+      await _bridgeTokensFromDevFixture();
       return;
     }
 
@@ -510,6 +478,71 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         ),
       );
     }
+  }
+
+  /// DEV-ONLY (Task 2, 2026-07-31): the fixture half of [bridgeTokens],
+  /// extracted out of it so that method reads as the real bridge with one
+  /// guarded call at the top rather than 60 lines of mock ahead of the SDK.
+  ///
+  /// Only ever reached through the `_devJobScenario != null` gate in
+  /// [bridgeTokens], which is itself `kDebugMode && kShowDevTools` - do not
+  /// call this from anywhere else, because that gate is the only thing
+  /// keeping the fixture out of a real submission.
+  ///
+  /// Replaces both SDK calls (`bridgeOut`, `requestGeniusSDKProcess`) so the
+  /// whole flow runs with no native node.
+  Future<void> _bridgeTokensFromDevFixture() async {
+    final fixture = DevMockJob.instance;
+    await Future.delayed(DevMockJob.inFlightDelay);
+
+    switch (fixture.outcome) {
+      case SubmitOutcome.done:
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              txHash: DevMockJob.txHash,
+              outcome: SubmitOutcome.done,
+              isBridgingTokens: false,
+            ),
+          );
+        }
+      case SubmitOutcome.bridgeFailed:
+        // Nothing was spent - both hash fields stay untouched, byte
+        // identical to the production bridge-failure message.
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              isBridgingTokens: false,
+              outcome: SubmitOutcome.bridgeFailed,
+              submitError: 'Bridge transaction failed. Please try again.',
+            ),
+          );
+        }
+      case SubmitOutcome.bridgedNotProcessed:
+        // The fixture bridge hash on bridgeHash and NOT on txHash -
+        // deliberately, so nothing downstream reading a non-empty txHash
+        // as "job started" is fooled. The submit error is produced by
+        // passing the fixture's process-failure value through the
+        // cubit's own private message mapper, so this terminal shows
+        // exactly what a genuine failure shows rather than dev prose.
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              isBridgingTokens: false,
+              outcome: SubmitOutcome.bridgedNotProcessed,
+              bridgeHash: DevMockJob.bridgeHash,
+              submitError: _processErrorMessage(DevMockJob.processFailure),
+            ),
+          );
+        }
+      case SubmitOutcome.notSubmitted:
+        // Unreachable - DevMockJob.outcome never returns notSubmitted.
+        break;
+    }
+
+    // No delayed balance refetch here, unlike the production path: the
+    // balance is fixture-driven and intercepted in fetchGnusBalance, so the
+    // refetch would sleep 5s and re-emit the identical number.
   }
 
   // used to fetch the gnus balance of the wallet with some delay

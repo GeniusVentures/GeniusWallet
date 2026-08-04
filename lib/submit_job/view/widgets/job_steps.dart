@@ -821,7 +821,13 @@ class _ResultFooter extends StatelessWidget {
                 variant: GWButtonVariant.gradient,
                 expand: true,
                 label: 'Try again',
-                onPressed: cubit.bridgeTokens,
+                // Same in-flight guard as the `Confirm and pay` CTA at the
+                // step-2 footer above. `bridgeTokens()` now clears `outcome`
+                // on entry, so this footer unmounts on the first tap anyway -
+                // this is the belt to that braces, and it keeps the two
+                // entry points into the same cubit method written the same
+                // way.
+                onPressed: state.isBridgingTokens ? null : cubit.bridgeTokens,
               ),
             ),
             const SizedBox(width: GeniusWalletConsts.space4),

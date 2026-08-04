@@ -8,6 +8,7 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
+import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 
 part 'wallet_details_state.dart';
@@ -156,10 +157,19 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   }
 
   FutureOr<void> getCoins() async {
-    // DEV-ONLY: while mock-mode is ON, the live read (and the
+    // DEV-ONLY, release-safe: while mock-mode is ON, the live read (and the
     // selectNetwork/selectWallet re-fetches that call this) must not
     // overwrite the injected mock holdings.
-    if (mockMode) {
+    //
+    // `mockMode` alone was the gate here, and it was the one dev branch in
+    // this repo that a release build still evaluated - every other one leads
+    // with the two const bools and constant-folds away. It could not
+    // actually fire in release (the only writers are the dev-tools bubble's
+    // injectMock* calls, which are themselves gated), but "unreachable in
+    // practice" is not the same guarantee as "not compiled in", and this is
+    // the guarantee dev_flags.dart asks every call site for. Ordering is
+    // load-bearing: the const bools lead, so the field read is dropped too.
+    if (kDebugMode && kShowDevTools && mockMode) {
       return;
     }
     // TEMPORARY (removed by plan 13-05): measures the coins/holdings leg's
