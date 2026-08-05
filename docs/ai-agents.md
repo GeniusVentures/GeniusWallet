@@ -1,25 +1,27 @@
 # AI coding agents in this repo
 
-The team uses four different agents. This page says which file yours reads and
-where to put a new rule.
+Different people here drive this repo with different agents, and they do not
+all read the same file. This page says what your agent needs in order to pick
+up the project rules, and where to put a new rule.
 
 ## One source of truth
 
 **`AGENTS.md` at the repo root.** It is the only rules file anyone edits by
 hand.
 
-| Agent | Who | Reads |
+| Agent | What it reads | What you have to do |
 |---|---|---|
-| Claude Code | Braian | `CLAUDE.md`, which is one line: `@AGENTS.md` |
-| opencode | Eduardo, Henrique | `AGENTS.md` directly (it prefers `AGENTS.md` over `CLAUDE.md`) |
-| Copilot coding agent / code review | — | `AGENTS.md` directly |
-| Copilot in VS Code | Justin | `.github/copilot-instructions.md` |
-| Copilot for Xcode | Ken | `.github/copilot-instructions.md` |
+| Claude Code | `CLAUDE.md`, one line: `@AGENTS.md` | Nothing. Works on clone. |
+| opencode | `AGENTS.md` directly, in preference to `CLAUDE.md` | Nothing. Works on clone. |
+| Codex | `AGENTS.md` directly | Nothing. Works on clone. |
+| Copilot coding agent, Copilot code review | `AGENTS.md` directly | Nothing. Works on clone. |
+| Copilot in VS Code | `.github/copilot-instructions.md`, auto-detected | Nothing. Optionally enable the experimental `AGENTS.md` setting to read the source instead. |
+| Copilot for Xcode | `.github/copilot-instructions.md` | Nothing. Same generated file. |
+| Cursor, Cline, Gemini CLI, Continue, others | Their own directory formats | Not generated today — see "Adding an agent" below. |
 
-Three of those read `AGENTS.md` already. Only Copilot's **editor**
-integrations do not — `AGENTS.md` support in VS Code is experimental and off
-by default, while `.github/copilot-instructions.md` is picked up
-automatically.
+Most agents read `AGENTS.md` already. Copilot's **editor** integrations are the
+exception: `AGENTS.md` support in VS Code is experimental and off by default,
+while `.github/copilot-instructions.md` is picked up automatically.
 
 So `.github/copilot-instructions.md` is a **generated copy** of `AGENTS.md`.
 It carries a do-not-edit header.
@@ -36,12 +38,32 @@ bash tool/check_agent_rules_sync.sh --fix
 `tool/check_agent_rules_sync.sh` (no argument) fails if the two have drifted.
 Run it with the other gates before opening a PR.
 
+## Adding an agent
+
+If you start using a tool that reads neither `AGENTS.md` nor
+`.github/copilot-instructions.md`:
+
+1. Find the file or directory it expects (e.g. `.cursor/rules/`,
+   `.clinerules/`, `.github/instructions/*.instructions.md`).
+2. Add it as a second target in `tool/check_agent_rules_sync.sh` — the render
+   function emits a header plus `AGENTS.md` verbatim, so a new target is a
+   path and a header, not new logic.
+3. Run `--fix`, commit the generated file, and note it in the table above.
+
+If the count of generated targets gets past two or three, stop and reach for a
+purpose-built tool instead (Ruler, rulesync, AgentSync). One file does not
+justify a dependency; four might.
+
 ## Skills
 
 `.claude/skills/<name>/SKILL.md`. **Claude Code and opencode both read that
 path natively** — opencode loads `.claude/skills/*/SKILL.md` alongside its own
-`.opencode/skills/`. Copilot's agent mode reads `SKILL.md` too. One directory,
-no sync.
+`.opencode/skills/` and `.agents/skills/`. Copilot's agent mode reads
+`SKILL.md` too. One directory, no sync, nothing to configure.
+
+If your agent supports skills but looks somewhere else, point it at
+`.claude/skills/` rather than copying the files — a second copy is a second
+thing to keep in step.
 
 Currently:
 
@@ -66,8 +88,8 @@ nothing on everyone else's.
   on every machine but the one they came from. Anyone who wants that workflow
   installs GSD themselves.
 - **Nothing for Xcode's built-in Coding Intelligence.** It has no repo-level
-  rules convention. Ken is covered because Copilot for Xcode reads the file
-  above.
+  rules convention, so there is no file to generate for it. Copilot for Xcode
+  reads the generated file and is covered.
 
 ## Models
 
