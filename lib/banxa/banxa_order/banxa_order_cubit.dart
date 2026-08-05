@@ -1,15 +1,38 @@
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_helpers/banxa_customer_id.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/dev/dev_banxa_fixtures.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 class OrdersCubit extends Cubit<OrdersState> {
-  OrdersCubit() : super(OrdersState.initial());
+  /// [walletDetailsCubit] supplies the wallet whose orders these are. Same
+  /// cross-cubit shape `AppBloc` already uses in `main.dart`, and it is what
+  /// keeps the screens out of it: a widget reaching for a second cubit just to
+  /// name a customer would break AGENTS.md's "widgets do not reach past the
+  /// repository layer".
+  ///
+  /// Nullable so a test can construct a bare cubit; a null one simply has no
+  /// wallet and fetches nothing, which is the honest answer.
+  OrdersCubit({WalletDetailsCubit? walletDetailsCubit})
+    : _walletDetailsCubit = walletDetailsCubit,
+      super(OrdersState.initial());
 
-  Future<void> fetchOrders(String? externalCustomerId) async {
+  final WalletDetailsCubit? _walletDetailsCubit;
+
+  /// The Banxa customer key for the selected wallet, or null when no wallet is
+  /// selected. See `banxa_customer_id.dart` for why this is derived rather
+  /// than passed in by each caller.
+  String? get _customerId =>
+      banxaCustomerId(_walletDetailsCubit?.state.selectedWallet?.address);
+
+  /// [externalCustomerIdOverride] exists for the dev fixtures only; production
+  /// call sites pass nothing and get the selected wallet's key.
+  Future<void> fetchOrders([String? externalCustomerIdOverride]) async {
+    final externalCustomerId = externalCustomerIdOverride ?? _customerId;
     emit(state.copyWith(status: OrdersStatus.loading, error: ''));
 
     // DEV-ONLY seam. Double-gated: `kDebugMode` is a const so this whole

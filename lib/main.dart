@@ -321,7 +321,7 @@ class MyApp extends StatelessWidget {
           BlocProvider<TransactionsCubit>(
             create: (_) => TransactionsCubit(), // Or with initial state
           ),
-          BlocProvider<OrdersCubit>(create: (_) => OrdersCubit()),
+
           BlocProvider<MakeOrderCubit>(
             create: (_) => MakeOrderCubit(BanxaApiService()),
           ),
@@ -329,6 +329,13 @@ class MyApp extends StatelessWidget {
             create: (_) => WalletDetailsCubit(
               geniusApi: context.read<GeniusApi>(),
               networkTokensProvider: context.read<NetworkTokensProvider>(),
+            ),
+          ),
+          // Declared AFTER WalletDetailsCubit: it reads the selected wallet to
+          // derive the Banxa customer key, the same way AppBloc below does.
+          BlocProvider<OrdersCubit>(
+            create: (context) => OrdersCubit(
+              walletDetailsCubit: context.read<WalletDetailsCubit>(),
             ),
           ),
           BlocProvider(

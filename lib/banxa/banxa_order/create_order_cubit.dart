@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_helpers/banxa_customer_id.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 
@@ -231,7 +232,11 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         walletAddress: state.walletText.trim(),
         cryptoAmount: state.quote!.cryptoAmount,
         fiatAmount: state.quote!.fiatAmount,
-        externalCustomerId: 'my_id_${DateTime.now().millisecondsSinceEpoch}',
+        // Was `'my_id_${DateTime.now().millisecondsSinceEpoch}'` — a fresh
+        // customer per order, which is why the order list could never find
+        // anything. Keyed on the destination wallet now; see
+        // `banxa_customer_id.dart`.
+        externalCustomerId: banxaCustomerId(state.walletText),
         metadata: 'real',
         subPartnerId: 'macOS-app',
       );

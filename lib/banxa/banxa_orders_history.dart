@@ -36,7 +36,7 @@ class _OrdersPageState extends State<OrdersPage> {
   @override
   void initState() {
     super.initState();
-    BlocProvider.of<OrdersCubit>(context).fetchOrders('your-cust-id');
+    BlocProvider.of<OrdersCubit>(context).fetchOrders();
   }
 
   Future<void> _pickDateRange(BuildContext context) async {
@@ -181,7 +181,7 @@ class _OrdersPageState extends State<OrdersPage> {
         tooltip: "Refresh",
         icon: const Icon(Icons.refresh),
         onPressed: () {
-          context.read<OrdersCubit>().fetchOrders('your-cust-id');
+          context.read<OrdersCubit>().fetchOrders();
         },
       ),
       IconButton(
@@ -208,14 +208,13 @@ class _OrdersPageState extends State<OrdersPage> {
           if (state.status == OrdersStatus.error) {
             // Task 3 · crypto_news_screen.dart:149-152's GWErrorState usage.
             // `state.error` is preserved verbatim as the detail line; `onRetry`
-            // re-dispatches the EXISTING fetchOrders('your-cust-id') call the
+            // re-dispatches the EXISTING fetchOrders() call the
             // Refresh action and initState already make (D-01/D-02 — no new
             // call, no new argument).
             return GWErrorState(
               title: "Couldn't load your orders",
               message: state.error,
-              onRetry: () =>
-                  context.read<OrdersCubit>().fetchOrders('your-cust-id'),
+              onRetry: () => context.read<OrdersCubit>().fetchOrders(),
             );
           }
           final orders = state.filteredOrders ?? [];
