@@ -19,7 +19,6 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
-import 'package:genius_wallet/components/effects/gw_activatable.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
@@ -928,33 +927,45 @@ class _AmountChip extends StatelessWidget {
           final Color textColor = selected
               ? gw.textPrimary
               : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
-          return GWActivatable(
-            onPressed: onTap,
+          // InkWell for focus + Enter/Space (WCAG 2.1.1 Level A).
+          return Semantics(
+            button: true,
             selected: selected,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              height: chipHeight,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space3,
-              ),
-              decoration: BoxDecoration(
-                color: selected
-                    ? gw.surfaceMenu
-                    : (lifted ? gw.surfaceElevated : Colors.transparent),
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: onTap,
+                hoverColor: Colors.transparent,
                 borderRadius: BorderRadius.circular(
                   GeniusWalletConsts.radiusPill,
                 ),
-              ),
-              // Ellipsised rather than allowed to overflow: at the phone-width
-              // card the four chips share 309px, and a long fallback label
-              // (`5,000 XYZ`, when Banxa returns no symbol) would not fit.
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  color: textColor,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  height: chipHeight,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? gw.surfaceMenu
+                        : (lifted ? gw.surfaceElevated : Colors.transparent),
+                    borderRadius: BorderRadius.circular(
+                      GeniusWalletConsts.radiusPill,
+                    ),
+                  ),
+                  // Ellipsised rather than allowed to overflow: at the
+                  // phone-width card the four chips share 309px, and a long
+                  // fallback label (`5,000 XYZ`, when Banxa returns no symbol)
+                  // would not fit.
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      color: textColor,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -1554,48 +1565,59 @@ class _OrderToneChip extends StatelessWidget {
           final Color textColor = selected
               ? gw.textPrimary
               : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
-          return GWActivatable(
-            onPressed: onTap,
+          // InkWell for focus + Enter/Space (WCAG 2.1.1 Level A).
+          return Semantics(
+            button: true,
             selected: selected,
-            child: AnimatedContainer(
-              // 120ms matches `_TimeframeTab`/`_FilterChip`; all three
-              // control tracks must settle at the same speed.
-              duration: const Duration(milliseconds: 120),
-              height: _chipHeight,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space6,
-                vertical: GeniusWalletConsts.space3,
-              ),
-              decoration: BoxDecoration(
-                color: selected
-                    ? gw.surfaceMenu
-                    : (lifted ? gw.surfaceElevated : Colors.transparent),
+            child: Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: onTap,
+                hoverColor: Colors.transparent,
                 borderRadius: BorderRadius.circular(
                   GeniusWalletConsts.radiusPill,
                 ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    label,
-                    style: GeniusWalletTypography.labelMd.copyWith(
-                      color: textColor,
+                child: AnimatedContainer(
+                  // 120ms matches `_TimeframeTab`/`_FilterChip`; all three
+                  // control tracks must settle at the same speed.
+                  duration: const Duration(milliseconds: 120),
+                  height: _chipHeight,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space6,
+                    vertical: GeniusWalletConsts.space3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? gw.surfaceMenu
+                        : (lifted ? gw.surfaceElevated : Colors.transparent),
+                    borderRadius: BorderRadius.circular(
+                      GeniusWalletConsts.radiusPill,
                     ),
                   ),
-                  const SizedBox(width: GeniusWalletConsts.space2),
-                  Text(
-                    '$count',
-                    // Tabular figures so the count does not jitter as it
-                    // changes, matching `_TransactionFilterBar`'s menu-item
-                    // counts.
-                    style: GeniusWalletTypography.numericBody.copyWith(
-                      fontSize: 13,
-                      color: textColor,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        label,
+                        style: GeniusWalletTypography.labelMd.copyWith(
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(width: GeniusWalletConsts.space2),
+                      Text(
+                        '$count',
+                        // Tabular figures so the count does not jitter as it
+                        // changes, matching `_TransactionFilterBar`'s menu-item
+                        // counts.
+                        style: GeniusWalletTypography.numericBody.copyWith(
+                          fontSize: 13,
+                          color: textColor,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           );

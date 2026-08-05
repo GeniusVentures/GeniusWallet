@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart' show chartYBounds;
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
-import 'package:genius_wallet/components/effects/gw_activatable.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -703,38 +702,50 @@ class _TimeframeTab extends StatelessWidget {
             ? context.gw.textOnBrand
             : (hovered ? hoverTextColor : unselectedColor);
         final bool lifted = hovered && !selected;
-        return GWActivatable(
-          onPressed: onTap,
+        // InkWell for focus + Enter/Space (WCAG 2.1.1 Level A); hoverColor
+        // cleared because the hover response is the lift, not an overlay.
+        return Semantics(
+          button: true,
           selected: selected,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            transformAlignment: Alignment.center,
-            transform: lifted
-                ? Matrix4.translationValues(0, -1, 0)
-                : Matrix4.identity(),
-            padding: const EdgeInsets.symmetric(
-              horizontal: GeniusWalletConsts.space4,
-              vertical: GeniusWalletConsts.space3,
-            ),
-            decoration: BoxDecoration(
-              gradient: selected ? GeniusWalletGradient.brandCta : null,
-              color: selected
-                  ? null
-                  : (lifted ? hoverColor : Colors.transparent),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onTap,
+              hoverColor: Colors.transparent,
               borderRadius: BorderRadius.circular(
                 GeniusWalletConsts.radiusPill,
               ),
-              boxShadow: (selected || lifted)
-                  ? GeniusWalletElevation.card
-                  : null,
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: labelColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                height: 1,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                transformAlignment: Alignment.center,
+                transform: lifted
+                    ? Matrix4.translationValues(0, -1, 0)
+                    : Matrix4.identity(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space4,
+                  vertical: GeniusWalletConsts.space3,
+                ),
+                decoration: BoxDecoration(
+                  gradient: selected ? GeniusWalletGradient.brandCta : null,
+                  color: selected
+                      ? null
+                      : (lifted ? hoverColor : Colors.transparent),
+                  borderRadius: BorderRadius.circular(
+                    GeniusWalletConsts.radiusPill,
+                  ),
+                  boxShadow: (selected || lifted)
+                      ? GeniusWalletElevation.card
+                      : null,
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: labelColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1,
+                  ),
+                ),
               ),
             ),
           ),
