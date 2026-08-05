@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 167 · L3 v3 — Your orders beside the buy section</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   v3 — Jakub, 2026-07-30: "po prawej stronie chciałbym Your orders zaraz obok
+   sekcji kupowania".
+
+   That instruction creates one collision worth naming up front: in v2 the RIGHT
+   column was the quote. If orders move there, the quote needs a home. The four
+   options below are four answers to exactly that, and nothing else varies.
+
+   Everything inherits v2's constraints, which came out of the code:
+     · NO verification card — nothing reads back a KYC status
+       (banxa_api_services.dart:36 posts; nothing stores or reads)
+     · Quote is a TWO-STEP, not live — MakeOrderCubit.getQuote() is explicitly
+       triggered and guards on canGetQuote (create_order_cubit.dart:148,
+       create_order_state.dart:153-155)
+     · Filter counts stay — the data exists (banxa_order_cubit.dart:87-95)
+   Page frame is the app's shared one:
+     Align(topCenter) → Padding(12, 64, 12, 16) → ConstrainedBox(1536)
+   ─────────────────────────────────────────────────────────────────────────── */
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; }
+body { background:var(--surface-base); color:var(--text-primary); font-family:var(--font);
+       padding-top:104px; -webkit-font-smoothing:antialiased; }
+
+#bar { position:fixed; top:0; left:0; right:0; z-index:9998; background:#05070A;
+  border-bottom:1px solid rgba(255,255,255,.14); padding:8px 12px 0; }
+#bar .row { display:flex; gap:4px; flex-wrap:wrap; }
+#bar .meta { font:400 11px/22px var(--font); color:#5A606E; padding:4px 4px 8px; }
+.tab { background:transparent; border:1px solid transparent; color:#8A8F9D;
+  font:600 12px/16px var(--font); letter-spacing:.3px; padding:7px 11px;
+  border-radius:8px 8px 0 0; cursor:pointer; transition:all .15s ease; white-space:nowrap; }
+.tab:hover { background:rgba(20,200,255,.08); color:#fff; }
+.tab.active { background:var(--surface-base); color:#fff;
+  border-color:rgba(255,255,255,.14); border-bottom-color:var(--surface-base); }
+
+#tools { position:fixed; bottom:12px; right:12px; z-index:9999; font:400 12px/1 var(--font);
+  background:rgba(0,0,0,.85); color:#fff; padding:8px 10px; border-radius:10px; opacity:.4;
+  transition:opacity .2s; display:flex; gap:8px; align-items:center;
+  border:1px solid rgba(255,255,255,.14); }
+#tools:hover { opacity:1; }
+#tools button, #tools select { background:rgba(255,255,255,.09); color:#fff;
+  border:1px solid rgba(255,255,255,.18); border-radius:6px; padding:5px 8px;
+  font:500 11px/1 var(--font); cursor:pointer; }
+#tools button.on { background:#14C8FF; color:#05070A; border-color:#14C8FF; }
+
+.head { max-width:1180px; margin:0 auto 14px; padding:12px 14px;
+  border-left:3px solid var(--brand-primary); background:rgba(20,200,255,.06);
+  border-radius:0 8px 8px 0; }
+.head h2 { margin:0 0 4px; font:600 15px/20px var(--font); }
+.head p { margin:0; font:400 13px/19px var(--font); color:var(--text-secondary); }
+.head .src { margin-top:6px; font:400 11px/16px var(--font-mono); color:var(--brand-secondary); }
+
+.fitWrap { overflow:hidden; }
+body.fit .fitWrap > .viewport { transform-origin: top center; }
+.viewport { margin:0 auto; background:var(--surface-base); position:relative;
+  border:1px solid rgba(255,255,255,.10); border-radius:6px; overflow:hidden;
+  transition:width .25s ease; }
+.scaleNote { text-align:center; font:600 10px/16px var(--font-mono); color:#5A606E; margin-top:8px; }
+.vpLabel { position:absolute; top:6px; right:8px; z-index:5;
+  font:600 9px/1 var(--font-mono); color:#5A606E; }
+.navbar { height:68px; border-bottom:1px solid var(--border-subtle);
+  background:var(--surface-elevated); display:flex; align-items:center; padding:0 20px; gap:18px; }
+.navbar .brand { font:700 15px/1 var(--font); color:var(--brand-primary); }
+.navbar .nav { font:500 12px/1 var(--font); color:var(--text-secondary); }
+.navbar .nav.on { color:var(--text-primary); }
+.frame { padding:64px 12px 16px; }
+.cap { max-width:1536px; margin:0 auto; position:relative; }
+
+.pageTitle { font:600 24px/32px var(--font); letter-spacing:-.4px; margin:0; }
+.pageSub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:2px; }
+.hdr { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.kicker { font:600 13px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+.kickerDense { font:600 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-secondary); }
+.card { background:var(--surface-elevated); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md); padding:16px; }
+.field { width:100%; height:48px; border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); display:flex; align-items:center; padding:0 12px;
+  font:600 17px/1 var(--font); font-variant-numeric:tabular-nums; }
+.selBox { width:100%; height:48px; border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); display:flex; align-items:center; gap:8px; padding:0 12px;
+  font:400 14px/1 var(--font); cursor:pointer; transition:all .15s ease; }
+.selBox:hover { border-color:rgba(20,200,255,.45); }
+.selBox .g { margin-left:auto; color:var(--text-secondary); }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:40px;
+  padding:0 16px; border-radius:999px; cursor:pointer; font:600 14px/20px var(--font);
+  border:1px solid var(--border-strong); background:transparent; color:var(--text-primary);
+  transition:all .15s ease; }
+.btn:hover { background:rgba(20,200,255,.10); border-color:rgba(20,200,255,.45); }
+.btn.fill { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+  border-color:transparent; color:var(--text-on-brand); }
+.btn.fill[disabled] { background:var(--surface-menu); color:var(--text-primary-38);
+  cursor:not-allowed; border-color:var(--border-subtle); }
+.btn.wide { width:100%; height:48px; }
+.btn.sm { height:32px; padding:0 12px; font-size:13px; }
+.grid { background:var(--surface-sunken); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm); overflow:hidden; }
+.grid .r { display:flex; justify-content:space-between; gap:12px; padding:11px 12px;
+  border-bottom:1px solid var(--border-subtle); }
+.grid .r:last-child { border-bottom:0; }
+.grid .k { font:400 14px/20px var(--font); color:var(--text-primary-70); }
+.grid .v { font:400 14px/20px var(--font); font-variant-numeric:tabular-nums; }
+.chipRow { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { font:600 13px/18px var(--font); padding:6px 12px; border-radius:999px;
+  background:var(--surface-menu); border:1px solid var(--border-subtle);
+  color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+.chip:hover { color:#fff; border-color:rgba(20,200,255,.45); }
+.chip.on { color:#fff; border-color:rgba(20,200,255,.55); background:rgba(20,200,255,.16); }
+.chip.sm { font-size:12px; padding:4px 10px; }
+.pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px;
+  font:600 12px/17px var(--font); white-space:nowrap; }
+.pill.ok{background:var(--status-success-fill);color:var(--status-success)}
+.pill.warn{background:rgba(255,196,46,.14);color:var(--status-warning)}
+.pill.err{background:var(--status-error-fill);color:var(--status-error)}
+.dot { width:7px;height:7px;border-radius:4px; }
+.dot.ok{background:var(--status-success)} .dot.warn{background:var(--status-warning)}
+.dot.err{background:var(--status-error)}
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { text-align:left; padding:8px 12px; font:600 11px/16px var(--font); letter-spacing:.6px;
+  text-transform:uppercase; color:var(--text-secondary); border-bottom:1px solid var(--border-subtle); }
+.tbl td { padding:12px; font:400 14px/20px var(--font); border-bottom:1px solid var(--border-subtle); }
+.tbl tr:last-child td { border-bottom:0; }
+.tbl tr.row:hover td { background:rgba(20,200,255,.05); cursor:pointer; }
+.tbl .num { font-variant-numeric:tabular-nums; }
+.oRow { display:flex; align-items:center; gap:10px; padding:11px 0;
+  border-bottom:1px solid var(--border-subtle); cursor:pointer; transition:background .15s ease; }
+.oRow:last-child { border-bottom:0; }
+.oRow:hover { background:rgba(20,200,255,.05); }
+.emptyQ { text-align:center; padding:22px 12px; }
+.emptyQ .i { font-size:24px; opacity:.5; margin-bottom:8px; }
+.emptyQ p { margin:0; font:400 13px/19px var(--font); color:var(--text-secondary); }
+.verdict { display:flex; gap:8px; flex-wrap:wrap; max-width:1180px; margin:14px auto 0; }
+.vd { flex:1; min-width:210px; padding:10px 12px; border-radius:8px;
+  border:1px solid var(--border-subtle); font:400 12px/17px var(--font);
+  color:var(--text-secondary); background:rgba(255,255,255,.02); }
+.vd b { display:block; font:600 11px/16px var(--font-mono); letter-spacing:.3px; margin-bottom:3px; }
+.vd.good b{color:#0AD89C} .vd.bad b{color:#FF4D4D} .vd.warn b{color:#FFC42E}
+.note { max-width:1180px; margin:18px auto 0; padding:11px 13px; border-radius:8px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border-subtle);
+  font:400 12px/18px var(--font); color:var(--text-secondary); }
+.note b { color:var(--text-primary); font-weight:600; }
+.note code { font:400 11px/1.5 var(--font-mono); color:var(--brand-primary); }
+</style>
+</head>
+<body class="fit">
+
+<div id="bar"><div class="row" id="tabRow"></div><div class="meta" id="meta"></div></div>
+<div id="stage"></div>
+
+<div id="tools">
+  <select id="vp"><option value="1920">1920</option><option value="1600" selected>1600</option>
+    <option value="1280">1280</option><option value="1024">1024</option></select>
+  <button id="fitBtn" class="on">Fit</button>
+  <button id="qBtn">Quote fetched</button>
+</div>
+
+<script>
+let quoted = false;
+
+const navbar = () => `<div class="navbar"><span class="brand">GENIUS</span>
+  <span class="nav">Dashboard</span><span class="nav">Transactions</span>
+  <span class="nav">Markets</span><span class="nav">News</span>
+  <span class="nav on">Buy GNUS</span>
+  <span style="margin-left:auto" class="nav">0x7a3f…c209</span></div>`;
+
+const page = inner => `<div class="fitWrap"><div class="viewport" style="width:var(--vpw)">
+  <span class="vpLabel">${document.getElementById('vp').value}px window</span>
+  ${navbar()}<div class="frame"><div class="cap">${inner}</div></div></div></div>
+  <div class="scaleNote" id="scaleNote"></div>`;
+
+const ORDERS = [
+  ['BNX-4471','Completed','ok','$500.00','1,540.02 GNUS','30 Jul, 14:22'],
+  ['BNX-4468','Awaiting payment','warn','$250.00','770.01 GNUS','29 Jul, 09:10'],
+  ['BNX-4462','Declined','err','$100.00','—','27 Jul, 18:44'],
+  ['BNX-4455','Completed','ok','$1,000.00','3,081.30 GNUS','24 Jul, 11:02']
+];
+
+const header = (trailing) => `<div class="hdr">
+  <div style="flex:1"><h1 class="pageTitle">Buy GNUS</h1>
+    <div class="pageSub">Powered by Banxa</div></div>
+  <button class="btn sm">Verify with Banxa</button>${trailing||''}</div>`;
+
+const formFields = () => `
+  <span class="kickerDense" style="display:block;margin-bottom:6px">You spend</span>
+  <div class="field">$500.00</div>
+  <div style="height:10px"></div>
+  <div class="chipRow"><span class="chip">$100</span><span class="chip on">$500</span>
+    <span class="chip">$1,000</span><span class="chip">$5,000</span></div>
+  <div style="height:14px"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div><span class="kickerDense" style="display:block;margin-bottom:6px">Currency</span>
+      <div class="selBox">US Dollar<span class="g">▾</span></div></div>
+    <div><span class="kickerDense" style="display:block;margin-bottom:6px">Payment method</span>
+      <div class="selBox">Visa •••• 4471<span class="g">▾</span></div></div>
+  </div>`;
+
+const quoteGrid = () => `<div class="grid">
+  <div class="r"><span class="k">You spend</span><span class="v">$500.00</span></div>
+  <div class="r"><span class="k">You get</span><span class="v">1,540.02 GNUS</span></div>
+  <div class="r"><span class="k">Rate</span><span class="v">1 GNUS = $0.3247</span></div>
+  <div class="r"><span class="k">Banxa fee</span><span class="v">$7.45</span></div></div>`;
+
+/* Quote INSIDE the form card — the shape A and C use. */
+const quoteInline = () => quoted
+  ? `<div style="height:14px"></div>${quoteGrid()}
+     <div style="height:14px"></div>
+     <button class="btn fill wide">Create order</button>
+     <div style="height:8px"></div>
+     <div style="text-align:center;font:400 12px/17px var(--font);color:var(--text-secondary)">
+       You will finish payment on Banxa.</div>`
+  : `<div style="height:16px"></div>
+     <button class="btn wide" onclick="toggleQuote()">Get quote</button>`;
+
+/* Orders rail — the right column in every option here. */
+const ordersRail = (n, withFilters) => `<div class="card">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <span class="kicker" style="flex:1">Your orders</span>
+    <button class="btn sm">View all</button></div>
+  ${withFilters ? `<div class="chipRow" style="margin-bottom:10px">
+    <span class="chip sm on">All · 4</span><span class="chip sm">Pending · 1</span>
+    <span class="chip sm">Done · 2</span></div>` : ''}
+  ${ORDERS.slice(0,n).map(o=>`<div class="oRow">
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span class="pill ${o[2]}"><span class="dot ${o[2]}"></span>${o[1]}</span>
+        <span class="kickerDense">${o[5]}</span></div>
+      <div style="font:600 14px/20px var(--font);margin-top:5px" class="num">${o[3]}
+        <span style="color:var(--text-secondary);font-weight:400">→ ${o[4]}</span></div>
+    </div><span style="color:var(--text-secondary)">›</span></div>`).join('')}
+</div>`;
+
+const ordersTable = (withFilters) => `
+  ${withFilters ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+    <span class="kicker" style="flex:1">All orders</span>
+    <span class="chip on">All · 4</span><span class="chip">Pending · 1</span>
+    <span class="chip">Completed · 2</span><span class="chip">Declined · 1</span></div>`:''}
+  <div class="card" style="padding:0;overflow:hidden"><table class="tbl">
+  <thead><tr><th>Order</th><th>Status</th><th>Paid</th><th>Received</th><th>Date</th><th></th></tr></thead>
+  <tbody>${ORDERS.map(o=>`<tr class="row"><td class="num">${o[0]}</td>
+    <td><span class="pill ${o[2]}"><span class="dot ${o[2]}"></span>${o[1]}</span></td>
+    <td class="num">${o[3]}</td><td class="num">${o[4]}</td>
+    <td style="color:var(--text-secondary)">${o[5]}</td>
+    <td style="text-align:right"><button class="btn sm">Details</button></td></tr>`).join('')}
+  </tbody></table></div>`;
+
+const quoteCard = () => `<div class="card">
+  <span class="kicker" style="display:block;margin-bottom:10px">Your quote</span>
+  ${quoted ? `${quoteGrid()}<div style="height:14px"></div>
+    <button class="btn fill wide">Create order</button>`
+   : `<div class="emptyQ"><div class="i">🧮</div>
+       <p>Choose an amount and a payment method,<br>then get a quote.</p></div>
+      <button class="btn fill wide" disabled>Create order</button>`}</div>`;
+
+/* ═══ FOUR OPTIONS ════════════════════════════════════════════════════════ */
+const OPTS = [
+  {
+    id:'a', tab:'A · Quote inline', name:'A · Quote inside the form, orders on the right',
+    thesis:'The quote result appears inside the buy card, directly under the fields that produced it. The right column belongs entirely to Your orders — four rows and a View all. No table below; this page is the history.',
+    src:'form 1fr | orders 1fr · quote inline',
+    body: () => page(`${header()}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+        <div class="card">${formFields()}${quoteInline()}</div>
+        <div>${ordersRail(4, true)}</div>
+      </div>`),
+    verdicts:[['good','ONE THING PER COLUMN','Left buys, right remembers. Nothing to scan for.'],
+              ['good','QUOTE SITS WITH ITS INPUTS','The number appears under the fields that made it.'],
+              ['warn','LEFT COLUMN GROWS','The card gets taller once quoted; the right column does not.']]
+  },
+  {
+    id:'b', tab:'B · Stacked right', name:'B · Quote above orders, both on the right',
+    thesis:'The right column carries two cards: the quote on top, Your orders beneath it. The form stays a clean single card on the left. The quote is where the eye already is when the CTA is pressed.',
+    src:'form 1fr | (quote + orders) 1fr',
+    body: () => page(`${header()}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+        <div class="card">${formFields()}
+          <div style="height:16px"></div>
+          <button class="btn wide" onclick="toggleQuote()">Get quote</button></div>
+        <div>${quoteCard()}<div style="height:16px"></div>${ordersRail(3, false)}</div>
+      </div>`),
+    verdicts:[['good','FORM STAYS FIXED HEIGHT','The left card never changes size, so nothing jumps.'],
+              ['bad','THE ACTION CROSSES COLUMNS','You press Get quote on the left and the answer appears on the right.'],
+              ['warn','ORDERS GET PUSHED DOWN','Once quoted, the orders list moves.']]
+  },
+  {
+    id:'c', tab:'★ C · Rail + table', name:'C · Quote inline, orders rail + full table below',
+    thesis:'A\'s split for the top of the page — quote inline, recent orders beside the form — and the full filterable table still below. The rail answers "did my last one land?" without scrolling; the table is where you actually go looking.',
+    src:'form 1fr | orders rail 1fr, then full-width table',
+    body: () => page(`${header()}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+        <div class="card">${formFields()}${quoteInline()}</div>
+        <div>${ordersRail(3, false)}</div>
+      </div>
+      <div style="height:28px"></div>${ordersTable(true)}`),
+    verdicts:[['good','BOTH JOBS SERVED','Peripheral reassurance up top, real searching below.'],
+              ['good','FRAME FULLY USED','No dead columns at any width.'],
+              ['warn','ORDERS APPEAR TWICE','The rail and the table show overlapping rows.']]
+  },
+  {
+    id:'d', tab:'D · Three columns', name:'D · Form | Quote | Orders',
+    thesis:'At 1536 there is room for three. Form, quote and orders each get their own column and nothing ever moves when a quote arrives. The densest option, and the one most dependent on a wide window.',
+    src:'form 1.2fr | quote 1fr | orders 1fr',
+    body: () => page(`${header()}
+      <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:16px;align-items:start">
+        <div class="card">${formFields()}
+          <div style="height:16px"></div>
+          <button class="btn wide" onclick="toggleQuote()">Get quote</button></div>
+        <div>${quoteCard()}</div>
+        <div>${ordersRail(4, false)}</div>
+      </div>`),
+    verdicts:[['good','NOTHING EVER MOVES','Each column is independent; a quote shifts nothing.'],
+              ['bad','NO PRECEDENT','Nothing else in the app runs three columns.'],
+              ['bad','COLLAPSES BADLY','Below ~1280 it has to become two columns anyway.']]
+  }
+];
+
+/* ═══ RENDER ══════════════════════════════════════════════════════════════ */
+let cur = 'c';
+function render() {
+  const o = OPTS.find(x=>x.id===cur);
+  document.getElementById('tabRow').innerHTML = OPTS.map(x =>
+    `<button class="tab ${x.id===cur?'active':''}" ${x.id==='c'?'style="color:#0AD89C"':''}
+      onclick="pick('${x.id}')">${x.tab}</button>`).join('');
+  document.getElementById('meta').innerHTML =
+    'v3 · Your orders beside the buy section · inherits v2\'s constraints '
+    + '(no verification card, quote is a two-step) · new components: 0';
+  document.getElementById('stage').innerHTML =
+    `<div class="head"><h2>${o.name}</h2><p>${o.thesis}</p><div class="src">${o.src}</div></div>`
+    + o.body()
+    + `<div class="verdict">${o.verdicts.map(([k,t,d])=>
+        `<div class="vd ${k}"><b>${k==='good'?'✓ ':k==='bad'?'✕ ':'⚠ '}${t}</b>${d}</div>`).join('')}</div>`
+    + `<div class="note"><b>What every option here shares.</b> The verification card is gone
+        (nothing reads back a KYC status), the quote is a two-step gated by
+        <code>canGetQuote</code> → <code>canCreateOrder</code>, and the orders rail is
+        <code>OrderCard</code>'s data in a denser row. <b>New components: zero.</b></div>`;
+  applyFit();
+  window.scrollTo(0,0);
+}
+function pick(id){ cur=id; render(); }
+function toggleQuote(){ quoted=!quoted; render();
+  document.getElementById('qBtn').classList.toggle('on', quoted); }
+function applyFit() {
+  const v = document.querySelector('.fitWrap > .viewport');
+  const wrap = document.querySelector('.fitWrap');
+  const note = document.getElementById('scaleNote');
+  if (!v || !wrap) return;
+  const mockW = parseInt(document.getElementById('vp').value, 10);
+  const on = document.body.classList.contains('fit');
+  const k = on ? Math.min(1, Math.max(320, window.innerWidth - 48) / mockW) : 1;
+  v.style.transform = k < 1 ? `scale(${k})` : 'none';
+  wrap.style.height = k < 1 ? (v.offsetHeight * k) + 'px' : 'auto';
+  if (note) note.textContent = k < 1
+    ? `${mockW}px mock shown at ${Math.round(k*100)}% — turn off "Fit" for 1:1`
+    : `${mockW}px mock at 1:1`;
+}
+function setVp(){ document.documentElement.style.setProperty('--vpw',
+  document.getElementById('vp').value+'px'); render(); }
+document.getElementById('vp').addEventListener('change', setVp);
+document.getElementById('qBtn').addEventListener('click', toggleQuote);
+document.getElementById('fitBtn').addEventListener('click', function(){
+  document.body.classList.toggle('fit'); this.classList.toggle('on'); applyFit(); });
+window.addEventListener('resize', applyFit);
+setVp();
+</script>
+</body>
+</html>

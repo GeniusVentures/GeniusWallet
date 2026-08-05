@@ -1,15 +1,21 @@
 {
   "model_profile": "adaptive",
+  "dynamic_routing": {
+    "enabled": true,
+    "tier_models": {
+      "light": "haiku",
+      "standard": "sonnet",
+      "heavy": "opus"
+    },
+    "escalate_on_failure": true,
+    "max_escalations": 1
+  },
   "commit_docs": true,
   "parallelization": true,
   "search_gitignored": false,
   "brave_search": false,
   "firecrawl": false,
   "exa_search": false,
-  "tavily_search": false,
-  "ref_search": false,
-  "perplexity": false,
-  "jina": false,
   "git": {
     "branching_strategy": "none",
     "create_tag": true,
@@ -22,7 +28,7 @@
     "plan_check": true,
     "verifier": true,
     "nyquist_validation": true,
-    "auto_advance": false,
+    "auto_advance": true,
     "node_repair": true,
     "node_repair_budget": 2,
     "ui_phase": true,
@@ -45,7 +51,8 @@
     "post_planning_gaps": true,
     "security_enforcement": true,
     "security_asvs_level": 1,
-    "security_block_on": "high"
+    "security_block_on": "high",
+    "_auto_chain_active": false
   },
   "ship": {
     "pr_body_sections": [

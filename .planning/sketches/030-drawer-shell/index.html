@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 030 — Drawer Shell · Round 2 (B fine-tunes)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+
+  /* ---- variant tab bar ---- */
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em;
+    color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong);
+    transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary);
+    border-color: var(--brand-primary); }
+  .variant-tab.baseline { color: var(--text-secondary); }
+
+  /* ---- stage: dimmed app behind + right-edge panel ---- */
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: hidden; }
+  .app-bg { position: absolute; inset: 0; background:
+      radial-gradient(1200px 600px at 20% 0%, rgba(20,200,255,0.05), transparent 60%),
+      var(--surface-base); }
+  .app-bg .col { position: absolute; top: 24px; bottom: 24px; border-radius: var(--radius-lg);
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); opacity: .5; }
+  .app-bg .c1 { left: 24px; width: 22%; }
+  .app-bg .c2 { left: calc(24px + 23%); width: 34%; }
+  .app-bg .c3 { left: calc(24px + 58%); width: 18%; }
+  .scrim { position: absolute; inset: 0; background: var(--surface-overlay, rgba(0,0,0,.6)); }
+
+  /* ============ THE PANEL — full-height right-edge shell (chosen B) ============ */
+  .panel { position: absolute; top: 0; bottom: 0; right: 0; width: var(--drawer-width);
+    background: var(--surface-menu); display: flex; flex-direction: column;
+    box-shadow: -24px 0 60px rgba(0,0,0,0.45); }
+
+  /* header — shared skeleton, tuned per fine-tune */
+  .p-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+    padding: 0 12px 0 20px; height: 60px; position: relative; }
+  .p-title { color: var(--text-primary); }
+  .p-close { width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+    border-radius: var(--radius-md); color: var(--text-primary-70); transition: all .15s ease;
+    flex: none; }
+  .p-close:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .p-close svg { width: 18px; height: 18px; }
+
+  .p-body { flex: 1; overflow-y: auto; padding: 8px 20px 20px; }
+  .p-foot { flex: none; padding: 16px 20px; }
+
+  /* ---- CTA / buttons — gradient stops are --brand-cta-a/b (the REAL brandCta) ---- */
+  .gwbtn { width: 100%; height: 48px; border: none; border-radius: var(--radius-pill);
+    font: 600 15px var(--font); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 8px; transition: all .15s ease; }
+  .gwbtn.primary { background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a));
+    color: var(--text-on-brand); }
+  .gwbtn.secondary { background: transparent; color: var(--text-primary);
+    border: 1px solid var(--border-strong); }
+  .gwbtn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  .gwbtn svg { width: 17px; height: 17px; }
+
+  /* sample receipt body so shell chrome is legible */
+  .rc-top { text-align: center; padding-top: 8px; }
+  .rc-icon { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto;
+    background: var(--brand-primary-subtle); display: grid; place-items: center;
+    border: 1px solid var(--brand-primary-muted); }
+  .rc-icon svg { width: 30px; height: 30px; color: var(--brand-primary); }
+  .rc-amount { margin-top: 10px; color: var(--brand-secondary-strong); }
+  .sec-label { font: 500 11px var(--font); letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-secondary); margin: 20px 0 8px; }
+  .card { background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg); padding: 4px 16px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 13px 0; }
+  .row + .row { border-top: 1px solid var(--border-subtle); }
+  .row .k { color: var(--text-primary-70); }
+  .row .v { color: var(--text-primary); text-align: right; font-variant-numeric: tabular-nums;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ================= B1 · QUIET BAND ================= */
+  /* Restrained: 1px subtle brand-tint hairline, title titleLg (18), gradient ONLY on CTA. */
+  .B1 .p-head { border-bottom: 1px solid var(--border-subtle); }
+  .B1 .p-head::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: -1px;
+    height: 1px; background: var(--brand-primary-subtle); }
+  .B1 .p-title { font: 600 18px/24px var(--font); }
+  .B1 .p-foot { border-top: 1px solid var(--border-subtle); }
+
+  /* ================= B2 · BRAND-EDGE BAND ================= */
+  /* Branded: header wash + 2px REAL brandCta gradient hairline; elevated floating footer. */
+  .B2 .p-head { height: 64px;
+    background: linear-gradient(180deg, rgba(20,200,255,0.06), transparent); }
+  .B2 .p-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+    height: 2px; background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); opacity: .55; }
+  .B2 .p-title { font: 600 20px/28px var(--font); }
+  .B2 .p-foot { border-top: 1px solid var(--border-subtle);
+    background: var(--surface-elevated); box-shadow: 0 -8px 24px rgba(0,0,0,0.18); }
+
+  /* ================= B3 · STICKY-SCROLL BAND ================= */
+  /* Dynamic: header hairline appears only once content scrolls under it. */
+  .B3 .p-head { border-bottom: 1px solid transparent; transition: border-color .2s, background .2s; }
+  .B3 .p-head.scrolled { border-bottom-color: var(--border-subtle);
+    background: color-mix(in srgb, var(--surface-menu) 88%, transparent); backdrop-filter: blur(6px); }
+  .B3 .p-title { font: 600 18px/24px var(--font); }
+  .B3 .p-foot { border-top: 1px solid var(--border-subtle); }
+
+  /* ================= BASELINE (round-1 chosen B) ================= */
+  .BASE .p-head { height: auto; padding: 16px 12px 16px 20px;
+    background: linear-gradient(180deg, rgba(20,200,255,0.05), transparent);
+    border-bottom: 1px solid var(--border-subtle); }
+  .BASE .p-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); opacity: .5; }
+  .BASE .p-title { font: 600 20px/28px var(--font); }
+  .BASE .p-foot { border-top: 1px solid var(--border-subtle); }
+
+  .variant { display: none; }
+  .variant.active { display: block; }
+
+  .note { position: absolute; z-index: 40; font: 500 11px var(--font); color: var(--brand-primary);
+    background: rgba(20,200,255,0.10); border: 1px solid var(--brand-primary-muted);
+    border-radius: 8px; padding: 5px 9px; max-width: 218px; line-height: 1.4; pointer-events: none; }
+
+  #tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px var(--font);
+    background: rgba(0,0,0,.72); color: #fff; padding: 8px 12px; border-radius: 8px; opacity: .45;
+    transition: opacity .2s; display: flex; gap: 10px; align-items: center; }
+  #tools:hover { opacity: 1; }
+  #tools select { font: 12px var(--font); background: #222; color: #fff;
+    border: 1px solid #444; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="variant-nav">
+  <span class="brand">030 · SHELL · R2</span>
+  <button class="variant-tab active" onclick="show('B1',this)">B1 · Quiet band</button>
+  <button class="variant-tab" onclick="show('B2',this)">B2 · Brand-edge band</button>
+  <button class="variant-tab" onclick="show('B3',this)">B3 · Sticky-scroll</button>
+  <span class="sep"></span>
+  <button class="variant-tab baseline" onclick="show('BASE',this)">baseline · chosen B</button>
+</div>
+
+<!-- template stamped into each variant by JS to keep chrome identical -->
+<template id="tpl">
+  <div class="stage">
+    <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+    <div class="scrim"></div>
+    <div class="panel">
+      <div class="p-head">
+        <div class="p-title">Escrow released</div>
+        <div class="p-close" onclick="close_()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+      </div>
+      <div class="p-body">
+        <div class="rc-top">
+          <div class="rc-icon"></div>
+          <div class="rc-amount t-numeric-headline">+ 500.00 GNUS</div>
+        </div>
+        <div class="sec-label">Transaction</div>
+        <div class="card txn"></div>
+        <div class="sec-label">Network</div>
+        <div class="card net"></div>
+      </div>
+      <div class="p-foot">
+        <button class="gwbtn secondary" onclick="toast()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>View on Explorer</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<div class="variant active" id="v-B1"></div>
+<div class="variant" id="v-B2"></div>
+<div class="variant" id="v-B3"></div>
+<div class="variant" id="v-BASE"></div>
+
+<div id="tools">
+  <label>Theme
+    <select onchange="document.documentElement.setAttribute('data-theme', this.value)">
+      <option value="dark">Dark</option><option value="light">Light</option>
+    </select>
+  </label>
+</div>
+
+<div id="toast" style="position:fixed;bottom:70px;right:16px;z-index:120;background:var(--surface-elevated);
+  border:1px solid var(--border-subtle);border-left:3px solid var(--brand-primary);border-radius:10px;
+  padding:12px 16px;color:var(--text-primary);font:500 13px var(--font);box-shadow:var(--shadow-card);
+  transform:translateX(140%);transition:transform .25s ease;">Opening block explorer…</div>
+
+<script>
+  const BRAIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V17a2 2 0 0 0 4 0"/><path d="M12 5a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V17a2 2 0 0 1-4 0"/></svg>';
+  const TXN = `
+    <div class="row"><span class="k t-body-sm">Date</span><span class="v t-body-md">Jul 22, 2026 · 5:05 PM</span></div>
+    <div class="row"><span class="k t-body-sm">Status</span><span class="v t-body-md" style="color:var(--status-success)">Completed</span></div>
+    <div class="row"><span class="k t-body-sm">From</span><span class="v t-numeric-body" style="font-family:var(--font-mono)">0xFrom…ed05</span></div>`;
+  const NET = `
+    <div class="row"><span class="k t-body-sm">Network</span><span class="v t-body-md">GNUS</span></div>
+    <div class="row"><span class="k t-body-sm">Network Fee</span><span class="v t-numeric-body">0.001 GNUS</span></div>
+    <div class="row"><span class="k t-body-sm">Hash</span><span class="v t-numeric-body" style="font-family:var(--font-mono)">0xdevm…ck05</span></div>`;
+
+  const NOTES = {
+    B1: [['top:70px;right:470px','1px subtle brand-tint hairline, title 18px — the restrained band. Gradient lives ONLY on the CTA.']],
+    B2: [['top:74px;right:470px','2px REAL brandCta gradient (#0AAEE6→#0AD89C) + header wash; footer floats on an elevated surface.']],
+    B3: [['top:70px;right:470px','Header is bare; a hairline + blur appear only once content scrolls under it — try scrolling the panel.']],
+    BASE:[['top:96px;right:470px','Round-1 chosen B, for comparison.']]
+  };
+
+  const tpl = document.getElementById('tpl');
+  function build(id, cls) {
+    const node = tpl.content.cloneNode(true);
+    node.querySelector('.panel').classList.add(cls);
+    node.querySelector('.rc-icon').innerHTML = BRAIN;
+    node.querySelector('.card.txn').innerHTML = TXN;
+    node.querySelector('.card.net').innerHTML = NET;
+    (NOTES[id]||[]).forEach(([style, text]) => {
+      const n = document.createElement('div'); n.className = 'note'; n.style.cssText = style; n.textContent = text;
+      node.querySelector('.stage').appendChild(n);
+    });
+    document.getElementById('v-' + id).appendChild(node);
+  }
+  build('B1','B1'); build('B2','B2'); build('B3','B3'); build('BASE','BASE');
+
+  // B3 sticky hairline on scroll
+  const b3body = document.querySelector('#v-B3 .p-body');
+  b3body.addEventListener('scroll', () => {
+    document.querySelector('#v-B3 .p-head').classList.toggle('scrolled', b3body.scrollTop > 4);
+  });
+
+  function show(id, btn) {
+    document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+    document.getElementById('v-' + id).classList.add('active');
+    document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  let t;
+  function toast() { const el = document.getElementById('toast'); el.style.transform = 'translateX(0)';
+    clearTimeout(t); t = setTimeout(() => el.style.transform = 'translateX(140%)', 1600); }
+  function close_() {
+    const p = document.querySelector('.variant.active .panel');
+    p.style.transition = 'transform .28s ease, opacity .28s ease';
+    p.style.transform = 'translateX(110%)'; p.style.opacity = '0';
+    setTimeout(() => { p.style.transform = ''; p.style.opacity = '1'; }, 900);
+  }
+</script>
+</body>
+</html>

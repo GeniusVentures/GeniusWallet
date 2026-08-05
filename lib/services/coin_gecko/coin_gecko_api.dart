@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
@@ -12,6 +13,15 @@ import 'package:intl/intl.dart';
 
 const Duration cacheDuration = Duration(minutes: 3);
 
+// Bounds a single outbound CoinGecko request. A healthy round trip is
+// comfortably sub-second, so this does not fire on a merely slow-but-alive
+// link; a black-holed socket (accepted but never answered — the client has no
+// default timeout) is instead capped at roughly double the boot sequence's
+// 1.5s minimum hold (13-02 D7) rather than hanging forever. Judgement call,
+// not a measurement (13-CONTEXT Claude's Discretion; 13-RESEARCH A1) — the
+// network-down walk in 13-05 is what revisits this value.
+const Duration requestTimeout = Duration(seconds: 3);
+
 /// Fetches historical prices for a coin from CoinGecko API
 Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
   final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -20,7 +30,7 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
       Hive.box<HistoricalPriceCacheEntry>(historicalPricesBox);
 
   // Check for existing cached entry
-  HistoricalPriceCacheEntry? cacheEntry = box.get(coinId);
+  final HistoricalPriceCacheEntry? cacheEntry = box.get(coinId);
 
   if (cacheEntry != null) {
     final cacheAge = now - cacheEntry.timestamp;
@@ -35,15 +45,17 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
       'https://api.coingecko.com/api/v3/coins/$coinId/market_chart?vs_currency=usd&days=1';
 
   try {
-    final response = await http.get(Uri.parse(historyApi));
+    final response = await http
+        .get(Uri.parse(historyApi))
+        .timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       final List<dynamic> prices = data['prices'];
 
       final Map<int, double> historicalPrices = {
-        for (var entry in prices)
-          (entry[0] ~/ 1000): (entry[1] as num).toDouble(),
+        for (var entry in prices.cast<List<dynamic>>())
+          (entry[0] as num) ~/ 1000: (entry[1] as num).toDouble(),
       };
 
       final newCacheEntry = HistoricalPriceCacheEntry.fromIntMap(
@@ -79,7 +91,9 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
 Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
   required List<String> coinIds,
 }) async {
-  if (coinIds.isEmpty) return {};
+  if (coinIds.isEmpty) {
+    return {};
+  }
 
   // 🔹 Combine with other market coins if needed
   final marketCoins = getAllMarketDataCoinIds();
@@ -131,7 +145,9 @@ Future<Map<String, CoinGeckoMarketData>> fetchCoinsMarketData({
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${missingCoinIds.join(',')}&sparkline=true';
 
   try {
-    final response = await http.get(Uri.parse(marketApi));
+    final response = await http
+        .get(Uri.parse(marketApi))
+        .timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -191,20 +207,19 @@ Future<List<CoinGeckoCoin>> fetchAllCoinGeckoCoins() async {
   );
 
   try {
-    final response = await http.get(url);
+    final response = await http.get(url).timeout(requestTimeout);
 
     if (response.statusCode == 200) {
       final coins = json.decode(response.body) as List<dynamic>;
 
-      final coinList = coins
-          .map(
-            (coin) => CoinGeckoCoin(
-              id: coin['id'] ?? '',
-              symbol: coin['symbol'] ?? '',
-              name: coin['name'] ?? '',
-            ),
-          )
-          .toList();
+      final coinList = coins.map((raw) {
+        final coin = raw as Map<String, dynamic>;
+        return CoinGeckoCoin(
+          id: coin['id'] ?? '',
+          symbol: coin['symbol'] ?? '',
+          name: coin['name'] ?? '',
+        );
+      }).toList();
 
       // Cache the new list and expiry time
       await box.put(coinListBoxKey, coinList);
@@ -271,17 +286,17 @@ Future<String?> fetchCoinPricesSum({
   final marketData = await fetchCoinsMarketData(coinIds: coinIds);
 
   if (marketData.isEmpty) {
-    geniusApi.updateAccountFetchDate();
+    unawaited(geniusApi.updateAccountFetchDate());
     return null;
   }
 
-  Map<String, double> coinPrices = marketData.map(
+  final Map<String, double> coinPrices = marketData.map(
     (key, value) => MapEntry(key, value.currentPrice),
   );
 
-  double totalBalance = calculateTotalBalance(coinBalances, coinPrices);
+  final double totalBalance = calculateTotalBalance(coinBalances, coinPrices);
 
-  geniusApi.saveAccountBalance(totalBalance);
+  unawaited(geniusApi.saveAccountBalance(totalBalance));
 
   return "\$ ${NumberFormat('#,##0.00').format(totalBalance)}";
 }

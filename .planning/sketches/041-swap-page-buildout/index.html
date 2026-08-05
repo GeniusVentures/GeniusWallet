@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>041 · Swap page buildout — 5 schematów, które nadają sens tytułowi po lewej</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#000; color:var(--text-primary); padding:56px 16px 64px; }
+  .wrap { max-width:1740px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 auto var(--space-8); max-width:1100px; }
+  .lede b { color:var(--text-primary); } .lede code { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-secondary); }
+  .tag.warn { background:rgba(255,196,46,.14); color:var(--status-warning); }
+  .tag.bad { background:var(--status-error-fill); color:var(--status-error); }
+
+  /* provenance pill — KAŻDY panel deklaruje skąd bierze dane */
+  .prov { font:600 9px/1 var(--font-mono); letter-spacing:.2px; padding:3px 6px; border-radius:4px; white-space:nowrap; }
+  .prov.real { background:var(--status-success-fill); color:var(--status-success); }
+  .prov.wire { background:var(--brand-fill); color:var(--brand-primary); }
+  .prov.mock { background:rgba(255,196,46,.14); color:var(--status-warning); }
+
+  /* ---------- real app window ---------- */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card);
+    width:100%; max-width:var(--winw, 100%); margin:0 auto; transition:max-width .2s ease; }
+  .navbar { display:flex; align-items:center; gap:var(--space-10); height:68px; padding:0 var(--space-12);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 14px/18px var(--font); color:var(--text-secondary); }
+  .navbar .brand { width:24px; height:24px; border-radius:7px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-24px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .right { margin-left:auto; display:flex; align-items:center; gap:var(--space-6); }
+  .navbar .right > * { flex:none; white-space:nowrap; }
+  .navbar .chip { padding:6px 11px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); }
+  .navbar .navcta { padding:7px 13px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); font:600 12px/16px var(--font); }
+  body.no-nav .navbar { display:none; }
+
+  .stage { position:relative; } .variant { display:none; } .variant.active { display:block; }
+
+  /* ---------- page frame — tytuł ZAWSZE na tym X ---------- */
+  .frame { max-width:1600px; margin:0 auto; padding:0 12px; }
+  .pagehead { display:flex; align-items:flex-start; }
+  .pagehead h2 { font:600 28px/36px var(--font); letter-spacing:-.5px; color:var(--text-primary); }
+  .pagehead .sub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-2); }
+  .pagehead .grow { margin-right:auto; }
+  .tune { height:40px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:transparent; padding:0 14px; gap:8px;
+    color:var(--text-secondary); display:inline-flex; align-items:center; cursor:pointer; transition:all .15s ease; flex:none; font:600 13px/1 var(--font); }
+  .tune:hover { background:var(--surface-menu); color:var(--text-primary); transform:translateY(-1px); }
+  .headrow { padding:40px 0 20px; }
+  body.measure .axisline { outline:1px dashed rgba(43,245,180,.45); }
+  body.measure .frame { background:linear-gradient(90deg, rgba(20,200,255,.07) 0 1px, transparent 1px); }
+
+  /* ---------- token logo / pill ---------- */
+  .logo { border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font:800 11px/1 var(--font); }
+  .logo.eth { background:linear-gradient(135deg,#8FA2F5,#627EEA); } .logo.usdc { background:linear-gradient(135deg,#3E8FE0,#2775CA); }
+  .logo.usdt { background:linear-gradient(135deg,#3fc79a,#26A17B); } .logo.pol { background:linear-gradient(135deg,#a06bf0,#8247E5); }
+  .logo.wbtc { background:linear-gradient(135deg,#f7b267,#F09242); }
+  .tk { display:inline-flex; align-items:center; gap:9px; padding:6px 12px 6px 7px; border-radius:var(--radius-pill);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-primary); cursor:pointer; transition:all .15s ease; white-space:nowrap; }
+  .tk:hover { border-color:var(--brand-primary); transform:translateY(-1px); }
+  .tk .sym { font:700 16px/1 var(--font); } .tk .cv { color:var(--text-secondary); display:grid; place-items:center; }
+
+  .amt { background:transparent; border:none; outline:none; color:var(--text-primary); font:600 38px/1 var(--font);
+    font-variant-numeric:tabular-nums; width:100%; letter-spacing:-.5px; }
+  .amt::placeholder { color:var(--text-primary-38); }
+  .usd { font:500 14px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .flabel { font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .bal { font:500 12px/16px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .maxbtn { font:700 10px/1 var(--font); letter-spacing:.4px; color:var(--brand-secondary); background:var(--brand-fill);
+    border:none; border-radius:6px; padding:5px 7px; cursor:pointer; } .maxbtn:hover { filter:brightness(1.12); }
+
+  .cta { width:100%; height:56px; border:none; border-radius:var(--radius-md); font:600 17px/1 var(--font); cursor:pointer;
+    color:var(--text-on-brand); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); transition:all .15s ease; }
+  .cta:hover:not(:disabled) { filter:brightness(1.06); transform:translateY(-1px); box-shadow:0 8px 22px rgba(10,216,156,.30); }
+  .cta:disabled { cursor:not-allowed; background:var(--surface-menu); color:var(--text-primary-38); }
+  .cta.loading { background:var(--surface-menu); color:var(--text-secondary); cursor:progress; }
+  .cta.err { background:var(--status-error-fill); color:var(--status-error); }
+
+  .route { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-elevated); overflow:hidden; }
+  .rrow { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; font:500 13px/18px var(--font); }
+  .rrow .k { color:var(--text-secondary); } .rrow .v { color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .rrow + .rrow { border-top:1px solid var(--border-subtle); } .rrow .v.good { color:var(--status-success); }
+
+  .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-2xl); box-shadow:var(--shadow-card); }
+  svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  .a-field { padding:20px 20px 22px; }
+  .a-field .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .a-field .mid { display:flex; align-items:flex-end; gap:12px; } .a-field .mid .col2 { flex:1; min-width:0; }
+  .a-field .foot { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+  .a-seam { position:relative; height:0; z-index:2; }
+  .a-flip { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:14px;
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); border:5px solid var(--surface-elevated); color:var(--text-on-brand);
+    display:grid; place-items:center; cursor:pointer; } .a-flip:hover { filter:brightness(1.06); } .a-flip svg { width:20px; height:20px; }
+  .form-col { max-width:560px; }
+
+  /* ---------- panele ---------- */
+  .panel { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-2xl); box-shadow:var(--shadow-card); padding:18px; }
+  .panel + .panel { margin-top:var(--space-8); }
+  .panel h4 { font:600 12px/16px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.6px;
+    margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .panel h4 .sp { margin-left:auto; }
+  .plink { font:600 12px/16px var(--font); color:var(--brand-primary); cursor:pointer; }
+  .plink:hover { text-decoration:underline; }
+
+  .kv { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font:500 13px/18px var(--font); }
+  .kv + .kv { border-top:1px solid var(--border-subtle); }
+  .kv .k { color:var(--text-secondary); } .kv .v { color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .kv .v.good { color:var(--status-success); }
+
+  /* salda / lista tokenów */
+  .brow { display:flex; align-items:center; gap:11px; padding:10px 0; cursor:pointer; border-top:1px solid var(--border-subtle); }
+  .brow:first-of-type { border-top:none; }
+  .brow:hover { background:var(--surface-menu); margin:0 -10px; padding-left:10px; padding-right:10px; border-radius:8px; }
+  .brow .nm { font:500 14px/18px var(--font); } .brow .ch { font:400 11px/15px var(--font); color:var(--text-secondary); }
+  .brow .rb { margin-left:auto; text-align:right; }
+  .brow .rb .b { font:500 14px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .brow .rb .u { font:400 11px/15px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+
+  /* historia swapów */
+  .srow { display:flex; align-items:center; gap:12px; padding:13px 0; border-top:1px solid var(--border-subtle); }
+  .srow:first-of-type { border-top:none; }
+  .srow .pair { display:flex; align-items:center; flex:none; }
+  .srow .pair .logo { width:26px; height:26px; } .srow .pair .logo:last-child { margin-left:-9px; border:2px solid var(--surface-elevated); }
+  .srow .txt { min-width:0; flex:1; }
+  .srow .txt .a { font:500 14px/19px var(--font); color:var(--text-primary); }
+  .srow .txt .b { font:400 11px/16px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .srow .rb { text-align:right; flex:none; }
+  .srow .rb .n { font:500 14px/19px var(--font); font-variant-numeric:tabular-nums; }
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:8px; font:600 11px/16px var(--font); }
+  .badge.ok { background:var(--status-success-fill); color:var(--status-success); }
+  .badge.pend { background:rgba(255,196,46,.14); color:var(--status-warning); }
+  .badge.fail { background:var(--status-error-fill); color:var(--status-error); }
+
+  /* wykres pary */
+  .pairhero { display:flex; align-items:flex-end; gap:var(--space-12); }
+  .pairid { flex:none; } .pairid .pl { display:flex; align-items:center; margin-bottom:10px; }
+  .pairid .pl .logo { width:38px; height:38px; } .pairid .pl .logo:last-child { margin-left:-12px; border:3px solid var(--surface-elevated); }
+  .pairid .nm { font:600 20px/26px var(--font); } .pairid .px { font:600 30px/38px var(--font); font-variant-numeric:tabular-nums; margin-top:6px; }
+  .pill { display:inline-flex; align-items:center; padding:3px 8px; border-radius:8px; font:600 13px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .pill.up { background:var(--status-success-fill); color:var(--status-success); }
+  .chartbox { flex:1; min-width:0; }
+  .chartbox svg { width:100%; height:120px; display:block; }
+  .tfs { display:flex; gap:6px; }
+  .tf { font:600 11px/1 var(--font); padding:6px 10px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle);
+    background:transparent; color:var(--text-secondary); cursor:pointer; } .tf.on { background:var(--brand-fill); color:var(--brand-secondary); border-color:transparent; }
+
+  /* eksplorator trasy */
+  .hop { display:flex; gap:14px; }
+  .hop .spine { width:32px; flex:none; display:flex; flex-direction:column; align-items:center; }
+  .hop .dot { width:32px; height:32px; border-radius:50%; background:var(--surface-menu); border:1px solid var(--border-subtle);
+    display:grid; place-items:center; font:700 12px/1 var(--font); color:var(--text-secondary); flex:none; }
+  .hop .dot.on { background:var(--brand-fill); border-color:transparent; color:var(--brand-secondary); }
+  .hop .line { flex:1; width:2px; background:var(--border-subtle); margin:4px 0; }
+  .hop .body { flex:1; padding-bottom:20px; min-width:0; }
+  .hop .t { font:600 14px/20px var(--font); } .hop .d { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:2px; }
+  .hop .meta { display:flex; gap:16px; margin-top:8px; font:500 12px/16px var(--font-mono); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+
+  /* toolbar wariantu 5 */
+  .toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:14px 0 0; }
+  .tchip { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:var(--radius-pill);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); font:500 13px/17px var(--font); color:var(--text-primary); cursor:pointer; }
+  .tchip:hover { border-color:var(--brand-primary); transform:translateY(-1px); }
+  .tchip .k { color:var(--text-secondary); font-weight:400; }
+
+  /* siatki */
+  .g-desk { display:grid; grid-template-columns:300px minmax(0,560px) minmax(300px,360px); gap:var(--space-12); align-items:start; }
+  .g-ledger { display:grid; grid-template-columns:minmax(0,560px) minmax(360px,1fr); gap:var(--space-20); align-items:start; }
+  .g-route { display:grid; grid-template-columns:minmax(0,560px) minmax(380px,1fr); gap:var(--space-20); align-items:start; }
+  .g-bench { display:grid; grid-template-columns:minmax(0,560px) minmax(320px,400px); gap:var(--space-16); align-items:start; }
+  .g-pair  { display:grid; grid-template-columns:minmax(0,560px) minmax(320px,420px); gap:var(--space-20); align-items:start; }
+  .body-pad { padding:0 0 56px; }
+  @media(max-width:1300px){ .g-desk { grid-template-columns:minmax(0,560px) minmax(300px,360px); } .g-desk .rail { display:none; } }
+  @media(max-width:1000px){ .g-desk,.g-ledger,.g-route,.g-bench,.g-pair { grid-template-columns:minmax(0,560px); }
+    .g-desk .side,.g-ledger .side,.g-route .side,.g-bench .side,.g-pair .side { display:none; } }
+
+  /* ---------- picker / settings ---------- */
+  #picker,#settings { position:fixed; inset:0; z-index:9997; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; }
+  #picker.open,#settings.open { display:flex; }
+  #picker .sheet { width:100%; max-width:420px; background:var(--surface-base); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:18px 16px 22px; max-height:72vh; overflow:auto; }
+  #picker h3,#settings h3 { font:600 18px/24px var(--font); margin-bottom:14px; }
+  #picker .search { display:flex; align-items:center; gap:8px; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:14px; color:var(--text-secondary); }
+  #picker .search input { background:transparent; border:none; outline:none; color:var(--text-primary); font:400 15px/20px var(--font); flex:1; }
+  .prow { display:flex; align-items:center; gap:12px; padding:11px 10px; border-radius:var(--radius-md); cursor:pointer; }
+  .prow:hover { background:var(--surface-menu); } .prow .nm { font:500 15px/20px var(--font); color:var(--text-primary); }
+  .prow .sub { font:400 12px/16px var(--font); color:var(--text-secondary); } .prow .rb { margin-left:auto; text-align:right; }
+  .prow .rb .b { font:500 13px/18px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  #settings .box { width:320px; background:var(--surface-base); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:18px; }
+  .chip2 { font:600 12px/1 var(--font); padding:8px 12px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .chip2.on { background:var(--brand-fill); border-color:transparent; color:var(--brand-secondary); }
+
+  /* ręczne wpisywanie slippage — czego realny drawer nie waliduje wcale */
+  .slipfield { display:flex; align-items:center; gap:8px; background:var(--surface-menu);
+    border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:11px 14px; transition:border-color .15s ease; }
+  .slipfield:focus-within { border-color:var(--brand-primary); }
+  .slipfield.warn { border-color:var(--status-warning); }
+  .slipfield.err  { border-color:var(--status-error); }
+  .slipfield input { flex:1; min-width:0; background:transparent; border:none; outline:none; color:var(--text-primary);
+    font:600 16px/22px var(--font); font-variant-numeric:tabular-nums; }
+  .slipfield input::placeholder { color:var(--text-primary-38); font-weight:400; }
+  .slipfield .pct { font:600 16px/22px var(--font); color:var(--text-secondary); }
+  .slipmsg { font:500 12px/17px var(--font); margin-top:8px; min-height:17px; color:var(--text-secondary); }
+  .slipmsg.warn { color:var(--status-warning); } .slipmsg.err { color:var(--status-error); }
+  .applybtn { width:100%; height:48px; margin-top:14px; border:none; border-radius:var(--radius-md); cursor:pointer;
+    font:600 16px/1 var(--font); color:var(--text-on-brand); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .applybtn:hover:not(:disabled) { filter:brightness(1.06); }
+  .applybtn:disabled { background:var(--surface-menu); color:var(--text-primary-38); cursor:not-allowed; }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="name">041 · Swap page buildout</span>
+  <button class="vt" onclick="showVariant('now',event)">0 · Dziś</button>
+  <button class="vt active" onclick="showVariant('desk',event)">1 · Desk</button>
+  <button class="vt" onclick="showVariant('pair',event)">2 · Para</button>
+  <button class="vt" onclick="showVariant('ledger',event)">3 · Ledger ★ Wybrany</button>
+  <button class="vt" onclick="showVariant('route',event)">4 · Route</button>
+  <button class="vt" onclick="showVariant('bench',event)">5 · Warsztat</button>
+</div>
+
+<div class="wrap">
+  <p class="lede" id="lede"></p>
+  <div class="win" id="win">
+    <div class="navbar">
+      <div class="brand"></div>
+      <span>Dashboard</span><span>Transactions</span><span class="on">Swap</span><span>Markets</span><span>News</span><span>Web</span>
+      <div class="right"><span class="chip">Ethereum</span><span class="chip">0x12…9f</span><span class="navcta">Connect</span></div>
+    </div>
+
+    <div class="stage">
+
+      <!-- ================= 0 · TODAY ================= -->
+      <div id="variant-now" class="variant">
+        <div class="frame">
+          <div class="headrow"><div class="pagehead">
+            <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+            <button class="tune" onclick="openSettings()">__TUNE__</button>
+          </div></div>
+          <div class="body-pad" style="margin:0 auto;"><div class="form-col" style="margin:0 auto;"><div class="win2" data-v="now"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ================= 1 · DESK ================= -->
+      <div id="variant-desk" class="variant active">
+        <div class="frame">
+          <div class="headrow"><div class="pagehead">
+            <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+            <button class="tune" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+          </div></div>
+          <div class="body-pad g-desk">
+            <div class="rail axisline">
+              <div class="panel">
+                <h4>Your tokens <span class="prov mock sp">SquidBalance ⚠ mock</span></h4>
+                <div id="deskBal"></div>
+              </div>
+              <div class="panel">
+                <h4>Networks <span class="prov real sp">SquidChainInfo ✓</span></h4>
+                <div class="kv"><span class="k">Ethereum</span><span class="v">3 tokens</span></div>
+                <div class="kv"><span class="k">Polygon</span><span class="v">2 tokens</span></div>
+              </div>
+            </div>
+            <div class="form-col axisline"><div class="win2" data-v="desk"></div></div>
+            <div class="side">
+              <div class="panel">
+                <h4>Recent swaps <span class="prov real sp">Transaction.swap ✓</span></h4>
+                <div id="deskHist"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 2 · PARA ================= -->
+      <div id="variant-pair" class="variant">
+        <div class="frame">
+          <div class="headrow"><div class="pagehead">
+            <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+            <button class="tune" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+          </div></div>
+          <div class="panel axisline" style="margin-bottom:var(--space-16);">
+            <h4>ETH / USDC <span class="prov wire sp">CoinGeckoMarketData ✓ model, needs wiring</span>
+              <span class="sp tfs"><button class="tf">24h</button><button class="tf on">7d</button><button class="tf">30d</button></span></h4>
+            <div class="pairhero">
+              <div class="pairid">
+                <div class="pl"><span class="logo eth">E</span><span class="logo usdc">U</span></div>
+                <div class="nm">ETH → USDC</div>
+                <div class="px">$3,420.55</div>
+                <div style="margin-top:8px;"><span class="pill up">▲ 1.24% · 24h</span></div>
+                <div style="margin-top:12px;font:500 12px/20px var(--font-mono);color:var(--text-secondary);">
+                  H 3&nbsp;488.10<br>L 3&nbsp;352.77<br>Rank #2
+                </div>
+              </div>
+              <div class="chartbox" id="pairChart"></div>
+            </div>
+          </div>
+          <div class="body-pad g-pair">
+            <div class="form-col axisline"><div class="win2" data-v="pair"></div></div>
+            <div class="side">
+              <div class="panel">
+                <h4>Market <span class="prov wire sp">CoinGeckoMarketData ✓</span></h4>
+                <div class="kv"><span class="k">Market cap</span><span class="v">$411.2B</span></div>
+                <div class="kv"><span class="k">Volume 24h</span><span class="v">$18.4B</span></div>
+                <div class="kv"><span class="k">ATH</span><span class="v">$4,878.26</span></div>
+                <div class="kv"><span class="k">From ATH</span><span class="v">−29.9%</span></div>
+              </div>
+              <div class="panel">
+                <h4>Recent swaps <span class="prov real sp">Transaction.swap ✓</span></h4>
+                <div id="pairHist"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 3 · LEDGER ================= -->
+      <div id="variant-ledger" class="variant">
+        <div class="frame">
+          <div class="headrow"><div class="pagehead">
+            <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+            <button class="tune" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+          </div></div>
+          <div class="body-pad g-ledger">
+            <div class="form-col axisline"><div class="win2" data-v="ledger"></div></div>
+            <div class="side axisline">
+              <div class="panel" style="padding:18px 18px 8px;">
+                <h4>Your swaps <span class="prov real sp">Transaction(type: swap) ✓ written by swap_screen.dart:247</span>
+                  <span class="sp plink">View all →</span></h4>
+                <div id="ledgerHist"></div>
+              </div>
+              <div class="panel">
+                <h4>Summary <span class="prov real sp">derived from Transaction ✓</span></h4>
+                <div class="kv"><span class="k">Total swaps</span><span class="v">14</span></div>
+                <div class="kv"><span class="k">Completed</span><span class="v good">12</span></div>
+                <div class="kv"><span class="k">Pending</span><span class="v">1</span></div>
+                <div class="kv"><span class="k">Failed</span><span class="v">1</span></div>
+                <div class="kv"><span class="k">Fees paid</span><span class="v">$18.42</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 4 · TRASA ================= -->
+      <div id="variant-route" class="variant">
+        <div class="frame">
+          <div class="headrow"><div class="pagehead">
+            <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+            <button class="tune" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+          </div></div>
+          <div class="body-pad g-route">
+            <div class="form-col axisline"><div class="win2" data-v="route"></div></div>
+            <div class="side axisline">
+              <div class="panel">
+                <h4>Route <span class="prov real sp">SquidRouteResponse.route ✓</span>
+                  <span class="sp" style="font:500 12px/16px var(--font);color:var(--text-secondary);text-transform:none;letter-spacing:0;">routeId 0x9a…c4</span></h4>
+                <div class="hop">
+                  <div class="spine"><div class="dot on">1</div><div class="line"></div></div>
+                  <div class="body"><div class="t">Swap on Ethereum</div><div class="d">1.842 ETH → 6&nbsp;299.02 USDC · Uniswap V3</div>
+                    <div class="meta"><span>gas $2.14</span><span>impact 0.04%</span></div></div>
+                </div>
+                <div class="hop">
+                  <div class="spine"><div class="dot on">2</div><div class="line"></div></div>
+                  <div class="body"><div class="t">Bridge Ethereum → Polygon</div><div class="d">Axelar · ~2 min</div>
+                    <div class="meta"><span>fee $0.42</span><span>SquidFeeCost</span></div></div>
+                </div>
+                <div class="hop">
+                  <div class="spine"><div class="dot on">3</div></div>
+                  <div class="body" style="padding-bottom:4px;"><div class="t">Delivery on Polygon</div><div class="d">6&nbsp;292.73 USDC na 0x12…9f</div>
+                    <div class="meta"><span>gas $0.01</span></div></div>
+                </div>
+              </div>
+              <div class="panel">
+                <h4>Costs <span class="prov real sp">gasCosts[] + feeCosts[] ✓</span></h4>
+                <div class="kv"><span class="k">Rate</span><span class="v">1 ETH = 3 420.55 USDC</span></div>
+                <div class="kv"><span class="k">Price impact</span><span class="v good">0.08%</span></div>
+                <div class="kv"><span class="k">Gas (3 steps)</span><span class="v">$2.15</span></div>
+                <div class="kv"><span class="k">Bridge fee</span><span class="v">$0.42</span></div>
+                <div class="kv"><span class="k">Slippage</span><span class="v">0.5%</span></div>
+                <div class="kv"><span class="k">Minimum received</span><span class="v">6 261.27 USDC</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 5 · WARSZTAT ================= -->
+      <div id="variant-bench" class="variant">
+        <div class="frame">
+          <div class="headrow" style="padding-bottom:0;"><div class="pagehead">
+            <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+          </div></div>
+          <div class="toolbar axisline" style="border-bottom:1px solid var(--border-subtle);padding-bottom:16px;margin-bottom:28px;">
+            <span class="tchip" onclick="openPicker('bench','from')"><span class="logo eth" style="width:20px;height:20px;">E</span>ETH<span class="k">Ethereum</span></span>
+            <span style="color:var(--text-secondary);">→</span>
+            <span class="tchip" onclick="openPicker('bench','to')"><span class="logo usdc" style="width:20px;height:20px;">U</span>USDC<span class="k">Polygon</span></span>
+            <span class="tchip" onclick="openSettings()"><span class="k">Slippage</span>0.5%</span>
+            <span class="tchip"><span class="k">Rate</span>1 ETH = 3 420.55 USDC</span>
+            <span class="tchip" style="margin-left:auto;"><span class="k">Last swap</span>2h ago</span>
+          </div>
+          <div class="body-pad g-bench">
+            <div class="form-col axisline"><div class="win2" data-v="bench"></div></div>
+            <div class="side">
+              <div class="panel">
+                <h4>Route details <span class="prov real sp">SquidRouteResponse ✓</span></h4>
+                <div class="kv"><span class="k">Steps</span><span class="v">3 · Uniswap → Axelar</span></div>
+                <div class="kv"><span class="k">Gas + fees</span><span class="v">$2.57</span></div>
+                <div class="kv"><span class="k">Price impact</span><span class="v good">0.08%</span></div>
+              </div>
+              <div class="panel">
+                <h4>Recent swaps <span class="prov real sp">Transaction.swap ✓</span></h4>
+                <div id="benchHist"></div>
+              </div>
+              <div class="panel">
+                <h4>Your tokens <span class="prov mock sp">SquidBalance ⚠ mock</span></h4>
+                <div id="benchBal"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="picker" onclick="if(event.target===this)closePicker()">
+  <div class="sheet"><h3>Select Token</h3>
+    <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="pickerSearch" placeholder="Search tokens..." oninput="renderPickerList()"></div>
+    <div id="pickerList"></div>
+  </div>
+</div>
+<div id="settings" onclick="if(event.target===this)closeSettings()">
+  <div class="box"><h3>Swap Settings</h3>
+    <div style="font:500 13px/18px var(--font); color:var(--text-secondary); margin-bottom:10px;">Slippage tolerance</div>
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <button class="chip2" id="sc0" onclick="pickPreset(0.1,this)">0.1%</button>
+      <button class="chip2 on" id="sc1" onclick="pickPreset(0.5,this)">0.5%</button>
+      <button class="chip2" id="sc2" onclick="pickPreset(1.0,this)">1.0%</button>
+    </div>
+    <label class="slipfield" id="slipField">
+      <input id="slipInput" type="text" inputmode="decimal" placeholder="Custom" oninput="validateSlip()" autocomplete="off">
+      <span class="pct">%</span>
+    </label>
+    <div class="slipmsg" id="slipMsg"></div>
+    <button class="applybtn" id="slipApply" onclick="applySlip()">Apply</button>
+  </div>
+</div>
+
+<div id="sketch-tools" style="position:fixed;bottom:12px;right:12px;z-index:9999;font-family:system-ui;font-size:12px;background:rgba(0,0,0,0.72);color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;transition:opacity .2s;display:flex;gap:14px;align-items:center;" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.45">
+  <span>
+    <button onclick="setTheme('dark')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Dark</button>
+    <button onclick="setTheme('light')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Light</button>
+  </span>
+  <span>
+    <button onclick="setW('100%')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">1700</button>
+    <button onclick="setW('1280px')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">1280</button>
+    <button onclick="setW('900px')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">900</button>
+  </span>
+  <span>
+    <button onclick="document.body.classList.toggle('measure')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Osie</button>
+    <button onclick="document.body.classList.toggle('no-nav')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Navbar</button>
+  </span>
+</div>
+
+<script>
+const TUNE = '<svg class="i" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>';
+document.querySelectorAll('.tune').forEach(b => b.innerHTML = b.innerHTML.replace('__TUNE__', TUNE));
+
+const TOKENS = {
+  ETH:  { sym:'ETH',  name:'Ethereum', price:3420.55, bal:1.842,  cls:'eth',  chain:'Ethereum' },
+  USDC: { sym:'USDC', name:'USD Coin', price:1.00,    bal:0,      cls:'usdc', chain:'Polygon'  },
+  USDT: { sym:'USDT', name:'Tether',   price:1.00,    bal:250.00, cls:'usdt', chain:'Ethereum' },
+  POL:  { sym:'POL',  name:'Polygon',  price:0.52,    bal:820.4,  cls:'pol',  chain:'Polygon'  },
+  WBTC: { sym:'WBTC', name:'Wrapped Bitcoin', price:96420.0, bal:0.0154, cls:'wbtc', chain:'Ethereum' },
+};
+const ORDER = ['ETH','USDC','USDT','POL','WBTC'];
+const VS = ['now','desk','pair','ledger','route','bench'];
+const SLIP = {}; VS.forEach(v => SLIP[v] = 0.5);
+const FEE_PCT = 0.001, IMPACT = 0.08;
+const state = {}; VS.forEach(v => state[v] = { from:'ETH', to:'USDC', amt:'' });
+const debounce = {};
+
+/* Historia — kształt 1:1 z packages/genius_api/lib/models/transaction.dart
+   (fromSymbol, toSymbol, fromAmount, toAmount, timeStamp, transactionStatus) */
+const HIST = [
+  { from:'ETH',  to:'USDC', fa:'0.500',  ta:'1 708.12', when:'2h ago',  chain:'Ethereum', st:'completed' },
+  { from:'USDT', to:'POL',  fa:'100.00', ta:'192.30',   when:'Yesterday',   chain:'Polygon',  st:'pending'   },
+  { from:'WBTC', to:'ETH',  fa:'0.0041', ta:'0.4302',   when:'3d ago',chain:'Ethereum', st:'completed' },
+  { from:'POL',  to:'USDC', fa:'500.00', ta:'259.44',   when:'5d ago',chain:'Polygon',  st:'failed'    },
+  { from:'ETH',  to:'USDT', fa:'0.250',  ta:'854.06',   when:'1w ago',chain:'Ethereum', st:'completed' },
+];
+const BADGE = { completed:['ok','Completed'], pending:['pend','Pending'], failed:['fail','Failed'] };
+
+function fmt(n,dp){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp}); }
+function usd(n){ return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function tokenLogoHTML(key,size){ const t=TOKENS[key]; const s=size||28; return `<span class="logo ${t.cls}" style="width:${s}px;height:${s}px;">${t.sym[0]}</span>`; }
+function win(v){ return document.querySelector(`.win2[data-v="${v}"]`); }
+
+const CARD = (v)=>`
+  <div class="card a-field">
+    <div class="top"><span class="flabel">You Pay</span></div>
+    <div class="mid"><div class="col2"><input class="amt pay-in" data-v="${v}" placeholder="0.0"></div><div class="tk" data-side="from" onclick="openPicker('${v}','from')"></div></div>
+    <div class="foot"><span class="usd pay-usd">$0.00</span><span style="display:flex;align-items:center;gap:8px;"><span class="bal from-bal"></span><button class="maxbtn" onclick="setMax('${v}')">MAX</button></span></div>
+  </div>
+  <div class="a-seam"><div class="a-flip" onclick="flip('${v}')"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v13M7 4l-3 3M7 4l3 3M17 20V7M17 20l3-3M17 20l-3-3"/></svg></div></div>
+  <div class="card a-field" style="margin-top:16px;">
+    <div class="top"><span class="flabel">You Receive</span></div>
+    <div class="mid"><div class="col2"><div class="amt rec-out" data-v="${v}" style="color:var(--text-primary-38)">0.0</div></div><div class="tk" data-side="to" onclick="openPicker('${v}','to')"></div></div>
+    <div class="foot"><span class="usd rec-usd">$0.00</span><span class="bal to-bal"></span></div>
+  </div>
+  <div class="route rdetails" data-v="${v}" style="display:none; margin-top:16px;"></div>
+  <button class="cta cta-btn" data-v="${v}" disabled style="margin-top:24px;">Enter an amount</button>`;
+VS.forEach(v => { win(v).innerHTML = CARD(v); });
+
+function histHTML(n){
+  return HIST.slice(0,n).map(h=>{
+    const [cls,label]=BADGE[h.st];
+    return `<div class="srow">
+      <span class="pair">${tokenLogoHTML(h.from,26)}${tokenLogoHTML(h.to,26)}</span>
+      <span class="txt"><div class="a">${h.from} → ${h.to}</div><div class="b">${h.when} · ${h.chain}</div></span>
+      <span class="rb"><div class="n">+${h.ta}</div><div style="margin-top:3px;"><span class="badge ${cls}">${label}</span></div></span>
+    </div>`;
+  }).join('');
+}
+function balHTML(){
+  return ORDER.filter(k=>TOKENS[k].bal>0).map(k=>{ const t=TOKENS[k];
+    return `<div class="brow" onclick="pickFromRail('${k}')">${tokenLogoHTML(k,30)}
+      <span><div class="nm">${t.sym}</div><div class="ch">${t.chain}</div></span>
+      <span class="rb"><div class="b">${fmt(t.bal,t.bal<1?4:2)}</div><div class="u">${usd(t.bal*t.price)}</div></span></div>`;
+  }).join('');
+}
+document.getElementById('deskHist').innerHTML   = histHTML(4);
+document.getElementById('pairHist').innerHTML   = histHTML(3);
+document.getElementById('ledgerHist').innerHTML = histHTML(5);
+document.getElementById('benchHist').innerHTML  = histHTML(3);
+document.getElementById('deskBal').innerHTML    = balHTML();
+document.getElementById('benchBal').innerHTML   = balHTML();
+
+/* wykres pary — kształt CoinGeckoMarketData.sparkline (List<double>) */
+(function(){
+  const pts=[3301,3288,3322,3355,3310,3298,3341,3372,3360,3398,3421,3405,3444,3462,3430,3411,3455,3488,3466,3440,3421];
+  const w=900,h=120,min=Math.min(...pts),max=Math.max(...pts),pad=8;
+  const d=pts.map((p,i)=>`${(i/(pts.length-1))*w},${pad+(1-(p-min)/(max-min))*(h-2*pad)}`);
+  document.getElementById('pairChart').innerHTML=
+    `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+       <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+         <stop offset="0%" stop-color="var(--status-success)" stop-opacity=".28"/>
+         <stop offset="100%" stop-color="var(--status-success)" stop-opacity="0"/></linearGradient></defs>
+       <polygon points="0,${h} ${d.join(' ')} ${w},${h}" fill="url(#pg)"/>
+       <polyline points="${d.join(' ')}" fill="none" stroke="var(--status-success)" stroke-width="2"/>
+     </svg>`;
+})();
+
+function render(v){
+  const w=win(v), s=state[v], from=TOKENS[s.from], to=TOKENS[s.to];
+  const chev='<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px;"><polyline points="6 9 12 15 18 9"/></svg>';
+  w.querySelector('.tk[data-side="from"]').innerHTML=`${tokenLogoHTML(s.from)}<span class="sym">${from.sym}</span><span class="cv">${chev}</span>`;
+  w.querySelector('.tk[data-side="to"]').innerHTML  =`${tokenLogoHTML(s.to)}<span class="sym">${to.sym}</span><span class="cv">${chev}</span>`;
+  w.querySelectorAll('.from-bal').forEach(e=> e.textContent=`Balance: ${fmt(from.bal, from.bal<1?4:2)} ${from.sym}`);
+  w.querySelectorAll('.to-bal').forEach(e=> e.textContent=`Balance: ${fmt(to.bal, to.bal<1?4:2)} ${to.sym}`);
+  computeRoute(v);
+}
+function computeRoute(v){
+  const w=win(v), s=state[v], from=TOKENS[s.from], pay=parseFloat(s.amt);
+  const cta=w.querySelector('.cta-btn'), recOut=w.querySelector('.rec-out'), payUsd=w.querySelector('.pay-usd'),
+        recUsd=w.querySelector('.rec-usd'), rdetails=w.querySelector('.rdetails');
+  const hide=()=>{ recOut.textContent='0.0'; recOut.style.color='var(--text-primary-38)'; payUsd.textContent='$0.00';
+    if(recUsd)recUsd.textContent='$0.00'; if(rdetails)rdetails.style.display='none'; };
+  if(!s.amt||isNaN(pay)||pay<=0){ hide(); cta.className='cta cta-btn'; cta.disabled=true; cta.textContent='Enter an amount'; return; }
+  payUsd.textContent=usd(pay*from.price);
+  if(pay>from.bal){ hide(); payUsd.textContent=usd(pay*from.price); cta.className='cta cta-btn err'; cta.disabled=true; cta.textContent=`Insufficient ${from.sym} balance`; return; }
+  cta.className='cta cta-btn loading'; cta.disabled=true; cta.textContent='Finding best route…';
+  if(debounce[v])clearTimeout(debounce[v]); debounce[v]=setTimeout(()=>resolveRoute(v),480);
+}
+function resolveRoute(v){
+  const w=win(v), s=state[v], from=TOKENS[s.from], to=TOKENS[s.to], pay=parseFloat(s.amt);
+  if(!pay||pay>from.bal) return;
+  const rate=from.price/to.price, recv=pay*rate*(1-FEE_PCT), feeUsd=pay*from.price*FEE_PCT+0.42, dp=to.price>1000?6:(to.price>1?2:4);
+  const recOut=w.querySelector('.rec-out'); recOut.textContent=fmt(recv,dp); recOut.style.color='var(--text-primary)';
+  const recUsd=w.querySelector('.rec-usd'); if(recUsd)recUsd.textContent=usd(recv*to.price);
+  const rdetails=w.querySelector('.rdetails');
+  rdetails.innerHTML=`<div class="rrow"><span class="k">Rate</span><span class="v">1 ${from.sym} = ${fmt(rate, rate>1000?2:4)} ${to.sym}</span></div>
+    <div class="rrow"><span class="k">Slippage</span><span class="v">${SLIP[v]}%</span></div>
+    <div class="rrow"><span class="k">Price impact</span><span class="v good">${IMPACT}%</span></div>
+    <div class="rrow"><span class="k">Network + route fee</span><span class="v">${usd(feeUsd)}</span></div>`;
+  rdetails.style.display='block';
+  const cta=w.querySelector('.cta-btn'); cta.className='cta cta-btn'; cta.disabled=false; cta.textContent='Swap';
+}
+document.querySelectorAll('.pay-in').forEach(inp=>inp.addEventListener('input',e=>{ const v=e.target.dataset.v; state[v].amt=e.target.value; computeRoute(v); }));
+function flip(v){ const s=state[v]; [s.from,s.to]=[s.to,s.from]; win(v).querySelector('.pay-in').value=''; s.amt=''; render(v); }
+function setMax(v){ const s=state[v], from=TOKENS[s.from], val=from.bal>0?String(from.bal):'0'; win(v).querySelector('.pay-in').value=val; s.amt=val; computeRoute(v); }
+/* ---------- slippage: presety + ręczne wpisywanie + walidacja ----------
+   Realny `SwapSettingsDrawer` ma TYLKO pole tekstowe i `double.tryParse` bez
+   żadnego zakresu (swap_settings_drawer.dart:32-53) — przyjmuje 0 (swap zawsze
+   padnie) i 900 (użytkownik zostaje obrobiony). Tu jest jedno i drugie:
+   presety dla 99% przypadków ORAZ pole na własną wartość, z granicami. */
+const SLIP_MIN = 0.05, SLIP_WARN_HI = 5, SLIP_MAX = 50;
+
+function slipState(raw){
+  const t = String(raw).trim().replace(',', '.');
+  if(t === '') return { ok:null, msg:'', level:'' };                       // pusto = presety rządzą
+  if(!/^\d*\.?\d+$/.test(t)) return { ok:false, msg:'Numbers only', level:'err' };
+  const n = parseFloat(t);
+  if(n <= 0)          return { ok:false, msg:'Enter a value above 0%', level:'err' };
+  if(n > SLIP_MAX)    return { ok:false, msg:`Slippage cannot exceed ${SLIP_MAX}%`, level:'err' };
+  if(n > SLIP_WARN_HI)return { ok:true,  n, msg:'High slippage — your trade can be frontrun', level:'warn' };
+  if(n < SLIP_MIN)    return { ok:true,  n, msg:'Very low — the swap will likely fail', level:'warn' };
+  return { ok:true, n, msg:'', level:'' };
+}
+function validateSlip(){
+  const inp=document.getElementById('slipInput'), f=document.getElementById('slipField'),
+        m=document.getElementById('slipMsg'), b=document.getElementById('slipApply');
+  const st=slipState(inp.value);
+  f.className='slipfield'+(st.level?' '+st.level:'');
+  m.className='slipmsg'+(st.level?' '+st.level:'');
+  m.textContent=st.msg;
+  b.disabled = st.ok===false;
+  if(st.ok) document.querySelectorAll('#settings .chip2').forEach(c=>c.classList.remove('on'));
+  return st;
+}
+function pickPreset(val,el){
+  document.getElementById('slipInput').value='';
+  validateSlip();
+  document.querySelectorAll('#settings .chip2').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  commitSlip(val);
+}
+function applySlip(){
+  const st=validateSlip();
+  if(st.ok===false) return;
+  if(st.ok===null){                                   // pole puste — trzymaj aktywny preset
+    const on=document.querySelector('#settings .chip2.on');
+    if(on) return commitSlip(parseFloat(on.textContent));
+    return;
+  }
+  commitSlip(st.n);
+}
+function commitSlip(val){
+  VS.forEach(v=>SLIP[v]=val);
+  document.querySelectorAll('.tune span').forEach(s=> s.textContent=`Slippage ${val}%`);
+  document.querySelectorAll('.tchip .k').forEach(k=>{ if(k.textContent==='Slippage') k.parentElement.lastChild.textContent=` ${val}%`; });
+  VS.forEach(v=>{ if(state[v].amt) resolveRoute(v); });
+  closeSettings();
+}
+function pickFromRail(k){ const v=currentV; if(state[v].to===k) return; state[v].from=k; render(v); }
+
+let pick={v:null,side:null}, currentV='desk';
+function openPicker(v,side){ pick={v,side}; document.getElementById('pickerSearch').value=''; renderPickerList(); document.getElementById('picker').classList.add('open'); }
+function closePicker(){ document.getElementById('picker').classList.remove('open'); }
+function renderPickerList(){
+  const q=(document.getElementById('pickerSearch').value||'').toLowerCase(), s=state[pick.v]||state.desk, other=pick.side==='from'?s.to:s.from;
+  const list=ORDER.filter(k=>{ const t=TOKENS[k]; return k!==other && (t.sym.toLowerCase().includes(q)||t.name.toLowerCase().includes(q)); });
+  document.getElementById('pickerList').innerHTML=list.map(k=>{ const t=TOKENS[k];
+    return `<div class="prow" onclick="choose('${k}')">${tokenLogoHTML(k,36)}<div><div class="nm">${t.name}</div><div class="sub">${t.sym} · ${t.chain}</div></div><div class="rb"><div class="b">${fmt(t.bal,t.bal<1?4:2)}</div><div class="sub">${t.sym}</div></div></div>`;
+  }).join('')||`<div class="sub" style="padding:12px 10px;">No tokens found</div>`;
+}
+function choose(k){ const s=state[pick.v]||state.desk; if(pick.side==='from')s.from=k; else s.to=k; closePicker(); if(state[pick.v]) render(pick.v); }
+function openSettings(){ document.getElementById('settings').classList.add('open');
+  document.getElementById('slipInput').value=''; validateSlip(); }
+
+/* JEDEN uruchamialny check granic slippage — pada głośno w konsoli, jeśli
+   ktoś ruszy progi. To ta logika pójdzie do Darta, więc niech ma dowód. */
+(function selfCheck(){
+  const cases=[['',null],['0',false],['-1',false],['abc',false],['1.5',true],['0,5',true],
+               ['51',false],['50',true],['6',true],['0.01',true]];
+  const bad=cases.filter(([inp,exp])=>slipState(inp).ok!==exp);
+  const warns=[['6','warn'],['0.01','warn'],['0.5',''],['51','err']]
+    .filter(([inp,lvl])=>slipState(inp).level!==lvl);
+  if(bad.length||warns.length) console.error('SLIPPAGE CHECK FAILED', {bad, warns});
+  else console.log('slippage check OK — 10 cases, 4 levels');
+})();
+function closeSettings(){ document.getElementById('settings').classList.remove('open'); }
+
+const LEDE = {
+  now:'<b>0 · Dziś.</b> Punkt odniesienia: formularz 560px sam na ramce 1600px. Tytuł po lewej nie ma czym rządzić - i o to właśnie chodzi w całym tym szkicu.',
+  desk:'<b>1 · Desk (biurko tradera).</b> Trzy kolumny startujące od lewej rynny: <b>Twoje tokeny</b> → formularz → <b>ostatnie swapy</b>. Tytuł stoi na X lewej szyny, więc rządzi całą siatką. Najgęstszy, najbardziej „pro DEX". <span class="tag warn">uwaga</span> Lewa szyna stoi na <code>SquidBalance</code>, a <code>squid_token_service.dart:36</code> zwraca <code>mockSquidBalances</code> - prawdziwy fetch jest zakomentowany. Ten wariant shipuje fikcję, dopóki ktoś tego nie podepnie.',
+  pair:'<b>2 · Para.</b> Pod tytułem pełnej szerokości pas z tożsamością pary: ETH/USDC, cena, zmiana 24h i wykres 7d na całą ramkę. Strona przestaje być „formularzem", staje się stroną <b>o parze</b>, którą wymieniasz - a tytuł po lewej opisuje realnie szeroką treść. <span class="tag warn">do podpięcia</span> <code>CoinGeckoMarketData</code> ma wszystko czego trzeba (<code>sparkline</code>, <code>high24h</code>, <code>low24h</code>, <code>priceChangePercentage24h</code>, <code>ath</code>), ale ekran Swap dziś go nie czyta. Model istnieje, integracji nie ma.',
+  ledger:'<b>3 · Ledger.</b> <span class="tag rec">wybrany 26-07</span> Formularz po lewej, a prawa strona to <b>Your swaps</b> - lista z badge\'ami statusu i podsumowaniem. Cały UI po angielsku. Jedyny wariant zbudowany w 100% na danych, które <b>ten ekran sam już zapisuje</b>: <code>swap_screen.dart:247</code> tworzy <code>Transaction(type: TransactionType.swap)</code>, a model niesie <code>fromSymbol/toSymbol/fromAmount/toAmount/exchangeRate/timeStamp/transactionStatus</code>. Zero nowych integracji, zero mocków.<br><b>Slippage:</b> kliknij pigułkę w nagłówku. Presety <b>plus ręczne pole</b> z walidacją - realny <code>SwapSettingsDrawer</code> ma tylko <code>double.tryParse</code> bez zakresu (przyjmuje 0, przy którym swap zawsze padnie, i 900, przy którym użytkownik zostaje obrobiony). Granice tutaj: 0 &lt; x ≤ 50, ostrzeżenie powyżej 5% i poniżej 0.05%.',
+  route:'<b>4 · Trasa.</b> Prawa strona to rozwinięty eksplorator trasy: hopy (swap → most → dostawa), gas per krok, rozbicie opłat, minimum otrzymane. <code>SquidRouteResponse</code> niesie <code>route</code> (lista hopów), <code>gasCosts[]</code>, <code>feeCosts[]</code>, <code>exchangeRate</code>, <code>aggregatePriceImpact</code> - dziś <code>RouteDetailsCard</code> ściska to do czterech wierszy. Dane są, tylko niepokazane. <span class="tag rec">wicelider</span>',
+  bench:'<b>5 · Warsztat.</b> Pod tytułem pasek narzędzi z parą, slippage i kursem jako chipy, potem dwie kolumny: formularz + stos małych paneli (trasa, historia, tokeny). Najbardziej modularny - <b>każdy panel można dowieźć osobno</b>, a strona działa po drodze. Najniższe ryzyko wdrożenia, najmniej efektowny.',
+};
+function showVariant(id,ev){
+  currentV = id;
+  document.querySelectorAll('.variant').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  document.getElementById('variant-'+id).classList.add('active');
+  if(ev) ev.target.classList.add('active');
+  else { const b=[...document.querySelectorAll('#variant-nav .vt')].find(x=>x.getAttribute('onclick').includes(`'${id}'`)); if(b) b.classList.add('active'); }
+  document.getElementById('lede').innerHTML=LEDE[id];
+}
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); document.body.style.background = t==='dark' ? '#000' : '#B8BEC7'; }
+function setW(w){ document.documentElement.style.setProperty('--winw', w); }
+
+VS.forEach(render);
+function openFromHash(){ const id=(location.hash||'').replace('#','')||'desk'; showVariant(id in LEDE ? id : 'desk'); }
+window.addEventListener('hashchange', openFromHash);
+openFromHash();
+</script>
+</body>
+</html>

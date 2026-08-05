@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 045 — Navbar cluster: wysokości + Connect/Buy</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+  svg { display: block; }
+
+  #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border-subtle); padding: 10px 16px; display: flex; gap: 8px;
+    align-items: center; flex-wrap: wrap; }
+  #nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--text-secondary); margin-right: 4px; }
+  #nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  #nav .grp { font: 600 10px var(--font-mono); color: var(--text-primary-38); letter-spacing: .08em; margin-left: 6px; }
+  .tab { font: 500 12.5px var(--font); color: var(--text-primary-70); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 6px 13px; cursor: pointer; transition: all .15s; }
+  .tab:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+  .tab.sm { padding: 5px 10px; font-size: 11.5px; }
+
+  .stage { position: fixed; inset: 62px 0 0 0; overflow: auto; padding: 26px 0 60px; }
+  .board { display: flex; flex-direction: column; align-items: center; }
+
+  /* ===== pasek 1:1 ===== */
+  .bar { width: 1600px; height: 60px; display: flex; align-items: center; gap: 16px; padding: 0 24px 0 24px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); position: relative; }
+  .logo { width: 32px; height: 32px; border-radius: 9px; flex: none;
+    background: linear-gradient(135deg, var(--brand-cta-b), var(--brand-cta-a)); }
+
+  /* taby nawigacji — hover/aktywny ma 44px, tak jak w responsive_overlay.dart:317 */
+  .navtabs { display: flex; gap: 2px; align-items: center; }
+  .navtab { height: 44px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px;
+    color: var(--text-primary-54); font: 500 13px var(--font); position: relative; white-space: nowrap; cursor: pointer; }
+  .navtab.on, .navtab:hover { color: var(--text-primary); background: var(--surface-menu); }
+  .navtab.on::after { content:""; position:absolute; left:12px; right:12px; bottom:4px; height:3px; border-radius:3px;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); }
+
+  .cluster { margin-left: auto; display: flex; align-items: center; gap: var(--gap, 12px); }
+
+  /* ===== atomy ===== */
+  .chainico { width: 20px; height: 20px; border-radius: 50%; flex: none; background: linear-gradient(135deg,#627EEA,#8FA2F5); }
+  .avatar { width: 20px; height: 20px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-tertiary)); }
+  .caret { width: 14px; height: 14px; flex: none; opacity: .5; }
+  .gear { width: 16px; height: 16px; flex: none; opacity: .7; }
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+  /* tor + chipy — wysokości sterowane zmiennymi per wariant */
+  .track { display: flex; align-items: center; gap: 2px; flex: none;
+    padding: var(--trackpad, 3px);
+    background: var(--surface-sunken); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); }
+  .chip { height: var(--chip, 32px); padding: 0 12px; display: flex; align-items: center; gap: 8px;
+    border-radius: var(--radius-pill); background: transparent; color: var(--text-primary);
+    font: 500 12px var(--font); white-space: nowrap; flex: none; cursor: pointer; }
+  .chip:hover { background: var(--surface-elevated); }
+  /* Sieć = sama ikona + strzałka (Jakub 2026-07-26). Nazwa łańcucha znika z paska;
+     tożsamość niesie ikona, pełna nazwa zostaje w otwieranym menu. */
+  .chip.icononly, .solo.icononly { padding: 0 8px; gap: 4px; }
+
+  /* chipy samodzielne (wariant 3) */
+  .solo { height: var(--h, 44px); padding: 0 13px; display: flex; align-items: center; gap: 8px;
+    border-radius: 12px; background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+    color: var(--text-primary); font: 500 12px var(--font); white-space: nowrap; flex: none; cursor: pointer; }
+  .solo:hover { border-color: var(--border-strong); }
+
+  /* akcje */
+  .connect { height: var(--h, 44px); padding: 0 15px; border-radius: 12px; display: flex; align-items: center;
+    gap: 8px; font: 600 12.5px var(--font); cursor: pointer; flex: none; white-space: nowrap;
+    background: transparent; border: 1px solid currentColor; }
+  .connect.idle { color: var(--brand-primary); }
+  .connect.connected { color: var(--status-error); }
+  .connect.connecting, .connect.timedout { color: var(--status-warning); }
+
+  .connect-icon { width: var(--h, 44px); height: var(--h, 44px); border-radius: 12px; display: grid; place-items: center;
+    border: 1px solid currentColor; background: transparent; flex: none; cursor: pointer; }
+  .connect-icon svg { width: 18px; height: 18px; }
+
+  .buy { height: var(--h, 44px); padding: 0 18px; border: none; border-radius: 12px; cursor: pointer; flex: none;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); color: #001018;
+    font: 700 12.5px var(--font); display: flex; align-items: center; gap: 8px; }
+  .buy svg { width: 15px; height: 15px; }
+
+  /* status chip w torze (wariant 4) */
+  .statuschip { height: var(--chip, 36px); padding: 0 12px; display: flex; align-items: center; gap: 7px;
+    border-radius: var(--radius-pill); font: 600 11.5px var(--font); flex: none; cursor: pointer; }
+
+  /* ===== per-wariant ===== */
+  #app[data-v="v1"] { --h: 44px; --chip: 36px; --trackpad: 3px; --gap: 12px; }
+  #app[data-v="v2"] { --h: 44px; --chip: 38px; --trackpad: 2px; --gap: 12px; }
+  #app[data-v="v3"] { --h: 44px; --chip: 44px; --gap: 8px; }
+  #app[data-v="v4"] { --h: 44px; --chip: 36px; --trackpad: 3px; --gap: 12px; }
+  #app[data-v="v5"] { --h: 44px; --chip: 36px; --trackpad: 3px; --gap: 10px; }
+
+  /* linie prowadzące */
+  .guides { position: absolute; inset: 0; pointer-events: none; }
+  .guides i { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--brand-secondary); opacity: .5; }
+  .guides i::after { content: attr(data-l); position: absolute; left: 8px; top: -14px;
+    font: 600 10px var(--font-mono); color: var(--brand-secondary); }
+  body:not(.show-guides) .guides { display: none; }
+
+  .measure { width: 1600px; padding: 10px 24px 0; display: flex; justify-content: flex-end;
+    font: 600 11px var(--font-mono); color: var(--brand-primary); }
+  body:not(.show-measure) .measure { visibility: hidden; }
+
+  .legend { width: 1600px; padding: 22px 24px 0; color: var(--text-secondary); font-size: 12.5px; line-height: 1.65; }
+  .legend b { color: var(--text-primary); }
+  .legend h4 { color: var(--text-primary); font-size: 13px; margin: 15px 0 4px; }
+  kbd { font: 600 11px var(--font-mono); background: var(--surface-menu); border: 1px solid var(--border-subtle);
+    border-radius: 5px; padding: 1px 6px; color: var(--text-primary-70); }
+  .hide { display: none !important; }
+</style>
+</head>
+<body class="show-measure show-guides">
+
+<div id="nav">
+  <span class="brand">SKETCH 045</span>
+  <span class="sep"></span>
+  <button class="tab" data-go="now">DZIŚ (32/40)</button>
+  <button class="tab active" data-go="v1">1 · wszystko 44</button>
+  <button class="tab" data-go="v2">2 · grubsze chipy</button>
+  <button class="tab" data-go="v3">3 · bez toru</button>
+  <button class="tab" data-go="v4">4 · Connect w torze</button>
+  <button class="tab" data-go="v5">5 · Connect jako ikona</button>
+  <span class="grp">CONNECT</span>
+  <button class="tab sm active" data-st="idle">Connect</button>
+  <button class="tab sm" data-st="connected">Połączony</button>
+  <button class="tab sm" data-st="connecting">Łączy</button>
+  <button class="tab sm" data-st="timedout">Timeout</button>
+  <span class="sep"></span>
+  <button class="tab sm active" id="t-sdk">SDK jest</button>
+  <button class="tab sm active" id="t-guides">linie 44</button>
+  <button class="tab sm active" id="t-measure">miary</button>
+  <button class="tab sm" id="t-theme">jasny / ciemny</button>
+</div>
+
+<div class="stage"><div class="board">
+<div id="app" data-v="v1" data-st="idle">
+
+  <div class="bar">
+    <div class="guides"><i data-l="44 px — hover taba" style="top:8px"></i><i style="top:52px"></i></div>
+    <div class="logo"></div>
+    <div class="navtabs">
+      <div class="navtab on">Dashboard</div>
+      <div class="navtab">Swap</div>
+      <div class="navtab">Markets</div>
+      <div class="navtab">News</div>
+      <div class="navtab">Web</div>
+    </div>
+
+    <div class="cluster">
+      <!-- tor: warianty 1,2,4,5 + DZIŚ -->
+      <div class="track" data-only="now v1 v2 v4 v5">
+        <div class="chip icononly" title="Ethereum"><span class="chainico"></span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+        <div class="chip sdk"><svg class="gear" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.9 4a7 7 0 01-.1 1l2 1.6-2 3.4-2.4-1a7 7 0 01-1.7 1l-.4 2.5h-4l-.4-2.5a7 7 0 01-1.7-1l-2.4 1-2-3.4 2-1.6a7 7 0 010-2l-2-1.6 2-3.4 2.4 1a7 7 0 011.7-1L10.3 3h4l.4 2.5a7 7 0 011.7 1l2.4-1 2 3.4-2 1.6c.1.3.1.7.1 1z"/></svg><span class="mono">0x1d9b…4a87</span></div>
+        <div class="chip"><span class="avatar"></span><span class="mono">0x9fF8…2e2b</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+        <!-- wariant 4: stan połączenia wjeżdża do toru -->
+        <div class="statuschip cstate" data-only="v4"><span class="dot"></span><span class="clabel">Connect</span></div>
+      </div>
+
+      <!-- wariant 3: chipy samodzielne -->
+      <div class="solo icononly" data-only="v3" title="Ethereum"><span class="chainico"></span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+      <div class="solo sdk" data-only="v3"><svg class="gear" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.9 4a7 7 0 01-.1 1l2 1.6-2 3.4-2.4-1a7 7 0 01-1.7 1l-.4 2.5h-4l-.4-2.5a7 7 0 01-1.7-1l-2.4 1-2-3.4 2-1.6a7 7 0 010-2l-2-1.6 2-3.4 2.4 1a7 7 0 011.7-1L10.3 3h4l.4 2.5a7 7 0 011.7 1l2.4-1 2 3.4-2 1.6c.1.3.1.7.1 1z"/></svg><span class="mono">0x1d9b…4a87</span></div>
+      <div class="solo" data-only="v3"><span class="avatar"></span><span class="mono">0x9fF8…2e2b</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+
+      <!-- Connect: pełny przycisk (DZIŚ,1,2,3), ikona (5), brak (4) -->
+      <div class="connect idle" data-only="now v1 v2 v3"><span class="dot" style="background:currentColor"></span><span class="clabel">Connect</span></div>
+      <div class="connect-icon idle" data-only="v5" title="Wallet Connect">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7L12 19"/></svg>
+      </div>
+
+      <button class="buy">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9H21l-5.3 4 2 7.1-5.7-4.3L6.3 20l2-7.1L3 8.9h6.6z"/></svg>
+        Buy GNUS
+      </button>
+    </div>
+  </div>
+
+  <div class="measure">
+    <span data-m="now">tor 40 · chip 32 · Connect 40 · Buy 40 &nbsp;|&nbsp; tab hover 44 → <b>rozjazd 4-12 px</b></span>
+    <span data-m="v1">tor 44 · chip 36 · Connect 44 · Buy 44 &nbsp;|&nbsp; jedna linia z tabami</span>
+    <span data-m="v2">tor 44 · chip 38 · Connect 44 · Buy 44 &nbsp;|&nbsp; padding toru 2 px</span>
+    <span data-m="v3">chipy 44 samodzielne · Connect 44 · Buy 44 &nbsp;|&nbsp; brak toru</span>
+    <span data-m="v4">tor 44 (4 chipy) · Buy 44 &nbsp;|&nbsp; Connect wchłonięty</span>
+    <span data-m="v5">tor 44 · Connect 44×44 ikona · Buy 44 &nbsp;|&nbsp; jedna etykieta w rzędzie</span>
+  </div>
+
+  <div class="legend">
+    <b>Skala 1:1.</b> Pasek 1600×60 px, taby nawigacji narysowane w prawdziwych 44 px hovera
+    (<code>responsive_overlay.dart:317</code>), żeby porównanie wysokości było uczciwe. Przełącznik
+    <kbd>linie 44</kbd> rysuje prowadnice. Zacznij od <kbd>DZIŚ</kbd> — zobaczysz rozjazd, o którym mówisz.
+
+    <h4>Problem, zmierzony</h4>
+    Chip w torze ma dziś <b>32 px</b>, tor <b>40</b>, a hover taba nawigacji <b>44</b>. Trzy różne wysokości
+    w jednym pasku. Wszystkie pięć wariantów podnosi klaster do <b>44</b>, czyli do wysokości, którą pasek
+    już ma po lewej stronie — różnią się tym, <i>co robią z Connect i Buy GNUS</i>.
+
+    <h4>Warianty</h4>
+    <b>1 · wszystko 44</b> — tor 44, chip 36, Connect i Buy 44. Najprostsze wyrównanie: te same liczby,
+    o 4 px więcej. Buy GNUS dostaje ikonę gwiazdki, Connect kropkę stanu.<br>
+    <b>2 · grubsze chipy</b> — to samo, ale padding toru schodzi z 3 na 2 px, więc chip rośnie do 38.
+    Tor staje się cieńszą obwolutą; chipy dominują. Wybierz, jeśli w 1 tor nadal „zjada" chipy.<br>
+    <b>3 · bez toru</b> — tor znika, trzy chipy stoją samodzielnie po 44 px na <code>surfaceElevated</code>
+    z hairline. Najbliżej tabów nawigacji po lewej — pasek czyta się jako jeden rząd równych kafli od
+    lewej do prawej. Koszt: wraca problem zmiennej liczby elementów (znikający SDK przesuwa rząd).<br>
+    <b>4 · Connect w torze</b> — stan połączenia staje się czwartym chipem w torze, kolorowanym stanem.
+    Osobny przycisk Connect znika, Buy GNUS zostaje jedynym akcentem. Najspokojniejszy pasek.
+    Sprawdź, czy „Disconnect" jest nadal odkrywalne.<br>
+    <b>5 · Connect jako ikona</b> — Connect kurczy się do kwadratu 44×44 z ikoną łańcucha w kolorze stanu,
+    tor zostaje bez zmian. W rzędzie zostaje <b>jedna etykieta tekstowa</b> — Buy GNUS. Kompromis między
+    1 a 4: stan nadal jest osobnym, klikalnym celem, ale przestaje konkurować z CTA.
+
+    <h4>Connect i Buy GNUS — co się zmieniło</h4>
+    Miałeś rację, że poprzednia runda ich nie ruszyła. Tu Buy GNUS dostaje <b>ikonę i większy oddech</b>
+    (18 px poziomego paddingu zamiast 16), a Connect przestaje być płaskim prostokątem: w 1-3 niesie
+    <b>kropkę stanu</b> przy etykiecie, w 5 jest ikoną, w 4 znika na rzecz chipa w torze. Przejedź cztery
+    stany Connect w każdym wariancie — obrys i kropka zmieniają kolor razem.
+  </div>
+</div>
+</div></div>
+
+<script>
+  const app = document.getElementById('app');
+  const CS = {
+    idle:      { cls:'idle',       label:'Connect',     c:'var(--brand-primary)' },
+    connected: { cls:'connected',  label:'Disconnect',  c:'var(--status-error)' },
+    connecting:{ cls:'connecting', label:'Connecting…', c:'var(--status-warning)' },
+    timedout:  { cls:'timedout',   label:'Retry',       c:'var(--status-warning)' },
+  };
+  function apply() {
+    const v = app.dataset.v, s = CS[app.dataset.st];
+    document.querySelectorAll('[data-only]').forEach(el =>
+      el.classList.toggle('hide', !el.dataset.only.split(' ').includes(v)));
+    document.querySelectorAll('.connect, .connect-icon').forEach(el => {
+      el.classList.remove('idle','connected','connecting','timedout'); el.classList.add(s.cls);
+      const l = el.querySelector('.clabel'); if (l) l.textContent = s.label;
+    });
+    document.querySelectorAll('.statuschip.cstate').forEach(el => {
+      el.style.color = s.c;
+      el.style.background = 'color-mix(in srgb, ' + s.c + ' 16%, transparent)';
+      el.querySelector('.dot').style.background = s.c;
+      el.querySelector('.clabel').textContent = s.label;
+    });
+    const sdkOn = document.getElementById('t-sdk').classList.contains('active');
+    document.querySelectorAll('.sdk').forEach(el => { if (!el.classList.contains('hide')) el.style.display = sdkOn ? '' : 'none'; });
+    document.querySelectorAll('[data-m]').forEach(el => el.style.display = el.dataset.m === v ? '' : 'none');
+  }
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-go]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); app.dataset.v = b.dataset.go; apply();
+  }));
+  document.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-st]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); app.dataset.st = b.dataset.st; apply();
+  }));
+  document.getElementById('t-sdk').addEventListener('click', e => {
+    e.currentTarget.classList.toggle('active');
+    e.currentTarget.textContent = e.currentTarget.classList.contains('active') ? 'SDK jest' : 'brak SDK';
+    apply();
+  });
+  const tog = (id, cls) => document.getElementById(id).addEventListener('click', e => {
+    document.body.classList.toggle(cls);
+    e.currentTarget.classList.toggle('active', document.body.classList.contains(cls));
+  });
+  tog('t-guides','show-guides'); tog('t-measure','show-measure');
+  document.getElementById('t-theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+  // DZIŚ = stan z main
+  document.querySelector('[data-go="now"]').addEventListener('click', () => {
+    app.style.setProperty('--h','40px'); app.style.setProperty('--chip','32px');
+    app.style.setProperty('--trackpad','3px'); app.style.setProperty('--gap','12px');
+  });
+  document.querySelectorAll('[data-go]:not([data-go="now"])').forEach(b =>
+    b.addEventListener('click', () => ['--h','--chip','--trackpad','--gap'].forEach(p => app.style.removeProperty(p))));
+  apply();
+</script>
+</body>
+</html>

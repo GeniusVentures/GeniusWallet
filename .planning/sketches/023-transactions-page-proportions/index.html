@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>023 · Transactions page — vertical fit, fullscreen width, the All row</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1420px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 20px/26px var(--font); letter-spacing:-.3px; margin:var(--space-16) 0 var(--space-4); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:980px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.bad { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.ad  { background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  /* fake window */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base);
+         box-shadow:var(--shadow-card); margin-bottom:var(--space-6); }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:44px; padding:0 var(--space-8);
+            background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 12px/16px var(--font); color:var(--text-secondary); }
+  .navbar .on { color:var(--text-primary); font-weight:600; }
+  .navbar .logo { width:18px; height:18px; border-radius:5px; background:linear-gradient(135deg,#0AD89C,#0AAEE6); }
+  .stage { padding:var(--space-8) var(--space-6); }
+  .scaled { height:440px; overflow:hidden; position:relative; }
+  .scaled .inner { transform:scale(.30); transform-origin:top left; width:1400px; }
+
+  .pagehead { display:flex; align-items:center; gap:var(--space-6); padding-bottom:var(--space-8); }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; margin-right:auto; }
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-6); }
+  .cols { display:flex; gap:var(--space-8); }
+  .cols.stretch { align-items:stretch; }
+  .cols.hug { align-items:flex-start; }
+  .railcard { width:220px; flex:none; }
+  .listcard { flex:1; min-width:0; }
+
+  .voidmark { border:1px dashed var(--status-error); border-radius:var(--radius-md); color:var(--status-error);
+              font:400 11px/16px var(--font-mono); display:grid; place-items:center; }
+
+  .ri { position:relative; display:flex; align-items:center; gap:var(--space-4); height:36px; padding:0 var(--space-6); border-radius:var(--radius-md); }
+  .ri svg { width:13px; height:13px; color:var(--text-secondary); flex:none; }
+  .ri .l { font:500 13px/18px var(--font); flex:1; }
+  .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .ri.on .l { font-weight:700; }
+  .ri.on .ul { position:absolute; left:var(--space-6); bottom:5px; height:2px; border-radius:2px;
+               background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+        padding:var(--space-4) var(--space-6) var(--space-3); }
+  .rd { height:1px; background:var(--border-subtle); margin:var(--space-4) var(--space-6); }
+  .allrow { font-weight:600; }
+  .allsum { display:flex; align-items:baseline; gap:var(--space-4); padding:var(--space-4) var(--space-6) var(--space-6); }
+  .allsum .n { font:700 22px/26px var(--font-mono); }
+  .allsum .t { font:400 12px/16px var(--font); color:var(--text-secondary); }
+
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); }
+  .row .time { width:40px; flex:none; font:400 12px/16px var(--font-mono); color:var(--text-secondary); }
+  .row .coin { width:32px; height:32px; border-radius:50%; flex:none; display:grid; place-items:center; font:700 9px/1 var(--font); color:#fff; }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font:600 14px/19px var(--font); }
+  .row .s { color:var(--text-secondary); font:400 11px/15px var(--font); margin-top:2px; }
+  .row .amt { text-align:right; font:600 14px/19px var(--font-mono); }
+  .divider { height:1px; background:var(--border-subtle); }
+  .daylabel { font:600 12px/16px var(--font); letter-spacing:.7px; color:var(--text-secondary); padding:var(--space-4) var(--space-6) var(--space-2); }
+
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin-top:var(--space-4); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+               padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  table.t td:first-child { font-weight:600; white-space:nowrap; }
+  table.t tr.win2 td { background:var(--brand-fill); }
+  .hide { display:none !important; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); align-items:start; }
+  .grid3 > div { min-width:0; }
+  .cap { font:600 13px/18px var(--font); margin-bottom:var(--space-4); display:flex; gap:var(--space-4); align-items:center; flex-wrap:wrap; }
+  .why { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-4); }
+  .why b { color:var(--text-primary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>023 · Transactions page — vertical fit, fullscreen width, the All row</h1>
+  <div class="seg" id="tsel"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button></div>
+</div>
+
+<p class="lede">
+  Both complaints check out against the code, and <b>both are implementation slips rather than design
+  decisions</b> — which is good news, because it means the sketch does not have to be re-argued.
+  <br><br>
+  <b>The vertical emptiness:</b> <code>transactions_slim_view.dart:346</code> uses
+  <code>CrossAxisAlignment.stretch</code>, so both cards are forced to the full window height. Eleven
+  rows is about 700px of list inside a 1400px card, and the rail has ~480px of content in the same
+  1400px box.
+  <br>
+  <b>The missing separator:</b> sketch 022 had <code>All → rule → Type</code>. The build does
+  <code>row(Filters.all)</code> straight into <code>_groupHeader('Type')</code> with no rule, while the
+  Status boundary above it <em>does</em> have one. Asymmetric by accident.
+</p>
+
+<!-- ============ 1 · VERTICAL ============ -->
+<h2 class="sec">1 · Vertical fit — what the cards do when the list is short</h2>
+<p class="lede">All three at the same 1400px-tall window with the same 11 transactions. Scaled to 42%.</p>
+
+<div class="grid3">
+  <div>
+    <div class="cap">V1 · Stretch <span class="tag bad">today</span></div>
+    <div class="win"><div class="navbar"><span class="logo"></span><span>Dashboard</span><span class="on">Transactions</span><span>Swap</span></div>
+      <div class="stage scaled"><div class="inner" id="v1"></div></div></div>
+    <div class="why">Cards forced to window height. Two large empty boxes below the content. At fullscreen this is most of the screen.</div>
+  </div>
+  <div>
+    <div class="cap">V2 · Hug content <span class="tag ad">Adapted</span></div>
+    <div class="win"><div class="navbar"><span class="logo"></span><span>Dashboard</span><span class="on">Transactions</span><span>Swap</span></div>
+      <div class="stage scaled"><div class="inner" id="v2"></div></div></div>
+    <div class="why">One property: <code>stretch</code> → <code>start</code>. Each card ends where its content ends. With a long list the page scrolls, which is what a transactions history should do anyway.</div>
+  </div>
+  <div>
+    <div class="cap">V3 · Hug, then fill <span class="tag rec">recommended</span></div>
+    <div class="win"><div class="navbar"><span class="logo"></span><span>Dashboard</span><span class="on">Transactions</span><span>Swap</span></div>
+      <div class="stage scaled"><div class="inner" id="v3"></div></div></div>
+    <div class="why"><b>V2, plus a floor.</b> The list card hugs its rows but never gets shorter than the rail beside it, so the two cards stay visually paired instead of one dangling. Above the viewport it scrolls internally rather than growing the page.</div>
+  </div>
+</div>
+
+<p class="lede" style="margin-top:var(--space-8)">
+  <b>Why V3 and not V2.</b> V2 alone leaves a 480px rail next to a 210px list card when you filter down
+  to one day — the rail then looks like the main content and the list like a footnote. V3's floor is
+  the rail's own height, so the pair always reads as one object. It is still a bounded literal, not a
+  value derived from constraints, so the freeze rule is untouched.
+</p>
+
+<!-- ============ 2 · WIDTH ============ -->
+<h2 class="sec">2 · Fullscreen width</h2>
+<p class="lede">
+  At 2560px the 1280 cap leaves 640px dead on each side. <b>But fix the vertical first and look
+  again</b> — much of what reads as "tragic at fullscreen" is the empty card height, not the side
+  margin. These are the width options if it still bothers you afterwards.
+</p>
+
+<table class="t">
+  <tr><th>Option</th><th>At 2560px</th><th>Cost</th></tr>
+  <tr class="win2"><td>W1 · Keep 1280 <span class="tag rec">recommended</span></td>
+    <td>640px margin each side, cards ~1280 wide.</td>
+    <td>None. The row gains nothing past ~900px — the gap between the counterparty and the amount just grows. Margin is the honest answer to "there is nothing more to show".</td></tr>
+  <tr><td>W2 · Raise to <code>xxl</code> 1536</td>
+    <td>512px each side.</td>
+    <td>One constant. Matches the Markets tab's cap. But it widens the <em>gap inside the row</em>, not the content — 15-05 measured that the row's useful width tops out well below this.</td></tr>
+  <tr><td>W3 · Widen the rail instead</td>
+    <td>Rail 220 → 280, list unchanged.</td>
+    <td>Uses width where there is content to use it (longer labels, no truncation risk). Small, and it makes the pair less lopsided at extreme widths.</td></tr>
+</table>
+
+<!-- ============ 3 · THE ALL ROW ============ -->
+<h2 class="sec">3 · The All row</h2>
+<p class="lede">Four ways to seat it. All keep the counts, the active mark and the group order.</p>
+
+<div class="grid3" style="grid-template-columns:repeat(4,1fr)">
+  <div>
+    <div class="cap">R1 · Rule after All <span class="tag ex">what 022 said</span></div>
+    <div class="card"><div id="r1"></div></div>
+    <div class="why">Restores the sketch: All, hairline, Type…, hairline, Status. <b>Symmetric with the Status boundary that already exists.</b> Zero new vocabulary — it is the rule that was dropped.</div>
+  </div>
+  <div>
+    <div class="cap">R2 · All inside Type</div>
+    <div class="card"><div id="r2"></div></div>
+    <div class="why">Simplest structurally, but <b>All is not a type</b> — it spans Status too. Filing it under Type says something false about what it does.</div>
+  </div>
+  <div>
+    <div class="cap">R3 · Its own header</div>
+    <div class="card"><div id="r3"></div></div>
+    <div class="why">Gives All a "Show" kicker so all three groups are labelled. Consistent — but a one-item group reads as a heading looking for company.</div>
+  </div>
+  <div>
+    <div class="cap">R4 · Summary, not a filter <span class="tag rec">recommended</span></div>
+    <div class="card"><div id="r4"></div></div>
+    <div class="why"><b>Stops pretending All is a peer of the nine.</b> It becomes the rail's total — big number, quiet caption — and doubles as the way back. The rule under it then separates a <em>summary</em> from a <em>list</em>, which is a boundary that explains itself.</div>
+  </div>
+</div>
+
+<p class="lede" style="margin-top:var(--space-8)">
+  <b>R1 is the safe fix</b> — it is one missing <code>Divider</code>, it matches the Status boundary,
+  and it needs no new decision. <b>R4 is the better answer to what actually bothered you:</b> "All 11"
+  sitting flush above a group header reads oddly because it is being drawn as a tenth filter when it is
+  really the total. Making it look like a total removes the question instead of punctuating it — and it
+  is also where the footer count went, so the number finally has a shape that says "this is the whole".
+</p>
+
+<h2 class="sec">Recommendation</h2>
+<table class="t">
+  <tr><th>Question</th><th>Take</th><th>Cost</th></tr>
+  <tr class="win2"><td>Vertical</td><td><b>V3 · hug, floored to the rail</b></td><td><code>stretch</code> → <code>start</code>, plus a min-height on the list card. Small.</td></tr>
+  <tr class="win2"><td>Width</td><td><b>W1 · keep 1280</b>, re-judge after V3 lands</td><td>Nothing. W3 is the cheap follow-up if it still reads lopsided.</td></tr>
+  <tr class="win2"><td>All row</td><td><b>R4 · summary</b>, or <b>R1</b> if you want the minimum</td><td>R1 is one Divider. R4 is ~15 lines and one new small widget.</td></tr>
+</table>
+
+</div>
+
+<script>
+const G={all:'<path d="M4 6h16M4 12h16M4 18h16"/>',sent:'<path d="M7 17 17 7M17 7H9m8 0v8"/>',received:'<path d="M17 7 7 17m0 0h8m-8 0V9"/>',
+mint:'<path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/>',job:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/>',
+escrow:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',swap:'<path d="M4 8h13l-3-3m6 11H7l3 3"/>',
+purchase:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',pending:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+failed:'<path d="M6 6l12 12M18 6 6 18"/>'};
+const W={All:24,Sent:29,Received:57,Mint:27,Computing:66,Escrow:44,Swapped:57,Purchased:64,Pending:50,Failed:38};
+const ri=(k,l,c,on)=>`<div class="ri ${on?'on':''}"><svg fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" viewBox="0 0 24 24">${G[k]}</svg>
+  <span class="l">${l}</span><span class="c">${c}</span>${on?`<span class="ul" style="width:${W[l]}px"></span>`:''}</div>`;
+const TYPES=[['sent','Sent',3],['received','Received',1],['mint','Mint',1],['job','Computing',1],['escrow','Escrow',2],['swap','Swapped',1],['purchase','Purchased',2]];
+const STATUS=[['pending','Pending',1],['failed','Failed',2]];
+const typeRows=on=>TYPES.map(t=>ri(t[0],t[1],t[2],t[1]===on)).join('');
+const statusRows=()=>STATUS.map(t=>ri(t[0],t[1],t[2],false)).join('');
+
+document.getElementById('r1').innerHTML = ri('all','All',11,false)+'<div class="rd"></div><div class="rh">Type</div>'+typeRows()+'<div class="rd"></div><div class="rh">Status</div>'+statusRows();
+document.getElementById('r2').innerHTML = '<div class="rh">Type</div>'+ri('all','All',11,false)+typeRows()+'<div class="rd"></div><div class="rh">Status</div>'+statusRows();
+document.getElementById('r3').innerHTML = '<div class="rh">Show</div>'+ri('all','All',11,false)+'<div class="rd"></div><div class="rh">Type</div>'+typeRows()+'<div class="rd"></div><div class="rh">Status</div>'+statusRows();
+document.getElementById('r4').innerHTML = '<div class="allsum"><span class="n">11</span><span class="t">transactions</span></div><div class="rd"></div><div class="rh">Type</div>'+typeRows()+'<div class="rd"></div><div class="rh">Status</div>'+statusRows();
+
+const rows=[['10:48','GNUS','#0AD89C','Computing','Job 0xdevm…ck09','− 0.42 GNUS'],['10:39','ETH','#627EEA','Sent','0xToMo…ed01','− 0.75 ETH'],
+['10:26','BTC','#F7931A','Received','0xFrom…ed02','+ 0.0042 BTC'],['10:11','GNUS','#0AD89C','Purchased','Card purchase','+ 500.00 GNUS'],
+['09:15','GNUS','#0AD89C','Minted','Minted to wallet','+ 1,200.00 GNUS'],['21:30','ETH','#627EEA','Purchased','Card purchase · Failed','− 0.75 ETH'],
+['17:05','GNUS','#0AD89C','Escrow released','Released from escrow','+ 500.00 GNUS'],['13:40','GNUS','#0AD89C','Escrow locked','Locked in escrow','− 500.00 GNUS'],
+['19:10','ETH','#627EEA','Sent','0xToMo…ed11 · Cancelled','− 1.25 ETH'],['15:45','ETH','#627EEA','Sent','0xToMo…ed08','− 0.04 ETH'],
+['10:20','ETH','#627EEA','Swapped','1.00 ETH','+ 3,200.00 USDC']];
+const listRows = rows.map(r=>`<div class="row"><span class="time">${r[0]}</span><span class="coin" style="background:${r[2]}">${r[1].slice(0,3)}</span>
+  <span class="main"><div class="t">${r[1]} · ${r[3]}</div><div class="s">${r[4]}</div></span><span class="amt">${r[5]}</span></div>`).join('<div class="divider"></div>');
+
+const railHTML = ri('all','All',11,false)+'<div class="rd"></div><div class="rh">Type</div>'+typeRows()+'<div class="rd"></div><div class="rh">Status</div>'+statusRows();
+const head = '<div class="pagehead"><h2>Transactions</h2></div>';
+const list = '<div class="daylabel">TODAY</div>'+listRows;
+
+function page(mode){
+  const railH = mode==='v1' ? 'height:1180px' : '';
+  const listH = mode==='v1' ? 'height:1180px' : (mode==='v3' ? 'min-height:520px' : '');
+  const voids = mode==='v1'
+    ? `<div class="voidmark" style="height:430px;margin-top:var(--space-8)">≈ 480px of empty card, both sides</div>` : '';
+  return `<div style="max-width:1280px;margin:0 auto">${head}
+    <div class="cols ${mode==='v1'?'stretch':'hug'}">
+      <div class="card railcard" style="${railH}">${railHTML}${mode==='v1'?voids:''}</div>
+      <div class="card listcard" style="${listH}">${list}${mode==='v1'?voids:''}</div>
+    </div></div>`;
+}
+document.getElementById('v1').innerHTML = page('v1');
+document.getElementById('v2').innerHTML = page('v2');
+document.getElementById('v3').innerHTML = page('v3');
+
+document.getElementById('tsel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#tsel button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  document.documentElement.dataset.theme=b.dataset.t;});
+</script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>014 · Transactions — locked decisions + the open filter question</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1240px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 18px/24px var(--font); letter-spacing:-.2px; margin:var(--space-16) 0 var(--space-4); }
+  h2.sec:first-of-type { margin-top:var(--space-6); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:880px; }
+  p.lede b { color:var(--text-primary); } p.lede code { font:400 12px/18px var(--font-mono); }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.new{ background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.mod{ background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.rec{ background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend div { display:flex; align-items:center; gap:var(--space-4); }
+
+  .decided { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:var(--space-4); margin-bottom:var(--space-8); }
+  .dec { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6); background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); }
+  .dec .demo { position:relative; width:34px; height:34px; flex:none; }
+  .dec .coin { width:34px; height:34px; font-size:10px; }
+  .dec .k { font:600 12px/16px var(--font); }
+  .dec .v { font:400 11px/15px var(--font-mono); color:var(--text-secondary); }
+
+  .coin { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font:700 12px/1 var(--font); color:#fff; }
+  .badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--surface-menu); }
+  .badge svg { width:9px; height:9px; fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
+  .dec .badge { width:16px; height:16px; } .dec .badge svg { width:8px; height:8px; }
+
+  /* panel — EXISTING GWTokenRow + Divider geometry */
+  .panel { width:540px; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-8); }
+  .panel.narrow { width:376px; }
+  .phead { display:flex; align-items:center; gap:var(--space-4); min-height:44px; padding-bottom:var(--space-4); }
+  .phead h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; white-space:nowrap; }
+  .divider { height:1px; background:var(--border-subtle); border:0; }
+  .filterrow { padding:var(--space-6) 0 0; }
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); border-radius:var(--radius-md); }
+  .row:hover { background:var(--surface-menu); }
+  .row .id { position:relative; width:40px; height:40px; flex:none; }
+  .row .id .badge { border-color:var(--surface-sheen-b); }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .row .t .action { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .amt { text-align:right; white-space:nowrap; }
+  .row .amt .v { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .row .amt .v.in { color:var(--status-success); }
+  .row .amt .v.na { color:var(--text-primary-38); }
+  .row .amt .f { display:block; color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .time { font:400 11px/14px var(--font); color:var(--text-primary-38); font-variant-numeric:tabular-nums; width:44px; text-align:right; flex:none; }
+  .day { display:flex; align-items:center; padding:var(--space-8) var(--space-6) var(--space-2); font:600 11px/14px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.7px; }
+  .foot { display:flex; justify-content:flex-end; padding-top:var(--space-8); color:var(--text-secondary); font:500 13px/18px var(--font); }
+  .empty { display:flex; flex-direction:column; align-items:center; text-align:center; padding:var(--space-16) var(--space-8); gap:var(--space-4); }
+  .empty .glyph { width:56px; height:56px; border-radius:50%; display:grid; place-items:center; background:var(--surface-menu); color:var(--text-primary-38); }
+  .empty .glyph svg { width:24px; height:24px; fill:none; stroke-width:1.7; }
+  .empty h4 { font:600 16px/22px var(--font); } .empty p { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:260px; }
+  .btn { font:600 13px/18px var(--font); padding:9px 16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); background:transparent; color:var(--text-primary); cursor:pointer; margin-top:var(--space-4); }
+
+  /* filters */
+  .fc { display:inline-flex; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:3px; gap:2px; }
+  .fc button { display:inline-flex; align-items:center; justify-content:center; font:600 12px/1 var(--font); height:30px; width:34px; padding:0; border:0; border-radius:9px; background:transparent; color:var(--text-secondary); cursor:pointer; overflow:hidden; transition:width .18s,background .14s,color .14s; }
+  .fc button svg { width:15px; height:15px; flex:none; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .fc button .lbl { max-width:0; opacity:0; white-space:nowrap; transition:max-width .18s,opacity .14s; }
+  /* Active = brandCta gradient (#0AD89C → #0AAEE6), never flat blue — matches
+     the established rule that an active/selected state is the gradient, the
+     same language as the nav tabs and the primary CTA. */
+  .fc button.on { background:linear-gradient(90deg,#0AD89C,#0AAEE6); color:#000B18; width:auto; padding:0 11px; gap:6px; }
+  .fc button.on .lbl { max-width:90px; opacity:1; }
+  .fc button:hover:not(.on) { color:var(--text-primary); }
+  /* Mobile/narrow: icon only — the active chip does NOT expand. Desktop keeps
+     the animated expand-to-label from sketch 007-C. */
+  .panel.narrow .fc button.on { width:34px; padding:0; gap:0; }
+  .panel.narrow .fc button.on .lbl { max-width:0; opacity:0; }
+  .fc .sep { width:1px; background:var(--border-subtle); margin:4px 3px; flex:none; }
+  .more { position:relative; display:inline-block; }
+  .more .menu { display:none; position:absolute; right:0; top:calc(100% + 6px); z-index:30; min-width:216px; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); box-shadow:var(--shadow-card); padding:var(--space-2); }
+  .more.open .menu { display:block; }
+  .more .menu button { display:flex; width:100%; align-items:center; gap:var(--space-4); font:500 13px/18px var(--font); padding:9px 10px; border:0; border-radius:var(--radius-sm); background:transparent; color:var(--text-primary); cursor:pointer; text-align:left; }
+  .more .menu button svg { width:14px; height:14px; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+  .more .menu button:hover { background:var(--surface-elevated); }
+  /* Active menu item = brandCta gradient TEXT — the same language the app paints
+     with ShaderMask(BlendMode.srcIn) in gw_button.dart (gradientOutline) and
+     gw_view_all_link.dart. The icon takes the same gradient via an SVG stroke. */
+  .more .menu button.on .lbltxt { background:linear-gradient(90deg,#0AD89C,#0AAEE6); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:700; }
+  .more .menu button.on { color:var(--text-primary); }
+  .more .menu button .n { margin-left:auto; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .more .menu .head { display:block; font:700 10px/14px var(--font); text-transform:uppercase; letter-spacing:.6px; color:var(--text-secondary); padding:var(--space-4) 10px var(--space-2); }
+  .more .menu .divider { margin:var(--space-2) 0; }
+  .grouplbl { font:700 10px/14px var(--font); text-transform:uppercase; letter-spacing:.6px; color:var(--text-secondary); }
+
+  .fbox { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:var(--space-8); margin-bottom:var(--space-6); cursor:pointer; transition:border-color .14s; }
+  .fbox.sel { border-color:var(--brand-primary-strong); background:var(--brand-fill); }
+  .fbox .lab { font:600 13px/18px var(--font); margin-bottom:var(--space-2); display:flex; align-items:center; gap:var(--space-4); flex-wrap:wrap; }
+  .fbox .why { font:400 12px/18px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .fbox .cost { font:400 12px/18px var(--font); color:var(--status-warning); margin-top:var(--space-4); }
+
+  .stage { display:flex; gap:var(--space-12); align-items:flex-start; flex-wrap:wrap; }
+  .note { background:var(--surface-menu); border-left:3px solid var(--status-error); border-radius:var(--radius-sm); padding:var(--space-6) var(--space-8); font:400 13px/21px var(--font); color:var(--text-secondary); margin-bottom:var(--space-8); max-width:880px; }
+  .note b { color:var(--text-primary); } .note code { font:400 12px/18px var(--font-mono); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="brandCta" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#0AD89C"/><stop offset="100%" stop-color="#0AAEE6"/>
+  </linearGradient>
+</defs></svg>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>014 · Transactions — everything decided, plus the one open question</h1>
+  <div class="seg" id="theme"><button data-v="dark" aria-pressed="true">Dark</button><button data-v="light" aria-pressed="false">Light</button></div>
+  <div class="seg" id="width"><button data-v="wide" aria-pressed="true">540</button><button data-v="narrow" aria-pressed="false">376</button></div>
+  <div class="seg" id="state"><button data-v="data" aria-pressed="true">Populated</button><button data-v="empty" aria-pressed="false">Empty</button></div>
+</div>
+
+<div class="legend">
+  <div><span class="tag ex">Existing</span> shipped on the homepage — reused as-is</div>
+  <div><span class="tag mod">Adapted</span> existing component, one property changed</div>
+  <div><span class="tag new">New</span> must be built</div>
+  <div><span class="tag rec">Rec</span> my recommendation</div>
+</div>
+
+<h2 class="sec">Decided so far</h2>
+<div class="decided" id="decided"></div>
+
+<h2 class="sec">The one open question — filters</h2>
+<div class="note">
+  <b>Why this still needs deciding.</b> The shipped <code>Filters</code> enum is
+  <code>{all, sent, received, escrow, mint}</code> (<code>transactions_slim_view.dart:16</code>), but
+  the model has seven types: <code>transfer, mint, escrow, process, escrowRelease, purchase, swap</code>.
+  <b>Swap, purchase and process are unreachable by any filter</b> — a swap can only be found under
+  "All". All three options below close that gap; they differ in what they cost you.
+</div>
+<p class="lede">Click a box to load it into the live panel below.</p>
+<div id="fstructs"></div>
+
+<h2 class="sec">Live panel</h2>
+<div class="stage">
+  <div class="panel" id="panel">
+    <div class="phead"><h3>Transactions</h3><div id="fslot"></div></div>
+    <hr class="divider">
+    <div id="frow" class="filterrow"></div>
+    <div id="list"></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const P = {
+  up:'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/>',
+  down:'<line x1="17" y1="7" x2="7" y2="17"/><polyline points="16 17 7 17 7 8"/>',
+  pickaxe:'<path d="M14.5 9.5 4 20"/><path d="M3 6.5c4-3 10-3 14 1"/><path d="M17.5 3.5c-3 4-3 10 1 14"/><path d="M12.5 7.5l4 4"/>',
+  server:'<rect x="3" y="4" width="18" height="6" rx="1.6"/><rect x="3" y="14" width="18" height="6" rx="1.6"/><path d="M7 7h.01M7 17h.01"/>',
+  lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  unlock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/>',
+  x:'<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/>',
+  swap:'<polyline points="16 3 20 7 16 11"/><path d="M4 7h16"/><polyline points="8 21 4 17 8 13"/><path d="M20 17H4"/>',
+  card:'<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+  dots:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  filt:'<polygon points="22 3 2 3 10 12.5 10 19 14 21 14 12.5 22 3"/>',
+  receipt:'<path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/>',
+};
+
+/* ── FINAL palette ── */
+const C = {
+  sent:     { f:'#64748B', g:'#FFFFFF', n:'Slate' },
+  received: { f:'#0AD89C', g:'#04241A', n:'statusSuccess' },
+  mint:     { f:'#C28FFF', g:'#1B0733', n:'brandTertiary' },
+  job:      { f:'#0AAEE6', g:'#000B18', n:'brandPrimaryStrong' },
+  escrow:   { f:'#64748B', g:'#FFFFFF', n:'Slate' },
+  pending:  { f:'#FFC42E', g:'#3A2A00', n:'statusWarning' },
+  failed:   { f:'#FF4D4D', g:'#FFFFFF', n:'statusError' },
+};
+const DECIDED = [
+  { k:'Sent',            v:'Slate #64748B',            g:P.up,      c:C.sent,     tag:'new' },
+  { k:'Received',        v:'statusSuccess #0AD89C',    g:P.down,    c:C.received, tag:'ex' },
+  { k:'Mint',            v:'brandTertiary #C28FFF',    g:P.pickaxe, c:C.mint,     tag:'ex' },
+  { k:'Processing job',  v:'brandPrimaryStrong #0AAEE6',g:P.server, c:C.job,      tag:'ex' },
+  { k:'Escrow',          v:'Slate #64748B',            g:P.lock,    c:C.escrow,   tag:'new' },
+  { k:'Pending',         v:'statusWarning #FFC42E',    g:P.clock,   c:C.pending,  tag:'ex' },
+  { k:'Failed',          v:'statusError #FF4D4D',      g:P.x,       c:C.failed,   tag:'ex' },
+];
+
+const badge=(g,c,bc)=>`<span class="badge" style="background:${c.f};${bc?`border-color:${bc}`:''}"><svg viewBox="0 0 24 24" stroke="${c.g}">${g}</svg></span>`;
+
+const TX = [
+  { day:'Today', k:'sent',     sym:'ETH',  bg:'linear-gradient(160deg,#8A9DF5,#5B72D8)', g:P.up,      c:C.sent,     t:'ETH',  a:'Sent',           s:'0x9fF8…2e2b',            v:'− 0.75 ETH',      fi:'$1,440.20', tm:'18:42', f:['sent'] },
+  { day:'Today', k:'received', sym:'BTC',  bg:'linear-gradient(160deg,#F9A03C,#E87B10)', g:P.down,    c:C.received, t:'BTC',  a:'Received',       s:'0x1d9b…4a87',            v:'+ 0.0042 BTC',    fi:'$278.19',   tm:'15:10', in:1, f:['received'] },
+  { day:'Today', k:'swap',     sym:'USDC', bg:'linear-gradient(160deg,#4A90E2,#2A6FC9)', g:P.swap,    c:C.sent,     t:'ETH → USDC', a:'Swapped',  s:'1.0 ETH',                v:'+ 3,200.00 USDC', fi:'$3,200.00', tm:'11:03', in:1, f:['swap'] },
+  { day:'Yesterday', k:'mint', sym:'GNUS', bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P.pickaxe, c:C.mint,     t:'GNUS', a:'Minted',         s:'Minted to wallet',       v:'+ 1,200 GNUS',    fi:'$924.00',   tm:'21:55', in:1, f:['mint'] },
+  { day:'Yesterday', k:'job',  sym:'GNUS', bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P.server,  c:C.job,      t:'GNUS', a:'Processing job', s:'Job #4192 · complete',   v:'—',               fi:'0.42 GNUS spent', tm:'20:14', na:1, f:['process'] },
+  { day:'Yesterday', k:'escrow',sym:'GNUS',bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P.lock,    c:C.escrow,   t:'GNUS', a:'Escrow locked',  s:'Job #4192',              v:'− 75.00 GNUS',    fi:'$57.75',    tm:'19:12', f:['escrow'] },
+  { day:'18 Jul', k:'purchase',sym:'GNUS', bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P.card,    c:C.received, t:'GNUS', a:'Purchased',      s:'Banxa · card',           v:'+ 500.00 GNUS',   fi:'$385.00',   tm:'09:47', in:1, f:['purchase'] },
+  { day:'18 Jul', k:'pending', sym:'USDT', bg:'linear-gradient(160deg,#3FC1A0,#1E8E72)', g:P.clock,   c:C.pending,  t:'USDT', a:'Sent',           s:'0x4c7a…9910 · pending',  v:'− 420.00 USDT',   fi:'$420.00',   tm:'08:30', f:['sent','pending'] },
+  { day:'18 Jul', k:'failed',  sym:'ETH',  bg:'linear-gradient(160deg,#8A9DF5,#5B72D8)', g:P.x,       c:C.failed,   t:'ETH',  a:'Buy',            s:'Banxa · payment declined', v:'—',             fi:'Not charged', tm:'07:15', na:1, f:['purchase','failed'] },
+];
+
+const S = { theme:'dark', width:'wide', state:'data', fstruct:'F1', filter:'all', menu:false };
+const cnt = k => TX.filter(t => t.f.includes(k)).length;
+const rows = () => S.filter==='all' ? TX : TX.filter(t => t.f.includes(S.filter));
+
+// Title row order: money first, then the two GNUS-native activities. Escrow
+// moves into the overflow — it is rarer than a processing job and the panel
+// only has room for four.
+const PRIMARY = [['sent','Sent',P.up],['received','Received',P.down],['mint','Mint',P.pickaxe],['process','Jobs',P.server]];
+const SECOND  = [['escrow','Escrow',P.lock],['swap','Swapped',P.swap],['purchase','Purchased',P.card]];
+const STATUS  = [['pending','Pending',P.clock],['failed','Failed',P.x]];
+// A filter chosen from the overflow menu is invisible on the title row, so the
+// "..." trigger itself takes the active gradient — otherwise the list looks
+// filtered for no visible reason.
+const HIDDEN_KEYS = [...SECOND, ...STATUS].map(x => x[0]);
+
+const chip = ([k,n,g]) => `<button class="${S.filter===k?'on':''}" data-f="${k}" title="${n}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg><span class="lbl">${n.split(' ')[0]}</span></button>`;
+// The glyph never changes with selection — same icon, same colour, selected or
+// not. Only the label takes the brandCta gradient.
+const item = ([k,n,g]) => `<button class="${S.filter===k?'on':''}" data-f="${k}"><svg viewBox="0 0 24 24" stroke="currentColor">${g}</svg><span class="lbltxt">${n}</span><span class="n">${cnt(k)}</span></button>`;
+
+const FS = {
+  F1: { lab:'F1 · Two-tier — four on the title row, the rest behind “More”', tag:'mod', tagt:'Adapted', rec:1,
+        why:'Keeps sketch 007-C exactly as picked and adds an overflow menu carrying swap, purchase, jobs and the two statuses with live counts. Fits the 376px panel with room to spare.',
+        cost:'Cost: three types are one click away and invisible until the menu is opened.',
+        slot:'head',
+        render:()=>`<div class="fc">${PRIMARY.map(chip).join('')}<span class="sep"></span>
+          <span class="more ${S.menu?'open':''}"><button class="${HIDDEN_KEYS.includes(S.filter)?'on':''}" data-more="1" title="${HIDDEN_KEYS.includes(S.filter)?'Filtered: '+S.filter:'More'}"><svg viewBox="0 0 24 24" stroke="currentColor">${P.dots}</svg></button>
+          <span class="menu"><span class="head">More types</span>${SECOND.map(item).join('')}<hr class="divider"><span class="head">Status</span>${STATUS.map(item).join('')}</span></span></div>` },
+  F2: { lab:'F2 · Money / Activity — two labelled groups on their own row', tag:'new', tagt:'New', rec:0,
+        why:'Every filter visible at once, grouped by the question being asked: Money changed my balance, Activity is something the app did.',
+        cost:'Cost: needs its own row — roughly 40px taken from the list, on a panel whose height is already the scarce resource.',
+        slot:'row',
+        render:()=>`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="grouplbl">Money</span><div class="fc">${[PRIMARY[0],PRIMARY[1]].map(chip).join('')}</div>
+          <span class="grouplbl" style="margin-left:6px">Activity</span>
+          <div class="fc">${[PRIMARY[2],PRIMARY[3],SECOND[0],SECOND[1],SECOND[2]].map(chip).join('')}</div></div>` },
+  F3: { lab:'F3 · One dropdown — every type and status, with counts', tag:'new', tagt:'New', rec:0,
+        why:'A single trigger on the title row; the menu carries all seven types plus both statuses with live counts. The most space-frugal and the most scalable.',
+        cost:'Cost: nothing is glanceable — you cannot see what filters exist without opening the menu.',
+        slot:'head',
+        render:()=>`<span class="more ${S.menu?'open':''}"><button data-more="1" style="display:inline-flex;align-items:center;gap:8px;font:600 12px/1 var(--font);height:34px;padding:0 12px;border-radius:var(--radius-md);border:1px solid var(--border-subtle);background:var(--surface-menu);color:var(--text-primary);cursor:pointer"><svg viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;fill:none;stroke-width:2">${P.filt}</svg>${S.filter==='all'?'All':S.filter}<span style="color:var(--text-secondary)">${rows().length}</span></button>
+          <span class="menu"><span class="head">Money</span>${[PRIMARY[0],PRIMARY[1]].map(item).join('')}<hr class="divider"><span class="head">Activity</span>${[PRIMARY[2],PRIMARY[3],SECOND[0],SECOND[1],SECOND[2]].map(item).join('')}<hr class="divider"><span class="head">Status</span>${STATUS.map(item).join('')}</span></span>` },
+};
+
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('panel').className = 'panel' + (S.width==='narrow'?' narrow':'');
+
+  document.getElementById('decided').innerHTML = DECIDED.map(d=>`
+    <div class="dec"><div class="demo"><span class="coin" style="background:linear-gradient(160deg,#3AD9C0,#1FA9C8)"></span>${badge(d.g,d.c,'var(--surface-menu)')}</div>
+      <div><div class="k">${d.k} <span class="tag ${d.tag}">${d.tag==='ex'?'Exist':'New'}</span></div><div class="v">${d.v}</div></div></div>`).join('');
+
+  document.getElementById('fstructs').innerHTML = Object.entries(FS).map(([k,f])=>`
+    <div class="fbox ${S.fstruct===k?'sel':''}" data-fs="${k}">
+      <div class="lab">${f.lab} <span class="tag ${f.tag}">${f.tagt}</span>${f.rec?'<span class="tag rec">Rec</span>':''}</div>
+      <div class="why">${f.why}</div>${f.render()}<div class="cost">${f.cost}</div></div>`).join('');
+
+  const F = FS[S.fstruct];
+  document.getElementById('fslot').innerHTML = F.slot==='head' ? F.render() : '';
+  document.getElementById('frow').innerHTML  = F.slot==='row'  ? F.render() : '';
+
+  const list = document.getElementById('list');
+  if (S.state === 'empty') {
+    list.innerHTML = `<div class="empty"><div class="glyph"><svg viewBox="0 0 24 24" stroke="currentColor">${P.receipt}</svg></div>
+      <h4>No transactions yet</h4><p>Your sends, receives and swaps will appear here.</p></div>`;
+    document.getElementById('foot').textContent = '';
+  } else if (!rows().length) {
+    list.innerHTML = `<div class="empty"><div class="glyph"><svg viewBox="0 0 24 24" stroke="currentColor">${P.filt}</svg></div>
+      <h4>No ${S.filter} transactions</h4><p>You have ${TX.length} transactions, but none match this filter.</p>
+      <button class="btn" data-f="all">Show all</button></div>`;
+    document.getElementById('foot').textContent = '';
+  } else {
+    const days = [...new Set(rows().map(t=>t.day))];
+    list.innerHTML = days.map(d=>{
+      const rs = rows().filter(t=>t.day===d);
+      return `<div class="day">${d}</div>` + rs.map((t,i)=>`
+        <div class="row"><div class="id"><span class="coin" style="background:${t.bg}">${t.sym}</span>${badge(t.g,t.c)}</div>
+          <div class="main"><div class="t">${t.t}<span class="action">${t.a}</span></div><div class="s">${t.s}</div></div>
+          <div class="amt"><span class="v ${t.in?'in':''} ${t.na?'na':''}">${t.v}</span><span class="f">${t.fi}</span></div>
+          <div class="time">${t.tm}</div></div>` + (i<rs.length-1?'<hr class="divider">':'')).join('');
+    }).join('');
+    document.getElementById('foot').textContent = `${rows().length} transaction${rows().length===1?'':'s'}`;
+  }
+}
+
+document.addEventListener('click', e => {
+  const fs = e.target.closest('[data-fs]'); const mo = e.target.closest('[data-more]'); const f = e.target.closest('[data-f]');
+  if (mo) { S.menu=!S.menu; render(); e.stopPropagation(); return; }
+  if (f)  { S.filter = (S.filter===f.dataset.f||f.dataset.f==='all') ? 'all' : f.dataset.f; S.menu=false; if(S.state!=='data'){S.state='data';document.querySelectorAll('#state button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v==='data')));} render(); e.stopPropagation(); return; }
+  if (fs) { S.fstruct = fs.dataset.fs; S.menu=false; render(); return; }
+  if (S.menu) { S.menu=false; render(); }
+});
+['theme','width','state'].forEach(g => document.getElementById(g).addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S[g]=b.dataset.v; document.querySelectorAll('#'+g+' button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); render();
+}));
+render();
+</script>
+</body>
+</html>

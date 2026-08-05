@@ -53,25 +53,25 @@ class XPainter extends CustomPainter {
       ..strokeCap = StrokeCap.square;
 
     final path = Path();
-    double progress = animation.value;
+    final double progress = animation.value;
 
     // Coordinates for the first line of the "X"
-    double line1StartX = size.width * 0.2;
-    double line1StartY = size.height * 0.2;
+    final double line1StartX = size.width * 0.2;
+    final double line1StartY = size.height * 0.2;
 
-    double line1EndX = size.width * 0.8;
-    double line1EndY = size.height * 0.8;
+    final double line1EndX = size.width * 0.8;
+    final double line1EndY = size.height * 0.8;
 
     // Coordinates for the second line of the "X"
-    double line2StartX = size.width * 0.8;
-    double line2StartY = size.height * 0.2;
+    final double line2StartX = size.width * 0.8;
+    final double line2StartY = size.height * 0.2;
 
-    double line2EndX = size.width * 0.2;
-    double line2EndY = size.height * 0.8;
+    final double line2EndX = size.width * 0.2;
+    final double line2EndY = size.height * 0.8;
 
     // Animate the first line of the "X"
     if (progress < 0.5) {
-      double segmentProgress = progress / 0.5;
+      final double segmentProgress = progress / 0.5;
       path.moveTo(line1StartX, line1StartY);
       path.lineTo(
         line1StartX + (line1EndX - line1StartX) * segmentProgress,
@@ -83,7 +83,7 @@ class XPainter extends CustomPainter {
       path.moveTo(line1StartX, line1StartY);
       path.lineTo(line1EndX, line1EndY);
 
-      double segmentProgress = (progress - 0.5) / 0.5;
+      final double segmentProgress = (progress - 0.5) / 0.5;
       path.moveTo(line2StartX, line2StartY);
       path.lineTo(
         line2StartX + (line2EndX - line2StartX) * segmentProgress,

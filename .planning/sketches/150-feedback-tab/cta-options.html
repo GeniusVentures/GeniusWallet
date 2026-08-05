@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>150 · Feedback CTA — 3 gradient options</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:40px var(--space-10) 80px; }
+  .wrap { max-width:720px; margin:0 auto; }
+  h1 { font:600 22px/28px var(--font); margin-bottom:6px; }
+  .sub { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:8px; }
+  .spec { color:var(--text-primary-54); font:500 12px/18px var(--font-mono); margin-bottom:28px;
+    padding:10px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-menu); }
+  .opt { margin-bottom:26px; }
+  .opt .lbl { display:flex; align-items:center; gap:8px; font:600 13px/18px var(--font); margin-bottom:4px; }
+  .opt .why { color:var(--text-secondary); font:400 12px/18px var(--font); margin-bottom:12px; }
+  .tag { font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-secondary); }
+  .tag.ext { background:rgba(194,143,255,.16); color:var(--brand-tertiary); }
+  .tag.canon { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  /* mock composer footer so CTAs are seen in context */
+  .card { border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:var(--space-10);
+    background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); }
+  .status { display:flex; align-items:center; gap:9px; font:500 13px/18px var(--font); color:var(--status-success); }
+  .status .dot { width:9px; height:9px; border-radius:50%; background:var(--status-success); }
+  .divide { height:1px; background:var(--border-subtle); margin:0 0 var(--space-8); }
+
+  /* ---- the canonical CTA, grounded in gw_button.dart ---- */
+  .cta { position:relative; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    height:56px; padding:0 var(--space-10); border:0; border-radius:var(--radius-lg); cursor:pointer;
+    font:600 16px/1 var(--font);                 /* titleMd-ish, lg */
+    color:var(--text-on-brand);                  /* #000B18 — near-black, AA-safe (white fails AA) */
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));  /* #0AD89C → #0AAEE6 */
+    transition:box-shadow .15s ease; }
+  .cta svg { width:20px; height:20px; }
+  /* app hover = "Option A · Brighten": white wash 12% hover / 18% press */
+  .cta::after { content:""; position:absolute; inset:0; background:#fff; opacity:0; transition:opacity .12s ease; pointer-events:none; }
+  .cta:hover::after { opacity:.12; }
+  .cta:active::after { opacity:.18; }
+  .cta.block { display:flex; width:100%; }
+  .cta.glow { box-shadow:0 8px 24px -6px color-mix(in srgb, var(--brand-cta-b) 55%, transparent); }
+
+  .footer-inline { display:flex; align-items:center; gap:var(--space-8); }
+  .footer-inline .status { margin-right:auto; }
+  .footer-stack .status { margin-bottom:var(--space-8); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Feedback CTA · 3 gradient options</h1>
+  <div class="sub">All three use the app's real brand-CTA gradient. Hover any button to see the "brighten" reaction.</div>
+  <div class="spec">grounded in gw_button.dart · gradient #0AD89C→#0AAEE6 · label #000B18 (white fails AA) · radiusLg · h56 (lg) · hover = white wash 12% / press 18%</div>
+
+  <!-- A -->
+  <div class="opt">
+    <div class="lbl">A · Inline primary <span class="tag canon">canonical · zero diff</span></div>
+    <div class="why">Exactly GWButton <code>primary</code> today: auto-width, sits inline with the status line. Ships as-is, no new work. Reads as "one action among the footer", lightest weight.</div>
+    <div class="card">
+      <div class="divide"></div>
+      <div class="footer-inline">
+        <div class="status"><span class="dot"></span> Ready to send feedback.</div>
+        <button class="cta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+          Send feedback
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="opt">
+    <div class="lbl">B · Full-width primary <span class="tag rec">recommended</span></div>
+    <div class="why">Same gradient, <code>expand</code> block spanning the card; status line moves above. Reads as the page's single primary action - which Send Feedback is. Still 100% within the button system (GWButton <code>primary</code> + <code>expand</code>).</div>
+    <div class="card">
+      <div class="footer-stack">
+        <div class="status"><span class="dot"></span> Ready to send feedback.</div>
+        <button class="cta block">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+          Send feedback
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="opt">
+    <div class="lbl">C · Full-width, elevated <span class="tag ext">small extension</span></div>
+    <div class="why">B plus a resting brand-tinted glow shadow for more presence. The current primary has no resting glow, so this is a small deliberate extension of the button system (brighten hover unchanged). Most "premium", least faithful.</div>
+    <div class="card">
+      <div class="footer-stack">
+        <div class="status"><span class="dot"></span> Ready to send feedback.</div>
+        <button class="cta block glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+          Send feedback
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

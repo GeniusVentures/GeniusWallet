@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>115 · Markets sort indicator — 3 proposals</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#0A0C10; color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+  .wrap { max-width:1200px; margin:0 auto; }
+  .toolbar { display:flex; gap:14px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .toolbar h1 .muted{ color:var(--text-secondary); font-weight:400; }
+  .tabs { display:flex; gap:2px; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; }
+  .tabs button { font:500 12.5px/18px var(--font); padding:7px 14px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .tabs button[aria-pressed="true"]{ background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#00121A; font-weight:600; }
+  .meta { font:400 12.5px/1.6 var(--font); color:var(--text-secondary); margin:8px 0 18px; max-width:900px; }
+  .meta b{ color:var(--text-primary); } .meta .beh{ color:var(--brand-secondary); font-weight:600; }
+  .up{ color:#2BD98C; } .dn{ color:#FF5C5C; }
+
+  .card { background:#0C0E13; border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:6px 20px; }
+  .hint { font:400 11.5px/1 var(--font); color:var(--text-secondary); margin:14px 2px 0; }
+  .row { display:grid; grid-template-columns:36px 1fr 120px 104px 128px; gap:14px; align-items:center; padding:13px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+  .row:last-child{ border-bottom:0; }
+  .hrow { padding:12px 0; border-bottom:1px solid rgba(255,255,255,.10); }
+  .hcell { font:600 10px/1 var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-secondary); cursor:pointer; user-select:none; display:inline-flex; align-items:center; gap:5px; position:relative; }
+  .hcell.num { justify-content:flex-end; }
+  .row .rk{ font:500 11px/1 var(--font); color:var(--text-secondary); }
+  .row .nm{ font:600 13.5px/1 var(--font); } .row .nm small{ color:var(--text-secondary); font-weight:500; margin-left:6px; }
+  .row .n{ text-align:right; font:600 13px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .row .ch{ text-align:right; font:600 12.5px/1 var(--font); font-variant-numeric:tabular-nums; }
+  .colhead { display:grid; grid-template-columns:36px 1fr 120px 104px 128px; gap:14px; }
+
+  /* ---- P1: chevron + active label brighten ---- */
+  .p1 .hcell.active{ color:var(--text-primary); }
+  .p1 .chev{ font-size:8px; opacity:0; transition:.15s; }
+  .p1 .hcell:hover .chev{ opacity:.4; }
+  .p1 .hcell.active .chev{ opacity:1; color:var(--brand-secondary); }
+
+  /* ---- P2: gradient underline (app active-mark language, sketch 022-B2) ---- */
+  .p2 .hcell.active{ color:var(--text-primary); }
+  .p2 .hcell::after{ content:""; position:absolute; left:0; right:0; bottom:-7px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary)); transform:scaleX(0); transform-origin:right; transition:transform .18s; }
+  .p2 .hcell.num::after{ transform-origin:left; }
+  .p2 .hcell.active::after{ transform:scaleX(1); }
+  .p2 .dirar{ font-size:8px; color:var(--brand-secondary); opacity:0; }
+  .p2 .hcell.active .dirar{ opacity:1; }
+
+  /* ---- P3: always-visible dual-arrow affordance, active lights one ---- */
+  .p3 .darr{ display:inline-flex; flex-direction:column; line-height:.6; font-size:7px; color:var(--text-secondary); opacity:.35; transition:.15s; }
+  .p3 .hcell:hover .darr{ opacity:.7; }
+  .p3 .hcell.active{ color:var(--text-primary); }
+  .p3 .hcell.active .darr{ opacity:1; }
+  .p3 .darr .a1.lit{ color:var(--brand-secondary); } .p3 .darr .a2.lit{ color:var(--brand-secondary); }
+  .p3 .darr .dim{ color:var(--text-secondary); opacity:.3; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>115 · Sort indicator <span class="muted">— 3 proposals (current: a plain ↑/↓ text arrow)</span></h1>
+    <div class="tabs" id="tabs">
+      <button aria-pressed="true"  data-v="p1">P1 · Chevron</button>
+      <button aria-pressed="false" data-v="p2">P2 · Gradient underline</button>
+      <button aria-pressed="false" data-v="p3">P3 · Dual-arrow affordance</button>
+    </div>
+  </div>
+  <div class="meta" id="meta"></div>
+  <div class="card" id="stage"></div>
+  <div class="hint">Click any column header to sort. Click again to flip direction.</div>
+</div>
+
+<script>
+const COINS=[
+  {rk:1,nm:'Bitcoin',sy:'BTC',pr:65431,ch:-0.5,cap:1.31e12,vol:25.3e9},
+  {rk:2,nm:'Ethereum',sy:'ETH',pr:1886,ch:-2.1,cap:227.6e9,vol:9.7e9},
+  {rk:4,nm:'BNB',sy:'BNB',pr:568,ch:-0.4,cap:75.7e9,vol:472.3e6},
+  {rk:5,nm:'Solana',sy:'SOL',pr:75.8,ch:-2.3,cap:44.2e9,vol:1.5e9},
+  {rk:8,nm:'TRON',sy:'TRX',pr:0.33,ch:0.3,cap:31.3e9,vol:383.8e6},
+  {rk:11,nm:'Dogecoin',sy:'DOGE',pr:0.069,ch:-4.6,cap:10.7e9,vol:757.5e6},
+  {rk:17,nm:'Monero',sy:'XMR',pr:355,ch:2.1,cap:6.7e9,vol:96.5e6},
+];
+const money=n=>n>=1e12?'$'+(n/1e12).toFixed(2)+'T':n>=1e9?'$'+(n/1e9).toFixed(1)+'B':n>=1e6?'$'+(n/1e6).toFixed(1)+'M':'$'+n;
+const price=n=>n>=1000?'$'+n.toLocaleString('en-US',{maximumFractionDigits:0}):'$'+n.toFixed(n>=1?2:4);
+const sgn=c=>(c>=0?'+':'')+c.toFixed(1)+'%';
+const COLS=[['rk','#',false],['nm','Coin',false],['pr','Price',true],['ch','24h %',true],['cap','Market Cap',true]];
+let sortKey='rk', asc=true, view='p1';
+const META={
+ p1:`<b>P1 · Chevron</b> — the arrow becomes a proper <b>▾ chevron</b>; the active column label brightens to full white, chevron in brand mint. <span class="beh">Behaviour:</span> hover any sortable header → a faint chevron previews it's sortable; click → sorts + chevron flips ▴/▾. Cleanest, closest to today. Sacrifice: sortability isn't obvious until you hover.`,
+ p2:`<b>P2 · Gradient underline</b> — the active column gets the app's own <b>2px brand-gradient underline</b> (same active-mark as the filter rail, sketch 022-B2) + a tiny direction caret. <span class="beh">Behaviour:</span> click → underline slides in under the label, caret shows ▴/▾. Most on-brand / consistent with the rest of the app. Sacrifice: a touch louder.`,
+ p3:`<b>P3 · Dual-arrow affordance</b> — every sortable header always shows a faint <b>up/down glyph</b> (⌃⌄), so it's obvious the column IS sortable; the active one lights the chosen direction. <span class="beh">Behaviour:</span> resting = both arrows dim; hover = brighter; active = one arrow lit mint. Most discoverable. Sacrifice: most visual noise in the header.`
+};
+function darr(key){ const active=key===sortKey; return `<span class="darr"><span class="a1 ${active&&asc?'lit':'dim'}">⌃</span><span class="a2 ${active&&!asc?'lit':'dim'}">⌄</span></span>`; }
+function indicator(k){ const active=k===sortKey;
+  if(view==='p1') return `<span class="chev">${active?(asc?'▴':'▾'):'▾'}</span>`;
+  if(view==='p2') return `<span class="dirar">${asc?'▴':'▾'}</span>`;
+  return darr(k);
+}
+function head(){
+  return `<div class="colhead hrow ${view}">`+COLS.map(([k,label,num])=>{
+    const active=k===sortKey;
+    return `<span class="hcell ${num?'num':''} ${active?'active':''}" data-k="${k}">${label.toUpperCase()}${indicator(k)}</span>`;
+  }).join('')+`</div>`;
+}
+function rows(){
+  const s=[...COINS].sort((a,b)=>{const av=a[sortKey],bv=b[sortKey]; const cmp=typeof av==='string'?av.localeCompare(bv):av-bv; return asc?cmp:-cmp;});
+  return s.map(c=>`<div class="row"><span class="rk">${c.rk}</span><span class="nm">${c.nm}<small>${c.sy}</small></span><span class="n">${price(c.pr)}</span><span class="ch ${c.ch>=0?'up':'dn'}">${sgn(c.ch)}</span><span class="n" style="color:var(--text-secondary)">${money(c.cap)}</span></div>`).join('');
+}
+function render(){ document.getElementById('meta').innerHTML=META[view];
+  document.getElementById('stage').className='card '+view;
+  document.getElementById('stage').innerHTML=head()+rows(); bind(); }
+function bind(){ document.querySelectorAll('.hcell').forEach(h=>h.addEventListener('click',()=>{ const k=h.dataset.k; if(k===sortKey) asc=!asc; else{sortKey=k;asc=true;} render(); })); }
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b)); view=b.dataset.v; render(); });
+render();
+</script>
+</body>
+</html>

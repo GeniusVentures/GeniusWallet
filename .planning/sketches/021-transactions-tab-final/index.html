@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>021 · Transactions tab — FINAL (rail states, anchor, icons, edge cases)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1420px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 20px/26px var(--font); letter-spacing:-.3px; margin:var(--space-16) 0 var(--space-4); }
+  h3.sub { font:600 15px/20px var(--font); margin:var(--space-10) 0 var(--space-4); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:980px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.ad  { background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.new { background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bad { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.lock{ background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  .locked { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:var(--space-4); margin-bottom:var(--space-8); }
+  .locked .l { padding:var(--space-6); background:var(--surface-menu); border:1px solid var(--border-subtle);
+               border-left:3px solid var(--status-success); border-radius:var(--radius-md); }
+  .locked .l .k { font:700 9px/1 var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--status-success); }
+  .locked .l .v { font:600 14px/19px var(--font); margin-top:var(--space-3); }
+  .locked .l .w { font:400 12px/17px var(--font); color:var(--text-secondary); margin-top:var(--space-3); }
+
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-6); }
+  .divider { height:1px; background:var(--border-subtle); border:0; }
+  svg.g { fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ---------- rail ---------- */
+  .rail { width:224px; flex:none; }
+  .rail .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+              padding:var(--space-4) var(--space-6) var(--space-3); }
+  .ri { position:relative; display:flex; align-items:center; gap:var(--space-4); height:40px; padding:0 var(--space-6);
+        border-radius:var(--radius-md); cursor:pointer; }
+  .ri svg { width:14px; height:14px; color:var(--text-secondary); flex:none; }
+  .ri .l { font:500 13px/18px var(--font); flex:1; color:var(--text-primary); }
+  .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .ri.hover { background:var(--surface-elevated); }
+  .ri.on::before { content:''; position:absolute; left:0; top:8px; bottom:8px; width:2px; border-radius:2px;
+                   background:linear-gradient(180deg,var(--brand-primary),var(--brand-secondary)); }
+  .ri.on .l { font-weight:700; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary));
+              -webkit-background-clip:text; background-clip:text; color:transparent; }
+  [data-theme="light"] .ri.on .l { background:none; color:#0A6885; }
+  .rd { height:1px; background:var(--border-subtle); margin:var(--space-4) var(--space-6); }
+
+  .states { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); }
+  .states .st { }
+  .states .cap { font:600 13px/18px var(--font); margin-bottom:var(--space-4); display:flex; align-items:center; gap:var(--space-4); }
+  .states .why { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-4); }
+
+  /* ---------- rows ---------- */
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); border-radius:var(--radius-md); }
+  .row .time { width:44px; flex:none; font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .row .id { position:relative; width:40px; height:40px; flex:none; }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .row .t .action { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .amt { text-align:right; flex:none; }
+  .row .amt .a { font:600 16px/21px var(--font-mono); font-variant-numeric:tabular-nums; }
+  .row .amt .f { font:400 12px/16px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  .pos { color:var(--status-success); } .mute { color:var(--text-secondary); } .strike { text-decoration:line-through; }
+  .coin { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font:700 11px/1 var(--font); color:#fff; overflow:hidden; }
+  .badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--surface-sheen-b); }
+  .badge svg { width:9px; height:9px; stroke-width:3.2; }
+  .daylabel { font:600 13px/18px var(--font); letter-spacing:.7px; color:var(--text-secondary); padding:var(--space-4) var(--space-6) var(--space-2); }
+
+  /* ---------- empty ---------- */
+  .anchorgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); }
+  .epanel { height:620px; display:flex; flex-direction:column; }
+  .sectionhead { display:flex; align-items:center; min-height:44px; padding:2px var(--space-4) var(--space-4); }
+  .sectionhead h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; }
+  .eslot { flex:1; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+  .eblock { display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 var(--space-12); }
+  .eblock .circle { width:72px; height:72px; border-radius:50%; display:grid; place-items:center;
+                    background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); color:var(--text-secondary); }
+  .eblock .circle svg { width:32px; height:32px; }
+  .eblock .et { font:600 18px/24px var(--font); margin-top:var(--space-8); }
+  .eblock .em { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-4); max-width:300px; }
+  .a-32 .eblock { margin-top:32px; }
+  .a-64 .eblock { margin-top:64px; }
+  .a-bound { }
+  .a-bound .boundbox { max-height:480px; height:480px; display:flex; align-items:center; justify-content:center; }
+  .measure { position:absolute; left:var(--space-6); top:0; width:1px; background:var(--brand-primary); opacity:.5; }
+  .measure span { position:absolute; left:6px; top:50%; transform:translateY(-50%); white-space:nowrap;
+                  font:400 10px/14px var(--font-mono); color:var(--brand-primary); }
+
+  .icons { display:grid; grid-template-columns:repeat(5,1fr); gap:var(--space-6); }
+  .ic { padding:var(--space-8) var(--space-6); background:var(--surface-menu); border:1px solid var(--border-subtle);
+        border-radius:var(--radius-md); text-align:center; }
+  .ic .circle { width:72px; height:72px; margin:0 auto; border-radius:50%; display:grid; place-items:center;
+                background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); color:var(--text-secondary); }
+  .ic .circle svg { width:32px; height:32px; }
+  .ic .n { font:600 12px/17px var(--font); margin-top:var(--space-6); }
+  .ic .p { font:400 11px/16px var(--font-mono); color:var(--text-secondary); margin-top:var(--space-3); word-break:break-word; }
+  .ic .r { font:400 11px/16px var(--font); color:var(--text-secondary); margin-top:var(--space-4); }
+  .ic.pick { border-color:var(--brand-primary); box-shadow:0 0 0 1px var(--brand-primary) inset; }
+
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin-top:var(--space-4); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+               padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  table.t td:first-child { font-weight:600; white-space:nowrap; }
+  table.t tr.win td { background:var(--brand-fill); }
+  table.t .mono { font-family:var(--font-mono); font-size:12px; }
+
+  .pill { font:600 11px/16px var(--font); padding:2px 8px; border-radius:var(--radius-pill); }
+  .st-ok { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .st-pd { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .st-fl { background:var(--status-error-fill); color:var(--status-error); }
+  .hide { display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>021 · Transactions tab — <b>final</b> for approval</h1>
+  <div class="seg" id="ssel">
+    <button data-s="S1" aria-pressed="true">S1 · Sign = movement</button>
+    <button data-s="S2" aria-pressed="false">S2 · Struck attempt</button>
+    <button data-s="S3" aria-pressed="false">S3 · Quiet money column</button>
+  </div>
+  <div class="seg" id="tsel">
+    <button data-t="dark" aria-pressed="true">Dark</button>
+    <button data-t="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<h2 class="sec">Locked by you</h2>
+<div class="locked">
+  <div class="l"><div class="k">Layout</div><div class="v">B · Filter rail</div>
+    <div class="w">Page at <code>xl</code> 1280, <code>GWPageHeader</code> 24px, list + rail each in a <code>DashboardScrollContainer</code>.</div></div>
+  <div class="l"><div class="k">Empty state</div><div class="v">E2 · Anchored</div>
+    <div class="w">No action buttons. Anchor height is the one thing still open — three below.</div></div>
+  <div class="l"><div class="k">Empty state</div><div class="v">Filter bar hidden</div>
+    <div class="w">Nothing to filter ⇒ no control. Applies to the rail on the page AND the chips on the panel.</div></div>
+  <div class="l"><div class="k">Everything else</div><div class="v">Pulled from the shipped row</div>
+    <div class="w">Type scale, numerals, spacing, hover — all traced to Phase 12 code below, nothing re-invented.</div></div>
+</div>
+
+<!-- ==================== 1. RAIL STATES ==================== -->
+<h2 class="sec">1 · The rail's three states — I had this wrong</h2>
+<p class="lede">
+  You were right to challenge it. My 020 mockup painted the active row with a <code>brand-fill</code> background —
+  <b>a colour that appears nowhere in this app's selection language.</b> I invented it. The rail is the overflow menu
+  unrolled, so it must wear the marks that menu and the navbar already wear. Every state below traces to a shipped line
+  of code; nothing here is new paint.
+</p>
+
+<div class="states">
+  <div class="st">
+    <div class="cap">Rest <span class="tag ex">Existing</span></div>
+    <div class="card">
+      <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg><span class="l">Sent</span><span class="c">3</span></div>
+      <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M17 7 7 17m0 0h8m-8 0V9"/></svg><span class="l">Received</span><span class="c">1</span></div>
+    </div>
+    <div class="why">Glyph <code>textSecondary</code> 14px · label <code>labelMd</code> 13/w500 <code>textPrimary</code> ·
+      count <code>numericBody</code> 13px tabular <code>textSecondary</code> · row 40px (<code>space20</code>), pad
+      <code>space6</code>. Byte-for-byte <code>_menuItem</code>, <code>transactions_slim_view.dart:498-551</code>.</div>
+  </div>
+  <div class="st">
+    <div class="cap">Hover <span class="tag ex">Existing</span></div>
+    <div class="card">
+      <div class="ri hover"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg><span class="l">Sent</span><span class="c">3</span></div>
+      <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M17 7 7 17m0 0h8m-8 0V9"/></svg><span class="l">Received</span><span class="c">1</span></div>
+    </div>
+    <div class="why">Lifts onto <code>surfaceElevated</code>, label to <code>textPrimary</code>, 120ms. The
+      <b>design-system hover</b> — sketch 008 variant D — already used by <code>_FilterChip</code> and
+      <code>_TimeframeTab</code>. No exceptions anywhere in the chrome.</div>
+  </div>
+  <div class="st">
+    <div class="cap">Active <span class="tag ad">Adapted</span></div>
+    <div class="card">
+      <div class="ri on"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg><span class="l">Sent</span><span class="c">3</span></div>
+      <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M17 7 7 17m0 0h8m-8 0V9"/></svg><span class="l">Received</span><span class="c">1</span></div>
+    </div>
+    <div class="why"><b>Two marks, both borrowed.</b> Gradient label + w700 is <code>_activeLabelShader</code>
+      (<code>:490</code>) — and the <b>glyph deliberately does not change</b>, the locked rule at <code>:525</code>.
+      The 2px gradient leading rail is the navbar's active-tab indicator turned vertical.</div>
+  </div>
+</div>
+
+<p class="lede" style="margin-top:var(--space-8)">
+  <b>Why the active row needs a second mark at all.</b> In a popup the selection is momentary, so a gradient label alone
+  is enough. A rail is permanent and sits in peripheral vision — a 13px gradient label is too quiet to answer "is a
+  filter on?" at a glance. The navbar solves exactly this problem, for exactly this reason, with a 2px gradient bar. So
+  the rail borrows it rather than inventing a third answer. <b>Hover and active stay visually distinct</b>, which the
+  <code>brand-fill</code> version did not guarantee.
+</p>
+
+<h3 class="sub">The rail in full <span class="tag new">New</span> one row only: <code>All</code></h3>
+<p class="lede">
+  <code>_menuItem</code> has no "All" — you clear it by tapping the active filter again, which is invisible. A rail has
+  the room to say it out loud, and it is the natural home for the total count that currently lives in the footer.
+</p>
+
+<div style="display:flex;gap:var(--space-8);align-items:flex-start;">
+  <div class="card rail">
+    <div class="ri on"><svg class="g" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="l">All</span><span class="c">11</span></div>
+    <div class="rd"></div>
+    <div class="rh">Type</div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M7 17 17 7M17 7H9m8 0v8"/></svg><span class="l">Sent</span><span class="c">3</span></div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M17 7 7 17m0 0h8m-8 0V9"/></svg><span class="l">Received</span><span class="c">1</span></div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/></svg><span class="l">Mint</span><span class="c">1</span></div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg><span class="l">Computing</span><span class="c">1</span></div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span class="l">Escrow</span><span class="c">2</span></div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M4 8h13l-3-3m6 11H7l3 3"/></svg><span class="l">Swapped</span><span class="c">1</span></div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><span class="l">Purchased</span><span class="c">2</span></div>
+    <div class="rd"></div>
+    <div class="rh">Status</div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="l">Pending</span><span class="c">1</span></div>
+    <div class="ri"><svg class="g" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg><span class="l">Failed</span><span class="c">2</span></div>
+  </div>
+  <div class="card" style="flex:1;min-width:0;">
+    <div class="daylabel">TODAY</div>
+    <div id="rows"></div>
+  </div>
+</div>
+
+<!-- ==================== 2. EDGE CASES ==================== -->
+<h2 class="sec">2 · Amount · Value · Status for the rows where money did not simply move</h2>
+<p class="lede">
+  You called the current rendering misleading. It is, and the code says why
+  (<code>transaction_utils.dart:356-366</code>): both a <b>failed</b> transaction and a <b>processing job</b> are given
+  <code>amount = '—'</code>, and the real number is demoted to the small grey line underneath.
+</p>
+<p class="lede">
+  <b>Computing is not a real choice — you are simply right.</b> A job spends <code>tx.fees</code>; that GNUS genuinely
+  leaves the wallet. Printing a dash in the loudest slot and <code>0.42 GNUS spent</code> in the quietest inverts the
+  hierarchy. All three schemes below fix it identically: <code class="mono">− 0.42 GNUS</code> in Amount,
+  <code class="mono">$0.32 fee</code> in Value, status <b>Complete</b>.
+</p>
+<p class="lede">
+  <b>The failed row is the real decision</b> — and here I want to push back on one half of your instruction. If a failed
+  send prints <code class="mono">− 0.75 ETH</code> in the same slot, same weight, same colour as a successful one, the
+  row states that 0.75 ETH left the wallet. It did not. Anyone scanning or mentally summing the column double-counts
+  money that never moved. So: <b>show the amount — you are right that a dash tells the user nothing — but do not let it
+  claim the balance changed.</b> Three ways to draw that line. Switch them at the top.
+</p>
+
+<div style="display:flex;gap:var(--space-8);align-items:flex-start;flex-wrap:wrap;">
+  <div style="flex:1;min-width:460px">
+    <h3 class="sub">Transactions tab — table row</h3>
+    <div class="card"><div id="tbl"></div></div>
+  </div>
+  <div style="width:430px">
+    <h3 class="sub">Homepage panel — same data, no Status column</h3>
+    <div class="card"><div id="pnl"></div></div>
+  </div>
+</div>
+
+<div id="s-why"></div>
+
+<table class="t">
+  <tr><th>Case</th><th>Amount</th><th>Value</th><th>Status</th><th>Reasoning</th></tr>
+  <tr id="r-job"></tr>
+  <tr id="r-fail"></tr>
+  <tr id="r-pend"></tr>
+</table>
+
+<p class="lede" style="margin-top:var(--space-8)">
+  <b>The panel has no Status column</b>, so whatever carries "this did not happen" must survive without one. S1 does —
+  the missing sign is visible on both surfaces. S3 does not: it moves the attempted amount into the Detail column, which
+  the panel does not have, so the two surfaces would then tell different stories about the same transaction. That is the
+  argument that decides it, not taste.
+</p>
+
+<!-- ==================== 3. ANCHOR ==================== -->
+<h2 class="sec">3 · E2 anchor — you said it sat too high</h2>
+<p class="lede">
+  Identical component, identical 620px slot; only the anchor changes. A fixed offset is predictable but arbitrary; the
+  third option is a rule instead of a number, and it is the one I would ship.
+</p>
+<div class="anchorgrid">
+  <div>
+    <div style="font:600 13px/18px var(--font);margin-bottom:var(--space-4)">a · top + <code>space16</code> (32px) <span class="tag bad">what you saw</span></div>
+    <div class="card epanel">
+      <div class="sectionhead"><h3>Transactions</h3></div>
+      <div class="eslot a-32">
+        <div class="measure" style="height:32px"><span>32</span></div>
+        <div class="eblock">
+          <div class="circle"><svg class="g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+          <div class="et">No transactions yet</div>
+          <div class="em">Your sends, receives and swaps will appear here.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div style="font:600 13px/18px var(--font);margin-bottom:var(--space-4)">b · top + <code>space32</code> (64px)</div>
+    <div class="card epanel">
+      <div class="sectionhead"><h3>Transactions</h3></div>
+      <div class="eslot a-64">
+        <div class="measure" style="height:64px"><span>64</span></div>
+        <div class="eblock">
+          <div class="circle"><svg class="g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+          <div class="et">No transactions yet</div>
+          <div class="em">Your sends, receives and swaps will appear here.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div style="font:600 13px/18px var(--font);margin-bottom:var(--space-4)">c · centred within the first 480px <span class="tag rec">recommended</span></div>
+    <div class="card epanel">
+      <div class="sectionhead"><h3>Transactions</h3></div>
+      <div class="eslot a-bound">
+        <div class="measure" style="height:480px"><span>480 cap</span></div>
+        <div class="boundbox">
+          <div class="eblock">
+            <div class="circle"><svg class="g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+            <div class="et">No transactions yet</div>
+            <div class="em">Your sends, receives and swaps will appear here.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="lede" style="margin-top:var(--space-6)">
+  <b>Why c.</b> It is one rule — <em>centre inside the slot, but never search more than 480px for the middle</em> —
+  instead of a hand-picked offset. In a short panel it behaves <b>exactly as today</b>, so nothing regresses where the
+  current layout is already fine; in your 1400px panel it stops at 240px from the top instead of drifting to 700. One
+  <code>ConstrainedBox(maxHeight: 480)</code> under an <code>Alignment.topCenter</code> inside
+  <code>GWEmptyState</code> — and it fixes Assets and Markets at the same time, since they share the component.
+</p>
+
+<!-- ==================== 4. ICONS ==================== -->
+<h2 class="sec">4 · Five icons for the empty state</h2>
+<p class="lede">
+  Today: <code>Icons.receipt_long_outlined</code>. All five below are already available — four are Material, one is the
+  FontAwesome the navbar itself uses. The filtered-empty branch keeps <code>Icons.filter_alt_outlined</code>, so none of
+  these can collide with it.
+</p>
+<div class="icons">
+  <div class="ic pick">
+    <div class="circle"><svg class="g" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+    <div class="n">1 · Clock</div><div class="p">FontAwesomeIcons.clock</div>
+    <div class="r"><b>Recommended.</b> This is the glyph the navbar already gives the Transactions tab
+      (<code>responsive_overlay.dart:51</code>). The empty state then wears the mark of the place you are standing in.</div>
+  </div>
+  <div class="ic">
+    <div class="circle"><svg class="g" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div>
+    <div class="n">2 · Receipt</div><div class="p">Icons.receipt_long_outlined</div>
+    <div class="r">Today's icon. Reads as "statement". Slightly paper-ish for a wallet, and easy to mistake for a note.</div>
+  </div>
+  <div class="ic">
+    <div class="circle"><svg class="g" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg></div>
+    <div class="n">3 · History</div><div class="p">Icons.history</div>
+    <div class="r">Names the concept exactly — but the counter-clockwise arrow reads as "undo/restore" as often as
+      "history", and at 32px the arrowhead is the first thing to muddy.</div>
+  </div>
+  <div class="ic">
+    <div class="circle"><svg class="g" viewBox="0 0 24 24"><path d="M4 8h13l-3-3m6 11H7l3 3"/></svg></div>
+    <div class="n">4 · Two-way arrows</div><div class="p">Icons.sync_alt</div>
+    <div class="r">Literally the message underneath ("sends, receives and swaps"). <b>Risk:</b> it is the Swap tab's mark
+      (<code>Icons.swap_horiz_outlined</code>) at a glance — the one real collision in this set.</div>
+  </div>
+  <div class="ic">
+    <div class="circle"><svg class="g" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h4M7 13h4M7 17h4M15 9h2M15 13h2M15 17h2"/></svg></div>
+    <div class="n">5 · Ledger</div><div class="p">Icons.list_alt_outlined</div>
+    <div class="r">Neutral and unmistakably "a list with nothing in it". Safest choice; also the least characterful.</div>
+  </div>
+</div>
+
+<h2 class="sec">5 · What I need from you</h2>
+<table class="t">
+  <tr><th>Decision</th><th>My recommendation</th><th>Status</th></tr>
+  <tr class="win"><td>Amount / Value / Status scheme</td><td><b>S1 · Sign = movement</b> — the only one that survives on the panel too</td><td>open</td></tr>
+  <tr class="win"><td>Empty-state anchor</td><td><b>c</b> — centred within the first 480px</td><td>open</td></tr>
+  <tr class="win"><td>Empty-state icon</td><td><b>1 · Clock</b> — the navbar's own Transactions glyph</td><td>open</td></tr>
+  <tr><td>Layout</td><td>B · Filter rail</td><td><span class="tag lock">locked</span></td></tr>
+  <tr><td>Empty state, no actions</td><td>E2</td><td><span class="tag lock">locked</span></td></tr>
+  <tr><td>Hide the filter control when there is nothing to filter</td><td>page rail and panel chips both</td><td><span class="tag lock">locked</span></td></tr>
+</table>
+
+</div>
+
+<script>
+const G = {
+  sent:'<path d="M7 17 17 7M17 7H9m8 0v8"/>', received:'<path d="M17 7 7 17m0 0h8m-8 0V9"/>',
+  mint:'<path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/>',
+  job:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+  purchase:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  pending:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', failed:'<path d="M6 6l12 12M18 6 6 18"/>'
+};
+const ink = c => (['#0AD89C','#FFC42E'].includes(c) ? '#000B18' : '#fff');
+const idBlock = r => `<div class="id"><div class="coin" style="background:${r.c}">${r.sym}</div>
+  <div class="badge" style="background:${r.bc};color:${ink(r.bc)}"><svg class="g" viewBox="0 0 24 24">${G[r.b]}</svg></div></div>`;
+
+// base rows (unaffected by the scheme)
+const base = [
+  {t:'10:39', sym:'ETH', c:'#627EEA', act:'Sent',     sub:'0xToMo…ed01', amt:'− 0.75 ETH',   cls:'',    fiat:'$1,439.65', b:'sent',     bc:'#64748B', st:['Complete','st-ok']},
+  {t:'10:26', sym:'BTC', c:'#F7931A', act:'Received', sub:'0xFrom…ed02', amt:'+ 0.0042 BTC', cls:'pos', fiat:'$276.89',   b:'received', bc:'#0AD89C', st:['Complete','st-ok']},
+];
+
+// the three contested rows, per scheme
+const SCHEMES = {
+  S1: {
+    job:  {t:'10:48', sym:'GNUS', c:'#0AD89C', act:'Computing', sub:'Job 0xdevm…ck09', amt:'− 0.42 GNUS', cls:'', fiat:'$0.32 fee', b:'job', bc:'#0AAEE6', st:['Complete','st-ok']},
+    fail: {t:'21:30', sym:'ETH',  c:'#627EEA', act:'Purchased', sub:'Card purchase · Failed', amt:'0.75 ETH', cls:'mute', fiat:'Not charged', b:'failed', bc:'#FF4D4D', st:['Failed','st-fl']},
+    pend: {t:'13:40', sym:'GNUS', c:'#0AD89C', act:'Escrow locked', sub:'Locked in escrow · Pending', amt:'− 500.00 GNUS', cls:'', fiat:'$375.50', b:'pending', bc:'#FFC42E', st:['Pending','st-pd']},
+    why:'<b>S1 · The sign is a claim that the balance changed — so print it only when it did.</b> A failed row keeps its real magnitude at full size, but loses the <code>−</code> and drops to <code>textSecondary</code>. Nothing new is invented: no strikethrough, no extra colour, no extra column. Works identically on the panel, which has no Status column. <b>Contrast:</b> <code>#8A8F9D</code> on <code>#0C0E14</code> = 6.0:1 dark, <code>#5A606E</code> on white = 6.3:1 light — both clear AA.'
+  },
+  S2: {
+    job:  {t:'10:48', sym:'GNUS', c:'#0AD89C', act:'Computing', sub:'Job 0xdevm…ck09', amt:'− 0.42 GNUS', cls:'', fiat:'$0.32 fee', b:'job', bc:'#0AAEE6', st:['Complete','st-ok']},
+    fail: {t:'21:30', sym:'ETH',  c:'#627EEA', act:'Purchased', sub:'Card purchase · Failed', amt:'− 0.75 ETH', cls:'mute strike', fiat:'Not charged', b:'failed', bc:'#FF4D4D', st:['Failed','st-fl']},
+    pend: {t:'13:40', sym:'GNUS', c:'#0AD89C', act:'Escrow locked', sub:'Locked in escrow · Pending', amt:'− 500.00 GNUS', cls:'', fiat:'$375.50', b:'pending', bc:'#FFC42E', st:['Pending','st-pd']},
+    why:'<b>S2 · Keep the sign, strike it through.</b> More literal — "this is what it would have been". Two real costs: a strikethrough is <b>not announced by screen readers</b>, so the semantics would have to be restated in a <code>Semantics</code> label or the row lies to assistive tech; and a line through tabular digits at 16px is exactly where <code>0.75</code> and <code>0.15</code> start to look alike.'
+  },
+  S3: {
+    job:  {t:'10:48', sym:'GNUS', c:'#0AD89C', act:'Computing', sub:'Job 0xdevm…ck09', amt:'− 0.42 GNUS', cls:'', fiat:'$0.32 fee', b:'job', bc:'#0AAEE6', st:['Complete','st-ok']},
+    fail: {t:'21:30', sym:'ETH',  c:'#627EEA', act:'Purchased', sub:'Card purchase · Failed · 0.75 ETH attempted', amt:'—', cls:'mute', fiat:'Not charged', b:'failed', bc:'#FF4D4D', st:['Failed','st-fl']},
+    pend: {t:'13:40', sym:'GNUS', c:'#0AD89C', act:'Escrow locked', sub:'Locked in escrow · Pending', amt:'− 500.00 GNUS', cls:'', fiat:'$375.50', b:'pending', bc:'#FFC42E', st:['Pending','st-pd']},
+    why:'<b>S3 · The money column contains only money that moved.</b> The attempted amount goes to the Detail line instead. Best for anyone summing the column — and the worst for scanning, because the number you are hunting is now in 12px grey prose. <b>It also breaks the two surfaces apart:</b> the panel\'s subtitle already carries the status, so on the panel this line becomes <code class="mono">Card purchase · Failed · 0.75 ETH attempted</code> and truncates.'
+  }
+};
+
+const listRow = r => `<div class="row">
+  <div class="time">${r.t}</div>${idBlock(r)}
+  <div class="main"><div class="t">${r.sym}<span class="action">${r.act}</span></div><div class="s">${r.sub}</div></div>
+  <div class="amt"><div class="a ${r.cls}">${r.amt}</div><div class="f">${r.fiat}</div></div></div>`;
+
+const tableRow = r => `<div class="row">
+  <div class="time">${r.t}</div>${idBlock(r)}
+  <div class="main"><div class="t">${r.sym}<span class="action">${r.act}</span></div><div class="s">${r.sub}</div></div>
+  <div class="amt" style="width:170px"><div class="a ${r.cls}">${r.amt}</div><div class="f">${r.fiat}</div></div>
+  <div style="width:96px;text-align:right"><span class="pill ${r.st[1]}">${r.st[0]}</span></div></div>`;
+
+const join = (a, fn) => a.map(fn).join('<div class="divider"></div>');
+
+function render(key) {
+  const s = SCHEMES[key];
+  const all = [s.job, base[0], base[1], s.pend, s.fail];
+  document.getElementById('rows').innerHTML = join([s.job, base[0], base[1], s.pend], listRow);
+  document.getElementById('tbl').innerHTML  = join(all, tableRow);
+  document.getElementById('pnl').innerHTML  = join(all, listRow);
+  document.getElementById('s-why').innerHTML = `<p class="lede" style="margin-top:var(--space-8)">${s.why}</p>`;
+
+  const cell = r => `<td class="mono">${r.amt}</td><td class="mono">${r.fiat}</td><td><span class="pill ${r.st[1]}">${r.st[0]}</span></td>`;
+  document.getElementById('r-job').innerHTML  = `<td>Processing job</td>${cell(s.job)}<td>The fee genuinely left the wallet, so it belongs in the loud slot. Identical in all three schemes.</td>`;
+  document.getElementById('r-fail').innerHTML = `<td>Failed / Cancelled</td>${cell(s.fail)}<td>Nothing moved. The magnitude is still useful; the claim that the balance changed is not.</td>`;
+  document.getElementById('r-pend').innerHTML = `<td>Pending / escrow lock</td>${cell(s.pend)}<td>Money <b>is</b> committed — full sign, full weight. Unchanged from today, and deliberately so.</td>`;
+}
+render('S1');
+
+document.getElementById('ssel').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#ssel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  render(b.dataset.s);
+});
+document.getElementById('tsel').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.documentElement.dataset.theme = b.dataset.t;
+});
+</script>
+</body>
+</html>

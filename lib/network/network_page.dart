@@ -1,7 +1,8 @@
 import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -28,7 +29,9 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
     super.initState();
 
     Connectivity().checkConnectivity().then((list) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         lastKnownConnectivity = list.isNotEmpty
             ? list.first
@@ -41,7 +44,9 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
     );
 
     _connectivitySub = connectivityStream.listen((result) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         lastKnownConnectivity = result;
       });
@@ -52,7 +57,9 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
 
   void _startInitStatusPolling() {
     _initStatusTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       try {
         final status = widget.geniusApi.getInitializationStatus();
         setState(() {
@@ -82,9 +89,11 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
       body: Align(
         alignment: AlignmentGeometry.topCenter,
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: GeniusBreakpoints.medium),
+            constraints: const BoxConstraints(
+              maxWidth: GeniusBreakpoints.medium,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.max,
@@ -93,7 +102,7 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                   stream: connectivityStream,
                   initialData: lastKnownConnectivity,
                   builder: (context, snapshot) {
-                    ConnectivityResult? statusValue =
+                    final ConnectivityResult? statusValue =
                         snapshot.data ?? lastKnownConnectivity;
                     String status = "Checking...";
                     if (statusValue != null) {

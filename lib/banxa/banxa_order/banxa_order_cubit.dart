@@ -1,13 +1,65 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
+import 'package:genius_wallet/dev/dev_banxa_fixtures.dart';
+import 'package:genius_wallet/dev/dev_flags.dart';
 
 class OrdersCubit extends Cubit<OrdersState> {
   OrdersCubit() : super(OrdersState.initial());
 
   Future<void> fetchOrders(String? externalCustomerId) async {
     emit(state.copyWith(status: OrdersStatus.loading, error: ''));
+
+    // DEV-ONLY seam. Double-gated: `kDebugMode` is a const so this whole
+    // branch is tree-shaken out of profile and release builds, and
+    // `kShowDevTools` means even a debug build without
+    // `--dart-define=GW_DEV_TOOLS=true` never reads it. Same shape as the
+    // dashboard's markets-fault seam.
+    //
+    // Exists because the Banxa order surfaces are otherwise unreachable
+    // without a live sandbox round trip (KYC + payment method + real order),
+    // which left six of Phase 9's ten re-skinned surfaces unwalkable. See
+    // lib/dev/dev_banxa_fixtures.dart.
+    if (kDebugMode && kShowDevTools) {
+      final override = DevBanxaFixtures.instance.orders.value;
+      if (override != null) {
+        switch (override) {
+          case DevBanxaOrders.seeded:
+            final seeded = DevBanxaFixtures.seededOrders();
+            emit(
+              state.copyWith(
+                status: OrdersStatus.success,
+                orders: seeded,
+                filteredOrders: seeded.orders,
+              ),
+            );
+            return;
+          case DevBanxaOrders.empty:
+            final none = OrdersResponse(orders: [], total: 0, pageTotal: 0);
+            emit(
+              state.copyWith(
+                status: OrdersStatus.success,
+                orders: none,
+                filteredOrders: const [],
+              ),
+            );
+            return;
+          case DevBanxaOrders.error:
+            emit(
+              state.copyWith(
+                status: OrdersStatus.error,
+                error:
+                    'DEV-ONLY: injected by dev_banxa_fixtures.dart (armed via '
+                    'the dev-tools bubble BANXA section) — not a real '
+                    'orders-load failure.',
+              ),
+            );
+            return;
+        }
+      }
+    }
 
     final now = DateTime.now().toUtc();
     final oneMonthAgo = now.subtract(const Duration(days: 120));
@@ -33,7 +85,9 @@ class OrdersCubit extends Cubit<OrdersState> {
   }
 
   void applyFilters({String? status, DateTime? startDate, DateTime? endDate}) {
-    if (state.orders == null) return;
+    if (state.orders == null) {
+      return;
+    }
 
     List<Order> filtered = state.orders!.orders;
 

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>100 · Crypto News — what is this page?</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1420px; margin:0 auto; }
+
+  /* ---------- page chrome of the sketch itself ---------- */
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent;
+                color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  .vtabs { display:flex; gap:var(--space-4); margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .vtabs button { font:600 13px/18px var(--font); padding:9px 16px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+                  background:var(--surface-menu); color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .vtabs button:hover { background:var(--surface-elevated); color:var(--text-primary); transform:translateY(-1px); }
+  .vtabs button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); border-color:var(--border-strong);
+                                       box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 20px/26px var(--font); letter-spacing:-.3px; margin:var(--space-16) 0 var(--space-4); }
+  h3.sub { font:600 15px/20px var(--font); margin:var(--space-10) 0 var(--space-4); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:980px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+         padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.ad  { background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.new { background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bad { background:rgba(255,77,77,.14); color:var(--status-error); }
+
+  /* ---------- the simulated app page ---------- */
+  .frame { background:var(--surface-base); border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+           padding:var(--space-12); overflow:hidden; }
+  .page { max-width:var(--page-w, 1280px); margin:0 auto; }
+
+  /* GWPageHeader — headlineLg + owns the space8 gap below it */
+  .pagehead { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-8); }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; margin-right:auto; }
+
+  /* refresh chip / search — the "lift chip" hover from sketch 008 D */
+  .chip { display:inline-flex; align-items:center; gap:var(--space-4); height:36px; padding:0 var(--space-6);
+          border:1px solid var(--border-subtle); border-radius:var(--radius-pill); background:var(--surface-menu);
+          color:var(--text-secondary); font:500 13px/18px var(--font); cursor:pointer; transition:all .15s ease; }
+  .chip:hover { background:var(--surface-elevated); color:var(--text-primary); transform:translateY(-1px); box-shadow:var(--shadow-card); }
+  .chip svg { width:15px; height:15px; }
+  .chip.spin svg { animation:sp .7s linear infinite; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+
+  .searchbox { display:flex; align-items:center; gap:var(--space-4); height:36px; padding:0 var(--space-6); min-width:230px;
+               border:1px solid var(--border-subtle); border-radius:var(--radius-pill); background:var(--surface-menu);
+               transition:all .15s ease; }
+  .searchbox:focus-within { border-color:var(--brand-primary-strong); background:var(--surface-elevated); }
+  .searchbox svg { width:15px; height:15px; color:var(--text-secondary); flex:none; }
+  .searchbox input { flex:1; min-width:0; border:0; background:transparent; outline:none; color:var(--text-primary);
+                     font:400 13px/18px var(--font); }
+  .searchbox input::placeholder { color:var(--text-secondary); }
+
+  svg.g { fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); }
+
+  /* fake photography — deterministic gradients, so the sketch needs no network */
+  .ph { position:relative; overflow:hidden; background:var(--surface-sunken); flex:none; }
+  .ph::after { content:''; position:absolute; inset:0; opacity:.9; }
+  .ph.p1::after { background:linear-gradient(135deg,#1B3A5C,#0E7490 55%,#F59E0B); }
+  .ph.p2::after { background:linear-gradient(135deg,#312E81,#6D28D9 60%,#22D3EE); }
+  .ph.p3::after { background:linear-gradient(135deg,#134E4A,#0F766E 50%,#A3E635); }
+  .ph.p4::after { background:linear-gradient(135deg,#4C1D95,#7C3AED 55%,#F472B6); }
+  .ph.p5::after { background:linear-gradient(135deg,#7C2D12,#C2410C 55%,#FCD34D); }
+  .ph.p6::after { background:linear-gradient(135deg,#0C4A6E,#0369A1 55%,#67E8F9); }
+  .ph.p7::after { background:linear-gradient(135deg,#3F1D38,#9D174D 55%,#FB7185); }
+  .ph.p8::after { background:linear-gradient(135deg,#1E293B,#334155 55%,#94A3B8); }
+  .ph.p9::after { background:linear-gradient(135deg,#052E16,#15803D 55%,#86EFAC); }
+  .ph.p10::after { background:linear-gradient(135deg,#422006,#A16207 55%,#FDE68A); }
+
+  /* =======================================================================
+     A · DENSE FEED
+     ======================================================================= */
+  .feed { padding:var(--space-4); }
+  .frow { display:flex; align-items:flex-start; gap:var(--space-8); padding:var(--space-6); border-radius:var(--radius-md);
+          cursor:pointer; transition:all .15s ease; }
+  .frow:hover { background:var(--surface-elevated); transform:translateY(-1px); box-shadow:var(--shadow-card); }
+  .frow .ph { width:104px; height:72px; border-radius:var(--radius-md); }
+  .frow .body { flex:1; min-width:0; }
+  .frow .ttl { font:600 16px/22px var(--font); color:var(--text-primary);
+               display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .frow .dek { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-3);
+               display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+  .meta { display:flex; align-items:center; gap:var(--space-4); margin-top:var(--space-4);
+          font:400 12px/16px var(--font); color:var(--text-secondary); }
+  .meta .dot { width:3px; height:3px; border-radius:50%; background:var(--text-secondary); opacity:.7; flex:none; }
+  .meta .src { font-weight:600; color:var(--text-secondary); }
+  .topic { font:600 11px/16px var(--font); padding:1px 8px; border-radius:var(--radius-pill);
+           background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-secondary); }
+  .fdiv { height:1px; background:var(--border-subtle); margin:0 var(--space-6); }
+  .frow .go { flex:none; align-self:center; color:var(--text-secondary); opacity:0; transition:all .15s ease; }
+  .frow:hover .go { opacity:1; transform:translateX(2px); }
+  .frow .go svg { width:16px; height:16px; }
+
+  /* =======================================================================
+     B · MAGAZINE
+     ======================================================================= */
+  .hero { display:flex; gap:0; overflow:hidden; cursor:pointer; transition:all .15s ease; }
+  .hero:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,.30); }
+  [data-theme="light"] .hero:hover { box-shadow:0 10px 28px rgba(0,0,0,.16); }
+  .hero .ph { width:52%; min-height:280px; border-radius:var(--radius-lg) 0 0 var(--radius-lg); }
+  .hero .hbody { flex:1; padding:var(--space-12); display:flex; flex-direction:column; justify-content:center; }
+  .hero .hkicker { font:700 10px/14px var(--font); letter-spacing:.9px; text-transform:uppercase;
+                   color:var(--brand-primary-strong); margin-bottom:var(--space-6); }
+  [data-theme="dark"] .hero .hkicker { color:var(--brand-primary); }
+  .hero .htitle { font:600 28px/34px var(--font); letter-spacing:-.5px; }
+  .hero .hdek { font:400 15px/23px var(--font); color:var(--text-secondary); margin-top:var(--space-6);
+                display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); margin-top:var(--space-8); }
+  .ncard { overflow:hidden; cursor:pointer; display:flex; flex-direction:column; transition:all .15s ease; }
+  .ncard:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,.30); }
+  [data-theme="light"] .ncard:hover { box-shadow:0 10px 28px rgba(0,0,0,.16); }
+  .ncard .ph { height:150px; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+  .ncard .ph::after { transition:transform .35s ease; }
+  .ncard:hover .ph::after { transform:scale(1.05); }
+  .ncard .cbody { padding:var(--space-8); flex:1; display:flex; flex-direction:column; }
+  .ncard .ttl { font:600 16px/22px var(--font);
+                display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .ncard .dek { font:400 13px/19px var(--font); color:var(--text-secondary); margin-top:var(--space-4);
+                display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .ncard .meta { margin-top:auto; padding-top:var(--space-6); }
+
+  /* =======================================================================
+     C · FEED + TOPIC RAIL  (rail = sketch 021 B, active mark = sketch 022 B2)
+     ======================================================================= */
+  .railpage { display:grid; grid-template-columns:220px 1fr; gap:var(--space-12); align-items:start; }
+  .rail { padding:var(--space-4); }
+  .rail .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary);
+              padding:var(--space-4) var(--space-6) var(--space-3); }
+  .ri { position:relative; display:flex; align-items:center; gap:var(--space-4); height:40px; padding:0 var(--space-6);
+        border-radius:var(--radius-md); cursor:pointer; transition:all .15s ease; }
+  .ri svg { width:14px; height:14px; color:var(--text-secondary); flex:none; }
+  .ri .lw { flex:1; position:relative; display:flex; }
+  .ri .l { font:500 13px/18px var(--font); color:var(--text-primary); }
+  .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .ri:hover { background:var(--surface-elevated); }
+  /* 022 B2 — underline only, label goes w700, never recoloured */
+  .ri.on .lw::after { content:''; position:absolute; left:0; bottom:-6px; width:100%; height:2px; border-radius:2px;
+                      background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary)); }
+  [data-theme="light"] .ri.on .lw::after { background:#0A6885; }
+  .ri.on .l { font-weight:700; }
+  .rd { height:1px; background:var(--border-subtle); margin:var(--space-4) var(--space-6); }
+
+  /* ---------- findings table ---------- */
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin-top:var(--space-4); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase;
+               color:var(--text-secondary); padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  table.t td:first-child { font-weight:600; white-space:nowrap; }
+  .mono { font-family:var(--font-mono); font-size:12px; }
+
+  .cols { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); }
+  .note { padding:var(--space-8); background:var(--surface-menu); border:1px solid var(--border-subtle);
+          border-left:3px solid var(--brand-primary-strong); border-radius:var(--radius-md); }
+  .note .k { font:700 9px/1 var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--brand-primary-strong); }
+  [data-theme="dark"] .note .k { color:var(--brand-primary); }
+  .note .v { font:600 14px/19px var(--font); margin-top:var(--space-4); }
+  .note .w { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-4); }
+  .note.warn { border-left-color:var(--status-warning); }
+  .note.warn .k { color:var(--status-warning); }
+
+  .variant { display:none; }
+  .variant.on { display:block; }
+  .vhead { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .vhead h3 { font:600 18px/24px var(--font); }
+  .vhead p { font:400 13px/20px var(--font); color:var(--text-secondary); flex-basis:100%; max-width:940px; }
+
+  .empty { padding:var(--space-16) var(--space-8); text-align:center; color:var(--text-secondary); font:400 14px/20px var(--font); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>100 · Crypto News — <b>what is this page?</b></h1>
+  <div class="seg" id="wsel">
+    <button data-w="1280" aria-pressed="true">1280</button>
+    <button data-w="900" aria-pressed="false">900</button>
+    <button data-w="420" aria-pressed="false">420</button>
+  </div>
+  <div class="seg" id="tsel">
+    <button data-t="dark" aria-pressed="true">Dark</button>
+    <button data-t="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="lede">
+  Every variant renders the <b>same ten articles</b>, with the same fields the RSS feed actually returns
+  (<code>title</code>, <code>description</code>, <code>pubDate</code>, <code>imageUrl</code>, <code>link</code>).
+  Photos are CSS gradients so the sketch needs no network. Search filters live — type in it.
+  What changes between A, B and C is only <b>what the page is for</b>.
+</p>
+
+<div class="vtabs" id="vsel">
+  <button data-v="a" aria-pressed="true">A · Dense feed</button>
+  <button data-v="b" aria-pressed="false">B · Magazine ★ Selected</button>
+  <button data-v="c" aria-pressed="false">C · Feed + topic rail — withdrawn</button>
+</div>
+
+<!-- ================= A ================= -->
+<section class="variant on" id="v-a">
+  <div class="vhead">
+    <h3>A · Dense feed</h3>
+    <span class="tag rec">recommended</span>
+    <span class="tag ex">reuses shipped components</span>
+    <p>Headline is the hero, photo demotes to a 104×72 thumbnail. Ten articles fit in one screen instead of four.
+       Row hover is the <b>lift chip</b> from sketch 008 D — the same hover the nav and timeframe tabs already use — so the
+       photo is never covered. The <code>description</code> finally appears as a one-line dek.</p>
+  </div>
+  <div class="frame">
+    <div class="page">
+      <div class="pagehead">
+        <h2>Crypto News</h2>
+        <div class="searchbox"><svg class="g" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" placeholder="Search headlines" data-search="a"></div>
+        <button class="chip" data-refresh><svg class="g" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>Refresh</button>
+      </div>
+      <div class="card feed" data-list="a"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= B ================= -->
+<section class="variant" id="v-b">
+  <div class="vhead">
+    <h3>B · Magazine</h3>
+    <span class="tag ad">keeps today's photo-led feel</span>
+    <p>Closest to what ships today, but with a hierarchy: the newest story is a full-width hero, the rest is an even
+       3-column grid — no more "every 5th tile is randomly double-wide". Hover lifts the card and eases the photo in
+       1.05×; it never blacks the card out.</p>
+  </div>
+  <div class="frame">
+    <div class="page">
+      <div class="pagehead">
+        <h2>Crypto News</h2>
+        <div class="searchbox"><svg class="g" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" placeholder="Search headlines" data-search="b"></div>
+        <button class="chip" data-refresh><svg class="g" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>Refresh</button>
+      </div>
+      <div data-list="b"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= C ================= -->
+<section class="variant" id="v-c">
+  <div class="vhead">
+    <h3>C · Feed + topic rail</h3>
+    <span class="tag bad">withdrawn — the live feed does not support it</span>
+    <span class="tag ad">rail already designed in 021 + 022</span>
+    <p>A's feed, plus the left filter rail the Transactions tab already won (sketch 021 B) with the active mark
+       already chosen (sketch 022 B2 — underline, label w700, never recoloured). Rail rows were to come from the RSS
+       <code>&lt;category&gt;</code> element the parser currently throws away.
+       <b>Measured 2026-07-23 and withdrawn:</b> the live feed's categories are
+       <code>Latest News</code> ×25, <code>Markets</code> ×4, <code>Magazine</code> ×1 — three buckets, one holding 83%
+       of the feed. The rail below is drawn against the sketch's <i>invented</i> six topics, which is what made it look
+       viable. Kept visible so the shape is on record; the topic axis is not.</p>
+  </div>
+  <div class="frame">
+    <div class="page">
+      <div class="pagehead">
+        <h2>Crypto News</h2>
+        <div class="searchbox"><svg class="g" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" placeholder="Search headlines" data-search="c"></div>
+        <button class="chip" data-refresh><svg class="g" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>Refresh</button>
+      </div>
+      <div class="railpage">
+        <div class="card rail" data-rail></div>
+        <div class="card feed" data-list="c"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= findings ================= -->
+<h2 class="sec">What the current screen does — traced, not guessed</h2>
+<p class="lede">Every row cites the line that produces it. Findings 1–3 are bugs in behaviour, not taste;
+  they get fixed in <b>any</b> variant.</p>
+<table class="t">
+  <thead><tr><th>#</th><th>Finding</th><th>Evidence</th><th>Fixed by</th></tr></thead>
+  <tbody>
+    <tr><td>1</td>
+      <td>Hover paints <span class="mono">Colors.black87</span> over the whole card and re-prints the same title, centred.
+          The photo you were looking at disappears; nothing new is revealed.</td>
+      <td class="mono">crypto_news_screen.dart:154-185</td>
+      <td>All three — lift-chip hover (008 D), photo stays</td></tr>
+    <tr><td>2</td>
+      <td><span class="mono">description</span> is fetched, HTML-unescaped, stored in Hive — and never rendered.
+          The only text a user ever sees is the truncated title.</td>
+      <td class="mono">news_article.dart:12 · no read in the view</td>
+      <td>All three — shown as a dek</td></tr>
+    <tr><td>3</td>
+      <td><span class="mono">pubDate</span> is a <b>frozen string</b>: <span class="mono">timeago.format()</span> runs at
+          fetch time and the result is written to Hive. A cached article keeps saying "2 hours ago" forever.
+          Cache is 2 min, but the Hive box outlives the process — after a cold start with a dead network you read stale
+          relative time as if it were live.</td>
+      <td class="mono">coin_telegraph_api.dart:63-65, 94</td>
+      <td>Store the <span class="mono">DateTime</span>, format at build</td></tr>
+    <tr><td>4</td>
+      <td>Empty and error states are bare <span class="mono">Text</span> widgets, while
+          <span class="mono">GWEmptyState</span> and <span class="mono">GWErrorState</span> exist and are used elsewhere.</td>
+      <td class="mono">crypto_news_screen.dart:55-70</td>
+      <td>Sketch 102</td></tr>
+    <tr><td>5</td>
+      <td>The only refresh is <span class="mono">RefreshIndicator</span> — pull-to-refresh, unreachable with a mouse.
+          On desktop there is no way to refresh at all.</td>
+      <td class="mono">crypto_news_screen.dart:72</td>
+      <td>All three — Refresh chip in the header</td></tr>
+    <tr><td>6</td>
+      <td>Tiles are a fixed <span class="mono">220px</span> tall at <span class="mono">maxCrossAxisExtent: 300</span>, and every
+          5th is arbitrarily double-wide — at 1280px that is ~20 equal-weight photos with no reading order.</td>
+      <td class="mono">crypto_news_screen.dart:75-86</td>
+      <td>A and C fully; B keeps photos but adds a hero</td></tr>
+    <tr><td>7</td>
+      <td>The RSS <span class="mono">&lt;category&gt;</span> elements are parsed past and dropped, so there is no cheap
+          axis to filter on.</td>
+      <td class="mono">coin_telegraph_api.dart:45-90</td>
+      <td>C (needs ~10 lines + a Hive field)</td></tr>
+  </tbody>
+</table>
+
+<h2 class="sec">The live feed, measured — not assumed</h2>
+<p class="lede">Fetched <code>https://cointelegraph.com/rss</code> on 2026-07-23 and counted.
+  Two of this sketch's assumptions did not survive.</p>
+<table class="t">
+  <thead><tr><th>Measurement</th><th>Value</th><th>What it decides</th></tr></thead>
+  <tbody>
+    <tr><td>Items per fetch</td><td class="mono">30</td>
+      <td>Three screens of scrolling in A. There is nothing here to filter — <b>any</b> filter axis is YAGNI.</td></tr>
+    <tr><td>Time span, newest → oldest</td><td class="mono">~27 hours</td>
+      <td>This is one day of news, not an archive. It is a scan list, not a searchable corpus.</td></tr>
+    <tr><td>Distinct <span class="mono">&lt;category&gt;</span></td>
+      <td class="mono">3 — Latest News 25, Markets 4, Magazine 1</td>
+      <td><b>Kills C.</b> A rail whose largest row holds 83% of the feed does not filter, it decorates.</td></tr>
+    <tr><td>Items with <span class="mono">&lt;enclosure&gt;</span></td><td class="mono">30 / 30</td>
+      <td><b>New finding (8):</b> <code>imageUrl</code> always resolves from the enclosure, so the
+        <code>&lt;img&gt;</code> regex fallback at <span class="mono">coin_telegraph_api.dart:75-81</span> never runs.
+        Dead code.</td></tr>
+    <tr><td><span class="mono">description</span> length</td><td class="mono">421 chars, HTML</td>
+      <td>Opens with <span class="mono">&lt;p style="float:right…"&gt;&lt;img src=…&gt;</span>. Confirms finding 2's trap —
+        and confirms ~250 chars of real prose survive stripping, so the dek has something to say.</td></tr>
+    <tr><td>Title length min / avg / max</td><td class="mono">36 / 68 / 102</td>
+      <td>At 16px/22px a 102-char title needs 2 lines in A's row — it fits. In today's 300px tile with a 2-line clamp
+        it truncates.</td></tr>
+  </tbody>
+</table>
+
+<h2 class="sec">Cost of each variant</h2>
+<div class="cols">
+  <div class="note">
+    <div class="k">A · Dense feed</div>
+    <div class="v">Cheapest</div>
+    <div class="w">Drops <code>flutter_staggered_grid_view</code> entirely — a <code>ListView.separated</code> replaces it.
+      One dependency lighter. Search is a local <code>where()</code> over the already-fetched list; no network, no state store.
+      Nothing new to parse.</div>
+  </div>
+  <div class="note">
+    <div class="k">B · Magazine</div>
+    <div class="v">Cheap</div>
+    <div class="w">Also drops the staggered grid: hero + <code>GridView</code> with a fixed aspect ratio.
+      Keeps the photo-forward identity, so it is the smallest visual jump from what ships. Loses on density —
+      still ~4 stories per screen at 1280.</div>
+  </div>
+  <div class="note warn">
+    <div class="k">C · Feed + rail — withdrawn</div>
+    <div class="v">Cost is real, benefit measured to zero</div>
+    <div class="w">Would need <code>&lt;category&gt;</code> parsing, a <code>List&lt;String&gt;</code> field on
+      <code>NewsArticle</code>, and the rail widget — against three real categories, one of which holds 25 of 30 items.
+      If a rail is ever wanted here, the axis has to be <b>coins named in the title</b>, not RSS categories. That is a
+      feature with a matching problem attached, and it is out of scope for this round.</div>
+  </div>
+</div>
+
+<h2 class="sec">The thing to actually look at</h2>
+<p class="lede">
+  Switch to <b>420</b> in the toolbar. A and C degrade to the same single-column list (C's rail becomes a horizontal
+  chip strip — shown). B's hero is still a hero at 420px and eats the whole first screen for one story.
+  <b>Whichever variant you pick, note whether it still works narrow</b> — this page is in the mobile app too.
+</p>
+
+</div>
+
+<!-- sketch toolbar -->
+<div id="sketch-tools" style="position:fixed;bottom:12px;right:12px;z-index:9999;font-family:system-ui;font-size:12px;
+     background:rgba(0,0,0,0.72);color:white;padding:8px 12px;border-radius:8px;opacity:0.35;transition:opacity 0.2s;"
+     onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.35'">
+  sketch 100 · <span id="stw">1280</span>px · <span id="stt">dark</span>
+</div>
+
+<script>
+// ---- data: real-shaped Cointelegraph items -------------------------------
+// `dek` is what description looks like AFTER stripping the leading <img> tag —
+// the raw field starts with `<img src="https://images.cointelegraph.com/..."/>`,
+// so rendering description directly would print markup at the user.
+const ARTICLES = [
+  { t:"Bitcoin ETFs log $1.2B weekly inflow as BlackRock's IBIT crosses $90B AUM",
+    d:"Spot Bitcoin funds took in more in five sessions than in the whole of the previous month, with IBIT alone accounting for 71% of net flows.",
+    a:"12 minutes ago", c:"Markets", p:1 },
+  { t:"Ethereum's Fusaka upgrade goes live on mainnet, cutting blob costs eightfold",
+    d:"The hard fork raises the blob target from six to 48 per block, and L2 sequencers began repricing calldata within the hour.",
+    a:"41 minutes ago", c:"Ethereum", p:2 },
+  { t:"SEC drops its remaining claims in the Ripple case, closing a four-year fight",
+    d:"The regulator dismissed its appeal, leaving the 2023 ruling that programmatic XRP sales are not securities transactions in place.",
+    a:"2 hours ago", c:"Regulation", p:3 },
+  { t:"Solana DEX volume overtakes Ethereum for a third straight week",
+    d:"Aggregate spot volume on Solana venues reached $28.4B against Ethereum's $24.1B, driven mostly by two launchpad tokens.",
+    a:"3 hours ago", c:"Markets", p:4 },
+  { t:"Tether mints $2B USDT on Tron as stablecoin supply nears $180B",
+    d:"The authorisation brings this quarter's issuance to $9B; Tether says the tokens are inventory, not yet in circulation.",
+    a:"4 hours ago", c:"Markets", p:5 },
+  { t:"Strategy adds 4,020 BTC, bringing its treasury to 656,000 coins",
+    d:"The purchase was funded through the at-the-market equity programme at an average price of $87,410 per coin.",
+    a:"5 hours ago", c:"Business", p:6 },
+  { t:"Coinbase opens perpetual futures to US retail traders",
+    d:"The CFTC-regulated contracts carry up to 10x leverage and settle in USDC, with funding paid hourly rather than every eight hours.",
+    a:"6 hours ago", c:"Business", p:7 },
+  { t:"North Korean group linked to $47M bridge exploit, Elliptic says",
+    d:"On-chain analysis ties the drained validator keys to wallet clusters previously attributed to Lazarus, with funds already moving through a mixer.",
+    a:"8 hours ago", c:"Security", p:8 },
+  { t:"Fed holds rates as Powell calls crypto 'not a financial stability risk'",
+    d:"The chair's remarks came a day after the central bank's semiannual report dropped digital assets from its list of near-term vulnerabilities.",
+    a:"9 hours ago", c:"Regulation", p:9 },
+  { t:"GALA jumps 34% on Unreal Engine partnership announcement",
+    d:"The gaming token's move retraced half of its gains within two hours, and open interest on perpetuals more than doubled.",
+    a:"11 hours ago", c:"Markets", p:10 },
+];
+
+const TOPICS = [
+  { k:"all", l:"All news", i:'<path d="M4 6h16M4 12h16M4 18h10"/>' },
+  { k:"Markets", l:"Markets", i:'<path d="M3 17l6-6 4 4 7-7"/><path d="M20 8V4h-4"/>' },
+  { k:"Regulation", l:"Regulation", i:'<path d="M12 3l8 4v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7z"/>' },
+  { k:"Ethereum", l:"Ethereum", i:'<path d="M12 2l7 10-7 4-7-4z"/><path d="M5 13.5l7 8.5 7-8.5"/>' },
+  { k:"Business", l:"Business", i:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' },
+  { k:"Security", l:"Security", i:'<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>' },
+];
+
+const svg = (inner, cls) => `<svg class="g ${cls||''}" viewBox="0 0 24 24">${inner}</svg>`;
+const ARROW = '<path d="M9 18l6-6-6-6"/>';
+
+// ---- state ---------------------------------------------------------------
+const state = { a:{q:""}, b:{q:""}, c:{q:"", topic:"all"} };
+
+function visible(v) {
+  const s = state[v];
+  return ARTICLES.filter(x => {
+    if (v === "c" && s.topic !== "all" && x.c !== s.topic) return false;
+    if (!s.q) return true;
+    const q = s.q.toLowerCase();
+    return x.t.toLowerCase().includes(q) || x.d.toLowerCase().includes(q);
+  });
+}
+
+function metaLine(x, withTopic) {
+  return `<div class="meta">${withTopic ? `<span class="topic">${x.c}</span>` : ""}` +
+         `<span class="src">Cointelegraph</span><span class="dot"></span><span>${x.a}</span></div>`;
+}
+
+function feedRow(x, withTopic) {
+  return `<div class="frow">
+    <div class="ph p${x.p}"></div>
+    <div class="body">
+      <div class="ttl">${x.t}</div>
+      <div class="dek">${x.d}</div>
+      ${metaLine(x, withTopic)}
+    </div>
+    <div class="go">${svg(ARROW)}</div>
+  </div>`;
+}
+
+function renderFeed(v, withTopic) {
+  const el = document.querySelector(`[data-list="${v}"]`);
+  const rows = visible(v);
+  if (!rows.length) { el.innerHTML = `<div class="empty">No headline matches that.</div>`; return; }
+  el.innerHTML = rows.map(x => feedRow(x, withTopic)).join('<div class="fdiv"></div>');
+}
+
+function renderMagazine() {
+  const el = document.querySelector('[data-list="b"]');
+  const rows = visible("b");
+  if (!rows.length) { el.innerHTML = `<div class="card"><div class="empty">No headline matches that.</div></div>`; return; }
+  const [h, ...rest] = rows;
+  el.innerHTML = `
+    <div class="card hero">
+      <div class="ph p${h.p}"></div>
+      <div class="hbody">
+        <div class="hkicker">Latest · ${h.c}</div>
+        <div class="htitle">${h.t}</div>
+        <div class="hdek">${h.d}</div>
+        ${metaLine(h, false)}
+      </div>
+    </div>
+    <div class="grid3">${rest.map(x => `
+      <div class="card ncard">
+        <div class="ph p${x.p}"></div>
+        <div class="cbody">
+          <div class="ttl">${x.t}</div>
+          <div class="dek">${x.d}</div>
+          ${metaLine(x, true)}
+        </div>
+      </div>`).join('')}</div>`;
+}
+
+function renderRail() {
+  const el = document.querySelector('[data-rail]');
+  const counts = k => k === "all" ? ARTICLES.length : ARTICLES.filter(x => x.c === k).length;
+  el.innerHTML = `<div class="rh">Topics</div>` + TOPICS.map((t, i) => `
+    ${i === 1 ? '<div class="rd"></div>' : ''}
+    <div class="ri ${state.c.topic === t.k ? 'on' : ''}" data-topic="${t.k}">
+      ${svg(t.i)}<div class="lw"><span class="l">${t.l}</span></div><span class="c">${counts(t.k)}</span>
+    </div>`).join('');
+  el.querySelectorAll('[data-topic]').forEach(n => n.onclick = () => {
+    state.c.topic = n.dataset.topic; renderRail(); renderFeed("c", false);
+  });
+}
+
+function renderAll() { renderFeed("a", true); renderMagazine(); renderFeed("c", false); renderRail(); }
+renderAll();
+
+// ---- interactions --------------------------------------------------------
+document.querySelectorAll('[data-search]').forEach(inp => {
+  inp.addEventListener('input', () => {
+    const v = inp.dataset.search;
+    state[v].q = inp.value;
+    if (v === "b") renderMagazine(); else renderFeed(v, v === "a");
+  });
+});
+
+document.querySelectorAll('[data-refresh]').forEach(b => b.onclick = () => {
+  b.classList.add('spin');
+  setTimeout(() => b.classList.remove('spin'), 900);
+});
+
+document.getElementById('vsel').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#vsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.querySelectorAll('.variant').forEach(s => s.classList.toggle('on', s.id === 'v-' + b.dataset.v));
+};
+
+document.getElementById('tsel').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.documentElement.setAttribute('data-theme', b.dataset.t);
+  document.getElementById('stt').textContent = b.dataset.t;
+};
+
+document.getElementById('wsel').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#wsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  const w = b.dataset.w;
+  document.documentElement.style.setProperty('--page-w', w + 'px');
+  document.getElementById('stw').textContent = w;
+  // narrow: rail collapses to a horizontal chip strip, grid to one column
+  const narrow = +w < 700;
+  document.querySelectorAll('.railpage').forEach(n => n.style.gridTemplateColumns = narrow ? '1fr' : '220px 1fr');
+  document.querySelectorAll('.grid3').forEach(n => n.style.gridTemplateColumns = narrow ? '1fr' : 'repeat(3,1fr)');
+  document.querySelectorAll('.hero').forEach(n => n.style.flexDirection = narrow ? 'column' : 'row');
+  document.querySelectorAll('.hero .ph').forEach(n => { n.style.width = narrow ? '100%' : '52%';
+    n.style.minHeight = narrow ? '180px' : '280px';
+    n.style.borderRadius = narrow ? 'var(--radius-lg) var(--radius-lg) 0 0' : 'var(--radius-lg) 0 0 var(--radius-lg)'; });
+  document.querySelectorAll('.rail').forEach(n => { n.style.display = narrow ? 'flex' : 'block';
+    n.style.overflowX = narrow ? 'auto' : 'visible'; n.style.gap = narrow ? '4px' : '0'; });
+  document.querySelectorAll('.rail .rh').forEach(n => n.style.display = narrow ? 'none' : 'block');
+  document.querySelectorAll('.rail .rd').forEach(n => n.style.display = narrow ? 'none' : 'block');
+  document.querySelectorAll('.frow .ph').forEach(n => { n.style.width = narrow ? '76px' : '104px';
+    n.style.height = narrow ? '56px' : '72px'; });
+};
+</script>
+</body>
+</html>

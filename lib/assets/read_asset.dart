@@ -1,13 +1,14 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 
-import 'assets.dart';
+import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+
+import 'assets.dart';
 
 Future<List<Network>> readNetworkAssets() async {
   const String assetLocation = 'assets/json/networks/networks.json';
@@ -17,9 +18,9 @@ Future<List<Network>> readNetworkAssets() async {
     return List.empty();
   }
 
-  final networksJson = await jsonDecode(response);
+  final networksJson = await jsonDecode(response) as List<dynamic>;
 
-  List<Network> networkList = List<Network>.from(
+  final List<Network> networkList = List<Network>.from(
     networksJson.map((network) => Network.fromJson(network)),
   );
 
@@ -34,9 +35,9 @@ Future<List<Network>> readNetworkBridgeAssets() async {
     return List.empty();
   }
 
-  final networksJson = await jsonDecode(response);
+  final networksJson = await jsonDecode(response) as List<dynamic>;
 
-  List<Network> networkList = List<Network>.from(
+  final List<Network> networkList = List<Network>.from(
     networksJson.map((network) => Network.fromJson(network)),
   );
 
@@ -53,9 +54,9 @@ Future<Token?> getTokenFromNetworkByName({
     return null;
   }
 
-  final tokensJson = await jsonDecode(response);
+  final tokensJson = await jsonDecode(response) as List<dynamic>;
 
-  List<Token> tokensList = List<Token>.from(
+  final List<Token> tokensList = List<Token>.from(
     tokensJson.map((token) => Token.fromJson(token)),
   );
 
@@ -71,9 +72,9 @@ Future<List<Token>> getTokensFromNetwork({required Network network}) async {
     return List.empty();
   }
 
-  final tokensJson = await jsonDecode(response);
+  final tokensJson = await jsonDecode(response) as List<dynamic>;
 
-  List<Token> tokensList = List<Token>.from(
+  final List<Token> tokensList = List<Token>.from(
     tokensJson.map((token) => Token.fromJson(token)),
   );
 
@@ -125,7 +126,9 @@ Future<List<Coin>> readTokenAssets({
   required NetworkTokensProvider networkTokensProvider,
 }) async {
   final web3 = Web3();
-  List<Token> tokensList = networkTokensProvider.getTokensByNetwork(network);
+  final List<Token> tokensList = networkTokensProvider.getTokensByNetwork(
+    network,
+  );
 
   // Create futures for native token balance and token contract data
   final List<Future<Coin?>> futures = [
@@ -182,17 +185,17 @@ Future<Coin?> _fetchTokenData(
       rpcUrl: network.rpcUrl!,
     );
 
-    if (result['symbol'].isEmpty) {
+    if ((result['symbol'] as String).isEmpty) {
       debugPrint("❌ Could not find token ${tokenContract.name}, skipping");
       return null;
     }
 
     return Coin(
-      decimals: result['decimals'].toString(),
-      balance: result['balance'],
+      decimals: (result['decimals'] as int).toString(),
+      balance: result['balance'] as double,
       address: tokenContract.address,
-      name: result['name'],
-      symbol: result['symbol'],
+      name: result['name'] as String,
+      symbol: result['symbol'] as String,
       networkSymbol: network.symbol,
       iconPath: tokenContract.iconPath,
       coinGeckoId: tokenContract.coinGeckoId,
@@ -243,9 +246,13 @@ Future<List<Coin>> readSuperGeniusTokenAssets({
 
   // Add token balances (e.g., Graffiti) using their token IDs
   for (final token in tokensList) {
-    if (token.id == null || token.id!.isEmpty) continue;
+    if (token.id == null || token.id!.isEmpty) {
+      continue;
+    }
     // Skip native GNUS token (id "0") — already handled by getSGNUSBalance() above
-    if (token.id == '0') continue;
+    if (token.id == '0') {
+      continue;
+    }
     try {
       final balance = geniusApi.getMinionsBalance(token.id);
       coins.add(

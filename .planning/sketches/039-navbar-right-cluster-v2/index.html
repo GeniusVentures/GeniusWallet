@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 039 — Navbar right cluster v2</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+  svg { display: block; }
+
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  #variant-nav .grp { font: 600 10px var(--font-mono); color: var(--text-primary-38); letter-spacing: .08em; margin-left: 6px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+  .variant-tab.sm { padding: 5px 10px; font-size: 12px; }
+
+  .stage { position: fixed; inset: 62px 0 0 0; overflow: auto; padding: 24px 0 60px; }
+
+  /* ===== navbar 1:1 ===== */
+  .bar { width: 1600px; height: 62px; display: flex; align-items: center; gap: 16px; padding: 0 20px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .logo { width: 32px; height: 32px; border-radius: 9px; flex: none;
+    background: linear-gradient(135deg, var(--brand-cta-b), var(--brand-cta-a)); }
+  .navtabs { display: flex; gap: 2px; }
+  .navtab { padding: 0 11px; height: 42px; display: flex; align-items: center; border-radius: 10px;
+    color: var(--text-primary-54); font: 500 13px var(--font); position: relative; white-space: nowrap; }
+  .navtab.on { color: var(--text-primary); }
+  .navtab.on::after { content:""; position:absolute; left:9px; right:9px; bottom:-10px; height:3px; border-radius:3px;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); }
+
+  .cluster { margin-left: auto; display: flex; align-items: center; }
+
+  /* ---------- shared atoms ---------- */
+  .chainico { width: 20px; height: 20px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg,#627EEA,#8FA2F5); }
+  .avatar { width: 20px; height: 20px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-tertiary)); }
+  .caret { width: 14px; height: 14px; flex: none; opacity: .55; }
+  .mono { font-family: var(--font-mono); font-size: 12px; }
+  .gear { width: 16px; height: 16px; flex: none; opacity: .7; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+  .buy { height: 40px; padding: 0 16px; border: none; border-radius: 10px; cursor: pointer; flex: none;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); color: #001018;
+    font: 700 12px var(--font); display: flex; align-items: center; }
+
+  /* connect: four real branches from reown_connect_button.dart:502-540 */
+  .connect { height: 40px; padding: 0 14px; border-radius: 10px; display: flex; align-items: center; gap: 7px;
+    font: 600 12px var(--font); cursor: pointer; flex: none; white-space: nowrap; }
+  .connect.idle       { background: transparent; border: 1px solid var(--brand-primary); color: var(--brand-primary); }
+  .connect.connected  { background: rgba(255,77,77,.18); border: 1px solid transparent; color: var(--status-error); }
+  .connect.connecting { background: rgba(255,196,46,.18); border: 1px solid transparent; color: var(--status-warning); }
+  .connect.timedout   { background: rgba(255,196,46,.18); border: 1px solid transparent; color: var(--status-warning); }
+
+  /* ---------- TODAY (reference) ----------
+     CORRECTED 2026-07-26: this variant first drew 58px controls with gap 0, copied
+     from sketch 005's five-day-old diagnosis. That was WRONG — `nav_chip_style.dart`
+     (landed 0bcf3df8, retuned e620b8b5) already pins all three selectors to 40px via
+     navContextChipStyle, and responsive_overlay.dart already had `spacing: space4`.
+     Redrawn from the real code: 40px chips, surfaceMenu fill + hairline, 8px gaps.
+     So the delta B actually buys is the TRACK and the OUTLINE, not a height fix. */
+  #app[data-v="now"] .cluster { gap: 8px; }
+  #app[data-v="now"] .ctl { height: 40px; padding: 0 12px; display: flex; align-items: center; gap: 8px;
+    background: var(--surface-menu); border: 1px solid var(--border-subtle); border-radius: 10px;
+    color: var(--text-primary); font: 500 12px var(--font); white-space: nowrap; flex: none; }
+  #app[data-v="now"] .connect.connected  { background: rgba(255,77,77,.18); border-color: transparent; }
+  #app[data-v="now"] .connect.connecting,
+  #app[data-v="now"] .connect.timedout   { background: rgba(255,196,46,.18); border-color: transparent; }
+
+  /* ---------- A · znormalizowane ciche chipy (005-B, przestrojone) ---------- */
+  #app[data-v="a"] .cluster { gap: 8px; }
+  #app[data-v="a"] .ctl { height: 40px; padding: 0 12px; display: flex; align-items: center; gap: 8px;
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: 10px;
+    color: var(--text-primary); font: 500 12px var(--font); white-space: nowrap; flex: none; cursor: pointer; }
+  #app[data-v="a"] .ctl:hover { border-color: var(--border-strong); }
+
+  /* ---------- B · jeden tor kontrolek (standard z CONVENTIONS.md) ---------- */
+  #app[data-v="b"] .cluster { gap: 12px; }
+  #app[data-v="b"] .track { display: flex; align-items: center; gap: 2px; padding: 3px; flex: none;
+    background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill); }
+  #app[data-v="b"] .ctl { height: 34px; padding: 0 12px; display: flex; align-items: center; gap: 8px;
+    background: transparent; border-radius: var(--radius-pill); color: var(--text-primary);
+    font: 500 12px var(--font); white-space: nowrap; flex: none; cursor: pointer; }
+  #app[data-v="b"] .ctl:hover { background: var(--surface-elevated); }
+
+  /* ---------- C · kapsuła portfela ze stanem ---------- */
+  #app[data-v="c"] .cluster { gap: 10px; }
+  #app[data-v="c"] .iconbtn { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    background: transparent; border: 1px solid var(--border-subtle); color: var(--text-primary-70); flex: none; cursor: pointer; }
+  #app[data-v="c"] .iconbtn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+  #app[data-v="c"] .capsule { height: 40px; padding: 0 6px 0 6px; display: flex; align-items: center; gap: 9px;
+    background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill); flex: none; cursor: pointer; }
+  #app[data-v="c"] .capsule .who { display: flex; align-items: center; gap: 7px; padding-left: 2px; }
+  #app[data-v="c"] .capsule .statuschip { height: 28px; padding: 0 10px; border-radius: var(--radius-pill);
+    display: flex; align-items: center; gap: 6px; font: 600 11px var(--font); }
+  #app[data-v="c"] .avwrap { position: relative; }
+  #app[data-v="c"] .avwrap .chainbadge { position: absolute; right: -3px; bottom: -3px; width: 12px; height: 12px;
+    border-radius: 50%; background: linear-gradient(135deg,#627EEA,#8FA2F5); border: 2px solid var(--surface-sunken); }
+
+  /* miary */
+  .measure { width: 1600px; padding: 8px 20px 0; display: flex; justify-content: flex-end; gap: 10px;
+    font: 600 11px var(--font-mono); color: var(--brand-primary); }
+  body:not(.show-measure) .measure { visibility: hidden; }
+
+  .board { display: flex; flex-direction: column; align-items: center; }
+  .legend { width: 1600px; padding: 22px 20px 0; color: var(--text-secondary); font-size: 12.5px; line-height: 1.65; }
+  .legend b { color: var(--text-primary); }
+  .legend h4 { color: var(--text-primary); font-size: 13px; margin: 14px 0 4px; }
+  kbd { font: 600 11px var(--font-mono); background: var(--surface-menu); border: 1px solid var(--border-subtle);
+    border-radius: 5px; padding: 1px 6px; color: var(--text-primary-70); }
+  .hide { display: none !important; }
+</style>
+</head>
+<body class="show-measure">
+
+<div id="variant-nav">
+  <span class="brand">SKETCH 039</span>
+  <span class="sep"></span>
+  <button class="variant-tab" data-go="now">DZIŚ</button>
+  <button class="variant-tab active" data-go="a">A · ciche chipy</button>
+  <button class="variant-tab" data-go="b">B · jeden tor</button>
+  <button class="variant-tab" data-go="c">C · kapsuła</button>
+  <span class="grp">CONNECT</span>
+  <button class="variant-tab sm active" data-st="idle">Connect</button>
+  <button class="variant-tab sm" data-st="connected">Połączony</button>
+  <button class="variant-tab sm" data-st="connecting">Łączy</button>
+  <button class="variant-tab sm" data-st="timedout">Timeout</button>
+  <span class="grp">SDK</span>
+  <button class="variant-tab sm active" id="t-sdk">konto SDK jest</button>
+  <span class="sep"></span>
+  <button class="variant-tab sm active" id="t-measure">miary</button>
+  <button class="variant-tab sm" id="t-theme">jasny / ciemny</button>
+</div>
+
+<div class="stage"><div class="board">
+<div id="app" data-v="a" data-st="idle">
+
+  <div class="bar">
+    <div class="logo"></div>
+    <div class="navtabs">
+      <div class="navtab on">Dashboard</div>
+      <div class="navtab">Swap</div>
+      <div class="navtab">Markets</div>
+      <div class="navtab">News</div>
+      <div class="navtab">Web</div>
+      <div class="navtab">Feedback</div>
+      <div class="navtab">Settings</div>
+    </div>
+
+    <!-- ===== DZIŚ / A / C : płaski rząd ===== -->
+    <div class="cluster" data-for="now a c">
+      <div class="ctl" data-only="now a"><span class="chainico"></span><span>Ethereum</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+      <div class="ctl sdk" data-only="now a"><svg class="gear" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.9 4a7 7 0 01-.1 1l2 1.6-2 3.4-2.4-1a7 7 0 01-1.7 1l-.4 2.5h-4l-.4-2.5a7 7 0 01-1.7-1l-2.4 1-2-3.4 2-1.6a7 7 0 010-2l-2-1.6 2-3.4 2.4 1a7 7 0 011.7-1L10.3 3h4l.4 2.5a7 7 0 011.7 1l2.4-1 2 3.4-2 1.6c.1.3.1.7.1 1z"/></svg><span class="mono">0x1d9b…4a87</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+      <div class="ctl" data-only="now a"><span class="avatar"></span><span class="mono">0x9fF8…2e2b</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+
+      <!-- C: kapsuła + demote SDK do ikony -->
+      <div class="iconbtn sdk" data-only="c"><svg class="gear" viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;opacity:1"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.9 4a7 7 0 01-.1 1l2 1.6-2 3.4-2.4-1a7 7 0 01-1.7 1l-.4 2.5h-4l-.4-2.5a7 7 0 01-1.7-1l-2.4 1-2-3.4 2-1.6a7 7 0 010-2l-2-1.6 2-3.4 2.4 1a7 7 0 011.7-1L10.3 3h4l.4 2.5a7 7 0 011.7 1l2.4-1 2 3.4-2 1.6c.1.3.1.7.1 1z"/></svg></div>
+      <div class="capsule" data-only="c">
+        <div class="who">
+          <span class="avwrap"><span class="avatar"></span><span class="chainbadge"></span></span>
+          <span class="mono">0x9fF8…2e2b</span>
+        </div>
+        <div class="statuschip cstate"><span class="dot"></span><span class="clabel">Connect</span></div>
+      </div>
+
+      <div class="connect idle" data-only="now a"><span class="dot" style="background:currentColor"></span><span class="clabel">Connect</span></div>
+      <button class="buy">Buy GNUS</button>
+    </div>
+
+    <!-- ===== B : jeden tor kontekstu + akcje ===== -->
+    <div class="cluster hide" data-for="b">
+      <div class="track">
+        <div class="ctl"><span class="chainico"></span><span>Ethereum</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+        <div class="ctl sdk"><svg class="gear" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.9 4a7 7 0 01-.1 1l2 1.6-2 3.4-2.4-1a7 7 0 01-1.7 1l-.4 2.5h-4l-.4-2.5a7 7 0 01-1.7-1l-2.4 1-2-3.4 2-1.6a7 7 0 010-2l-2-1.6 2-3.4 2.4 1a7 7 0 011.7-1L10.3 3h4l.4 2.5a7 7 0 011.7 1l2.4-1 2 3.4-2 1.6c.1.3.1.7.1 1z"/></svg><span class="mono">0x1d9b…4a87</span></div>
+        <div class="ctl"><span class="avatar"></span><span class="mono">0x9fF8…2e2b</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+      </div>
+      <div class="connect idle"><span class="dot" style="background:currentColor"></span><span class="clabel">Connect</span></div>
+      <button class="buy">Buy GNUS</button>
+    </div>
+  </div>
+
+  <div class="measure">
+    <span data-m="now">wszystko 40 px · gap 8 px · stany Connect wypełnione 18%</span>
+    <span data-m="a">wszystko 40 px · gap 8 px</span>
+    <span data-m="b">tor 40 px (chipy 34) · Connect 40 px · Buy 40 px · gap 12 px</span>
+    <span data-m="c">wszystko 40 px · gap 10 px · 3 elementy zamiast 5</span>
+  </div>
+
+  <div class="legend">
+    <b>Skala 1:1</b> — pasek ma 1600 px szerokości i 62 px wysokości, kontrolki mają realne rozmiary.
+    Przełącz <kbd>DZIŚ</kbd>, żeby zobaczyć punkt wyjścia w tej samej skali.
+
+    <h4>Co jest zepsute dzisiaj (zmierzone, nie wrażenie)</h4>
+    Trzy selektory to gołe <code>TextButton</code>y bez jawnej wysokości, więc dziedziczą
+    <code>textButtonTheme</code> z <code>theme.dart:266-269</code> — <code>vertical: space10</code>, czyli
+    <b>~58 px</b>. Buy GNUS ma jawne <code>height: 40</code>. Connect ma własne. Odstępów nie ma żadnych,
+    bo <code>_buildActionRowWidgets</code> składa je na płasko. Cztery wysokości, trzy języki wypełnienia, zero przerw.
+
+    <h4>Dwa wymiary, na których to musi przeżyć</h4>
+    <b>Connect ma cztery gałęzie</b> (<code>reown_connect_button.dart:502-540</code>): idle obrysowany marką,
+    połączony na czerwonym 18%, rozłączanie i timeout na bursztynie. <b>Przycisk SDK znika całkowicie</b>
+    przy <code>accounts.isEmpty</code> (<code>sdk_account_manager.dart:40-41</code>) — rząd ma zmienną liczbę
+    elementów. Przełącz oba i sprawdź, czy wariant się nie rozjeżdża.
+
+    <h4>Warianty</h4>
+    <b>A · ciche chipy</b> — to jest 005-B (wybrane 2026-07-21, nigdy niewdrożone), przestrojone na dzisiejszy
+    płaski język: każda kontrolka 40 px, <code>surfaceElevated</code> + hairline, gap 8. Najmniejszy diff,
+    zero nowych komponentów. Słabość: pięć osobnych kafelków to nadal pięć rzeczy do ogarnięcia wzrokiem.<br>
+    <b>B · jeden tor</b> — trzy selektory kontekstu wjeżdżają do jednego toru
+    <code>surfaceSunken</code> + hairline + <code>radiusPill</code> + 3 px, czyli <b>dokładnie standard toru
+    kontrolek</b>, który zapisaliśmy dziś w <code>CONVENTIONS.md</code> dla segmentu timeframe i paska filtrów.
+    Connect i Buy GNUS zostają na zewnątrz jako akcje. Kontekst wygląda jak kontekst, akcje jak akcje.
+    Znikający SDK to po prostu jeden chip mniej w torze — problem zmiennej liczby elementów rozwiązuje się
+    strukturalnie. <b>To jest wariant najbardziej spójny z tym, co ustaliliśmy dziś.</b><br>
+    <b>C · kapsuła</b> — portfel staje się bohaterem: awatar z odznaką sieci, adres i <b>kropka stanu niosąca
+    stan Reown</b>. Connect znika jako osobny przycisk (jego stan czytasz z kropki), SDK spada do ikony,
+    Buy GNUS zostaje jedynym CTA. Trzy elementy zamiast pięciu. Ryzyko: stan połączenia przestaje być
+    klikalnym przyciskiem z etykietą — trzeba sprawdzić, czy „Disconnect" nadal jest odkrywalne.
+  </div>
+</div>
+</div></div>
+
+<script>
+  const app = document.getElementById('app');
+  const CS = {
+    idle:      { cls: 'idle',       label: 'Connect',     chip: 'var(--brand-primary)' },
+    connected: { cls: 'connected',  label: 'Disconnect',  chip: 'var(--status-error)' },
+    connecting:{ cls: 'connecting', label: 'Connecting…', chip: 'var(--status-warning)' },
+    timedout:  { cls: 'timedout',   label: 'Retry',       chip: 'var(--status-warning)' },
+  };
+
+  function apply() {
+    const v = app.dataset.v, st = app.dataset.st, s = CS[st];
+
+    document.querySelectorAll('.cluster').forEach(c =>
+      c.classList.toggle('hide', !c.dataset.for.split(' ').includes(v)));
+    document.querySelectorAll('[data-only]').forEach(el =>
+      el.classList.toggle('hide', !el.dataset.only.split(' ').includes(v)));
+
+    document.querySelectorAll('.connect').forEach(el => {
+      el.classList.remove('idle','connected','connecting','timedout');
+      el.classList.add(s.cls);
+      el.querySelector('.clabel').textContent = s.label;
+    });
+    // C: kropka + etykieta w kapsule niosą ten sam stan
+    document.querySelectorAll('.capsule .cstate').forEach(el => {
+      el.querySelector('.dot').style.background = s.chip;
+      el.querySelector('.clabel').textContent = s.label;
+      el.style.color = s.chip;
+      el.style.background = st === 'idle' ? 'transparent' : 'color-mix(in srgb, ' + s.chip + ' 18%, transparent)';
+    });
+
+    const sdkOn = document.getElementById('t-sdk').classList.contains('active');
+    document.querySelectorAll('.sdk').forEach(el => el.style.display = sdkOn ? '' : 'none');
+
+    document.querySelectorAll('[data-m]').forEach(el =>
+      el.style.display = el.dataset.m === v ? '' : 'none');
+  }
+
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-go]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); app.dataset.v = b.dataset.go; apply();
+  }));
+  document.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-st]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); app.dataset.st = b.dataset.st; apply();
+  }));
+  document.getElementById('t-sdk').addEventListener('click', e => {
+    e.currentTarget.classList.toggle('active');
+    e.currentTarget.textContent = e.currentTarget.classList.contains('active') ? 'konto SDK jest' : 'brak konta SDK';
+    apply();
+  });
+  document.getElementById('t-measure').addEventListener('click', e => {
+    document.body.classList.toggle('show-measure');
+    e.currentTarget.classList.toggle('active', document.body.classList.contains('show-measure'));
+  });
+  document.getElementById('t-theme').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+
+  apply();
+</script>
+</body>
+</html>

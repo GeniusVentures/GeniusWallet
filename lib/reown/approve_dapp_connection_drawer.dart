@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class ApproveDappConnectionDrawer {
   static Future<bool?> show({
@@ -10,109 +13,108 @@ class ApproveDappConnectionDrawer {
     String? dappDescription,
     String? iconUrl,
   }) {
+    final gw = context.gw;
     return ResponsiveDrawer.show<bool>(
       context: context,
       title: "Connection Request",
       child: ListView(
         children: [
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(
-                  GeniusWalletConsts.borderRadiusButton,
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: Image.network(
-                          iconUrl ?? "",
-                          height: 28,
-                          width: 28,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox.shrink();
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          dappName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Flexible(
-                    child: Text(
-                      dappUrl,
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (dappDescription != null && dappDescription.isNotEmpty) ...[
-            Text(
-              dappDescription,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-          ],
-        ],
-      ),
-      footer: Column(
-        children: [
-          Text(
-            "Allow $dappName to connect to your wallet?",
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
+          // 033-B1: the dApp identity is borderless -- favicon, name over url,
+          // a hairline under it, no pill, no box. The Container this used to
+          // sit in only ever supplied padding (never a border); it is gone and
+          // the shell's own inset does that job now.
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.grey),
-                  ),
-                  child: const Text(
-                    "Deny",
-                    style: TextStyle(color: Colors.grey),
-                  ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                // The errorBuilder collapsing to nothing is a mitigation
+                // (T-21-12), not decoration: it stops a hostile dApp placing a
+                // broken-image glyph or an oversized failed-load box on a
+                // signing prompt.
+                child: Image.network(
+                  iconUrl ?? "",
+                  height: 28,
+                  width: 28,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: GeniusWalletConsts.space6),
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent,
-                    side: const BorderSide(color: Colors.greenAccent),
-                  ),
-                  child: const Text(
-                    "Allow",
-                    style: TextStyle(color: Colors.black),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      dappName,
+                      style: GeniusWalletTypography.titleMd.copyWith(
+                        color: gw.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      dappUrl,
+                      style: GeniusWalletTypography.bodySm.copyWith(
+                        color: gw.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: GeniusWalletConsts.space4),
+          Container(height: 1, color: gw.borderSubtle),
+          const SizedBox(height: GeniusWalletConsts.space10),
+          if (dappDescription != null && dappDescription.isNotEmpty) ...[
+            Text(
+              dappDescription,
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textPrimary70,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: GeniusWalletConsts.space6),
+          ],
+          // Moved from the footer (a footer holds actions, not a question) --
+          // dappName is remote and unbounded, so it stays ellipsised with a
+          // 2-line cap rather than pushing the buttons off screen (T-21-13).
+          Text(
+            "Allow $dappName to connect to your wallet?",
+            style: GeniusWalletTypography.bodyMd.copyWith(
+              color: gw.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+      footer: Row(
+        children: [
+          Expanded(
+            child: GWButton(
+              label: "Deny",
+              variant: GWButtonVariant.gradientOutline,
+              size: GWButtonSize.lg,
+              expand: true,
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+          ),
+          const SizedBox(width: GeniusWalletConsts.space6),
+          Expanded(
+            child: GWButton(
+              label: "Allow",
+              variant: GWButtonVariant.gradient,
+              size: GWButtonSize.lg,
+              expand: true,
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
           ),
         ],
       ),

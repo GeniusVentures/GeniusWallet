@@ -147,9 +147,11 @@ class CoinGeckoMarketData {
           (json['atl_change_percentage'] as num?)?.toDouble() ?? 0.0,
       atlDate: _parseDateTime(json['atl_date']),
       lastUpdated: _parseDateTime(json['last_updated']),
-      sparkline: (json['sparkline_in_7d']?['price'] as List<dynamic>?)
-          ?.map((e) => (e as num).toDouble())
-          .toList(),
+      sparkline:
+          ((json['sparkline_in_7d'] as Map<String, dynamic>?)?['price']
+                  as List<dynamic>?)
+              ?.map((e) => (e as num).toDouble())
+              .toList(),
     );
   }
 

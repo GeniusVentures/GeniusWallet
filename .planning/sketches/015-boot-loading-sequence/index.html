@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 015 — Boot Screen (Signal Edge)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--surface-base); color: var(--text-primary); -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── toolbar ─────────────────────────────────────────────── */
+  .bar {
+    position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 10px;
+    align-items: center; padding: 12px 16px;
+    background: var(--surface-menu); border-bottom: 1px solid var(--border-subtle);
+  }
+  .bar h1 { font-size: 13px; font-weight: 600; margin: 0 8px 0 0; }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 7px 15px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 12.5px;
+    font-weight: 500; border: 1px solid var(--border-subtle); background: transparent;
+    color: var(--text-secondary);
+    transition: transform .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .tab:hover { transform: translateY(-1px); color: var(--text-primary); border-color: var(--border-strong); }
+  .tab[aria-selected="true"] {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    color: #00121B; border-color: transparent; font-weight: 600;
+  }
+  .btn {
+    padding: 7px 13px; border-radius: 10px; cursor: pointer; font: inherit; font-size: 12.5px;
+    font-weight: 500; border: 1px solid var(--border-subtle); background: transparent;
+    color: var(--text-primary); transition: transform .12s ease, border-color .12s ease;
+  }
+  .btn:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+  .btn.on { border-color: var(--brand-primary); color: var(--brand-primary-strong); }
+  .sp { flex: 1; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 16px 64px; }
+  .lede { color: var(--text-secondary); font-size: 13.5px; line-height: 1.6; max-width: 80ch; margin: 0 0 18px; }
+  .lede b { color: var(--text-primary); font-weight: 600; }
+
+  /* ── window ──────────────────────────────────────────────── */
+  .win { border: 1px solid var(--border-subtle); border-radius: 12px; overflow: hidden;
+         box-shadow: var(--shadow-card); }
+  .win-chrome { display: flex; align-items: center; gap: 7px; padding: 9px 12px;
+                background: var(--surface-menu); border-bottom: 1px solid var(--border-subtle); }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .win-title { font-size: 11.5px; color: var(--text-secondary); margin-left: 6px; }
+  .screen { position: relative; height: 470px; overflow: hidden; background: var(--surface-base); }
+
+  .flag {
+    position: absolute; z-index: 6; top: 12px; left: 12px; display: none; align-items: center;
+    gap: 7px; padding: 5px 11px; border-radius: 999px; font-size: 11px; font-weight: 600;
+    background: rgba(255,77,77,.14); color: var(--status-error); border: 1px solid var(--status-error);
+  }
+  .screen[data-frozen="1"] .flag { display: inline-flex; }
+
+  /* ── boot screen (mode-invariant: pins dark tokens in both themes) ── */
+  .boot {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: #0B0D12; color: #FFFFFF;
+    --text-primary: #FFFFFF; --text-primary-38: rgba(255,255,255,.38);
+    --text-secondary: #8A8F9D; --border-subtle: rgba(255,255,255,.12);
+    --surface-sunken: #06080C;
+  }
+  .mesh {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(60% 45% at 22% 18%, rgba(20,200,255,.20), transparent 70%),
+      radial-gradient(55% 45% at 82% 78%, rgba(43,245,180,.16), transparent 72%),
+      radial-gradient(70% 60% at 50% 50%, rgba(194,143,255,.08), transparent 75%);
+  }
+  .screen[data-mesh="0"] .mesh { display: none; }
+
+  .logo { width: 240px; max-width: 54%; height: auto; display: block; position: relative; z-index: 1; }
+  .logo-fb { font-size: 34px; font-weight: 700; letter-spacing: .12em; position: relative; z-index: 1; }
+  .logo-fb span {
+    background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; }
+  .foot-row { display: flex; align-items: baseline; gap: 10px; padding: 0 20px 14px; }
+  .kicker {
+    font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--text-primary-38);
+  }
+  .status { font-size: 13.5px; color: var(--status-col, var(--text-secondary)); }
+  /* C2 — every point on the cyan→mint ramp clears AA on #0B0D12
+     (cyan 9.93:1, mint 13.6:1), so the gradient is safe end to end. */
+  .status.grad {
+    background: linear-gradient(100deg, var(--brand-primary), var(--brand-secondary));
+    -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 500;
+  }
+
+  /* the closing rail — full-bleed hairline pinned to the bottom edge */
+  .rail { height: 2px; background: rgba(255,255,255,.10); overflow: hidden; }
+  .rail > i {
+    display: block; height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
+  }
+
+  /* ── dashboard ───────────────────────────────────────────── */
+  .dash { position: absolute; inset: 0; padding: 14px; display: flex; flex-direction: column;
+          gap: 10px; background: var(--surface-base); }
+  .dnav { display: flex; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); }
+  .pill { padding: 5px 11px; border-radius: 999px; font-size: 11.5px; color: var(--text-secondary);
+          border: 1px solid var(--border-subtle); }
+  .pill.act { background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+              color: #00121B; border-color: transparent; font-weight: 600; }
+  .dgrid { flex: 1; display: grid; grid-template-columns: 1.15fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+  .card { border-radius: 15px; border: 1px solid var(--border-subtle); background: var(--surface-elevated);
+          padding: 12px; display: flex; flex-direction: column; gap: 9px; overflow: hidden; }
+  .card h4 { margin: 0; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+             color: var(--text-primary-54); font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 9px; }
+  .ic { width: 26px; height: 26px; border-radius: 50%; flex: 0 0 26px; opacity: .85;
+        background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); }
+  .ln { height: 8px; border-radius: 4px; background: var(--text-primary-38); opacity: .5; }
+  .big { font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+  .up { color: var(--status-success); font-size: 11.5px; font-weight: 600; }
+  .spark { height: 42px; border-radius: 8px;
+           background: linear-gradient(180deg, rgba(20,200,255,.22), transparent); }
+
+  /* ── timeline ────────────────────────────────────────────── */
+  .tl { margin-top: 18px; padding: 16px; border-radius: 15px;
+        background: var(--surface-elevated); border: 1px solid var(--border-subtle); }
+  .tl-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .clock { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--text-secondary); }
+  .clock b { color: var(--text-primary); font-size: 15px; }
+  .track { position: relative; height: 34px; }
+  .track input { position: absolute; inset: 0; width: 100%; height: 34px; margin: 0;
+                 opacity: 0; cursor: pointer; z-index: 3; }
+  .phases { position: absolute; left: 0; right: 0; top: 10px; height: 14px; display: flex;
+            gap: 2px; border-radius: 7px; overflow: hidden; }
+  .ph { display: flex; align-items: center; justify-content: center; font-size: 9.5px;
+        font-weight: 600; color: var(--text-on-brand); white-space: nowrap; overflow: hidden; }
+  .ph.p1 { background: rgba(255,77,77,.5); color: var(--text-primary); }
+  .ph.p2 { background: var(--brand-primary); }
+  .ph.p4 { background: var(--status-success); }
+  .head-mark { position: absolute; top: 4px; width: 2px; height: 26px; background: var(--text-primary);
+               border-radius: 1px; z-index: 2; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 11.5px;
+            color: var(--text-secondary); }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; }
+
+  /* ── notes ───────────────────────────────────────────────── */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } .dgrid { grid-template-columns: 1fr; } }
+  .note { padding: 15px 16px; border-radius: 15px; background: var(--surface-elevated);
+          border: 1px solid var(--border-subtle); }
+  .note h3 { margin: 0 0 10px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+             color: var(--text-primary-54); font-weight: 600; }
+  .note p { margin: 0 0 9px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+  .note p:last-child { margin-bottom: 0; }
+  .note b { color: var(--text-primary); font-weight: 600; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+         background: var(--surface-sunken); padding: 1.5px 5px; border-radius: 4px; color: var(--text-primary-70); }
+  .ok { color: var(--status-success); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1>Sketch 015 — Boot Screen</h1>
+  <div class="sp"></div>
+  <button class="btn" id="play">▶ Play boot</button>
+  <button class="btn" id="speed">4×</button>
+  <button class="btn on" id="mesh">Mesh on</button>
+  <button class="btn" id="theme">☀ Light</button>
+</div>
+
+<div class="wrap">
+  <p class="lede">
+    <b>Signal Edge</b>: mesh, large centred logo, a <code>STATUS</code> line pinned bottom-left in
+    muted grey, and a gradient hairline across the very bottom edge. For the frozen 9.6 s the screen
+    holds one line and the rail sits at zero — nothing can move. Then comes a
+    <b>~1.5 s closing run</b>: the status ticks through three confirmations while the gradient rail
+    sweeps to full, and the dashboard takes over. That run is the one part of the boot that
+    genuinely animates, because by then the isolate is free.
+  </p>
+
+  <div class="win">
+    <div class="win-chrome">
+      <span class="dot" style="background:#FF5F57"></span>
+      <span class="dot" style="background:#FEBC2E"></span>
+      <span class="dot" style="background:#28C840"></span>
+      <span class="win-title">Genius Wallet</span>
+    </div>
+    <div class="screen" id="screen" data-frozen="1" data-mesh="1">
+      <div class="flag">● MAIN ISOLATE FROZEN — nothing can animate</div>
+
+      <div class="boot" id="boot">
+        <div class="mesh"></div>
+        <img class="logo" src="../../../lib/assets/images/logo_and_title.png" alt=""
+             onerror="this.outerHTML='&lt;div class=&quot;logo-fb&quot;&gt;&lt;span&gt;GENIUS&lt;/span&gt;&lt;/div&gt;'">
+        <div class="foot">
+          <div class="foot-row">
+            <span class="kicker">Status</span>
+            <span class="status" id="status">Preparing your wallet…</span>
+          </div>
+          <div class="rail"><i id="fill"></i></div>
+        </div>
+      </div>
+
+      <div class="dash" id="dash" hidden>
+        <div class="dnav">
+          <span class="pill act">Dashboard</span><span class="pill">Markets</span><span class="pill">Transactions</span>
+        </div>
+        <div class="dgrid">
+          <div class="card">
+            <h4>Overview</h4>
+            <div class="big">$12,480.55</div><div class="up">▲ 2.14% today</div>
+            <div class="spark"></div>
+          </div>
+          <div class="card">
+            <h4>Assets</h4>
+            <div class="row"><span class="ic"></span><span class="ln" style="width:82px"></span>
+              <span style="margin-left:auto;font-size:12.5px">1.204 ETH</span></div>
+            <div class="row"><span class="ic"></span><span class="ln" style="width:64px"></span>
+              <span style="margin-left:auto;font-size:12.5px">840 GNUS</span></div>
+            <div class="row"><span class="ic"></span><span class="ln" style="width:74px"></span>
+              <span style="margin-left:auto;font-size:12.5px">0.031 BTC</span></div>
+          </div>
+          <div class="card">
+            <h4>Bitcoin</h4>
+            <div class="big" style="font-size:17px">$67,204</div>
+            <div class="spark" style="flex:1"></div>
+          </div>
+          <div class="card">
+            <h4>Markets</h4>
+            <div class="row"><span class="ic"></span><span class="ln" style="width:58px"></span>
+              <span class="up" style="margin-left:auto">+4.1%</span></div>
+            <div class="row"><span class="ic"></span><span class="ln" style="width:70px"></span>
+              <span class="up" style="margin-left:auto">+1.8%</span></div>
+            <div class="row"><span class="ic"></span><span class="ln" style="width:50px"></span>
+              <span class="up" style="margin-left:auto">+0.6%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tl">
+    <div class="tl-head">
+      <span class="clock">t = <b id="tval">0.0s</b></span>
+      <span class="clock" id="phname">Frozen — native SDK init, nothing can animate</span>
+    </div>
+    <div class="track">
+      <div class="phases" id="phases"></div>
+      <div class="head-mark" id="headmark"></div>
+      <input type="range" id="scrub" min="0" max="12500" value="0" step="25">
+    </div>
+    <div class="legend">
+      <span><i style="background:rgba(255,77,77,.5)"></i>0 – 9.6 s · frozen, no Dart runs</span>
+      <span><i style="background:var(--brand-primary)"></i>closing run · ~1.5 s, genuinely animated</span>
+      <span><i style="background:var(--status-success)"></i>dashboard, complete</span>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="note">
+      <h3>What the rail is — and isn't</h3>
+      <p>
+        It is <b>not</b> a progress bar. Measured, the SDK climbs for ~750 ms and then stalls at
+        <b>52.5%</b> on <code>"Initializing blockchain service"</code> — still stuck 40 s later. A
+        bar wired to that number would sit half-full forever.
+      </p>
+      <p>
+        So the rail claims nothing while waiting: it holds at zero, then sweeps to full as the app
+        hands over to the dashboard. It reads as <b>"done"</b>, not as <b>"x% complete"</b> — and
+        because the sweep happens after the freeze lifts, it is the one thing on this screen that
+        genuinely animates.
+      </p>
+      <p>
+        Everything the dashboard needs is already loaded at <b>141 ms</b> (wallets 0 ms,
+        transactions 140 ms, balances 141 ms). The only real wait is the freeze.
+      </p>
+    </div>
+
+    <div class="note">
+      <h3>The closing run — and what it costs</h3>
+      <p>
+        Three lines over ~1.5 s: <b>Wallets ready → Balances ready → Markets ready</b>. Each is a
+        <b>confirmation</b>, not a progress claim, so every line is true at the moment it appears —
+        they all actually completed back at 141 ms.
+      </p>
+      <p>
+        <b>Be clear-eyed about the cost:</b> this adds ~1.5 s to a boot that is already 9.6 s. It
+        buys a resolution beat — after a long dead screen, a burst of activity reads as
+        "arriving" instead of an abrupt cut to the dashboard.
+      </p>
+      <p>
+        It is not pure theatre, though. The run also <b>covers the markets/chart fetch</b>, which is
+        real network work of variable length. Treat 1.5 s as a <b>minimum</b> hold: if markets take
+        longer, the run stretches; if they fail, it ends on cached data rather than waiting.
+      </p>
+      <p>
+        Colours: status <code>#8A8F9D</code> <b>6.01:1</b> <span class="ok">AA</span>, kicker
+        <code>rgba(255,255,255,.38)</code> — decorative label only, the adjacent text carries the
+        meaning. Boot stays <b>dark in either app theme</b>: the logo is a white wordmark that
+        vanishes on light, and today's splash already pins a fixed dark background.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // measured: freeze lifts at 9594ms; dashboard data was ready at 141ms
+  const FREEZE = 9600, DASH = 11100, END = 13000;
+
+  // The closing run. Each line is a CONFIRMATION, not a progress claim — true at
+  // the moment it is shown, since all three finished long ago (141ms). The pacing
+  // is deliberate: it also covers the markets/chart fetch, which is real work of
+  // genuinely variable length.
+  const RUN = [
+    { at: FREEZE, text: "Wallets ready" },
+    { at: 10050,  text: "Balances ready" },
+    { at: 10500,  text: "Markets ready" }
+  ];
+
+  const $ = s => document.querySelector(s);
+  const screen = $("#screen"), boot = $("#boot"), dash = $("#dash"),
+        statusEl = $("#status"), fill = $("#fill"), scrub = $("#scrub");
+  let t = 0, playing = false, speed = 4, raf = null, last = 0;
+
+  $("#phases").innerHTML = [
+    [0, FREEZE, "p1", "frozen · 9.6s — nothing can animate"],
+    [FREEZE, DASH, "p2", "closing run · 1.5s"],
+    [DASH, END, "p4", "dashboard"]
+  ].map(([a, b, c, l]) => `<div class="ph ${c}" style="flex:${b - a}">${l}</div>`).join("");
+
+  function render() {
+    const frozen = t < FREEZE;
+    const inBoot = t < DASH;
+
+    boot.hidden = !inBoot;
+    dash.hidden = inBoot;
+    screen.dataset.frozen = frozen && inBoot ? "1" : "0";
+
+    // status: one held line while frozen, then the closing confirmations
+    let line = "Preparing your wallet…";
+    if (!frozen) for (const r of RUN) if (t >= r.at) line = r.text;
+    statusEl.textContent = line;
+
+    // gradient rail: 0 while frozen, then sweeps across the whole closing run
+    fill.style.width =
+      (frozen ? 0 : Math.min(1, (t - FREEZE) / (DASH - FREEZE)) * 100) + "%";
+
+    $("#tval").textContent = (t / 1000).toFixed(1) + "s";
+    $("#phname").textContent = frozen
+      ? "Frozen — native SDK init, nothing can animate"
+      : (inBoot ? "Closing run — status ticks through, rail sweeps" : "Dashboard — complete, no section loaders");
+    $("#headmark").style.left = (t / END * 100) + "%";
+    if (scrub.value != t) scrub.value = t;
+  }
+
+  function tick(now) {
+    if (!playing) return;
+    t += last ? (now - last) * speed : 0;
+    last = now;
+    if (t >= END) { t = END; stop(); }
+    render();
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; last = 0; $("#play").textContent = "▶ Play boot";
+                    if (raf) cancelAnimationFrame(raf); }
+
+  $("#play").onclick = () => {
+    if (playing) return stop();
+    if (t >= END) t = 0;
+    playing = true; last = 0; $("#play").textContent = "❚❚ Pause";
+    raf = requestAnimationFrame(tick);
+  };
+  $("#speed").onclick = e => {
+    speed = speed === 4 ? 1 : 4;
+    e.target.textContent = speed + "×";
+    e.target.classList.toggle("on", speed === 1);
+  };
+  $("#mesh").onclick = e => {
+    const on = screen.dataset.mesh !== "0";
+    screen.dataset.mesh = on ? "0" : "1";
+    e.target.textContent = on ? "Mesh off" : "Mesh on";
+    e.target.classList.toggle("on", !on);
+  };
+  $("#theme").onclick = e => {
+    const d = document.documentElement.dataset.theme === "dark";
+    document.documentElement.dataset.theme = d ? "light" : "dark";
+    e.target.textContent = d ? "🌙 Dark" : "☀ Light";
+  };
+  scrub.oninput = e => { stop(); t = +e.target.value; render(); };
+
+  render();
+})();
+</script>
+</body>
+</html>

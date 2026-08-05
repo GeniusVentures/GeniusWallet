@@ -56,7 +56,9 @@ class CryptoCurrency {
   }
 
   Blockchain? get defaultBlockchain {
-    if (blockchains.isEmpty) return null;
+    if (blockchains.isEmpty) {
+      return null;
+    }
     return blockchains.firstWhere(
       (b) => b.isDefault,
       orElse: () => blockchains.first,
@@ -172,8 +174,9 @@ class OrderStatus {
       updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
       fiatCurrency: json['fiat'] ?? '',
       fiatAmount: double.tryParse(json['fiatAmount']?.toString() ?? '') ?? 0.0,
-      cryptoCurrency: json['crypto']?['id'] ?? '',
-      blockchain: json['crypto']?['blockchain'] ?? '',
+      cryptoCurrency: (json['crypto'] as Map<String, dynamic>?)?['id'] ?? '',
+      blockchain:
+          (json['crypto'] as Map<String, dynamic>?)?['blockchain'] ?? '',
       walletAddress: json['walletAddress'],
       walletAddressTag: json['walletAddressTag'],
       cryptoAmount: double.tryParse(json['cryptoAmount']?.toString() ?? ''),
@@ -472,8 +475,8 @@ class BanxaKycResponse {
   BanxaKycResponse({required this.accountId, required this.accountReference});
 
   factory BanxaKycResponse.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] ?? {};
-    final account = data['account'] ?? {};
+    final data = (json['data'] as Map<String, dynamic>?) ?? {};
+    final account = (data['account'] as Map<String, dynamic>?) ?? {};
     return BanxaKycResponse(
       accountId: account['account_id'] ?? '',
       accountReference: account['account_reference'] ?? '',

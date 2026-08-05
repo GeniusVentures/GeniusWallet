@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>065 · Token row — which chain is this?</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#000; color:var(--text-primary); padding:100px 16px 64px; }
+  .wrap { max-width:1500px; margin:0 auto; }
+
+  /* ── sketch chrome ── */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #bar2 { position:fixed; top:41px; left:0; right:0; z-index:9997; display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; font:500 11px/15px var(--font); color:var(--text-secondary); }
+  #bar2 b { color:var(--text-primary); }
+  #bar2 .sep { width:1px; height:16px; background:var(--border-subtle); }
+  #bar2 button { font:600 11px/15px var(--font); padding:5px 10px; border-radius:var(--radius-pill); cursor:pointer;
+    border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); transition:all .15s ease; }
+  #bar2 button:hover { color:var(--text-primary); }
+  #bar2 button.on { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; }
+
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 auto var(--space-10); max-width:1100px; }
+  .lede b { color:var(--text-primary); }
+  .lede code { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); }
+  .tag { display:inline-flex; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec  { background:var(--brand-fill); color:var(--brand-secondary); }
+  .tag.warn { background:rgba(255,196,46,.14); color:var(--status-warning); }
+  .tag.bad  { background:var(--status-error-fill); color:var(--status-error); }
+
+  /* ── window + dimmed page behind the drawer ── */
+  .win { position:relative; border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden;
+    background:var(--surface-base); box-shadow:var(--shadow-card); height:760px; }
+  .page { position:absolute; inset:0; padding:56px; opacity:.30; pointer-events:none; }
+  .page h2 { font:600 24px/32px var(--font); text-align:center; }
+  .page .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+    height:96px; max-width:520px; margin:20px auto; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.45); }
+
+  /* ══════ SHELL — 030 B1 "Quiet band". Reused verbatim, not reinvented. ══════ */
+  .drawer { position:absolute; top:0; right:0; bottom:0; width:420px; background:var(--surface-elevated);
+    border-left:1px solid var(--border-subtle); display:flex; flex-direction:column; }
+  .dhead { padding:var(--space-10) var(--space-10) var(--space-8); display:flex; align-items:flex-start; gap:var(--space-6); position:relative; }
+  .dhead h3 { font:600 18px/24px var(--font); color:var(--text-primary); }
+  .dhead .grow { margin-right:auto; }
+  .dhead .x { width:32px; height:32px; border-radius:var(--radius-sm); border:none; background:transparent; color:var(--text-secondary);
+    cursor:pointer; display:grid; place-items:center; font-size:17px; flex:none; }
+  .dhead .x:hover { background:var(--brand-primary-subtle); color:var(--text-primary); }
+  .dhead::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px;
+    background:linear-gradient(90deg, var(--brand-cta-a), var(--brand-cta-b)); opacity:.35; }
+  .dbody { flex:1; overflow-y:auto; padding:var(--space-10); }
+
+  .search { display:flex; align-items:center; gap:var(--space-4); height:40px; padding:0 var(--space-6);
+    border-radius:var(--radius-md); background:var(--surface-menu); color:var(--text-secondary);
+    font:400 13px/19px var(--font); margin-bottom:var(--space-6); }
+
+  /* ══════ ROW — 032 A1 "Comfortable", the archetype this sketch extends ══════ */
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6);
+    border-radius:var(--radius-md); border:1px solid transparent; margin-bottom:var(--space-2); cursor:pointer;
+    transition:background .12s ease, border-color .12s ease; }
+  .row:hover { background:var(--brand-primary-subtle); border-color:var(--brand-primary-muted); }
+  .row.sel { background:var(--brand-primary-subtle); border-color:var(--brand-primary-muted); }
+  .row .meta { flex:1; min-width:0; }
+  .row .nm { font:600 13px/19px var(--font); color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .sy { font:500 11px/16px var(--font); color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .row .bal { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); text-align:right; white-space:nowrap; }
+  .row .chk { width:20px; color:var(--brand-secondary-strong); flex:none; text-align:center; font-size:15px; opacity:0; }
+  .row.sel .chk { opacity:1; }
+
+  /* token avatar */
+  .av { position:relative; width:36px; height:36px; flex:none; }
+  .av img.tok { width:36px; height:36px; border-radius:50%; object-fit:cover; background:var(--surface-menu); display:block; }
+  .av .fallback { width:36px; height:36px; border-radius:50%; background:var(--surface-menu); display:grid; place-items:center;
+    font:700 12px/1 var(--font); color:var(--text-secondary); }
+
+  /* ── A: chain crest overlapping the token avatar ── */
+  .crest { position:absolute; right:-2px; bottom:-2px; width:17px; height:17px; border-radius:50%;
+    border:2px solid var(--surface-elevated); background:var(--surface-menu); display:grid; place-items:center; overflow:hidden; }
+  .crest img { width:100%; height:100%; object-fit:cover; display:block; }
+  .crest.unk { font:700 9px/1 var(--font); color:var(--text-secondary); border-color:var(--surface-elevated);
+    background:var(--surface-sunken); }
+  .row.sel .crest, .row:hover .crest { border-color:var(--surface-elevated); }
+
+  /* ── B: chain on the meta line ── */
+  .chainline { display:inline-flex; align-items:center; gap:5px; }
+  .chainline img { width:12px; height:12px; border-radius:50%; object-fit:cover; }
+  .chaindot { width:6px; height:6px; border-radius:50%; background:var(--text-primary-38); display:inline-block; }
+  .sep-dot { color:var(--text-primary-38); margin:0 5px; }
+  .unkchain { color:var(--status-warning); }
+
+  /* ── C: grouped sections ── */
+  .grp { display:flex; align-items:center; gap:var(--space-4); padding:var(--space-6) var(--space-6) var(--space-3);
+    position:sticky; top:0; background:var(--surface-elevated); z-index:2; }
+  .grp img { width:16px; height:16px; border-radius:50%; object-fit:cover; }
+  .grp .gn { font:700 10px/14px var(--font); text-transform:uppercase; letter-spacing:.7px; color:var(--text-secondary); }
+  .grp .gline { flex:1; height:1px; background:var(--border-subtle); }
+  .grp .gcount { font:600 10px/14px var(--font); color:var(--text-primary-38); }
+  .grp.unknown .gn { color:var(--status-warning); }
+
+  /* notes under each variant */
+  .notes { max-width:1100px; margin:var(--space-10) auto 0; display:grid; gap:var(--space-6); }
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:var(--space-6) var(--space-8);
+    background:var(--surface-elevated); font:400 12px/19px var(--font); color:var(--text-secondary); }
+  .note b { color:var(--text-primary); }
+  .note .h { font:700 10px/14px var(--font); text-transform:uppercase; letter-spacing:.7px; color:var(--text-primary); display:block; margin-bottom:4px; }
+
+  .stage { display:none; }
+  .stage.active { display:block; }
+  .cols { display:grid; grid-template-columns:1fr; gap:var(--space-10); max-width:1100px; margin:0 auto; }
+
+  #toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px); opacity:0; pointer-events:none;
+    background:var(--surface-menu); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    padding:9px 18px; font:600 12px/16px var(--font); transition:all .2s ease; z-index:9999; box-shadow:var(--shadow-card); }
+  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="name">065 · Token row — which chain is this?</span>
+  <button class="vt active" data-v="a">A · Chain crest</button>
+  <button class="vt" data-v="b">B · Chain on the meta line</button>
+  <button class="vt" data-v="c">★ C · Grouped by chain</button>
+  <button class="vt" data-v="base">baseline · shipped 032-A1</button>
+</div>
+
+<div id="bar2">
+  <b>Appearance</b>
+  <button id="themeBtn" class="on">dark</button>
+  <span class="sep"></span>
+  <span>Content is the REAL pay-side list: mock balances after <code>heldTokens()</code>, including the 08-07 magnitude fixtures and two chains missing from <code>networks.json</code>.</span>
+</div>
+
+<div class="wrap">
+
+  <p class="lede">
+    The picker lists the same symbol on several chains — <b>ETH on 1, 137 and 80001</b>, <b>USDT on 1 and 137</b> —
+    and the shipped row (032-A1) shows logo, name, symbol and balance with <b>nothing naming the chain</b>. Three rows can
+    read identically and mean three different assets. This sketch asks how the chain becomes visible without breaking the
+    list-picker archetype every other drawer shares.
+    <br><br>
+    The honest constraint: <code>assets/json/networks/networks.json</code> knows 10 chains with real icons, but the
+    catalogue also carries <b>42161 (Arbitrum)</b>, <b>250 (Fantom)</b>, <b>1284 (Moonbeam)</b> and <b>80001 (Mumbai)</b>,
+    which it does not — <code>getNetworkById</code> answers <code>'Unknown'</code>. Every variant here has to say so out loud
+    rather than render a hole.
+  </p>
+
+  <!-- ═════════════ A ═════════════ -->
+  <div class="stage active" id="v-a">
+    <div class="cols">
+      <div class="win">
+        <div class="page"><h2>Swap</h2><div class="card"></div><div class="card"></div></div>
+        <div class="scrim"></div>
+        <div class="drawer">
+          <div class="dhead"><div class="grow"><h3>Select Token</h3></div><button class="x">✕</button></div>
+          <div class="dbody" data-rows="crest"></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><span class="h">What it is</span>
+        A <b>17px chain crest</b> sits on the bottom-right of the 36px token logo, ringed 2px in the panel colour so it reads
+        as attached rather than overlapping. Row anatomy, height and rhythm are untouched — this is 032-A1 with one addition.
+        An unrecognised chain gets a <b>?</b> crest on a sunken fill, never a blank.</div>
+      <div class="note"><span class="h">Why it might win</span>
+        It is the pattern every multi-chain wallet already teaches (Rainbow, MetaMask, Uniswap), so it needs no explaining.
+        It costs <b>zero vertical space</b>, which matters when the list is 30 rows. In Flutter it is a <code>Stack</code> with
+        one <code>Positioned</code> — the path of least resistance.</div>
+      <div class="note"><span class="h">Where it hurts</span>
+        17px is small: at a glance you see <i>that</i> there is a chain, not <i>which</i>. Two similar circular marks
+        (matic purple / eth grey) are hard to tell apart in peripheral vision, and the <b>?</b> crest can read as a broken
+        image rather than a deliberate state.</div>
+    </div>
+  </div>
+
+  <!-- ═════════════ B ═════════════ -->
+  <div class="stage" id="v-b">
+    <div class="cols">
+      <div class="win">
+        <div class="page"><h2>Swap</h2><div class="card"></div><div class="card"></div></div>
+        <div class="scrim"></div>
+        <div class="drawer">
+          <div class="dhead"><div class="grow"><h3>Select Token</h3></div><button class="x">✕</button></div>
+          <div class="dbody" data-rows="line"></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><span class="h">What it is</span>
+        The second line stops being just the symbol and becomes <b>symbol · chain</b>, with a 12px chain icon inline.
+        The chain is <i>named in words</i>, so there is nothing to decode. An unrecognised chain reads
+        <b>Chain 42161</b> in the warning colour — the id is real information, and admitting we do not know its name is
+        more honest than a question mark.</div>
+      <div class="note"><span class="h">Why it might win</span>
+        It is the only variant where the chain is <b>readable rather than recognisable</b>, which is what you want when
+        two rows differ ONLY by chain. It also survives a wallet with no icon for a chain, because the name carries it.
+        Cheapest to build: one <code>Row</code> inside the existing subtitle slot.</div>
+      <div class="note"><span class="h">Where it hurts</span>
+        The subtitle line gets busy, and long chain names collide with long token names in a 420px panel — the ellipsis
+        will land on the chain, which is the part you added it for. It also spends the row's only free text line, so a
+        future addition (price, fiat value) has nowhere left to go.</div>
+    </div>
+  </div>
+
+  <!-- ═════════════ C ═════════════ -->
+  <div class="stage" id="v-c">
+    <div class="cols">
+      <div class="win">
+        <div class="page"><h2>Swap</h2><div class="card"></div><div class="card"></div></div>
+        <div class="scrim"></div>
+        <div class="drawer">
+          <div class="dhead"><div class="grow"><h3>Select Token</h3></div><button class="x">✕</button></div>
+          <div class="dbody" data-rows="grouped"></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><span class="h">What it is</span>
+        Rows keep 032-A1 exactly; the <b>chain becomes the structure</b>. Sticky section headers carry the chain icon, name
+        and a count. Unrecognised chains fall into a final <b>Unrecognised chains</b> group rather than being scattered
+        through the list pretending to be fine.</div>
+      <div class="note"><span class="h">Why it might win</span>
+        It answers a question the other two cannot: <i>what do I hold, per chain?</i> Duplicate symbols stop competing
+        because they are never adjacent. The sticky header means the chain is on screen even when the row that named it
+        has scrolled away — the only variant where that is true.</div>
+      <div class="note"><span class="h">Where it hurts</span>
+        It spends the most vertical space, on a list that is already capped at 30 rows. Search fights grouping: filtering
+        to two tokens can leave two headers and two rows, which reads as ceremony. And a wallet holding one token per
+        chain becomes all headers, no list.</div>
+    </div>
+  </div>
+
+  <!-- ═════════════ BASELINE ═════════════ -->
+  <div class="stage" id="v-base">
+    <div class="cols">
+      <div class="win">
+        <div class="page"><h2>Swap</h2><div class="card"></div><div class="card"></div></div>
+        <div class="scrim"></div>
+        <div class="drawer">
+          <div class="dhead"><div class="grow"><h3>Select Token</h3></div><button class="x">✕</button></div>
+          <div class="dbody" data-rows="base"></div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="note"><span class="h">Shipped today — 032-A1</span>
+        Exactly what is in the running app. Note rows <b>1 and 5</b>: <i>Ethereum / ETH</i> and <i>Wrapped Ether / WETH</i>
+        both look like plain holdings, and nothing on screen says one is on mainnet and the other on Polygon. Note also
+        the last two rows, on chains the app cannot name at all. This is the problem, rendered.</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// The pay-side list as it actually arrives: mock balances merged onto mockTokens,
+// filtered by heldTokens(), including the 08-07 magnitude fixtures.
+const ICON = '../../../assets/images/crypto/';
+const CHAINS = {
+  1:     { name:'Ethereum',     icon:'eth.png'   },
+  137:   { name:'Polygon',      icon:'matic.png' },
+  56:    { name:'BNB',          icon:'bnb.png'   },
+  8453:  { name:'Base',         icon:'base.png'  },
+  // Deliberately absent, exactly as in networks.json:
+  // 42161 Arbitrum · 250 Fantom · 1284 Moonbeam · 80001 Mumbai
+};
+
+const TOKENS = [
+  { name:'Ethereum',            sym:'ETH',      icon:'eth.png',   chain:1,     bal:'1' },
+  { name:'Tether USD',          sym:'USDT',     icon:'usdt.png',  chain:1,     bal:'500' },
+  { name:'Dai Stablecoin',      sym:'DAI',      icon:'dai.png',   chain:1,     bal:'0.01' },
+  { name:'USD Coin',            sym:'USDC',     icon:'usdc.png',  chain:1,     bal:'0.000001' },
+  { name:'Wrapped Ether',       sym:'WETH',     icon:'eth.png',   chain:137,   bal:'<0.000001' },
+  { name:'Wrapped ETH (Arbitrum)', sym:'WETH-ARB', icon:'eth.png', chain:42161, bal:'1.234568' },
+  { name:'Wrapped FTM',         sym:'WFTM',     icon:'ftm.png',   chain:250,   bal:'1000000000000' },
+];
+
+let selected = 0;
+
+function chainOf(id) { return CHAINS[id] || null; }
+
+function avatar(t, withCrest) {
+  const c = chainOf(t.chain);
+  let crest = '';
+  if (withCrest) {
+    crest = c
+      ? `<span class="crest"><img src="${ICON}${c.icon}" alt="${c.name}" onerror="this.parentNode.classList.add('unk');this.parentNode.textContent='?'"></span>`
+      : `<span class="crest unk" title="Chain ${t.chain} — not in networks.json">?</span>`;
+  }
+  return `<span class="av">
+    <img class="tok" src="${ICON}${t.icon}" alt=""
+         onerror="this.outerHTML='<span class=\\'fallback\\'>${t.sym.slice(0,2)}</span>'">
+    ${crest}</span>`;
+}
+
+function metaLine(t, mode) {
+  if (mode !== 'line') return `<div class="sy">${t.sym}</div>`;
+  const c = chainOf(t.chain);
+  const chain = c
+    ? `<span class="chainline"><img src="${ICON}${c.icon}" alt="" onerror="this.outerHTML='<i class=\\'chaindot\\'></i>'">${c.name}</span>`
+    : `<span class="chainline unkchain"><i class="chaindot"></i>Chain ${t.chain}</span>`;
+  return `<div class="sy">${t.sym}<span class="sep-dot">·</span>${chain}</div>`;
+}
+
+function rowHtml(t, i, mode) {
+  const crest = mode === 'crest';
+  return `<div class="row ${i === selected ? 'sel' : ''}" data-i="${i}">
+    ${avatar(t, crest)}
+    <div class="meta"><div class="nm">${t.name}</div>${metaLine(t, mode)}</div>
+    <div class="bal">${t.bal}</div>
+    <div class="chk">✓</div>
+  </div>`;
+}
+
+function render() {
+  document.querySelectorAll('.dbody').forEach(body => {
+    const mode = body.dataset.rows;
+    let html = `<div class="search">🔍 Search tokens</div>`;
+
+    if (mode === 'grouped') {
+      const known = Object.keys(CHAINS).map(Number);
+      const groups = [];
+      known.forEach(id => {
+        const items = TOKENS.map((t, i) => ({ t, i })).filter(x => x.t.chain === id);
+        if (items.length) groups.push({ id, items });
+      });
+      const orphans = TOKENS.map((t, i) => ({ t, i })).filter(x => !chainOf(x.t.chain));
+      groups.forEach(g => {
+        const c = chainOf(g.id);
+        html += `<div class="grp"><img src="${ICON}${c.icon}" alt="">
+          <span class="gn">${c.name}</span><span class="gline"></span>
+          <span class="gcount">${g.items.length}</span></div>`;
+        g.items.forEach(x => { html += rowHtml(x.t, x.i, 'plain'); });
+      });
+      if (orphans.length) {
+        html += `<div class="grp unknown">
+          <span class="gn">Unrecognised chains</span><span class="gline"></span>
+          <span class="gcount">${orphans.length}</span></div>`;
+        orphans.forEach(x => { html += rowHtml(x.t, x.i, 'plain'); });
+      }
+    } else {
+      TOKENS.forEach((t, i) => { html += rowHtml(t, i, mode); });
+    }
+    body.innerHTML = html;
+  });
+
+  document.querySelectorAll('.row').forEach(r => {
+    r.addEventListener('click', () => {
+      selected = +r.dataset.i;
+      const t = TOKENS[selected];
+      const c = chainOf(t.chain);
+      toast(`${t.sym} on ${c ? c.name : 'chain ' + t.chain}`);
+      render();
+    });
+  });
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1600);
+}
+
+document.querySelectorAll('#variant-nav .vt').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#variant-nav .vt').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.stage').forEach(s => s.classList.remove('active'));
+    document.getElementById('v-' + b.dataset.v).classList.add('active');
+  });
+});
+
+const themeBtn = document.getElementById('themeBtn');
+themeBtn.addEventListener('click', () => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  themeBtn.textContent = dark ? 'light' : 'dark';
+  themeBtn.classList.toggle('on', !dark);
+  document.body.style.background = dark ? '#DCE0E6' : '#000';
+});
+
+render();
+</script>
+</body>
+</html>

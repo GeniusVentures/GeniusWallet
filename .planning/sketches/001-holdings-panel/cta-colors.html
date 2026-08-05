@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buy GNUS — CTA colours from the GNUS brand</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-10); min-height: 100vh; }
+  .wrap { max-width: 600px; margin: 0 auto; }
+  .top { display: flex; gap: var(--space-6); align-items: center; margin-bottom: var(--space-8); }
+  .top h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+
+  .lede { color: var(--text-secondary); font: 400 13px/20px var(--font); margin-bottom: var(--space-8); }
+  .lede b { color: var(--text-primary); }
+
+  /* panel context */
+  .panel { background: linear-gradient(to bottom, var(--surface-sheen-a), var(--surface-sheen-b)); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-6); }
+  .phead { display: flex; justify-content: space-between; align-items: baseline; padding: 2px var(--space-4) var(--space-8); }
+  .phead h2 { font: 600 18px/24px var(--font); } .phead .total { font: 700 20px/26px var(--font); }
+  .row { display: flex; align-items: center; gap: var(--space-6); padding: var(--space-6) var(--space-4); }
+  .row + .row { border-top: 1px solid var(--border-subtle); }
+  .ic { width: 32px; height: 32px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #001018; font: 700 12px/1 var(--font); background: linear-gradient(135deg,#14C8FF,#2BF5B4); }
+  .ic.eth { background: #627EEA; color:#fff; } .ic.usdc { background:#2775CA; color:#fff; }
+  .nm { flex: 1; font: 500 15px/20px var(--font); }
+  .amt { font: 500 13px/18px var(--font); color: var(--text-primary-38); }
+
+  .footer { display: flex; gap: var(--space-6); padding: var(--space-8) var(--space-4) var(--space-2); }
+  .btn { height: 40px; flex: 1; border-radius: var(--radius-pill); font: 600 14px/1 var(--font); border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .receive { background: transparent; border-color: var(--border-strong); color: var(--text-primary); }
+  .receive:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+  /* swatch strip */
+  .swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); margin-top: var(--space-10); }
+  .sw { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-6); cursor: pointer; background: var(--surface-elevated); }
+  .sw[aria-pressed="true"] { border-color: var(--brand-primary); box-shadow: 0 0 0 2px var(--brand-fill,rgba(20,200,255,.2)); }
+  .sw .chip { height: 28px; border-radius: var(--radius-pill); margin-bottom: 8px; }
+  .sw .lbl { font: 600 12px/16px var(--font); }
+  .sw .hex { font: 500 11px/14px var(--font-mono); color: var(--text-secondary); }
+
+  /* ── the GNUS-derived Buy-GNUS colours ─────────────── */
+  .c-neon    { background:#14C8FF; color:#000b18; }                               /* shipped, rejected */
+  .c-grad    { background:linear-gradient(135deg,#0AAEE6,#0AD89C); color:#00140e; } /* deep logo gradient */
+  .c-bright  { background:linear-gradient(135deg,#14C8FF,#2BF5B4); color:#001018; } /* bright logo gradient */
+  .c-mint    { background:#0AD89C; color:#00140e; }                               /* mint solid */
+  .c-cyan    { background:#0AAEE6; color:#001018; }                               /* deep cyan solid */
+  .c-teal    { background:#0C8E9C; color:#ffffff; }                               /* deep logo teal */
+  .c-ghost   { background:rgba(20,200,255,.14); color:var(--brand-primary); border-color:transparent; } /* tinted */
+  [data-theme="light"] .c-ghost { background:rgba(20,200,255,.12); color:var(--brand-primary-strong); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Buy GNUS — colour options</h1>
+    <div class="seg" role="group" aria-label="Theme">
+      <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+      <button data-theme-btn="light" aria-pressed="false">Light</button>
+    </div>
+  </div>
+  <p class="lede">All pulled from the <b>GNUS logo</b> (cyan → teal → mint gradient). Shape is fixed — compact 40px, "Receive" ghost — so you're comparing <b>colour only</b>. Click a swatch to preview it on the button below.</p>
+
+  <div class="panel">
+    <div class="phead"><h2>Assets</h2><span class="total">$0.00</span></div>
+    <div class="row"><div class="ic">G</div><div class="nm">GeniusAI</div><span class="amt">0.0000 GNUS</span></div>
+    <div class="row"><div class="ic eth">♦</div><div class="nm">Ethereum</div><span class="amt">0.0000 ETH</span></div>
+    <div class="row"><div class="ic usdc">$</div><div class="nm">USD Coin</div><span class="amt">0.0000 USDC</span></div>
+    <div class="footer">
+      <button class="btn receive">Receive</button>
+      <button class="btn c-grad" data-buy>Buy GNUS</button>
+    </div>
+  </div>
+
+  <div class="swatches" data-sw>
+    <div class="sw" data-cls="c-grad"   aria-pressed="true"><div class="chip c-grad"></div><div class="lbl">1 · Deep logo gradient</div><div class="hex">#0AAEE6 → #0AD89C</div></div>
+    <div class="sw" data-cls="c-bright" aria-pressed="false"><div class="chip c-bright"></div><div class="lbl">2 · Bright logo gradient</div><div class="hex">#14C8FF → #2BF5B4</div></div>
+    <div class="sw" data-cls="c-mint"   aria-pressed="false"><div class="chip c-mint"></div><div class="lbl">3 · Mint solid</div><div class="hex">#0AD89C</div></div>
+    <div class="sw" data-cls="c-cyan"   aria-pressed="false"><div class="chip c-cyan"></div><div class="lbl">4 · Deep cyan solid</div><div class="hex">#0AAEE6</div></div>
+    <div class="sw" data-cls="c-teal"   aria-pressed="false"><div class="chip c-teal"></div><div class="lbl">5 · Deep teal solid</div><div class="hex">#0C8E9C · white text</div></div>
+    <div class="sw" data-cls="c-ghost"  aria-pressed="false"><div class="chip c-ghost" style="border:1px solid var(--border-subtle)"></div><div class="lbl">6 · Tinted (ghost)</div><div class="hex">brand @ 14%</div></div>
+    <div class="sw" data-cls="c-neon"   aria-pressed="false"><div class="chip c-neon"></div><div class="lbl">✗ Shipped neon</div><div class="hex">#14C8FF (rejected)</div></div>
+  </div>
+</div>
+
+<script>
+  const buy = document.querySelector('[data-buy]');
+  document.querySelectorAll('[data-sw] .sw').forEach(sw => sw.addEventListener('click', () => {
+    document.querySelectorAll('[data-sw] .sw').forEach(s => s.setAttribute('aria-pressed', String(s === sw)));
+    buy.className = 'btn ' + sw.dataset.cls;
+  }));
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    document.documentElement.dataset.theme = b.dataset.themeBtn;
+  }));
+</script>
+</body>
+</html>

@@ -3,9 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 class VerifyRecoveryPhraseScreen extends StatefulWidget {
   const VerifyRecoveryPhraseScreen({super.key});
@@ -62,6 +67,8 @@ class _VerifyRecoveryPhraseScreenState
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final isNarrow = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
     return BlocListener<NewWalletBloc, NewWalletState>(
       listener: (context, state) {
         if (state.verificationStatus == VerificationStatus.failed) {
@@ -84,31 +91,52 @@ class _VerifyRecoveryPhraseScreenState
           return KeyEventResult.ignored;
         },
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: GeniusBreakpoints.small,
+          // Walk-driven (06-03 Task 3), same systemic gutter fix as
+          // recovery_phrase_screen and 06-01's 67e2821: Padding OUTSIDE the
+          // ConstrainedBox so the inset is additive and wide-window centring is
+          // unchanged by construction.
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space8,
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 16.0,
-                children: [
-                  Text(
-                    "Verify Your Recovery Phrase",
-                    style: Theme.of(context).textTheme.headlineLarge,
-                  ),
-                  Text(
-                    "Tap the words to put them next to each other in the correct order",
-                  ),
-                  _InputAndWords(key: _inputAndWordsKey),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 300),
-                    child: FilledButton(
-                      onPressed: _triggerContinue,
-                      child: const Text("Continue"),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: GeniusBreakpoints.small,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 16.0,
+                  children: [
+                    Text(
+                      "Verify Your Recovery Phrase",
+                      style: GeniusWalletTypography.headlineLg.copyWith(
+                        color: gw.textPrimary,
+                      ),
                     ),
-                  ),
-                ],
+                    Text(
+                      "Tap the words to put them next to each other in the correct order",
+                      style: GeniusWalletTypography.bodyMd.copyWith(
+                        color: gw.textSecondary,
+                      ),
+                    ),
+                    _InputAndWords(key: _inputAndWordsKey),
+                    // Walk-driven: full-width CTA on mobile; the 300px cap is a
+                    // desktop affordance.
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isNarrow ? double.infinity : 300,
+                      ),
+                      child: GWButton(
+                        label: 'Continue',
+                        variant: GWButtonVariant.gradient,
+                        size: GWButtonSize.lg,
+                        expand: true,
+                        onPressed: _triggerContinue,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -130,7 +158,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
   late final Set<int> emptyIndices;
   late final List<String> originalWords;
   late final List<String> shuffledAvailableWords;
-  static const SELECT_WORD_COUNT = 4;
+  static const selectWordCount = 4;
   int? highlightedEmptyIndex;
 
   @override
@@ -143,7 +171,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
     final words = context.read<NewWalletBloc>().state.recoveryWords;
     originalWords = List<String>.from(words);
     final random = Random();
-    int emptyCount = SELECT_WORD_COUNT;
+    const int emptyCount = selectWordCount;
 
     emptyIndices = <int>{};
     while (emptyIndices.length < emptyCount) {
@@ -199,7 +227,7 @@ class _InputAndWordsState extends State<_InputAndWords> {
   void _onEmptyBoxClick(int index) {
     if (emptyIndices.contains(index) && userInputWords[index].isNotEmpty) {
       setState(() {
-        String wordToReturn = userInputWords[index];
+        final String wordToReturn = userInputWords[index];
         userInputWords[index] = '';
         shuffledAvailableWords.add(wordToReturn);
         shuffledAvailableWords.shuffle();
@@ -214,64 +242,92 @@ class _InputAndWordsState extends State<_InputAndWords> {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    // Freeze rule (test/freeze_rule_test.dart): no dimension may be derived
+    // CONTINUOUSLY from constraints. This replaces a FittedBox(scaleDown),
+    // which ran a per-frame scale search on every drag-resize — the same defect
+    // that hung the app from the dashboard chart. The size below is a discrete
+    // choice between exactly TWO tokens, so the set is bounded.
+    //
+    // Deliberately NOT ellipsised: truncating a recovery word makes it
+    // unreadable, and this is the one screen where that is unacceptable.
+    final isNarrow = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
+    final baseWordStyle =
+        (isNarrow
+                ? GeniusWalletTypography.bodySm
+                : GeniusWalletTypography.bodyLg)
+            .copyWith(fontFamily: GeniusWalletTypography.monoFamily);
+
     return Column(
       spacing: 16.0,
       children: [
-        Card(
+        Container(
+          decoration: GWDecorations.surface(
+            radius: GeniusWalletConsts.radiusLg,
+            border: gw.borderSubtle,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: GridView.count(
               shrinkWrap: true,
-              crossAxisCount: 3,
+              // Walk-driven (06-03 Task 3), matching recovery_phrase_screen:
+              // 3 columns clipped long words at narrow widths. Two columns buy
+              // the width back; the aspect ratio rises in step so six rows do
+              // not grow the grid vertically. Discrete literals — freeze rule
+              // holds.
+              crossAxisCount: isNarrow ? 2 : 3,
               mainAxisSpacing: 8,
               crossAxisSpacing: 6,
-              childAspectRatio: 3.0,
+              childAspectRatio: isNarrow ? 4.5 : 3.0,
               physics: const NeverScrollableScrollPhysics(),
               children: List.generate(userInputWords.length, (index) {
                 final isEmpty = emptyIndices.contains(index);
                 final isHighlighted = highlightedEmptyIndex == index;
                 final hasUserInput =
                     isEmpty && userInputWords[index].isNotEmpty;
+                // Same three-way outcome as develop's nested conditional:
+                // placeholder only when the slot is empty AND unfilled.
+                final isPlaceholder = isEmpty && userInputWords[index].isEmpty;
 
                 return GestureDetector(
                   onTap: isEmpty ? () => _onEmptyBoxClick(index) : null,
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.radiusMd,
+                      ),
                       border: Border.all(
                         color: isEmpty
                             ? (isHighlighted
-                                  ? Colors.blue
+                                  ? context.gw.brandPrimaryStrong
                                   : (hasUserInput
-                                        ? Colors.green
-                                        : Colors.blue.withValues(alpha: 0.5)))
-                            : Colors.grey,
+                                        ? context.gw.brandGreen
+                                        : gw.borderSubtle))
+                            : gw.borderSubtle,
                         width: isHighlighted ? 2.0 : 1.0,
                       ),
                       color: isEmpty
                           ? (isHighlighted
-                                ? Colors.blue.withValues(alpha: 0.1)
-                                : GeniusWalletColors.grayPrimary.withValues(
-                                    alpha: 0.3,
-                                  ))
-                          : GeniusWalletColors.grayPrimary.withValues(
-                              alpha: 0.3,
-                            ),
+                                ? context.gw.brandPrimaryStrong.withAlpha(26)
+                                : gw.surfaceSunken)
+                          : gw.surfaceSunken,
                     ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        isEmpty
-                            ? (userInputWords[index].isEmpty
-                                  ? (isHighlighted ? '???' : '---')
-                                  : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index]}')
-                            : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index]}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontFamily: 'JetBrainsMono',
-                        ),
+                    // Left-aligned to match recovery_phrase_screen's grid
+                    // (walk-driven): the numbered words read as a list, not as
+                    // centred chips. Placeholders inherit the same alignment so
+                    // both grids share one visual language.
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      isPlaceholder
+                          ? (isHighlighted ? '???' : '---')
+                          : '${(index + 1).toString().padLeft(2, '0')}. ${userInputWords[index]}',
+                      maxLines: 1,
+                      style: baseWordStyle.copyWith(
+                        color: isPlaceholder
+                            ? gw.textSecondary
+                            : gw.textPrimary,
                       ),
                     ),
                   ),

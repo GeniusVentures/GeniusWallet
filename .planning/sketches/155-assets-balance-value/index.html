@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>155 · Assets balance value - 5 treatments for the dashboard total</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1180px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .st:hover { color:var(--text-primary); border-color:var(--border-strong); }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+
+  h1 { font:700 20px/28px var(--font); margin-bottom:var(--space-4); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-10); max-width:980px; }
+  .lede b { color:var(--text-primary); }
+  .lede code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec  { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.have { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.build{ background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .tag.bug  { background:rgba(255,77,77,.14); color:var(--status-error); }
+
+  .cap { display:flex; align-items:flex-start; gap:10px; margin:0 0 var(--space-8); }
+  .cap .k { font:700 11px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary); flex:none; padding-top:1px; width:118px; }
+  .cap .v { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:900px; }
+
+  /* ---------- the real Assets panel, at its real dashboard width ---------- */
+  .stage { display:flex; gap:var(--space-6); align-items:flex-start; }
+  .panel { width:720px; flex:none; background:var(--surface-elevated); border:1px solid var(--border-subtle);
+    border-radius:var(--radius-lg); padding:var(--space-6) var(--space-8) var(--space-8); box-shadow:var(--shadow-card); }
+
+  /* GWSectionTitle: 44px min-height, title 18px, space4 inset, space8 gap */
+  .sect { display:flex; align-items:center; min-height:44px; padding-left:var(--space-4); }
+  .sect .t { font:600 18px/24px var(--font); color:var(--text-primary); }
+  .sect .end { margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; justify-content:center; }
+
+  .num { font-variant-numeric:tabular-nums; letter-spacing:-.2px; }
+  .cents { color:var(--text-primary-54); font-weight:inherit; }
+
+  /* rows */
+  .rows { margin-top:var(--space-8); }
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6) var(--space-4); border-top:1px solid var(--border-subtle); }
+  .row:first-child { border-top:0; }
+  .ico { width:32px; height:32px; border-radius:50%; flex:none; display:grid; place-items:center; font:700 11px/1 var(--font); color:#fff; }
+  .row .n  { font:600 14px/20px var(--font); color:var(--text-primary); }
+  .row .s  { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:1px; display:flex; gap:6px; align-items:center; }
+  .row .rt { margin-left:auto; text-align:right; }
+  .row .rv { font:600 14px/20px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .row .rq { font:400 12px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .mini { font:600 11px/16px var(--font); padding:1px 5px; border-radius:4px; }
+  .mini.up { background:var(--status-success-fill); color:var(--status-success); }
+  .mini.dn { background:var(--status-error-fill);   color:var(--status-error); }
+
+  /* delta treatments */
+  .delta-plain { font:500 13px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .chip { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:var(--radius-pill);
+    font:600 12px/16px var(--font); font-variant-numeric:tabular-nums; }
+  .chip .ar { font-size:9px; line-height:1; }
+  .up { color:var(--status-success); } .dn { color:var(--status-error); }
+  .chip.up { background:var(--status-success-fill); }
+  .chip.dn { background:var(--status-error-fill); }
+  .eyebrow { font:700 10px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-primary-54); }
+
+  /* D - the balance band */
+  .band { display:flex; align-items:flex-end; gap:var(--space-8); padding:var(--space-4) var(--space-4) var(--space-8);
+    border-bottom:1px solid var(--border-subtle); }
+  .band .prov { font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .band .rt { margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+
+  /* C - sparkline */
+  .spark { width:72px; height:26px; flex:none; }
+
+  /* annotations */
+  .note { margin-top:var(--space-8); border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+    background:var(--surface-sheen-b); padding:var(--space-8); width:400px; flex:none; }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; color:var(--text-primary); margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .note code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .spec { list-style:none; }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+
+  .pane { display:none; } .pane.on { display:block; }
+  section { margin-bottom:var(--space-20); }
+  .axis .sect { outline:1px dashed rgba(20,200,255,.45); outline-offset:0; }
+  .axis .end  { outline:1px dashed rgba(255,196,46,.6); }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">155 · Assets balance value</span>
+  <button class="vt active" data-v="0">0 · Today</button>
+  <button class="vt" data-v="a">A · Value + chip</button>
+  <button class="vt" data-v="b">B · Eyebrow stack</button>
+  <button class="vt" data-v="c">C · Sparkline</button>
+  <button class="vt" data-v="d">D · Balance band</button>
+  <button class="vt" data-v="e">E · Quiet ledger</button>
+  <span class="sep"></span>
+  <span class="lbl">Day</span>
+  <button class="st on" data-s="up">Up</button>
+  <button class="st" data-s="dn">Down</button>
+  <button class="st" data-s="zero">Zero</button>
+  <span class="sep"></span>
+  <button class="st" id="axes">Axes</button>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap">
+  <h1>The Assets total, five ways</h1>
+  <p class="lede">
+    What ships today sits in <code>coins_screen.dart:258-284</code>: a <code>GWSectionTitle</code> whose
+    <code>trailing</code> is a centred two-line column - <b>20px/w700 total</b> over
+    <b><code>+$82.91 · +1.36%</code></b> in <code>labelMd</code>, tinted green or red whole. Every variant below
+    keeps the same two facts and the same data; only the treatment changes.
+    <b>The number itself is real</b> - <code>assetsTotal()</code> and <code>assetsDayChange()</code> fold
+    <code>balance x price</code> and <code>balance x price x pct/100</code> over the live CoinGecko rows.
+  </p>
+
+  <div class="cap"><span class="k">Finding 1</span><span class="v">
+    <span class="tag bug">duplicate</span> The dashboard prints this dollar figure <b>twice on the same row</b>.
+    <code>wallet_overview.dart:138</code> renders <code>selectedWalletBalance</code> (the wallet's own balance
+    string, from <code>WalletDetailsCubit</code>) as <b>Current Balance</b> in the left card, and the Assets
+    header renders <code>assetsTotal()</code> (a CoinGecko fold) 12px to the right. <b>Two independent sources,
+    one currency symbol, no label telling them apart.</b> They agree in the dev mock because
+    <code>injectMockCoins</code> sets both; nothing makes them agree in production.
+  </span></div>
+
+  <div class="cap"><span class="k">Finding 2</span><span class="v">
+    The trailing column is <b>vertically centred inside a 44px section-title row</b>. Two lines of 20px + 13px
+    need 42px, so the block is wedged edge to edge and the total's cap-height sits above the word "Assets".
+    That is most of why it reads as bolted on rather than designed. Turn <b>Axes</b> on to see it.
+  </span></div>
+
+  <div class="cap"><span class="k">Finding 3</span><span class="v">
+    The delta line joins two different facts with a middle dot at one weight and one colour:
+    <b>$82.91 is money, 1.36% is a rate</b>. Nothing tells the eye which is the headline, and the
+    whole string is flooded with <code>statusSuccess</code>.
+  </span></div>
+
+  <div class="cap"><span class="k">Not touched</span><span class="v">
+    The <b>zero-value footer</b> (Receive / Buy GNUS, <code>:322</code>) and the <b>empty-wallet</b>
+    <code>GWEmptyState</code> branch are unchanged by every variant. Cycle <b>Zero</b> to see the header at
+    <code>total == 0</code>, where the delta line is suppressed by <code>if (total > 0)</code> today - a rule
+    every variant keeps.
+  </span></div>
+
+  <div class="stage">
+    <div class="panel" id="panel">
+      <!-- ============ 0 TODAY ============ -->
+      <div class="pane on" data-p="0">
+        <div class="sect">
+          <span class="t">Assets</span>
+          <span class="end">
+            <span class="num" style="font:700 20px/26px var(--font)">$6,090.00</span>
+            <span class="delta-plain up dchg" style="margin-top:1px">+$82.91 · +1.36%</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ============ A VALUE + CHIP ============ -->
+      <div class="pane" data-p="a">
+        <div class="sect">
+          <span class="t">Assets</span>
+          <span class="end" style="gap:4px">
+            <span class="num" style="font:700 26px/30px var(--font)">$6,090<span class="cents">.00</span></span>
+            <span style="display:flex; align-items:center; gap:7px">
+              <span class="delta-plain" style="color:var(--text-secondary)">+$82.91 today</span>
+              <span class="chip up dchip"><span class="ar">&#9650;</span>1.36%</span>
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ============ B EYEBROW STACK ============ -->
+      <div class="pane" data-p="b">
+        <div class="sect" style="min-height:56px">
+          <span class="t">Assets</span>
+          <span class="end" style="gap:2px">
+            <span class="eyebrow">Total value</span>
+            <span class="num" style="font:700 24px/28px var(--font)">$6,090<span class="cents">.00</span></span>
+            <span class="delta-plain up dchg" style="font-weight:600">&#9650; 1.36% &nbsp;<span style="color:var(--text-secondary); font-weight:400">+$82.91</span></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ============ C SPARKLINE ============ -->
+      <div class="pane" data-p="c">
+        <div class="sect" style="min-height:56px">
+          <span class="t">Assets</span>
+          <span class="end" style="flex-direction:row; align-items:center; gap:var(--space-8)">
+            <svg class="spark" viewBox="0 0 72 26" preserveAspectRatio="none" aria-hidden="true">
+              <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--status-success)" stop-opacity=".28"/>
+                <stop offset="100%" stop-color="var(--status-success)" stop-opacity="0"/>
+              </linearGradient></defs>
+              <path class="sp-fill" d="M0,19 L9,17 L18,20 L27,13 L36,15 L45,9 L54,11 L63,6 L72,7 L72,26 L0,26 Z" fill="url(#sg)"/>
+              <path class="sp-line" d="M0,19 L9,17 L18,20 L27,13 L36,15 L45,9 L54,11 L63,6 L72,7"
+                    fill="none" stroke="var(--status-success)" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+            <span style="display:flex; flex-direction:column; align-items:flex-end; gap:3px">
+              <span class="num" style="font:700 24px/28px var(--font)">$6,090<span class="cents">.00</span></span>
+              <span class="chip up dchip"><span class="ar">&#9650;</span>1.36% &middot; +$82.91</span>
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ============ D BALANCE BAND ============ -->
+      <div class="pane" data-p="d">
+        <div class="sect" style="min-height:34px"><span class="t">Assets</span></div>
+        <div class="band">
+          <span style="display:flex; flex-direction:column; gap:3px">
+            <span class="eyebrow">Total value</span>
+            <span class="num" style="font:700 32px/36px var(--font)">$6,090<span class="cents">.00</span></span>
+          </span>
+          <span class="rt">
+            <span class="chip up dchip" style="font-size:13px; padding:4px 10px"><span class="ar">&#9650;</span>1.36%</span>
+            <span class="prov dchg up">+$82.91 in the last 24h</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ============ E QUIET LEDGER ============ -->
+      <div class="pane" data-p="e">
+        <div class="sect">
+          <span class="t">Assets</span>
+          <span class="end" style="gap:2px">
+            <span class="num" style="font:600 22px/26px var(--font)">$6,090<span class="cents">.00</span></span>
+            <span class="delta-plain" style="color:var(--text-secondary)">
+              <span class="up dchg" style="font-weight:700">&#9650;</span> 1.36% &nbsp;+$82.91 &middot; 24h
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ------- shared rows, identical in every variant ------- -->
+      <div class="rows">
+        <div class="row">
+          <span class="ico" style="background:linear-gradient(135deg,#0AD89C,#0AAEE6)">G</span>
+          <span><span class="n">GeniusAI</span><span class="s">$0.85 <span class="mini dn">-5.40%</span></span></span>
+          <span class="rt"><span class="rv">$1,020.00</span><br><span class="rq">1200.0 GNUS</span></span>
+        </div>
+        <div class="row">
+          <span class="ico" style="background:#627EEA">E</span>
+          <span><span class="n">Ethereum</span><span class="s">$3,200.00 <span class="mini up">+3.20%</span></span></span>
+          <span class="rt"><span class="rv">$4,320.00</span><br><span class="rq">1.35 ETH</span></span>
+        </div>
+        <div class="row">
+          <span class="ico" style="background:#2775CA">U</span>
+          <span><span class="n">USD Coin</span><span class="s">$1.00 <span class="mini up">+0.02%</span></span></span>
+          <span class="rt"><span class="rv">$250.00</span><br><span class="rq">250.0 USDC</span></span>
+        </div>
+        <div class="row">
+          <span class="ico" style="background:#26A17B">T</span>
+          <span><span class="n">Tether USD</span><span class="s">$1.00 <span class="mini dn">-0.06%</span></span></span>
+          <span class="rt"><span class="rv">$500.00</span><br><span class="rq">500.0 USDT</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="note" id="note"></div>
+  </div>
+</div>
+
+<script>
+const NOTES = {
+  '0': { h:'0 · Today (reference)', b:`
+    <p>Literal render of <code>coins_screen.dart:258</code>. Nothing here is a proposal - it is the thing
+    to compare against.</p>
+    <ul class="spec">
+      <li>total <b>20px / w700</b>, <code>numericBody</code>, <code>gw.textPrimary</code></li>
+      <li>delta <b><code>labelMd</code></b>, whole string in <code>statusSuccess</code> / <code>statusError</code></li>
+      <li>separator is a literal <code>' · '</code> inside the string</li>
+      <li>column is <code>MainAxisAlignment.center</code> inside a <b>44px</b> title row</li>
+      <li>delta hidden entirely when <code>total == 0</code></li>
+    </ul>` },
+  'a': { h:'A · Value + chip <span class="tag rec">rec</span>', b:`
+    <p>The one change that does the most: <b>the percentage becomes a chip and the dollars become
+    context.</b> A rate is a judgement, an amount is a fact - so the rate gets the filled shape and the
+    money gets quiet grey. Cents drop to 54% so the eye lands on <b>$6,090</b> without losing precision.</p>
+    <ul class="spec">
+      <li>total <b>26px / w700</b>, cents at <code>textPrimary54</code></li>
+      <li>chip: <code>status*-fill</code> at 14%, label at full status colour, <b>pill radius</b></li>
+      <li>the word <b>"today"</b> replaces the mid-dot - the row now says what the window is</li>
+      <li>fits <b>44px</b>: 30 + 4 + 16 = <b>50px</b>, so the section title min-height goes to 52 (<code>space12</code> + 28)</li>
+      <li>zero state: chip and dollars both suppressed, exactly as today</li>
+    </ul>
+    <p><b>Why not a coloured total?</b> The same rule the transaction receipt settled in 031 round 2 -
+    colour rides on the delta, never on the amount. A red total reads as "your money is broken".</p>` },
+  'b': { h:'B · Eyebrow stack', b:`
+    <p>Names the number. <b>TOTAL VALUE</b> in 10px uppercase kills Finding 1 outright - the left card says
+    <i>Current Balance</i>, this one says <i>Total value</i>, and nobody has to guess whether they are the
+    same money.</p>
+    <ul class="spec">
+      <li>eyebrow <b>10px / w700 / .8px tracking</b>, <code>textPrimary54</code></li>
+      <li>total <b>24px / w700</b>; delta 13px with an arrow glyph, dollars in <code>textSecondary</code></li>
+      <li>needs <b>56px</b> of title row (three lines), so it raises the shared <code>GWSectionTitle</code> floor</li>
+    </ul>
+    <p><b>Cost:</b> three stacked lines in the corner of a panel is a lot of vertical for a number that is
+    also 20px away in the left card. Best paired with dropping one of the two.</p>` },
+  'c': { h:'C · Sparkline <span class="tag build">build</span>', b:`
+    <p>The prettiest and the only dishonest one <b>today</b>. A 24h portfolio sparkline needs a portfolio
+    time series and <b>nothing in this app stores one</b> - <code>coins_screen.dart</code> holds a single
+    current price per symbol from <code>CoinGeckoMarketData</code>, with no history.</p>
+    <ul class="spec">
+      <li><b>BUILD:</b> per-holding historical series, folded per timestamp, cached</li>
+      <li>the per-coin sparkline in Markets is a different fetch (<code>CryptoSparkLineChart</code>) and
+      cannot be summed into a portfolio line without the same history</li>
+      <li>drawn here so the cost is visible, not so it gets picked</li>
+    </ul>
+    <p>If it is wanted, it is a <b>data phase</b>, not a paint job. Park it and take A.</p>` },
+  'd': { h:'D · Balance band', b:`
+    <p>Stops fighting the 44px title row: the total <b>leaves the trailing slot</b> and becomes its own band
+    under the title, with a hairline beneath it. This is the only variant with room to say where the number
+    comes from, which is the real fix for Finding 1.</p>
+    <ul class="spec">
+      <li>title row drops to <b>34px</b>, band is <b>~64px</b> including its rule</li>
+      <li>total <b>32px / w700</b> - the biggest number on the dashboard's middle column</li>
+      <li>right column: % chip over a plain-language 24h line</li>
+      <li>costs about <b>+24px</b> of panel height against today, taken from the rows below</li>
+    </ul>
+    <p><b>Pick this if</b> the left card's <i>Current Balance</i> is going away (sketch 016 B2 restructures
+    that card anyway). Two hero balances 12px apart is the thing to avoid, not two type sizes.</p>` },
+  'e': { h:'E · Quiet ledger', b:`
+    <p>The argument that the delta does not need a colour flood at all: only the <b>arrow</b> carries status,
+    the numbers stay in <code>textSecondary</code>. Nothing shouts, the panel reads as a statement.</p>
+    <ul class="spec">
+      <li>total <b>22px / w600</b> - a value, not a hero</li>
+      <li>arrow glyph carries <code>statusSuccess</code> / <code>statusError</code>, text does not</li>
+      <li>passes AA trivially - the only coloured element is a shape, not text</li>
+    </ul>
+    <p><b>Cost:</b> on a red day nothing on this panel is visibly wrong. Whether that is calm or negligent is
+    the actual question this variant asks.</p>` }
+};
+
+const DELTA = {
+  up:   { chip:'up', arrow:'▲', pct:'1.36%',  usd:'+$82.91', usdWord:'+$82.91 today',  band:'+$82.91 in the last 24h', plain:'+$82.91 · +1.36%' },
+  dn:   { chip:'dn', arrow:'▼', pct:'-1.36%', usd:'-$82.91', usdWord:'-$82.91 today',  band:'-$82.91 in the last 24h', plain:'-$82.91 · -1.36%' },
+  zero: { chip:null }
+};
+
+let v = '0', s = 'up';
+
+function paintNote(){
+  const n = NOTES[v];
+  document.getElementById('note').innerHTML = '<h3>' + n.h + '</h3>' + n.b;
+}
+
+function paintDelta(){
+  const d = DELTA[s];
+  const zero = (s === 'zero');
+  // total goes to $0.00 in the zero state; the delta disappears entirely (today's `if (total > 0)`).
+  document.querySelectorAll('.num').forEach(el => {
+    if (el.closest('.rows')) return;
+    // variant 0 is a LITERAL render of what ships: full-weight cents, no de-emphasis.
+    const plain = !!el.closest('[data-p="0"]');
+    if (plain) { el.textContent = zero ? '$0.00' : '$6,090.00'; return; }
+    el.innerHTML = zero ? '$0<span class="cents">.00</span>'
+                        : '$6,090<span class="cents">.00</span>';
+  });
+  document.querySelectorAll('.chip, .delta-plain, .prov, .spark').forEach(el => {
+    el.style.visibility = zero ? 'hidden' : 'visible';
+  });
+  if (zero) return;
+
+  document.querySelectorAll('.chip').forEach(el => {
+    el.classList.remove('up','dn'); el.classList.add(d.chip);
+    const ar = el.querySelector('.ar'); if (ar) ar.textContent = d.arrow;
+    el.childNodes.forEach(nd => { if (nd.nodeType === 3) nd.textContent = ''; });
+    el.insertAdjacentText('beforeend', v === 'c' ? d.pct + ' · ' + d.usd : d.pct);
+  });
+  document.querySelectorAll('.dchg').forEach(el => {
+    el.classList.remove('up','dn'); el.classList.add(d.chip);
+  });
+  // the plain strings that differ per variant
+  const p0 = document.querySelector('[data-p="0"] .delta-plain');
+  if (p0) p0.textContent = d.plain;
+  const pa = document.querySelector('[data-p="a"] .delta-plain');
+  if (pa) pa.textContent = d.usdWord;
+  const pb = document.querySelector('[data-p="b"] .delta-plain');
+  if (pb) pb.innerHTML = d.arrow + ' ' + d.pct + ' &nbsp;<span style="color:var(--text-secondary); font-weight:400">' + d.usd + '</span>';
+  const pd = document.querySelector('[data-p="d"] .prov');
+  if (pd) pd.textContent = d.band;
+  const pe = document.querySelector('[data-p="e"] .delta-plain');
+  if (pe) pe.innerHTML = '<span class="' + d.chip + ' dchg" style="font-weight:700">' + d.arrow + '</span> ' + d.pct + ' &nbsp;' + d.usd + ' · 24h';
+  // sparkline follows the sign
+  const col = d.chip === 'up' ? 'var(--status-success)' : 'var(--status-error)';
+  const line = document.querySelector('.sp-line'), fill = document.querySelector('.sp-fill');
+  if (line) line.setAttribute('stroke', col);
+  if (fill) fill.setAttribute('fill', d.chip === 'up' ? 'url(#sg)' : 'none');
+}
+
+function show(){
+  document.querySelectorAll('[data-p]').forEach(el => el.classList.toggle('on', el.dataset.p === v));
+  document.querySelectorAll('#nav .vt').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  document.querySelectorAll('#nav .st[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === s));
+  paintNote(); paintDelta();
+}
+
+document.querySelectorAll('#nav .vt').forEach(b => b.onclick = () => { v = b.dataset.v; location.hash = v; show(); });
+document.querySelectorAll('#nav .st[data-s]').forEach(b => b.onclick = () => { s = b.dataset.s; show(); });
+document.getElementById('axes').onclick = e => {
+  document.getElementById('panel').classList.toggle('axis');
+  e.target.classList.toggle('on');
+};
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+if (location.hash && NOTES[location.hash.slice(1)]) v = location.hash.slice(1);
+show();
+</script>
+</body>
+</html>

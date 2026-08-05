@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-v="A" data-s="drawer">
+<head>
+<meta charset="utf-8">
+<title>069 · SDK Accounts section</title>
+<style>
+:root{
+  --base:#0B0D12; --elev:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink38:rgba(255,255,255,.38);
+  --sec:#8A8F9D;
+  --border:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --borderControl:rgba(255,255,255,.36);
+  --brand:#14C8FF; --brandStrong:#0AAEE6; --mint:#0AD89C; --bad:#FF4D4D;
+  --hoverFill:rgba(20,200,255,.12); --hoverEdge:rgba(20,200,255,.24);
+  --cta:linear-gradient(90deg,#0AD89C 0%,#0AAEE6 100%);
+  --tint:linear-gradient(90deg,rgba(10,216,156,.18) 0%,rgba(10,174,230,.18) 100%);
+  --rSm:8px; --rMd:12px; --rLg:15px; --r3xl:24px;
+}
+html[data-theme="light"]{
+  --base:#DCE0E6; --elev:#FFFFFF; --menu:#EFF2F6; --sunken:#DCE0E6;
+  --ink:#10131A; --ink70:rgba(16,19,26,.70); --ink38:rgba(16,19,26,.38);
+  --sec:#5A606E; --border:rgba(16,19,26,.12); --borderControl:rgba(16,19,26,.46);
+  --bad:#D92D2D;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font:400 14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 0 80px}
+.bar{position:sticky;top:0;z-index:20;background:var(--elev);border-bottom:1px solid var(--border);
+  padding:10px 20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.grp{display:flex;gap:6px;align-items:center}
+.grp>b{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin-right:4px}
+.bar button{border:1px solid var(--border);background:transparent;color:var(--ink70);
+  font:500 13px/1 inherit;padding:8px 12px;border-radius:var(--rSm);cursor:pointer;font-family:inherit}
+.bar button:hover{background:var(--hoverFill);border-color:var(--hoverEdge);color:var(--ink)}
+.bar button.on{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+main{padding:22px 20px 0;max-width:1500px}
+h2{font-size:20px;font-weight:600;margin:26px 0 6px}
+p.lead{color:var(--ink70);max-width:98ch;margin:0 0 16px;line-height:1.65}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;background:var(--menu);padding:1px 5px;border-radius:4px}
+.cl{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin:0 0 8px}
+.stage{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+
+/* drawer shell */
+.dw{width:420px;background:var(--elev);border:1px solid var(--border);
+  border-radius:var(--r3xl) 0 0 var(--r3xl);display:flex;flex-direction:column;height:600px;overflow:hidden}
+.hd{height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;border-bottom:1px solid rgba(20,200,255,.12)}
+.hd .t{font-size:18px;font-weight:600}
+.hd .x{color:var(--ink70);cursor:pointer}
+.bd{flex:1;overflow:auto;padding:20px}
+.ft{flex:none;border-top:1px solid var(--border);padding:20px;display:flex;gap:8px;flex-wrap:wrap}
+.ft.col{flex-direction:column}
+.desc{font-size:13px;color:var(--sec);margin:0 0 12px;line-height:1.55}
+
+/* buttons = GWButton */
+.btn{height:44px;border-radius:var(--rLg);border:1px solid var(--border);background:transparent;
+  color:var(--ink);font:500 14px/1 inherit;font-family:inherit;display:flex;align-items:center;
+  justify-content:center;gap:8px;cursor:pointer;padding:0 14px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.btn.grad{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+.btn.wide{width:100%}
+.btn.half{flex:1;min-width:0}
+.btn.ghost{border-color:transparent;color:var(--ink70)}
+.btn.bad{background:var(--bad);border-color:transparent;color:#fff;font-weight:600}
+.btn.sm{height:38px;font-size:13px}
+
+/* GWSelectRow */
+.row{display:flex;gap:12px;align-items:center;padding:12px;border-radius:var(--rMd);
+  border:1px solid transparent;margin-bottom:4px;cursor:pointer}
+.row.sel{background:var(--tint);border-color:var(--hoverEdge)}
+.row:hover:not(.sel){background:var(--hoverFill);border-color:var(--hoverEdge)}
+.av{width:36px;height:36px;border-radius:50%;background:#0AAEE6;color:#00121a;flex:none;
+  display:flex;align-items:center;justify-content:center;font:700 11px/1 inherit}
+.rm{flex:1;min-width:0}
+.rm .n{font:600 14px/1.35 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm .s{font-size:13px;color:var(--sec)}
+.dots{color:var(--sec);cursor:pointer;padding:0 2px}
+
+/* menu */
+.menu{width:250px;background:var(--menu);border:1px solid var(--border);border-radius:var(--rLg);
+  padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.5)}
+.mi{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:var(--rSm);
+  font-size:13px;cursor:pointer;color:var(--ink)}
+.mi:hover{background:var(--hoverFill)}
+.mi.danger{color:var(--bad)}
+.mi.off{opacity:.38;cursor:not-allowed}
+.mi .ic{width:18px;flex:none;text-align:center;color:var(--sec)}
+.mi.danger .ic{color:var(--bad)}
+.mrule{height:1px;background:var(--border);margin:5px 6px}
+
+/* dialog = GWDialog */
+.dlg{width:440px;background:var(--elev);border:1px solid var(--border);border-radius:var(--r3xl);padding:24px}
+.dlg h4{margin:0 0 6px;font-size:18px;font-weight:600}
+.dlg .msg{color:var(--sec);font-size:13px;line-height:1.6;margin:0 0 16px}
+.dlg .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.fl{font-size:13px;color:var(--sec);margin:0 0 8px}
+.field{background:var(--sunken);border:1px solid var(--borderControl);border-radius:var(--rSm);
+  padding:12px;font-size:14px;color:var(--ink38);min-height:44px}
+.field.tall{min-height:96px}
+.field.focus{border:1.5px solid transparent;background:
+  linear-gradient(var(--sunken),var(--sunken)) padding-box,var(--cta) border-box}
+.seg{display:flex;gap:3px;background:var(--sunken);border:1px solid var(--border);
+  border-radius:48px;padding:3px;margin:0 0 16px}
+.seg div{flex:1;text-align:center;padding:9px 8px;border-radius:48px;font-size:13px;
+  color:var(--sec);cursor:pointer}
+.seg div.on{background:var(--cta);color:#000B18;font-weight:600}
+.qr{background:#fff;border-radius:var(--rMd);padding:14px;width:220px;height:220px;margin:0 auto;
+  display:flex;align-items:center;justify-content:center;color:#000;font-size:12px}
+.warn{display:flex;gap:10px;background:rgba(255,196,46,.10);border:1px solid rgba(255,196,46,.28);
+  border-radius:var(--rSm);padding:10px 12px;font-size:13px;color:var(--ink70);margin:0 0 14px;line-height:1.5}
+
+table{border-collapse:collapse;width:100%;margin:8px 0 18px;font-size:13px}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--menu);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--sec)}
+td.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.ok-b{color:var(--mint);font-weight:600}
+.bad-b{color:var(--bad);font-weight:600}
+.warn-b{color:#FFC42E;font-weight:600}
+.note{border-left:3px solid var(--brand);background:var(--menu);padding:12px 14px;
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:14px 0;line-height:1.65;max-width:100ch}
+.note.bad{border-left-color:var(--bad)}
+.note.ok{border-left-color:var(--mint)}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="grp"><b>Variant</b>
+    <button data-set="v" data-val="0">0 · Today</button>
+    <button data-set="v" data-val="A" class="on">A · One door ★</button>
+    <button data-set="v" data-val="B">B · Stacked</button>
+    <button data-set="v" data-val="C">C · Menu-first</button>
+  </div>
+  <div class="grp"><b>Screen</b>
+    <button data-set="s" data-val="drawer" class="on">Drawer</button>
+    <button data-set="s" data-val="menu">Row menu</button>
+    <button data-set="s" data-val="add">Add account</button>
+    <button data-set="s" data-val="payout">Payout address</button>
+    <button data-set="s" data-val="del">Delete</button>
+    <button data-set="s" data-val="qr">Mnemonic QR</button>
+  </div>
+  <div class="grp"><button id="theme">Light</button></div>
+</div>
+
+<main>
+  <h2>069 · The SDK Accounts section, end to end</h2>
+  <p class="lead">
+    <b>Design question:</b> the SDK section is one navbar chip, one drawer and <b>five dialogs</b>
+    (<code>sdk_account_manager.dart</code>). Its footer CTAs truncate to <i>"Add with mn…"</i> /
+    <i>"Add with priv…"</i> at the panel's real width, its row actions are split across
+    <b>two different affordances depending on row state</b>, and one of its dialogs never went through
+    <code>GWDialog</code>. What is the shape of the whole section on today's components?
+  </p>
+
+  <div class="stage">
+    <div>
+      <p class="cl" id="slabel">Panel at 420px, 1:1</p>
+      <div id="screen"></div>
+    </div>
+    <div style="flex:1;min-width:400px">
+      <p class="cl">This variant</p>
+      <div class="note" id="vnote"></div>
+      <p class="cl" style="margin-top:16px">Where every element comes from</p>
+      <table id="prov"></table>
+    </div>
+  </div>
+
+  <h2>Findings from the code</h2>
+
+  <div class="note bad">
+    <b>1 · The footer CTAs cannot fit and the code cannot know it.</b> Two <code>Expanded</code>
+    <code>GWButton</code>s in a 420px panel: 420 − 40 padding − 8 gap = <b>186px each</b>, and
+    <i>"Add with private key"</i> plus a 20px leading icon needs roughly 210. Flutter ellipsizes
+    silently, so the drawer ships two buttons that say <i>"Add with mn…"</i> and
+    <i>"Add with priv…"</i>. Nothing in the widget tree is wrong; the layout is simply asking for
+    more room than exists.
+  </div>
+
+  <div class="note bad">
+    <b>2 · "Copy mnemonic" puts a seed phrase on the clipboard with no confirmation and no
+    feedback.</b> <code>onPressed: () =&gt; {Clipboard.setData(ClipboardData(text: mnemonic))}</code>
+    — that is the whole handler. No warning before, no snackbar after. Every other copy in the app
+    confirms (<i>"Address copied to clipboard"</i>), and this is the one value in the app where a
+    silent clipboard write is a security event rather than a convenience.
+  </div>
+
+  <div class="note bad">
+    <b>3 · Row actions are split by state across two affordances.</b> The <b>selected</b> row gets a
+    ⋮ menu with three items (Set payout address, Copy mnemonic, Show QR). Every <b>other</b> row gets
+    a bare red delete <code>IconButton</code> and no menu. So Delete is never in the menu and the
+    menu never appears on a row you can delete — and the code's own guard
+    (<i>"Cannot delete the currently selected SDK account"</i>) can never fire from the UI, because
+    the button it guards is not rendered on that row.
+  </div>
+
+  <div class="note bad">
+    <b>4 · The payout-address result is read one frame too early.</b>
+    <code>context.read&lt;AppBloc&gt;().add(SetSDKPayoutAddress(...))</code> is followed immediately by
+    <code>state.setPayoutAddressResult</code>. A bloc processes events asynchronously, so that read
+    returns the value from the <i>previous</i> attempt — the success/failure snackbar is reporting
+    the last result, not this one. First call after a fresh start reports <code>null</code>.
+  </div>
+
+  <div class="note">
+    <b>5 · The QR dialog is the only one outside <code>GWDialog</code>.</b> It is a raw
+    <code>AlertDialog</code> with a <code>TextButton</code> "Cancel". Its white QR backdrop is
+    deliberate and stays — QR codes need it to scan — but the shell around it should be the
+    component. Also: <b>the payout field has no validation at all</b>, where the app already knows
+    what an address looks like.
+  </div>
+
+  <h2>Variants</h2>
+  <table>
+    <tr><th></th><th>Variant</th><th>Footer</th><th>Where the method is chosen</th><th>Cost</th></tr>
+    <tr><td><b>A</b> ★</td><td><b>One door</b></td><td>one gradient <i>Add account</i>, full width</td>
+      <td>inside the dialog, as a segmented control</td><td>one extra control in the dialog</td></tr>
+    <tr><td><b>B</b></td><td><b>Stacked</b></td><td>two full-width buttons, stacked</td>
+      <td>in the footer, as today</td><td>two equal-weight CTAs, 88px of footer</td></tr>
+    <tr><td><b>C</b></td><td><b>Menu-first</b></td><td>one gradient <i>Add account</i>, full width</td>
+      <td>an anchored menu before the dialog</td><td>an extra click on every add</td></tr>
+  </table>
+
+  <div class="note ok">
+    <b>All three unify the row menu, and that is not a variant choice — it is finding 3.</b> Every
+    row gets the same ⋮ with the same four items; the ones that do not apply are <b>disabled, not
+    absent</b>, so the menu's shape does not change under you and Delete stops being a separate red
+    button that only exists on some rows. Delete stays destructive-coloured and is disabled on the
+    active account, which is where the code's existing guard finally becomes visible.
+  </div>
+</main>
+
+<script>
+const ROWS = [
+  {ini:'SDK', n:'0x1d9b·4F2a … 88c1·4a87', s:'Active processing account', sel:true},
+  {ini:'SDK', n:'0x2546·BcD3 … 1c9D·2A11', s:''},
+  {ini:'SDK', n:'0xdD87·0fA1 … 74Ba·9C17', s:''}
+];
+const DOTS='<span class="dots">&#8942;</span>';
+const CHECK='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0AAEE6"'
+  +' stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+function rows(v){
+  return ROWS.map(function(r){
+    var right = (v==='0')
+      ? (r.sel ? CHECK+DOTS : '<span style="color:#FF4D4D">&#128465;</span>')
+      : (r.sel ? CHECK+DOTS : DOTS);
+    return '<div class="row'+(r.sel?' sel':'')+'"><div class="av">'+r.ini+'</div>'
+      +'<div class="rm"><div class="n">'+r.n+'</div>'
+      +(r.s?'<div class="s">'+r.s+'</div>':'')+'</div>'+right+'</div>';
+  }).join('');
+}
+
+function footer(v){
+  if (v==='0') return '<div class="ft">'
+    + '<button class="btn half">&#65291; Add with mn…</button>'
+    + '<button class="btn half">&#128273; Add with priv…</button></div>';
+  if (v==='B') return '<div class="ft col">'
+    + '<button class="btn wide">&#65291; Add with mnemonic</button>'
+    + '<button class="btn wide">&#128273; Add with private key</button></div>';
+  return '<div class="ft"><button class="btn grad wide">&#65291; Add account</button></div>';
+}
+
+function drawer(v){
+  return '<div class="dw"><div class="hd"><span class="t">SDK Accounts</span>'
+    +'<span class="x">&#10005;</span></div><div class="bd">'
+    +'<div class="desc">Select the account the SDK uses for processing:</div>'
+    + rows(v) + '</div>' + footer(v) + '</div>';
+}
+
+function menu(v){
+  if (v==='0') return '<div style="display:flex;gap:24px;align-items:flex-start">'
+    + '<div><p class="cl">Selected row</p><div class="menu">'
+    + '<div class="mi"><span class="ic">&#9998;</span>Set payout address</div>'
+    + '<div class="mi"><span class="ic">&#35;</span>Copy mnemonic</div>'
+    + '<div class="mi"><span class="ic">&#9635;</span>Show QR</div></div></div>'
+    + '<div><p class="cl">Any other row</p><div class="menu" style="width:200px">'
+    + '<div class="mi danger"><span class="ic">&#128465;</span>a bare red IconButton'
+    + '<br>— no menu at all</div></div></div></div>';
+  return '<div style="display:flex;gap:24px;align-items:flex-start">'
+    + '<div><p class="cl">Active account</p><div class="menu">'
+    + '<div class="mi"><span class="ic">&#9998;</span>Set payout address</div>'
+    + '<div class="mi"><span class="ic">&#35;</span>Copy mnemonic</div>'
+    + '<div class="mi"><span class="ic">&#9635;</span>Show recovery QR</div>'
+    + '<div class="mrule"></div>'
+    + '<div class="mi danger off"><span class="ic">&#128465;</span>Delete account</div></div>'
+    + '<p class="desc" style="width:250px;margin-top:8px">Delete is disabled, not hidden — the'
+    + ' code already refuses to delete the active account, and this is where that rule becomes'
+    + ' visible.</p></div>'
+    + '<div><p class="cl">Any other account</p><div class="menu">'
+    + '<div class="mi off"><span class="ic">&#9998;</span>Set payout address</div>'
+    + '<div class="mi off"><span class="ic">&#35;</span>Copy mnemonic</div>'
+    + '<div class="mi off"><span class="ic">&#9635;</span>Show recovery QR</div>'
+    + '<div class="mrule"></div>'
+    + '<div class="mi danger"><span class="ic">&#128465;</span>Delete account</div></div>'
+    + '<p class="desc" style="width:250px;margin-top:8px">Same shape, same order. Only what is'
+    + ' enabled changes.</p></div></div>';
+}
+
+function addDlg(v){
+  if (v==='0') return '<div class="dlg"><h4>Add Account with Mnemonic</h4>'
+    + '<div class="field tall focus">Enter your 12 or 24 word mnemonic phrase</div>'
+    + '<div class="acts"><button class="btn ghost">Cancel</button>'
+    + '<button class="btn grad">Add Account</button></div></div>';
+  if (v==='C') return '<div style="display:flex;gap:24px;align-items:flex-start">'
+    + '<div><p class="cl">Step 1 — the footer menu</p><div class="menu">'
+    + '<div class="mi"><span class="ic">&#65291;</span>With a recovery phrase</div>'
+    + '<div class="mi"><span class="ic">&#128273;</span>With a private key</div></div></div>'
+    + '<div><p class="cl">Step 2</p><div class="dlg" style="width:400px"><h4>Add account</h4>'
+    + '<p class="msg">Paste the 12 or 24 word recovery phrase for the account you want the SDK to use.</p>'
+    + '<div class="warn"><span>&#9888;</span><span>Anyone with this phrase controls the account. Only paste one you own.</span></div>'
+    + '<div class="fl">Recovery phrase</div><div class="field tall focus">word word word …</div>'
+    + '<div class="acts"><button class="btn ghost">Cancel</button>'
+    + '<button class="btn grad">Add account</button></div></div></div></div>';
+  return '<div class="dlg"><h4>Add account</h4>'
+    + '<p class="msg">Choose how the SDK should import this account.</p>'
+    + '<div class="seg"><div class="on">Recovery phrase</div><div>Private key</div></div>'
+    + '<div class="warn"><span>&#9888;</span><span>Anyone with this phrase controls the account. Only paste one you own.</span></div>'
+    + '<div class="fl">Recovery phrase</div>'
+    + '<div class="field tall focus">Paste 12 or 24 words, separated by spaces</div>'
+    + '<div class="acts"><button class="btn ghost">Cancel</button>'
+    + '<button class="btn grad">Add account</button></div></div>';
+}
+
+function payout(v){
+  if (v==='0') return '<div class="dlg"><h4>Set Payout Address</h4>'
+    + '<div class="field">Enter the payout address (hex)</div>'
+    + '<div class="acts"><button class="btn ghost">Cancel</button>'
+    + '<button class="btn grad">Set Address</button></div></div>';
+  return '<div class="dlg"><h4>Set payout address</h4>'
+    + '<p class="msg">Processing rewards for this account are paid here.</p>'
+    + '<div class="fl">Payout address</div>'
+    + '<div class="field focus" style="color:#FF4D4D">0x12ab…</div>'
+    + '<p class="msg" style="color:#FF4D4D;margin:8px 0 0">That is not a complete address — 42 characters starting with 0x.</p>'
+    + '<div class="acts"><button class="btn ghost">Cancel</button>'
+    + '<button class="btn grad" style="opacity:.38">Set address</button></div></div>';
+}
+
+function del(v){
+  var addr = '0x2546·BcD3 … 1c9D·2A11';
+  if (v==='0') return '<div class="dlg"><h4>Delete SDK account</h4>'
+    + '<p class="msg">Are you sure you want to delete the account 0x2546...2A11?<br>'
+    + 'This action cannot be undone.</p>'
+    + '<div class="acts"><button class="btn ghost">Cancel</button>'
+    + '<button class="btn bad">Delete</button></div></div>';
+  return '<div class="dlg"><h4>Delete SDK account</h4>'
+    + '<p class="msg">The SDK will stop being able to sign with <b style="font-family:JetBrains Mono,monospace">'
+    + addr + '</b>.</p>'
+    + '<div class="warn"><span>&#9888;</span><span>If you have no copy of its recovery phrase, this account cannot be restored.</span></div>'
+    + '<div class="acts"><button class="btn ghost">Cancel</button>'
+    + '<button class="btn bad">Delete account</button></div></div>';
+}
+
+function qr(v){
+  if (v==='0') return '<div class="dlg" style="border-radius:4px"><h4 style="font-weight:500">&nbsp;</h4>'
+    + '<div class="qr">QR</div>'
+    + '<div class="acts"><button class="btn ghost">Cancel</button></div>'
+    + '<p class="msg" style="margin-top:12px">A raw <code>AlertDialog</code> — no title, a stock'
+    + ' <code>TextButton</code>, and the only dialog in the section outside <code>GWDialog</code>.</p></div>';
+  return '<div class="dlg"><h4>Recovery phrase QR</h4>'
+    + '<div class="warn"><span>&#9888;</span><span>Anyone who photographs this code gets full control of the account. Do not show it on a shared screen.</span></div>'
+    + '<div class="qr">QR</div>'
+    + '<div class="acts"><button class="btn ghost">Done</button></div></div>';
+}
+
+const SCREENS={drawer:drawer,menu:menu,add:addDlg,payout:payout,del:del,qr:qr};
+const LABELS={drawer:'Panel at 420px, 1:1',menu:'Row overflow menu',add:'Add account',
+  payout:'Set payout address',del:'Delete confirmation',qr:'Recovery phrase QR'};
+
+const NOTES={
+  '0':'What ships. The two footer CTAs are ellipsized by the layout, the row menu changes shape'
+     +' depending on which row you open it on, the QR dialog never went through <code>GWDialog</code>,'
+     +' and the payout field accepts anything.',
+  'A':'<b>One CTA, and the method choice moves inside the dialog.</b> The footer stops competing with'
+     +' itself and the label finally fits at full size. The segmented control is the app&rsquo;s existing'
+     +' control-track recipe, so the dialog gains a pattern rather than a widget. Both add paths now'
+     +' share one dialog, one warning and one validation.',
+  'B':'<b>Keep both doors, stack them.</b> The honest minimum: nothing truncates and the two paths'
+     +' stay one click away. It costs 88px of footer and leaves two equal-weight CTAs above a'
+     +' <code>borderSubtle</code> rule, which is the shape the receipt and Swap Settings both avoid.',
+  'C':'<b>One CTA that opens a menu, then the dialog.</b> Same footer as A and no extra control in'
+     +' the dialog — but every add is now two clicks before you can type, and a two-item menu is a'
+     +' heavy way to ask a binary question.'
+};
+
+const PROV={
+  '0':[['drawer shell','ResponsiveDrawer','bottom_drawer/responsive_drawer.dart'],
+      ['row','GWSelectRow','cards/gw_select_row.dart <span class="ok-b">built today</span>'],
+      ['footer CTAs','<span class="bad-b">2 × GWButton, both ellipsized</span>','sdk_account_manager.dart:141'],
+      ['row menu','MenuAnchor <span class="bad-b">only on the selected row</span>','sdk_account_manager.dart:216'],
+      ['delete','<span class="bad-b">bare red IconButton on other rows</span>','sdk_account_manager.dart:314'],
+      ['4 dialogs','GWDialog','overlays/gw_dialog.dart'],
+      ['QR dialog','<span class="bad-b">raw AlertDialog</span>','sdk_account_manager.dart:286']],
+  'A':[['drawer shell','ResponsiveDrawer','bottom_drawer/responsive_drawer.dart'],
+      ['row','GWSelectRow','cards/gw_select_row.dart'],
+      ['footer CTA','GWButton(gradient, lg, expand)','buttons/gw_button.dart'],
+      ['row menu','MenuAnchor, one shape, items state-gated','sdk_account_manager.dart'],
+      ['method switch','the control-track segmented recipe','codebase/CONVENTIONS.md'],
+      ['field','GWTextField + GWFocusRing / borderControl','inputs/gw_text_field.dart'],
+      ['every dialog','GWDialog','overlays/gw_dialog.dart'],
+      ['warnings','<b>new</b> — a warn-tinted note row','<span class="warn-b">justify or drop</span>']],
+  'B':[['drawer shell','ResponsiveDrawer','bottom_drawer/responsive_drawer.dart'],
+      ['footer CTAs','2 × GWButton(secondary, expand), stacked','buttons/gw_button.dart'],
+      ['row menu','MenuAnchor, one shape, items state-gated','sdk_account_manager.dart'],
+      ['every dialog','GWDialog','overlays/gw_dialog.dart']],
+  'C':[['drawer shell','ResponsiveDrawer','bottom_drawer/responsive_drawer.dart'],
+      ['footer CTA','GWButton(gradient, lg, expand)','buttons/gw_button.dart'],
+      ['method menu','MenuAnchor','sdk_account_manager.dart'],
+      ['row menu','MenuAnchor, one shape, items state-gated','sdk_account_manager.dart'],
+      ['every dialog','GWDialog','overlays/gw_dialog.dart']]
+};
+
+function render(){
+  const v=document.documentElement.dataset.v, s=document.documentElement.dataset.s;
+  document.getElementById('screen').innerHTML = SCREENS[s](v);
+  document.getElementById('slabel').textContent = LABELS[s];
+  document.getElementById('vnote').innerHTML = NOTES[v];
+  document.getElementById('prov').innerHTML =
+    '<tr><th>Element</th><th>Component</th><th>File</th></tr>' +
+    PROV[v].map(function(r){return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="mono">'+r[2]+'</td></tr>';}).join('');
+}
+document.querySelectorAll('.bar button[data-set]').forEach(function(b){
+  b.addEventListener('click',function(){
+    const set=b.dataset.set;
+    document.querySelectorAll('.bar button[data-set="'+set+'"]').forEach(function(o){o.classList.toggle('on',o===b);});
+    document.documentElement.dataset[set]=b.dataset.val;
+    render();
+  });
+});
+document.getElementById('theme').addEventListener('click',function(){
+  const el=document.documentElement, light=el.dataset.theme==='light';
+  el.dataset.theme=light?'dark':'light'; this.textContent=light?'Light':'Dark';
+});
+render();
+</script>
+</body>
+</html>

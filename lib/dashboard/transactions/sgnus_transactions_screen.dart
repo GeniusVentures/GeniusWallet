@@ -6,7 +6,15 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 
 class SgnusTransactionsScreen extends StatefulWidget {
-  const SgnusTransactionsScreen({super.key});
+  /// Forwarded verbatim to [TransactionsSlimView.page]: true selects the page's
+  /// two-card layout, false the dashboard panel.
+  ///
+  /// Defaults to false so the dashboard's `const SgnusTransactionsScreen()`
+  /// (`dashboard_screen.dart:365`) stays byte-unchanged. Only the
+  /// `/transactions` route opts in.
+  final bool page;
+
+  const SgnusTransactionsScreen({super.key, this.page = false});
 
   @override
   State<SgnusTransactionsScreen> createState() =>
@@ -44,12 +52,18 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
         final allTx = snapshot.data ?? [];
         final sgnusTx = allTx.where((tx) => tx.isSGNUS == true).toList();
 
-        return Center(
-          child: TransactionsSlimView(
-            transactions: sgnusTx,
-            isShowOnlySGNUSTransactions: true,
-          ),
+        final view = TransactionsSlimView(
+          transactions: sgnusTx,
+          isShowOnlySGNUSTransactions: true,
+          page: widget.page,
         );
+
+        // The page frame already centres, and its branch sits in an `Expanded`
+        // inside a stretched Column — a second `Center` there would shrink-wrap
+        // the two cards to their intrinsic width and undo that `Expanded`.
+        // Written as a conditional rather than deleted outright so the
+        // dashboard's SGNUS panel keeps the exact tree it has today.
+        return widget.page ? view : Center(child: view);
       },
     );
   }

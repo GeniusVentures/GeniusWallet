@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>031 · News — timestamp + refresh</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-8) var(--space-10); }
+  .wrap { max-width:1200px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 19px/26px var(--font); letter-spacing:-.3px; margin:var(--space-12) 0 var(--space-4); }
+  h3.sub { font:600 13px/18px var(--font); color:var(--text-secondary); margin:var(--space-8) 0 var(--space-4); text-transform:uppercase; letter-spacing:.6px; }
+  .verdict { font:400 13px/20px var(--font); color:var(--text-secondary); margin:0 0 var(--space-6); max-width:920px; } .verdict b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; }
+  .tag.rec{ background:var(--brand-fill); color:var(--brand-primary-strong); } [data-theme="dark"] .tag.rec{ color:var(--brand-secondary); }
+  .tag.n{ background:var(--surface-menu); color:var(--text-secondary); }
+  svg{ width:15px; height:15px; }
+
+  /* option rows */
+  .opts { display:flex; flex-direction:column; gap:14px; }
+  .opt { display:flex; align-items:center; gap:16px; padding:14px 16px; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:12px; }
+  .opt .key { width:120px; flex:none; font:600 12px/16px var(--font); }
+  .opt .key .lab { display:block; color:var(--text-primary); } .opt .key .id { color:var(--text-secondary); font:400 11px/15px var(--font-mono); }
+  .opt .stage { flex:1; min-width:0; }
+  .opt .note { width:300px; flex:none; font:400 12px/17px var(--font); color:var(--text-secondary); }
+
+  /* --- news header mock (for refresh) --- */
+  .hdr { display:flex; align-items:center; gap:14px; }
+  .hdr .title { font:600 24px/30px var(--font); letter-spacing:-.4px; }
+  .hdr .spacer { flex:1; }
+  .search { display:flex; align-items:center; gap:8px; height:38px; padding:0 12px; border:1px solid var(--border-subtle); border-radius:10px; background:var(--surface-elevated); color:var(--text-secondary); font:400 13px/18px var(--font); min-width:180px; }
+  /* refresh variants */
+  .rf-btn { display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border:1px solid var(--border-subtle); border-radius:9px; background:var(--surface-menu); color:var(--text-primary); font:600 13px/18px var(--font); cursor:pointer; }
+  .rf-btn svg{ color:var(--text-secondary); }
+  .rf-icon { width:38px; height:38px; border-radius:9px; display:grid; place-items:center; border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-secondary); }
+  .rf-stamp { display:inline-flex; align-items:center; gap:9px; color:var(--text-secondary); font:400 12px/16px var(--font); }
+  .rf-stamp .go { width:32px; height:32px; border-radius:8px; display:grid; place-items:center; border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-primary); }
+  .rf-ghost { display:inline-flex; align-items:center; gap:7px; color:var(--brand-primary-strong); font:600 13px/18px var(--font); cursor:pointer; } [data-theme="dark"] .rf-ghost{ color:var(--brand-secondary); }
+
+  /* --- card meta (for time) --- */
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:12px; overflow:hidden; width:320px; }
+  .card .photo { height:150px; background:linear-gradient(135deg,#1a2740,#0f1b2e); position:relative; }
+  .card .photo::after{ content:'📰'; position:absolute; inset:0; display:grid; place-items:center; font-size:34px; opacity:.5; }
+  .card .body { padding:12px 14px 14px; }
+  .card .t { font:600 15px/20px var(--font); color:var(--text-primary); }
+  .card .meta { margin-top:8px; }
+  /* time variants */
+  .tm-plain { font:400 12px/16px var(--font); color:var(--text-secondary); }
+  .tm-icon { display:inline-flex; align-items:center; gap:5px; font:400 12px/16px var(--font); color:var(--text-secondary); } .tm-icon svg{ width:13px; height:13px; }
+  .tm-chip { display:inline-flex; align-items:center; gap:5px; font:600 11px/14px var(--font); color:var(--text-secondary); background:var(--surface-menu); border-radius:20px; padding:3px 9px; } .tm-chip svg{ width:12px; height:12px; }
+  .tm-src { display:inline-flex; align-items:center; gap:6px; font:400 12px/16px var(--font); color:var(--text-secondary); } .tm-src .dot{ width:3px;height:3px;border-radius:50%;background:var(--text-secondary);opacity:.7; } .tm-src .src{ font-weight:600; color:var(--text-primary); }
+  .tm-fresh { color:var(--status-success); } .tm-icon.tm-fresh svg{ color:var(--status-success); }
+  .tm-green, .tm-green svg { color:var(--status-success); }
+  .tm-grad { display:inline-flex; align-items:center; gap:5px; font:600 12px/16px var(--font); }
+  .tm-grad svg{ width:13px; height:13px; color:#0AD89C; }
+  .tm-grad .g { background:linear-gradient(90deg,#0AD89C,#0AAEE6); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  [data-theme="light"] .tm-grad svg{ color:var(--brand-primary-strong); }
+  [data-theme="light"] .tm-grad .g { background:linear-gradient(90deg,#07875F,#0A6885); -webkit-background-clip:text; background-clip:text; color:transparent; }
+
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin:var(--space-4) 0 var(--space-8); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:8px 12px; border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:12px; border-bottom:1px solid var(--border-subtle); vertical-align:top; } table.t td:first-child { font-weight:600; white-space:nowrap; }
+  table.t tr.w td { background:var(--brand-fill); } .mono { font-family:var(--font-mono); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="toolbar"><h1>031 · News — timestamp &amp; refresh</h1>
+  <div class="seg" id="tsel"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button></div></div>
+
+<p class="verdict">Two News questions, real components at 1:1. <b>Timestamp</b> = how <code>relativeTime</code>
+  ("3 hours ago", <span class="mono">news_article.dart</span>) reads on a card. <b>Refresh</b> = the header
+  control (today a ghost <code>GWButton</code>). Toggle Dark/Light top-right.</p>
+
+<!-- ============================ TIMESTAMP ============================ -->
+<h2 class="sec">1 · Timestamp — how “3 hours ago” reads</h2>
+<div class="verdict">Shown on the real card meta line. The value comes from <code>relativeTime</code>; only the
+  <b>presentation</b> changes. A recency feed lives or dies on scannability — the eye should catch “how old” without reading a sentence.</div>
+<div class="opts" id="timeOpts"></div>
+
+<h3 class="sub">T2 chosen — now the colour: green vs gradient</h3>
+<div class="verdict"><b>The tradeoff to decide:</b> green currently <i>means</i> “fresh (&lt;1h)”. If EVERY timestamp is
+  green/gradient, that signal is gone — colour no longer tells age. Two ways to keep both a lively brand accent AND the
+  meaning are C3/C4 below. Gradient text is a <code>ShaderMask</code> over the brand green→blue (mint on dark).</div>
+<div class="opts" id="colorOpts"></div>
+
+<!-- ============================ REFRESH ============================ -->
+<h2 class="sec">2 · Refresh control</h2>
+<div class="verdict">In the header row (title · search · refresh). Today it is a labelled ghost button. A news feed
+  refresh is stronger when it also says <b>when it last updated</b> — otherwise the button is a guess.</div>
+<div class="opts" id="rfOpts"></div>
+
+<!-- ============================ RECS ============================ -->
+<h2 class="sec">Recommendation</h2>
+<table class="t">
+  <tr><th>Question</th><th>Pick</th><th>Why</th></tr>
+  <tr class="w"><td>Timestamp</td><td>T2 · clock + abbreviated</td><td>Most scannable: a 13px clock glyph + “3h ago” reads as recency at a glance, half the width of a sentence. Fresh (&lt;1h) tints success-green.</td></tr>
+  <tr class="w"><td>Refresh</td><td>R3 · “Updated 3m ago” + icon</td><td>Says what a refresh button can’t: how stale the feed is. The icon still refreshes; the stamp answers “do I even need to?”.</td></tr>
+</table>
+<p class="verdict"><b>Recommendations: T2 + R3.</b> If you want the lightest header, R2 (icon-only, tooltip) pairs well with
+  T2. Say which timestamp (T1–T4) and which refresh (R1–R4), and whether “Next up” should become <b>Top stories / Latest / More headlines</b> — and I’ll take it into a phase.</p>
+
+</div>
+<script>
+const clock='<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const refresh='<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5"/></svg>';
+const searchIco='<svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>';
+
+function card(metaHtml, title='Bitcoin holds $68k as ETF inflows resume'){
+  return `<div class="card"><div class="photo"></div><div class="body"><div class="t">${title}</div><div class="meta">${metaHtml}</div></div></div>`;
+}
+const TIME=[
+  ['T1','plain (today)', `<span class="tm-plain">3 hours ago</span>`, 'Current. A full sentence — reads fine but scans slowly and eats width in the Next-up rows.'],
+  ['T2','clock + abbrev', `<span class="tm-icon">${clock}3h ago</span> &nbsp; <span class="tm-icon tm-fresh">${clock}12m ago</span>`, 'RECOMMENDED. Glyph = "this is a time", abbreviated = scannable & narrow. Fresh (<1h) tints green.'],
+  ['T3','pill', `<span class="tm-chip">${clock}3h ago</span>`, 'A chip. Reads as a tag; a touch heavier, competes with the type badge if one is ever added.'],
+  ['T4','source · time', `<span class="tm-src"><span class="src">CoinTelegraph</span><span class="dot"></span>3h ago</span>`, 'Adds provenance. Good on the hero/grid where there is room; too wide for the compact Next-up rows.'],
+];
+document.getElementById('timeOpts').innerHTML = TIME.map(o=>`
+  <div class="opt">
+    <div class="key"><span class="lab">${o[1]}</span><span class="id">${o[0]}</span></div>
+    <div class="stage">${card(o[2])}</div>
+    <div class="note">${o[3]}</div>
+  </div>`).join('');
+
+function header(rf){
+  return `<div class="hdr"><span class="title">Crypto News</span><span class="spacer"></span>
+    <span class="search">${searchIco} Search headlines</span>${rf}</div>`;
+}
+const REFRESH=[
+  ['R1','ghost button (today)', `<span class="rf-btn" style="background:transparent;border-color:transparent;color:var(--brand-primary-strong)">${refresh}Refresh</span>`, 'Current. Fine, but a bare "Refresh" gives no reason to press it — you can’t tell if the feed is stale.'],
+  ['R2','icon-only', `<span class="rf-icon">${refresh}</span>`, 'Lightest. Tooltip "Refresh". Frees the header; pairs well with a timestamp shown per-card. No staleness cue though.'],
+  ['R3','stamp + icon', `<span class="rf-stamp">Updated 3m ago<span class="go">${refresh}</span></span>`, 'RECOMMENDED. Answers "is it stale?" before you press. The icon refreshes; the text sets expectation.'],
+  ['R4','solid button', `<span class="rf-btn">${refresh}Refresh</span>`, 'A filled affordance. Clearer as a button than R1, but heavier than the page needs for a secondary action.'],
+];
+document.getElementById('rfOpts').innerHTML = REFRESH.map(o=>`
+  <div class="opt">
+    <div class="key"><span class="lab">${o[1]}</span><span class="id">${o[0]}</span></div>
+    <div class="stage">${header(o[2])}</div>
+    <div class="note">${o[3]}</div>
+  </div>`).join('');
+
+const COLOR=[
+  ['C1','solid green (all)', `<span class="tm-icon tm-green">${clock}3h ago</span>`, 'Every timestamp brand green. Lively and dead simple — but green stops meaning "fresh"; a 3-day-old story is just as green.'],
+  ['C2','gradient (all)', `<span class="tm-grad">${clock}<span class="g">3h ago</span></span>`, 'Every timestamp in the brand green→blue gradient (ShaderMask). Most on-brand pop; same tradeoff — colour no longer signals age.'],
+  ['C3','gradient when fresh', `<span class="tm-grad">${clock}<span class="g">12m ago</span></span> &nbsp;&nbsp; <span class="tm-plain">3h ago</span>`, 'RECOMMENDED. Only <1h gets the gradient pop; older stays grey. Keeps the accent MEANINGFUL — colour = "just in".'],
+];
+document.getElementById('colorOpts').innerHTML = COLOR.map(o=>`
+  <div class="opt">
+    <div class="key"><span class="lab">${o[1]}</span><span class="id">${o[0]}</span></div>
+    <div class="stage">${card(o[2])}</div>
+    <div class="note">${o[3]}</div>
+  </div>`).join('');
+
+document.getElementById('tsel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#tsel button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.documentElement.dataset.theme=b.dataset.t;});
+</script>
+</body>
+</html>

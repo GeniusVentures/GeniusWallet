@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>027 · Gap between the navbar and the page title</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-8) var(--space-10); }
+  .wrap { max-width:1360px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 19px/26px var(--font); letter-spacing:-.3px; margin:var(--space-12) 0 var(--space-4); display:flex; gap:var(--space-4); align-items:center; flex-wrap:wrap; }
+  .verdict { font:400 13px/20px var(--font); color:var(--text-secondary); margin:0 0 var(--space-6); max-width:1120px; } .verdict b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; }
+  .tag.ex{ background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.rec{ background:var(--brand-fill); color:var(--brand-primary-strong); } [data-theme="dark"] .tag.rec{ color:var(--brand-secondary); }
+  .tag.bad{ background:rgba(255,77,77,.14); color:var(--status-error); }
+
+  /* legend */
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend b { color:var(--text-primary); }
+  .legend .tok { font-family:var(--font-mono); color:var(--brand-primary-strong); } [data-theme="dark"] .legend .tok { color:#2BF5B4; }
+
+  /* the real-size window slice */
+  .demo { border:1px solid var(--border-strong); border-radius:12px; overflow:hidden; box-shadow:var(--shadow-card); margin-bottom:var(--space-4); position:relative; }
+  .topbar { display:flex; align-items:center; height:68px; padding:0 24px; background:var(--surface-elevated); border-bottom:1px solid var(--border-subtle); gap:22px; }
+  .logo { width:28px; height:28px; border-radius:7px; background:linear-gradient(135deg,#0AD89C,#0AAEE6); flex:none; }
+  .nav { display:flex; gap:20px; align-items:center; }
+  .nav a { font:500 13px/18px var(--font); color:var(--text-secondary); display:flex; align-items:center; gap:6px; position:relative; padding:6px 2px; }
+  .nav a.on { color:var(--text-primary); font-weight:600; } .nav a.on::after { content:''; position:absolute; left:0; right:0; bottom:-20px; height:2px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .nav svg { width:15px; height:15px; }
+  .cluster { margin-left:auto; display:flex; gap:10px; align-items:center; }
+  .chip { font:500 12px/16px var(--font); color:var(--text-primary); padding:8px 12px; border:1px solid var(--border-subtle); border-radius:10px; background:var(--surface-menu); }
+  .buy { color:#000B18; background:linear-gradient(135deg,#0AD89C,#0AAEE6); border:0; font-weight:700; }
+
+  /* the body area where the gap lives */
+  .stage { position:relative; padding:0 40px 24px; background:var(--surface-base); }
+  .gapviz { position:relative; }
+  /* the coloured gap band that we are tuning */
+  .gapband { background:repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(43,245,180,.09) 5px, rgba(43,245,180,.09) 10px); border-left:2px solid rgba(43,245,180,.5); border-right:2px solid rgba(43,245,180,.5); }
+  [data-theme="light"] .gapband { background:repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(10,174,230,.10) 5px, rgba(10,174,230,.10) 10px); border-color:rgba(10,174,230,.5); }
+  .gapmark { position:absolute; right:40px; top:0; display:flex; align-items:center; gap:8px; height:100%; }
+  .gapmark .v { font:700 13px/16px var(--font-mono); color:#2BF5B4; } [data-theme="light"] .gapmark .v { color:var(--brand-primary-strong); }
+  .gapmark .t { font:400 11px/15px var(--font-mono); color:var(--text-secondary); }
+
+  .pagehdr { display:flex; align-items:flex-end; padding-bottom:16px; }
+  .h-title { font:600 28px/36px var(--font); letter-spacing:-.5px; }
+  .actions { margin-left:auto; display:flex; gap:10px; }
+  .pill { display:inline-flex; align-items:center; gap:7px; font:600 13px/18px var(--font); color:var(--text-primary); padding:9px 15px; border:1px solid var(--border-subtle); border-radius:22px; background:var(--surface-menu); }
+  .pill svg { width:15px; height:15px; color:var(--text-secondary); }
+  .iconbtn { width:40px; height:40px; border-radius:10px; display:grid; place-items:center; color:var(--text-secondary); border:1px solid var(--border-subtle); background:var(--surface-menu); } .iconbtn svg { width:17px; height:17px; }
+
+  .cols { display:flex; gap:20px; align-items:flex-start; }
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:14px; box-shadow:var(--shadow-card); padding:14px; }
+  .railcard { width:220px; flex:none; } .listcard { flex:1; min-width:0; }
+  .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:8px 12px 6px; }
+  .ri { display:flex; align-items:center; gap:8px; height:36px; padding:0 12px; border-radius:10px; } .ri svg { width:14px; height:14px; color:var(--text-secondary); } .ri .l { font:500 13px/18px var(--font); flex:1; } .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .row { display:flex; align-items:center; gap:16px; padding:11px 14px; }
+  .row .time { width:46px; flex:none; font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .row .coin { width:38px; height:38px; border-radius:50%; flex:none; display:grid; place-items:center; font:700 10px/1 var(--font); color:#fff; }
+  .row .main { flex:1; } .row .t { font:600 15px/20px var(--font); } .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:2px; }
+  .row .amt { text-align:right; } .row .amt .a { font:600 16px/21px var(--font-mono); } .row .amt .f { font:400 12px/16px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  .pos { color:var(--status-success); } .divider { height:1px; background:var(--border-subtle); } .daylabel { font:600 13px/18px var(--font); letter-spacing:.7px; color:var(--text-secondary); padding:8px 14px 4px; }
+
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin:var(--space-4) 0 var(--space-8); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:8px 12px; border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:12px; border-bottom:1px solid var(--border-subtle); vertical-align:top; } table.t td:first-child { font-weight:600; white-space:nowrap; }
+  table.t tr.w td { background:var(--brand-fill); } .mono { font-family:var(--font-mono); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="toolbar"><h1>027 · Gap between the navbar and the page title</h1>
+  <div class="seg" id="tsel"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button></div></div>
+
+<p class="verdict"><b>The title stays.</b> This is only the vertical gap between the 68px navbar and the title line —
+  the hatched green band in each slice, measured on the left. Rendered at real size, real navbar, real header.
+  <b>Every value is a 4-pt token</b>, no off-grid numbers.</p>
+
+<div class="legend">
+  <div><b>Grounded:</b> the navbar is <code>appBarHeight = 68</code> (<span class="tok">responsive_overlay.dart:184</span>). The gap today is <code>vertical: 8</code> (<span class="tok">transactions_screen.dart:66</span>).</div>
+  <div><b>Shared:</b> Markets (<span class="tok">markets_screen.dart:68</span>) and News (<span class="tok">crypto_news_screen.dart:44</span>) use the SAME 8 — so this is an app-alignment decision, not a Transactions-only one.</div>
+</div>
+
+<h2 class="sec">G0 · 8px <code>space4</code> <span class="tag bad">today</span></h2>
+<div class="verdict">The title is glued to the navbar — there is barely a breath between the underline of the active tab and the 28px title. This is the thing that reads as cramped.</div>
+<div class="demo" data-gap="8" data-tok="space4"></div>
+
+<h2 class="sec">G1 · 24px <code>space12</code></h2>
+<div class="verdict">A clear separation. This is the gap <code>GWSectionTitle</code> already puts between a panel title and its content, so it echoes a rhythm the app uses elsewhere. Safe, unremarkable, correct.</div>
+<div class="demo" data-gap="24" data-tok="space12"></div>
+
+<h2 class="sec">G2 · 32px <code>space16</code> <span class="tag rec">recommended</span></h2>
+<div class="verdict">The title gets room to read as a page heading rather than a caption stuck under the nav. 32px is the step the 4-pt grid uses for "new region" separations, and at a 28px title it lands as deliberate whitespace, not a gap someone forgot to close. Enough air on a fullscreen window; not wasteful on a laptop.</div>
+<div class="demo" data-gap="32" data-tok="space16"></div>
+
+<h2 class="sec">G3 · 40px <code>space20</code></h2>
+<div class="verdict">Generous — the title floats in its own band. Reads well on a huge display but starts to feel loose on a 13" laptop where vertical space is scarce and the list wants to be visible. Take this only if you want the header to feel spacious above all.</div>
+<div class="demo" data-gap="40" data-tok="space20"></div>
+
+<h2 class="sec">Recommendation</h2>
+<table class="t">
+  <tr><th>Gap</th><th>Token</th><th>Verdict</th></tr>
+  <tr><td>8</td><td class="mono">space4</td><td>Today — cramped, title glued to the nav.</td></tr>
+  <tr><td>24</td><td class="mono">space12</td><td>Correct and safe; echoes <code>GWSectionTitle</code>'s title→content gap.</td></tr>
+  <tr class="w"><td>32 <span class="tag rec">rec</span></td><td class="mono">space16</td><td>The "new region" step; the title reads as a page heading. Best balance of air and economy.</td></tr>
+  <tr><td>40</td><td class="mono">space20</td><td>Spacious; only if you want maximum breathing room, at the cost of laptop vertical space.</td></tr>
+</table>
+<p class="verdict"><b>Recommendation: 32 (<code>space16</code>), applied to Transactions, Markets and News together</b> so the three
+  keep one rhythm. If you would rather not touch the sibling tabs yet, 32 on Transactions alone is fine and the others
+  can follow — say which, and whether you want 24 or 32.</p>
+
+</div>
+<script>
+const G={dash:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+tx:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',swap:'<path d="M4 8h13l-3-3m6 11H7l3 3"/>',markets:'<path d="M4 18l5-6 4 3 6-8"/>',news:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/>',
+sent:'<path d="M7 17 17 7M17 7H9m8 0v8"/>',received:'<path d="M17 7 7 17m0 0h8m-8 0V9"/>',mint:'<path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/>',job:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/>',escrow:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',failed:'<path d="M6 6l12 12M18 6 6 18"/>',
+export:'<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'};
+const s=k=>`<svg fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${G[k]}</svg>`;
+const navlinks=`<a class="on">${s('tx')} Transactions</a><a>${s('dash')} Dashboard</a><a>${s('swap')} Swap</a><a>${s('markets')} Markets</a><a>${s('news')} News</a>`;
+const cluster=`<span class="chip">◈ 0x1d9b…4a87</span><span class="chip">◈ 0x9fF8…2e2b</span><span class="chip buy">Buy GNUS</span>`;
+const topbar=`<div class="topbar"><div class="logo"></div><div class="nav">${navlinks}</div><div class="cluster">${cluster}</div></div>`;
+const actions=`<span class="pill">${s('received')} Receive</span><span class="pill">${s('sent')} Send</span><span class="iconbtn">${s('export')}</span><span class="iconbtn">${s('list')}</span>`;
+const TYPES=[['sent','Sent',3],['received','Received',1],['mint','Mint',1],['job','Computing',1],['escrow','Escrow',2]];
+const railInner='<div class="rh">Type</div>'+TYPES.map(t=>`<div class="ri">${s(t[0])}<span class="l">${t[1]}</span><span class="c">${t[2]}</span></div>`).join('');
+const rows=[['00:32','GNUS','#0AD89C','GNUS · Processing job','Job 0xdevm…ck09','− 0.42 GNUS','$0.27 fee',''],['00:23','ETH','#627EEA','ETH · Sent','0xToMo…ed01','− 0.75 ETH','$1,449.25','']];
+const list='<div class="daylabel">TODAY</div>'+rows.map(r=>`<div class="row"><span class="time">${r[0]}</span><span class="coin" style="background:${r[2]}">${r[1].slice(0,3)}</span><span class="main"><div class="t">${r[3]}</div><div class="s">${r[4]}</div></span><span class="amt"><div class="a ${r[7]}">${r[5]}</div><div class="f">${r[6]}</div></span></div>`).join('<div class="divider"></div>');
+const cards=`<div class="cols"><div class="card railcard">${railInner}</div><div class="card listcard">${list}</div></div>`;
+
+document.querySelectorAll('.demo').forEach(d=>{
+  const gap=d.dataset.gap, tok=d.dataset.tok;
+  d.innerHTML = topbar + `<div class="stage"><div class="gapviz">
+    <div class="gapband" style="height:${gap}px;position:relative">
+      <div class="gapmark"><span class="v">${gap}px</span><span class="t">${tok}</span></div>
+    </div>
+    <div class="pagehdr"><div class="h-title">Transactions</div><div class="actions">${actions}</div></div>
+    ${cards}
+  </div></div>`;
+});
+document.getElementById('tsel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#tsel button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.documentElement.dataset.theme=b.dataset.t;});
+</script>
+</body>
+</html>

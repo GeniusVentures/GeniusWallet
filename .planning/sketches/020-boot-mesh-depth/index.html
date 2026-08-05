@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 020 — Boot Mesh Depth</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --dash-base: #0B0D12;      /* GeniusWalletColors._surfaceBaseDark */
+    --dash-card: #0C0E14;      /* _surfaceElevatedDark */
+    --dash-menu: #171A21;      /* _surfaceMenuDark */
+    --brand-1: #14C8FF;
+    --brand-2: #2BF5B4;
+    --brand-3: #C28FFF;
+    --text: #FFFFFF;
+    --text-2: #8A8F9D;
+    --border: rgba(255,255,255,.12);
+  }
+  body {
+    margin: 0; background: #05060A; color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 22px 18px 70px; }
+  h1 { font-size: 17px; margin: 0 0 6px; }
+  .lede { color: var(--text-2); font-size: 13.5px; line-height: 1.65; max-width: 88ch; margin: 0 0 22px; }
+  .lede b { color: var(--text); font-weight: 600; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+         background: rgba(255,255,255,.07); padding: 1.5px 5px; border-radius: 4px; }
+
+  /* ── handover preview: boot | dashboard, adjacent ── */
+  .handover {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,.5);
+  }
+  @media (max-width: 900px) { .handover { grid-template-columns: 1fr; } }
+  .pane { position: relative; height: 340px; overflow: hidden; }
+  .pane-tag {
+    position: absolute; z-index: 5; top: 10px; left: 10px; font-size: 10px;
+    letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.45);
+  }
+  .seam { position: absolute; top: 0; bottom: 0; right: 0; width: 1px;
+          background: rgba(255,255,255,.18); z-index: 6; }
+
+  /* boot screen */
+  #boot { background: var(--dash-base); }
+  #boot .mesh { position: absolute; inset: 0; }
+  #boot .dim  { position: absolute; inset: 0; background: #000; }
+  #boot .content { position: absolute; inset: 0; z-index: 2; }
+  .wordmark {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    font-size: 27px; font-weight: 700; letter-spacing: .10em; white-space: nowrap;
+  }
+  .wordmark span {
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; }
+  .foot-row { display: flex; align-items: baseline; gap: 10px; padding: 0 18px 12px; }
+  .kicker { font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase;
+            color: rgba(255,255,255,.38); }
+  .status { font-size: 12.5px; color: var(--text-2); }
+  .rail { height: 2px; background: rgba(255,255,255,.10); }
+  .rail > i { display: block; height: 100%; width: 0%;
+              background: linear-gradient(90deg, var(--brand-1), var(--brand-2)); }
+
+  /* dashboard reference — the screen the boot hands over to */
+  #dash { background: var(--dash-base); padding: 12px; }
+  .dnav { display: flex; gap: 7px; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
+  .pill { padding: 4px 10px; border-radius: 999px; font-size: 10.5px; color: var(--text-2);
+          border: 1px solid var(--border); }
+  .pill.act { background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+              color: #00121B; border-color: transparent; font-weight: 600; }
+  .dgrid { display: grid; grid-template-columns: 1.1fr 1fr; grid-template-rows: 1fr 1fr;
+           gap: 8px; height: calc(100% - 34px); margin-top: 8px; }
+  .card { border-radius: 12px; border: 1px solid var(--border); background: var(--dash-card);
+          padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .card h4 { margin: 0; font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+             color: rgba(255,255,255,.54); font-weight: 600; }
+  .big { font-size: 17px; font-weight: 600; }
+  .up { color: #0AD89C; font-size: 10px; font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 7px; }
+  .ic { width: 20px; height: 20px; border-radius: 50%; flex: 0 0 20px; opacity: .85;
+        background: linear-gradient(135deg, var(--brand-1), var(--brand-2)); }
+  .ln { height: 6px; border-radius: 3px; background: rgba(255,255,255,.22); }
+
+  /* ── variant grid ── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+          gap: 14px; margin-top: 26px; }
+  .tile { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer;
+          background: #0A0B10; transition: transform .12s ease, border-color .12s ease; }
+  .tile:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.3); }
+  .tile[aria-selected="true"] { border-color: var(--brand-1); box-shadow: 0 0 0 1px var(--brand-1); }
+  .swatch { position: relative; height: 118px; }
+  .swatch .mesh { position: absolute; inset: 0; }
+  .swatch .dim { position: absolute; inset: 0; background: #000; }
+  .tile-meta { padding: 9px 11px 11px; }
+  .tile-meta h3 { margin: 0 0 3px; font-size: 12.5px; font-weight: 600; }
+  .tile-meta p { margin: 0; font-size: 11px; line-height: 1.5; color: var(--text-2); }
+  .badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .06em;
+           padding: 1.5px 5px; border-radius: 3px; margin-left: 5px; vertical-align: 1px;
+           background: rgba(20,200,255,.16); color: var(--brand-1); }
+  .badge.now { background: rgba(255,255,255,.12); color: var(--text-2); }
+
+  /* ── spec readout ── */
+  .spec { margin-top: 22px; padding: 15px 17px; border: 1px solid var(--border);
+          border-radius: 12px; background: #0A0B10; }
+  .spec h3 { margin: 0 0 10px; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+             color: rgba(255,255,255,.54); font-weight: 600; }
+  .spec pre { margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+              font-size: 12px; line-height: 1.65; color: #C9D1D9; overflow-x: auto; }
+  .note { margin-top: 20px; padding: 15px 17px; border: 1px solid var(--border);
+          border-radius: 12px; background: #0A0B10; }
+  .note h3 { margin: 0 0 9px; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+             color: rgba(255,255,255,.54); font-weight: 600; }
+  .note p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.6; color: var(--text-2); }
+  .note p:last-child { margin-bottom: 0; }
+  .note b { color: var(--text); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Sketch 020 — Boot Mesh Depth</h1>
+  <p class="lede">
+    The boot canvas walked <b>too bright against the dashboard</b> on 2026-07-22. The two panes below
+    are shown <b>edge to edge</b> on purpose — your complaint was about the <b>handover</b>, not the
+    background in isolation, so that seam is the thing to judge. The dashboard side is drawn with the
+    real tokens (<code>#0B0D12</code> base, <code>#0C0E14</code> cards), so it is a fair reference.
+  </p>
+  <p class="lede">
+    <b>Key finding:</b> <code>intensity</code> is the wrong knob on its own. In
+    <code>_MeshPainter</code> it scales the blob alpha (<code>110 × i</code>) <b>and</b> the black
+    dimming overlay (<code>38 × i</code>) together — so turning it down weakens the colour but also
+    <b>removes the darkening</b>. Variants below separate the two.
+  </p>
+
+  <div class="handover">
+    <div class="pane" id="boot">
+      <span class="pane-tag">Boot</span>
+      <div class="mesh"></div><div class="dim"></div>
+      <div class="content">
+        <div class="wordmark"><span>GNUS.AI</span></div>
+        <div class="foot">
+          <div class="foot-row"><span class="kicker">Status</span>
+            <span class="status">Preparing your wallet…</span></div>
+          <div class="rail"><i style="width:0%"></i></div>
+        </div>
+      </div>
+      <div class="seam"></div>
+    </div>
+    <div class="pane" id="dash">
+      <span class="pane-tag" style="left:auto;right:10px">Dashboard</span>
+      <div class="dnav"><span class="pill act">Dashboard</span><span class="pill">Markets</span></div>
+      <div class="dgrid">
+        <div class="card"><h4>Overview</h4><div class="big">$12,480</div><div class="up">▲ 2.14%</div></div>
+        <div class="card"><h4>Assets</h4>
+          <div class="row"><span class="ic"></span><span class="ln" style="width:56px"></span></div>
+          <div class="row"><span class="ic"></span><span class="ln" style="width:44px"></span></div></div>
+        <div class="card"><h4>Bitcoin</h4><div class="big" style="font-size:14px">$67,204</div></div>
+        <div class="card"><h4>Markets</h4>
+          <div class="row"><span class="ic"></span><span class="up" style="margin-left:auto">+4.1%</span></div>
+          <div class="row"><span class="ic"></span><span class="up" style="margin-left:auto">+1.8%</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="spec">
+    <h3>Flutter for the selected variant</h3>
+    <pre id="spec"></pre>
+  </div>
+
+  <div class="note">
+    <h3>How to read these</h3>
+    <p>
+      <b>Now shipped</b> is <code>intensity: 0.45</code> — the first pass I made after your walk. It is
+      in the grid so you can see whether it already solves it or overshoots.
+    </p>
+    <p>
+      Variants <b>B, C, D</b> are the "same style, darker/stronger" reading: they keep all three brand
+      hues and the drift, but hold the blob colour down while <b>raising</b> the black overlay, so the
+      canvas gets deeper instead of merely paler.
+    </p>
+    <p>
+      <b>E, F, G</b> are the extra directions you asked for — each changes one structural thing rather
+      than just the numbers: dropping the third hue, inverting the vignette, or letting colour survive
+      only at the edges.
+    </p>
+    <p>
+      Anything that lands near the dashboard's own darkness will make the <b>kicker</b>
+      (<code>rgba(255,255,255,.38)</code>) the first thing to suffer — it is already the weakest pair
+      on the screen. Judge that text, not just the field.
+    </p>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Faithful to lib/components/effects/gw_mesh_background.dart:
+  //   blob alpha = 110 * intensity  ·  dim overlay alpha = 38 * intensity
+  //   hues: brandPrimary #14C8FF, brandSecondary #2BF5B4, brandTertiary #C28FFF
+  //   tertiary blob is radiusScale 0.80, the other two 0.95
+  const A = a => (a / 255).toFixed(3);
+
+  // blob: [hue, xPct, yPct, sizePct, alpha255]
+  function meshCss(blobs, base) {
+    return {
+      background: base,
+      layers: blobs.map(b =>
+        // `circle` may not take a percentage — must be `ellipse` for %-sized radii
+        `radial-gradient(ellipse ${b[3]}% ${b[3]}% at ${b[1]}% ${b[2]}%, rgba(${b[0]},${A(b[4])}), rgba(${b[0]},0) 70%)`
+      ).join(', ')
+    };
+  }
+
+  const CY = '20,200,255', MT = '43,245,180', PU = '194,143,255';
+
+  const VARIANTS = [
+    {
+      id: 'now1', name: 'Original', badge: 'walked too bright', badgeClass: 'now',
+      desc: 'intensity 1.0 — GWMeshBackground\'s default, what the component calls "the full hero treatment".',
+      base: '#0B0D12', blobs: [[CY,22,26,78,110],[MT,76,72,78,110],[PU,50,50,64,110]], dim: 38,
+      code: '// no intensity passed — defaults to 1.0\nGWMeshBackground(\n  baseColor: Color(0xFF0B0D12),\n  child: ...,\n)'
+    },
+    {
+      id: 'a', name: 'A · Quiet', badge: 'now shipped', badgeClass: 'now',
+      desc: 'intensity 0.45. Weakens the colour — but also strips the black overlay to 6.7%, so it goes paler rather than deeper.',
+      base: '#0B0D12', blobs: [[CY,22,26,78,50],[MT,76,72,78,50],[PU,50,50,64,50]], dim: 17,
+      code: 'GWMeshBackground(\n  baseColor: Color(0xFF0B0D12),\n  intensity: 0.45,\n  child: ...,\n)'
+    },
+    {
+      id: 'b', name: 'B · Deep', badge: 'recommended',
+      desc: 'Blobs held at 0.45 strength, black overlay pushed back up to full. Same hues, same drift — the canvas simply sits deeper.',
+      base: '#0B0D12', blobs: [[CY,22,26,78,50],[MT,76,72,78,50],[PU,50,50,64,50]], dim: 90,
+      code: '// needs a second knob on GWMeshBackground:\n//   final double dimAlpha;   // default 38\nGWMeshBackground(\n  baseColor: Color(0xFF0B0D12),\n  intensity: 0.45,\n  dimAlpha: 90,\n  child: ...,\n)'
+    },
+    {
+      id: 'c', name: 'C · Ink', badge: '',
+      desc: 'Colour down to 0.30, overlay high, and the base itself dropped below the dashboard\'s. Boot reads darker than what follows, so the handover brightens instead of dimming.',
+      base: '#07080C', blobs: [[CY,22,26,78,34],[MT,76,72,78,34],[PU,50,50,64,34]], dim: 110,
+      code: 'GWMeshBackground(\n  baseColor: Color(0xFF07080C),\n  intensity: 0.30,\n  dimAlpha: 110,\n  child: ...,\n)'
+    },
+    {
+      id: 'd', name: 'D · Slate', badge: '',
+      desc: 'Colour kept fairly strong but the overlay very heavy. The hues stay legible as tint while the field reads near-black.',
+      base: '#0B0D12', blobs: [[CY,22,26,78,80],[MT,76,72,78,80],[PU,50,50,64,80]], dim: 140,
+      code: 'GWMeshBackground(\n  baseColor: Color(0xFF0B0D12),\n  intensity: 0.72,\n  dimAlpha: 140,\n  child: ...,\n)'
+    },
+    {
+      id: 'e', name: 'E · Duo', badge: 'extra',
+      desc: 'Structural change: drop the purple third hue entirely. Cyan + mint only — the same two colours as the rail and the logo, so the screen stops introducing a hue it never uses again.',
+      base: '#0A0C11', blobs: [[CY,26,28,84,58],[MT,74,74,84,58]], dim: 80,
+      code: '// needs the painter to accept a hue list:\nGWMeshBackground(\n  baseColor: Color(0xFF0A0C11),\n  intensity: 0.52,\n  dimAlpha: 80,\n  hues: const [brandPrimary, brandSecondary],\n  child: ...,\n)'
+    },
+    {
+      id: 'f', name: 'F · Rim', badge: 'extra',
+      desc: 'Structural change: colour survives only at the edges, centre goes to near-black. Anchors the logo and the status line on flat ground while the frame keeps the brand.',
+      base: '#08090D', blobs: [[CY,4,12,64,90],[MT,96,88,64,90],[PU,92,8,46,54]], dim: 60,
+      inner: true,
+      code: '// needs a centre-weighted vignette instead of the flat overlay\nGWMeshBackground(\n  baseColor: Color(0xFF08090D),\n  intensity: 0.82,\n  dimAlpha: 60,\n  vignette: GWVignette.centre,\n  child: ...,\n)'
+    },
+    {
+      id: 'g', name: 'G · Ember', badge: 'extra',
+      desc: 'Furthest from today: one warm-cool axis only, very low light, almost a black field with a breath of colour. Closest to the dashboard, so the handover is nearly seamless.',
+      base: '#06070B', blobs: [[CY,18,78,90,44],[MT,84,22,74,34]], dim: 120,
+      code: 'GWMeshBackground(\n  baseColor: Color(0xFF06070B),\n  intensity: 0.40,\n  dimAlpha: 120,\n  hues: const [brandPrimary, brandSecondary],\n  child: ...,\n)'
+    }
+  ];
+
+  const grid = document.getElementById('grid');
+  const bootMesh = document.querySelector('#boot .mesh');
+  const bootDim  = document.querySelector('#boot .dim');
+  const bootPane = document.getElementById('boot');
+  const specEl   = document.getElementById('spec');
+
+  function apply(v, meshEl, dimEl, paneEl) {
+    const m = meshCss(v.blobs, v.base);
+    meshEl.style.background = m.layers;
+    paneEl.style.background = v.base;
+    dimEl.style.opacity = (v.dim / 255).toFixed(3);
+    // F inverts the dim: strong in the centre rather than flat across
+    dimEl.style.background = v.inner
+      ? 'radial-gradient(ellipse 78% 78% at 50% 50%, #000 0%, rgba(0,0,0,0) 78%)'
+      : '#000';
+  }
+
+  VARIANTS.forEach(v => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.setAttribute('aria-selected', v.id === 'now1');
+    tile.innerHTML =
+      `<div class="swatch"><div class="mesh"></div><div class="dim"></div></div>
+       <div class="tile-meta">
+         <h3>${v.name}${v.badge ? `<span class="badge ${v.badgeClass || ''}">${v.badge}</span>` : ''}</h3>
+         <p>${v.desc}</p>
+       </div>`;
+    grid.appendChild(tile);
+    apply(v, tile.querySelector('.mesh'), tile.querySelector('.dim'), tile.querySelector('.swatch'));
+    tile.onclick = () => {
+      document.querySelectorAll('.tile').forEach(t => t.setAttribute('aria-selected', 'false'));
+      tile.setAttribute('aria-selected', 'true');
+      apply(v, bootMesh, bootDim, bootPane);
+      specEl.textContent = v.code;
+    };
+  });
+
+  apply(VARIANTS[0], bootMesh, bootDim, bootPane);
+  specEl.textContent = VARIANTS[0].code;
+})();
+</script>
+</body>
+</html>

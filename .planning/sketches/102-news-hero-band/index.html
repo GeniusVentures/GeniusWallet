@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>102 · The hero band — B2 kept, then improved twice</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1420px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent;
+                color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  .vtabs { display:flex; gap:var(--space-4); margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .vtabs button { font:600 13px/18px var(--font); padding:9px 16px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+                  background:var(--surface-menu); color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .vtabs button:hover { background:var(--surface-elevated); color:var(--text-primary); transform:translateY(-1px); }
+  .vtabs button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); border-color:var(--border-strong);
+                                       box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 20px/26px var(--font); letter-spacing:-.3px; margin:var(--space-16) 0 var(--space-4); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:1000px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+         padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.ad  { background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.ref { background:var(--surface-menu); color:var(--text-secondary); border:1px solid var(--border-subtle); }
+
+  .frame { background:var(--surface-base); border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+           padding:var(--space-12); overflow:hidden; }
+  .page { max-width:var(--page-w,1280px); margin:0 auto; }
+
+  .pagehead { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .pagehead h2 { font:600 24px/32px var(--font); letter-spacing:-.4px; margin-right:auto; }
+
+  .sectiontitle { display:flex; align-items:center; justify-content:space-between; min-height:44px;
+                  padding:2px var(--space-4) var(--space-8); }
+  .sectiontitle h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; }
+  .sectiontitle .cnt { font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+
+  .chip { display:inline-flex; align-items:center; gap:var(--space-4); height:36px; padding:0 var(--space-6);
+          border:1px solid var(--border-subtle); border-radius:var(--radius-pill); background:var(--surface-menu);
+          color:var(--text-secondary); font:500 13px/18px var(--font); cursor:pointer; transition:all .15s ease; }
+  .chip:hover { background:var(--surface-elevated); color:var(--text-primary); transform:translateY(-1px); box-shadow:var(--shadow-card); }
+  .chip svg { width:15px; height:15px; }
+  .chip.spin svg { animation:sp .7s linear infinite; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+
+  .searchbox { display:flex; align-items:center; gap:var(--space-4); height:36px; padding:0 var(--space-6); min-width:220px;
+               border:1px solid var(--border-subtle); border-radius:var(--radius-pill); background:var(--surface-menu); transition:all .15s ease; }
+  .searchbox:focus-within { border-color:var(--brand-primary-strong); background:var(--surface-elevated); }
+  .searchbox svg { width:15px; height:15px; color:var(--text-secondary); flex:none; }
+  .searchbox input { flex:1; min-width:0; border:0; background:transparent; outline:none; color:var(--text-primary); font:400 13px/18px var(--font); }
+  .searchbox input::placeholder { color:var(--text-secondary); }
+
+  svg.g { fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); }
+  .lift { transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; cursor:pointer; }
+  .lift:hover { transform:translateY(-2px); border-color:var(--border-strong); box-shadow:0 10px 28px rgba(0,0,0,.32); }
+  [data-theme="light"] .lift:hover { box-shadow:0 10px 28px rgba(0,0,0,.16); }
+
+  .ph { position:relative; overflow:hidden; background:var(--surface-sunken); flex:none; }
+  .ph::after { content:''; position:absolute; inset:0; opacity:.92; transition:transform .35s ease; }
+  .ph.p1::after { background:linear-gradient(135deg,#1B3A5C,#0E7490 55%,#F59E0B); }
+  .ph.p2::after { background:linear-gradient(135deg,#312E81,#6D28D9 60%,#22D3EE); }
+  .ph.p3::after { background:linear-gradient(135deg,#134E4A,#0F766E 50%,#A3E635); }
+  .ph.p4::after { background:linear-gradient(135deg,#4C1D95,#7C3AED 55%,#F472B6); }
+  .ph.p5::after { background:linear-gradient(135deg,#7C2D12,#C2410C 55%,#FCD34D); }
+  .ph.p6::after { background:linear-gradient(135deg,#0C4A6E,#0369A1 55%,#67E8F9); }
+  .ph.p7::after { background:linear-gradient(135deg,#3F1D38,#9D174D 55%,#FB7185); }
+  .ph.p8::after { background:linear-gradient(135deg,#1E293B,#334155 55%,#94A3B8); }
+  .ph.p9::after { background:linear-gradient(135deg,#052E16,#15803D 55%,#86EFAC); }
+  .ph.p10::after { background:linear-gradient(135deg,#422006,#A16207 55%,#FDE68A); }
+  .lift:hover .ph::after { transform:scale(1.05); }
+
+  .meta { display:flex; align-items:center; gap:var(--space-4); font:400 12px/16px var(--font); color:var(--text-secondary); flex-wrap:wrap; }
+  .meta .dot { width:3px; height:3px; border-radius:50%; background:var(--text-secondary); opacity:.7; flex:none; }
+  .meta .src { font-weight:600; }
+  .kicker { font:700 10px/14px var(--font); letter-spacing:.9px; text-transform:uppercase; color:var(--brand-primary-strong); }
+  [data-theme="dark"] .kicker { color:var(--brand-primary); }
+
+  /* hero */
+  .hero { display:flex; overflow:hidden; }
+  .hero .ph { border-radius:var(--radius-lg) 0 0 var(--radius-lg); }
+  .hero .hbody { flex:1; display:flex; flex-direction:column; justify-content:center; padding:var(--space-12); min-width:0; }
+  .hero .htitle { font:600 26px/32px var(--font); letter-spacing:-.4px; }
+  .hero .hdek { font:400 15px/23px var(--font); color:var(--text-secondary); margin-top:var(--space-6);
+                display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; }
+  .hero .meta { margin-top:var(--space-8); }
+
+  /* standard photo card */
+  .ncard { overflow:hidden; display:flex; flex-direction:column; }
+  .ncard .ph { border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+  .ncard .cbody { padding:var(--space-8); flex:1; display:flex; flex-direction:column; }
+  .ncard .ttl { font:600 16px/22px var(--font); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .ncard .dek { font:400 13px/19px var(--font); color:var(--text-secondary); margin-top:var(--space-4);
+                display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; }
+  .ncard .meta { margin-top:auto; padding-top:var(--space-6); }
+
+  .grid { display:grid; gap:var(--space-8); }
+
+  /* Next up column */
+  .nextcol { display:flex; flex-direction:column; }
+  .nextrow { display:flex; gap:var(--space-6); align-items:flex-start; padding:var(--space-6); border-radius:var(--radius-md);
+             cursor:pointer; transition:all .15s ease; }
+  .nextrow:hover { background:var(--surface-elevated); transform:translateY(-1px); box-shadow:var(--shadow-card); }
+  .nextrow .n { font:700 13px/20px var(--font-mono); color:var(--text-secondary); width:18px; flex:none; }
+  .nextrow.grad .n { background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary));
+                     -webkit-background-clip:text; background-clip:text; color:transparent; }
+  [data-theme="light"] .nextrow.grad .n { background:none; color:#0A6885; }
+  .nextrow .nt { font:600 14px/20px var(--font); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .nextrow .meta { margin-top:var(--space-3); }
+  .nextdiv { height:1px; background:var(--border-subtle); margin:0 var(--space-6); }
+
+  /* medium photo sub-card (II) */
+  .subcard { display:flex; gap:var(--space-6); padding:var(--space-6); border-radius:var(--radius-md); cursor:pointer; transition:all .15s ease; align-items:stretch; }
+  .subcard:hover { background:var(--surface-elevated); transform:translateY(-1px); box-shadow:var(--shadow-card); }
+  .subcard .ph { width:104px; border-radius:var(--radius-md); align-self:stretch; min-height:78px; }
+  .subcard .sb { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .subcard .st { font:600 15px/20px var(--font); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .subcard .meta { margin-top:auto; padding-top:var(--space-4); }
+
+  /* compact tail row */
+  .tail { padding:var(--space-4); }
+  .frow { display:flex; align-items:flex-start; gap:var(--space-8); padding:var(--space-6); border-radius:var(--radius-md);
+          cursor:pointer; transition:all .15s ease; }
+  .frow:hover { background:var(--surface-elevated); transform:translateY(-1px); box-shadow:var(--shadow-card); }
+  .frow .ph { width:88px; height:60px; border-radius:var(--radius-md); }
+  .frow .body { flex:1; min-width:0; }
+  .frow .ttl { font:600 15px/21px var(--font); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .frow .meta { margin-top:var(--space-4); }
+  .frow .go { flex:none; align-self:center; color:var(--text-secondary); opacity:0; transition:all .15s ease; }
+  .frow:hover .go { opacity:1; transform:translateX(2px); }
+  .frow .go svg { width:16px; height:16px; }
+  .fdiv { height:1px; background:var(--border-subtle); margin:0 var(--space-6); }
+
+  /* annotations */
+  .cols { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-8); }
+  .note { padding:var(--space-8); background:var(--surface-menu); border:1px solid var(--border-subtle);
+          border-left:3px solid var(--brand-primary-strong); border-radius:var(--radius-md); }
+  .note .k { font:700 9px/1 var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--brand-primary-strong); }
+  [data-theme="dark"] .note .k { color:var(--brand-primary); }
+  .note .v { font:600 14px/19px var(--font); margin-top:var(--space-4); }
+  .note .w { font:400 12px/18px var(--font); color:var(--text-secondary); margin-top:var(--space-4); }
+  .note.good { border-left-color:var(--status-success); } .note.good .k { color:var(--status-success); }
+  .note.ref { border-left-color:var(--text-secondary); } .note.ref .k { color:var(--text-secondary); }
+
+  .variant { display:none; } .variant.on { display:block; }
+  .vhead { display:flex; align-items:center; gap:var(--space-6); margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .vhead h3 { font:600 18px/24px var(--font); }
+  .vhead p { font:400 13px/20px var(--font); color:var(--text-secondary); flex-basis:100%; max-width:1000px; }
+  .empty { padding:var(--space-16) var(--space-8); text-align:center; color:var(--text-secondary); font:400 14px/20px var(--font); }
+  .fold { position:relative; margin-top:var(--space-16); }
+  .fold::before { content:'▲ first screen ends here (~900px tall viewport)'; position:absolute; left:0; right:0; top:-22px;
+                  border-top:1px dashed var(--brand-primary-strong); font:600 10px/14px var(--font);
+                  color:var(--brand-primary-strong); padding-top:4px; opacity:.75; }
+  .fold .sectiontitle { margin-top:0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>102 · The hero band — <b>B2 kept, then improved twice</b></h1>
+  <div class="seg" id="wsel">
+    <button data-w="1280" aria-pressed="true">1280</button>
+    <button data-w="900" aria-pressed="false">900</button>
+    <button data-w="420" aria-pressed="false">420</button>
+  </div>
+  <div class="seg" id="tsel">
+    <button data-t="dark" aria-pressed="true">Dark</button>
+    <button data-t="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="lede">
+  <b>What "Next up" is:</b> the hero shows one lead story big, and beside it a short ranked list of the next few
+  headlines — numbered, text only, no photo. Like a newspaper front page: one splash, then "also today". It buys
+  <b>density above the fold without giving every story a full photo card</b>. Its weakness in plain B2 is that it only
+  fixes the top row — items 5-30 still scroll as full cards. Both new variants keep B2's band and fix that tail.
+</p>
+
+<div class="vtabs" id="vsel">
+  <button data-v="b" aria-pressed="true">B · Magazine (parent)</button>
+  <button data-v="2" aria-pressed="false">B2 · Hero + Next up ★ Selected</button>
+  <button data-v="i" aria-pressed="false">B2-I · Front page</button>
+  <button data-v="ii" aria-pressed="false">B2-II · Featured trio</button>
+</div>
+
+<section class="variant on" id="v-b">
+  <div class="vhead"><h3>B · Magazine</h3><span class="tag ref">parent · for reference</span>
+    <p>The winner of sketch 100: one hero, then an even 3-column grid of full photo cards for everything else.
+      No "Next up". The starting point both improvements build on.</p></div>
+  <div class="frame"><div class="page" data-page="b"></div></div>
+</section>
+
+<section class="variant" id="v-2">
+  <div class="vhead"><h3>B2 · Hero + Next up</h3><span class="tag ref">from sketch 101 · for reference</span>
+    <p>Hero shares the first row with a <b>Next up</b> column (items 2-4, headline only). Great first impression —
+      but items 5-30 are still full-size photo cards, so the page stays ~7 screens long. The two variants to its right
+      each attack that.</p></div>
+  <div class="frame"><div class="page" data-page="2"></div></div>
+</section>
+
+<section class="variant" id="v-i">
+  <div class="vhead"><h3>B2-I · Front page</h3><span class="tag rec">recommended</span><span class="tag ad">reuses GWSectionTitle</span>
+    <p><b>B2's band, then straight to the list.</b> Hero + Next up (items 2-5) is the whole photo treatment; below it a
+      single <code>GWSectionTitle('Earlier')</code> and every remaining story as a compact 88×60 row. One splash,
+      four ranked also-reads, then a scannable ledger. <b>~3 screens</b>, and only one story wears a big photo —
+      which is the honest number of stories that deserve one. Fewest photo cards to lay out of any variant.</p></div>
+  <div class="frame"><div class="page" data-page="i"></div></div>
+</section>
+
+<section class="variant" id="v-ii">
+  <div class="vhead"><h3>B2-II · Featured trio</h3><span class="tag ad">reuses GWSectionTitle</span>
+    <p><b>Three stories get a photo, not one.</b> A tall hero on the left; on the right two medium photo sub-cards
+      stacked (items 2-3). Under the band, Next up carries items 4-7 as headline rows, then
+      <code>GWSectionTitle('Earlier')</code> and the rest as compact tail rows. Richer, more magazine-like top; costs
+      one extra photo layout and a touch more height than I. <b>~4 screens.</b> Pick this if B2-I feels too text-heavy
+      below the hero.</p></div>
+  <div class="frame"><div class="page" data-page="ii"></div></div>
+</section>
+
+<h2 class="sec">The three, side by side</h2>
+<div class="cols">
+  <div class="note ref">
+    <div class="k">B2 · reference</div>
+    <div class="v">4 above fold · ~7 screens</div>
+    <div class="w">Best-looking top row, but does nothing for the 26 stories below it. This is the problem the other
+      two solve.</div>
+  </div>
+  <div class="note good">
+    <div class="k">B2-I · Front page</div>
+    <div class="v">5 above fold · ~3 screens</div>
+    <div class="w">One photo card total. Shortest page, least layout work, most honest about how many stories earn a
+      photo. Text-forward below the hero.</div>
+  </div>
+  <div class="note">
+    <div class="k">B2-II · Featured trio</div>
+    <div class="v">3 above fold · ~4 screens</div>
+    <div class="w">Three photos up top keeps it feeling like a magazine, not a feed. Costs one extra photo layout and
+      some height. The middle ground.</div>
+  </div>
+</div>
+
+<h2 class="sec">Everything still maps to shipped components</h2>
+<p class="lede">Same map as sketch 101 — the only net-new widget is the compact tail row (~40 lines), shared by I and
+  II. The one real gap remains: <b><code>GWCard</code> has no hover state</b> (<code>gw_card.dart:62-71</code> wraps
+  <code>onTap</code> in an <code>InkWell</code>, not the 008 D lift). Add a <code>hoverLift</code> flag once and every
+  card here — hero, photo card, sub-card — gets the standard hover. "Next up" and tail rows are plain
+  <code>InkWell</code> list rows, which is exactly what an <code>InkWell</code> is for, so those need nothing new.</p>
+
+<h2 class="sec">What to look for</h2>
+<p class="lede"><b>1.</b> Switch to <b>900</b> and scroll each to the bottom — that is the page-length comparison.
+  <b>2.</b> Compare the top row of I vs II: is one big photo enough (I), or do you want three (II)?
+  <b>3.</b> Hover the Next up rows and the tail rows — those are the plain list-row hovers, distinct from the card
+  lift. <b>4.</b> Switch to <b>420</b>: the Next up column drops below the hero, sub-cards stack, tail rows stay
+  legible at 88×60. <b>5.</b> Type in search — everything re-ranks live.</p>
+
+</div>
+
+<div id="sketch-tools" style="position:fixed;bottom:12px;right:12px;z-index:9999;font-family:system-ui;font-size:12px;
+     background:rgba(0,0,0,0.72);color:white;padding:8px 12px;border-radius:8px;opacity:0.35;transition:opacity 0.2s;"
+     onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.35'">
+  sketch 102 · <span id="stw">1280</span>px · <span id="stt">dark</span>
+</div>
+
+<script>
+const A = [
+ ["Bitcoin ETFs log $1.2B weekly inflow as BlackRock's IBIT crosses $90B AUM","Spot Bitcoin funds took in more in five sessions than in the whole of the previous month, with IBIT alone accounting for 71% of net flows.","12 minutes ago"],
+ ["Ethereum's Fusaka upgrade goes live on mainnet, cutting blob costs eightfold","The hard fork raises the blob target from six to 48 per block, and L2 sequencers began repricing calldata within the hour.","41 minutes ago"],
+ ["SEC drops its remaining claims in the Ripple case, closing a four-year fight","The regulator dismissed its appeal, leaving the 2023 ruling that programmatic XRP sales are not securities transactions in place.","2 hours ago"],
+ ["Solana DEX volume overtakes Ethereum for a third straight week","Aggregate spot volume on Solana venues reached $28.4B against Ethereum's $24.1B, driven mostly by two launchpad tokens.","3 hours ago"],
+ ["Tether mints $2B USDT on Tron as stablecoin supply nears $180B","The authorisation brings this quarter's issuance to $9B; Tether says the tokens are inventory, not yet in circulation.","4 hours ago"],
+ ["Strategy adds 4,020 BTC, bringing its treasury to 656,000 coins","The purchase was funded through the at-the-market equity programme at an average price of $87,410 per coin.","5 hours ago"],
+ ["Coinbase opens perpetual futures to US retail traders","The CFTC-regulated contracts carry up to 10x leverage and settle in USDC, with funding paid hourly rather than every eight hours.","6 hours ago"],
+ ["North Korean group linked to $47M bridge exploit, Elliptic says","On-chain analysis ties the drained validator keys to wallet clusters previously attributed to Lazarus.","8 hours ago"],
+ ["Fed holds rates as Powell calls crypto 'not a financial stability risk'","The chair's remarks came a day after the central bank dropped digital assets from its list of near-term vulnerabilities.","9 hours ago"],
+ ["GALA jumps 34% on Unreal Engine partnership announcement","The gaming token retraced half its gains within two hours, and open interest on perpetuals more than doubled.","11 hours ago"],
+ ["Circle files for a national trust bank charter with the OCC","Approval would let the USDC issuer custody reserves itself instead of routing them through partner banks.","12 hours ago"],
+ ["Base sequencer halts for 23 minutes after a faulty node upgrade","Coinbase's L2 processed no blocks between 04:12 and 04:35 UTC; no funds were at risk and withdrawals resumed automatically.","12 hours ago"],
+ ["Bitcoin hashrate hits a record 1.04 ZH/s as difficulty climbs 3.2%","Miners brought roughly 40 EH/s of new capacity online this quarter, most of it in Texas and Paraguay.","13 hours ago"],
+ ["EU regulators open consultation on MiCA rules for staking services","The draft would require custodial stakers to disclose slashing risk and segregate delegated assets.","14 hours ago"],
+ ["Uniswap governance approves the fee switch for three pools","The pilot routes 10% of swap fees to the treasury on ETH/USDC, ETH/USDT and WBTC/ETH.","15 hours ago"],
+ ["Polygon's AggLayer connects its fourth external chain","The interoperability layer now settles proofs for chains outside the Polygon CDK stack.","16 hours ago"],
+ ["Kraken acquires a futures brokerage to expand into US derivatives","The deal gives the exchange an FCM licence, letting it clear CME contracts directly.","17 hours ago"],
+ ["Ledger patches a firmware flaw that exposed transaction metadata","No private keys were affected; the issue leaked destination addresses to a paired host over Bluetooth.","18 hours ago"],
+ ["Argentina's central bank clears banks to offer crypto custody","The rule reverses a 2022 prohibition and takes effect at the start of next quarter.","19 hours ago"],
+ ["Chainlink launches a reserve-proof feed for tokenised treasuries","Six issuers signed on at launch, covering roughly $4.1B of tokenised T-bill products.","20 hours ago"],
+ ["Aave deploys V4 on testnet with isolated risk modules","Each collateral type now carries its own liquidity envelope, capping contagion between markets.","21 hours ago"],
+ ["Grayscale converts two more trusts into spot ETFs","The Litecoin and Chainlink vehicles began trading after the SEC's generic listing standards took effect.","21 hours ago"],
+ ["MetaMask adds native support for Bitcoin accounts","Users can hold and send BTC from the same seed phrase, using a separate derivation path.","22 hours ago"],
+ ["Hong Kong grants three more virtual-asset trading licences","The SFC has now approved eleven platforms under the regime that opened in 2023.","23 hours ago"],
+ ["Ethena's USDe supply crosses $12B as funding rates stay positive","The synthetic dollar's yield fell to 8.4% APY, its lowest since March, as basis compressed.","23 hours ago"],
+ ["Sui validators approve a 40% reduction in gas prices","The change follows a throughput upgrade that cut execution cost per transaction.","24 hours ago"],
+ ["Nigeria lifts its ban on bank transfers to crypto exchanges","Licensed platforms may now open naira accounts, ending an 18-month workaround economy.","25 hours ago"],
+ ["Blast bridges $340M out following the end of its points programme","TVL fell 46% in 48 hours, in line with what analysts expected once emissions stopped.","25 hours ago"],
+ ["Solana mobile opens preorders for its third phone","The device ships with a hardware seed vault and a preinstalled dApp store.","26 hours ago"],
+ ["Tornado Cash developer wins appeal against sanctions ruling","The court found OFAC exceeded its authority in designating immutable smart contracts as property.","27 hours ago"],
+].map((a,i) => ({ t:a[0], d:a[1], a:a[2], p:(i%10)+1 }));
+
+const svg = i => `<svg class="g" viewBox="0 0 24 24">${i}</svg>`;
+const I_SEARCH = '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>';
+const I_REFRESH = '<path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/>';
+const I_ARROW = '<path d="M9 18l6-6-6-6"/>';
+
+const state = { b:{q:""}, 2:{q:""}, i:{q:""}, ii:{q:""} };
+let narrow = false;
+
+const items = v => { const q = state[v].q.toLowerCase();
+  return q ? A.filter(x => (x.t+" "+x.d).toLowerCase().includes(q)) : A; };
+const meta = x => `<div class="meta"><span class="src">Cointelegraph</span><span class="dot"></span><span>${x.a}</span></div>`;
+const header = v => `<div class="pagehead"><h2>Crypto News</h2>
+  <div class="searchbox">${svg(I_SEARCH)}<input type="text" placeholder="Search headlines" data-search="${v}" value="${state[v].q}"></div>
+  <button class="chip" data-refresh>${svg(I_REFRESH)}Refresh</button></div>`;
+const sectionTitle = (t, c) => `<div class="sectiontitle"><h3>${t}</h3>${c ? `<span class="cnt">${c}</span>` : ''}</div>`;
+
+function hero(x, h, dekLines) {
+  return `<div class="card lift hero" style="flex-direction:${narrow?'column':'row'}">
+    <div class="ph p${x.p}" style="${narrow
+      ? `width:100%;min-height:170px;border-radius:var(--radius-lg) var(--radius-lg) 0 0`
+      : `width:50%;min-height:${h}px`}"></div>
+    <div class="hbody"><div class="kicker">Latest</div>
+      <div class="htitle" style="margin-top:var(--space-6)">${x.t}</div>
+      <div class="hdek" style="-webkit-line-clamp:${dekLines}">${x.d}</div>${meta(x)}</div></div>`;
+}
+function ncard(x, phH, dekLines) {
+  return `<div class="card lift ncard"><div class="ph p${x.p}" style="height:${phH}px"></div>
+    <div class="cbody"><div class="ttl">${x.t}</div>
+      ${dekLines ? `<div class="dek" style="-webkit-line-clamp:${dekLines}">${x.d}</div>` : ''}${meta(x)}</div></div>`;
+}
+function nextCol(list, startNo, title) {
+  return `<div class="card nextcol">${sectionTitle(title)}
+    ${list.map((x, k) => `<div class="nextrow grad"><span class="n">${startNo + k}</span>
+        <div><div class="nt">${x.t}</div>${meta(x)}</div></div>`).join('<div class="nextdiv"></div>')}</div>`;
+}
+function subCard(x, no) {
+  return `<div class="card subcard"><div class="ph p${x.p}"></div>
+    <div class="sb"><div class="st">${x.t}</div>${meta(x)}</div></div>`;
+}
+function tailRow(x) {
+  return `<div class="frow"><div class="ph p${x.p}"></div>
+    <div class="body"><div class="ttl">${x.t}</div>${meta(x)}</div><div class="go">${svg(I_ARROW)}</div></div>`;
+}
+function tailBlock(list) {
+  return `<div class="fold">${sectionTitle('Earlier', list.length + ' more')}</div>
+    <div class="card tail">${list.map(tailRow).join('<div class="fdiv"></div>')}</div>`;
+}
+
+function render(v) {
+  const el = document.querySelector(`[data-page="${v}"]`);
+  const list = items(v);
+  if (!list.length) { el.innerHTML = header(v) + `<div class="card"><div class="empty">No headline matches that.</div></div>`; wire(); return; }
+  const [h, ...rest] = list;
+  const cols3 = narrow ? 1 : 3;
+  let body = "";
+
+  if (v === "b") {
+    body = hero(h, 280, 3) +
+      `<div class="grid" style="grid-template-columns:repeat(${cols3},1fr);margin-top:var(--space-8)">
+        ${rest.map(x => ncard(x, 150, 2)).join('')}</div>`;
+  }
+
+  if (v === "2") {
+    const next = rest.slice(0, 3), tail = rest.slice(3);
+    body = `<div style="display:grid;grid-template-columns:${narrow?'1fr':'1fr 320px'};gap:var(--space-8);align-items:stretch">
+        ${hero(h, 300, 3)}${nextCol(next, 2, 'Next up')}</div>
+      <div class="grid" style="grid-template-columns:repeat(${cols3},1fr);margin-top:var(--space-8)">
+        ${tail.map(x => ncard(x, 150, 2)).join('')}</div>`;
+  }
+
+  if (v === "i") {
+    const next = rest.slice(0, 4), tail = rest.slice(4);
+    body = `<div style="display:grid;grid-template-columns:${narrow?'1fr':'1fr 340px'};gap:var(--space-8);align-items:stretch">
+        ${hero(h, 320, 4)}${nextCol(next, 2, 'Next up')}</div>
+      ${tailBlock(tail)}`;
+  }
+
+  if (v === "ii") {
+    const subs = rest.slice(0, 2), next = rest.slice(2, 6), tail = rest.slice(6);
+    body = `<div style="display:grid;grid-template-columns:${narrow?'1fr':'1fr 360px'};gap:var(--space-8);align-items:stretch">
+        ${hero(h, 320, 3)}
+        <div style="display:flex;flex-direction:column;gap:var(--space-8)">${subs.map((x,i)=>subCard(x,i+2)).join('')}</div>
+      </div>
+      <div style="margin-top:var(--space-8)">${nextCol(next, 4, 'Next up')}</div>
+      ${tailBlock(tail)}`;
+  }
+
+  el.innerHTML = header(v) + body;
+  wire();
+}
+
+function wire() {
+  document.querySelectorAll('[data-search]').forEach(inp => {
+    inp.oninput = () => { const v = inp.dataset.search; state[v].q = inp.value; render(v);
+      const n = document.querySelector(`[data-page="${v}"] [data-search]`);
+      if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } };
+  });
+  document.querySelectorAll('[data-refresh]').forEach(b => b.onclick = () => {
+    b.classList.add('spin'); setTimeout(() => b.classList.remove('spin'), 900); });
+}
+
+const renderAll = () => ["b", "2", "i", "ii"].forEach(render);
+renderAll();
+
+document.getElementById('vsel').onclick = e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#vsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.querySelectorAll('.variant').forEach(s => s.classList.toggle('on', s.id === 'v-' + b.dataset.v)); };
+document.getElementById('tsel').onclick = e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#tsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.documentElement.setAttribute('data-theme', b.dataset.t); document.getElementById('stt').textContent = b.dataset.t; };
+document.getElementById('wsel').onclick = e => { const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#wsel button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  document.documentElement.style.setProperty('--page-w', b.dataset.w + 'px'); document.getElementById('stw').textContent = b.dataset.w;
+  narrow = +b.dataset.w < 700; renderAll(); };
+</script>
+</body>
+</html>

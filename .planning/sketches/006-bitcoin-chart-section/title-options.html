@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 006 — Chart section title options</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); padding: var(--space-8); min-height: 100vh; }
+  .toolbar { display: flex; gap: var(--space-6); align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button { font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .lead { color: var(--text-secondary); font: 400 13px/20px var(--font); margin: 0 0 var(--space-8); max-width: 1100px; }
+  .lead b { color: var(--text-primary); }
+
+  .row { display: flex; gap: var(--space-8); flex-wrap: wrap; align-items: flex-start; }
+  .col { display: flex; flex-direction: column; gap: var(--space-6); }
+  .label { font: 600 12px/1 var(--font); color: var(--text-secondary); letter-spacing: .3px; padding-left: 4px; }
+  .label .rec { color: var(--brand-primary); }
+  [data-theme="light"] .label .rec { color: var(--brand-primary-strong); }
+  .note { font: 400 11px/16px var(--font); color: var(--text-primary-38); max-width: 300px; padding-left: 4px; }
+
+  .cell { width: 300px; }
+  .card { border-radius: var(--radius-lg); background: var(--surface-elevated); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); padding: var(--space-6); display: flex; flex-direction: column; height: 250px; }
+
+  /* GWSectionTitle geometry: padding 2 space4 space8, minHeight 44, titleLg 18/textPrimary */
+  .hdr { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 2px var(--space-4) var(--space-8); }
+  .title { font: 600 18px/24px var(--font); color: var(--text-primary); letter-spacing: -.2px; white-space: nowrap; }
+  .title .tick { color: var(--text-secondary); }        /* ticker in muted tone within the same title */
+  .ident { display: flex; align-items: center; gap: var(--space-3); }
+  .badge { width: 28px; height: 28px; border-radius: 50%; background: #F7931A; color: #fff; display: grid; place-items: center; font: 700 14px/1 var(--font); flex: none; }
+  .idcol { display: flex; flex-direction: column; gap: 2px; line-height: 1; }
+  .idcol .a { font: 700 15px/1 var(--font); color: var(--text-primary); }
+  .idcol .b { font: 500 11px/1 var(--font); color: var(--text-secondary); letter-spacing: .4px; }
+
+  .tf { display: flex; gap: 2px; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; flex: none; }
+  .tf b { font: 600 11px/1 var(--font); color: var(--text-secondary); padding: 5px 8px; border-radius: var(--radius-pill); }
+  .tf b.on { background: var(--surface-elevated); color: var(--brand-primary); box-shadow: var(--shadow-card); }
+  [data-theme="light"] .tf b.on { color: var(--text-primary); }
+
+  .hero { text-align: center; position: relative; padding: 6px 0 2px; }
+  .hero .glow { position: absolute; left: 50%; top: 42%; width: 200px; height: 74px; transform: translate(-50%,-50%);
+    background: radial-gradient(58% 90% at 50% 50%, rgba(20,200,255,.40), transparent 72%); filter: blur(12px); pointer-events: none; }
+  .hero .p { position: relative; z-index: 1; font: 700 26px/1 var(--font); font-variant-numeric: tabular-nums; }
+  .hero .pill { position: relative; z-index: 1; display: inline-block; margin-top: 6px; border-radius: 4px; padding: 3px 8px; font: 700 12px/1 var(--font);
+    background: var(--status-success-fill); color: var(--status-success); }
+  .chart { flex: 1; margin: 4px -2px 0; min-height: 0; }
+  .chart svg { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Sketch 006 — Chart section title (3 options)</h1>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="dark" aria-pressed="true">Dark</button>
+    <button data-theme-btn="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<p class="lead">All three sit in the shared <b>GWSectionTitle</b> geometry (18px title, <code>space4</code> inset, 44px header height, timeframe in the <b>trailing</b> slot) — so the Bitcoin Chart panel reads in the same system as Markets / Assets / Transactions. They differ only in <b>how much coin identity the title carries</b>.</p>
+
+<div class="row" data-row></div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2BF5B4" stop-opacity=".30"/><stop offset="1" stop-color="#2BF5B4" stop-opacity="0"/>
+  </linearGradient>
+</defs></svg>
+
+<script>
+  const LINE = 'M0,70 C24,66 40,50 64,54 C92,60 104,34 132,38 C158,41 168,60 196,54 C222,48 236,22 264,28 C282,31 292,20 300,16';
+  const CHART = `<svg viewBox="0 0 300 96" preserveAspectRatio="none">
+      <path d="${LINE} L300,96 L0,96 Z" fill="url(#fill)"/>
+      <path d="${LINE}" fill="none" stroke="#2BF5B4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const TF = `<div class="tf"><b>1H</b><b class="on">1D</b><b>1W</b><b>1M</b><b>1Y</b></div>`;
+  const HERO = `<div class="hero"><div class="glow"></div><div class="p">$65,480.68</div><div class="pill">+2.03%</div></div>`;
+
+  const OPTIONS = [
+    { tag: 'T1 · Bitcoin · BTC', rec: true,
+      note: 'Text-only title, name + ticker via a middle dot. Pure section-title parity, uses GWSectionTitle as-is (no component change). Your “Bitcoin ·”.',
+      hdr: `<span class="title">Bitcoin <span class="tick">· BTC</span></span>${TF}` },
+    { tag: 'T2 · ₿ + Bitcoin', rec: false,
+      note: 'Orange coin badge + name only (ticker dropped — the badge carries identity). Needs an optional leading slot added to GWSectionTitle (shared by 4 panels).',
+      hdr: `<div class="ident"><span class="badge">₿</span><span class="title">Bitcoin</span></div>${TF}` },
+    { tag: 'T3 · ₿ + Bitcoin + BTC', rec: false,
+      note: 'Badge + name (bold) + BTC ticker stacked — the richest identity (today’s A→ header). Strongest coin presence, but reads slightly heavier than the other panels’ plain titles.',
+      hdr: `<div class="ident"><span class="badge">₿</span><div class="idcol"><span class="a">Bitcoin</span><span class="b">BTC</span></div></div>${TF}` },
+  ];
+
+  document.querySelector('[data-row]').innerHTML = OPTIONS.map(o => `
+    <div class="col">
+      <div class="label">${o.tag}${o.rec ? ' <span class="rec">· recommended</span>' : ''}</div>
+      <div class="cell"><div class="card">
+        <div class="hdr">${o.hdr}</div>
+        ${HERO}
+        <div class="chart">${CHART}</div>
+      </div></div>
+      <div class="note">${o.note}</div>
+    </div>`).join('');
+
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    if (b.dataset.themeBtn) document.documentElement.dataset.theme = b.dataset.themeBtn;
+  }));
+</script>
+</body>
+</html>

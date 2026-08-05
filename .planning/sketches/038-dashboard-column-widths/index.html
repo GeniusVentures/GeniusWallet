@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 038 — Dashboard · szerokości kolumn (A1)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+  svg { display: block; }
+
+  /* ===== chrome sketcha ===== */
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+  .note { margin-left: auto; color: var(--text-secondary); font-size: 12px; }
+
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: auto; padding-bottom: 40px; }
+
+  /* ===== scena 1:1 — 1920px, bez skalowania ===== */
+  #app { width: 1920px; }
+  .navbar { height: 62px; display: flex; align-items: center; gap: 16px; padding: 0 20px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .logo { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg, var(--brand-cta-b), var(--brand-cta-a)); }
+  .navtabs { display: flex; gap: 2px; }
+  .navtab { padding: 0 11px; height: 42px; display: flex; align-items: center; border-radius: 10px;
+    color: var(--text-primary-54); font: 500 13px var(--font); position: relative; }
+  .navtab.on { color: var(--text-primary); }
+  .navtab.on::after { content:""; position:absolute; left:9px; right:9px; bottom:-10px; height:3px; border-radius:3px;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); }
+
+  /* ===== siatka dashboardu — dokładnie jak _threeColumnLayout() ===== */
+  /* padding: EdgeInsets.all(space3) = 6px ; spacing: space3 = 6px */
+  .dash { padding: 6px; display: flex; gap: 6px; }
+  .left  { display: flex; flex-direction: column; gap: 6px; width: var(--w-left); }
+  .rowtop, .rowbot { display: flex; gap: 6px; }
+  .rowtop { height: 340px; }   /* Expanded flex:45, minHeight 300 */
+  .rowbot { height: 414px; }   /* Expanded flex:55, minHeight 380 */
+
+  .p-assets  { width: var(--w-assets); }
+  .p-compute { width: var(--w-compute); }
+  .p-chart   { width: var(--w-chart); }
+  .p-markets { width: var(--w-markets); }
+  .p-trans   { width: var(--w-trans); height: 760px; }
+
+  /* DZIŚ — flex 3:1, wiersze 2:3 i 3:2 (odwrócone względem siebie) */
+  #app[data-v="now"] {
+    --w-left: 1426.5px; --w-trans: 475.5px;
+    --w-assets: 568.2px; --w-compute: 852.3px;
+    --w-chart: 852.3px;  --w-markets: 568.2px;
+  }
+  /* A1 — flex 2:1 + cap 760, proporcje wewnętrzne BEZ ZMIAN */
+  #app[data-v="a1"], #app[data-v="a2"] {
+    --w-left: 1268px; --w-trans: 634px;
+    --w-assets: 504.8px; --w-compute: 757.2px;
+    --w-chart: 757.2px;  --w-markets: 504.8px;
+  }
+  /* A2 (propozycja, NIE wdrożona) — A1 + zamieniony DOLNY rząd na Markets | Chart.
+     Wallet/processing zostaje top-left nietknięty; to dolny rząd się dostraja,
+     bo nie ma w nim panelu o ustalonej pozycji. Oba szwy siadają na 40%. */
+  #app[data-v="a2"] .rowbot { flex-direction: row-reverse; }
+  #app[data-v="a2"] .seam { display: block; }
+  .seam { display: none; position: absolute; top: 62px; bottom: 0; width: 2px;
+    left: calc(6px + 504.8px + 3px); background: var(--brand-secondary); opacity: .55; z-index: 5; pointer-events: none; }
+  .seam::after { content: "szew 40% — oba rzędy"; position: absolute; top: 8px; left: 8px; white-space: nowrap;
+    font: 600 11px var(--font-mono); color: var(--brand-secondary); }
+  body:not(.show-seam) .seam { display: none !important; }
+
+  /* ===== panel (DashboardScrollContainer + GWDecorations.surface) ===== */
+  .panel { background: linear-gradient(160deg, var(--surface-sheen-a), var(--surface-sheen-b));
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl);
+    padding: 16px; display: flex; flex-direction: column; overflow: hidden; position: relative;
+    transition: width .35s cubic-bezier(.4,0,.2,1); }
+  .ptitle { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex: none; }
+  .ptitle h3 { font: 600 15px var(--font); }
+  .ptitle a { font: 500 12px var(--font); color: var(--brand-primary); text-decoration: none; }
+  .pbody { flex: 1; min-height: 0; overflow: hidden; }
+
+  /* miara szerokości */
+  .measure { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; display: flex; align-items: center;
+    justify-content: center; gap: 8px; font: 600 11px var(--font-mono); letter-spacing: .02em;
+    background: var(--brand-primary-subtle); color: var(--brand-primary); border-top: 1px dashed var(--brand-primary-muted); }
+  .measure .delta { color: var(--status-success); }
+  .measure .delta.neg { color: var(--text-secondary); }
+  body:not(.show-measure) .measure { display: none; }
+  body.show-measure .pbody { padding-bottom: 22px; }
+  #app[data-v="now"] .measure .a1only { display: none; }
+  #app[data-v="a1"] .measure .nowonly { display: none; }
+
+  /* ===== treść: Assets ===== */
+  .bal { font: 600 26px/32px var(--font); font-variant-numeric: tabular-nums; }
+  .balsub { font: 500 12px var(--font); color: var(--status-success); margin-top: 2px; }
+  .trow { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border-subtle); }
+  .tico { width: 28px; height: 28px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    font: 700 10px var(--font); color: #001018; }
+  .tname { flex: 1; min-width: 0; }
+  .tname b { display: block; font: 600 13px var(--font); }
+  .tname span { font: 400 11px var(--font); color: var(--text-secondary); }
+  .tval { text-align: right; font-variant-numeric: tabular-nums; }
+  .tval b { display: block; font: 600 13px var(--font); }
+  .tval span { font: 400 11px var(--font); color: var(--text-secondary); }
+
+  /* ===== treść: Compute (016-B2 twin tiles) ===== */
+  .twins { display: flex; gap: 8px; height: 100%; }
+  .tile { flex: 1; min-width: 0; background: var(--surface-menu); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; }
+  .tile .lbl { font: 500 11px var(--font); color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; }
+  .tile .big { font: 600 22px/28px var(--font); font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .tile .sub { font: 400 12px var(--font); color: var(--text-secondary); margin-top: auto; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+
+  /* ===== treść: Chart ===== */
+  .chartwrap { height: 100%; display: flex; flex-direction: column; }
+  .chartarea { flex: 1; min-height: 0; position: relative; }
+  .chartarea svg { width: 100%; height: 100%; }
+  .zoomrow { flex: none; display: flex; gap: 6px; align-items: center; padding-top: 10px; overflow: hidden; }
+  .zbtn { flex: none; height: 30px; padding: 0 12px; border-radius: 8px; background: var(--surface-menu);
+    border: 1px solid var(--border-subtle); color: var(--text-primary-70); font: 500 12px var(--font);
+    display: flex; align-items: center; white-space: nowrap; cursor: pointer; }
+  .zbtn:hover { color: var(--text-primary); border-color: var(--border-strong); }
+  .zoomrow .price { margin-left: auto; font: 600 15px var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* znacznik nacisku: ile rząd zoom/pan realnie potrzebuje */
+  .pressure { position: absolute; right: 16px; bottom: 46px; font: 600 11px var(--font-mono);
+    background: var(--status-error-fill); color: var(--status-error); border: 1px solid var(--status-error);
+    border-radius: 6px; padding: 3px 8px; }
+  body:not(.show-pressure) .pressure { display: none; }
+
+  /* ===== treść: Markets ===== */
+  .mrow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border-subtle); }
+  .spark { width: 62px; height: 22px; flex: none; }
+  .chg { font: 600 12px var(--font); font-variant-numeric: tabular-nums; width: 62px; text-align: right; }
+  .chg.up { color: var(--status-success); } .chg.dn { color: var(--status-error); }
+
+  /* ===== treść: Transactions ===== */
+  .xrow { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border-subtle); }
+  .xdesc { flex: 1; min-width: 0; }
+  .xdesc b { display: block; font: 600 13px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .xdesc span { font: 400 11px var(--font); color: var(--text-secondary); }
+  .pill { flex: none; height: 22px; padding: 0 10px; border-radius: 11px; font: 600 11px var(--font);
+    display: flex; align-items: center; }
+  .pill.ok { background: var(--status-success-fill); color: var(--status-success); }
+  .pill.pend { background: rgba(255,196,46,.14); color: var(--status-warning); }
+  .xfee { flex: none; width: 74px; text-align: right; font: 500 12px var(--font-mono); color: var(--text-secondary); }
+  .xamt { flex: none; width: 108px; text-align: right; font: 600 13px var(--font); font-variant-numeric: tabular-nums; }
+  /* 029: kolumny Status + Fee mieszczą się dopiero przy szerszej kolumnie */
+  #app[data-v="now"] .pill, #app[data-v="now"] .xfee { display: none; }
+  #app[data-v="a1"] .col029 { outline: 1px dashed var(--brand-primary); outline-offset: 3px; border-radius: 4px; }
+  body:not(.show-029) #app .col029 { outline: none; }
+
+  .legend { width: 1920px; padding: 14px 6px 0; color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+  .legend b { color: var(--text-primary); }
+  kbd { font: 600 11px var(--font-mono); background: var(--surface-menu); border: 1px solid var(--border-subtle);
+    border-radius: 5px; padding: 1px 6px; color: var(--text-primary-70); }
+</style>
+</head>
+<body class="show-measure show-pressure show-029">
+
+<div id="variant-nav">
+  <span class="brand">SKETCH 038</span>
+  <span class="sep"></span>
+  <button class="variant-tab" data-go="now">DZIŚ — flex 3:1</button>
+  <button class="variant-tab active" data-go="a1">★ A1 — flex 2:1 + cap 760 (WDROŻONE)</button>
+  <button class="variant-tab" data-go="a2">A2 — ODRZUCONE (dolny rząd Markets | Chart)</button>
+  <span class="sep"></span>
+  <button class="variant-tab" id="t-seam">szew</button>
+  <button class="variant-tab" id="t-measure">miary</button>
+  <button class="variant-tab" id="t-pressure">nacisk zoom/pan</button>
+  <button class="variant-tab" id="t-029">kolumny 029</button>
+  <button class="variant-tab" id="t-theme">jasny / ciemny</button>
+  <span class="note">skala 1:1 przy 1920px — przewiń w bok, nic nie jest pomniejszone</span>
+</div>
+
+<div class="stage">
+<div id="app" data-v="a1">
+
+  <div class="navbar">
+    <div class="logo"></div>
+    <div class="navtabs">
+      <div class="navtab on">Dashboard</div>
+      <div class="navtab">Transactions</div>
+      <div class="navtab">Markets</div>
+      <div class="navtab">News</div>
+      <div class="navtab">Web</div>
+    </div>
+  </div>
+
+  <div class="dash">
+    <div class="left">
+
+      <div class="rowtop">
+        <!-- ASSETS -->
+        <div class="panel p-assets">
+          <div class="ptitle"><h3>Assets</h3><a href="#">View all</a></div>
+          <div class="pbody">
+            <div class="bal">$12,480.55</div>
+            <div class="balsub">+ $312.40 (2.56%) dziś</div>
+            <div style="margin-top:12px">
+              <div class="trow"><div class="tico" style="background:linear-gradient(135deg,var(--brand-cta-b),var(--brand-cta-a))">GNUS</div>
+                <div class="tname"><b>GNUS</b><span>Genius Tokens</span></div>
+                <div class="tval"><b>1,240.00</b><span>$8,432.00</span></div></div>
+              <div class="trow"><div class="tico" style="background:#627EEA;color:#fff">ETH</div>
+                <div class="tname"><b>ETH</b><span>Ethereum</span></div>
+                <div class="tval"><b>0.8421</b><span>$2,914.11</span></div></div>
+              <div class="trow"><div class="tico" style="background:#F7931A">BTC</div>
+                <div class="tname"><b>BTC</b><span>Bitcoin</span></div>
+                <div class="tval"><b>0.0121</b><span>$1,134.44</span></div></div>
+            </div>
+          </div>
+          <div class="measure">
+            <span class="nowonly">568 px</span>
+            <span class="a1only">505 px</span><span class="a1only delta neg">−63</span>
+          </div>
+        </div>
+
+        <!-- COMPUTE -->
+        <div class="panel p-compute">
+          <div class="ptitle"><h3>Compute</h3><a href="#">Request job</a></div>
+          <div class="pbody">
+            <div class="twins">
+              <div class="tile">
+                <div class="lbl">Balance</div>
+                <div class="big">18,204 SGNUS</div>
+                <div class="sub">Wypłacalne po zakończeniu zadania</div>
+              </div>
+              <div class="tile">
+                <div class="lbl">Node</div>
+                <div class="big"><span class="dot" style="background:var(--status-success)"></span>Processing</div>
+                <div class="sub">Zadanie 3 z 4 · ostatni sygnał 12 s temu</div>
+              </div>
+            </div>
+          </div>
+          <div class="measure">
+            <span class="nowonly">852 px</span>
+            <span class="a1only">757 px</span><span class="a1only delta neg">−95</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rowbot">
+        <!-- CHART -->
+        <div class="panel p-chart">
+          <div class="ptitle"><h3>Bitcoin Chart</h3><a href="#">1D</a></div>
+          <div class="pbody">
+            <div class="chartwrap">
+              <div class="chartarea">
+                <svg viewBox="0 0 700 200" preserveAspectRatio="none">
+                  <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--brand-primary)" stop-opacity=".28"/>
+                    <stop offset="100%" stop-color="var(--brand-primary)" stop-opacity="0"/>
+                  </linearGradient></defs>
+                  <path d="M0,150 L60,138 L120,152 L180,120 L240,131 L300,96 L360,108 L420,72 L480,84 L540,52 L600,66 L660,38 L700,44 L700,200 L0,200 Z" fill="url(#g1)"/>
+                  <path d="M0,150 L60,138 L120,152 L180,120 L240,131 L300,96 L360,108 L420,72 L480,84 L540,52 L600,66 L660,38 L700,44"
+                        fill="none" stroke="var(--brand-primary)" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="pressure">rząd zoom/pan potrzebuje ~520 px</div>
+              <div class="zoomrow">
+                <button class="zbtn">− Zoom out</button>
+                <button class="zbtn">+ Zoom in</button>
+                <button class="zbtn">← Pan</button>
+                <button class="zbtn">Pan →</button>
+                <button class="zbtn">Reset</button>
+                <span class="price">$93,812.40</span>
+              </div>
+            </div>
+          </div>
+          <div class="measure">
+            <span class="nowonly">852 px</span>
+            <span class="a1only">757 px</span><span class="a1only delta neg">−95</span>
+          </div>
+        </div>
+
+        <!-- MARKETS -->
+        <div class="panel p-markets">
+          <div class="ptitle"><h3>Markets</h3><a href="#">View all</a></div>
+          <div class="pbody">
+            <div class="mrow"><div class="tico" style="background:#F7931A">BTC</div>
+              <div class="tname"><b>Bitcoin</b><span>$93,812.40</span></div>
+              <svg class="spark" viewBox="0 0 62 22"><path d="M0,16 L10,13 L20,17 L31,9 L41,12 L52,5 L62,7" fill="none" stroke="var(--status-success)" stroke-width="1.6"/></svg>
+              <div class="chg up">+2.14%</div></div>
+            <div class="mrow"><div class="tico" style="background:#627EEA;color:#fff">ETH</div>
+              <div class="tname"><b>Ethereum</b><span>$3,460.02</span></div>
+              <svg class="spark" viewBox="0 0 62 22"><path d="M0,8 L10,11 L20,7 L31,14 L41,12 L52,17 L62,15" fill="none" stroke="var(--status-error)" stroke-width="1.6"/></svg>
+              <div class="chg dn">−1.08%</div></div>
+            <div class="mrow"><div class="tico" style="background:linear-gradient(135deg,var(--brand-cta-b),var(--brand-cta-a))">GNUS</div>
+              <div class="tname"><b>Genius Tokens</b><span>$6.80</span></div>
+              <svg class="spark" viewBox="0 0 62 22"><path d="M0,18 L10,15 L20,16 L31,10 L41,8 L52,6 L62,3" fill="none" stroke="var(--status-success)" stroke-width="1.6"/></svg>
+              <div class="chg up">+5.42%</div></div>
+            <div class="mrow"><div class="tico" style="background:#26A17B;color:#fff">USDT</div>
+              <div class="tname"><b>Tether</b><span>$1.00</span></div>
+              <svg class="spark" viewBox="0 0 62 22"><path d="M0,11 L10,11 L20,10 L31,11 L41,11 L52,10 L62,11" fill="none" stroke="var(--text-secondary)" stroke-width="1.6"/></svg>
+              <div class="chg">0.00%</div></div>
+          </div>
+          <div class="measure">
+            <span class="nowonly">568 px</span>
+            <span class="a1only">505 px</span><span class="a1only delta neg">−63</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="panel p-trans">
+      <div class="ptitle"><h3>Transactions</h3><a href="#">View all</a></div>
+      <div class="pbody">
+        <div class="xrow"><div class="tico" style="background:var(--status-success-fill);color:var(--status-success)">↓</div>
+          <div class="xdesc"><b>Received from 0x7a3f…c21b</b><span>25 lip, 14:02</span></div>
+          <div class="pill ok col029">Completed</div><div class="xfee col029">0.0004</div>
+          <div class="xamt">+0.4200 ETH</div></div>
+        <div class="xrow"><div class="tico" style="background:var(--brand-fill);color:var(--brand-primary)">⇄</div>
+          <div class="xdesc"><b>Swap GNUS → ETH</b><span>25 lip, 11:47</span></div>
+          <div class="pill pend col029">Pending</div><div class="xfee col029">0.0011</div>
+          <div class="xamt">−120.00 GNUS</div></div>
+        <div class="xrow"><div class="tico" style="background:rgba(194,143,255,.16);color:var(--brand-tertiary)">✦</div>
+          <div class="xdesc"><b>Processing job payout</b><span>24 lip, 22:15</span></div>
+          <div class="pill ok col029">Completed</div><div class="xfee col029">—</div>
+          <div class="xamt">+340.00 SGNUS</div></div>
+        <div class="xrow"><div class="tico" style="background:var(--status-error-fill);color:var(--status-error)">↑</div>
+          <div class="xdesc"><b>Sent to 0x91cd…4f02</b><span>24 lip, 09:31</span></div>
+          <div class="pill ok col029">Completed</div><div class="xfee col029">0.0007</div>
+          <div class="xamt">−0.0800 BTC</div></div>
+        <div class="xrow"><div class="tico" style="background:var(--status-success-fill);color:var(--status-success)">↓</div>
+          <div class="xdesc"><b>Received from 0x2b8e…9a44</b><span>23 lip, 18:20</span></div>
+          <div class="pill ok col029">Completed</div><div class="xfee col029">0.0003</div>
+          <div class="xamt">+52.00 GNUS</div></div>
+      </div>
+      <div class="measure">
+        <span class="nowonly">476 px</span>
+        <span class="a1only">634 px</span><span class="a1only delta">+158</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <b>Co oglądać.</b> Przełącz <kbd>DZIŚ</kbd> ↔ <kbd>A1</kbd> i patrz na dwie rzeczy naraz.
+    <b>Po prawej</b> — kolumna Transactions rośnie o 158&nbsp;px i dopiero wtedy mieszczą się kolumny
+    Status i Fee ze sketcha 029 (obrysowane na niebiesko). W widoku DZIŚ ich po prostu nie ma.
+    <b>Po lewej</b> — Chart schodzi do 757&nbsp;px, a jego rząd zoom/pan potrzebuje ~520&nbsp;px razem z ceną;
+    czerwony znacznik pokazuje, gdzie robi się ciasno. To jest ta cena, o której pisałem.
+    <br><b>Czego tu NIE ma.</b> Szew nadal się nie składa: górny rząd dzieli się na 40/60, dolny na 60/40 —
+    proporcje są odwrócone, więc kolumny nie stoją w pionie. A1 tego nie rusza, bo nie miał ruszać.
+    To jest dokładnie pytanie dla A2.
+  </div>
+
+</div>
+</div>
+
+<script>
+  const app = document.getElementById('app');
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-go]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    app.dataset.v = b.dataset.go;
+  }));
+  const toggle = (id, cls) => document.getElementById(id).addEventListener('click', e => {
+    document.body.classList.toggle(cls);
+    e.currentTarget.classList.toggle('active', document.body.classList.contains(cls));
+  });
+  toggle('t-measure', 'show-measure');
+  toggle('t-pressure', 'show-pressure');
+  toggle('t-029', 'show-029');
+  ['t-measure','t-pressure','t-029'].forEach(i => document.getElementById(i).classList.add('active'));
+  document.getElementById('t-theme').addEventListener('click', () => {
+    const r = document.documentElement;
+    r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+</script>
+</body>
+</html>

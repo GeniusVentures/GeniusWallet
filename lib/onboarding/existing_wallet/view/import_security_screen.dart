@@ -1,11 +1,18 @@
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/types/security_type.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
+import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 class ImportSecurityScreen extends StatelessWidget {
   final String walletType;
@@ -18,6 +25,14 @@ class ImportSecurityScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final isNarrow = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
+
+    // KNOWN DEFECT, DELIBERATELY NOT FIXED HERE (06-04 §1): these controllers
+    // are constructed inside build() and never disposed, and they hold key
+    // material. Making them stateful is a StatelessWidget -> StatefulWidget
+    // conversion — a restructure, which this plan forbids. Noted, left alone;
+    // 06-06 files it as a todo.
     final tabControllers = {
       'phrase': {'pasteField': TextEditingController()},
       'privatekey': {'pasteField': TextEditingController()},
@@ -53,108 +68,154 @@ class ImportSecurityScreen extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: GeniusBreakpoints.small * 0.8,
+                    // Systemic onboarding gutter fix, applied proactively per
+                    // the carried-forward todo rather than waiting for the walk
+                    // to rediscover it a fourth time. Padding OUTSIDE the
+                    // ConstrainedBox, so the inset is additive and wide-window
+                    // centring is unchanged by construction (06-01, 67e2821).
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: GeniusWalletConsts.space8,
                       ),
-                      child: Column(
-                        spacing: 24.0,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Import $walletType Wallet',
-                            style: Theme.of(context).textTheme.headlineLarge,
-                          ),
-                          TextFormField(
-                            decoration: InputDecoration(
-                              hintText: "Enter wallet name",
-                              label: Text("Name"),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: GeniusBreakpoints.small * 0.8,
+                        ),
+                        child: Column(
+                          spacing: 24.0,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Import $walletType Wallet',
+                              style: GeniusWalletTypography.headlineLg.copyWith(
+                                color: gw.textPrimary,
+                              ),
                             ),
-                            controller: walletNameController,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a wallet name';
-                              }
-                              return null;
-                            },
-                          ),
-                          TabBar(
-                            tabAlignment: TabAlignment.center,
-                            isScrollable: true,
-                            tabs: [
-                              Tab(text: 'Phrase'),
-                              Tab(text: 'Private Key'),
-                              Tab(text: 'Keystore'),
-                              Tab(text: 'Address'),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 260,
-                            child: TabBarView(
-                              children: [
-                                PasteField(
-                                  hintText: 'Wallet Mnemonic Phrase',
-                                  subtitle:
-                                      'Typically 12 (sometimes 24) words separated by single spaces.',
-                                  controller:
-                                      tabControllers['phrase']!['pasteField']!,
-                                ),
-                                PasteField(
-                                  hintText: "Wallet Private Key",
-                                  controller:
-                                      tabControllers['privatekey']!['pasteField']!,
-                                  subtitle:
-                                      'Typically 64 alphanumeric characters.',
-                                ),
-                                KeystoreTabView(
-                                  passwordController:
-                                      tabControllers['keystore']!['passwordField']!,
-                                  pasteFieldController:
-                                      tabControllers['keystore']!['pasteField']!,
-                                ),
-                                PasteField(
-                                  height: 150,
-                                  hintText: 'Wallet Address',
-                                  controller:
-                                      tabControllers['address']!['pasteField']!,
-                                  subtitle:
-                                      'You can “watch” any public address without divulging your private key. This let’s you view balances and transactions, but not send transactions.',
-                                ),
-                              ],
+                            GWTextField(
+                              label: 'Name',
+                              hint: 'Enter wallet name',
+                              controller: walletNameController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a wallet name';
+                                }
+                                return null;
+                              },
                             ),
-                          ),
-                          FilledButton(
-                            onPressed: () {
-                              if (!formKey.currentState!.validate()) {
-                                return;
-                              }
-
-                              final selectedIndex = DefaultTabController.of(
-                                context,
-                              ).index;
-
-                              final selectedEntry = tabControllers.entries
-                                  .toList()[selectedIndex];
-
-                              context.read<ExistingWalletBloc>().add(
-                                WalletSecurityEntered(
-                                  coinType: coinType,
-                                  walletName: walletNameController.text,
-                                  walletType: walletType,
-                                  securityType: getSecurityTypeFromTab(
-                                    selectedEntry.key,
+                            // Walk-driven (06-04 Task 4). The plan says leave
+                            // the TabBar alone, and this is a deliberate Rule-1
+                            // deviation from that: with tabAlignment.center +
+                            // isScrollable, overflowing tabs could not be
+                            // scrolled to at narrow widths, so TWO OF THE FOUR
+                            // IMPORT METHODS were unreachable on a phone-sized
+                            // window. That is a functional defect, not a style
+                            // preference. TabAlignment.start is the correct
+                            // pairing for a scrollable TabBar; centring is kept
+                            // above the breakpoint where everything fits.
+                            // Flutter's default MaterialScrollBehavior omits
+                            // PointerDeviceKind.mouse from dragDevices on
+                            // desktop, so a scrollable TabBar cannot be dragged
+                            // with a mouse — and a wheel scrolls vertically,
+                            // which does nothing to a horizontal strip. The
+                            // tabs were therefore scrollable in principle and
+                            // unreachable in practice. Opting the mouse back in
+                            // is what actually makes the overflowing tabs
+                            // reachable; TabAlignment.start alone was not
+                            // enough.
+                            ScrollConfiguration(
+                              behavior: ScrollConfiguration.of(context)
+                                  .copyWith(
+                                    dragDevices: const {
+                                      PointerDeviceKind.touch,
+                                      PointerDeviceKind.mouse,
+                                      PointerDeviceKind.trackpad,
+                                      PointerDeviceKind.stylus,
+                                    },
                                   ),
-                                  pasteFieldText:
-                                      selectedEntry.value['pasteField']!.text,
-                                  password: selectedEntry
-                                      .value['passwordField']
-                                      ?.text,
-                                ),
-                              );
-                            },
-                            child: Text("Import"),
-                          ),
-                        ],
+                              child: TabBar(
+                                tabAlignment: isNarrow
+                                    ? TabAlignment.start
+                                    : TabAlignment.center,
+                                isScrollable: true,
+                                tabs: const [
+                                  Tab(text: 'Phrase'),
+                                  Tab(text: 'Private Key'),
+                                  Tab(text: 'Keystore'),
+                                  Tab(text: 'Address'),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: 260,
+                              child: TabBarView(
+                                children: [
+                                  PasteField(
+                                    hintText: 'Wallet Mnemonic Phrase',
+                                    subtitle:
+                                        'Typically 12 (sometimes 24) words separated by single spaces.',
+                                    controller:
+                                        tabControllers['phrase']!['pasteField']!,
+                                  ),
+                                  PasteField(
+                                    hintText: "Wallet Private Key",
+                                    controller:
+                                        tabControllers['privatekey']!['pasteField']!,
+                                    subtitle:
+                                        'Typically 64 alphanumeric characters.',
+                                  ),
+                                  KeystoreTabView(
+                                    passwordController:
+                                        tabControllers['keystore']!['passwordField']!,
+                                    pasteFieldController:
+                                        tabControllers['keystore']!['pasteField']!,
+                                  ),
+                                  PasteField(
+                                    height: 150,
+                                    hintText: 'Wallet Address',
+                                    controller:
+                                        tabControllers['address']!['pasteField']!,
+                                    subtitle:
+                                        'You can “watch” any public address without divulging your private key. This let’s you view balances and transactions, but not send transactions.',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            GWButton(
+                              label: 'Import',
+                              variant: GWButtonVariant.gradient,
+                              size: GWButtonSize.lg,
+                              expand: true,
+                              onPressed: () {
+                                if (!formKey.currentState!.validate()) {
+                                  return;
+                                }
+
+                                final selectedIndex = DefaultTabController.of(
+                                  context,
+                                ).index;
+
+                                final selectedEntry = tabControllers.entries
+                                    .toList()[selectedIndex];
+
+                                context.read<ExistingWalletBloc>().add(
+                                  WalletSecurityEntered(
+                                    coinType: coinType,
+                                    walletName: walletNameController.text,
+                                    walletType: walletType,
+                                    securityType: getSecurityTypeFromTab(
+                                      selectedEntry.key,
+                                    ),
+                                    pasteFieldText:
+                                        selectedEntry.value['pasteField']!.text,
+                                    password: selectedEntry
+                                        .value['passwordField']
+                                        ?.text,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -165,12 +226,33 @@ class ImportSecurityScreen extends StatelessWidget {
         ),
         BlocBuilder<ExistingWalletBloc, ExistingWalletState>(
           builder: (context, state) {
+            final gw =
+                Theme.of(context).extension<GWColors>() ?? GWColors.dark();
             if (state.importWalletStatus == ExistingWalletStatus.loading) {
-              return const Center(
-                child: AlertDialog(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [Loading(), Text('Importing wallet')],
+              // Walk-driven (06-04 Task 4): the overlay had no scrim, so it did
+              // not read as modal — the live form stayed at full contrast
+              // behind it. surfaceOverlay is the same token GWDialog and
+              // GWBottomSheet already use as their barrierColor, so this
+              // matches every other modal in the app rather than inventing a
+              // value.
+              return SizedBox.expand(
+                child: ColoredBox(
+                  color: context.gw.surfaceOverlay,
+                  child: Center(
+                    child: AlertDialog(
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Loading(),
+                          Text(
+                            'Importing wallet',
+                            style: GeniusWalletTypography.bodyMd.copyWith(
+                              color: gw.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -194,13 +276,38 @@ class KeystoreTabView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
     return PasteField(
       controller: pasteFieldController,
       hintText: 'Wallet Keystore JSON',
+      // Kept as a raw TextFormField, NOT routed through GWTextField (§4.7/§5.4).
+      // obscureText: true is a key-safety property, not a style — preserved.
       additionalWidget: TextFormField(
         controller: passwordController,
         obscureText: true,
-        decoration: const InputDecoration(hintText: 'Password'),
+        // SECURITY — the FOURTH key-bearing typed input, added beyond 06-04's
+        // written scope by explicit decision 2026-07-22.
+        //
+        // The plan hardened three fields (paste_field + the two SDK dialogs).
+        // This one holds the password that decrypts a keystore and had none of
+        // the flags. `obscureText: true` MAY already suppress some of this on
+        // some platforms — but "probably covered" is precisely the reasoning
+        // this plan's own amendment was written to kill: autocorrect and
+        // enableSuggestions also looked sufficient, and left
+        // IME_FLAG_NO_PERSONALIZED_LEARNING wide open. Set them explicitly so
+        // the guarantee does not depend on an unverified platform behaviour.
+        autocorrect: false,
+        enableSuggestions: false,
+        enableIMEPersonalizedLearning: false,
+        textCapitalization: TextCapitalization.none,
+        style: GeniusWalletTypography.bodyLg,
+        decoration: InputDecoration(
+          hintText: 'Password',
+          hintStyle: GeniusWalletTypography.bodyLg.copyWith(
+            color: gw.textSecondary,
+          ),
+        ),
       ),
       subtitle:
           'Several lines of text beginning with “{...}” plus the password you used to encrypt it',

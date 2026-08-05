@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 043 — Connect: 5 sposobów wyświetlenia</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+  svg { display: block; }
+
+  #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border-subtle); padding: 10px 16px; display: flex; gap: 8px;
+    align-items: center; flex-wrap: wrap; }
+  #nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--text-secondary); margin-right: 4px; }
+  #nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .tab { font: 500 12.5px var(--font); color: var(--text-primary-70); background: transparent;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); padding: 6px 13px; cursor: pointer; transition: all .15s; }
+  .tab:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+
+  .stage { position: fixed; inset: 62px 0 0 0; overflow: auto; padding: 26px 0 60px; }
+  .board { display: flex; flex-direction: column; align-items: center; }
+
+  .bar { width: 1500px; height: 60px; display: flex; align-items: center; gap: 16px; padding: 0 24px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .logo { width: 32px; height: 32px; border-radius: 9px; flex: none; background: linear-gradient(135deg, var(--brand-cta-b), var(--brand-cta-a)); }
+  .navtabs { display: flex; gap: 2px; align-items: center; }
+  .navtab { height: 44px; padding: 0 14px; display: flex; align-items: center; border-radius: 12px;
+    color: var(--text-primary-54); font: 500 13px var(--font); white-space: nowrap; }
+  .navtab.on { color: var(--text-primary); background: var(--surface-menu); }
+
+  .cluster { margin-left: auto; display: flex; align-items: center; }
+  .track { display: flex; align-items: center; gap: 2px; flex: none; padding: 3px 6px;
+    background: var(--surface-sunken); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); }
+  .chip { height: 36px; padding: 0 12px; display: flex; align-items: center; gap: 8px; border-radius: var(--radius-pill);
+    background: transparent; color: var(--text-primary); font: 500 12.5px var(--font); white-space: nowrap; flex: none; }
+  .chip.ico { padding: 0 8px; gap: 4px; }
+  .chainico { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg,#627EEA,#8FA2F5); flex: none; }
+  .avatar { width: 20px; height: 20px; border-radius: 50%; flex: none; background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-tertiary)); }
+  .gear { width: 16px; height: 16px; opacity: .75; flex: none; }
+  .caret { width: 14px; height: 14px; opacity: .5; flex: none; }
+  .mono { font-family: var(--font-mono); font-size: 12.5px; }
+  .divider { width: 1px; height: 22px; background: var(--border-subtle); flex: none; margin: 0 2px; }
+
+  /* ===== pole Connect — wspólna geometria ===== */
+  .cf { height: 36px; display: flex; align-items: center; gap: 7px; border-radius: var(--radius-pill);
+    font: 600 12.5px var(--font); flex: none; cursor: pointer; padding: 0 12px; position: relative;
+    color: var(--st); background: transparent; }
+  .cf .ci { width: 18px; height: 18px; flex: none; }
+
+  /* 1 · TINT */
+  #app[data-t="t1"] .cf { background: color-mix(in srgb, var(--st) 16%, transparent); }
+
+  /* 2 · OBRYS GRADIENTOWY (tylko idle; stany dostają swój kolor) */
+  #app[data-t="t2"] .cf { padding: 0; }
+  #app[data-t="t2"] .cf .inner { height: 36px; display: flex; align-items: center; gap: 7px; padding: 0 12px;
+    border-radius: var(--radius-pill); background: var(--surface-sunken); }
+  #app[data-t="t2"] .cf { background: var(--st); }
+  #app[data-t="t2"][data-st="idle"] .cf { background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); }
+  #app[data-t="t2"] .cf::before { content: ""; position: absolute; inset: 1px; border-radius: var(--radius-pill);
+    background: var(--surface-sunken); }
+  #app[data-t="t2"] .cf .inner { position: relative; z-index: 1; background: transparent; }
+
+  /* 3 · WYPEŁNIENIE GRADIENTOWE (tylko idle) */
+  #app[data-t="t3"][data-st="idle"] .cf { background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); color: #001018; }
+  #app[data-t="t3"]:not([data-st="idle"]) .cf { background: color-mix(in srgb, var(--st) 16%, transparent); }
+
+  /* 4 · BEZ TŁA — sama kropka + etykieta */
+  #app[data-t="t4"] .cf { background: transparent; padding: 0 10px; }
+  #app[data-t="t4"] .cf .ci { display: none; }
+  #app[data-t="t4"] .cf .statedot { display: block; }
+
+  /* 4A · BEZ TŁA + TEKST GRADIENTOWY (tylko idle — patrz legenda) */
+  #app[data-t="t4a"] .cf { background: transparent; padding: 0 10px; }
+  #app[data-t="t4a"] .cf .ci { display: none; }
+  #app[data-t="t4a"] .cf .statedot { display: block; }
+  #app[data-t="t4a"][data-st="idle"] .cf .clabel {
+    background: linear-gradient(90deg, var(--brand-cta-a), var(--brand-cta-b));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  #app[data-t="t4a"][data-st="idle"] .cf .statedot {
+    background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-cta-b));
+  }
+
+  /* 5 · PIERŚCIEŃ NA IKONIE */
+  #app[data-t="t5"] .cf { background: transparent; color: var(--text-primary); padding: 0 10px 0 4px; }
+  #app[data-t="t5"] .cf .ring { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--st); color: var(--st); flex: none; }
+  #app[data-t="t5"] .cf .ci { width: 15px; height: 15px; }
+
+  .statedot { display: none; width: 9px; height: 9px; border-radius: 50%; background: var(--st); flex: none; }
+  .ring { display: contents; }
+
+  .measure { width: 1500px; padding: 10px 24px 0; display: flex; justify-content: flex-end;
+    font: 600 11px var(--font-mono); color: var(--brand-primary); }
+  .legend { width: 1500px; padding: 22px 24px 0; color: var(--text-secondary); font-size: 12.5px; line-height: 1.66; }
+  .legend b { color: var(--text-primary); }
+  .legend h4 { color: var(--text-primary); font-size: 13px; margin: 15px 0 4px; }
+  .legend table { border-collapse: collapse; margin: 8px 0; }
+  .legend td, .legend th { border: 1px solid var(--border-subtle); padding: 6px 12px; font-size: 12px; text-align: left; }
+  .legend th { color: var(--text-primary); font-weight: 600; }
+  kbd { font: 600 11px var(--font-mono); background: var(--surface-menu); border: 1px solid var(--border-subtle);
+    border-radius: 5px; padding: 1px 6px; color: var(--text-primary-70); }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="brand">SKETCH 043</span>
+  <span class="sep"></span>
+  <button class="tab active" data-t="t1">1 · tint</button>
+  <button class="tab" data-t="t2">2 · obrys gradientowy</button>
+  <button class="tab" data-t="t3">3 · wypełnienie gradientowe</button>
+  <button class="tab" data-t="t4">4 · bez tła</button>
+  <button class="tab" data-t="t4a">★ 4A · bez tła + tekst gradientowy</button>
+  <button class="tab" data-t="t5">5 · pierścień na ikonie</button>
+  <span class="sep"></span>
+  <button class="tab active" data-st="idle">Rozłączony</button>
+  <button class="tab" data-st="connected">Połączony</button>
+  <button class="tab" data-st="connecting">Łączy</button>
+  <button class="tab" data-st="timedout">Timeout</button>
+  <span class="sep"></span>
+  <button class="tab" id="t-theme">jasny / ciemny</button>
+</div>
+
+<div class="stage"><div class="board">
+<div id="app" data-t="t1" data-st="idle">
+
+  <div class="bar">
+    <div class="logo"></div>
+    <div class="navtabs">
+      <div class="navtab on">Dashboard</div>
+      <div class="navtab">Swap</div>
+      <div class="navtab">Markets</div>
+      <div class="navtab">News</div>
+      <div class="navtab">Web</div>
+    </div>
+    <div class="cluster">
+      <div class="track">
+        <div class="chip ico"><span class="chainico"></span></div>
+        <span class="divider"></span>
+        <div class="chip"><svg class="gear" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm8.9 4a7 7 0 01-.1 1l2 1.6-2 3.4-2.4-1a7 7 0 01-1.7 1l-.4 2.5h-4l-.4-2.5a7 7 0 01-1.7-1l-2.4 1-2-3.4 2-1.6a7 7 0 010-2l-2-1.6 2-3.4 2.4 1a7 7 0 011.7-1L10.3 3h4l.4 2.5a7 7 0 011.7 1l2.4-1 2 3.4-2 1.6c.1.3.1.7.1 1z"/></svg><span class="mono">0x1d9b…4a87</span></div>
+        <span class="divider"></span>
+        <div class="chip"><span class="avatar"></span><span class="mono">0x9fF8…2e2b</span><svg class="caret" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></div>
+        <span class="divider"></span>
+
+        <div class="cf">
+          <span class="inner" style="display:flex;align-items:center;gap:7px">
+            <span class="ring">
+              <svg class="ci" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                <path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7L12 19"/>
+              </svg>
+            </span>
+            <span class="statedot"></span>
+            <span class="clabel">Connect</span>
+          </span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="measure"><span>pole Connect 36 px · tor 44 px · zgodne z hoverem taba</span></div>
+
+  <div class="legend">
+    <b>Skala 1:1.</b> Tor z wariantu 3 (sketch 042), zmienia się wyłącznie <b>pole Connect</b>.
+    <b>Każdy sposób przejedź przez cztery stany</b> — to jest właściwy test, nie wygląd w stanie
+    „Rozłączony".
+
+    <h4>Dlaczego stany są testem, a nie detalem</h4>
+    Gradient marki (<code>brandCta</code>) mówi jedno: <i>marka, zaproszenie do działania</i>. Nie
+    potrafi powiedzieć „błąd" ani „czekaj". A pole Connect ma cztery stany, z czego trzy są statusem,
+    nie zaproszeniem. Dlatego w 2 i 3 gradient jest użyty <b>wyłącznie na stanie „Rozłączony"</b> —
+    jedynym, który faktycznie zaprasza do kliknięcia — a pozostałe trzy dostają swój kolor statusu.
+    Gradient na wszystkich stanach byłby ładny i kłamliwy.
+
+    <h4>Pięć sposobów</h4>
+    <table>
+      <tr><th>#</th><th>Sposób</th><th>Głośność</th><th>Zachowanie w 4 stanach</th></tr>
+      <tr><td>1 ★</td><td><b>tint</b> — miękkie tło 16% w kolorze stanu</td><td>cicho</td><td>identyczne we wszystkich; jeden język</td></tr>
+      <tr><td>2</td><td><b>obrys gradientowy</b> — 1px gradient, wnętrze w kolorze toru</td><td>średnio</td><td>gradient tylko idle, reszta obrys w kolorze stanu</td></tr>
+      <tr><td>3</td><td><b>wypełnienie gradientowe</b> — pełny brandCta, tekst near-black</td><td>głośno</td><td>gradient tylko idle, reszta tint</td></tr>
+      <tr><td>4</td><td><b>bez tła</b> — kropka stanu + etykieta</td><td>najciszej</td><td>identyczne; tylko kropka niesie stan</td></tr>
+      <tr><td>4A ★</td><td><b>bez tła + tekst gradientowy</b></td><td>cicho</td><td>gradient tylko idle; stany = kolor statusu</td></tr>
+      <tr><td>5</td><td><b>pierścień na ikonie</b> — stan na ikonie, etykieta neutralna</td><td>cicho</td><td>identyczne; stan czytelny z ikony</td></tr>
+    </table>
+
+    <h4>★ Rekomendacja po dopisaniu 4A: <b>4A · bez tła + tekst gradientowy</b></h4>
+    Zmieniłem zdanie po tym, jak Jakub o to zapytał — i to nie z uprzejmości, tylko dlatego, że
+    4A rozbraja mój własny zarzut wobec 4. Pisałem, że bez tła pole „przestaje wyglądać na cel". To
+    było błędne: <b>wszystkie trzy chipy obok też nie mają tła i wszystkie są klikalne</b>. Brak tła
+    nie odróżnia Connecta od sąsiadów w złą stronę — dopasowuje go do nich.<br><br>
+    Co daje gradient na tekście: stan „Rozłączony" jest jedynym <i>zaproszeniem</i> w tym polu i
+    dostaje markowy akcent, <b>nie dokładając ani jednej powierzchni do paska</b>, z którego dopiero
+    co usunęliśmy CTA. Pozostałe trzy stany to statusy i malują się swoim kolorem — a że przy okazji
+    zmienia się też sama etykieta („Connect" → „Disconnect"), zmiana sposobu malowania nie czyta się
+    jako niespójność, tylko jako zmiana roli.<br><br>
+    <b>Mechanizm już istnieje w tej aplikacji.</b> <code>transactions_slim_view.dart:565-572</code>
+    maluje gradientem aktywną etykietę filtra i ma rozwiązany problem, który zwykle to zabija:
+    w ciemnym stopnie <code>brandCta</code> mierzą <b>9,4:1 i 6,8:1</b>, w jasnym <b>1,65:1 i 2,28:1</b>
+    (nieczytelne), więc shader degraduje się tam do płaskiego <code>#0A6885</code> (5,61:1). To nie jest
+    nowy pomysł do wymyślenia, tylko trzeci konsument istniejącego wzorca.<br><br>
+    <b>Koszt, który trzeba nazwać:</b> ta funkcja jest dziś prywatna dla pliku transakcji. Trzeci
+    konsument to moment, w którym trzeba ją wynieść do wspólnego miejsca — realna, ale mała robota,
+    i dokładnie ten próg, przy którym wyniesienie przestaje być przedwczesne.<br><br>
+    <b>Gdyby nie 4A, to 1 · tint</b> — jeśli chcesz, żeby pole stanu było wyraźnie odrębnym celem, a
+    nie czwartym równorzędnym chipem. To jedyna realna różnica między nimi.
+
+    <h4>Rekomendacja pierwotna (przed 4A): 1 · tint</h4>
+    Jedyny, który <b>zachowuje się tak samo we wszystkich czterech stanach</b> — a to pole jest w 3 z 4
+    stanów statusem, nie przyciskiem. Dodatkowo: tło 16% odróżnia je od trzech bezramkowych chipów
+    obok, więc widać, że to osobny cel, bez dokładania ramki do toru, który ramek nie ma.<br>
+    <b>Gdyby nie 1, to 5 · pierścień</b> — równie uczciwy w stanach, cichszy, a stan siedzi na ikonie,
+    czyli w miejscu, gdzie i tak pada wzrok. Wybierz, jeśli tint wyda Ci się za ciężki.<br>
+    <b>Czego bym nie brał: 3 · wypełnienie gradientowe.</b> Właśnie zdjęliśmy Buy GNUS, żeby po prawej
+    nic nie krzyczało — a to wstawia w to samo miejsce nowy gradientowy przycisk. Do tego gradient
+    znika przy pierwszej zmianie stanu, więc pasek zmienia język w trakcie użycia.<br>
+    <b>2 · obrys gradientowy</b> jest ładny i ma realny koszt: w Flutterze gradientowa ramka to
+    kontener-w-kontenerze (gradient pod spodem, wnętrze przemalowane kolorem toru), więc pole przestaje
+    być jednym prostym widgetem. Do tego 1px gradientu na 36px pigułce jest ledwo widoczny — efekt jest
+    mniejszy, niż sugeruje nazwa. Obejrzyj z bliska, zanim wybierzesz.
+  </div>
+</div>
+</div></div>
+
+<script>
+  const app = document.getElementById('app');
+  const CS = {
+    idle:      { label:'Connect',     c:'var(--brand-primary)' },
+    connected: { label:'Disconnect',  c:'var(--status-error)' },
+    connecting:{ label:'Connecting…', c:'var(--status-warning)' },
+    timedout:  { label:'Retry',       c:'var(--status-warning)' },
+  };
+  function apply() {
+    const s = CS[app.dataset.st];
+    app.style.setProperty('--st', s.c);
+    document.querySelector('.clabel').textContent = s.label;
+  }
+  document.querySelectorAll('[data-t]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-t]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); app.dataset.t = b.dataset.t; apply();
+  }));
+  document.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-st]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); app.dataset.st = b.dataset.st; apply();
+  }));
+  document.getElementById('t-theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark';
+  });
+  apply();
+</script>
+</body>
+</html>

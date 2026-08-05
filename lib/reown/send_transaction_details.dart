@@ -1,6 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
+import 'package:genius_wallet/components/cards/gw_kicker.dart';
+import 'package:genius_wallet/components/data/gw_copy_row.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
+/// 033-B1's confirm body: a borderless amount hero, a static caution, and one
+/// merged Details card -- replacing today's five separate boxes (a bordered
+/// From box, a bordered To box, the amount hero, an "Estimated changes"
+/// caption, and a fixed-dark fee card). No field is renamed, retyped or
+/// reordered here -- this is a re-skin, not a data change. T-21-11's
+/// mitigation still holds: this file performs no arithmetic, parsing or unit
+/// conversion of its own. Every value arrives already formatted from
+/// `handle_dapp_requests.dart`.
+///
+/// **Decision: the "sending-to" line is folded into the Details grid, not a
+/// floating borderless row above it.** The task text offered a choice --
+/// float `To` alone between the amount and the card, or wrap it in the same
+/// [GWDetailGrid] as everything below. Floating it alone reads as an
+/// accidental leftover of the five-box layout this file replaces (a single
+/// borderless line sitting between two other elements, doing nothing else on
+/// its own). Folded in, `From` and `To` sit together at the top of the one
+/// Details card -- both via [GWCopyRow] so the FULL address always reaches the
+/// clipboard even though the row shows a truncated form for eyeball-verify.
+///
+/// **`GWWarningNote` was not forked and was not given a borderless flag.**
+/// 033-B1 asks for the caution to be a tint with no border;
+/// `gw_warning_note.dart` has a hard-coded `Border.all(...)` and no such mode.
+/// This file would be that component's fourth consumer, which is the point at
+/// which AGENTS.md's Rule of Three would normally justify extracting a shared
+/// variant -- except the shape a fourth consumer needs here is not a new
+/// component, it is the SAME component with one boolean toggled, and
+/// AGENTS.md's own Rule of Three text names that exact case as the one NOT to
+/// extract ("if the shared version needs a boolean flag ... don't extract
+/// it"). The caution keeps its existing half-alpha border rather than forking
+/// or flagging it. Upgrade path, if a borderless mode is ever genuinely
+/// needed app-wide: a second NAMED constructor on `GWWarningNote` (not a
+/// bool), added the next time a real caller needs it, with its own contrast
+/// measurement in both modes the way the current border already has one.
 class SendTransactionDetails extends StatelessWidget {
   final String fromAddress;
   final String toAddress;
@@ -23,97 +62,93 @@ class SendTransactionDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = context.gw;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 24),
-        _labeledBox(label: "From", value: fromAddress),
-        const SizedBox(height: 12),
-        _labeledBox(label: "To", value: toAddress),
-        const SizedBox(height: 24),
-        Center(
-          child: Column(
-            children: [
-              Text(
-                amount,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                "Estimated changes",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    _fieldRow("You send", "$amount ETH"),
-                    const SizedBox(height: 8),
-                    if (receiveTokenSymbol != null) ...[
-                      _fieldRow("You receive", receiveTokenSymbol!),
-                      const SizedBox(height: 20),
-                    ],
-                    _fieldRow("Gas Fee", "$totalGasFee ETH"),
-                    const SizedBox(height: 4),
-                    _fieldRow("Max Fee Per Gas", "$maxFeePerGas ETH"),
-                    const SizedBox(height: 4),
-                    _fieldRow("Priority Fee", "$priorityFee ETH"),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _labeledBox({required String label, required String value}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.all(12),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade700),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(color: Colors.white),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _fieldRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
+        // The amount hero: borderless, centred, and NEUTRAL (D-03) -- no
+        // status colour, no accent, ever. Only the hand-typed fontSize:
+        // 28/FontWeight.bold pair is replaced here; the amount itself was
+        // already borderless.
         Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          amount,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GeniusWalletTypography.numericHeadline.copyWith(
+            color: gw.textPrimary,
+          ),
         ),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 14)),
+        const SizedBox(height: GeniusWalletConsts.space6),
+        const GWWarningNote(
+          "Double-check the recipient address before approving. "
+          "GeniusWallet can't undo a transfer.",
+        ),
+        const SizedBox(height: GeniusWalletConsts.space10),
+        const GWKicker('Details'),
+        const SizedBox(height: GeniusWalletConsts.space4),
+        GWDetailGrid(
+          rows: [
+            if (fromAddress.isNotEmpty)
+              GWCopyRow(label: 'From', value: fromAddress),
+            if (toAddress.isNotEmpty) GWCopyRow(label: 'To', value: toAddress),
+            if (amount.isNotEmpty)
+              _PlainDetailRow(label: 'You send', value: '$amount ETH'),
+            if (receiveTokenSymbol != null && receiveTokenSymbol!.isNotEmpty)
+              _PlainDetailRow(label: 'You receive', value: receiveTokenSymbol!),
+            if (totalGasFee.isNotEmpty)
+              _PlainDetailRow(label: 'Gas Fee', value: '$totalGasFee ETH'),
+            if (maxFeePerGas.isNotEmpty)
+              _PlainDetailRow(
+                label: 'Max Fee Per Gas',
+                value: '$maxFeePerGas ETH',
+              ),
+            if (priorityFee.isNotEmpty)
+              _PlainDetailRow(label: 'Priority Fee', value: '$priorityFee ETH'),
+          ],
+        ),
       ],
+    );
+  }
+}
+
+/// A plain label/value Details-grid row -- the widget form of
+/// `transaction_displays.dart`'s own top-level `_buildRow`, kept as a small
+/// [StatelessWidget] rather than a `_buildFoo()` helper method per AGENTS.md's
+/// "widgets, not helper methods" rule.
+class _PlainDetailRow extends StatelessWidget {
+  const _PlainDetailRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = context.gw;
+    return Padding(
+      padding: kGWDetailRowPadding,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GeniusWalletTypography.bodySm.copyWith(
+              color: gw.textPrimary70,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GeniusWalletTypography.bodyMd.copyWith(
+                color: gw.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

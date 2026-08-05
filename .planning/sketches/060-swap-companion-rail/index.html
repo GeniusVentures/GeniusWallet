@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>060 · Swap companion rail — co wypełnia stronę, żeby tytuł mógł zostać top-left</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#000; color:var(--text-primary); padding:56px 16px 64px; }
+  .wrap { max-width:1740px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:#0b0d12; border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-menu); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 auto var(--space-8); max-width:1060px; }
+  .lede b { color:var(--text-primary); } .lede code { font-family:var(--font-mono); font-size:12px; color:var(--text-primary); }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-secondary); }
+  .tag.bad { background:var(--status-error-fill); color:var(--status-error); }
+  .tag.warn { background:rgba(255,196,46,.14); color:var(--status-warning); }
+  .tag.free { background:var(--status-success-fill); color:var(--status-success); }
+
+  /* ---------- real app window ---------- */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); box-shadow:var(--shadow-card);
+    width:100%; max-width:var(--winw, 100%); margin:0 auto; transition:max-width .2s ease; }
+  .navbar { display:flex; align-items:center; gap:var(--space-10); height:68px; padding:0 var(--space-12);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); font:500 14px/18px var(--font); color:var(--text-secondary); }
+  .navbar .brand { width:24px; height:24px; border-radius:7px; background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-24px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+  .navbar .right { margin-left:auto; display:flex; align-items:center; gap:var(--space-6); }
+  .navbar .right > * { flex:none; white-space:nowrap; }
+  .navbar .chip { padding:6px 11px; border-radius:var(--radius-sm); background:var(--surface-menu); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid var(--border-subtle); }
+  .navbar .navcta { padding:7px 13px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); color:var(--text-on-brand); font:600 12px/16px var(--font); }
+  body.no-nav .navbar { display:none; }
+
+  .stage { position:relative; min-height:700px; }
+  .variant { display:none; } .variant.active { display:block; }
+
+  /* ---------- GWPageHeader (real tokens) ---------- */
+  .pagehead { display:flex; align-items:flex-start; }
+  .pagehead h2 { font:600 28px/36px var(--font); letter-spacing:-.5px; color:var(--text-primary); }
+  .pagehead .sub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:var(--space-2); }
+  .pagehead .grow { margin-right:auto; }
+  .tune { width:40px; height:40px; border-radius:var(--radius-sm); border:1px solid transparent; background:transparent;
+    color:var(--text-secondary); display:grid; place-items:center; cursor:pointer; transition:all .15s ease; flex:none; }
+  .tune:hover { background:var(--surface-menu); color:var(--text-primary); transform:translateY(-1px); }
+  .tune.labelled { width:auto; padding:0 14px; gap:8px; font:600 13px/1 var(--font); border-color:var(--border-subtle); border-radius:var(--radius-pill); }
+
+  /* ---------- token logo / pill ---------- */
+  .logo { border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font:800 11px/1 var(--font); }
+  .logo.eth { background:linear-gradient(135deg,#8FA2F5,#627EEA); } .logo.usdc { background:linear-gradient(135deg,#3E8FE0,#2775CA); }
+  .logo.usdt { background:linear-gradient(135deg,#3fc79a,#26A17B); } .logo.pol { background:linear-gradient(135deg,#a06bf0,#8247E5); }
+  .logo.wbtc { background:linear-gradient(135deg,#f7b267,#F09242); }
+  .tk { display:inline-flex; align-items:center; gap:9px; padding:6px 12px 6px 7px; border-radius:var(--radius-pill);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-primary); cursor:pointer; transition:all .15s ease; white-space:nowrap; }
+  .tk:hover { border-color:var(--brand-primary); transform:translateY(-1px); }
+  .tk .sym { font:700 16px/1 var(--font); } .tk .cv { color:var(--text-secondary); display:grid; place-items:center; }
+
+  .amt { background:transparent; border:none; outline:none; color:var(--text-primary); font:600 38px/1 var(--font);
+    font-variant-numeric:tabular-nums; width:100%; letter-spacing:-.5px; }
+  .amt::placeholder { color:var(--text-primary-38); }
+  .usd { font:500 14px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .flabel { font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .bal { font:500 12px/16px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .maxbtn { font:700 10px/1 var(--font); letter-spacing:.4px; color:var(--brand-secondary); background:var(--brand-fill);
+    border:none; border-radius:6px; padding:5px 7px; cursor:pointer; transition:all .15s ease; }
+  .maxbtn:hover { filter:brightness(1.12); }
+
+  .cta { width:100%; height:56px; border:none; border-radius:var(--radius-md); font:600 17px/1 var(--font); cursor:pointer;
+    color:var(--text-on-brand); background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); transition:all .15s ease; }
+  .cta:hover:not(:disabled) { filter:brightness(1.06); transform:translateY(-1px); box-shadow:0 8px 22px rgba(10,216,156,.30); }
+  .cta:disabled { cursor:not-allowed; background:var(--surface-menu); color:var(--text-primary-38); }
+  .cta.loading { background:var(--surface-menu); color:var(--text-secondary); cursor:progress; }
+  .cta.err { background:var(--status-error-fill); color:var(--status-error); }
+
+  .card { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-2xl); box-shadow:var(--shadow-card); }
+  svg.i { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  .a-field { padding:20px 20px 22px; }
+  .a-field .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .a-field .mid { display:flex; align-items:flex-end; gap:12px; } .a-field .mid .col2 { flex:1; min-width:0; }
+  .a-field .foot { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+  .a-seam { position:relative; height:0; z-index:2; }
+  .a-flip { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:44px; height:44px; border-radius:14px;
+    background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); border:5px solid var(--surface-elevated); color:var(--text-on-brand);
+    display:grid; place-items:center; cursor:pointer; transition:filter .15s ease; }
+  .a-flip:hover { filter:brightness(1.06); } .a-flip svg { width:20px; height:20px; }
+
+  /* inline route (dzisiejszy RouteDetailsCard) */
+  .route { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-elevated); overflow:hidden; }
+  .rrow { display:flex; justify-content:space-between; align-items:center; padding:12px 15px; font:500 13px/18px var(--font); }
+  .rrow .k { color:var(--text-secondary); } .rrow .v { color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .rrow + .rrow { border-top:1px solid var(--border-subtle); } .rrow .v.good { color:var(--status-success); }
+  .rrow .v.dim { color:var(--text-primary-38); }
+
+  /* ---------- shared page frame ---------- */
+  .frame { max-width:1600px; margin:0 auto; padding-left:12px; padding-right:12px; }
+  .sheen { position:absolute; inset:0; pointer-events:none; z-index:0; }
+  .sheen::before { content:""; position:absolute; left:38%; top:46%; width:820px; height:520px; transform:translate(-50%,-50%);
+    background:radial-gradient(closest-side, rgba(10,174,230,.10), transparent 72%),
+               radial-gradient(closest-side, rgba(10,216,156,.08), transparent 70%); }
+
+  /* ---------- panels (prawa szyna) ---------- */
+  .panel { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-2xl); box-shadow:var(--shadow-card); padding:18px; }
+  .panel + .panel { margin-top:var(--space-8); }
+  .panel h4 { font:600 12px/16px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.6px;
+    margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .panel h4 .r { margin-left:auto; text-transform:none; letter-spacing:0; font:500 12px/16px var(--font); }
+  .hint { font:400 12px/17px var(--font); color:var(--text-primary-38); margin-top:12px; }
+
+  /* route bar (chain -> chain) */
+  .chainbar { display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:var(--radius-md);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); margin-bottom:14px; }
+  .chainbar .cn { font:600 13px/18px var(--font); color:var(--text-primary); }
+  .chainbar .ar { color:var(--text-secondary); display:grid; place-items:center; }
+  .chainbar .hops { margin-left:auto; font:500 11px/15px var(--font); color:var(--text-secondary); }
+  .dotchain { width:20px; height:20px; border-radius:50%; flex:none; }
+  .dotchain.eth { background:linear-gradient(135deg,#8FA2F5,#627EEA); }
+  .dotchain.pol { background:linear-gradient(135deg,#a06bf0,#8247E5); }
+
+  /* balances list */
+  .brow { display:flex; align-items:center; gap:11px; padding:10px 8px; border-radius:var(--radius-sm); cursor:pointer; transition:all .13s ease; }
+  .brow:hover { background:var(--surface-menu); transform:translateY(-1px); }
+  .brow .nm { font:500 14px/19px var(--font); color:var(--text-primary); }
+  .brow .sb { font:400 11px/15px var(--font); color:var(--text-secondary); }
+  .brow .rb { margin-left:auto; text-align:right; }
+  .brow .rb .b { font:500 14px/19px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .brow .rb .u { font:400 11px/15px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .brow.zero .nm, .brow.zero .rb .b { color:var(--text-primary-38); }
+  .usebtn { font:700 10px/1 var(--font); letter-spacing:.4px; color:var(--brand-secondary); background:var(--brand-fill);
+    border:none; border-radius:6px; padding:6px 8px; cursor:pointer; opacity:0; transition:opacity .13s ease; }
+  .brow:hover .usebtn { opacity:1; }
+
+  /* stat tiles (D) */
+  .tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-4); }
+  .tile { background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:14px 15px; }
+  .tile .k { font:500 11px/15px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; }
+  .tile .v { font:600 20px/27px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; margin-top:5px; letter-spacing:-.3px; }
+  .tile .v.dim { color:var(--text-primary-38); } .tile .v.good { color:var(--status-success); }
+  .tile .v.sm { font-size:15px; line-height:27px; }
+  @media(max-width:1400px){ .tiles { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+  /* ---------- per-variant layout ---------- */
+  .pad { position:relative; padding:64px 0 48px; overflow:hidden; }
+  .z { position:relative; z-index:1; }
+  .col560 { width:100%; max-width:560px; }
+
+  /* A · RAIL — formularz lewo, szyna prawo, blok 1024 przy lewej krawędzi */
+  .grid-a { display:grid; grid-template-columns:minmax(0,560px) minmax(300px,440px); gap:var(--space-12); align-items:start; max-width:1024px; }
+  /* B · PORTFOLIO — szyna lewo (pod tytułem), formularz prawo */
+  .grid-b { display:grid; grid-template-columns:minmax(280px,360px) minmax(0,560px); gap:var(--space-12); align-items:start; max-width:944px; }
+  /* D · WORKBENCH — formularz lewo, szeroka szyna 2-kol */
+  .grid-d { display:grid; grid-template-columns:minmax(0,560px) minmax(420px,700px); gap:var(--space-12); align-items:start; max-width:1284px; }
+  /* E · CHECKOUT — formularz lewo, sticky summary prawo */
+  .grid-e { display:grid; grid-template-columns:minmax(0,560px) minmax(320px,400px); gap:var(--space-16); align-items:start; max-width:984px; }
+  .sticky { position:sticky; top:76px; }
+  @media(max-width:1180px){
+    .grid-a,.grid-b,.grid-d,.grid-e { grid-template-columns:minmax(0,560px); max-width:560px; }
+    .grid-b .railside { order:2; } .grid-b .formside { order:1; }
+  }
+
+  /* C · RIBBON — wstęga pełną szerokością pod nagłówkiem, karta wycentrowana */
+  .ribbon { border-top:1px solid var(--border-subtle); border-bottom:1px solid var(--border-subtle);
+    background:linear-gradient(180deg, var(--surface-sheen-a), transparent); }
+  .ribbon .inner { display:flex; align-items:center; gap:var(--space-8); padding:16px 0; flex-wrap:wrap; }
+  .rib { display:flex; flex-direction:column; gap:3px; min-width:120px; }
+  .rib .k { font:500 10px/14px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.6px; }
+  .rib .v { font:600 15px/21px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .rib .v.dim { color:var(--text-primary-38); } .rib .v.good { color:var(--status-success); }
+  .rib.sep { border-left:1px solid var(--border-subtle); padding-left:var(--space-8); }
+  .rib.pairbox { min-width:190px; }
+
+  /* ---------- measurement overlay ---------- */
+  .mz { display:none; } body.measure .mz { display:block; position:absolute; z-index:5; pointer-events:none; }
+  .mz .rule { position:absolute; inset:0; border-left:1px dashed rgba(20,200,255,.55); }
+  .mz .lbl { position:absolute; top:0; left:6px; font:600 10px/14px var(--font-mono); color:var(--brand-primary);
+    background:rgba(0,0,0,.6); padding:1px 5px; border-radius:3px; white-space:nowrap; }
+  body.measure .axisline { outline:1px dashed rgba(43,245,180,.5); }
+  .leftover { display:none; }
+  body.measure .leftover { display:flex; align-items:center; justify-content:center; position:absolute; top:64px; bottom:48px; right:12px;
+    background:repeating-linear-gradient(45deg, rgba(255,77,77,.05) 0 8px, transparent 8px 16px); border-left:1px dashed rgba(255,77,77,.4);
+    font:600 10px/14px var(--font-mono); color:var(--status-error); z-index:4; pointer-events:none; }
+
+  /* ---------- picker / settings ---------- */
+  #picker,#settings { position:fixed; inset:0; z-index:9997; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; }
+  #picker.open,#settings.open { display:flex; }
+  #picker .sheet { width:100%; max-width:420px; background:var(--surface-base); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:18px 16px 22px; max-height:72vh; overflow:auto; }
+  #picker h3,#settings h3 { font:600 18px/24px var(--font); margin-bottom:14px; }
+  #picker .search { display:flex; align-items:center; gap:8px; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:14px; color:var(--text-secondary); }
+  #picker .search input { background:transparent; border:none; outline:none; color:var(--text-primary); font:400 15px/20px var(--font); flex:1; }
+  .prow { display:flex; align-items:center; gap:12px; padding:11px 10px; border-radius:var(--radius-md); cursor:pointer; transition:all .12s ease; }
+  .prow:hover { background:var(--surface-menu); } .prow .nm { font:500 15px/20px var(--font); color:var(--text-primary); }
+  .prow .sub { font:400 12px/16px var(--font); color:var(--text-secondary); } .prow .rb { margin-left:auto; text-align:right; }
+  .prow .rb .b { font:500 13px/18px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  #settings .box { width:320px; background:var(--surface-base); border:1px solid var(--border-strong); border-radius:var(--radius-lg); padding:18px; }
+  .chip2 { font:600 12px/1 var(--font); padding:8px 12px; border-radius:var(--radius-pill); border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .chip2:hover { color:var(--text-primary); border-color:var(--border-strong); }
+  .chip2.on { background:var(--brand-fill); border-color:transparent; color:var(--brand-secondary); }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="name">060 · Swap companion rail</span>
+  <button class="vt active" onclick="showVariant('now',event)">0 · Dziś</button>
+  <button class="vt" onclick="showVariant('a',event)">A · Szyna ★</button>
+  <button class="vt" onclick="showVariant('b',event)">B · Portfolio-first</button>
+  <button class="vt" onclick="showVariant('c',event)">C · Wstęga</button>
+  <button class="vt" onclick="showVariant('d',event)">D · Warsztat</button>
+  <button class="vt" onclick="showVariant('e',event)">E · Checkout</button>
+</div>
+
+<div class="wrap">
+  <p class="lede" id="lede"></p>
+  <div class="win" id="win">
+    <div class="navbar">
+      <div class="brand"></div>
+      <span>Dashboard</span><span>Transactions</span><span class="on">Swap</span><span>Markets</span><span>News</span><span>Web</span>
+      <div class="right"><span class="chip">Ethereum</span><span class="chip">0x12…9f</span><span class="navcta">Connect</span></div>
+    </div>
+
+    <div class="stage">
+
+      <!-- ============ 0 · DZIŚ ============ -->
+      <div id="variant-now" class="variant active vroot" data-v="now">
+        <div class="pad">
+          <div class="sheen"></div>
+          <div class="frame z">
+            <div class="pagehead axisline">
+              <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+              <button class="tune" onclick="openSettings()" title="Ustawienia (slippage)">__TUNE__</button>
+            </div>
+            <div style="height:16px"></div>
+            <div style="max-width:560px;margin:0 auto;padding:0 20px;" class="axisline"><div class="win2"></div></div>
+            <div class="mz" style="left:12px;top:0;bottom:0;width:1px;"><div class="rule"></div><div class="lbl">tytuł X = ramka (xxl 1600)</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ A · SZYNA ============ -->
+      <div id="variant-a" class="variant vroot" data-v="a">
+        <div class="pad">
+          <div class="sheen"></div>
+          <div class="frame z">
+            <div style="max-width:1024px;">
+              <div class="pagehead axisline" style="margin-bottom:26px;">
+                <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+                <button class="tune labelled" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+              </div>
+            </div>
+            <div class="grid-a">
+              <div class="axisline"><div class="win2"></div></div>
+              <div>
+                <div class="panel"><h4>Route <span class="r tag warn">mock-shape</span></h4><div data-slot="route"></div></div>
+                <div class="panel"><h4>Recent swaps <span class="r tag free">realne</span></h4><div data-slot="recent"></div></div>
+                <div class="panel"><h4>Your balances <span class="r tag warn">mock</span></h4><div data-slot="balances"></div></div>
+              </div>
+            </div>
+            <div class="mz" style="left:12px;top:0;bottom:0;width:1px;"><div class="rule"></div><div class="lbl">tytuł = lewa krawędź formularza = lewa krawędź CTA</div></div>
+          </div>
+          <div class="leftover" style="width:calc(100% - 1048px);">pusto</div>
+        </div>
+      </div>
+
+      <!-- ============ B · PORTFOLIO-FIRST ============ -->
+      <div id="variant-b" class="variant vroot" data-v="b">
+        <div class="pad">
+          <div class="sheen"></div>
+          <div class="frame z">
+            <div style="max-width:944px;">
+              <div class="pagehead axisline" style="margin-bottom:26px;">
+                <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+                <button class="tune labelled" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+              </div>
+            </div>
+            <div class="grid-b">
+              <div class="railside">
+                <div class="panel" style="padding:14px;">
+                  <h4>Your balances <span class="r tag warn">mock</span></h4>
+                  <div data-slot="balances"></div>
+                  <div class="hint">Kliknij token, żeby ustawić go jako „You Pay".</div>
+                </div>
+              </div>
+              <div class="formside axisline"><div class="win2"></div></div>
+            </div>
+            <div class="mz" style="left:12px;top:0;bottom:0;width:1px;"><div class="rule"></div><div class="lbl">tytuł = lewa krawędź listy sald</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ C · WSTĘGA ============ -->
+      <div id="variant-c" class="variant vroot" data-v="c">
+        <div style="padding:40px 0 18px;">
+          <div class="frame">
+            <div class="pagehead axisline">
+              <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+              <button class="tune labelled" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="ribbon"><div class="frame"><div class="inner" data-slot="ribbon"></div></div></div>
+        <div class="pad" style="padding-top:48px;">
+          <div class="sheen" style="left:0;"></div>
+          <div class="frame z">
+            <div style="max-width:560px;margin:0 auto;" class="axisline"><div class="win2"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ D · WARSZTAT ============ -->
+      <div id="variant-d" class="variant vroot" data-v="d">
+        <div class="pad">
+          <div class="sheen"></div>
+          <div class="frame z">
+            <div style="max-width:1284px;">
+              <div class="pagehead axisline" style="margin-bottom:26px;">
+                <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+                <button class="tune labelled" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+              </div>
+            </div>
+            <div class="grid-d">
+              <div class="axisline"><div class="win2"></div></div>
+              <div>
+                <div data-slot="chainbar"></div>
+                <div class="tiles" data-slot="tiles"></div>
+                <div class="panel" style="margin-top:var(--space-8);">
+                  <h4>Your balances <span class="r tag warn">mock</span></h4>
+                  <div data-slot="balances"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mz" style="left:12px;top:0;bottom:0;width:1px;"><div class="rule"></div><div class="lbl">blok 1284 przy lewej krawędzi</div></div>
+          </div>
+          <div class="leftover" style="width:calc(100% - 1308px);">pusto</div>
+        </div>
+      </div>
+
+      <!-- ============ E · CHECKOUT ============ -->
+      <div id="variant-e" class="variant vroot" data-v="e">
+        <div class="pad">
+          <div class="sheen"></div>
+          <div class="frame z">
+            <div style="max-width:984px;">
+              <div class="pagehead axisline" style="margin-bottom:26px;">
+                <div class="grow"><h2>Swap</h2><div class="sub">Trade any token across chains</div></div>
+                <button class="tune labelled" onclick="openSettings()">__TUNE__<span>Slippage 0.5%</span></button>
+              </div>
+            </div>
+            <div class="grid-e">
+              <div class="axisline"><div class="win2"></div></div>
+              <div class="sticky">
+                <div class="panel" style="border-color:var(--border-strong);">
+                  <h4>Order summary</h4>
+                  <div data-slot="summary"></div>
+                </div>
+                <div class="hint" style="padding:0 4px;">Akcja główna mieszka razem z podsumowaniem, jak w koszyku.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- token picker -->
+<div id="picker" onclick="if(event.target===this)closePicker()">
+  <div class="sheet"><h3>Select Token</h3>
+    <div class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="pickerSearch" placeholder="Search tokens..." oninput="renderPickerList()"></div>
+    <div id="pickerList"></div>
+  </div>
+</div>
+<!-- settings -->
+<div id="settings" onclick="if(event.target===this)closeSettings()">
+  <div class="box"><h3>Swap Settings</h3>
+    <div style="font:500 13px/18px var(--font); color:var(--text-secondary); margin-bottom:10px;">Slippage tolerance</div>
+    <div style="display:flex; gap:8px;">
+      <button class="chip2 on" onclick="setSlipAll(0.5,this)">0.5%</button>
+      <button class="chip2" onclick="setSlipAll(1.0,this)">1.0%</button>
+      <button class="chip2" onclick="setSlipAll(2.0,this)">2.0%</button>
+      <button class="chip2" style="flex:1;" onclick="closeSettings()">Custom</button>
+    </div>
+  </div>
+</div>
+
+<div id="sketch-tools" style="position:fixed;bottom:12px;right:12px;z-index:9999;font-family:system-ui;font-size:12px;background:rgba(0,0,0,0.72);color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;transition:opacity .2s;display:flex;gap:14px;align-items:center;" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=.45">
+  <span>
+    <button onclick="setTheme('dark')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Dark</button>
+    <button onclick="setTheme('light')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Light</button>
+  </span>
+  <span>
+    <button onclick="setW('100%')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">1700</button>
+    <button onclick="setW('1280px')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">1280</button>
+    <button onclick="setW('900px')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">900</button>
+  </span>
+  <span>
+    <button onclick="fillAll()" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Wypełnij</button>
+    <button onclick="clearAll()" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Pusty</button>
+  </span>
+  <span>
+    <button onclick="document.body.classList.toggle('measure')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Osie</button>
+    <button onclick="document.body.classList.toggle('no-nav')" style="background:none;border:1px solid #555;color:#fff;border-radius:5px;padding:3px 7px;cursor:pointer;">Navbar</button>
+  </span>
+</div>
+
+<script>
+const TUNE = '<svg class="i" viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>';
+document.querySelectorAll('.tune').forEach(b => b.innerHTML = b.innerHTML.replace('__TUNE__', TUNE));
+const CHEV = '<svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px;"><polyline points="6 9 12 15 18 9"/></svg>';
+const ARROW = '<svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>';
+
+/* Kształty danych 1:1 z kodu: SquidTokenInfo.symbol/chain/balance (SquidBalance.amountAsDouble),
+   SquidRouteResponse.fromChain/toChain/route/gasCosts/feeCosts/exchangeRate/aggregatePriceImpact. */
+const TOKENS = {
+  ETH:  { sym:'ETH',  name:'Ethereum',        price:3420.55, bal:1.842,  cls:'eth',  chain:'Ethereum', cc:'eth' },
+  USDC: { sym:'USDC', name:'USD Coin',        price:1.00,    bal:0,      cls:'usdc', chain:'Polygon',  cc:'pol' },
+  USDT: { sym:'USDT', name:'Tether',          price:1.00,    bal:250.00, cls:'usdt', chain:'Ethereum', cc:'eth' },
+  POL:  { sym:'POL',  name:'Polygon',         price:0.52,    bal:820.4,  cls:'pol',  chain:'Polygon',  cc:'pol' },
+  WBTC: { sym:'WBTC', name:'Wrapped Bitcoin', price:96420.0, bal:0.0154, cls:'wbtc', chain:'Ethereum', cc:'eth' },
+};
+const ORDER = ['ETH','POL','USDT','WBTC','USDC'];
+const VS = ['now','a','b','c','d','e'];
+const OPTS = { now:{inline:true,cta:true}, a:{inline:false,cta:true}, b:{inline:true,cta:true},
+               c:{inline:false,cta:true}, d:{inline:false,cta:true}, e:{inline:false,cta:false} };
+const SLIP = {}; VS.forEach(v => SLIP[v] = 0.5);
+const FEE_PCT = 0.001, IMPACT = 0.08, GAS_USD = 1.12, HOPS = 2;
+const state = {}; VS.forEach(v => state[v] = { from:'ETH', to:'USDC', amt:'', quote:null });
+const debounce = {};
+
+function root(v){ return document.querySelector(`.vroot[data-v="${v}"]`); }
+function slot(v,n){ return root(v).querySelector(`[data-slot="${n}"]`); }
+function fmt(n,dp){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp}); }
+function usd(n){ return '$'+fmt(n,2); }
+function logoHTML(key,size){ const t=TOKENS[key]; const s=size||28; return `<span class="logo ${t.cls}" style="width:${s}px;height:${s}px;">${t.sym[0]}</span>`; }
+
+const CARD = (v)=>`
+  <div class="card a-field">
+    <div class="top"><span class="flabel">You Pay</span></div>
+    <div class="mid"><div class="col2"><input class="amt pay-in" data-v="${v}" placeholder="0.0"></div><div class="tk" data-side="from" onclick="openPicker('${v}','from')"></div></div>
+    <div class="foot"><span class="usd pay-usd">$0.00</span><span style="display:flex;align-items:center;gap:8px;"><span class="bal from-bal"></span><button class="maxbtn" onclick="setMax('${v}')">MAX</button></span></div>
+  </div>
+  <div class="a-seam"><div class="a-flip" onclick="flip('${v}')"><svg class="i" viewBox="0 0 24 24"><path d="M7 4v13M7 4l-3 3M7 4l3 3M17 20V7M17 20l3-3M17 20l-3-3"/></svg></div></div>
+  <div class="card a-field" style="margin-top:16px;">
+    <div class="top"><span class="flabel">You Receive</span></div>
+    <div class="mid"><div class="col2"><div class="amt rec-out" style="color:var(--text-primary-38)">0.0</div></div><div class="tk" data-side="to" onclick="openPicker('${v}','to')"></div></div>
+    <div class="foot"><span class="usd rec-usd">$0.00</span><span class="bal to-bal"></span></div>
+  </div>
+  ${OPTS[v].inline ? `<div class="route rdetails" style="display:none; margin-top:16px;"></div>` : ``}
+  ${OPTS[v].cta ? `<button class="cta cta-btn" disabled style="margin-top:24px;">Enter an amount</button>` : ``}`;
+VS.forEach(v => { root(v).querySelector('.win2').innerHTML = CARD(v); });
+
+/* ---------- panele ---------- */
+function routeRows(v){
+  const s=state[v], q=s.quote, from=TOKENS[s.from], to=TOKENS[s.to];
+  const dash = `<span class="v dim">—</span>`;
+  const chainbar = `<div class="chainbar">
+      <span class="dotchain ${from.cc}"></span><span class="cn">${from.chain}</span>
+      <span class="ar">${ARROW}</span>
+      <span class="dotchain ${to.cc}"></span><span class="cn">${to.chain}</span>
+      <span class="hops">${q?`${HOPS} hops`:`route —`}</span>
+    </div>`;
+  const rows = `
+    <div class="rrow"><span class="k">Rate</span>${q?`<span class="v">${q.rateStr}</span>`:dash}</div>
+    <div class="rrow"><span class="k">Price impact</span>${q?`<span class="v good">${IMPACT}%</span>`:dash}</div>
+    <div class="rrow"><span class="k">Network gas</span>${q?`<span class="v">${usd(GAS_USD)}</span>`:dash}</div>
+    <div class="rrow"><span class="k">Route fee</span>${q?`<span class="v">${usd(q.feeUsd)}</span>`:dash}</div>
+    <div class="rrow"><span class="k">Slippage</span><span class="v">${SLIP[v]}%</span></div>`;
+  return chainbar + `<div class="route">${rows}</div>` +
+    (q?``:`<div class="hint">Wpisz kwotę, żeby zobaczyć trasę i koszty.</div>`);
+}
+function ribbonHTML(v){
+  const s=state[v], q=s.quote, from=TOKENS[s.from], to=TOKENS[s.to];
+  const d = `<span class="v dim">—</span>`;
+  return `<div class="rib pairbox"><span class="k">Route</span><span class="v" style="display:flex;align-items:center;gap:7px;">
+            <span class="dotchain ${from.cc}" style="width:16px;height:16px;"></span>${from.chain}
+            <span style="color:var(--text-secondary);display:grid;place-items:center;">${ARROW}</span>
+            <span class="dotchain ${to.cc}" style="width:16px;height:16px;"></span>${to.chain}</span></div>
+          <div class="rib sep"><span class="k">Rate</span>${q?`<span class="v">${q.rateStr}</span>`:d}</div>
+          <div class="rib sep"><span class="k">Price impact</span>${q?`<span class="v good">${IMPACT}%</span>`:d}</div>
+          <div class="rib sep"><span class="k">Network gas</span>${q?`<span class="v">${usd(GAS_USD)}</span>`:d}</div>
+          <div class="rib sep"><span class="k">Route fee</span>${q?`<span class="v">${usd(q.feeUsd)}</span>`:d}</div>
+          <div class="rib sep"><span class="k">Hops</span>${q?`<span class="v">${HOPS}</span>`:d}</div>
+          <div class="rib sep" style="margin-left:auto;"><span class="k">Slippage</span><span class="v">${SLIP[v]}%</span></div>`;
+}
+function tilesHTML(v){
+  const q=state[v].quote;
+  const t=(k,val,cls)=>`<div class="tile"><div class="k">${k}</div><div class="v ${cls||''}">${val}</div></div>`;
+  return t('Rate', q?`<span style="font-size:15px">${q.rateStr}</span>`:'—', q?'sm':'dim')
+       + t('Price impact', q?IMPACT+'%':'—', q?'good':'dim')
+       + t('Network gas', q?usd(GAS_USD):'—', q?'':'dim')
+       + t('Route fee', q?usd(q.feeUsd):'—', q?'':'dim')
+       + t('Hops', q?HOPS:'—', q?'':'dim')
+       + t('Slippage', SLIP[v]+'%');
+}
+function summaryHTML(v){
+  const s=state[v], q=s.quote, from=TOKENS[s.from], to=TOKENS[s.to];
+  const d=`<span class="v dim">—</span>`;
+  return `<div class="chainbar" style="margin-bottom:16px;">
+      <span class="dotchain ${from.cc}"></span><span class="cn">${from.chain}</span>
+      <span class="ar">${ARROW}</span>
+      <span class="dotchain ${to.cc}"></span><span class="cn">${to.chain}</span></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">${logoHTML(s.from,26)}
+      <span style="font:600 17px/23px var(--font);font-variant-numeric:tabular-nums;">${s.amt&&q?fmt(parseFloat(s.amt),4):'0.0'} ${from.sym}</span></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">${logoHTML(s.to,26)}
+      <span style="font:600 17px/23px var(--font);font-variant-numeric:tabular-nums;color:${q?'var(--text-primary)':'var(--text-primary-38)'}">${q?q.recvStr:'0.0'} ${to.sym}</span></div>
+    <div class="route">
+      <div class="rrow"><span class="k">Rate</span>${q?`<span class="v">${q.rateStr}</span>`:d}</div>
+      <div class="rrow"><span class="k">Network gas</span>${q?`<span class="v">${usd(GAS_USD)}</span>`:d}</div>
+      <div class="rrow"><span class="k">Route fee</span>${q?`<span class="v">${usd(q.feeUsd)}</span>`:d}</div>
+      <div class="rrow"><span class="k">Slippage</span><span class="v">${SLIP[v]}%</span></div>
+    </div>
+    <button class="cta cta-btn" disabled style="margin-top:18px;height:52px;font-size:16px;">Enter an amount</button>`;
+}
+/* Recent swaps — JEDYNE w pełni realne dane na tej stronie: swap_screen.dart:247 zapisuje
+   Transaction(type: TransactionType.swap) do TransactionsCubit, a transactions_slim_view.dart:92
+   już filtruje po tym typie. Pola: fromSymbol/toSymbol/fromAmount/toAmount/timeStamp/status. */
+const RECENT = [
+  { from:'ETH',  to:'USDC', amt:'0.42',  got:'1,436.63', ago:'2h temu',  st:'completed' },
+  { from:'USDT', to:'POL',  amt:'100',   got:'192.31',   ago:'wczoraj',  st:'completed' },
+  { from:'WBTC', to:'ETH',  amt:'0.012', got:'0.338',    ago:'3 dni temu', st:'completed' },
+];
+function recentHTML(){
+  return RECENT.map(r=>`
+    <div class="brow" style="cursor:default;">
+      <span style="display:flex;">${logoHTML(r.from,26)}<span style="margin-left:-8px;display:inline-flex;border-radius:50%;border:2px solid var(--surface-elevated);">${logoHTML(r.to,26)}</span></span>
+      <div><div class="nm">${r.from} → ${r.to}</div><div class="sb">${r.ago}</div></div>
+      <div class="rb"><div class="b">+${r.got}</div><div class="u">−${r.amt} ${r.from}</div></div>
+    </div>`).join('');
+}
+function balancesHTML(v){
+  return ORDER.map(k=>{ const t=TOKENS[k], zero=t.bal<=0;
+    return `<div class="brow ${zero?'zero':''}" onclick="useToken('${v}','${k}')">
+      ${logoHTML(k,30)}
+      <div><div class="nm">${t.sym}</div><div class="sb">${t.chain}</div></div>
+      <div class="rb"><div class="b">${fmt(t.bal, t.bal<1?4:2)}</div><div class="u">${usd(t.bal*t.price)}</div></div>
+      ${zero?'':`<button class="usebtn" onclick="event.stopPropagation();useMax('${v}','${k}')">MAX</button>`}
+    </div>`; }).join('');
+}
+
+/* ---------- render / route ---------- */
+function paintPanels(v){
+  const r=root(v);
+  if(slot(v,'route'))    slot(v,'route').innerHTML    = routeRows(v);
+  if(slot(v,'ribbon'))   slot(v,'ribbon').innerHTML   = ribbonHTML(v);
+  if(slot(v,'tiles'))    slot(v,'tiles').innerHTML    = tilesHTML(v);
+  if(slot(v,'chainbar')) slot(v,'chainbar').innerHTML = routeRows(v).split('<div class="route">')[0];
+  if(slot(v,'summary'))  slot(v,'summary').innerHTML  = summaryHTML(v);
+  if(slot(v,'balances')) slot(v,'balances').innerHTML = balancesHTML(v);
+  if(slot(v,'recent'))   slot(v,'recent').innerHTML   = recentHTML();
+  return r;
+}
+function render(v){
+  const r=root(v), s=state[v], from=TOKENS[s.from], to=TOKENS[s.to];
+  r.querySelector('.tk[data-side="from"]').innerHTML=`${logoHTML(s.from)}<span class="sym">${from.sym}</span><span class="cv">${CHEV}</span>`;
+  r.querySelector('.tk[data-side="to"]').innerHTML  =`${logoHTML(s.to)}<span class="sym">${to.sym}</span><span class="cv">${CHEV}</span>`;
+  r.querySelectorAll('.from-bal').forEach(e=> e.textContent=`Balance: ${fmt(from.bal, from.bal<1?4:2)} ${from.sym}`);
+  r.querySelectorAll('.to-bal').forEach(e=> e.textContent=`Balance: ${fmt(to.bal, to.bal<1?4:2)} ${to.sym}`);
+  computeRoute(v);
+}
+function ctaOf(v){ return root(v).querySelector('.cta-btn'); }
+function computeRoute(v){
+  const r=root(v), s=state[v], from=TOKENS[s.from], pay=parseFloat(s.amt);
+  const recOut=r.querySelector('.rec-out'), payUsd=r.querySelector('.pay-usd'), recUsd=r.querySelector('.rec-usd'),
+        rdetails=r.querySelector('.rdetails');
+  const reset=()=>{ s.quote=null; recOut.textContent='0.0'; recOut.style.color='var(--text-primary-38)';
+    if(recUsd)recUsd.textContent='$0.00'; if(rdetails)rdetails.style.display='none'; paintPanels(v); };
+  const cta=()=>ctaOf(v);
+  if(!s.amt||isNaN(pay)||pay<=0){ payUsd.textContent='$0.00'; reset(); const c=cta(); c.className='cta cta-btn'; c.disabled=true; c.textContent='Enter an amount'; return; }
+  payUsd.textContent=usd(pay*from.price);
+  if(pay>from.bal){ reset(); payUsd.textContent=usd(pay*from.price); const c=cta(); c.className='cta cta-btn err'; c.disabled=true; c.textContent=`Insufficient ${from.sym} balance`; return; }
+  { const c=cta(); c.className='cta cta-btn loading'; c.disabled=true; c.textContent='Finding best route…'; }
+  if(debounce[v])clearTimeout(debounce[v]); debounce[v]=setTimeout(()=>resolveRoute(v),420);
+}
+function resolveRoute(v){
+  const r=root(v), s=state[v], from=TOKENS[s.from], to=TOKENS[s.to], pay=parseFloat(s.amt);
+  if(!pay||pay>from.bal) return;
+  const rate=from.price/to.price, recv=pay*rate*(1-FEE_PCT), feeUsd=pay*from.price*FEE_PCT+0.42, dp=to.price>1000?6:(to.price>1?2:4);
+  s.quote={ rateStr:`1 ${from.sym} = ${fmt(rate, rate>1000?2:4)} ${to.sym}`, recvStr:fmt(recv,dp), feeUsd };
+  const recOut=r.querySelector('.rec-out'); recOut.textContent=fmt(recv,dp); recOut.style.color='var(--text-primary)';
+  const recUsd=r.querySelector('.rec-usd'); if(recUsd)recUsd.textContent=usd(recv*to.price);
+  const rdetails=r.querySelector('.rdetails');
+  if(rdetails){ rdetails.innerHTML=`
+    <div class="rrow"><span class="k">Rate</span><span class="v">${s.quote.rateStr}</span></div>
+    <div class="rrow"><span class="k">Slippage</span><span class="v">${SLIP[v]}%</span></div>
+    <div class="rrow"><span class="k">Price impact</span><span class="v good">${IMPACT}%</span></div>
+    <div class="rrow"><span class="k">Network + route fee</span><span class="v">${usd(feeUsd+GAS_USD)}</span></div>`;
+    rdetails.style.display='block'; }
+  paintPanels(v);
+  const c=ctaOf(v); c.className='cta cta-btn'; c.disabled=false; c.textContent='Swap';
+}
+document.querySelectorAll('.pay-in').forEach(inp=>inp.addEventListener('input',e=>{ const v=e.target.dataset.v; state[v].amt=e.target.value; computeRoute(v); }));
+function flip(v){ const s=state[v]; [s.from,s.to]=[s.to,s.from]; root(v).querySelector('.pay-in').value=''; s.amt=''; render(v); }
+function setMax(v){ const s=state[v], from=TOKENS[s.from], val=from.bal>0?String(from.bal):'0'; root(v).querySelector('.pay-in').value=val; s.amt=val; computeRoute(v); }
+function useToken(v,k){ const s=state[v]; if(s.to===k) s.to=s.from; s.from=k; render(v); }
+function useMax(v,k){ useToken(v,k); setMax(v); }
+function setSlipAll(val,el){ VS.forEach(v=>SLIP[v]=val); el.parentElement.querySelectorAll('.chip2').forEach(c=>c.classList.remove('on')); el.classList.add('on');
+  document.querySelectorAll('.tune.labelled span').forEach(s=> s.textContent=`Slippage ${val}%`);
+  VS.forEach(v=>{ if(state[v].quote) resolveRoute(v); else paintPanels(v); }); closeSettings(); }
+function fillAll(){ VS.forEach(v=>{ const inp=root(v).querySelector('.pay-in'); inp.value='0.5'; state[v].amt='0.5'; computeRoute(v); }); }
+function clearAll(){ VS.forEach(v=>{ const inp=root(v).querySelector('.pay-in'); inp.value=''; state[v].amt=''; computeRoute(v); }); }
+
+let pick={v:null,side:null};
+function openPicker(v,side){ pick={v,side}; document.getElementById('pickerSearch').value=''; renderPickerList(); document.getElementById('picker').classList.add('open'); }
+function closePicker(){ document.getElementById('picker').classList.remove('open'); }
+function renderPickerList(){
+  const q=(document.getElementById('pickerSearch').value||'').toLowerCase(), s=state[pick.v], other=pick.side==='from'?s.to:s.from;
+  const list=ORDER.filter(k=>{ const t=TOKENS[k]; return k!==other && (t.sym.toLowerCase().includes(q)||t.name.toLowerCase().includes(q)); });
+  document.getElementById('pickerList').innerHTML=list.map(k=>{ const t=TOKENS[k];
+    return `<div class="prow" onclick="choose('${k}')">${logoHTML(k,36)}<div><div class="nm">${t.name}</div><div class="sub">${t.sym} · ${t.chain}</div></div><div class="rb"><div class="b">${fmt(t.bal,t.bal<1?4:2)}</div><div class="sub">${t.sym}</div></div></div>`;
+  }).join('')||`<div class="sub" style="padding:12px 10px;">No tokens found</div>`;
+}
+function choose(k){ const s=state[pick.v]; if(pick.side==='from')s.from=k; else s.to=k; closePicker(); render(pick.v); }
+function openSettings(){ document.getElementById('settings').classList.add('open'); }
+function closeSettings(){ document.getElementById('settings').classList.remove('open'); }
+
+const LEDE = {
+  now:'<b>0 · Dziś</b> — stan z <code>swap_screen.dart</code>: nagłówek na ramce strony (xxl 1600), karta wycentrowana na 560. Trzy niezależne osie, 1000px pustki po obu stronach karty. To jest punkt odniesienia, nie propozycja. <span class="tag bad">problem</span>',
+  a:'<b>A · Szyna.</b> Formularz 560 siada pod tytułem (ta sama lewa krawędź), po prawej szyna 440 z trzema panelami: <b>Route</b>, <b>Recent swaps</b>, <b>Your balances</b>. <span class="tag rec">rekomendacja</span><br><b>Route</b> <span class="tag warn">mock-shape</span> to dzisiejszy <code>RouteDetailsCard</code> przeniesiony z dołu formularza, wzbogacony o <code>fromChain/toChain</code>, <code>gasCosts</code> i hopy z <code>SquidRouteResponse</code>. <b>Recent swaps</b> <span class="tag free">realne</span> - <code>swap_screen.dart:247</code> zapisuje <code>Transaction(type: swap)</code>, a <code>transactions_slim_view.dart:92</code> już filtruje po tym typie; to jedyne w pełni realne dane na tej stronie. <b>Balances</b> <span class="tag warn">mock</span> - <code>fetchBalances</code> zwraca <code>mockSquidBalances</code> (<code>squid_token_service.dart:36</code>), tak samo jak <code>getRoute</code> zwraca <code>mockSquidRoute</code>: cały ten ekran stoi dziś na mockach, więc szyna nie jest mniej prawdziwa niż formularz obok niej.<br>Efekt uboczny, który jest właściwą nagrodą: karta przestaje skakać. Dziś wycena dokleja się POD polami i spycha CTA w dół dokładnie wtedy, gdy patrzysz na kwotę. W szynie ma stałe miejsce. Kliknij <b>Wypełnij</b> i porównaj z wariantem 0.',
+  b:'<b>B · Portfolio-first.</b> Odwrócona kolejność czytania: pod tytułem stoi lista <b>Twoich sald</b> (340), formularz jest po jej prawej. Tytuł ląduje bezpośrednio nad realną treścią, a strona zaczyna się od pytania „co mam", nie „co chcę zamienić". Wycena zostaje w formularzu, jak dziś. <span class="tag warn">salda to mock</span> <code>squid_token_service.dart:36</code> - cały wariant stoi na kolumnie, której wartości dziś nie są prawdziwe.<br>Cena: formularz - czyli powód istnienia tej strony - przestaje być pierwszym elementem od lewej. Na 900px szyna schodzi POD formularz (kolejność się odwraca), więc mobile i desktop czytają się inaczej.',
+  c:'<b>C · Wstęga.</b> Bez szyny. Nagłówek dostaje partnera na pełną szerokość: pas trasy i kosztów rozciągnięty na całą ramkę, a pod nim karta 560 <b>wycentrowana</b> - czyli decyzja 105 A1 zostaje nienaruszona. Szerokość strony uzasadnia wstęga, nie kolumna. Te same pola trasy co w A.<br><span class="tag warn">dziura w pustym stanie</span> Przed wyceną wstęga to rząd myślników na 1600px - najbardziej pusty ze wszystkich pięciu wariantów w stanie startowym. Przełącz <b>Pusty</b> / <b>Wypełnij</b> i oceń, czy pas w stanie pustym pomaga, czy szkodzi.',
+  d:'<b>D · Warsztat.</b> Formularz 560 po lewej, szyna 700 jako siatka kafli: Rate, Price impact, Network gas, Route fee, Hops, Slippage, a pod nimi salda. Blok ma 1284, więc na 1700px zostaje tylko 316 pustki - najlepiej wypełniona strona z całej piątki. Feeling „terminala", nie „formularza".<br>Cena: sześć kafli to sześć nowych komponentów zamiast jednego przeniesionego <code>RouteDetailsCard</code>, a w stanie pustym sześć kafli z myślnikiem woła o uwagę mocniej niż jeden panel z myślnikami. Włącz <b>Osie</b>, żeby zobaczyć czerwoną strefę pustki.',
+  e:'<b>E · Checkout.</b> Wzorzec koszyka: po lewej tylko pola, po prawej <b>lepki</b> panel Order summary, który niesie parę, kwoty, koszty <b>i przycisk Swap</b>. Wizualnie najbardziej zrównoważony - obie kolumny mają wagę, oko kończy na CTA po prawej. <span class="tag bad">zmiana mechaniki</span><br>Ale: CTA wyprowadza się z formularza. Faza 08 postawiła drabinę stanów CTA (<code>swap_cta_state.dart</code>, D-09/D-11 „mechanics preserved verbatim") tuż pod polami, bridge jest jej bliźniakiem, a na 900px panel i tak schodzi pod formularz - więc CTA raz jest z boku, raz pod spodem. To nie jest re-skin, to przeprojektowanie akcji głównej.',
+};
+function showVariant(id,ev){
+  document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  if(ev&&ev.target) ev.target.classList.add('active');
+  document.querySelectorAll('#win .variant').forEach(v=>v.classList.remove('active'));
+  document.getElementById('variant-'+id).classList.add('active');
+  document.getElementById('lede').innerHTML=LEDE[id];
+}
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); document.body.style.background = t==='dark' ? '#000' : '#B8BEC7'; }
+function setW(w){ document.documentElement.style.setProperty('--winw', w); }
+
+VS.forEach(v=>{ paintPanels(v); render(v); });
+
+function openFromHash(){
+  const id=(location.hash||'').replace('#','')||'now';
+  if(!(id in LEDE)){ showVariant('now'); return; }
+  showVariant(id);
+  const btn=[...document.querySelectorAll('#variant-nav .vt')].find(b=>b.getAttribute('onclick').includes(`'${id}'`));
+  if(btn){ document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); }
+}
+window.addEventListener('hashchange', openFromHash);
+openFromHash();
+</script>
+</body>
+</html>

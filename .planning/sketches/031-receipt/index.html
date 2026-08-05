@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 031 — Receipt · Round 2 (B fine-tunes)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+
+  /* ============ variant tab bar — verbatim from 030 (B1 shell) ============ */
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em;
+    color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong);
+    transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary);
+    border-color: var(--brand-primary); }
+  .variant-tab.baseline { color: var(--text-secondary); }
+
+  /* ============ stage: dimmed app behind + right-edge panel — verbatim from 030 ============ */
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: hidden; }
+  .app-bg { position: absolute; inset: 0; background:
+      radial-gradient(1200px 600px at 20% 0%, rgba(20,200,255,0.05), transparent 60%),
+      var(--surface-base); }
+  .app-bg .col { position: absolute; top: 24px; bottom: 24px; border-radius: var(--radius-lg);
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); opacity: .5; }
+  .app-bg .c1 { left: 24px; width: 22%; }
+  .app-bg .c2 { left: calc(24px + 23%); width: 34%; }
+  .app-bg .c3 { left: calc(24px + 58%); width: 18%; }
+  .scrim { position: absolute; inset: 0; background: var(--surface-overlay, rgba(0,0,0,.6)); }
+
+  /* ============ THE PANEL — B1 "Quiet band" shell chrome, verbatim from 030 ============ */
+  .panel { position: absolute; top: 0; bottom: 0; right: 0; width: var(--drawer-width);
+    background: var(--surface-menu); display: flex; flex-direction: column;
+    box-shadow: -24px 0 60px rgba(0,0,0,0.45); }
+
+  /* header — 60px, LEFT title, close top-right, 1px brand-tint hairline under a subtle border */
+  .p-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+    padding: 0 12px 0 20px; height: 60px; position: relative;
+    border-bottom: 1px solid var(--border-subtle); }
+  .p-head::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: -1px;
+    height: 1px; background: var(--brand-primary-subtle); }
+  .p-title { color: var(--text-primary); font: 600 18px/24px var(--font); }
+  .p-close { width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+    border-radius: var(--radius-md); color: var(--text-primary-70); transition: all .15s ease; flex: none; }
+  .p-close:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .p-close svg { width: 18px; height: 18px; }
+
+  .p-body { flex: 1; overflow-y: auto; padding: 8px 20px 20px; }
+  .p-foot { flex: none; padding: 16px 20px; border-top: 1px solid var(--border-subtle); }
+
+  /* CTA / buttons — gradient stops are the REAL brandCta (--brand-cta-a/b), verbatim from 030 */
+  .gwbtn { width: 100%; height: 48px; border: none; border-radius: var(--radius-pill);
+    font: 600 15px var(--font); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 8px; transition: all .15s ease; }
+  .gwbtn.primary { background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a));
+    color: var(--text-on-brand); }
+  .gwbtn.secondary { background: transparent; color: var(--text-primary);
+    border: 1px solid var(--border-strong); }
+  .gwbtn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  .gwbtn svg { width: 17px; height: 17px; }
+
+  /* ============ shared receipt atoms ============ */
+  .stack > * + * { margin-top: 18px; }
+  .rc-top { text-align: center; padding-top: 8px; }
+  .rc-icon { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto;
+    background: color-mix(in srgb, var(--status-success) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--status-success) 45%, transparent);
+    display: grid; place-items: center; transition: background .2s, border-color .2s; }
+  .rc-icon svg { width: 30px; height: 30px; color: var(--status-success); transition: color .2s; }
+  .rc-amount { text-align: center; margin-top: 12px; color: var(--status-success);
+    transition: color .2s; }
+
+  /* section headers (B1 + baseline) */
+  .sec-label { font: 500 11px var(--font); letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-secondary); margin: 0 0 8px; }
+
+  /* rows card — shared */
+  .card { background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg); padding: 2px 16px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+    padding: 13px 0; }
+  .row + .row { border-top: 1px solid var(--border-subtle); }
+  .row .k { color: var(--text-primary-70); flex: none; }
+  .row .v { color: var(--text-primary); text-align: right; font-variant-numeric: tabular-nums;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .mono { font-family: var(--font-mono); }
+  .copyable { cursor: pointer; transition: color .15s; }
+  .copyable:hover { color: var(--brand-primary); }
+  .copyable::after { content: " \2398"; opacity: .4; font-size: .85em; }
+
+  /* state-cycle (all variants) — 4 states */
+  .state-cycle { display: flex; gap: 6px; justify-content: center; }
+  .state-cycle button { flex: 1; font: 500 12px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 7px 0; cursor: pointer; transition: all .15s; }
+  .state-cycle button:hover { color: var(--text-primary); border-color: var(--border-strong); }
+  .state-cycle button.on { color: var(--text-on-brand); background: var(--brand-primary);
+    border-color: var(--brand-primary); }
+
+  /* ===== B1 · Pill + sections ===== */
+  .pill-wrap { margin-top: 12px; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+    border-radius: var(--radius-pill); font: 600 13px var(--font);
+    color: var(--status-success);
+    background: color-mix(in srgb, var(--status-success) 14%, transparent); transition: all .2s; }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+
+  /* ===== B2 · Status banner ===== */
+  .banner { display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--status-success);
+    background: color-mix(in srgb, var(--status-success) 12%, transparent);
+    transition: background .2s, border-color .2s; }
+  .banner-chip { width: 26px; height: 26px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; font: 700 14px var(--font);
+    color: var(--status-success);
+    background: color-mix(in srgb, var(--status-success) 22%, transparent); transition: all .2s; }
+  .banner-text { min-width: 0; text-align: left; }
+  .banner-label { font: 600 14px var(--font); color: var(--status-success); transition: color .2s; }
+  .banner-reason { font: 400 13px var(--font); color: var(--text-primary-70); margin-top: 1px; }
+
+  /* ===== B3 · Woven minimal ===== */
+  .woven { margin-top: 10px; display: inline-flex; align-items: center; gap: 8px;
+    font: 500 13px var(--font); color: var(--status-success); transition: color .2s; }
+  .woven-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+
+  /* ===== baseline · chosen B (round-1 body treatment, in the refined shell) ===== */
+  .base-band { display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 16px 7px 12px; border-radius: var(--radius-pill);
+    color: var(--status-success); font: 600 13px var(--font);
+    background: color-mix(in srgb, var(--status-success) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--status-success) 40%, transparent); transition: all .2s; }
+  .base-band .pill-dot { width: 8px; height: 8px; }
+
+  .variant { display: none; }
+  .variant.active { display: block; }
+
+  /* annotation callouts (from 030) */
+  .note { position: absolute; z-index: 40; font: 500 11px var(--font); color: var(--brand-primary);
+    background: rgba(20,200,255,0.10); border: 1px solid var(--brand-primary-muted);
+    border-radius: 8px; padding: 5px 9px; max-width: 220px; line-height: 1.4; pointer-events: none; }
+
+  /* toolbar */
+  #tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px var(--font);
+    background: rgba(0,0,0,.72); color: #fff; padding: 8px 12px; border-radius: 8px; opacity: .45;
+    transition: opacity .2s; display: flex; gap: 10px; align-items: center; }
+  #tools:hover { opacity: 1; }
+  #tools select { font: 12px var(--font); background: #222; color: #fff;
+    border: 1px solid #444; border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="variant-nav">
+  <span class="brand">031 · RECEIPT · R2</span>
+  <button class="variant-tab active" onclick="show('B1',this)">B1 · Pill + sections</button>
+  <button class="variant-tab" onclick="show('B2',this)">B2 · Status banner</button>
+  <button class="variant-tab" onclick="show('B3',this)">B3 · Woven minimal</button>
+  <span class="sep"></span>
+  <button class="variant-tab baseline" onclick="show('BASE',this)">baseline · chosen B</button>
+</div>
+
+<!-- shell template — cloned per variant so chrome is byte-identical across all four -->
+<template id="tpl">
+  <div class="stage">
+    <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+    <div class="scrim"></div>
+    <div class="panel">
+      <div class="p-head">
+        <div class="p-title">Escrow released</div>
+        <div class="p-close" onclick="close_()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+      </div>
+      <div class="p-body" data-body></div>
+      <div class="p-foot">
+        <button class="gwbtn secondary" onclick="toast()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>View on Explorer</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<div class="variant active" id="v-B1"></div>
+<div class="variant" id="v-B2"></div>
+<div class="variant" id="v-B3"></div>
+<div class="variant" id="v-BASE"></div>
+
+<div id="tools">
+  <label>Theme
+    <select onchange="document.documentElement.setAttribute('data-theme', this.value)">
+      <option value="dark">Dark</option><option value="light">Light</option>
+    </select>
+  </label>
+</div>
+
+<div id="toast" style="position:fixed;bottom:70px;right:16px;z-index:120;background:var(--surface-elevated);
+  border:1px solid var(--border-subtle);border-left:3px solid var(--brand-primary);border-radius:10px;
+  padding:12px 16px;color:var(--text-primary);font:500 13px var(--font);box-shadow:var(--shadow-card);
+  transform:translateX(140%);transition:transform .25s ease;">Opening block explorer…</div>
+
+<script>
+  const BRAIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V17a2 2 0 0 0 4 0"/><path d="M12 5a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V17a2 2 0 0 1-4 0"/></svg>';
+
+  // ---- the FOUR real TransactionStatus states ----
+  const STATES = {
+    completed: { color: 'var(--status-success)', sign: '+', label: 'Completed', marker: '✓', reason: 'Confirmed on-chain' },
+    pending:   { color: 'var(--status-warning)', sign: '+', label: 'Pending',   marker: '…', reason: 'Waiting for confirmations' },
+    failed:    { color: 'var(--status-error)',   sign: '—', label: 'Failed', marker: '✕', reason: 'Dropped — not mined' },
+    cancelled: { color: 'var(--status-neutral)', sign: '—', label: 'Cancelled', marker: '⊘', reason: 'Cancelled by sender' },
+  };
+
+  // ---- row content ----
+  const TXN_ROWS = `
+    <div class="row"><span class="k t-body-sm">Date</span><span class="v t-body-md">Jul 22, 2026 · 5:05 PM</span></div>
+    <div class="row"><span class="k t-body-sm">Status</span><span class="v t-body-md js-statusval" style="color:var(--status-success)">Completed</span></div>
+    <div class="row"><span class="k t-body-sm">From</span><span class="v t-numeric-body mono copyable" onclick="copyVal(this)">0xFrom…ed05</span></div>`;
+  const NET_ROWS = `
+    <div class="row"><span class="k t-body-sm">Network</span><span class="v t-body-md">GNUS</span></div>
+    <div class="row"><span class="k t-body-sm">Network Fee</span><span class="v t-numeric-body">0.001 GNUS</span></div>
+    <div class="row"><span class="k t-body-sm">Hash</span><span class="v t-numeric-body mono copyable" onclick="copyVal(this)">0xdevm…ck05</span></div>`;
+  const FLAT_ROWS = TXN_ROWS + NET_ROWS;
+
+  const CYCLE = `
+    <div class="state-cycle">
+      <button class="on" data-st="completed" onclick="setState(this)">Completed</button>
+      <button data-st="pending" onclick="setState(this)">Pending</button>
+      <button data-st="failed" onclick="setState(this)">Failed</button>
+      <button data-st="cancelled" onclick="setState(this)">Cancelled</button>
+    </div>`;
+
+  // ---- per-variant bodies (all status-led; differ in HOW status leads) ----
+  const BODIES = {
+    // B1 · filled-tint pill under the amount, then TRANSACTION / NETWORK cards
+    B1: `<div class="stack">
+        <div class="rc-top">
+          <div class="rc-icon">${BRAIN}</div>
+          <div class="rc-amount t-numeric-headline js-amount">+ 500.00 GNUS</div>
+          <div class="pill-wrap"><span class="pill js-pill"><span class="pill-dot"></span><span class="js-pilltxt">Completed</span></span></div>
+        </div>
+        ${CYCLE}
+        <div><div class="sec-label">Transaction</div><div class="card">${TXN_ROWS}</div></div>
+        <div><div class="sec-label">Network</div><div class="card">${NET_ROWS}</div></div>
+      </div>`,
+
+    // B2 · full-width banner at the top of the body, then amount, then ONE flat card
+    B2: `<div class="stack">
+        <div class="banner js-banner">
+          <span class="banner-chip js-banner-chip">✓</span>
+          <div class="banner-text">
+            <div class="banner-label js-banner-label">Completed</div>
+            <div class="banner-reason js-banner-reason">Confirmed on-chain</div>
+          </div>
+        </div>
+        <div class="rc-top">
+          <div class="rc-icon">${BRAIN}</div>
+          <div class="rc-amount t-numeric-headline js-amount">+ 500.00 GNUS</div>
+        </div>
+        ${CYCLE}
+        <div class="card">${FLAT_ROWS}</div>
+      </div>`,
+
+    // B3 · status dot + label woven directly under the amount; ONE flat card
+    B3: `<div class="stack">
+        <div class="rc-top">
+          <div class="rc-icon">${BRAIN}</div>
+          <div class="rc-amount t-numeric-headline js-amount">+ 500.00 GNUS</div>
+          <div class="woven js-woven"><span class="woven-dot"></span><span class="js-woven-label">Completed</span></div>
+        </div>
+        ${CYCLE}
+        <div class="card">${FLAT_ROWS}</div>
+      </div>`,
+
+    // baseline · round-1 chosen B body (bordered band + trailing glyph, looser), in the refined shell
+    BASE: `<div class="stack">
+        <div class="rc-top">
+          <div class="rc-icon">${BRAIN}</div>
+          <div class="rc-amount t-numeric-headline js-amount">+ 500.00 GNUS</div>
+          <div class="pill-wrap"><span class="base-band js-pill" data-glyph="1"><span class="pill-dot"></span><span class="js-pilltxt">Completed ✓</span></span></div>
+        </div>
+        ${CYCLE}
+        <div><div class="sec-label">Transaction</div><div class="card">${TXN_ROWS}</div></div>
+        <div><div class="sec-label">Network</div><div class="card">${NET_ROWS}</div></div>
+      </div>`,
+  };
+
+  const NOTES = {
+    B1: [['top:150px;right:470px','Refined pill: 8px 14px padding, 6px leading dot, tint-only bg. Icon + amount + pill recolor together — cycle the state.'],
+         ['bottom:120px;right:470px','Rows grouped into TRANSACTION / NETWORK cards with uppercase headers + hairline dividers.']],
+    B2: [['top:150px;right:470px','Status becomes a full-width banner: 3px left-accent bar + state chip + bold label + a plain-language reason line.'],
+         ['bottom:130px;right:470px','Tighter: one flat rows card, no section split. Best legibility for Failed / Cancelled.']],
+    B3: [['top:160px;right:470px','No pill / banner chrome — just a status dot + label hairline-thin under the amount. Only the Status row carries the state color. The restrained take.']],
+    BASE:[['top:150px;right:470px','Round-1 chosen B for comparison: bordered band with a trailing glyph, in the refined shell. R1 shipped 3 states — here extended to the correct 4.']],
+  };
+
+  const tpl = document.getElementById('tpl');
+  function build(id) {
+    const node = tpl.content.cloneNode(true);
+    node.querySelector('[data-body]').innerHTML = BODIES[id];
+    (NOTES[id]||[]).forEach(([style, text]) => {
+      const n = document.createElement('div'); n.className = 'note'; n.style.cssText = style; n.textContent = text;
+      node.querySelector('.stage').appendChild(n);
+    });
+    const host = document.getElementById('v-' + id);
+    host.appendChild(node);
+    paint(host, 'completed');
+  }
+  ['B1','B2','B3','BASE'].forEach(build);
+
+  // ---- recolor icon + amount + status marker (+ B2 reason) live, per variant ----
+  function paint(root, name) {
+    const s = STATES[name];
+    const col = s.color;
+    root.querySelectorAll('.state-cycle button').forEach(b => b.classList.toggle('on', b.dataset.st === name));
+
+    const icon = root.querySelector('.rc-icon');
+    if (icon) {
+      icon.style.background = `color-mix(in srgb, ${col} 14%, transparent)`;
+      icon.style.borderColor = `color-mix(in srgb, ${col} 45%, transparent)`;
+      const svg = icon.querySelector('svg'); if (svg) svg.style.color = col;
+    }
+    const amt = root.querySelector('.js-amount');
+    if (amt) { amt.style.color = col; amt.textContent = `${s.sign} 500.00 GNUS`; }
+
+    const sv = root.querySelector('.js-statusval');
+    if (sv) { sv.style.color = col; sv.textContent = s.label; }
+
+    // B1 pill + baseline band (both .js-pill)
+    const pill = root.querySelector('.js-pill');
+    if (pill) {
+      pill.style.color = col;
+      pill.style.background = `color-mix(in srgb, ${col} ${pill.dataset.glyph ? 16 : 14}%, transparent)`;
+      if (pill.dataset.glyph) pill.style.borderColor = `color-mix(in srgb, ${col} 40%, transparent)`;
+      pill.querySelector('.js-pilltxt').textContent = pill.dataset.glyph ? `${s.label} ${s.marker}` : s.label;
+    }
+    // B2 banner
+    const banner = root.querySelector('.js-banner');
+    if (banner) {
+      banner.style.background = `color-mix(in srgb, ${col} 12%, transparent)`;
+      banner.style.borderLeftColor = col;
+      const chip = root.querySelector('.js-banner-chip');
+      chip.style.color = col; chip.style.background = `color-mix(in srgb, ${col} 22%, transparent)`;
+      chip.textContent = s.marker;
+      const lbl = root.querySelector('.js-banner-label');
+      lbl.style.color = col; lbl.textContent = s.label;
+      root.querySelector('.js-banner-reason').textContent = s.reason;
+    }
+    // B3 woven
+    const woven = root.querySelector('.js-woven');
+    if (woven) { woven.style.color = col; woven.querySelector('.js-woven-label').textContent = s.label; }
+  }
+  function setState(btn) { paint(btn.closest('.variant'), btn.dataset.st); }
+
+  function show(id, btn) {
+    document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+    document.getElementById('v-' + id).classList.add('active');
+    document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // ---- copy-on-click for mono values ----
+  function copyVal(el) {
+    if (navigator.clipboard) navigator.clipboard.writeText(el.textContent).catch(() => {});
+    toastMsg('Copied');
+  }
+
+  let t;
+  function toastMsg(msg) { const el = document.getElementById('toast'); el.textContent = msg;
+    el.style.transform = 'translateX(0)';
+    clearTimeout(t); t = setTimeout(() => el.style.transform = 'translateX(140%)', 1600); }
+  function toast() { toastMsg('Opening block explorer…'); }
+
+  function close_() {
+    const p = document.querySelector('.variant.active .panel');
+    p.style.transition = 'transform .28s ease, opacity .28s ease';
+    p.style.transform = 'translateX(110%)'; p.style.opacity = '0';
+    setTimeout(() => { p.style.transform = ''; p.style.opacity = '1'; }, 900);
+  }
+</script>
+</body>
+</html>

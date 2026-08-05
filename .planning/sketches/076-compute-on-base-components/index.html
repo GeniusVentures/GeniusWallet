@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 076 — Compute, re-cut on the base components</title>
+<style>
+  :root{
+    --surface-base:#0B0D12; --surface-elevated:#0C0E14; --surface-menu:#171A21; --surface-sunken:#06080C;
+    --text-primary:#FFFFFF; --text-secondary:#8A8F9D;
+    --border-subtle:rgba(255,255,255,.12); --border-strong:rgba(255,255,255,.24); --border-control:rgba(255,255,255,.36);
+    --brand:#14C8FF; --brand-strong:#0AAEE6; --success:#0AD89C; --error:#FF4D4D; --warning:#FFC42E;
+    --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px;
+    --r-sm:8px; --r-base:10px; --r-md:12px; --r-lg:15px; --r-xl:24px; --r-pill:48px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface-base);color:var(--text-primary);
+       font:14px/20px -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1280px;margin:0 auto;padding:40px 24px 96px}
+  h1{font-size:28px;line-height:36px;margin:0 0 8px;letter-spacing:-.02em}
+  h2{font-size:20px;line-height:28px;margin:56px 0 6px;letter-spacing:-.01em}
+  h3{font-size:15px;line-height:22px;margin:28px 0 10px;color:var(--text-primary)}
+  .lede{color:var(--text-secondary);max-width:76ch;margin:0 0 4px}
+  .rule{height:1px;background:var(--border-subtle);margin:14px 0 0}
+  code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;
+       background:var(--surface-menu);padding:1px 5px;border-radius:4px;color:#CBD2DC}
+  .note{color:var(--text-secondary);font-size:12px;line-height:18px}
+  .tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+       padding:3px 7px;border-radius:4px;border:1px solid var(--border-subtle);color:var(--text-secondary);
+       margin-right:6px;vertical-align:2px}
+  .tag.new{color:var(--brand);border-color:rgba(20,200,255,.45)}
+  .tag.keep{color:var(--success);border-color:rgba(10,216,156,.4)}
+  .tag.cut{color:var(--error);border-color:rgba(255,77,77,.4)}
+
+  /* ---- real component metrics ---- */
+  .kicker{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;
+          color:var(--text-secondary);line-height:14px}
+  .kicker.lg{font-size:13px;letter-spacing:.5px;line-height:17px}
+  .numeric-display{font-size:32px;line-height:40px;font-weight:700;letter-spacing:-.02em;
+                   font-variant-numeric:tabular-nums}
+  .numeric-body{font-size:14px;line-height:20px;font-weight:500;font-variant-numeric:tabular-nums}
+  .stat-value{font-size:15px;line-height:20px;font-weight:600;font-variant-numeric:tabular-nums}
+  .body-sm{font-size:12px;line-height:16px}
+
+  .card{background:var(--surface-elevated);border:1px solid var(--border-subtle);border-radius:var(--r-lg)}
+  .tile{background:var(--surface-elevated);border:1px solid var(--border-subtle);
+        border-radius:var(--r-md);padding:var(--s6)}
+  .sunken{background:var(--surface-sunken);border:1px solid var(--border-subtle);border-radius:var(--r-md)}
+
+  .btn{height:44px;border-radius:var(--r-base);display:flex;align-items:center;justify-content:center;
+       font-size:14px;font-weight:600;border:1px solid transparent;cursor:default;width:100%}
+  .btn-fill{background:linear-gradient(135deg,#14C8FF,#0AD89C);color:#04121A}
+  .btn-outline{background:transparent;border-color:var(--border-control);color:var(--text-primary)}
+  .btn-ghost{background:transparent;color:var(--text-secondary);border-color:transparent}
+  .btn.sm{height:36px;font-size:13px}
+
+  .dot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
+  .bar{height:4px;border-radius:2px;background:rgba(255,255,255,.10);overflow:hidden}
+  .bar > i{display:block;height:100%;background:var(--brand);border-radius:2px}
+
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s6)}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s6)}
+  .row{display:flex;align-items:center}
+  .between{display:flex;align-items:center;justify-content:space-between}
+
+  /* ---- the measured card ---- */
+  .stage{display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap}
+  .ruler{position:relative;width:56px;flex:none;height:276px;border-left:1px dashed var(--border-strong);
+         margin-left:8px}
+  .ruler span{position:absolute;left:8px;font-size:10px;color:var(--text-secondary);white-space:nowrap;
+              transform:translateY(-50%)}
+  .ruler span::before{content:"";position:absolute;left:-8px;top:50%;width:6px;height:1px;
+                      background:var(--border-strong)}
+  .panel{width:420px;flex:none}
+  .panel .inner{padding:var(--s6)}
+  .budget{height:276px;outline:1px dashed rgba(20,200,255,.4);outline-offset:0}
+
+  .warn{border:1px solid rgba(255,196,46,.45);background:rgba(255,196,46,.07);
+        border-radius:var(--r-sm);padding:10px var(--s6);display:flex;gap:10px;align-items:flex-start}
+  .warn .ico{color:var(--warning);flex:none;font-size:13px;line-height:18px}
+  .warn .msg{font-size:12px;line-height:18px;color:#E6D7B4}
+
+  /* detail grid = GWDetailGrid */
+  .dgrid{background:var(--surface-sunken);border:1px solid var(--border-subtle);border-radius:var(--r-md);
+         overflow:hidden}
+  .dgrid .r{display:flex;justify-content:space-between;gap:12px;padding:10px var(--s6);
+            border-bottom:1px solid var(--border-subtle)}
+  .dgrid .r:last-child{border-bottom:0}
+  .dgrid .k{color:var(--text-secondary);font-size:13px;line-height:18px}
+  .dgrid .v{font-size:13px;line-height:18px;font-weight:600;font-variant-numeric:tabular-nums;
+            text-align:right}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+
+  /* status states */
+  .states{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s6)}
+  .state{padding:var(--s6);border:1px solid var(--border-subtle);border-radius:var(--r-md);
+         background:var(--surface-elevated)}
+  .state .no{font-size:10px;color:var(--text-secondary);letter-spacing:.08em;margin-bottom:8px}
+  .state .lbl{font-size:14px;line-height:20px;font-weight:600;margin-left:8px}
+  .state .sub{font-size:12px;line-height:17px;color:var(--text-secondary);margin-top:6px}
+  .state .was{margin-top:10px;padding-top:9px;border-top:1px dashed var(--border-subtle);
+              font-size:11px;line-height:16px;color:#6E7481}
+  .lk{color:var(--brand);text-decoration:none}
+
+  /* drawer */
+  .drawer{width:420px;flex:none;background:var(--surface-elevated);border:1px solid var(--border-subtle);
+          border-radius:var(--r-lg);overflow:hidden}
+  .drawer .hd{padding:var(--s8) var(--s8) var(--s6);border-bottom:1px solid var(--border-subtle);
+              display:flex;align-items:center;justify-content:space-between}
+  .drawer .bd{padding:var(--s8)}
+  .step{border-left:2px solid var(--border-subtle);padding:0 0 var(--s8) var(--s6);margin-left:5px;
+        position:relative}
+  .step:last-child{padding-bottom:0}
+  .step.active{border-left-color:var(--brand)}
+  .step.done{border-left-color:var(--success)}
+  .step .bullet{position:absolute;left:-7px;top:2px;width:12px;height:12px;border-radius:50%;
+                background:var(--surface-elevated);border:2px solid var(--border-subtle)}
+  .step.active .bullet{border-color:var(--brand)}
+  .step.done .bullet{border-color:var(--success);background:var(--success)}
+  .step .st{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;
+            color:var(--text-secondary)}
+  .step.active .st{color:var(--brand)}
+  .step .sm{font-size:13px;line-height:19px;color:var(--text-secondary);margin-top:3px}
+  .step .body{margin-top:10px}
+
+  table{border-collapse:collapse;width:100%;margin-top:10px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--border-subtle);
+        font-size:12px;line-height:17px;vertical-align:top}
+  th{color:var(--text-secondary);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+  td.n{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Sketch 076 — Compute, re-cut on the base components</h1>
+  <p class="lede">
+    016/017/018 were drawn 22–23 July. Every base component they would have used shipped on 28 July.
+    The three design decisions stand; what they are made of changes. Everything below is at 1:1 with
+    the real token values and real component metrics.
+  </p>
+  <div class="rule"></div>
+
+  <!-- ============================================================ -->
+  <h2>1 · The panel — 016-B2 twin tiles, rebuilt</h2>
+  <p class="lede">
+    Card <code>maxHeight: 300</code> minus <code>DashboardScrollContainer</code>'s
+    <code>EdgeInsets.all(space6)</code> = <strong>276px usable</strong>. The dashed cyan outline is
+    that budget. The ruler is measured from real component metrics, not estimated.
+  </p>
+
+  <div class="stage">
+    <div class="panel">
+      <div class="card budget">
+        <div class="inner">
+
+          <div class="kicker lg" style="margin-bottom:8px">WALLET</div>
+
+          <div class="tile" style="margin-bottom:12px">
+            <div class="kicker">BALANCE</div>
+            <div class="numeric-display" style="margin-top:4px">1,204.50</div>
+            <div class="body-sm" style="color:var(--text-secondary);margin-top:2px">
+              GNUS · ≈ $312.40
+            </div>
+          </div>
+
+          <div class="tile" style="margin-bottom:12px">
+            <div class="kicker">COMPUTE</div>
+            <div class="row" style="margin-top:4px;gap:8px">
+              <span class="dot" style="background:var(--brand)"></span>
+              <span class="numeric-body" style="font-weight:600">Processing</span>
+              <span class="numeric-body" style="margin-left:auto;color:var(--text-secondary)">62%</span>
+            </div>
+            <div class="body-sm" style="color:var(--text-secondary);margin-top:4px">
+              1 job running · <a class="lk" href="#">Node ›</a>
+            </div>
+            <div class="bar" style="margin-top:6px"><i style="width:62%"></i></div>
+          </div>
+
+          <div class="btn btn-fill">New processing job</div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="ruler">
+      <span style="top:0">0</span>
+      <span style="top:98px">98 — balance tile</span>
+      <span style="top:110px">110</span>
+      <span style="top:198px">198 — compute tile</span>
+      <span style="top:210px">210</span>
+      <span style="top:254px">254 — CTA floor</span>
+      <span style="top:276px;color:var(--brand)">276 — budget</span>
+    </div>
+
+    <div style="flex:1;min-width:320px">
+      <h3>Where the height goes</h3>
+      <table>
+        <tr><th>Element</th><th style="text-align:right">px</th><th>Source</th></tr>
+        <tr><td>Section kicker + gap</td><td class="n">25</td><td><code>GWKicker</code> 13px</td></tr>
+        <tr><td>Balance tile</td><td class="n">98</td><td>pad 12 + kicker 14 + 4 + <code>numericDisplay</code> 40 + sub 16 + pad 12</td></tr>
+        <tr><td>gap</td><td class="n">12</td><td><code>space6</code></td></tr>
+        <tr><td>Compute tile</td><td class="n">88</td><td>pad 12 + kicker 14 + 4 + row 20 + sub 16 + bar 10 + pad 12</td></tr>
+        <tr><td>gap</td><td class="n">12</td><td><code>space6</code></td></tr>
+        <tr><td><code>GWButton</code></td><td class="n">44</td><td></td></tr>
+        <tr><td><strong>Total</strong></td><td class="n"><strong>279</strong></td><td style="color:var(--error)">3px over 276</td></tr>
+      </table>
+      <p class="note" style="margin-top:12px">
+        <span class="tag new">changed</span>
+        The balance moves from a hardcoded <code>fontSize: 48</code> to
+        <code>numericDisplay</code> <strong>32/40</strong>. That alone buys back 16px, which is why a
+        section label fits at all. B2 was measured at 261px hand-drawn with the 48px number.
+      </p>
+      <p class="note">
+        <strong style="color:var(--text-primary)">The 3px.</strong> Drop the balance tile's
+        <code>≈ $312.40</code> subline in exactly the states where the compute bar is showing — the
+        tallest states — and the card lands at 263px. That is the ★ recommendation. The alternative is
+        no section label at all (254px, ships today) or <code>GWSectionTitle</code>, which is the
+        correct component, costs 44px, and does not fit.
+      </p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2>2 · Status — 017-A dot + label, plus the stale-percentage guard</h2>
+  <p class="lede">
+    Nine states. Under the dashed line in each cell: what the shipped app renders instead. The dot and
+    the bar carry brand colour; the <strong>label stays <code>textPrimary</code></strong> because
+    <code>#0AAEE6</code> measures 3.0:1 on white and fails as a label colour.
+  </p>
+
+  <div class="states">
+    <div class="state">
+      <div class="no">01 · NO WALLET</div>
+      <div class="row"><span class="dot" style="background:#5A606E"></span><span class="lbl">No wallet</span></div>
+      <div class="sub">Create or import one · <a class="lk" href="#">switch wallet ›</a></div>
+      <div class="was">Shipped: the CTA renders <code>SizedBox.shrink()</code> — the section's primary action is simply absent.</div>
+    </div>
+
+    <div class="state">
+      <div class="no">02 · NOT LINKED</div>
+      <div class="row"><span class="dot" style="background:var(--warning)"></span><span class="lbl">Not linked</span></div>
+      <div class="sub">Not the wallet linked to SGNUS · <a class="lk" href="#">switch wallet ›</a></div>
+      <div class="was">Shipped: button vanishes. <code>submit_job_dashboard_button.dart:26</code> holds both addresses and discards them.</div>
+    </div>
+
+    <div class="state">
+      <div class="no">03 · INITIALIZING</div>
+      <div class="row"><span class="dot" style="background:var(--brand)"></span><span class="lbl">Starting up</span></div>
+      <div class="sub">Node is coming online</div>
+      <div class="bar" style="margin-top:8px"><i style="width:35%;background:var(--border-control)"></i></div>
+      <div class="was">Shipped: a determinate ring implying it will reach 100%.</div>
+    </div>
+
+    <div class="state">
+      <div class="no">04 · STALLED</div>
+      <div class="row"><span class="dot" style="background:var(--warning)"></span><span class="lbl">Stalled</span></div>
+      <div class="sub">Stuck at 52.5% for 40s · <a class="lk" href="#">see node status ›</a></div>
+      <div class="was">Shipped: the ring sits at 0.525 forever and reads as progress. Measured over 161 polls / 40s.</div>
+    </div>
+
+    <div class="state">
+      <div class="no">05 · READY</div>
+      <div class="row"><span class="dot" style="background:var(--success)"></span><span class="lbl">Ready</span></div>
+      <div class="sub">Idle, waiting for a job</div>
+      <div class="was">Shipped: literal <code>idle</code> in grey — identical to state 08.</div>
+    </div>
+
+    <div class="state">
+      <div class="no">06 · PROCESSING</div>
+      <div class="row"><span class="dot" style="background:var(--brand)"></span><span class="lbl">Processing</span>
+        <span class="numeric-body" style="margin-left:auto;color:var(--text-secondary)">62%</span></div>
+      <div class="sub">1 job running</div>
+      <div class="bar" style="margin-top:8px"><i style="width:62%"></i></div>
+      <div class="was">Shipped: <code>'62%'</code> as bare text, no state word.</div>
+    </div>
+
+    <div class="state" style="border-color:rgba(20,200,255,.45)">
+      <div class="no" style="color:var(--brand)">07 · JOB COMPLETE <span class="tag new" style="margin-left:4px">guard</span></div>
+      <div class="row"><span class="dot" style="background:var(--success)"></span><span class="lbl">Ready</span></div>
+      <div class="sub">Last job finished</div>
+      <div class="was">
+        <strong style="color:var(--warning)">The stale-percentage trap.</strong>
+        <code>app_bloc.dart:184-191</code> emits the percentage only <em>while</em> processing, so it keeps its
+        last value forever after. <code>isProcessing:false, processingPercentage:87.0</code> is reachable.
+        <strong>No bar and no number in this state</strong> — gate on <code>isProcessing</code>, never on
+        the percentage.
+      </div>
+    </div>
+
+    <div class="state">
+      <div class="no">08 · TELEMETRY DEAD</div>
+      <div class="row"><span class="dot" style="background:var(--error)"></span><span class="lbl">Unavailable</span></div>
+      <div class="sub">Can't read node status · <a class="lk" href="#">retry ›</a></div>
+      <div class="was">Shipped: grey <code>idle</code>, pixel-identical to state 05. <code>app_bloc.dart:192-195</code> cancels the timer permanently; nothing restarts it.</div>
+    </div>
+
+    <div class="state">
+      <div class="no">09 · DISCONNECTED</div>
+      <div class="row"><span class="dot" style="background:#5A606E"></span><span class="lbl">Offline</span></div>
+      <div class="sub">No connection to the network</div>
+      <div class="was">Shipped: no representation.</div>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top:14px">
+    <span class="tag cut">no ring</span>
+    A ring's grammar is "this will fill up". It cannot render <em>stalled</em> or <em>unknown</em>
+    without lying — which is exactly why the shipped UI lies. The ring survives only in the 56px
+    <code>GWAiFab</code>, under the rule <strong>no live percentage → no ring</strong>.
+  </p>
+
+  <!-- ============================================================ -->
+  <h2>3 · The job flow — 018-A drawer, on GWDetailGrid and GWWarningNote</h2>
+  <p class="lede">
+    <code>ResponsiveDrawer</code>: 420px right-edge panel on desktop, bottom sheet on mobile.
+    <code>/submit_job</code> stays as the full-screen host for deep links, rendering the same step
+    bodies. Completed steps collapse to one line and stay on screen.
+  </p>
+
+  <div class="stage">
+
+    <!-- confirm step -->
+    <div class="drawer">
+      <div class="hd">
+        <div style="font-size:16px;font-weight:600">New processing job</div>
+        <div style="color:var(--text-secondary);font-size:18px">×</div>
+      </div>
+      <div class="bd">
+        <div class="step done">
+          <div class="bullet"></div>
+          <div class="st">1 · File</div>
+          <div class="sm mono" style="color:var(--success)">segment-4k.json</div>
+        </div>
+        <div class="step done">
+          <div class="bullet"></div>
+          <div class="st">2 · Cost</div>
+          <div class="sm">18 GNUS + 0.0042 ETH gas</div>
+        </div>
+        <div class="step active">
+          <div class="bullet"></div>
+          <div class="st">3 · Confirm</div>
+          <div class="sm" style="color:var(--text-primary)">This spends GNUS and cannot be undone.</div>
+          <div class="body">
+            <div class="dgrid">
+              <div class="r"><span class="k">Job cost</span><span class="v">18.00 GNUS</span></div>
+              <div class="r"><span class="k">Bridge gas</span><span class="v">0.0042 ETH</span></div>
+              <div class="r"><span class="k">Balance after</span><span class="v">1,186.50 GNUS</span></div>
+            </div>
+            <div style="margin-top:12px"><div class="btn btn-fill">Confirm and pay</div></div>
+            <div style="margin-top:8px"><div class="btn btn-ghost">Back</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- in flight -->
+    <div class="drawer">
+      <div class="hd">
+        <div style="font-size:16px;font-weight:600">New processing job</div>
+        <div style="color:var(--text-secondary);font-size:18px">×</div>
+      </div>
+      <div class="bd">
+        <div class="step done"><div class="bullet"></div><div class="st">1 · File</div>
+          <div class="sm mono" style="color:var(--success)">segment-4k.json</div></div>
+        <div class="step done"><div class="bullet"></div><div class="st">2 · Cost</div>
+          <div class="sm">18 GNUS + 0.0042 ETH gas</div></div>
+        <div class="step done"><div class="bullet"></div><div class="st">3 · Confirm</div>
+          <div class="sm">Confirmed</div></div>
+        <div class="step active">
+          <div class="bullet"></div>
+          <div class="st">4 · In flight <span class="tag new" style="margin-left:6px">changed</span></div>
+          <div class="body">
+            <div class="dgrid">
+              <div class="r"><span class="k">Bridging 18 GNUS</span>
+                <span class="v" style="color:var(--success)">done ✓</span></div>
+              <div class="r"><span class="k">Starting the job</span>
+                <span class="v" style="color:var(--brand)">working…</span></div>
+            </div>
+            <p class="note" style="margin-top:10px">
+              Two operations, named separately because they fail separately and
+              <strong>only the first one spends money</strong>. 018 showed this in prose; here it is in
+              the widget.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- the new terminal state -->
+    <div class="drawer" style="border-color:rgba(255,77,77,.45)">
+      <div class="hd">
+        <div style="font-size:16px;font-weight:600">Job did not start</div>
+        <div style="color:var(--text-secondary);font-size:18px">×</div>
+      </div>
+      <div class="bd">
+        <div class="step done"><div class="bullet"></div><div class="st">1–3</div>
+          <div class="sm">segment-4k.json · 18 GNUS</div></div>
+        <div class="step" style="border-left-color:var(--error)">
+          <div class="bullet" style="border-color:var(--error);background:var(--error)"></div>
+          <div class="st" style="color:var(--error)">5 · Result <span class="tag new" style="margin-left:6px">new state</span></div>
+          <div class="body">
+            <div class="warn">
+              <span class="ico">▲</span>
+              <span class="msg"><strong>Your 18 GNUS were spent and the job did not start.</strong>
+              The bridge went through; the node rejected the job. Keep this hash — it is your proof
+              of the burn.</span>
+            </div>
+            <div class="dgrid" style="margin-top:12px">
+              <div class="r"><span class="k">Bridge tx</span>
+                <span class="v mono">0x7f3a…c41e &nbsp;⧉</span></div>
+              <div class="r"><span class="k">Reason</span>
+                <span class="v">Token minting failed</span></div>
+            </div>
+            <div style="margin-top:12px"><div class="btn btn-outline">Try the job again</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="note" style="margin-top:16px;max-width:88ch">
+    <strong style="color:var(--text-primary)">Why that third panel is the important one.</strong>
+    <code>submit_job_cubit.dart:195-218</code> — when <code>requestGeniusSDKProcess</code> fails after a
+    <em>successful</em> <code>bridgeOut</code>, the cubit emits <code>processErrorMessage</code> and
+    returns. <strong>The <code>txHash</code> is never written to state.</strong> The tokens are burned,
+    the user gets a red toast, and there is no hash anywhere. This state exists in shipped code today
+    and has no design. Now it has one.
+  </p>
+
+  <h3>The blocked path, split in two</h3>
+  <div class="stage">
+    <div style="width:420px;flex:none">
+      <div class="tile">
+        <div class="kicker">COST NOT YET KNOWN</div>
+        <div class="dgrid" style="margin-top:10px">
+          <div class="r"><span class="k">Job cost</span><span class="v" style="color:var(--text-secondary)">—</span></div>
+          <div class="r"><span class="k">Bridge gas</span><span class="v" style="color:var(--text-secondary)">—</span></div>
+        </div>
+        <div style="margin-top:12px"><div class="btn btn-outline" style="opacity:.5">Confirm and pay</div></div>
+        <p class="note" style="margin-top:8px">Neutral. Nothing is wrong; the estimate has not landed.</p>
+      </div>
+    </div>
+    <div style="width:420px;flex:none">
+      <div class="tile">
+        <div class="kicker">NOT ENOUGH GNUS</div>
+        <div class="warn" style="margin-top:10px">
+          <span class="ico">▲</span>
+          <span class="msg">This job costs <strong>18.00 GNUS</strong>. You have
+          <strong>11.40</strong>. You need <strong>6.60</strong> more.</span>
+        </div>
+        <div style="margin-top:12px"><div class="btn btn-outline">Buy GNUS</div></div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:300px">
+      <p class="note">
+        <span class="tag new">changed</span>
+        Shipped code drives both from one flag:
+        <code>isPurchaseable = jobCost != 0 &amp;&amp; jobCost &lt; gnusBalance</code>
+        (<code>submit_job_screen.dart:65</code>). Two consequences, both bugs:
+      </p>
+      <p class="note">
+        <strong style="color:var(--text-primary)">Off by one.</strong> Strictly <code>&lt;</code>, so a
+        user holding <em>exactly</em> the cost is refused. It should be <code>&lt;=</code>.
+      </p>
+      <p class="note">
+        <strong style="color:var(--text-primary)">A false accusation.</strong> The same flag is false
+        when <code>jobCost == 0</code>, so "cost not yet known" renders the line
+        <em>"* You do not have enough GNUS"</em>. The app tells a solvent user they are broke.
+      </p>
+      <p class="note">
+        And the shortfall is now <strong>a number</strong>. Telling someone they are short without
+        saying by how much makes them go and count it themselves.
+      </p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2>4 · What stops being hand-built</h2>
+  <table>
+    <tr><th>016/017/018 drew</th><th>Becomes</th><th>Note</th></tr>
+    <tr><td>"compact COMPUTE kicker"</td><td><code>GWKicker(dense)</code></td><td>11px / w600 / 0.6. The component owns no padding — the call site places it</td></tr>
+    <tr><td>balance hero, 48px</td><td><code>GWAnimatedNumber</code> @ <code>numericDisplay</code></td><td><strong>32/40 w700.</strong> Drops 16px off the tallest element; also kills the hardcoded <code>Colors.white</code></td></tr>
+    <tr><td>compute readouts</td><td><code>GWStatTile</code></td><td>The box is composition at the call site, not a <code>boxed</code> flag</td></tr>
+    <tr><td>step 2/3 cost table</td><td><code>GWDetailGrid</code></td><td>Sunken well, hairline-ruled. Exactly what it was built for</td></tr>
+    <tr><td>"not enough GNUS" red line</td><td><code>GWWarningNote</code></td><td>Already solved <code>statusWarning</code>'s 1.6:1 failure on light</td></tr>
+    <tr><td>CTA row</td><td><code>GWButton</code></td><td>Fill = commitment; max one filled per surface</td></tr>
+    <tr><td>drawer shell</td><td><code>ResponsiveDrawer</code></td><td>Archetype now owns its insets; the panel is a card</td></tr>
+    <tr><td>tile containers</td><td><code>GWCard</code></td><td></td></tr>
+    <tr><td><code>Loading(text:)</code></td><td><code>GWSpinner</code> / <code>GWLoadingState</code></td><td></td></tr>
+  </table>
+
+  <h2>5 · Open — three things only you can settle</h2>
+  <table>
+    <tr><th>#</th><th>Question</th><th>My call</th></tr>
+    <tr><td class="n">1</td>
+        <td>Section label: <code>GWKicker</code> 13px (★, needs the <code>≈ $</code> subline to yield 3px in tall states), no label at all (254px, ships today), or <code>GWSectionTitle</code> (correct component, 44px, does not fit)</td>
+        <td><strong>GWKicker</strong></td></tr>
+    <tr><td class="n">2</td>
+        <td>Unit clash: this card polls the SDK every 10s for <code>1,204.50 GNUS</code>; Assets polls CoinGecko every 60s for <code>$312.40</code>, 12px away. They will routinely disagree</td>
+        <td><strong>Keep, mitigated</strong> by the <code>≈ $</code> subline — but that subline is also the 3px release valve in Q1. Pick one. 016-B3 (fiat hero) resolves it outright and stays the fallback</td></tr>
+    <tr><td class="n">3</td>
+        <td><code>View transaction ›</code> still needs a job→tx correlation nothing provides</td>
+        <td><strong>Drop the link</strong> rather than grow the block — the budget has 3px, not 20</td></tr>
+  </table>
+
+  <p class="note" style="margin-top:28px">
+    Line numbers verified against <code>8ed02e78</code> on 2026-07-28. Two of the five roadmap pointers
+    had drifted and one named a path that does not exist —
+    <code>genius_balance_display.dart</code> lives under <code>lib/wallets/view/</code>, not
+    <code>lib/components/</code>. All five bugs are alive.
+  </p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-v="A" data-s="convert" data-g="one">
+<head>
+<meta charset="utf-8">
+<title>070 · Coin page on base components</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink54:rgba(255,255,255,.54);
+  --ink38:rgba(255,255,255,.38);
+  --sec:#8A8F9D;
+  --border:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --borderControl:rgba(255,255,255,.36);
+  --brand:#14C8FF; --brandStrong:#0AAEE6; --mint:#0AD89C; --bad:#FF4D4D;
+  --violet:#C28FFF; --slate:#64748B; --amber:#FFC42E;
+  --hoverFill:rgba(20,200,255,.12); --hoverEdge:rgba(20,200,255,.24);
+  --cta:linear-gradient(90deg,#0AD89C 0%,#0AAEE6 100%);
+  --tint:linear-gradient(90deg,rgba(10,216,156,.18) 0%,rgba(10,174,230,.18) 100%);
+  --rXs:4px; --rSm:8px; --rMd:12px; --rLg:15px;
+  --glyph:#14C8FF;
+}
+html[data-theme="light"]{
+  --base:#DCE0E6; --card:#FFFFFF; --menu:#EFF2F6; --sunken:#CFD4DB;
+  --ink:#10131A; --ink70:rgba(16,19,26,.70); --ink54:rgba(16,19,26,.54);
+  --ink38:rgba(16,19,26,.38);
+  --sec:#5A606E; --border:rgba(16,19,26,.12); --borderControl:rgba(16,19,26,.46);
+  --bad:#D92D2D; --glyph:#0A6885;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font:400 14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 0 80px}
+.bar{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--border);
+  padding:10px 20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.grp{display:flex;gap:6px;align-items:center}
+.grp>b{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin-right:4px}
+.bar button{border:1px solid var(--border);background:transparent;color:var(--ink70);
+  font:500 13px/1 inherit;padding:8px 12px;border-radius:var(--rSm);cursor:pointer;font-family:inherit}
+.bar button:hover{background:var(--hoverFill);border-color:var(--hoverEdge);color:var(--ink)}
+.bar button.on{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+main{padding:22px 20px 0;max-width:1500px}
+h2{font-size:20px;font-weight:600;margin:26px 0 6px}
+p.lead{color:var(--ink70);max-width:98ch;margin:0 0 16px;line-height:1.65}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;background:var(--menu);padding:1px 5px;border-radius:4px}
+.cl{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin:0 0 8px}
+.stage{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+
+/* GWCard */
+.card{width:396px;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--rLg);padding:16px}
+.card + .card{margin-top:16px}
+/* GWKicker, default step: 13 / w600 / .5 / uppercase / textSecondary */
+.kick{font:600 13px/18px inherit;letter-spacing:.5px;text-transform:uppercase;color:var(--sec);
+  margin:0 0 8px}
+.kick.gap12{margin-bottom:12px}
+
+/* GWDetailGrid: surfaceSunken well, borderSubtle outline, hairline rules */
+.grid{background:var(--sunken);border:1px solid var(--border);border-radius:var(--rMd);overflow:hidden}
+.grow{display:flex;align-items:center;gap:12px;padding:12px}
+.grow + .grow{border-top:1px solid var(--border)}
+.grow .k{color:var(--sec);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow .val{font-variant-numeric:tabular-nums;text-align:right}
+.grow .ic{width:22px;flex:none;text-align:center;color:var(--glyph);font-size:14px}
+.grow.tap{cursor:pointer}
+.grow.tap:hover{background:var(--hoverFill)}
+.copy{color:var(--sec);font-size:13px;margin-left:8px}
+
+/* today's bare Info rows */
+.bare{display:flex;align-items:center;gap:12px;padding:11px 12px}
+.bare .k{color:var(--sec);flex:1;font-size:14px}
+.bare .val{font-size:14px;font-variant-numeric:tabular-nums}
+.bare .ic{width:22px;flex:none;text-align:center;font-size:14px}
+
+/* fields */
+.fl{font:500 13px/1.3 inherit;color:var(--sec);margin:0 0 8px;display:flex;align-items:center;gap:6px}
+.chip{font:600 10px/1 inherit;letter-spacing:.5px;color:var(--ink54);border:1px solid var(--border);
+  border-radius:var(--rXs);padding:3px 4px}
+.field{background:var(--sunken);border:1px solid var(--borderControl);border-radius:var(--rSm);
+  padding:12px;font-size:14px;color:var(--ink);min-height:46px;font-variant-numeric:tabular-nums}
+.field.ro{color:var(--ink70)}
+.field.focus{border:1.5px solid transparent;background:
+  linear-gradient(var(--sunken),var(--sunken)) padding-box,var(--cta) border-box}
+.fgap{height:12px}
+
+/* today's notched Material field */
+.mfield{position:relative;border:1px solid var(--ink70);border-radius:var(--rXs);padding:15px 12px;
+  font-size:16px;color:var(--ink);margin-top:8px;background:transparent}
+.mfield.sunken{background:var(--sunken)}
+.mfield.blue{border:2px solid var(--brandStrong)}
+.mfield .notch{position:absolute;top:-8px;left:10px;background:var(--card);padding:0 4px;
+  font-size:12px;color:var(--ink70);display:flex;gap:5px;align-items:center}
+.mfield.blue .notch{color:var(--brandStrong)}
+.mfield.sunken .notch{background:var(--card)}
+
+.total{text-align:right;font-size:16px;margin-top:12px;color:var(--ink)}
+
+/* action bar (unchanged - shown for context) */
+.acts{display:flex;gap:8px;margin:0 0 16px}
+.act{flex:1;border-radius:var(--rMd);padding:12px 4px;text-align:center;border:1px solid var(--border);
+  background:var(--menu);font-size:12px;color:var(--sec)}
+.act .g{display:block;font-size:16px;margin-bottom:6px;color:var(--brand)}
+.act.on{background:var(--tint);border-color:transparent;color:var(--ink)}
+.act.off{background:var(--sunken);border-color:transparent;color:var(--ink54)}
+.act.off .g{color:var(--ink54)}
+
+table{border-collapse:collapse;width:100%;margin:8px 0 18px;font-size:13px}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--menu);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--sec)}
+td.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.ok-b{color:var(--mint);font-weight:600}
+.bad-b{color:var(--bad);font-weight:600}
+.warn-b{color:#FFC42E;font-weight:600}
+.note{border-left:3px solid var(--brand);background:var(--menu);padding:12px 14px;
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:14px 0;line-height:1.65;max-width:100ch}
+.note.bad{border-left-color:var(--bad)}
+.note.ok{border-left-color:var(--mint)}
+.note.warn{border-left-color:var(--amber)}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="grp"><b>Variant</b>
+    <button data-set="v" data-val="0">0 &middot; Today</button>
+    <button data-set="v" data-val="A" class="on">A &middot; On components &#9733;</button>
+    <button data-set="v" data-val="B">B &middot; One well</button>
+    <button data-set="v" data-val="C">C &middot; Minimum</button>
+  </div>
+  <div class="grp"><b>Card</b>
+    <button data-set="s" data-val="convert" class="on">Convert</button>
+    <button data-set="s" data-val="info">Info</button>
+    <button data-set="s" data-val="both">Both + actions</button>
+  </div>
+  <div class="grp"><b>Glyphs</b>
+    <button data-set="g" data-val="rainbow">Rainbow</button>
+    <button data-set="g" data-val="one" class="on">One accent</button>
+  </div>
+  <div class="grp"><button id="theme">Light</button></div>
+</div>
+
+<main>
+  <h2>070 &middot; The coin page, on the components the app already ships</h2>
+  <p class="lead">
+    <b>Design question:</b> sketch <b>061</b> owns this page&rsquo;s <i>chrome</i> - the missing navbar,
+    the frame, the header - and its recommendation A says the internal layout stays as it is. This is
+    the layer underneath: <b>what do the Convert card and the Info card look like when every element
+    maps to a component the app already has?</b> Two of the defects below were fixed elsewhere in the
+    app on <b>2026-07-28</b> and this screen never got the change.
+    <br><br>
+    <b>Not in scope:</b> <code>TokenActionBar</code> is already a proper component with three real
+    states, and <code>_buildSectionTitle</code> is already <code>GWKicker</code>. Both stay.
+  </p>
+
+  <div class="stage">
+    <div>
+      <p class="cl" id="slabel">Right column at 396px, 1:1</p>
+      <div id="screen"></div>
+    </div>
+    <div style="flex:1;min-width:420px">
+      <p class="cl">This variant</p>
+      <div class="note" id="vnote"></div>
+      <p class="cl" style="margin-top:16px">Where every element comes from</p>
+      <table id="prov"></table>
+    </div>
+  </div>
+
+  <h2>Findings from the code</h2>
+
+  <div class="note bad">
+    <b>1 &middot; Both Convert fields use the notched Material floating label.</b> <code>label:</code>
+    on the price, <code>labelText: "Token Amount"</code> on the amount
+    (<code>token_info_screen.dart:561</code>). This is the <b>only</b> pattern of its kind in the app
+    besides <code>custom_drop_down.dart</code>. Everywhere else - <code>GWTextField</code>,
+    <code>swap_field</code>, <code>submit_logs_screen</code>, and every drawer shipped this week - the
+    label sits <b>above</b> the box at <code>labelMd</code> / <code>textSecondary</code> /
+    <code>space4</code>. Two field grammars in one app, and this screen is on the minority one.
+  </div>
+
+  <div class="note bad">
+    <b>2 &middot; Token Amount lights a FLAT <code>brandPrimaryStrong</code> on focus.</b> Visible in
+    the shipped screenshot as a blue notch and a blue 2px border. That is the one thing the global
+    accent rule forbids - and it is structural, not an oversight: <b>a <code>BorderSide</code> takes a
+    single <code>Color</code>, so no <code>InputBorder</code> can ever be a gradient.</b> That is
+    precisely why <code>GWFocusRing</code> exists, and why <code>GWTextField</code> grew a
+    <code>focusRing</code> flag on <b>2026-07-28</b> for the SDK dialogs. This screen has the same
+    defect and did not get the same fix.
+  </div>
+
+  <div class="note bad">
+    <b>3 &middot; The Info card is <code>GWDetailGrid</code> written by hand.</b>
+    <code>_MarketDataInfo.statRow</code> is padding 11/12, a 22px leading glyph slot, key at
+    14/<code>textSecondary</code>, value at 14/tabular/<code>textPrimary</code>. That is the component
+    that shipped <b>the same day</b> for the transaction receipt, minus the recessed well and the
+    hairline rules. Six rows with no separators at all.
+  </div>
+
+  <div class="note bad">
+    <b>4 &middot; Copy-address exists twice, one day apart.</b> Here it is an inline compact
+    <code>IconButton</code> at the end of the value. The receipt shipped <code>_CopyRow</code>, where
+    the <b>whole row</b> is the target and the glyph is present at rest - because an affordance you
+    have to hover to discover is not one. Same idea, two implementations, and the smaller target is
+    the older one.
+  </div>
+
+  <div class="note">
+    <b>5 &middot; <code>Total: $63,504.00</code> is a bare right-aligned <code>bodyLarge</code>.</b>
+    The one computed result on the card, and the only element with no structure around it. It reads as
+    a caption rather than an answer.
+  </div>
+
+  <h2 id="glyphq">The open question: the info glyphs</h2>
+
+  <div class="note warn">
+    <b>This one is drawn both ways and is NOT being decided here.</b> The code comment records that a
+    single restrained accent was there first and was replaced with per-row colours
+    <i>&ldquo;per user request&rdquo;</i>. So here is the measurement, not a reversal.
+    <br><br>
+    <b>The rainbow was tuned on the dark canvas and collapses on the light one.</b> Measured against
+    the light well (<code>#CFD4DB</code>):
+  </div>
+
+  <table>
+    <tr><th>Row</th><th>Colour</th><th class="num">Dark</th><th class="num">Light</th><th>Light verdict</th></tr>
+    <tr><td>Market Cap</td><td><span class="sw" style="background:#0AD89C"></span><code>statusSuccess</code></td>
+      <td class="num">10.80</td><td class="num bad-b">1.25</td><td class="bad-b">gone</td></tr>
+    <tr><td>Circulating Supply</td><td><span class="sw" style="background:#C28FFF"></span><code>brandTertiary</code></td>
+      <td class="num">8.27</td><td class="num bad-b">1.63</td><td class="bad-b">gone</td></tr>
+    <tr><td>Address</td><td><span class="sw" style="background:#0AAEE6"></span><code>brandPrimaryStrong</code></td>
+      <td class="num">7.84</td><td class="num bad-b">1.72</td><td class="bad-b">gone</td></tr>
+    <tr><td>Total Supply</td><td><span class="sw" style="background:#FF4D4D"></span><code>statusError</code></td>
+      <td class="num">6.13</td><td class="num warn-b">2.19</td><td class="warn-b">faint</td></tr>
+    <tr><td>Volume</td><td><span class="sw" style="background:#64748B"></span><code>statusNeutral</code></td>
+      <td class="num">4.21</td><td class="num">3.19</td><td>survives</td></tr>
+    <tr><td>Network</td><td><span class="sw" style="background:#14C8FF"></span><code>brandPrimaryOnSurface</code></td>
+      <td class="num">10.25</td><td class="num ok-b">4.23</td><td class="ok-b">survives - it is the only appearance-aware one</td></tr>
+  </table>
+
+  <p class="cl" style="margin-top:22px">All four combinations at once - these four panels ignore the
+    theme toggle, they are hard-coded so you can see them together</p>
+  <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:20px">
+
+    <div>
+      <p class="cl">Rainbow &middot; dark &mdash; what ships</p>
+      <div style="width:340px;background:#0C0E14;border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:16px">
+        <div style="background:#06080C;border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden">
+          <div style="display:flex;gap:12px;padding:12px;color:#fff"><span style="width:22px;text-align:center;color:#14C8FF">&#127760;</span><span style="flex:1;color:#8A8F9D">Network</span><span>Ethereum</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#0AAEE6">&#128179;</span><span style="flex:1;color:#8A8F9D">Address</span><span>0xA0b8&hellip;eB48</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#0AD89C">&#128337;</span><span style="flex:1;color:#8A8F9D">Market Cap</span><span>$1.27T</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#C28FFF">&#8635;</span><span style="flex:1;color:#8A8F9D">Circulating</span><span>20.1M</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#FF4D4D">&#9776;</span><span style="flex:1;color:#8A8F9D">Total Supply</span><span>20.1M</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#64748B">&#128202;</span><span style="flex:1;color:#8A8F9D">Volume</span><span>$26.5B</span></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#8A8F9D;width:340px;margin:8px 0 0;line-height:1.5">
+        Every glyph reads. <b>This is why nobody noticed.</b></p>
+    </div>
+
+    <div>
+      <p class="cl bad-b" style="color:#FF4D4D">Rainbow &middot; light &mdash; the same code</p>
+      <div style="width:340px;background:#FFFFFF;border:1px solid rgba(16,19,26,.12);border-radius:15px;padding:16px">
+        <div style="background:#CFD4DB;border:1px solid rgba(16,19,26,.12);border-radius:12px;overflow:hidden">
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A"><span style="width:22px;text-align:center;color:#0A6885">&#127760;</span><span style="flex:1;color:#5A606E">Network</span><span>Ethereum</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#0AAEE6">&#128179;</span><span style="flex:1;color:#5A606E">Address</span><span>0xA0b8&hellip;eB48</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#0AD89C">&#128337;</span><span style="flex:1;color:#5A606E">Market Cap</span><span>$1.27T</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#C28FFF">&#8635;</span><span style="flex:1;color:#5A606E">Circulating</span><span>20.1M</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#FF4D4D">&#9776;</span><span style="flex:1;color:#5A606E">Total Supply</span><span>20.1M</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#64748B">&#128202;</span><span style="flex:1;color:#5A606E">Volume</span><span>$26.5B</span></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#8A8F9D;width:340px;margin:8px 0 0;line-height:1.5">
+        Market Cap <b>1.25:1</b>, Circulating <b>1.63:1</b>, Address <b>1.72:1</b>. Only Network held,
+        because it is the only one that changed colour with the canvas.</p>
+    </div>
+
+    <div>
+      <p class="cl">One accent &middot; dark</p>
+      <div style="width:340px;background:#0C0E14;border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:16px">
+        <div style="background:#06080C;border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden">
+          <div style="display:flex;gap:12px;padding:12px;color:#fff"><span style="width:22px;text-align:center;color:#14C8FF">&#127760;</span><span style="flex:1;color:#8A8F9D">Network</span><span>Ethereum</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#14C8FF">&#128179;</span><span style="flex:1;color:#8A8F9D">Address</span><span>0xA0b8&hellip;eB48</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#14C8FF">&#128337;</span><span style="flex:1;color:#8A8F9D">Market Cap</span><span>$1.27T</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#14C8FF">&#8635;</span><span style="flex:1;color:#8A8F9D">Circulating</span><span>20.1M</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#14C8FF">&#9776;</span><span style="flex:1;color:#8A8F9D">Total Supply</span><span>20.1M</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#fff;border-top:1px solid rgba(255,255,255,.12)"><span style="width:22px;text-align:center;color:#14C8FF">&#128202;</span><span style="flex:1;color:#8A8F9D">Volume</span><span>$26.5B</span></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#8A8F9D;width:340px;margin:8px 0 0;line-height:1.5">
+        <b>10.25:1</b> on every row. Quieter - the honest cost of this option.</p>
+    </div>
+
+    <div>
+      <p class="cl ok-b" style="color:#0AD89C">One accent &middot; light</p>
+      <div style="width:340px;background:#FFFFFF;border:1px solid rgba(16,19,26,.12);border-radius:15px;padding:16px">
+        <div style="background:#CFD4DB;border:1px solid rgba(16,19,26,.12);border-radius:12px;overflow:hidden">
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A"><span style="width:22px;text-align:center;color:#0A6885">&#127760;</span><span style="flex:1;color:#5A606E">Network</span><span>Ethereum</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#0A6885">&#128179;</span><span style="flex:1;color:#5A606E">Address</span><span>0xA0b8&hellip;eB48</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#0A6885">&#128337;</span><span style="flex:1;color:#5A606E">Market Cap</span><span>$1.27T</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#0A6885">&#8635;</span><span style="flex:1;color:#5A606E">Circulating</span><span>20.1M</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#0A6885">&#9776;</span><span style="flex:1;color:#5A606E">Total Supply</span><span>20.1M</span></div>
+          <div style="display:flex;gap:12px;padding:12px;color:#10131A;border-top:1px solid rgba(16,19,26,.12)"><span style="width:22px;text-align:center;color:#0A6885">&#128202;</span><span style="flex:1;color:#5A606E">Volume</span><span>$26.5B</span></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#8A8F9D;width:340px;margin:8px 0 0;line-height:1.5">
+        <b>4.23:1</b> on every row. The same picture as dark, which is the point.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>Network is the tell.</b> It is the single glyph in the set that flips with the canvas
+    (<code>#14C8FF</code> dark &rarr; <code>#0A6885</code> light), and it is the single glyph that
+    still reads in light mode. The other five are raw constants. So the honest choice is not
+    <i>&ldquo;rainbow or not&rdquo;</i> - it is:
+    <br><br>
+    <b>(a)</b> keep the rainbow and give every colour a light-mode counterpart, the way
+    <code>brandPrimaryOnSurface</code> already has one - five new tokens; or
+    <b>(b)</b> one accent, which is <code>brandPrimaryOnSurface</code> and is already correct in both
+    modes - zero new tokens.
+    <br><br>
+    <b>Use the Glyphs toggle above to see both.</b> Then switch to Light. That is the whole argument.
+  </div>
+
+  <div class="note">
+    <b>And one thing colour is NOT doing here.</b> Red on Total Supply carries no meaning - nothing is
+    wrong with a total supply. Every row is already fully identified by its label, so under 1.4.11
+    these glyphs are decorative, which is why <i>none</i> of this is a WCAG failure. It is a legibility
+    and a semantics question: <code>statusError</code> is the app&rsquo;s error tone, and it is being
+    spent on a neutral number.
+  </div>
+
+  <h2>Variants</h2>
+  <table>
+    <tr><th></th><th>Variant</th><th>Convert fields</th><th>Info card</th><th>Total</th><th>Cost</th></tr>
+    <tr><td><b>A</b> &#9733;</td><td><b>On components</b></td>
+      <td><code>GWTextField</code>, label above, <code>focusRing</code></td>
+      <td><code>GWDetailGrid</code> + the receipt&rsquo;s copy row</td>
+      <td>a one-row <code>GWDetailGrid</code></td>
+      <td>zero new components</td></tr>
+    <tr><td><b>B</b></td><td><b>One well</b></td>
+      <td>fields live INSIDE the grid as editable cells</td>
+      <td><code>GWDetailGrid</code></td>
+      <td>the grid&rsquo;s last row</td>
+      <td>a grid that is no longer read-only</td></tr>
+    <tr><td><b>C</b></td><td><b>Minimum</b></td>
+      <td><code>GWTextField</code>, label above, <code>focusRing</code></td>
+      <td>untouched</td>
+      <td>untouched</td>
+      <td>leaves finding 3 and 4 open</td></tr>
+  </table>
+
+  <div class="note ok">
+    <b>Findings 1 and 2 are fixed in every variant, because they are not a design choice.</b> They are
+    the same two defects <code>GWTextField</code> grew <code>focusRing</code> and <code>fill</code> for
+    this morning, on a screen that simply was not in that task&rsquo;s scope.
+  </div>
+
+  <h2>Contrast, both modes</h2>
+  <table>
+    <tr><th>Pairing</th><th class="num">Dark</th><th class="num">Light</th><th>Needs</th><th></th></tr>
+    <tr><td>field edge <code>borderControl</code> on the card</td><td class="num">3.30</td><td class="num">3.11</td><td>3.0 (1.4.11)</td><td class="ok-b">pass</td></tr>
+    <tr><td>field edge <code>borderControl</code> on a grid well (B)</td><td class="num">3.23</td><td class="num bad-b">2.85</td><td>3.0 (1.4.11)</td><td class="bad-b">FAILS light</td></tr>
+    <tr><td>label <code>textSecondary</code> on the card</td><td class="num">5.97</td><td class="num">6.30</td><td>4.5</td><td class="ok-b">pass</td></tr>
+    <tr><td>key <code>textSecondary</code> on the well</td><td class="num">6.20</td><td class="num">4.23</td><td>4.5</td><td class="warn-b">light 4.23 - see below</td></tr>
+    <tr><td>value <code>textPrimary</code> on the well</td><td class="num">20.04</td><td class="num">12.47</td><td>4.5</td><td class="ok-b">pass</td></tr>
+    <tr><td>well vs card</td><td class="num">1.04</td><td class="num">1.49</td><td>&mdash;</td><td>the hairline separates, not the fill</td></tr>
+    <tr><td>hairline <code>borderSubtle</code> on the well</td><td class="num">1.32</td><td class="num">1.27</td><td>&mdash;</td><td>decorative, same as the receipt</td></tr>
+  </table>
+
+  <div class="note bad">
+    <b>Two measured results that decide between A and B.</b>
+    <br><br>
+    <b>(1) B puts an input inside the grid well, and the field edge fails there in light mode:
+    2.85:1 against a 3.0 threshold.</b> A control&rsquo;s border is not decoration - it is what
+    identifies the control - so this is a real 1.4.11 failure, not an aesthetic one. B would need a
+    fourth border token to exist. That is what kills it.
+    <br><br>
+    <b>(2) The key text on the light well lands at 4.23:1, under 4.5.</b> This is inherited, not new:
+    the transaction receipt shipped the same pairing today. It is a <b>light-mode</b> finding for the
+    dedicated light pass, and it is recorded here rather than fixed, per the standing
+    dark-first order - but it applies to <code>GWDetailGrid</code> everywhere, not just this screen.
+  </div>
+
+  <h2>Recommendation</h2>
+  <div class="note ok">
+    <b>&#9733; A &middot; On components.</b> It closes all four defects with <b>zero new components</b> -
+    <code>GWTextField(focusRing, fill)</code>, <code>GWDetailGrid</code> and the receipt&rsquo;s copy
+    row all shipped this week and all have consumers already. The Convert card and the Info card end up
+    speaking the same language as the transaction receipt, which is the screen a user reaches from the
+    same page.
+    <br><br>
+    <b>Runner-up: C &middot; Minimum.</b> The right answer if the coin page should not be reopened
+    beyond its defects - it fixes the two things that are actually wrong (the notched label, the flat
+    blue focus) and touches nothing else. It is not the pick only because finding 3 leaves a
+    hand-written copy of a component that exists, which is exactly the drift this whole week has been
+    removing.
+    <br><br>
+    <b>Rejected: B &middot; One well.</b> The prettiest of the three and the one I would have picked on
+    looks. The contrast table kills it: an input inside the well measures <b>2.85:1 in light mode</b>
+    against a 3.0 threshold, so it would ship a control whose boundary is not identifiable, or force a
+    fourth border token into the system to serve one card.
+  </div>
+</main>
+
+<script>
+var G_RAINBOW = {
+  net:'#14C8FF', addr:'#0AAEE6', cap:'#0AD89C', circ:'#C28FFF', tot:'#FF4D4D', vol:'#64748B'
+};
+var ROWS = [
+  ['net','&#127760;','Network','Ethereum'],
+  ['addr','&#128179;','Address','0xA0b8&hellip;06eB48'],
+  ['cap','&#128337;','Market Cap','$1.27T'],
+  ['circ','&#8635;','Circulating Supply','20.1M'],
+  ['tot','&#9776;','Total Supply','20.1M'],
+  ['vol','&#128202;','Volume','$26.5B']
+];
+
+function glyphColor(key){
+  return document.documentElement.dataset.g === 'rainbow'
+    ? G_RAINBOW[key]
+    : 'var(--glyph)';
+}
+
+function infoRows(cls, copyStyle){
+  return ROWS.map(function(r){
+    var isAddr = r[0] === 'addr';
+    var tap = (copyStyle === 'row' && isAddr) ? ' tap' : '';
+    var val = r[3];
+    if (isAddr) {
+      val = copyStyle === 'row'
+        ? val + '<span class="copy">&#128203;</span>'
+        : val + '<span class="copy" style="font-size:12px">&#128203;</span>';
+    }
+    return '<div class="' + cls + tap + '">'
+      + '<span class="ic" style="color:' + glyphColor(r[0]) + '">' + r[1] + '</span>'
+      + '<span class="k">' + r[2] + '</span>'
+      + '<span class="val">' + val + '</span></div>';
+  }).join('');
+}
+
+function infoCard(v){
+  if (v === '0' || v === 'C') {
+    return '<div class="card"><p class="kick">Info</p>'
+      + infoRows('bare', 'icon') + '</div>';
+  }
+  return '<div class="card"><p class="kick gap12">Info</p>'
+    + '<div class="grid">' + infoRows('grow', 'row') + '</div></div>';
+}
+
+function convertCard(v){
+  if (v === '0') {
+    return '<div class="card"><p class="kick">Convert</p>'
+      + '<div class="mfield sunken"><span class="notch">Token Price '
+      + '<span class="chip">READ-ONLY</span></span>63504.0</div>'
+      + '<div class="mfield blue"><span class="notch">Token Amount</span>1</div>'
+      + '<div class="total">Total: $63,504.00</div></div>';
+  }
+  if (v === 'B') {
+    return '<div class="card"><p class="kick gap12">Convert</p>'
+      + '<div class="grid">'
+      + '<div class="grow"><span class="k">Token price</span>'
+      + '<span class="val" style="color:var(--ink70)">63,504.00</span></div>'
+      + '<div class="grow"><span class="k">Token amount</span>'
+      + '<span class="val" style="border-bottom:1.5px solid var(--brandStrong);padding-bottom:2px">1</span></div>'
+      + '<div class="grow"><span class="k" style="color:var(--ink)">Total</span>'
+      + '<span class="val" style="font-weight:600">$63,504.00</span></div>'
+      + '</div>'
+      + '<p style="font-size:12px;color:var(--bad);margin:10px 0 0;line-height:1.5">'
+      + 'The editable cell has no identifiable boundary - a <code>borderControl</code> edge inside '
+      + 'this well measures <b>2.85:1</b> in light mode against a 3.0 threshold.</p></div>';
+  }
+  // A and C
+  return '<div class="card"><p class="kick gap12">Convert</p>'
+    + '<p class="fl">Token price <span class="chip">READ-ONLY</span></p>'
+    + '<div class="field ro">63,504.00</div>'
+    + '<div class="fgap"></div>'
+    + '<p class="fl">Token amount</p>'
+    + '<div class="field focus">1</div>'
+    + (v === 'A'
+        ? '<div class="fgap"></div><div class="grid"><div class="grow">'
+          + '<span class="k" style="color:var(--ink)">Total</span>'
+          + '<span class="val" style="font-weight:600">$63,504.00</span></div></div>'
+        : '<div class="total">Total: $63,504.00</div>')
+    + '</div>';
+}
+
+function actionBar(){
+  return '<div class="acts">'
+    + '<div class="act on"><span class="g">&#9635;</span>Receive</div>'
+    + '<div class="act off"><span class="g">&#10148;</span>Send</div>'
+    + '<div class="act off"><span class="g">&#8644;</span>Swap</div>'
+    + '<div class="act"><span class="g">&#8943;</span>More</div></div>';
+}
+
+function screen(v, s){
+  if (s === 'convert') return convertCard(v);
+  if (s === 'info') return infoCard(v);
+  return '<div style="width:396px">' + actionBar() + '</div>'
+    + infoCard(v) + convertCard(v);
+}
+
+var LABELS = {
+  convert: 'Convert card at 396px, 1:1',
+  info: 'Info card at 396px, 1:1',
+  both: 'Action bar + the whole right column'
+};
+
+var NOTES = {
+  '0': 'What ships today. Two notched Material labels, a flat blue focus on Token Amount, six Info '
+     + 'rows with no separators and a 15px copy button at the end of one value, and a Total that is '
+     + 'a caption. Switch to <b>Light</b> and watch four of the six glyphs disappear.',
+  'A': '<b>Everything maps to a component that already has consumers.</b> Labels move above the box '
+     + '(<code>GWTextField</code>), the focused field takes the brand <b>gradient</b> ring '
+     + '(<code>GWFocusRing</code>, via the <code>focusRing</code> flag added this morning), Info '
+     + 'becomes a <code>GWDetailGrid</code> well with hairline rules, the Address row becomes the '
+     + 'receipt&rsquo;s copy row with the <b>whole row</b> as the target, and the Total becomes a '
+     + 'one-row grid so the answer has the same frame as the facts above it. Zero new components.',
+  'B': '<b>One well for the whole card.</b> Convert stops being a form and becomes a table with two '
+     + 'editable cells, so Info and Convert are one picture. It is the best-looking variant and the '
+     + 'contrast table rejects it: an input&rsquo;s edge inside the well is <b>2.85:1</b> in light '
+     + 'mode, and a control&rsquo;s border is what identifies it, so 1.4.11 applies at 3.0.',
+  'C': '<b>Fix only what is broken.</b> The two field defects go away and nothing else moves - no new '
+     + 'grid, no changed copy affordance, no risk to the mobile 152-D stacking. It leaves the Info '
+     + 'card as a hand-written copy of a component that shipped the same week.'
+};
+
+var PROV = {
+  '0': [['section title','GWKicker','cards/gw_kicker.dart <span class="ok-b">already</span>'],
+        ['action bar','TokenActionBar','tokens/widgets/token_action_bar.dart <span class="ok-b">already</span>'],
+        ['both fields','<span class="bad-b">raw TextField, notched Material label</span>','token_info_screen.dart:527,561'],
+        ['focus state','<span class="bad-b">flat brandPrimaryStrong</span>','theme.dart focusedBorder'],
+        ['Info rows','<span class="bad-b">private statRow, no well, no rules</span>','token_info_screen.dart:615'],
+        ['copy address','<span class="bad-b">inline 15px IconButton</span>','token_info_screen.dart:663'],
+        ['Total','<span class="bad-b">bare bodyLarge</span>','token_info_screen.dart:566']],
+  'A': [['section title','GWKicker','cards/gw_kicker.dart'],
+        ['action bar','TokenActionBar','tokens/widgets/token_action_bar.dart'],
+        ['both fields','GWTextField(label, fill, focusRing)','inputs/gw_text_field.dart'],
+        ['focus state','GWFocusRing gradient','inputs/gw_focus_ring.dart'],
+        ['resting edge','borderControl 3.30:1','genius_wallet_colors.dart'],
+        ['Info rows','GWDetailGrid','cards/gw_detail_grid.dart <span class="ok-b">built 07-28</span>'],
+        ['copy address','the receipt copy row','dashboard/home/widgets/transaction_displays.dart'],
+        ['Total','GWDetailGrid, one row','cards/gw_detail_grid.dart'],
+        ['glyph colour','<span class="warn-b">open question - see above</span>','&mdash;']],
+  'B': [['section title','GWKicker','cards/gw_kicker.dart'],
+        ['both cards','GWDetailGrid','cards/gw_detail_grid.dart'],
+        ['editable cell','<span class="bad-b">new - an input with no identifiable edge</span>','<span class="bad-b">2.85:1 light</span>'],
+        ['Total','the grid&rsquo;s last row','cards/gw_detail_grid.dart']],
+  'C': [['section title','GWKicker','cards/gw_kicker.dart'],
+        ['both fields','GWTextField(label, fill, focusRing)','inputs/gw_text_field.dart'],
+        ['focus state','GWFocusRing gradient','inputs/gw_focus_ring.dart'],
+        ['Info rows','<span class="bad-b">unchanged - still hand-written</span>','token_info_screen.dart:615'],
+        ['copy address','<span class="bad-b">unchanged - still a 15px button</span>','token_info_screen.dart:663'],
+        ['Total','<span class="bad-b">unchanged</span>','token_info_screen.dart:566']]
+};
+
+function render(){
+  var d = document.documentElement.dataset;
+  document.getElementById('screen').innerHTML = screen(d.v, d.s);
+  document.getElementById('slabel').textContent = LABELS[d.s];
+  document.getElementById('vnote').innerHTML = NOTES[d.v];
+  document.getElementById('prov').innerHTML =
+    '<tr><th>Element</th><th>Component</th><th>File</th></tr>' +
+    PROV[d.v].map(function(r){
+      return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="mono">' + r[2] + '</td></tr>';
+    }).join('');
+}
+
+document.querySelectorAll('.bar button[data-set]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var set = b.dataset.set;
+    document.querySelectorAll('.bar button[data-set="' + set + '"]').forEach(function(o){
+      o.classList.toggle('on', o === b);
+    });
+    document.documentElement.dataset[set] = b.dataset.val;
+    render();
+  });
+});
+document.getElementById('theme').addEventListener('click', function(){
+  var el = document.documentElement, light = el.dataset.theme === 'light';
+  el.dataset.theme = light ? 'dark' : 'light';
+  this.textContent = light ? 'Light' : 'Dark';
+  render();
+});
+render();
+</script>
+</body>
+</html>

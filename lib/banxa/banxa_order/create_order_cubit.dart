@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
@@ -15,7 +16,9 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
     String? initialAmount,
     String? initialWalletAddress,
   }) async {
-    if (isClosed) return;
+    if (isClosed) {
+      return;
+    }
     emit(
       state.copyWith(
         step: MakeOrderStep.loadingCurrencies,
@@ -30,7 +33,9 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       final fiats = await _service.getFiatCurrencies();
       final cryptos = await _service.getCryptoCurrencies();
 
-      if (isClosed) return;
+      if (isClosed) {
+        return;
+      }
       final FiatCurrency? selFiat = initialFiatCode == null
           ? null
           : fiats.where((f) => f.code == initialFiatCode).firstOrNull;
@@ -39,7 +44,8 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
           ? null
           : cryptos.where((c) => c.code == initialCryptoCode).firstOrNull;
 
-      List<PaymentMethod> methods = selFiat?.supportedPaymentMethods ?? [];
+      final List<PaymentMethod> methods =
+          selFiat?.supportedPaymentMethods ?? [];
       PaymentMethod? selMethod;
       if (initialPaymentMethodId != null && methods.isNotEmpty) {
         selMethod = methods.firstWhere(
@@ -64,7 +70,9 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
         ),
       );
     } catch (e) {
-      if (isClosed) return;
+      if (isClosed) {
+        return;
+      }
       emit(
         state.copyWith(
           step: MakeOrderStep.error,
@@ -240,7 +248,7 @@ class MakeOrderCubit extends Cubit<MakeOrderState> {
       );
       return order.checkoutUrl;
     } catch (e) {
-      print(e);
+      debugPrint('$e');
       emit(
         state.copyWith(
           step: MakeOrderStep.error,

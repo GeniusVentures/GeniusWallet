@@ -1,7 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 enum ActionButtonAnimation { none, rotate }
 
@@ -9,9 +10,13 @@ class ActionButton extends StatefulWidget {
   final IconData icon;
   final String text;
   final VoidCallback? onPressed;
-  final Color backgroundColor;
-  final Color iconColor;
-  final Color textColor;
+
+  /// Optional overrides. When null, colors resolve from the appearance-aware
+  /// design system in [build] (fill → [GWColors.surfaceElevated], icon glyph →
+  /// `context.gw.brandPrimaryOnSurface`, caption → [GWColors.textSecondary]).
+  final Color? backgroundColor;
+  final Color? iconColor;
+  final Color? textColor;
   final ActionButtonAnimation animation;
   final String? semanticLabel;
 
@@ -20,9 +25,9 @@ class ActionButton extends StatefulWidget {
     required this.icon,
     required this.text,
     this.onPressed,
-    this.backgroundColor = GeniusWalletColors.deepBlueCardColor,
-    this.iconColor = GeniusWalletColors.lightGreenSecondary,
-    this.textColor = Colors.grey,
+    this.backgroundColor,
+    this.iconColor,
+    this.textColor,
     this.animation = ActionButtonAnimation.none,
     this.semanticLabel,
   });
@@ -53,7 +58,9 @@ class _ActionButtonState extends State<ActionButton>
   void didUpdateWidget(covariant ActionButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.animation == ActionButtonAnimation.rotate) {
-      if (!_controller.isAnimating) _controller.repeat();
+      if (!_controller.isAnimating) {
+        _controller.repeat();
+      }
     } else {
       _controller.stop();
     }
@@ -67,13 +74,35 @@ class _ActionButtonState extends State<ActionButton>
 
   @override
   Widget build(BuildContext context) {
+    // Fail-soft read registers the InheritedWidget dependency so even a `const`
+    // ActionButton re-skins on a live appearance toggle.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final bool isEnabled = widget.onPressed != null;
+
+    // Enabled treatment (design system): elevated surface fill, brand accent
+    // glyph, secondary-text caption — all appearance-aware. Caller overrides win.
+    final Color enabledFill = widget.backgroundColor ?? gw.surfaceElevated;
+    final Color enabledGlyph =
+        widget.iconColor ?? context.gw.brandPrimaryOnSurface;
+    final Color enabledCaption = widget.textColor ?? gw.textSecondary;
+
+    // Disabled treatment (Send / Swap / gated More): a recessed surface with a
+    // lowered-but-visible glyph + caption so the button reads as clearly
+    // disabled (not enabled) yet stays legible in both dark and light modes.
+    final Color disabledFill = gw.surfaceSunken;
+    final Color disabledGlyph = gw.textPrimary54;
+    final Color disabledCaption = gw.textPrimary54;
+
+    final Color glyphColor = isEnabled ? enabledGlyph : disabledGlyph;
+    final Color captionColor = isEnabled ? enabledCaption : disabledCaption;
+
     return Expanded(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final iconWidget = Icon(
             widget.icon,
             size: constraints.maxWidth * 0.45,
-            color: widget.iconColor,
+            color: glyphColor,
           );
 
           final animatedIcon = widget.animation == ActionButtonAnimation.rotate
@@ -83,7 +112,7 @@ class _ActionButtonState extends State<ActionButton>
           // 🟢 Semantics wrapper for accessibility
           return Semantics(
             button: true,
-            enabled: widget.onPressed != null,
+            enabled: isEnabled,
             label: widget.semanticLabel ?? widget.text,
             child: ElevatedButton(
               onPressed: widget.onPressed,
@@ -97,7 +126,8 @@ class _ActionButtonState extends State<ActionButton>
                     GeniusWalletConsts.borderRadiusCard,
                   ),
                 ),
-                backgroundColor: widget.backgroundColor,
+                backgroundColor: enabledFill,
+                disabledBackgroundColor: disabledFill,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -107,7 +137,7 @@ class _ActionButtonState extends State<ActionButton>
                     child: AutoSizeText(
                       widget.text,
                       style: TextStyle(
-                        color: widget.textColor,
+                        color: captionColor,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),

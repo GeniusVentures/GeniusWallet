@@ -32,22 +32,22 @@ dependencies:
   device_preview: ^1.2.0
   window_manager: ^0.5.1
   qr_flutter: ^4.1.0
+  mobile_scanner: ^5.2.3
   fl_chart: ^1.2.0
   provider: ^6.1.2
   path_provider: ^2.1.6
   webview_flutter: ^4.1.0
   webview_windows: ^0.4.0
   sentry_flutter: ^9.0.0
-  screenshot: ^3.0.0
   xml: ^6.5.0
   cached_network_image: ^3.4.1
-  flutter_staggered_grid_view: ^0.7.0
   html_unescape: ^2.0.0
   connectivity_plus: 7.0.0
-  reown_walletkit: ">=1.3.2 <1.4.0"
+  reown_walletkit: ^1.4.0
   crypto: ^3.0.6
   intl: ^0.20.2
   app_links: ^7.0.0
+  shimmer: ^3.0.0
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4
   rxdart: ^0.27.7
@@ -67,6 +67,12 @@ flutter:
     - assets/json/networks/
     - assets/json/tokens/
     - assets/images/
+    # Asset dir declarations are not recursive, so subdirectories need their own
+    # entry. Without this, assets/images/textures/noise.png is never bundled and
+    # GWCanvasBackground's grain layer fails at runtime. (Not GWMeshBackground,
+    # which an earlier version of this comment named — that one is procedural
+    # CustomPaint and has no asset dependency at all.)
+    - assets/images/textures/
     - assets/images/crypto/
     - packages/genius_wallet/assets/images/mask2.png
     - packages/genius_wallet/assets/images/mask4.png
@@ -214,3 +220,16 @@ flutter:
         - asset: assets/fonts/JetBrainsMono-ExtraBold-Italic.ttf
           weight: 800
           style: italic
+    # Bundled so GeniusWalletTypography renders offline (04-02) -- weights
+    # match the type scale's w400/w500/w600/w700 usage. Sourced from the
+    # official rsms/inter v4.1 release (SIL Open Font License 1.1), static
+    # (non-variable) TTFs from extras/ttf/ in that release zip.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700

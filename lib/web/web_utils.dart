@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -13,5 +14,10 @@ void launchWebSite(BuildContext context, String url) async {
     }
     return;
   }
-  context.push('/web', extra: WebViewExtras(url: url, includeBackButton: true));
+  unawaited(
+    context.push(
+      '/web',
+      extra: WebViewExtras(url: url, includeBackButton: true),
+    ),
+  );
 }

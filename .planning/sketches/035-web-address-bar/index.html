@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 035 — Web tab · Address bar / browser chrome</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+  svg { display: block; }
+
+  /* ===== variant tab bar (house style, from 034) ===== */
+  #variant-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #variant-nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em;
+    color: var(--text-secondary); margin-right: 4px; }
+  #variant-nav .sep { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .variant-tab { font: 500 13px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 6px 14px; cursor: pointer; transition: all .15s ease; }
+  .variant-tab:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .variant-tab.active { color: var(--text-on-brand); background: var(--brand-primary); border-color: var(--brand-primary); }
+  .note { margin-left: auto; color: var(--text-secondary); font-size: 12px; }
+
+  /* ===== app frame ===== */
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: hidden; display: flex; flex-direction: column; }
+  .variant { display: none; flex: 1; min-height: 0; flex-direction: column; }
+  .variant.active { display: flex; }
+
+  /* ===== APP NAVBAR (shared) — mirrors real chrome: brand + tabs + right cluster ===== */
+  .navbar { flex: none; height: 68px; display: flex; align-items: center; gap: 20px;
+    padding: 0 20px; background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .logo { width: 34px; height: 34px; border-radius: 10px; flex: none;
+    background: linear-gradient(135deg, var(--brand-cta-b), var(--brand-cta-a)); display: grid; place-items: center; }
+  .logo svg { width: 20px; height: 20px; color: #001018; }
+  .tabs { display: flex; align-items: center; gap: 2px; }
+  .tab { display: flex; align-items: center; gap: 7px; padding: 0 12px; height: 44px;
+    color: var(--text-primary-54); font: 500 14px var(--font); cursor: pointer; position: relative;
+    border-radius: var(--radius-md); transition: all .15s ease; }
+  .tab svg { width: 16px; height: 16px; }
+  .tab:not(.on):hover { color: var(--text-primary); background: var(--border-subtle); transform: translateY(-1px); }
+  .tab.on { color: var(--text-primary); }
+  .tab.on::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -12px; height: 3px;
+    border-radius: 3px; background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a));
+    box-shadow: 0 0 10px rgba(20,200,255,.55); }
+  .cluster { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .chip { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px;
+    background: var(--surface-menu); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+    color: var(--text-primary); font: 500 13px var(--font); cursor: pointer; transition: all .15s ease; }
+  .chip:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+  .chip .dot { width: 18px; height: 18px; border-radius: 50%; flex: none; display: grid; place-items: center; }
+  .chip .caret { width: 12px; height: 12px; color: var(--text-primary-54); }
+  .chip.mono { font-family: var(--font-mono); font-size: 12px; }
+  .btn-outline { height: 40px; padding: 0 16px; border-radius: var(--radius-md); cursor: pointer;
+    background: transparent; border: 1px solid var(--brand-primary); color: var(--brand-primary);
+    font: 600 13px var(--font); display: flex; align-items: center; gap: 7px; transition: all .15s ease; }
+  .btn-outline:hover { background: var(--brand-primary-subtle); transform: translateY(-1px); }
+  .btn-cta { height: 40px; padding: 0 18px; border: none; border-radius: var(--radius-md); cursor: pointer;
+    background: linear-gradient(90deg, var(--brand-cta-b), var(--brand-cta-a)); color: #001018;
+    font: 700 13px var(--font); transition: all .15s ease; }
+  .btn-cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
+
+  /* ===== webview content stand-in (shared) ===== */
+  .webview { flex: 1; min-height: 0; position: relative; overflow: hidden;
+    background: radial-gradient(900px 500px at 50% -10%, #101820, #05090f 70%); }
+  .ddg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 22px; }
+  .ddg .duck { width: 66px; height: 66px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff9a3c, #de5833); display: grid; place-items: center; font-size: 34px; }
+  .ddg h1 { font: 700 30px var(--font); color: #fff; }
+  .ddg .search { width: min(560px, 70%); height: 48px; border-radius: 24px; background: #2b2b31;
+    display: flex; align-items: center; padding: 0 18px; color: #9aa0aa; font-size: 15px; gap: 10px; }
+  .ddg .pills { display: flex; gap: 12px; }
+  .ddg .p { background: #1d1d22; color: #cdd2da; border-radius: 20px; padding: 8px 16px; font-size: 13px; }
+
+  /* icons ghost buttons */
+  .ico { width: 36px; height: 36px; border-radius: var(--radius-md); display: grid; place-items: center;
+    color: var(--text-primary-70); cursor: pointer; transition: all .15s ease; background: transparent; border: none; }
+  .ico:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .ico svg { width: 18px; height: 18px; }
+  .ico[disabled] { color: var(--text-primary-38); cursor: default; }
+  .ico[disabled]:hover { background: transparent; color: var(--text-primary-38); }
+  .ico.brand { color: var(--brand-primary); }
+
+  .fav { width: 18px; height: 18px; border-radius: 5px; flex: none;
+    background: radial-gradient(circle at 35% 30%, #ff9a3c, #de5833); display: grid; place-items: center; font-size: 11px; }
+  .lock { width: 13px; height: 13px; color: var(--status-success); flex: none; }
+  .url-host { color: var(--text-primary); font: 500 13px var(--font); }
+  .url-rest { color: var(--text-secondary); font: 400 13px var(--font); }
+
+  /* tab-count chip (restyled from the bordered "1") */
+  .tabcount { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 6px 0 12px;
+    background: var(--surface-menu); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    color: var(--text-primary); font: 700 13px var(--font); cursor: pointer; transition: all .15s ease; }
+  .tabcount:hover { border-color: var(--brand-primary); transform: translateY(-1px); }
+  .tabcount .n { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; display: grid; place-items: center;
+    background: var(--brand-primary-subtle); color: var(--brand-primary); font-size: 12px; }
+  .tabcount .add { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+    color: var(--text-primary-70); }
+  .tabcount:hover .add { color: var(--brand-primary); }
+
+  /* ========== A · Przeskórowany pasek (dedicated re-skinned strip) ========== */
+  .barA { flex: none; height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 16px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); position: relative; }
+  .barA::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 1px;
+    background: var(--brand-primary-subtle); }
+  .barA .ctrls { display: flex; align-items: center; gap: 2px; }
+  .barA .field { flex: 1; height: 38px; border-radius: var(--radius-pill); background: var(--surface-sunken);
+    border: 1px solid transparent; display: flex; align-items: center; gap: 9px; padding: 0 14px; cursor: text;
+    transition: all .15s ease; }
+  .barA .field:focus-within, .barA .field.focus { background: var(--surface-elevated);
+    border-color: var(--brand-primary); box-shadow: 0 0 0 3px var(--brand-primary-subtle); }
+  .barA .field .star { margin-left: auto; color: var(--text-primary-38); width: 16px; height: 16px; cursor: pointer; }
+  .barA .field .star:hover { color: var(--brand-primary); }
+
+  /* ========== B · Scalony toolbar (unified: controls nested into one bar) ========== */
+  .barB { flex: none; height: 56px; display: flex; align-items: center; gap: 10px; padding: 0 16px;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle); }
+  .barB .omni { flex: 1; height: 40px; border-radius: var(--radius-pill); background: var(--surface-sunken);
+    border: 1px solid var(--border-subtle); display: flex; align-items: center; padding: 0 4px 0 4px; gap: 4px;
+    transition: all .15s ease; }
+  .barB .omni:focus-within, .barB .omni.focus { border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px var(--brand-primary-subtle); background: var(--surface-elevated); }
+  .barB .omni .ico { width: 32px; height: 32px; }
+  .barB .omni .ico svg { width: 16px; height: 16px; }
+  .barB .omni .divider { width: 1px; height: 20px; background: var(--border-subtle); margin: 0 4px; }
+  .barB .omni .addr { flex: 1; display: flex; align-items: center; gap: 8px; height: 100%; padding: 0 6px; cursor: text; }
+  .barB .omni .reload { margin-left: auto; }
+
+  /* ========== C · Minimal / Arc (slim floating command bar) ========== */
+  .barC { flex: none; height: 46px; display: flex; align-items: center; justify-content: center;
+    background: var(--surface-base); position: relative; }
+  .barC .float { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 6px 0 14px;
+    background: var(--surface-menu); border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-card); min-width: 320px; max-width: 640px; transition: all .18s ease; cursor: text; }
+  .barC .float:hover { border-color: var(--border-strong); }
+  .barC .float.focus { min-width: 560px; background: var(--surface-elevated);
+    border-color: var(--brand-primary); box-shadow: 0 0 0 3px var(--brand-primary-subtle), var(--shadow-card); }
+  .barC .float .hint { color: var(--text-primary-38); font-size: 12px; margin-left: 6px; display: none; }
+  .barC .float.focus .hint { display: none; }
+  .barC .ctrls-c { position: absolute; left: 16px; display: flex; gap: 2px; opacity: 0; transition: opacity .18s ease; }
+  .barC:hover .ctrls-c { opacity: 1; }
+  .barC .tabcount { position: absolute; right: 16px; height: 34px; }
+
+  input.editurl { flex: 1; border: none; background: transparent; outline: none; color: var(--text-primary);
+    font: 500 13px var(--font); height: 100%; }
+  input.editurl::placeholder { color: var(--text-primary-38); }
+
+  /* ===== sketch toolbar ===== */
+  #sketch-tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px system-ui;
+    background: rgba(0,0,0,.7); color: #fff; padding: 8px 12px; border-radius: 8px; opacity: .4;
+    transition: opacity .2s; display: flex; gap: 10px; align-items: center; }
+  #sketch-tools:hover { opacity: 1; }
+  #sketch-tools select { background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; padding: 2px 4px; }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="brand">GSD ▸ 035</span>
+  <span class="sep"></span>
+  <button class="variant-tab active" onclick="show('a', this)">A · Przeskórowany pasek</button>
+  <button class="variant-tab" onclick="show('b', this)">B · Scalony toolbar ★ Wybrany</button>
+  <button class="variant-tab" onclick="show('c', this)">C · Minimal / Arc</button>
+  <span class="note">Klik w pole adresu = fokus (brand ring). Back aktywny, Forward wyłączony (jak w kodzie).</span>
+</div>
+
+<!-- ============ VARIANT A ============ -->
+<section class="variant active" id="v-a">
+  <div class="navbar" data-nav></div>
+  <div class="barA">
+    <div class="ctrls">
+      <button class="ico brand" title="Wstecz">%BACK%</button>
+      <button class="ico" disabled title="Dalej">%FWD%</button>
+      <button class="ico" title="Odśwież" onclick="spin(this)">%RELOAD%</button>
+    </div>
+    <div class="field" onclick="editField(this)">
+      <span class="fav">🦆</span>
+      %LOCK%
+      <span class="urltext"><span class="url-host">duckduckgo.com</span></span>
+      %STAR%
+    </div>
+    <div class="tabcount" title="Karty" onclick="badge(this,'Menedżer kart → sketch 036')">
+      <span class="n">1</span>
+      <span class="add">%PLUS%</span>
+    </div>
+  </div>
+  <div class="webview">%DDG%</div>
+</section>
+
+<!-- ============ VARIANT B ============ -->
+<section class="variant" id="v-b">
+  <div class="navbar" data-nav></div>
+  <div class="barB">
+    <div class="omni" onclick="editOmni(this)">
+      <button class="ico brand" title="Wstecz">%BACK%</button>
+      <button class="ico" disabled title="Dalej">%FWD%</button>
+      <span class="divider"></span>
+      <div class="addr">
+        <span class="fav">🦆</span>
+        %LOCK%
+        <span class="urltext"><span class="url-host">duckduckgo.com</span></span>
+      </div>
+      <button class="ico reload" title="Odśwież" onclick="event.stopPropagation();spin(this)">%RELOAD%</button>
+    </div>
+    <div class="tabcount" title="Karty" onclick="badge(this,'Menedżer kart → sketch 036')">
+      <span class="n">1</span><span class="add">%PLUS%</span>
+    </div>
+    <button class="ico" title="Menu">%MENU%</button>
+  </div>
+  <div class="webview">%DDG%</div>
+</section>
+
+<!-- ============ VARIANT C ============ -->
+<section class="variant" id="v-c">
+  <div class="navbar" data-nav></div>
+  <div class="barC">
+    <div class="ctrls-c">
+      <button class="ico brand" title="Wstecz">%BACK%</button>
+      <button class="ico" disabled title="Dalej">%FWD%</button>
+      <button class="ico" title="Odśwież" onclick="spin(this)">%RELOAD%</button>
+    </div>
+    <div class="float" onclick="editFloat(this)">
+      <span class="fav">🦆</span>
+      %LOCK%
+      <span class="urltext"><span class="url-host">duckduckgo.com</span></span>
+    </div>
+    <div class="tabcount" title="Karty" onclick="badge(this,'Menedżer kart → sketch 036')">
+      <span class="n">1</span><span class="add">%PLUS%</span>
+    </div>
+  </div>
+  <div class="webview">%DDG%</div>
+</section>
+
+<div id="sketch-tools">
+  <label>Theme
+    <select onchange="document.documentElement.setAttribute('data-theme', this.value)">
+      <option value="dark">dark</option>
+      <option value="light">light</option>
+    </select>
+  </label>
+</div>
+
+<template id="tpl-nav">
+  <div class="logo">%BRAIN%</div>
+  <div class="tabs">
+    <div class="tab">%I_DASH% Dashboard</div>
+    <div class="tab">%I_TX% Transactions</div>
+    <div class="tab">%I_SWAP% Swap</div>
+    <div class="tab">%I_MKT% Markets</div>
+    <div class="tab">%I_NEWS% News</div>
+    <div class="tab on">%I_WEB% Web</div>
+    <div class="tab">%I_FB% Feedback</div>
+    <div class="tab">%I_SET% Settings</div>
+  </div>
+  <div class="cluster">
+    <div class="chip"><span class="dot" style="background:#627eea">%ETH%</span><span class="caret">%CARET%</span></div>
+    <div class="chip mono"><span class="dot" style="background:#2a3a5e">🗄</span>0x1d9b…4a87<span class="caret">%CARET%</span></div>
+    <div class="chip mono"><span class="dot" style="background:#1e2b45">◆</span>0x9fF8…2e2b<span class="caret">%CARET%</span></div>
+    <button class="btn-outline">%LINK% Connect</button>
+    <button class="btn-cta">Buy GNUS</button>
+  </div>
+</template>
+
+<script>
+  // ---- inline icon set (stroke, currentColor) ----
+  const I = {
+    BACK:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+    FWD:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+    RELOAD:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>',
+    PLUS:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    MENU:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+    LOCK:'<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    STAR:'<svg class="star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9 9z"/></svg>',
+    CARET:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+    LINK:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
+    BRAIN:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a4 4 0 0 0-4 4 3 3 0 0 0-1 5.8V17a3 3 0 0 0 5 2 3 3 0 0 0 5-2v-4.2A3 3 0 0 0 16 7a4 4 0 0 0-4-4z"/></svg>',
+    ETH:'<svg viewBox="0 0 24 24" width="11" height="11" fill="#fff"><path d="M12 2l6 10-6 3-6-3z" opacity=".85"/><path d="M6 13l6 3 6-3-6 9z"/></svg>',
+    DASH:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+    TX:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    SWAP:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 10l-3 3 3 3"/><path d="M4 13h13"/><path d="M17 14l3-3-3-3"/><path d="M20 11H7"/></svg>',
+    MKT:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l5-5 3 3 6-7"/></svg>',
+    NEWS:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h6M7 12h10M7 16h10"/></svg>',
+    WEB:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>',
+    FB:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    SET:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.3 1a7 7 0 0 0-1.7-1L14.5 2h-4l-.4 2.3a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L6 11a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.4h4l.4-2.3a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/></svg>',
+    DDG:`<div class="ddg">
+      <div class="duck">🦆</div>
+      <h1>DuckDuckGo</h1>
+      <div class="search">🔍 Search privately…</div>
+      <div class="pills"><span class="p">Private Search</span><span class="p">Duck.ai</span><span class="p">Email</span></div>
+    </div>`
+  };
+
+  // hydrate placeholders in whole document
+  function hydrate(root){
+    let html = root.innerHTML;
+    html = html
+      .replace(/%BACK%/g,I.BACK).replace(/%FWD%/g,I.FWD).replace(/%RELOAD%/g,I.RELOAD)
+      .replace(/%PLUS%/g,I.PLUS).replace(/%MENU%/g,I.MENU).replace(/%LOCK%/g,I.LOCK)
+      .replace(/%STAR%/g,I.STAR).replace(/%CARET%/g,I.CARET).replace(/%LINK%/g,I.LINK)
+      .replace(/%BRAIN%/g,I.BRAIN).replace(/%ETH%/g,I.ETH).replace(/%DDG%/g,I.DDG)
+      .replace(/%I_DASH%/g,I.DASH).replace(/%I_TX%/g,I.TX).replace(/%I_SWAP%/g,I.SWAP)
+      .replace(/%I_MKT%/g,I.MKT).replace(/%I_NEWS%/g,I.NEWS).replace(/%I_WEB%/g,I.WEB)
+      .replace(/%I_FB%/g,I.FB).replace(/%I_SET%/g,I.SET);
+    root.innerHTML = html;
+  }
+
+  // fill each navbar from template
+  const navHTML = document.getElementById('tpl-nav').innerHTML;
+  document.querySelectorAll('[data-nav]').forEach(n => n.innerHTML = navHTML);
+  hydrate(document.body);
+
+  function show(id, btn){
+    document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+    document.getElementById('v-'+id).classList.add('active');
+    document.querySelectorAll('#variant-nav .variant-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const URL='https://duckduckgo.com';
+  function makeEditable(container, holderSel){
+    if (container.dataset.editing) return;
+    container.dataset.editing='1';
+    container.classList.add('focus');
+    const holder = holderSel ? container.querySelector(holderSel) : container;
+    const txt = container.querySelector('.urltext');
+    txt.innerHTML = '<input class="editurl" value="'+URL+'" />';
+    const input = txt.querySelector('input');
+    input.focus(); input.select();
+    const done = () => {
+      container.classList.remove('focus'); delete container.dataset.editing;
+      let v = input.value.trim() || 'duckduckgo.com';
+      try { v = new URL(v.includes('://')?v:'https://'+v).host.replace(/^www\./,''); } catch(e){}
+      txt.innerHTML = '<span class="url-host">'+v+'</span>';
+    };
+    input.addEventListener('blur', done);
+    input.addEventListener('keydown', e => { if(e.key==='Enter') input.blur(); });
+  }
+  function editField(el){ makeEditable(el); }
+  function editOmni(el){ makeEditable(el.querySelector('.addr')||el); }
+  function editFloat(el){ makeEditable(el); }
+
+  function spin(btn){ const s=btn.querySelector('svg'); s.style.transition='transform .5s ease';
+    s.style.transform='rotate(360deg)'; setTimeout(()=>{s.style.transition='';s.style.transform='';},520); }
+  function badge(el,msg){ const old=el.style.outline; el.style.outline='2px solid var(--brand-primary)';
+    setTimeout(()=>el.style.outline=old,500); }
+</script>
+</body>
+</html>

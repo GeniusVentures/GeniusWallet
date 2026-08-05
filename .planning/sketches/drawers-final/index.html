@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GeniusWallet — Drawers (final selection)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--surface-base); color: var(--text-primary); }
+
+  /* ===== gradient system — the brand is a GRADIENT, never flat blue ===== */
+  :root {
+    --grad:     linear-gradient(135deg, var(--brand-cta-b), var(--brand-cta-a)); /* #0AAEE6 → #0AD89C */
+    --grad-90:  linear-gradient(90deg,  var(--brand-cta-b), var(--brand-cta-a));
+    --grad-tint: linear-gradient(135deg, rgba(10,174,230,.16), rgba(10,216,156,.16));
+    --grad-tint-strong: linear-gradient(135deg, rgba(10,174,230,.22), rgba(10,216,156,.22));
+  }
+  .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text;
+    color: transparent; }
+
+  /* ===== top switcher ===== */
+  #nav { position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    background: var(--surface-elevated); border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #nav .brand { font-weight: 700; font-size: 13px; letter-spacing: .04em;
+    color: var(--text-secondary); margin-right: 6px; }
+  .tab { font: 500 13px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 6px 15px; cursor: pointer; transition: all .15s ease; }
+  .tab:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+  .tab.active { color: var(--text-on-brand); background: var(--grad-90); border-color: transparent; }
+
+  /* ===== stage: dimmed app + right-edge panel ===== */
+  .stage { position: fixed; inset: 52px 0 0 0; overflow: hidden; }
+  .app-bg { position: absolute; inset: 0; background:
+      radial-gradient(1200px 600px at 18% 0%, rgba(20,200,255,0.05), transparent 60%),
+      var(--surface-base); }
+  .app-bg .col { position: absolute; top: 24px; bottom: 24px; border-radius: var(--radius-lg);
+    background: var(--surface-elevated); border: 1px solid var(--border-subtle); opacity: .5; }
+  .app-bg .c1 { left: 24px; width: 22%; } .app-bg .c2 { left: calc(24px + 23%); width: 34%; }
+  .app-bg .c3 { left: calc(24px + 58%); width: 18%; }
+  .scrim { position: absolute; inset: 0; background: var(--surface-overlay, rgba(0,0,0,.6)); }
+
+  /* ===== shared shell (030 · B1 "Quiet band") ===== */
+  .panel { position: absolute; top: 0; bottom: 0; right: 0; width: var(--drawer-width);
+    background: var(--surface-menu); display: none; flex-direction: column;
+    box-shadow: -24px 0 60px rgba(0,0,0,0.45); }
+  .panel.active { display: flex; }
+
+  .p-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+    padding: 0 12px 0 20px; height: 60px; position: relative;
+    border-bottom: 1px solid var(--border-subtle); }
+  /* brand hairline under header = faint GRADIENT, not flat blue */
+  .p-head::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: -1px;
+    height: 1px; background: var(--grad-90); opacity: .38; }
+  .p-title { color: var(--text-primary); font: 600 18px/24px var(--font); }
+  .p-close { width: 40px; height: 40px; display: grid; place-items: center; cursor: pointer;
+    border-radius: var(--radius-md); color: var(--text-primary-70); transition: all .15s ease; flex: none; }
+  .p-close:hover { background: var(--border-subtle); color: var(--text-primary); }
+  .p-close svg { width: 18px; height: 18px; }
+
+  /* body: header-separator → first content gap = 32px, deliberately LARGER
+     than the amount → section-label gap (20px). Applied app-wide. */
+  .p-body { flex: 1; overflow-y: auto; padding: 32px 20px 20px; }
+  .p-foot { flex: none; padding: 16px 20px; border-top: 1px solid var(--border-subtle);
+    display: flex; gap: 12px; }
+
+  /* buttons — CTA is the gradient */
+  .gwbtn { flex: 1; height: 48px; border: none; border-radius: var(--radius-pill);
+    font: 600 15px var(--font); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    gap: 8px; transition: all .15s ease; }
+  .gwbtn.primary { background: var(--grad-90); color: var(--text-on-brand); }
+  /* secondary = GRADIENT OUTLINE (branded), not a grey border. Fill = panel surface
+     so only the 1.5px border shows the gradient. */
+  .gwbtn.secondary { color: var(--text-primary); border: 1.5px solid transparent;
+    background: linear-gradient(var(--surface-menu), var(--surface-menu)) padding-box,
+                var(--grad-90) border-box; }
+  .gwbtn.secondary:hover { background: var(--grad-tint) padding-box, var(--grad-90) border-box; }
+  .gwbtn:hover { transform: translateY(-1px); filter: brightness(1.04); }
+  .gwbtn svg { width: 17px; height: 17px; }
+
+  .sec-label { font: 500 11px var(--font); letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-secondary); margin: 20px 0 8px; }
+  .sec-label:first-child { margin-top: 0; }
+  .card { background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg); padding: 4px 16px; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 13px 0; }
+  .row + .row { border-top: 1px solid var(--border-subtle); }
+  .row .k { color: var(--text-primary-70); }
+  .row .v { color: var(--text-primary); text-align: right; font-variant-numeric: tabular-nums;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .copyable { cursor: pointer; }
+  .copyable:hover { color: var(--brand-cta-a); }
+
+  /* ===== RECEIPT (031 · B1) ===== */
+  .rc-top { text-align: center; }
+  .rc-icon { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto; display: grid; place-items: center;
+    transition: all .2s ease; }
+  .rc-icon svg { width: 30px; height: 30px; }
+  .rc-amount { margin-top: 12px; font: 600 24px/32px var(--font); font-variant-numeric: tabular-nums;
+    color: var(--text-primary); }
+  .pill { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px;
+    padding: 7px 14px; border-radius: var(--radius-pill); font: 600 13px var(--font);
+    transition: all .2s ease; }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .state-cycle { display: flex; gap: 6px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .state-cycle button { font: 500 12px var(--font); color: var(--text-primary-70);
+    background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+    padding: 5px 12px; cursor: pointer; transition: all .15s ease; }
+  .state-cycle button:hover { border-color: var(--border-strong); color: var(--text-primary); }
+  .state-cycle button.on { color: var(--text-on-brand); background: var(--grad-90); border-color: transparent; }
+
+  /* ===== LIST (032 · A1, rounded selection) ===== */
+  /* gap below the header separator = same as the title→separator gap above it */
+  #p-list .p-body { padding-top: 16px; }
+  .lrow { display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 12px;
+    margin: 2px 0; border-radius: var(--radius-md); cursor: pointer; position: relative;
+    transition: background .15s ease; }
+  .lrow:hover { background: var(--border-subtle); }
+  .lrow.sel { background: var(--grad-tint); }          /* ROUNDED gradient-tint selection, no accent bar */
+  .lrow + .lrow { box-shadow: 0 -1px 0 var(--border-subtle); } /* hairline between, inset by radius */
+  .lrow.sel, .lrow.sel + .lrow { box-shadow: none; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+    font: 700 13px var(--font); color: #fff; flex: none; }
+  .lrow .name { font: 500 15px var(--font); color: var(--text-primary); }
+  .lrow .sym { font: 400 13px var(--font); color: var(--text-secondary); margin-top: 1px; }
+  .lcheck { margin-left: auto; font-weight: 700; font-size: 17px; opacity: 0; transition: opacity .15s ease; }
+  .lrow.sel .lcheck { opacity: 1; }
+
+  /* ===== CONFIRM (033 · B1) ===== */
+  /* dApp identity — borderless, centered */
+  .dapp-id { display: flex; align-items: center; gap: 12px; justify-content: center; }
+  .dapp-id .fav { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    font: 700 16px var(--font); color: #fff; background: linear-gradient(135deg,#FF2D9B,#B5179E); flex: none; }
+  .dapp-id .nm { font: 600 15px var(--font); display: flex; align-items: center; gap: 8px; }
+  .dapp-id .u { font: 400 13px var(--font); color: var(--text-secondary); margin-top: 1px; }
+  .verify { display: inline-flex; align-items: center; gap: 4px; font: 600 12px var(--font);
+    color: var(--status-success); background: rgba(10,216,156,.14); padding: 2px 8px; border-radius: var(--radius-pill); }
+  .hair { height: 1px; background: var(--border-subtle); margin: 18px 0; }
+  .send-hero { text-align: center; }
+  .send-hero .lbl { font: 500 11px var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); }
+  .send-hero .amt { font: 700 34px/40px var(--font); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .send-hero .amt small { font-size: 20px; color: var(--text-primary-70); font-weight: 600; }
+  .send-hero .fiat { font: 500 14px var(--font); color: var(--text-primary-70); margin-top: 6px; }
+  .send-hero .fiat sup { color: var(--text-secondary); cursor: help; }
+  /* Sending-to — borderless, emphasized (the sign target) */
+  .send-to { margin-top: 24px; }
+  .send-to .lbl { font: 500 11px var(--font); letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-secondary); display: block; }
+  .send-to .to-line { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .send-to .to-addr { font: 600 18px var(--font-mono); letter-spacing: .02em; }
+  .icon-btn { width: 34px; height: 34px; border-radius: var(--radius-sm); display: grid; place-items: center;
+    background: var(--border-subtle); color: var(--text-primary-70); cursor: pointer; transition: all .15s ease; flex: none; }
+  .icon-btn.plain { background: transparent; margin-left: auto; }
+  .icon-btn:hover { color: var(--text-primary); background: var(--border-subtle); }
+  .icon-btn svg { width: 15px; height: 15px; }
+  /* caution — tint only, no border */
+  .caution { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 12px 14px;
+    border-radius: var(--radius-md); background: rgba(255,196,46,.10); }
+  .caution svg { width: 17px; height: 17px; color: var(--status-warning); flex: none; margin-top: 1px; }
+  .caution p { font: 500 13px/1.45 var(--font); color: var(--status-warning); }
+  /* one merged details card holds Network + gas */
+  .g-row { cursor: pointer; }
+  .chev { transition: transform .2s ease; color: var(--text-secondary); display: inline-block; }
+  .chev.open { transform: rotate(90deg); }
+  .g-detail .row:first-child { border-top: 1px solid var(--border-subtle); }
+  .eth-dot { width: 8px; height: 8px; border-radius: 50%; background: #627EEA; display: inline-block; margin-right: 6px; }
+
+  /* ===== RECEIVE (034 · A2) ===== */
+  .net-chip { display: flex; align-items: center; gap: 9px; justify-content: center;
+    width: fit-content; margin: 0 auto 20px; }  /* ABOVE the QR — borderless, no pill */
+  .net-chip .av { width: 24px; height: 24px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; }
+  .net-chip .av svg { width: 14px; height: 14px; color: #fff; }
+  .net-chip .n { font: 600 14px var(--font); } .net-chip .s { font: 400 13px var(--font); color: var(--text-secondary); }
+  .qr-tile { width: 232px; margin: 0 auto; background: #FFFFFF; border-radius: var(--radius-2xl); padding: 16px;
+    position: relative; }
+  .qr { display: grid; grid-template-columns: repeat(25, 1fr); width: 200px; height: 200px; }
+  .qr i { width: 100%; padding-bottom: 100%; }
+  .qr i.on { background: #000; }
+  .qr-glyph { position: absolute; inset: 0; margin: auto; width: 44px; height: 44px; background: #fff;
+    border-radius: 10px; display: grid; place-items: center; }
+  .qr-glyph svg { width: 26px; height: 26px; }
+  .addr-grouped { margin-top: 20px; text-align: center; }
+  .addr-grouped .lbl { font: 500 11px var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--text-secondary); }
+  .addr-grouped .chunks { display: inline-flex; flex-wrap: wrap; gap: 6px 10px; justify-content: center;
+    margin-top: 8px; font: 500 15px var(--font-mono); letter-spacing: .02em; align-items: center; }
+  .addr-grouped .chunks b { color: var(--text-primary); font-weight: 700; }
+  .addr-grouped .chunks span { color: var(--text-primary-70); }
+  .addr-grouped .copy { vertical-align: middle; }
+
+  /* callouts */
+  .note { position: absolute; z-index: 40; font: 500 11px var(--font); color: var(--brand-cta-a);
+    background: var(--grad-tint); border: 1px solid rgba(10,216,156,.35);
+    border-radius: 8px; padding: 6px 10px; max-width: 224px; line-height: 1.4; pointer-events: none; }
+
+  #tools { position: fixed; bottom: 12px; right: 12px; z-index: 99; font: 12px var(--font);
+    background: rgba(0,0,0,.72); color: #fff; padding: 8px 12px; border-radius: 8px; opacity: .45;
+    transition: opacity .2s; display: flex; gap: 10px; align-items: center; }
+  #tools:hover { opacity: 1; }
+  #tools select { font: 12px var(--font); background: #222; color: #fff; border: 1px solid #444;
+    border-radius: 6px; padding: 3px 8px; cursor: pointer; }
+  #toast { position: fixed; bottom: 70px; right: 16px; z-index: 120; background: var(--surface-elevated);
+    border: 1px solid var(--border-subtle); border-left: 3px solid transparent;
+    border-image: var(--grad) 1; border-radius: 10px; padding: 12px 16px; color: var(--text-primary);
+    font: 500 13px var(--font); box-shadow: var(--shadow-card); transform: translateX(140%); transition: transform .25s ease; }
+</style>
+</head>
+<body>
+<div id="nav">
+  <span class="brand">GW DRAWERS · FINAL</span>
+  <button class="tab active" onclick="show('shell',this)">Shell · 030 B1</button>
+  <button class="tab" onclick="show('receipt',this)">Receipt · 031 B1</button>
+  <button class="tab" onclick="show('list',this)">List · 032 A1</button>
+  <button class="tab" onclick="show('confirm',this)">Confirm · 033 B1</button>
+  <button class="tab" onclick="show('receive',this)">Receive · 034 A2</button>
+</div>
+
+<div class="stage">
+  <div class="app-bg"><div class="col c1"></div><div class="col c2"></div><div class="col c3"></div></div>
+  <div class="scrim"></div>
+
+  <!-- ============ SHELL (030 B1) — same body, annotated ============ -->
+  <div class="panel active" id="p-shell">
+    <div class="p-head"><div class="p-title">Escrow released</div><div class="p-close" onclick="closeP('shell')">✕</div></div>
+    <div class="p-body">
+      <div class="rc-top">
+        <div class="rc-icon" style="background:rgba(10,216,156,.14);border:1px solid rgba(10,216,156,.30)"><span class="grad-text-ok"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--status-success)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V17a2 2 0 0 0 4 0"/><path d="M12 5a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V17a2 2 0 0 1-4 0"/></svg></div>
+        <div class="rc-amount">+ 500.00 GNUS</div>
+      </div>
+      <div class="sec-label">Transaction</div>
+      <div class="card">
+        <div class="row"><span class="k t-body-sm">Date</span><span class="v t-body-md">Jul 22, 2026 · 5:05 PM</span></div>
+        <div class="row"><span class="k t-body-sm">Status</span><span class="v t-body-md" style="color:var(--status-success)">Completed</span></div>
+        <div class="row"><span class="k t-body-sm">From</span><span class="v t-numeric-body copyable" style="font-family:var(--font-mono)" onclick="toast('Copied')">0xFrom…ed05</span></div>
+      </div>
+      <div class="sec-label">Network</div>
+      <div class="card">
+        <div class="row"><span class="k t-body-sm">Network</span><span class="v t-body-md">GNUS</span></div>
+        <div class="row"><span class="k t-body-sm">Network Fee</span><span class="v t-numeric-body">0.001 GNUS</span></div>
+        <div class="row"><span class="k t-body-sm">Hash</span><span class="v t-numeric-body copyable" style="font-family:var(--font-mono)" onclick="toast('Copied')">0xdevm…ck05</span></div>
+      </div>
+    </div>
+    <div class="p-foot"><button class="gwbtn secondary" onclick="toast('Opening explorer…')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>View on Explorer</button></div>
+    <div class="note" style="top:70px;right:470px">GAP: header separator → icon = 32px,<br>deliberately larger than amount →<br>“TRANSACTION” (20px). Applied app-wide.</div>
+    <div class="note" style="top:250px;right:470px">Hairline under the header is a faint<br>GRADIENT, not flat blue.</div>
+  </div>
+
+  <!-- ============ RECEIPT (031 B1) — interactive 4 states ============ -->
+  <div class="panel" id="p-receipt">
+    <div class="p-head"><div class="p-title">Escrow released</div><div class="p-close" onclick="closeP('receipt')">✕</div></div>
+    <div class="p-body">
+      <div class="rc-top">
+        <div class="rc-icon" id="rcIcon"></div>
+        <div class="rc-amount" id="rcAmount">+ 500.00 GNUS</div>
+        <div><span class="pill" id="rcPill"><span class="dot"></span><span id="rcPillTxt">Completed</span></span></div>
+        <div class="state-cycle" id="rcCycle"></div>
+      </div>
+      <div class="sec-label">Transaction</div>
+      <div class="card">
+        <div class="row"><span class="k t-body-sm">Date</span><span class="v t-body-md">Jul 22, 2026 · 5:05 PM</span></div>
+        <div class="row"><span class="k t-body-sm">Status</span><span class="v t-body-md" id="rcStatusRow" style="color:var(--status-success)">Completed</span></div>
+        <div class="row"><span class="k t-body-sm">From</span><span class="v t-numeric-body copyable" style="font-family:var(--font-mono)" onclick="toast('Copied')">0xFrom…ed05</span></div>
+      </div>
+      <div class="sec-label">Network</div>
+      <div class="card">
+        <div class="row"><span class="k t-body-sm">Network</span><span class="v t-body-md">GNUS</span></div>
+        <div class="row"><span class="k t-body-sm">Network Fee</span><span class="v t-numeric-body">0.001 GNUS</span></div>
+        <div class="row"><span class="k t-body-sm">Hash</span><span class="v t-numeric-body copyable" style="font-family:var(--font-mono)" onclick="toast('Copied')">0xdevm…ck05</span></div>
+      </div>
+    </div>
+    <div class="p-foot"><button class="gwbtn secondary" onclick="toast('Opening explorer…')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>View on Explorer</button></div>
+    <div class="note" style="top:150px;right:470px">4 real TransactionStatus states —<br>incl. Cancelled=slate. Icon + amount +<br>pill + status row recolor together.</div>
+  </div>
+
+  <!-- ============ LIST (032 A1, rounded selection) ============ -->
+  <div class="panel" id="p-list">
+    <div class="p-head"><div class="p-title">Select Network</div><div class="p-close" onclick="closeP('list')">✕</div></div>
+    <div class="p-body"><div class="list" id="netList"></div></div>
+    <div class="note" style="top:96px;right:470px">Selection is a ROUNDED gradient-tint<br>row + gradient leading accent + gradient<br>check — no square fills, no flat blue.</div>
+  </div>
+
+  <!-- ============ CONFIRM (033 B1) ============ -->
+  <div class="panel" id="p-confirm">
+    <div class="p-head"><div class="p-title">Transaction Request</div><div class="p-close" onclick="closeP('confirm')">✕</div></div>
+    <div class="p-body">
+      <div class="dapp-id">
+        <span class="fav">U</span>
+        <div>
+          <div class="nm">Uniswap <span class="verify">✓ Verified</span></div>
+          <div class="u">app.uniswap.org</div>
+        </div>
+      </div>
+      <div class="hair"></div>
+      <div class="send-hero">
+        <div class="lbl">You are sending</div>
+        <div class="amt">0.25 <small>ETH</small></div>
+        <div class="fiat">≈ $478.65 <sup title="Price feed exists (CoinGecko) but is not yet wired to this drawer">*</sup></div>
+      </div>
+      <div class="send-to">
+        <span class="lbl">Sending to</span>
+        <div class="to-line">
+          <span class="to-addr">0x7a9f…3C21</span>
+          <span class="icon-btn plain" onclick="toast('Address copied')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span>
+        </div>
+      </div>
+      <div class="caution">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <p>Double-check the recipient address before approving. GeniusWallet can’t undo a transfer.</p>
+      </div>
+      <!-- ONE merged details card: Network + gas together (was two boxes) -->
+      <div class="card" style="margin-top:18px">
+        <div class="row"><span class="k t-body-sm">Network</span><span class="v t-body-md"><span class="eth-dot"></span>Ethereum</span></div>
+        <div class="row g-row" onclick="toggleGas()"><span class="k t-body-sm"><span class="chev" id="chev">›</span> Est. network fee</span><span class="v t-numeric-body">0.0012 ETH</span></div>
+        <div class="g-detail" id="gasDetail" style="display:none">
+          <div class="row"><span class="k t-body-sm">Max fee per gas</span><span class="v t-numeric-body">0.0009 ETH</span></div>
+          <div class="row"><span class="k t-body-sm">Priority fee</span><span class="v t-numeric-body">0.0003 ETH</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="p-foot">
+      <button class="gwbtn secondary" onclick="closeP('confirm')">Reject</button>
+      <button class="gwbtn primary" style="flex:1.3" onclick="approve(this)">Approve</button>
+    </div>
+    <div class="note" style="top:250px;right:470px">Static caution (zero backend) — no<br>“new address” claim the app can’t back.<br>Fiat carries a * = not yet wired.</div>
+  </div>
+
+  <!-- ============ RECEIVE (034 A2) ============ -->
+  <div class="panel" id="p-receive">
+    <div class="p-head"><div class="p-title">Receive</div><div class="p-close" onclick="closeP('receive')">✕</div></div>
+    <div class="p-body">
+      <div class="net-chip"><span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V17a2 2 0 0 0 4 0"/><path d="M12 5a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V17a2 2 0 0 1-4 0"/></svg></span><span class="n">GNUS</span><span class="s">· GNUS Network</span></div>
+      <div class="qr-tile"><div class="qr" id="qr"></div><div class="qr-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand-cta-b)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V17a2 2 0 0 0 4 0"/><path d="M12 5a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V17a2 2 0 0 1-4 0"/></svg></div></div>
+      <div class="addr-grouped">
+        <div class="chunks" id="addrChunks"></div>
+      </div>
+      <div class="caution" style="margin-top:20px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <p>Only send GNUS and GNUS-network assets to this address. Other assets may be lost.</p>
+      </div>
+    </div>
+    <div class="p-foot"><button class="gwbtn primary" onclick="toast('Address copied')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy address</button></div>
+    <div class="note" style="top:60px;right:470px">Network chip sits ABOVE the QR, with<br>a gap between it and the header.<br>Copy only — no Share, no set-default.</div>
+  </div>
+</div>
+
+<div id="tools"><label>Theme
+  <select onchange="document.documentElement.setAttribute('data-theme', this.value)">
+    <option value="dark">Dark</option><option value="light">Light</option>
+  </select></label>
+</div>
+<div id="toast">Copied</div>
+
+<script>
+  const BRAIN = c => `<svg viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-3 3 3 3 0 0 0-1 5.8V17a2 2 0 0 0 4 0"/><path d="M12 5a3 3 0 0 1 3 3 3 3 0 0 1 1 5.8V17a2 2 0 0 1-4 0"/></svg>`;
+
+  /* ---- switch drawer ---- */
+  function show(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('p-' + id).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  let tt;
+  function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg || 'Copied';
+    el.style.transform = 'translateX(0)'; clearTimeout(tt); tt = setTimeout(() => el.style.transform = 'translateX(140%)', 1600); }
+  function closeP(id) { const p = document.getElementById('p-' + id);
+    p.style.transition = 'transform .28s ease, opacity .28s ease'; p.style.transform = 'translateX(110%)'; p.style.opacity = '0';
+    setTimeout(() => { p.style.transform = ''; p.style.opacity = '1'; }, 900); }
+  function toggleGas() { const d = document.getElementById('gasDetail'), c = document.getElementById('chev');
+    const show = getComputedStyle(d).display === 'none'; d.style.display = show ? 'block' : 'none';
+    c.classList.toggle('open', show); }
+  function approve(b) { const t = b.textContent; b.textContent = '…'; b.style.pointerEvents = 'none';
+    setTimeout(() => { b.textContent = '✓ Approved'; toast('Transaction approved'); setTimeout(() => { closeP('confirm');
+      setTimeout(() => { b.textContent = t; b.style.pointerEvents = ''; }, 900); }, 700); }, 700); }
+
+  /* ---- receipt: 4 real TransactionStatus states ---- */
+  const STATES = {
+    completed: { label:'Completed', color:'var(--status-success)', sign:'+', reason:'Completed' },
+    pending:   { label:'Pending',   color:'var(--status-warning)', sign:'+', reason:'Pending'   },
+    failed:    { label:'Failed',    color:'var(--status-error)',   sign:'−', reason:'Failed'    },
+    cancelled: { label:'Cancelled', color:'var(--status-neutral)', sign:'−', reason:'Cancelled' },
+  };
+  const cycle = document.getElementById('rcCycle');
+  Object.keys(STATES).forEach(k => { const b = document.createElement('button'); b.textContent = STATES[k].label;
+    b.onclick = () => paint(k, b); cycle.appendChild(b); });
+  function paint(k, btn) {
+    const s = STATES[k];
+    document.getElementById('rcIcon').style.cssText =
+      `background:color-mix(in srgb, ${s.color} 14%, transparent);border:1px solid color-mix(in srgb, ${s.color} 32%, transparent)`;
+    document.getElementById('rcIcon').innerHTML = BRAIN(s.color);
+    // amount stays neutral (default text colour) — colour is carried by icon + pill + status row only
+    const amt = document.getElementById('rcAmount'); amt.textContent = `${s.sign} 500.00 GNUS`;
+    const pill = document.getElementById('rcPill'); pill.style.color = s.color;
+    pill.style.background = `color-mix(in srgb, ${s.color} 14%, transparent)`;
+    document.getElementById('rcPillTxt').textContent = s.label;
+    const sr = document.getElementById('rcStatusRow'); sr.textContent = s.reason; sr.style.color = s.color;
+    cycle.querySelectorAll('button').forEach(x => x.classList.remove('on')); if (btn) btn.classList.add('on');
+  }
+  paint('completed', cycle.querySelector('button'));
+
+  /* ---- list: 6 networks, gradient rounded selection ---- */
+  const NETS = [
+    { n:'Ethereum', s:'ETH', c:'#627EEA' }, { n:'Bitcoin', s:'BTC', c:'#F7931A' },
+    { n:'Solana', s:'SOL', c:'#14F195' },   { n:'BNB Chain', s:'BNB', c:'#F3BA2F' },
+    { n:'Polygon', s:'MATIC', c:'#8247E5' },{ n:'GNUS', s:'GNUS', c:'grad' },
+  ];
+  const netList = document.getElementById('netList');
+  NETS.forEach((net, i) => {
+    const r = document.createElement('div'); r.className = 'lrow' + (i === 0 ? ' sel' : '');
+    const av = net.c === 'grad' ? 'background:var(--grad)' : `background:${net.c}`;
+    r.innerHTML = `<span class="avatar" style="${av}">${net.s[0]}</span>
+      <div><div class="name">${net.n}</div><div class="sym">${net.s}</div></div>
+      <span class="lcheck grad-text">✓</span>`;
+    r.onclick = () => { netList.querySelectorAll('.lrow').forEach(x => x.classList.remove('sel')); r.classList.add('sel'); toast(net.n + ' selected'); };
+    netList.appendChild(r);
+  });
+
+  /* ---- receive: QR grid + grouped address ---- */
+  const ADDR = '0x1d9b7C4e2A6f83Db19aE05f3C77b0a2E4d5c4a87';
+  (function buildQR(){
+    const g = document.getElementById('qr'); const N = 25; let seed = 7;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const finder = (r, c) => (r < 7 && c < 7) || (r < 7 && c > 17) || (r > 17 && c < 7);
+    const inFinder = (r, c) => { const f = [[0,0],[0,18],[18,0]]; return f.some(([fr,fc]) => {
+      const rr = r - fr, cc = c - fc; if (rr < 0 || rr > 6 || cc < 0 || cc > 6) return false;
+      const ring = rr === 0 || rr === 6 || cc === 0 || cc === 6; const core = rr >= 2 && rr <= 4 && cc >= 2 && cc <= 4;
+      return ring || core; }); };
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const cell = document.createElement('i');
+      let on = finder(r, c) ? inFinder(r, c) : rnd() > 0.52;
+      if (r > 8 && r < 16 && c > 8 && c < 16) on = false; // clear centre for glyph
+      if (on) cell.classList.add('on'); g.appendChild(cell);
+    }
+  })();
+  (function groupAddr(){
+    const el = document.getElementById('addrChunks');
+    const chunks = ADDR.match(/.{1,4}/g); let html = '';
+    chunks.forEach((ch, i) => { const emph = i === 0 || i === 1 || i >= chunks.length - 2;
+      html += emph ? `<b>${ch}</b>` : `<span>${ch}</span>`; });
+    html += `<span class="icon-btn copy" onclick="toast('Address copied')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></span>`;
+    el.innerHTML = html;
+  })();
+</script>
+</body>
+</html>

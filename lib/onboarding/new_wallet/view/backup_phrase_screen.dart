@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 class BackupPhraseScreen extends StatelessWidget {
   const BackupPhraseScreen({super.key});
@@ -11,7 +11,9 @@ class BackupPhraseScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: GeniusBreakpoints.small * 0.75),
+        constraints: const BoxConstraints(
+          maxWidth: GeniusBreakpoints.small * 0.75,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           spacing: 20.0,
@@ -20,7 +22,7 @@ class BackupPhraseScreen extends StatelessWidget {
               "Wallet Backup",
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-            Text(
+            const Text(
               'In the next step you will see 12 words that allow you to recover a wallet.',
             ),
             CheckboxListTile(
@@ -28,7 +30,7 @@ class BackupPhraseScreen extends StatelessWidget {
               onChanged: (value) {
                 context.read<NewWalletBloc>().add(ToggleCheckbox());
               },
-              title: Text(
+              title: const Text(
                 'I understand that if I lose my recovery words, I will not be able to access my wallet.',
               ),
               controlAffinity: ListTileControlAffinity.leading,
@@ -49,7 +51,7 @@ class BackupPhraseScreen extends StatelessWidget {
                             );
                           }
                         : null,
-                    child: Text("Continue"),
+                    child: const Text("Continue"),
                   ),
                 );
               },

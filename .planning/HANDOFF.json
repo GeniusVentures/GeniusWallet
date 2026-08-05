@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-07-30T18:23:25.951Z",
+  "phase": null,
+  "phase_name": "No active phase — 19 of 23 complete",
+  "phase_dir": null,
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "note_on_this_file": "OVERWRITES the 2026-07-27 phase-20 handoff. Nothing lost: that session's narrative survives at .planning/HANDOFF-260726-swap-polish-and-drawer-archetype.md, and phase 20 has since CLOSED (9345ed4). This session's narrative is .planning/HANDOFF-260730-five-phases-closed-and-three-tooling-bugs.md — read that FIRST; this file carries only machine-readable resume state. NOTE: .planning/.continue-here.md was deliberately NOT touched — it holds Jakub's 2026-07-29 handoff from branch redesign/jakub-260728, and overwriting it would be the one-slot-two-sessions collision AGENTS.md documents.",
+  "completed_tasks": [
+    {"id": 1, "name": "Phase 23 closed — verification passed 5/5 must-haves", "status": "done", "commit": "2110316"},
+    {"id": 2, "name": "Phase 22 closed — ORG-01 on developer judgement, CI gap left on the record", "status": "done", "commit": "6bcc146"},
+    {"id": 3, "name": "Phase 24 removed to backlog with its four unsettled questions", "status": "done", "commit": "2be45ce"},
+    {"id": 4, "name": "Phase 09 closed — Banxa walk performed, 2 of 7 human items closed", "status": "done", "commit": "f81e015"},
+    {"id": 5, "name": "Phase 14 closed WITH GAPS — compute panel is rendered nowhere", "status": "done", "commit": "1e06904"},
+    {"id": 6, "name": "Phase 20 closed — Feedback frame walk closed the layout questions", "status": "done", "commit": "9345ed4"},
+    {"id": 7, "name": "Phase 21 re-planned mid-flight, 6/6 executed, verification passed", "status": "done", "commit": "262a13d"},
+    {"id": 8, "name": "reown_walletkit 1.3.9 -> 1.4.0 (adds transitive walletconnect_pay 1.0.0)", "status": "done", "commit": "3017f9f"},
+    {"id": 9, "name": "SECURITY: stop printing WalletConnect pairing URIs (carry symKey) to console, 2 sites", "status": "done", "commit": "0bde805"},
+    {"id": 10, "name": "reown money-math test floor — first coverage of the amount shown before signing", "status": "done", "commit": "2a3e14a"},
+    {"id": 11, "name": "CI Flutter pin 3.38.10 -> 3.41.9, both jobs together", "status": "done", "commit": "c9831a0"},
+    {"id": 12, "name": "STATE.md drift corrected — it named a phase that had already closed", "status": "done", "commit": "0b4f90b"}
+  ],
+  "remaining_tasks": [
+    {"id": 13, "name": "14-08 — render the compute panel in the dashboard, wire switch-wallet + retry, delete the 3 superseded widgets, add the wiring test", "status": "not_started"},
+    {"id": 14, "name": "Phases 1, 10, 11 — the original port track, never started, 0 plans each", "status": "not_started"},
+    {"id": 15, "name": "reown: handle_dapp_requests dispatch and reown_connect_button pairing still untested", "status": "not_started"},
+    {"id": 16, "name": "GWAppBar and GWScreen sweep — filed as todos; both need a functional test net FIRST", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "CI quality job has NEVER executed once. build.yml triggers only on push/PR to develop/main; this branch is 626 commits ahead of origin/develop and 2 behind.", "type": "external", "workaround": "First real signal arrives at the develop PR. Do NOT use workflow_dispatch to force it — that path deletes and recreates a GitHub release."},
+    {"description": "Compute panel (phase 14) is built, height-measured and contrast-proven but referenced ONLY by tests. No user has ever seen it.", "type": "technical", "workaround": "14-08 is the single plan between it and users."}
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {"action": "Decide whether the two Banxa result drawers get wired to production, stay dev-only, or are removed", "context": "Re-skinned in 21-03 but only dev_tools_bubble.dart calls them; sketch 066-B draws Paid/Method/Order rows no caller supplies", "blocking": false},
+    {"action": "Answer whether Reject/Deny reads as equally affirmative as Approve/Allow on the two signing drawers", "context": "drawers-final/README.md flagged this open. The phase 21 walk reported no failure, which is NOT the same as the question being answered.", "blocking": false},
+    {"action": "PR into develop to give the CI quality job its first execution", "context": "626-commit reconciliation is its own piece of work; needs authorization", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "ORG-01 closed on developer judgement despite the CI job never running", "rationale": "Local gates green. Recorded as closed_by: developer-judgement with truth 7's finding left standing and unretracted, so a future reader sees what was and was not proven.", "phase": "22"},
+    {"decision": "Phase 24 removed to backlog rather than deleted", "rationale": "Its findings were measured and every line number still verified against the tree; re-deriving would mean redoing the audit.", "phase": "24"},
+    {"decision": "Phase 14 closed with gaps rather than executing 14-08", "rationale": "Developer instruction. Recorded as gaps_found so it cannot later read as done.", "phase": "14"},
+    {"decision": "Phase 21's 21-02..21-06 retired and re-planned against the live tree", "rationale": "Their files_modified named files commit 9ff7c04 deleted a phase earlier. Adapting in-flight is right when drift means 'already done', wrong when it means 'the files are gone'.", "phase": "21"},
+    {"decision": "CI Flutter pin moved UP to 3.41.9 rather than local moving down", "rationale": "3.41.9 is what all 798 tests / analyzer 0 were measured on. Trades a CI-proven version for a locally-proven one; both get their first signal at the same develop PR.", "phase": null},
+    {"decision": "Three loose items closed inline rather than through GSD", "rationale": "Deviation, acknowledged. /gsd-quick exists for this shape of work. The commits are sound but carry no plan, executor or verification record.", "phase": null}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Run /gsd-progress. If picking up code, 14-08 is the highest-value single plan in the project — it ships roughly 2,500 lines of already-built, already-tested compute panel that no user can currently see.",
+  "context_notes": "Five phases closed, one removed. Baseline moved 512 -> 798 tests with analyzer 0 throughout and every gate green. THE MOST IMPORTANT CARRY-FORWARD IS NOT THE PHASE WORK: three GSD/tooling bugs were found that all produce SILENT wrong results — see the anti-patterns table in .planning/.continue-here.md. Working tree clean, nothing pushed, no PR open."
+}

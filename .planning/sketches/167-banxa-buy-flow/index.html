@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 167 — Buy GNUS / Banxa, the whole flow</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   Sketch 167 — the Banxa fiat on-ramp, end to end.
+
+   Six schemes. Each one walks the SAME six screens, so the flow is compared as
+   a flow, not as six unrelated pages. Pick a scheme (top row), then step
+   through its screens (second row).
+
+   Everything is measured against the shipped code. The four structural facts
+   this sketch exists to fix:
+     1. `/buy` mounts OrdersPage - the CTA labelled "Buy GNUS" opens the order
+        HISTORY. The buy form lives at `/createOrder` and nothing links to it.
+        router.dart:80 / :86
+     2. Five screens hand-roll an AppBar + back arrow instead of GWPageHeader.
+        banxa_buy_screen.dart:111, checkout_qr.dart:74,
+        kyc_registration.dart:93, order_details_page.dart:110
+     3. The form uses raw Material DropdownMenu x3; GWSelect exists.
+        banxa_buy_screen.dart:174/196/218 vs components/inputs/gw_select.dart
+     4. QuoteCard is dead code - never instantiated. quote_card.dart:8
+   ─────────────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--surface-base); color: var(--text-primary);
+       font-family: var(--font); padding-top: 132px; -webkit-font-smoothing: antialiased; }
+
+#bar { position: fixed; top:0; left:0; right:0; z-index: 9998; background:#05070A;
+       border-bottom: 1px solid rgba(255,255,255,.14); padding: 8px 12px 0; }
+#bar .row { display: flex; gap: 4px; flex-wrap: wrap; }
+#bar .row2 { display: flex; gap: 4px; flex-wrap: wrap; padding: 7px 0 8px;
+             border-top: 1px solid rgba(255,255,255,.08); margin-top: 6px; }
+.tab { background: transparent; border: 1px solid transparent; color:#8A8F9D;
+  font: 600 12px/16px var(--font); letter-spacing:.3px; padding: 7px 11px;
+  border-radius: 8px 8px 0 0; cursor: pointer; transition: all .15s ease; white-space: nowrap; }
+.tab:hover { background: rgba(20,200,255,.08); color:#fff; }
+.tab.active { background: var(--surface-base); color:#fff;
+  border-color: rgba(255,255,255,.14); border-bottom-color: var(--surface-base); }
+.sc { background: transparent; border: 1px solid var(--border-subtle); color:#8A8F9D;
+  font: 600 11px/15px var(--font); padding: 6px 10px; border-radius: 999px; cursor: pointer;
+  transition: all .15s ease; white-space: nowrap; }
+.sc:hover { color:#fff; border-color: rgba(20,200,255,.5); background: rgba(20,200,255,.10); }
+.sc.on { color: var(--text-on-brand); border-color: transparent;
+  background: linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b)); }
+.sc[disabled] { opacity:.32; cursor: not-allowed; }
+
+#tools { position: fixed; bottom:12px; right:12px; z-index:9999; font:400 12px/1 var(--font);
+  background: rgba(0,0,0,.85); color:#fff; padding:8px 10px; border-radius:10px; opacity:.38;
+  transition: opacity .2s; display:flex; gap:8px; align-items:center;
+  border: 1px solid rgba(255,255,255,.14); }
+#tools:hover { opacity: 1; }
+#tools button, #tools select { background: rgba(255,255,255,.09); color:#fff;
+  border: 1px solid rgba(255,255,255,.18); border-radius:6px; padding:5px 8px;
+  font: 500 11px/1 var(--font); cursor: pointer; }
+#tools button.on { background:#14C8FF; color:#05070A; border-color:#14C8FF; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 70px; }
+.head { margin-bottom: 14px; padding: 12px 14px; border-left: 3px solid var(--brand-primary);
+        background: rgba(20,200,255,.06); border-radius: 0 8px 8px 0; }
+.head h2 { margin:0 0 4px; font:600 15px/20px var(--font); }
+.head p { margin:0; font:400 13px/19px var(--font); color: var(--text-secondary); }
+.head .src { margin-top:6px; font:400 11px/16px var(--font-mono); color: var(--brand-secondary); }
+
+.newBar { display:flex; gap:10px; align-items:flex-start; margin:0 0 18px; padding:9px 12px;
+  border-radius:8px; font:400 12px/18px var(--font); }
+.newBar.none { background: rgba(10,216,156,.09); border:1px solid rgba(10,216,156,.4); }
+.newBar.some { background: rgba(255,196,46,.09); border:1px solid rgba(255,196,46,.5); }
+.newBar .h { font:600 10px/16px var(--font-mono); letter-spacing:.4px; flex:none;
+  padding:1px 6px; border-radius:3px; }
+.newBar.none .h { background:#0AD89C; color:#04211A; }
+.newBar.some .h { background:#FFC42E; color:#241A00; }
+.newBar b { color: var(--text-primary); font-weight:600; }
+
+/* provenance — hover only, never overlaps at rest */
+.cmp { position: relative; }
+.cmp > .tag { display:none; position:absolute; top:-9px; left:8px; z-index:40;
+  font:600 9px/1 var(--font-mono); padding:3px 5px; border-radius:3px; white-space:nowrap;
+  pointer-events:none; box-shadow:0 2px 8px rgba(0,0,0,.6); }
+.cmp > .tag.have { background:#0AD89C; color:#04211A; }
+.cmp > .tag.reuse{ background:#14C8FF; color:#04212B; }
+.cmp > .tag.new  { background:#FFC42E; color:#241A00; }
+body.showCmp .cmp { outline:1px dashed rgba(255,255,255,.14); outline-offset:2px; }
+body.showCmp .cmp.isnew { outline:1px dashed rgba(255,196,46,.85); }
+body.showCmp .cmp.isnew > .tag { display:block; }
+body.showCmp .cmp:hover { outline-color: rgba(20,200,255,.85); }
+body.showCmp .cmp:hover > .tag { display:block; }
+body.showCmp .cmp:has(.cmp:hover) > .tag { display:none; }
+body.showCmp .cmp:has(.cmp:hover) { outline-color: rgba(255,255,255,.14); }
+
+/* ── shipped vocabulary ─────────────────────────────────────────────────── */
+.kicker      { font:600 13px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+.kickerDense { font:600 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-secondary); }
+.pageTitle { font:600 24px/32px var(--font); letter-spacing:-.4px; margin:0; }
+.pageSub   { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:2px; }
+.card { background:var(--surface-elevated); border:1px solid var(--border-subtle);
+        border-radius:var(--radius-md); padding:16px; }
+.well { background:var(--surface-sunken); border:1px solid var(--border-subtle);
+        border-radius:var(--radius-sm); padding:12px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  height:40px; padding:0 16px; border-radius:999px; cursor:pointer; font:600 14px/20px var(--font);
+  transition:all .15s ease; border:1px solid var(--border-strong); background:transparent;
+  color:var(--text-primary); }
+.btn:hover { background:rgba(20,200,255,.10); border-color:rgba(20,200,255,.45); }
+.btn.fill { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+  border-color:transparent; color:var(--text-on-brand); }
+.btn.fill:hover { filter:brightness(1.09); }
+.btn.fill[disabled] { background:var(--surface-menu); color:var(--text-primary-38); cursor:not-allowed; filter:none; }
+.btn.lg { height:48px; font-size:15px; }
+.btn.sm { height:32px; padding:0 12px; font-size:13px; }
+.btn.grow { flex:1; }
+.btn.wide { width:100%; }
+
+/* GWSelect — components/inputs/gw_select.dart */
+.sel { width:100%; }
+.sel .lbl { display:block; margin-bottom:6px; }
+.sel .box { display:flex; align-items:center; gap:10px; height:48px; padding:0 12px;
+  border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); cursor:pointer; transition:all .15s ease;
+  font:400 15px/1 var(--font); }
+.sel .box:hover { border-color:rgba(20,200,255,.45); }
+.sel .box .v { flex:1; }
+.sel .box .cv { color:var(--text-secondary); font:400 13px/1 var(--font); }
+.field { width:100%; height:48px; padding:0 12px; border-radius:var(--radius-sm);
+  background:var(--surface-sunken); border:1px solid var(--border-subtle);
+  color:var(--text-primary); font:600 18px/1 var(--font); font-variant-numeric:tabular-nums;
+  outline:none; transition:all .15s ease; }
+.field:focus { border-color:transparent; box-shadow:0 0 0 2px var(--brand-cta-b); }
+
+.grid { background:var(--surface-sunken); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm); overflow:hidden; }
+.grid .r { display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:11px 12px; border-bottom:1px solid var(--border-subtle); }
+.grid .r:last-child { border-bottom:0; }
+.grid .k { font:400 14px/20px var(--font); color:var(--text-primary-70); }
+.grid .v { font:400 14px/20px var(--font); font-variant-numeric:tabular-nums; color:var(--text-primary); }
+.grid .r.tap { cursor:pointer; transition:background .15s ease; }
+.grid .r.tap:hover { background:rgba(20,200,255,.07); }
+
+.pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px;
+  font:600 12px/17px var(--font); }
+.pill.ok   { background:var(--status-success-fill); color:var(--status-success); }
+.pill.warn { background:rgba(255,196,46,.14); color:var(--status-warning); }
+.pill.err  { background:var(--status-error-fill); color:var(--status-error); }
+.pill.neu  { background:rgba(100,116,139,.20); color:var(--text-secondary); }
+.dot { width:7px; height:7px; border-radius:4px; }
+.dot.ok{background:var(--status-success)} .dot.warn{background:var(--status-warning)}
+.dot.err{background:var(--status-error)} .dot.neu{background:var(--status-neutral)}
+
+.chipRow { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { font:600 13px/18px var(--font); padding:7px 13px; border-radius:999px; cursor:pointer;
+  background:var(--surface-menu); border:1px solid var(--border-subtle);
+  color:var(--text-secondary); transition:all .15s ease; }
+.chip:hover { color:#fff; border-color:rgba(20,200,255,.45); background:rgba(20,200,255,.10); }
+.chip.on { color:#fff; border-color:rgba(20,200,255,.55); background:rgba(20,200,255,.16); }
+
+.step { display:flex; gap:12px; }
+.badge { width:20px; height:20px; border-radius:10px; display:grid; place-items:center;
+  font:600 11px/1 var(--font); flex:none; border:1px solid var(--border-subtle);
+  color:var(--text-secondary); }
+.badge.cur { border:1.5px solid var(--text-primary); color:var(--text-primary); }
+.badge.done{ background:var(--status-success); border-color:var(--status-success); color:var(--text-on-brand); }
+.rail { width:1px; flex:1; min-height:14px; background:var(--border-subtle); margin:4px 0; }
+.stepMain { padding-bottom:16px; flex:1; min-width:0; }
+.stepT { font:500 14px/20px var(--font); color:var(--text-secondary); }
+.stepT.on { color:var(--text-primary); }
+.stepSum { font:400 12px/17px var(--font); color:var(--text-secondary); margin-top:2px; }
+
+.emptyBox { text-align:center; padding:40px 20px; }
+.emptyBox .ico { font-size:30px; opacity:.55; margin-bottom:10px; }
+.emptyBox h4 { margin:0 0 5px; font:600 15px/21px var(--font); }
+.emptyBox p { margin:0 0 16px; font:400 13px/19px var(--font); color:var(--text-secondary); }
+
+.qr { width:190px; height:190px; background:#fff; border-radius:10px; padding:10px;
+      display:grid; place-items:center; }
+.qr svg { width:100%; height:100%; }
+
+.cols { display:grid; grid-template-columns:1fr 340px; gap:16px; align-items:start; }
+@media (max-width:1000px){ .cols{grid-template-columns:1fr} }
+.rowWrap { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+.caseLabel { font:600 11px/16px var(--font-mono); color:var(--brand-secondary);
+  letter-spacing:.3px; margin-bottom:6px; }
+.caseLabel.bad{color:var(--status-error)} .caseLabel.warn{color:var(--status-warning)}
+
+.note { margin-top:18px; padding:11px 13px; border-radius:8px; background:rgba(255,255,255,.04);
+  border:1px solid var(--border-subtle); font:400 12px/18px var(--font); color:var(--text-secondary); }
+.note b { color:var(--text-primary); font-weight:600; }
+.note code { font:400 11px/1.5 var(--font-mono); color:var(--brand-primary); }
+
+.drawer { width:420px; background:var(--surface-elevated); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md); overflow:hidden; }
+.drawerHead { display:flex; align-items:center; gap:10px; padding:14px 16px;
+  border-bottom:1px solid var(--border-subtle); }
+.drawerHead .t { font:600 16px/22px var(--font); flex:1; }
+.xbtn { width:32px; height:32px; border-radius:8px; display:grid; place-items:center;
+  border:1px solid var(--border-subtle); background:transparent; color:var(--text-secondary);
+  cursor:pointer; transition:all .15s ease; }
+.xbtn:hover { color:#fff; border-color:rgba(20,200,255,.45); background:rgba(20,200,255,.10); }
+
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:var(--surface-menu); border:1px solid rgba(20,200,255,.45); color:#fff;
+  padding:10px 18px; border-radius:999px; font:600 13px/18px var(--font); z-index:9999;
+  transition:transform .25s ease; pointer-events:none; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <div class="row" id="schemeRow"></div>
+  <div class="row2" id="screenRow"></div>
+</div>
+<div id="stage" class="wrap"></div>
+<div class="toast" id="toast"></div>
+
+<div id="tools">
+  <select id="themeSel"><option value="dark">Dark</option><option value="light">Light</option></select>
+  <button id="cmpBtn" title="Outline every element; hover one to name its component">Components</button>
+</div>
+
+<script>
+const say = m => { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(window._t); window._t=setTimeout(()=>t.classList.remove('show'),1600); };
+
+/* ═══ Component provenance ════════════════════════════════════════════════ */
+const C = {
+  header:  {k:'reuse', n:'GWPageHeader',  f:'scaffold/gw_page_header.dart'},
+  screen:  {k:'reuse', n:'GWScreen',      f:'scaffold/gw_screen.dart'},
+  card:    {k:'have',  n:'GWCard',        f:'cards/gw_card.dart'},
+  kicker:  {k:'have',  n:'GWKicker',      f:'cards/gw_kicker.dart'},
+  button:  {k:'have',  n:'GWButton',      f:'buttons/gw_button.dart'},
+  select:  {k:'reuse', n:'GWSelect',      f:'inputs/gw_select.dart — replaces raw DropdownMenu'},
+  field:   {k:'have',  n:'GWTextField',   f:'inputs/gw_text_field.dart'},
+  grid:    {k:'have',  n:'GWDetailGrid',  f:'cards/gw_detail_grid.dart'},
+  copyRow: {k:'have',  n:'GWCopyRow',     f:'data/gw_copy_row.dart'},
+  dot:     {k:'reuse', n:'GWStatusDot',   f:'data/gw_status_dot.dart'},
+  empty:   {k:'have',  n:'GWEmptyState',  f:'feedback/gw_empty_state.dart'},
+  error:   {k:'have',  n:'GWErrorState',  f:'feedback/gw_error_state.dart'},
+  warn:    {k:'reuse', n:'GWWarningNote', f:'feedback/gw_warning_note.dart'},
+  spinner: {k:'have',  n:'GWSpinner',     f:'loading/gw_spinner.dart'},
+  orderCard:{k:'have', n:'OrderCard',     f:'banxa/banxa_components/order_card.dart'},
+  qr:      {k:'have',  n:'CryptoAddressQr',f:'qr/crypto_address_qr.dart'},
+  drawer:  {k:'reuse', n:'ResponsiveDrawer',f:'bottom_drawer/responsive_drawer.dart'},
+  stepList:{k:'reuse', n:'JobStepList',   f:'submit_job/.../job_step_list.dart — same rail as the job flow'},
+  viewAll: {k:'reuse', n:'GWViewAllLink', f:'cards/gw_view_all_link.dart'},
+  /* genuinely new */
+  kycBadge:{k:'new',   n:'verification status row', f:'copy + GWStatusDot — no new widget'},
+  amountRow:{k:'new',  n:'fiat→crypto preview row', f:'copy — renders in GWDetailGrid'}
+};
+const tag = k => `<span class="tag ${C[k].k}">${C[k].n}${C[k].k==='new'?' ⚠':''}</span>`;
+const w = (k, html) => `<div class="cmp ${C[k].k==='new'?'isnew':''}">${tag(k)}${html}</div>`;
+
+/* ═══ Shared pieces ═══════════════════════════════════════════════════════ */
+const pageHead = (title, sub, trailing) => w('header', `<div style="display:flex;align-items:center;gap:16px">
+  <div style="flex:1"><h1 class="pageTitle">${title}</h1>${sub?`<div class="pageSub">${sub}</div>`:''}</div>
+  ${trailing||''}</div><div style="height:16px"></div>`);
+
+const backKicker = label => `<button style="display:inline-flex;align-items:center;gap:6px;
+  background:none;border:0;padding:0;cursor:pointer;color:var(--text-secondary)"
+  class="kickerDense" onclick="say('back')">‹ ${label}</button><div style="height:10px"></div>`;
+
+const sel = (label, value, caption) => w('select', `<div class="sel">
+  <span class="kickerDense lbl">${label}</span>
+  <div class="box" onclick="say('${label} picker')"><span class="v">${value}</span>
+    ${caption?`<span class="cv">${caption}</span>`:''}<span style="color:var(--text-secondary)">▾</span></div>
+</div>`);
+
+const amountField = () => w('field', `<div>
+  <span class="kickerDense" style="display:block;margin-bottom:6px">You spend</span>
+  <input class="field" value="500" oninput="quote(this)"></div>`);
+
+const quoteGrid = () => w('grid', `<div class="grid">
+  <div class="r"><span class="k">You get</span><span class="v" id="qOut">1,540.02 GNUS</span></div>
+  <div class="r"><span class="k">Rate</span><span class="v">1 GNUS = $0.3247</span></div>
+  <div class="r"><span class="k">Banxa fee</span><span class="v">$7.45</span></div>
+</div>`);
+
+const orderRow = (id, status, tone, amt, date) => w('orderCard', `<div class="card"
+  style="padding:14px;margin-bottom:10px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="pill ${tone}"><span class="dot ${tone}"></span>${status}</span>
+        <span class="kickerDense">${date}</span></div>
+      <div style="font:600 15px/21px var(--font);margin-top:6px;font-variant-numeric:tabular-nums">${amt}</div>
+      <div style="font:400 12px/17px var(--font);color:var(--text-secondary);margin-top:2px">Order ${id}</div>
+    </div>
+    ${w('button', `<button class="btn sm" onclick="say('order ${id}')">Details</button>`)}
+  </div></div>`);
+
+const qrSvg = () => `<svg viewBox="0 0 21 21" shape-rendering="crispEdges">${
+  (()=>{ let o=''; let s=7;
+    for(let y=0;y<21;y++) for(let x=0;x<21;x++){
+      s=(s*1103515245+12345)&0x7fffffff;
+      const finder = (x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13);
+      const on = finder ? ((x%6===0||y%6===0)|| (x>1&&x<5&&y>1&&y<5)) : (s%100)<45;
+      if(on) o+=`<rect x="${x}" y="${y}" width="1" height="1" fill="#000"/>`;
+    } return o; })()}</svg>`;
+
+/* ═══ SCREENS, per scheme ═════════════════════════════════════════════════ */
+const SCREENS = ['entry','form','kyc','checkout','details','orders'];
+const SCREEN_LABEL = {entry:'1 · Entry (/buy)', form:'2 · Buy form', kyc:'3 · KYC',
+  checkout:'4 · Checkout', details:'5 · Order details', orders:'6 · Orders history'};
+
+/* ── Shared screen bodies, parameterised by scheme ──────────────────────── */
+function screenKyc(s) {
+  if (s.kyc === 'step') return `<div class="rowWrap"><div style="width:560px">
+    ${backKicker('Buy GNUS')}
+    ${pageHead('Buy GNUS','Step 2 of 3 · Verify your identity')}
+    ${w('card', `<div class="card">
+      ${w('kycBadge', `<div style="display:flex;align-items:center;gap:10px">
+        <span class="pill warn"><span class="dot warn"></span>Not verified</span>
+        <span style="font:400 13px/19px var(--font);color:var(--text-secondary)">
+          Required once, by Banxa, before your first purchase.</span></div>`)}
+      <div style="height:14px"></div>
+      ${w('grid', `<div class="grid">
+        <div class="r"><span class="k">Provider</span><span class="v">Banxa</span></div>
+        <div class="r"><span class="k">Typically takes</span><span class="v">2–5 minutes</span></div>
+        <div class="r"><span class="k">You will need</span><span class="v">Photo ID</span></div>
+      </div>`)}
+      <div style="height:14px"></div>
+      ${w('button', `<button class="btn fill wide lg" onclick="say('opens Banxa KYC webview')">Verify with Banxa</button>`)}
+    </div>`)}
+    <div class="note"><b>KYC as a step, not a destination.</b> Today <code>/kyc</code> is a separate
+      full screen the user is thrown to. As a conditional step it keeps the flow's own chrome and
+      the user never loses their place. <b>The blocker is unchanged either way:</b>
+      <code>09-OUTSTANDING.md</code> criterion 2 — completing KYC does not pop the webview and
+      return success, because the redirect match is still a placeholder
+      (<code>kyc_registration.dart</code>, proven untouched by 09-06).</div>
+  </div></div>`;
+
+  return `<div class="rowWrap"><div style="width:560px">
+    ${s.chrome === 'header' ? backKicker('Buy GNUS') + pageHead('Verify your identity','Banxa needs this once, before your first purchase')
+      : `<div class="note" style="margin:0 0 14px"><b>Chrome today:</b> hand-rolled
+         <code>AppBar</code> + 30px back arrow, <code>kyc_registration.dart:93</code></div>`}
+    ${w('card', `<div class="card">
+      ${w('kycBadge', `<div style="display:flex;align-items:center;gap:10px">
+        <span class="pill warn"><span class="dot warn"></span>Not verified</span></div>`)}
+      <div style="height:12px"></div>
+      <div style="font:400 14px/21px var(--font);color:var(--text-secondary)">
+        Identity verification is handled by Banxa. You will need a photo ID. It usually takes
+        2–5 minutes and is only required once.</div>
+      <div style="height:16px"></div>
+      <div style="display:flex;gap:8px">
+        ${w('button', `<button class="btn grow" onclick="say('cancel')">Not now</button>`)}
+        ${w('button', `<button class="btn fill grow" onclick="say('opens Banxa KYC')">Verify</button>`)}
+      </div></div>`)}
+  </div></div>`;
+}
+
+function screenCheckout(s) {
+  const qrPanel = w('card', `<div class="card" style="width:420px;text-align:center">
+    ${w('kicker', `<div class="kicker" style="text-align:left">Scan to pay</div>`)}
+    <div style="height:14px"></div>
+    ${w('qr', `<div class="qr" style="margin:0 auto">${qrSvg()}</div>`)}
+    <div style="height:14px"></div>
+    <div style="font:400 13px/19px var(--font);color:var(--text-secondary)">
+      Open the link on your phone to complete payment with Banxa.</div>
+    <div style="height:14px"></div>
+    ${w('grid', `<div class="grid" style="text-align:left">
+      <div class="r"><span class="k">Status</span>
+        <span class="v"><span class="pill warn"><span class="dot warn"></span>Awaiting payment</span></span></div>
+    </div>`)}
+    <div style="height:12px"></div>
+    <div style="display:flex;gap:8px">
+      ${w('button', `<button class="btn grow" onclick="say('copy link')">Copy link</button>`)}
+      ${w('button', `<button class="btn fill grow" onclick="say('open in browser')">Open here</button>`)}
+    </div></div>`);
+
+  return `<div class="rowWrap">
+    <div><div class="caseLabel">DESKTOP — QR handoff</div>${qrPanel}</div>
+    <div><div class="caseLabel">IN-APP — webview</div>
+      ${w('card', `<div class="card" style="width:420px">
+        ${w('kicker', `<div class="kicker">Complete payment</div>`)}
+        <div style="height:12px"></div>
+        <div style="height:230px;border-radius:var(--radius-sm);background:var(--surface-sunken);
+             border:1px solid var(--border-subtle);display:grid;place-items:center;
+             color:var(--text-secondary);font:400 13px/19px var(--font)">
+          Banxa checkout (webview)</div>
+        <div style="height:12px"></div>
+        ${w('spinner', `<div style="display:flex;align-items:center;gap:8px;
+           font:400 13px/19px var(--font);color:var(--text-secondary)">
+          <span style="width:16px;height:16px;border-radius:8px;border:2px solid var(--border-strong);
+            border-top-color:var(--brand-primary);display:inline-block"></span>
+          Waiting for Banxa to confirm</div>`)}
+      </div>`)}</div>
+  </div>
+  <div class="note"><b>The QR is not decorative — it is the desktop path.</b>
+    <code>CryptoAddressQr</code> already exists and <code>09-05</code> pinned its white backing
+    mode-invariant by test. <b>Still outstanding (09-OUTSTANDING finding 6):</b> nobody has
+    verified it actually SCANS in light mode with a real camera.
+    <br><b>Polling is real:</b> <code>PollingCubit</code> is wired at <code>router.dart:137-166</code>
+    and starts on mount, so "Waiting for Banxa to confirm" reflects live behaviour.</div>`;
+}
+
+function screenDetails(s) {
+  return `<div class="rowWrap">
+    ${[['completed','ok','Completed'],['pendingpayment','warn','Awaiting payment'],
+       ['declined','err','Declined']].map(([raw,tone,label]) => `
+      <div><div class="caseLabel ${tone==='err'?'bad':tone==='warn'?'warn':''}">${raw}</div>
+        ${w('card', `<div class="card" style="width:340px">
+          ${s.chrome==='header' ? `<div class="kicker">Order</div><div style="height:10px"></div>`:''}
+          ${w('dot', `<div style="display:flex;align-items:center;gap:8px">
+            <span class="pill ${tone}"><span class="dot ${tone}"></span>${label}</span></div>`)}
+          <div style="height:12px"></div>
+          ${w('grid', `<div class="grid">
+            <div class="r"><span class="k">You paid</span><span class="v">$500.00</span></div>
+            <div class="r"><span class="k">You get</span><span class="v">1,540.02 GNUS</span></div>
+            <div class="r"><span class="k">Created</span><span class="v">30 Jul, 14:22</span></div>
+            <div class="r tap" onclick="say('copied')"><span class="k">Order ID</span>
+              <span class="v">BNX-4471…</span></div>
+          </div>`)}
+          <div style="height:12px"></div>
+          ${tone==='warn'
+            ? w('button', `<button class="btn fill wide" onclick="say('resume checkout')">Continue payment</button>`)
+            : tone==='err'
+            ? w('button', `<button class="btn wide" onclick="say('new order')">Start a new order</button>`)
+            : w('button', `<button class="btn wide" onclick="say('back to orders')">Done</button>`)}
+        </div>`)}</div>`).join('')}
+  </div>
+  <div class="note"><b>Per-status action, not one generic button.</b> The shipped page already
+    branches its CTA (<code>order_details_page.dart:71-107</code>) — gradient for one rung,
+    secondary for another. What is drawn here keeps that and names each action for its status:
+    an awaiting-payment order can be RESUMED, a declined one cannot and should offer a fresh start.
+    <br><b>Outstanding (09-OUTSTANDING):</b> the status banner has never been seen painted from a
+    real redirect round trip; the tone mapping is proven only against synthetic strings.</div>`;
+}
+
+function screenOrders(s) {
+  const filled = `${orderRow('BNX-4471','Completed','ok','$500.00 → 1,540.02 GNUS','30 Jul')}
+    ${orderRow('BNX-4468','Awaiting payment','warn','$250.00 → 770.01 GNUS','29 Jul')}
+    ${orderRow('BNX-4462','Declined','err','$100.00','27 Jul')}`;
+  return `<div class="cols">
+    <div>
+      ${s.entry==='orders' ? pageHead('Your orders', null,
+          w('button', `<button class="btn fill" onclick="say('→ buy form')">Buy GNUS</button>`))
+        : backKicker('Buy GNUS') + pageHead('Your orders','3 orders')}
+      ${w('chipRowTag' in C ? 'kicker' : 'kicker', `<div class="chipRow" style="margin-bottom:14px">
+        <button class="chip on" onclick="say('All')">All · 3</button>
+        <button class="chip" onclick="say('Pending')">Pending · 1</button>
+        <button class="chip" onclick="say('Completed')">Completed · 1</button>
+        <button class="chip" onclick="say('Declined')">Declined · 1</button>
+      </div>`)}
+      ${filled}
+    </div>
+    <div>
+      <div class="caseLabel">EMPTY STATE</div>
+      ${w('empty', `<div class="card"><div class="emptyBox">
+        <div class="ico">🧾</div><h4>No orders yet</h4>
+        <p>Your GNUS purchases will appear here once you make one.</p>
+        ${w('button', `<button class="btn fill" onclick="say('→ buy form')">Buy GNUS</button>`)}
+      </div></div>`)}
+    </div>
+  </div>
+  <div class="note"><b>Counted filters are the fix 157-E named.</b> The shipped page has no filter
+    rail and no counts. <b>Also outstanding (09-OUTSTANDING):</b> <code>GWEmptyState</code>
+    auto-switches to a compact tier below a 192px slot and the orders grid's empty
+    <code>Column</code> has no fixed height — which tier renders has never been observed at a real
+    window size. The card above gives it room deliberately.</div>`;
+}
+
+/* ═══ THE SIX SCHEMES ═════════════════════════════════════════════════════ */
+const SCHEMES = [
+  {
+    id:'today', tab:'0 · Today', name:'Today — the CTA opens the wrong page',
+    entry:'orders', chrome:'appbar', form:'dropdowns', kyc:'page', control:true,
+    thesis:'Control board. "Buy GNUS" routes to /buy, which mounts OrdersPage — the order HISTORY. The buy form exists at /createOrder and nothing in the app links to it. Every screen wears a hand-rolled AppBar instead of the shared page header.',
+    src:'router.dart:80 · banxa_buy_screen.dart:111',
+    newItems: []
+  },
+  {
+    id:'buyfirst', tab:'1 · Buy first', name:'Buy first — /buy IS the form',
+    entry:'form', chrome:'header', form:'amount', kyc:'page',
+    thesis:'157-A. The CTA labelled "Buy GNUS" opens a buy form. Order history becomes a counted secondary link in the header. One route change plus a re-skin; the smallest edit that makes the label true.',
+    src:'157-A · router.dart:80 → BanxaBuyScreen',
+    newItems: [{what:'fiat→crypto preview row', kind:'copy', where:'renders in GWDetailGrid'}]
+  },
+  {
+    id:'stepper', tab:'2 · Stepper', name:'Stepper — the job flow\'s own rail',
+    entry:'form', chrome:'header', form:'steps', kyc:'step',
+    thesis:'157-D. Amount → verify → pay as vertical steps, reusing JobStepList — the exact rail the compute job flow already ships. KYC stops being a place you get thrown to and becomes a conditional step you can see coming.',
+    src:'157-D · job_step_list.dart',
+    newItems: [{what:'verification status row', kind:'copy + GWStatusDot', where:'no new widget'}]
+  },
+  {
+    id:'rail', tab:'3 · Form + rail', name:'Form + rail — Swap\'s shape, applied here',
+    entry:'form', chrome:'header', form:'amount', kyc:'page', rail:true,
+    thesis:'157-B. The shape 062-A chose for Swap, so Buy and Swap read as siblings. Form left, verification state and recent orders in a right rail. Best use of a wide frame; worst empty state, because the rail has nothing to say on a first visit.',
+    src:'157-B · sketch 062-A',
+    newItems: [{what:'verification status row', kind:'copy + GWStatusDot', where:'no new widget'}]
+  },
+  {
+    id:'drawer', tab:'4 · Drawer', name:'Drawer — Buy GNUS never leaves the page',
+    entry:'drawer', chrome:'header', form:'amount', kyc:'step',
+    thesis:'157-C. Buy GNUS opens the drawer archetype instead of navigating. Cheapest chrome in the app and consistent with how the job flow now works — but 420px is a lot of consequence for a purchase, and history has nowhere to live.',
+    src:'157-C · responsive_drawer.dart',
+    newItems: []
+  },
+  {
+    id:'synth', tab:'★ Synthesis', name:'Synthesis — Buy first + stepper KYC + fixed orders',
+    entry:'form', chrome:'header', form:'amount', kyc:'step', synth:true,
+    thesis:'/buy becomes the buy form on the shared page header. KYC is a conditional step inside that flow rather than a separate destination. Order history keeps its own route, fixed per 157-E with counted filters and an empty state that reads as ready. Every raw DropdownMenu becomes GWSelect.',
+    src:'157-A + 157-D (KYC) + 157-E (orders)',
+    newItems: [
+      {what:'verification status row', kind:'copy + GWStatusDot', where:'no new widget'},
+      {what:'fiat→crypto preview row', kind:'copy', where:'renders in GWDetailGrid'}]
+  }
+];
+
+/* ── Entry + form bodies (scheme-dependent) ─────────────────────────────── */
+function screenEntry(s) {
+  if (s.control) return `<div class="rowWrap"><div style="width:620px">
+    <div class="caseLabel bad">"BUY GNUS" LANDS HERE — THE ORDER HISTORY</div>
+    ${w('card', `<div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <h1 class="pageTitle" style="flex:1;font-size:20px">Orders</h1>
+        <button class="btn sm" onclick="say('+ new order — the only way to the form')">+</button>
+      </div>
+      ${orderRow('BNX-4471','Completed','ok','$500.00','30 Jul')}
+      ${orderRow('BNX-4468','Awaiting payment','warn','$250.00','29 Jul')}
+    </div>`)}
+    <div class="note"><b>This is the defect, drawn.</b> <code>router.dart:80</code> maps
+      <code>/buy</code> to <code>OrdersPage</code>. The buy form is <code>BanxaBuyScreen</code> at
+      <code>/createOrder</code> (<code>router.dart:86</code>) and the only route to it is the small
+      <code>+</code> above — <code>banxa_orders_history.dart:192</code>, tooltip "Create new order".
+      A user who taps "Buy GNUS" expecting to buy sees a list of things they have already bought.</div>
+  </div></div>`;
+
+  if (s.entry === 'drawer') return `<div class="rowWrap">
+    <div><div class="caseLabel">DASHBOARD — CTA IN PLACE</div>
+      ${w('card', `<div class="card" style="width:340px">
+        <div class="kicker">Wallet</div><div style="height:12px"></div>
+        <div style="font:600 26px/32px var(--font);font-variant-numeric:tabular-nums">$1,284.50</div>
+        <div style="height:14px"></div>
+        ${w('button', `<button class="btn fill wide" onclick="say('opens the buy drawer')">Buy GNUS</button>`)}
+      </div>`)}</div>
+    <div><div class="caseLabel">THE DRAWER</div>
+      ${w('drawer', `<div class="drawer">
+        <div class="drawerHead"><span class="t">Buy GNUS</span>
+          <button class="xbtn" onclick="say('dismiss')">✕</button></div>
+        <div style="padding:16px">
+          ${amountField()}<div style="height:12px"></div>
+          ${sel('Pay with','Visa •••• 4471','USD')}<div style="height:12px"></div>
+          ${quoteGrid()}<div style="height:14px"></div>
+          ${w('button', `<button class="btn fill wide lg" onclick="say('create order')">Continue</button>`)}
+        </div></div>`)}</div>
+  </div>
+  <div class="note"><b>Cheapest chrome, real cost.</b> The drawer archetype is already the app's
+    pattern for consequential flows (the compute job flow uses it). But a fiat purchase hands off
+    to an external provider, and 420px leaves nowhere for order history to live — it would need
+    its own route anyway, which is most of what the page schemes already build.</div>`;
+
+  /* entry === 'form' — /buy IS the buy form */
+  return `<div class="rowWrap"><div style="width:${s.rail?'860':'560'}px">
+    ${pageHead('Buy GNUS','Powered by Banxa',
+      w('viewAll', `<button class="btn sm" onclick="say('→ orders')">Your orders · 3</button>`))}
+    ${s.rail ? `<div class="cols">
+      <div>${buyFormCard(s)}</div>
+      <div>${w('card', `<div class="card">
+        <div class="kicker">Verification</div><div style="height:10px"></div>
+        ${w('kycBadge', `<span class="pill ok"><span class="dot ok"></span>Verified with Banxa</span>`)}
+        <div style="height:16px"></div>
+        <div class="kicker">Recent orders</div><div style="height:10px"></div>
+        <div style="font:400 13px/19px var(--font);color:var(--text-secondary)">
+          BNX-4471 · $500.00 · Completed</div>
+      </div>`)}</div></div>` : buyFormCard(s)}
+    <div class="note"><b>The label finally tells the truth.</b> "Buy GNUS" opens a form for buying
+      GNUS; history moves to a counted link in the header (<code>GWViewAllLink</code>, already
+      shipped). <b>And the three raw <code>DropdownMenu</code>s become <code>GWSelect</code></b> —
+      <code>banxa_buy_screen.dart:174/196/218</code> is the app's only surface still using bare
+      Material inputs.</div>
+  </div></div>`;
+}
+
+function buyFormCard(s) {
+  if (s.form === 'steps') return w('stepList', `<div class="card">
+    ${[['Amount','$500.00 → 1,540.02 GNUS',0],['Verify','Banxa · required once',1],
+       ['Pay','Visa •••• 4471',2]].map(([t,sum,i]) => `
+      <div class="step">
+        <div class="stepRail" style="display:flex;flex-direction:column;align-items:center">
+          <span class="badge ${i===0?'cur':''}">${i+1}</span>
+          ${i<2?'<span class="rail"></span>':''}</div>
+        <div class="stepMain">
+          <div class="stepT ${i===0?'on':''}">${t}</div>
+          <div class="stepSum">${sum}</div>
+          ${i===0?`<div style="margin-top:10px">${amountField()}<div style="height:12px"></div>
+            ${sel('Currency','US Dollar','USD')}<div style="height:12px"></div>${quoteGrid()}</div>`:''}
+        </div></div>`).join('')}
+    <div style="height:6px"></div>
+    ${w('button', `<button class="btn fill wide lg" onclick="say('→ verify')">Continue</button>`)}
+  </div>`);
+
+  return w('card', `<div class="card">
+    ${amountField()}
+    <div style="height:10px"></div>
+    <div class="chipRow">${[100,500,1000,5000].map(v =>
+      `<button class="chip ${v===500?'on':''}" onclick="preset(${v})">$${v.toLocaleString()}</button>`).join('')}</div>
+    <div style="height:14px"></div>
+    ${sel('Currency','US Dollar','USD')}
+    <div style="height:12px"></div>
+    ${sel('Payment method','Visa •••• 4471')}
+    <div style="height:14px"></div>
+    ${quoteGrid()}
+    <div style="height:16px"></div>
+    ${w('button', `<button class="btn fill wide lg" onclick="say('create order')">Buy GNUS</button>`)}
+  </div>`);
+}
+
+const screenForm = s => s.control
+  ? `<div class="rowWrap"><div style="width:560px">
+      <div class="caseLabel bad">/createOrder — REACHABLE ONLY VIA THE "+" ON THE ORDERS PAGE</div>
+      ${w('card', `<div class="card">
+        <div style="font:400 13px/19px var(--font);color:var(--text-secondary);margin-bottom:14px">
+          Three raw Material <code>DropdownMenu</code>s, a secondary "Get Quote", then a gradient
+          "Create Order".</div>
+        <div style="height:48px;border:1px solid var(--border-subtle);border-radius:8px;
+          display:flex;align-items:center;padding:0 12px;color:var(--text-secondary)">Fiat ▾</div>
+        <div style="height:12px"></div>
+        <div style="height:48px;border:1px solid var(--border-subtle);border-radius:8px;
+          display:flex;align-items:center;padding:0 12px;color:var(--text-secondary)">Crypto Currency ▾</div>
+        <div style="height:12px"></div>
+        <div style="height:48px;border:1px solid var(--border-subtle);border-radius:8px;
+          display:flex;align-items:center;padding:0 12px;color:var(--text-secondary)">Payment Method ▾</div>
+        <div style="height:14px"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn grow" onclick="say('Get Quote')">Get Quote</button>
+          <button class="btn fill grow" disabled>Create Order</button></div>
+      </div>`)}
+      <div class="note"><b>Two separate problems here.</b> (1) <code>DropdownMenu</code> is raw
+        Material — <code>GWSelect</code> exists and every other input surface uses it.
+        (2) <b>"Get Quote" is a separate manual step</b>, so the price only appears after a second
+        deliberate tap. <code>QuoteCard</code>, the component built to show that quote, is
+        <b>dead code</b> — <code>quote_card.dart:8</code> says a search for an instantiation
+        "turns up nothing".</div>
+    </div></div>`
+  : screenEntry(s);
+
+const BODY = {entry:screenEntry, form:screenForm, kyc:screenKyc,
+              checkout:screenCheckout, details:screenDetails, orders:screenOrders};
+
+/* ═══ RENDER ══════════════════════════════════════════════════════════════ */
+let curScheme = SCHEMES.find(s=>s.synth).id, curScreen = 'entry';
+
+const newBar = items => !items || !items.length
+  ? `<div class="newBar none"><span class="h">NEW HERE: NONE</span>
+      <span>Every element composes from components that already ship.</span></div>`
+  : `<div class="newBar some"><span class="h">NEW HERE: ${items.length}</span>
+      <span>${items.map(i=>`<b>${i.what}</b> — ${i.kind}, ${i.where}`).join(' &nbsp;·&nbsp; ')}</span></div>`;
+
+function render() {
+  const s = SCHEMES.find(x=>x.id===curScheme);
+  document.getElementById('schemeRow').innerHTML = SCHEMES.map(x =>
+    `<button class="tab ${x.id===curScheme?'active':''}" ${x.synth?'style="color:#0AD89C"':''}
+      onclick="pickScheme('${x.id}')">${x.tab}</button>`).join('');
+  document.getElementById('screenRow').innerHTML =
+    `<span style="font:600 10px/24px var(--font-mono);color:#5A606E;margin-right:6px">SCREEN</span>` +
+    SCREENS.map(k => `<button class="sc ${k===curScreen?'on':''}"
+      onclick="pickScreen('${k}')">${SCREEN_LABEL[k]}</button>`).join('');
+  document.getElementById('stage').innerHTML = `
+    <div class="head"><h2>${s.name}</h2><p>${s.thesis}</p><div class="src">${s.src}</div></div>
+    ${newBar(s.newItems)}
+    ${BODY[curScreen](s)}`;
+  window.scrollTo(0,0);
+}
+function pickScheme(id){ curScheme = id; render(); }
+function pickScreen(k){ curScreen = k; render(); }
+function quote(el){ const usd = parseFloat(el.value)||0;
+  const o = document.getElementById('qOut');
+  if(o) o.textContent = (usd/0.3247).toLocaleString('en-US',{maximumFractionDigits:2}) + ' GNUS'; }
+function preset(v){ const f = document.querySelector('.field'); if(f){ f.value = v; quote(f); }
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  if (typeof event !== 'undefined' && event.target) event.target.classList.add('on'); }
+
+document.getElementById('themeSel').addEventListener('change', function(){
+  document.documentElement.setAttribute('data-theme', this.value); });
+document.getElementById('cmpBtn').addEventListener('click', function(){
+  document.body.classList.toggle('showCmp'); this.classList.toggle('on'); });
+
+render();
+</script>
+</body>
+</html>

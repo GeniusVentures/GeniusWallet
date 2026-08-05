@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>025 · Transactions — header placement</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-8) var(--space-10); }
+  .wrap { max-width:1360px; margin:0 auto; }
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); position:sticky; top:0; z-index:30;
+             background:var(--surface-base); padding:var(--space-6) 0; border-bottom:1px solid var(--border-subtle); }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 19px/26px var(--font); letter-spacing:-.3px; margin:var(--space-12) 0 var(--space-3); display:flex; gap:var(--space-4); align-items:center; flex-wrap:wrap; }
+  .verdict { font:400 13px/20px var(--font); color:var(--text-secondary); margin:0 0 var(--space-6); max-width:1100px; } .verdict b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); background:var(--surface-menu); padding:1px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; }
+  .tag.ex{ background:rgba(10,216,156,.14); color:var(--status-success); } .tag.ad{ background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.new{ background:rgba(194,143,255,.16); color:#C28FFF; } [data-theme="light"] .tag.new{ background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.rec{ background:var(--brand-fill); color:var(--brand-primary-strong); } [data-theme="dark"] .tag.rec{ color:var(--brand-secondary); }
+  .tag.bad{ background:rgba(255,77,77,.14); color:var(--status-error); }
+
+  /* the page surface, rendered at REAL size */
+  .demo { border:1px solid var(--border-strong); border-radius:var(--radius-lg); background:var(--surface-base); padding:var(--space-10) var(--space-10) var(--space-8); margin-bottom:var(--space-4); overflow:hidden; }
+
+  .h-title { font:600 26px/34px var(--font); letter-spacing:-.4px; }
+  .h-sub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:4px; }
+  .hdr { display:flex; align-items:center; padding-bottom:var(--space-8); }
+  .hdr .actions { margin-left:auto; display:flex; gap:var(--space-4); align-items:center; }
+  .iconbtn { width:40px; height:40px; border-radius:var(--radius-md); display:grid; place-items:center; color:var(--text-secondary); border:1px solid var(--border-subtle); background:var(--surface-menu); }
+  .iconbtn svg { width:17px; height:17px; }
+  .pill { display:inline-flex; align-items:center; gap:7px; font:600 13px/18px var(--font); color:var(--text-primary); padding:9px 15px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill); background:var(--surface-menu); }
+  .pill svg { width:15px; height:15px; color:var(--text-secondary); }
+  .pill.cta { color:#000B18; background:linear-gradient(135deg,#0AD89C,#0AAEE6); border:0; } .pill.cta svg { color:#000B18; }
+  .band { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:var(--space-8) var(--space-10); display:flex; align-items:center; margin-bottom:var(--space-8); }
+  .vsep { width:1px; height:22px; background:var(--border-subtle); margin:0 var(--space-2); }
+
+  .cols { display:flex; gap:var(--space-8); align-items:flex-start; }
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-6); }
+  .railcard { width:220px; flex:none; } .listcard { flex:1; min-width:0; }
+  .railhead { font:600 12px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:var(--space-4) var(--space-6) var(--space-2); }
+  .rh { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:var(--space-4) var(--space-6) var(--space-3); }
+  .rd { height:1px; background:var(--border-subtle); margin:var(--space-4) var(--space-6); }
+  .ri { display:flex; align-items:center; gap:var(--space-4); height:38px; padding:0 var(--space-6); border-radius:var(--radius-md); }
+  .ri svg { width:14px; height:14px; color:var(--text-secondary); flex:none; } .ri .l { font:500 13px/18px var(--font); flex:1; } .ri .c { font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:11px var(--space-6); }
+  .row .time { width:46px; flex:none; font:400 13px/18px var(--font-mono); color:var(--text-secondary); }
+  .row .coin { width:38px; height:38px; border-radius:50%; flex:none; display:grid; place-items:center; font:700 10px/1 var(--font); color:#fff; }
+  .row .main { flex:1; min-width:0; } .row .t { font:600 15px/20px var(--font); } .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:2px; }
+  .row .amt { text-align:right; flex:none; } .row .amt .a { font:600 16px/21px var(--font-mono); } .row .amt .f { font:400 12px/16px var(--font-mono); color:var(--text-secondary); margin-top:2px; }
+  .pos { color:var(--status-success); } .divider { height:1px; background:var(--border-subtle); } .daylabel { font:600 13px/18px var(--font); letter-spacing:.7px; color:var(--text-secondary); padding:var(--space-4) var(--space-6) var(--space-2); }
+
+  table.t { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin:var(--space-4) 0 var(--space-8); }
+  table.t th { text-align:left; font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); }
+  table.t td { padding:var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; } table.t td:first-child { font-weight:600; white-space:nowrap; }
+  table.t tr.w td { background:var(--brand-fill); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="toolbar"><h1>025 · Transactions — where the title sits</h1>
+  <div class="seg" id="tsel"><button data-t="dark" aria-pressed="true">Dark</button><button data-t="light" aria-pressed="false">Light</button></div></div>
+
+<p class="verdict">Five headers, rendered at real size, rail+list below kept identical. The fix: the header row is
+  90% empty on a wide page, so <b>Transactions</b> floats alone top-left. Recommendation is <b>B</b> — the exact toolbar
+  content is spelled out under it.</p>
+
+<h2 class="sec">A · Plain title <span class="tag bad">today</span></h2>
+<div class="verdict"><b>What ships now.</b> One word, then a wide empty row. This is the thing that looks stranded.</div>
+<div class="demo" id="a"></div>
+
+<h2 class="sec">B · Title + toolbar actions <span class="tag ex">Existing slot</span> <span class="tag rec">recommended</span></h2>
+<div class="verdict"><b>Title left, four controls right.</b> <code>GWPageHeader</code> already has a <code>trailing</code> slot — Markets fills it with a search icon. Exact contents, left to right:
+  <b>Buy GNUS</b> is already in the navbar, so it is NOT repeated here. The four: <code>Receive</code> (opens the receive drawer that already exists), <code>Send</code> (opens the send flow), a <code>⤓ Export</code> icon (CSV of the current filter), and a <code>▤ / ▦ view toggle</code> (list vs compact). Every one has a real destination today except Export, which is the one net-new build.</div>
+<div class="demo" id="b"></div>
+
+<h2 class="sec">C · B, plus a context subtitle <span class="tag ad">Adapted</span></h2>
+<div class="verdict"><b>One grey line under the title:</b> <code>Showing all activity · 0x1d9b…4a87</code>. Answers "whose transactions, filtered how" without a control, and gives the header height so it is not one thin word. When a filter is active it reads <code>Showing Mint · 0x1d9b…4a87</code>. Combine with B: subtitle under the title on the left, actions on the right.</div>
+<div class="demo" id="c"></div>
+
+<h2 class="sec">D · Title over the list, rail labelled "Filters" <span class="tag new">New</span></h2>
+<div class="verdict"><b>Title aligns to the list card; the rail gets a <code>Filters</code> heading.</b> Each column is now labelled. Cost: the title leaves the true page-left edge, so it no longer lines up with the navbar's left — reads as misaligned to some eyes.</div>
+<div class="demo" id="d"></div>
+
+<h2 class="sec">E · Header band <span class="tag new">New</span></h2>
+<div class="verdict"><b>Title and actions inside a full-width strip.</b> Strongest anchor, but it is a third surface tone above two cards, and Markets/News/Swap all use a bare header — this would make Transactions the odd tab out. Only right if the whole app moves to banded headers.</div>
+<div class="demo" id="e"></div>
+
+<h2 class="sec">Recommendation</h2>
+<table class="t">
+  <tr><th>Option</th><th>Verdict</th></tr>
+  <tr class="w"><td>B</td><td><b>Ship this.</b> Existing slot, Markets-consistent, fills the empty row with the toolbar the old design floated over the panel. One net-new build: Export.</td></tr>
+  <tr class="w"><td>C on top of B</td><td>Take if the header still feels thin. One subtitle line, no new component.</td></tr>
+  <tr><td>A</td><td>The problem, not an option.</td></tr>
+  <tr><td>D</td><td>Only if you accept the title leaving the page-left edge.</td></tr>
+  <tr><td>E</td><td>App-wide header decision, out of scope for this page.</td></tr>
+</table>
+<div class="verdict"><b>Decision needed from you:</b> B or B+C — and confirm the four actions (Receive · Send · Export · view toggle), or swap any. I will not add an action with nowhere to go, so if you drop Export the header carries three.</div>
+
+</div>
+<script>
+const G={sent:'<path d="M7 17 17 7M17 7H9m8 0v8"/>',received:'<path d="M17 7 7 17m0 0h8m-8 0V9"/>',mint:'<path d="M4 20 14 10M9 4h10M13 3l7 7M11 6l7 7"/>',job:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/>',escrow:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',swap:'<path d="M4 8h13l-3-3m6 11H7l3 3"/>',purchase:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',pending:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',failed:'<path d="M6 6l12 12M18 6 6 18"/>',export:'<path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'};
+const svg=k=>`<svg fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">${G[k]}</svg>`;
+const TYPES=[['sent','Sent',3],['received','Received',1],['mint','Mint',1],['job','Computing',1],['escrow','Escrow',2],['swap','Swapped',1],['purchase','Purchased',2]];
+const STATUS=[['pending','Pending',1],['failed','Failed',2]];
+const railInner=head=>(head?'<div class="railhead">Filters</div>':'')+'<div class="rh">Type</div>'+TYPES.map(t=>`<div class="ri">${svg(t[0])}<span class="l">${t[1]}</span><span class="c">${t[2]}</span></div>`).join('')+'<div class="rd"></div><div class="rh">Status</div>'+STATUS.map(t=>`<div class="ri">${svg(t[0])}<span class="l">${t[1]}</span><span class="c">${t[2]}</span></div>`).join('');
+const rows=[['00:32','GNUS','#0AD89C','GNUS · Processing job','Job 0xdevm…ck09','− 0.42 GNUS','$0.27 fee',''],['00:23','ETH','#627EEA','ETH · Sent','0xToMo…ed01','− 0.75 ETH','$1,449.25',''],['00:10','BTC','#F7931A','BTC · Received','0xFrom…ed02','+ 0.0042 BTC','$276.88','pos']];
+const list='<div class="daylabel">TODAY</div>'+rows.map(r=>`<div class="row"><span class="time">${r[0]}</span><span class="coin" style="background:${r[2]}">${r[1].slice(0,3)}</span><span class="main"><div class="t">${r[3]}</div><div class="s">${r[4]}</div></span><span class="amt"><div class="a ${r[7]}">${r[5]}</div><div class="f">${r[6]}</div></span></div>`).join('<div class="divider"></div>');
+const cols=head=>`<div class="cols"><div class="card railcard">${railInner(head)}</div><div class="card listcard">${list}</div></div>`;
+const actions=`<span class="pill">${svg('received')} Receive</span><span class="pill">${svg('sent')} Send</span><span class="vsep"></span><span class="iconbtn">${svg('export')}</span><span class="iconbtn">${svg('list')}</span>`;
+
+document.getElementById('a').innerHTML = `<div class="hdr"><div class="h-title">Transactions</div></div>`+cols(false);
+document.getElementById('b').innerHTML = `<div class="hdr"><div class="h-title">Transactions</div><div class="actions">${actions}</div></div>`+cols(false);
+document.getElementById('c').innerHTML = `<div class="hdr"><div><div class="h-title">Transactions</div><div class="h-sub">Showing all activity · 0x1d9b…4a87</div></div><div class="actions">${actions}</div></div>`+cols(false);
+document.getElementById('d').innerHTML = `<div class="cols" style="margin-bottom:var(--space-8)"><div class="railcard"></div><div class="listcard"><div class="h-title" style="padding-left:6px">Transactions</div></div></div>`+cols(true);
+document.getElementById('e').innerHTML = `<div class="band"><div class="h-title">Transactions</div><div class="actions">${actions}</div></div>`+cols(false);
+
+document.getElementById('tsel').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#tsel button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.documentElement.dataset.theme=b.dataset.t;});
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# tool/shadow-baseline.txt
+#
+# Captured baseline for tool/verify_additive_boundary.sh's Check 2 (duplicate public class
+# name census). Column 1 is read by the script; comments and blank lines are skipped.
+#
+# Format: <ClassName>  <category>  <justification>
+#
+# Two categories:
+#   pre-existing      Already duplicated on develop BEFORE Phase 3 started. Verified
+#                      legitimate: different supertypes, different files, never co-imported --
+#                      not substitutable at any call site. Do NOT "clean these up".
+#   phase-03-shadow    The 4 class names Phase 3 knowingly adds at a second path that collides
+#                      by name with an existing develop class at a different path. See
+#                      .planning/phases/03-gw-component-library/03-SHADOW-NAMES.md for the full
+#                      writeup of each pair (canonical path, importer count, why it matters).
+#
+# EVERY entry below requires a written justification. If the census in
+# verify_additive_boundary.sh ever returns a name not listed here, DO NOT add it to this file
+# without first verifying (independently, on the working tree) that it is a legitimate
+# duplicate on the same terms as the entries below. Baselining an unexplained duplicate is
+# exactly how a real shadow-name hazard gets laundered into "expected".
+#
+# Derivation command (re-run this to reproduce the pre-existing 4):
+#   grep -rhoE "^(abstract )?class [A-Za-z_][A-Za-z0-9_]*" lib/ --include=*.dart | awk '{print $NF}' | sort | uniq -d
+
+GoBack                pre-existing     Parallel bloc event; lib/onboarding/existing_wallet/bloc/existing_wallet_event.dart (extends ExistingWalletEvent) vs lib/onboarding/new_wallet/bloc/new_wallet_event.dart (extends NewWalletEvent) -- different supertypes, never co-imported
+PinConfirmFailed      pre-existing     Same pair as GoBack -- parallel onboarding bloc event, different supertypes, never co-imported
+PinConfirmPassed      pre-existing     Same pair as GoBack -- parallel onboarding bloc event, different supertypes, never co-imported
+PinCreated            pre-existing     Same pair as GoBack -- parallel onboarding bloc event, different supertypes, never co-imported
+Loading               phase-03-shadow  See 03-SHADOW-NAMES.md -- canonical is lib/components/loading.dart (18 importers); new path lib/components/loading/loading.dart is unconsumed until a later plan explicitly demos it in the design gallery
+Splash                phase-03-shadow  See 03-SHADOW-NAMES.md -- canonical is lib/screens/splash.dart (1 importer: lib/navigation/router.dart, the app's boot path); new path lib/components/splash.dart is unconsumed until a later plan explicitly demos it in the design gallery
+WalletsOverview       phase-03-shadow  See 03-SHADOW-NAMES.md -- canonical is lib/components/wallet_overview.dart (1 importer: lib/dashboard/home/view/dashboard_screen.dart, GAP-06); new path lib/components/wallets_overview.dart (renamed from wallets_overview.g.dart by Phase 22 plan 03) must have ZERO importers (dead code preserved for completeness only), except plan 03-04's generated_closure_canary.dart
+WalletsOverviewState  phase-03-shadow  Same pair as WalletsOverview -- State class for the same shadowed StatefulWidget

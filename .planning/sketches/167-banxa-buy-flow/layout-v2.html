@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 167 · L3 v2 — buildable with today's logic</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   L3, revised against what the code can actually supply.
+
+   `layout.html` drew L3 as wanted. This file draws it as BUILDABLE, and keeps
+   v1 beside it so the difference is visible rather than described.
+
+   Three things changed, each for a reason read out of the code:
+
+   1. VERIFICATION CARD — REMOVED.
+      `BanxaApiService.submitKYC` (banxa_api_services.dart:36) posts KYC data
+      and returns accountId + accountReference. NOTHING stores or reads back
+      whether this user is verified. A repo-wide search for isVerified /
+      kycStatus / verificationStatus finds only the onboarding recovery-phrase
+      flow, which is unrelated. A "Verified with Banxa" pill would be a claim
+      with no source. Replaced by an ACTION ("Verify with Banxa"), which is
+      honest because it asserts nothing about current state.
+
+   2. LIVE QUOTE — REPLACED BY THE REAL TWO-STEP.
+      `MakeOrderCubit.getQuote()` (create_order_cubit.dart:148) is triggered
+      explicitly and guards on `canGetQuote`. v1's summary panel implied it
+      recalculated as you type. v2 draws the shipped sequence: fill → Get quote
+      → summary populates → Create order (gated by `canCreateOrder`,
+      create_order_state.dart:155).
+
+   3. FILTER COUNTS — KEPT.
+      `OrdersCubit.applyFilters({status,...})` (banxa_order_cubit.dart:87-95)
+      already filters by status, and `state.orders` holds the full list, so the
+      counts are a groupBy over data we already have. Unlike (1), the data
+      exists; only the derivation is missing.
+   ─────────────────────────────────────────────────────────────────────────── */
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; }
+body { background:var(--surface-base); color:var(--text-primary); font-family:var(--font);
+       padding-top:104px; -webkit-font-smoothing:antialiased; }
+
+#bar { position:fixed; top:0; left:0; right:0; z-index:9998; background:#05070A;
+  border-bottom:1px solid rgba(255,255,255,.14); padding:8px 12px 0; }
+#bar .row { display:flex; gap:4px; flex-wrap:wrap; }
+#bar .meta { font:400 11px/22px var(--font); color:#5A606E; padding:4px 4px 8px;
+  display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+.tab { background:transparent; border:1px solid transparent; color:#8A8F9D;
+  font:600 12px/16px var(--font); letter-spacing:.3px; padding:7px 11px;
+  border-radius:8px 8px 0 0; cursor:pointer; transition:all .15s ease; white-space:nowrap; }
+.tab:hover { background:rgba(20,200,255,.08); color:#fff; }
+.tab.active { background:var(--surface-base); color:#fff;
+  border-color:rgba(255,255,255,.14); border-bottom-color:var(--surface-base); }
+
+#tools { position:fixed; bottom:12px; right:12px; z-index:9999; font:400 12px/1 var(--font);
+  background:rgba(0,0,0,.85); color:#fff; padding:8px 10px; border-radius:10px; opacity:.4;
+  transition:opacity .2s; display:flex; gap:8px; align-items:center;
+  border:1px solid rgba(255,255,255,.14); }
+#tools:hover { opacity:1; }
+#tools button, #tools select { background:rgba(255,255,255,.09); color:#fff;
+  border:1px solid rgba(255,255,255,.18); border-radius:6px; padding:5px 8px;
+  font:500 11px/1 var(--font); cursor:pointer; }
+#tools button.on { background:#14C8FF; color:#05070A; border-color:#14C8FF; }
+
+.head { max-width:1180px; margin:0 auto 16px; padding:12px 14px;
+  border-left:3px solid var(--brand-primary); background:rgba(20,200,255,.06);
+  border-radius:0 8px 8px 0; }
+.head h2 { margin:0 0 4px; font:600 15px/20px var(--font); }
+.head p { margin:0; font:400 13px/19px var(--font); color:var(--text-secondary); }
+.head .src { margin-top:6px; font:400 11px/16px var(--font-mono); color:var(--brand-secondary); }
+
+/* The mock is drawn at a real window width (1600 by default). If the BROWSER
+   window is narrower, a fixed-width mock scrolls sideways and you end up
+   judging half a layout — which is exactly what happened on the first look.
+   `.fit` scales the whole mock down so the entire page is always visible; the
+   proportions stay exact because scaling is uniform. Turn it off to inspect at
+   1:1 and scroll. */
+.fitWrap { overflow:hidden; }
+body.fit .fitWrap > .viewport { transform-origin: top center; }
+.viewport { margin:0 auto; background:var(--surface-base); position:relative;
+  border:1px solid rgba(255,255,255,.10); border-radius:6px; overflow:hidden;
+  transition:width .25s ease; }
+.scaleNote { text-align:center; font:600 10px/16px var(--font-mono); color:#5A606E;
+  margin-top:8px; }
+.vpLabel { position:absolute; top:6px; right:8px; z-index:5;
+  font:600 9px/1 var(--font-mono); color:#5A606E; }
+.navbar { height:68px; border-bottom:1px solid var(--border-subtle);
+  background:var(--surface-elevated); display:flex; align-items:center; padding:0 20px; gap:18px; }
+.navbar .brand { font:700 15px/1 var(--font); color:var(--brand-primary); }
+.navbar .nav { font:500 12px/1 var(--font); color:var(--text-secondary); }
+.navbar .nav.on { color:var(--text-primary); }
+.frame { padding:64px 12px 16px; }
+.cap { max-width:1536px; margin:0 auto; position:relative; }
+
+.pageTitle { font:600 24px/32px var(--font); letter-spacing:-.4px; margin:0; }
+.pageSub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:2px; }
+.hdr { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.kicker { font:600 13px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+.kickerDense { font:600 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-secondary); }
+.card { background:var(--surface-elevated); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md); padding:16px; }
+.field { width:100%; height:48px; border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); display:flex; align-items:center; padding:0 12px;
+  font:600 17px/1 var(--font); font-variant-numeric:tabular-nums; }
+.selBox { width:100%; height:48px; border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); display:flex; align-items:center; gap:8px; padding:0 12px;
+  font:400 14px/1 var(--font); cursor:pointer; transition:all .15s ease; }
+.selBox:hover { border-color:rgba(20,200,255,.45); }
+.selBox .g { margin-left:auto; color:var(--text-secondary); }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:40px;
+  padding:0 16px; border-radius:999px; cursor:pointer; font:600 14px/20px var(--font);
+  border:1px solid var(--border-strong); background:transparent; color:var(--text-primary);
+  transition:all .15s ease; }
+.btn:hover { background:rgba(20,200,255,.10); border-color:rgba(20,200,255,.45); }
+.btn.fill { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+  border-color:transparent; color:var(--text-on-brand); }
+.btn.fill[disabled] { background:var(--surface-menu); color:var(--text-primary-38);
+  cursor:not-allowed; border-color:var(--border-subtle); }
+.btn.wide { width:100%; height:48px; }
+.btn.sm { height:32px; padding:0 12px; font-size:13px; }
+.linkBtn { background:none; border:0; padding:0; cursor:pointer; color:var(--brand-primary);
+  font:600 13px/18px var(--font); }
+.linkBtn:hover { text-decoration:underline; }
+.grid { background:var(--surface-sunken); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm); overflow:hidden; }
+.grid .r { display:flex; justify-content:space-between; gap:12px; padding:11px 12px;
+  border-bottom:1px solid var(--border-subtle); }
+.grid .r:last-child { border-bottom:0; }
+.grid .k { font:400 14px/20px var(--font); color:var(--text-primary-70); }
+.grid .v { font:400 14px/20px var(--font); font-variant-numeric:tabular-nums; }
+.chipRow { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { font:600 13px/18px var(--font); padding:6px 12px; border-radius:999px;
+  background:var(--surface-menu); border:1px solid var(--border-subtle);
+  color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+.chip:hover { color:#fff; border-color:rgba(20,200,255,.45); }
+.chip.on { color:#fff; border-color:rgba(20,200,255,.55); background:rgba(20,200,255,.16); }
+.pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px;
+  font:600 12px/17px var(--font); }
+.pill.ok{background:var(--status-success-fill);color:var(--status-success)}
+.pill.warn{background:rgba(255,196,46,.14);color:var(--status-warning)}
+.pill.err{background:var(--status-error-fill);color:var(--status-error)}
+.dot { width:7px;height:7px;border-radius:4px; }
+.dot.ok{background:var(--status-success)} .dot.warn{background:var(--status-warning)}
+.dot.err{background:var(--status-error)}
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { text-align:left; padding:8px 12px; font:600 11px/16px var(--font); letter-spacing:.6px;
+  text-transform:uppercase; color:var(--text-secondary); border-bottom:1px solid var(--border-subtle); }
+.tbl td { padding:12px; font:400 14px/20px var(--font); border-bottom:1px solid var(--border-subtle); }
+.tbl tr:last-child td { border-bottom:0; }
+.tbl tr.row:hover td { background:rgba(20,200,255,.05); cursor:pointer; }
+.tbl .num { font-variant-numeric:tabular-nums; }
+.emptyQ { text-align:center; padding:26px 12px; }
+.emptyQ .i { font-size:26px; opacity:.5; margin-bottom:8px; }
+.emptyQ p { margin:0; font:400 13px/19px var(--font); color:var(--text-secondary); }
+
+/* removal / change markers */
+.gone { position:relative; }
+.gone::after { content:''; position:absolute; inset:0; border-radius:var(--radius-md);
+  background:repeating-linear-gradient(45deg, rgba(255,77,77,.12) 0 8px, transparent 8px 16px);
+  border:1px dashed rgba(255,77,77,.75); pointer-events:none; }
+.goneTag { position:absolute; top:-10px; left:10px; z-index:6; background:#FF4D4D; color:#2A0606;
+  font:600 9px/1 var(--font-mono); padding:3px 6px; border-radius:3px; white-space:nowrap; }
+.newTag { position:absolute; top:-10px; left:10px; z-index:6; background:#0AD89C; color:#04211A;
+  font:600 9px/1 var(--font-mono); padding:3px 6px; border-radius:3px; white-space:nowrap; }
+.mark { position:relative; }
+body.hideMarks .goneTag, body.hideMarks .newTag { display:none; }
+body.hideMarks .gone::after { display:none; }
+
+.diff { max-width:1180px; margin:0 auto; }
+.diff table { width:100%; border-collapse:collapse; }
+.diff th, .diff td { text-align:left; padding:10px 12px; font:400 13px/19px var(--font);
+  border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+.diff th { font:600 10px/16px var(--font-mono); letter-spacing:.5px; text-transform:uppercase;
+  color:var(--text-secondary); }
+.diff td code { font:400 11px/1.6 var(--font-mono); color:var(--brand-primary); }
+.diff .v1 { color:var(--status-error); font-weight:600; }
+.diff .v2 { color:var(--status-success); font-weight:600; }
+.verdict { display:flex; gap:8px; flex-wrap:wrap; max-width:1180px; margin:14px auto 0; }
+.vd { flex:1; min-width:220px; padding:10px 12px; border-radius:8px;
+  border:1px solid var(--border-subtle); font:400 12px/17px var(--font);
+  color:var(--text-secondary); background:rgba(255,255,255,.02); }
+.vd b { display:block; font:600 11px/16px var(--font-mono); letter-spacing:.3px; margin-bottom:3px; }
+.vd.good b { color:#0AD89C; } .vd.bad b { color:#FF4D4D; } .vd.warn b { color:#FFC42E; }
+.note { max-width:1180px; margin:18px auto 0; padding:11px 13px; border-radius:8px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border-subtle);
+  font:400 12px/18px var(--font); color:var(--text-secondary); }
+.note b { color:var(--text-primary); font-weight:600; }
+.note code { font:400 11px/1.5 var(--font-mono); color:var(--brand-primary); }
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <div class="row" id="tabRow"></div>
+  <div class="meta"><span id="meta"></span></div>
+</div>
+<div id="stage"></div>
+
+<div id="tools">
+  <select id="vp">
+    <option value="1920">1920</option><option value="1600" selected>1600</option>
+    <option value="1280">1280</option><option value="1024">1024</option><option value="768">768</option>
+  </select>
+  <button id="fitBtn" class="on" title="Scale the mock so the whole page fits your window">Fit</button>
+  <button id="qBtn">Quote fetched</button>
+  <button id="markBtn" class="on">Markers</button>
+</div>
+
+<script>
+let quoted = false;
+
+const navbar = () => `<div class="navbar">
+  <span class="brand">GENIUS</span><span class="nav">Dashboard</span>
+  <span class="nav">Transactions</span><span class="nav">Markets</span>
+  <span class="nav">News</span><span class="nav on">Buy GNUS</span>
+  <span style="margin-left:auto" class="nav">0x7a3f…c209</span></div>`;
+
+const page = inner => `<div class="fitWrap"><div class="viewport" style="width:var(--vpw)">
+  <span class="vpLabel">${document.getElementById('vp') ?
+    document.getElementById('vp').value : '1600'}px window</span>
+  ${navbar()}<div class="frame"><div class="cap">${inner}</div></div></div></div>
+  <div class="scaleNote" id="scaleNote"></div>`;
+
+const ORDERS = [
+  ['BNX-4471','Completed','ok','$500.00','1,540.02 GNUS','30 Jul, 14:22'],
+  ['BNX-4468','Awaiting payment','warn','$250.00','770.01 GNUS','29 Jul, 09:10'],
+  ['BNX-4462','Declined','err','$100.00','—','27 Jul, 18:44'],
+  ['BNX-4455','Completed','ok','$1,000.00','3,081.30 GNUS','24 Jul, 11:02']
+];
+const ordersTable = () => `<div class="card" style="padding:0;overflow:hidden">
+  <table class="tbl"><thead><tr>
+    <th>Order</th><th>Status</th><th>Paid</th><th>Received</th><th>Date</th><th></th></tr></thead>
+  <tbody>${ORDERS.map(o=>`<tr class="row">
+    <td class="num">${o[0]}</td>
+    <td><span class="pill ${o[2]}"><span class="dot ${o[2]}"></span>${o[1]}</span></td>
+    <td class="num">${o[3]}</td><td class="num">${o[4]}</td>
+    <td style="color:var(--text-secondary)">${o[5]}</td>
+    <td style="text-align:right"><button class="btn sm">Details</button></td>
+  </tr>`).join('')}</tbody></table></div>`;
+
+const ordersSection = () => `
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+    <span class="kicker" style="flex:1">Your orders</span>
+    <span class="chip on">All · 4</span><span class="chip">Pending · 1</span>
+    <span class="chip">Completed · 2</span><span class="chip">Declined · 1</span></div>
+  ${ordersTable()}`;
+
+const formFields = () => `
+  <span class="kickerDense" style="display:block;margin-bottom:6px">You spend</span>
+  <div class="field">$500.00</div>
+  <div style="height:10px"></div>
+  <div class="chipRow"><span class="chip">$100</span><span class="chip on">$500</span>
+    <span class="chip">$1,000</span><span class="chip">$5,000</span></div>
+  <div style="height:14px"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div><span class="kickerDense" style="display:block;margin-bottom:6px">Currency</span>
+      <div class="selBox">US Dollar<span class="g">▾</span></div></div>
+    <div><span class="kickerDense" style="display:block;margin-bottom:6px">Payment method</span>
+      <div class="selBox">Visa •••• 4471<span class="g">▾</span></div></div>
+  </div>`;
+
+/* ═══ V1 — as originally drawn ════════════════════════════════════════════ */
+const v1 = () => page(`
+  <div class="hdr"><div style="flex:1"><h1 class="pageTitle">Buy GNUS</h1>
+    <div class="pageSub">Powered by Banxa</div></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+    <div class="card">${formFields()}
+      <div style="height:14px"></div>
+      <div class="grid">
+        <div class="r"><span class="k">You get</span><span class="v">1,540.02 GNUS</span></div>
+        <div class="r"><span class="k">Rate</span><span class="v">1 GNUS = $0.3247</span></div>
+        <div class="r"><span class="k">Banxa fee</span><span class="v">$7.45</span></div></div>
+      <div style="height:16px"></div>
+      <button class="btn fill wide">Buy GNUS</button></div>
+    <div>
+      <div class="mark gone" style="margin-bottom:16px">
+        <span class="goneTag">REMOVED — no data source</span>
+        <div class="card"><span class="kicker" style="display:block;margin-bottom:10px">Verification</span>
+          <span class="pill ok"><span class="dot ok"></span>Verified with Banxa</span></div></div>
+      <div class="mark gone">
+        <span class="goneTag">REMOVED — quote is not live</span>
+        <div class="card"><span class="kicker" style="display:block;margin-bottom:10px">Summary</span>
+        <div class="grid">
+          <div class="r"><span class="k">You spend</span><span class="v">$500.00</span></div>
+          <div class="r"><span class="k">You get</span><span class="v">1,540.02 GNUS</span></div>
+          <div class="r"><span class="k">Banxa fee</span><span class="v">$7.45</span></div>
+          <div class="r"><span class="k">Settles in</span><span class="v">~10 min</span></div>
+        </div></div></div>
+    </div>
+  </div>
+  <div style="height:26px"></div>${ordersSection()}`);
+
+/* ═══ V2 — buildable with today's logic ═══════════════════════════════════ */
+const v2 = () => page(`
+  <div class="hdr"><div style="flex:1"><h1 class="pageTitle">Buy GNUS</h1>
+    <div class="pageSub">Powered by Banxa</div></div>
+    <div class="mark"><span class="newTag">ACTION, NOT A STATUS</span>
+      <button class="btn sm">Verify with Banxa</button></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+    <div class="card">${formFields()}
+      <div style="height:16px"></div>
+      <div class="mark"><span class="newTag">canGetQuote gates this</span>
+        <button class="btn wide" onclick="toggleQuote()">Get quote</button></div></div>
+    <div class="mark"><span class="newTag">quote result, then Create order</span>
+      <div class="card">
+        <span class="kicker" style="display:block;margin-bottom:10px">Your quote</span>
+        ${quoted ? `
+          <div class="grid">
+            <div class="r"><span class="k">You spend</span><span class="v">$500.00</span></div>
+            <div class="r"><span class="k">You get</span><span class="v">1,540.02 GNUS</span></div>
+            <div class="r"><span class="k">Rate</span><span class="v">1 GNUS = $0.3247</span></div>
+            <div class="r"><span class="k">Banxa fee</span><span class="v">$7.45</span></div>
+          </div>
+          <div style="height:14px"></div>
+          <button class="btn fill wide">Create order</button>
+          <div style="height:8px"></div>
+          <div style="text-align:center;font:400 12px/17px var(--font);color:var(--text-secondary)">
+            You will finish payment on Banxa.</div>`
+        : `<div class="emptyQ"><div class="i">🧮</div>
+            <p>Enter an amount and choose a payment method,<br>then get a quote to see what you receive.</p></div>
+           <button class="btn fill wide" disabled>Create order</button>`}
+      </div></div>
+  </div>
+  <div style="height:26px"></div>${ordersSection()}`);
+
+/* ═══ DIFF ════════════════════════════════════════════════════════════════ */
+const diff = () => `<div class="diff"><table>
+  <tr><th>Element</th><th>v1</th><th>v2</th><th>Why</th></tr>
+  <tr><td><b>Verification card</b></td>
+    <td class="v1">"Verified with Banxa" pill in the right column</td>
+    <td class="v2">Gone. Replaced by a <b>"Verify with Banxa"</b> action in the header</td>
+    <td><code>submitKYC</code> (<code>banxa_api_services.dart:36</code>) posts and returns
+      <code>accountId</code> + <code>accountReference</code>; nothing stores or reads back a
+      verification state. A repo-wide search for <code>isVerified</code> / <code>kycStatus</code> /
+      <code>verificationStatus</code> hits only the onboarding recovery-phrase flow.
+      <b>A status pill would assert something the app cannot know.</b> An action asserts nothing.</td></tr>
+  <tr><td><b>Live summary panel</b></td>
+    <td class="v1">Right column recalculates as you type</td>
+    <td class="v2">"Your quote" card — empty until <b>Get quote</b>, then populated with a
+      <b>Create order</b> CTA</td>
+    <td><code>MakeOrderCubit.getQuote()</code> (<code>create_order_cubit.dart:148</code>) is
+      explicitly triggered and guards on <code>canGetQuote</code>. Making it live means a debounce
+      on every amount/selection change, which is a cubit behaviour change <i>and</i> touches Banxa
+      rate limits. v2 draws the shipped sequence instead.</td></tr>
+  <tr><td><b>Primary CTA</b></td>
+    <td class="v1">One "Buy GNUS" button under the form</td>
+    <td class="v2">Two rungs: <b>Get quote</b> (secondary, on the form) → <b>Create order</b>
+      (gradient, on the quote)</td>
+    <td>Mirrors the two guards that already exist: <code>canGetQuote</code> and
+      <code>canCreateOrder</code> (<code>create_order_state.dart:153-155</code>). One button cannot
+      express two gates. Also keeps the CTA weight rule: one fill per surface.</td></tr>
+  <tr><td><b>Filter counts</b></td>
+    <td class="v1">All · 4 &nbsp; Pending · 1 &nbsp; …</td>
+    <td class="v2"><b>Kept, unchanged</b></td>
+    <td>Unlike the verification pill, the DATA exists — <code>state.orders</code> holds the full
+      list and <code>applyFilters({status,…})</code>
+      (<code>banxa_order_cubit.dart:87-95</code>) already filters by status. Only the
+      <code>groupBy</code> is missing, and that is a derivation, not a source.</td></tr>
+  <tr><td><b>Orders table</b></td>
+    <td class="v1">Full-width table below</td>
+    <td class="v2"><b>Kept, unchanged</b></td>
+    <td>Built as a <code>Column</code> of rows from existing primitives, exactly how
+      <code>markets_table.dart</code> is built. <code>MarketsTable</code> itself cannot be reused —
+      it is typed to <code>MarketRow</code> / <code>CoinGeckoCoin</code>.</td></tr>
+  <tr><td><b>Page frame</b></td>
+    <td class="v1" style="color:var(--text-secondary);font-weight:400">unchanged</td>
+    <td class="v2" style="color:var(--text-secondary);font-weight:400">unchanged</td>
+    <td><code>Align(topCenter) → Padding(12, 64, 12, 16) → ConstrainedBox(1536)</code> — the frame
+      Transactions / Markets / News / coin page all share.</td></tr>
+</table>
+<div class="verdict">
+  <div class="vd good"><b>✓ NEW COMPONENTS: ZERO</b>Both versions compose from shipped components.
+    v2 removes one card and splits one button.</div>
+  <div class="vd good"><b>✓ NO BACKEND WORK</b>v2 ships against the API surface that exists today.
+    v1 needed a KYC status endpoint that does not.</div>
+  <div class="vd warn"><b>⚠ STILL OPEN</b>Phase 9's KYC redirect blocker is untouched by either
+    version — <code>09-OUTSTANDING.md</code> criterion 2.</div>
+</div>
+<div class="note"><b>What v2 gives up, stated plainly.</b> The user no longer learns their
+  verification status before starting a purchase — they find out when Banxa asks. That is worse,
+  and it is the honest cost of not having the data. <b>If a status endpoint is ever added, v1's
+  card is the design to restore</b> — it is not deleted here, it is parked.
+  <br><br><b>What v2 gains.</b> The two-rung CTA is arguably better than v1 regardless of the
+  constraint: a quote from a fiat on-ramp has a price and an expiry, and asking the user to
+  confirm a number they have actually seen is sounder than one button that fetches and commits in
+  the same tap.</div></div>`;
+
+/* ═══ RENDER ══════════════════════════════════════════════════════════════ */
+const BOARDS = [
+  {id:'v2', tab:'★ v2 · Buildable today', name:'L3 v2 — what today\'s logic can actually render',
+   src:'create_order_cubit.dart:148,202 · create_order_state.dart:153-155 · banxa_order_cubit.dart:87-95',
+   thesis:'The verification card is gone because nothing can supply it. The live summary becomes the real two-step: Get quote, then Create order. Everything else is unchanged. Toggle "Quote fetched" in the toolbar to see both states of the right column.',
+   body:v2},
+  {id:'v1', tab:'v1 · As designed', name:'L3 v1 — the original, with the impossible parts marked',
+   src:'layout.html · L3',
+   thesis:'What was drawn before the code was checked. The two hatched blocks are the parts that have no data source. Kept so the difference is visible rather than described.',
+   body:v1},
+  {id:'diff', tab:'Differences', name:'v1 → v2, element by element',
+   src:'each row cites the code that forced the change',
+   thesis:'Five elements examined. Two removed, one split, two kept unchanged — and the reason each was kept or cut.',
+   body:diff}
+];
+let cur = 'v2';
+function render() {
+  const b = BOARDS.find(x=>x.id===cur);
+  document.getElementById('tabRow').innerHTML = BOARDS.map(x =>
+    `<button class="tab ${x.id===cur?'active':''}" ${x.id==='v2'?'style="color:#0AD89C"':''}
+      onclick="pick('${x.id}')">${x.tab}</button>`).join('');
+  document.getElementById('meta').innerHTML =
+    'Sketch 167 · L3 revised against the code · new components: <b style="color:#0AD89C">0</b> · '
+    + 'backend work needed: <b style="color:#0AD89C">none</b>';
+  document.getElementById('stage').innerHTML =
+    `<div class="head"><h2>${b.name}</h2><p>${b.thesis}</p><div class="src">${b.src}</div></div>`
+    + b.body();
+  applyFit();
+  window.scrollTo(0,0);
+}
+
+/* Scale the mock so the whole width is visible. Uniform scale, so every
+   proportion in the layout stays exactly what it is at full size. */
+function applyFit() {
+  const vpEl = document.querySelector('.fitWrap > .viewport');
+  const wrap = document.querySelector('.fitWrap');
+  const note = document.getElementById('scaleNote');
+  if (!vpEl || !wrap) return;
+  const mockW = parseInt(document.getElementById('vp').value, 10);
+  const fitOn = document.body.classList.contains('fit');
+  const avail = Math.max(320, window.innerWidth - 48);
+  const k = fitOn ? Math.min(1, avail / mockW) : 1;
+  vpEl.style.transform = k < 1 ? `scale(${k})` : 'none';
+  // A scaled child still reserves its UNSCALED height, leaving a gap below.
+  // Collapsing the wrapper to the scaled height is what removes it.
+  wrap.style.height = k < 1 ? (vpEl.offsetHeight * k) + 'px' : 'auto';
+  if (note) note.textContent = k < 1
+    ? `${mockW}px mock shown at ${Math.round(k*100)}% — turn off "Fit" to inspect at 1:1`
+    : `${mockW}px mock at 1:1`;
+}
+function pick(id){ cur=id; render(); }
+function toggleQuote(){ quoted = !quoted; render();
+  document.getElementById('qBtn').classList.toggle('on', quoted); }
+function setVp(){ document.documentElement.style.setProperty('--vpw',
+  document.getElementById('vp').value+'px'); render(); }
+document.getElementById('vp').addEventListener('change', setVp);
+document.getElementById('qBtn').addEventListener('click', toggleQuote);
+document.getElementById('markBtn').addEventListener('click', function(){
+  document.body.classList.toggle('hideMarks'); this.classList.toggle('on'); });
+document.getElementById('fitBtn').addEventListener('click', function(){
+  document.body.classList.toggle('fit'); this.classList.toggle('on'); applyFit(); });
+window.addEventListener('resize', applyFit);
+document.body.classList.add('fit');
+setVp();
+</script>
+</body>
+</html>

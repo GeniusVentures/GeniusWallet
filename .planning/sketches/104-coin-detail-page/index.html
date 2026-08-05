@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>104 · Coin detail page — structure</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:56px var(--space-10) var(--space-12); }
+  .wrap { max-width:1500px; margin:0 auto; }
+
+  /* ---------- sketch chrome ---------- */
+  #variant-nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:8px 14px; }
+  #variant-nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #variant-nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #variant-nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #variant-nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:1040px; }
+  .lede b { color:var(--text-primary); }
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.fix { background:var(--status-error-fill); color:var(--status-error); }
+  .tag.new { background:rgba(194,143,255,.16); color:var(--brand-tertiary); }
+  .tag.reuse { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  /* ---------- fake app window ---------- */
+  .win { border:1px solid var(--border-strong); border-radius:var(--radius-lg); overflow:hidden;
+    background:var(--surface-base); box-shadow:var(--shadow-card); margin:0 auto; transition:max-width .2s ease; }
+  .appbar { display:flex; align-items:center; gap:var(--space-6); height:48px; padding:0 var(--space-8);
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); }
+  .appbar .back { width:30px; height:30px; border-radius:var(--radius-sm); border:1px solid transparent; background:transparent;
+    color:var(--text-secondary); display:grid; place-items:center; cursor:pointer; transition:all .15s ease; }
+  .appbar .back:hover { background:var(--surface-menu); color:var(--text-primary); transform:translateY(-1px); }
+  .appbar .crumb { font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .appbar .crumb b { color:var(--text-primary); font-weight:600; }
+  .stage { padding:var(--space-10); }
+
+  /* ---------- shared building blocks (map 1:1 to today's widgets) ---------- */
+  .surf { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+    border:1px solid var(--border-subtle); border-radius:var(--radius-md); box-shadow:var(--shadow-card); }
+
+  .icn { border-radius:50%; flex:none; display:grid; place-items:center; overflow:hidden;
+    background:radial-gradient(circle at 30% 25%,#4be3ff,#1179c9 70%); color:#001; font:800 12px/1 var(--font); }
+  .icn.big { width:52px; height:52px; font-size:15px; }
+  .icn.md { width:40px; height:40px; }
+
+  /* identity: CoinCardRow — icon + name + symbol + network */
+  .identity { display:flex; align-items:center; gap:var(--space-6); min-width:0; }
+  .identity .nm { font:600 17px/22px var(--font); color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .identity .sym { font:500 12px/16px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.4px; margin-top:1px; }
+  .netchip { display:inline-flex; align-items:center; gap:5px; font:600 11px/1 var(--font); padding:4px 8px; border-radius:var(--radius-pill);
+    background:var(--surface-menu); border:1px solid var(--border-subtle); color:var(--text-primary); }
+  .netchip .d { width:8px; height:8px; border-radius:50%; background:#627EEA; }
+
+  /* price hero */
+  .price { font:600 40px/1.05 var(--font); font-variant-numeric:tabular-nums; letter-spacing:-1px; position:relative; display:inline-block; }
+  .price::after { content:""; position:absolute; inset:-18px -26px; z-index:-1; border-radius:50%;
+    background:radial-gradient(closest-side, rgba(20,200,255,.28), transparent 72%); }
+  .pill { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:8px; font:600 13px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .pill.up { background:var(--status-success-fill); color:var(--status-success); }
+  .pill.down { background:var(--status-error-fill); color:var(--status-error); }
+
+  /* actions — ActionButton row */
+  .actions { display:flex; gap:var(--space-4); }
+  .actbtn { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 8px; border-radius:var(--radius-sm);
+    border:1px solid var(--border-subtle); background:var(--surface-menu); color:var(--text-primary); cursor:pointer; transition:all .15s ease; }
+  .actbtn:hover { transform:translateY(-2px); box-shadow:var(--shadow-card); border-color:var(--brand-primary); }
+  .actbtn.on { background:linear-gradient(135deg,rgba(10,216,156,.16),rgba(10,174,230,.16)); border-color:transparent; }
+  .actbtn svg { width:20px; height:20px; color:var(--brand-secondary); }
+  .actbtn .l { font:500 12px/1 var(--font); color:var(--text-secondary); }
+  .actbtn:hover .l, .actbtn.on .l { color:var(--text-primary); }
+  .actions.vert { flex-direction:column; }
+  .actions.vert .actbtn { flex-direction:row; justify-content:flex-start; gap:12px; padding:11px 14px; }
+
+  /* chart card */
+  .chartcard { display:flex; flex-direction:column; min-height:0; }
+  .charthead { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-6) var(--space-8) var(--space-4); }
+  .charthead .rng { font:600 12px/16px var(--font); color:var(--text-secondary); margin-right:auto; font-variant-numeric:tabular-nums; }
+  .tf { display:flex; gap:2px; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; }
+  .tf button { font:600 11px/16px var(--font); padding:4px 10px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  .tf button:hover { color:var(--text-primary); }
+  .tf button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .chartbody { position:relative; flex:1; min-height:180px; }
+  .chartbody svg { display:block; width:100%; height:100%; }
+  .chartbody .cross { position:absolute; top:0; bottom:0; width:1px; background:var(--border-strong); opacity:0; pointer-events:none; }
+  .chartbody .dot { position:absolute; width:11px; height:11px; margin:-6px 0 0 -6px; border-radius:50%; background:var(--brand-secondary);
+    box-shadow:0 0 0 4px rgba(43,245,180,.26); opacity:0; pointer-events:none; }
+  .chartbody .tip { position:absolute; transform:translate(-50%,-115%); background:var(--surface-elevated); border:1px solid var(--border-subtle);
+    border-radius:10px; box-shadow:var(--shadow-card); padding:7px 10px; text-align:center; white-space:nowrap; opacity:0; pointer-events:none; }
+  .chartbody .tip .tm { font:500 11px/14px var(--font); color:var(--text-secondary); }
+  .chartbody .tip .pr { font:700 14px/18px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; margin-top:1px; }
+  .chartbody .tip .pc { font:700 11px/14px var(--font); font-variant-numeric:tabular-nums; }
+  .zoom { display:flex; justify-content:center; gap:2px; padding:var(--space-4); }
+  .zoom button { width:32px; height:32px; border-radius:var(--radius-sm); border:1px solid transparent; background:transparent; color:var(--text-secondary);
+    display:grid; place-items:center; cursor:pointer; transition:all .15s ease; }
+  .zoom button:hover { background:var(--surface-menu); color:var(--text-primary); transform:translateY(-1px); }
+  .zoom svg { width:16px; height:16px; }
+
+  /* info / stats — _MarketDataInfo */
+  .sectitle { font:600 13px/18px var(--font); color:var(--text-secondary); letter-spacing:.4px; text-transform:uppercase; margin:0 0 var(--space-4); }
+  .statrow { display:flex; align-items:center; gap:var(--space-6); padding:11px var(--space-6); border-top:1px solid var(--border-subtle); }
+  .statrow:first-child { border-top:0; }
+  .statrow .gi { width:22px; height:22px; flex:none; display:grid; place-items:center; }
+  .statrow .gi svg { width:16px; height:16px; }
+  .statrow .k { font:400 14px/18px var(--font); color:var(--text-secondary); margin-right:auto; }
+  .statrow .v { font:600 14px/18px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+
+  /* stat strip (horizontal) */
+  .statstrip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border-subtle); border-radius:var(--radius-md); overflow:hidden; }
+  .statstrip .cell { background:var(--surface-sheen-b); padding:var(--space-6) var(--space-8); }
+  .statstrip .cell .k { font:600 10px/14px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .statstrip .cell .v { font:600 16px/22px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; margin-top:3px; }
+
+  /* convert — _ConvertSection */
+  .field { position:relative; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); background:var(--surface-menu); padding:8px 12px; transition:border-color .15s ease; }
+  .field:focus-within { border-color:var(--brand-primary); }
+  .field label { display:block; font:500 11px/14px var(--font); color:var(--text-secondary); }
+  .field input { width:100%; border:0; background:transparent; outline:0; color:var(--text-primary); font:600 16px/22px var(--font); font-variant-numeric:tabular-nums; }
+  .cvtotal { text-align:right; font:600 15px/20px var(--font); color:var(--text-primary); }
+  .cvtotal b { color:var(--brand-secondary); }
+
+  /* ===================== VARIANT A — faithful cleanup ===================== */
+  .la { display:grid; grid-template-columns:2fr 1fr; gap:var(--space-8); }
+  .la .leftcard { padding:var(--space-8); display:flex; flex-direction:column; }
+  .la .heroblock { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-8); }
+  .la .heroblock .rt { text-align:right; }
+  .la .heroblock .rt .price { font-size:34px; }
+  .la .actions { margin:var(--space-8) 0; }
+  .la .chartcard { flex:1; }
+  .la .rightcol { display:flex; flex-direction:column; gap:var(--space-8); }
+
+  /* ===================== VARIANT B — exchange header ===================== */
+  .lb .hdrstrip { display:flex; align-items:center; gap:var(--space-10); padding:var(--space-8) var(--space-10); flex-wrap:wrap; }
+  .lb .hdrstrip .price { font-size:34px; }
+  .lb .hdrstrip .pxwrap { display:flex; flex-direction:column; gap:6px; }
+  .lb .hdrstrip .hstats { display:flex; gap:var(--space-12); margin-left:auto; flex-wrap:wrap; }
+  .lb .hdrstrip .hstats .s .k { font:600 10px/14px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-secondary); }
+  .lb .hdrstrip .hstats .s .v { font:600 15px/20px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; margin-top:2px; }
+  .lb .actionbar { display:flex; gap:var(--space-4); padding:0 var(--space-10) var(--space-8); max-width:520px; }
+  .lb .chartcard { margin:0 var(--space-10); }
+  .lb .btmrow { display:grid; grid-template-columns:1fr 360px; gap:var(--space-8); padding:var(--space-10); }
+
+  /* ===================== VARIANT C — identity rail ===================== */
+  .lc { display:grid; grid-template-columns:320px 1fr; gap:var(--space-8); }
+  .lc .rail { display:flex; flex-direction:column; gap:var(--space-8); }
+  .lc .idcard { padding:var(--space-8); text-align:center; display:flex; flex-direction:column; align-items:center; gap:var(--space-4); }
+  .lc .idcard .icn { margin-bottom:2px; }
+  .lc .idcard .price { font-size:36px; margin-top:var(--space-4); }
+  .lc .main { display:flex; flex-direction:column; gap:var(--space-8); }
+  .lc .chartcard { flex:1; min-height:420px; }
+
+  /* ===================== VARIANT D — unified stack ===================== */
+  .ld { max-width:480px; margin:0 auto; display:flex; flex-direction:column; gap:var(--space-8); }
+  .ld .idcard { padding:var(--space-8); text-align:center; display:flex; flex-direction:column; align-items:center; gap:var(--space-4); }
+  .ld .idcard .price { font-size:38px; margin-top:var(--space-2); }
+  .ld .chartcard { min-height:300px; }
+  .ld .pad { padding:var(--space-8); }
+
+  .variant { display:none; }
+  .variant.active { display:block; }
+
+  /* sketch toolbar */
+  #tools { position:fixed; bottom:12px; right:12px; z-index:9999; font:12px system-ui; background:rgba(0,0,0,.72); color:#fff;
+    padding:8px 10px; border-radius:8px; opacity:.35; transition:opacity .2s; display:flex; gap:8px; align-items:center; }
+  #tools:hover { opacity:1; }
+  #tools select, #tools button { font:12px system-ui; background:#222; color:#fff; border:1px solid #444; border-radius:5px; padding:3px 7px; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div id="variant-nav">
+  <span class="name">104 · Coin detail page</span>
+  <button class="vt active" data-v="a" onclick="showVariant('a',this)">A · Faithful cleanup</button>
+  <button class="vt" data-v="b" onclick="showVariant('b',this)">B · Exchange header</button>
+  <button class="vt" data-v="c" onclick="showVariant('c',this)">C · Identity rail</button>
+  <button class="vt" data-v="d" onclick="showVariant('d',this)">D · Unified stack</button>
+</div>
+
+<div class="wrap">
+
+<!-- ============================== VARIANT A ============================== -->
+<section id="variant-a" class="variant active">
+  <p class="lede"><b>A · Faithful cleanup.</b> Today's two-panel split, made coherent: identity is pulled up
+    <i>beside</i> the hero price, the % pill color now matches its sign <span class="tag fix">bug fixed</span>,
+    the chart gets a real header, and the actions are boxed. Smallest port. <span class="tag reuse">reuses all widgets</span></p>
+  <div class="win">
+    <div class="appbar">
+      <button class="back" aria-label="Back">%BACK%</button>
+      <span class="crumb">Markets&nbsp;/&nbsp;<b>GENIUS AI</b></span>
+    </div>
+    <div class="stage">
+      <div class="la">
+        <div class="surf leftcard">
+          <div class="heroblock">
+            <div class="identity">
+              <div class="icn big">GN</div>
+              <div>
+                <div class="nm">GENIUS AI</div>
+                <div class="sym">GNUS · <span style="color:var(--text-primary)">Ethereum</span></div>
+              </div>
+            </div>
+            <div class="rt">
+              <div class="price">$0.767444</div>
+              <div style="margin-top:6px"><span class="pill up" data-pill="a">▲ +8.85%</span></div>
+            </div>
+          </div>
+          <div class="actions">%ACTIONS_A%</div>
+          <div class="chartcard" style="flex:1">%CHART:a%</div>
+        </div>
+        <div class="rightcol">
+          <div class="surf" style="padding:var(--space-8)">
+            <p class="sectitle">Info</p>
+            %STATS%
+          </div>
+          <div class="surf" style="padding:var(--space-8)">%CONVERT:a%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== VARIANT B ============================== -->
+<section id="variant-b" class="variant lb">
+  <p class="lede"><b>B · Exchange header.</b> A full-width identity + price + key-stats strip (Coinbase / Binance coin-page feel),
+    the chart full-width beneath it, then actions and Convert in a bottom row. Reads as a trading terminal.
+    <span class="tag new">timeframe = sketch 006 direction</span></p>
+  <div class="win">
+    <div class="appbar">
+      <button class="back" aria-label="Back">%BACK%</button>
+      <span class="crumb">Markets&nbsp;/&nbsp;<b>GENIUS AI</b></span>
+    </div>
+    <div class="surf" style="border-radius:0; border-left:0; border-right:0; border-top:0;">
+      <div class="hdrstrip">
+        <div class="identity">
+          <div class="icn big">GN</div>
+          <div>
+            <div class="nm">GENIUS AI</div>
+            <div class="sym">GNUS</div>
+          </div>
+        </div>
+        <div class="pxwrap">
+          <div class="price">$0.767444</div>
+          <div><span class="pill up" data-pill="b">▲ +8.85%</span> <span class="netchip"><span class="d"></span>Ethereum</span></div>
+        </div>
+        <div class="hstats">
+          <div class="s"><div class="k">Market Cap</div><div class="v">$9.77M</div></div>
+          <div class="s"><div class="k">Volume</div><div class="v">$587</div></div>
+          <div class="s"><div class="k">Circ. Supply</div><div class="v">15.2M</div></div>
+          <div class="s"><div class="k">Total Supply</div><div class="v">15.2M</div></div>
+        </div>
+      </div>
+      <div class="actionbar">%ACTIONS_B%</div>
+    </div>
+    <div class="stage" style="padding-left:0; padding-right:0; padding-top:var(--space-8)">
+      <div class="surf chartcard" style="min-height:340px">%CHART:b%</div>
+      <div class="btmrow">
+        <div class="surf" style="padding:var(--space-8)">
+          <p class="sectitle">Info</p>
+          %STATS%
+        </div>
+        <div class="surf" style="padding:var(--space-8)">%CONVERT:b%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== VARIANT C ============================== -->
+<section id="variant-c" class="variant">
+  <p class="lede"><b>C · Identity rail.</b> Left column always shows who + how much + what you can do; the main area gives the
+    chart the room the current page wastes. Stats become a strip under the chart. <span class="tag reuse">same data</span></p>
+  <div class="win">
+    <div class="appbar">
+      <button class="back" aria-label="Back">%BACK%</button>
+      <span class="crumb">Markets&nbsp;/&nbsp;<b>GENIUS AI</b></span>
+    </div>
+    <div class="stage">
+      <div class="lc">
+        <div class="rail">
+          <div class="surf idcard">
+            <div class="icn big">GN</div>
+            <div class="nm">GENIUS AI</div>
+            <span class="netchip"><span class="d"></span>Ethereum · GNUS</span>
+            <div class="price">$0.767444</div>
+            <span class="pill up" data-pill="c">▲ +8.85%</span>
+          </div>
+          <div class="surf" style="padding:var(--space-6)">
+            <div class="actions vert">%ACTIONS_C%</div>
+          </div>
+          <div class="surf" style="padding:var(--space-8)">%CONVERT:c%</div>
+        </div>
+        <div class="main">
+          <div class="surf chartcard">%CHART:c%</div>
+          <div class="statstrip">
+            <div class="cell"><div class="k">Market Cap</div><div class="v">$9.77M</div></div>
+            <div class="cell"><div class="k">Circ. Supply</div><div class="v">15.2M</div></div>
+            <div class="cell"><div class="k">Total Supply</div><div class="v">15.2M</div></div>
+            <div class="cell"><div class="k">Volume</div><div class="v">$587</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== VARIANT D ============================== -->
+<section id="variant-d" class="variant">
+  <p class="lede"><b>D · Unified stack.</b> One centered column of cards — identity+price, actions, chart, stats, convert.
+    Nothing is force-stretched, so the dead space disappears. <b>This same layout is the mobile view.</b>
+    <span class="tag rec">one layout, two form factors</span></p>
+  <div class="win" style="max-width:1100px">
+    <div class="appbar">
+      <button class="back" aria-label="Back">%BACK%</button>
+      <span class="crumb">Markets&nbsp;/&nbsp;<b>GENIUS AI</b></span>
+    </div>
+    <div class="stage">
+      <div class="ld">
+        <div class="surf idcard">
+          <div class="icn big">GN</div>
+          <div class="nm">GENIUS AI</div>
+          <span class="netchip"><span class="d"></span>Ethereum · GNUS</span>
+          <div class="price">$0.767444</div>
+          <span class="pill up" data-pill="d">▲ +8.85%</span>
+        </div>
+        <div class="actions">%ACTIONS_D%</div>
+        <div class="surf chartcard">%CHART:d%</div>
+        <div class="surf pad">
+          <p class="sectitle">Info</p>
+          %STATS%
+        </div>
+        <div class="surf pad">%CONVERT:d%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div id="tools">
+  <select id="theme" onchange="document.documentElement.setAttribute('data-theme',this.value)">
+    <option value="dark">Dark</option>
+    <option value="light">Light</option>
+  </select>
+  <button onclick="setW('375px')">Phone</button>
+  <button onclick="setW('900px')">Tablet</button>
+  <button onclick="setW('')">Full</button>
+</div>
+
+<script>
+/* ---------- tiny inline icons ---------- */
+const I = {
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  receive:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 21v.01M17 21h.01M21 17v.01"/></svg>',
+  send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-4 4"/><path d="M21 7H8"/><path d="M7 21l-4-4 4-4"/><path d="M3 17h13"/></svg>',
+  more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+  zin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M11 8v6M8 11h6M20 20l-3-3"/></svg>',
+  zout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M20 20l-3-3"/></svg>',
+  left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+  mcap:'<svg viewBox="0 0 24 24" fill="none" stroke="#FFD666" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 3"/></svg>',
+  circ:'<svg viewBox="0 0 24 24" fill="none" stroke="#7FD3FF" stroke-width="2" stroke-linecap="round"><path d="M20 8a8 8 0 1 0 1 6"/><path d="M21 4v5h-5"/></svg>',
+  total:'<svg viewBox="0 0 24 24" fill="none" stroke="#FFB870" stroke-width="2" stroke-linecap="round"><rect x="4" y="5" width="16" height="4" rx="1"/><rect x="4" y="11" width="16" height="4" rx="1"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>',
+  vol:'<svg viewBox="0 0 24 24" fill="none" stroke="#FF8A8A" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20V8" transform="translate(-1 0)"/></svg>'
+};
+
+/* ---------- action row templates ---------- */
+function actionRow() {
+  return `
+    <button class="actbtn on">${I.receive}<span class="l">Receive</span></button>
+    <button class="actbtn">${I.send}<span class="l">Send</span></button>
+    <button class="actbtn">${I.swap}<span class="l">Swap</span></button>
+    <button class="actbtn">${I.more}<span class="l">More</span></button>`;
+}
+
+/* ---------- stats list template ---------- */
+function statsList() {
+  const rows = [
+    [I.mcap,'Market Cap','$9.77M'],
+    [I.circ,'Circulating Supply','15.2M'],
+    [I.total,'Total Supply','15.2M'],
+    [I.vol,'Volume','$587'],
+  ];
+  return rows.map(([ic,k,v])=>`<div class="statrow"><span class="gi">${ic}</span><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+}
+
+/* ---------- convert template ---------- */
+function convert(v) {
+  return `
+    <p class="sectitle">Convert</p>
+    <div style="display:flex; flex-direction:column; gap:var(--space-6)">
+      <div class="field"><label>Token Price</label><input class="cv-price" value="0.64322" inputmode="decimal"></div>
+      <div class="field"><label>Token Amount</label><input class="cv-amount" value="1" inputmode="decimal"></div>
+      <div class="cvtotal">Total: <b class="cv-total">$0.64</b></div>
+    </div>`;
+}
+
+/* ---------- chart data (crafted to echo the screenshot) ---------- */
+const PRICES = [
+  0.705,0.702,0.700,0.698,0.686,0.664,0.672,0.700,0.703,0.701,
+  0.700,0.699,0.660,0.612,0.600,0.598,0.602,0.599,0.605,0.601,
+  0.600,0.603,0.599,0.604,0.607,0.700,0.732,0.735,0.740,0.742,
+  0.746,0.744,0.748,0.752,0.767,0.762,0.758,0.740,0.735,0.742,
+  0.744,0.720,0.726,0.734,0.752,0.758,0.762,0.767444
+];
+const START_MIN = 8*60; // 8:00 AM, +5 min per point
+function fmtTime(i){ let m=START_MIN+i*5, h=Math.floor(m/60), mm=(m%60).toString().padStart(2,'0'); const ap=h>=12?'PM':'AM'; let hh=h%12; if(hh===0)hh=12; return `${hh}:${mm} ${ap}`; }
+function fmtPrice(p){ return '$'+p.toFixed(6); }
+
+const charts = {}; // id -> {start,end}
+
+function chartCard(id){
+  return `
+    <div class="charthead">
+      <span class="rng" id="rng-${id}">All · 48 pts</span>
+      <div class="tf">
+        <button aria-pressed="false">1H</button>
+        <button aria-pressed="false">1D</button>
+        <button aria-pressed="false">1W</button>
+        <button aria-pressed="true">ALL</button>
+      </div>
+    </div>
+    <div class="chartbody" id="body-${id}">
+      <svg id="svg-${id}" preserveAspectRatio="none" viewBox="0 0 1000 300"></svg>
+      <div class="cross" id="cross-${id}"></div>
+      <div class="dot" id="dot-${id}"></div>
+      <div class="tip" id="tip-${id}"></div>
+    </div>
+    <div class="zoom">
+      <button title="Zoom in" onclick="zoom('${id}',0.8)">${I.zin}</button>
+      <button title="Zoom out" onclick="zoom('${id}',1.25)">${I.zout}</button>
+      <button title="Pan left" onclick="pan('${id}',-1)">${I.left}</button>
+      <button title="Pan right" onclick="pan('${id}',1)">${I.right}</button>
+    </div>`;
+}
+
+function draw(id){
+  const c = charts[id]; const pts = PRICES.slice(c.start, c.end+1);
+  const n = pts.length; const W=1000,H=300,padY=28;
+  const mn=Math.min(...pts), mx=Math.max(...pts), span=(mx-mn)||1;
+  const X=i=> n===1?W/2 : i/(n-1)*W;
+  const Y=p=> padY + (mx-p)/span*(H-2*padY);
+  let line='', area='';
+  pts.forEach((p,i)=>{ const x=X(i).toFixed(1), y=Y(p).toFixed(1); line+=(i?'L':'M')+x+' '+y+' '; });
+  area = `M0 ${H} L0 ${Y(pts[0]).toFixed(1)} ` + pts.map((p,i)=>`L${X(i).toFixed(1)} ${Y(p).toFixed(1)}`).join(' ') + ` L${W} ${Y(pts[n-1]).toFixed(1)} L${W} ${H} Z`;
+  const svg=document.getElementById('svg-'+id);
+  svg.innerHTML = `
+    <defs><linearGradient id="g-${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2BF5B4" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#2BF5B4" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#g-${id})"/>
+    <path d="${line}" fill="none" stroke="#2BF5B4" stroke-width="2.4" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>`;
+  const rng=document.getElementById('rng-'+id);
+  if(rng) rng.textContent = `${fmtTime(c.start)} – ${fmtTime(c.end)} · ${n} pts`;
+}
+
+function hover(id, e){
+  const c=charts[id]; const pts=PRICES.slice(c.start,c.end+1); const n=pts.length;
+  const body=document.getElementById('body-'+id); const r=body.getBoundingClientRect();
+  const fx=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
+  const i=Math.round(fx*(n-1));
+  const mn=Math.min(...pts), mx=Math.max(...pts), span=(mx-mn)||1; const padF=28/300;
+  const xPct = n===1?50 : i/(n-1)*100;
+  const yPct = (padF + (mx-pts[i])/span*(1-2*padF))*100;
+  const cross=document.getElementById('cross-'+id), dot=document.getElementById('dot-'+id), tip=document.getElementById('tip-'+id);
+  cross.style.left=xPct+'%'; cross.style.opacity=1;
+  dot.style.left=xPct+'%'; dot.style.top=yPct+'%'; dot.style.opacity=1;
+  const base=PRICES[c.start]; const pc=(pts[i]-base)/base*100; const up=pc>=0;
+  tip.style.left=Math.min(88,Math.max(12,xPct))+'%'; tip.style.top=yPct+'%'; tip.style.opacity=1;
+  tip.innerHTML=`<div class="tm">${fmtTime(c.start+i)}</div><div class="pr">${fmtPrice(pts[i])}</div>`+
+    `<div class="pc" style="color:var(${up?'--status-success':'--status-error'})">${up?'+':''}${pc.toFixed(2)}%</div>`;
+}
+function hoverOut(id){ ['cross','dot','tip'].forEach(k=>document.getElementById(k+'-'+id).style.opacity=0); }
+
+function zoom(id,f){
+  const c=charts[id]; const mid=(c.start+c.end)/2; let len=(c.end-c.start+1)*f;
+  len=Math.max(6,Math.min(PRICES.length,Math.round(len)));
+  let s=Math.round(mid-len/2), en=s+len-1;
+  if(s<0){s=0;en=len-1;} if(en>PRICES.length-1){en=PRICES.length-1;s=en-len+1;}
+  c.start=Math.max(0,s); c.end=en; draw(id);
+}
+function pan(id,dir){
+  const c=charts[id]; const len=c.end-c.start+1; const step=Math.max(1,Math.round(len*0.2));
+  let s=c.start+dir*step, en=c.end+dir*step;
+  if(s<0){s=0;en=len-1;} if(en>PRICES.length-1){en=PRICES.length-1;s=en-len+1;}
+  c.start=s; c.end=en; draw(id);
+}
+
+/* ---------- template expansion ---------- */
+function expand(){
+  document.querySelectorAll('.variant').forEach(sec=>{
+    sec.innerHTML = sec.innerHTML
+      .replace(/%BACK%/g, I.back)
+      .replace(/%ACTIONS_[ABCD]%/g, actionRow())
+      .replace(/%STATS%/g, statsList())
+      .replace(/%CONVERT:([abcd])%/g, (_,v)=>convert(v))
+      .replace(/%CHART:([abcd])%/g, (_,id)=>{ charts[id]={start:0,end:PRICES.length-1}; return chartCard(id); });
+  });
+}
+
+/* ---------- convert calc ---------- */
+function wireConvert(){
+  document.addEventListener('input', e=>{
+    if(!e.target.matches('.cv-price,.cv-amount')) return;
+    const scope=e.target.closest('.surf') || document;   // every Convert card lives in a .surf
+    const p=parseFloat(scope.querySelector('.cv-price')?.value)||0;
+    const a=parseFloat(scope.querySelector('.cv-amount')?.value)||0;
+    const t=scope.querySelector('.cv-total');
+    if(t) t.textContent='$'+(p*a).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  });
+}
+
+/* ---------- header pill: color follows the SAME value as the sign (bug fix) ---------- */
+function fixPills(){
+  const change=(PRICES[PRICES.length-1]-PRICES[0])/PRICES[0]*100; const up=change>=0;
+  document.querySelectorAll('[data-pill]').forEach(el=>{
+    el.className='pill '+(up?'up':'down');
+    el.textContent=`${up?'▲ +':'▼ '}${change.toFixed(2)}%`;
+  });
+}
+
+function showVariant(v, btn){
+  document.querySelectorAll('.variant').forEach(s=>s.classList.remove('active'));
+  document.getElementById('variant-'+v).classList.add('active');
+  document.querySelectorAll('#variant-nav .vt').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  Object.keys(charts).forEach(draw);
+}
+function setW(w){ document.querySelectorAll('.win').forEach(el=>el.style.maxWidth=w||''); }
+
+/* ---------- boot ---------- */
+expand();
+Object.keys(charts).forEach(draw);
+fixPills();
+wireConvert();
+document.querySelectorAll('.chartbody').forEach(b=>{
+  const id=b.id.replace('body-','');
+  b.addEventListener('mousemove', e=>hover(id,e));
+  b.addEventListener('mouseleave', ()=>hoverOut(id));
+});
+// timeframe tabs are visual only (no per-range data in code yet — see README)
+document.addEventListener('click', e=>{
+  if(e.target.closest('.tf')){ const tf=e.target.closest('.tf');
+    if(e.target.tagName==='BUTTON'){ tf.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false')); e.target.setAttribute('aria-pressed','true'); } }
+});
+</script>
+</body>
+</html>

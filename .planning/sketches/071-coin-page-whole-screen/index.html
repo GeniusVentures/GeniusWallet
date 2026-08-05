@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-v="B" data-w="1280">
+<head>
+<meta charset="utf-8">
+<title>071 · Coin page, whole screen</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink54:rgba(255,255,255,.54);
+  --ink38:rgba(255,255,255,.38); --sec:#8A8F9D;
+  --border:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --borderControl:rgba(255,255,255,.36);
+  --brand:#14C8FF; --brandStrong:#0AAEE6; --mint:#0AD89C; --bad:#FF4D4D;
+  --hoverFill:rgba(20,200,255,.12); --hoverEdge:rgba(20,200,255,.24);
+  --cta:linear-gradient(90deg,#0AD89C 0%,#0AAEE6 100%);
+  --tint:linear-gradient(90deg,rgba(10,216,156,.18) 0%,rgba(10,174,230,.18) 100%);
+  --rSm:8px; --rMd:12px; --rLg:15px; --glyph:#14C8FF;
+}
+html[data-theme="light"]{
+  --base:#DCE0E6; --card:#FFFFFF; --menu:#EFF2F6; --sunken:#CFD4DB;
+  --ink:#10131A; --ink70:rgba(16,19,26,.70); --ink54:rgba(16,19,26,.54);
+  --sec:#5A606E; --border:rgba(16,19,26,.12); --borderControl:rgba(16,19,26,.46);
+  --bad:#D92D2D; --glyph:#0A6885;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font:400 14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 0 80px}
+.bar{position:sticky;top:0;z-index:30;background:var(--card);border-bottom:1px solid var(--border);
+  padding:10px 20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.grp{display:flex;gap:6px;align-items:center}
+.grp>b{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin-right:4px}
+.bar button{border:1px solid var(--border);background:transparent;color:var(--ink70);
+  font:500 13px/1 inherit;padding:8px 12px;border-radius:var(--rSm);cursor:pointer;font-family:inherit}
+.bar button:hover{background:var(--hoverFill);border-color:var(--hoverEdge);color:var(--ink)}
+.bar button.on{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+main{padding:22px 20px 0}
+h2{font-size:20px;font-weight:600;margin:26px 0 6px}
+p.lead{color:var(--ink70);max-width:100ch;margin:0 0 16px;line-height:1.65}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;background:var(--menu);padding:1px 5px;border-radius:4px}
+.cl{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin:0 0 8px}
+
+/* the page stage - real widths, scrolled horizontally if the screen is smaller */
+.stage{overflow-x:auto;border:1px solid var(--border);border-radius:var(--rMd);background:var(--base)}
+.page{position:relative}
+
+/* NAVBAR - the app's real one, DesktopOverlay */
+.nav{height:56px;display:flex;align-items:center;gap:4px;padding:0 12px;
+  border-bottom:1px solid var(--border);background:var(--card)}
+.nav .logo{width:26px;height:26px;border-radius:7px;background:var(--cta);margin-right:12px;flex:none}
+.nav a{font-size:13px;color:var(--sec);padding:8px 11px;border-radius:var(--rSm);
+  display:flex;gap:7px;align-items:center;text-decoration:none;white-space:nowrap}
+.nav a.on{color:var(--ink);font-weight:700;position:relative}
+.nav a.on::after{content:'';position:absolute;left:11px;right:11px;bottom:-1px;height:2px;background:var(--cta);border-radius:2px}
+.nav .sp{flex:1}
+.nav .ctl{border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:12px;color:var(--ink70)}
+
+/* today's AppBar instead of the navbar */
+.appbar{height:48px;display:flex;align-items:center;padding:0 20px;background:var(--sunken);
+  border-bottom:1px solid var(--border);font-size:13px;color:var(--sec);gap:10px}
+.appbar b{color:var(--ink)}
+
+.body{padding:24px 12px 0}
+.body.old{padding:20px}
+.wrap{margin:0 auto}
+
+/* GWPageHeader */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin:0 0 20px;padding:0 12px}
+.ph .t{font:600 28px/1.2 inherit}
+.ph .sub{font-size:13px;color:var(--sec);margin-top:4px}
+.backchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sec);
+  border:1px solid var(--border);border-radius:999px;padding:5px 11px;margin:0 0 12px 12px;cursor:pointer}
+.backchip:hover{background:var(--hoverFill);border-color:var(--hoverEdge);color:var(--ink)}
+.price{text-align:right}
+.price .p{font:600 30px/1 inherit;font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;gap:5px;align-items:center;margin-top:8px;font-size:12px;font-weight:600;
+  padding:3px 9px;border-radius:999px;background:rgba(255,77,77,.14);color:var(--bad)}
+
+/* GWCard */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--rLg);padding:16px}
+.kick{font:600 13px/18px inherit;letter-spacing:.5px;text-transform:uppercase;color:var(--sec);margin:0 0 12px}
+
+/* grid + rails */
+.cols{display:flex;gap:16px;align-items:flex-start;padding:0 12px}
+.colmain{flex:2;min-width:0}
+.colside{flex:1;min-width:0;max-width:400px}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+/* KPI rail (variant B) */
+.kpis{display:flex;gap:12px;padding:0 12px;margin:0 0 16px}
+.kpi{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--rMd);padding:12px 14px;min-width:0}
+.kpi .k{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--sec);font-weight:600}
+.kpi .v{font:600 17px/1.3 inherit;margin-top:5px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v.up{color:var(--mint)} .kpi .v.dn{color:var(--bad)}
+.range{height:4px;border-radius:2px;background:var(--sunken);margin-top:8px;position:relative;overflow:hidden}
+.range i{position:absolute;top:0;bottom:0;left:0;width:64%;background:var(--cta);border-radius:2px}
+
+/* chart */
+.chart{position:relative;background:var(--sunken);border-radius:var(--rMd);overflow:hidden}
+.chart svg{display:block;width:100%;height:100%}
+.chartctl{display:flex;gap:14px;justify-content:center;padding:10px 0 0;color:var(--sec);font-size:15px}
+
+/* action bar */
+.acts{display:flex;gap:8px}
+.act{flex:1;border-radius:var(--rMd);padding:12px 4px;text-align:center;border:1px solid var(--border);
+  background:var(--menu);font-size:12px;color:var(--sec)}
+.act .g{display:block;font-size:16px;margin-bottom:6px;color:var(--brand)}
+.act.on{background:var(--tint);border-color:transparent;color:var(--ink)}
+.act.off{background:var(--sunken);border-color:transparent;color:var(--ink54)}
+.act.off .g{color:var(--ink54)}
+
+/* GWDetailGrid */
+.grid{background:var(--sunken);border:1px solid var(--border);border-radius:var(--rMd);overflow:hidden}
+.grow{display:flex;align-items:center;gap:12px;padding:12px}
+.grow + .grow{border-top:1px solid var(--border)}
+.grow .k{color:var(--sec);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow .val{font-variant-numeric:tabular-nums;text-align:right}
+.grow .ic{width:22px;flex:none;text-align:center;color:var(--glyph);font-size:14px}
+
+/* fields */
+.fl{font:500 13px/1.3 inherit;color:var(--sec);margin:0 0 8px}
+.field{background:var(--sunken);border:1px solid var(--borderControl);border-radius:var(--rSm);
+  padding:12px;font-size:14px;color:var(--ink);min-height:46px;font-variant-numeric:tabular-nums}
+.field.ro{color:var(--ink70);border-color:var(--border)}
+.field.focus{border:1.5px solid transparent;background:
+  linear-gradient(var(--sunken),var(--sunken)) padding-box,var(--cta) border-box}
+
+/* the void marker */
+.void{border:1px dashed var(--bad);border-radius:var(--rMd);margin:16px 12px;
+  display:flex;align-items:center;justify-content:center;color:var(--bad);font-size:13px;font-weight:600;
+  background:repeating-linear-gradient(45deg,transparent,transparent 9px,rgba(255,77,77,.05) 9px,rgba(255,77,77,.05) 18px)}
+
+table{border-collapse:collapse;width:100%;margin:8px 0 18px;font-size:13px}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--menu);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--sec)}
+td.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.ok-b{color:var(--mint);font-weight:600}
+.bad-b{color:var(--bad);font-weight:600}
+.warn-b{color:#FFC42E;font-weight:600}
+.note{border-left:3px solid var(--brand);background:var(--menu);padding:12px 14px;
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:14px 0;line-height:1.65;max-width:104ch}
+.note.bad{border-left-color:var(--bad)}
+.note.ok{border-left-color:var(--mint)}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="grp"><b>Variant</b>
+    <button data-set="v" data-val="0">0 &middot; Today</button>
+    <button data-set="v" data-val="A">A &middot; In the frame</button>
+    <button data-set="v" data-val="B" class="on">B &middot; Stat rail &#9733;</button>
+    <button data-set="v" data-val="C">C &middot; Your position</button>
+  </div>
+  <div class="grp"><b>Width</b>
+    <button data-set="w" data-val="1536">1536</button>
+    <button data-set="w" data-val="1280" class="on">1280</button>
+    <button data-set="w" data-val="900">900</button>
+  </div>
+  <div class="grp"><button id="theme">Light</button></div>
+</div>
+
+<main>
+  <h2>071 &middot; The coin page, the whole screen</h2>
+  <p class="lead">
+    Jakub: <i>&ldquo;zr&oacute;b redesign tego ca&#322;ego screenu, &#322;&#261;cznie z navigation barem u g&oacute;ry&rdquo;</i>
+    &mdash; <i>&ldquo;bo wygl&#261;da s&#322;abo&rdquo;</i>. It does, and the three reasons are measurable rather
+    than matters of taste. Every panel below is the page at its <b>real width</b>, with the app's real
+    navbar, and its content composed from components that already exist. The card layer inside it is
+    <b>070-A, shipped today</b>.
+  </p>
+
+  <div class="stage">
+    <div class="page" id="screen"></div>
+  </div>
+
+  <h2>The three reasons it reads weak</h2>
+
+  <div class="note bad">
+    <b>1 &middot; <code>SizedBox(height: 480)</code>. One literal, and it is most of the problem.</b>
+    <code>_buildMainCard</code> hard-codes 480px. The Info + Convert column beside it comes out around
+    530. So on a 1335px-tall window the page's content <b>ends at roughly 620px and the remaining half
+    is empty</b> &mdash; that is the void drawn in red on variant 0. Nothing is broken; the layout
+    simply never asked for the room it has.
+  </div>
+
+  <div class="note bad">
+    <b>2 &middot; This is the only screen in the app without a navbar.</b>
+    <code>GoRoute('/token-info')</code> sits <b>outside</b> the <code>ShellRoute</code>
+    (<code>router.dart:243</code>, the shell closes at 242). Every tab &mdash; Dashboard, Swap,
+    Markets, News, Settings &mdash; is inside it. So from a coin you cannot reach News without going
+    back first, and the screen you came from is still one click behind you rather than on screen.
+  </div>
+
+  <div class="note bad">
+    <b>3 &middot; The frame is a different frame.</b> <code>maxWidth: 1200</code>, centred, with
+    <code>space10</code> padding. Markets, Transactions and News all use <code>xxl</code> (1536) with
+    a <b>12px gutter</b>, so their title sits at x&nbsp;=&nbsp;12. Here it lands ~170px further in, on
+    a 1500px window. Same app, two page frames &mdash; and you cross between them with one click.
+  </div>
+
+  <div class="note">
+    <b>4 &middot; The model carries 24 fields. The page shows 6.</b>
+    <code>CoinGeckoMarketData</code> already holds <code>marketCapRank</code>, <code>high24h</code>,
+    <code>low24h</code>, <code>fullyDilutedValuation</code>, <code>ath</code> +
+    <code>athChangePercentage</code> + <code>athDate</code>, <code>atl</code>,
+    <code>maxSupply</code>, <code>priceChange24h</code>, <code>marketCapChangePercentage24h</code>
+    and <code>lastUpdated</code> &mdash; all in Hive, all fetched already. <b>Filling the void costs
+    zero new requests.</b> That is what variant B spends.
+  </div>
+
+  <h2>Variants</h2>
+  <table>
+    <tr><th></th><th>Variant</th><th>Top of the screen</th><th>The void</th><th>Cost</th></tr>
+    <tr><td><b>0</b></td><td><b>Today</b></td><td>AppBar + breadcrumb, no navbar</td>
+      <td>~50% of the page</td><td>&mdash;</td></tr>
+    <tr><td><b>A</b></td><td><b>In the frame</b></td>
+      <td>real navbar + <code>GWPageHeader</code>, back chip, price in <code>trailing</code></td>
+      <td>chart takes the height instead of 480</td><td>a router move</td></tr>
+    <tr><td><b>B</b> &#9733;</td><td><b>Stat rail</b></td><td>same as A</td>
+      <td>a KPI row from fields the model already has, chart full width</td>
+      <td>one new row of tiles</td></tr>
+    <tr><td><b>C</b></td><td><b>Your position</b></td><td>same as A</td>
+      <td>a holdings panel: your balance, its value, cost to buy more</td>
+      <td>changes what the page is <i>about</i></td></tr>
+  </table>
+
+  <div class="note ok">
+    <b>A, B and C all share the same three fixes</b>, because those are the defects rather than the
+    design: into the <code>ShellRoute</code> so the navbar is there, onto the 1536/12 frame every
+    other tab uses, and the chart takes its height from the viewport instead of a 480px literal. They
+    differ only in <b>what fills the space that frees up</b>.
+  </div>
+
+  <h2>Where every element comes from</h2>
+  <table id="prov"></table>
+
+  <h2>What to look at</h2>
+  <div class="note">
+    <b>1 &middot; Switch 0 &rarr; A and watch the top of the window.</b> That is the biggest change on
+    this page and it is invisible in a screenshot of the content.
+    <br><br>
+    <b>2 &middot; Look at the bottom of variant 0.</b> The red hatch is real empty page, drawn to
+    scale at a 1335px window height.
+    <br><br>
+    <b>3 &middot; Drop to 900.</b> Below 1024 the layout already stacks; check your favourite survives
+    it, because 152-D froze the &lt;768 layout and it still has to arrive there.
+    <br><br>
+    <b>4 &middot; Send and Swap are grey in every variant</b>, because they are genuinely disabled
+    (D-01/D-02) and More is GNUS-gated. A variant that only looks good with a full row of live buttons
+    would be lying.
+  </div>
+
+  <h2>Recommendation</h2>
+  <div class="note ok">
+    <b>&#9733; B &middot; Stat rail.</b> A fixes the structure but leaves a taller chart in a page
+    that is still thin; B fixes the structure <b>and</b> the emptiness, using data already sitting in
+    Hive. The KPI tile is the only new shape, and it is `GWCard` + `GWKicker` + a value &mdash; the
+    Markets hero already reads this way, which is the page you arrive from.
+    <br><br>
+    <b>Runner-up: A &middot; In the frame.</b> The honest minimum and genuinely a big improvement on
+    its own: navbar, one frame, a chart that uses the window. Take this one if the page should be
+    repaired rather than re-composed &mdash; it is also strictly a subset of B, so it is never wasted
+    work.
+    <br><br>
+    <b>Rejected: C &middot; Your position.</b> It reads well and it answers the wrong question. This
+    page is reached from <b>Markets</b>, where you are looking at what something is worth, not at what
+    you hold &mdash; the dashboard already answers that, and Receive/Send/Swap are one row away here.
+    C also degrades to nothing for a coin you do not own, which on Markets is most of them.
+  </div>
+</main>
+
+<script>
+var CHART = '<svg viewBox="0 0 1000 260" preserveAspectRatio="none">'
+  + '<polyline fill="none" stroke="#0AD89C" stroke-width="2.5" points="'
+  + '0,215 60,205 120,198 180,200 240,190 300,196 360,186 420,150 480,140 540,146'
+  + ' 600,152 660,138 720,142 780,126 840,132 900,116 960,110 1000,104"/></svg>';
+
+function navbar(v){
+  if (v === '0') {
+    return '<div class="appbar"><span>&#8249;</span><span>Markets&nbsp; /&nbsp; </span>'
+      + '<b>Bitcoin</b></div>';
+  }
+  return '<div class="nav"><span class="logo"></span>'
+    + '<a href="#">&#9632; Dashboard</a>'
+    + '<a href="#">&#8644; Swap</a>'
+    + '<a href="#" class="on">&#9650; Markets</a>'
+    + '<a href="#">&#9636; News</a>'
+    + '<a href="#">&#127760; Web</a>'
+    + '<a href="#">&#9993; Feedback</a>'
+    + '<a href="#">&#9881; Settings</a>'
+    + '<span class="sp"></span>'
+    + '<span class="ctl">Ethereum &#9662;</span>'
+    + '<span class="ctl">0xA0b8&hellip;eB48</span></div>';
+}
+
+function header(){
+  return '<div class="backchip">&#8249; Markets</div>'
+    + '<div class="ph"><div>'
+    + '<div class="t">Bitcoin</div>'
+    + '<div class="sub">BTC &middot; Ethereum &middot; Rank #1</div>'
+    + '</div><div class="price"><div class="p">$63,504.00</div>'
+    + '<div class="pill">&#9660; 2.90%</div></div></div>';
+}
+
+function actionBar(){
+  return '<div class="acts">'
+    + '<div class="act on"><span class="g">&#9635;</span>Receive</div>'
+    + '<div class="act off"><span class="g">&#10148;</span>Send</div>'
+    + '<div class="act off"><span class="g">&#8644;</span>Swap</div>'
+    + '<div class="act"><span class="g">&#8943;</span>More</div></div>';
+}
+
+function chartCard(h, withHero){
+  return '<div class="card">'
+    + (withHero ? heroInline() : '')
+    + '<div class="chart" style="height:' + h + 'px">' + CHART + '</div>'
+    + '<div class="chartctl"><span>&#8853;</span><span>&#8854;</span>'
+    + '<span>&#8249;</span><span>&#8250;</span></div></div>';
+}
+
+function heroInline(){
+  return '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">'
+    + '<div style="width:52px;height:52px;border-radius:50%;background:#F7931A;flex:none"></div>'
+    + '<div style="flex:1"><div style="font-weight:600;font-size:17px">Bitcoin</div>'
+    + '<div style="font-size:13px;color:var(--sec)">BTC &middot; Ethereum</div></div>'
+    + '<div style="text-align:right"><div style="font:600 26px/1 inherit">$63,504.00</div>'
+    + '<div class="pill">&#9660; 2.90%</div></div></div>'
+    + '<div style="height:14px"></div>' + actionBar() + '<div style="height:14px"></div>';
+}
+
+function infoCard(){
+  var rows = [['&#127760;','Network','Ethereum'],['&#128179;','Address','0xA0b8&hellip;eB48'],
+    ['&#128337;','Market Cap','$1.27T'],['&#8635;','Circulating Supply','20.1M'],
+    ['&#9776;','Total Supply','20.1M'],['&#128202;','Volume','$26.5B']];
+  return '<div class="card"><p class="kick">Info</p><div class="grid">'
+    + rows.map(function(r){
+        return '<div class="grow"><span class="ic">' + r[0] + '</span>'
+          + '<span class="k">' + r[1] + '</span><span class="val">' + r[2] + '</span></div>';
+      }).join('')
+    + '</div></div>';
+}
+
+function convertCard(){
+  return '<div class="card"><p class="kick">Convert</p>'
+    + '<p class="fl">Token price</p><div class="field ro">63,504.00</div>'
+    + '<div style="height:12px"></div>'
+    + '<p class="fl">Token amount</p><div class="field focus">1</div>'
+    + '<div style="height:12px"></div>'
+    + '<div class="grid"><div class="grow"><span class="k" style="color:var(--ink)">Total</span>'
+    + '<span class="val" style="font-weight:600">$63,504.00</span></div></div></div>';
+}
+
+function kpis(){
+  var t = [
+    ['Rank','#1',''],
+    ['24h change','&minus;2.90%','dn'],
+    ['24h volume','$26.5B',''],
+    ['Market cap','$1.27T',''],
+    ['From ATH','&minus;8.4%','dn']
+  ];
+  var out = t.map(function(k){
+    return '<div class="kpi"><div class="k">' + k[0] + '</div>'
+      + '<div class="v ' + k[2] + '">' + k[1] + '</div></div>';
+  }).join('');
+  // the 24h range tile carries a bar, so it is built separately
+  out += '<div class="kpi"><div class="k">24h range</div>'
+    + '<div class="v" style="font-size:13px">$61.2K &ndash; $65.0K</div>'
+    + '<div class="range"><i></i></div></div>';
+  return '<div class="kpis">' + out + '</div>';
+}
+
+function holdings(){
+  return '<div class="card"><p class="kick">Your position</p>'
+    + '<div style="font:600 30px/1.1 inherit;font-variant-numeric:tabular-nums">0.4182 BTC</div>'
+    + '<div style="color:var(--sec);margin-top:6px">&#8776; $26,557.37</div>'
+    + '<div style="height:14px"></div>'
+    + '<div class="grid">'
+    + '<div class="grow"><span class="k">Avg. cost</span><span class="val">&mdash;</span></div>'
+    + '<div class="grow"><span class="k">Share of portfolio</span><span class="val">31%</span></div>'
+    + '</div></div>';
+}
+
+function page(v, w){
+  var W = parseInt(w, 10);
+  var VIEWPORT = 820;     // the visible page height under the chrome, to scale
+  var narrow = W < 1024;
+
+  if (v === '0') {
+    var inner0 = '<div class="wrap" style="max-width:1200px">'
+      + '<div style="display:flex;gap:16px;align-items:flex-start">'
+      + '<div style="flex:2;min-width:0">'
+      +   '<div style="height:480px" class="card">' + heroInline()
+      +   '<div class="chart" style="height:250px">' + CHART + '</div>'
+      +   '<div class="chartctl"><span>&#8853;</span><span>&#8854;</span>'
+      +   '<span>&#8249;</span><span>&#8250;</span></div></div>'
+      + '</div>'
+      + '<div style="flex:1;min-width:0"><div class="stack">' + infoCard() + convertCard() + '</div></div>'
+      + '</div></div>';
+    return navbar(v) + '<div class="body old">' + inner0 + '</div>'
+      + '<div class="void" style="height:300px">empty page &mdash; the 480px literal plus a ~530px '
+      + 'side column end the content here, on a 1335px window</div>';
+  }
+
+  var side = '<div class="colside"><div class="stack">'
+    + (v === 'C' ? holdings() : '') + infoCard() + convertCard() + '</div></div>';
+
+  var chartH = (v === 'B') ? VIEWPORT - 300 : VIEWPORT - 250;
+  if (narrow) chartH = 260;
+
+  var main;
+  if (v === 'B') {
+    main = '<div class="colmain">' + chartCard(chartH, false) + '</div>';
+  } else {
+    main = '<div class="colmain">' + chartCard(chartH - 150, true) + '</div>';
+  }
+
+  var body = header()
+    + (v === 'B' ? kpis() + '<div style="padding:0 12px;margin-bottom:16px">' + actionBar() + '</div>' : '')
+    + (narrow
+        ? '<div style="padding:0 12px"><div class="stack">'
+          + (v === 'B' ? chartCard(chartH, false) : chartCard(chartH, true))
+          + (v === 'C' ? holdings() : '') + infoCard() + convertCard() + '</div></div>'
+        : '<div class="cols">' + main + side + '</div>');
+
+  return navbar(v)
+    + '<div class="body"><div class="wrap" style="max-width:1536px">' + body + '</div></div>';
+}
+
+var PROV = {
+  '0': [['top of screen','<span class="bad-b">Material AppBar + hand-built breadcrumb</span>','token_info_screen.dart:93'],
+        ['navigation','<span class="bad-b">none - route is outside ShellRoute</span>','router.dart:243'],
+        ['frame','<span class="bad-b">maxWidth 1200, centred, space10</span>','token_info_screen.dart:188'],
+        ['chart box','<span class="bad-b">SizedBox(height: 480)</span>','token_info_screen.dart:311'],
+        ['hero','TokenDetailHero','tokens/widgets/token_detail_hero.dart'],
+        ['actions','TokenActionBar','tokens/widgets/token_action_bar.dart'],
+        ['Info + Convert','CoinInfoCard / CoinConvertCard <span class="ok-b">070-A</span>','token_info_screen.dart']],
+  'A': [['top of screen','the real navbar','DesktopOverlay / MobileOverlay'],
+        ['title block','GWPageHeader(title, subtitle, trailing)','components/scaffold/gw_page_header.dart'],
+        ['back to Markets','a chip on the app hover recipe','CONVENTIONS.md'],
+        ['frame','maxWidth xxl (1536) + 12px gutter','the Markets / News / Transactions frame'],
+        ['chart box','height from LayoutBuilder, not a literal','&mdash;'],
+        ['hero','TokenDetailHero','tokens/widgets/token_detail_hero.dart'],
+        ['actions','TokenActionBar','tokens/widgets/token_action_bar.dart'],
+        ['Info + Convert','CoinInfoCard / CoinConvertCard','token_info_screen.dart']],
+  'B': [['top of screen','the real navbar','DesktopOverlay / MobileOverlay'],
+        ['title + price','GWPageHeader(title, subtitle, trailing)','components/scaffold/gw_page_header.dart'],
+        ['frame','maxWidth xxl (1536) + 12px gutter','same as every tab'],
+        ['KPI tile','<b>new shape</b> - GWCard + GWKicker + a value','<span class="warn-b">the one thing to argue</span>'],
+        ['KPI data','marketCapRank / high24h / low24h / athChangePercentage / totalVolume','<span class="ok-b">already in Hive</span>'],
+        ['actions','TokenActionBar, full width','tokens/widgets/token_action_bar.dart'],
+        ['chart','full width, height from the viewport','chart/crypto_live_chart.dart'],
+        ['Info + Convert','CoinInfoCard / CoinConvertCard','token_info_screen.dart']],
+  'C': [['top of screen','the real navbar','DesktopOverlay / MobileOverlay'],
+        ['title block','GWPageHeader','components/scaffold/gw_page_header.dart'],
+        ['holdings panel','GWCard + GWKicker + GWDetailGrid','all existing'],
+        ['balance','Coin.balance','<span class="warn-b">zero for most Markets coins</span>'],
+        ['chart','height from the viewport','chart/crypto_live_chart.dart'],
+        ['Info + Convert','CoinInfoCard / CoinConvertCard','token_info_screen.dart']]
+};
+
+function render(){
+  var d = document.documentElement.dataset;
+  var el = document.getElementById('screen');
+  el.style.width = d.w + 'px';
+  el.innerHTML = page(d.v, d.w);
+  document.getElementById('prov').innerHTML =
+    '<tr><th>Element</th><th>Component</th><th>File</th></tr>' +
+    PROV[d.v].map(function(r){
+      return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="mono">' + r[2] + '</td></tr>';
+    }).join('');
+}
+
+document.querySelectorAll('.bar button[data-set]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var set = b.dataset.set;
+    document.querySelectorAll('.bar button[data-set="' + set + '"]').forEach(function(o){
+      o.classList.toggle('on', o === b);
+    });
+    document.documentElement.dataset[set] = b.dataset.val;
+    render();
+  });
+});
+document.getElementById('theme').addEventListener('click', function(){
+  var el = document.documentElement, light = el.dataset.theme === 'light';
+  el.dataset.theme = light ? 'dark' : 'light';
+  this.textContent = light ? 'Light' : 'Dark';
+});
+render();
+</script>
+</body>
+</html>

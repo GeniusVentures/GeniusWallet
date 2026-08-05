@@ -368,7 +368,7 @@ jobs:
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
           channel: master
-          flutter-version: 3.38.10
+          flutter-version: 3.41.9
 
       - name: Set current branch
         shell: bash
@@ -1364,3 +1364,84 @@ jobs:
             fi
           fi
         shell: bash
+
+  # ---------------------------------------------------------------------------
+  # quality -- Phase 22 plan 08. Runs on ubuntu-latest with no native toolchain,
+  # no container, no Android SDK/NDK, no Apple certs -- none of these gates need
+  # the five-platform release matrix above, so failures surface in minutes
+  # instead of after a full native build. Everything Phase 22 built (analyzer 0,
+  # brace rule, three security gates, dart format, the test suite) was
+  # UNENFORCED on CI until this job landed; see 22-08-SUMMARY.md.
+  #
+  # Flutter action SHA + flutter-version below are intentionally byte-identical
+  # to the `build` job's `Setup Flutter` step -- two SDK versions in one
+  # workflow is how "green on CI, red locally" starts.
+  # ---------------------------------------------------------------------------
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GeniusWallet
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          channel: master
+          flutter-version: 3.41.9
+
+      - name: Get Flutter Dependencies
+        run: flutter pub get
+
+      - name: Enforce dart format (lib, test)
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Enforce flutter analyze (lib, test)
+        run: flutter analyze lib test
+
+      - name: Self-test the brace-style detector (tool/check_brace_style.sh --self-test)
+        run: bash tool/check_brace_style.sh --self-test
+
+      - name: Enforce brace-every-if style (AGENTS.md Dart coding standards)
+        run: bash tool/check_brace_style.sh
+
+      - name: Self-test the raw-colour detector (tool/check_raw_colors.sh --self-test)
+        run: bash tool/check_raw_colors.sh --self-test
+
+      # Scoped to the directories 23-04-GATE-SCOPE.md measured clean -- see
+      # that document for the covered/uncovered split, per-directory counts,
+      # and the widening plan. Never covers lib/theme/, where raw colours are
+      # the primitive layer and correct by design.
+      - name: Enforce no raw Colors.*/Color(0x...) outside lib/theme/ (AGENTS.md, scoped -- see 23-04-GATE-SCOPE.md)
+        run: bash tool/check_raw_colors.sh
+
+      - name: Security gate -- no key-material console logging in the SDK account manager
+        run: bash tool/check_no_new_key_logging.sh --scan-tree
+
+      - name: Security gate -- onboarding seed safety (06-UI-SPEC.md Section 3, six checks)
+        run: bash tool/check_onboarding_seed_safety.sh
+
+      # NON-BLOCKING BY DELIBERATE CHOICE, not an oversight -- see
+      # .planning/phases/22-codebase-organization-standards-config-dead-code-deletion-th/deferred-items.md
+      # and 22-08-SUMMARY.md for the full record. This gate has 2 KNOWN
+      # pre-existing failures unrelated to any change in this repo since Phase
+      # 8 (a WIRE-02 prose false positive in Check 3) and Phase 16 (6 private
+      # (`_`-prefixed) "duplicate class name" false positives in Check 2, which
+      # is structurally blind to Dart's library-scoped privacy). Check 1 -- the
+      # actual shadow-import-boundary logic this phase's threat model cares
+      # about (Loading / Splash / WalletsOverview) -- passes cleanly today.
+      # Wiring this gate hard on day one would make the new `quality` job red
+      # for reasons no PR author could fix, which teaches a team to ignore red
+      # checks -- exactly the failure mode this phase exists to prevent. Flip
+      # to blocking (delete the `continue-on-error` line) once a future plan
+      # resolves the two findings (baseline the 6 private names, or exclude
+      # `_`-prefixed names from Check 2's census regex; reword or allowlist the
+      # Check 3 WIRE-02 prose match).
+      - name: Security gate -- additive shadow-import boundary (non-blocking, 2 pre-existing false positives)
+        continue-on-error: true
+        run: bash tool/verify_additive_boundary.sh
+
+      # Randomized order catches inter-test state leakage. No --coverage: the
+      # Codecov upload was removed (2026-07-28) and nothing else consumed
+      # lcov.info, so generating it was pure cost.
+      - name: Run tests (randomized order)
+        run: flutter test --test-randomize-ordering-seed random

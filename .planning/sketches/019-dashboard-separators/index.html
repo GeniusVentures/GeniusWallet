@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>016 · Dashboard separators — where the hairline belongs</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1400px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .tabs { display:flex; gap:var(--space-4); margin-bottom:var(--space-6); flex-wrap:wrap; }
+  .tabs button { font:600 13px/18px var(--font); padding:9px 16px; border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .tabs button[aria-pressed="true"] { border-color:transparent; background:linear-gradient(90deg,#0AD89C,#0AAEE6); color:#000B18; }
+
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:960px; }
+  p.lede b { color:var(--text-primary); } p.lede code { font:400 12px/18px var(--font-mono); }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.new{ background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.rec{ background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+
+  .audit { width:100%; border-collapse:collapse; font:400 13px/20px var(--font); margin-bottom:var(--space-12); }
+  .audit th,.audit td { text-align:left; padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); }
+  .audit th { font:600 10px/14px var(--font); text-transform:uppercase; letter-spacing:.6px; color:var(--text-secondary); }
+  .audit code { font:400 12px/18px var(--font-mono); color:var(--text-secondary); }
+  .yes { color:var(--status-success); font-weight:600; } .no { color:var(--text-primary-38); }
+
+  /* ── dashboard mock ── */
+  .grid { display:grid; grid-template-columns:1fr 1.35fr 1fr; gap:var(--space-6); align-items:start; }
+  .panel { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-8); display:flex; flex-direction:column; }
+  .phead { display:flex; align-items:center; gap:var(--space-4); min-height:44px; padding:2px var(--space-4) var(--space-8); }
+  .phead h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; margin-right:auto; white-space:nowrap; }
+  .phead .val { font:600 18px/24px var(--font); font-variant-numeric:tabular-nums; }
+  .phead .link { font:600 11px/16px var(--font); letter-spacing:.5px; color:var(--text-secondary); text-transform:uppercase; }
+
+  /* the header rule — toggled per version */
+  .hrule { height:1px; background:var(--border-subtle); border:0; margin-bottom:8px; margin-top:-8px; display:none; }
+  .show-rule .hrule { display:block; }
+
+  .rowline { height:1px; background:var(--border-subtle); }
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); }
+  .ic { width:34px; height:34px; border-radius:50%; flex:none; display:grid; place-items:center; font:700 10px/1 var(--font); color:#fff; }
+  .eth{background:linear-gradient(160deg,#8A9DF5,#5B72D8)} .btc{background:linear-gradient(160deg,#F9A03C,#E87B10)}
+  .gnus{background:linear-gradient(160deg,#3AD9C0,#1FA9C8)} .usdc{background:linear-gradient(160deg,#4A90E2,#2A6FC9)}
+  .usdt{background:linear-gradient(160deg,#3FC1A0,#1E8E72)} .sol{background:linear-gradient(160deg,#B57BFF,#7B4DD8)}
+  .nm { flex:1; min-width:0; }
+  .nm .t { font:500 14px/18px var(--font); }
+  .nm .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:2px; }
+  .amt { text-align:right; white-space:nowrap; font:600 14px/18px var(--font); font-variant-numeric:tabular-nums; }
+  .amt .s { display:block; color:var(--text-secondary); font:400 12px/16px var(--font); font-weight:400; margin-top:2px; }
+  .pos { color:var(--status-success); } .neg { color:var(--status-error); }
+  .pill { font:600 11px/1 var(--font); padding:3px 6px; border-radius:5px; }
+  .pill.up { background:var(--status-success-fill); color:var(--status-success); }
+  .pill.dn { background:var(--status-error-fill); color:var(--status-error); }
+  .time { font:400 11px/14px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; width:40px; flex:none; }
+  .badge { width:16px; height:16px; border-radius:50%; display:grid; place-items:center; position:absolute; right:-2px; bottom:-2px; border:2px solid var(--surface-sheen-b); }
+  .badge svg { width:8px; height:8px; fill:none; stroke-width:3.2; stroke-linecap:round; }
+  .idw { position:relative; flex:none; }
+
+  .fbar { display:inline-flex; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .fbar span { width:28px; height:28px; border-radius:var(--radius-pill); display:grid; place-items:center; color:var(--text-secondary); }
+  .fbar span.on { background:linear-gradient(90deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .fbar svg { width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  .balance { text-align:center; padding:var(--space-16) var(--space-8); }
+  .balance .k { color:var(--text-secondary); font:500 14px/20px var(--font); }
+  .balance .v { font:600 28px/36px var(--font); margin-top:var(--space-4); font-variant-numeric:tabular-nums; }
+  .balance .cta { margin-top:var(--space-10); display:inline-block; font:600 13px/18px var(--font); padding:10px 20px; border-radius:var(--radius-md); background:linear-gradient(90deg,#0AD89C,#0AAEE6); color:#000B18; }
+
+  .chartbox { height:120px; margin:var(--space-4) var(--space-4) 0; border-radius:var(--radius-md); background:linear-gradient(180deg,rgba(10,216,156,.16),transparent); position:relative; }
+  .chartbox svg { position:absolute; inset:0; width:100%; height:100%; }
+
+  .verdict { padding:var(--space-8); background:var(--surface-menu); border-left:3px solid var(--brand-primary-strong); border-radius:var(--radius-sm); font:400 13px/21px var(--font); color:var(--text-secondary); margin-bottom:var(--space-10); }
+  .verdict b { color:var(--text-primary); }
+  .verdict.rec { border-left-color:var(--status-success); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>016 · Dashboard separators — where the hairline belongs</h1>
+  <div class="seg" id="theme"><button data-v="dark" aria-pressed="true">Dark</button><button data-v="light" aria-pressed="false">Light</button></div>
+</div>
+
+<p class="lede">
+  <b>The audit changes the question.</b> Row separators are not missing anywhere — Assets, Markets and
+  Transactions all already draw a 1px <code>borderSubtle</code> hairline between rows. The only thing
+  that differs across the dashboard is the <b>rule under the panel header</b>, which Transactions
+  gained in Phase 12 and no other panel has. So this is not "should we add separators"; it is
+  "should the header rule exist, and if so where".
+  <br><br>
+  A second, smaller inconsistency the audit turned up: <b>Markets draws its row line with
+  <code>Container(height: 1)</code></b> while Assets and Transactions use <code>Divider</code>. Same
+  pixel, two widgets — worth unifying whichever version wins.
+</p>
+
+<table class="audit">
+  <tr><th>Panel</th><th>Row separator (today)</th><th>Header rule (today)</th><th>Source</th></tr>
+  <tr><td><b>Assets</b></td><td class="yes">Yes — <code>Divider(1, borderSubtle)</code></td><td class="no">No</td><td><code>coins_screen.dart:313</code></td></tr>
+  <tr><td><b>Markets</b></td><td class="yes">Yes — <code>Container(height: 1)</code></td><td class="no">No</td><td><code>dashboard_markets.dart:73</code></td></tr>
+  <tr><td><b>Transactions</b></td><td class="yes">Yes — <code>Divider(1, borderSubtle)</code></td><td class="yes">Yes <span class="tag new">Phase 12</span></td><td><code>transactions_slim_view.dart:210</code></td></tr>
+  <tr><td><b>Current Balance</b></td><td class="no">n/a — no list</td><td class="no">No</td><td><code>wallet_overview.dart</code></td></tr>
+  <tr><td><b>Bitcoin chart</b></td><td class="no">n/a — no list</td><td class="no">No</td><td><code>dashboard_screen.dart</code></td></tr>
+</table>
+
+<div class="tabs" id="variant">
+  <button data-v="A" aria-pressed="true">A · Rule on every panel</button>
+  <button data-v="B" aria-pressed="false">B · No rule anywhere</button>
+  <button data-v="C" aria-pressed="false">C · Rule only where content scrolls</button>
+</div>
+
+<div class="verdict" id="verdict"></div>
+
+<div class="grid" id="grid"></div>
+
+</div>
+
+<script>
+const G = {
+  up:'<line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/>',
+  down:'<line x1="17" y1="7" x2="7" y2="17"/><polyline points="16 17 7 17 7 8"/>',
+  pick:'<path d="M14.5 9.5 4 20"/><path d="M3 6.5c4-3 10-3 14 1"/><path d="M17.5 3.5c-3 4-3 10 1 14"/><path d="M12.5 7.5l4 4"/>',
+  server:'<rect x="3" y="4" width="18" height="6" rx="1.6"/><rect x="3" y="14" width="18" height="6" rx="1.6"/><path d="M7 7h.01M7 17h.01"/>',
+};
+const badge = (g,f,gc) => `<span class="badge" style="background:${f}"><svg viewBox="0 0 24 24" stroke="${gc}">${g}</svg></span>`;
+
+const ASSETS = [
+  ['gnus','GNUS','Genius Token','$0.77','−1.02%','dn'],
+  ['eth','ETH','Ethereum','$1,919.95','+1.24%','up'],
+  ['usdc','USDC','USD Coin','$1.00','+0.00%','up'],
+  ['usdt','USDT','Tether USD','$1.00','+0.01%','up'],
+];
+const MARKETS = [
+  ['gnus','GENIUS AI','$0.765815','−1.02%','dn'],
+  ['btc','Bitcoin','$66,236.00','+1.75%','up'],
+  ['eth','Ethereum','$1,918.90','+1.29%','up'],
+  ['sol','Solana','$77.93','+0.62%','up'],
+];
+const TXS = [
+  ['18:42','eth','ETH','Sent','0x9fF8…2e2b','− 0.75 ETH','$1,440.20','',G.up,'#64748B','#FFFFFF'],
+  ['15:10','btc','BTC','Received','0x1d9b…4a87','+ 0.0042 BTC','$278.19','pos',G.down,'#0AD89C','#04241A'],
+  ['21:55','gnus','GNUS','Minted','Minted to wallet','+ 1,200 GNUS','$924.00','pos',G.pick,'#C28FFF','#1B0733'],
+  ['20:14','gnus','GNUS','Computing','Job 0xabcd…7890','—','0.42 GNUS spent','',G.server,'#0AAEE6','#000B18'],
+];
+
+/* which panels carry a header rule, per version */
+const RULES = {
+  A: { balance:1, assets:1, chart:1, markets:1, txs:1 },
+  B: { balance:0, assets:0, chart:0, markets:0, txs:0 },
+  C: { balance:0, assets:1, chart:0, markets:1, txs:1 },
+};
+const VERDICT = {
+  A: '<b>A · Rule on every panel.</b> Total uniformity — every card reads the same way. Costs: the rule appears under headers that have nothing to separate (Current Balance has no list, the chart is one continuous graphic), where it reads as decoration; and it spends ~9px of vertical height on five panels, on a dashboard where panel height is the scarce resource. <span class="tag new">New</span> on four panels.',
+  B: '<b>B · No rule anywhere.</b> Reverts Transactions to match the other four — zero net change to the dashboard as it shipped. Cheapest, and consistent by subtraction. Costs: the Transactions header carries a filter bar and a live count, and without a rule those controls float directly above the rows they govern with nothing marking where the header ends. <span class="tag ex">Existing</span> everywhere; deletes one line.',
+  C: '<b>C · Rule only where content scrolls beneath a fixed header.</b> <span class="tag rec">Recommended</span> The rule stops being decoration and starts being <i>functional</i>: it marks the boundary that content passes under when the list scrolls. Assets, Markets and Transactions all scroll → they get it. Current Balance and the chart do not scroll → they do not. The presence of the rule then <b>tells you something</b> rather than just being consistent. Costs: two panels differ from three, so it is not uniform at a glance — the rule has to be understood, not just seen. <span class="tag new">New</span> on two panels.',
+};
+
+const S = { theme:'dark', variant:'A' };
+
+function panel(key, head, body, cls='') {
+  const on = RULES[S.variant][key];
+  return `<div class="panel ${on ? 'show-rule' : ''} ${cls}">
+    <div class="phead">${head}</div><hr class="hrule">${body}</div>`;
+}
+function rows(items, render) {
+  return items.map((it,i) => (i ? '<div class="rowline"></div>' : '') + render(it)).join('');
+}
+
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('verdict').innerHTML = VERDICT[S.variant];
+
+  const balance = panel('balance',
+    `<h3>Current Balance</h3>`,
+    `<div class="balance"><div class="k">No funds available</div>
+      <div class="v">$0.00</div><span class="cta">Create Processing Job</span></div>`);
+
+  const assets = panel('assets',
+    `<h3>Assets</h3><span class="val">$0.00</span>`,
+    rows(ASSETS, a => `<div class="row"><span class="ic ${a[0]}">${a[1]}</span>
+      <div class="nm"><div class="t">${a[2]}</div><div class="s">${a[3]} <span class="pill ${a[5]}">${a[4]}</span></div></div>
+      <div class="amt">$0.00<span class="s">0.0000 ${a[1]}</span></div></div>`));
+
+  const chart = panel('chart',
+    `<h3>Bitcoin · BTC</h3><div class="fbar"><span>1H</span><span class="on">1D</span><span>1W</span></div>`,
+    `<div class="chartbox"><svg viewBox="0 0 300 120" preserveAspectRatio="none">
+       <path d="M0,80 L30,66 L60,72 L90,48 L120,58 L150,40 L180,52 L210,34 L240,44 L270,28 L300,38"
+         fill="none" stroke="#0AD89C" stroke-width="2"/></svg></div>`);
+
+  const markets = panel('markets',
+    `<h3>Markets</h3><span class="link">View all →</span>`,
+    rows(MARKETS, m => `<div class="row"><span class="ic ${m[0]}">${m[0].toUpperCase()}</span>
+      <div class="nm"><div class="t">${m[1]}</div><div class="s">${m[2]}</div></div>
+      <span class="pill ${m[4]}">${m[3]}</span></div>`));
+
+  const txs = panel('txs',
+    `<h3>Transactions</h3>
+     <div class="fbar"><span class="on"><svg viewBox="0 0 24 24">${G.up}</svg></span>
+       <span><svg viewBox="0 0 24 24">${G.down}</svg></span>
+       <span><svg viewBox="0 0 24 24">${G.pick}</svg></span>
+       <span><svg viewBox="0 0 24 24">${G.server}</svg></span></div>`,
+    rows(TXS, t => `<div class="row"><span class="time">${t[0]}</span>
+      <span class="idw"><span class="ic ${t[1]}">${t[2]}</span>${badge(t[8],t[9],t[10])}</span>
+      <div class="nm"><div class="t">${t[2]} · ${t[3]}</div><div class="s">${t[4]}</div></div>
+      <div class="amt ${t[7]}">${t[5]}<span class="s">${t[6]}</span></div></div>`));
+
+  document.getElementById('grid').innerHTML =
+    `<div style="display:flex;flex-direction:column;gap:var(--space-6)">${balance}${chart}</div>
+     <div style="display:flex;flex-direction:column;gap:var(--space-6)">${assets}${markets}</div>
+     <div>${txs}</div>`;
+}
+
+['theme','variant'].forEach(g => document.getElementById(g).addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S[g] = b.dataset.v;
+  document.querySelectorAll('#'+g+' button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  render();
+}));
+render();
+</script>
+</body>
+</html>

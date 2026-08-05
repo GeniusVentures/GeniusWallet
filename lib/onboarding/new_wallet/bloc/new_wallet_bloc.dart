@@ -84,13 +84,13 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
     List<String> shuffledWords,
   ) {
     // Create a mapping from words to their indices in recoveryWords
-    Map<String, int> indexMap = {};
+    final Map<String, int> indexMap = {};
     for (int i = 0; i < recoveryWords.length; i++) {
       indexMap[recoveryWords[i]] = i;
     }
 
     // Get the indices of shuffledWords based on recoveryWords
-    List<int> indices = [];
+    final List<int> indices = [];
     for (String word in shuffledWords) {
       if (indexMap.containsKey(word)) {
         indices.add(indexMap[word]!);

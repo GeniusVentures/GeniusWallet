@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>114 · Markets Ledger — live data</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:#0A0C10; color:var(--text-primary); padding:var(--space-10); min-height:100vh; }
+  .wrap { max-width:1500px; margin:0 auto; }
+  .toolbar { display:flex; gap:14px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .toolbar h1 .muted { color:var(--text-secondary); font-weight:400; }
+  .prov { font:400 12px/1.6 var(--font); color:var(--text-secondary); margin-bottom:16px; max-width:1000px; }
+  .prov b{ color:var(--text-primary); } .prov .live{ color:var(--status-success); font-weight:600; }
+  .prov .newd{ color:var(--brand-primary); font-weight:600; }
+  .up { color:#2BD98C; } .dn { color:#FF5C5C; } .flat{ color:var(--text-secondary); }
+  .mono { font-variant-numeric:tabular-nums; }
+
+  /* terminal-dark window */
+  .win { border:1px solid rgba(255,255,255,.07); border-radius:14px; overflow:hidden; background:#07080C; box-shadow:0 24px 70px rgba(0,0,0,.55); }
+  .navbar { display:flex; align-items:center; gap:var(--space-8); height:44px; padding:0 22px; background:#0B0D12; border-bottom:1px solid rgba(255,255,255,.06); font:500 13px/16px var(--font); color:var(--text-secondary); }
+  .navbar .logo { width:19px; height:19px; border-radius:6px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); flex:none; }
+  .navbar .on { color:var(--text-primary); font-weight:600; position:relative; }
+  .navbar .on::after { content:""; position:absolute; left:0; right:0; bottom:-14px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary)); }
+  .navbar .spacer{ margin-left:auto; } .navbar .chip{ padding:5px 10px; border-radius:8px; background:rgba(255,255,255,.05); color:var(--text-primary); font:500 12px/16px var(--font); border:1px solid rgba(255,255,255,.08); }
+
+  .stage { padding:26px 26px 30px; }
+  /* page header row */
+  .mkthead { display:flex; align-items:center; gap:18px; margin-bottom:20px; }
+  .mkthead .title { font:600 15px/1 var(--font); letter-spacing:3px; }
+  .mkthead .right { margin-left:auto; display:flex; align-items:center; gap:18px; }
+  .breadth { display:flex; align-items:center; gap:10px; }
+  .breadth .bar { width:120px; height:5px; border-radius:999px; overflow:hidden; display:flex; }
+  .breadth .bar .g{ background:#2BD98C; } .breadth .bar .r{ background:#FF5C5C; }
+  .breadth .lbl { font:500 12px/1 var(--font); color:var(--text-secondary); }
+  .breadth .lbl .u{ color:#2BD98C; } .breadth .lbl .d{ color:#FF5C5C; }
+  .upd { font:400 12px/1 var(--font); color:var(--text-secondary); }
+  /* matches _TimeframeSegment (markets_hero_card.dart:373): surfaceMenu pill container, 3px pad, subtle border, radiusPill; segments pad 13/5 w600; active = elevated surface fill + textPrimary */
+  .dens { display:flex; align-items:center; background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-pill); padding:3px; }
+  .dens button { font:600 13px/1 var(--font); color:var(--text-secondary); background:transparent; border:0; padding:5px 13px; border-radius:var(--radius-pill); cursor:pointer; }
+  .dens button.on { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); border:1px solid var(--border-subtle); }
+
+  /* table */
+  .tbl { width:100%; }
+  /* column widths mirror markets_table.dart exactly: rank44 · coin(flex,min172) · price110 · change92 x3 · cap118 · vol118 · spark120; NO inter-column gap (fixed widths + right-align = the spacing), row padding horizontal space8(16) */
+  .trow { display:grid; grid-template-columns:44px minmax(172px,1fr) 110px 92px 92px 92px 118px 118px 120px; gap:0; align-items:center; padding:0 16px; }
+  .thead { padding:0 16px 12px; border-bottom:1px solid rgba(255,255,255,.08); font:600 9.5px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-secondary); }
+  .thead span { text-align:right; }
+  .thead span:nth-child(1),.thead span:nth-child(2),.thead span:last-child { text-align:left; }
+  .r { padding:0; border-bottom:1px solid rgba(255,255,255,.05); }
+  .r .cell-h { height:var(--rowh,58px); display:grid; grid-template-columns:44px minmax(172px,1fr) 110px 92px 92px 92px 118px 118px 120px; gap:0; align-items:center; padding:0 16px; }
+  .r .rk { font:500 11px/1 var(--font); color:var(--text-secondary); text-align:center; }
+  .r .coin { display:flex; align-items:center; gap:11px; }
+  .r .coin .ic { width:26px; height:26px; border-radius:50%; flex:none; display:grid; place-content:center; font:700 8px/1 var(--font); color:#04070D; box-shadow:inset 0 0 0 1px rgba(255,255,255,.14); }
+  .r .coin .nm { font:500 13.5px/1.3 var(--font); } .r .coin .sy { font:500 10px/1.3 var(--font); color:var(--text-secondary); }
+  .r .pr { font:600 13.5px/1 var(--font); text-align:right; font-variant-numeric:tabular-nums; }
+  .r .pct { font:500 12.5px/1 var(--font); text-align:right; font-variant-numeric:tabular-nums; }
+  .r .cap,.r .vol { font:500 12.5px/1 var(--font); text-align:right; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .r .spark { display:flex; justify-content:flex-end; } .r .spark svg{ width:120px; height:34px; }
+  .r:hover { background:rgba(255,255,255,.02); }
+  .badge { font:700 8px/1 var(--font); letter-spacing:.6px; text-transform:uppercase; padding:3px 6px; border-radius:5px; border:1px solid rgba(255,255,255,.18); color:var(--text-secondary); margin-left:8px; }
+
+  /* pinned native row */
+  .r.pin { position:relative; background:linear-gradient(90deg, rgba(20,200,255,.07), rgba(20,200,255,.01) 60%, transparent); border-bottom:1px solid rgba(255,255,255,.08); }
+  .r.pin::before { content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:2px; background:linear-gradient(180deg,var(--brand-primary),var(--brand-secondary)); }
+  .r.pin .cell-h { height:74px; }
+  .r.pin .coin .ic { width:30px; height:30px; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); }
+  .r.pin .coin .nm { font-size:15px; font-weight:600; } .r.pin .pr { font-size:16px; }
+  .r.pin .badge { border-color:transparent; background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary)); color:#00121A; }
+
+  .foot { margin-top:16px; font:400 11.5px/1.5 var(--font); color:var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <h1>114 · Markets Ledger — <span class="muted">live data · direction 1 in our system</span></h1>
+  </div>
+  <p class="prov">Direction 1 (Ledger) realised on our design system, populated with <span class="live">real CoinGecko data pulled just now</span> (GNUS = <b>genius-ai</b>, $0.79, +30.4% 24h). Stablecoins filtered for signal.
+    Columns <b>price · 24h% · market cap · volume · 7d spark</b> are <b>reuse</b> (shipped fields). <span class="newd">1H% and 7D%</span> come from the same
+    <code>/coins/markets</code> call with <code>price_change_percentage=1h,24h,7d</code> - one extra param + 2 model fields (minor new data).</p>
+
+  <div class="win">
+    <div class="navbar"><div class="logo"></div><span>Dashboard</span><span>Transactions</span><span>Swap</span><span class="on">Markets</span><span>News</span>
+      <span class="spacer"></span><span class="chip">0x1d9b…4a87</span></div>
+    <div class="stage">
+      <div class="mkthead">
+        <div class="title">MARKETS</div>
+        <div class="right">
+          <div class="breadth"><div class="bar" id="breadthbar"></div><div class="lbl" id="breadthlbl"></div></div>
+          <div class="upd">aktualizacja <span id="clock">14:32:07</span></div>
+          <div class="dens" id="dens"><button class="on" data-h="58">COMPACT</button><button data-h="76">COZY</button></div>
+        </div>
+      </div>
+      <div class="tbl">
+        <div class="trow thead"><span>#</span><span>Coin</span><span>Price</span><span>1H</span><span>24H</span><span>7D</span><span>Market cap</span><span>Volume 24H</span><span>Last 7D</span></div>
+        <div id="rows"></div>
+      </div>
+      <div class="foot">GNUS przypięty na górze listy - zostaje widoczny przy sortowaniu i przewijaniu. Reszta rynku jest jego kontekstem.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const RAW = [{"rank":0,"sym":"GNUS","nm":"GENIUS AI","pr":"$0.7855","h1":0.1,"h24":30.4,"d7":18,"mc":"$11.9M","vol":"$1.7K","spark":[0.6676,0.6585,0.6602,0.7542,0.7126,0.7184,0.4553,0.7564,0.7879,0.7531,0.778,0.7587,0.7739,0.839,0.8378,0.8208,0.6017,0.832,0.7743],"native":true},{"rank":1,"sym":"BTC","nm":"Bitcoin","pr":"$65,420","h1":0,"h24":-0.5,"d7":2.9,"mc":"$1.31T","vol":"$25.2B","spark":[62785.4234,63133.9889,63904.954,63958.5231,64438.1962,64796.9468,64420.9367,64488.942,64079.8485,64356.3592,65184.9214,66176.77,66175.6815,66273.3043,65966.7146,65888.6742,65659.1423,64862.9991,65033.0221]},{"rank":2,"sym":"ETH","nm":"Ethereum","pr":"$1,886","h1":0.3,"h24":-2.1,"d7":1.6,"mc":"$227.6B","vol":"$9.6B","spark":[1822.8388,1821.0809,1840.7681,1846.7047,1851.2982,1870.92,1870.0621,1866.0457,1854.5343,1865.7728,1901.7735,1938.4503,1918.1378,1929.4969,1926.3748,1926.2607,1921.6116,1895.2681,1876.95]},{"rank":3,"sym":"USDT","nm":"Tether","pr":"$0.9993","h1":0,"h24":0,"d7":0,"mc":"$184.0B","vol":"$40.1B","spark":[0.9994,0.9994,0.9994,0.9994,0.9994,0.9994,0.9993,0.9993,0.9994,0.9991,0.9994,0.9993,0.9994,0.9994,0.9993,0.9995,0.9995,0.9994,0.9994]},{"rank":4,"sym":"BNB","nm":"BNB","pr":"$568.21","h1":0.1,"h24":-0.4,"d7":-0.8,"mc":"$75.7B","vol":"$465.2M","spark":[567.2499,561.4259,567.7583,567.6013,571.0935,570.7985,567.5097,569.188,564.8316,567.0546,570.6204,577.1745,572.7469,572.2447,570.5369,570.2414,569.506,566.4556,566.9807]},{"rank":5,"sym":"USDC","nm":"USDC","pr":"$0.9997","h1":0,"h24":0,"d7":0,"mc":"$72.9B","vol":"$10.8B","spark":[0.9998,0.9998,0.9998,0.9998,0.9996,0.9997,0.9996,0.9995,0.9997,0.9996,0.9997,0.9997,0.9998,0.9998,0.9997,0.9998,0.9998,0.9998,0.9998]},{"rank":6,"sym":"XRP","nm":"XRP","pr":"$1.11","h1":0.3,"h24":-2.3,"d7":1.8,"mc":"$69.6B","vol":"$1.0B","spark":[1.0797,1.0818,1.0885,1.0887,1.0929,1.097,1.0962,1.0963,1.0873,1.0924,1.1112,1.1325,1.1568,1.1407,1.1381,1.1377,1.1339,1.1093,1.1068]},{"rank":7,"sym":"SOL","nm":"Solana","pr":"$75.85","h1":0.2,"h24":-2.3,"d7":0.7,"mc":"$44.2B","vol":"$1.5B","spark":[74.3406,74.2524,75.002,74.9161,75.3074,76.2774,76.0017,76.0996,75.8578,76.0698,77.7489,78.2651,77.6856,78.0756,77.5111,77.762,77.4935,76.3756,75.7639]},{"rank":8,"sym":"TRX","nm":"TRON","pr":"$0.3302","h1":0,"h24":0.3,"d7":2.4,"mc":"$31.3B","vol":"$380.1M","spark":[0.3218,0.3226,0.3226,0.3233,0.3245,0.3256,0.3271,0.3268,0.3263,0.3253,0.3267,0.3264,0.3282,0.3292,0.3298,0.3284,0.3287,0.3263,0.3287]},{"rank":9,"sym":"FIGR_HELOC","nm":"Figure Heloc","pr":"$1.04","h1":0,"h24":2.8,"d7":1.9,"mc":"$21.2B","vol":"$170.9M","spark":[1.0201,1.0199,1.0082,1.0266,1.0268,1.0233,1.0421,1.0089,1.0017,1.0014,1.0015,1.0029,1.006,1.0061,1.0078,1.0085,1.0086,1.0024,1.0032,1.0399]},{"rank":16,"sym":"WBT","nm":"WhiteBIT Coin","pr":"$56.72","h1":0.1,"h24":-0.9,"d7":2.3,"mc":"$16.7B","vol":"$10.2M","spark":[54.8432,54.9595,55.6828,55.4855,55.6276,56.3915,56.1546,56.1549,55.8565,55.9998,56.6923,57.6409,57.6027,57.6883,57.4101,57.3043,57.2753,56.6747,56.5903]},{"rank":10,"sym":"HYPE","nm":"Hyperliquid","pr":"$58.75","h1":0.1,"h24":-1.2,"d7":-2.7,"mc":"$13.1B","vol":"$364.7M","spark":[59.1923,60.1202,59.7392,58.7647,59.8245,60.8024,61.0684,61.3049,60.3075,60.8785,62.4209,62.9804,60.4573,60.7133,58.6416,59.2962,58.8523,59.8328,57.4932]},{"rank":11,"sym":"DOGE","nm":"Dogecoin","pr":"$0.0693","h1":0.3,"h24":-4.6,"d7":-4.3,"mc":"$10.8B","vol":"$757.7M","spark":[0.0715,0.0719,0.0725,0.0722,0.0724,0.0726,0.0725,0.0724,0.0717,0.0723,0.0721,0.0735,0.0732,0.0734,0.0726,0.0726,0.0724,0.0702,0.0691]},{"rank":12,"sym":"USDS","nm":"USDS","pr":"$1.00","h1":0,"h24":0,"d7":0,"mc":"$9.9B","vol":"$96.3M","spark":[1,1,1,1,1,1,0.9999,0.9999,1,0.9998,1,1,0.9999,0.9999,0.9998,0.9999,0.9999,0.9999,1.0001]},{"rank":13,"sym":"RAIN","nm":"Rain","pr":"$0.0139","h1":0.1,"h24":-2.9,"d7":-3.8,"mc":"$9.7B","vol":"$32.4M","spark":[0.0144,0.0141,0.0141,0.0141,0.014,0.0147,0.0146,0.0137,0.0143,0.0141,0.0141,0.014,0.0142,0.0156,0.0147,0.0143,0.0143,0.0141,0.014]},{"rank":14,"sym":"LEO","nm":"LEO Token","pr":"$9.59","h1":0.7,"h24":-1.3,"d7":-2,"mc":"$8.8B","vol":"$597.0K","spark":[9.8107,9.7952,9.8051,9.7679,9.7917,9.8143,9.8,9.7921,9.7197,9.6891,9.7375,9.7251,9.7119,9.7327,9.7216,9.7147,9.7007,9.7211,9.7228]},{"rank":15,"sym":"ZEC","nm":"Zcash","pr":"$508.57","h1":-0.1,"h24":-0.7,"d7":-5.8,"mc":"$8.5B","vol":"$212.2M","spark":[532.0176,538.293,547.2815,538.7935,559.0519,559.2988,555.4421,551.3515,532.0304,529.158,542.4718,541.3219,536.4024,530.402,513.076,513.1764,514.2969,514.2244,504.801]},{"rank":17,"sym":"XMR","nm":"Monero","pr":"$355.74","h1":0.9,"h24":2.1,"d7":7.9,"mc":"$6.7B","vol":"$96.3M","spark":[329.5336,322.488,330.3867,328.2518,333.0122,337.6271,336.3305,335.1311,333.1373,333.1629,337.2827,344.854,347.3033,355.4707,350.0378,350.0882,352.0355,350.5299,354.9098]},{"rank":18,"sym":"LINK","nm":"Chainlink","pr":"$8.47","h1":0.2,"h24":-1.6,"d7":1.9,"mc":"$6.3B","vol":"$153.5M","spark":[8.1746,8.1024,8.2505,8.2524,8.2952,8.3689,8.3518,8.3615,8.3282,8.3557,8.5813,8.695,8.6188,8.6872,8.6338,8.6389,8.5713,8.4709,8.4536]},{"rank":19,"sym":"XLM","nm":"Stellar","pr":"$0.1836","h1":0.5,"h24":0,"d7":-0.2,"mc":"$6.3B","vol":"$135.0M","spark":[0.1826,0.1855,0.1855,0.1846,0.1876,0.1879,0.1881,0.1916,0.1856,0.1861,0.1884,0.1925,0.1932,0.1924,0.1895,0.1869,0.1845,0.1816,0.1821]},{"rank":20,"sym":"ADA","nm":"Cardano","pr":"$0.1670","h1":-0.3,"h24":-4.4,"d7":4,"mc":"$6.2B","vol":"$229.2M","spark":[0.1581,0.1627,0.1667,0.1662,0.1652,0.1681,0.1649,0.1664,0.1622,0.1623,0.1696,0.1745,0.1733,0.1742,0.1728,0.1744,0.1742,0.1694,0.1678]},{"rank":21,"sym":"CC","nm":"Canton","pr":"$0.1221","h1":0.2,"h24":0.5,"d7":-7.5,"mc":"$4.8B","vol":"$9.3M","spark":[0.1318,0.1286,0.128,0.1253,0.1254,0.1241,0.1256,0.1274,0.126,0.1233,0.1245,0.1255,0.1246,0.1268,0.1243,0.1219,0.1216,0.1186,0.1221]},{"rank":22,"sym":"DAI","nm":"Dai","pr":"$0.9999","h1":0,"h24":0,"d7":0,"mc":"$4.6B","vol":"$218.5M","spark":[1.0002,1.0001,1.0001,1.0001,0.9999,0.9999,0.9999,0.9998,1,0.9999,0.9998,1.0001,1,1.0001,0.9999,1,1,1,1.0002]},{"rank":23,"sym":"BCH","nm":"Bitcoin Cash","pr":"$211.88","h1":0.2,"h24":-2.9,"d7":-5.4,"mc":"$4.3B","vol":"$93.1M","spark":[221.8385,217.2728,219.7878,218.6132,220.7811,219.5992,217.1797,217.0856,211.2341,215.0038,219.824,223.5419,224.7209,225.253,221.1932,218.95,217.4509,214.4042,211.6871]},{"rank":24,"sym":"USD1","nm":"USD1","pr":"$0.9990","h1":0,"h24":0,"d7":0,"mc":"$4.2B","vol":"$279.1M","spark":[0.9991,0.9993,0.9993,0.9994,0.9993,0.9993,0.9991,0.9991,0.9993,0.999,0.9993,0.999,0.9992,0.9992,0.999,0.9993,0.9991,0.9991,0.9991]},{"rank":25,"sym":"GRAM","nm":"Gram (prev. Toncoin)","pr":"$1.47","h1":0.4,"h24":-3,"d7":-2.2,"mc":"$4.0B","vol":"$29.5M","spark":[1.4222,1.5363,1.4977,1.4832,1.4671,1.4651,1.4465,1.453,1.4453,1.4132,1.4348,1.4673,1.5239,1.5803,1.5091,1.5114,1.5131,1.4868,1.4612]},{"rank":26,"sym":"USDE","nm":"Ethena USDe","pr":"$0.9996","h1":0,"h24":0,"d7":0,"mc":"$4.0B","vol":"$38.6M","spark":[0.9996,0.9998,0.9999,1,0.9999,0.9999,0.9999,0.9998,0.9999,0.9997,0.9998,0.9997,1,0.9996,0.9997,0.9998,0.9998,0.9997,0.9999]},{"rank":27,"sym":"LTC","nm":"Litecoin","pr":"$46.95","h1":0,"h24":-1.1,"d7":2.6,"mc":"$3.6B","vol":"$248.9M","spark":[45.1036,44.4967,45.1354,45.4038,47.4392,47.1961,46.9414,47.526,46.9785,46.6412,47.3018,47.5756,47.2524,46.574,46.5162,47.2579,47.0434,46.555,46.9312]},{"rank":28,"sym":"USDG","nm":"Global Dollar","pr":"$1.00","h1":0,"h24":0,"d7":0,"mc":"$3.3B","vol":"$65.8M","spark":[1.0002,1.0002,1.0002,1.0001,1.0001,1.0002,1,1,1.0001,1,1.0001,1.0001,1,1,1,1,1,1.0001,1]}];
+const STABLE = new Set(['USDT','USDC','USDS','DAI','USD1','USDE','USDG','FDUSD','TUSD','PYUSD']);
+const COINS = RAW.filter(c=>c.native || !STABLE.has(c.sym));
+function hue(sym){ let h=0; for(const ch of sym) h=(h*31+ch.charCodeAt(0))%360; return h; }
+const icon = c => c.native
+  ? `<span class="ic">G</span>`
+  : `<span class="ic" style="background:linear-gradient(135deg,hsl(${hue(c.sym)} 70% 58%),hsl(${(hue(c.sym)+40)%360} 70% 48%))">${c.sym.slice(0,2)}</span>`;
+const pct = v => { if(v==null) return '<span class="pct flat">—</span>'; const cls=v>0.05?'up':v<-0.05?'dn':'flat'; const s=(v>=0?'+':'')+v.toFixed(2)+'%'; return `<span class="pct ${cls}">${s}</span>`; };
+function spark(pts,up){ if(!pts||pts.length<2) return ''; const w=120,h=34,pad=4,max=Math.max(...pts),min=Math.min(...pts),R=(max-min)||1,st=w/(pts.length-1);
+  const P=pts.map((p,i)=>[i*st,h-pad-((p-min)/R)*(h-2*pad)]); const line='M'+P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
+  const c=up?'#2BD98C':'#FF5C5C'; const area=line+` L${w},${h} L0,${h} Z`;
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="s${Math.random().toString(36).slice(2,7)}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".22"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="${c}" fill-opacity=".08"/><path d="${line}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`; }
+function rowHTML(c){ const up7=(c.d7??0)>=0; return `<div class="r ${c.native?'pin':''}"><div class="cell-h">
+  <span class="rk">${c.native?'—':c.rank}</span>
+  <span class="coin">${icon(c)}<span><span class="nm">${c.nm}</span><br><span class="sy">${c.sym}</span></span></span>
+  <span class="pr">${c.pr}</span>
+  ${pct(c.h1)}${pct(c.h24)}${pct(c.d7)}
+  <span class="cap">${c.mc}</span><span class="vol">${c.vol}</span>
+  <span class="spark">${spark(c.spark,up7)}</span></div></div>`; }
+
+// render
+const native=COINS.find(c=>c.native), rest=COINS.filter(c=>!c.native).sort((a,b)=>a.rank-b.rank);
+document.getElementById('rows').innerHTML = rowHTML(native)+rest.map(rowHTML).join('');
+// breadth (24h)
+const up=rest.filter(c=>(c.h24??0)>=0).length, dn=rest.length-up, tot=rest.length;
+document.getElementById('breadthbar').innerHTML=`<div class="g" style="width:${up/tot*100}%"></div><div class="r" style="width:${dn/tot*100}%"></div>`;
+document.getElementById('breadthlbl').innerHTML=`<span class="u">${up} ↑</span> · <span class="d">${dn} ↓</span>`;
+// density toggle
+document.getElementById('dens').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
+  document.querySelectorAll('#dens button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.r:not(.pin) .cell-h').forEach(el=>el.style.setProperty('--rowh',b.dataset.h+'px'));
+  document.querySelectorAll('.r:not(.pin) .cell-h').forEach(el=>el.style.height=b.dataset.h+'px'); });
+// clock (browser-side; the data itself is the pulled snapshot)
+function tick(){ const d=new Date(); document.getElementById('clock').textContent=[d.getHours(),d.getMinutes(),d.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':'); }
+tick(); setInterval(tick,1000);
+</script>
+</body>
+</html>

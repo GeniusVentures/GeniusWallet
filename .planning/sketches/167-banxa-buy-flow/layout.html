@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 167 · Layout — how Buy GNUS fills the page</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   Where does the Buy page's content sit, and how much of the frame does it use?
+
+   The app has exactly TWO page archetypes, and both share one outer frame:
+
+     Align(topCenter)
+       Padding.fromLTRB(12, space32=64, 12, space8=16)
+         ConstrainedBox(maxWidth: GeniusBreakpoints.xxl = 1536)
+
+     A · CONTENT PAGE  — header left-aligned, content full frame width
+         transactions_screen.dart:49-113 · markets_screen.dart:73-96
+         crypto_news_screen.dart:115-131 · token_info_screen.dart:205-208
+     B · FOCUSED FORM  — same outer frame, then a NESTED ConstrainedBox(560)
+         and GWPageHeader(centered: true)
+         swap_screen.dart:605-654
+
+   Buy is a form (archetype B) that also owns a history (archetype A). That
+   collision is the whole question. Every option below is drawn INSIDE the real
+   frame, at real proportions, so "how much surface does it cover" is answered
+   by looking rather than by arguing.
+   ─────────────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; }
+body { background: var(--surface-base); color: var(--text-primary);
+       font-family: var(--font); padding-top: 104px; -webkit-font-smoothing: antialiased; }
+
+#bar { position:fixed; top:0; left:0; right:0; z-index:9998; background:#05070A;
+  border-bottom:1px solid rgba(255,255,255,.14); padding:8px 12px 0; }
+#bar .row { display:flex; gap:4px; flex-wrap:wrap; }
+#bar .meta { font:400 11px/22px var(--font); color:#5A606E; padding:4px 4px 8px;
+  display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+#bar .meta b { color:#0AD89C; }
+.tab { background:transparent; border:1px solid transparent; color:#8A8F9D;
+  font:600 12px/16px var(--font); letter-spacing:.3px; padding:7px 11px;
+  border-radius:8px 8px 0 0; cursor:pointer; transition:all .15s ease; white-space:nowrap; }
+.tab:hover { background:rgba(20,200,255,.08); color:#fff; }
+.tab.active { background:var(--surface-base); color:#fff;
+  border-color:rgba(255,255,255,.14); border-bottom-color:var(--surface-base); }
+
+#tools { position:fixed; bottom:12px; right:12px; z-index:9999; font:400 12px/1 var(--font);
+  background:rgba(0,0,0,.85); color:#fff; padding:8px 10px; border-radius:10px; opacity:.4;
+  transition:opacity .2s; display:flex; gap:8px; align-items:center;
+  border:1px solid rgba(255,255,255,.14); }
+#tools:hover { opacity:1; }
+#tools button, #tools select { background:rgba(255,255,255,.09); color:#fff;
+  border:1px solid rgba(255,255,255,.18); border-radius:6px; padding:5px 8px;
+  font:500 11px/1 var(--font); cursor:pointer; }
+#tools button.on { background:#14C8FF; color:#05070A; border-color:#14C8FF; }
+
+.board { display:none; }
+.board.active { display:block; }
+.head { max-width:1180px; margin:0 auto 16px; padding:12px 14px;
+  border-left:3px solid var(--brand-primary); background:rgba(20,200,255,.06);
+  border-radius:0 8px 8px 0; }
+.head h2 { margin:0 0 4px; font:600 15px/20px var(--font); }
+.head p { margin:0; font:400 13px/19px var(--font); color:var(--text-secondary); }
+.head .src { margin-top:6px; font:400 11px/16px var(--font-mono); color:var(--brand-secondary); }
+
+/* ── The real page frame, drawn to scale ─────────────────────────────────── */
+.viewport { margin:0 auto; background:var(--surface-base); position:relative;
+  border:1px solid rgba(255,255,255,.10); border-radius:6px; overflow:hidden;
+  transition:width .25s ease; }
+.vpLabel { position:absolute; top:6px; right:8px; z-index:5;
+  font:600 9px/1 var(--font-mono); color:#5A606E; }
+/* navbar stand-in — appBarHeight 68, genius_wallet_consts.dart:14 */
+.navbar { height:68px; border-bottom:1px solid var(--border-subtle);
+  background:var(--surface-elevated); display:flex; align-items:center;
+  padding:0 20px; gap:18px; }
+.navbar .brand { font:700 15px/1 var(--font); color:var(--brand-primary); }
+.navbar .nav { font:500 12px/1 var(--font); color:var(--text-secondary); }
+.navbar .nav.on { color:var(--text-primary); }
+
+.frame { padding:64px 12px 16px; }          /* fromLTRB(12, space32, 12, space8) */
+.cap { max-width:1536px; margin:0 auto; position:relative; }
+body.showFrame .cap { outline:1px dashed rgba(20,200,255,.45); outline-offset:0; }
+body.showFrame .cap::before { content:'ConstrainedBox 1536'; position:absolute; top:-16px; left:0;
+  font:600 9px/1 var(--font-mono); color:#14C8FF; }
+.focus { max-width:560px; margin:0 auto; position:relative; }
+body.showFrame .focus { outline:1px dashed rgba(255,196,46,.6); }
+body.showFrame .focus::before { content:'nested ConstrainedBox 560'; position:absolute;
+  top:-16px; left:0; font:600 9px/1 var(--font-mono); color:#FFC42E; }
+
+.pageTitle { font:600 24px/32px var(--font); letter-spacing:-.4px; margin:0; }
+.pageSub { font:400 14px/20px var(--font); color:var(--text-secondary); margin-top:2px; }
+.hdr { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.hdr.mid { flex-direction:column; text-align:center; gap:2px; }
+.kicker { font:600 13px/18px var(--font); letter-spacing:.5px; text-transform:uppercase;
+  color:var(--text-secondary); }
+.kickerDense { font:600 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase;
+  color:var(--text-secondary); }
+.card { background:var(--surface-elevated); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md); padding:16px; }
+.well { background:var(--surface-sunken); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm); padding:12px; }
+.field { width:100%; height:48px; border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); display:flex; align-items:center; padding:0 12px;
+  font:600 17px/1 var(--font); font-variant-numeric:tabular-nums; }
+.selBox { width:100%; height:48px; border-radius:var(--radius-sm); background:var(--surface-sunken);
+  border:1px solid var(--border-subtle); display:flex; align-items:center; gap:8px;
+  padding:0 12px; font:400 14px/1 var(--font); cursor:pointer; transition:all .15s ease; }
+.selBox:hover { border-color:rgba(20,200,255,.45); }
+.selBox .g { margin-left:auto; color:var(--text-secondary); }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:40px;
+  padding:0 16px; border-radius:999px; cursor:pointer; font:600 14px/20px var(--font);
+  border:1px solid var(--border-strong); background:transparent; color:var(--text-primary);
+  transition:all .15s ease; }
+.btn:hover { background:rgba(20,200,255,.10); border-color:rgba(20,200,255,.45); }
+.btn.fill { background:linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+  border-color:transparent; color:var(--text-on-brand); }
+.btn.wide { width:100%; height:48px; }
+.btn.sm { height:32px; padding:0 12px; font-size:13px; }
+.grid { background:var(--surface-sunken); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-sm); overflow:hidden; }
+.grid .r { display:flex; justify-content:space-between; gap:12px; padding:11px 12px;
+  border-bottom:1px solid var(--border-subtle); }
+.grid .r:last-child { border-bottom:0; }
+.grid .k { font:400 14px/20px var(--font); color:var(--text-primary-70); }
+.grid .v { font:400 14px/20px var(--font); font-variant-numeric:tabular-nums; }
+.chipRow { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { font:600 13px/18px var(--font); padding:6px 12px; border-radius:999px;
+  background:var(--surface-menu); border:1px solid var(--border-subtle);
+  color:var(--text-secondary); cursor:pointer; }
+.chip.on { color:#fff; border-color:rgba(20,200,255,.55); background:rgba(20,200,255,.16); }
+.pill { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px;
+  font:600 12px/17px var(--font); }
+.pill.ok{background:var(--status-success-fill);color:var(--status-success)}
+.pill.warn{background:rgba(255,196,46,.14);color:var(--status-warning)}
+.pill.err{background:var(--status-error-fill);color:var(--status-error)}
+.dot { width:7px;height:7px;border-radius:4px; }
+.dot.ok{background:var(--status-success)} .dot.warn{background:var(--status-warning)}
+.dot.err{background:var(--status-error)}
+
+/* orders table — same anatomy as the markets table / transactions rows */
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { text-align:left; padding:8px 12px; font:600 11px/16px var(--font);
+  letter-spacing:.6px; text-transform:uppercase; color:var(--text-secondary);
+  border-bottom:1px solid var(--border-subtle); }
+.tbl td { padding:12px; font:400 14px/20px var(--font); border-bottom:1px solid var(--border-subtle); }
+.tbl tr:last-child td { border-bottom:0; }
+.tbl tr.row:hover td { background:rgba(20,200,255,.05); cursor:pointer; }
+.tbl .num { font-variant-numeric:tabular-nums; }
+
+.orderMini { display:flex; align-items:center; gap:10px; padding:10px 0;
+  border-bottom:1px solid var(--border-subtle); }
+.orderMini:last-child { border-bottom:0; }
+
+/* dead-space visualiser */
+.dead { position:absolute; inset:0; pointer-events:none; display:none; }
+body.showDead .dead { display:block; }
+.dead i { position:absolute; background:repeating-linear-gradient(45deg,
+  rgba(255,77,77,.14) 0 8px, transparent 8px 16px); border:1px dashed rgba(255,77,77,.45); }
+.dead span { position:absolute; font:600 10px/1 var(--font-mono); color:#FF4D4D; }
+
+.note { max-width:1180px; margin:18px auto 0; padding:11px 13px; border-radius:8px;
+  background:rgba(255,255,255,.04); border:1px solid var(--border-subtle);
+  font:400 12px/18px var(--font); color:var(--text-secondary); }
+.note b { color:var(--text-primary); font-weight:600; }
+.note code { font:400 11px/1.5 var(--font-mono); color:var(--brand-primary); }
+.verdict { display:flex; gap:8px; flex-wrap:wrap; max-width:1180px; margin:14px auto 0; }
+.vd { flex:1; min-width:220px; padding:10px 12px; border-radius:8px;
+  border:1px solid var(--border-subtle); font:400 12px/17px var(--font);
+  color:var(--text-secondary); background:rgba(255,255,255,.02); }
+.vd b { display:block; color:var(--text-primary); font:600 11px/16px var(--font-mono);
+  letter-spacing:.3px; margin-bottom:3px; }
+.vd.good b { color:#0AD89C; } .vd.bad b { color:#FF4D4D; }
+</style>
+</head>
+<body class="showFrame">
+
+<div id="bar">
+  <div class="row" id="tabRow"></div>
+  <div class="meta">
+    <span id="meta"></span>
+    <span style="color:#5A606E">Frame is identical on every option — only the CONTENT differs.</span>
+  </div>
+</div>
+<div id="stage"></div>
+
+<div id="tools">
+  <select id="vp">
+    <option value="1920">1920</option>
+    <option value="1600" selected>1600</option>
+    <option value="1280">1280</option>
+    <option value="1024">1024</option>
+    <option value="768">768</option>
+  </select>
+  <button id="frameBtn" class="on">Frame</button>
+  <button id="deadBtn">Dead space</button>
+</div>
+
+<script>
+/* ── Reusable page furniture ─────────────────────────────────────────────── */
+const navbar = () => `<div class="navbar">
+  <span class="brand">GENIUS</span>
+  <span class="nav">Dashboard</span><span class="nav">Transactions</span>
+  <span class="nav">Markets</span><span class="nav">News</span>
+  <span class="nav on">Buy GNUS</span>
+  <span style="margin-left:auto" class="nav">0x7a3f…c209</span></div>`;
+
+const header = (centered, sub, trailing) => centered
+  ? `<div class="hdr mid"><h1 class="pageTitle">Buy GNUS</h1>
+       ${sub?`<div class="pageSub">${sub}</div>`:''}</div>`
+  : `<div class="hdr"><div style="flex:1"><h1 class="pageTitle">Buy GNUS</h1>
+       ${sub?`<div class="pageSub">${sub}</div>`:''}</div>${trailing||''}</div>`;
+
+const buyForm = (compact) => `<div class="card">
+  <span class="kickerDense" style="display:block;margin-bottom:6px">You spend</span>
+  <div class="field">$500.00</div>
+  <div style="height:10px"></div>
+  <div class="chipRow">
+    <span class="chip">$100</span><span class="chip on">$500</span>
+    <span class="chip">$1,000</span><span class="chip">$5,000</span></div>
+  <div style="height:14px"></div>
+  <div style="display:${compact?'block':'grid'};grid-template-columns:1fr 1fr;gap:12px">
+    <div><span class="kickerDense" style="display:block;margin-bottom:6px">Currency</span>
+      <div class="selBox">US Dollar<span class="g">▾</span></div></div>
+    ${compact?'<div style="height:12px"></div>':''}
+    <div><span class="kickerDense" style="display:block;margin-bottom:6px">Payment method</span>
+      <div class="selBox">Visa •••• 4471<span class="g">▾</span></div></div>
+  </div>
+  <div style="height:14px"></div>
+  <div class="grid">
+    <div class="r"><span class="k">You get</span><span class="v">1,540.02 GNUS</span></div>
+    <div class="r"><span class="k">Rate</span><span class="v">1 GNUS = $0.3247</span></div>
+    <div class="r"><span class="k">Banxa fee</span><span class="v">$7.45</span></div>
+  </div>
+  <div style="height:16px"></div>
+  <button class="btn fill wide">Buy GNUS</button>
+</div>`;
+
+const ORDERS = [
+  ['BNX-4471','Completed','ok','$500.00','1,540.02 GNUS','30 Jul, 14:22'],
+  ['BNX-4468','Awaiting payment','warn','$250.00','770.01 GNUS','29 Jul, 09:10'],
+  ['BNX-4462','Declined','err','$100.00','—','27 Jul, 18:44'],
+  ['BNX-4455','Completed','ok','$1,000.00','3,081.30 GNUS','24 Jul, 11:02']
+];
+
+const ordersTable = () => `<div class="card" style="padding:0;overflow:hidden">
+  <table class="tbl"><thead><tr>
+    <th>Order</th><th>Status</th><th>Paid</th><th>Received</th><th>Date</th><th></th>
+  </tr></thead><tbody>
+  ${ORDERS.map(o=>`<tr class="row">
+    <td class="num">${o[0]}</td>
+    <td><span class="pill ${o[2]}"><span class="dot ${o[2]}"></span>${o[1]}</span></td>
+    <td class="num">${o[3]}</td><td class="num">${o[4]}</td>
+    <td style="color:var(--text-secondary)">${o[5]}</td>
+    <td style="text-align:right"><button class="btn sm">Details</button></td>
+  </tr>`).join('')}
+  </tbody></table></div>`;
+
+const ordersRail = (n) => `<div class="card">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <span class="kicker" style="flex:1">Your orders</span>
+    <button class="btn sm">View all</button></div>
+  ${ORDERS.slice(0,n||3).map(o=>`<div class="orderMini">
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="pill ${o[2]}"><span class="dot ${o[2]}"></span>${o[1]}</span></div>
+      <div style="font:600 14px/20px var(--font);margin-top:5px" class="num">${o[3]}</div>
+      <div style="font:400 12px/17px var(--font);color:var(--text-secondary)">${o[5]}</div>
+    </div></div>`).join('')}
+</div>`;
+
+const verifyCard = () => `<div class="card" style="margin-bottom:16px">
+  <span class="kicker" style="display:block;margin-bottom:10px">Verification</span>
+  <span class="pill ok"><span class="dot ok"></span>Verified with Banxa</span></div>`;
+
+/* ── The page frame, identical everywhere ────────────────────────────────── */
+/* The dead-space overlay is rendered INLINE with the frame rather than injected
+   afterwards through getElementById. One less ordering dependency, and it means
+   the overlay is part of the returned markup, so it can be asserted. */
+const deadLayer = (regions) => `<div class="dead">${(regions||[]).map(d =>
+  `<i style="left:${d.l};top:${d.t};width:${d.w};height:${d.h}"></i>
+   <span style="left:calc(${d.l} + 8px);top:calc(${d.t} + 8px)">${d.lbl}</span>`).join('')}</div>`;
+
+const page = (inner, dead) => `<div class="viewport" style="width:var(--vpw)">
+  <span class="vpLabel" id="vpl"></span>
+  ${navbar()}
+  <div class="frame"><div class="cap">${inner}${deadLayer(dead)}</div></div>
+</div>`;
+
+/* ═══ LAYOUT OPTIONS ══════════════════════════════════════════════════════ */
+const OPTS = [
+  {
+    id:'l1', tab:'L1 · Focused form', name:'L1 · Focused form — Swap\'s twin',
+    src:'swap_screen.dart:605-654 · nested ConstrainedBox(560) + GWPageHeader(centered: true)',
+    thesis:'Archetype B, unchanged. Buy is a form, Swap is a form, so Buy looks exactly like Swap. Order history lives on its own route behind a link. Turn on "Dead space" — this is the option the question is really about.',
+    dead: [{l:'0', t:'56px', w:'calc(50% - 292px)', h:'620px', lbl:'unused · ~490px'},
+           {l:'calc(50% + 292px)', t:'56px', w:'calc(50% - 292px)', h:'620px', lbl:'unused · ~490px'}],
+    body: function () { return page(`<div class="focus">${header(true,'Powered by Banxa')}
+      ${buyForm(true)}
+      <div style="height:14px"></div>
+      <div style="text-align:center"><button class="btn sm">Your orders · 4</button></div>
+    </div>`, this.dead); },
+    verdicts:[['good','CONSISTENT','Identical to Swap. A user who has swapped already knows this page.'],
+              ['bad','~62% OF THE FRAME UNUSED','At 1536 the form uses 560. Two empty columns of ~490px each.'],
+              ['bad','HISTORY IS A ROUND TRIP','Checking an order means leaving the page and coming back.']]
+  },
+  {
+    id:'l2', tab:'L2 · Form + rail', name:'L2 · Form + rail — orders BESIDE',
+    src:'the coin page\'s own split · token_info_screen.dart:258-273 (IntrinsicHeight Row, flex 2:1)',
+    thesis:'Archetype A. Form takes the left 2fr, a right rail carries verification state and recent orders. The frame is filled, and the answer to "did my last order go through?" is on screen while you start the next one.',
+    body: () => page(`${header(false,'Powered by Banxa',
+      '<button class="btn sm">All orders · 4</button>')}
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start">
+        <div>${buyForm(false)}</div>
+        <div>${verifyCard()}${ordersRail(3)}</div>
+      </div>`),
+    dead: [],
+    verdicts:[['good','FRAME FILLED','Same 2:1 split the coin page already uses for chart | Info+Convert.'],
+              ['good','HISTORY IN PERIPHERAL VIEW','No round trip to answer "did the last one land?"'],
+              ['bad','WEAK EMPTY STATE','On a first visit the rail has nothing to say — 157-B named this.']]
+  },
+  {
+    id:'l3', tab:'L3 · Form над table', name:'L3 · Form on top, orders BELOW full width',
+    src:'transactions_screen.dart:113 — header, then a full-width data view',
+    thesis:'Archetype A, stacked. A wide form card with fields laid out horizontally, then the order history as a real table underneath — the same anatomy the Transactions tab uses. This is the "poniżej" half of the question.',
+    body: () => page(`${header(false,'Powered by Banxa')}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+        <div>${buyForm(false)}</div>
+        <div>${verifyCard()}
+          <div class="card"><span class="kicker" style="display:block;margin-bottom:10px">Summary</span>
+          <div class="grid">
+            <div class="r"><span class="k">You spend</span><span class="v">$500.00</span></div>
+            <div class="r"><span class="k">You get</span><span class="v">1,540.02 GNUS</span></div>
+            <div class="r"><span class="k">Banxa fee</span><span class="v">$7.45</span></div>
+            <div class="r"><span class="k">Settles in</span><span class="v">~10 min</span></div>
+          </div></div></div>
+      </div>
+      <div style="height:26px"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span class="kicker" style="flex:1">Your orders</span>
+        <span class="chip on">All · 4</span><span class="chip">Pending · 1</span>
+        <span class="chip">Completed · 2</span><span class="chip">Declined · 1</span></div>
+      ${ordersTable()}`),
+    dead: [],
+    verdicts:[['good','ONE PAGE, EVERYTHING','Buy and history without a route change.'],
+              ['good','TABLE MATCHES TRANSACTIONS','Same row anatomy the app already teaches.'],
+              ['bad','TALL','The buy CTA and the history cannot both be above the fold.']]
+  },
+  {
+    id:'l4', tab:'L4 · 50/50 split', name:'L4 · Equal split — form | orders',
+    src:'no precedent in the app — included so the option is seen, not argued about',
+    thesis:'Form left, full order list right, both at 1fr. Maximum information density. Drawn because "obok" could mean this rather than a rail, and the difference is worth seeing.',
+    body: () => page(`${header(false,'Powered by Banxa')}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+        <div>${buyForm(true)}</div>
+        <div><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span class="kicker" style="flex:1">Your orders</span>
+          <span class="chip on">All · 4</span><span class="chip">Pending · 1</span></div>
+          ${ordersTable()}</div>
+      </div>`),
+    dead: [],
+    verdicts:[['bad','NO PRECEDENT','Nothing else in the app splits a page 50/50.'],
+              ['bad','GIVES HISTORY EQUAL BILLING','The page is called Buy GNUS; half of it is not buying.'],
+              ['good','DENSE','Everything visible at once on a wide window.']]
+  },
+  {
+    id:'l5', tab:'★ L5 · Recommended', name:'L5 · Focused form, orders below — the hybrid',
+    src:'swap_screen.dart:634 (focused column) + transactions_screen.dart:113 (full-width section)',
+    thesis:'The form keeps Swap\'s focused 560 column so buying feels like the app\'s other form. Underneath, the frame opens back to full width for the order history. Buy stays the page\'s subject; history is present without competing for it.',
+    body: () => page(`<div class="focus">${header(true,'Powered by Banxa')}${buyForm(true)}</div>
+      <div style="height:34px"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span class="kicker" style="flex:1">Your orders</span>
+        <span class="chip on">All · 4</span><span class="chip">Pending · 1</span>
+        <span class="chip">Completed · 2</span><span class="chip">Declined · 1</span></div>
+      ${ordersTable()}`),
+    dead: [],
+    verdicts:[['good','BUY STAYS THE SUBJECT','Centred 560 form reads as the page\'s one job.'],
+              ['good','FRAME EARNS ITS WIDTH','The table below uses the full 1536 — no dead columns.'],
+              ['good','NO ROUTE CHANGE','History is a scroll, not a navigation.']]
+  }
+];
+
+/* ═══ RENDER ══════════════════════════════════════════════════════════════ */
+let cur = 'l5';
+function render() {
+  const o = OPTS.find(x=>x.id===cur);
+  document.getElementById('tabRow').innerHTML = OPTS.map(x =>
+    `<button class="tab ${x.id===cur?'active':''}" ${x.id==='l5'?'style="color:#0AD89C"':''}
+      onclick="pick('${x.id}')">${x.tab}</button>`).join('');
+  document.getElementById('meta').innerHTML =
+    'Page frame: <b>Align(topCenter) → Padding(12, 64, 12, 16) → ConstrainedBox(1536)</b>';
+  document.getElementById('stage').innerHTML = `
+    <div class="head"><h2>${o.name}</h2><p>${o.thesis}</p><div class="src">${o.src}</div></div>
+    ${o.body()}
+    <div class="verdict">${o.verdicts.map(([k,t,d])=>
+      `<div class="vd ${k}"><b>${k==='good'?'✓ ':'✕ '}${t}</b>${d}</div>`).join('')}</div>`;
+  const vpl = document.getElementById('vpl');
+  if (vpl) vpl.textContent = document.getElementById('vp').value + 'px window';
+  window.scrollTo(0,0);
+}
+function pick(id){ cur=id; render(); }
+function setVp(){ document.documentElement.style.setProperty('--vpw',
+  document.getElementById('vp').value + 'px'); const v=document.getElementById('vpl');
+  if(v) v.textContent = document.getElementById('vp').value + 'px window'; }
+document.getElementById('vp').addEventListener('change', setVp);
+document.getElementById('frameBtn').addEventListener('click', function(){
+  document.body.classList.toggle('showFrame'); this.classList.toggle('on'); });
+document.getElementById('deadBtn').addEventListener('click', function(){
+  document.body.classList.toggle('showDead'); this.classList.toggle('on'); });
+setVp(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 169 - Buy GNUS "Your orders" header</title>
+<style>
+:root[data-theme="dark"]{
+  --surface-base:#0B0D12;
+  --surface-elevated:#0C0E14;
+  --surface-menu:#171A21;
+  --surface-sunken:#06080C;
+  --text-primary:#FFFFFF;
+  --text-secondary:#8A8F9D;
+  --text-on-brand:#000B18;
+  --border-subtle:rgba(255,255,255,0.12);
+  --border-strong:rgba(255,255,255,0.24);
+  --status-warning:#FFC42E;
+  --status-error:#FF4D4D;
+  --status-success:#01DDA6;
+  --page:#07090D;
+}
+:root[data-theme="light"]{
+  --surface-base:#DCE0E6;
+  --surface-elevated:#FFFFFF;
+  --surface-menu:#EFF2F6;
+  --surface-sunken:#CFD4DB;
+  --text-primary:#10131A;
+  --text-secondary:#5B6270;
+  --text-on-brand:#FFFFFF;
+  --border-subtle:rgba(16,19,26,0.12);
+  --border-strong:rgba(16,19,26,0.24);
+  --status-warning:#8A6100;
+  --status-error:#C11B1B;
+  --status-success:#0A6B54;
+  --page:#C9CFD8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--page);
+  color:var(--text-primary);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding:40px 32px 120px;
+  -webkit-font-smoothing:antialiased;
+}
+.topbar{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  max-width:1180px;margin:0 auto 40px;
+}
+h1{font-size:20px;font-weight:600;letter-spacing:-0.2px}
+.sub{color:var(--text-secondary);font-size:13px;margin-top:4px}
+.toggle{
+  margin-left:auto;display:flex;gap:2px;padding:3px;
+  background:var(--surface-sunken);
+  border:1px solid var(--border-subtle);
+  border-radius:999px;
+}
+.toggle button{
+  height:32px;padding:0 14px;border:0;border-radius:999px;
+  background:transparent;color:var(--text-secondary);
+  font:inherit;font-size:12px;font-weight:600;cursor:pointer;
+}
+.toggle button[aria-pressed="true"]{background:var(--surface-menu);color:var(--text-primary)}
+
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+
+.scheme{display:flex;flex-direction:column;gap:14px}
+.scheme-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.scheme-id{
+  font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;
+  color:var(--text-secondary);
+}
+.scheme-name{font-size:16px;font-weight:600}
+.star{color:var(--status-warning);font-size:14px}
+.scheme-note{font-size:13px;line-height:1.6;color:var(--text-secondary);max-width:760px}
+.scheme-note code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+  background:var(--surface-menu);padding:1px 5px;border-radius:4px;color:var(--text-primary);
+}
+
+/* ---- the real card, 1:1 ---- */
+.stage{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+.card{
+  width:758px;
+  background:var(--surface-elevated);
+  border:1px solid var(--border-subtle);
+  border-radius:16px;
+  padding:20px;
+}
+.kicker-row{display:flex;align-items:center;gap:12px;min-height:22px}
+.kicker{
+  font-size:11px;font-weight:700;letter-spacing:0.88px;text-transform:uppercase;
+  color:var(--text-secondary);
+}
+.spacer{flex:1}
+
+/* View all - GWButton tertiary sm (the CURRENT one) */
+.btn-tertiary{
+  height:44px;padding:0 16px;border-radius:10px;
+  border:1px solid var(--border-subtle);
+  background:transparent;color:var(--text-primary);
+  font:inherit;font-size:13px;font-weight:600;cursor:pointer;
+}
+/* View all - GWViewAllLink (the shared editorial link) */
+.view-link{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;
+  color:var(--text-secondary);background:none;border:0;cursor:pointer;font-family:inherit;
+  padding:0;
+}
+.view-link:hover{
+  background:linear-gradient(90deg,#0AD89C,#0AAEE6);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.view-link .arw{transition:transform .18s ease}
+.view-link:hover .arw{transform:translateX(3px)}
+
+/* CURRENT chips - raised surfaceMenu pills, gradient fill when selected */
+.chips-current{display:flex;gap:8px;flex-wrap:wrap}
+.chip-current{
+  height:30px;padding:0 12px;border-radius:999px;display:inline-flex;align-items:center;
+  background:var(--surface-menu);border:1px solid var(--border-subtle);
+  color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.chip-current[aria-pressed="true"]{
+  background:linear-gradient(90deg,#0AD89C,#0AAEE6);
+  border-color:transparent;color:var(--text-on-brand);
+}
+
+/* CONTROL TRACK - the documented convention */
+.track{
+  display:inline-flex;align-items:center;padding:3px;
+  background:var(--surface-sunken);
+  border:1px solid var(--border-subtle);
+  border-radius:999px;
+}
+.track .gap{width:2px;flex:0 0 2px}
+.track .divider{width:1px;height:20px;background:var(--border-subtle);margin:0 4px}
+.tchip{
+  height:32px;min-width:32px;padding:0 10px;border:0;border-radius:999px;
+  background:transparent;color:var(--text-secondary);
+  font:inherit;font-size:12px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+.tchip[aria-pressed="true"]{background:var(--surface-menu);color:var(--text-primary)}
+.tchip .n{
+  font-size:11px;font-weight:700;color:var(--text-secondary);
+  font-variant-numeric:tabular-nums;
+}
+.tchip[aria-pressed="true"] .n{color:var(--text-primary)}
+.tchip.icon-only{padding:0;width:32px}
+.tchip .dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+.tchip.overflow{width:32px;padding:0}
+
+/* status dot summary (scheme C) */
+.dots{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.dotitem{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--text-secondary)}
+.dotitem b{color:var(--text-primary);font-weight:600;font-variant-numeric:tabular-nums}
+.dotitem .d{width:8px;height:8px;border-radius:50%}
+
+/* empty state */
+.empty{
+  height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+}
+.empty .ic{
+  width:64px;height:64px;border-radius:50%;background:var(--surface-menu);
+  display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:26px;
+}
+.empty h3{font-size:15px;font-weight:600}
+.empty p{font-size:13px;color:var(--text-secondary);text-align:center;max-width:420px}
+
+/* measurement annotations */
+.measure{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:11px;color:var(--text-secondary);line-height:1.9;
+  border-left:2px solid var(--border-subtle);padding-left:12px;min-width:250px;
+}
+.measure b{color:var(--text-primary);font-weight:600}
+.measure .ok{color:var(--status-success)}
+.measure .bad{color:var(--status-error)}
+
+.prov{
+  border:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;
+  font-size:12px;
+}
+.prov table{border-collapse:collapse;width:100%}
+.prov th,.prov td{
+  text-align:left;padding:9px 12px;border-bottom:1px solid var(--border-subtle);
+  vertical-align:top;
+}
+.prov th{
+  background:var(--surface-menu);font-size:10px;text-transform:uppercase;
+  letter-spacing:0.7px;color:var(--text-secondary);font-weight:700;
+}
+.prov tr:last-child td{border-bottom:0}
+.prov code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--text-primary)}
+.new-flag{color:var(--status-warning);font-weight:700}
+.exists{color:var(--status-success);font-weight:700}
+.hr{height:1px;background:var(--border-subtle);margin:8px 0}
+.s8{height:16px}
+.s10{height:20px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>Sketch 169 &middot; Buy GNUS "Your orders" header</h1>
+    <div class="sub">All / Pending / Done filter + View all. Rendered 1:1 at the real 758px card width.</div>
+  </div>
+  <div class="toggle">
+    <button id="t-dark" aria-pressed="true">Dark</button>
+    <button id="t-light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ================= CURRENT ================= -->
+  <section class="scheme">
+    <div class="scheme-head">
+      <span class="scheme-id">Current</span>
+      <span class="scheme-name">What ships today</span>
+    </div>
+    <p class="scheme-note">
+      <code>banxa_buy_screen.dart:655-690</code>. A boxed <code>GWButton(tertiary, sm)</code> for View all,
+      and three hand-rolled <code>_CountChip</code> pills (<code>:720-762</code>) that are private to this file.
+    </p>
+    <div class="stage">
+      <div class="card">
+        <div class="kicker-row">
+          <span class="kicker">Your orders</span>
+          <span class="spacer"></span>
+          <button class="btn-tertiary">View all</button>
+        </div>
+        <div class="s8"></div>
+        <div class="chips-current">
+          <button class="chip-current" aria-pressed="true">All &middot; 0</button>
+          <button class="chip-current" aria-pressed="false">Pending &middot; 0</button>
+          <button class="chip-current" aria-pressed="false">Done &middot; 0</button>
+        </div>
+        <div class="s8"></div>
+        <div class="empty">
+          <div class="ic">&#128220;</div>
+          <h3>No orders yet</h3>
+          <p>Your Banxa purchases will show up here once you create one.</p>
+        </div>
+      </div>
+      <div class="measure">
+        <b>Header row</b> 44px (button-driven)<br>
+        <b>Chip row</b> 30px + 16px above + 16px below<br>
+        <b>Header block total</b> <span class="bad">106px</span><br>
+        <div class="hr"></div>
+        <b>Chip fill</b> surfaceMenu (raised)<br>
+        <b>Selected</b> <span class="bad">brandCta gradient</span><br>
+        <b>Track</b> <span class="bad">none</span><br>
+        <div class="hr"></div>
+        <b>error tone</b> <span class="bad">no chip - declined<br>and expired are unreachable</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= A ================= -->
+  <section class="scheme">
+    <div class="scheme-head">
+      <span class="scheme-id">Scheme A</span>
+      <span class="scheme-name">Adopt the shipped filter bar</span>
+      <span class="star">&#9733; recommended</span>
+    </div>
+    <p class="scheme-note">
+      The control track the codebase already documents and already ships twice. Icon chips at 32px,
+      a hairline divider, and an overflow trigger that carries the statuses which have no chip today.
+      View all becomes <code>GWViewAllLink</code>, the same editorial link the Markets panel uses.
+      Both controls fit on ONE row, so the whole chip row disappears.
+    </p>
+    <div class="stage">
+      <div class="card">
+        <div class="kicker-row">
+          <span class="kicker">Your orders</span>
+          <span class="spacer"></span>
+          <div class="track" data-group="a">
+            <button class="tchip" aria-pressed="true">All <span class="n">0</span></button>
+            <span class="gap"></span>
+            <button class="tchip icon-only" aria-pressed="false" title="Pending &middot; 0">
+              <span class="dot" style="background:var(--status-warning)"></span>
+            </button>
+            <span class="gap"></span>
+            <button class="tchip icon-only" aria-pressed="false" title="Done &middot; 0">
+              <span class="dot" style="background:var(--status-success)"></span>
+            </button>
+            <span class="divider"></span>
+            <button class="tchip overflow" title="More statuses">&#8942;</button>
+          </div>
+          <span style="width:16px"></span>
+          <button class="view-link">View all <span class="arw">&rarr;</span></button>
+        </div>
+        <div class="s10"></div>
+        <div class="empty">
+          <div class="ic">&#128220;</div>
+          <h3>No orders yet</h3>
+          <p>Your Banxa purchases will show up here once you create one.</p>
+        </div>
+      </div>
+      <div class="measure">
+        <b>Header row</b> 40px (track-driven)<br>
+        <b>Chip row</b> <span class="ok">removed</span><br>
+        <b>Header block total</b> <span class="ok">60px</span><br>
+        <b>Reclaimed</b> <span class="ok">46px of card height</span><br>
+        <div class="hr"></div>
+        <b>Track</b> surfaceSunken + hairline<br>
+        <b>Track padding</b> 3px &middot; <b>gap</b> 2px<br>
+        <b>Chip</b> 32px &middot; radius pill<br>
+        <b>Selected</b> surfaceMenu, no gradient<br>
+        <div class="hr"></div>
+        <b>error tone</b> <span class="ok">in the overflow menu</span><br>
+        <b>Conventions</b> <span class="ok">conforms</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= B ================= -->
+  <section class="scheme">
+    <div class="scheme-head">
+      <span class="scheme-id">Scheme B</span>
+      <span class="scheme-name">Same track, words instead of icons</span>
+    </div>
+    <p class="scheme-note">
+      Identical track recipe to A, but every chip keeps its label and count. Nothing to learn, nothing
+      hidden behind a menu - all four statuses are visible at once. Costs ~330px of width, so it needs
+      its own row and cannot share the kicker line.
+    </p>
+    <div class="stage">
+      <div class="card">
+        <div class="kicker-row">
+          <span class="kicker">Your orders</span>
+          <span class="spacer"></span>
+          <button class="view-link">View all <span class="arw">&rarr;</span></button>
+        </div>
+        <div class="s8"></div>
+        <div class="track" data-group="b">
+          <button class="tchip" aria-pressed="true">All <span class="n">0</span></button>
+          <span class="gap"></span>
+          <button class="tchip" aria-pressed="false">Pending <span class="n">0</span></button>
+          <span class="gap"></span>
+          <button class="tchip" aria-pressed="false">Done <span class="n">0</span></button>
+          <span class="gap"></span>
+          <button class="tchip" aria-pressed="false">Issues <span class="n">0</span></button>
+        </div>
+        <div class="s8"></div>
+        <div class="empty">
+          <div class="ic">&#128220;</div>
+          <h3>No orders yet</h3>
+          <p>Your Banxa purchases will show up here once you create one.</p>
+        </div>
+      </div>
+      <div class="measure">
+        <b>Header row</b> 22px (kicker only)<br>
+        <b>Track row</b> 40px + 16px above + 16px below<br>
+        <b>Header block total</b> 94px<br>
+        <b>Reclaimed</b> <span class="ok">12px</span><br>
+        <div class="hr"></div>
+        <b>Track width</b> ~332px<br>
+        <b>All four statuses</b> <span class="ok">visible</span><br>
+        <b>Selected</b> surfaceMenu, no gradient<br>
+        <div class="hr"></div>
+        <b>Conventions</b> <span class="ok">conforms</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= C ================= -->
+  <section class="scheme">
+    <div class="scheme-head">
+      <span class="scheme-id">Scheme C</span>
+      <span class="scheme-name">Stop filtering a four-row preview</span>
+    </div>
+    <p class="scheme-note">
+      The panel renders <code>visible.take(4)</code> - at most four rows. Filtering a four-row preview
+      buys almost nothing, and the filter state is thrown away the moment you press View all. So the
+      chips become a read-only breakdown, and real filtering lives on <code>/buy/orders</code> where the
+      full list is. Uses <code>GWStatusDot</code>, which already renders exactly this shape in five places.
+    </p>
+    <div class="stage">
+      <div class="card">
+        <div class="kicker-row">
+          <span class="kicker">Your orders</span>
+          <span class="spacer"></span>
+          <button class="view-link">View all <span class="arw">&rarr;</span></button>
+        </div>
+        <div class="s8"></div>
+        <div class="dots">
+          <span class="dotitem"><span class="d" style="background:var(--status-warning)"></span><b>0</b> pending</span>
+          <span class="dotitem"><span class="d" style="background:var(--status-success)"></span><b>0</b> done</span>
+          <span class="dotitem"><span class="d" style="background:var(--status-error)"></span><b>0</b> need attention</span>
+        </div>
+        <div class="s8"></div>
+        <div class="empty">
+          <div class="ic">&#128220;</div>
+          <h3>No orders yet</h3>
+          <p>Your Banxa purchases will show up here once you create one.</p>
+        </div>
+      </div>
+      <div class="measure">
+        <b>Header row</b> 22px<br>
+        <b>Summary row</b> 18px + 16px above + 16px below<br>
+        <b>Header block total</b> <span class="ok">72px</span><br>
+        <b>Reclaimed</b> <span class="ok">34px</span><br>
+        <div class="hr"></div>
+        <b>New components</b> <span class="ok">zero</span><br>
+        <b>Deleted</b> <span class="ok">_CountChip, 43 lines</span><br>
+        <div class="hr"></div>
+        <b>error tone</b> <span class="ok">named and counted</span><br>
+        <b>Trade</b> <span class="bad">loses in-panel filtering</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= D ================= -->
+  <section class="scheme">
+    <div class="scheme-head">
+      <span class="scheme-id">Scheme D</span>
+      <span class="scheme-name">One trigger, menu behind it</span>
+    </div>
+    <p class="scheme-note">
+      Sketch 007 variant E, transplanted. A single compact trigger states the current filter; every
+      status including declined and expired lives in the menu with live counts. Most space-frugal and
+      the only scheme that absorbs a fifth status without a redesign - but the options are one click away.
+    </p>
+    <div class="stage">
+      <div class="card">
+        <div class="kicker-row">
+          <span class="kicker">Your orders</span>
+          <span class="spacer"></span>
+          <div class="track">
+            <button class="tchip" aria-pressed="true">All orders <span class="n">0</span> &#9662;</button>
+          </div>
+          <span style="width:16px"></span>
+          <button class="view-link">View all <span class="arw">&rarr;</span></button>
+        </div>
+        <div class="s10"></div>
+        <div class="empty">
+          <div class="ic">&#128220;</div>
+          <h3>No orders yet</h3>
+          <p>Your Banxa purchases will show up here once you create one.</p>
+        </div>
+      </div>
+      <div class="measure">
+        <b>Header row</b> 40px<br>
+        <b>Chip row</b> <span class="ok">removed</span><br>
+        <b>Header block total</b> <span class="ok">60px</span><br>
+        <b>Reclaimed</b> <span class="ok">46px</span><br>
+        <div class="hr"></div>
+        <b>Trigger width</b> ~124px<br>
+        <b>Scales to</b> <span class="ok">any status count</span><br>
+        <div class="hr"></div>
+        <b>Trade</b> <span class="bad">counts not glanceable</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROVENANCE ================= -->
+  <section class="scheme">
+    <div class="scheme-head">
+      <span class="scheme-id">Provenance</span>
+      <span class="scheme-name">Where every piece already lives</span>
+    </div>
+    <div class="prov">
+      <table>
+        <thead>
+          <tr><th>Piece</th><th>Status</th><th>Where it already exists and is used</th><th>Used by</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GWKicker</td>
+            <td class="exists">exists</td>
+            <td><code>lib/components/cards/gw_kicker.dart</code></td>
+            <td>already the header of this very card, <code>banxa_buy_screen.dart:655</code></td>
+          </tr>
+          <tr>
+            <td>GWViewAllLink</td>
+            <td class="exists">exists</td>
+            <td><code>lib/components/cards/gw_view_all_link.dart:19</code></td>
+            <td><code>dashboard_markets.dart:67</code> - the Markets panel's View all</td>
+          </tr>
+          <tr>
+            <td>Control track recipe</td>
+            <td class="exists">exists</td>
+            <td><code>.planning/codebase/CONVENTIONS.md:358</code> - fill, border, radius, padding and gap are all fixed values</td>
+            <td>two conforming implementations, below</td>
+          </tr>
+          <tr>
+            <td>Filter bar with counts + overflow menu</td>
+            <td class="exists">exists</td>
+            <td><code>transactions_slim_view.dart:583</code> (<code>_TransactionFilterBar</code>) and its chip at <code>:774</code></td>
+            <td>the dashboard Transactions panel</td>
+          </tr>
+          <tr>
+            <td>Segmented track</td>
+            <td class="exists">exists</td>
+            <td><code>lib/components/gw_timeframe_segment.dart:36</code></td>
+            <td><code>crypto_live_chart.dart:638</code>, <code>dashboard_screen.dart:626</code></td>
+          </tr>
+          <tr>
+            <td>GWStatusDot</td>
+            <td class="exists">exists</td>
+            <td><code>lib/components/data/gw_status_dot.dart</code></td>
+            <td><code>compute_panel.dart:396</code> and four sites in <code>job_steps.dart</code></td>
+          </tr>
+          <tr>
+            <td>GWCard / GWEmptyState / GWErrorState</td>
+            <td class="exists">exists</td>
+            <td><code>lib/components/cards/gw_card.dart</code> and the feedback folder</td>
+            <td>already used by this card, unchanged in every scheme</td>
+          </tr>
+          <tr>
+            <td>Shared filter-bar component</td>
+            <td class="new-flag">needs promotion</td>
+            <td><code>_TransactionFilterBar</code> is PRIVATE to <code>transactions_slim_view.dart</code>. Schemes A, B and D need it lifted to <code>lib/components/</code> and made generic over its filter enum. This is a promotion of shipped code, not a new design.</td>
+            <td>would gain a second consumer, which is what the Rule of Three asks for before extracting</td>
+          </tr>
+          <tr>
+            <td>_CountChip</td>
+            <td class="new-flag">deleted by every scheme</td>
+            <td><code>banxa_buy_screen.dart:720-762</code></td>
+            <td>one call site, this file only</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var dark = document.getElementById('t-dark');
+  var light = document.getElementById('t-light');
+
+  function setTheme(name) {
+    root.setAttribute('data-theme', name);
+    dark.setAttribute('aria-pressed', String(name === 'dark'));
+    light.setAttribute('aria-pressed', String(name === 'light'));
+  }
+
+  dark.addEventListener('click', function () { setTheme('dark'); });
+  light.addEventListener('click', function () { setTheme('light'); });
+
+  var tracks = document.querySelectorAll('.track[data-group]');
+  for (var i = 0; i < tracks.length; i++) {
+    (function (track) {
+      var chips = track.querySelectorAll('.tchip');
+      for (var j = 0; j < chips.length; j++) {
+        chips[j].addEventListener('click', function () {
+          for (var k = 0; k < chips.length; k++) {
+            chips[k].setAttribute('aria-pressed', 'false');
+          }
+          this.setAttribute('aria-pressed', 'true');
+        });
+      }
+    })(tracks[i]);
+  }
+
+  var currentChips = document.querySelectorAll('.chips-current .chip-current');
+  for (var m = 0; m < currentChips.length; m++) {
+    currentChips[m].addEventListener('click', function () {
+      for (var n = 0; n < currentChips.length; n++) {
+        currentChips[n].setAttribute('aria-pressed', 'false');
+      }
+      this.setAttribute('aria-pressed', 'true');
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

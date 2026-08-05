@@ -10,7 +10,11 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
+import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -115,7 +119,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     );
 
     _sessionConnectHandler = (event) {
-      if (!mounted || event == null) return;
+      if (!mounted || event == null) {
+        return;
+      }
 
       setState(() {
         _session = event.session;
@@ -128,7 +134,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     walletKit.onSessionConnect.subscribe(_sessionConnectHandler);
 
     _sessionProposalHandler = (event) async {
-      if (event == null) return;
+      if (event == null) {
+        return;
+      }
 
       final metadata = event.params.proposer.metadata;
       final dappName = metadata.name;
@@ -136,7 +144,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       final dappUrl = metadata.url;
       final dappIcon = metadata.icons.isNotEmpty ? metadata.icons.first : null;
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       setState(() {});
 
@@ -153,11 +163,13 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
         if (approved == null || !approved) {
           debugPrint("❌ Connection request rejected by user");
-          showAppSnackBar(
-            context,
-            "DApp connection was rejected.",
-            backgroundColor: Colors.red,
-          );
+          if (mounted) {
+            showAppSnackBar(
+              context,
+              "DApp connection was rejected.",
+              backgroundColor: context.gw.statusError,
+            );
+          }
 
           await walletKit.rejectSession(
             id: event.id,
@@ -186,7 +198,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   }
 
   Future<void> maybeInitWalletKit() async {
-    if (_isInitialized) return;
+    if (_isInitialized) {
+      return;
+    }
     if (_initCompleter != null) {
       await _initCompleter!.future;
       return;
@@ -227,7 +241,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         showAppSnackBar(
           context,
           "WalletKit failed to initialize. Please restart the app.",
-          backgroundColor: Colors.red,
+          backgroundColor: context.gw.statusError,
         );
       }
       return;
@@ -235,18 +249,23 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
     try {
       final CreateResponse pairingInfo = await walletKit.core.pairing.create();
+      // The pairing URI carries a symKey — it goes to the QR and the manual
+      // copy field, never to the console.
       final wcUri = pairingInfo.uri.toString();
-      debugPrint("🔗 WalletConnect URI: $wcUri");
       String? manualInputError;
       bool showManualInput = _isDesktopOrIot;
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       await showDialog<void>(
         context: context,
         builder: (ctx) => StatefulBuilder(
           builder: (ctx, setInnerState) => AlertDialog(
-            backgroundColor: GeniusWalletColors.deepBlueTertiary,
+            backgroundColor:
+                Theme.of(ctx).extension<GWColors>()?.surfaceElevated ??
+                GWColors.dark().surfaceElevated,
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -264,7 +283,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
               ],
             ),
             content: ConstrainedBox(
-              constraints: BoxConstraints(
+              constraints: const BoxConstraints(
                 minWidth: GeniusBreakpoints.small * 1 / 2,
               ),
               child: Column(
@@ -297,10 +316,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: const Icon(
+                                      icon: Icon(
                                         Icons.paste,
-                                        color: GeniusWalletColors
-                                            .lightGreenPrimary,
+                                        color: ctx.gw.brandPrimary,
                                       ),
                                       tooltip: "Paste from clipboard",
                                       onPressed: () async {
@@ -337,6 +355,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                                 maxHeight: 250,
                               ),
                               child: QrImageView(
+                                // Fixed white regardless of appearance: a QR
+                                // code needs a light quiet zone around dark
+                                // modules to scan reliably -- this is a
+                                // scannability requirement, not a style
+                                // choice, so it does not follow gw.
                                 backgroundColor: Colors.white,
                                 data: wcUri,
                                 version: QrVersions.auto,
@@ -353,12 +376,11 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                         horizontal: 12,
                         vertical: 4,
                       ),
+                      // transparent carries no colour decision -- nothing
+                      // here to flip between modes.
                       backgroundColor: Colors.transparent,
                     ),
-                    icon: const Icon(
-                      Icons.link,
-                      color: GeniusWalletColors.lightGreenPrimary,
-                    ),
+                    icon: Icon(Icons.link, color: ctx.gw.brandPrimary),
                     label: Text(
                       showManualInput ? "Show QR Code" : "Enter URI Manually",
                     ),
@@ -398,6 +420,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
                         return;
                       }
                       _didManualPair = true;
+                      if (!mounted) {
+                        return;
+                      }
                       Navigator.of(context).pop();
                     } catch (e) {
                       setInnerState(() {
@@ -431,7 +456,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
             showAppSnackBar(
               context,
               "Wallet connection failed. Please try again.",
-              backgroundColor: Colors.red,
+              backgroundColor: context.gw.statusError,
             );
           }
         }
@@ -493,52 +518,72 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
   @override
   Widget build(BuildContext context) {
+    // Appearance-aware read IS needed here: light's surfaceElevated is pure
+    // white, and raw brandPrimaryStrong on white is 2.56:1 (fails AA) -- see
+    // connectBrandColor. Every branch below now shares one visual language
+    // (transparent fill + 1px state-coloured outline), decided 2026-07-26,
+    // sketch 039-B -- so this appearance read only matters for idle's brand
+    // colour.
     final isConnected = _session != null;
 
     final isMobile = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
 
     IconData icon;
-    Color iconColor;
-    Color textColor;
-    Color backgroundColor;
+    Color stateColor;
     String text;
 
     if (isConnected) {
       icon = Icons.link_off;
-      iconColor = Colors.redAccent;
-      textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withValues(alpha: 0.1);
+      stateColor = context.gw.statusError;
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
-      iconColor = Colors.amber;
-      textColor = Colors.amber;
-      backgroundColor = Colors.amber.withValues(alpha: 0.1);
+      stateColor = context.gw.statusWarning;
       text = 'Connecting';
     } else if (_timedOut) {
       icon = Icons.timer_off;
-      iconColor = Colors.orange;
-      textColor = Colors.orange;
-      backgroundColor = Colors.orange.withValues(alpha: 0.1);
+      stateColor = context.gw.statusWarning;
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
-      iconColor = Colors.redAccent;
-      textColor = Colors.redAccent;
-      backgroundColor = Colors.redAccent.withValues(alpha: 0.1);
+      stateColor = context.gw.statusError;
       text = 'Retry Connect';
     } else {
+      // Appearance-aware brand outline & text/icon so it clears AA in BOTH
+      // modes (dark = brandPrimaryStrong, light = a darker brand -- see
+      // connectBrandColor). Connection logic (_connect/_disconnect) is
+      // untouched.
       icon = Icons.link;
-      iconColor = Colors.greenAccent;
-      textColor = Colors.white;
-      backgroundColor = GeniusWalletColors.deepBlueCardColor;
+      stateColor = connectBrandColor(context);
       text = 'Connect';
     }
 
+    // Sketch 043 variant 4A. This is the FOURTH FIELD inside the navbar's
+    // control track, so it takes the track's chip geometry (36px, pill) and —
+    // like its three neighbours — carries NO fill and NO border of its own.
+    // The track is the one fill and the one hairline.
+    //
+    // State is carried by a dot plus the label colour. The IDLE branch, and
+    // only the idle branch, paints its label and dot with the brand gradient:
+    // idle is the one state that INVITES a click, while the other three report
+    // a status a brand gradient cannot express. That keeps the brand accent in
+    // the bar without adding a surface to a side we just cleared of its CTA.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final bool isIdle =
+        !isConnected && !_isConnecting && !_timedOut && !_hasError;
+    final iconColor = stateColor;
+    final textColor = stateColor;
+
     final btn = TextButton(
-      style: TextButton.styleFrom(backgroundColor: backgroundColor),
+      style: navContextChipStyle(context).copyWith(
+        overlayColor: WidgetStatePropertyAll(
+          stateColor.withValues(alpha: 0.16),
+        ),
+      ),
       onPressed: () {
-        if (_isConnecting || _isDisconnecting) return;
+        if (_isConnecting || _isDisconnecting) {
+          return;
+        }
 
         if (isConnected) {
           _disconnect();
@@ -547,19 +592,84 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         }
       },
       child: Row(
-        spacing: 6,
+        spacing: GeniusWalletConsts.space4,
         children: [
-          AnimatedRotation(
-            duration: const Duration(milliseconds: 600),
-            turns: _isConnecting ? 1 : 0,
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
+          // The connecting spinner keeps its icon — a rotating mark is the one
+          // thing a static dot cannot say. Every settled state shows the dot,
+          // which is quieter and is what carries the colour.
+          if (_isConnecting)
+            AnimatedRotation(
+              duration: const Duration(milliseconds: 600),
+              turns: 1,
+              child: Icon(icon, color: iconColor, size: 16),
+            )
+          else
+            _StateDot(color: isIdle ? null : stateColor, gw: gw),
           if (!isMobile)
-            Text(text, style: TextStyle(fontSize: 14, color: textColor)),
+            // Idle gets the gradient; the status branches get their flat
+            // colour. ShaderMask paints the child's alpha with the shader, so
+            // the Text colour below only has to be non-transparent.
+            if (isIdle)
+              ShaderMask(
+                shaderCallback: (bounds) => GeniusWalletGradient.brandCtaText(
+                  gw.surfaceMenu,
+                ).createShader(bounds),
+                blendMode: BlendMode.srcIn,
+                // Fixed white regardless of appearance: BlendMode.srcIn
+                // recolors every opaque pixel with the shader above, using
+                // only this text's alpha channel -- the RGB value never
+                // reaches the screen (same pattern as GWButton's
+                // gradientOutline pre-mask placeholder).
+                child: const Text(
+                  'Connect',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            else
+              Text(
+                text,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
         ],
       ),
     );
 
     return isMobile ? Tooltip(message: text, child: btn) : btn;
+  }
+}
+
+/// The 9px state mark in the navbar's Connect field (sketch 043 variant 4A).
+///
+/// A null [color] means the IDLE branch, which paints the brand gradient
+/// instead of a flat colour — same rule as the label beside it, so the two
+/// marks can never disagree about which state they are showing.
+class _StateDot extends StatelessWidget {
+  const _StateDot({required this.color, required this.gw});
+
+  final Color? color;
+  final GWColors gw;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color? flat = color;
+    return Container(
+      width: 9,
+      height: 9,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: flat,
+        gradient: flat == null
+            ? GeniusWalletGradient.brandCtaText(gw.surfaceMenu)
+            : null,
+      ),
+    );
   }
 }

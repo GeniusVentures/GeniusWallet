@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 165 — Coin page schemes</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   Sketch 165 — coin page (token_info_screen) whole-page schemes.
+
+   Every measurement below is lifted from the shipped Dart, not invented:
+     card            GWCard              radius 12 (radiusMd), 1px borderSubtle
+     card padding    space8 = 16         token_info_screen.dart:720, :981
+     stat card pad   space6 = 12 h/v     token_info_screen.dart:1309-1312
+     tile gap        space6 = 12         token_info_screen.dart:1284
+     kicker dense    11/16 w600 ls .6    gw_kicker.dart:54-56
+     kicker section  13/18 w600 ls .5    gw_kicker.dart:54-56
+     stat value      15/20 w600 tabular  gw_stat_tile.dart:56-61
+     kicker→value    3px                 gw_stat_tile.dart:53
+     title           24/32 w600 ls -.4   genius_wallet_typography.dart:84-89
+     subtitle        14/20 w400 sec      genius_wallet_typography.dart:111-113
+     price           28/34 w600 tabular  token_info_screen.dart:1181-1186
+     range track     4px, borderStrong   token_info_screen.dart:1459-1469
+   Colours come from ../themes/default.css, which mirrors gw_colors.dart.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-family: var(--font);
+  padding-top: 96px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Sketch chrome (not part of the design) ─────────────────────────────── */
+#tabs {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+  background: #05070A; border-bottom: 1px solid rgba(255,255,255,.14);
+  padding: 8px 12px 0; font-family: var(--font);
+}
+#tabs .row { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab {
+  background: transparent; border: 1px solid transparent; color: #8A8F9D;
+  font: 600 12px/16px var(--font); letter-spacing: .3px;
+  padding: 7px 11px; border-radius: 8px 8px 0 0; cursor: pointer;
+  transition: all .15s ease; white-space: nowrap;
+}
+.tab:hover { background: rgba(20,200,255,.08); color: #fff; }
+.tab.active { background: var(--surface-base); color: #fff; border-color: rgba(255,255,255,.14); border-bottom-color: var(--surface-base); }
+#tabs .meta { font: 400 11px/24px var(--font); color: #5A606E; padding: 2px 4px 6px; }
+
+#tools {
+  position: fixed; bottom: 12px; right: 12px; z-index: 9999;
+  font: 400 12px/1 var(--font); background: rgba(0,0,0,.82); color: #fff;
+  padding: 8px 10px; border-radius: 10px; opacity: .35; transition: opacity .2s;
+  display: flex; gap: 8px; align-items: center; border: 1px solid rgba(255,255,255,.14);
+}
+#tools:hover { opacity: 1; }
+#tools button, #tools select {
+  background: rgba(255,255,255,.09); color: #fff; border: 1px solid rgba(255,255,255,.18);
+  border-radius: 6px; padding: 5px 8px; font: 500 11px/1 var(--font); cursor: pointer;
+}
+#tools button:hover { background: rgba(20,200,255,.22); }
+#tools button.on { background: #14C8FF; color: #05070A; border-color: #14C8FF; }
+
+/* Annotation overlay — measured callouts, off by default */
+.ann {
+  display: none; position: absolute; z-index: 50;
+  font: 600 9px/1.35 var(--font-mono); letter-spacing: .2px;
+  color: #05070A; background: #14C8FF; padding: 2px 5px; border-radius: 4px;
+  white-space: nowrap; pointer-events: none;
+}
+body.annotate .ann { display: block; }
+body.annotate .measured { outline: 1px dashed rgba(20,200,255,.55); outline-offset: 0; }
+
+/* ── The page canvas ────────────────────────────────────────────────────── */
+.scheme { display: none; }
+.scheme.active { display: block; }
+.viewport { margin: 0 auto; transition: max-width .2s ease; }
+.page { padding: 12px 0 40px; }               /* space6 top, space20 bottom */
+.gutter { padding: 0 12px; }                   /* the page's 12px side gutter */
+
+.thesis {
+  max-width: 1180px; margin: 0 auto 20px; padding: 12px 14px;
+  border-left: 3px solid var(--brand-primary); background: rgba(20,200,255,.06);
+  border-radius: 0 8px 8px 0;
+}
+.thesis h2 { margin: 0 0 4px; font: 600 15px/20px var(--font); color: #fff; }
+.thesis p { margin: 0; font: 400 13px/19px var(--font); color: var(--text-secondary); }
+.thesis .axes { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+.thesis .axis {
+  font: 600 10px/14px var(--font-mono); letter-spacing: .2px;
+  padding: 3px 6px; border-radius: 5px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+  color: var(--text-secondary);
+}
+
+/* ── Real component vocabulary ──────────────────────────────────────────── */
+.card {
+  background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 16px;
+}
+.kicker      { font: 600 13px/18px var(--font); letter-spacing: .5px; text-transform: uppercase; color: var(--text-secondary); }
+.kickerDense { font: 600 11px/16px var(--font); letter-spacing: .6px; text-transform: uppercase; color: var(--text-secondary); }
+.title    { font: 600 24px/32px var(--font); letter-spacing: -.4px; color: var(--text-primary); margin: 0; }
+.subtitle { font: 400 14px/20px var(--font); color: var(--text-secondary); }
+.price    { font: 600 28px/34px var(--font); font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.statVal  { font: 600 15px/20px var(--font); font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.mono     { font-family: var(--font-mono); }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 2px 8px; border-radius: 999px;
+  font: 600 13px/18px var(--font); font-variant-numeric: tabular-nums;
+}
+.pill.up   { background: var(--status-success-fill); color: var(--status-success); }
+.pill.down { background: var(--status-error-fill);   color: var(--status-error); }
+
+/* Buttons — GWButton language */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  font: 600 14px/20px var(--font); transition: all .15s ease;
+  border: 1px solid var(--border-strong); background: transparent; color: var(--text-primary);
+}
+.btn:hover { background: rgba(20,200,255,.10); border-color: rgba(20,200,255,.45); }
+.btn.fill {
+  background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-cta-b));
+  border-color: transparent; color: #00120C;
+}
+.btn.fill:hover { filter: brightness(1.09); }
+.btn.sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.btn.icon { width: 40px; padding: 0; }
+.btn.sq { border-radius: var(--radius-sm); }
+.btn svg { width: 16px; height: 16px; flex: none; }
+
+/* 32px gradient action glyph — _ActionGlyph, token_info_screen.dart:1380-1396 */
+.glyph32 {
+  width: 32px; height: 32px; display: grid; place-items: center;
+  background: var(--surface-menu); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); cursor: pointer; transition: all .15s ease;
+}
+.glyph32:hover { border-color: rgba(20,200,255,.55); background: rgba(20,200,255,.10); }
+.glyph32 svg { width: 18px; height: 18px; stroke: url(#ctaGrad); }
+
+/* Detail grid — GWDetailGrid, kGWDetailRowPadding = 11 v / 12 h */
+.grid { background: var(--surface-sunken); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); overflow: hidden; }
+.grid .r { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-bottom: 1px solid var(--border-subtle); }
+.grid .r:last-child { border-bottom: 0; }
+.grid .k { font: 400 14px/20px var(--font); color: var(--text-secondary); flex: 1; min-width: 0; }
+.grid .v { font: 400 14px/20px var(--font); font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.grid .r.tap { cursor: pointer; transition: background .15s ease; }
+.grid .r.tap:hover { background: rgba(20,200,255,.07); }
+
+/* Info glyph slot — 22px, token_info_screen.dart:909-914 */
+.iSlot { width: 22px; display: grid; place-items: center; flex: none; }
+.iSlot svg { width: 16px; height: 16px; stroke: var(--brand-primary); }
+
+/* Stat tiles */
+.tiles { display: grid; gap: 12px; }
+.tile { background: var(--surface-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; }
+.tile .statVal { margin-top: 3px; }
+.tile.wide { grid-column: 1 / -1; }
+.track { height: 4px; border-radius: 2px; background: var(--border-strong); position: relative; margin-top: 8px; }
+.track i { position: absolute; top: -1px; width: 6px; height: 6px; border-radius: 3px; background: var(--brand-secondary); transform: translateX(-3px); }
+
+/* Chart card */
+.chartWrap { position: relative; }
+.chartWrap svg.spark { display: block; width: 100%; height: 100%; }
+/* GWTimeframeSegment — gw_timeframe_segment.dart:62-75 (track) + :144-166 (tab).
+   Recessed surfaceSunken well + borderSubtle hairline + radiusPill, 3px pad,
+   2px between tabs. Selected = brandCta gradient + textOnBrand + card shadow.
+   Hover on an unselected tab = the "lift chip" (sketch 008 D): surfaceElevated,
+   card shadow, translateY(-1px). */
+.tfTrack {
+  display: inline-flex; align-items: center; gap: 2px; padding: 3px;
+  background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill); flex: none;
+}
+.tfTab {
+  font: 600 12px/1 var(--font); color: var(--text-primary-54); cursor: pointer;
+  padding: 6px 8px; border: 0; border-radius: var(--radius-pill);
+  background: transparent; transition: all .12s ease; transform: translateY(0);
+}
+.tfTab:hover:not(.on) {
+  background: var(--surface-elevated); color: var(--text-primary);
+  box-shadow: var(--shadow-card); transform: translateY(-1px);
+}
+.tfTab.on {
+  background: linear-gradient(135deg, var(--brand-cta-a), var(--brand-cta-b));
+  color: var(--text-on-brand); box-shadow: var(--shadow-card);
+}
+
+/* _HighLowPlate — crypto_live_chart.dart:1062-1082. Pinned inside the plot at
+   the visible series' extremes; 10px on surfaceElevated @92%, radius 3. */
+.hlPlate {
+  position: absolute; transform: translateX(-50%);
+  padding: 2px 5px; border-radius: 3px;
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  font: 400 10px/1 var(--font); letter-spacing: .6px;
+  font-variant-numeric: tabular-nums; color: var(--text-secondary);
+  pointer-events: none; white-space: nowrap;
+}
+/* Right Y-axis gutter — kChartAxisGutter = 62, chart_axis.dart:23 */
+.yAxis {
+  position: absolute; top: 0; right: 0; width: 62px; height: 100%;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 4px 0 4px 8px; pointer-events: none;
+}
+.yAxis span { font: 400 11px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+
+/* Inputs */
+.field {
+  width: 100%; height: 48px; padding: 0 12px; border-radius: var(--radius-sm);
+  background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+  color: var(--text-primary); font: 600 16px/24px var(--font);
+  font-variant-numeric: tabular-nums; outline: none; transition: all .15s ease;
+}
+.field:focus { border-color: transparent; box-shadow: 0 0 0 2px var(--brand-cta-b); }
+.fieldLabel { display: block; margin-bottom: 6px; }
+.chipRow { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  font: 600 13px/18px var(--font); padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  background: var(--surface-menu); border: 1px solid var(--border-subtle); color: var(--text-secondary);
+  transition: all .15s ease;
+}
+.chip:hover { color: #fff; border-color: rgba(20,200,255,.45); background: rgba(20,200,255,.10); }
+.chip.on { color: #fff; border-color: rgba(20,200,255,.55); background: rgba(20,200,255,.16); }
+
+.row  { display: flex; align-items: center; }
+.between { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+
+/* Nav-back treatments */
+.navKicker {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  color: var(--text-secondary); transition: color .15s ease; background: none; border: 0; padding: 0;
+}
+.navKicker:hover { color: var(--text-primary); }
+.navKicker svg { width: 13px; height: 13px; }
+.navClose {
+  width: 32px; height: 32px; display: grid; place-items: center; cursor: pointer;
+  border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);
+  background: transparent; color: var(--text-secondary); transition: all .15s ease;
+}
+.navClose:hover { color: #fff; border-color: rgba(20,200,255,.45); background: rgba(20,200,255,.10); }
+
+.tabsInline { display: flex; gap: 4px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 14px; }
+.tabsInline button {
+  background: none; border: 0; border-bottom: 2px solid transparent; cursor: pointer;
+  padding: 8px 12px; font: 600 13px/18px var(--font); letter-spacing: .5px;
+  text-transform: uppercase; color: var(--text-secondary); transition: all .15s ease;
+}
+.tabsInline button:hover { color: #fff; }
+.tabsInline button.on { color: #fff; border-bottom-color: var(--brand-primary); }
+
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface-menu); border: 1px solid rgba(20,200,255,.45); color: #fff;
+  padding: 10px 18px; border-radius: 999px; font: 600 13px/18px var(--font);
+  z-index: 9999; transition: transform .25s ease; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.cols { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 1023px) { .cols { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="ctaGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#0AD89C"/><stop offset="100%" stop-color="#0AAEE6"/>
+  </linearGradient>
+</defs></svg>
+
+<div id="tabs"><div class="row" id="tabRow"></div><div class="meta" id="tabMeta"></div></div>
+<div id="stage"></div>
+<div class="toast" id="toast"></div>
+
+<div id="tools">
+  <select id="themeSel" title="Theme">
+    <option value="dark">Dark</option>
+    <option value="light">Light</option>
+  </select>
+  <button data-w="375">375</button>
+  <button data-w="768">768</button>
+  <button data-w="1280" class="on">1280</button>
+  <button data-w="0">Full</button>
+  <button id="annBtn" title="Show measured spacing">Measure</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Live-ish data. Real CoinGecko field names, so a winning scheme maps straight
+   onto CoinGeckoMarketData without renaming anything.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const D = {
+  name: 'Bitcoin', symbol: 'BTC', network: 'Ethereum',
+  currentPrice: 118432.55, priceChangePercentage24h: -0.60,
+  marketCapRank: 1, totalVolume: 42_180_000_000, marketCap: 2_341_000_000_000,
+  athChangePercentage: -8.42, low24h: 117_204.10, high24h: 119_880.00,
+  circulatingSupply: 19_884_231, totalSupply: 21_000_000,
+  address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8'
+};
+
+const money = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const compact = n => {
+  if (!n) return 'N/A';
+  const u = [[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']];
+  for (const [v,s] of u) if (n >= v) return '$' + (n/v).toFixed(2) + s;
+  return '$' + n.toFixed(2);
+};
+const compactNum = n => {
+  if (!n) return 'N/A';
+  const u = [[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']];
+  for (const [v,s] of u) if (n >= v) return (n/v).toFixed(2) + s;
+  return String(n);
+};
+const pct = n => (n > 0 ? '+' : '') + n.toFixed(2) + '%';
+const short = a => a.slice(0,6) + '…' + a.slice(-6);
+const rangeT = () => (D.currentPrice - D.low24h) / (D.high24h - D.low24h);
+
+/* ── Icons (16px stroke, matching SketchIcons' weight) ──────────────────── */
+const ico = {
+  recv:  '<path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16"/>',
+  swap:  '<path d="M4 8h13m0 0l-3.5-3.5M17 8l-3.5 3.5M20 16H7m0 0l3.5-3.5M7 16l3.5 3.5"/>',
+  send:  '<path d="M12 21V9m0 0L7.5 13.5M12 9l4.5 4.5M4 5h16"/>',
+  left:  '<path d="M15 5l-7 7 7 7"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  down:  '<path d="M6 9l6 6 6-6"/>',
+  copy:  '<path d="M9 9h10v10H9zM5 15V5h10"/>',
+  net:   '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>',
+  cap:   '<path d="M4 19h16M7 15v4M12 9v10M17 5v14"/>',
+  circ:  '<path d="M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2"/>',
+  total: '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/>',
+  vol:   '<path d="M4 17l4-6 4 3 4-8 4 5"/>'
+};
+const svg = (p, cls) => `<svg class="${cls||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const gsvg = p => `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"
+  stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+
+const ann = (t, style) => `<span class="ann" style="${style}">${t}</span>`;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AXIS RENDERERS — each scheme picks one option per axis.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Axis 1: back navigation ────────────────────────────────────────────── */
+const NAV = {
+  kicker: () => `<div class="gutter" style="padding-bottom:10px">
+      <button class="navKicker kickerDense" onclick="say('← back to Markets')">
+        ${svg(ico.left)}<span>Markets</span></button>
+      ${ann('11px kicker · no chip · no border', 'margin-left:10px;position:static;display:inline-block')}
+    </div>`,
+  arrow: () => '',           /* rendered inside the identity row */
+  close: () => '',           /* rendered top-right of the header */
+  none:  () => ''
+};
+
+/* ── Axis 2: identity (title + ticker-only subtitle) ────────────────────── */
+function identity(s) {
+  const back = s.nav === 'arrow'
+    ? `<button class="btn icon sq" style="height:40px;width:40px" onclick="say('← back to Markets')">${svg(ico.left)}</button>`
+    : '';
+  /* s.chain is TRUE only on the control board. Every other board drops the
+     `  ·  ${network}` segment entirely — that is axis 2, and it has to be
+     visible as a DELTA, which means the control has to still carry it. */
+  const ticker = s.chain
+    ? `${D.symbol}&nbsp;&nbsp;·&nbsp;&nbsp;${D.network}`
+    : D.symbol;
+  const sub = s.sub === 'chip'
+    ? `<span class="kickerDense" style="padding:2px 7px;border-radius:5px;background:var(--surface-menu);
+         border:1px solid var(--border-subtle)">${ticker}</span>`
+    : `<span class="subtitle">${ticker}</span>`;
+
+  return `<div class="row" style="gap:12px">
+    ${back}
+    <div style="width:40px;height:40px;border-radius:20px;background:#F7931A;display:grid;
+         place-items:center;font:700 22px/1 var(--font);color:#fff;flex:none">₿</div>
+    <div class="grow measured" style="position:relative">
+      ${ann('title→ticker 16px optical (was 24)','top:34px;left:0')}
+      <div class="row" style="gap:10px">
+        <h1 class="title">${D.name}</h1>
+        ${s.actions === 'inline' ? actionsInline() : ''}
+      </div>
+      <div style="height:2px"></div>
+      <div class="row" style="gap:8px">${sub}
+        ${ann(s.chain ? 'chain STILL HERE — this is the control'
+                      : 'chain segment REMOVED','position:static;display:inline-block')}
+      </div>
+    </div>
+    ${s.priceIn === 'header' ? priceBlock() : ''}
+    ${s.nav === 'close' ? `<button class="navClose" onclick="say('close → Markets')">${svg(ico.close)}</button>` : ''}
+  </div>`;
+}
+
+function priceBlock() {
+  const up = D.priceChangePercentage24h >= 0;
+  return `<div style="text-align:right;flex:none">
+    <div class="price">${money(D.currentPrice)}</div>
+    <div style="height:6px"></div>
+    <span class="pill ${up?'up':'down'}">${up?'▲':'▼'} ${pct(D.priceChangePercentage24h)}</span>
+  </div>`;
+}
+
+/* ── Axis 3: Receive / Swap actions ─────────────────────────────────────── */
+const actionsInline = () => `<div class="row" style="gap:6px">
+    <div style="width:1px;height:24px;background:var(--border-subtle)"></div>
+    <div class="glyph32" onclick="say('Receive')" title="Receive">${gsvg(ico.recv)}</div>
+    <div class="glyph32" onclick="say('Swap')" title="Swap">${gsvg(ico.swap)}</div>
+  </div>`;
+
+const ACTIONS = {
+  inline: () => '',   /* drawn inside identity() — this is today's shipped shape */
+  pills: () => `<div class="gutter" style="padding-top:14px">
+      <div class="row" style="gap:8px">
+        <button class="btn" onclick="say('Receive')">${svg(ico.recv)}Receive</button>
+        <button class="btn" onclick="say('Swap')">${svg(ico.swap)}Swap</button>
+        ${ann('40px pills · label carries the meaning','position:static;margin-left:6px')}
+      </div></div>`,
+  cta: () => `<div class="gutter" style="padding-top:14px">
+      <div class="row" style="gap:8px">
+        <button class="btn fill" onclick="say('Swap')">${svg(ico.swap)}Swap</button>
+        <button class="btn" onclick="say('Receive')">${svg(ico.recv)}Receive</button>
+        ${ann('one fill max per surface — CTA weight rule','position:static;margin-left:6px')}
+      </div></div>`,
+  bar: () => `<div class="gutter" style="padding-top:14px">
+      <div class="row" style="gap:8px">
+        <button class="btn grow" onclick="say('Receive')">${svg(ico.recv)}Receive</button>
+        <button class="btn grow" onclick="say('Send')">${svg(ico.send)}Send</button>
+        <button class="btn grow fill" onclick="say('Swap')">${svg(ico.swap)}Swap</button>
+      </div></div>`,
+  tiles: () => `<div class="gutter" style="padding-top:14px">
+      <div class="row" style="gap:8px">
+        ${['recv:Receive','swap:Swap'].map(x => { const [k,l] = x.split(':'); return `
+          <div class="card" style="padding:10px 14px;cursor:pointer;text-align:center;min-width:88px"
+               onclick="say('${l}')" onmouseenter="this.style.borderColor='rgba(20,200,255,.45)'"
+               onmouseleave="this.style.borderColor='var(--border-subtle)'">
+            <div style="display:grid;place-items:center;color:var(--brand-primary)">${svg(ico[k])}</div>
+            <div class="kickerDense" style="margin-top:6px;color:var(--text-primary)">${l}</div>
+          </div>`; }).join('')}
+      </div></div>`,
+  menu: () => `<div class="gutter" style="padding-top:14px">
+      <button class="btn" onclick="say('Actions menu')">Actions ${svg(ico.down)}</button>
+    </div>`
+};
+
+/* ── Axis 4: stat tiles ─────────────────────────────────────────────────── */
+const baseStats = () => [
+  ['Rank', '#' + D.marketCapRank, ''],
+  ['24h change', pct(D.priceChangePercentage24h), D.priceChangePercentage24h >= 0 ? 'var(--status-success)' : 'var(--status-error)'],
+  ['Volume 24h', compact(D.totalVolume), ''],
+  ['Market cap', compact(D.marketCap), ''],
+  ['From ATH', pct(D.athChangePercentage), D.athChangePercentage >= 0 ? 'var(--status-success)' : 'var(--status-error)']
+];
+
+const tileHTML = (l, v, c) =>
+  `<div class="tile"><div class="kickerDense">${l}</div>
+   <div class="statVal" ${c?`style="color:${c}"`:''}>${v}</div></div>`;
+
+const STATS = {
+  /* Range bar deleted. Six identical tiles, all 65px. */
+  flat6: () => `<div class="gutter"><div class="tiles measured" style="grid-template-columns:repeat(6,1fr);position:relative">
+      ${ann('6 × 65px — no tile is taller than another','top:-18px;left:0')}
+      ${baseStats().map(t => tileHTML(...t)).join('')}
+      ${tileHTML('24h range', compact(D.low24h) + ' – ' + compact(D.high24h), '')}
+    </div></div>`,
+
+  /* Five short tiles + the range promoted to its own full-width strip that
+     EARNS the bar, instead of the bar inflating five innocent tiles. */
+  wide: () => `<div class="gutter">
+      <div class="tiles" style="grid-template-columns:repeat(5,1fr)">
+        ${baseStats().map(t => tileHTML(...t)).join('')}
+      </div>
+      <div style="height:12px"></div>
+      <div class="tile measured" style="position:relative">
+        ${ann('range gets its own strip — bar no longer taxes the other 5','top:-18px;left:0')}
+        <div class="row between"><div class="kickerDense">24h range</div>
+          <div class="kickerDense" style="color:var(--text-primary)">${money(D.currentPrice)}</div></div>
+        <div class="track" style="margin-top:10px"><i style="left:${(rangeT()*100).toFixed(1)}%"></i></div>
+        <div class="row between" style="margin-top:8px">
+          <span class="statVal" style="font-size:13px;color:var(--text-secondary)">${money(D.low24h)}</span>
+          <span class="statVal" style="font-size:13px;color:var(--text-secondary)">${money(D.high24h)}</span>
+        </div>
+      </div></div>`,
+
+  /* Range leaves the rail entirely and becomes the chart's own axis footer. */
+  chartfoot: () => `<div class="gutter"><div class="tiles" style="grid-template-columns:repeat(5,1fr)">
+      ${baseStats().map(t => tileHTML(...t)).join('')}
+    </div></div>`,
+
+  /* 3 × 2 grid, uniform, for narrow-first schemes. */
+  grid32: () => `<div class="gutter"><div class="tiles" style="grid-template-columns:repeat(3,1fr)">
+      ${baseStats().map(t => tileHTML(...t)).join('')}
+      ${tileHTML('24h range', compact(D.low24h) + ' – ' + compact(D.high24h), '')}
+    </div></div>`
+};
+
+/* ── Axis 5: chart ──────────────────────────────────────────────────────── */
+function sparkPath(w, h) {
+  const pts = [42,38,45,40,36,33,37,30,34,28,31,26,29,32,27,24,26,21,23,25,20,18,22,17,15,19,14,16,12];
+  const max = Math.max(...pts), min = Math.min(...pts);
+  return pts.map((p,i) => {
+    const x = (i/(pts.length-1))*w;
+    const y = h - ((p-min)/(max-min))*(h-14) - 7;
+    return (i?'L':'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+  }).join(' ');
+}
+
+/* The chart card, drawn to the SHIPPED spec — this is not a redesign.
+   Sources, all in the live code:
+     kicker 'Price' ABOVE the card ....... token_info_screen.dart:233-237
+     card = GWCard radiusMd, pad space8 .. token_info_screen.dart:386-392
+     header row (price/%/time + segment) . crypto_live_chart.dart:591-640
+       price 17px bold tabular (15 narrow)         :601-606
+       signed % 12px bold, trend colour            :611-618
+       hovered-sample time 11px textSecondary      :622-630
+     timeframe 1H·1D·1W·1M·1Y, default 1D  gw_timeframe_segment.dart:47,36-41
+     line 2px trendColor, area .18 → 0    crypto_live_chart.dart:706-728
+       fade stop 0.62                     chart_axis.dart:38
+     gridlines horizontal only, 6%        crypto_live_chart.dart:732-745
+     right Y axis, 62px gutter, 11px      crypto_live_chart.dart:762-784, chart_axis.dart:23
+     H/L plates pinned in-plot            crypto_live_chart.dart:1042-1083
+
+   The ONE addition Jakub asked for (2026-07-30) is the 24h low/high footer
+   under the plot. Everything above it is reproduction, not proposal. */
+function chart(s, h) {
+  const W = 720, H = h || 300;
+  const up = D.priceChangePercentage24h >= 0;
+  const trend = up ? 'var(--status-success)' : 'var(--status-error)';
+  const trendHex = up ? '#0AD89C' : '#FF4D4D';
+
+  /* 24h low/high under the plot — the only new element on this card. */
+  const foot = (s.chartFoot || s.stats === 'chartfoot') ? `
+    <div class="measured" style="margin-top:14px;padding-top:14px;
+         border-top:1px solid var(--border-subtle);position:relative">
+      ${ann('the ONE addition - everything above is the shipped chart','top:-9px;left:0')}
+      <div class="row between" style="margin-bottom:8px">
+        <span class="kickerDense">24h low</span>
+        <span class="kickerDense">24h high</span></div>
+      <div class="track"><i style="left:${(rangeT()*100).toFixed(1)}%"></i></div>
+      <div class="row between" style="margin-top:8px">
+        <span class="statVal" style="font-size:13px">${money(D.low24h)}</span>
+        <span class="statVal" style="font-size:13px">${money(D.high24h)}</span></div>
+    </div>` : '';
+
+  const seg = ['1H','1D','1W','1M','1Y'].map((t,i) =>
+    `<button class="tfTab ${i===1?'on':''}" onclick="tf(this)">${t}</button>`).join('');
+
+  /* Nice-number ladder for the right axis, same shape axisMoneyLabel produces. */
+  const axis = ['$120K','$119K','$118K','$117K']
+    .map(v => `<span>${v}</span>`).join('');
+
+  return `<div>
+    <div class="kicker">Price</div>
+    <div style="height:8px"></div>
+    <div class="card">
+      <div class="row" style="gap:8px;margin-bottom:12px">
+        <div class="row grow" style="gap:8px;min-width:0">
+          <span style="font:700 17px/1.2 var(--font);font-variant-numeric:tabular-nums;
+                color:var(--text-primary)">${money(D.currentPrice)}</span>
+          <span style="font:700 12px/1.2 var(--font);color:${trend}">${pct(D.priceChangePercentage24h)}</span>
+          <span style="font:400 11px/1.2 var(--font);color:var(--text-secondary)">Latest</span>
+        </div>
+        <div class="tfTrack">${seg}</div>
+      </div>
+      <div class="chartWrap" style="height:${H}px">
+        <svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+          <defs><linearGradient id="fillG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${trendHex}" stop-opacity=".18"/>
+            <stop offset="62%" stop-color="${trendHex}" stop-opacity="0"/></linearGradient></defs>
+          ${[0.2,0.4,0.6,0.8].map(f => `<line x1="0" y1="${(H*f).toFixed(0)}"
+             x2="${W}" y2="${(H*f).toFixed(0)}" stroke="rgba(255,255,255,.06)" stroke-width="1"
+             vector-effect="non-scaling-stroke"/>`).join('')}
+          <path d="${sparkPath(W-62,H)} L ${W-62} ${H} L 0 ${H} Z" fill="url(#fillG)"/>
+          <path d="${sparkPath(W-62,H)}" fill="none" stroke="${trendHex}" stroke-width="2"
+                vector-effect="non-scaling-stroke"/>
+        </svg>
+        <div class="yAxis">${axis}</div>
+        <span class="hlPlate" style="left:14%;top:6px">H ${money(D.high24h)}</span>
+        <span class="hlPlate" style="left:79%;bottom:6px">L ${money(D.low24h)}</span>
+      </div>${foot}
+    </div></div>`;
+}
+
+/* ── Axis 6: Convert ────────────────────────────────────────────────────── */
+const CONVERT = {
+  /* Today's shape, kept as the control. */
+  calc: () => `<div class="card"><div class="kicker">Convert</div><div style="height:12px"></div>
+      <div class="grid"><div class="r"><span class="k">Token price</span>
+        <span class="v" style="font-weight:600">${money(D.currentPrice)}</span></div></div>
+      <div style="height:12px"></div>
+      <span class="kickerDense fieldLabel">Token amount</span>
+      <input class="field" value="1" oninput="calc(this,'calcOut')">
+      <div style="height:12px"></div>
+      <div class="grid"><div class="r"><span class="k" style="color:var(--text-primary)">Total</span>
+        <span class="v" style="font-weight:600" id="calcOut">${money(D.currentPrice)}</span></div></div>
+    </div>`,
+
+  /* Buy-first: you think in dollars, not in fractions of a coin. */
+  buy: () => `<div class="card">
+      <div class="kicker">Buy ${D.name}</div><div style="height:12px"></div>
+      <span class="kickerDense fieldLabel">You spend</span>
+      <input class="field" value="500" oninput="buyCalc(this)" id="buyIn">
+      <div style="height:10px"></div>
+      <div class="chipRow">${[100,500,1000,5000].map(v =>
+        `<button class="chip ${v===500?'on':''}" onclick="preset(${v})">$${v.toLocaleString()}</button>`).join('')}</div>
+      <div style="height:14px"></div>
+      <div class="grid">
+        <div class="r"><span class="k">You get</span>
+          <span class="v" style="font-weight:600" id="buyOut">0.004222 BTC</span></div>
+        <div class="r"><span class="k">Rate</span>
+          <span class="v">1 BTC = ${money(D.currentPrice)}</span></div>
+      </div>
+      <div style="height:14px"></div>
+      <button class="btn fill" style="width:100%" onclick="say('Buy 0.004222 BTC')">Buy ${D.symbol}</button>
+    </div>`,
+
+  /* Swap-style two-panel — the mental model the Swap tab already uses. */
+  swap: () => `<div class="card">
+      <div class="kicker">Convert</div><div style="height:12px"></div>
+      <div style="background:var(--surface-sunken);border:1px solid var(--border-subtle);
+           border-radius:var(--radius-sm);padding:12px">
+        <div class="row between" style="margin-bottom:6px">
+          <span class="kickerDense">You pay</span><span class="kickerDense">Balance 2,480.00</span></div>
+        <div class="row" style="gap:10px">
+          <input class="field" style="background:transparent;border:0;height:32px;padding:0;font-size:22px"
+                 value="500" oninput="swapCalc(this)" id="swapIn">
+          <span class="chip on" style="cursor:default">USD</span></div>
+      </div>
+      <div style="display:grid;place-items:center;margin:-10px 0;position:relative;z-index:2">
+        <button class="glyph32" onclick="say('flip direction')">${gsvg(ico.swap)}</button></div>
+      <div style="background:var(--surface-sunken);border:1px solid var(--border-subtle);
+           border-radius:var(--radius-sm);padding:12px">
+        <div class="kickerDense" style="margin-bottom:6px">You get</div>
+        <div class="row" style="gap:10px">
+          <div class="grow statVal" style="font-size:22px" id="swapOut">0.004222</div>
+          <span class="chip on" style="cursor:default">${D.symbol}</span></div>
+      </div>
+      <div style="height:14px"></div>
+      <button class="btn fill" style="width:100%" onclick="say('Convert')">Convert</button>
+    </div>`,
+
+  /* One line + a stepper. The lightest possible version. */
+  inline: () => `<div class="card">
+      <div class="row between"><div class="kicker">Convert</div>
+        <span class="kickerDense">1 ${D.symbol} = ${money(D.currentPrice)}</span></div>
+      <div style="height:12px"></div>
+      <div class="row" style="gap:8px">
+        <input class="field grow" value="1" oninput="calc(this,'inlineOut')">
+        <span class="chip on" style="cursor:default;height:48px;display:grid;place-items:center">${D.symbol}</span>
+      </div>
+      <div style="height:12px"></div>
+      <div class="row between">
+        <span class="kickerDense">Total</span>
+        <span class="price" style="font-size:22px;line-height:28px" id="inlineOut">${money(D.currentPrice)}</span>
+      </div></div>`
+};
+
+/* ── Axis 7: Info card ──────────────────────────────────────────────────── */
+const infoRows = () => [
+  ['net',   'Network',            D.network],
+  ['copy',  'Address',            short(D.address)],
+  ['cap',   'Market Cap',         compact(D.marketCap)],
+  ['circ',  'Circulating Supply', compactNum(D.circulatingSupply)],
+  ['total', 'Total Supply',       compactNum(D.totalSupply)],
+  ['vol',   'Volume',             compact(D.totalVolume)]
+];
+
+const INFO = {
+  /* No icons at all. The label already names the row. */
+  plain: () => `<div class="card"><div class="kicker">Info</div><div style="height:12px"></div>
+      <div class="grid measured" style="position:relative">
+        ${ann('no glyph slot — 22px + 12px back to the label','top:-18px;left:0')}
+        ${infoRows().map(([,k,v]) => `<div class="r ${k==='Address'?'tap':''}"
+          ${k==='Address'?`onclick="say('address copied')"`:''}>
+          <span class="k">${k}</span><span class="v">${v}</span>
+          ${k==='Address'?`<span style="color:var(--text-secondary);display:grid">${svg(ico.copy)}</span>`:''}
+        </div>`).join('')}
+      </div></div>`,
+
+  /* Gradient-masked glyphs — same language as the 32px action glyph. */
+  glyph: () => `<div class="card"><div class="kicker">Info</div><div style="height:12px"></div>
+      <div class="grid">
+        ${infoRows().map(([i,k,v]) => `<div class="r ${k==='Address'?'tap':''}"
+          ${k==='Address'?`onclick="say('address copied')"`:''}>
+          <span class="iSlot"><svg viewBox="0 0 24 24" fill="none" stroke="url(#ctaGrad)"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ico[i]}</svg></span>
+          <span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+      </div></div>`,
+
+  /* Keys become kickers. Editorial, no icons, more air. */
+  kicker: () => `<div class="card"><div class="kicker">Info</div><div style="height:12px"></div>
+      <div style="display:grid;gap:14px">
+        ${infoRows().map(([,k,v]) => `<div>
+          <div class="kickerDense">${k}</div>
+          <div class="statVal" style="margin-top:2px">${v}</div></div>`).join('')}
+      </div></div>`,
+
+  /* Two pairs per row — half the height, no icons. */
+  two: () => `<div class="card"><div class="kicker">Info</div><div style="height:12px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        ${infoRows().map(([,k,v]) => `<div style="background:var(--surface-sunken);
+          border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:10px 12px">
+          <div class="kickerDense">${k}</div>
+          <div class="statVal" style="margin-top:2px;font-size:14px">${v}</div></div>`).join('')}
+      </div></div>`
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE TEN SCHEMES
+   ═══════════════════════════════════════════════════════════════════════════ */
+const SCHEMES = [
+  { id:'now', tab:'0 · Today', name:'Today (control)',
+    thesis:'What ships right now, drawn to the same scale so every other scheme is judged against it and not against memory. The chain still sits in the subtitle, the range bar still inflates all six tiles, and the two actions are bare glyphs on the title line.',
+    nav:'chip', sub:'plain', actions:'inline', stats:'today', convert:'calc', info:'glyph',
+    priceIn:'header', control:true, chain:true },
+
+  { id:'quiet', tab:'1 · Quiet', name:'Quiet',
+    thesis:'Subtract, do not add. The range bar goes, the info glyphs go, the breadcrumb chip becomes a plain kicker link. Nothing new is introduced anywhere — the page gets better by owning less.',
+    nav:'kicker', sub:'plain', actions:'pills', stats:'flat6', convert:'calc', info:'plain',
+    priceIn:'header' },
+
+  { id:'retail', tab:'2 · Retail', name:'Retail',
+    thesis:'Somebody landing here wants to own some. Convert stops being a calculator and becomes a Buy panel denominated in dollars, with preset amounts and one filled CTA. Everything else stays quiet so the CTA is the only bright thing.',
+    nav:'arrow', sub:'plain', actions:'cta', stats:'flat6', convert:'buy', info:'plain',
+    priceIn:'header' },
+
+  { id:'terminal', tab:'3 · Terminal', name:'Terminal',
+    thesis:'Density as the feature. Six uniform tiles, info as a two-up grid, no decorative glyph anywhere. For the user who opens this page nine times a day and reads numbers, not pictures.',
+    nav:'kicker', sub:'chip', actions:'pills', stats:'flat6', convert:'inline', info:'two',
+    priceIn:'header' },
+
+  { id:'hero', tab:'4 · Hero', name:'Hero band',
+    thesis:'The identity block becomes a real header band that owns the actions as a full-width row, so Receive/Send/Swap read as things you do to your wallet rather than labels about the coin. Range gets its own strip and finally earns its bar.',
+    nav:'arrow', sub:'plain', actions:'bar', stats:'wide', convert:'buy', info:'kicker',
+    priceIn:'header' },
+
+  { id:'trader', tab:'5 · Trader', name:'Trader',
+    thesis:'This page is a swap surface with a chart attached. Convert adopts the You pay / You get shape the Swap tab already teaches, and the 24h range moves down to become the chart\'s own axis footer where it belongs.',
+    nav:'arrow', sub:'plain', actions:'cta', stats:'chartfoot', convert:'swap', info:'plain',
+    priceIn:'header' },
+
+  { id:'editorial', tab:'6 · Editorial', name:'Editorial',
+    thesis:'Type does the work. Info rows become kicker-over-value stacks instead of key/value lines, actions become labelled tiles, and the back link is a quiet uppercase kicker. Reads like a page, not a dashboard.',
+    nav:'kicker', sub:'plain', actions:'tiles', stats:'flat6', convert:'calc', info:'kicker',
+    priceIn:'header' },
+
+  { id:'compact', tab:'7 · Compact', name:'Compact',
+    thesis:'Every block one notch tighter, for the 1280px window that is actually the common case. Actions collapse behind one menu button, Convert is a single line with a stepper, Info is two-up.',
+    nav:'arrow', sub:'chip', actions:'menu', stats:'grid32', convert:'inline', info:'two',
+    priceIn:'header' },
+
+  { id:'gradient', tab:'8 · Gradient', name:'Gradient',
+    thesis:'Brand-forward. The CTA gradient shows up in three coordinated places — the Swap button, the info glyphs, the Buy CTA — instead of being a one-off on the action icons. Tests whether the gradient survives repetition or starts shouting.',
+    nav:'arrow', sub:'plain', actions:'cta', stats:'flat6', convert:'buy', info:'glyph',
+    priceIn:'header' },
+
+  { id:'panelled', tab:'9 · Panelled', name:'Panelled',
+    thesis:'Info and Convert stop competing for the right column and become two tabs of one panel. That buys back roughly 300px of column height, which lets the stat rail run full width with a real range strip under it.',
+    nav:'arrow', sub:'plain', actions:'bar', stats:'wide', convert:'tabbed', info:'tabbed',
+    priceIn:'header' },
+
+  { id:'overlay', tab:'10 · Overlay', name:'Overlay',
+    thesis:'The coin page is a detail view over Markets, so it closes rather than navigates back — an × top-right, no breadcrumb at all. Actions are labelled tiles beside the identity, range lives under the chart.',
+    nav:'close', sub:'plain', actions:'tiles', stats:'chartfoot', convert:'buy', info:'kicker',
+    priceIn:'header' },
+
+  /* ── Jakub's synthesis, 2026-07-30 ──────────────────────────────────────
+     Quiet's kicker back-link + Retail's Swap/Receive CTA pair + Trader's
+     range-as-chart-footer, on a subtitle that is ticker-only.
+
+     The CTA weight rule survives this combination, and that is not luck:
+     Quiet's Convert is a CALCULATOR, so it carries no button of its own.
+     The filled gradient Swap in the header is therefore the page's ONE fill.
+     Swapping Convert for Retail's Buy panel would put a second fill on the
+     same surface and break it — flagged in the README as the open axis. */
+  { id:'synth', tab:'★ Synthesis', name:'Synthesis — Quiet + Retail CTA + Trader range',
+    thesis:'Quiet\'s kicker back-link and stripped Info, Retail\'s filled Swap + outline Receive, and Trader\'s 24h range moved under the chart as an axis footer. Ticker only, no chain. The filled Swap is the page\'s single fill, which holds only because Convert stays a calculator with no button of its own.',
+    nav:'kicker', sub:'plain', actions:'cta', stats:'chartfoot', convert:'calc', info:'plain',
+    priceIn:'header', synth:true }
+];
+
+/* ── Today's control shapes (only used by scheme 0) ─────────────────────── */
+const todayNav = () => `<div class="gutter" style="padding-bottom:8px">
+  <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
+    border:1px solid var(--border-subtle);color:var(--text-secondary);cursor:pointer"
+    class="kickerDense" onclick="say('← Markets')">${svg(ico.left)} Markets</span>
+  ${ann('breadcrumb chip — used nowhere else in the app','position:static;margin-left:10px')}</div>`;
+
+const todayStats = () => `<div class="gutter"><div class="tiles measured"
+    style="grid-template-columns:repeat(6,1fr);position:relative">
+    ${ann('all six stretched to 77px by ONE tile','top:-18px;left:0')}
+    ${baseStats().map(([l,v,c]) => `<div class="tile" style="min-height:77px">
+      <div class="kickerDense">${l}</div><div class="statVal" ${c?`style="color:${c}"`:''}>${v}</div></div>`).join('')}
+    <div class="tile" style="min-height:77px"><div class="kickerDense">24h range</div>
+      <div class="statVal">${compact(D.low24h)} – ${compact(D.high24h)}</div>
+      <div class="track"><i style="left:${(rangeT()*100).toFixed(1)}%"></i></div></div>
+  </div></div>`;
+
+/* ── Panelled: Info + Convert as one tabbed card ────────────────────────── */
+const tabbedPanel = () => `<div class="card">
+  <div class="tabsInline">
+    <button class="on" onclick="panel(this,'pInfo')">Info</button>
+    <button onclick="panel(this,'pConv')">Convert</button>
+  </div>
+  <div id="pInfo">
+    <div class="grid">${infoRows().map(([,k,v]) => `<div class="r ${k==='Address'?'tap':''}"
+      ${k==='Address'?`onclick="say('address copied')"`:''}>
+      <span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}</div>
+  </div>
+  <div id="pConv" style="display:none">
+    <span class="kickerDense fieldLabel">You pay (USD)</span>
+    <input class="field" value="500" oninput="swapCalc(this)" id="swapIn">
+    <div style="height:12px"></div>
+    <div class="grid"><div class="r"><span class="k">You get</span>
+      <span class="v" style="font-weight:600" id="swapOut">0.004222 BTC</span></div></div>
+    <div style="height:12px"></div>
+    <button class="btn fill" style="width:100%" onclick="say('Convert')">Convert</button>
+  </div></div>`;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════════════════════════════════════════ */
+function renderScheme(s) {
+  const nav = s.control ? todayNav() : (NAV[s.nav] ? NAV[s.nav]() : '');
+  const stats = s.control ? todayStats() : STATS[s.stats]();
+  const actions = s.control ? '' : ACTIONS[s.actions]();
+
+  const right = s.convert === 'tabbed'
+    ? tabbedPanel()
+    : `${INFO[s.info]()}<div style="height:16px"></div>${CONVERT[s.convert]()}`;
+
+  const axes = [
+    'back: ' + s.nav, 'subtitle: ticker only', 'actions: ' + s.actions,
+    'stats: ' + s.stats, 'convert: ' + s.convert, 'info: ' + s.info
+  ].map(a => `<span class="axis">${a}</span>`).join('');
+
+  return `<div class="scheme" id="s-${s.id}">
+    <div class="viewport">
+      <div class="page">
+        <div class="thesis"><h2>${s.name}</h2><p>${s.thesis}</p><div class="axes">${axes}</div></div>
+        <div style="max-width:1180px;margin:0 auto">
+          ${nav}
+          <div class="gutter">${identity(s)}</div>
+          ${actions}
+          <div style="height:16px"></div>
+          ${stats}
+          <div style="height:16px"></div>
+          <div class="gutter">
+            <div class="cols">
+              <div>${chart(s, 320)}</div>
+              <div>${right}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* The synthesis opens first — it is the board under discussion. The control
+   stays one click away so the delta can be checked, not remembered. */
+const OPEN = SCHEMES.find(s => s.synth) || SCHEMES[0];
+
+document.getElementById('stage').innerHTML = SCHEMES.map(renderScheme).join('');
+document.getElementById('tabRow').innerHTML = SCHEMES.map(s =>
+  `<button class="tab ${s.id===OPEN.id?'active':''}" ${s.synth?'style="color:#0AD89C"':''}
+     onclick="show('${s.id}',this)">${s.tab}</button>`).join('');
+document.getElementById('tabMeta').textContent =
+  'Sketch 165 · coin page · ' + SCHEMES.length + ' boards (0 = today\'s control, ★ = the synthesis) '
+  + '· dark first · 1:1 with the shipped tokens';
+document.getElementById('s-' + OPEN.id).classList.add('active');
+
+/* ── Interactions ───────────────────────────────────────────────────────── */
+function show(id, el) {
+  document.querySelectorAll('.scheme').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+function say(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._tt); window._tt = setTimeout(() => t.classList.remove('show'), 1500);
+}
+function tf(el) {
+  el.parentNode.querySelectorAll('.tfTab').forEach(b => b.classList.remove('on'));
+  el.classList.add('on'); say('timeframe ' + el.textContent);
+}
+function panel(el, id) {
+  el.parentNode.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  ['pInfo','pConv'].forEach(p => {
+    const n = document.getElementById(p);
+    if (n) n.style.display = (p === id) ? 'block' : 'none';
+  });
+}
+function calc(el, outId) {
+  const n = parseFloat(el.value) || 0;
+  const out = el.closest('.card').querySelector('#' + outId) || document.getElementById(outId);
+  if (out) out.textContent = money(n * D.currentPrice);
+}
+function buyCalc(el) {
+  const usd = parseFloat(el.value) || 0;
+  const out = el.closest('.card').querySelector('#buyOut');
+  if (out) out.textContent = (usd / D.currentPrice).toFixed(6) + ' ' + D.symbol;
+  el.closest('.card').querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+}
+function preset(v) {
+  const card = event.target.closest('.card');
+  const input = card.querySelector('#buyIn');
+  input.value = v;
+  card.querySelector('#buyOut').textContent = (v / D.currentPrice).toFixed(6) + ' ' + D.symbol;
+  card.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  event.target.classList.add('on');
+}
+function swapCalc(el) {
+  const usd = parseFloat(el.value) || 0;
+  const out = el.closest('.card').querySelector('#swapOut');
+  if (!out) return;
+  const amt = (usd / D.currentPrice).toFixed(6);
+  out.textContent = out.id === 'swapOut' && out.classList.contains('v')
+    ? amt + ' ' + D.symbol : amt;
+}
+
+/* ── Toolbar ────────────────────────────────────────────────────────────── */
+document.getElementById('themeSel').addEventListener('change', function () {
+  document.documentElement.setAttribute('data-theme', this.value);
+});
+document.querySelectorAll('#tools button[data-w]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#tools button[data-w]').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    const w = b.dataset.w;
+    document.querySelectorAll('.viewport').forEach(v => v.style.maxWidth = w === '0' ? 'none' : w + 'px');
+  });
+});
+document.getElementById('annBtn').addEventListener('click', function () {
+  document.body.classList.toggle('annotate');
+  this.classList.toggle('on');
+});
+</script>
+</body>
+</html>

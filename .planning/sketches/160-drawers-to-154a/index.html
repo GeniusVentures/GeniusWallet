@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>160 · The shipped drawers, adjusted to 154-A - three each</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1340px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+
+  h1 { font:700 20px/28px var(--font); margin-bottom:var(--space-4); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-8); max-width:1010px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.new { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .tag.warn{ background:rgba(255,77,77,.14); color:var(--status-error); }
+
+  /* the component contract strip */
+  .voc { display:flex; gap:10px; flex-wrap:wrap; margin:0 0 var(--space-10); }
+  .voc .c { flex:1; min-width:230px; border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+    background:var(--surface-sheen-b); padding:10px 12px; }
+  .voc .c h4 { font:700 10px/14px var(--font); letter-spacing:.6px; text-transform:uppercase; color:var(--text-primary-54); margin-bottom:5px; }
+  .voc .c p { font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .voc .c b { color:var(--text-primary); }
+
+  .outer { display:flex; gap:var(--space-8); align-items:flex-start; }
+  .stage { position:relative; display:flex; justify-content:flex-end; border:1px solid var(--border-strong);
+    border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); min-height:780px; flex:1; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.5); }
+  .scrim .ghost { position:absolute; left:22px; top:22px; right:452px; }
+  .scrim .ghost .g { height:42px; border-radius:10px; background:var(--skeleton); margin-bottom:10px; }
+  .scrim .ghost .g:nth-child(3n) { width:78%; }
+
+  /* 030-B1 shell */
+  .panel { position:relative; width:420px; flex:none; background:var(--surface-elevated); display:flex; flex-direction:column;
+    border-top-left-radius:24px; border-bottom-left-radius:24px; overflow:hidden; }
+  .p-head { height:56px; flex:none; display:flex; align-items:center; padding:0 20px; position:relative; }
+  .p-head .t { font:600 18px/24px var(--font); margin-right:auto; }
+  .p-head .x { color:var(--text-secondary); cursor:pointer; font:400 20px/1 var(--font); }
+  .p-head::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:rgba(20,200,255,.12); }
+  .p-body { flex:1; overflow-y:auto; padding:24px 20px 20px; }
+  .p-foot { flex:none; padding:20px; border-top:1px solid var(--border-subtle); }
+
+  /* ============ THE 154-A COMPONENTS, verbatim ============ */
+  /* GWDrawerSection: uppercase kicker + hairline card */
+  .sec { margin-bottom:var(--space-12); }
+  .sec:last-child { margin-bottom:0; }
+  .sec-l { font:700 10px/1 var(--font); letter-spacing:.8px; text-transform:uppercase; color:var(--text-primary-54);
+    margin-bottom:var(--space-6); }
+  .card { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    overflow:hidden; }
+  /* GWDrawerRow */
+  .row { display:flex; align-items:center; gap:12px; padding:11px var(--space-8); border-top:1px solid var(--border-subtle); }
+  .row:first-child { border-top:0; }
+  .row .k { font:400 14px/20px var(--font); color:var(--text-primary-70); flex:none; }
+  .row .v { font:400 14px/20px var(--font); color:var(--text-primary); margin-left:auto; text-align:right;
+    font-variant-numeric:tabular-nums; }
+  .row .v.mono { font-family:var(--font-mono); font-size:13px; }
+  .row.tap { cursor:pointer; transition:background .12s ease; }
+  .row.tap:hover { background:rgba(20,200,255,.08); }
+  .row .chev { color:var(--text-primary-38); font:400 15px/1 var(--font); }
+
+  /* hero, as 154-A draws it */
+  .hero { text-align:center; margin-bottom:var(--space-12); }
+  .hero .big { font:600 30px/38px var(--font); font-variant-numeric:tabular-nums; color:var(--text-primary); }
+  .hero .sub { font:400 13px/19px var(--font); color:var(--text-secondary); margin-top:var(--space-3); }
+  .pill { display:inline-flex; align-items:center; gap:6px; margin-top:var(--space-6); padding:3px 10px;
+    border-radius:999px; font:600 13px/18px var(--font); }
+  .pill .d { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .pill.ok   { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .pill.warn { background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .pill.err  { background:rgba(255,77,77,.14);  color:var(--status-error); }
+
+  /* preset chips - kept from 063-A, they are not in dispute */
+  .presets { display:flex; gap:8px; }
+  .presets .pc { flex:1; height:40px; display:grid; place-items:center; border-radius:var(--radius-sm);
+    font:600 16px/1 var(--font); color:var(--text-primary); border:1px solid var(--border-subtle); cursor:pointer;
+    transition:all .15s ease; }
+  .presets .pc:hover { background:rgba(20,200,255,.08); border-color:rgba(20,200,255,.32); }
+  .presets .pc.on { background:linear-gradient(135deg,#0AD89C,#0AAEE6); border-color:transparent; color:#000B18; }
+  .field { height:44px; border-radius:var(--radius-sm); background:var(--surface-menu);
+    border:1px solid var(--border-subtle); display:flex; align-items:center; padding:0 12px;
+    font:400 16px/1 var(--font); color:var(--text-primary); }
+  .field .sfx { margin-left:auto; color:var(--text-secondary); font-weight:600; }
+  .msg { display:flex; gap:7px; align-items:flex-start; margin-top:var(--space-4);
+    font:400 13px/19px var(--font); color:var(--status-warning); }
+  .hint { font:400 13px/19px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+
+  /* search - GWFocusRing at radiusMd, as shipped */
+  .search { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-elevated);
+    height:42px; display:flex; align-items:center; gap:9px; padding:0 12px; margin-bottom:var(--space-8);
+    font:400 13px/19px var(--font); color:var(--text-secondary); }
+  .search svg { width:18px; height:18px; flex:none; }
+
+  /* token row inside a 154-A card */
+  .trow { display:flex; align-items:center; gap:12px; padding:10px var(--space-8); border-top:1px solid var(--border-subtle);
+    cursor:pointer; transition:background .12s ease; }
+  .trow:first-child { border-top:0; }
+  .trow:hover { background:rgba(20,200,255,.08); }
+  .trow.sel { background:linear-gradient(90deg, rgba(10,216,156,.18), rgba(10,174,230,.18)); }
+  .trow .av { width:34px; height:34px; border-radius:50%; flex:none; display:grid; place-items:center;
+    font:700 12px/1 var(--font); color:#fff; }
+  .trow .n { font:600 14px/20px var(--font); color:var(--text-primary); }
+  .trow .s { font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .trow .bal { margin-left:auto; font:500 14px/20px var(--font); color:var(--text-primary); font-variant-numeric:tabular-nums; }
+  .trow .chk { width:20px; height:20px; flex:none; }
+  .trow .chk svg { width:20px; height:20px; }
+
+  .btn { height:48px; border-radius:var(--radius-pill); display:flex; align-items:center; justify-content:center; gap:8px;
+    font:600 15px/1 var(--font); cursor:pointer; position:relative; }
+  .btn.g { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  /* secondary as it ships: flat brand outline, NOT a gradient outline (CONVENTIONS.md, CTA weight) */
+  .btn.sec { background:transparent; color:var(--brand-primary-strong);
+    border:1px solid var(--brand-primary-strong); }
+  [data-theme="dark"] .btn.sec { color:var(--brand-primary); border-color:var(--brand-primary); }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); width:430px; flex:none; }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; margin-bottom:var(--space-6); }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">160 · Drawers adjusted to 154-A</span>
+  <span class="lbl">Drawer</span>
+  <button class="st on" data-d="swap">Swap Settings</button>
+  <button class="st" data-d="token">Token Selector</button>
+  <span class="sep"></span>
+  <button class="vt" data-v="0">0 · Today</button>
+  <button class="vt active" data-v="1">1</button>
+  <button class="vt" data-v="2">2</button>
+  <button class="vt" data-v="3">3</button>
+  <span class="sep"></span>
+  <span class="lbl">State</span>
+  <button class="st on" data-s="ok">Normal</button>
+  <button class="st" data-s="warn">Edge</button>
+  <span class="sep"></span>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap">
+  <h1>The two shipped drawers, re-cut to the accepted receipt</h1>
+  <p class="lede">
+    <b>154-A is the accepted design.</b> So the direction reverses: instead of bending the receipt to the two
+    drawers that shipped on 27 July, those two get re-cut to the receipt. Everything below uses
+    <b>only</b> the components 154-A defines - nothing new is invented, and the mechanics of both drawers
+    (presets, validation, search, selection, Apply) are untouched.
+  </p>
+
+  <div class="voc">
+    <div class="c"><h4>Component 1 &middot; GWDrawerSection</h4><p>An uppercase kicker - <b>10px / w700 / .8px
+      tracking</b> at <code>textPrimary54</code> - then a <b>1px <code>borderSubtle</code></b> container at
+      <code>radiusMd</code> filled <code>surfaceSheen</code>. <code>space12</code> between sections.</p></div>
+    <div class="c"><h4>Component 2 &middot; GWDrawerRow</h4><p><b>11px / space8</b> padding, label
+      <code>14px textPrimary70</code> left, value <code>14px textPrimary</code> right and tabular. Rows inside
+      a section are divided by a <b>hairline</b>, never by a gap.</p></div>
+    <div class="c"><h4>Component 3 &middot; the hero</h4><p>Centred above the first section: one big
+      <b>tabular number</b>, a quiet sub-line, and a <b>status pill</b>. In the receipt it carries the amount;
+      here it carries whatever the drawer is actually about.</p></div>
+    <div class="c"><h4>Unchanged</h4><p>Shell 030-B1, body <b>24 / 20 / 20</b>, primary action in the footer,
+      <code>GWFocusRing</code> on inputs, hover = brand tint + brand hairline. The preset chips and the
+      gradient selection tint stay exactly as shipped.</p></div>
+  </div>
+
+  <div class="outer">
+    <div class="stage">
+      <div class="scrim"><div class="ghost"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+      <div class="panel">
+        <div class="p-head"><span class="t ttl">Swap Settings</span><span class="x">&#10005;</span></div>
+        <div class="p-body" id="body"></div>
+        <div class="p-foot" id="foot"></div>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+
+<script>
+const CHECK = '<svg viewBox="0 0 24 24" fill="none"><defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">'
+  + '<stop offset="0%" stop-color="#0AD89C"/><stop offset="100%" stop-color="#0AAEE6"/></linearGradient></defs>'
+  + '<circle cx="12" cy="12" r="10" fill="url(#cg)"/><path d="M8 12.5l2.5 2.5 5-5" stroke="#000B18" stroke-width="2.2" '
+  + 'stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+
+function tok(sym, name, col, bal, sel){
+  return '<div class="trow' + (sel ? ' sel' : '') + '">'
+    + '<span class="av" style="background:' + col + '">' + sym[0] + '</span>'
+    + '<span><span class="n">' + name + '</span><br><span class="s">' + sym + '</span></span>'
+    + (bal ? '<span class="bal">' + bal + '</span>' : '')
+    + (sel ? '<span class="chk">' + CHECK + '</span>' : '')
+    + '</div>';
+}
+
+const TOKENS_OWNED = [
+  ['ETH','Ethereum','#627EEA','1.35'],
+  ['USDC','USD Coin','#2775CA','250.0'],
+  ['GNUS','GeniusAI','linear-gradient(135deg,#0AD89C,#0AAEE6)','1,200.0']
+];
+const TOKENS_REST = [
+  ['USDT','Tether USD','#26A17B',null],
+  ['WBTC','Wrapped Bitcoin','#F7931A',null],
+  ['ARB','Arbitrum','#2D374B',null],
+  ['MATIC','Polygon','#8247E5',null]
+];
+
+// ---------------- SWAP SETTINGS ----------------
+function swapBody(v, edge){
+  const pct = edge ? '12' : '0.5';
+  const presets = p => '<div class="presets">'
+    + [['0.1%','0.1'],['0.5%','0.5'],['1%','1']].map(([l,val]) =>
+        '<div class="pc' + (!edge && val === '0.5' ? ' on' : '') + '">' + l + '</div>').join('')
+    + '</div>';
+  const msg = edge
+    ? '<div class="msg"><span>&#9888;</span><span>High - you may lose value to front-running.</span></div>' : '';
+
+  if (v === '0') {
+    return '<div style="font:600 13px/18px var(--font); color:var(--text-primary)">Slippage tolerance</div>'
+      + '<div class="hint" style="margin-top:2px">The most the price may move before your swap is cancelled.</div>'
+      + presets() + '<div style="height:12px"></div>'
+      + '<div class="field">' + pct + ' <span class="sfx">%</span></div>' + msg;
+  }
+  if (v === '1') {
+    return '<div class="sec"><div class="sec-l">Slippage tolerance</div>'
+      + '<div class="hint" style="margin:-4px 0 12px">The most the price may move before your swap is cancelled.</div>'
+      + presets() + '<div style="height:10px"></div>'
+      + '<div class="field">' + pct + ' <span class="sfx">%</span></div>' + msg + '</div>';
+  }
+  if (v === '2') {
+    return '<div class="sec"><div class="sec-l">Slippage</div><div class="card">'
+      + '<div class="row"><span class="k">Tolerance</span><span class="v">' + pct + '%</span></div>'
+      + '<div class="row"><span class="k">Behaviour</span><span class="v">'
+      + (edge ? 'Fills almost always' : 'Balanced') + '</span></div>'
+      + '<div class="row tap"><span class="k">Set a custom value</span><span class="v">' + pct + '%</span>'
+      + '<span class="chev">&#8250;</span></div>'
+      + '</div></div>'
+      + '<div class="sec"><div class="sec-l">Presets</div>' + presets() + msg + '</div>';
+  }
+  // v === 3
+  return '<div class="hero"><div class="big">' + pct + '%</div>'
+    + '<div class="sub">The most the price may move before your swap is cancelled.</div>'
+    + '<div class="pill ' + (edge ? 'warn' : 'ok') + '"><span class="d"></span>'
+    + (edge ? 'High - front-running risk' : 'Balanced') + '</div></div>'
+    + '<div class="sec"><div class="sec-l">Tolerance</div>' + presets() + '<div style="height:10px"></div>'
+    + '<div class="field">' + pct + ' <span class="sfx">%</span></div>' + msg + '</div>';
+}
+
+// ---------------- TOKEN SELECTOR ----------------
+function tokenBody(v, edge){
+  const search = '<div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+    + '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'
+    + (edge ? 'zzzz' : 'Search tokens') + '</div>';
+
+  if (edge) {
+    // no results - the state today renders as a centred icon + line
+    const empty = '<div style="text-align:center; padding:40px 16px">'
+      + '<div style="font:400 28px/1 var(--font); color:var(--text-primary-38)">&#8709;</div>'
+      + '<div style="font:400 13px/20px var(--font); color:var(--text-secondary); margin-top:10px">No tokens match "zzzz"</div></div>';
+    return search + (v === '0' ? empty
+      : '<div class="sec"><div class="sec-l">Results</div><div class="card">' + empty + '</div></div>');
+  }
+
+  if (v === '0') {
+    return search
+      + TOKENS_OWNED.map((t,i) => '<div class="trow" style="border-top:0; border-radius:12px; margin-bottom:2px'
+          + (i === 0 ? '; background:linear-gradient(90deg, rgba(10,216,156,.18), rgba(10,174,230,.18))' : '') + '">'
+          + '<span class="av" style="background:' + t[2] + '">' + t[0][0] + '</span>'
+          + '<span><span class="n">' + t[1] + '</span><br><span class="s">' + t[0] + '</span></span>'
+          + '<span class="bal">' + t[3] + '</span>'
+          + (i === 0 ? '<span class="chk">' + CHECK + '</span>' : '') + '</div>').join('')
+      + TOKENS_REST.map(t => '<div class="trow" style="border-top:0; border-radius:12px; margin-bottom:2px">'
+          + '<span class="av" style="background:' + t[2] + '">' + t[0][0] + '</span>'
+          + '<span><span class="n">' + t[1] + '</span><br><span class="s">' + t[0] + '</span></span></div>').join('');
+  }
+  if (v === '1') {
+    return search + '<div class="sec"><div class="sec-l">Tokens</div><div class="card">'
+      + TOKENS_OWNED.map((t,i) => tok(t[0],t[1],t[2],t[3], i === 0)).join('')
+      + TOKENS_REST.map(t => tok(t[0],t[1],t[2],null,false)).join('')
+      + '</div></div>';
+  }
+  if (v === '2') {
+    return search
+      + '<div class="sec"><div class="sec-l">Your tokens</div><div class="card">'
+      + TOKENS_OWNED.map((t,i) => tok(t[0],t[1],t[2],t[3], i === 0)).join('') + '</div></div>'
+      + '<div class="sec"><div class="sec-l">All tokens</div><div class="card">'
+      + TOKENS_REST.map(t => tok(t[0],t[1],t[2],null,false)).join('') + '</div></div>';
+  }
+  // v === 3 - kickers, hairlines, no outer card
+  return search
+    + '<div class="sec"><div class="sec-l">Your tokens</div>'
+    + '<div style="border-top:1px solid var(--border-subtle)">'
+    + TOKENS_OWNED.map((t,i) => tok(t[0],t[1],t[2],t[3], i === 0)).join('') + '</div></div>'
+    + '<div class="sec"><div class="sec-l">All tokens</div>'
+    + '<div style="border-top:1px solid var(--border-subtle)">'
+    + TOKENS_REST.map(t => tok(t[0],t[1],t[2],null,false)).join('') + '</div></div>';
+}
+
+const NOTES = {
+  'swap0': { h:'Swap Settings &middot; 0 &middot; today (063-A)', b:`
+    <p>What shipped: a sentence-case label, a description line, three preset chips, the validated field, and a
+    message. <b>No section, no card, no kicker.</b> Reference, not a proposal.</p>` },
+  'swap1': { h:'Swap Settings &middot; 1 &middot; Section wrapper <span class="tag rec">rec</span>', b:`
+    <p>The smallest possible adjustment: the existing form is <b>wrapped in one <code>GWDrawerSection</code></b>.
+    The sentence-case label becomes the uppercase kicker; everything below it is untouched.</p>
+    <ul class="spec">
+      <li>label 13px/w600 &rarr; <b>10px / w700 / .8px caps</b> at <code>textPrimary54</code></li>
+      <li>the description line stays where it is, directly under the kicker</li>
+      <li>presets, field, validation message, footer Apply - <b>all byte-identical</b></li>
+      <li>diff is roughly <b>one widget and one TextStyle</b></li>
+    </ul>
+    <p><b>Why the card is absent here on purpose:</b> 154-A's card exists to bind <i>rows</i> together. Chips
+    and a field are not rows; putting a border around them would be a box inside a box inside a panel.</p>` },
+  'swap2': { h:'Swap Settings &middot; 2 &middot; Settings as rows', b:`
+    <p>The most literal reading of "same components": the drawer becomes <b>a card of
+    <code>GWDrawerRow</code>s</b>, exactly like the receipt's TRANSACTION block, with the presets demoted to
+    a second section beneath.</p>
+    <ul class="spec">
+      <li>reads as a settings <b>list</b>, so it scales to the 7-setting SDK account manager without redesign</li>
+      <li><b>Behaviour</b> row turns the number into a word - the thing the user is actually choosing</li>
+      <li>"Set a custom value" as a tappable row with a chevron</li>
+    </ul>
+    <p><b>The cost, and it is real:</b> it puts the value in <b>two places</b> (the Tolerance row and the
+    custom row), and the presets - the primary path 063-A deliberately chose - end up <b>below</b> the summary
+    of what they set. Switch to <b>Edge</b>: the warning now sits two sections away from the number it is
+    about.</p>` },
+  'swap3': { h:'Swap Settings &middot; 3 &middot; Hero + section', b:`
+    <p>Borrows 154-A's <b>hero</b>: the current value as the big tabular number, the explanation as the
+    sub-line, and a <b>status pill</b> that says what the number means. Then one section with the controls.</p>
+    <ul class="spec">
+      <li>the pill reuses the receipt's own three tones: ok / warning / error, driven by <code>slippageState()</code></li>
+      <li><b>the validation state finally has somewhere to live</b> instead of a line under a field</li>
+      <li>the number is large enough to read the setting without focusing the field</li>
+    </ul>
+    <p>Switch to <b>Edge</b> - this is where it earns itself: 12% shows as a big number with an amber
+    <i>"High - front-running risk"</i> pill, which is a far stronger warning than today's grey line.
+    <b>The cost:</b> a hero for a single percentage is a lot of panel, and it does not scale to a drawer with
+    seven settings.</p>` },
+
+  'token0': { h:'Token Selector &middot; 0 &middot; today (032-A1)', b:`
+    <p>What shipped: search, then transparent rows 2px apart, selection as a gradient tint plus a
+    <code>ShaderMask</code> check. <b>No sections, no card, no dividers.</b> Reference, not a proposal.</p>` },
+  'token1': { h:'Token Selector &middot; 1 &middot; One card', b:`
+    <p>The list moves inside a single <code>GWDrawerSection</code>: kicker <b>TOKENS</b>, one hairline card,
+    rows divided by hairlines instead of gaps - the receipt's card, exactly.</p>
+    <ul class="spec">
+      <li>rows keep hover and the gradient selection tint</li>
+      <li>hairline dividers replace the 2px gaps</li>
+    </ul>
+    <p><b>Watch this one carefully.</b> <span class="tag warn">tension</span> The receipt's card holds
+    <b>three to six fixed rows</b>. This list is capped at <b>30</b> (<code>_maxRows</code>) and it
+    <b>scrolls</b>. A border drawn around a scrolling list either scrolls away with the content or clips it -
+    there is no third option. The card that makes a receipt feel finished makes a picker feel truncated.</p>` },
+  'token2': { h:'Token Selector &middot; 2 &middot; Two sections <span class="tag rec">rec</span>', b:`
+    <p>Same components, but the kicker earns its keep: <b>Your tokens</b> and <b>All tokens</b>, split on a
+    fact the data already carries.</p>
+    <ul class="spec">
+      <li><code>SquidTokenInfo.balance</code> is <b>nullable</b>, and the shipped row already says a balance the
+      wallet does not hold is <b>absent, not "0"</b> - so the split is real, not invented</li>
+      <li>the section a user wants is <b>three rows long</b>, so its card ends on screen and the tension in
+      variant 1 mostly disappears</li>
+      <li>answers "why is there a label at all" - in variant 1 the kicker says <i>Tokens</i> above a list of
+      tokens, which is a label saying nothing</li>
+    </ul>
+    <p><b>Still to settle:</b> the second card is the one that scrolls, so its lower border is still an edge
+    that runs off. Acceptable when it is the <i>overflow</i> section rather than the whole list - but look at
+    it before agreeing.</p>` },
+  'token3': { h:'Token Selector &middot; 3 &middot; Kickers, no card', b:`
+    <p>Takes half of 154-A: the <b>uppercase kickers and the hairline dividers</b>, but no outer border. The
+    list stays open-ended, which is what a scrolling list wants.</p>
+    <ul class="spec">
+      <li>no border to clip - the list can be 3 rows or 30 with no change in how it reads</li>
+      <li>hairlines between rows keep the receipt's rhythm</li>
+      <li>rows go <b>full-bleed to the 20px body padding</b>, so hover covers the whole row width</li>
+    </ul>
+    <p><b>The honest objection:</b> this is 154-A minus its most recognisable element. If the point of the
+    exercise is that every drawer carries the same card, variant 3 opts out of it - and it is the variant a
+    long list actually wants. Worth deciding which of the two matters more.</p>` }
+};
+
+let drawer = 'swap', v = '1', state = 'ok';
+
+function paint(){
+  const edge = state === 'warn';
+  document.querySelector('.ttl').textContent = drawer === 'swap' ? 'Swap Settings' : 'Select Token';
+  document.getElementById('body').innerHTML =
+    drawer === 'swap' ? swapBody(v, edge) : tokenBody(v, edge);
+  document.getElementById('foot').innerHTML =
+    drawer === 'swap' ? '<div class="btn g">Apply</div>' : '';
+  document.getElementById('foot').style.display = drawer === 'swap' ? 'block' : 'none';
+
+  document.querySelectorAll('#nav .st[data-d]').forEach(b => b.classList.toggle('on', b.dataset.d === drawer));
+  document.querySelectorAll('#nav .vt').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  document.querySelectorAll('#nav .st[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === state));
+  document.querySelectorAll('#nav .st[data-s]')[0].textContent = drawer === 'swap' ? 'Normal' : 'Has results';
+  document.querySelectorAll('#nav .st[data-s]')[1].textContent = drawer === 'swap' ? 'High value' : 'No match';
+
+  const n = NOTES[drawer + v];
+  document.getElementById('note').innerHTML = '<h3>' + n.h + '</h3>' + n.b;
+}
+
+document.querySelectorAll('#nav .st[data-d]').forEach(b => b.onclick = () => { drawer = b.dataset.d; paint(); });
+document.querySelectorAll('#nav .vt').forEach(b => b.onclick = () => { v = b.dataset.v; paint(); });
+document.querySelectorAll('#nav .st[data-s]').forEach(b => b.onclick = () => { state = b.dataset.s; paint(); });
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+paint();
+</script>
+</body>
+</html>

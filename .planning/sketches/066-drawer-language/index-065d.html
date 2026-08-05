@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Sketch 066 · wariant D - język szuflad z linią kickera</title>
+<style>
+:root{
+  --base:#0B0D12; --elev:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink38:rgba(255,255,255,.38);
+  --sec:#8A8F9D; --border:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --ok:#0AD89C; --err:#FF4D4D; --warn:#FFC42E; --neutral:#64748B;
+  --brand:#14C8FF; --brandStrong:#0AAEE6;
+  --cta:linear-gradient(90deg,#0AD89C,#0AAEE6);
+  --rXs:4px; --rSm:8px; --rMd:12px; --rLg:15px; --rXl:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;
+  -webkit-font-smoothing:antialiased}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+
+header{position:sticky;top:0;z-index:40;background:rgba(11,13,18,.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:14px 28px}
+h1{margin:0 0 3px;font-size:17px;font-weight:600}
+.q{margin:0 0 12px;font-size:12px;color:var(--ink38);max-width:86ch;line-height:1.5}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--border);
+  border-radius:48px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;color:var(--ink70);cursor:pointer;
+  padding:7px 13px;border-radius:48px;font:inherit;font-size:12px;font-weight:500;transition:.15s}
+.seg button:hover{background:rgba(255,255,255,.08)}
+.seg button[aria-selected="true"]{background:var(--cta);color:#000B18;font-weight:600}
+.tog{border:1px solid var(--border);background:transparent;color:var(--ink70);cursor:pointer;
+  padding:8px 14px;border-radius:48px;font:inherit;font-size:12px}
+.tog[aria-pressed="true"]{border-color:var(--ok);color:var(--ok)}
+
+main{max-width:1240px;margin:0 auto;padding:26px 28px 90px}
+.vb{border:1px solid var(--border);border-radius:var(--rLg);padding:16px 18px;margin:0 0 24px;
+  background:var(--elev)}
+.vb h2{margin:0 0 5px;font-size:16px;font-weight:600}
+.vb p{margin:0 0 8px;color:var(--ink70);font-size:13px;max-width:90ch;line-height:1.6}
+.vb .who{font:400 11px/1.6 ui-monospace,Menlo,monospace;color:var(--ink38)}
+
+h3{font-size:12px;font-weight:600;margin:28px 0 12px;color:var(--ink38);
+  text-transform:uppercase;letter-spacing:.07em}
+.pair{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:8px}
+.col .cl{font:600 11px/1.3 ui-monospace,Menlo,monospace;color:var(--ink38);letter-spacing:.04em}
+.col .cl.now{color:var(--warn)}
+.col .cl.new{color:var(--ok)}
+
+/* ============ POWŁOKA SZUFLADY - 030-B1 ============ */
+.dw{width:420px;background:var(--menu);border:1px solid var(--border);
+  border-radius:var(--rXl);overflow:hidden;display:flex;flex-direction:column}
+.dw .hd{height:56px;display:flex;align-items:center;padding:0 16px 0 20px;flex:none;
+  position:relative}
+.dw .hd .t{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.dw .hd .x{margin-left:auto;width:32px;height:32px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;color:var(--ink70);cursor:pointer}
+.dw .hd .x:hover{background:rgba(255,255,255,.08)}
+.dw .hd::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}
+.dw .bd{padding:20px;flex:1}                       /* 030-B1: 20px, dziś ZERO */
+.dw .bd.nopad{padding:0}
+.dw .ft{padding:20px;border-top:1px solid var(--border);flex:none}
+.dw.now{border-style:dashed;border-color:rgba(255,196,46,.4)}
+
+/* ============ KICKER 065-D ============ */
+.kick{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--sec);
+  text-transform:uppercase;font-size:13px;letter-spacing:.5px;line-height:18px;
+  margin:0 0 10px}
+.kick.dense{font-size:11px;letter-spacing:.6px;line-height:16px}
+.kick .rule{flex:1;height:1px;background:var(--border)}  /* 065-D: linia do prawej krawedzi */
+.kick + .kick{margin-top:18px}
+.sect + .sect{margin-top:20px}
+
+/* wiersze klucz-wartość */
+.kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;font-size:13px}
+.kv .k{color:var(--ink70);flex:none}
+.kv .v{font-weight:500;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kv .v.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.kv .v.err{color:var(--err)}
+
+/* ============ BUTTONY - GWButton ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;
+  padding:0 16px;border:none;border-radius:var(--rLg);font:600 16px/1 inherit;cursor:pointer;
+  font-family:inherit;position:relative;overflow:hidden;transition:.12s}
+.btn.grad{background:var(--cta);color:#000B18;font-weight:500}
+.btn.grad:hover::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.12)}
+.btn.sec{background:transparent;color:var(--brandStrong);box-shadow:inset 0 0 0 1.5px var(--brandStrong);
+  font-weight:500}
+.btn.sec:hover{background:rgba(255,255,255,.08)}
+.btn.dstr{background:transparent;color:var(--err);box-shadow:inset 0 0 0 1.5px var(--err);font-weight:500}
+.btn.full{width:100%}
+.ftrow{display:flex;gap:12px}
+.ftrow .btn{flex:1}
+/* dzisiejsze buttony - surowy Material */
+.btn.raw-green{background:transparent;color:#69F0AE;border:1px solid #69F0AE;
+  border-radius:10px;height:48px;font-weight:400;box-shadow:none}
+.btn.raw-grey{background:transparent;color:#9E9E9E;border:1px solid #9E9E9E;
+  border-radius:4px;height:40px;font-weight:400;box-shadow:none}
+.btn.raw-fill{background:#69F0AE;color:#000;border:1px solid #69F0AE;border-radius:4px;
+  height:40px;font-weight:400;box-shadow:none}
+
+/* ============ elementy ============ */
+.hero{text-align:center;padding:8px 0 4px}
+.hero .ic{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;display:flex;
+  align-items:center;justify-content:center}
+.hero .ic.ok{background:rgba(10,216,156,.14)}
+.hero .ic.bad{background:rgba(255,77,77,.14)}
+.hero .ic.gray{background:rgba(100,116,139,.18)}
+.hero .am{font-size:24px;font-weight:600;letter-spacing:-.01em}
+.hero .fi{font-size:13px;color:var(--sec);margin-top:3px}
+.pill{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:3px 10px;
+  border-radius:999px;font-size:12px;font-weight:500}
+.pill.ok{background:rgba(10,216,156,.14);color:var(--ok)}
+.pill.bad{background:rgba(255,77,77,.14);color:var(--err)}
+.pill.gray{background:var(--sunken);color:var(--sec)}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* źródło żądania */
+.origin{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--rMd);
+  border:1px solid var(--border)}
+.origin .fav{width:32px;height:32px;border-radius:50%;background:var(--sunken);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink70)}
+.origin .u{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.origin .s{font-size:12px;color:var(--sec)}
+
+/* wiersz listy */
+.lrow{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--rMd);
+  border:1px solid transparent;cursor:pointer}
+.lrow:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.24)}
+.lrow.sel{background:rgba(10,216,156,.18)}
+.lrow .av{width:32px;height:32px;border-radius:50%;background:var(--sunken);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink70)}
+.lrow .nm{font-size:15px;font-weight:500}
+.lrow .sb{font-size:12px;color:var(--sec)}
+.lrow .rt{margin-left:auto;text-align:right;font-size:13px}
+.lrow .chk{margin-left:auto;color:var(--ok)}
+.search{display:flex;align-items:center;gap:10px;background:var(--sunken);
+  border:1px solid var(--border);border-radius:var(--rSm);padding:11px 12px;margin-bottom:14px}
+.search input{background:none;border:none;outline:none;color:var(--ink);font:inherit;
+  font-size:14px;width:100%}
+.search input::placeholder{color:var(--ink38)}
+
+/* QR */
+.qr{width:180px;height:180px;margin:0 auto;border-radius:var(--rMd);background:#fff;padding:10px}
+.qr svg{width:100%;height:100%}
+.addr{margin-top:14px;background:var(--sunken);border:1px solid var(--border);
+  border-radius:var(--rSm);padding:12px;display:flex;align-items:center;gap:10px}
+.addr .a{font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.6;flex:1;
+  word-break:break-all}
+.addr .cp{color:var(--brandStrong);cursor:pointer;flex:none}
+
+/* wiersz akcji (menu) */
+.arow{display:flex;align-items:center;gap:14px;padding:15px 12px;border-radius:var(--rMd);
+  border:1px solid transparent;cursor:pointer}
+.arow:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.24)}
+.arow .ic{width:20px;height:20px;flex:none;color:var(--ink70)}
+.arow .l{font-size:15px;font-weight:500}
+.arow .d{font-size:12px;color:var(--sec);margin-top:1px}
+.arow .ch{margin-left:auto;color:var(--ink38)}
+.arow.danger .l{color:var(--err)}
+.arow.danger .ic{color:var(--err)}
+.arow.off{opacity:.38;cursor:default}
+.arow.off:hover{background:none;border-color:transparent}
+
+.desc{font-size:13px;color:var(--sec);line-height:1.55;margin:0 0 14px}
+
+/* tabela mapowania */
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font:600 11px/1.3 ui-monospace,Menlo,monospace;color:var(--ink38);letter-spacing:.05em;
+  text-transform:uppercase}
+td.mono{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink70)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font:600 10px/1.6 ui-monospace,Menlo,monospace}
+.badge.a{background:rgba(20,200,255,.16);color:var(--brand)}
+.badge.b{background:rgba(10,216,156,.16);color:var(--ok)}
+.badge.c{background:rgba(194,143,255,.16);color:#C28FFF}
+.badge.d{background:rgba(255,196,46,.16);color:var(--warn)}
+.badge.e{background:rgba(100,116,139,.28);color:#9FB0C4}
+.badge.ship{background:rgba(255,255,255,.10);color:var(--ink70)}
+.badge.del{background:rgba(255,77,77,.16);color:var(--err)}
+.badge.fence{background:rgba(255,77,77,.16);color:var(--err)}
+
+.note{border-left:2px solid var(--ok);padding:2px 0 2px 14px;margin:22px 0;
+  color:var(--ink70);font-size:13px;max-width:92ch;line-height:1.65}
+.note.warn{border-left-color:var(--warn)}
+.note.bad{border-left-color:var(--err)}
+.note b{color:var(--ink)}
+.hide{display:none}
+</style>
+</head>
+<body data-a="A">
+
+<header>
+  <h1>Sketch 066 · wariant porównawczy - fundament 065-D (kicker z linią)</h1>
+  <p class="q">Zmiana powłoki dosięgła dziewiętnastu szuflad. Dwie zostały wysłane (Swap Settings 063-A,
+  Token Selector 032-A1), dwie są przewidziane do skasowania (08-05 zadanie 2), jedna ma już decyzję
+  (paragon 154-A). <b>Zostaje czternaście</b>, a one nie mają wspólnego języka - mają surowe
+  <code>OutlinedButton</code> w <code>Colors.greenAccent</code>. Pięć archetypów zamiast czternastu
+  projektów.</p>
+  <div class="bar">
+    <div class="seg" role="tablist">
+      <button role="tab" data-arch="A" aria-selected="true">A · Zgoda</button>
+      <button role="tab" data-arch="B">B · Wynik</button>
+      <button role="tab" data-arch="C">C · Wybór</button>
+      <button role="tab" data-arch="D">D · Odbiór</button>
+      <button role="tab" data-arch="E">E · Menu</button>
+      <button role="tab" data-arch="MAP">Mapowanie 14</button>
+    </div>
+    <button class="tog" id="today" aria-pressed="true">Pokaż „dziś"</button>
+  </div>
+</header>
+
+<main>
+<div class="note warn" style="margin:0 0 22px">
+  <b>To jest wariant porównawczy - fundament 065-D, czyli kicker Z LINIĄ.</b>
+  Decyzją na papierze jest <b>C</b> (dwa stopnie, bez linii) i to ona jest zbudowana w kodzie:
+  <code>GWKicker</code> nie ma flagi <code>rule</code>. Ten plik istnieje wyłącznie po to, żeby
+  zobaczyć D na tych samych czternastu szufladach i porównać z
+  <code>index.html</code>. Poza linią obie strony są identyczne co do piksela - jeśli D wygrywa,
+  wraca do komponentu jednym <code>Expanded</code> w tym samym <code>Row</code>.
+</div>
+<div class="vb" id="banner"></div>
+
+<!-- ================= A · ZGODA ================= -->
+<div class="arch" id="ar-A">
+<h3>Archetyp A · Zgoda / żądanie</h3>
+<div class="pair">
+
+  <div class="col today">
+    <div class="cl now">DZIŚ · approve_transaction_drawer.dart</div>
+    <div class="dw now">
+      <div class="hd"><span class="t">Transaction Request</span><span class="x">✕</span></div>
+      <div class="bd nopad">
+        <div style="padding:16px">
+          <div style="display:flex;justify-content:center">
+            <div style="display:inline-flex;align-items:center;gap:12px;border:1px solid #9E9E9E;
+                        border-radius:48px;padding:8px 14px">
+              <div style="width:24px;height:24px;border-radius:999px;background:#2a2f38"></div>
+              <span style="color:#9E9E9E;font-size:16px">app.uniswap.org</span>
+            </div>
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:var(--ink70)">
+            <div class="kv"><span class="k">Method</span><span class="v">eth_sendTransaction</span></div>
+            <div class="kv"><span class="k">To</span><span class="v mono">0x71C…4fE9</span></div>
+            <div class="kv"><span class="k">Value</span><span class="v">0.75 ETH</span></div>
+            <div class="kv"><span class="k">Gas</span><span class="v">0.00042 ETH</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="ft">
+        <div class="ftrow">
+          <button class="btn raw-grey" style="flex:1">Reject</button>
+          <button class="btn raw-fill" style="flex:1">Approve</button>
+        </div>
+      </div>
+    </div>
+    <div class="cl">Colors.grey · Colors.greenAccent · radius 4 · zero tokenów</div>
+  </div>
+
+  <div class="col">
+    <div class="cl new">NOWE · archetyp A</div>
+    <div class="dw">
+      <div class="hd"><span class="t">Transaction Request</span><span class="x">✕</span></div>
+      <div class="bd">
+        <div class="origin">
+          <div class="fav">UNI</div>
+          <div><div class="u">app.uniswap.org</div><div class="s">Połączona aplikacja</div></div>
+        </div>
+
+        <div class="sect" style="margin-top:20px">
+          <div class="kick"><span>Transaction</span><span class="rule"></span></div>
+          <div class="kv"><span class="k">Method</span><span class="v">eth_sendTransaction</span></div>
+          <div class="kv"><span class="k">Value</span><span class="v">0.75 ETH</span></div>
+          <div class="kv"><span class="k">To</span><span class="v mono">0x71C…4fE9</span></div>
+        </div>
+
+        <div class="sect">
+          <div class="kick"><span>Network</span><span class="rule"></span></div>
+          <div class="kv"><span class="k">Network</span><span class="v">Ethereum</span></div>
+          <div class="kv"><span class="k">Network Fee</span><span class="v">0.00042 ETH</span></div>
+        </div>
+      </div>
+      <div class="ft">
+        <div class="ftrow">
+          <button class="btn sec">Reject</button>
+          <button class="btn grad">Approve</button>
+        </div>
+      </div>
+    </div>
+    <div class="cl">GWButton secondary + gradient · kicker 065-D · 20px paddingu</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ================= B · WYNIK ================= -->
+<div class="arch hide" id="ar-B">
+<h3>Archetyp B · Wynik</h3>
+<div class="pair">
+
+  <div class="col today">
+    <div class="cl now">DZIŚ · buy_success_drawer.dart</div>
+    <div class="dw now">
+      <div class="hd"><span class="t">Success</span><span class="x">✕</span></div>
+      <div class="bd nopad">
+        <div style="padding:24px;text-align:center;color:var(--ink70);font-size:14px">
+          BuySuccessDrawerContent<br>
+          <span style="font-size:12px;color:var(--ink38)">(osobny plik, własny układ)</span>
+        </div>
+      </div>
+      <div class="ft"><button class="btn raw-green full">Done</button></div>
+    </div>
+    <div class="cl">tytuł „Success" bez rzeczownika · OutlinedButton greenAccent</div>
+  </div>
+
+  <div class="col">
+    <div class="cl new">NOWE · archetyp B (udany)</div>
+    <div class="dw">
+      <div class="hd"><span class="t">Purchase complete</span><span class="x">✕</span></div>
+      <div class="bd">
+        <div class="hero">
+          <div class="ic ok">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#0AD89C" stroke-width="2.4"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+          </div>
+          <div class="am">+ 500.00 GNUS</div>
+          <div class="fi">$425.00</div>
+          <div class="pill ok"><span class="dot"></span>Completed</div>
+        </div>
+        <div class="sect" style="margin-top:22px">
+          <div class="kick"><span>Purchase</span><span class="rule"></span></div>
+          <div class="kv"><span class="k">Paid</span><span class="v">$425.00</span></div>
+          <div class="kv"><span class="k">Method</span><span class="v">Card ···· 4242</span></div>
+          <div class="kv"><span class="k">Order</span><span class="v mono">BNX-9A31C</span></div>
+        </div>
+      </div>
+      <div class="ft"><button class="btn grad full">Done</button></div>
+    </div>
+    <div class="cl">ten sam hero co paragon 154-A - jeden obraz wyniku w całej apce</div>
+  </div>
+
+  <div class="col">
+    <div class="cl new">NOWE · archetyp B (nieudany)</div>
+    <div class="dw">
+      <div class="hd"><span class="t">Purchase cancelled</span><span class="x">✕</span></div>
+      <div class="bd">
+        <div class="hero">
+          <div class="ic gray">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </div>
+          <div class="am">500.00 GNUS</div>
+          <div class="fi">Not charged</div>
+          <div class="pill gray"><span class="dot"></span>Cancelled</div>
+        </div>
+        <div class="sect" style="margin-top:22px">
+          <div class="kick"><span>Purchase</span><span class="rule"></span></div>
+          <div class="kv"><span class="k">Reason</span><span class="v">Cancelled at checkout</span></div>
+          <div class="kv"><span class="k">Order</span><span class="v mono">BNX-9A31C</span></div>
+        </div>
+      </div>
+      <div class="ft">
+        <div class="ftrow">
+          <button class="btn sec">Close</button>
+          <button class="btn grad">Try again</button>
+        </div>
+      </div>
+    </div>
+    <div class="cl">anulowane = slate, nie czerwień - nic się nie zepsuło</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ================= C · WYBÓR ================= -->
+<div class="arch hide" id="ar-C">
+<h3>Archetyp C · Wybór z listy</h3>
+<div class="pair">
+
+  <div class="col today">
+    <div class="cl now">DZIŚ · network_dropdown_selector.dart</div>
+    <div class="dw now">
+      <div class="hd"><span class="t">Select Network</span><span class="x">✕</span></div>
+      <div class="bd nopad">
+        <div style="padding:8px 0">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+            <div style="width:36px;height:36px;border-radius:50%;background:#2a2f38"></div>
+            <div><div style="font-size:16px">Ethereum</div>
+              <div style="font-size:12px;color:var(--sec)">ETH</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+            <div style="width:36px;height:36px;border-radius:50%;background:#2a2f38"></div>
+            <div><div style="font-size:16px">Polygon</div>
+              <div style="font-size:12px;color:var(--sec)">MATIC</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+            <div style="width:36px;height:36px;border-radius:50%;background:#2a2f38"></div>
+            <div><div style="font-size:16px">Avalanche</div>
+              <div style="font-size:12px;color:var(--sec)">AVAX</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="cl">ListTile · brak wyszukiwarki · nic nie oznacza wybranej sieci</div>
+  </div>
+
+  <div class="col">
+    <div class="cl new">NOWE · archetyp C</div>
+    <div class="dw">
+      <div class="hd"><span class="t">Select Network</span><span class="x">✕</span></div>
+      <div class="bd">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8F9D" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input placeholder="Szukaj sieci" readonly>
+        </div>
+        <div class="kick dense"><span>Connected</span><span class="rule"></span></div>
+        <div class="lrow sel"><div class="av">ETH</div>
+          <div><div class="nm">Ethereum</div><div class="sb">ETH · 0.482</div></div>
+          <span class="chk"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span>
+        </div>
+        <div class="kick dense" style="margin-top:16px"><span>All networks</span><span class="rule"></span></div>
+        <div class="lrow"><div class="av">MATIC</div>
+          <div><div class="nm">Polygon</div><div class="sb">MATIC · 0.00</div></div></div>
+        <div class="lrow"><div class="av">AVAX</div>
+          <div><div class="nm">Avalanche</div><div class="sb">AVAX · 0.00</div></div></div>
+      </div>
+    </div>
+    <div class="cl">wiersz 032-A1 · kicker dense grupuje · brak stopki, wybór zamyka</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ================= D · ODBIÓR ================= -->
+<div class="arch hide" id="ar-D">
+<h3>Archetyp D · Odbiór / QR</h3>
+<div class="pair">
+
+  <div class="col today">
+    <div class="cl now">DZIŚ · trzy osobne implementacje</div>
+    <div class="dw now">
+      <div class="hd"><span class="t">Receive</span><span class="x">✕</span></div>
+      <div class="bd nopad">
+        <div style="padding:20px;text-align:center">
+          <div class="qr" style="width:150px;height:150px">
+            <svg viewBox="0 0 21 21" shape-rendering="crispEdges">
+              <rect width="21" height="21" fill="#fff"/>
+              <g fill="#000"><rect x="1" y="1" width="5" height="5"/><rect x="15" y="1" width="5" height="5"/><rect x="1" y="15" width="5" height="5"/><rect x="8" y="3" width="2" height="2"/><rect x="11" y="6" width="2" height="2"/><rect x="8" y="9" width="4" height="2"/><rect x="14" y="10" width="2" height="4"/><rect x="8" y="14" width="2" height="2"/><rect x="12" y="16" width="3" height="2"/><rect x="17" y="13" width="2" height="2"/></g>
+              <g fill="#fff"><rect x="2" y="2" width="3" height="3"/><rect x="16" y="2" width="3" height="3"/><rect x="2" y="16" width="3" height="3"/></g>
+              <g fill="#000"><rect x="3" y="3" width="1" height="1"/><rect x="17" y="3" width="1" height="1"/><rect x="3" y="17" width="1" height="1"/></g>
+            </svg>
+          </div>
+          <div style="margin-top:14px;font-family:ui-monospace,Menlo,monospace;font-size:12px;
+                      color:var(--ink70);word-break:break-all">0x71C48B2A9f3E71C08c219DE14fE9</div>
+        </div>
+      </div>
+    </div>
+    <div class="cl">coins_screen · token_info_screen · wallet_information.g - trzy razy to samo</div>
+  </div>
+
+  <div class="col">
+    <div class="cl new">NOWE · archetyp D</div>
+    <div class="dw">
+      <div class="hd"><span class="t">Receive ETH</span><span class="x">✕</span></div>
+      <div class="bd">
+        <div class="kick"><span>Scan to receive</span><span class="rule"></span></div>
+        <div class="qr">
+          <svg viewBox="0 0 21 21" shape-rendering="crispEdges">
+            <rect width="21" height="21" fill="#fff"/>
+            <g fill="#000"><rect x="1" y="1" width="5" height="5"/><rect x="15" y="1" width="5" height="5"/><rect x="1" y="15" width="5" height="5"/><rect x="8" y="3" width="2" height="2"/><rect x="11" y="6" width="2" height="2"/><rect x="8" y="9" width="4" height="2"/><rect x="14" y="10" width="2" height="4"/><rect x="8" y="14" width="2" height="2"/><rect x="12" y="16" width="3" height="2"/><rect x="17" y="13" width="2" height="2"/></g>
+            <g fill="#fff"><rect x="2" y="2" width="3" height="3"/><rect x="16" y="2" width="3" height="3"/><rect x="2" y="16" width="3" height="3"/></g>
+            <g fill="#000"><rect x="3" y="3" width="1" height="1"/><rect x="17" y="3" width="1" height="1"/><rect x="3" y="17" width="1" height="1"/></g>
+          </svg>
+        </div>
+
+        <div class="sect" style="margin-top:22px">
+          <div class="kick"><span>Your address</span><span class="rule"></span></div>
+          <div class="addr">
+            <span class="a">0x71C4 8B2A 9f3E 71C0 8c21 9DE1 4fE9</span>
+            <span class="cp"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></span>
+          </div>
+          <div class="kv" style="margin-top:6px"><span class="k">Network</span><span class="v">Ethereum</span></div>
+        </div>
+      </div>
+      <div class="ft"><button class="btn sec full">Share address</button></div>
+    </div>
+    <div class="cl">grupy po 4 znaki - adres da się porównać wzrokiem (034-A2)</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ================= E · MENU ================= -->
+<div class="arch hide" id="ar-E">
+<h3>Archetyp E · Menu akcji</h3>
+<div class="pair">
+
+  <div class="col today">
+    <div class="cl now">DZIŚ · wallet_information.g.dart:195</div>
+    <div class="dw now">
+      <div class="hd"><span class="t">More Options</span><span class="x">✕</span></div>
+      <div class="bd nopad">
+        <div style="padding:8px 0">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px">
+            <div style="width:20px;height:20px;background:#2a2f38;border-radius:4px"></div>
+            <span style="font-size:15px">Submit Job</span></div>
+          <div style="display:flex;align-items:center;gap:14px;padding:16px">
+            <div style="width:20px;height:20px;background:rgba(255,77,77,.4);border-radius:4px"></div>
+            <span style="font-size:15px;color:var(--err)">Delete Wallet</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cl">bez opisu · bez grupowania · usunięcie sąsiaduje z akcją zwykłą</div>
+  </div>
+
+  <div class="col">
+    <div class="cl new">NOWE · archetyp E</div>
+    <div class="dw">
+      <div class="hd"><span class="t">More Options</span><span class="x">✕</span></div>
+      <div class="bd">
+        <div class="kick dense"><span>Wallet</span><span class="rule"></span></div>
+        <div class="arow">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+          <span><span class="l">Submit Job</span><div class="d">Wyślij zadanie do sieci GNUS</div></span>
+          <span class="ch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+        </div>
+        <div class="arow off">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v10M7 17L17 7"/></svg></span>
+          <span><span class="l">Bridge Tokens</span><div class="d">Wymaga niezerowego salda</div></span>
+        </div>
+
+        <div class="kick dense" style="margin-top:20px"><span>Danger zone</span><span class="rule"></span></div>
+        <div class="arow danger">
+          <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span>
+          <span><span class="l">Delete Wallet</span><div class="d">Nieodwracalne</div></span>
+          <span class="ch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+        </div>
+      </div>
+    </div>
+    <div class="cl">kicker odgradza akcję nieodwracalną - to jest ta robota, do której linia służy</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ================= MAPOWANIE ================= -->
+<div class="arch hide" id="ar-MAP">
+<h3>Wszystkie 19 wywołań, i co się z nimi dzieje</h3>
+<table>
+  <tr><th>Szuflada</th><th>Plik</th><th>Archetyp</th></tr>
+  <tr><td>Transaction Request</td><td class="mono">reown/approve_transaction_drawer.dart:13</td><td><span class="badge a">A · Zgoda</span></td></tr>
+  <tr><td>Connection Request</td><td class="mono">reown/approve_dapp_connection_drawer.dart:13</td><td><span class="badge a">A · Zgoda</span></td></tr>
+  <tr><td>Success (Banxa)</td><td class="mono">banxa/…/buy_success_drawer.dart:8</td><td><span class="badge b">B · Wynik</span> <span class="badge fence">płot</span></td></tr>
+  <tr><td>Cancelled (Banxa)</td><td class="mono">banxa/…/buy_cancelled_drawer.dart:7</td><td><span class="badge b">B · Wynik</span> <span class="badge fence">płot</span></td></tr>
+  <tr><td>Swap result (reown)</td><td class="mono">reown/swap_result_drawer.dart:22</td><td><span class="badge b">B · Wynik</span></td></tr>
+  <tr><td>Select Network</td><td class="mono">network/network_dropdown_selector.dart:54</td><td><span class="badge c">C · Wybór</span></td></tr>
+  <tr><td>Select destination network</td><td class="mono">dashboard/bridge/bridge_screen.dart:191</td><td><span class="badge c">C · Wybór</span></td></tr>
+  <tr><td>Your Accounts</td><td class="mono">account/account_dropdown_selector.dart:164</td><td><span class="badge c">C · Wybór</span></td></tr>
+  <tr><td>SDK Accounts</td><td class="mono">account/sdk_account_manager.dart:72</td><td><span class="badge c">C · Wybór</span></td></tr>
+  <tr><td>Receive</td><td class="mono">components/coins/view/coins_screen.dart:170</td><td><span class="badge d">D · Odbiór</span></td></tr>
+  <tr><td>Receive {coin}</td><td class="mono">tokens/token_info_screen.dart:359</td><td><span class="badge d">D · Odbiór</span></td></tr>
+  <tr><td>Your {network} address</td><td class="mono">components/wallet_information.g.dart:151</td><td><span class="badge d">D · Odbiór</span></td></tr>
+  <tr><td>More Options</td><td class="mono">components/wallet_information.g.dart:195</td><td><span class="badge e">E · Menu</span></td></tr>
+  <tr><td>More Options</td><td class="mono">tokens/token_info_screen.dart:387</td><td><span class="badge e">E · Menu</span></td></tr>
+  <tr><td>Transaction receipt</td><td class="mono">dashboard/home/widgets/transaction_displays.dart:484</td><td><span class="badge ship">154-A, zdecydowane</span></td></tr>
+  <tr><td>Swap Settings</td><td class="mono">squid_router/swap_settings_drawer.dart:44</td><td><span class="badge ship">063-A, wysłane</span></td></tr>
+  <tr><td>Token Selector</td><td class="mono">squid_router/token_selector_drawer.dart:53</td><td><span class="badge ship">032-A1, wysłane</span></td></tr>
+  <tr><td>Swap Success</td><td class="mono">squid_router/swap_success_drawer.dart:17</td><td><span class="badge del">kasowane, 08-05 z.2</span></td></tr>
+  <tr><td>Swap Failed</td><td class="mono">squid_router/swap_fail_drawer.dart:17</td><td><span class="badge del">kasowane, 08-05 z.2</span></td></tr>
+</table>
+
+<div class="note bad">
+  <b>Trzy razy „Receive", dwa razy „More Options".</b> Pięć plików, dwa projekty. Trzy szuflady
+  odbioru różnią się tytułem (<code>Receive</code> / <code>Receive {coin}</code> /
+  <code>Your {network} address</code>) i układem, choć pokazują ten sam adres tego samego portfela.
+  Archetypy D i E są dlatego nie tylko stylem - są redukcją pięciu implementacji do dwóch.
+</div>
+
+<div class="note bad">
+  <b><code>lib/banxa/</code> jest za płotem.</b> <code>CLAUDE.md</code> mówi: „Files under
+  <code>/banxa</code> and <code>/squidrouter</code> are auto-generated. Do not change them." Dwie
+  szuflady wyniku Banxy da się zaprojektować, ale nie wdrożyć bez zdjęcia płotu. Sesja designowa
+  zostawiła to jako pytanie do Braiana - czy ten katalog jest naprawdę generowany, czy notka jest
+  nieaktualna.
+</div>
+
+<div class="note warn">
+  <b>Siedem z czternastu ma stopkę spoza systemu.</b> reown i Banxa używają surowego
+  <code>OutlinedButton</code> ze zwykłymi kolorami Materiala: <code>Colors.greenAccent</code>,
+  <code>Colors.grey</code>, <code>Colors.black</code>, promień 4 lub 10, wysokość 40. Zero tokenów,
+  zero <code>GWButton</code>. „Approve" to zobowiązanie i wg reguły wagi CTA musi być wypełnionym
+  gradientem, a „Reject" - <code>secondary</code>. Dziś jest odwrotnie: obie akcje wyglądają
+  jednakowo ważnie, a wypełniona jest ta zielona.
+</div>
+
+<div class="note">
+  <b>20px paddingu ciała naprawia się raz.</b> <code>responsive_drawer.dart</code> przekazuje
+  <code>body: child</code> bez żadnego insetu, choć 030-B1 określił 20px. To jedna zmiana w powłoce,
+  która zamyka dziurę we wszystkich dziewiętnastu naraz - i musi wejść <b>przed</b> archetypami,
+  bo inaczej każdy z nich dokłada własny padding i naprawa staje się czternastoma naprawami.
+</div>
+</div>
+
+</main>
+
+<script>
+const A = {
+  A:{t:"A · Zgoda / żądanie",
+     d:"Szuflada, która pyta o pozwolenie i wraca z bool. Kolejność jest stała: kto pyta (źródło), co dokładnie się stanie (sekcje kickera), dopiero potem dwa przyciski. Źródło na górze, bo jest jedyną informacją, na podstawie której da się odmówić - reszta to szczegóły czynności, na którą już się zgadzasz. Odrzucenie jest secondary, zatwierdzenie wypełnionym gradientem, zgodnie z regułą wagi CTA: wypełnienie znaczy zobowiązanie.",
+     w:"reown/approve_transaction_drawer.dart · reown/approve_dapp_connection_drawer.dart"},
+  B:{t:"B · Wynik",
+     d:"Szuflada, która melduje, co się właśnie stało. Ten sam hero co paragon transakcji 154-A - okrągła ikona stanu, kwota neutralnie, linia fiat, pigułka stanu - żeby wynik zakupu, wynik swapa i paragon były jednym obrazem, a nie trzema. Kolor jedzie na ikonie i pigułce, nigdy na kwocie. Anulowane dostaje slate, nie czerwień: nic się nie zepsuło, transakcja po prostu się nie odbyła.",
+     w:"banxa/buy_success · banxa/buy_cancelled · reown/swap_result_drawer.dart"},
+  C:{t:"C · Wybór z listy",
+     d:"Wiersz jest już zdecydowany w 032-A1 i wysłany w Token Selectorze - ten archetyp go nie zmienia, tylko rozciąga na cztery pozostałe listy. Nowe jest grupowanie: kicker dense oddziela to, co połączone/aktywne, od reszty, zamiast wysypywać jedną płaską listę. Brak stopki jest celowy - wybór jest akcją, więc dotknięcie wiersza zamyka szufladę i przycisk potwierdzenia nie ma czego potwierdzać.",
+     w:"network_dropdown_selector · bridge_screen:191 · account_dropdown_selector:164 · sdk_account_manager:72"},
+  D:{t:"D · Odbiór / QR",
+     d:"Istnieje dziś trzy razy, w trzech plikach, z trzema tytułami i trzema układami - dla tego samego adresu tego samego portfela. Jeden archetyp: kod pod kickerem, adres w grupach po 4 znaki (żeby dało się porównać wzrokiem, 034-A2), sieć jako wiersz, udostępnianie w stopce. Kopiowanie zostaje na adresie, bo tam jest jedyna rzecz, którą się stąd zabiera.",
+     w:"coins_screen:170 · token_info_screen:359 · wallet_information.g.dart:151"},
+  E:{t:"E · Menu akcji",
+     d:"Lista rzeczy do zrobienia, nie do wybrania - więc wiersz ma opis pod etykietą i chevron, a nie wartość po prawej. Tu linia kickera zarabia na siebie najmocniej: oddziela strefę nieodwracalną. Dziś „Delete Wallet\" stoi bezpośrednio pod „Submit Job\" i jedyną różnicą jest kolor tekstu - a to jest ta jedna szuflada, w której pomyłka o jeden wiersz kosztuje portfel.",
+     w:"wallet_information.g.dart:195 · token_info_screen:387"},
+  MAP:{t:"Mapowanie - 19 wywołań, 14 do zaprojektowania",
+     d:"Pełna lista z pliku i linią. Dwie wysłane, dwie kasowane, jedna zdecydowana osobno (paragon 154-A), czternaście do zrobienia - i one dzielą się bez reszty na pięć archetypów.",
+     w:""}
+};
+const banner = document.getElementById('banner');
+function render(a){
+  document.body.dataset.a = a;
+  document.querySelectorAll('[data-arch]').forEach(b=>
+    b.setAttribute('aria-selected', b.dataset.arch===a ? 'true':'false'));
+  document.querySelectorAll('.arch').forEach(s=>s.classList.add('hide'));
+  document.getElementById('ar-'+a).classList.remove('hide');
+  const o = A[a];
+  banner.innerHTML = '<h2>'+o.t+'</h2><p>'+o.d+'</p>'+(o.w?'<div class="who">'+o.w+'</div>':'');
+  location.hash = a;
+}
+document.querySelectorAll('[data-arch]').forEach(b=>
+  b.addEventListener('click',()=>render(b.dataset.arch)));
+document.getElementById('today').addEventListener('click',e=>{
+  const on = e.currentTarget.getAttribute('aria-pressed')==='true';
+  e.currentTarget.setAttribute('aria-pressed', !on);
+  document.querySelectorAll('.today').forEach(c=>c.style.display = on ? 'none':'flex');
+});
+render(location.hash.replace('#','') in A ? location.hash.replace('#','') : 'A');
+</script>
+</body>
+</html>

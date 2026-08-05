@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/onboarding/bloc/new_pin_cubit.dart';
-import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/view/legal_screen.dart';
+import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/recovery_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/verify_recovery_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/view/confirm_and_save_pin_screen.dart';
@@ -36,7 +36,11 @@ class NewWalletFlow extends StatelessWidget {
               }
             },
             child: Scaffold(
-              appBar: AppBar(),
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
               body: _buildStep(context, newPinCubit, state),
             ),
           );

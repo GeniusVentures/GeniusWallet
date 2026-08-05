@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:genius_wallet/chart/crypto_simple_chart.dart';
+import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
+import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
-import 'package:genius_wallet/dashboard/chart/markets_search_bar.dart';
+import 'package:genius_wallet/dashboard/chart/markets_hero_card.dart';
+import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
+import 'package:genius_wallet/dashboard/chart/markets_table.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
-import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 
+/// Markets page (sketch 103 · H1 "Refined split"): a hero card for the native
+/// token over a sortable "All Markets" table. Data flows through the same two
+/// chained fetches as before — coins, then market data — each with its own
+/// error/retry.
 class MarketsScreen extends StatefulWidget {
   const MarketsScreen({super.key});
 
@@ -38,161 +47,97 @@ class _MarketsScreenState extends State<MarketsScreen> {
   }
 
   void _retryMarketData() {
-    if (_cachedCoinIds == null || _cachedCoinIds!.isEmpty) return;
+    if (_cachedCoinIds == null || _cachedCoinIds!.isEmpty) {
+      return;
+    }
     setState(() {
       _marketDataFuture = fetchCoinsMarketData(coinIds: _cachedCoinIds!);
     });
   }
 
-  int getCrossAxisCount(BuildContext context) {
-    double width = MediaQuery.sizeOf(context).width;
-    if (width >= GeniusBreakpoints.large) return 4; // Desktop: 4 per row
-    if (width >= GeniusBreakpoints.medium) return 3; // Tablet: 3 per row
-    if (width >= GeniusBreakpoints.small) return 2; // Small Tablet: 2 per row
-    return 1; // Mobile: 1 per row
+  void _openToken(CoinGeckoCoin coin, CoinGeckoMarketData data) {
+    // `TokenInfoArgs` replaces the old `coin` key, which the route never
+    // actually read (Findings 1) - `coinGeckoId`/`symbol` are the two fields
+    // anything downstream needs. `isGnusWalletConnected` is gone too: the
+    // route derives it now. `originLabel` takes its default, 'MARKETS'.
+    context.push(
+      '/token-info',
+      extra: TokenInfoArgs(
+        coinGeckoId: coin.id,
+        symbol: coin.symbol,
+        marketData: data,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this subtree to rebuild on a live appearance toggle (04-04 discipline).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    // topCenter: centred horizontally (symmetric margins) and top-pinned so the
+    // 64px navbar→title gap holds. Shared xxl cap → the 'Markets' title lands at
+    // the same X as Transactions / News, while keeping left padding on a wide
+    // window (a left-flush box loses it).
+    return Align(
+      alignment: Alignment.topCenter,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        // top space32 (64) — navbar→title gap unified with Transactions/Swap.
+        //
+        // Horizontal gutter is 0 HERE and 12 on each child instead. It used to
+        // be 12 here, which put it OUTSIDE the data view's SingleChildScrollView
+        // — and a scroll viewport clips. The hero card carries
+        // `GeniusWalletElevation.card` (blurRadius 16), so its shadow was being
+        // sliced flat against the viewport edge and the card read as cut off
+        // rather than raised. Same class of bug as quick 260720-gzq. Moving the
+        // gutter inside the viewport gives the shadow 12 of its 16 to render
+        // into; the last 4 are below visibility at this alpha.
+        padding: const EdgeInsets.fromLTRB(0, GeniusWalletConsts.space32, 0, 8),
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
+          constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
           child: Column(
-            spacing: 16.0,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 12.0,
-                children: [
-                  const Text(
-                    "Markets",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
-                    onPressed: () {
-                      ResponsiveDrawer.show<void>(
-                        context: context,
-                        title: "Search Coins",
-                        child: ListView(
-                          children: [
-                            MarketSearchBar(
-                              onCoinPressed: () => Navigator.of(context).pop(),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
+              // Carries the page gutter itself so it stays on the same axis as
+              // the hero card and the table, which now carry it inside the
+              // scroll viewport (see the Padding above).
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: GWPageHeader(title: "Markets"),
               ),
-              FutureStateWidget<List<CoinGeckoCoin>>(
-                future: _coinsFuture,
-                onRetry: _retryCoins,
-                error: const Center(
-                  child: Text(
-                    "Failed to load market coins",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                onData: (coins) {
-                  if (coins.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        "No market data available",
-                        style: TextStyle(color: Colors.white),
-                      ),
+              // Expanded at the COLUMN level so EVERY state — the loading
+              // spinner, the error/empty `_centered`, and the data scroll view
+              // — gets a bounded height. Without it the non-data states return a
+              // bare `Center` into a MainAxisSize.max Column slot with unbounded
+              // height and collapse to zero size ("Cannot hit test a render box
+              // with no size" → blank Markets page). Mirrors the News screen's
+              // `Expanded(child: FutureStateWidget(...))`.
+              Expanded(
+                child: FutureStateWidget<List<CoinGeckoCoin>>(
+                  future: _coinsFuture,
+                  onRetry: _retryCoins,
+                  error: _centered("Failed to load market coins", gw),
+                  onData: (coins) {
+                    if (coins.isEmpty) {
+                      return _centered("No market data available", gw);
+                    }
+                    _cachedCoinIds = coins.map((coin) => coin.id).toList();
+                    return FutureStateWidget<Map<String, CoinGeckoMarketData?>>(
+                      future:
+                          _marketDataFuture ??
+                          (_marketDataFuture = fetchCoinsMarketData(
+                            coinIds: _cachedCoinIds!,
+                          )),
+                      onRetry: _retryMarketData,
+                      error: _centered("Failed to load market data", gw),
+                      onData: (marketData) {
+                        if (marketData.isEmpty) {
+                          return _centered("No market data available", gw);
+                        }
+                        return _buildContent(coins, marketData);
+                      },
                     );
-                  }
-                  _cachedCoinIds = coins.map((coin) => coin.id).toList();
-                  return FutureStateWidget<Map<String, CoinGeckoMarketData?>>(
-                    future:
-                        _marketDataFuture ??
-                        (_marketDataFuture = fetchCoinsMarketData(
-                          coinIds: _cachedCoinIds!,
-                        )),
-                    onRetry: _retryMarketData,
-                    error: const Center(
-                      child: Text(
-                        "Failed to load market data",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    onData: (marketData) {
-                      if (marketData.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            "No market data available",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }
-
-                      return Expanded(
-                        child: GridView.builder(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: getCrossAxisCount(context),
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                                mainAxisExtent: 80,
-                              ),
-                          itemCount: coins.length,
-                          itemBuilder: (context, index) {
-                            final coin = coins[index];
-                            final data =
-                                marketData[coin.id] ??
-                                marketData[coin.symbol.toLowerCase()];
-
-                            if (data == null) {
-                              return Container(
-                                color: Colors.red,
-                                child: Center(
-                                  child: Text(
-                                    '${coin.symbol}\n${coin.id}',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              );
-                            }
-
-                            return Card(
-                              clipBehavior: Clip.hardEdge,
-                              child: CryptoSparkLineChart(
-                                onTap: () {
-                                  context.push(
-                                    '/token-info',
-                                    extra: {
-                                      "isGnusWalletConnected": false,
-                                      "marketData": data,
-                                      "coin": coin,
-                                    },
-                                  );
-                                },
-                                title: coin.name,
-                                iconPath: data.imageUrl,
-                                currentPrice: data.currentPrice,
-                                high24h: data.high24h,
-                                low24h: data.low24h,
-                                priceChangePercent:
-                                    data.priceChangePercentage24h,
-                                iconSize: 32,
-                                sparkline: data.sparkline,
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
+                  },
+                ),
               ),
             ],
           ),
@@ -200,4 +145,86 @@ class _MarketsScreenState extends State<MarketsScreen> {
       ),
     );
   }
+
+  Widget _buildContent(
+    List<CoinGeckoCoin> coins,
+    Map<String, CoinGeckoMarketData?> marketData,
+  ) {
+    // Original dual lookup: market data keys can be the coin id OR the symbol.
+    CoinGeckoMarketData? lookup(CoinGeckoCoin c) =>
+        marketData[c.id] ?? marketData[c.symbol.toLowerCase()];
+
+    CoinGeckoCoin? featuredCoin;
+    for (final c in coins) {
+      if (c.id == kNativeMarketCoinId) {
+        featuredCoin = c;
+        break;
+      }
+    }
+    final CoinGeckoMarketData? featuredData = featuredCoin != null
+        ? lookup(featuredCoin)
+        : null;
+
+    final rows = <MarketRow>[];
+    for (final c in coins) {
+      if (featuredCoin != null && c.id == featuredCoin.id) {
+        continue;
+      }
+      final d = lookup(c);
+      // hide coins with no market data (as the dashboard panel does)
+      if (d == null) {
+        continue;
+      }
+      rows.add(MarketRow(c, d));
+    }
+
+    final hasHero = featuredCoin != null && featuredData != null;
+
+    // The bounded height comes from the Expanded wrapping FutureStateWidget in
+    // build(); this just fills it and scrolls.
+    // scrollbars:false — the desktop ScrollBehavior draws a vertical bar on the
+    // page's own scroll by default; hide it (still scrolls by trackpad/drag),
+    // matching the horizontal scroll inside MarketsTable (Jakub 2026-07-24).
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      child: SingleChildScrollView(
+        // 12 horizontal: the page gutter now lives INSIDE the viewport rather
+        // than outside it, so the hero card's blurRadius-16 shadow has room to
+        // render instead of being clipped flat by the scroll viewport. The
+        // 'Markets' title carries the same 12, so the alignment the previous
+        // comment protected is unchanged — only the clipping is.
+        padding: const EdgeInsets.fromLTRB(
+          12,
+          GeniusWalletConsts.space6,
+          12,
+          GeniusWalletConsts.space20,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (hasHero) ...[
+              MarketsHeroCard(
+                coin: featuredCoin,
+                data: featuredData,
+                onTap: () => _openToken(featuredCoin!, featuredData),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space12),
+            ],
+            const GWSectionTitle(title: 'All Markets'),
+            MarketsTable(
+              rows: rows,
+              onTapRow: (r) => _openToken(r.coin, r.data),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _centered(String message, GWColors gw) => Center(
+    child: Text(
+      message,
+      style: GeniusWalletTypography.bodyMd.copyWith(color: gw.textSecondary),
+    ),
+  );
 }

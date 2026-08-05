@@ -1,11 +1,11 @@
 // ignore_for_file: avoid_print
 
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/order_service.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -24,11 +24,11 @@ class BanxaApiService {
   };
 
   static String generateHmacSignature(String message) {
-    var key = utf8.encode(_apiKey);
-    var bytes = utf8.encode(message);
+    final key = utf8.encode(_apiKey);
+    final bytes = utf8.encode(message);
 
-    var hmac = Hmac(sha256, key);
-    var digest = hmac.convert(bytes);
+    final hmac = Hmac(sha256, key);
+    final digest = hmac.convert(bytes);
 
     return digest.toString();
   }
@@ -237,7 +237,7 @@ class BanxaApiService {
       }
     }
 
-    checkStatus();
+    unawaited(checkStatus());
 
     timer = Timer.periodic(interval, (_) => checkStatus());
 

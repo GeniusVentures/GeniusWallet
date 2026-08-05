@@ -1,16 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/transaction.dart' as model;
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
 import 'package:genius_wallet/reown/utilities.dart';
-import 'package:genius_wallet/navigation/router.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
-import 'package:genius_wallet/theme/genius_wallet_colors.dart';
 
 void Function() handleDappRequests({
   required ReownWalletKit walletKit,
@@ -21,7 +23,9 @@ void Function() handleDappRequests({
   final Set<int> pendingRequestIds = {};
 
   Future<void> onSessionRequest(SessionRequestEvent? event) async {
-    if (event == null) return;
+    if (event == null) {
+      return;
+    }
 
     final int requestId = event.id;
     if (pendingRequestIds.contains(requestId)) {
@@ -32,7 +36,8 @@ void Function() handleDappRequests({
     pendingRequestIds.add(requestId);
 
     try {
-      final Map<String, dynamic> tx = event.params[0];
+      final Map<String, dynamic> tx =
+          (event.params as List<dynamic>)[0] as Map<String, dynamic>;
       final String method = event.method;
       final String topic = event.topic;
       final dappMetadata = walletKit.getActiveSessions()[topic]?.peer.metadata;
@@ -69,6 +74,11 @@ void Function() handleDappRequests({
           maxFeePerGas: maxFeePerGasEth,
         );
       } else {
+        // No BuildContext of our own (this is a session-event handler, not
+        // a widget) -- navigatorKey.currentContext is already how this
+        // function reaches ApproveTransactionDrawer.show below, so it is
+        // also the right (and only) source for a live GWColors read here.
+        final gw = navigatorKey.currentContext!.gw;
         content = SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,22 +88,21 @@ void Function() handleDappRequests({
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     dappUrl,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(color: gw.textSecondary, fontSize: 12),
                   ),
                 ),
-              Text(
-                "Method: $method",
-                style: const TextStyle(color: Colors.white),
-              ),
+              Text("Method: $method", style: TextStyle(color: gw.textPrimary)),
               const SizedBox(height: 12),
-              const Text("Params:", style: TextStyle(color: Colors.grey)),
+              Text("Params:", style: TextStyle(color: gw.textSecondary)),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: GeniusWalletColors.deepBlueCardColor,
+                  color: gw.deepBlueCardColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
+                // deepBlueCardColor is a FIXED dark fill -- see
+                // send_transaction_details.dart's identical card.
                 child: Text(
                   event.params.toString(),
                   style: const TextStyle(color: Colors.white70),
@@ -174,11 +183,13 @@ void Function() handleDappRequests({
             type: TransactionType.transfer,
           );
 
-          SwapResultDrawer.show(
-            context: navigatorKey.currentContext!,
-            isSuccess: true,
-            txHash: txHash ?? "",
-            coinSymbol: coinSymbol,
+          unawaited(
+            SwapResultDrawer.show(
+              context: navigatorKey.currentContext!,
+              isSuccess: true,
+              txHash: txHash ?? "",
+              coinSymbol: coinSymbol,
+            ),
           );
 
           pendingRequestIds.remove(requestId);
@@ -202,11 +213,13 @@ void Function() handleDappRequests({
               ),
             ),
           );
-          SwapResultDrawer.show(
-            context: navigatorKey.currentContext!,
-            isSuccess: false,
-            txHash: "",
-            coinSymbol: coinSymbol,
+          unawaited(
+            SwapResultDrawer.show(
+              context: navigatorKey.currentContext!,
+              isSuccess: false,
+              txHash: "",
+              coinSymbol: coinSymbol,
+            ),
           );
           pendingRequestIds.remove(requestId);
           debugPrint('❌ Failed to Swap: ${result.errorMessage}');

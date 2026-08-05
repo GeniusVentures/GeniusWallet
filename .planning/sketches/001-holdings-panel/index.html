@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sketch 001 — Assets Panel (live rows)</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font);
+    background: var(--surface-base);
+    color: var(--text-primary);
+    padding: var(--space-10);
+    min-height: 100vh;
+    transition: background .2s, color .2s;
+  }
+
+  /* ── sketch toolbar ─────────────────────────────── */
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: center;
+    max-width: 640px; margin: 0 auto var(--space-8);
+  }
+  .toolbar h1 { font: 600 15px/22px var(--font); margin-right: auto; }
+  .toolbar h1 span { color: var(--text-secondary); font-weight: 400; }
+  .seg { display: flex; background: var(--surface-menu); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
+  .seg button {
+    font: 500 13px/18px var(--font); padding: 6px 13px; border: 0; border-radius: var(--radius-pill);
+    background: transparent; color: var(--text-secondary); cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--surface-elevated); color: var(--text-primary); box-shadow: var(--shadow-card); }
+  .seg button:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+
+  .caption {
+    max-width: 640px; margin: 0 auto var(--space-6); color: var(--text-secondary);
+    font: 400 13px/20px var(--font);
+  }
+  .caption strong { color: var(--text-primary); }
+  .caption code {
+    font: 500 12px/1 var(--font-mono); background: var(--surface-menu);
+    padding: 2px 5px; border-radius: 5px; color: var(--text-primary);
+  }
+
+  /* ── panel chrome (DashboardScrollContainer / GWDecorations.surface) ── */
+  .panel {
+    max-width: 640px; margin: 0 auto var(--space-10);
+    background: linear-gradient(to bottom, var(--surface-sheen-a), var(--surface-sheen-b));
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-6);
+    transition: background .2s, border-color .2s;
+  }
+
+  .phead { display: flex; align-items: baseline; gap: var(--space-4); padding: var(--space-2) var(--space-4) var(--space-6); }
+  .phead.center   { align-items: center; padding-bottom: var(--space-4); }
+  .phead.divider  { align-items: center; padding-bottom: var(--space-6); border-bottom: 1px solid var(--border-subtle); margin: 0 var(--space-2) var(--space-2); }
+  .phead.balanced { align-items: flex-start; padding-bottom: var(--space-4); }
+  .hleft { margin-right: auto; display: flex; flex-direction: column; gap: 1px; }
+  .phead h2 { font: 600 18px/24px var(--font); }
+  .heyebrow { font: 400 13px/18px var(--font); color: var(--text-secondary); display: none; }
+  .phead.balanced .heyebrow { display: block; }
+  .headright { display: flex; align-items: baseline; gap: var(--space-4); }
+  /* reserve two-line height so empty ($0.00, one line) and funded (amount + change) keep the same header height → gaps don't shift between states */
+  .headright.stacked { flex-direction: column; align-items: flex-end; justify-content: center; gap: 1px; min-height: 45px; }
+  .headright .total { font: 600 18px/24px var(--font); font-variant-numeric: tabular-nums; }
+  .headright.stacked .total { font: 700 20px/26px var(--font); letter-spacing: -.2px; }
+  .headright .subchange { font: 500 13px/18px var(--font); font-variant-numeric: tabular-nums; }
+  .headright .subchange.up   { color: var(--status-success); }
+  .headright .subchange.down { color: var(--status-error); }
+  .headright .arrow { font: 600 14px/1 var(--font); font-variant-numeric: tabular-nums; align-self: center; }
+  .headright .arrow.up   { color: var(--status-success); }
+  .headright .arrow.down { color: var(--status-error); }
+  .headright .chip { align-self: center; }
+
+  /* ── row ─────────────────────────────────────────── */
+  .row {
+    display: flex; align-items: center; gap: var(--space-6);
+    padding: var(--space-6) var(--space-4); border-radius: var(--radius-md);
+    cursor: pointer; transition: background .12s;
+  }
+  .row:hover { background: var(--surface-menu); }
+  .row + .row { box-shadow: 0 -1px 0 var(--border-subtle); }
+  .row:hover, .row:hover + .row { box-shadow: none; }
+
+  .icon {
+    width: 38px; height: 38px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; color: #fff;
+    font: 700 14px/1 var(--font); letter-spacing: -.02em;
+  }
+  .icon.eth  { background: #627EEA; }
+  .icon.gnus { background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary)); color: #001018; }
+  .icon.usdc { background: #2775CA; }
+  .icon.usdt { background: #26A17B; }
+
+  .id { min-width: 0; flex: 1; }
+  .id .name { font: 500 16px/22px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .id .sub {
+    font: 500 14px/20px var(--font); font-variant-numeric: tabular-nums;
+    color: var(--text-secondary); display: flex; align-items: center; gap: 6px; margin-top: 1px;
+  }
+  .id .sub .net  { font-weight: 400; color: var(--text-primary-38); }
+  .id .sub .dim  { font-weight: 400; color: var(--text-primary-38); }
+
+  .val { text-align: right; flex: none; }
+  .val .a { font: 600 16px/22px var(--font); font-variant-numeric: tabular-nums; }
+  .val .b { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 2px; }
+  .val .b .amt   { font: 500 13px/18px var(--font); font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  .val .b .price { font: 400 13px/18px var(--font); font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+
+  .chip {
+    font: 600 12px/16px var(--font); font-variant-numeric: tabular-nums;
+    padding: 2px 7px; border-radius: var(--radius-sm); white-space: nowrap;
+  }
+  .chip.up   { color: var(--status-success); background: var(--status-success-fill); }
+  .chip.down { color: var(--status-error);   background: var(--status-error-fill); }
+  /* value-forward variant: bare (fill-less) chip reads cleaner when it stands alone */
+  .bare .chip { background: transparent; padding: 2px 0; }
+
+  /* zero balance: dim the holding numbers, keep market numbers at full strength */
+  .zero .val .a { color: var(--text-primary-38); }
+  .zero .id .sub .hold { color: var(--text-primary-38); }
+
+  /* ── fund strip ──────────────────────────────────── */
+  .fundbar {
+    display: flex; align-items: center; gap: var(--space-6);
+    margin-top: var(--space-4); padding: var(--space-6) var(--space-4) var(--space-2);
+    border-top: 1px solid var(--border-subtle);
+  }
+  .fundbar p { font: 400 14px/20px var(--font); color: var(--text-secondary); margin-right: auto; }
+  .btn {
+    font: 500 14px/20px var(--font); padding: 9px 18px; border-radius: var(--radius-pill);
+    border: 1px solid var(--border-strong); background: transparent; color: var(--text-primary); cursor: pointer;
+  }
+  .btn.primary { background: var(--brand-primary); border-color: var(--brand-primary); color: var(--text-on-brand); font-weight: 600; }
+  .btn:hover { border-color: var(--brand-primary); }
+  .btn:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Sketch 001 — <span>Assets panel</span></h1>
+  <div class="seg" role="group" aria-label="Layout">
+    <button data-layout="holdings" aria-pressed="false">A1 · Holdings</button>
+    <button data-layout="market"   aria-pressed="true">A2 · Market ★</button>
+    <button data-layout="clean"    aria-pressed="false">A3 · Clean</button>
+  </div>
+  <div class="seg" role="group" aria-label="Header">
+    <button data-header="stacked" aria-pressed="true">H · Stacked ★</button>
+    <button data-header="minimal" aria-pressed="false">H · Minimal</button>
+    <button data-header="left"    aria-pressed="false">H · Left</button>
+    <button data-header="inline"  aria-pressed="false">H · Inline</button>
+  </div>
+  <div class="seg" role="group" aria-label="Gap">
+    <button data-gap="center"   aria-pressed="true">Gap · Center ★</button>
+    <button data-gap="divider"  aria-pressed="false">Gap · Divider</button>
+    <button data-gap="balanced" aria-pressed="false">Gap · Balanced</button>
+  </div>
+  <div class="seg" role="group" aria-label="Wallet state">
+    <button data-state="empty"  aria-pressed="false">Empty</button>
+    <button data-state="funded" aria-pressed="true">Funded</button>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-btn="light" aria-pressed="true">Light</button>
+    <button data-theme-btn="dark"  aria-pressed="false">Dark</button>
+  </div>
+</div>
+
+<p class="caption" data-caption></p>
+
+<div class="panel">
+  <div class="phead" data-phead>
+    <div class="hleft"><h2>Assets</h2><span class="heyebrow" data-eyebrow></span></div>
+    <div class="headright" data-headright></div>
+  </div>
+  <div data-rows></div>
+  <div class="fundbar" data-fundbar>
+    <p>Nothing here yet — fund the wallet to start tracking.</p>
+    <button class="btn">Receive</button>
+    <button class="btn primary">Buy GNUS</button>
+  </div>
+</div>
+
+<script>
+// ── data: real field names from packages/genius_api/models/coin.dart + CoinGeckoMarketData ──
+const COINS = [
+  { name:'Ethereum',     symbol:'ETH',  network:'Ethereum', cls:'eth',  glyph:'♦', currentPrice:1895.80,  priceChangePercentage24h:2.02,  balance:0.6512 },
+  { name:'Genius Token', symbol:'GNUS', network:'Ethereum', cls:'gnus', glyph:'G', currentPrice:0.773198, priceChangePercentage24h:4.04,  balance:1240.5  },
+  { name:'USD Coin',     symbol:'USDC', network:'Ethereum', cls:'usdc', glyph:'$', currentPrice:1.0,      priceChangePercentage24h:-0.01, balance:325.00  },
+  { name:'Tether USD',   symbol:'USDT', network:'Tron',     cls:'usdt', glyph:'₮', currentPrice:0.9998,   priceChangePercentage24h:-0.06, balance:0       },
+];
+
+const usd    = n => n.toLocaleString('en-US', { style:'currency', currency:'USD' });
+const price  = n => n < 1 ? '$' + n.toFixed(4) : n.toLocaleString('en-US', { style:'currency', currency:'USD' });
+const amount = n => (n === 0 ? '0.0000' : n.toLocaleString('en-US', { maximumFractionDigits:4 }));
+const pct    = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const chip   = n => `<span class="chip ${n >= 0 ? 'up' : 'down'}">${pct(n)}</span>`;
+
+const CAPTIONS = {
+  holdings: `<strong>A1 · Holdings-forward.</strong> The subtitle is <em>what you own</em> — <code>0.6512 ETH · Ethereum</code>.
+             Market data (price + % change) sits on the right under the fiat value. Closest to today's row; balance is the story.`,
+  market:   `<strong>A2 · Market-forward.</strong> The subtitle is <em>what the coin is doing</em> — <code>$1,895.80</code> + <code>+2.02%</code>.
+             Your holding (fiat value + amount) sits on the right. Empty rows still look fully alive because price + % never depend on balance.`,
+  clean:    `<strong>A3 · Clean.</strong> One number per side per line. Subtitle = amount, right = fiat value over a bare % chip.
+             Price is dropped from the row (it lives on the detail screen). Least dense, easiest scan.`,
+};
+
+let layout = 'market', state = 'funded', headerMode = 'stacked', gapMode = 'center';
+const coins = () => COINS.map(c => ({ ...c, balance: state === 'funded' ? c.balance : 0 }));
+
+// ── header total + 24h change treatments ──────────────
+function headerHTML(total, dayChange) {
+  if (total === 0) return `<span class="total">${usd(0)}</span>`;
+  const up = dayChange >= 0, cls = up ? 'up' : 'down';
+  const pctv = pct(dayChange / total * 100);
+  const dollar = (up ? '+' : '') + usd(dayChange);
+  if (headerMode === 'inline')  return `<span class="chip ${cls}">${pctv}</span><span class="total">${usd(total)}</span>`;
+  if (headerMode === 'left')    return `<span class="subchange ${cls}">${dollar} · ${pctv}</span><span class="total">${usd(total)}</span>`;
+  if (headerMode === 'minimal') return `<span class="total">${usd(total)}</span><span class="arrow ${cls}">${up ? '▲' : '▼'} ${pctv.replace('+','')}</span>`;
+  return `<span class="total">${usd(total)}</span><span class="subchange ${cls}">${dollar} · ${pctv}</span>`; // stacked
+}
+
+function rowHTML(c) {
+  const up = c.priceChangePercentage24h >= 0, zero = c.balance === 0;
+  const value = c.balance * c.currentPrice;
+  let sub, valA, valB, bare = '';
+
+  if (layout === 'holdings') {
+    sub  = `<span class="hold">${amount(c.balance)} ${c.symbol}</span><span class="net">· ${c.network}</span>`;
+    valA = usd(value);
+    valB = `<span class="price">${price(c.currentPrice)}</span>${chip(c.priceChangePercentage24h)}`;
+  } else if (layout === 'market') {
+    sub  = `<span class="price">${price(c.currentPrice)}</span>${chip(c.priceChangePercentage24h)}`;
+    valA = usd(value);
+    valB = `<span class="amt hold">${amount(c.balance)} ${c.symbol}</span>`;
+  } else { // clean
+    sub  = `<span class="hold">${amount(c.balance)} ${c.symbol}</span><span class="dim">· ${c.network}</span>`;
+    valA = usd(value);
+    valB = chip(c.priceChangePercentage24h);
+    bare = 'bare';
+  }
+
+  return `<div class="row ${zero ? 'zero' : ''} ${bare}" tabindex="0" role="button">
+    <div class="icon ${c.cls}">${c.glyph}</div>
+    <div class="id">
+      <div class="name">${c.name}</div>
+      <div class="sub">${sub}</div>
+    </div>
+    <div class="val"><div class="a">${valA}</div><div class="b">${valB}</div></div>
+  </div>`;
+}
+
+function render() {
+  const list = coins();
+  const total = list.reduce((s,c) => s + c.balance * c.currentPrice, 0);
+  const dayChange = list.reduce((s,c) => s + c.balance * c.currentPrice * (c.priceChangePercentage24h/100), 0);
+
+  document.querySelector('[data-caption]').innerHTML = CAPTIONS[layout];
+  document.querySelector('[data-phead]').className = 'phead ' + gapMode;
+  document.querySelector('[data-eyebrow]').textContent = `${list.length} tokens · 2 networks`;
+  const hr = document.querySelector('[data-headright]');
+  hr.className = 'headright ' + headerMode;
+  hr.innerHTML = headerHTML(total, dayChange);
+  document.querySelector('[data-fundbar]').style.display = total > 0 ? 'none' : 'flex';
+  document.querySelector('[data-rows]').innerHTML = list.map(rowHTML).join('');
+}
+
+document.querySelectorAll('.seg button').forEach(btn => btn.addEventListener('click', () => {
+  btn.parentElement.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  if (btn.dataset.layout)   layout = btn.dataset.layout;
+  if (btn.dataset.state)    state  = btn.dataset.state;
+  if (btn.dataset.header)   headerMode = btn.dataset.header;
+  if (btn.dataset.gap)      gapMode = btn.dataset.gap;
+  if (btn.dataset.themeBtn) document.documentElement.dataset.theme = btn.dataset.themeBtn;
+  if (!btn.dataset.themeBtn) render();
+}));
+
+render();
+</script>
+</body>
+</html>

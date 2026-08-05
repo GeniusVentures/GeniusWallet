@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>012 · Mint / Job icons + the Sent colour — inside Scheme 1</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1180px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+
+  h2.sec { font:600 18px/24px var(--font); letter-spacing:-.2px; margin:var(--space-16) 0 var(--space-4); }
+  h2.sec:first-of-type { margin-top:var(--space-8); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:840px; }
+  p.lede b { color:var(--text-primary); }
+  p.lede code { font:400 12px/18px var(--font-mono); }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.new { background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.mod { background:rgba(20,200,255,.14); color:var(--brand-primary-strong); }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend div { display:flex; align-items:center; gap:var(--space-4); }
+
+  /* option cards */
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(178px,1fr)); gap:var(--space-6); margin-bottom:var(--space-8); }
+  .opt { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:var(--space-8) var(--space-6); text-align:center; cursor:pointer; transition:border-color .14s, transform .14s; position:relative; }
+  .opt:hover { border-color:var(--border-strong); transform:translateY(-1px); }
+  .opt.sel { border-color:var(--brand-primary-strong); background:var(--brand-fill); }
+  .opt .demo { position:relative; width:40px; height:40px; margin:0 auto var(--space-6); }
+  .opt .big { width:30px; height:30px; margin:0 auto var(--space-4); display:grid; place-items:center; }
+  .opt .big svg { width:26px; height:26px; fill:none; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; color:var(--text-primary); }
+  .opt .nm { font:600 13px/18px var(--font); }
+  .opt .meta { font:400 11px/16px var(--font); color:var(--text-secondary); margin-top:3px; }
+  .opt .verdict { font:500 11px/16px var(--font); margin-top:var(--space-4); }
+  .verdict.good { color:var(--status-success); } .verdict.warn { color:var(--status-warning); } .verdict.bad { color:var(--status-error); }
+  .opt .pin { position:absolute; top:8px; right:8px; }
+
+  /* the 40px token + badge — EXISTING GWTokenRow icon slot geometry */
+  .coin { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font:700 12px/1 var(--font); color:#fff; background:linear-gradient(160deg,#3AD9C0,#1FA9C8); }
+  .badge { position:absolute; right:-2px; bottom:-2px; width:18px; height:18px; border-radius:50%; display:grid; place-items:center; border:2px solid var(--surface-menu); }
+  .badge svg { width:9px; height:9px; fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* live row preview — EXISTING GWTokenRow anatomy + Divider */
+  .panel { width:520px; background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b)); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); box-shadow:var(--shadow-card); padding:var(--space-8); }
+  .panel.narrow { width:376px; }
+  .phead { display:flex; align-items:center; min-height:44px; padding-bottom:var(--space-4); }
+  .phead h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; }
+  .divider { height:1px; background:var(--border-subtle); border:0; }
+  .row { display:flex; align-items:center; gap:var(--space-6); padding:var(--space-4) var(--space-6); border-radius:var(--radius-md); }
+  .row:hover { background:var(--surface-menu); }
+  .row .id { position:relative; width:40px; height:40px; flex:none; }
+  .row .id .badge { border-color:var(--surface-sheen-b); }
+  .row .main { flex:1; min-width:0; }
+  .row .t { font:600 15px/20px var(--font); display:flex; align-items:center; gap:var(--space-4); }
+  .row .t .action { font:500 12px/16px var(--font); color:var(--text-secondary); padding:2px 7px; border-radius:5px; background:var(--surface-menu); }
+  .row .s { color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .amt { text-align:right; white-space:nowrap; }
+  .row .amt .v { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .row .amt .v.in { color:var(--status-success); }
+  .row .amt .v.na { color:var(--text-primary-38); }
+  .row .amt .f { display:block; color:var(--text-secondary); font:400 12px/16px var(--font); margin-top:3px; }
+  .row .time { font:400 11px/14px var(--font); color:var(--text-primary-38); font-variant-numeric:tabular-nums; width:44px; text-align:right; flex:none; }
+
+  .stage { display:flex; gap:var(--space-12); align-items:flex-start; flex-wrap:wrap; }
+  .note { background:var(--surface-menu); border-left:3px solid var(--brand-primary-strong); border-radius:var(--radius-sm); padding:var(--space-6) var(--space-8); font:400 13px/21px var(--font); color:var(--text-secondary); max-width:840px; margin-bottom:var(--space-8); }
+  .note b { color:var(--text-primary); }
+  .note.warn { border-left-color:var(--status-warning); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>012 · Mint / Processing-job icons + the Sent colour — all inside Scheme 1</h1>
+  <div class="seg" id="theme"><button data-v="dark" aria-pressed="true">Dark</button><button data-v="light" aria-pressed="false">Light</button></div>
+  <div class="seg" id="width"><button data-v="wide" aria-pressed="true">520</button><button data-v="narrow" aria-pressed="false">376</button></div>
+</div>
+
+<div class="legend">
+  <div><span class="tag ex">Existing</span> shipped on the homepage — reused as-is</div>
+  <div><span class="tag mod">Adapted</span> existing component, one property changed</div>
+  <div><span class="tag new">New</span> must be built</div>
+  <div><span class="tag rec">Rec</span> my recommendation</div>
+</div>
+
+<div class="note warn">
+  <b>On the pickaxe — one distinction worth making before you pick.</b> A pickaxe reads as
+  <b>mining</b>: doing work to earn. That is <b>not</b> what minting is — minting creates new tokens
+  by decree, no work involved. But it <b>is</b> close to what a GNUS processing job does: spend
+  compute, get value back. So the pickaxe probably belongs on <b>Processing job</b>, not on Mint.
+  Both are offered in both places below so you can judge it rather than take my word.
+  <br><br>
+  Historically, "to mint" means <b>to strike a coin with a die</b> — which is why the stamp and
+  hammer options are the literal metaphor, not a stretch.
+</div>
+
+<h2 class="sec">1 · Mint icon <span class="tag new">New</span></h2>
+<p class="lede">Type <code>TransactionType.mint</code> — new GNUS tokens created into the wallet.
+  Judge at 18px in the badge (top row of each card), not at the large size.</p>
+<div class="grid" id="mintgrid"></div>
+
+<h2 class="sec">2 · Processing-job icon <span class="tag new">New</span></h2>
+<p class="lede">Type <code>TransactionType.process</code> — a GNUS compute job. The app's whole
+  differentiator, so this icon carries more brand weight than the others.</p>
+<div class="grid" id="jobgrid"></div>
+
+<h2 class="sec">3 · The Sent colour, without leaving Scheme 1</h2>
+<p class="lede">
+  Scheme 1's rule is <b>colour only where money moved</b>. The catch you spotted: sending <i>is</i>
+  money moving, so pure grey reads as "nothing happened". These five all keep Scheme 1's restraint —
+  none of them shouts — but give Sent a temperature. <b>Amber and red are deliberately absent:</b>
+  amber is already Pending and red is already Failed; reusing either would make a successful send
+  look like a problem.
+</p>
+<div class="grid" id="sentgrid"></div>
+
+<h2 class="sec">4 · Live preview</h2>
+<p class="lede">Your choices applied to the real row anatomy — <span class="tag ex">Existing</span>
+  <code>GWTokenRow</code> geometry (40px icon, space6/space4 padding) and
+  <span class="tag ex">Existing</span> <code>Divider(1px, borderSubtle)</code>, straight and
+  full-bleed as on the homepage.</p>
+<div class="stage">
+  <div class="panel" id="panel">
+    <div class="phead"><h3>Transactions</h3></div>
+    <hr class="divider">
+    <div id="list"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const P = {
+  /* mint candidates */
+  spark:  '<path d="M12 2.5v6M12 15.5v6M2.5 12h6M15.5 12h6"/><circle cx="12" cy="12" r="2.4"/>',
+  stamp:  '<path d="M9 3.5h6a2 2 0 0 1 2 2.2l-.6 5.3h-8.8L7 5.7a2 2 0 0 1 2-2.2z"/><rect x="4" y="13.5" width="16" height="3.2" rx="1"/><rect x="5.5" y="18.5" width="13" height="2.2" rx="1"/>',
+  hammer: '<path d="M13.5 6.5 17 3l4 4-3.5 3.5z"/><path d="M15.2 8.2 5.5 17.9a2.1 2.1 0 0 0 3 3l9.7-9.7"/><path d="M3 21h6"/>',
+  sprout: '<path d="M12 21v-8"/><path d="M12 13c0-3.3-2.7-6-6-6 0 3.3 2.7 6 6 6z"/><path d="M12 13c0-3.9 3.1-7 7-7 0 3.9-3.1 7-7 7z"/>',
+  pickaxe:'<path d="M14.5 9.5 4 20"/><path d="M3 6.5c4-3 10-3 14 1"/><path d="M17.5 3.5c-3 4-3 10 1 14"/><path d="M12.5 7.5l4 4"/>',
+  coinplus:'<circle cx="10" cy="10" r="6.5"/><path d="M18 14v6M15 17h6"/>',
+  /* job candidates */
+  cpu:    '<rect x="6.5" y="6.5" width="11" height="11" rx="2"/><path d="M9.5 2v4.5M14.5 2v4.5M9.5 17.5V22M14.5 17.5V22M2 9.5h4.5M2 14.5h4.5M17.5 9.5H22M17.5 14.5H22"/>',
+  gear:   '<circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/>',
+  zap:    '<polygon points="13 2 4 14 11 14 10 22 20 10 13 10 13 2"/>',
+  brain:  '<path d="M9.5 3.5A3 3 0 0 0 6.7 7 3 3 0 0 0 5 9.8a3 3 0 0 0 1.4 2.6A3 3 0 0 0 6 15a3 3 0 0 0 3 3h.5"/><path d="M14.5 3.5A3 3 0 0 1 17.3 7 3 3 0 0 1 19 9.8a3 3 0 0 1-1.4 2.6A3 3 0 0 1 18 15a3 3 0 0 1-3 3h-.5"/><path d="M12 3v18"/>',
+  server: '<rect x="3" y="4" width="18" height="6" rx="1.6"/><rect x="3" y="14" width="18" height="6" rx="1.6"/><path d="M7 7h.01M7 17h.01"/>',
+  /* fixed */
+  up:     '<line x1="7" y1="17" x2="17" y2="7"/><polyline points="8 7 17 7 17 16"/>',
+  down:   '<line x1="17" y1="7" x2="7" y2="17"/><polyline points="16 17 7 17 7 8"/>',
+  lock:   '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  x:      '<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>',
+};
+
+const MINT = [
+  { k:'spark',   n:'Spark',      meta:'radiating burst',  v:'good', t:'Reads "created from nothing". Abstract — no wrong metaphor to fight.' },
+  { k:'stamp',   n:'Coin stamp', meta:'die + press',      v:'good', t:'The literal meaning of mint. Most specific; busiest at 18px.' },
+  { k:'hammer',  n:'Strike',     meta:'striking hammer',  v:'warn', t:'Also literal, cleaner than the stamp — but reads as "build/fix" outside finance.' },
+  { k:'sprout',  n:'Sprout',     meta:'new growth',       v:'warn', t:'Friendly, unmistakably "new" — but soft, and off-register for a compute wallet.' },
+  { k:'pickaxe', n:'Pickaxe',    meta:'mining',           v:'bad',  t:'Mining ≠ minting. Likely better on Processing job (see the note above).' },
+  { k:'coinplus',n:'Coin +',     meta:'coin with plus',   v:'warn', t:'Unambiguous, but the + collides with the received badge already meaning "in".' },
+];
+const JOB = [
+  { k:'cpu',     n:'Chip',       meta:'processor',        v:'good', t:'Universally "compute". Legible at 18px; slightly generic.' },
+  { k:'pickaxe', n:'Pickaxe',    meta:'work → reward',    v:'good', t:'Work performed to earn — semantically closer to a GNUS job than to minting.' },
+  { k:'zap',     n:'Bolt',       meta:'power / execution',v:'warn', t:'Cleanest silhouette at 18px, but "fast", not "computed".' },
+  { k:'brain',   n:'Brain',      meta:'the GNUS mark',    v:'warn', t:'On-brand — but the app logo is a brain, so it may read as "the app did this", not "a job ran".' },
+  { k:'gear',    n:'Gear',       meta:'processing',       v:'warn', t:'Instantly "processing" — also the universal Settings icon, already in the navbar.' },
+  { k:'server',  n:'Server',     meta:'compute nodes',    v:'warn', t:'Accurate for a distributed node network; the thinnest shapes at 18px.' },
+];
+const SENT = [
+  { k:'slate',  n:'Slate',        hex:'#64748B', glyph:'#FFFFFF', tag:'new', v:'warn', t:'Scheme 1 as drafted. Neutral, calm — your objection: it reads as "nothing happened".' },
+  { k:'ink',    n:'Ink',          hex:'#3F4655', glyph:'#FFFFFF', tag:'new', v:'warn', t:'Darker, more deliberate than slate. Nearly invisible on dark surfaces.' },
+  { k:'steel',  n:'Steel blue',   hex:'#5B7B9E', glyph:'#FFFFFF', tag:'new', v:'good', t:'A neutral with a cool temperature — present without claiming a status meaning.' },
+  { k:'clay',   n:'Clay',         hex:'#C4713F', glyph:'#FFFFFF', tag:'new', v:'good', t:'The warm answer you were after, muted enough not to be mistaken for amber-Pending.' },
+  { k:'violet', n:'brandTertiary',hex:'#C28FFF', glyph:'#1B0733', tag:'ex',  v:'good', t:'Already in the palette and used nowhere else. Zero new tokens, zero clashes.' },
+];
+
+const S = { theme:'dark', width:'wide', mint:'spark', job:'pickaxe', sent:'violet' };
+const sentDef = () => SENT.find(x => x.k === S.sent);
+
+function lum(h){const c=h.replace('#','');const v=[0,2,4].map(i=>parseInt(c.substr(i,2),16)/255).map(x=>x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4));return .2126*v[0]+.7152*v[1]+.0722*v[2];}
+const ratio=(a,b)=>{const l1=lum(a),l2=lum(b),hi=Math.max(l1,l2),lo=Math.min(l1,l2);return (hi+.05)/(lo+.05);};
+
+const badge = (glyph, fill, gcol) =>
+  `<span class="badge" style="background:${fill}"><svg viewBox="0 0 24 24" stroke="${gcol}">${glyph}</svg></span>`;
+
+function card(o, group, sel, fill, gcol) {
+  return `<div class="opt ${sel?'sel':''}" data-g="${group}" data-k="${o.k}">
+    ${o.v==='good'?'<span class="pin tag rec">Rec</span>':''}
+    <div class="demo"><span class="coin">GNUS</span>${badge(P[o.k], fill, gcol)}</div>
+    <div class="big"><svg viewBox="0 0 24 24" stroke="currentColor">${P[o.k]}</svg></div>
+    <div class="nm">${o.n}</div>
+    <div class="meta">${o.meta}</div>
+    <div class="verdict ${o.v}">${o.t}</div>
+  </div>`;
+}
+
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  document.getElementById('panel').className = 'panel' + (S.width==='narrow'?' narrow':'');
+
+  // Scheme 1: everything that is not money-in stays neutral; mint/job use the Sent neutral too.
+  const nf = sentDef().hex, ng = sentDef().glyph;
+  document.getElementById('mintgrid').innerHTML = MINT.map(o => card(o,'mint',S.mint===o.k, nf, ng)).join('');
+  document.getElementById('jobgrid').innerHTML  = JOB.map(o => card(o,'job', S.job===o.k,  nf, ng)).join('');
+
+  document.getElementById('sentgrid').innerHTML = SENT.map(o => {
+    const r = ratio(o.hex, o.glyph);
+    return `<div class="opt ${S.sent===o.k?'sel':''}" data-g="sent" data-k="${o.k}">
+      ${o.v==='good'?'<span class="pin tag rec">Rec</span>':''}
+      <div class="demo"><span class="coin" style="background:linear-gradient(160deg,#8A9DF5,#5B72D8)">ETH</span>${badge(P.up,o.hex,o.glyph)}</div>
+      <div class="nm">${o.n} <span class="tag ${o.tag}">${o.tag==='ex'?'Existing':'New'}</span></div>
+      <div class="meta">${o.hex}</div>
+      <div class="verdict ${r>=4.5?'good':'bad'}">glyph ${r.toFixed(1)}:1 ${r>=4.5?'✓ AA':'✕ AA'}</div>
+      <div class="verdict" style="color:var(--text-secondary)">${o.t}</div>
+    </div>`;
+  }).join('');
+
+  const TX = [
+    { sym:'ETH', bg:'linear-gradient(160deg,#8A9DF5,#5B72D8)', g:P.up,      f:nf, gc:ng, t:'ETH',  a:'Sent',           s:'0x9fF8…2e2b',      v:'− 0.75 ETH',      fi:'$1,440.20', tm:'18:42' },
+    { sym:'BTC', bg:'linear-gradient(160deg,#F9A03C,#E87B10)', g:P.down,    f:'#0AD89C', gc:'#04241A', t:'BTC', a:'Received', s:'0x1d9b…4a87', v:'+ 0.0042 BTC', fi:'$278.19', tm:'15:10', in:1 },
+    { sym:'GNUS',bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P[S.mint], f:nf, gc:ng, t:'GNUS', a:'Minted',         s:'Minted to wallet', v:'+ 1,200 GNUS',    fi:'$924.00',   tm:'21:55', in:1 },
+    { sym:'GNUS',bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P[S.job],  f:nf, gc:ng, t:'GNUS', a:'Processing job', s:'Job #4192 · complete', v:'—',         fi:'0.42 GNUS spent', tm:'16:20', na:1 },
+    { sym:'GNUS',bg:'linear-gradient(160deg,#3AD9C0,#1FA9C8)', g:P.lock,    f:nf, gc:ng, t:'GNUS', a:'Escrow locked',  s:'Job #4192',        v:'− 75.00 GNUS',    fi:'$57.75',    tm:'20:14' },
+    { sym:'ETH', bg:'linear-gradient(160deg,#8A9DF5,#5B72D8)', g:P.x,       f:'#FF4D4D', gc:'#FFFFFF', t:'ETH', a:'Buy',    s:'Banxa · payment declined', v:'—', fi:'Not charged', tm:'08:30', na:1 },
+  ];
+  document.getElementById('list').innerHTML = TX.map((t,i) => `
+    <div class="row">
+      <div class="id"><span class="coin" style="background:${t.bg}">${t.sym}</span>${badge(t.g,t.f,t.gc)}</div>
+      <div class="main"><div class="t">${t.t}<span class="action">${t.a}</span></div><div class="s">${t.s}</div></div>
+      <div class="amt"><span class="v ${t.in?'in':''} ${t.na?'na':''}">${t.v}</span><span class="f">${t.fi}</span></div>
+      <div class="time">${t.tm}</div>
+    </div>` + (i<TX.length-1?'<hr class="divider">':'')).join('');
+}
+
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-g]'); if (!o) return;
+  S[o.dataset.g] = o.dataset.k; render();
+});
+['theme','width'].forEach(g => document.getElementById(g).addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S[g] = b.dataset.v;
+  document.querySelectorAll('#'+g+' button').forEach(x => x.setAttribute('aria-pressed', String(x===b)));
+  render();
+}));
+render();
+</script>
+</body>
+</html>

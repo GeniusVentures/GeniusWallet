@@ -8,7 +8,7 @@ class MnemonicImpl {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
   static bool isValid(String mnemonic) {
     final value = StringUtil.toTWString(mnemonic);
-    final bool result = ffiBridgePrebuilt.tw_lib.TWMnemonicIsValid(
+    final bool result = ffiBridgePrebuilt.twLib.TWMnemonicIsValid(
       value.cast(),
     );
     StringUtil.delete(value);
@@ -18,7 +18,7 @@ class MnemonicImpl {
 
   static bool isValidWord(String word) {
     final value = StringUtil.toTWString(word);
-    final bool result = ffiBridgePrebuilt.tw_lib.TWMnemonicIsValidWord(
+    final bool result = ffiBridgePrebuilt.twLib.TWMnemonicIsValidWord(
       value.cast(),
     );
     StringUtil.delete(value);
@@ -28,7 +28,7 @@ class MnemonicImpl {
 
   static String suggest(String prefix) {
     final value = StringUtil.toTWString(prefix);
-    final Pointer<Utf8> suggest = ffiBridgePrebuilt.tw_lib
+    final Pointer<Utf8> suggest = ffiBridgePrebuilt.twLib
         .TWMnemonicSuggest(value.cast())
         .cast();
 

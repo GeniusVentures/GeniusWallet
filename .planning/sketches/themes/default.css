@@ -1,0 +1,102 @@
+/* GeniusWallet sketch theme — mirrors lib/theme/genius_wallet_colors.dart + _typography.dart
+   Light-mode secondary/success/error are DARKENED vs the Flutter tokens (see README finding). */
+
+:root,
+[data-theme="light"] {
+  --brand-primary: #14C8FF;
+  --brand-primary-strong: #0AAEE6;
+  --brand-secondary: #2BF5B4;
+  --brand-tertiary: #C28FFF;
+
+  /* The CTA gradient's ACTUAL stops — GeniusWalletGradient.brandCta,
+     genius_wallet_gradient.dart:16-23. These are NOT --brand-primary /
+     --brand-secondary: those two are real tokens (brandPrimary, brandSecondary)
+     but they are the stops of brandBORDER, not brandCTA. Sketches 020-022 drew
+     "the brandCta gradient" with the wrong pair, so every gradient approved off
+     a mockup was approved against colours the app does not paint (up to 3
+     contrast points out). Jakub confirmed 2026-07-22: brandCta as it exists in
+     the code is the source of truth. Any mockup drawing the CTA gradient must
+     use these two. */
+  --brand-cta-a: #0AD89C;
+  --brand-cta-b: #0AAEE6;
+
+  --surface-base: #DCE0E6;
+  --surface-elevated: #FFFFFF;
+  --surface-sheen-a: #FFFFFF;
+  --surface-sheen-b: #F5F7FA;
+  --surface-menu: #EFF2F6;
+  --surface-sunken: #CFD4DB;
+
+  --text-primary: #10131A;
+  --text-primary-70: rgba(16, 19, 26, 0.70);
+  --text-primary-54: rgba(16, 19, 26, 0.54);
+  --text-primary-38: rgba(16, 19, 26, 0.38);
+  --text-secondary: #5A606E;      /* 6.3:1 on white — Flutter's #8A8F9D is only 3.0:1 */
+  --text-on-brand: #000B18;
+
+  --border-subtle: rgba(16, 19, 26, 0.12);
+  --border-strong: rgba(16, 19, 26, 0.24);
+
+  --status-success: #07875F;      /* 4.5:1 on white — #0AD89C is 1.9:1 */
+  --status-success-fill: rgba(10, 216, 156, 0.14);
+  --status-error: #D92D2D;        /* 4.8:1 on white — #FF4D4D is 3.3:1 */
+  --status-error-fill: rgba(255, 77, 77, 0.12);
+  --status-warning: #8A6200;
+
+  --brand-fill: rgba(20, 200, 255, 0.12);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --skeleton: rgba(16, 19, 26, 0.07);
+}
+
+[data-theme="dark"] {
+  --surface-base: #0B0D12;
+  --surface-elevated: #0C0E14;
+  --surface-sheen-a: #181B24;
+  --surface-sheen-b: #0C0E14;
+  --surface-menu: #171A21;
+  --surface-sunken: #06080C;
+
+  --text-primary: #FFFFFF;
+  --text-primary-70: rgba(255, 255, 255, 0.70);
+  --text-primary-54: rgba(255, 255, 255, 0.54);
+  --text-primary-38: rgba(255, 255, 255, 0.38);
+  --text-secondary: #8A8F9D;      /* 6.0:1 on #0C0E14 — fine as-is in dark */
+
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.24);
+
+  --status-success: #0AD89C;
+  --status-success-fill: rgba(10, 216, 156, 0.14);
+  --status-error: #FF4D4D;
+  --status-error-fill: rgba(255, 77, 77, 0.14);
+  --status-warning: #FFC42E;
+
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --skeleton: rgba(255, 255, 255, 0.07);
+}
+
+/* 4-pt spacing scale — genius_wallet_consts.dart */
+:root {
+  --space-2: 4px;  --space-3: 6px;  --space-4: 8px;  --space-6: 12px; --space-8: 16px;
+  --space-10: 20px; --space-12: 24px; --space-16: 32px; --space-20: 40px;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 15px; --radius-2xl: 16px;
+  --radius-3xl: 24px; --radius-pill: 48px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  /* Drawer-specific, additive (sketches 030-034). Non-breaking for 001-103. */
+  --status-neutral: #64748B;          /* Slate — Sent/Escrow badge fill */
+  --brand-primary-muted: rgba(20,200,255,0.24);
+  --brand-primary-subtle: rgba(20,200,255,0.12);
+  --brand-secondary-strong: #0AD89C;
+  --drawer-width: 420px;
+}
+
+/* Typography — genius_wallet_typography.dart */
+.t-headline-md { font: 600 20px/28px var(--font); }
+.t-title-lg    { font: 600 18px/24px var(--font); }
+.t-title-md    { font: 500 16px/22px var(--font); }
+.t-body-md     { font: 400 16px/24px var(--font); }
+.t-body-sm     { font: 400 14px/20px var(--font); }
+.t-label-md    { font: 500 13px/18px var(--font); }
+.t-numeric-headline { font: 600 24px/32px var(--font); font-variant-numeric: tabular-nums; }
+.t-numeric-body     { font: 500 14px/20px var(--font); font-variant-numeric: tabular-nums; }

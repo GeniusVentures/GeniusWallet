@@ -27,8 +27,8 @@ class NetworkTokensProvider with ChangeNotifier {
       return List.empty();
     }
 
-    final tokensJson = jsonDecode(response);
-    List<Token> tokensList = List<Token>.from(
+    final tokensJson = jsonDecode(response) as List<dynamic>;
+    final List<Token> tokensList = List<Token>.from(
       tokensJson.map((token) => Token.fromJson(token)),
     );
 

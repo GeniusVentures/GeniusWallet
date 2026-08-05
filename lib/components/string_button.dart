@@ -31,7 +31,7 @@ class StringButton extends StatelessWidget {
       height: 60,
       child: Text(
         value,
-        style: TextStyle(fontSize: 30 * MediaQuery.of(context).textScaleFactor),
+        style: TextStyle(fontSize: MediaQuery.of(context).textScaler.scale(30)),
       ),
     );
   }

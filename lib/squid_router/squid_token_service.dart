@@ -6,9 +6,6 @@ import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 
 class SquidTokenService {
-  static const _baseUrl = 'https://api.squidrouter.com/v1';
-  static const _testNetBaseUrl = 'https://testnet.api.squidrouter.com/v1';
-
   static Future<List<SquidTokenInfo>> fetchTokens() async {
     // 🧪 MOCKED TOKEN DATA
     return mockTokens;
@@ -196,6 +193,69 @@ final List<SquidBalance> mockSquidBalances = [
     address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     symbol: 'DAI',
     decimals: 18,
+  ),
+
+  // ---------------------------------------------------------------------
+  // MAGNITUDE STRESS FIXTURES (added at the 08-07 walk, 2026-07-27)
+  //
+  // Every balance above is a comfortable middle-sized number, so nothing in
+  // the picker or the amount field was ever asked to render a real token
+  // magnitude. These four are the extremes a wallet actually produces. Each
+  // one names what it SHOULD render as, so a layout that breaks under it is
+  // obvious rather than debatable.
+  //
+  // They attach to tokens already in `mockTokens` — the merge in
+  // `swap_screen._loadTokens` matches on symbol + chainId + address, so an
+  // entry that does not line up on all three silently never appears.
+  // ---------------------------------------------------------------------
+
+  // DUST — 1e-15 WETH, i.e. 0.000000000000001. Below `displayBalance`'s
+  // readable floor, so the picker must say `<0.000001` and NOT round it to
+  // `0`: the wallet holds something, and saying otherwise is a lie. This is
+  // also the case `hasSpendableBalance` must keep — dust is spendable.
+  SquidBalance(
+    balance: "1000",
+    symbol: "WETH",
+    address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+    decimals: 18,
+    chainId: "137",
+  ),
+
+  // EXACTLY THE FLOOR — 0.000001 USDC. The boundary `<0.000001` is compared
+  // against; it must render as the figure itself, not as the "less than"
+  // form. One raw unit of a 6-decimal token.
+  SquidBalance(
+    balance: "1",
+    symbol: "USDC",
+    address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    decimals: 6,
+    chainId: "1",
+  ),
+
+  // LONG FRACTION — 1.234567890123456789 WETH-ARB, an 18-decimal value with
+  // eighteen significant digits after the point. `displayBalance` caps at six
+  // (1.234568) while MAX still puts the EXACT value in the amount field, so
+  // this is the fixture that shows the two diverging on purpose.
+  SquidBalance(
+    balance: "1234567890123456789",
+    symbol: "WETH-ARB",
+    address: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+    decimals: 18,
+    chainId: "42161",
+  ),
+
+  // HUGE — 1,000,000,000,000 WFTM (1e12), thirteen digits before the point.
+  // The widest string the row and the 38px amount slot have to survive.
+  // Deliberately kept inside int64: `displayBalance` routes whole numbers
+  // through `double.toInt()`, and a value past 2^63 would fall into its catch
+  // and render as `0` — a real edge, but a different bug from this one, and
+  // not one to smuggle in behind a layout fixture.
+  SquidBalance(
+    balance: "1000000000000000000000000000000",
+    symbol: "WFTM",
+    address: "0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83",
+    decimals: 18,
+    chainId: "250",
   ),
 ];
 

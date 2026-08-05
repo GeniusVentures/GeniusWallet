@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-v="E2" data-e="markets" data-s="data" data-sz="bare">
+<head>
+<meta charset="utf-8">
+<title>075 · Where the coin actions go</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --menu:#171A21; --sunken:#06080C;
+  --ink:#fff; --ink70:rgba(255,255,255,.70); --ink54:rgba(255,255,255,.54);
+  --ink38:rgba(255,255,255,.38); --sec:#8A8F9D;
+  --border:rgba(255,255,255,.12); --borderControl:rgba(255,255,255,.36);
+  --brand:#14C8FF; --brandStrong:#0AAEE6; --mint:#0AD89C; --bad:#FF4D4D; --amber:#FFC42E;
+  --hoverFill:rgba(20,200,255,.12); --hoverEdge:rgba(20,200,255,.24);
+  --cta:linear-gradient(90deg,#0AD89C 0%,#0AAEE6 100%);
+  --rSm:8px; --rMd:12px; --rLg:15px;
+}
+html[data-theme="light"]{
+  --base:#DCE0E6; --card:#FFFFFF; --menu:#EFF2F6; --sunken:#CFD4DB;
+  --ink:#10131A; --ink70:rgba(16,19,26,.70); --ink54:rgba(16,19,26,.54);
+  --sec:#5A606E; --border:rgba(16,19,26,.12); --borderControl:rgba(16,19,26,.46);
+  --bad:#D92D2D; --brandStrong:#0A6885;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--base);color:var(--ink);
+  font:400 14px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:0 0 80px}
+.bar{position:sticky;top:0;z-index:30;background:var(--card);border-bottom:1px solid var(--border);
+  padding:10px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.grp{display:flex;gap:6px;align-items:center}
+.grp>b{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--sec);font-weight:600;margin-right:4px}
+.bar button{border:1px solid var(--border);background:transparent;color:var(--ink70);
+  font:500 13px/1 inherit;padding:8px 12px;border-radius:var(--rSm);cursor:pointer;font-family:inherit}
+.bar button:hover{background:var(--hoverFill);border-color:var(--hoverEdge);color:var(--ink)}
+.bar button.on{background:var(--cta);color:#000B18;border-color:transparent;font-weight:600}
+main{padding:22px 20px 0;max-width:1300px}
+h2{font-size:20px;font-weight:600;margin:26px 0 6px}
+p.lead{color:var(--ink70);max-width:100ch;margin:0 0 18px;line-height:1.65}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;background:var(--menu);padding:1px 5px;border-radius:4px}
+table{border-collapse:collapse;margin:14px 0 20px;font-size:13px}
+th,td{border:1px solid var(--border);padding:7px 11px;text-align:left;vertical-align:top}
+th{color:var(--sec);font-weight:600;font-size:11px;letter-spacing:.5px;text-transform:uppercase}
+
+/* ---------- the page, at real size ---------- */
+.page{width:1180px;background:var(--base);border:1px solid var(--border);border-radius:var(--rMd);
+  padding:16px 12px 18px}
+.back{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;
+  padding:6px 12px;color:var(--sec);font:500 13px/1 inherit;margin-bottom:8px}
+
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.tok{width:40px;height:40px;border-radius:50%;background:var(--cta);flex:none;
+  display:flex;align-items:center;justify-content:center;color:#000B18;font:700 13px/1 inherit}
+/* real metrics: GeniusWalletTypography.headlineLg is 24/32, bodySm 14/20,
+   the gap is space2 = 4. So the identity block is 56px tall and a 44px icon
+   fits inside it with 12px to spare. */
+.ident h1{margin:0;font:600 24px/32px inherit;letter-spacing:-.2px}
+.ident .sub{color:var(--sec);font-size:14px;line-height:20px;margin-top:4px}
+.grow{flex:1}
+.pricebox{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.price{font:600 28px/34px "JetBrains Mono",ui-monospace,Menlo,monospace}
+.pill{display:inline-flex;align-items:center;gap:2px;background:rgba(10,216,156,.14);color:var(--mint);
+  border-radius:999px;padding:2px 8px;font:600 13px/18px inherit}
+
+/* stat rail */
+.rail{display:flex;gap:12px;margin-bottom:16px}
+.tile{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--rMd);padding:12px}
+.tile .k{font:600 11px/16px inherit;letter-spacing:.6px;text-transform:uppercase;color:var(--sec)}
+.tile .v{font:600 15px/22px "JetBrains Mono",ui-monospace,Menlo,monospace;margin-top:3px}
+.tile .v.up{color:var(--mint)} .tile .v.dn{color:var(--bad)}
+.tile.act{display:flex;align-items:center;justify-content:center;gap:6px}
+
+.secline{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;min-height:44px}
+.kick{font:600 13px/18px inherit;letter-spacing:.5px;text-transform:uppercase;color:var(--sec)}
+.actline{display:flex;justify-content:flex-end;min-height:44px;align-items:center;margin-bottom:10px}
+
+.body{display:flex;gap:16px;align-items:stretch}
+.chart{flex:2;background:var(--card);border:1px solid var(--border);border-radius:var(--rLg);padding:14px}
+.plot{background:var(--sunken);border-radius:var(--rMd);height:270px;overflow:hidden}
+.plot svg{width:100%;height:100%;display:block}
+.side{flex:1;display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--rLg);padding:14px}
+.row{display:flex;justify-content:space-between;padding:9px 11px;border-bottom:1px solid var(--border);font-size:13px}
+.row:last-child{border-bottom:none}
+.row .k{color:var(--sec)} .row .v{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.well{background:var(--sunken);border:1px solid var(--border);border-radius:var(--rMd);margin-top:8px}
+.empty{background:var(--sunken);border-radius:var(--rMd);height:270px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;color:var(--sec);text-align:center;padding:24px}
+.empty .t{color:var(--ink);font:600 16px/22px inherit}
+.empty .m{max-width:44ch;font-size:13px;line-height:1.6}
+
+/* ---------- the icon button: 44 target, 20 glyph, CIRCLE ---------- */
+.iacts{display:flex;gap:8px;align-items:center}
+.iact{width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:var(--card);
+  color:var(--ink);display:inline-flex;align-items:center;justify-content:center;font-size:20px;
+  cursor:pointer;flex:none;font-family:inherit;position:relative}
+.iact:hover{background:var(--hoverFill);border-color:var(--hoverEdge)}
+.iact .lb{position:absolute;top:48px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  font-size:11px;color:var(--sec);opacity:0;pointer-events:none;z-index:5}
+.iact:hover .lb{opacity:1}
+
+/* size: the PAINTED box. The 44px TARGET is preserved in all three - see the
+   note under the page for how, because that is the whole question. */
+.divider{width:1px;height:24px;background:var(--border);flex:none}
+html[data-sz="s32"] .iact{width:32px;height:32px;font-size:16px}
+html[data-sz="s32"] .iact .lb{top:36px}
+html[data-sz="s32"] .iacts{gap:6px}
+html[data-sz="bare"] .iact{background:transparent;border-color:transparent}
+html[data-sz="bare"] .iact:hover{background:var(--hoverFill);border-color:var(--hoverEdge)}
+/* the title's own line box, drawn so the comparison is measured not guessed */
+.ident h1{position:relative}
+html[data-guide="on"] .ident h1::after{content:"";position:absolute;inset:0;
+  border:1px dashed var(--brandStrong);pointer-events:none}
+
+/* which slot is live */
+.slot{display:none}
+html[data-v="A"] .slot.A,html[data-v="B"] .slot.B,html[data-v="C"] .slot.C,
+html[data-v="D"] .slot.D,html[data-v="E"] .slot.E,html[data-v="E2"] .slot.E2,
+html[data-v="F"] .slot.F{display:flex}
+/* B stacks the icons under the price inside the trailing column */
+html[data-v="B"] .pricebox{align-items:flex-end}
+/* the third action only exists on the Assets route with GNUS */
+html[data-e="markets"] .bridge{display:none}
+/* no market data: no price, no rail, the card below the line is the empty state */
+html[data-s="nodata"] .pricebox,html[data-s="nodata"] .rail,
+html[data-s="nodata"] .plot,html[data-s="nodata"] .convert{display:none}
+html[data-s="data"] .empty{display:none}
+html[data-s="nodata"] .ident .sub .rank{display:none}
+/* the two placements that DIE on the no-data page, marked rather than hidden */
+.gone{display:none;border:1px dashed var(--bad);border-radius:var(--rMd);padding:10px 14px;
+  color:var(--bad);font-size:12px;margin-bottom:12px}
+html[data-s="nodata"][data-v="C"] .gone.C,html[data-s="nodata"][data-v="D"] .gone.D{display:block}
+html[data-s="nodata"][data-v="D"] .slot.D{display:none}
+
+.note{border-left:3px solid var(--brandStrong);background:var(--menu);padding:12px 16px;
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:16px 0;font-size:13px;line-height:1.65;max-width:100ch}
+.bad{border-left-color:var(--bad)}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="grp"><b>Placement</b>
+    <button data-k="v" data-val="A">A · beside the price</button>
+    <button data-k="v" data-val="B">B · under the price</button>
+    <button data-k="v" data-val="C">C · above the rail</button>
+    <button data-k="v" data-val="D">D · 7th rail tile</button>
+    <button data-k="v" data-val="E">E · beside the identity</button>
+    <button data-k="v" data-val="E2" class="on">E2 · beside it, divided</button>
+    <button data-k="v" data-val="F">F · on the PRICE line (shipped)</button>
+  </div>
+  <div class="grp"><b>Icon size</b>
+    <button data-k="sz" data-val="s44">44 chip (shipped)</button>
+    <button data-k="sz" data-val="s32">32 = title height</button>
+    <button data-k="sz" data-val="bare" class="on">bare glyph</button>
+  </div>
+  <div class="grp"><b>Route in</b>
+    <button data-k="e" data-val="markets" class="on">Markets (2 actions)</button>
+    <button data-k="e" data-val="assets">Assets · GNUS (3)</button>
+  </div>
+  <div class="grp"><b>Data</b>
+    <button data-k="s" data-val="data" class="on">Covered</button>
+    <button data-k="s" data-val="nodata">No market data</button>
+  </div>
+  <div class="grp"><b>Theme</b>
+    <button data-k="theme" data-val="dark" class="on">Dark</button>
+    <button data-k="theme" data-val="light">Light</button>
+  </div>
+</div>
+
+<main>
+<h2>075 · Where the Receive / Swap actions go</h2>
+<p class="lead">
+  Jakub, 2026-07-28: <em>"spróbuj trzy, cztery, pięć innych designów, żeby te ikony receive i swap były
+  w innym miejscu, może nad price table, albo gdzie indziej, albo obok ceny po prawej stronie u góry."</em>
+  Six placements against the page <strong>as it stands today</strong> - which is why this is not a
+  re-run of 073: that sketch was drawn before the stat rail, the header price block and the no-data
+  state existed. Every panel is 1:1, the icons are 44px circles with 20px glyphs, and the third
+  action appears only on the route that actually has it.
+</p>
+
+<div class="page">
+  <div class="back">‹ Markets</div>
+
+  <div class="hdr">
+    <div class="tok">GNUS</div>
+    <div class="ident">
+      <h1>GENIUS AI</h1>
+      <div class="sub">GNUS &nbsp;·&nbsp; Ethereum <span class="rank">&nbsp;·&nbsp; Rank #1242</span></div>
+    </div>
+    <!-- E -->
+    <div class="iacts slot E">
+      <button class="iact">▣<span class="lb">Receive</span></button>
+      <button class="iact">⇄<span class="lb">Swap</span></button>
+      <button class="iact bridge">⑂<span class="lb">Bridge</span></button>
+    </div>
+    <!-- E2: the same, with a hairline so the icons stop reading as part of
+         the name. One `borderSubtle` rule, nothing else. -->
+    <div class="iacts slot E2">
+      <span class="divider"></span>
+      <button class="iact">▣<span class="lb">Receive</span></button>
+      <button class="iact">⇄<span class="lb">Swap</span></button>
+      <button class="iact bridge">⑂<span class="lb">Bridge</span></button>
+    </div>
+    <div class="grow"></div>
+    <!-- A -->
+    <div class="iacts slot A">
+      <button class="iact">▣<span class="lb">Receive</span></button>
+      <button class="iact">⇄<span class="lb">Swap</span></button>
+      <button class="iact bridge">⑂<span class="lb">Bridge</span></button>
+    </div>
+    <div class="pricebox">
+      <div class="price">$0.67</div>
+      <div class="pill">▲ +4.60%</div>
+      <!-- B -->
+      <div class="iacts slot B" style="margin-top:2px">
+        <button class="iact">▣<span class="lb">Receive</span></button>
+        <button class="iact">⇄<span class="lb">Swap</span></button>
+        <button class="iact bridge">⑂<span class="lb">Bridge</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gone C">C is drawn above the stat rail - and on this page there IS no stat rail, so the
+    actions have to be re-homed. One page, two positions, for a reason the user cannot see.</div>
+  <div class="gone D">D is a tile inside the stat rail - and on this page there IS no stat rail. The
+    actions do not move here; they disappear.</div>
+
+  <!-- C -->
+  <div class="actline slot C">
+    <div class="iacts">
+      <button class="iact">▣<span class="lb">Receive</span></button>
+      <button class="iact">⇄<span class="lb">Swap</span></button>
+      <button class="iact bridge">⑂<span class="lb">Bridge</span></button>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="tile"><div class="k">Rank</div><div class="v">#1242</div></div>
+    <div class="tile"><div class="k">24h change</div><div class="v up">+4.60%</div></div>
+    <div class="tile"><div class="k">Volume 24h</div><div class="v">$12.9K</div></div>
+    <div class="tile"><div class="k">Market cap</div><div class="v">$10.1M</div></div>
+    <div class="tile"><div class="k">From ATH</div><div class="v dn">-98.53%</div></div>
+    <div class="tile"><div class="k">24h range</div><div class="v">$0.65 - $0.79</div></div>
+    <!-- D -->
+    <div class="tile act slot D">
+      <button class="iact">▣<span class="lb">Receive</span></button>
+      <button class="iact">⇄<span class="lb">Swap</span></button>
+      <button class="iact bridge">⑂<span class="lb">Bridge</span></button>
+    </div>
+  </div>
+
+  <div class="secline">
+    <div class="kick">Price</div>
+    <!-- F -->
+    <div class="iacts slot F">
+      <button class="iact">▣<span class="lb">Receive</span></button>
+      <button class="iact">⇄<span class="lb">Swap</span></button>
+      <button class="iact bridge">⑂<span class="lb">Bridge</span></button>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="chart">
+      <div class="plot">
+        <svg viewBox="0 0 700 270" preserveAspectRatio="none">
+          <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0AD89C" stop-opacity=".30"/>
+            <stop offset="1" stop-color="#0AD89C" stop-opacity="0"/></linearGradient></defs>
+          <path d="M0 70 L60 62 L120 88 L180 74 L240 96 L300 150 L360 138 L420 176 L480 158 L540 196 L600 180 L700 168 L700 270 L0 270 Z" fill="url(#g)"/>
+          <path d="M0 70 L60 62 L120 88 L180 74 L240 96 L300 150 L360 138 L420 176 L480 158 L540 196 L600 180 L700 168" fill="none" stroke="#0AD89C" stroke-width="2.4"/>
+        </svg>
+      </div>
+      <div class="empty">
+        <div style="font-size:28px">📉</div>
+        <div class="t">No market data</div>
+        <div class="m">This token is not covered by our market data provider, so there is no price,
+          chart or market statistics for it. Everything else on this page still works.</div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="panel">
+        <div class="kick">Info</div>
+        <div class="well">
+          <div class="row"><span class="k">Network</span><span class="v">Ethereum</span></div>
+          <div class="row"><span class="k">Market Cap</span><span class="v">$10.1M</span></div>
+          <div class="row"><span class="k">Circulating Supply</span><span class="v">15.2M</span></div>
+          <div class="row"><span class="k">Total Supply</span><span class="v">15.2M</span></div>
+          <div class="row"><span class="k">Volume</span><span class="v">$12.9K</span></div>
+        </div>
+      </div>
+      <div class="panel convert">
+        <div class="kick">Convert</div>
+        <div class="well" style="padding:10px 12px">
+          <div style="color:var(--sec);font-size:12px">Token price</div>
+          <div class="v" style="font-family:'JetBrains Mono',monospace;margin-top:4px">0.665159</div>
+        </div>
+        <div class="well" style="padding:10px 12px;margin-top:10px">
+          <div style="color:var(--sec);font-size:12px">Token amount</div>
+          <div class="v" style="font-family:'JetBrains Mono',monospace;margin-top:4px">1</div>
+        </div>
+        <div class="row" style="margin-top:10px"><span class="k">Total</span><span class="v">$0.67</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>The size question, which is not a size question</h2>
+<p class="lead">
+  Jakub, 2026-07-28: <em>"te ikony powinny być zaraz przy tytule i wysokości tytułu, wydaje mi się,
+  nie większe."</em> He is right about the look: <code>headlineLg</code> is <strong>24/32</strong>, so a
+  44px chip stands <strong>12px taller than the line it sits on</strong> and the header reads as if the
+  buttons are the headline.
+</p>
+<div class="note bad">
+  <strong>But 44 is not an arbitrary number here, and shrinking it is not free.</strong>
+  <code>GWButton</code>'s <code>sm</code> size carries its own history in the source:
+  <code>return 44; // was 36 — touch floor (iOS 44)</code>. Somebody already lowered it and reversed
+  the decision. WCAG <strong>2.5.5 (AAA)</strong> asks 44&times;44; <strong>2.5.8 (AA)</strong> asks
+  24&times;24. So 32 clears AA and drops the app below the AAA bar it currently meets - and this page
+  renders on a phone below 768.
+</div>
+<p class="lead">
+  <strong>The resolution is that the painted box and the touch target do not have to be the same
+  thing.</strong> Use the <em>Icon size</em> switch above:
+</p>
+<table>
+<tr><th>Option</th><th>What you see</th><th>Touch target</th><th>Code cost</th></tr>
+<tr><td><strong>44 chip</strong> <em>(shipped)</em></td><td>a 44px circle, 12px taller than the title</td><td>44 ✓ AAA</td><td>none - this is today</td></tr>
+<tr><td><strong>32 = title height</strong></td><td>a circle exactly the title's line box</td><td><strong>32 - drops to AA</strong> unless <code>GWButton</code> gains a target-vs-paint parameter, which is one new param for one consumer</td><td>1 param, or an accepted regression</td></tr>
+<tr><td><strong>bare glyph</strong> ★</td><td>a 20px glyph on the title's baseline, <strong>no box at all</strong>, the circle appearing only on hover</td><td><strong>44 ✓ AAA</strong> - the box is still there, it is just transparent</td><td><strong>none</strong> - it is <code>GWButton.icon</code>'s own default variant</td></tr>
+</table>
+<p class="lead">
+  <strong>The third one is the answer to what was actually asked.</strong> "Not bigger than the title"
+  is about what you SEE, and with the fill and hairline gone there is nothing to be bigger - the glyph
+  is 20px against a 32px line. The 44px hit area survives untouched because it was never visible in
+  the first place. And it needs no code: <code>GWButton.icon</code> already defaults to
+  <code>ghost</code>; today's page passes <code>variant: GWButtonVariant.icon</code> explicitly to get
+  the chip.
+</p>
+<p class="lead">
+  The cost, stated: at rest the icons have no boundary, so they read as glyphs until you hover. That is
+  acceptable under <strong>1.4.11</strong> - a control's edge must clear 3:1 only when the edge is what
+  identifies the control, and here the glyph is, at 15.8:1 dark and 16.1:1 light. It is the same
+  argument <code>GWSelectRow</code> recorded for its check mark.
+</p>
+
+<h2>What to look for</h2>
+<p class="lead">
+  <strong>Switch "Data" to "No market data" and walk all six.</strong> That is the route in from the
+  wallet's own Assets list for any coin CoinGecko does not cover, and it is where two of these six
+  fall over - <strong>C and D both hang off the stat rail, which does not exist on that page.</strong>
+  The panel says so in red rather than quietly re-homing them.
+</p>
+<p class="lead">
+  Then set "Route in" to <strong>Markets</strong>, which is the main way in. There the live count is
+  <strong>two</strong>, because Bridge is GNUS-only. A placement that looks balanced with three icons
+  and lopsided with two is not a placement, it is a picture of one state.
+</p>
+
+<h2>The six</h2>
+<table>
+<tr><th></th><th>Placement</th><th>Where exactly</th><th>New height</th><th>Survives no-data</th><th>Breaks when</th></tr>
+<tr><td><strong>A</strong> ★</td><td><strong>Beside the price</strong></td><td><code>GWPageHeader.trailing</code>, icons left of the price block, same line</td><td><strong>0px</strong></td><td><strong>yes</strong> - the trailing slot holds the icons alone</td><td>the window narrows: name + icons + a 28px price share one row</td></tr>
+<tr><td><strong>B</strong></td><td>Under the price</td><td>trailing column: price, pill, then icons</td><td>~52px, all of it in the header</td><td>yes</td><td>the header block grows taller than the identity beside it</td></tr>
+<tr><td><strong>C</strong></td><td>Above the stat rail</td><td>own right-aligned line between header and rail</td><td>~54px</td><td><strong>no</strong></td><td>immediately - there is no rail on the no-data page</td></tr>
+<tr><td><strong>D</strong></td><td>Seventh rail tile</td><td>an action cell inside the stat <code>Wrap</code></td><td>0px</td><td><strong>no</strong></td><td>an action sits inside a grid of facts, and the rail wraps 6&rarr;3&rarr;2 by width</td></tr>
+<tr><td><strong>E</strong></td><td>Beside the identity</td><td>right of the coin name + logo, left half of the header</td><td>0px</td><td><strong>yes</strong> - it never touches market data at all</td><td>the icons read as part of the title rather than as wallet actions</td></tr>
+<tr><td><strong>E2</strong> ★</td><td><strong>Beside it, divided</strong></td><td>same as E, with a <code>borderSubtle</code> hairline between the name and the icons</td><td><strong>0px</strong></td><td><strong>yes</strong></td><td>nothing measured - the hairline is the only difference, and it is what stops the icons reading as part of the name</td></tr>
+<tr><td><strong>F</strong></td><td>On the PRICE line <em>(shipped)</em></td><td>opposite <code>GWKicker('Price')</code>, above the chart card</td><td>~44px</td><td>yes</td><td>nothing - but it costs a line the header already had room for</td></tr>
+</table>
+
+<h2>Recommendation, revised after Jakub's note on size</h2>
+<p class="lead">
+  <strong>★ E2 · Beside the identity, divided, as bare glyphs.</strong> Jakub's constraint decides it:
+  actions right at the title, no taller than it. E2 is the only combination that delivers that
+  literally - the glyph is 20px against a 32px line, so nothing in the row is bigger than the
+  headline - <strong>while keeping the 44px target the repo already reversed one decision to protect</strong>.
+  It costs zero new height, it is pixel-identical on every route and in every state because it never
+  touches market data, and the hairline answers the one real objection to plain E: without it the icons
+  read as part of the name.
+</p>
+<p class="lead">
+  <strong>Runner-up: A · Beside the price</strong> - my previous pick, and it stays strong for one
+  reason E2 cannot match: <code>GWPageHeader.trailing</code> is where this app puts actions, on every
+  other page. E2 moves them to the left half, which is a convention change, not just a position. Take
+  A if the walk shows the left header feeling crowded once the token logo, the name and three glyphs
+  share it.
+</p>
+<p class="lead">
+  <strong>Rejected: D · Seventh rail tile</strong> (unchanged, see below), and now also
+  <strong>32px chips</strong> as a way to hit title height: they clear WCAG 2.5.8 AA but drop the app
+  below the 2.5.5 AAA bar it currently meets, and buying that costs either a new
+  <code>GWButton</code> parameter for one consumer or an accepted regression on a page that also
+  renders on a phone. The bare glyph gets the same look for neither price.
+</p>
+
+<h2>The earlier recommendation, kept for the record</h2>
+<p class="lead">
+  <strong>A · Beside the price.</strong> It is where Jakub pointed - <em>"obok ceny po prawej
+  stronie u góry"</em> - and it is the only one of the six that is <strong>free in both directions</strong>:
+  zero new height, and it survives the no-data page without moving, because the header's trailing slot
+  simply holds the icons instead of the price. It also puts the actions next to the number they act
+  on, which is the association the whole page is built around. Against F, which ships today, it hands
+  back the ~44px the PRICE line spends on nothing else.
+</p>
+<p class="lead">
+  <strong>Runner-up: E · Beside the identity.</strong> The most robust of the six - it is the only
+  placement that depends on <em>no</em> market data whatsoever, so it is pixel-identical on every
+  route and in every state, and it is the best of the six at a single action, because one glyph after
+  a name is an ordinary shape. Not the pick because actions beside a title read as being about the
+  title, and because the left half of the header is where the eye lands first - which a Bridge button
+  does not deserve.
+</p>
+<p class="lead">
+  <strong>Rejected: D · Seventh rail tile.</strong> It fits beautifully at three actions and costs
+  nothing, which is exactly why it is worth naming as a trap. The rail is six facts; a seventh cell
+  full of buttons says the buttons are a seventh fact. It also <strong>disappears entirely on the
+  no-data page</strong>, and the rail re-wraps 6&rarr;3&rarr;2 by width, so the action cell would land
+  in a different place at every breakpoint.
+</p>
+
+<div class="note bad">
+  <strong>Unchanged by any of the six, and it still decides the count:</strong>
+  <code>isGnusWalletConnected</code> is hardcoded <code>false</code> at
+  <code>markets_screen.dart:58</code> and <code>dashboard_markets.dart:83</code>, and never passed at
+  <code>markets_search_bar.dart:93</code>. So from Markets the row is <strong>two</strong> icons. If
+  that is an oversight rather than a decision, every panel here gains a third - and A, which is the
+  tightest of the six on a narrow window, is the one that feels it.
+</div>
+
+<div class="note">
+  <strong>Contrast, unchanged from 073 and re-checked here.</strong> Glyph <code>textPrimary</code> on
+  the card fill: 15.8:1 dark / 16.1:1 light, against 3.0 needed. The button edge
+  <code>borderSubtle</code> is 1.32:1 dark / 1.27:1 light, which is acceptable for the same reason
+  <code>GWSelectRow</code> recorded: under 1.4.11 the boundary must clear 3:1 <em>when the boundary is
+  what identifies the control</em>, and here the glyph is. Every icon carries <code>tooltip</code> +
+  <code>semanticLabel</code>, or it announces nothing.
+</div>
+
+<script src="s075.js"></script>
+</body>
+</html>

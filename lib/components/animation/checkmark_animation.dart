@@ -53,21 +53,21 @@ class CheckmarkPainter extends CustomPainter {
       ..strokeCap = StrokeCap.square;
 
     final path = Path();
-    double progress = animation.value;
+    final double progress = animation.value;
 
     // Define the checkmark path
-    double checkStartX = size.width * 0.2;
-    double checkStartY = size.height * 0.5;
+    final double checkStartX = size.width * 0.2;
+    final double checkStartY = size.height * 0.5;
 
-    double checkMidX = size.width * 0.4;
-    double checkMidY = size.height * 0.7;
+    final double checkMidX = size.width * 0.4;
+    final double checkMidY = size.height * 0.7;
 
-    double checkEndX = size.width * 0.8;
-    double checkEndY = size.height * 0.3;
+    final double checkEndX = size.width * 0.8;
+    final double checkEndY = size.height * 0.3;
 
     // Animate the first segment of the checkmark
     if (progress < 0.5) {
-      double segmentProgress = progress / 0.5;
+      final double segmentProgress = progress / 0.5;
       path.moveTo(checkStartX, checkStartY);
       path.lineTo(
         checkStartX + (checkMidX - checkStartX) * segmentProgress,
@@ -78,7 +78,7 @@ class CheckmarkPainter extends CustomPainter {
     else {
       path.moveTo(checkStartX, checkStartY);
       path.lineTo(checkMidX, checkMidY);
-      double segmentProgress = (progress - 0.5) / 0.5;
+      final double segmentProgress = (progress - 0.5) / 0.5;
       path.lineTo(
         checkMidX + (checkEndX - checkMidX) * segmentProgress,
         checkMidY + (checkEndY - checkMidY) * segmentProgress,

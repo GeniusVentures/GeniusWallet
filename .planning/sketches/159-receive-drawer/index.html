@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>159 · Receive drawer - what shipped vs what 034-A2 decided</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary);
+    padding:74px var(--space-8) var(--space-20); }
+  .wrap { max-width:1280px; margin:0 auto; }
+
+  #nav { position:fixed; top:0; left:0; right:0; z-index:9998; display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle); padding:7px 14px; }
+  #nav .name { font:600 12px/16px var(--font); color:var(--text-primary); margin-right:auto; opacity:.75; }
+  #nav .vt { font:600 12px/16px var(--font); padding:6px 12px; border:1px solid var(--border-subtle); border-radius:var(--radius-pill);
+    background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .15s ease; }
+  #nav .vt:hover { color:var(--text-primary); transform:translateY(-1px); }
+  #nav .vt.active { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .st { font:600 11px/16px var(--font); padding:5px 9px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm);
+    background:transparent; color:var(--text-secondary); cursor:pointer; }
+  #nav .st.on { background:var(--surface-elevated); color:var(--text-primary); border-color:transparent; box-shadow:var(--shadow-card); }
+  #nav .sep { width:1px; height:20px; background:var(--border-subtle); margin:0 4px; }
+  #nav .lbl { font:600 10px/1 var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary-54); margin-right:2px; }
+
+  h1 { font:700 20px/28px var(--font); margin-bottom:var(--space-4); }
+  .lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin:0 0 var(--space-10); max-width:1000px; }
+  .lede b { color:var(--text-primary); }
+  code { font:500 12px/1 var(--font-mono); color:var(--text-primary); background:var(--surface-menu); padding:2px 5px; border-radius:4px; }
+  .tag { display:inline-flex; align-items:center; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px;
+    padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bug { background:rgba(255,77,77,.14); color:var(--status-error); }
+  .tag.drift{ background:rgba(255,196,46,.16); color:var(--status-warning); }
+  .tag.have { background:rgba(10,216,156,.14); color:var(--status-success); }
+
+  .cap { display:flex; align-items:flex-start; gap:10px; margin:0 0 var(--space-8); }
+  .cap .k { font:700 11px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color:var(--text-primary); flex:none; width:118px; padding-top:1px; }
+  .cap .v { font:400 13px/20px var(--font); color:var(--text-secondary); max-width:950px; }
+
+  .outer { display:flex; gap:var(--space-8); align-items:flex-start; }
+  .stage { position:relative; display:flex; justify-content:flex-end; border:1px solid var(--border-strong);
+    border-radius:var(--radius-lg); overflow:hidden; background:var(--surface-base); min-height:700px; flex:1; }
+  .scrim { position:absolute; inset:0; background:rgba(0,0,0,.5); }
+  .scrim .ghost { position:absolute; left:22px; top:22px; right:452px; }
+  .scrim .ghost .g { height:42px; border-radius:10px; background:var(--skeleton); margin-bottom:10px; }
+  .scrim .ghost .g:nth-child(3n) { width:78%; }
+
+  .panel { position:relative; width:420px; flex:none; background:var(--surface-elevated); display:flex; flex-direction:column;
+    border-top-left-radius:24px; border-bottom-left-radius:24px; overflow:hidden; }
+  .p-head { height:56px; flex:none; display:flex; align-items:center; padding:0 20px; position:relative; }
+  .p-head .t { font:600 18px/24px var(--font); margin-right:auto; }
+  .p-head .x { color:var(--text-secondary); cursor:pointer; font:400 20px/1 var(--font); }
+  .p-head::after { content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:rgba(20,200,255,.12); }
+  .p-body { flex:1; padding:16px 20px 20px; display:flex; flex-direction:column; align-items:center; }
+  .p-body.nopad { padding:16px 0 20px; }
+  .p-foot { flex:none; padding:16px 20px; border-top:1px solid var(--border-subtle); }
+
+  /* edge marks - draw the panel's own content edges */
+  .edges .p-body { position:relative; }
+  .edges .p-body::before, .edges .p-body::after { content:""; position:absolute; top:0; bottom:0; width:1px;
+    background:repeating-linear-gradient(180deg, var(--status-error) 0 5px, transparent 5px 10px); }
+  .edges .p-body::before { left:20px; } .edges .p-body::after { right:20px; }
+
+  .chip { display:inline-flex; align-items:center; gap:8px; font:500 13px/18px var(--font); color:var(--text-secondary); }
+  .chip .av { width:20px; height:20px; border-radius:50%; background:#fff; display:grid; place-items:center;
+    font:700 10px/1 var(--font); color:#627EEA; }
+  .chip.box { border:1px solid var(--border-subtle); border-radius:var(--radius-pill); padding:5px 12px 5px 6px;
+    color:var(--text-primary); cursor:pointer; }
+  .chip.box:hover { background:rgba(20,200,255,.08); border-color:rgba(20,200,255,.32); }
+
+  .qr { background:#fff; border-radius:14px; padding:10px; }
+  .qr svg { display:block; }
+  .qr.plain { border-radius:0; padding:0; }
+
+  .addr { width:100%; border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:12px 14px;
+    background:var(--surface-menu); cursor:pointer; transition:all .15s ease; }
+  .addr:hover { border-color:rgba(20,200,255,.32); }
+  .addr .lb { font:700 10px/1 var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-primary-54); margin-bottom:7px; }
+  .addr .val { font:500 14px/22px var(--font-mono); color:var(--text-primary-54); word-break:break-all; letter-spacing:.4px; }
+  .addr .val b { color:var(--text-primary); font-weight:700; }
+  .addr .act { display:flex; align-items:center; gap:6px; margin-top:9px; font:600 12px/16px var(--font);
+    color:var(--brand-primary-strong); }
+  [data-theme="dark"] .addr .act { color:var(--brand-primary); }
+
+  .pillrow { display:flex; align-items:center; gap:7px; padding:6px 12px; border-radius:var(--radius-pill);
+    border:1px solid var(--border-subtle); font:400 13px/18px var(--font-mono); color:var(--text-primary); cursor:pointer; }
+  .warn { display:flex; gap:8px; align-items:flex-start; border:1px solid rgba(255,196,46,.5); border-radius:var(--radius-md);
+    padding:8px 12px; font:400 13px/19px var(--font); color:var(--text-secondary); }
+  .warn .i { color:var(--status-warning); flex:none; font:700 13px/19px var(--font); }
+  .warn.full { width:100%; }
+
+  .btn { height:44px; border-radius:var(--radius-pill); display:grid; place-items:center; font:600 14px/1 var(--font); cursor:pointer; }
+  .btn.g { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .btn.o { border:1px solid var(--border-strong); color:var(--text-primary); }
+  .amt { width:100%; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); background:var(--surface-menu);
+    height:48px; display:flex; align-items:center; padding:0 12px; font:600 18px/1 var(--font); color:var(--text-primary-38); }
+  .amt .sfx { margin-left:auto; font:600 13px/1 var(--font); color:var(--text-secondary); }
+  .gap8 { height:8px; } .gap12 { height:12px; } .gap16 { height:16px; } .gap20 { height:20px; } .gap24 { height:24px; }
+
+  .note { border:1px solid var(--border-subtle); border-radius:var(--radius-md); background:var(--surface-sheen-b);
+    padding:var(--space-8); width:420px; flex:none; }
+  .note h3 { font:700 12px/16px var(--font); letter-spacing:.4px; text-transform:uppercase; margin-bottom:var(--space-6); }
+  .note p { font:400 13px/20px var(--font); color:var(--text-secondary); margin-bottom:var(--space-6); }
+  .note p:last-child { margin-bottom:0; }
+  .note b { color:var(--text-primary); }
+  .spec { list-style:none; margin-bottom:var(--space-6); }
+  .spec li { font:400 12px/19px var(--font); color:var(--text-secondary); padding-left:14px; position:relative; margin-bottom:4px; }
+  .spec li::before { content:""; position:absolute; left:0; top:8px; width:5px; height:5px; border-radius:50%; background:var(--brand-primary-muted); }
+  .spec b { color:var(--text-primary); }
+  .pane { display:none; } .pane.on { display:flex; flex-direction:column; align-items:center; width:100%; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+  <span class="name">159 · Receive drawer</span>
+  <button class="vt active" data-v="0">0 · Today</button>
+  <button class="vt" data-v="a">A · A2 as decided</button>
+  <button class="vt" data-v="b">B · Request amount</button>
+  <button class="vt" data-v="c">C · Network picker</button>
+  <button class="vt" data-v="d">D · Compact</button>
+  <span class="sep"></span>
+  <span class="lbl">State</span>
+  <button class="st on" data-s="ok">Network known</button>
+  <button class="st" data-s="blank">Network blank</button>
+  <span class="sep"></span>
+  <button class="st" id="edges">Edge marks</button>
+  <button class="st" id="theme">Light</button>
+</div>
+
+<div class="wrap">
+  <h1>Receive: the decision was made, and two thirds of it shipped</h1>
+  <p class="lede">
+    Sketch <b>034 round 2 chose A2 "Grouped address"</b>: a gap above the QR, the network chip above it,
+    <b>the address in 4-character chunks with the first and last group emphasised</b>, copy only - no Share,
+    no set-default. <code>crypto_address_qr.dart</code> cites that decision in its own docstring. Two of those
+    four landed; the address treatment did not, and the drawer body has no padding.
+  </p>
+
+  <div class="cap"><span class="k">Drift 1</span><span class="v">
+    <span class="tag drift">vs 034-A2</span>
+    <b>The chunked address became a middle-truncated one.</b> <code>_shortAddress()</code> (<code>:51</code>)
+    renders <code>0x9fF8C9…262e2b</code>. A2 chose chunks precisely because a receive address is the one
+    string a user <b>eyeball-verifies against another screen</b>, and a truncation hides the 26 characters in
+    the middle - the ones an address-swapping clipboard attack changes. Sketch <b>154-D</b> proposes the same
+    4-char treatment for the transaction drawer, so this is now a shared decision waiting on one component.
+  </span></div>
+
+  <div class="cap"><span class="k">Drift 2</span><span class="v">
+    <span class="tag bug">padding</span>
+    <b>The drawer body has zero horizontal padding.</b> <code>ResponsiveDrawer</code> passes
+    <code>body: child</code> straight through (<code>responsive_drawer.dart:208</code>) and
+    <code>coins_screen.dart:170</code> hands it a bare <code>CryptoAddressQR</code>. The centred column is
+    fine, but the amber note is a full-width <code>Container</code>, so <b>it runs to both panel edges</b> -
+    visible in the screenshot. Identical class of defect to sketch <b>154 finding 1</b>. Turn on
+    <b>Edge marks</b> to see where 20px would be.
+  </span></div>
+
+  <div class="cap"><span class="k">Finding 3</span><span class="v">
+    <span class="tag bug">empty string</span>
+    <b>An empty network name produces broken copy.</b> The caller passes
+    <code>selectedNetwork?.name ?? selectedNetwork?.symbol ?? ''</code>, and the warning is
+    <code>"Only send ${network}-network assets to this address."</code> - so a blank network renders
+    <b>"Only send -network assets to this address."</b> Switch <b>Network blank</b> to read it.
+  </span></div>
+
+  <div class="cap"><span class="k">Finding 4</span><span class="v">
+    <span class="tag bug">asset</span>
+    <code>embeddedImage: AssetImage(widget.iconPath ?? "")</code> (<code>:109</code>) constructs an
+    <code>AssetImage</code> with an <b>empty asset path</b> when the network has no icon, and no
+    <code>embeddedImageEmitsError</code> is set. The guard two lines above (<code>if (iconPath != null)</code>)
+    protects the chip's avatar but not the QR's centre image.
+  </span></div>
+
+  <div class="cap"><span class="k">Kept</span><span class="v">
+    <span class="tag have">correct</span>
+    The two hard-won bits are right and no variant touches them: the QR keeps a <b>solid white backing in both
+    appearances</b> so a phone camera can read it, and the amber gets a <b>darkened light-mode value
+    (#92400E, 7.1:1)</b> because <code>statusWarning</code> is a fill token that fails on white.
+  </span></div>
+
+  <div class="outer">
+    <div class="stage" id="stage">
+      <div class="scrim"><div class="ghost"><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div><div class="g"></div></div></div>
+      <div class="panel">
+        <div class="p-head"><span class="t">Receive</span><span class="x">&#10005;</span></div>
+
+        <!-- ============ 0 TODAY ============ -->
+        <div class="p-body nopad pane on" data-p="0">
+          <span class="chip"><span class="av">E</span><span class="nw">Ethereum</span></span>
+          <div class="gap12"></div>
+          <div class="qr plain" id="qr0"></div>
+          <div class="gap12"></div>
+          <span class="pillrow">0x9fF8C9…262e2b <span style="color:var(--brand-primary)">&#8862;</span>
+            <span style="font-family:var(--font); font-weight:600; font-size:12px; color:var(--text-secondary)">Copy</span></span>
+          <div class="gap12"></div>
+          <div class="warn full"><span class="i">&#9888;</span><span class="wtxt">Only send Ethereum-network assets to this address.</span></div>
+        </div>
+
+        <!-- ============ A A2 AS DECIDED ============ -->
+        <div class="p-body pane" data-p="a">
+          <div class="gap8"></div>
+          <span class="chip"><span class="av">E</span><span class="nw">Ethereum</span></span>
+          <div class="gap16"></div>
+          <div class="qr" id="qra"></div>
+          <div class="gap20"></div>
+          <div class="addr">
+            <div class="lb">Your Ethereum address</div>
+            <div class="val"><b>0x9f</b> <span>F8 C9a4 2b71 d03e 8f4c 1a90 66be</span> <b>2e2b</b></div>
+            <div class="act"><span>&#8862;</span> Tap to copy</div>
+          </div>
+          <div class="gap12"></div>
+          <div class="warn full"><span class="i">&#9888;</span><span class="wtxt">Only send Ethereum-network assets to this address.</span></div>
+        </div>
+
+        <!-- ============ B REQUEST AMOUNT ============ -->
+        <div class="p-body pane" data-p="b">
+          <div class="gap8"></div>
+          <span class="chip"><span class="av">E</span><span class="nw">Ethereum</span></span>
+          <div class="gap16"></div>
+          <div class="qr" id="qrb"></div>
+          <div class="gap16"></div>
+          <div class="amt">0.00 <span class="sfx">ETH &#183; optional</span></div>
+          <div class="gap12"></div>
+          <div class="addr">
+            <div class="lb">Your Ethereum address</div>
+            <div class="val"><b>0x9f</b> <span>F8 C9a4 2b71 d03e 8f4c 1a90 66be</span> <b>2e2b</b></div>
+            <div class="act"><span>&#8862;</span> Tap to copy</div>
+          </div>
+          <div class="gap12"></div>
+          <div class="warn full"><span class="i">&#9888;</span><span class="wtxt">Only send Ethereum-network assets to this address.</span></div>
+        </div>
+
+        <!-- ============ C NETWORK PICKER ============ -->
+        <div class="p-body pane" data-p="c">
+          <div class="gap8"></div>
+          <span class="chip box"><span class="av">E</span><span class="nw">Ethereum</span> <span style="color:var(--text-primary-38)">&#9662;</span></span>
+          <div class="gap16"></div>
+          <div class="qr" id="qrc"></div>
+          <div class="gap20"></div>
+          <div class="addr">
+            <div class="lb">Your Ethereum address</div>
+            <div class="val"><b>0x9f</b> <span>F8 C9a4 2b71 d03e 8f4c 1a90 66be</span> <b>2e2b</b></div>
+            <div class="act"><span>&#8862;</span> Tap to copy</div>
+          </div>
+          <div class="gap12"></div>
+          <div class="warn full"><span class="i">&#9888;</span><span class="wtxt">Only send Ethereum-network assets to this address.</span></div>
+        </div>
+
+        <!-- ============ D COMPACT ============ -->
+        <div class="p-body pane" data-p="d">
+          <div class="gap8"></div>
+          <div class="qr" id="qrd"></div>
+          <div class="gap16"></div>
+          <div class="addr">
+            <div class="lb"><span class="nw">Ethereum</span> address</div>
+            <div class="val"><b>0x9f</b> <span>F8 C9a4 2b71 d03e 8f4c 1a90 66be</span> <b>2e2b</b></div>
+          </div>
+          <div class="gap8"></div>
+          <div class="warn full" style="border:0; padding:0"><span class="i">&#9888;</span>
+            <span class="wtxt">Only send Ethereum-network assets to this address.</span></div>
+        </div>
+
+        <div class="p-foot pane" data-p="a" style="display:none"><div class="btn g">Copy address</div></div>
+        <div class="p-foot pane" data-p="b" style="display:none"><div class="btn g">Copy payment link</div></div>
+        <div class="p-foot pane" data-p="d" style="display:none"><div class="btn g">Copy address</div></div>
+      </div>
+    </div>
+
+    <div class="note" id="note"></div>
+  </div>
+</div>
+
+<script>
+// a deterministic pseudo-QR: same seed every render, no external anything
+function qr(el, size, mods){
+  if (!el) return;
+  const cell = size / mods;
+  let s = '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+mods+' '+mods+'"><rect width="'+mods+'" height="'+mods+'" fill="#fff"/>';
+  let seed = 20260727;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const finder = (x,y) => {
+    s += '<rect x="'+x+'" y="'+y+'" width="7" height="7" fill="#000"/>';
+    s += '<rect x="'+(x+1)+'" y="'+(y+1)+'" width="5" height="5" fill="#fff"/>';
+    s += '<rect x="'+(x+2)+'" y="'+(y+2)+'" width="3" height="3" fill="#000"/>';
+  };
+  for (let y=0; y<mods; y++) for (let x=0; x<mods; x++){
+    const inFinder = (x<8 && y<8) || (x>mods-9 && y<8) || (x<8 && y>mods-9);
+    const inLogo = Math.abs(x-mods/2)<3.5 && Math.abs(y-mods/2)<3.5;
+    if (inFinder || inLogo) continue;
+    if (rnd() > 0.5) s += '<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="#000"/>';
+  }
+  finder(0,0); finder(mods-7,0); finder(0,mods-7);
+  s += '<circle cx="'+(mods/2)+'" cy="'+(mods/2)+'" r="3.2" fill="#627EEA"/>';
+  s += '<text x="'+(mods/2)+'" y="'+(mods/2+1.3)+'" font-size="3.6" font-weight="700" fill="#fff" text-anchor="middle" font-family="Inter">E</text>';
+  s += '</svg>';
+  el.innerHTML = s;
+  void cell;
+}
+qr(document.getElementById('qr0'), 190, 33);
+qr(document.getElementById('qra'), 200, 33);
+qr(document.getElementById('qrb'), 176, 33);
+qr(document.getElementById('qrc'), 200, 33);
+qr(document.getElementById('qrd'), 168, 33);
+
+const NOTES = {
+  '0': { h:'0 · Today (reference)', b:`
+    <p>What ships in <code>crypto_address_qr.dart</code>. Two thirds of 034-A2: the network chip is above the
+    QR, the copy is copy-only, the white QR backing and the light-mode amber are both correct.</p>
+    <ul class="spec">
+      <li>QR <b>190px</b>, no container, no rounding</li>
+      <li>address <b>middle-truncated</b> in a pill - <b>not</b> the chunks A2 chose</li>
+      <li>no body padding, so the amber note runs edge to edge</li>
+      <li>no footer, no top gap above the chip</li>
+    </ul>
+    <p>Turn <b>Edge marks</b> on: the dashed rules are where 20px of body padding would sit.</p>` },
+  'a': { h:'A · A2 as decided <span class="tag rec">rec</span>', b:`
+    <p>The standing decision, finished. Nothing new is invented - this is 034-A2 with the two missing pieces
+    put back and the padding the shell already specifies.</p>
+    <ul class="spec">
+      <li><b>20px body padding</b> - the amber note stops touching the panel edges</li>
+      <li><b>4-character chunks</b>, first and last group at full weight: the middle stays readable, which is
+      the point of eyeball-verifying an address</li>
+      <li>the address gets a <b>label</b> and a <b>card</b>, so it is an object rather than a caption</li>
+      <li>QR into a <b>rounded white tile</b> - the white square stops being a raw edge against the panel</li>
+      <li><b>Copy in the footer</b>, where every other drawer's primary action lives (030-B1)</li>
+    </ul>
+    <p>Sketch <b>154-D</b> proposes the same chunking for the transaction drawer. Building it once here as a
+    small <code>GWChunkedAddress</code> pays for both.</p>` },
+  'b': { h:'B · Request amount', b:`
+    <p>Adds the one thing people actually open a receive screen for after the first time: <b>ask for a
+    specific amount</b>. The QR encodes a payment URI instead of a bare address.</p>
+    <ul class="spec">
+      <li><code>ethereum:0x…?value=…</code> - <code>qr_flutter</code> encodes any string, so the QR side is free</li>
+      <li>the amount field is optional and empty by default; empty means today's behaviour exactly</li>
+      <li><b>BUILD:</b> per-chain URI schemes. EIP-681 for EVM chains is well defined; Bitcoin uses
+      <code>bitcoin:</code>; the app's other chains would each need a rule, and a wrong scheme is a
+      <b>lost payment</b>, not a cosmetic bug</li>
+    </ul>
+    <p>Worth doing eventually, not worth doing blind. If it is taken, take it <b>EVM-only</b> first and hide
+    the field on any chain without a verified scheme.</p>` },
+  'c': { h:'C · Network picker', b:`
+    <p>A's layout plus one change: the network chip becomes <b>tappable</b> and opens the 032-A1 list picker.
+    Today the drawer shows whatever <code>selectedNetwork</code> happens to be, and changing it means closing
+    the drawer and using the navbar.</p>
+    <ul class="spec">
+      <li>reuses <code>032-A1</code> verbatim - the Select Network drawer already exists</li>
+      <li>directly answers finding 3: a blank network becomes a thing you can <b>fix</b> rather than read</li>
+      <li>the address and QR both re-render on switch, which is the whole risk - the wrong address on screen
+      for one frame is worse than an extra tap</li>
+    </ul>` },
+  'd': { h:'D · Compact', b:`
+    <p>Argues the network chip is redundant because the address card already names the chain, and the amber
+    note does not need a box. Shortest panel of the four.</p>
+    <ul class="spec">
+      <li>QR 168px, note as plain text with a glyph</li>
+      <li>fits a small phone without scrolling</li>
+      <li>the network name loses its avatar, which is the fastest way people recognise a chain</li>
+    </ul>
+    <p>The warning losing its border is the real question here - it is the one line on this panel that
+    prevents a permanent loss of funds.</p>` }
+};
+
+let v = '0', st = 'ok';
+function show(){
+  document.querySelectorAll('.p-body[data-p], .p-foot[data-p]').forEach(el => {
+    const on = el.dataset.p === v;
+    el.classList.toggle('on', on);
+    if (el.classList.contains('p-foot')) el.style.display = on ? 'block' : 'none';
+  });
+  document.querySelectorAll('#nav .vt').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  document.querySelectorAll('#nav .st[data-s]').forEach(b => b.classList.toggle('on', b.dataset.s === st));
+  const name = st === 'ok' ? 'Ethereum' : '';
+  document.querySelectorAll('.nw').forEach(el => el.textContent = name);
+  document.querySelectorAll('.wtxt').forEach(el => el.textContent = 'Only send ' + name + '-network assets to this address.');
+  const n = NOTES[v];
+  document.getElementById('note').innerHTML = '<h3>' + n.h + '</h3>' + n.b;
+}
+document.querySelectorAll('#nav .vt').forEach(b => b.onclick = () => { v = b.dataset.v; location.hash = v; show(); });
+document.querySelectorAll('#nav .st[data-s]').forEach(b => b.onclick = () => { st = b.dataset.s; show(); });
+document.getElementById('edges').onclick = e => {
+  document.getElementById('stage').classList.toggle('edges');
+  e.target.classList.toggle('on');
+};
+document.getElementById('theme').onclick = e => {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+};
+if (location.hash && NOTES[location.hash.slice(1)]) v = location.hash.slice(1);
+show();
+</script>
+</body>
+</html>

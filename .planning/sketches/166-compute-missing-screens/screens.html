@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Sketch 166 · Screens — board F, every screen, component-tagged</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+/* ───────────────────────────────────────────────────────────────────────────
+   Board F applied across the WHOLE compute flow, with every element tagged by
+   the component that already renders it.
+
+   Toggle "Components" in the toolbar: each element gets a badge.
+     GREEN badge  = component exists AND is already used on this screen today
+     BLUE badge   = component exists elsewhere in the app, reused here
+     AMBER badge  = genuinely new, must be built
+   The count in the header is the honest answer to "how much do we invent?"
+   ─────────────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--surface-base); color: var(--text-primary);
+       font-family: var(--font); padding-top: 108px; -webkit-font-smoothing: antialiased; }
+
+#tabs { position: fixed; top: 0; left: 0; right: 0; z-index: 9998; background: #05070A;
+        border-bottom: 1px solid rgba(255,255,255,.14); padding: 8px 12px 0; }
+#tabs .row { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab { background: transparent; border: 1px solid transparent; color: #8A8F9D;
+       font: 600 12px/16px var(--font); letter-spacing: .3px; padding: 7px 11px;
+       border-radius: 8px 8px 0 0; cursor: pointer; transition: all .15s ease; white-space: nowrap; }
+.tab:hover { background: rgba(20,200,255,.08); color: #fff; }
+.tab.active { background: var(--surface-base); color: #fff;
+              border-color: rgba(255,255,255,.14); border-bottom-color: var(--surface-base); }
+#tabs .meta { font: 400 11px/22px var(--font); color: #5A606E; padding: 2px 4px 8px;
+              display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+#tabs .meta b { color: #0AD89C; }
+.legend { display: inline-flex; gap: 8px; align-items: center; }
+.lg { font: 600 9px/1 var(--font-mono); padding: 3px 5px; border-radius: 3px; }
+.lg.have { background: rgba(10,216,156,.18); color: #0AD89C; border: 1px solid rgba(10,216,156,.5); }
+.lg.reuse{ background: rgba(20,200,255,.16); color: #14C8FF; border: 1px solid rgba(20,200,255,.5); }
+.lg.new  { background: rgba(255,196,46,.16); color: #FFC42E; border: 1px solid rgba(255,196,46,.5); }
+
+#tools { position: fixed; bottom: 12px; right: 12px; z-index: 9999; font: 400 12px/1 var(--font);
+  background: rgba(0,0,0,.85); color: #fff; padding: 8px 10px; border-radius: 10px;
+  opacity: .38; transition: opacity .2s; display: flex; gap: 8px; align-items: center;
+  border: 1px solid rgba(255,255,255,.14); }
+#tools:hover { opacity: 1; }
+#tools button, #tools select { background: rgba(255,255,255,.09); color: #fff;
+  border: 1px solid rgba(255,255,255,.18); border-radius: 6px; padding: 5px 8px;
+  font: 500 11px/1 var(--font); cursor: pointer; }
+#tools button.on { background: #14C8FF; color: #05070A; border-color: #14C8FF; }
+
+.screen { display: none; max-width: 1180px; margin: 0 auto; padding: 0 16px 70px; }
+.screen.active { display: block; }
+.head { margin-bottom: 18px; padding: 12px 14px; border-left: 3px solid var(--brand-primary);
+        background: rgba(20,200,255,.06); border-radius: 0 8px 8px 0; }
+.head h2 { margin: 0 0 4px; font: 600 15px/20px var(--font); }
+.head p { margin: 0; font: 400 13px/19px var(--font); color: var(--text-secondary); }
+.head .src { margin-top: 6px; font: 400 11px/16px var(--font-mono); color: var(--brand-secondary); }
+
+.rowWrap { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+.caseLabel { font: 600 11px/16px var(--font-mono); color: var(--brand-secondary);
+             letter-spacing: .3px; margin-bottom: 6px; }
+.caseLabel.bad { color: var(--status-error); }
+.caseLabel.warn { color: var(--status-warning); }
+
+/* ── Component provenance ────────────────────────────────────────────────
+   Badges are HOVER-ONLY and absolutely positioned, so at rest they occupy no
+   space and can never sit on top of the design. Inspect mode adds a dashed
+   outline; `:has()` suppresses an ancestor's badge while a descendant is
+   hovered, so exactly ONE badge is ever visible. */
+.cmp { position: relative; }
+.cmp > .tag {
+  display: none; position: absolute; top: -9px; left: 8px; z-index: 40;
+  font: 600 9px/1 var(--font-mono); padding: 3px 5px; border-radius: 3px;
+  white-space: nowrap; pointer-events: none; box-shadow: 0 2px 8px rgba(0,0,0,.6);
+}
+.cmp > .tag.have { background: #0AD89C; color: #04211A; }
+.cmp > .tag.reuse{ background: #14C8FF; color: #04212B; }
+.cmp > .tag.new  { background: #FFC42E; color: #241A00; }
+
+body.showCmp .cmp { outline: 1px dashed rgba(255,255,255,.14); outline-offset: 2px; }
+body.showCmp .cmp.isnew { outline: 1px dashed rgba(255,196,46,.85); }
+/* The one genuinely-new element stays marked at rest, because it is the
+   answer to "how much must we build" and should not need hunting for. */
+body.showCmp .cmp.isnew > .tag { display: block; }
+body.showCmp .cmp:hover { outline-color: rgba(20,200,255,.85); }
+body.showCmp .cmp:hover > .tag { display: block; }
+body.showCmp .cmp:has(.cmp:hover) > .tag { display: none; }
+body.showCmp .cmp:has(.cmp:hover) { outline-color: rgba(255,255,255,.14); }
+
+.kicker      { font: 600 13px/18px var(--font); letter-spacing:.5px; text-transform:uppercase; color: var(--text-secondary); }
+.kickerDense { font: 600 11px/16px var(--font); letter-spacing:.6px; text-transform:uppercase; color: var(--text-secondary); }
+
+/* 460px, not 340. The dashboard's first card is a full column - at 340 the
+   sub-lines wrapped ("No wallet / selected", "Switch / wallet ›"), which is a
+   mockup artefact the real panel does not have and must not be judged on. */
+.panel { background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+         border-radius: var(--radius-md); padding: 16px; width: 460px; }
+.tiles2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.well { background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm); padding: 12px; }
+.statusRow { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+.dot { width: 8px; height: 8px; border-radius: 4px; flex: none; }
+.dot.neutral{background:var(--status-neutral)} .dot.warning{background:var(--status-warning)}
+.dot.success{background:var(--status-success)} .dot.brand{background:var(--brand-primary)}
+.dot.error{background:var(--status-error)}
+.dot.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+.stLabel { font: 500 13px/18px var(--font); color: var(--text-primary); }
+.stTrail { font: 500 13px/18px var(--font); font-variant-numeric: tabular-nums;
+           color: var(--text-secondary); margin-left: auto; }
+.subline { font: 400 12px/17px var(--font); color: var(--text-secondary); margin-top: 4px;
+           display: flex; gap: 6px; align-items: baseline; }
+.subline .lnk { color: var(--brand-primary); font-weight: 600; cursor: pointer; }
+.subline .lnk:hover { text-decoration: underline; }
+.bar { height: 4px; margin-top: 6px; border-radius: 2px; background: var(--surface-sunken);
+       border: .5px solid var(--border-subtle); overflow: hidden; }
+.bar > i { display:block; height:100%; border-radius:2px;
+           background: linear-gradient(90deg,var(--brand-cta-a),var(--brand-cta-b)); }
+.bar.frozen > i { background: var(--border-strong); }
+
+/* Drawer — ResponsiveDrawer, 420px */
+.drawer { width: 420px; background: var(--surface-elevated);
+          border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; }
+.drawerHead { display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+              border-bottom: 1px solid var(--border-subtle); }
+.drawerHead .t { font: 600 16px/22px var(--font); flex: 1; }
+.xbtn { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center;
+        border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary);
+        cursor: pointer; transition: all .15s ease; }
+.xbtn:hover { color: #fff; border-color: rgba(20,200,255,.45); background: rgba(20,200,255,.10); }
+.drawerBody { padding: 16px; }
+.drawerFoot { padding: 14px 16px; border-top: 1px solid var(--border-subtle); display: flex; gap: 8px; }
+
+/* Step list — job_step_list.dart */
+.step { display: flex; gap: 12px; }
+.stepRail { display: flex; flex-direction: column; align-items: center; flex: none; }
+.badge { width: 20px; height: 20px; border-radius: 10px; display: grid; place-items: center;
+         font: 600 11px/1 var(--font); flex: none;
+         border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+.badge.cur  { border: 1.5px solid var(--text-primary); color: var(--text-primary); }
+.badge.done { background: var(--status-success); border-color: var(--status-success);
+              color: var(--text-on-brand); }
+.rail { width: 1px; flex: 1; min-height: 14px; background: var(--border-subtle); margin: 4px 0; }
+.stepMain { padding-bottom: 14px; flex: 1; min-width: 0; }
+.stepT { font: 500 14px/20px var(--font); color: var(--text-secondary); }
+.stepT.on { color: var(--text-primary); }
+.stepSum { font: 400 12px/17px var(--font); color: var(--text-secondary); margin-top: 2px; }
+.stepBody { margin-top: 10px; }
+
+.grid { background: var(--surface-sunken); border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm); overflow: hidden; }
+.grid .r { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+           padding: 11px 12px; border-bottom: 1px solid var(--border-subtle); }
+.grid .r:last-child { border-bottom: 0; }
+.grid .k { font: 400 14px/20px var(--font); color: var(--text-primary-70); }
+.grid .v { font: 400 14px/20px var(--font); font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.grid .r.tap { cursor: pointer; transition: background .15s ease; }
+.grid .r.tap:hover { background: rgba(20,200,255,.07); }
+
+/* GWWarningNote — feedback/gw_warning_note.dart */
+.warnNote { display: flex; gap: 10px; padding: 11px 12px; border-radius: var(--radius-sm);
+  background: rgba(255,196,46,.13); border: 1px solid var(--status-warning);
+  font: 400 13px/19px var(--font); color: var(--text-primary); }
+.warnNote .g { color: var(--status-warning); flex: none; }
+
+.spin { width: 16px; height: 16px; border-radius: 8px; flex: none;
+        border: 2px solid var(--border-strong); border-top-color: var(--brand-primary);
+        animation: sp .8s linear infinite; }
+.spin.lg { width: 20px; height: 20px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.inlineRow { display: flex; align-items: center; gap: 8px;
+             font: 400 14px/20px var(--font); color: var(--text-secondary); }
+.inlineRow.pri { color: var(--text-primary); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  font: 600 14px/20px var(--font); transition: all .15s ease;
+  border: 1px solid var(--border-strong); background: transparent; color: var(--text-primary); }
+.btn:hover { background: rgba(20,200,255,.10); border-color: rgba(20,200,255,.45); }
+.btn.fill { background: linear-gradient(135deg,var(--brand-cta-a),var(--brand-cta-b));
+            border-color: transparent; color: var(--text-on-brand); }
+.btn.fill:hover { filter: brightness(1.09); }
+.btn.fill[disabled] { background: var(--surface-menu); color: var(--text-primary-38);
+                      cursor: not-allowed; filter: none; }
+.btn.grow { flex: 1; }
+
+.mono { font: 400 12px/1.5 var(--font-mono); color: var(--brand-primary); word-break: break-all; }
+.note { margin-top: 16px; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,.04);
+  border: 1px solid var(--border-subtle); font: 400 12px/18px var(--font); color: var(--text-secondary); }
+.note b { color: var(--text-primary); font-weight: 600; }
+.note code { font: 400 11px/1.5 var(--font-mono); color: var(--brand-primary); }
+
+table.inv { width: 100%; border-collapse: collapse; margin-top: 10px; }
+table.inv th, table.inv td { text-align: left; padding: 7px 10px; font: 400 12px/17px var(--font);
+  border-bottom: 1px solid var(--border-subtle); }
+table.inv th { font-weight: 600; color: var(--text-secondary); text-transform: uppercase;
+  font-size: 10px; letter-spacing: .5px; }
+table.inv td code { font: 400 11px/1.5 var(--font-mono); color: var(--brand-primary); }
+
+/* Per-screen "what is new here" banner — answered up front on every screen,
+   so it never has to be hunted for with the cursor. */
+.newBar { display: flex; gap: 10px; align-items: flex-start; margin: -6px 0 18px;
+  padding: 9px 12px; border-radius: 8px; font: 400 12px/18px var(--font); }
+.newBar.none { background: rgba(10,216,156,.09); border: 1px solid rgba(10,216,156,.4); }
+.newBar.some { background: rgba(255,196,46,.09); border: 1px solid rgba(255,196,46,.5); }
+.newBar .h { font: 600 10px/16px var(--font-mono); letter-spacing:.4px; flex: none;
+  padding: 1px 6px; border-radius: 3px; }
+.newBar.none .h { background: #0AD89C; color: #04211A; }
+.newBar.some .h { background: #FFC42E; color: #241A00; }
+.newBar b { color: var(--text-primary); font-weight: 600; }
+
+/* Option cards — for the two decisions this sketch puts to Jakub */
+.opt { border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  padding: 14px; background: rgba(255,255,255,.02); width: 420px; }
+.opt.pick { border-color: rgba(10,216,156,.6); background: rgba(10,216,156,.05); }
+.opt h4 { margin: 0 0 4px; font: 600 13px/18px var(--font); }
+.opt .why { font: 400 12px/17px var(--font); color: var(--text-secondary); margin-bottom: 10px; }
+.opt .cost { font: 600 10px/15px var(--font-mono); margin-top: 10px; }
+.opt .cost.ok  { color: #0AD89C; }
+.opt .cost.bad { color: #FFC42E; }
+.demoBox { background: var(--surface-elevated); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm); padding: 14px; }
+.tick { width: 16px; height: 16px; border-radius: 8px; flex: none; display: grid;
+  place-items: center; font-size: 10px;
+  border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+.tick.done { background: var(--status-success); border-color: var(--status-success);
+  color: var(--text-on-brand); }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface-menu); border: 1px solid rgba(20,200,255,.45); color: #fff;
+  padding: 10px 18px; border-radius: 999px; font: 600 13px/18px var(--font); z-index: 9999;
+  transition: transform .25s ease; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="tabs">
+  <div class="row" id="tabRow"></div>
+  <div class="meta">
+    <span id="tabMeta"></span>
+    <span class="legend">
+      <span style="color:#5A606E">Components → hover an element to name it:</span>
+      <span class="lg have">ALREADY HERE</span>
+      <span class="lg reuse">REUSED</span>
+      <span class="lg new">MUST BUILD — always shown</span>
+    </span>
+  </div>
+</div>
+<div id="stage"></div>
+<div class="toast" id="toast"></div>
+
+<div id="tools">
+  <select id="themeSel"><option value="dark">Dark</option><option value="light">Light</option></select>
+  <button id="cmpBtn" title="Outline every element; hover one to name its component">Components</button>
+</div>
+
+<script>
+const say = m => { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(window._t); window._t=setTimeout(()=>t.classList.remove('show'),1600); };
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Component provenance. `k` is the badge kind:
+     have  = this component ALREADY renders this exact element today
+     reuse = component exists in lib/components, used elsewhere, applied here
+     new   = genuinely must be built
+   Every entry names a real file. Nothing is asserted that was not read.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const C = {
+  card:      {k:'have',  n:'GWCard',        f:'cards/gw_card.dart'},
+  kicker:    {k:'have',  n:'GWKicker',      f:'cards/gw_kicker.dart'},
+  dot:       {k:'have',  n:'GWStatusDot',   f:'data/gw_status_dot.dart'},
+  grid:      {k:'have',  n:'GWDetailGrid',  f:'cards/gw_detail_grid.dart'},
+  copyRow:   {k:'have',  n:'GWCopyRow',     f:'data/gw_copy_row.dart'},
+  warn:      {k:'have',  n:'GWWarningNote', f:'feedback/gw_warning_note.dart'},
+  spinner:   {k:'have',  n:'GWSpinner',     f:'loading/gw_spinner.dart'},
+  button:    {k:'have',  n:'GWButton',      f:'buttons/gw_button.dart'},
+  animNum:   {k:'have',  n:'GWAnimatedNumber', f:'data/gw_animated_number.dart'},
+  drawer:    {k:'have',  n:'ResponsiveDrawer', f:'bottom_drawer/responsive_drawer.dart'},
+  stepList:  {k:'have',  n:'JobStepList',   f:'submit_job/view/widgets/job_step_list.dart'},
+  bar:       {k:'have',  n:'_ComputeProgressBar', f:'dashboard/compute/compute_panel.dart:378'},
+  subline:   {k:'have',  n:'_SublineRow',   f:'dashboard/compute/compute_panel.dart:322'},
+  tile:      {k:'have',  n:'_ComputeCardTile', f:'dashboard/compute/compute_panel.dart:147'},
+  empty:     {k:'reuse', n:'GWEmptyState',  f:'feedback/gw_empty_state.dart'},
+  error:     {k:'reuse', n:'GWErrorState',  f:'feedback/gw_error_state.dart'},
+  /* The ONLY new things board F needs. Both are copy/state, not new widgets. */
+  feedLine:  {k:'new',   n:'feed-health sub-line', f:'copy + 1 bloc flag — reuses _SublineRow'},
+  reconnect: {k:'new',   n:'Reconnect link',       f:'copy — reuses _SublineRow\'s existing link slot'}
+};
+const tag = key => { const c = C[key];
+  return `<span class="tag ${c.k}">${c.n}${c.k==='new'?' ⚠':''}</span>`; };
+const wrap = (key, html) => `<div class="cmp ${C[key].k==='new'?'isnew':''}">${tag(key)}${html}</div>`;
+
+/* ── Panel pieces ───────────────────────────────────────────────────────── */
+function computeTile(o) {
+  return wrap('tile', `<div class="well">
+    ${wrap('kicker', `<div class="kickerDense">Compute node</div>`)}
+    ${wrap('dot', `<div class="statusRow">
+      <span class="dot ${o.dot}${o.pulse?' pulse':''}"></span>
+      <span class="stLabel">${o.label}</span>
+      ${o.trail?`<span class="stTrail">${o.trail}</span>`:''}
+    </div>`)}
+    ${o.subline ? wrap(o.newLine ? 'feedLine' : 'subline',
+      `<div class="subline"><span>${o.subline}</span>${
+        o.link ? `<span class="lnk" onclick="say('${o.link}')">${o.link}</span>` : ''}</div>`) : ''}
+    ${o.bar ? wrap('bar', `<div class="bar${o.bar==='frozen'?' frozen':''}"><i style="width:${o.pctv}%"></i></div>`) : ''}
+  </div>`);
+}
+const balTile = () => wrap('tile', `<div class="well">
+  ${wrap('kicker', `<div class="kickerDense">Balance</div>`)}
+  ${wrap('animNum', `<div class="statusRow"><span
+    style="font:600 20px/26px var(--font);font-variant-numeric:tabular-nums">1,284.50</span></div>`)}
+  <div class="subline"><span>≈ $412.77</span></div></div>`);
+
+const panel = inner => wrap('card', `<div class="panel">
+  ${wrap('kicker', `<div class="kicker">Compute</div>`)}
+  <div class="tiles2">${balTile()}${inner}</div>
+  <div style="margin-top:12px">${wrap('button',
+    `<button class="btn fill" style="width:100%" onclick="say('opens JobDrawer')">New processing job</button>`)}</div>
+</div>`);
+
+/* ── Drawer + step list ─────────────────────────────────────────────────── */
+const STEPS = ['Choose a file','Cost','Confirm','In flight','Result'];
+function stepList(cur, bodies, summaries) {
+  return wrap('stepList', STEPS.map((t,i) => {
+    const done = i < cur, on = i === cur;
+    return `<div class="step">
+      <div class="stepRail">
+        <span class="badge ${done?'done':on?'cur':''}">${done?'✓':(i+1)}</span>
+        ${i < STEPS.length-1 ? '<span class="rail"></span>' : ''}
+      </div>
+      <div class="stepMain">
+        <div class="stepT ${on||done?'on':''}">${t}</div>
+        ${summaries && summaries[i] ? `<div class="stepSum">${summaries[i]}</div>` : ''}
+        ${on && bodies[i] ? `<div class="stepBody">${bodies[i]}</div>` : ''}
+      </div></div>`;
+  }).join(''));
+}
+const drawer = (cur, bodies, foot, summaries) => wrap('drawer', `<div class="drawer">
+  <div class="drawerHead"><span class="t">New processing job</span>
+    <button class="xbtn" onclick="say('drawer dismissed - cubit survives')">✕</button></div>
+  <div class="drawerBody">${stepList(cur, bodies, summaries)}</div>
+  <div class="drawerFoot">${foot}</div></div>`);
+
+const costGrid = (bal='1,284.50') => wrap('grid', `<div class="grid">
+  <div class="r"><span class="k">Job cost</span><span class="v">12.40 GNUS</span></div>
+  <div class="r"><span class="k">Bridge gas</span><span class="v">0.0021 ETH</span></div>
+  <div class="r"><span class="k">Your balance</span><span class="v">${bal} GNUS</span></div>
+</div>`);
+
+/* ═══ SCREENS ══════════════════════════════════════════════════════════════ */
+const SCREENS = [
+  {
+    id:'panel', tab:'1 · Panel states', title:'Dashboard panel — board F applied to all 8 states',
+    src:'compute_panel.dart:32-105 · compute_state.dart:29-67',
+    lead:'The shipped state ladder, redrawn with board F: no determinate bar during startingUp, and a dead feed says so. Every other state is byte-for-byte what ships today.',
+    newItems: [
+      {what:'feed-dead flag', kind:'bloc state', where:'app_bloc.dart:192-195'},
+      {what:'"Feed live" / "Feed stopped" + Reconnect', kind:'copy + 1 enum member',
+       where:'renders through the existing _SublineRow'}],
+    body: () => `<div class="rowWrap">
+      ${[
+        {t:'01 · No wallet',    o:{dot:'neutral',label:'No wallet selected',subline:'Choose a wallet',link:'Switch wallet ›'}},
+        {t:'02 · Disconnected', o:{dot:'error',label:'Disconnected',subline:'Node offline',link:'Retry'}},
+        {t:'03 · Not linked',   o:{dot:'warning',label:'Not linked',subline:'Node uses another wallet',link:'Switch wallet ›'}},
+        {t:'05 · Starting up ★',o:{dot:'brand',pulse:true,label:'Starting up',trail:'52.5%',subline:'Feed live',newLine:true}},
+        {t:'04 · Feed stopped ★',o:{dot:'error',label:'Starting up',trail:'52.5%',subline:'Feed stopped',link:'Reconnect',bar:'frozen',pctv:52.5,newLine:true}},
+        {t:'06 · Processing',   o:{dot:'brand',pulse:true,label:'Processing',trail:'3 of 8',subline:'Rendering frames',bar:'det',pctv:37.5}},
+        {t:'07 · Job complete', o:{dot:'success',label:'Job complete',subline:'Finished 12s ago'}},
+        {t:'08 · Ready',        o:{dot:'success',label:'Ready'}}
+      ].map(s => `<div><div class="caseLabel${s.t.includes('★')?'':''}">${s.t}</div>${panel(computeTile(s.o))}</div>`).join('')}
+    </div>
+    <div class="note"><b>Only two things on this screen are new, and neither is a widget.</b>
+      The amber tags mark a sub-line string and a link label - both render through
+      <code>_SublineRow</code>, which already exists and already has a link slot
+      (<code>compute_panel.dart:322-364</code>). What must actually be built is one bloc flag:
+      <code>app_bloc.dart:192-195</code>'s <code>catch</code> currently only cancels the timer,
+      and has to set a "feed dead" flag as well. That is state, not UI.</div>`
+  },
+  {
+    id:'s1', tab:'2 · Step 1 file', title:'Job drawer — step 1, Choose a file',
+    src:'job_steps.dart:120-151 · job_drawer.dart:37-60',
+    lead:'Three renderings of one step: resting, picker open, and a rejected file. All three already exist; the file error is inline and never a toast.',
+    newItems: [],
+    body: () => `<div class="rowWrap">
+      <div><div class="caseLabel">RESTING</div>
+        ${drawer(0, [wrap('button', `<button class="btn" onclick="say('file picker')">Choose file</button>`)],
+          wrap('button', `<button class="btn fill grow" disabled>Continue</button>`))}</div>
+      <div><div class="caseLabel">PICKER OPEN</div>
+        ${drawer(0, [wrap('spinner', `<div class="inlineRow"><span class="spin lg"></span>
+          <span>Preparing your job</span></div>`)],
+          wrap('button', `<button class="btn fill grow" disabled>Continue</button>`))}</div>
+      <div><div class="caseLabel bad">FILE REJECTED</div>
+        ${drawer(0, [wrap('warn', `<div class="warnNote"><span class="g">⚠</span>
+          <span>That file is not valid JSON.</span></div>`)],
+          wrap('button', `<button class="btn fill grow" disabled>Continue</button>`))}</div>
+    </div>
+    <div class="note"><b>Nothing new here at all.</b> <code>GWSpinner</code> replaced the
+      full-screen <code>Loading</code> barrier the old screen used
+      (<code>submit_job_screen.dart:201</code>, superseded), and the inline error is already the
+      shipped behaviour. The only judgement left is whether the rejected-file case should use
+      <code>GWWarningNote</code> (drawn) or <code>_InlineError</code> (what
+      <code>job_steps.dart:146</code> calls today) - they are two treatments of one idea and the
+      app should pick one.</div>`
+  },
+  {
+    id:'s2', tab:'3 · Step 2 cost', title:'Job drawer — step 2, Cost and its three blocked variants',
+    src:'job_steps.dart:160-222 · submit_job_cta_state.dart',
+    lead:'The cost grid plus every rung resolveSubmitJobCtaState can return. Both the blocked variant and the Continue button read the SAME call — that shared read is what fixed the old screen\'s off-by-one and zero-cost bugs.',
+    newItems: [],
+    body: () => `<div class="rowWrap">
+      <div><div class="caseLabel">READY — Continue enabled</div>
+        ${drawer(1, [null, costGrid()],
+          wrap('button', `<button class="btn fill grow" onclick="say('→ Confirm')">Continue</button>`),
+          ['job-payload.json'])}</div>
+      <div><div class="caseLabel warn">COST UNKNOWN</div>
+        ${drawer(1, [null, costGrid() + wrap('spinner',
+          `<div class="inlineRow" style="margin-top:12px"><span class="spin"></span>
+           <span>Working out what this job costs</span></div>`)],
+          wrap('button', `<button class="btn fill grow" disabled>Continue</button>`),
+          ['job-payload.json'])}</div>
+      <div><div class="caseLabel bad">INSUFFICIENT FUNDS</div>
+        ${drawer(1, [null, costGrid('4.10') + wrap('warn',
+          `<div class="warnNote" style="margin-top:12px"><span class="g">⚠</span>
+           <span>You need 8.30 more GNUS to start this job.</span></div>`)],
+          wrap('button', `<button class="btn fill grow" disabled>Continue</button>`),
+          ['job-payload.json'])}</div>
+    </div>
+    <div class="note"><b>Zero new components.</b> <code>GWDetailGrid</code> + three
+      <code>_CostRow</code>s, <code>GWSpinner</code>, <code>GWWarningNote</code> - all four
+      already render this screen. The shortfall figure comes from
+      <code>submitJobShortfall()</code>, which exists. The <code>costError</code> rung (not drawn,
+      to keep the row to three) reuses the same <code>GWWarningNote</code> with the API's message.</div>`
+  },
+  {
+    id:'s3', tab:'4 · Step 3', title:'Job drawer — step 3, Confirm',
+    src:'job_steps.dart:260-273',
+    lead:'One sentence naming irreversibility. Step 2\'s grid stays visible above it as a collapsed summary — that is JobStepList\'s doing, not this widget\'s.',
+    newItems: [],
+    body: () => `<div class="rowWrap">
+      <div><div class="caseLabel">STEP 3 — CONFIRM</div>
+        ${drawer(2, [null, null, `<div style="font:400 14px/20px var(--font);color:var(--text-secondary)">
+          This spends 12.40 GNUS. Bridging cannot be undone.</div>`],
+          wrap('button', `<button class="btn fill grow" onclick="say('bridgeTokens()')">Start job</button>`),
+          ['job-payload.json','12.40 GNUS · 0.0021 ETH'])}</div>
+    </div>
+    <div class="note"><b>Nothing new.</b> A single <code>Text</code> at <code>bodySm</code> plus
+      <code>GWButton</code>. The sentence is the whole design: it is the last moment the user can
+      stop, so it names the amount and the irreversibility in one line rather than in a dialog.</div>`
+  },
+  {
+    id:'s4', tab:'5 · Step 4 options', title:'Job drawer — step 4, In flight: four options',
+    src:'job_steps.dart:275-332 · submit_job_cubit.dart:262, 277',
+    lead:'Jakub asked whether two spinners is right. The constraint that decides this: the cubit emits NOTHING between bridgeOut() and requestGeniusSDKProcess() — both run inside one isBridgingTokens window. So any design implying per-step progress is a lie until the cubit changes.',
+    newItems: [{what:'nothing, for options A–C', kind:'existing widgets only',
+                where:'option D needs one cubit emit'}],
+    body: () => `<div class="rowWrap">
+      <div class="opt"><h4>A · Two spinners <span style="color:var(--text-secondary)">(today)</span></h4>
+        <div class="why">Both rows spin for the whole window. Names the two operations, but two
+          spinners read as two independent things loading in parallel — which is not what happens.</div>
+        <div class="demoBox">
+          <div class="inlineRow pri"><span class="spin"></span><span>Bridging GNUS</span></div>
+          <div class="inlineRow pri" style="margin-top:8px"><span class="spin"></span><span>Starting the job</span></div>
+        </div>
+        <div class="cost ok">no change · but the weakest reading</div></div>
+
+      <div class="opt pick"><h4>B · One spinner, two named steps ★</h4>
+        <div class="why">A single spinner says "work is happening". The two operations become a
+          quiet list underneath — named, so the burned-tokens terminal makes sense later, but not
+          pretending to report progress they cannot report.</div>
+        <div class="demoBox">
+          <div class="inlineRow pri"><span class="spin"></span><span>Starting your job</span></div>
+          <div style="margin-top:10px;padding-left:24px">
+            <div class="inlineRow" style="font-size:13px"><span class="tick">1</span><span>Bridging GNUS</span></div>
+            <div class="inlineRow" style="font-size:13px;margin-top:6px"><span class="tick">2</span><span>Starting the job</span></div>
+          </div>
+        </div>
+        <div class="cost ok">no cubit change · reuses GWSpinner + the step-badge language</div></div>
+
+      <div class="opt"><h4>C · One spinner, one sentence</h4>
+        <div class="why">The lightest honest version. Drops the list entirely; the sentence carries
+          both operations in the order they happen.</div>
+        <div class="demoBox">
+          <div class="inlineRow pri"><span class="spin"></span><span>Bridging GNUS, then starting the job</span></div>
+          <div style="margin-top:10px;font:400 13px/19px var(--font);color:var(--text-secondary)">
+            This can take a minute. Your GNUS is spent once the bridge completes.</div>
+        </div>
+        <div class="cost ok">no cubit change · least code</div></div>
+
+      <div class="opt"><h4>D · Real sequential progress</h4>
+        <div class="why">Step 1 ticks green when the bridge confirms, then step 2 starts spinning.
+          This is what the user actually wants to see — and it is the only option here that
+          <b>cannot ship today</b>, because nothing emits between the two calls.</div>
+        <div class="demoBox">
+          <div class="inlineRow" style="font-size:13px"><span class="tick done">✓</span>
+            <span style="color:var(--text-primary)">Bridged · 12.40 GNUS</span></div>
+          <div class="inlineRow pri" style="margin-top:8px"><span class="spin"></span><span>Starting the job</span></div>
+        </div>
+        <div class="cost bad">⚠ needs one cubit emit between bridgeOut() and requestGeniusSDKProcess()</div></div>
+    </div>
+
+    <div class="note"><b>★ B, and the reason is the terminal three screens later.</b>
+      When <code>bridgedNotProcessed</code> happens, the user has to understand that step 1
+      succeeded and step 2 did not. If in-flight never named two steps, that outcome arrives with
+      no vocabulary to explain it. A names them but implies parallelism; C names them but as prose
+      the user skims; B names them as a numbered list that the terminal can then refer back to.
+      <br><br><b>D is the right end state and is worth planning separately.</b> One
+      <code>emit</code> after <code>bridgeOut()</code> resolves buys real sequential progress AND
+      makes the burned-tokens case detectable earlier. It is a cubit change, so it belongs with
+      <code>lib/submit_job/cubit/</code>, not with this UI work.</div>`
+  },
+  {
+    id:'s5', tab:'6 · Terminals', title:'Job drawer — step 5, all four outcomes',
+    src:'job_steps.dart:342-436 · submit_job_state.dart:15-33',
+    lead:'These already exist and already use the components. Softened per Jakub 2026-07-30: the burned-tokens outcome no longer shouts. Three tone versions are compared below the drawers.',
+    newItems: [{what:'"Get help" destination', kind:'routing decision, not a widget',
+                where:'the button is GWButton; where it goes is undecided'}],
+    body: () => `<div class="rowWrap">
+      <div><div class="caseLabel">done — JOB STARTED</div>
+        ${drawer(4, [null,null,null,null, `
+          ${wrap('dot', `<div class="statusRow" style="margin:0"><span class="dot success"></span>
+            <span class="stLabel">Job started</span></div>`)}
+          <div style="height:10px"></div>
+          ${wrap('copyRow', `<div class="grid"><div class="r tap" onclick="say('copied')">
+            <span class="k">Transaction</span><span class="v mono">0x7a3f…c209</span></div></div>`)}
+          <div style="height:8px"></div>
+          <div style="font:400 14px/20px var(--font);color:var(--text-secondary)">Your balance is updating</div>`],
+          wrap('button', `<button class="btn grow" onclick="say('close')">Done</button>`))}</div>
+      <div><div class="caseLabel warn">bridgedNotProcessed — SOFTENED ★</div>
+        ${drawer(4, [null,null,null,null, `
+          ${wrap('dot', `<div class="statusRow" style="margin:0"><span class="dot warning"></span>
+            <span class="stLabel">Bridged · job not started yet</span></div>`)}
+          <div style="height:10px"></div>
+          <div style="font:400 14px/20px var(--font);color:var(--text-secondary)">
+            Your GNUS was bridged, but the job has not started. Keep the transaction below.</div>
+          <div style="height:12px"></div>
+          ${wrap('copyRow', `<div class="grid"><div class="r tap" onclick="say('copied')">
+            <span class="k">Bridge transaction</span><span class="v mono">0x9f2c…a41b</span></div></div>`)}
+          <div style="height:8px"></div>
+          <div style="font:400 14px/20px var(--font);color:var(--text-secondary)">Your balance is updating</div>`],
+          `${wrap('button', `<button class="btn grow" onclick="say('support')">Get help</button>`)}
+           ${wrap('button', `<button class="btn grow" onclick="say('close')">Done</button>`)}`)}</div>
+      <div><div class="caseLabel bad">bridgeFailed — NOTHING SENT</div>
+        ${drawer(4, [null,null,null,null, `
+          ${wrap('dot', `<div class="statusRow" style="margin:0"><span class="dot error"></span>
+            <span class="stLabel">Nothing was sent</span></div>`)}
+          <div style="height:10px"></div>
+          <div style="font:400 14px/20px var(--font);color:var(--text-secondary)">
+            The bridge transaction did not go through. No GNUS left your wallet.</div>`],
+          wrap('button', `<button class="btn fill grow" onclick="say('retry')">Try again</button>`))}</div>
+    </div>
+    <div style="margin-top:26px" class="caseLabel warn">TONE — THREE VERSIONS OF THE SAME OUTCOME</div>
+    <div class="rowWrap" style="margin-top:8px">
+      <div class="opt"><h4>1 · Alarm <span style="color:var(--text-secondary)">(what I drew first)</span></h4>
+        <div class="why">Amber-bordered <code>GWWarningNote</code>, the word "proof", failure stated
+          twice. Reads like the wallet broke.</div>
+        <div class="demoBox">
+          <div class="statusRow" style="margin:0"><span class="dot warning"></span>
+            <span class="stLabel">Tokens sent, job not started</span></div>
+          <div style="height:10px"></div>
+          <div class="warnNote"><span class="g">⚠</span><span>Your GNUS was bridged but the job did
+            not start. The transaction below is your proof that the transfer happened.</span></div>
+        </div>
+        <div class="cost bad">too strong — Jakub, 2026-07-30</div></div>
+
+      <div class="opt pick"><h4>2 · Calm, with a way forward ★</h4>
+        <div class="why">Same facts, no box. The dot already carries the warning colour, so the
+          note was saying it a second time. "not started <i>yet</i>" leaves the door open, and
+          <b>Get help</b> gives the user something to do that is not paying twice.</div>
+        <div class="demoBox">
+          <div class="statusRow" style="margin:0"><span class="dot warning"></span>
+            <span class="stLabel">Bridged · job not started yet</span></div>
+          <div style="height:10px"></div>
+          <div style="font:400 14px/20px var(--font);color:var(--text-secondary)">
+            Your GNUS was bridged, but the job has not started. Keep the transaction below.</div>
+        </div>
+        <div class="cost ok">removes a component · adds one secondary GWButton</div></div>
+
+      <div class="opt"><h4>3 · Neutral receipt</h4>
+        <div class="why">Drops the warning colour entirely and states it as a status row. Calmest
+          of the three — but a user skimming might not notice anything is wrong at all.</div>
+        <div class="demoBox">
+          <div class="statusRow" style="margin:0"><span class="dot neutral"></span>
+            <span class="stLabel">Bridged</span></div>
+          <div style="height:10px"></div>
+          <div class="grid"><div class="r"><span class="k">Job</span>
+            <span class="v">Not started</span></div></div>
+        </div>
+        <div class="cost bad">may under-signal — the user is out real tokens</div></div>
+    </div>
+
+    <div class="note"><b>★ Version 2, and what makes it safe to soften.</b> The alarm version said
+      the same thing three times: a warning dot, a warning-bordered box, and the sentence. Removing
+      the box costs nothing, because <code>GWStatusDot</code> is already carrying
+      <code>statusWarning</code> — the note was redundant, not load-bearing.
+      <br><br><b>What must NOT soften.</b> The hash stays, because it is the only artefact the user
+      has. And there is still <b>no "Try again"</b> — retrying spends a second 12.40 GNUS on a job
+      that may already be queued. <b>Get help</b> replaces it: an action that is not nothing and is
+      not paying twice. <i>Open: where it routes — support, the Feedback tab, or a copied
+      diagnostic bundle.</i>
+      <br><br><b>Unchanged for the other two.</b> <code>bridgeFailed</code> keeps error tone and
+      <b>Try again</b> as primary, because nothing was spent and retrying is free. Neither
+      token-burning outcome prints a balance figure — both burn before the delayed 5s refetch lands
+      (<code>submit_job_cubit.dart:262, 277</code>), so both say "Your balance is updating" instead
+      of a number that would be wrong.</div>`
+  },
+  {
+    id:'inv', tab:'7 · Inventory', title:'What must actually be built',
+    src:'the honest answer to "ile musimy wymyślać"',
+    lead:'Every element across all six screens above, and where it comes from.',
+    newItems: [],
+    body: () => `
+    <div style="font:600 13px/18px var(--font);letter-spacing:.5px;text-transform:uppercase;
+      color:var(--status-success);margin-bottom:4px">Already renders this exact element today</div>
+    <table class="inv"><tr><th>Component</th><th>File</th><th>Used for</th></tr>
+      <tr><td><code>GWCard</code></td><td>cards/gw_card.dart</td><td>panel, every card surface</td></tr>
+      <tr><td><code>GWKicker</code></td><td>cards/gw_kicker.dart</td><td>Compute, Balance, Compute node</td></tr>
+      <tr><td><code>GWStatusDot</code></td><td>data/gw_status_dot.dart</td><td>all 8 panel states + 3 terminals</td></tr>
+      <tr><td><code>GWDetailGrid</code></td><td>cards/gw_detail_grid.dart</td><td>cost grid, terminal rows</td></tr>
+      <tr><td><code>GWCopyRow</code></td><td>data/gw_copy_row.dart</td><td>transaction + bridge hash</td></tr>
+      <tr><td><code>GWWarningNote</code></td><td>feedback/gw_warning_note.dart</td><td>insufficient funds, cost error, burned tokens</td></tr>
+      <tr><td><code>GWSpinner</code></td><td>loading/gw_spinner.dart</td><td>picker, cost fetch, in-flight rows</td></tr>
+      <tr><td><code>GWButton</code></td><td>buttons/gw_button.dart</td><td>every CTA, incl. disabled rung</td></tr>
+      <tr><td><code>GWAnimatedNumber</code></td><td>data/gw_animated_number.dart</td><td>balance tile</td></tr>
+      <tr><td><code>ResponsiveDrawer</code></td><td>bottom_drawer/responsive_drawer.dart</td><td>the drawer host</td></tr>
+      <tr><td><code>JobStepList</code></td><td>submit_job/view/widgets/job_step_list.dart</td><td>the 5-step rail</td></tr>
+      <tr><td><code>_ComputeProgressBar</code></td><td>compute_panel.dart:378</td><td>processing bar (kept), frozen bar (reused)</td></tr>
+      <tr><td><code>_SublineRow</code></td><td>compute_panel.dart:322</td><td>every sub-line + its link slot</td></tr>
+    </table>
+
+    <div style="font:600 13px/18px var(--font);letter-spacing:.5px;text-transform:uppercase;
+      color:var(--status-warning);margin:22px 0 4px">Must be built — 3 items, none of them a widget</div>
+    <table class="inv"><tr><th>Item</th><th>Kind</th><th>Where</th></tr>
+      <tr><td>Feed-dead flag</td><td><b>bloc state</b></td>
+        <td><code>app_bloc.dart:192-195</code> — the <code>catch</code> cancels the timer; it must
+        also set a flag. Today a dead feed is "pixel-identical to a healthy idle node".</td></tr>
+      <tr><td>Two sub-line strings</td><td><b>copy</b></td>
+        <td>"Feed live" / "Feed stopped" — rendered by the existing <code>_SublineRow</code>.</td></tr>
+      <tr><td>"Reconnect" link label</td><td><b>copy + event</b></td>
+        <td><code>_SublineRow</code>'s link slot already exists and already takes a
+        <code>ComputeLink</code>; this adds one enum member wired to
+        <code>RetryProcessingStatus</code>.</td></tr>
+    </table>
+
+    <div class="note" style="margin-top:20px"><b>So the honest answer is: almost nothing.</b>
+      Board F needs <b>zero new widgets</b>. It deletes one bar, adds two strings and one link
+      label through slots that already exist, and requires exactly one real change in the bloc -
+      making a silently-cancelled timer observable. Every screen above is composed entirely from
+      components that already ship.
+      <br><br><b>One thing to settle before planning:</b> step 1's rejected-file case has two
+      competing treatments in the codebase - <code>_InlineError</code>
+      (<code>job_steps.dart:437</code>) and <code>GWWarningNote</code>. They say the same thing
+      two ways. Pick one; the sketch draws <code>GWWarningNote</code> because it is the shared
+      component and <code>_InlineError</code> is feature-local.</div>`
+  }
+];
+
+/* ═══ RENDER ═══════════════════════════════════════════════════════════════ */
+/* Every screen states its own new-component count up front. `newItems` is a
+   list of {what, kind, where}; an empty list renders the green "nothing new"
+   bar, which is the answer on four of the six screens. */
+const newBar = items => !items || !items.length
+  ? `<div class="newBar none"><span class="h">NEW HERE: NONE</span>
+      <span>Every element on this screen is a component that already ships.</span></div>`
+  : `<div class="newBar some"><span class="h">NEW HERE: ${items.length}</span>
+      <span>${items.map(i => `<b>${i.what}</b> — ${i.kind}, ${i.where}`).join(' &nbsp;·&nbsp; ')}</span></div>`;
+
+document.getElementById('stage').innerHTML = SCREENS.map(s => `
+  <div class="screen" id="sc-${s.id}">
+    <div class="head"><h2>${s.title}</h2><p>${s.lead}</p><div class="src">${s.src}</div></div>
+    ${newBar(s.newItems)}
+    ${s.body()}
+  </div>`).join('');
+document.getElementById('tabRow').innerHTML = SCREENS.map((s,i) =>
+  `<button class="tab ${i===0?'active':''}" onclick="show('${s.id}',this)">${s.tab}</button>`).join('');
+document.getElementById('tabMeta').innerHTML =
+  'Board F across every compute screen · <b>0 new widgets</b> · 1 bloc flag + 3 strings';
+document.getElementById('sc-' + SCREENS[0].id).classList.add('active');
+
+function show(id, el) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sc-' + id).classList.add('active');
+  el.classList.add('active'); window.scrollTo(0,0);
+}
+document.getElementById('themeSel').addEventListener('change', function(){
+  document.documentElement.setAttribute('data-theme', this.value);
+});
+document.getElementById('cmpBtn').addEventListener('click', function(){
+  document.body.classList.toggle('showCmp');
+  this.classList.toggle('on');
+});
+</script>
+</body>
+</html>

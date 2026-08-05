@@ -1,0 +1,587 @@
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>016 · Compute panel anatomy — Balance + Compute split</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--font); background:var(--surface-base); color:var(--text-primary); padding:var(--space-10); }
+  .wrap { max-width:1320px; margin:0 auto; }
+
+  .toolbar { display:flex; gap:var(--space-6); align-items:center; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .toolbar h1 { font:600 15px/22px var(--font); margin-right:auto; }
+  .seg { display:flex; background:var(--surface-menu); border-radius:var(--radius-pill); padding:3px; gap:2px; }
+  .seg button { font:500 13px/18px var(--font); padding:6px 12px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .14s; }
+  .seg button:hover { color:var(--text-primary); }
+  .seg button[aria-pressed="true"] { background:var(--surface-elevated); color:var(--text-primary); box-shadow:var(--shadow-card); }
+  .seg.r2 button[aria-pressed="true"] { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; }
+  .segl { font:600 11px/16px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.6px; }
+
+  h2.sec { font:600 18px/24px var(--font); letter-spacing:-.2px; margin:var(--space-16) 0 var(--space-4); }
+  h2.sec:first-of-type { margin-top:var(--space-8); }
+  p.lede { color:var(--text-secondary); font:400 13px/21px var(--font); margin-bottom:var(--space-8); max-width:900px; }
+  p.lede b { color:var(--text-primary); }
+  code { font:400 12px/18px var(--font-mono); }
+
+  .tag { display:inline-flex; align-items:center; gap:5px; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; vertical-align:middle; }
+  .tag.ex  { background:rgba(10,216,156,.14); color:var(--status-success); }
+  .tag.new { background:rgba(194,143,255,.16); color:#C28FFF; }
+  [data-theme="light"] .tag.new { background:rgba(122,60,190,.12); color:#6B2FB5; }
+  .tag.rec { background:var(--brand-fill); color:var(--brand-primary-strong); }
+  [data-theme="dark"] .tag.rec { color:var(--brand-secondary); }
+  .tag.bug { background:var(--status-error-fill); color:var(--status-error); }
+  .tag.r1  { background:rgba(128,128,128,.16); color:var(--text-secondary); }
+
+  .legend { display:flex; gap:var(--space-8); flex-wrap:wrap; padding:var(--space-6); background:var(--surface-menu); border-radius:var(--radius-md); margin-bottom:var(--space-8); font:400 12px/18px var(--font); color:var(--text-secondary); }
+  .legend div { display:flex; align-items:center; gap:var(--space-4); }
+
+  .note { background:var(--surface-menu); border-left:3px solid var(--brand-primary-strong); border-radius:var(--radius-sm); padding:var(--space-6) var(--space-8); font:400 13px/21px var(--font); color:var(--text-secondary); margin-bottom:var(--space-8); max-width:900px; }
+  .note b { color:var(--text-primary); }
+  .note.warn { border-left-color:var(--status-warning); }
+
+  /* ── the dashboard row ──────────────────────────────────── */
+  .stage { display:flex; gap:12px; align-items:flex-start; margin-bottom:var(--space-8); flex-wrap:wrap; }
+  .colwrap { display:flex; flex-direction:column; gap:6px; }
+  .caption { font:600 11px/16px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.6px; }
+  .caption .px { font:400 11px/16px var(--font-mono); text-transform:none; letter-spacing:0; color:var(--text-primary-38); }
+
+  .card { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+          border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+          box-shadow:var(--shadow-card); padding:12px; height:300px; overflow:hidden;
+          display:flex; flex-direction:column; position:relative; }
+  .card.left  { width:392px; }
+  .card.right { width:588px; }
+  .card.overflowing { box-shadow:var(--shadow-card), 0 0 0 2px var(--status-error); }
+  .ovbadge { position:absolute; top:6px; right:6px; z-index:4; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.6px; padding:4px 7px; border-radius:4px; background:var(--status-error); color:#fff; display:none; }
+  .card.overflowing .ovbadge { display:block; }
+
+  .stitle { display:flex; align-items:center; min-height:44px; padding:0 8px; gap:var(--space-6); flex:none; }
+  .stitle h3 { font:600 18px/24px var(--font); letter-spacing:-.2px; }
+  .stitle .end { margin-left:auto; text-align:right; }
+  .stitle.compact { min-height:26px; }
+  .stitle.compact h3 { font:600 11px/16px var(--font); letter-spacing:.7px; text-transform:uppercase; color:var(--text-secondary); }
+  .lnk { font:500 11px/16px var(--font); color:var(--brand-primary-strong); text-decoration:none; cursor:pointer; }
+  [data-theme="dark"] .lnk { color:var(--brand-primary); }
+  .lnk:hover { text-decoration:underline; }
+
+  .hr { height:1px; background:var(--border-subtle); border:0; flex:none; }
+  .sp { flex:none; }
+
+  /* ── tiles ──────────────────────────────────────────────── */
+  .tile { background:var(--surface-menu); border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+          padding:var(--space-6) var(--space-8); flex:none; }
+  .tile.sunken { background:var(--surface-sunken); }
+  .tile.raised { background:linear-gradient(to bottom,var(--surface-sheen-a),var(--surface-sheen-b));
+                 box-shadow:var(--shadow-card); border-color:var(--border-subtle); position:relative; overflow:hidden; }
+  .tile.raised::before { content:''; position:absolute; left:0; right:0; top:0; height:2px;
+                         background:linear-gradient(90deg,#0AD89C,#0AAEE6); }
+  .tlb { font:500 10px/14px var(--font); text-transform:uppercase; letter-spacing:.6px; color:var(--text-secondary); }
+
+  /* ── balance ────────────────────────────────────────────── */
+  .balrow { display:flex; align-items:center; gap:var(--space-6); }
+  .amt { font:600 26px/32px var(--font); font-variant-numeric:tabular-nums; letter-spacing:-.5px; }
+  .amt.hero { font:600 32px/38px var(--font); letter-spacing:-.7px; }
+  .amt.small { font:600 17px/23px var(--font); letter-spacing:-.2px; }
+  .unit { font:500 13px/18px var(--font); color:var(--text-secondary); margin-left:3px; }
+  .fiat { font:400 13px/18px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+  .end { margin-left:auto; }
+
+  .tt { display:inline-flex; background:var(--surface-elevated); border:1px solid var(--border-subtle); border-radius:var(--radius-pill); padding:2px; gap:2px; flex:none; }
+  .tile .tt { background:var(--surface-elevated); }
+  .tt button { display:flex; align-items:center; gap:5px; font:600 11px/16px var(--font); padding:4px 9px; border:0; border-radius:var(--radius-pill); background:transparent; color:var(--text-secondary); cursor:pointer; transition:all .12s; }
+  .tt button:hover:not([aria-pressed="true"]) { background:var(--surface-menu); color:var(--text-primary); transform:translateY(-1px); box-shadow:var(--shadow-card); }
+  .tt button[aria-pressed="true"] { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; box-shadow:var(--shadow-card); }
+  .tt .tk { width:12px; height:12px; border-radius:50%; display:grid; place-items:center; font:800 7px/1 var(--font); color:#fff; }
+
+  /* ── compute block ──────────────────────────────────────── */
+  .compute { display:flex; flex-direction:column; gap:var(--space-6); }
+  .compute.pad { padding:0 8px; }
+  .compute.grow { flex:1; min-height:0; }
+  .cstatus { display:flex; align-items:center; gap:var(--space-6); }
+  .dot { width:9px; height:9px; border-radius:50%; flex:none; position:relative; }
+  .dot.live::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:1.5px solid currentColor; opacity:.45; animation:ping 1.6s ease-out infinite; }
+  @keyframes ping { 0%{transform:scale(.7);opacity:.6} 100%{transform:scale(1.5);opacity:0} }
+  .cstatus .lb { font:600 14px/20px var(--font); }
+  .cstatus .val { margin-left:auto; font:600 14px/20px var(--font); font-variant-numeric:tabular-nums; }
+  .csub { font:400 12px/17px var(--font); color:var(--text-secondary); min-height:17px; }
+  .csub .file { font:400 12px/17px var(--font-mono); color:var(--text-primary-70); }
+  .csub a { color:var(--brand-primary-strong); text-decoration:none; cursor:pointer; font-weight:500; }
+  [data-theme="dark"] .csub a { color:var(--brand-primary); }
+  .csub a:hover { text-decoration:underline; }
+  .csub a.missing { color:var(--status-error); text-decoration:underline dotted; }
+  .earn { font:400 12px/17px var(--font); color:var(--text-secondary); }
+  .earn b { color:var(--status-success); font-weight:600; font-variant-numeric:tabular-nums; }
+
+  .bar { height:6px; border-radius:99px; background:var(--surface-sunken); overflow:hidden; flex:none; }
+  .tile .bar { background:rgba(128,128,128,.20); }
+  .bar i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#0AD89C,#0AAEE6); transition:width .5s ease; }
+  .bar.stall i { background:repeating-linear-gradient(135deg,var(--status-warning) 0 6px,transparent 6px 12px); }
+  .bar.dead i { background:var(--border-subtle); }
+
+  .cta { display:flex; gap:var(--space-6); }
+  .cta.floor { margin-top:auto; }
+  .btn { flex:1; display:flex; align-items:center; justify-content:center; gap:7px; height:38px; border:0; border-radius:var(--radius-pill); font:600 13px/18px var(--font); cursor:pointer; transition:all .14s; }
+  .btn.grad { background:linear-gradient(135deg,#0AD89C,#0AAEE6); color:#000B18; box-shadow:var(--shadow-card); }
+  .btn.grad:hover:not(:disabled) { transform:translateY(-1px); filter:brightness(1.06); }
+  .btn:disabled { opacity:.42; cursor:not-allowed; }
+  .btn svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .why { font:400 11px/15px var(--font); color:var(--text-secondary); text-align:center; }
+  .why a { color:var(--brand-primary-strong); text-decoration:none; cursor:pointer; }
+  [data-theme="dark"] .why a { color:var(--brand-primary); }
+  .why a:hover { text-decoration:underline; }
+
+  /* node identity (C) */
+  .node { display:flex; align-items:center; gap:var(--space-6); padding:0 8px; flex:none; }
+  .node .av { width:38px; height:38px; border-radius:var(--radius-md); background:var(--surface-menu); border:1px solid var(--border-subtle); display:grid; place-items:center; flex:none; }
+  .node .av svg { width:19px; height:19px; fill:none; stroke:var(--brand-primary-strong); stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  [data-theme="dark"] .node .av svg { stroke:var(--brand-primary); }
+  .node .nm { font:600 15px/20px var(--font); }
+  .node .ad { font:400 11px/15px var(--font-mono); color:var(--text-secondary); }
+  .node .v { font:600 15px/20px var(--font); font-variant-numeric:tabular-nums; color:var(--status-success); }
+  .node .k { font:400 10px/14px var(--font); color:var(--text-secondary); text-transform:uppercase; letter-spacing:.5px; }
+
+  /* Assets panel */
+  .arow { display:flex; align-items:center; gap:var(--space-6); padding:6px 8px; border-radius:var(--radius-md); }
+  .arow:hover { background:var(--surface-menu); }
+  .arow .ic { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font:700 10px/1 var(--font); color:#fff; flex:none; }
+  .arow .nm { font:600 14px/19px var(--font); }
+  .arow .sy { font:400 11px/15px var(--font); color:var(--text-secondary); }
+  .arow .v { font:600 14px/19px var(--font); font-variant-numeric:tabular-nums; }
+  .arow .f { font:400 11px/15px var(--font); color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+
+  .clash { position:absolute; pointer-events:none; border:1.5px dashed var(--status-warning); border-radius:var(--radius-sm); display:none; z-index:20; }
+  body.showclash .clash { display:block; }
+  .clashlb { position:absolute; font:700 9px/1 var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--status-warning); background:var(--surface-base); padding:2px 5px; display:none; white-space:nowrap; z-index:20; }
+  body.showclash .clashlb { display:block; }
+
+  table { width:100%; border-collapse:collapse; font:400 12px/18px var(--font); max-width:1060px; }
+  th,td { text-align:left; padding:var(--space-4) var(--space-6); border-bottom:1px solid var(--border-subtle); vertical-align:top; }
+  th { font:600 10px/14px var(--font); text-transform:uppercase; letter-spacing:.5px; color:var(--text-secondary); }
+  td b { color:var(--text-primary); }
+  td.k { white-space:nowrap; font:500 12px/18px var(--font); }
+  .ok { color:var(--status-success); font-weight:600; }
+  .no { color:var(--status-error); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="toolbar">
+  <h1>016 · Compute panel anatomy — how the first section splits</h1>
+  <div class="seg" id="theme"><button data-v="dark" aria-pressed="true">Dark</button><button data-v="light" aria-pressed="false">Light</button></div>
+  <div class="seg" id="clash"><button data-v="off" aria-pressed="true">Clean</button><button data-v="on" aria-pressed="false">Show unit clash</button></div>
+</div>
+
+<div class="legend">
+  <div><span class="tag ex">Existing</span> component already in the codebase</div>
+  <div><span class="tag new">New</span> would be a new component</div>
+  <div><span class="tag rec">Rec</span> my recommendation</div>
+  <div><span class="tag bug">Bug</span> the shipped code lies here</div>
+  <div><span class="tag r1">Round 1</span> superseded — kept for reference</div>
+</div>
+
+<div class="note">
+  <b>Real geometry.</b> Left card is <code>392×300</code>, right is <code>588×300</code> — the flex&nbsp;2 / flex&nbsp;3 split of
+  <code>_OverviewContributionsRow</code>, capped at the hard <code>maxHeight: 300</code> from
+  <code>dashboard_screen.dart:207</code>. <code>DashboardScrollContainer</code> eats 12&nbsp;px of padding per side, so every
+  variant fights for the same <b>276&nbsp;px</b>. A red ring + OVERFLOW badge marks any variant/state pair that does not fit.
+</div>
+
+<div class="toolbar">
+  <span class="segl">Round 2 — refining B</span>
+  <div class="seg r2" id="variant2">
+    <button data-v="b1" aria-pressed="false">B1 · Sunken balance</button>
+    <button data-v="b2" aria-pressed="true">B2 · Twin tiles ★ Selected</button>
+    <button data-v="b3" aria-pressed="false">B3 · Fiat hero</button>
+    <button data-v="b4" aria-pressed="false">B4 · Raised compute</button>
+  </div>
+</div>
+<div class="toolbar">
+  <span class="segl">Round 1</span>
+  <div class="seg" id="variant1">
+    <button data-v="a" aria-pressed="false">A · Stacked strip</button>
+    <button data-v="b" aria-pressed="false">B · Two tiles</button>
+    <button data-v="c" aria-pressed="false">C · Compute-only</button>
+  </div>
+  <span class="segl" style="margin-left:auto">State</span>
+  <div class="seg" id="state">
+    <button data-v="ready" aria-pressed="true">Ready</button>
+    <button data-v="processing" aria-pressed="false">Processing</button>
+    <button data-v="init" aria-pressed="false">Initializing</button>
+    <button data-v="stalled" aria-pressed="false">Stalled 52.5%</button>
+    <button data-v="notlinked" aria-pressed="false">Not linked</button>
+    <button data-v="dead" aria-pressed="false">Telemetry dead</button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="colwrap">
+    <div class="caption">Left card <span class="px">392 × 300</span></div>
+    <div class="card left" id="card"><div class="ovbadge">Overflow</div><div id="cardin" style="display:flex;flex-direction:column;flex:1;min-height:0"></div></div>
+  </div>
+  <div class="colwrap">
+    <div class="caption" id="acap">Assets — shipped, unchanged <span class="px">588 × 300</span></div>
+    <div class="card right" id="assets"></div>
+  </div>
+</div>
+
+<p class="lede" id="blurb"></p>
+
+<h2 class="sec">Round 2 — the four ways a tile can carry the balance</h2>
+<table>
+  <tr><th style="width:118px">Variant</th><th>Idea</th><th style="width:210px">Costs</th></tr>
+  <tr><td class="k">B1 · Sunken balance</td><td>Round&nbsp;1's B, unchanged. One sunken tile holds the balance; compute sits flush on the card below a compact <code>COMPUTE</code> kicker.</td><td>Compute has no container of its own, so the CTA floats on bare card.</td></tr>
+  <tr><td class="k">B2 · Twin tiles</td><td>Both halves get a tile. The card becomes a pure container and the two concerns read as siblings of equal rank.</td><td><b>The tallest variant.</b> Two borders + two paddings = 40&nbsp;px of chrome. Overflows on <i>Not linked</i>.</td></tr>
+  <tr><td class="k">B3 · Fiat hero</td><td>Inside the tile, <code>$312.40</code> becomes the big number and <code>1,204.50 GNUS</code> the subline. Same unit as Assets, so the two panels finally agree on what they are measuring.</td><td>Buries the token count the SGNUS branch is actually about; the Minions toggle now changes only the small line.</td></tr>
+  <tr><td class="k">B4 · Raised compute</td><td>Inverts the depth. Balance sits flush (it is static), compute gets the <i>raised</i> tile with a 2&nbsp;px brand cap — the tile marks the thing that is alive.</td><td>Two competing elevations inside one card; the raised tile fights the card's own sheen.</td></tr>
+</table>
+
+<h2 class="sec">Height budget — measured, per state</h2>
+<p class="lede">276&nbsp;px usable. This is why <code>05-08</code> had to wrap this widget in a scroll view rather than fix its
+layout — in the worst states the content genuinely does not fit.</p>
+<table id="heights"></table>
+
+<h2 class="sec">What the shipped card does today</h2>
+<table>
+  <tr><th style="width:180px">Element</th><th>Shipped behaviour</th><th style="width:220px">What the sketch changes</th></tr>
+  <tr><td class="k">"Current Balance"</td><td>A <code>headlineMd</code> label on a centred column. No <code>GWSectionTitle</code>, unlike every other dashboard panel — the card reads as a loose stack.</td><td>Becomes a labelled tile.</td></tr>
+  <tr><td class="k">The balance <span class="tag bug">Bug</span></td><td>Three renderers under one label — SGNUS wallet → token count, EVM wallet → <code>$</code> fiat. <code>genius_balance_display.dart:80</code> hardcodes <code>Colors.white</code>, so the number vanishes in light mode.</td><td>Amount + unit + the other unit, always both. Colour from <code>gw.textPrimary</code>.</td></tr>
+  <tr><td class="k">Zero balance <span class="tag bug">Bug</span></td><td><code>'No funds available'</code> in <code>statusError</code> red (<code>:141-147</code>) — an empty wallet painted as a failure.</td><td><code>0.00 GNUS</code> in normal weight.</td></tr>
+  <tr><td class="k">GNUS / Minions</td><td>Material <code>ToggleButtons</code>, 100×36 per side, flat fill. Doesn't match the 008-D chip language.</td><td>Lift-chip segment, 4× smaller, gradient active.</td></tr>
+  <tr><td class="k">SGNUS Connection <span class="tag bug">Bug</span></td><td>Determinate ring from <code>getInitializationStatus()</code>. Measured: freezes at 52.5% and never moves — 157 identical polls.</td><td>One Compute status line; stalled is its own state (sketch 017).</td></tr>
+  <tr><td class="k">processing / idle <span class="tag bug">Bug</span></td><td>A second status widget. <code>app_bloc.dart:193-196</code> cancels the timer <b>permanently</b> on any exception, so a dead feed looks like a healthy idle node.</td><td>One component, "unavailable" is distinct (sketch 017).</td></tr>
+  <tr><td class="k">Create Processing Job <span class="tag bug">Bug</span></td><td><code>submit_job_dashboard_button.dart:25</code> → <code>SizedBox.shrink()</code>. The section's primary action silently disappears.</td><td>Stays, disabled, with a reason and a way out.</td></tr>
+</table>
+
+<h2 class="sec">Every affordance, and where it goes</h2>
+<p class="lede">No link in this design points at nothing. Hover any link in the card for its destination.
+A <span style="color:var(--status-error);text-decoration:underline dotted">dotted red</span> link is one that has
+<b>no destination in the codebase yet</b> — it is a build item, not a decoration.</p>
+<table>
+  <tr><th style="width:180px">Affordance</th><th style="width:96px">Status</th><th>Destination</th></tr>
+  <tr><td class="k">Node ›</td><td class="ok">Exists</td>
+      <td><code>context.push('/network')</code> → <code>NetworkStatusPage</code> (<code>router.dart:188</code>). The route is
+      live and already used by <code>sgnus_connection_widget.dart:102</code>. The page itself is raw <code>ListTile</code>s
+      with <code>Colors.green</code>/<code>Colors.red</code> — <b>sketch 019 re-skins it</b>, but nothing is blocked.</td></tr>
+  <tr><td class="k">see node status ›<br><span style="font-weight:400;color:var(--text-secondary)">(stalled)</span></td><td class="ok">Exists</td>
+      <td>Same <code>/network</code> destination. Deliberately the same target as <i>Node ›</i> — one place answers
+      "what is my node doing", reached from two contexts.</td></tr>
+  <tr><td class="k">switch wallet ›<br><span style="font-weight:400;color:var(--text-secondary)">(not linked / no wallet)</span></td>
+      <td style="color:var(--status-warning);font-weight:600">Partial</td>
+      <td>The mechanism exists in full: <code>AccountDropdownSelector._showAccountDrawer()</code>
+      (<code>account_dropdown_selector.dart:161</code>) opens a <code>ResponsiveDrawer&lt;Wallet&gt;</code> and commits with
+      <code>walletCubit.selectWallet(selected)</code> (<code>:212</code>). <b>But it is private</b> and mounted only inside the
+      top-bar action row (<code>responsive_overlay.dart:103</code>). <b>Build item:</b> extract a public
+      <code>AccountDrawer.show(context)</code> so the compute panel can call the same drawer. Small, no new UI.</td></tr>
+  <tr><td class="k">retry ›<br><span style="font-weight:400;color:var(--text-secondary)">(telemetry dead)</span></td>
+      <td class="no">Missing</td>
+      <td><b>Nothing to call.</b> <code>app_bloc.dart:194</code> cancels <code>_processingTimer</code> permanently and no code
+      path restarts it. <b>Build item:</b> a <code>RetryProcessingStatus</code> event that re-arms the timer, plus a
+      state flag separating "unavailable" from "idle". This is the one link that requires real bloc work.</td></tr>
+  <tr><td class="k">New processing job</td><td class="ok">Exists</td>
+      <td><code>/submit_job</code> (<code>router.dart:280</code>) is live and already wired with its cubit. Sketch 018 moves the
+      <i>primary</i> entry to a <code>ResponsiveDrawer</code> and keeps the route as the full-screen host.</td></tr>
+  <tr><td class="k">View transaction ›<br><span style="font-weight:400;color:var(--text-secondary)">(job complete, sketch 017)</span></td>
+      <td style="color:var(--status-warning);font-weight:600">Partial</td>
+      <td><code>showTransactionDetails(context, tx)</code> exists (<code>transaction_displays.dart:316</code>) and opens a
+      detail drawer. <b>What's missing is the link</b>: nothing today associates a finished job with the mint
+      transaction it produced. Needs a job→tx correlation before this link can carry a real <code>tx</code>.</td></tr>
+  <tr><td class="k">Balance tile</td><td class="ok">Exists</td>
+      <td>Non-navigating by design. The tile is a readout; drilling into holdings is the Assets panel's job,
+      12&nbsp;px away. Adding a tap target here would create two competing routes to the same information.</td></tr>
+</table>
+
+<h2 class="sec">The unit clash</h2>
+<p class="lede">Flip <b>Show unit clash</b>. The left card's <code>1,204.50&nbsp;GNUS</code> and Assets' <code>$312.40</code> are
+<b>the same money, counted twice, 12&nbsp;px apart</b> — one polled from the SDK every 10&nbsp;s
+(<code>genius_balance_display.dart:56</code>), the other computed from CoinGecko every 60&nbsp;s
+(<code>coins_screen.dart:243</code>). They will routinely disagree. B3 is the only round-2 variant that resolves it,
+by adopting the same unit; C removes the duplicate entirely.</p>
+
+<h2 class="sec">Decision — B2 · Twin tiles ★</h2>
+<div class="note">
+  <b>Chosen 2026-07-22.</b> Both concerns get a container and read as siblings of equal rank — which is the honest
+  description of what this card now is: a balance readout and a compute node, not one thing with an appendix.<br><br>
+  <b>B2 did not fit when it was proposed.</b> At 244&nbsp;px base plus a 38&nbsp;px <i>Not linked</i> state it hit
+  282&nbsp;px against a 276&nbsp;px budget — a real overflow in the most common non-happy state. The fix is not to
+  shave padding: <b>the centred "why" row under the CTA was merged into the status sub-line</b>, so the reason and its
+  remedy now share one line (<i>"Not the wallet linked to SGNUS · switch wallet ›"</i>). That removes 17&nbsp;px of text
+  plus a 6&nbsp;px gap from four of the six states, and it is better copy — the explanation and the way out are no longer
+  separated by a button.<br><br>
+  <b>Result:</b> B2's worst state is now <b>261&nbsp;px — +15&nbsp;px of headroom.</b> It fits, but it is the tightest of
+  the four by a wide margin. <b>Treat that as a standing constraint:</b> anything added to the compute block later breaks
+  B2 first. The <code>+12.4 GNUS earned</code> line is exactly such an addition — it is already excluded from B2's
+  measurement and stays a stretch item, gated on a mint/job-reward aggregate that no current API exposes.<br><br>
+  <b>Carried over from B4:</b> the 2&nbsp;px brand cap, applied to the <i>balance</i> tile only while a job is running —
+  a quiet, non-textual signal that the number is about to change. B4's raised surface is not carried over; two
+  elevations inside one card fight each other.<br><br>
+  <b>On the unit clash:</b> B2 keeps it. <code>1,204.50&nbsp;GNUS</code> here and <code>$312.40</code> in Assets remain the
+  same money in two units — mitigated only by the <code>≈ $312.40</code> subline making the relationship explicit.
+  B3 was the variant that resolved it outright and it was not chosen; if the disagreement between the 10&nbsp;s SDK poll
+  and the 60&nbsp;s CoinGecko poll ever becomes visible in practice, B3 is the fallback.
+</div>
+
+</div>
+
+<script>
+// ── data ────────────────────────────────────────────────────
+const ASSETS = [
+  { nm:'Genius',   sy:'GNUS', c:'#0AAEE6', v:'1,204.50', f:'$312.40' },
+  { nm:'Ethereum', sy:'ETH',  c:'#627EEA', v:'0.0000',   f:'$0.00' },
+  { nm:'Bitcoin',  sy:'BTC',  c:'#F7931A', v:'0.0000',   f:'$0.00' },
+  { nm:'Polygon',  sy:'MATIC',c:'#8247E5', v:'0.0000',   f:'$0.00' },
+];
+
+// The action link lives INLINE in the sub-line, not as a separate centred row under the CTA.
+// That merge is what buys B2 the 23 px it was missing — and it puts the reason and the remedy
+// on the same line, which is where they belong.
+const STATES = {
+  ready:      { c:'var(--status-success)', live:false, lb:'Ready', val:'idle', valOn:false,
+                sub:'Node online · waiting for work', bar:null, cta:'on', earn:true },
+  processing: { c:'var(--brand-primary)', live:true, lb:'Processing', val:'62%', valOn:true,
+                sub:'<span class="file">style-transfer.json</span> · ~4 min left', bar:62, cta:'on' },
+  init:       { c:'var(--status-warning)', live:true, lb:'Starting up', val:'30%', valOn:true,
+                sub:'Migrating database · step 3 of 5', bar:30, cta:'off' },
+  stalled:    { c:'var(--status-warning)', live:false, lb:'Still starting up', val:'', valOn:false,
+                sub:'Initializing blockchain service · <a data-go="network">see node status ›</a>',
+                bar:'stall', cta:'off' },
+  notlinked:  { c:'var(--text-secondary)', live:false, lb:'Not linked', val:'', valOn:false,
+                sub:'Not the wallet linked to SGNUS · <a data-go="wallet">switch wallet ›</a>',
+                bar:null, cta:'off' },
+  dead:       { c:'var(--status-error)', live:false, lb:'Status unavailable', val:'', valOn:false,
+                sub:'Lost contact with the node · <a data-go="retry">retry ›</a>', bar:null, cta:'on' },
+};
+
+// Content height = variant base + state delta. Budget is 276.
+// Deltas shrank once the centred why-row was merged into the sub-line (max delta 34 → 17).
+const BASE  = { a:178, b:244, c:196, b1:204, b2:244, b3:216, b4:222 };
+const DELTA = { ready:0, processing:17, init:17, stalled:17, notlinked:15, dead:0 };
+
+const BLURB = {
+  a:'<b>A · Stacked strip.</b> <span class="tag r1">Round 1</span> Balance as one compact line, a hairline, then a small uppercase <code>COMPUTE</code> kicker hands the rest of the card to processing. Cheapest structurally — no new container.',
+  b:'<b>B · Two tiles.</b> <span class="tag r1">Round 1</span> The direction you picked. Refined into B1–B4 above.',
+  c:'<b>C · Compute-only.</b> <span class="tag r1">Round 1</span> Balance leaves the card; Assets already owns the total, so the duplicate disappears by construction.',
+  b1:'<b>B1 · Sunken balance.</b> One tile holds the balance and its toggle; compute sits flush below a compact <code>COMPUTE</code> kicker, with the CTA on the card floor. The tile edge does the separating, so nothing else has to.',
+  b2:'<b>B2 · Twin tiles.</b> Both concerns get a container and read as siblings of equal rank. Costs 40&nbsp;px of chrome across two borders and two paddings — cycle to <b>Not linked</b> to see it break the budget.',
+  b3:'<b>B3 · Fiat hero.</b> <code>$312.40</code> becomes the big number, the token count drops to a subline. The only variant where this card and Assets measure in the same unit — at the cost of demoting exactly what the SGNUS branch exists to show.',
+  b4:'<b>B4 · Raised compute.</b> Depth inverted: the static balance sits flush, the live thing gets a raised tile with a 2&nbsp;px brand cap. Reads well in <b>Processing</b>; in <b>Ready</b> the raised surface competes with the card\'s own sheen for no reason.',
+};
+
+let variant = 'b2', state = 'ready', useMinions = false;
+
+// ── partials ────────────────────────────────────────────────
+const PLUS = '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+
+function toggle() {
+  return `<div class="tt">
+    <button data-m="0" aria-pressed="${!useMinions}"><span class="tk" style="background:#0AAEE6">G</span>GNUS</button>
+    <button data-m="1" aria-pressed="${useMinions}"><span class="tk" style="background:#C28FFF">M</span>Minions</button>
+  </div>`;
+}
+const amt  = () => useMinions ? '48,180' : '1,204.50';
+const unit = () => useMinions ? 'Minions' : 'GNUS';
+
+function cta(s, floor) {
+  const dis = s.cta === 'off' ? 'disabled' : '';
+  return `<div class="cta ${floor?'floor':''}">
+      <button class="btn grad" ${dis}>${PLUS}New processing job</button></div>`;
+}
+
+function statusBlock(s, opts = {}) {
+  const bar = s.bar === null ? ''
+    : s.bar === 'stall' ? '<div class="bar stall"><i style="width:52.5%"></i></div>'
+    : `<div class="bar"><i style="width:${s.bar}%"></i></div>`;
+  const earn = (s.earn && opts.earn) ? '<div class="earn">Earned by this node · <b>+12.4 GNUS</b></div>' : '';
+  return `<div class="cstatus">
+      <span class="dot ${s.live?'live':''}" style="background:${s.c};color:${s.c}"></span>
+      <span class="lb">${s.lb}</span>
+      <span class="val" style="color:${s.valOn?'var(--text-primary)':'var(--text-secondary)'}">${s.val}</span>
+    </div>
+    <div class="csub">${s.sub}</div>${bar}${earn}`;
+}
+
+const kicker = () => `<div class="stitle compact"><h3>Compute</h3>
+    <span class="end"><a class="lnk" data-go="network">Node ›</a></span></div>`;
+
+// ── layouts ─────────────────────────────────────────────────
+const LAYOUT = {
+  a: s => `<div class="balrow" style="padding:0 8px">
+      <div><span class="amt">${amt()}</span><span class="unit">${unit()}</span>
+        <div class="fiat">≈ $312.40</div></div>
+      <div class="end">${toggle()}</div></div>
+    <div class="sp" style="height:12px"></div><hr class="hr">
+    ${kicker()}
+    <div class="compute pad grow">${statusBlock(s)}${cta(s, true)}</div>`,
+
+  b: s => LAYOUT.b2(s),
+
+  c: s => `<div class="stitle"><h3>Compute</h3><span class="end"><a class="lnk" data-go="network">Node ›</a></span></div>
+    <div class="node">
+      <div class="av"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></div>
+      <div><div class="nm">This device</div><div class="ad">0x7a3f…9c21</div></div>
+      <div class="end" style="text-align:right"><div class="v">+12.4</div><div class="k">GNUS earned</div></div>
+    </div>
+    <div class="sp" style="height:12px"></div>
+    <div class="compute pad grow">${statusBlock(s)}${cta(s, true)}</div>`,
+
+  // ── round 2 ──
+  b1: s => `<div class="tile sunken ${state==='processing'?'capped':''}">
+      <div class="tlb">Balance</div>
+      <div class="balrow" style="margin-top:2px">
+        <div><span class="amt">${amt()}</span><span class="unit">${unit()}</span>
+          <div class="fiat">≈ $312.40</div></div>
+        <div class="end">${toggle()}</div></div>
+    </div>
+    <div class="sp" style="height:10px"></div>
+    ${kicker()}
+    <div class="compute grow" style="padding:0 2px">${statusBlock(s, {earn:true})}${cta(s, true)}</div>`,
+
+  b2: s => `<div class="tile sunken">
+      <div class="tlb">Balance</div>
+      <div class="balrow" style="margin-top:2px">
+        <div><span class="amt">${amt()}</span><span class="unit">${unit()}</span>
+          <div class="fiat">≈ $312.40</div></div>
+        <div class="end">${toggle()}</div></div>
+    </div>
+    <div class="sp" style="height:8px"></div>
+    <div class="tile sunken">
+      <div class="balrow" style="margin-bottom:4px"><span class="tlb">Compute</span>
+        <span class="end"><a class="lnk" data-go="network">Node ›</a></span></div>
+      <div class="compute">${statusBlock(s)}</div>
+    </div>
+    <div class="compute grow" style="justify-content:flex-end;padding-top:8px">${cta(s, true)}</div>`,
+
+  b3: s => `<div class="tile sunken">
+      <div class="tlb">Balance</div>
+      <div style="margin-top:2px"><span class="amt hero">$312.40</span></div>
+      <div class="balrow" style="margin-top:4px">
+        <div class="fiat"><span style="color:var(--text-primary);font-weight:600">${amt()}</span> ${unit()}</div>
+        <div class="end">${toggle()}</div></div>
+    </div>
+    <div class="sp" style="height:10px"></div>
+    ${kicker()}
+    <div class="compute grow" style="padding:0 2px">${statusBlock(s)}${cta(s, true)}</div>`,
+
+  b4: s => `<div class="balrow" style="padding:0 8px">
+      <div><div class="tlb">Balance</div>
+        <span class="amt small">${amt()}</span><span class="unit">${unit()}</span>
+        <span class="fiat"> · ≈ $312.40</span></div>
+      <div class="end">${toggle()}</div></div>
+    <div class="sp" style="height:10px"></div>
+    <div class="tile raised" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="balrow" style="margin:2px 0 6px"><span class="tlb">Compute</span>
+        <span class="end"><a class="lnk" data-go="network">Node ›</a></span></div>
+      <div class="compute grow">${statusBlock(s)}${cta(s, true)}</div>
+    </div>`,
+};
+
+function assetsHTML() {
+  const rows = ASSETS.map(a => `
+    <div class="arow">
+      <div class="ic" style="background:${a.c}">${a.sy.slice(0,3)}</div>
+      <div><div class="nm">${a.nm}</div><div class="sy">${a.sy}</div></div>
+      <div class="end" style="text-align:right"><div class="v">${a.v}</div><div class="f">${a.f}</div></div>
+    </div>`).join('<hr class="hr">');
+  return `<div class="stitle"><h3>Assets</h3>
+      <span class="end">
+        <div style="font:700 20px/26px var(--font);font-variant-numeric:tabular-nums">$312.40</div>
+        <div style="font:500 13px/18px var(--font);color:var(--status-success)">+$7.12 · +2.34%</div>
+      </span></div>${rows}`;
+}
+
+function heightsTable() {
+  const vs = ['b1','b2','b3','b4','a','c'];
+  const head = `<tr><th style="width:130px">State</th>` +
+    vs.map(v => `<th style="width:74px">${v.toUpperCase()}</th>`).join('') + `<th>Note</th></tr>`;
+  const NOTE = { ready:'All comfortable.', processing:'Bar + filename add 17 px.',
+                 init:'Same shape as processing.', stalled:'Extra explanatory line.',
+                 notlinked:'Disabled CTA keeps its height + reason line.', dead:'Retry affordance.' };
+  const rows = Object.keys(DELTA).map(st => {
+    const cells = vs.map(v => {
+      const h = BASE[v] + DELTA[st];
+      return `<td class="${h>276?'no':''}">${h} px</td>`;
+    }).join('');
+    return `<tr><td class="k">${st}</td>${cells}<td>${NOTE[st]}</td></tr>`;
+  }).join('');
+  const worst = vs.map(v => {
+    const head = 276 - (BASE[v] + Math.max(...Object.values(DELTA)));
+    return `<td class="${head<0?'no':'ok'}">${head>=0?'+':''}${head} px</td>`;
+  }).join('');
+  return head + rows + `<tr><td class="k"><b>Worst-case headroom</b></td>${worst}<td>Against the 276 px budget.</td></tr>`;
+}
+
+function render() {
+  const s = STATES[state];
+  document.getElementById('cardin').innerHTML = LAYOUT[variant](s);
+  document.getElementById('assets').innerHTML = assetsHTML();
+  document.getElementById('blurb').innerHTML = BLURB[variant];
+  document.getElementById('heights').innerHTML = heightsTable();
+  document.getElementById('card').classList.toggle('overflowing', BASE[variant] + DELTA[state] > 276);
+  document.getElementById('acap').innerHTML = 'Assets — shipped, unchanged <span class="px">588 × 300</span>';
+  document.querySelectorAll('.tt button').forEach(b => b.onclick = () => { useMinions = b.dataset.m === '1'; render(); });
+  annotateDestinations();
+  drawClash();
+}
+
+// ── every affordance must have somewhere to go ──────────────
+const DEST = {
+  network: { ok:'yes',
+    txt:'/network → NetworkStatusPage · router.dart:188 · route exists, UI is raw ListTiles (sketch 019)' },
+  wallet:  { ok:'partial',
+    txt:'AccountDropdownSelector._showAccountDrawer() → ResponsiveDrawer<Wallet> → selectWallet() · exists but PRIVATE and mounted only in the top-bar action row (responsive_overlay.dart:103). Needs a public opener.' },
+  retry:   { ok:'no',
+    txt:'NO DESTINATION. _processingTimer is cancelled permanently (app_bloc.dart:194). Needs a new AppBloc event that re-arms it.' },
+};
+function annotateDestinations() {
+  document.querySelectorAll('[data-go]').forEach(a => {
+    const d = DEST[a.dataset.go]; if (!d) return;
+    a.title = d.txt;
+    a.classList.toggle('missing', d.ok === 'no');
+  });
+}
+
+// ── unit-clash annotation ───────────────────────────────────
+function drawClash() {
+  document.querySelectorAll('.clash,.clashlb').forEach(e => e.remove());
+  if (!document.body.classList.contains('showclash')) return;
+  const left = document.querySelector('#cardin .amt');
+  const right = document.querySelector('#assets .stitle .end div');
+  [[left, variant==='b3' ? 'fiat · CoinGecko 60 s' : 'token count · SDK poll 10 s'],
+   [right,'fiat total · CoinGecko 60 s']].forEach(([el,lb]) => {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const box = document.createElement('div'); box.className = 'clash';
+    Object.assign(box.style, { left:(r.left+scrollX-5)+'px', top:(r.top+scrollY-4)+'px',
+                               width:(r.width+10)+'px', height:(r.height+8)+'px' });
+    document.body.appendChild(box);
+    const cap = document.createElement('div'); cap.className = 'clashlb'; cap.textContent = lb;
+    Object.assign(cap.style, { left:(r.left+scrollX-5)+'px', top:(r.top+scrollY+r.height+6)+'px' });
+    document.body.appendChild(cap);
+  });
+}
+
+function seg(id, fn) {
+  document.getElementById(id).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...b.parentNode.children].forEach(x => x.setAttribute('aria-pressed', x === b));
+    fn(b.dataset.v);
+  });
+}
+function pickVariant(v, otherSegId) {
+  variant = v;
+  [...document.getElementById(otherSegId).children].forEach(x => x.setAttribute('aria-pressed', 'false'));
+  render();
+}
+seg('theme',    v => { document.documentElement.dataset.theme = v; drawClash(); });
+seg('variant2', v => pickVariant(v, 'variant1'));
+seg('variant1', v => pickVariant(v, 'variant2'));
+seg('state',    v => { state = v; render(); });
+seg('clash',    v => { document.body.classList.toggle('showclash', v === 'on'); drawClash(); });
+addEventListener('resize', drawClash);
+addEventListener('scroll', drawClash, { passive:true });
+
+render();
+</script>
+</body>
+</html>
