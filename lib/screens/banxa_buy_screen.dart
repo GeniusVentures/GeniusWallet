@@ -19,6 +19,7 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
+import 'package:genius_wallet/components/effects/gw_activatable.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
@@ -92,7 +93,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
     // Same existing call `OrdersPage.initState` makes (D-01/D-02: no new
     // call, no new argument) — populates the rail with the same data the
     // orders history itself uses.
-    context.read<OrdersCubit>().fetchOrders('your-cust-id');
+    context.read<OrdersCubit>().fetchOrders();
   }
 
   @override
@@ -926,9 +927,10 @@ class _AmountChip extends StatelessWidget {
           final bool lifted = hovered && !selected;
           final Color textColor = selected
               ? gw.textPrimary
-              : (lifted ? gw.textPrimary : gw.textSecondary);
-          return GestureDetector(
-            onTap: onTap,
+              : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
+          return GWActivatable(
+            onPressed: onTap,
+            selected: selected,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 120),
               height: chipHeight,
@@ -1149,8 +1151,7 @@ class _OrdersRail extends StatelessWidget {
         child: GWErrorState(
           title: "Couldn't load your orders",
           message: state.error,
-          onRetry: () =>
-              context.read<OrdersCubit>().fetchOrders('your-cust-id'),
+          onRetry: () => context.read<OrdersCubit>().fetchOrders(),
         ),
       );
     }
@@ -1552,9 +1553,10 @@ class _OrderToneChip extends StatelessWidget {
           final bool lifted = hovered && !selected;
           final Color textColor = selected
               ? gw.textPrimary
-              : (lifted ? gw.textPrimary : gw.textSecondary);
-          return GestureDetector(
-            onTap: onTap,
+              : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
+          return GWActivatable(
+            onPressed: onTap,
+            selected: selected,
             child: AnimatedContainer(
               // 120ms matches `_TimeframeTab`/`_FilterChip`; all three
               // control tracks must settle at the same speed.

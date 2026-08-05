@@ -233,7 +233,13 @@ void main() {
 
         final youSpend = topOf(find.text('YOU SPEND'));
         final heroField = topOf(find.byType(GWTextField).first);
-        final track = topOf(find.byType(GWControlTrack));
+        // `.first` — the FORM's quick-amount track. A second GWControlTrack
+        // (the orders rail's filter track) is now on screen too: the rail
+        // used to sit in a network-error state here, and reaches its empty
+        // state — chrome included — since the orders cubit stopped querying
+        // with a placeholder customer id. This chain is about the form's own
+        // top-to-bottom order, so the form's track is the one to read.
+        final track = topOf(find.byType(GWControlTrack).first);
         final currency = topOf(find.text('CURRENCY'));
         final wallet = topOf(find.text('WALLET ADDRESS'));
         final grid = topOf(find.byType(GWDetailGrid));
@@ -312,6 +318,12 @@ void main() {
             isSelected: true,
             isButton: true,
             hasTapAction: true,
+            // The chip is keyboard-reachable since it moved onto
+            // `GWActivatable` (WCAG 2.1.1, Level A). Before that it was a bare
+            // `GestureDetector` and this matcher pinned the defect: no focus
+            // action, no isFocusable.
+            hasFocusAction: true,
+            isFocusable: true,
             label: '500',
           ),
         );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/effects/gw_activatable.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -73,7 +74,10 @@ class _GWTimeframeSegmentState extends State<GWTimeframeSegment> {
             // Selected chip wears the brand CTA gradient with textOnBrand
             // (near-black) -- AA-safe in BOTH modes, so no light-mode fallback
             // is needed. Hover raises an unselected tab onto surfaceElevated.
-            unselectedColor: gw.textSecondary,
+            // textMutedOnSunken, not textSecondary: this label paints
+            // directly on the track's surfaceSunken well, where
+            // textSecondary measures 4.23:1 in light mode.
+            unselectedColor: gw.textMutedOnSunken,
             hoverColor: gw.surfaceElevated,
             hoverTextColor: gw.textPrimary,
             onTap: () => setState(() => _selected = i),
@@ -116,8 +120,9 @@ class _TimeframeTab extends StatelessWidget {
         // a 1px lift, so hover and the selected gradient chip share a raised
         // material.
         final bool lifted = hovered && !selected;
-        return GestureDetector(
-          onTap: onTap,
+        return GWActivatable(
+          onPressed: onTap,
+          selected: selected,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             transformAlignment: Alignment.center,

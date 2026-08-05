@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart' show chartYBounds;
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
+import 'package:genius_wallet/components/effects/gw_activatable.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
@@ -663,7 +664,7 @@ class _TimeframeSegmentState extends State<_TimeframeSegment> {
             _TimeframeTab(
               label: _labels[i],
               selected: i == _selected,
-              unselectedColor: gw.textSecondary,
+              unselectedColor: gw.textMutedOnSunken,
               hoverColor: gw.surfaceElevated,
               hoverTextColor: gw.textPrimary,
               onTap: () => setState(() => _selected = i),
@@ -702,8 +703,9 @@ class _TimeframeTab extends StatelessWidget {
             ? context.gw.textOnBrand
             : (hovered ? hoverTextColor : unselectedColor);
         final bool lifted = hovered && !selected;
-        return GestureDetector(
-          onTap: onTap,
+        return GWActivatable(
+          onPressed: onTap,
+          selected: selected,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             transformAlignment: Alignment.center,

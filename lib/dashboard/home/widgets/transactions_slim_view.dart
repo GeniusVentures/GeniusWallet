@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
+import 'package:genius_wallet/components/effects/gw_activatable.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
@@ -817,10 +818,12 @@ class _FilterChip extends StatelessWidget {
                 ? context
                       .gw
                       .textOnBrand // 10.6:1 / 7.7:1 on the two stops
-                : (lifted ? gw.textPrimary : gw.textSecondary);
+                : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
 
-            return GestureDetector(
-              onTap: onTap,
+            return GWActivatable(
+              onPressed: onTap,
+              selected: active,
+              label: filter.label,
               child: AnimatedContainer(
                 // 120ms matches _TimeframeTab; the two controls must settle at
                 // the same speed or the dashboard feels assembled from parts.

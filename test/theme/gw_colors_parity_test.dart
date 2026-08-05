@@ -59,7 +59,7 @@ GWColors currentGwColors() =>
 void main() {
   group('Field-count drift guard', () {
     test(
-      'GWColors declares exactly 65 fields (21 pre-existing + 43 from the 23-01 token map + statusWarningText from the 23-03 follow-up)',
+      'GWColors declares exactly 66 fields (21 pre-existing + 43 from the 23-01 token map + statusWarningText from the 23-03 follow-up + textMutedOnSunken from the control-track AA fix)',
       () {
         // COMPILE-TIME TRIPWIRE, not a runtime reflection check -- Flutter has
         // no dart:mirrors. `GWColors`'s unnamed constructor makes every field
@@ -131,6 +131,7 @@ void main() {
           borderBrand: Colors.black,
           statusWarning: Colors.black,
           statusWarningText: Colors.black,
+          textMutedOnSunken: Colors.black,
           statusInfo: Colors.black,
           brandGreen: Colors.black,
           brandGreenStrong: Colors.black,

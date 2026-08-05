@@ -498,7 +498,7 @@ class _UnitSegment extends StatelessWidget {
           final bool lifted = hovered && !selected;
           final Color foreground = selected
               ? gw.textPrimary
-              : (lifted ? gw.textPrimary : gw.textSecondary);
+              : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
           final Color? fill = selected
               ? gw.surfaceMenu
               : (lifted ? gw.surfaceElevated : null);
