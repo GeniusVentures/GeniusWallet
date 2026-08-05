@@ -72,7 +72,7 @@ class SeededOrdersCubit extends OrdersCubit {
   final OrdersState _seeded;
 
   @override
-  Future<void> fetchOrders([String? externalCustomerIdOverride]) async {
+  Future<void> fetchOrders() async {
     emit(_seeded);
   }
 }

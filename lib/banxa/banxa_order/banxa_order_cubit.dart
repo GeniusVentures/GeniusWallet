@@ -29,10 +29,8 @@ class OrdersCubit extends Cubit<OrdersState> {
   String? get _customerId =>
       banxaCustomerId(_walletDetailsCubit?.state.selectedWallet?.address);
 
-  /// [externalCustomerIdOverride] exists for the dev fixtures only; production
-  /// call sites pass nothing and get the selected wallet's key.
-  Future<void> fetchOrders([String? externalCustomerIdOverride]) async {
-    final externalCustomerId = externalCustomerIdOverride ?? _customerId;
+  Future<void> fetchOrders() async {
+    final externalCustomerId = _customerId;
     emit(state.copyWith(status: OrdersStatus.loading, error: ''));
 
     // DEV-ONLY seam. Double-gated: `kDebugMode` is a const so this whole
