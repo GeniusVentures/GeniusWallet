@@ -246,7 +246,32 @@ class GWEmptyState extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: _anchorSearchHeight),
-            child: centred,
+            // Scrolls only when the slot is SHORTER than the compact block
+            // itself. Compact already shrinks the layout at 192/256, but a
+            // slot below even that -- the Buy GNUS orders rail on a short
+            // window -- had nowhere left to shrink to and overflowed
+            // (RenderFlex, 20px, surfaced by `buy_page_layout_test.dart` once
+            // the rail could reach its empty state at all). `Center` inside
+            // still takes the full height whenever there IS room, so every
+            // slot that already laid out correctly is untouched: a
+            // SingleChildScrollView passes its own unbounded-height
+            // constraint to `centred`, and `Center` with `mainAxisSize.min`
+            // resolves to the content height either way.
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                // The CAPPED height, not the raw slot height: in a tall slot
+                // the cap is what the block is centred within, and feeding the
+                // uncapped value here would stretch it to the full slot and
+                // undo the top anchoring above.
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight < _anchorSearchHeight
+                      ? constraints.maxHeight
+                      : _anchorSearchHeight,
+                ),
+                child: centred,
+              ),
+            ),
           ),
         );
       },

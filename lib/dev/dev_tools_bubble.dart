@@ -1094,9 +1094,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             DevBanxaFixtures.instance.arm(
                               DevBanxaOrders.seeded,
                             );
-                            context.read<OrdersCubit>().fetchOrders(
-                              'your-cust-id',
-                            );
+                            context.read<OrdersCubit>().fetchOrders();
                             ToastManager.instance.showToast(
                               context: context,
                               title: 'Banxa orders seeded',
@@ -1119,9 +1117,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           'Orders empty',
                           () {
                             DevBanxaFixtures.instance.arm(DevBanxaOrders.empty);
-                            context.read<OrdersCubit>().fetchOrders(
-                              'your-cust-id',
-                            );
+                            context.read<OrdersCubit>().fetchOrders();
                             ToastManager.instance.showToast(
                               context: context,
                               title: 'Banxa empty state armed',
@@ -1141,9 +1137,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           'Orders error',
                           () {
                             DevBanxaFixtures.instance.arm(DevBanxaOrders.error);
-                            context.read<OrdersCubit>().fetchOrders(
-                              'your-cust-id',
-                            );
+                            context.read<OrdersCubit>().fetchOrders();
                             ToastManager.instance.showToast(
                               context: context,
                               title: 'Banxa orders error armed',
@@ -1165,9 +1159,7 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           'Clear Banxa',
                           () {
                             DevBanxaFixtures.instance.disarm();
-                            context.read<OrdersCubit>().fetchOrders(
-                              'your-cust-id',
-                            );
+                            context.read<OrdersCubit>().fetchOrders();
                             ToastManager.instance.showToast(
                               context: context,
                               title: 'Banxa fixtures cleared',

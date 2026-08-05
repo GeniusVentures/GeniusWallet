@@ -817,32 +817,49 @@ class _FilterChip extends StatelessWidget {
                 ? context
                       .gw
                       .textOnBrand // 10.6:1 / 7.7:1 on the two stops
-                : (lifted ? gw.textPrimary : gw.textSecondary);
+                : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
 
-            return GestureDetector(
-              onTap: onTap,
-              child: AnimatedContainer(
-                // 120ms matches _TimeframeTab; the two controls must settle at
-                // the same speed or the dashboard feels assembled from parts.
-                duration: const Duration(milliseconds: 120),
-                height: size,
-                width: size,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  // Active is the brandCta GRADIENT, never a flat blue — the
-                  // app-wide rule the 260721-0ze brand sweep established.
-                  gradient: active ? GeniusWalletGradient.brandCta : null,
-                  color: active
-                      ? null
-                      : (lifted ? gw.surfaceElevated : Colors.transparent),
+            // InkWell for focus + Enter/Space (WCAG 2.1.1 Level A). The chip
+            // draws only a glyph, so `label` + excludeSemantics is what gives
+            // a screen reader the filter's name instead of nothing.
+            return Semantics(
+              button: true,
+              selected: active,
+              label: filter.label,
+              excludeSemantics: true,
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: onTap,
+                  hoverColor: Colors.transparent,
                   borderRadius: BorderRadius.circular(
                     GeniusWalletConsts.radiusPill,
                   ),
-                ),
-                child: badgeGlyph(
-                  badgeSpec(filter.badgeKind!, gw),
-                  color: fg,
-                  size: 15,
+                  child: AnimatedContainer(
+                    // 120ms matches _TimeframeTab; the two controls must settle
+                    // at the same speed or the dashboard feels assembled from
+                    // parts.
+                    duration: const Duration(milliseconds: 120),
+                    height: size,
+                    width: size,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      // Active is the brandCta GRADIENT, never a flat blue —
+                      // the app-wide rule the 260721-0ze brand sweep set.
+                      gradient: active ? GeniusWalletGradient.brandCta : null,
+                      color: active
+                          ? null
+                          : (lifted ? gw.surfaceElevated : Colors.transparent),
+                      borderRadius: BorderRadius.circular(
+                        GeniusWalletConsts.radiusPill,
+                      ),
+                    ),
+                    child: badgeGlyph(
+                      badgeSpec(filter.badgeKind!, gw),
+                      color: fg,
+                      size: 15,
+                    ),
+                  ),
                 ),
               ),
             );

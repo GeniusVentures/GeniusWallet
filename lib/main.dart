@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:device_preview/device_preview.dart';
@@ -26,6 +27,7 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/theme.dart';
+import 'package:genius_wallet/utils/secret_clipboard.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:go_router/go_router.dart';
@@ -227,6 +229,13 @@ class _AppLifecycleHandlerState extends State<AppLifecycleHandler>
       final result = widget.geniusApi.shutdownSDK(); // Handle app exit
       debugPrint("GeniusApi shutdown on detach: $result");
     }
+    if (state == AppLifecycleState.resumed) {
+      // A copied recovery phrase whose clear-timer fired while we were in the
+      // background: on Android 10+ an app without focus cannot touch the
+      // clipboard at all, so this resume is the first moment the clear can
+      // actually happen. No-op when nothing is pending.
+      unawaited(clearDueSecretFromClipboard());
+    }
   }
 
   @override
@@ -321,7 +330,7 @@ class MyApp extends StatelessWidget {
           BlocProvider<TransactionsCubit>(
             create: (_) => TransactionsCubit(), // Or with initial state
           ),
-          BlocProvider<OrdersCubit>(create: (_) => OrdersCubit()),
+
           BlocProvider<MakeOrderCubit>(
             create: (_) => MakeOrderCubit(BanxaApiService()),
           ),
@@ -329,6 +338,13 @@ class MyApp extends StatelessWidget {
             create: (_) => WalletDetailsCubit(
               geniusApi: context.read<GeniusApi>(),
               networkTokensProvider: context.read<NetworkTokensProvider>(),
+            ),
+          ),
+          // Declared AFTER WalletDetailsCubit: it reads the selected wallet to
+          // derive the Banxa customer key, the same way AppBloc below does.
+          BlocProvider<OrdersCubit>(
+            create: (context) => OrdersCubit(
+              walletDetailsCubit: context.read<WalletDetailsCubit>(),
             ),
           ),
           BlocProvider(

@@ -9,6 +9,7 @@ import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/secret_clipboard.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});
@@ -191,7 +192,14 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
               copyButton: TextButton.icon(
                 style: TextButton.styleFrom(foregroundColor: gw.textSecondary),
                 onPressed: () async {
+                  // The clear is armed on the line straight after the copy,
+                  // BEFORE the mounted guard: the phrase reaches the clipboard
+                  // whether or not this screen survives the await, so a screen
+                  // popped mid-copy must still leave the expiry armed. It
+                  // touches no BuildContext, so it does not weaken the
+                  // adjacency the guard below exists to keep (finding 19).
                   await FlutterClipboard.copy(words.join(' '));
+                  scheduleSecretClipboardClear(words.join(' '));
                   if (!context.mounted) {
                     return;
                   }

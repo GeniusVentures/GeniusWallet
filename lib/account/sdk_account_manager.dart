@@ -20,6 +20,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/secret_clipboard.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -330,6 +331,10 @@ class SDKAccountManagerButton extends StatelessWidget {
       return;
     }
     await Clipboard.setData(ClipboardData(text: mnemonic));
+    // The other half of the confirmation above: the dialog makes the exposure
+    // deliberate, this ends it. Conditional, so a value the user copies in the
+    // meantime survives.
+    scheduleSecretClipboardClear(mnemonic);
     unawaited(HapticFeedback.lightImpact());
     if (navigator.context.mounted) {
       // `navigator.context` is the ROOT navigator's and outlives the popped

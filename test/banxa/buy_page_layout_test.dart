@@ -140,12 +140,13 @@ void main() {
       await pumpOffline(tester, width: 1400, height: 1400);
 
       final formMarker = tester.getTopLeft(find.text('Get quote'));
-      // The orders rail is deterministically in its OWN error state offline
-      // (same unreachable-sandbox reasoning as the form) — "Couldn't load
-      // your orders" is its stable marker in every layout.
-      final railMarker = tester.getTopLeft(
-        find.text("Couldn't load your orders"),
-      );
+      // The rail's KICKER, not its error text. The old marker was
+      // "Couldn't load your orders", which only appeared because the offline
+      // fetch failed — once the cubit stopped querying with a placeholder
+      // customer id, a wallet-less rail correctly shows its empty state and
+      // the error text is gone. The kicker renders in every state and both
+      // layout branches.
+      final railMarker = tester.getTopLeft(find.text('YOUR ORDERS').first);
 
       expect(railMarker.dx, greaterThan(formMarker.dx));
     });
@@ -156,9 +157,7 @@ void main() {
       await pumpOffline(tester, width: 800, height: 2200);
 
       final formBottom = tester.getBottomLeft(find.text('Get quote'));
-      final railMarker = tester.getTopLeft(
-        find.text("Couldn't load your orders"),
-      );
+      final railMarker = tester.getTopLeft(find.text('YOUR ORDERS').first);
 
       expect(railMarker.dy, greaterThan(formBottom.dy));
     });

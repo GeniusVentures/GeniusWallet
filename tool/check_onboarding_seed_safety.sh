@@ -78,8 +78,9 @@
 #   bash tool/check_onboarding_seed_safety.sh
 #
 # Takes no arguments; checks the whole of this phase's finished scope. Prints one
-# PASS/FAIL line per check, then a single summary line. Exits 0 iff all six pass,
-# 1 (with the offending detail) otherwise.
+# PASS/FAIL line per check, then a single summary line. Exits 0 iff all seven pass,
+# 1 (with the offending detail) otherwise. CHECK 7 was added later and is not a
+# Section 3 property; it guards the import screen's controller lifecycle.
 #
 # SCOPE HONESTY  (what this gate does NOT prove -- do not overclaim)
 # -----------------------------------------------------------------
@@ -113,6 +114,7 @@ RECOVERY="lib/onboarding/new_wallet/view/recovery_phrase_screen.dart"
 VERIFY="lib/onboarding/new_wallet/view/verify_recovery_phrase_screen.dart"
 PASTE="lib/onboarding/widgets/paste_field.dart"
 PIN="lib/screens/pin_screen.dart"
+IMPORT_SCREEN="lib/onboarding/existing_wallet/view/import_security_screen.dart"
 
 FAIL=0
 
@@ -187,7 +189,7 @@ fi
 # ---------------------------------------------------------------------------
 # CHECK 4 (3.4, finding 19): the mounted guard is ADJACENT to the awaited copy.
 # ---------------------------------------------------------------------------
-echo "== CHECK 4 (3.4): 'if (!mounted) return;' within 2 lines after the awaited copy =="
+echo "== CHECK 4 (3.4): 'if (!mounted) return;' adjacent to (<=3 lines after) the awaited copy =="
 # Comment-stripped first so a commented-out guard cannot satisfy this, then
 # grep -A2 on the awaited copy call and require the guard inside that 3-line
 # window. ADJACENCY, not presence: a guard that drifted below the snackbar call
@@ -212,12 +214,21 @@ echo "== CHECK 4 (3.4): 'if (!mounted) return;' within 2 lines after the awaited
 # Both spellings satisfy this check's actual security intent: a lifecycle
 # guard sits within 2 lines of the awaited copy, before the context reaches
 # ScaffoldMessenger.
-copy_window=$(strip_comments "$RECOVERY" | grep -A2 -E 'await[[:space:]]+FlutterClipboard\.copy\(' || true)
+# Window widened -A2 -> -A3 when the clipboard-expiry call landed between the
+# copy and the guard (`scheduleSecretClipboardClear(...)`, one line, touching
+# no BuildContext). The braced guard spends two lines of the window on its own
+# (`if (...) {` then `return;`), so one intervening statement exhausted -A2 and
+# tripped this check even though the guard was still immediately before the
+# first context use. -A3 restores that headroom WITHOUT weakening the intent:
+# the snackbar call sits further down than any of these, so finding 19's actual
+# failure mode -- a guard that drifted below ScaffoldMessenger -- is still
+# outside the window and still fails.
+copy_window=$(strip_comments "$RECOVERY" | grep -A3 -E 'await[[:space:]]+FlutterClipboard\.copy\(' || true)
 copy_window_collapsed=$(printf '%s\n' "$copy_window" | tr '\n' ' ' | tr -s '[:space:]' ' ')
 if printf '%s' "$copy_window_collapsed" | grep -qE 'if[[:space:]]*\([[:space:]]*!([A-Za-z_][A-Za-z0-9_]*\.)?[[:space:]]*mounted[[:space:]]*\)[[:space:]]*\{?[[:space:]]*return;'; then
   echo "PASS [3.4]: the mounted guard is adjacent to (<=2 lines after) the awaited copy."
 else
-  echo "FAIL [3.4]: no 'if (!mounted) return;' within 2 lines after the awaited FlutterClipboard.copy() in $RECOVERY."
+  echo "FAIL [3.4]: no 'if (!mounted) return;' within 3 lines after the awaited FlutterClipboard.copy() in $RECOVERY."
   FAIL=1
 fi
 
@@ -258,11 +269,47 @@ else
   FAIL=1
 fi
 
+# ---------------------------------------------------------------------------
+# CHECK 7: the import screen's key-material controllers are OWNED and DISPOSED.
+#
+# `import_security_screen.dart` builds a TextEditingController per import tab --
+# seed phrase, private key, keystore password. They used to be constructed
+# inside build(), so every rebuild abandoned a live set holding key material and
+# none was ever disposed (06-04 recorded the defect and fenced the fix out of
+# scope). A StatelessWidget cannot dispose anything, so the shape of the class
+# IS the guarantee here: this check fails if it regresses to Stateless, or if
+# the dispose() that clears and releases them disappears.
+# ---------------------------------------------------------------------------
+echo ""
+echo "== CHECK 7: import screen owns and disposes its key-material controllers =="
+c7_ok=1
+
+if grep -qE 'class ImportSecurityScreen extends StatelessWidget' "$IMPORT_SCREEN"; then
+  echo "FAIL [7]: ImportSecurityScreen is a StatelessWidget again -- it cannot dispose the controllers holding the seed phrase, private key and keystore password."
+  c7_ok=0
+fi
+
+if grep -qE 'TextEditingController\(\)' "$IMPORT_SCREEN" && ! grep -qE 'void dispose\(\)' "$IMPORT_SCREEN"; then
+  echo "FAIL [7]: $IMPORT_SCREEN constructs TextEditingControllers but declares no dispose()."
+  c7_ok=0
+fi
+
+if ! grep -qE '\.dispose\(\)' "$IMPORT_SCREEN"; then
+  echo "FAIL [7]: $IMPORT_SCREEN never calls .dispose() on its controllers."
+  c7_ok=0
+fi
+
+if [ "$c7_ok" -eq 1 ]; then
+  echo "PASS [7]: ImportSecurityScreen is stateful and disposes its controllers."
+else
+  FAIL=1
+fi
+
 echo ""
 if [ "$FAIL" -ne 0 ]; then
   echo "check_onboarding_seed_safety.sh: FAILED"
   exit 1
 else
-  echo "check_onboarding_seed_safety.sh: PASSED -- all six Section 3 checks hold over the finished tree."
+  echo "check_onboarding_seed_safety.sh: PASSED -- all seven checks hold over the finished tree."
   exit 0
 fi

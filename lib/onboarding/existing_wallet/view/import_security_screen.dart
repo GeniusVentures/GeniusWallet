@@ -14,7 +14,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 
-class ImportSecurityScreen extends StatelessWidget {
+class ImportSecurityScreen extends StatefulWidget {
   final String walletType;
   final TWCoinType coinType;
   const ImportSecurityScreen({
@@ -24,16 +24,30 @@ class ImportSecurityScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final isNarrow = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
+  State<ImportSecurityScreen> createState() => _ImportSecurityScreenState();
+}
 
-    // KNOWN DEFECT, DELIBERATELY NOT FIXED HERE (06-04 §1): these controllers
-    // are constructed inside build() and never disposed, and they hold key
-    // material. Making them stateful is a StatelessWidget -> StatefulWidget
-    // conversion — a restructure, which this plan forbids. Noted, left alone;
-    // 06-06 files it as a todo.
-    final tabControllers = {
+class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
+  // Owned by the State, not rebuilt per frame. These hold a seed phrase, a
+  // private key and a keystore password: constructing them in `build()` left
+  // one abandoned set per rebuild, each retaining key material for as long as
+  // the GC took to notice, and none of them ever disposed. (06-04 §1 recorded
+  // the defect and fenced the fix out of scope as a Stateless -> Stateful
+  // restructure; this is that restructure.)
+  //
+  // `TextEditingController` holds a `String`, which is immutable and cannot be
+  // zeroed — AGENTS.md prefers `Uint8List` for exactly this reason. Clearing
+  // before dispose drops this object's reference at a known point instead of
+  // an arbitrary one; it does not scrub the characters from the heap. That
+  // remains the real ceiling here.
+  late final Map<String, Map<String, TextEditingController>> _tabControllers;
+  late final TextEditingController _walletNameController;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabControllers = {
       'phrase': {'pasteField': TextEditingController()},
       'privatekey': {'pasteField': TextEditingController()},
       'keystore': {
@@ -42,10 +56,29 @@ class ImportSecurityScreen extends StatelessWidget {
       },
       'address': {'pasteField': TextEditingController()},
     };
+    _walletNameController = TextEditingController();
+  }
 
-    final walletNameController = TextEditingController();
+  @override
+  void dispose() {
+    for (final tab in _tabControllers.values) {
+      for (final controller in tab.values) {
+        controller.clear();
+        controller.dispose();
+      }
+    }
+    _walletNameController.dispose();
+    super.dispose();
+  }
 
-    final formKey = GlobalKey<FormState>();
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final isNarrow = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
+
+    final tabControllers = _tabControllers;
+    final walletNameController = _walletNameController;
+    final formKey = _formKey;
 
     return Stack(
       children: [
@@ -86,7 +119,7 @@ class ImportSecurityScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Import $walletType Wallet',
+                              'Import ${widget.walletType} Wallet',
                               style: GeniusWalletTypography.headlineLg.copyWith(
                                 color: gw.textPrimary,
                               ),
@@ -199,9 +232,9 @@ class ImportSecurityScreen extends StatelessWidget {
 
                                 context.read<ExistingWalletBloc>().add(
                                   WalletSecurityEntered(
-                                    coinType: coinType,
+                                    coinType: widget.coinType,
                                     walletName: walletNameController.text,
-                                    walletType: walletType,
+                                    walletType: widget.walletType,
                                     securityType: getSecurityTypeFromTab(
                                       selectedEntry.key,
                                     ),

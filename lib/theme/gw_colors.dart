@@ -99,6 +99,7 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.borderBrand,
     required this.statusWarning,
     required this.statusWarningText,
+    required this.textMutedOnSunken,
     required this.statusInfo,
     required this.brandGreen,
     required this.brandGreenStrong,
@@ -242,6 +243,23 @@ class GWColors extends ThemeExtension<GWColors> {
   /// duplication 23-01 warned about and 23-04's raw-colour gate would trip on.
   final Color statusWarningText;
 
+  /// Muted label text painted DIRECTLY on [surfaceSunken] -- the control-track
+  /// well. Every `GWControlTrack` consumer paints its UNSELECTED chip label
+  /// here (selected chips sit on an opaque brand gradient and are unaffected).
+  ///
+  /// Exists because [textSecondary] is calibrated against the page and card
+  /// canvases (6.3:1 there) and NOT against [surfaceSunken], the darkest gray
+  /// step: on light's `#CFD4DB` it measures **4.23:1**, under the 4.5:1 body
+  /// floor. The chip label is 12px `w600`, and WCAG large text starts at
+  /// 18.66px bold, so the 3:1 large-text allowance does not apply.
+  ///
+  /// Light is `#4A5060` (5.41:1 on `surfaceSunken` #CFD4DB); dark keeps
+  /// [textSecondary]'s own value, which already clears 6.20:1 on the near-black
+  /// sunken step. Same shape as [statusWarningText]: a foreground-purposed
+  /// token rather than a divergent value on the surface token, so the four
+  /// tracks stay conformant instead of one of them picking a one-off.
+  final Color textMutedOnSunken;
+
   final Color statusInfo;
 
   // Backwards-compatibility aliases -- see genius_wallet_colors.dart's own
@@ -332,6 +350,7 @@ class GWColors extends ThemeExtension<GWColors> {
       borderBrand: GeniusWalletColors._borderBrand,
       statusWarning: GeniusWalletColors._statusWarning,
       statusWarningText: const Color(0xFF92400E),
+      textMutedOnSunken: const Color(0xFF4A5060),
       statusInfo: GeniusWalletColors._statusInfo,
       brandGreen: GeniusWalletColors._brandGreen,
       brandGreenStrong: GeniusWalletColors._brandGreenStrong,
@@ -495,6 +514,7 @@ class GWColors extends ThemeExtension<GWColors> {
       borderBrand: GeniusWalletColors._borderBrand,
       statusWarning: GeniusWalletColors._statusWarning,
       statusWarningText: GeniusWalletColors._statusWarning,
+      textMutedOnSunken: GeniusWalletColors._textSecondary,
       statusInfo: GeniusWalletColors._statusInfo,
       brandGreen: GeniusWalletColors._brandGreen,
       brandGreenStrong: GeniusWalletColors._brandGreenStrong,
@@ -653,6 +673,7 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? borderBrand,
     Color? statusWarning,
     Color? statusWarningText,
+    Color? textMutedOnSunken,
     Color? statusInfo,
     Color? brandGreen,
     Color? brandGreenStrong,
@@ -721,6 +742,7 @@ class GWColors extends ThemeExtension<GWColors> {
       borderBrand: borderBrand ?? this.borderBrand,
       statusWarning: statusWarning ?? this.statusWarning,
       statusWarningText: statusWarningText ?? this.statusWarningText,
+      textMutedOnSunken: textMutedOnSunken ?? this.textMutedOnSunken,
       statusInfo: statusInfo ?? this.statusInfo,
       brandGreen: brandGreen ?? this.brandGreen,
       brandGreenStrong: brandGreenStrong ?? this.brandGreenStrong,
