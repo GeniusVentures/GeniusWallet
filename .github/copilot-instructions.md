@@ -1,3 +1,17 @@
+<!--
+  GENERATED FILE - DO NOT EDIT.
+
+  Source: AGENTS.md at the repo root. Edit that, then run:
+      bash tool/check_agent_rules_sync.sh --fix
+
+  This copy exists because GitHub Copilot's editor integrations (VS Code and
+  Copilot for Xcode) read .github/copilot-instructions.md automatically, while
+  their AGENTS.md support is experimental and off by default. Claude Code and
+  opencode read AGENTS.md directly and need no copy.
+
+  See docs/ai-agents.md for the full picture.
+-->
+
 > **This file is the single source of truth for every AI agent on this repo.**
 > Claude Code, opencode and Copilot's coding agent read it directly.
 > `.github/copilot-instructions.md` is a GENERATED copy for Copilot in VS Code
