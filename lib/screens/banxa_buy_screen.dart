@@ -202,10 +202,10 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
                       // Transactions/Markets/News (`transactions_screen.dart:
                       // 49-90`), so `/buy`'s title lands at the same X.
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          12,
-                          GeniusWalletConsts.space32,
-                          12,
+                        padding: EdgeInsets.fromLTRB(
+                          GeniusBreakpoints.pageGutter(context),
+                          GeniusBreakpoints.pageTitleGap(context),
+                          GeniusBreakpoints.pageGutter(context),
                           GeniusWalletConsts.space8,
                         ),
                         child: ConstrainedBox(

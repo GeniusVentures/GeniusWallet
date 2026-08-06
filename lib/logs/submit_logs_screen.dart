@@ -430,15 +430,13 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       body: Align(
         alignment: Alignment.topCenter,
         child: SingleChildScrollView(
-          // topCenter + space32 top: the navbar→title gap, unified with the
-          // other tabs (transactions_screen.dart). Scroll so the card never
-          // clips on a short window or with the keyboard up. 12/8 sides match
-          // the shared page frame so the title lands at the same X as
-          // Transactions / Markets / News.
-          padding: const EdgeInsets.fromLTRB(
-            12,
-            GeniusWalletConsts.space32,
-            12,
+          // topCenter + the shared gap/gutter (`GeniusBreakpoints`), so the
+          // title lands at the same X as the other tabs. Scroll so the card
+          // never clips on a short window or with the keyboard up.
+          padding: EdgeInsets.fromLTRB(
+            GeniusBreakpoints.pageGutter(context),
+            GeniusBreakpoints.pageTitleGap(context),
+            GeniusBreakpoints.pageGutter(context),
             8,
           ),
           child: ConstrainedBox(

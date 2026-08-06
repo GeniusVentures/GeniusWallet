@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show GeniusApi;
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
@@ -196,17 +198,23 @@ void main() {
     // branch and renders identically either way. Logged for 15-06 in
     // `deferred-items.md`.
     await tester.pumpWidget(_host(txs: const []));
-    await tester.pumpAndSettle();
+    // `pump`, NOT `pumpAndSettle`: below 768 the page mounts
+    // `GWMeshBackground`, whose controller `..repeat()`s forever, so
+    // pumpAndSettle times out. Every other test here runs at 1000px+, where no
+    // mesh mounts and settling is still correct.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
-    // At 360 the xxl cap is inert, so this 12px is the Padding's alone. Delete
-    // the Padding and the content sits on the window bezel — the defect the
-    // 06-01 walk found in `wallet_creation_screen.dart`.
+    // At 360 the xxl cap is inert, so this gutter is the Padding's alone.
+    // Delete the Padding and the content sits on the window bezel — the defect
+    // the 06-01 walk found in `wallet_creation_screen.dart`. 6, not 12: the
+    // gutter halves below 768. Above it, the two cap tests pin 12.
     expect(
       tester.getTopLeft(find.byType(GWPageHeader)).dx,
-      closeTo(12, 0.01),
-      reason: 'expected the 12px gutter to survive a viewport under the cap',
+      closeTo(6, 0.01),
+      reason: 'expected a gutter to survive a viewport under the cap',
     );
-    expect(_contentWidth(tester), closeTo(360 - 24, 1));
+    expect(_contentWidth(tester), closeTo(360 - 12, 1));
     expect(tester.takeException(), isNull);
   });
 
@@ -267,6 +275,61 @@ void main() {
       findsNothing,
       reason: 'no footer count, no All summary — neither presentation totals',
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  // ── The phone page (quick task 260806-hfe) ────────────────────────────────
+  //
+  // Both use `pump`, not `pumpAndSettle` — below 768 the page mounts
+  // `GWMeshBackground`, whose controller repeats forever.
+
+  testWidgets('phone: a never-transacted wallet gets the empty state, and no '
+      'filter control', (tester) async {
+    _surface(tester, 360, 800);
+    await tester.pumpWidget(_host(txs: const []));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // BRANCH 1. The page title stays — only the panel's duplicate went.
+    expect(find.byType(GWPageHeader), findsOneWidget);
+    expect(find.byType(GWEmptyState), findsOneWidget);
+    expect(find.text(emptyTransactionsTitle), findsOneWidget);
+
+    // 15-03's rule, carried into the phone page: a control that filters an
+    // empty set is an offer the app cannot honour. This is the half that was
+    // never walked, so it is pinned here instead.
+    expect(
+      find.byType(GWControlTrack),
+      findsNothing,
+      reason: 'the filter bar must be hidden entirely on an empty scope',
+    );
+    // The narrow page must never re-emit the panel's own title (the duplicate
+    // "Transactions" this phase removed), empty scope included.
+    expect(find.byType(GWSectionTitle), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('phone: the filter chips are a real touch target', (
+    tester,
+  ) async {
+    // 320 is the stress case, not 360: if the wider chips fit here they fit
+    // on every phone.
+    _surface(tester, 320, 800);
+    await tester.pumpWidget(_host());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // 44 chip + GWControlTrack's 3px padding each side + its 1px hairline each
+    // side = 52. Measuring the track rather than the private _FilterChip keeps
+    // this assertion on a public surface; the border is in the number because
+    // it is in the painted control.
+    expect(
+      tester.getSize(find.byType(GWControlTrack)).height,
+      closeTo(44 + 6 + 2, 0.01),
+      reason: 'phone chips must be 44 (44pt iOS), not the panel-inline 32',
+    );
+    // The whole point of the audit: the wider bar must still FIT at 320, which
+    // it only does because the phone page gives it its own row.
     expect(tester.takeException(), isNull);
   });
 }

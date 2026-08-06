@@ -82,7 +82,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
-        // top space32 (64) — navbar→title gap unified with Transactions/Swap.
+        // Shared navbar→title gap (`GeniusBreakpoints.pageTitleGap`).
         //
         // Horizontal gutter is 0 HERE and 12 on each child instead. It used to
         // be 12 here, which put it OUTSIDE the data view's SingleChildScrollView
@@ -92,7 +92,12 @@ class _MarketsScreenState extends State<MarketsScreen> {
         // rather than raised. Same class of bug as quick 260720-gzq. Moving the
         // gutter inside the viewport gives the shadow 12 of its 16 to render
         // into; the last 4 are below visibility at this alpha.
-        padding: const EdgeInsets.fromLTRB(0, GeniusWalletConsts.space32, 0, 8),
+        padding: EdgeInsets.fromLTRB(
+          0,
+          GeniusBreakpoints.pageTitleGap(context),
+          0,
+          8,
+        ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
           child: Column(
@@ -100,9 +105,11 @@ class _MarketsScreenState extends State<MarketsScreen> {
               // Carries the page gutter itself so it stays on the same axis as
               // the hero card and the table, which now carry it inside the
               // scroll viewport (see the Padding above).
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: GWPageHeader(title: "Markets"),
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: GeniusBreakpoints.pageGutter(context),
+                ),
+                child: const GWPageHeader(title: "Markets"),
               ),
               // Expanded at the COLUMN level so EVERY state — the loading
               // spinner, the error/empty `_centered`, and the data scroll view
@@ -193,10 +200,10 @@ class _MarketsScreenState extends State<MarketsScreen> {
         // render instead of being clipped flat by the scroll viewport. The
         // 'Markets' title carries the same 12, so the alignment the previous
         // comment protected is unchanged — only the clipping is.
-        padding: const EdgeInsets.fromLTRB(
-          12,
+        padding: EdgeInsets.fromLTRB(
+          GeniusBreakpoints.pageGutter(context),
           GeniusWalletConsts.space6,
-          12,
+          GeniusBreakpoints.pageGutter(context),
           GeniusWalletConsts.space20,
         ),
         child: Column(

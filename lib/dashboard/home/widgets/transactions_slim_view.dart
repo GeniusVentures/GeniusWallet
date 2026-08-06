@@ -143,6 +143,11 @@ const String emptyTransactionsTitle = 'No transactions yet';
 const String emptyTransactionsMessage =
     'Your sends, receives and swaps will appear here.';
 
+/// End-of-list terminus, so a scrolled history reads as finished rather than
+/// as a load that stopped. Not the footer count Phase 12 removed — that was a
+/// running total; this carries no number.
+const String endOfTransactionsLabel = 'No more transactions';
+
 /// The FILTER-MATCHED-NOTHING title, e.g. `No swapped transactions`.
 ///
 /// Naming the filter is the whole point: the shipped app printed
@@ -362,11 +367,40 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         // two crushed columns.
         final bool wide = constraints.maxWidth >= GeniusBreakpoints.medium;
 
-        // The narrow branch reuses the panel outright rather than duplicating
-        // a third layout, so a phone-width /transactions route looks exactly
-        // like the dashboard panel.
+        // The narrow branch used to `return _panel(...)`, which put TWO
+        // "Transactions" on a phone — the route supplies `GWPageHeader` and
+        // `_panel` carries its own `GWSectionTitle`. So the narrow PAGE gets
+        // its own presentation instead. `_panel` is untouched; the dashboard
+        // still needs its title.
         if (!wide) {
-          return _panel(context, gw, scoped, txs);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Same `scoped.isEmpty` rule as the panel's chips and the wide
+              // rail (15-03).
+              if (scoped.isNotEmpty) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _TransactionFilterBar(
+                    selected: selectedFilter,
+                    // `scoped`, NEVER `txs` — counts over the already-filtered
+                    // list read 0 for every inactive filter.
+                    counts: filterCounts(scoped),
+                    onChanged: (f) => setState(() => selectedFilter = f),
+                    // The bar has its own row here, so the width for a real
+                    // touch target exists. The panel's inline bar does not.
+                    chipSize: _TransactionFilterBar.touchChipSize,
+                  ),
+                ),
+                const SizedBox(height: GeniusWalletConsts.space6),
+              ],
+              // NOT scrollable: the PAGE scrolls (`transactions_screen.dart`).
+              DashboardScrollContainer(
+                child: _body(context, gw, scoped, txs, scrollable: false),
+              ),
+            ],
+          );
         }
 
         return Row(
@@ -461,6 +495,10 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     // BRANCH 3 — the list. Flattened HERE, in build, not in itemBuilder: the
     // day/row/divider interleave is decided once per build instead of running
     // index arithmetic on every visible item every frame.
+    //
+    // Window-derived, not row-derived: the dashboard panel is narrow but lives
+    // on desktop. Same bool `TransactionRow` uses.
+    final bool compact = !GeniusBreakpoints.useDesktopLayout(context);
     final entries = <Widget>[];
     final days = groupTransactionsByDay(txs);
     for (var d = 0; d < days.length; d++) {
@@ -468,7 +506,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
       entries.add(
         Padding(
           padding: EdgeInsets.fromLTRB(
-            GeniusWalletConsts.space6,
+            compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
             // Measured against the other panels rather than picked by eye.
             //
             // FIRST header (space4): Assets and Markets put GWSectionTitle's
@@ -484,9 +522,18 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
             // that separates two rows inside a day (space4 + space4). At the
             // old space8 a day boundary measured 24, identical to the
             // title->content gap, so day blocks did not read as separated.
-            d == 0 ? GeniusWalletConsts.space4 : GeniusWalletConsts.space12,
-            GeniusWalletConsts.space6,
-            GeniusWalletConsts.space2,
+            //
+            // Halved on phone. The 2:1 ratio the reasoning above protects
+            // holds on both sides, just tighter.
+            d == 0
+                ? (compact
+                      ? GeniusWalletConsts.space2
+                      : GeniusWalletConsts.space4)
+                : (compact
+                      ? GeniusWalletConsts.space6
+                      : GeniusWalletConsts.space12),
+            compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
+            compact ? 2 : GeniusWalletConsts.space2,
           ),
           // 13px labelMd, not the sketch's 11px: genius_wallet_typography.dart
           // records the floor was deliberately raised from 12 to 13 because
@@ -513,6 +560,28 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         }
       }
     }
+
+    // Reached only in BRANCH 3, so a row always precedes it — it can never
+    // contradict an empty state. Neither presentation truncates, so "no more"
+    // is literally true.
+    entries.add(
+      Padding(
+        padding: EdgeInsets.fromLTRB(
+          compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
+          GeniusWalletConsts.space4,
+          compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
+          GeniusWalletConsts.space2,
+        ),
+        child: Text(
+          endOfTransactionsLabel,
+          textAlign: TextAlign.center,
+          style: GeniusWalletTypography.bodySm.copyWith(
+            fontSize: compact ? 11 : null,
+            color: gw.textSecondary,
+          ),
+        ),
+      ),
+    );
 
     // A Column, not a shrink-wrapped ListView: `entries` is already fully
     // built above, so there is no laziness left to preserve and shrinkWrap
@@ -586,13 +655,27 @@ class _TransactionFilterBar extends StatelessWidget {
     required this.selected,
     required this.counts,
     required this.onChanged,
+    this.chipSize = _chipSize,
   });
 
   final Filters selected;
   final Map<Filters, int> counts;
   final ValueChanged<Filters> onChanged;
 
+  /// Chip edge. Defaults to the 32 the panel has always drawn, where the bar
+  /// shares a row with `GWSectionTitle` and has no width to spare.
+  ///
+  /// The phone PAGE passes [touchChipSize]: there the bar sits on its own row,
+  /// so the width exists to reach a real touch target. `transaction_filters_
+  /// test.dart` pins both widths.
+  final double chipSize;
+
   static const double _chipSize = 32;
+
+  /// 44 — the larger of the two platform minima (44pt iOS, 48dp Android is
+  /// still unmet) and comfortably over WCAG 2.2 SC 2.5.8's 24x24, which is the
+  /// only one of the three that is a conformance requirement.
+  static const double touchChipSize = 44;
 
   @override
   Widget build(BuildContext context) {
@@ -654,7 +737,7 @@ class _TransactionFilterBar extends StatelessWidget {
   Widget _chip(GWColors gw, Filters f) => _FilterChip(
     filter: f,
     active: f == selected,
-    size: _chipSize,
+    size: chipSize,
     // Tapping the active chip clears back to All — the
     // `emptySelectionAllowed` behaviour the segmented button had.
     onTap: () => onChanged(f == selected ? Filters.all : f),
@@ -687,8 +770,8 @@ class _TransactionFilterBar extends StatelessWidget {
         for (final f in Filters.overflowStatuses) _menuItem(gw, f),
       ],
       child: Container(
-        width: _chipSize,
-        height: _chipSize,
+        width: chipSize,
+        height: chipSize,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: filtered ? GeniusWalletGradient.brandCta : null,

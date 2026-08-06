@@ -13,6 +13,7 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:intl/intl.dart';
 
@@ -37,6 +38,15 @@ const double _wideRowThreshold = 720;
 /// (Jakub's "all statuses respect one place"). Sized for the largest realistic
 /// amount; a rare bigger one ellipsizes and keeps its `exactAmount` tooltip.
 const double _wideAmountWidth = 184;
+
+/// Narrow row: the name+tag block takes this many parts against the amount's
+/// 1. Was 1:1, which gave the amount half the row for a string needing far
+/// less. A flex ratio, not a measured width — measuring per layout is what the
+/// freeze rule bans (37639d5).
+///
+/// ponytail: long amounts truncate sooner; they keep their `exactAmount`
+/// tooltip. Upgrade path: 3:2 if balances read short.
+const int _narrowNameFlex = 2;
 
 /// THE colour of a status - foreground and its wash - for every consumer.
 ///
@@ -274,6 +284,42 @@ class TransactionRow extends StatelessWidget {
     final content =
         contentOverride ?? txRowContent(tx, prices: livePricesBySymbol());
 
+    // Phone-only density. Read from the WINDOW, not this row's constraints
+    // like `wide` below: the dashboard panel is ~376px wide but sits on a
+    // desktop, so row width would have re-styled desktop too.
+    final bool compact = !GeniusBreakpoints.useDesktopLayout(context);
+
+    final Widget titleText = Text(
+      content.title,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: GeniusWalletTypography.titleMd.copyWith(
+        fontSize: compact ? 14 : null,
+        fontWeight: FontWeight.w600,
+        color: gw.textPrimary,
+      ),
+    );
+
+    final Widget actionChip = Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 3 : GeniusWalletConsts.space2,
+        vertical: compact ? 1 : 2,
+      ),
+      decoration: BoxDecoration(
+        color: gw.surfaceMenu,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusXs),
+      ),
+      child: Text(
+        content.action,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GeniusWalletTypography.labelMd.copyWith(
+          fontSize: compact ? 11 : null,
+          color: gw.textSecondary,
+        ),
+      ),
+    );
+
     final Widget amountText = Text(
       content.amount,
       maxLines: 1,
@@ -281,7 +327,8 @@ class TransactionRow extends StatelessWidget {
       overflow: TextOverflow.ellipsis,
       textAlign: TextAlign.right,
       style: GeniusWalletTypography.numericBody.copyWith(
-        fontSize: 16,
+        // Still the largest thing in the row, and still w600.
+        fontSize: compact ? 13 : 16,
         fontWeight: FontWeight.w600,
         color: _toneColor(content.tone, gw),
       ),
@@ -301,13 +348,15 @@ class TransactionRow extends StatelessWidget {
         else
           amountText,
         if (content.valueLine != null) ...[
-          const SizedBox(height: GeniusWalletConsts.space2),
+          SizedBox(height: compact ? 1 : GeniusWalletConsts.space2),
           Text(
             content.valueLine!,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.right,
             style: GeniusWalletTypography.bodySm.copyWith(
+              // Matches the subtitle across the row.
+              fontSize: compact ? 11 : null,
               color: gw.textSecondary,
             ),
           ),
@@ -325,9 +374,14 @@ class TransactionRow extends StatelessWidget {
     return GWHoverRow(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: GeniusWalletConsts.space6,
-          vertical: GeniusWalletConsts.space4,
+        // Halved on phone so more history fits on screen.
+        padding: EdgeInsets.symmetric(
+          horizontal: compact
+              ? GeniusWalletConsts.space3
+              : GeniusWalletConsts.space6,
+          vertical: compact
+              ? GeniusWalletConsts.space2
+              : GeniusWalletConsts.space4,
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -336,28 +390,41 @@ class TransactionRow extends StatelessWidget {
             final bool wide = constraints.maxWidth >= _wideRowThreshold;
             return Row(
               children: [
-                // Time leads the row: it is fixed-width and tabular, so the
+                // DESKTOP: time leads the row — fixed-width and tabular, so the
                 // token icons line up in a straight column behind it and the
                 // eye can scan either "when" or "what" down a single edge.
-                SizedBox(
-                  width: 44,
-                  child: Text(
-                    content.time,
-                    textAlign: TextAlign.left,
-                    maxLines: 1,
-                    style: GeniusWalletTypography.numericBody.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      // Not the sketch's --text-primary-38 (~3.0:1): the
-                      // timestamp is meaningful text and must clear AA.
-                      color: gw.textSecondary,
+                //
+                // PHONE: time is dropped and the icon leads, reclaiming 44px +
+                // its gap for the title and amount. The day header still names
+                // the day and the receipt drawer keeps the full timestamp, so
+                // only the minute is lost.
+                if (!compact) ...[
+                  SizedBox(
+                    width: 44,
+                    child: Text(
+                      content.time,
+                      textAlign: TextAlign.left,
+                      maxLines: 1,
+                      style: GeniusWalletTypography.numericBody.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        // Not the sketch's --text-primary-38 (~3.0:1): the
+                        // timestamp is meaningful text and must clear AA.
+                        color: gw.textSecondary,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: GeniusWalletConsts.space6),
+                ],
+                // 40 -> 28 on a phone (30% smaller).
+                _identity(content, gw, size: compact ? 28 : 40),
+                SizedBox(
+                  width: compact
+                      ? GeniusWalletConsts.space3
+                      : GeniusWalletConsts.space6,
                 ),
-                const SizedBox(width: GeniusWalletConsts.space6),
-                _identity(content, gw, size: 40),
-                const SizedBox(width: GeniusWalletConsts.space6),
                 Expanded(
+                  flex: compact ? _narrowNameFlex : 1,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -367,43 +434,13 @@ class TransactionRow extends StatelessWidget {
                         children: [
                           // Token-first (010-A): the asset is the headline, the
                           // action a quiet chip beside it.
-                          Flexible(
-                            child: Text(
-                              content.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GeniusWalletTypography.titleMd.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: gw.textPrimary,
-                              ),
-                            ),
-                          ),
+                          //
+                          Flexible(child: titleText),
                           const SizedBox(width: GeniusWalletConsts.space4),
-                          Flexible(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: GeniusWalletConsts.space2,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: gw.surfaceMenu,
-                                borderRadius: BorderRadius.circular(
-                                  GeniusWalletConsts.radiusXs,
-                                ),
-                              ),
-                              child: Text(
-                                content.action,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GeniusWalletTypography.labelMd.copyWith(
-                                  color: gw.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ),
+                          Flexible(child: actionChip),
                         ],
                       ),
-                      const SizedBox(height: GeniusWalletConsts.space2),
+                      SizedBox(height: compact ? 1 : GeniusWalletConsts.space2),
                       Text(
                         // On the wide page the Status pill carries the status, so
                         // the subtitle drops the ` · Failed` suffix (no double
@@ -412,6 +449,7 @@ class TransactionRow extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GeniusWalletTypography.bodySm.copyWith(
+                          fontSize: compact ? 11 : null,
                           color: gw.textSecondary,
                         ),
                       ),

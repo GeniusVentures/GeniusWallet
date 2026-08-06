@@ -607,13 +607,12 @@ class _SwapScreenState extends State<SwapScreen> {
             alignment: Alignment.topCenter,
             child: SingleChildScrollView(
               child: Padding(
-                // top space32 (64) — navbar→title gap unified with
-                // Transactions/Markets/News. 12/8 sides match the shared page
-                // frame so the title lands at the same X as the other tabs.
-                padding: const EdgeInsets.fromLTRB(
-                  12,
-                  GeniusWalletConsts.space32,
-                  12,
+                // Shared gap and gutter (`GeniusBreakpoints`), so the title
+                // lands at the same X as the other tabs.
+                padding: EdgeInsets.fromLTRB(
+                  GeniusBreakpoints.pageGutter(context),
+                  GeniusBreakpoints.pageTitleGap(context),
+                  GeniusBreakpoints.pageGutter(context),
                   8,
                 ),
                 child: ConstrainedBox(
