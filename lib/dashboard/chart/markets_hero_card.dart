@@ -79,29 +79,44 @@ DateFormat chooseAxisDateFormat(Duration window) {
 /// chart's lower edge landing on the stat row at y=334 either way. The
 /// original arithmetic was right; the instrument was wrong.
 ///
-/// **The 301.0/367.0 derivation flipped columns on 2026-08-07 (quick
-/// 260807-bxs) — the numbers did not move, but which column produces them
-/// did, and that is the real change.** The stat block became a `Wrap`
-/// (`kMarketsHeroStatTileWidth`) instead of a fixed 2x2 grid, so the LEFT
-/// column's own height is no longer one constant — it is 242 when all four
-/// tiles share one row, or 301 when three do and the fourth wraps to a
-/// second row (the practical range at any width the wide branch actually
-/// reaches; a stat block narrow enough to wrap to one tile per row would
-/// need a card far narrower than the wide branch's own `medium` floor).
-/// **The RIGHT column — `GWTimeframeSegment` + `space8` + this constant —
-/// never changes with the stat block at all, and measures a hard 301.0 of
-/// its own**, re-confirmed directly (not the "~299, two pixels of headroom"
-/// approximation the original plan estimated). Because the right column's
-/// fixed 301.0 is always `>=` the left column's 242-to-301 range, the right
-/// column now drives `IntrinsicHeight` unconditionally, at every width the
-/// wide branch renders — the left column can no longer be the one to watch.
-/// The literals happen to read the same (367.0/367.0, 301.0/301.0 before
-/// and after) purely because the right column's true fixed value equals the
-/// old left-driven one to the pixel; `markets_hero_height_test.dart`'s
-/// reason string records the derivation, not just the number, for exactly
-/// this reason — a future stat-block or chart change could easily move one
-/// side without moving the other, and the test should say which side it is
-/// watching.
+/// **2026-08-07 (quick 260807-bxs): three corrections in one day moved the
+/// derivation, then moved one of the two literals.** In order:
+///
+/// 1. The stat block became a `Wrap` (fixed-width tiles at first) instead of
+///    a fixed 2x2 grid. 367.0/301.0 did NOT move, but which column produces
+///    them did: the RIGHT column — `GWTimeframeSegment` + `space8` + this
+///    constant — measures a hard, re-confirmed 301.0 of its own, independent
+///    of the stat block (not the "~299, two pixels of headroom"
+///    approximation the original plan estimated). The LEFT column's own
+///    height became variable instead of one constant, and could no longer
+///    exceed the right's fixed 301.0 — so the right column started driving
+///    `IntrinsicHeight` unconditionally.
+/// 2. The fixed tile width was dropped in favour of content-sized tiles
+///    (`GWStatTile` sizes to its own label/value, no `SizedBox` floor) —
+///    Braian's read that a uniform box sized to the widest LABEL left every
+///    tile carrying dead space next to its much-narrower VALUE. 367.0/301.0
+///    were RE-measured and again did not move (the LEFT column's practical
+///    range is still 242 with all four tiles on one row, or 301 with three
+///    and a wrap — same two numbers, since row height only depends on
+///    `GWStatTile`'s own fixed 39px, never on tile width). What DID change:
+///    four tiles now fit on one row starting around 1217px of card width
+///    instead of ~1700px, so the file's usual 1400px pinned surface shows
+///    all four abreast, not three.
+/// 3. The card's own outer padding halved (`space16` to `space8`) on a
+///    separate, explicit request. This DOES move a literal: 32px of
+///    padding (16 top + 16 bottom, since `space16` is 32px, not 16) comes
+///    off the card's total height, so the wide card is now **335.0**, not
+///    367.0. `IntrinsicHeight` itself is UNCHANGED at **301.0**, confirmed
+///    by direct re-measurement rather than assumed — the padding sits
+///    OUTSIDE the `IntrinsicHeight` row (`Container.padding`, not
+///    `content`'s own constraints), so it cannot touch that row's own
+///    height, only the finished card's.
+///
+/// **Where this leaves the two literals: 335.0 (card) / 301.0 (row).**
+/// `markets_hero_height_test.dart`'s reason strings record which column
+/// and which correction each number answers to, not just the numbers
+/// themselves — a future stat-block, chart, or padding change could move
+/// one without moving the other, and the test should say which.
 const double kMarketsHeroChartHeight = 253;
 
 /// The height used when the card STACKS (below `GeniusBreakpoints.medium`).
@@ -123,45 +138,13 @@ const double kMarketsHeroChartHeight = 253;
 /// which is why this cannot be raised casually.
 const double kMarketsHeroChartHeightStacked = kChartFrameMinHeight;
 
-/// Fixed width for each tile in the stat block's `Wrap` (2026-08-07, quick
-/// 260807-bxs) — Braian's ask was "a flex so we can show more data in a row
-/// instead of always a 2 column structure", which needs a per-tile width:
-/// an un-widthed tile sizes to its own shortest content ('Rank' / '#1') and
-/// the four tiles would never line up as columns the way a stat grid reads.
-///
-/// **152, measured, not guessed.** `GWStatTile`'s label is a bare `GWKicker`
-/// with no `maxLines`/`overflow` of its own (unlike, say, the Markets
-/// table's header cells, which wrap the same dense-kicker TEXT STYLE in an
-/// explicit ellipsis) — so a tile narrower than its label wraps to two
-/// lines instead of truncating. 'All-Time High', the widest of the four
-/// fixed labels, wraps at 150px and clears at 151px in this exact test
-/// harness; 152 is that measured threshold plus 1px of margin, not a round
-/// number picked by eye. Going narrower would wrap that one label on every
-/// wide render; going wider buys nothing (every label already fits) while
-/// costing tiles-per-row.
-///
-/// This IS the ceiling on a single tile's width, too — a `SizedBox`, not a
-/// flexible `Expanded`, so a tile never grows to fill leftover space on an
-/// extra-wide card, which is the "absurd width" Braian named.
-///
-/// **The consequence, stated plainly:** the wide card's ~543px left column
-/// fits three unwrapped tiles per row (3 * 152 + 2 * `space10` = 496), not
-/// four (4 * 152 + 3 * `space10` = 656) — the fourth wraps to its own
-/// second row. All four only share one row above roughly 1700px of total
-/// card width. This is still the improvement asked for: "more data in a
-/// row instead of always a 2 column structure" is true at every width from
-/// 402px (2 per row, unchanged from before) up through 1400px (3 per row)
-/// to a genuinely wide card (4 per row) — it was never a promise that
-/// every desktop width shows all four abreast, and the alternative (a
-/// narrower tile that wraps 'All-Time High') is worse.
-const double kMarketsHeroStatTileWidth = 152;
-
 /// Markets hero (sketch 103 · H1 "Refined split"): identity + oversized price
-/// + a flowed stat block on the left (as many tiles per row as fit, not a
-/// fixed 2x2 grid — see [kMarketsHeroStatTileWidth]), the chart with a
-/// timeframe selector on the right. Data for whichever range is selected
-/// comes from [MarketsHeroCard.fetchHistoricalPrices]; the 7D default reads
-/// the already-fetched [CoinGeckoMarketData] and triggers no request.
+/// + a flowed, content-sized stat block on the left (as many tiles per row
+/// as fit, each sized to its own label/value rather than a fixed 2x2 grid —
+/// see the `Wrap` in `build`), the chart with a timeframe selector on the
+/// right. Data for whichever range is selected comes from
+/// [MarketsHeroCard.fetchHistoricalPrices]; the 7D default reads the
+/// already-fetched [CoinGeckoMarketData] and triggers no request.
 class MarketsHeroCard extends StatefulWidget {
   final CoinGeckoCoin coin;
   final CoinGeckoMarketData data;
@@ -369,37 +352,35 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         // `Wrap` implements intrinsics natively, so it is the one flow
         // primitive that survives being measured that way. Order is
         // unchanged from the old 2x2 reading order (Rank, Market Cap /
-        // Volume 24h, All-Time High), so at the narrow width where exactly
-        // two tiles still fit per row this renders identically to before.
+        // Volume 24h, All-Time High).
+        //
+        // No fixed per-tile width (2026-08-07 correction, same task): a
+        // uniform box sized to the widest LABEL left every tile carrying
+        // the label's own dead space on the right of its much-narrower
+        // VALUE ('All-Time High' / '$45.26'), which is what actually read
+        // as "too big" — tightening the gap alone would not have touched
+        // it. `Wrap` hands each child unbounded width, so `GWStatTile`
+        // sizes to its own intrinsic content and that slack disappears.
+        // The direct cost: tiles no longer align into columns — a value's
+        // x-position now depends on its own tile's content, not a shared
+        // grid, so the row reads as a chip line rather than a table. That
+        // trade is Braian's to keep or revert, not silently accepted.
+        //
+        // `spacing: space6` (12px), not `space10` (20px): the same tight
+        // horizontal gap this card already uses twice — icon-to-name in
+        // the identity row, and pill-to-text in the change row — so this
+        // reuses an established rhythm rather than inventing a third
+        // value. `runSpacing` stays at `space10`: rows of tiles still need
+        // to read as separate rows when the block wraps, which a gap this
+        // tight would blur.
         Wrap(
-          spacing: GeniusWalletConsts.space10,
+          spacing: GeniusWalletConsts.space6,
           runSpacing: GeniusWalletConsts.space10,
           children: [
-            SizedBox(
-              width: kMarketsHeroStatTileWidth,
-              child: GWStatTile(label: 'Rank', value: '#${data.marketCapRank}'),
-            ),
-            SizedBox(
-              width: kMarketsHeroStatTileWidth,
-              child: GWStatTile(
-                label: 'Market Cap',
-                value: _compact(data.marketCap),
-              ),
-            ),
-            SizedBox(
-              width: kMarketsHeroStatTileWidth,
-              child: GWStatTile(
-                label: 'Volume 24h',
-                value: _compact(data.totalVolume),
-              ),
-            ),
-            SizedBox(
-              width: kMarketsHeroStatTileWidth,
-              child: GWStatTile(
-                label: 'All-Time High',
-                value: _price(data.ath),
-              ),
-            ),
+            GWStatTile(label: 'Rank', value: '#${data.marketCapRank}'),
+            GWStatTile(label: 'Market Cap', value: _compact(data.marketCap)),
+            GWStatTile(label: 'Volume 24h', value: _compact(data.totalVolume)),
+            GWStatTile(label: 'All-Time High', value: _price(data.ath)),
           ],
         ),
       ],
@@ -546,7 +527,16 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
             decoration: GWDecorations.surface(
               radius: GeniusWalletConsts.radiusLg,
             ),
-            padding: const EdgeInsets.all(GeniusWalletConsts.space16),
+            // Halved from space16 (2026-08-07 correction, same task):
+            // Braian's ask was the card's own outer padding specifically,
+            // not every inset inside it. Two other candidates were swept
+            // and deliberately left alone: `_ChangePill`'s own padding
+            // (a component's shape, not the card's frame — halving it
+            // would deform the pill) and the chart's `kChartAxisGutter`
+            // padding (load-bearing for the narrow-width axis labels this
+            // same task added; halving it clips the money labels). space8
+            // is an existing 4-pt-scale token, not a new number.
+            padding: const EdgeInsets.all(GeniusWalletConsts.space8),
             child: content,
           ),
         ),

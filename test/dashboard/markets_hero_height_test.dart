@@ -67,24 +67,25 @@ extension on WidgetTester {
 }
 
 void main() {
-  group('wide markets hero: 367.0/301.0, now driven by the RIGHT column', () {
-    // Measured 2026-07-30 at a surface actually set to 1400x1000, when the
-    // LEFT column's fixed 2x2 stat grid drove this row.
+  group('wide markets hero: 335.0/301.0, driven by the RIGHT column', () {
+    // Measured 2026-07-30 at 1400x1000 as 367.0/301.0, when the LEFT
+    // column's fixed 2x2 stat grid drove this row.
     //
-    // **RE-MEASURED 2026-08-07 (quick 260807-bxs), after the stat block
-    // became a `Wrap` instead of two hardcoded `Row`s.** The literals did
-    // NOT move -- but which column produces them did, and that is the real
-    // change this re-measurement records. The right column
-    // (`GWTimeframeSegment` + `space8` + the fixed-height chart) has always
-    // measured a hard 301.0 of its own, independent of anything on the
-    // left. Before this change the left column ALSO measured exactly 301.0
-    // (its fixed 2x2 grid), so the two were within ~2px and the right
-    // column was described as "close to" becoming the driver. Now the left
-    // column's own height varies with the stat block's row count -- 242.0
-    // when all four tiles share one row, 301.0 when three do and the
-    // fourth wraps -- so it can no longer EXCEED the right's fixed 301.0.
-    // The right column is the unconditional driver now, not a close call.
-    const wideCardHeight = 367.0;
+    // **RE-MEASURED THREE TIMES on 2026-08-07 (quick 260807-bxs) — see
+    // `kMarketsHeroChartHeight`'s doc comment in `markets_hero_card.dart`
+    // for the full chronology.** Summary: (1) the stat block became a
+    // `Wrap`, which flipped the DRIVER from the left column to the right
+    // (`GWTimeframeSegment` + `space8` + the fixed-height chart, a hard
+    // 301.0 independent of the stat block) without moving either literal;
+    // (2) the stat tiles dropped their fixed width for content-sizing,
+    // which again left both literals unmoved (the left column's practical
+    // range is still 242.0 with four tiles on one row or 301.0 with a
+    // wrap, never more); (3) the card's own outer padding halved
+    // (`space16` to `space8`, a SEPARATE request), which DOES move the
+    // card literal: 32px of padding (16 top + 16 bottom) comes off the
+    // total, so the card is now 335.0. `IntrinsicHeight` itself is
+    // confirmed unaffected at 301.0 -- the padding sits outside that row.
+    const wideCardHeight = 335.0;
     const intrinsicRowHeight = 301.0;
 
     testWidgets('the card holds its height at the shipped chart size', (
@@ -96,28 +97,33 @@ void main() {
       expect(
         tester.getSize(find.byType(MarketsHeroCard)).height,
         wideCardHeight,
+        reason:
+            'was 367.0 before the card padding halved (space16 to space8, '
+            '2026-08-07) -- 32px of padding (16 top + 16 bottom) came off '
+            'the total; if this literal fails for any OTHER reason, the '
+            'padding is not the cause, re-derive from scratch',
       );
     });
 
-    testWidgets('the IntrinsicHeight row is now driven by the RIGHT column', (
+    testWidgets('the IntrinsicHeight row is driven by the RIGHT column', (
       tester,
     ) async {
       await tester.pumpHeroAt(const Size(1400, 1000));
 
-      // 301.0 is the RIGHT column's own height now (timeframe segment +
+      // 301.0 is the RIGHT column's own height (timeframe segment +
       // `space8` + the fixed-height chart) -- see the group comment above.
-      // If this literal ever moves, it means either the timeframe segment's
-      // geometry or `kMarketsHeroChartHeight` changed; the LEFT column
-      // cannot be the cause anymore, since a `Wrap` stat block bounded at
-      // `kMarketsHeroStatTileWidth` cannot exceed 301.0 on the wide branch.
+      // Unaffected by the card's own padding (outside this row) or the
+      // stat block's tile width (content-sized tiles are still bounded at
+      // 242.0-301.0, never above the right's fixed value).
       expect(
         tester.getSize(find.byType(IntrinsicHeight)).height,
         intrinsicRowHeight,
         reason:
             'the right column (timeframe segment + chart) no longer '
             'measures 301.0 on its own -- re-derive kMarketsHeroChartHeight '
-            'and this literal together; the stat block on the left cannot '
-            'be the cause, it is structurally bounded at or under 301.0',
+            'and this literal together; neither the stat block nor the '
+            "card's own padding can be the cause, both are structurally "
+            'incapable of moving this row',
       );
     });
 
@@ -190,10 +196,9 @@ void main() {
 
     testWidgets('at 1400x1000 the price is still 48 — a guard on decision 3: a '
         'failure here means the desktop hero price was shrunk, which decision '
-        '3 never asked for (a failure here no longer moves 367.0/301.0 -- '
-        'those are the RIGHT column\'s now, see the group above)', (
-      tester,
-    ) async {
+        '3 never asked for (a failure here no longer moves 335.0/301.0 -- '
+        'those are the RIGHT column\'s and the card\'s own padding now, see '
+        'the group above)', (tester) async {
       await tester.pumpHeroAt(const Size(1400, 1000));
 
       expect(tester.takeException(), isNull);
@@ -212,16 +217,17 @@ void main() {
     });
   });
 
-  group('2026-08-07 follow-up: the stat block flows, not a fixed 2x2 grid', () {
-    testWidgets('at a genuinely wide surface all four stat tiles share one '
-        'row', (tester) async {
-      // 1800, not 1400: at kMarketsHeroStatTileWidth (152) the wide card's
-      // ~543px left column fits three tiles per row, not four -- the
-      // fourth wraps to a second row until the card is wide enough that
-      // the left column itself clears roughly 656px, which needs a total
-      // card width past ~1700px. This is the "wide surface" the follow-up
-      // asks for, not the file's usual 1400x1000 pinned surface.
-      await tester.pumpHeroAt(const Size(1800, 1000));
+  group('2026-08-07 follow-up: the stat block flows, content-sized', () {
+    testWidgets('at 1400x1000 -- the width that matters -- all four stat '
+        'tiles share one row', (tester) async {
+      // 1400, not a wider surface: content-sized tiles (no fixed-width
+      // floor, second 2026-08-07 correction) need far less room than the
+      // original 152px-floored design did. Four tiles plus three `space6`
+      // gaps sum to well under the wide card's left column at 1400 (the
+      // floored design needed ~1700px for this same claim); re-measured
+      // directly rather than assumed, since Braian specifically asked
+      // about this width.
+      await tester.pumpHeroAt(const Size(1400, 1000));
 
       expect(tester.takeException(), isNull);
       final tiles = find.byType(GWStatTile);
@@ -236,9 +242,9 @@ void main() {
         tops.toSet(),
         hasLength(1),
         reason:
-            'all four stat tiles should share one row\'s top edge at a '
-            'surface wide enough for kMarketsHeroStatTileWidth * 4 plus '
-            'gaps to fit',
+            'all four stat tiles should share one row\'s top edge at '
+            '1400px -- content-sized tiles fit here even though the '
+            'earlier fixed-152px-width design did not',
       );
     });
 
@@ -259,8 +265,9 @@ void main() {
         greaterThan(1),
         reason:
             'the phone-width card should still wrap the stat block across '
-            'more than one row, exactly as the old fixed 2x2 grid did -- '
-            'this is the "at 402px they do not [share a row]" claim',
+            'more than one row (three tiles then one, not the old fixed '
+            '2x2 split, but still more than one row) -- this is the "at '
+            '402px they do not [share a row]" claim',
       );
     });
   });
