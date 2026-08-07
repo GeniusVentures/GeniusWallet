@@ -16,57 +16,25 @@
 // The lesson is the one this repo keeps re-learning: a widget test that does
 // not set its surface is not testing the width it says it is. Both layouts are
 // now pinned, at surfaces that actually produce them.
-import 'dart:math';
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/dashboard/chart/markets_hero_card.dart';
-import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
-import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:intl/intl.dart';
 
-CoinGeckoCoin _coin() =>
-    CoinGeckoCoin(id: 'bitcoin', symbol: 'btc', name: 'Bitcoin');
+import 'markets_fixtures.dart';
 
-/// A 30-point RISING sparkline — `up` reads true, so the chart takes
-/// `statusSuccess`, matching the deterministic trend-colour rule.
-List<double> _risingSparkline() =>
-    List<double>.generate(30, (i) => 60000.0 + i * 120.0);
-
-CoinGeckoMarketData _marketData() {
-  final sparkline = _risingSparkline();
-  final high = sparkline.reduce(max);
-  final low = sparkline.reduce(min);
-  return CoinGeckoMarketData(
-    id: 'bitcoin',
-    symbol: 'btc',
-    name: 'Bitcoin',
-    imageUrl: '',
-    currentPrice: sparkline.last,
-    marketCap: 1.2e12,
-    marketCapRank: 1,
-    fullyDilutedValuation: 1.3e12,
-    totalVolume: 3.4e10,
-    high24h: high,
-    low24h: low,
-    priceChange24h: sparkline.last - sparkline.first,
-    priceChangePercentage24h:
-        ((sparkline.last - sparkline.first) / sparkline.first) * 100,
-    marketCapChange24h: 0,
-    marketCapChangePercentage24h: 0,
-    circulatingSupply: 19700000,
-    totalSupply: 21000000,
-    maxSupply: 21000000,
-    ath: high * 1.5,
-    athChangePercentage: -10,
-    athDate: DateTime(2026, 1, 1),
-    atl: low * 0.5,
-    atlChangePercentage: 500,
-    atlDate: DateTime(2020, 1, 1),
-    lastUpdated: DateTime(2026, 7, 29),
-    sparkline: sparkline,
-  );
+/// The exact string the hero's own private `_price` formats — built from the
+/// fixture's `currentPrice` through the same `NumberFormat.currency` rather
+/// than a hardcoded dollar string, so the finder cannot drift from the data.
+String _fixturePriceText() {
+  final v = marketsFixtureMarketData().currentPrice;
+  final decimals = v >= 1 ? 2 : 6;
+  return NumberFormat.currency(symbol: '\$', decimalDigits: decimals).format(v);
 }
 
 /// The same shape as the hero's only real consumer, `markets_screen.dart:197` —
@@ -76,7 +44,10 @@ Widget _host() => MaterialApp(
   theme: ThemeData(extensions: [GWColors.dark()]),
   home: Scaffold(
     body: SingleChildScrollView(
-      child: MarketsHeroCard(coin: _coin(), data: _marketData()),
+      child: MarketsHeroCard(
+        coin: marketsFixtureCoin(),
+        data: marketsFixtureMarketData(),
+      ),
     ),
   ),
 );
@@ -155,22 +126,70 @@ void main() {
     });
   });
 
-  group('stacked markets hero: no Spacer, so no free height', () {
-    testWidgets('the stacked chart keeps 180 and stays axis-free', (
-      tester,
-    ) async {
+  group('stacked markets hero: the narrow chart now earns the frame', () {
+    testWidgets('the stacked chart is framed: shorter than its box by the '
+        'time row, and shows money labels', (tester) async {
       await tester.pumpHeroAt(const Size(600, 1200));
 
       expect(tester.takeException(), isNull);
+      // The stacked branch still has no IntrinsicHeight — it stacks in an
+      // unbounded Column, where IntrinsicHeight is neither needed nor safe.
       expect(find.byType(IntrinsicHeight), findsNothing);
 
-      // 180 is below kChartFrameMinHeight, so the runtime rule gives this the
-      // axis-free chart — the LineChart takes the whole box with no time row
-      // beneath it.
+      // The frame splits the box into plot + time row, so the LineChart is
+      // shorter than kMarketsHeroChartHeightStacked by exactly the time row —
+      // asserting the relationship, not a literal, keeps this honest if
+      // either constant moves.
+      final chartHeight = tester.getSize(find.byType(LineChart)).height;
+      expect(chartHeight, kMarketsHeroChartHeightStacked - kChartTimeRowHeight);
+
+      // Money labels down the right edge are the frame's most visible
+      // promise, and BXS-02's whole point.
+      expect(find.textContaining(r'$6'), findsWidgets);
+    });
+  });
+
+  group('BXS-01: the price and title shrink at phone width only', () {
+    testWidgets('at 402x900 the price resolves to numericDisplay and the '
+        'title to titleMd', (tester) async {
+      await tester.pumpHeroAt(const Size(402, 900));
+
+      expect(tester.takeException(), isNull);
+
+      final priceStyle = tester
+          .renderObject<RenderParagraph>(find.text(_fixturePriceText()))
+          .text
+          .style;
       expect(
-        tester.getSize(find.byType(LineChart)).height,
-        kMarketsHeroChartHeightStacked,
+        priceStyle!.fontSize,
+        GeniusWalletTypography.numericDisplay.fontSize,
       );
+
+      final titleStyle = tester
+          .renderObject<RenderParagraph>(find.text('Bitcoin'))
+          .text
+          .style;
+      expect(titleStyle!.fontSize, GeniusWalletTypography.titleMd.fontSize);
+    });
+
+    testWidgets('at 1400x1000 the price is still 48 — a guard on decision 3: a '
+        'failure here means the desktop hero was shrunk and the pinned '
+        'heights (367.0 / 301.0) are about to move', (tester) async {
+      await tester.pumpHeroAt(const Size(1400, 1000));
+
+      expect(tester.takeException(), isNull);
+
+      final priceStyle = tester
+          .renderObject<RenderParagraph>(find.text(_fixturePriceText()))
+          .text
+          .style;
+      expect(priceStyle!.fontSize, 48);
+
+      final titleStyle = tester
+          .renderObject<RenderParagraph>(find.text('Bitcoin'))
+          .text
+          .style;
+      expect(titleStyle!.fontSize, GeniusWalletTypography.titleLg.fontSize);
     });
   });
 }

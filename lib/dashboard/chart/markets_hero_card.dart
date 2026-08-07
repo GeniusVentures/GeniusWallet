@@ -46,14 +46,22 @@ const double kMarketsHeroChartHeight = 253;
 
 /// The height used when the card STACKS (below `GeniusBreakpoints.medium`).
 ///
-/// Stays at 180 deliberately. The wide layout's 73px is free because a `Spacer`
-/// gives it back; the stacked layout has neither `Spacer` nor
-/// `IntrinsicHeight`, so every pixel added here is a pixel the card grows on
-/// the narrowest screens. 180 is also below `kChartFrameMinHeight`, so the
-/// stacked hero keeps the axis-free chart - the same runtime A/B rule the coin
-/// page already follows, arrived at by measuring the box rather than by
-/// flagging the surface.
-const double kMarketsHeroChartHeightStacked = 180;
+/// DERIVED from `kChartFrameMinHeight`, not a restated literal: the stacked
+/// hero now sits exactly at the threshold, because axis labels at phone width
+/// were asked for (BXS-02) and `chartUsesFrame` only grants the frame to a box
+/// that clears it. The ~40px this costs over the old 180 is repaid by the
+/// smaller type step on the same branch (see the price/`Text` below) — Task 1
+/// measures the real before/after and reports it in the plan's SUMMARY rather
+/// than assuming the repayment is exact. `chartUsesFrame` still measures the
+/// box it is actually handed (`c.maxHeight` in `_HeroChart`), so nothing here
+/// is a per-surface flag — the stacked layout earns the frame by growing its
+/// box, the same runtime rule the wide layout and the coin page both follow.
+///
+/// The stacked layout still has neither `Spacer` nor `IntrinsicHeight` (it
+/// stacks in an unbounded `Column`, where a `Spacer` would throw), so every
+/// pixel added here is still a pixel the card grows on the narrowest screens —
+/// which is why this cannot be raised casually.
+const double kMarketsHeroChartHeightStacked = kChartFrameMinHeight;
 
 /// Markets hero (sketch 103 · H1 "Refined split"): identity + oversized price
 /// + a 2×2 stat block on the left, the 7d chart with a timeframe selector on
@@ -83,7 +91,15 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
     final up = data.priceChangePercentage24h >= 0;
     final changeColor = up ? gw.statusSuccess : gw.statusError;
 
-    final left = Column(
+    // A local function, not a lifted `StatelessWidget`: it closes over `gw`,
+    // `data`, `changeColor` and `up`, and hoisting it would mean threading
+    // four constructor arguments to serve one call site. AGENTS.md's
+    // widgets-not-helper-methods rule targets extracted `_buildFoo()` methods
+    // on a State class that rebuild the whole enclosing widget; `buildLeft`
+    // matches `buildRight`'s already-established shape below for exactly this
+    // situation, and matching it is the smaller, more consistent diff — do
+    // not "fix" this into a StatelessWidget.
+    Widget buildLeft({required bool wide}) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -99,10 +115,13 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
               children: [
                 Text(
                   widget.coin.name,
-                  style: GeniusWalletTypography.titleLg.copyWith(
-                    color: gw.textPrimary,
-                    letterSpacing: -0.2,
-                  ),
+                  // titleLg (18) wide, titleMd (16) narrow — a breakpoint
+                  // choice between two tokens, not a measured search.
+                  style:
+                      (wide
+                              ? GeniusWalletTypography.titleLg
+                              : GeniusWalletTypography.titleMd)
+                          .copyWith(color: gw.textPrimary, letterSpacing: -0.2),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -111,23 +130,41 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
           ],
         ),
         const SizedBox(height: GeniusWalletConsts.space10),
-        // oversized price — a FIXED style (never AutoSizeText): a width-driven
-        // font search re-keys skia's ParagraphCache every resize frame and
-        // freezes the macOS embedder (see crypto_simple_chart.dart's note).
-        Text(
-          _price(data.currentPrice),
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 48,
-            height: 1,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -2,
-            color: gw.textPrimary,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        // Price is a FIXED style on both branches (never AutoSizeText): a
+        // width-driven font search re-keys skia's ParagraphCache every resize
+        // frame and freezes the macOS embedder (see crypto_simple_chart.dart's
+        // note). This branch is a breakpoint choice between two fixed styles,
+        // which does not reintroduce that per-frame search.
+        //
+        // The WIDE branch keeps 48 verbatim, with no token behind it, on
+        // purpose: `markets_hero_height_test.dart` derives the pinned 301.0
+        // `IntrinsicHeight` row from this exact value, and the right column
+        // (the chart) sits within ~2px of becoming the taller one — shrinking
+        // this is not free. BXS-01 only asks for the narrow price to stop
+        // running the full card width, so only the narrow branch changes.
+        wide
+            ? Text(
+                _price(data.currentPrice),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 48,
+                  height: 1,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -2,
+                  color: gw.textPrimary,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : Text(
+                _price(data.currentPrice),
+                style: GeniusWalletTypography.numericDisplay.copyWith(
+                  color: gw.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
         const SizedBox(height: GeniusWalletConsts.space8),
         // % pill + absolute 24h change
         Row(
@@ -218,12 +255,23 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
 
     final content = LayoutBuilder(
       builder: (context, c) {
-        final wide = c.maxWidth >= GeniusBreakpoints.medium;
+        // `wide` is the AND of the box and the window, not the box alone: the
+        // window (`useDesktopLayout`) is the authority on device class — a
+        // mobile app at a wide `MediaQuery` width is still mobile, and a
+        // desktop window between 769-791px (content 745-767px) still stacks
+        // the card even though the window itself reads "desktop". Reading
+        // only `c.maxWidth` (the literal instruction) would let this card's
+        // layout branch and its type step disagree in exactly those two real
+        // cases; one bool feeding BOTH `buildLeft`'s type step and the layout
+        // branch below makes that impossible by construction.
+        final wide =
+            c.maxWidth >= GeniusBreakpoints.medium &&
+            GeniusBreakpoints.useDesktopLayout(context);
         if (!wide) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              left,
+              buildLeft(wide: false),
               const SizedBox(height: GeniusWalletConsts.space12),
               buildRight(fill: false),
             ],
@@ -241,7 +289,7 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(flex: 5, child: left),
+              Expanded(flex: 5, child: buildLeft(wide: true)),
               const SizedBox(width: GeniusWalletConsts.space16),
               Expanded(flex: 7, child: buildRight(fill: true)),
             ],
