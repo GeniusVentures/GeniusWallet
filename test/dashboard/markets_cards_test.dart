@@ -202,7 +202,7 @@ void main() {
     testWidgets('at 840 -- just under the table threshold -- cards STILL share '
         'rows two at a time, not three: kMarketsCardMaxWidth (287) makes '
         'a 3rd column unreachable below kMarketsTableMinWidth (846), and '
-        'no card exceeds the max width', (tester) async {
+        'the cards FLEX to fill the row evenly', (tester) async {
       await tester.pumpAllSectionAt(840, _scrambledRows());
 
       expect(tester.takeException(), isNull);
@@ -221,12 +221,30 @@ void main() {
             'the real ceiling, not 3',
       );
 
-      // Cards keep their width rather than stretching to eat the
-      // leftover space -- a card wider than kMarketsCardMaxWidth
-      // would mean the max being set means nothing.
-      for (var i = 0; i < 4; i++) {
-        expect(tester.getSize(cards.at(i)).width, kMarketsCardMaxWidth);
-      }
+      // kMarketsCardMaxWidth decides the COLUMN COUNT; the cards then flex
+      // to fill the row (Braian, 2026-08-07: "we dont need the card
+      // narrower just make it flex"). So a card is WIDER than the max
+      // here, not equal to it -- pinning them at 287 left the row's
+      // remainder as dead space on the right.
+      final widths = [
+        for (var i = 0; i < 4; i++) tester.getSize(cards.at(i)).width,
+      ];
+      expect(
+        widths.toSet(),
+        hasLength(1),
+        reason:
+            'every card must be the same width, including the ones on a '
+            'short final row -- a lone last card flexing to the full row '
+            'is the failure the empty trailing slots exist to prevent',
+      );
+      expect(
+        widths.first,
+        greaterThan(kMarketsCardMaxWidth),
+        reason:
+            'cards fill the row rather than sitting at the max with the '
+            'remainder empty; if this ever equals the max again the '
+            'Expanded has been reverted to a fixed-width SizedBox',
+      );
     });
   });
 }

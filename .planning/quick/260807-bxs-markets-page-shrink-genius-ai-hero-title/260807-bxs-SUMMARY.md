@@ -330,3 +330,57 @@ Braian's own estimate ("`EdgeInsets.all(16)` → `all(8)` removes 16px... 367.0 
 - `tool/check_brace_style.sh`, `tool/check_raw_colors.sh`, `tool/check_onboarding_seed_safety.sh`, `tool/check_no_new_key_logging.sh --scan-tree`: all exit 0.
 - `tool/check_agent_rules_sync.sh`: exit 1, identical to the pre-existing baseline failure — unrelated, not fixed, per the scope-boundary rule.
 - One atomic commit (both the content-sizing change and the padding halving, per the coordinator's instruction to fold them together): `88808a5` — `fix(260807-bxs): stat tiles size to content, tighter gap, halved card padding`. No attribution trailer. Not pushed. No PR (`gh pr list --head feat/markets-page-cards` returns empty).
+
+**Note:** a follow-on commit (`2ad5274`, not made by this session) later widened the hero stat tiles' `spacing` back from `space6` to `space10` after visual review found `space6` too tight against content-sized (ragged-width) neighbours. That commit is independent of the work below — it landed on this same branch between this SUMMARY entry and the next, touches only `markets_hero_card.dart`, and does not affect the card GRID work that follows.
+
+## Follow-up: card grid column count derived from a max card width, not a device class
+
+A fifth correction, on a different surface: the All Markets **card grid** (`_MarketsCardGrid`), not the hero card. Braian's ask, given explicitly: "the max width of the cards seems too high for the information we have" — he wants 3 columns on tablets, 2 where there's room for 2, 1 on a phone, with the column count falling out of a sensible max card width rather than a binary `useDesktopLayout(context) ? 2 : 1`.
+
+### What changed
+
+- **`MarketsAllSection`'s `LayoutBuilder` now passes `c.maxWidth` straight into `_MarketsCardGrid`** as a `maxWidth` parameter, instead of the grid computing its own device-class check or opening a second `LayoutBuilder`. `LayoutBuilder` is safe in this file (unlike the hero card's left column): this is the one page-width surface for "All Markets", not a widget reused across differently-sized containers.
+- **Column count now falls out of a fixed max card width:** `columns = max(1, (available + gap) ~/ (kMarketsCardMaxWidth + gap))` — continuous, no breakpoint anywhere in it, and consistent with `MarketsAllSection`'s own table-vs-cards gate (which already measures the box rather than the device).
+- **Cards are `SizedBox(width: kMarketsCardMaxWidth)`, not `Expanded`** — they keep their width and never stretch to eat leftover row space. **Leftover space is left-aligned and empty** (a trailing `Spacer`), not distributed across the cards — distributing it was considered and rejected, because either choice keeps the max meaningful, but distributing would have meant re-deriving per-row card widths instead of one constant, for no real benefit at this card's content shape.
+
+### `kMarketsCardMaxWidth`: measured at 287, not the 256 guessed
+
+Two independent constraints were measured directly against the running card (a throwaway bisection harness, deleted before committing — never landed in the tree), not derived from Braian's 256 estimate or picked by eye:
+
+1. **The two `GWStatTile`s' labels** ("Market Cap" / "Volume 24h", the same `GWKicker` dense component the hero card's stat tiles use) **wrap to two lines below 116px of per-tile width.** Bisected precisely: 115px wraps, 116px does not.
+2. **The price/change-pill column is fixed and must not shrink or wrap** (per the brief) — at the fixture's price ($63,480.00) it measures a constant 142.5px regardless of card width. This is the REAL bottleneck: it crushes the coin NAME column toward zero width well before the stat tiles show any problem. At Braian's own guessed 256px, the name "Bitcoin" rendered at **15.5px wide** — not merely ellipsised, effectively invisible; you could not tell which coin the card was for.
+
+Both constraints converge empirically on the same card width: 285px still wraps a stat-tile label, 286px does not. **287 is that measured threshold plus 1px of margin** — the identical convention this task already used for the hero card's own stat-tile width earlier the same day.
+
+### The conflict, reported rather than hidden
+
+**3 columns near `kMarketsTableMinWidth` (846px) is not achievable without crowding, and this is a structural fact, not a close call.** 3 columns at 287px would need roughly 909px of box width — even at ZERO inter-card gap, `3 × 287 = 861` already exceeds 846. Since the card grid only ever renders BELOW `kMarketsTableMinWidth` (the table takes over at and above it), **a 3rd column is unreachable by this grid at any width it will ever actually render at.** The narrowest max width that WOULD fit 3 at 846 is roughly 266px — 21px below the measured 287px floor — and shipping it would wrap the stat-tile labels on every 3-column render as the normal state (not an edge case) and crush the coin name harder than the already-disqualifying 256px case measured above.
+
+**I chose content legibility over hitting the exact column count.** This is exactly the call the coordinator's instructions anticipated and asked to be surfaced rather than decided silently — if 3 columns near 846px matters enough to accept crowding (or a card content redesign, e.g. stacking price/change below identity instead of beside it, which is out of scope for this fix), that is Braian's call to make, not mine.
+
+### Measured column counts (real, not assumed)
+
+| Width | Column count |
+|---|---|
+| 402px (phone) | 1 |
+| 600px | 2 |
+| 840px (just under `kMarketsTableMinWidth`) | 2 — **not 3**, confirmed directly |
+
+### A real bug found and fixed while building this
+
+`Row.spacing` inserts a gap between EVERY adjacent pair of children — including the one before the trailing `Spacer`. The column-count formula's width budget only accounted for `columns - 1` gaps (between cards), not the extra gap `Row.spacing` silently added before the `Spacer`. This produced a genuine 22px `RenderFlex` overflow at 600px width, caught by the new widget test before it shipped, not after. Fixed by removing `Row.spacing` and inserting `SizedBox(width: gap)` by hand between cards only, with no gap before the `Spacer`.
+
+### Tests
+
+`markets_cards_test.dart`'s table-vs-cards fit-gate tests (from the earlier table-restoration follow-up) are untouched — that gate did not change. New geometric tests replace nothing (the grid had no prior column-count tests to replace, since Braian's very first "grid" ask was answered with the binary rule this commit now corrects):
+- 402px: all 4 cards on separate rows (geometric, off top-left `y`, not a widget count).
+- 600px: 4 cards in 2 rows of 2.
+- 840px: still 2 rows of 2, not 3 — this test is also the direct proof of the "3 columns unreachable" finding above — plus an assertion that no card's rendered width exceeds `kMarketsCardMaxWidth` at this, the widest width the grid will ever render at.
+
+### Verification (same eight gates, re-run after this correction)
+
+- `flutter analyze`: **0 issues**, exit 0.
+- `flutter test`: **1036/1036** passed (up from 1033 — three new geometric tests, none removed).
+- `tool/check_brace_style.sh`, `tool/check_raw_colors.sh`, `tool/check_onboarding_seed_safety.sh`, `tool/check_no_new_key_logging.sh --scan-tree`: all exit 0.
+- `tool/check_agent_rules_sync.sh`: exit 1, identical to the pre-existing baseline failure — unrelated, not fixed, per the scope-boundary rule.
+- One atomic commit: `f0ed751` — `fix(260807-bxs): card grid column count falls out of a max card width`. No attribution trailer. Not pushed. No PR (`gh pr list --head feat/markets-page-cards` returns empty).

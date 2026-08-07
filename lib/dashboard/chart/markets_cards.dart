@@ -79,10 +79,19 @@ class MarketsAllSection extends StatelessWidget {
 /// doc comment was written to kill.
 bool marketsSectionUsesTable(double width) => width >= kMarketsTableMinWidth;
 
-/// The widest a single market card is allowed to grow, in px
-/// (2026-08-07 correction, quick 260807-bxs). Braian's own estimate was
-/// 256; measured instead of trusted, because the card's real bottleneck is
-/// narrower than it looks at first glance.
+/// The NARROWEST a market card may be before its own content degrades, in px
+/// — which is what decides how many columns the grid packs (2026-08-07,
+/// quick 260807-bxs). Braian's own estimate was 256; measured instead of
+/// trusted, because the card's real bottleneck is narrower than it looks at
+/// first glance.
+///
+/// **It is a packing threshold, not a cap on the rendered card.** The cards
+/// themselves `Expanded` to fill their row ("we dont need the card narrower
+/// just make it flex" — Braian, same day), so a rendered card is normally
+/// WIDER than this. Pinning each card at this width instead left the row's
+/// remainder as dead space on the right. The name is kept for what the
+/// number means to the column arithmetic; read it as "a card below this
+/// stops being legible", never as "a card is this wide".
 ///
 /// **The binding constraints, both measured directly against the running
 /// card, not guessed:**
@@ -182,35 +191,39 @@ class _MarketsCardGrid extends StatelessWidget {
           // so the cards are uniform height by construction.
           //
           // NO `spacing:` here, deliberately — `Row.spacing` inserts a gap
-          // between EVERY adjacent pair of children, including the one
-          // before the trailing `Spacer` below. That extra gap is not in
+          // between EVERY adjacent pair of children, including the ones
+          // before the filler slots below. Those extra gaps are not in
           // `columns`' own width budget (only `columns - 1` gaps are, one
-          // between each pair of CARDS), and adding it caused a real
-          // overflow at 600px width during this fix (22px, caught by the
-          // widget test, not shipped). Gaps between cards are inserted by
-          // hand instead, so the Spacer gets none.
+          // between each pair of COLUMN SLOTS), and adding them caused a
+          // real overflow at 600px width during this fix (22px, caught by
+          // the widget test, not shipped). Gaps are inserted by hand
+          // instead, between slots only.
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var j = 0; j < chunk.length; j++) ...[
+            // `Expanded`, not `SizedBox(width: kMarketsCardMaxWidth)`:
+            // `kMarketsCardMaxWidth` decides HOW MANY columns fit, and the
+            // cards then flex to fill the row evenly (Braian, 2026-08-07:
+            // "we dont need the card narrower just make it flex"). Pinning
+            // each card at the max instead left the row's remainder as dead
+            // space on the right — the box rarely divides evenly by 287 —
+            // which read as a ragged right edge against the full-width
+            // table the same page shows one breakpoint up.
+            //
+            // The empty trailing slots matter: a short final row pads to
+            // `columns` flex slots so its cards keep the SAME width as the
+            // rows above. Without them a lone last card would flex to the
+            // full row and the grid would end on an odd, oversized card.
+            for (var j = 0; j < columns; j++) ...[
               if (j > 0) const SizedBox(width: gap),
-              SizedBox(
-                width: kMarketsCardMaxWidth,
-                child: _MarketCard(
-                  row: chunk[j],
-                  onTap: () => onTapRow(chunk[j]),
-                ),
+              Expanded(
+                child: j < chunk.length
+                    ? _MarketCard(
+                        row: chunk[j],
+                        onTap: () => onTapRow(chunk[j]),
+                      )
+                    : const SizedBox.shrink(),
               ),
             ],
-            // Leftover width — a short final row, or the division's own
-            // remainder on a FULL row (the box rarely divides evenly by
-            // `kMarketsCardMaxWidth` exactly) — stays empty on the right,
-            // left-aligned, rather than stretching cards to eat it. A card
-            // growing to fill the leftover would defeat the point of
-            // setting a max width at all: distributing the slack across
-            // cards instead was considered and rejected for exactly that
-            // reason. `Spacer` is unconditional, not just for a short final
-            // row, because full rows can carry the same remainder.
-            const Spacer(),
           ],
         ),
       );
