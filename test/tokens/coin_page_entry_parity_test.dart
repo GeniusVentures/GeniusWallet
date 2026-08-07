@@ -130,19 +130,19 @@ Widget _host({
 
 void main() {
   group('Coin-page entry parity census (260731-hsb)', () {
-    test('exactly three /token-info push call sites in lib/, every one passing '
+    test('exactly four /token-info push call sites in lib/, every one passing '
         'a TokenInfoArgs', () {
       final discovered = _discoverTokenInfoPushSites();
       final allRegions = discovered.values.expand((r) => r).toList();
 
       expect(
         allRegions.length,
-        3,
+        4,
         reason:
             'Found ${allRegions.length} /token-info push call site(s) in '
             'lib/ (files: ${discovered.keys.toList()}) - a new coin-page '
             'entry point was added. It must pass TokenInfoArgs so the '
-            'route stays the only assembler, and this count (3) is the '
+            'route stays the only assembler, and this count (4) is the '
             'census to update once that holds.',
       );
 

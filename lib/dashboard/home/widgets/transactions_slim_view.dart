@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
+import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
@@ -32,6 +33,7 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:go_router/go_router.dart';
 
 /// The ten filter identities.
 ///
@@ -163,6 +165,14 @@ String filteredEmptyMessage(int total) =>
     'You have $total transaction${total == 1 ? '' : 's'}, '
     'but none match this filter.';
 
+/// How many rows the DASHBOARD Transactions panel renders (phase 25) - the
+/// most recent five. The rest live behind the panel's `View all`, on
+/// `/transactions`.
+///
+/// Applied in BOTH layouts, mobile and desktop, because the panel is the same
+/// five-row preview on both. Only the PAGE (`page: true`) is uncapped.
+const int kDashboardTransactionsCap = 5;
+
 class TransactionsSlimView extends StatefulWidget {
   final List<Transaction> transactions;
   final bool? isShowOnlySGNUSTransactions;
@@ -261,11 +271,23 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         : _panel(context, gw, scoped, txs);
   }
 
-  /// The dashboard PANEL — the presentation that shipped. Chips and the `⋯`
-  /// menu on the title row, list below, count in the footer.
+  /// The dashboard PANEL - a five-row preview with a `View all` on its title
+  /// row.
   ///
   /// Also the narrow branch of [_page]: below 768 a page IS this panel, which
-  /// is the correct answer rather than a compromise.
+  /// is the correct answer rather than a compromise. The two differ in two
+  /// places and both key off [TransactionsSlimView.page]: the page is UNCAPPED,
+  /// and the page is where the filter bar now lives.
+  ///
+  /// **The filter bar left the dashboard in phase 25 (Jakub, 2026-08-07).** The
+  /// title row cannot hold both it and the link: measured at 390pt the row's
+  /// content box is 336, against "Transactions" ~112 + the bar's pinned 183
+  /// (`transaction_filters_test.dart`) + the link's ~86 = 381. No spacing token
+  /// closes a 45px gap and the bar cannot shrink - it is icon-only at every
+  /// width by an explicit locked decision (sketches 014, 022). So the bar
+  /// became a full-screen control: it still renders on the NARROW
+  /// `/transactions` route, which is this same method with `page: true`, and
+  /// the wide route has always had the better control anyway in [_FilterRail].
   Widget _panel(
     BuildContext context,
     GWColors gw,
@@ -276,19 +298,35 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
       constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.medium),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // `_panel` has two hosts with opposite height contracts. On the
-          // DASHBOARD it sits in a fixed-height card, so it must fill that card
-          // and scroll inside it. As the PAGE's narrow fallback it now sits in
-          // the page's scroll view (sketch 023-V3), where height is unbounded —
-          // and `Expanded` under an unbounded height is an assertion, not a
-          // layout. One bool, read from the widget, not from constraints.
-          final bool hug = widget.page;
+          // `_panel` has THREE hosts, and BOUNDEDNESS is what actually
+          // distinguishes them - not which host it is. A panel handed a bounded
+          // height fills it and scrolls inside it; a panel handed an unbounded
+          // one must HUG, because `Expanded` under an unbounded main-axis
+          // constraint is a `RenderFlex` assertion, not a layout.
+          //
+          //  * DESKTOP dashboard card - bounded. Fill and scroll, as shipped.
+          //  * PAGE narrow fallback - unbounded, inside the page's own scroll
+          //    view (sketch 023-V3). Hug.
+          //  * MOBILE dashboard - unbounded since phase 25, where
+          //    `OneColumnDashBoardView` stopped capping its panels so the PAGE
+          //    owns the only scroll. Hug, and hugging is precisely what frees
+          //    that gesture: a `Column` with no `Expanded` installs no
+          //    scrollable, so nothing here competes for the drag.
+          //
+          // `widget.page` stays in the test rather than being replaced by the
+          // constraint check alone: it is the cheaper, exact answer for the one
+          // host whose unboundedness is structural rather than incidental.
+          //
+          // One bool, read once per layout from a bounded two-value set - what
+          // the freeze rule (37639d5) permits, since it is not a dimension
+          // derived continuously from constraints.
+          final bool hug = widget.page || !constraints.maxHeight.isFinite;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: hug ? MainAxisSize.min : MainAxisSize.max,
-            // GWSectionTitle owns its own space8 bottom gap, so the leading
-            // title no longer needs the Column's 16px spacing above the list.
+            // GWSectionTitle owns the gap below itself, so the leading title
+            // does not need the Column's 16px spacing above the list.
             children: [
               GWSectionTitle(
                 title: 'Transactions',
@@ -307,26 +345,57 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                 // back to All. Getting these two backwards is the defect this
                 // comment exists to prevent — `transaction_filters_test.dart`
                 // pins both directions.
+                //
+                // The SAME rule now covers the link, which is why it reuses
+                // this guard rather than growing one of its own: offering to
+                // view all of nothing is the same unhonourable offer as
+                // filtering an empty set. It is NOT hidden merely because the
+                // section is short - a link that appears and disappears as
+                // history accrues reads as a bug.
                 trailing: scoped.isEmpty
                     ? null
-                    : _TransactionFilterBar(
-                        selected: selectedFilter,
-                        counts: filterCounts(scoped),
-                        onChanged: (f) => setState(() => selectedFilter = f),
-                      ),
+                    : (widget.page
+                          ? _TransactionFilterBar(
+                              selected: selectedFilter,
+                              counts: filterCounts(scoped),
+                              onChanged: (f) =>
+                                  setState(() => selectedFilter = f),
+                            )
+                          // `go`, not `push` - `/transactions` is a bottom-nav
+                          // destination, the same call `dashboard_markets.dart`
+                          // makes for `/markets`.
+                          : GWViewAllLink(
+                              onTap: () => context.go('/transactions'),
+                            )),
               ),
               // NO header rule here, deliberately (sketch 019 variant B).
               // Every other dashboard panel goes straight from GWSectionTitle
-              // to its list, letting the component's own space8 bottom gap do
-              // the separating — Assets (coins_screen.dart) and Markets
+              // to its list, letting the component's own bottom gap do the
+              // separating — Assets (coins_screen.dart) and Markets
               // (dashboard_markets.dart) both do exactly this. A rule on this
               // one panel was the only thing that differed dashboard-wide.
               // Row dividers stay: those are shared with Assets and Markets.
               if (hug)
-                _body(context, gw, scoped, txs, scrollable: false)
+                _body(
+                  context,
+                  gw,
+                  scoped,
+                  txs,
+                  scrollable: false,
+                  underSectionTitle: true,
+                  limit: widget.page ? null : kDashboardTransactionsCap,
+                )
               else
                 Expanded(
-                  child: _body(context, gw, scoped, txs, scrollable: true),
+                  child: _body(
+                    context,
+                    gw,
+                    scoped,
+                    txs,
+                    scrollable: true,
+                    underSectionTitle: true,
+                    limit: widget.page ? null : kDashboardTransactionsCap,
+                  ),
                 ),
               // No footer count. It was removed on the walk: a running total
               // pinned to the bottom-right of the panel read as chrome nobody
@@ -396,8 +465,31 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                 const SizedBox(height: GeniusWalletConsts.space6),
               ],
               // NOT scrollable: the PAGE scrolls (`transactions_screen.dart`).
+              //
+              // The two arguments below are the 2026-08-07 merge repair. This
+              // narrow-page branch arrived from develop (260806-hfe) while
+              // `_body` was gaining two REQUIRED parameters on this branch, and
+              // the two changes never touched the same lines, so git produced
+              // no conflict here - only `flutter analyze` caught it.
+              //
+              // `underSectionTitle: false` because this branch deliberately has
+              // NO `GWSectionTitle` above it - the route supplies a
+              // `GWPageHeader` instead, and the comment above says so. Passing
+              // true would zero a gap that nothing else has paid, closing the
+              // first day label onto the header.
+              //
+              // `limit: null` because this is the PAGE, which is uncapped by
+              // definition; the five-row cap belongs to the dashboard panel.
               DashboardScrollContainer(
-                child: _body(context, gw, scoped, txs, scrollable: false),
+                child: _body(
+                  context,
+                  gw,
+                  scoped,
+                  txs,
+                  scrollable: false,
+                  underSectionTitle: false,
+                  limit: null,
+                ),
               ),
             ],
           );
@@ -438,7 +530,17 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                   // NOT scrollable: the PAGE scrolls now
                   // (`transactions_screen.dart`), so the list lays itself out
                   // as a plain Column and the card is as tall as its rows.
-                  child: _body(context, gw, scoped, txs, scrollable: false),
+                  child: _body(
+                    context,
+                    gw,
+                    scoped,
+                    txs,
+                    scrollable: false,
+                    underSectionTitle: false,
+                    // The PAGE is never capped - it is the destination the
+                    // panel's `View all` points at.
+                    limit: null,
+                  ),
                 ),
               ),
             ),
@@ -461,6 +563,25 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     /// (sketch 023-V3) — there the list is a plain Column and the card sizes
     /// to its rows.
     required bool scrollable,
+
+    /// True when a [GWSectionTitle] sits directly above this list, which is
+    /// the dashboard PANEL only. The title owns the gap below itself, so the
+    /// first day label must pay NOTHING there or the two stack and the panel
+    /// falls off the rhythm rule.
+    ///
+    /// The wide PAGE has no section title (`_page`'s own doc comment says why),
+    /// so its first day label sits straight under the card's inner edge and
+    /// keeps the `space4` it has always had.
+    required bool underSectionTitle,
+
+    /// [kDashboardTransactionsCap] for the dashboard PANEL, null for the page.
+    /// Forwarded straight to [groupTransactionsByDay], which applies it after
+    /// its own newest-first sort, so it means "the most recent N".
+    ///
+    /// It caps the list only. The two empty branches below and the filter
+    /// counts still read the FULL scope, which is what keeps "you have 40
+    /// transactions, but none match this filter" honest on a five-row panel.
+    required int? limit,
   }) {
     // BRANCH 1 — this wallet has never transacted (within this scope). The one
     // branch allowed to be a dead end: there is nothing to show all of.
@@ -500,7 +621,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     // on desktop. Same bool `TransactionRow` uses.
     final bool compact = !GeniusBreakpoints.useDesktopLayout(context);
     final entries = <Widget>[];
-    final days = groupTransactionsByDay(txs);
+    final days = groupTransactionsByDay(txs, limit: limit);
     for (var d = 0; d < days.length; d++) {
       final day = days[d];
       entries.add(
@@ -509,12 +630,24 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
             compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
             // Measured against the other panels rather than picked by eye.
             //
-            // FIRST header (space4): Assets and Markets put GWSectionTitle's
-            // space8 bottom gap above a GWTokenRow that carries its own space4
-            // vertical padding, so their title->first-content distance is 24.
-            // A day label has no such padding of its own, so it pays the
-            // space4 here to land on the same 24 and keep the three panels'
-            // headers on one line.
+            // FIRST header (ZERO, 2026-08-06): this used to pay `space4` to
+            // reach a title->first-content distance of 24 that it believed
+            // Assets and Markets had. That 24 was arithmetic, not a
+            // measurement, and it was wrong twice over. It cited `GWTokenRow`,
+            // which neither panel renders - Assets renders `CoinCardRow` and
+            // Markets renders `CryptoSparkLineChart` - and it counted only
+            // `space8 + space4`, missing BOTH the 10px the section title's own
+            // 44px reservation already contributes below the line box and the
+            // ListTile centring slack inside those rows. The real distances
+            // were 46 (Assets) and 42.75 (Markets), never 24.
+            //
+            // A day label has no inset of its own, so paying nothing here is
+            // what lets `GWSectionTitle` spend its full `space8` and render
+            // the shared 26px gap - the same gap Assets, Compute, Markets and
+            // the news sections now render. Paying `space4` here would stack a
+            // second gap under one the component had already sized, which is
+            // the double-count that made this panel 34 against everyone else's
+            // 26 (`test/components/gw_section_title_rhythm_test.dart`).
             //
             // LATER headers (space12): the previous day's last row already
             // contributes space4 below it, so this yields 32 between one day's
@@ -523,12 +656,23 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
             // old space8 a day boundary measured 24, identical to the
             // title->content gap, so day blocks did not read as separated.
             //
-            // Halved on phone. The 2:1 ratio the reasoning above protects
-            // holds on both sides, just tighter.
+            // Halved on phone (develop, 260806-hfe). The 2:1 ratio the
+            // reasoning above protects holds on both sides, just tighter.
+            //
+            // MERGED 2026-08-07, and the order of the two tests matters.
+            // `underSectionTitle` is checked FIRST and wins outright, because
+            // it encodes "the section title has already paid this gap" - a
+            // structural fact, not a size preference. Nesting `compact` inside
+            // it would reintroduce the exact double-count the comment above
+            // exists to prevent, just at a smaller number, and would put this
+            // panel back out of step with Assets, Compute and Markets on the
+            // phone - which is the only place anyone looks at it.
             d == 0
-                ? (compact
-                      ? GeniusWalletConsts.space2
-                      : GeniusWalletConsts.space4)
+                ? (underSectionTitle
+                      ? 0
+                      : (compact
+                            ? GeniusWalletConsts.space2
+                            : GeniusWalletConsts.space4))
                 : (compact
                       ? GeniusWalletConsts.space6
                       : GeniusWalletConsts.space12),

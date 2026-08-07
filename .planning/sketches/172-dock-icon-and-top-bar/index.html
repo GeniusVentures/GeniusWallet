@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 172 — Dock icon + top bar</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{
+  /* REAL tokens, lifted verbatim from lib/theme/genius_wallet_colors.dart (dark) */
+  --surfaceBase:#0B0D12; --surfaceElevated:#0C0E14; --surfaceMenu:#171A21; --surfaceSunken:#06080C;
+  --textPrimary:#FFFFFF; --textPrimary80:rgba(255,255,255,.80); --textPrimary60:rgba(255,255,255,.60);
+  --textPrimary38:rgba(255,255,255,.38); --textSecondary:#8A8F9D;
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24); --borderControl:rgba(255,255,255,.36);
+  --brandPrimary:#14C8FF; --brandPrimaryStrong:#0AAEE6; --brandSecondary:#2BF5B4; --brandSecondaryStrong:#0AD89C;
+  --statusError:#FF4D4D; --statusWarning:#FFC42E;
+  /* spacing tokens, genius_wallet_consts.dart */
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px; --s20:40px;
+  --rXs:4px; --rSm:8px; --rBase:10px; --rMd:12px; --rLg:15px; --r2xl:16px; --rXl:24px; --rPill:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05070A;color:var(--textPrimary);font:400 15px/1.5 Inter,system-ui,-apple-system,sans-serif;padding:0 0 120px}
+a{color:var(--brandPrimary)}
+code{font:12px/1.4 'JetBrains Mono',ui-monospace,monospace;background:var(--surfaceMenu);padding:1px 5px;border-radius:var(--rXs);color:var(--brandSecondary)}
+
+/* ---------- page chrome ---------- */
+.wrap{max-width:1700px;margin:0 auto;padding:0 var(--s12)}
+.skhead{border-bottom:1px solid var(--borderSubtle);padding:var(--s16) 0 0;margin-bottom:var(--s12);position:sticky;top:0;background:#05070A;z-index:50}
+.skhead h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.skhead p{color:var(--textSecondary);max-width:105ch;margin-top:var(--s4);font-size:14px}
+.tabs{display:flex;gap:var(--s3);margin-top:var(--s10);flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:9px var(--s10);border-radius:var(--rSm) var(--rSm) 0 0;font:600 13px Inter,sans-serif;cursor:pointer;border-bottom:none}
+.tab:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.35);color:var(--textPrimary)}
+.tab[aria-selected=true]{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--borderStrong);position:relative}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));border-radius:3px 3px 0 0;box-shadow:0 0 10px rgba(20,200,255,.5)}
+.panel{display:none}
+.panel.on{display:block}
+
+/* ---------- layout ---------- */
+.cols{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s12) 0}
+.notes{flex:1 1 420px;min-width:380px;max-width:760px}
+.h2{font-size:19px;font-weight:650;margin:var(--s12) 0 var(--s4);letter-spacing:-.01em}
+.h3{font-size:14px;font-weight:650;text-transform:uppercase;letter-spacing:.08em;color:var(--textSecondary);margin:var(--s12) 0 var(--s4)}
+.lead{color:var(--textPrimary80);font-size:14.5px}
+.notes p{margin:var(--s4) 0;color:var(--textPrimary80);font-size:14px}
+.notes li{margin:var(--s3) 0;color:var(--textPrimary80);font-size:14px}
+.notes ul{padding-left:var(--s10)}
+
+/* ---------- provenance ---------- */
+.tag{display:inline-block;font:700 9.5px/1 Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 6px;border-radius:var(--rXs);vertical-align:middle;white-space:nowrap}
+.t-ex{background:rgba(43,245,180,.14);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.4)}
+.t-ad{background:rgba(255,196,46,.14);color:var(--statusWarning);border:1px solid rgba(255,196,46,.4)}
+.t-new{background:rgba(255,77,77,.14);color:#FF8A8A;border:1px solid rgba(255,77,77,.4)}
+.legend{display:flex;gap:var(--s10);flex-wrap:wrap;align-items:center;padding:var(--s6) 0 var(--s12);
+  border-bottom:1px solid var(--borderSubtle);margin-bottom:var(--s6)}
+.legend span{font-size:12.5px;color:var(--textSecondary)}
+
+/* ---------- phone ---------- */
+.stage{flex:0 0 auto;display:flex;gap:var(--s16);flex-wrap:wrap}
+.phonewrap{flex:0 0 auto}
+.phonecap{font:600 12px Inter,sans-serif;color:var(--textSecondary);margin-bottom:var(--s4);text-align:center;letter-spacing:.04em}
+.phone{width:390px;height:844px;background:var(--surfaceBase);border:9px solid #1b1e26;border-radius:46px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1b1e26;
+  border-radius:0 0 18px 18px;z-index:9}
+.sbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s10) 0 var(--s16);font:600 13px Inter;color:var(--textPrimary)}
+.sbar .r{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--textPrimary80)}
+.scr{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
+.scr::-webkit-scrollbar{width:4px}.scr::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+
+/* app bar */
+.appbar{flex:0 0 auto;height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s8);border-bottom:1px solid var(--borderSubtle);background:var(--surfaceElevated)}
+.appbar .title{font:600 17px Inter}
+.track{display:flex;align-items:center;gap:2px;background:var(--surfaceSunken);border:1px solid var(--borderSubtle);
+  border-radius:var(--rPill);padding:3px 6px}
+.trackchip{font:600 10px Inter;color:var(--textPrimary80);padding:3px 5px;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.trackdiv{width:1px;height:16px;background:var(--borderSubtle)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--brandSecondary);flex:0 0 auto}
+
+/* content blocks */
+.pad{padding:var(--s8) var(--s8) 0}
+.kick{font:700 10.5px Inter;letter-spacing:.11em;text-transform:uppercase;color:var(--textSecondary)}
+.sect{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.sect h4{font:650 17px Inter;letter-spacing:-.01em}
+.card{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s10);background-image:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0))}
+.bignum{font:650 30px/1 Inter;letter-spacing:-.02em}
+.unit{font:700 11px Inter;color:var(--textSecondary);letter-spacing:.06em}
+.cta{display:block;width:100%;text-align:center;border:none;border-radius:var(--rPill);padding:13px;
+  font:650 14px Inter;color:#00131f;background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));cursor:pointer}
+.cta.ghost{background:transparent;border:1px solid var(--borderControl);color:var(--textPrimary)}
+.row{display:flex;align-items:center;gap:var(--s6);padding:var(--s6) var(--s8)}
+.ico{width:40px;height:40px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font:700 13px Inter;color:#001}
+.row .mid{flex:1 1 auto;min-width:0}
+.row .nm{font:600 14.5px Inter;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{font-size:12.5px;color:var(--textSecondary);display:flex;gap:6px;align-items:center}
+.up{color:var(--brandSecondary);font-weight:600}
+.row .rt{text-align:right;flex:0 0 auto}
+.dim{color:var(--textPrimary38)}         /* current shipped value colour — FAILS AA */
+.fixed{color:var(--textPrimary80)}       /* proposed */
+.hr{height:1px;background:var(--borderSubtle);margin:0 var(--s8)}
+
+/* bottom navs */
+.bn{flex:0 0 auto;border-top:1px solid var(--borderSubtle);background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,0)),var(--surfaceElevated);
+  display:flex;padding:var(--s3) 0 var(--s10)}
+.bi{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:var(--s3) 2px;cursor:pointer;position:relative}
+.bi svg{width:23px;height:23px;stroke:var(--textSecondary);fill:none;stroke-width:1.9}
+.bi span{font:500 10px Inter;color:var(--textSecondary);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bi.on svg{stroke:var(--brandPrimaryStrong)}
+.bi.on span{color:var(--brandPrimaryStrong);font-weight:600}
+.bi.on::before{content:"";position:absolute;top:-3px;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));box-shadow:0 0 10px rgba(20,200,255,.55)}
+.bn.eight .bi span{font-size:9px}
+
+/* fab */
+.fab{position:absolute;right:20px;bottom:96px;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(160deg,var(--brandPrimary),var(--brandSecondary));display:grid;place-items:center;
+  box-shadow:0 6px 24px rgba(20,200,255,.45);z-index:8}
+/* center dock action */
+.dock{width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;margin-top:-26px;
+  background:linear-gradient(160deg,var(--brandPrimary),var(--brandSecondary));display:grid;place-items:center;
+  box-shadow:0 6px 22px rgba(20,200,255,.45),0 0 0 5px var(--surfaceElevated)}
+
+/* sheet */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surfaceMenu);border-top:1px solid var(--borderStrong);
+  border-radius:var(--rXl) var(--rXl) 0 0;padding:var(--s6) 0 var(--s16);transform:translateY(101%);
+  transition:transform .28s cubic-bezier(.32,.72,0,1);z-index:20}
+.sheet.open{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--borderStrong);margin:var(--s3) auto var(--s8)}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:19}
+.scrim.open{opacity:1;pointer-events:auto}
+.srow{display:flex;align-items:center;gap:var(--s8);padding:13px var(--s12);cursor:pointer}
+.srow:hover{background:rgba(255,255,255,.05)}
+.srow svg{width:21px;height:21px;stroke:var(--textPrimary80);fill:none;stroke-width:1.9}
+.srow span{font:500 15px Inter}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4);padding:0 var(--s10)}
+.sgi{display:flex;flex-direction:column;align-items:center;gap:var(--s3);padding:var(--s8) 2px;border-radius:var(--rMd);cursor:pointer}
+.sgi:hover{background:rgba(255,255,255,.06)}
+.sgi svg{width:24px;height:24px;stroke:var(--textPrimary);fill:none;stroke-width:1.8}
+.sgi span{font:500 11px Inter;color:var(--textPrimary80)}
+
+/* chip rail */
+.rail{display:flex;gap:var(--s4);overflow-x:auto;padding:var(--s4) var(--s8) var(--s6);scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;display:flex;align-items:center;gap:5px;padding:7px var(--s8);border-radius:var(--rPill);
+  border:1px solid var(--borderSubtle);background:var(--surfaceSunken);font:600 12px Inter;color:var(--textPrimary80);cursor:pointer;white-space:nowrap}
+.chip:hover{background:rgba(20,200,255,.08);border-color:rgba(20,200,255,.45);color:var(--textPrimary)}
+.chip svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* wallet header */
+.whead{padding:var(--s10) var(--s8) var(--s6)}
+.wid{display:flex;align-items:center;gap:var(--s6)}
+.wav{width:36px;height:36px;border-radius:50%;background:linear-gradient(140deg,var(--brandPrimary),var(--brandSecondary));flex:0 0 auto}
+.waddr{font:500 11.5px 'JetBrains Mono',monospace;color:var(--textSecondary)}
+
+/* annotations */
+.ann{position:absolute;background:rgba(255,77,77,.92);color:#fff;font:700 10px Inter;padding:2px 6px;border-radius:3px;z-index:30;white-space:nowrap}
+.ann.ok{background:rgba(43,245,180,.92);color:#00291d}
+.measure{position:absolute;border:1px dashed rgba(255,77,77,.8);z-index:29;pointer-events:none}
+body.noann .ann,body.noann .measure{display:none}
+
+/* tables */
+table{border-collapse:collapse;width:100%;margin:var(--s6) 0;font-size:13px}
+th,td{text-align:left;padding:7px var(--s6);border-bottom:1px solid var(--borderSubtle);vertical-align:top}
+th{color:var(--textSecondary);font:700 10.5px Inter;letter-spacing:.08em;text-transform:uppercase}
+td.n{color:var(--textPrimary80)}
+.pass{color:var(--brandSecondary);font-weight:700}
+.fail{color:var(--statusError);font-weight:700}
+
+/* callouts */
+.call{border-left:3px solid var(--statusError);background:rgba(255,77,77,.07);padding:var(--s6) var(--s10);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s6) 0}
+.call.good{border-color:var(--brandSecondary);background:rgba(43,245,180,.07)}
+.call.warn{border-color:var(--statusWarning);background:rgba(255,196,46,.07)}
+.call b{color:var(--textPrimary)}
+.rec{border:1px solid rgba(43,245,180,.45);background:rgba(43,245,180,.08);border-radius:var(--rLg);padding:var(--s10) var(--s12);margin:var(--s12) 0}
+.rec h3{font-size:17px;margin-bottom:var(--s4)}
+
+/* toolbar */
+#sketch-tools{position:fixed;bottom:12px;right:12px;z-index:9999;font:12px system-ui;background:rgba(0,0,0,.82);
+  color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;transition:opacity .2s;display:flex;gap:10px;align-items:center}
+#sketch-tools:hover{opacity:1}
+#sketch-tools button,#sketch-tools select{font:12px system-ui;background:#1b1e26;color:#fff;border:1px solid #333;border-radius:5px;padding:3px 7px;cursor:pointer}
+</style>
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 5-7 4 4"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+<symbol id="i-news" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 3 2.6 15 0 18M12 3c-2.6 3-2.6 15 0 18"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></symbol>
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+<symbol id="i-recv" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+<symbol id="i-buy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h5M9.5 14.5h5"/></symbol>
+<!-- DOCK candidates -->
+<symbol id="d-swap" viewBox="0 0 24 24"><path d="M7 4v15M7 19l-3.4-3.4M7 19l3.4-3.4M17 20V5M17 5l-3.4 3.4M17 5l3.4 3.4"/></symbol>
+<symbol id="d-move" viewBox="0 0 24 24"><path d="M5 9h11M16 9l-3.6-3.6M16 9l-3.6 3.6M19 15H8M8 15l3.6-3.6M8 15l3.6 3.6"/></symbol>
+<symbol id="d-scan" viewBox="0 0 24 24"><path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M4 12h16"/></symbol>
+<symbol id="d-gnus" viewBox="0 0 24 24"><path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/><path d="M12 8.2v7.6M8.6 10.1v3.8M15.4 10.1v3.8"/></symbol>
+</svg>
+
+<div class="wrap">
+<div class="skhead">
+  <h1>Sketch 172 — Dock icon + top bar</h1>
+  <p>The bottom bar with <b>a specific icon instead of the plus</b>, the top bar taken from variant <b>D</b> of sketch 171
+  (wallet identity + network chip). Total Balance included, Assets unchanged apart from the contrast fix.
+  The four candidates differ in <b>what the dock actually is</b> - not in the drawing itself.</p>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-p="a">A · Swap ★</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="b">B · Move</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="c">C · Scan</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="d">D · GNUS</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="side">Side by side</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="cmp">Total Balance + inventory</button>
+  </div>
+</div>
+<div class="legend">
+  <span class="tag t-ex">Existing</span><span>component already in the repo, used unchanged</span>
+  <span class="tag t-ad">Adapted</span><span>existing component, one property changed</span>
+  <span class="tag t-new">New</span><span>has to be written</span>
+</div>
+<section class="panel on" id="p-a">
+<div class="cols">
+  <div class="stage">
+    <div class="phonewrap" id="ph-a">
+    <div class="phonecap">A · SWAP ★ - the dock = one tap into /swap</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c&#8230;3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:38px">$0.00</span>
+            <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets &#183; Ethereum network</div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">&#926;</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up &#183; 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Open</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round"><use href="#d-swap"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+    </div></div>
+  <div class="notes">
+
+  <h2 class="h2">A · SWAP</h2>
+  <p class="lead">The dock <b>is</b> swap. The same icon as today's FAB, the same route, zero new concepts - the floating button simply moves into the bar instead of covering the list.</p>
+
+    <h3 class="h3">What the dock does</h3>
+    <ul>
+      <li>One tap → the <code>/swap</code> route. No sheet, no intermediary. <span class="tag t-ex">Existing</span></li>
+      <li>The icon is <b>exactly</b> <code>Icons.swap_vert_rounded</code> from <code>gw_swap_fab.dart:73</code> - the user already knows it from the floating button. <span class="tag t-ex">Existing</span></li>
+      <li>The global FAB goes away, because it would duplicate the dock. That also closes the <code>bottom: 80</code> bug from <code>global_swap_fab_host.dart:124-128</code>. <span class="tag t-ad">Adapted</span></li>
+    </ul>
+    <div class="call good"><b>Why this is the recommendation.</b> It is the only variant that introduces no new concept at all -
+    it moves a thing that already exists and already has its icon, from a place where it covers the content to a place where it does not.
+    The risk of misreading it is close to zero, because the icon does not change meaning.</div>
+    <div class="call warn"><b>The cost.</b> The dock is the strongest point on the bar, and swap gets it indefinitely.
+    If it turns out that people send more often than they swap, we have given the best spot to a second-order feature.
+    Send and Receive still have no home in navigation.</div>
+
+  </div>
+</div>
+</section>
+
+<section class="panel" id="p-b">
+<div class="cols">
+  <div class="stage">
+    <div class="phonewrap" id="ph-b">
+    <div class="phonecap">B · MOVE - the dock = an action sheet</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c&#8230;3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:38px">$0.00</span>
+            <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets &#183; Ethereum network</div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">&#926;</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up &#183; 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Open</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="scrim" data-scrim="b"></div>
+      <div class="sheet" data-sheet="b">
+        <div class="grab"></div>
+        <div style="padding:0 var(--s12) var(--s8)"><span class="kick">MOVE FUNDS</span></div>
+        <div class="sgrid">
+          <div class="sgi"><svg><use href="#i-send"/></svg><span>Send</span></div>
+          <div class="sgi"><svg><use href="#i-recv"/></svg><span>Receive</span></div>
+          <div class="sgi"><svg><use href="#i-buy"/></svg><span>Buy</span></div>
+          <div class="sgi"><svg><use href="#d-swap"/></svg><span>Swap</span></div>
+        </div>
+      </div>
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px" data-open="b"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round"><use href="#d-move"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+    </div></div>
+  <div class="notes">
+
+  <h2 class="h2">B · MOVE</h2>
+  <p class="lead">The dock is <b>"move funds"</b>. It opens a sheet with Send, Receive, Buy and Swap. It is the only one that gives Send and Receive a permanent place in navigation - today they have none.</p>
+
+    <h3 class="h3">What the dock does</h3>
+    <ul>
+      <li>Opens a sheet with four actions: Send, Receive, Buy, Swap. <b>Click the dock in the mockup.</b> <span class="tag t-ad">Adapted</span></li>
+      <li>Send and Receive get their <b>first permanent place</b> in navigation. Today they are buttons inside screens - <code>wallet_information.dart:176-185</code>, <code>coins_screen.dart:179,345</code> - so from home you cannot reach them without opening a coin first. <span class="tag t-new">New</span></li>
+      <li>The icon: two horizontal arrows in opposite directions - "move", not "swap". <span class="tag t-new">New</span></li>
+    </ul>
+    <div class="call good"><b>The advantage.</b> The most real value per tap. It is the only variant that closes
+    a documented gap rather than merely relocating an existing button.</div>
+    <div class="call"><b>The risk.</b> Two arrows in opposite directions are dangerously close to the swap icon -
+    and swap sits <b>inside</b> that sheet. If a user reads the dock as "swap", the sheet will surprise them.
+    That is exactly the test the "Side by side" tab performs.</div>
+
+  </div>
+</div>
+</section>
+
+<section class="panel" id="p-c">
+<div class="cols">
+  <div class="stage">
+    <div class="phonewrap" id="ph-c">
+    <div class="phonecap">C · SCAN - the dock = the QR scanner</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c&#8230;3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:38px">$0.00</span>
+            <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets &#183; Ethereum network</div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">&#926;</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up &#183; 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Open</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round"><use href="#d-scan"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+    </div></div>
+  <div class="notes">
+
+  <h2 class="h2">C · SCAN</h2>
+  <p class="lead">The dock opens <b>the QR scanner</b>. A wallet standard: address, WalletConnect, payment. <code>mobile_scanner</code> is already in <code>pubspec.yaml</code>, but unused.</p>
+
+    <h3 class="h3">What the dock does</h3>
+    <ul>
+      <li>Opens a full-screen QR scanner: recipient address, WalletConnect pairing, payment. <span class="tag t-new">New</span></li>
+      <li><code>mobile_scanner: ^5.2.3</code> is in <code>pubspec.yaml:35</code>, but <code>grep</code> finds not one use in <code>lib/</code>. The dependency is already paid for. <span class="tag t-new">New</span></li>
+      <li>The repo only has <code>components/qr/crypto_address_qr.dart</code> - <b>displaying</b> a code, not reading one. <span class="tag t-ex">Existing</span></li>
+    </ul>
+    <div class="call good"><b>The advantage.</b> The QR icon is unambiguous - nobody will confuse it with anything else,
+    and it is the only variant whose meaning does not have to be guessed.</div>
+    <div class="call"><b>The risk, and it is serious.</b> There <b>is no</b> scanner. It has to be built: camera permissions,
+    denial states, content parsing, error handling. This is not an icon change, it is a new screen with hardware access.
+    On top of that <code>mobile_scanner</code> is one of the two reasons the iOS simulator does not work in this project -
+    leaning harder on that dependency deepens the problem rather than reducing it.</div>
+
+  </div>
+</div>
+</section>
+
+<section class="panel" id="p-d">
+<div class="cols">
+  <div class="stage">
+    <div class="phonewrap" id="ph-d">
+    <div class="phonecap">D · GNUS - the dock = the way into Compute</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c&#8230;3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:38px">$0.00</span>
+            <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets &#183; Ethereum network</div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">&#926;</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up &#183; 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Open</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round"><use href="#d-gnus"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+    </div></div>
+  <div class="notes">
+
+  <h2 class="h2">D · GNUS</h2>
+  <p class="lead">The dock carries <b>the brand mark</b> and opens Compute. It is the one thing no other wallet has - the dock turns it into a permanent entry point.</p>
+
+    <h3 class="h3">What the dock does</h3>
+    <ul>
+      <li>Carries the GNUS brand mark and opens Compute. <span class="tag t-new">New</span></li>
+      <li>Compute moves off home and into the dock - today it takes the top of the screen from <b>everyone</b>, including people who never use it. <span class="tag t-ad">Adapted</span></li>
+    </ul>
+    <div class="call good"><b>The advantage.</b> Compute is the one thing no other wallet has.
+    The dock makes it a permanent entry point and gives the top of the home screen back to the balance.</div>
+    <div class="call"><b>The risk.</b> A logo in the dock does not say what will happen when it is pressed - and the dock has no label.
+    It is the only variant where the icon is a <b>brand</b> rather than an <b>action</b>, so it is the only one that has to be learned.
+    On top of that a brand mark in a filled gradient collides with the one-gradient-per-surface rule
+    harder than an action does, because it reads like the app's "home" button.</div>
+
+  </div>
+</div>
+</section>
+
+<section class="panel" id="p-side">
+<p class="lead" style="padding:var(--s10) 0">Four docks side by side, at the same 1:1 scale. Look at whether the icon reads <b>without a label</b> - the dock has none.</p>
+<div class="stage">
+    <div class="phonewrap" id="side-a">
+    <div class="phonecap">A · SWAP ★ - the dock = one tap into /swap</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c&#8230;3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:38px">$0.00</span>
+            <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets &#183; Ethereum network</div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">&#926;</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up &#183; 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Open</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round"><use href="#d-swap"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+    </div>
+    <div class="phonewrap" id="side-b">
+    <div class="phonecap">B · MOVE - the dock = an action sheet</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c&#8230;3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:38px">$0.00</span>
+            <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets &#183; Ethereum network</div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">&#926;</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up &#183; 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Open</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="scrim" data-scrim="b"></div>
+      <div class="sheet" data-sheet="b">
+        <div class="grab"></div>
+        <div style="padding:0 var(--s12) var(--s8)"><span class="kick">MOVE FUNDS</span></div>
+        <div class="sgrid">
+          <div class="sgi"><svg><use href="#i-send"/></svg><span>Send</span></div>
+          <div class="sgi"><svg><use href="#i-recv"/></svg><span>Receive</span></div>
+          <div class="sgi"><svg><use href="#i-buy"/></svg><span>Buy</span></div>
+          <div class="sgi"><svg><use href="#d-swap"/></svg><span>Swap</span></div>
+        </div>
+      </div>
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px" data-open="b"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round"><use href="#d-move"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+    </div>
+    <div class="phonewrap" id="side-c">
+    <div class="phonecap">C · SCAN - the dock = the QR scanner</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c&#8230;3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:38px">$0.00</span>
+            <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets &#183; Ethereum network</div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">&#926;</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up &#183; 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Open</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round"><use href="#d-scan"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+    </div>
+    <div class="phonewrap" id="side-d">
+    <div class="phonecap">D · GNUS - the dock = the way into Compute</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c&#8230;3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:38px">$0.00</span>
+            <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets &#183; Ethereum network</div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">&#926;</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up &#183; 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Open</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round"><use href="#d-gnus"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+    </div></div>
+</section>
+<section class="panel" id="p-cmp">
+<div style="padding:var(--s12) 0;max-width:1180px">
+
+  <h2 class="h2">Recommendation</h2>
+  <div class="rec">
+    <h3>★ A · Swap - but only if we do not want to touch Send/Receive in this round</h3>
+    <p style="color:var(--textPrimary80);font-size:14.5px">A is the only variant that <b>introduces no new concept</b>:
+    the same icon (<code>Icons.swap_vert_rounded</code>), the same route, the same semantic contract as today's FAB.
+    We move the button from a place where it covers the asset list to a place where it does not. Zero risk of misreading it.</p>
+    <p style="color:var(--textPrimary80);font-size:14.5px;margin-top:var(--s4)"><b>But to be honest about where A is weak:</b>
+    it gives the strongest point on the bar to a feature that is not the most frequent one. If you have any hunch that people
+    send more often than they swap, <b>B is the better investment</b> - it closes a documented gap instead of relocating an existing button.</p>
+  </div>
+
+  <p style="color:var(--textPrimary80);font-size:14px"><b>Runner-up: B · Move.</b> The most real value:
+  Send and Receive get their first permanent place in navigation. It loses to A purely on icon legibility -
+  two "move" arrows are dangerously close to the "swap" arrows, and swap sits in the middle of that sheet.</p>
+  <p style="color:var(--textPrimary80);font-size:14px;margin-top:var(--s4)"><b>Rejected: C · Scan and D · GNUS.</b>
+  C has the clearest icon of them all, but there simply is no scanner - it is a new screen with camera access,
+  permissions and denial states, and <code>mobile_scanner</code> is one of the two reasons the iOS simulator does not work here.
+  D is the only one that puts a <b>brand instead of an action</b> in the dock, so it is the only one that has to be learned - and the dock has no label to help.</p>
+
+  <h2 class="h2">Total Balance - three cosmetic variants</h2>
+  <p style="color:var(--textPrimary80);font-size:14px">You said the block itself is fine and this is about cosmetics. Three versions, 1:1.
+  All of them keep <code>bignum</code> at 38 px and the kicker <code>textSecondary</code> at 6.0:1.</p>
+  <div style="display:flex;gap:var(--s16);flex-wrap:wrap;margin-top:var(--s8)">
+    <div style="width:390px;background:var(--surfaceBase);border:1px solid var(--borderSubtle);border-radius:var(--rLg);padding:var(--s12) var(--s8)">
+      <div class="phonecap" style="text-align:left;margin-bottom:var(--s8)">TB-1 · flat (as in the mockups above)</div>
+      <span class="kick">TOTAL BALANCE</span>
+      <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+        <span class="bignum" style="font-size:38px">$0.00</span>
+        <span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span></div>
+      <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">3 assets · Ethereum network</div>
+    </div>
+    <div style="width:390px;background:var(--surfaceBase);border:1px solid var(--borderSubtle);border-radius:var(--rLg);padding:var(--s12) var(--s8)">
+      <div class="phonecap" style="text-align:left;margin-bottom:var(--s8)">TB-2 · in a card, centred</div>
+      <div class="card" style="text-align:center;padding:var(--s12) var(--s10)">
+        <span class="kick">TOTAL BALANCE</span>
+        <div class="bignum" style="font-size:40px;margin-top:var(--s3)">$0.00</div>
+        <div style="margin-top:var(--s4)"><span class="chip" style="padding:3px 9px;font-size:11px"><span class="up">+0.00%</span> 24h</span></div>
+      </div>
+    </div>
+    <div style="width:390px;background:var(--surfaceBase);border:1px solid var(--borderSubtle);border-radius:var(--rLg);padding:var(--s12) var(--s8)">
+      <div class="phonecap" style="text-align:left;margin-bottom:var(--s8)">TB-3 · with a CTA pair underneath</div>
+      <span class="kick">TOTAL BALANCE</span>
+      <div class="bignum" style="font-size:38px;margin-top:var(--s2)">$0.00</div>
+      <div style="display:flex;gap:var(--s4);margin-top:var(--s10)">
+        <button class="cta" style="flex:1 1 0;padding:11px;font-size:13px">Receive</button>
+        <button class="cta ghost" style="flex:1 1 0;padding:11px;font-size:13px">Send</button></div>
+    </div>
+  </div>
+  <div class="call warn" style="max-width:790px"><b>A note on TB-3.</b> If we pick the <b>B · Move</b> dock,
+  then TB-3 duplicates it outright - Send and Receive would be in two places on one screen.
+  TB-3 only makes sense with dock A, C or D. That is the only dependency between these two decisions.</div>
+
+  <h2 class="h2">Inventory - what each dock costs</h2>
+  <table>
+    <tr><th>Element</th><th>A Swap</th><th>B Move</th><th>C Scan</th><th>D GNUS</th><th>Proof in the repo</th></tr>
+    <tr><td class="n">Dock icon</td><td><span class="tag t-ex">Ex</span></td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td>A = <code>gw_swap_fab.dart:73</code></td></tr>
+    <tr><td class="n">Dock widget</td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td>no precedent</td></tr>
+    <tr><td class="n">Action target</td><td><span class="tag t-ex">Ex</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-new">New</span></td><td><span class="tag t-ex">Ex</span></td><td>A/D = the route already exists</td></tr>
+    <tr><td class="n">Action sheet</td><td>—</td><td><span class="tag t-ex">Ex</span></td><td>—</td><td>—</td><td><code>gw_bottom_sheet.dart</code></td></tr>
+    <tr><td class="n">Scanner screen</td><td>—</td><td>—</td><td><span class="tag t-new">New</span></td><td>—</td><td><code>pubspec.yaml:35</code> - the dependency is there, the usage is not</td></tr>
+    <tr><td class="n">Top bar (from 171-D)</td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td>today only <code>Text("Genius Wallet")</code></td></tr>
+    <tr><td class="n">Removing the global FAB</td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><code>global_swap_fab_host.dart:124-128</code></td></tr>
+    <tr><td class="n">Assets</td><td colspan="4" style="text-align:center">unchanged apart from the value colour - <code>coin_card_row.dart:126,134</code> <span class="tag t-ad">Ad</span></td><td>3.54:1 → 12.4:1</td></tr>
+  </table>
+  <p style="font-size:13px;color:var(--textSecondary)"><span class="tag t-new">New</span> items beyond the shared dock and bar:
+  <b>A = 0</b> · B = 1 · C = 2 · D = 1.</p>
+
+  <h2 class="h2">The no-label legibility test</h2>
+  <p style="color:var(--textPrimary80);font-size:14px">The dock is the only element on the bar with <b>no caption</b>.
+  The "Side by side" tab shows four docks in one row - if you have to stop and think about what any of them does,
+  that is the answer to the question. My prediction, to be checked against your eye:
+  <b>C legible immediately</b>, <b>A legible because it is familiar from the FAB</b>, <b>B confused with A</b>, <b>D illegible without learning it</b>.</p>
+
+  <h2 class="h2">What this sketch does NOT settle</h2>
+  <ul style="padding-left:var(--s10)">
+    <li style="color:var(--textPrimary80);font-size:14px;margin:var(--s3) 0"><b>The composition of the four remaining items</b> (Home · Markets · Activity · More) - I carried it over from 171-B unchanged. If 171 settles differently, this comes back.</li>
+    <li style="color:var(--textPrimary80);font-size:14px;margin:var(--s3) 0"><b>The "one filled gradient per surface" rule</b> - the dock breaks it in all four variants. That is a decision to take once, not per icon.</li>
+    <li style="color:var(--textPrimary80);font-size:14px;margin:var(--s3) 0"><b>The dock's behaviour on other screens</b> - whether it is constant across the whole shell, or only on Home.</li>
+  </ul>
+</div>
+</section>
+</div><!-- /wrap -->
+
+<div id="sketch-tools">
+  <span style="opacity:.6">172</span>
+  <button id="annbtn">Annotations: ON</button>
+</div>
+
+<script>
+(function () {
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.setAttribute('aria-selected', 'false'); });
+      t.setAttribute('aria-selected', 'true');
+      panels.forEach(function (p) { p.classList.remove('on'); });
+      var el = document.getElementById('p-' + t.dataset.p);
+      if (el) { el.classList.add('on'); }
+      window.scrollTo(0, 0);
+    });
+  });
+
+  function closeSheet(key) {
+    document.querySelectorAll('[data-sheet="' + key + '"]').forEach(function (s) { s.classList.remove('open'); });
+    document.querySelectorAll('[data-scrim="' + key + '"]').forEach(function (c) { c.classList.remove('open'); });
+  }
+  document.querySelectorAll('[data-open]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.dataset.open;
+      var host = btn.closest('.phone');
+      if (!host) { return; }
+      var s = host.querySelector('[data-sheet="' + key + '"]');
+      var c = host.querySelector('[data-scrim="' + key + '"]');
+      if (s) { s.classList.add('open'); }
+      if (c) { c.classList.add('open'); }
+    });
+  });
+  document.querySelectorAll('.scrim').forEach(function (c) {
+    c.addEventListener('click', function () { closeSheet(c.dataset.scrim); });
+  });
+  document.querySelectorAll('.sheet .sgi').forEach(function (r) {
+    r.addEventListener('click', function () {
+      var sheet = r.closest('.sheet');
+      if (sheet) { closeSheet(sheet.dataset.sheet); }
+    });
+  });
+
+  var ann = document.getElementById('annbtn');
+  ann.addEventListener('click', function () {
+    document.body.classList.toggle('noann');
+    ann.textContent = document.body.classList.contains('noann') ? 'Annotations: OFF' : 'Annotations: ON';
+  });
+})();
+</script>
+</body>
+</html>

@@ -197,94 +197,107 @@ class _SplashState extends State<Splash> {
               ),
               Align(
                 alignment: Alignment.bottomCenter,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        GeniusWalletConsts.space10,
-                        0,
-                        GeniusWalletConsts.space10,
-                        GeniusWalletConsts.space6,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(
-                            'STATUS',
-                            style: GeniusWalletTypography.labelMd.copyWith(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 13 * 0.16,
-                              // A literal, not `textPrimary38` -- that token
-                              // flips with appearance (D2/D8). Alpha raised
-                              // 0.38 -> 0.85 (walk 13-03, variant C): the 38%
-                              // kicker faded into bright mesh blobs; Jakub chose
-                              // the loud, first-read weight.
-                              color: Colors.white.withValues(alpha: 0.85),
-                            ),
-                          ),
-                          const SizedBox(width: GeniusWalletConsts.space6),
-                          Flexible(
-                            child: Text(
-                              _statusText,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              // bodySm already bakes the const `textSecondary`
-                              // colour -- passed explicitly anyway so the
-                              // safety is visible at the call site rather
-                              // than inherited from a default that could
-                              // change.
-                              style: GeniusWalletTypography.bodySm.copyWith(
-                                color: context.gw.textSecondary,
+                // The boot screen had NO SafeArea at all, so the 2px progress
+                // rail below sat on the physical screen edge -- under the home
+                // indicator and inside the corner radius on a notched iPhone
+                // (reported 2026-08-06 from Sidney). `top: false` leaves the
+                // centred logo alone; `minimum` is a FLOOR, not an addition, so
+                // a device with no gesture handle (viewPadding.bottom == 0)
+                // still clears the edge by one 4-pt step instead of nothing.
+                child: SafeArea(
+                  top: false,
+                  minimum: const EdgeInsets.only(
+                    bottom: GeniusWalletConsts.space6,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          GeniusWalletConsts.space10,
+                          0,
+                          GeniusWalletConsts.space10,
+                          GeniusWalletConsts.space6,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              'STATUS',
+                              style: GeniusWalletTypography.labelMd.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 13 * 0.16,
+                                // A literal, not `textPrimary38` -- that token
+                                // flips with appearance (D2/D8). Alpha raised
+                                // 0.38 -> 0.85 (walk 13-03, variant C): the 38%
+                                // kicker faded into bright mesh blobs; Jakub chose
+                                // the loud, first-read weight.
+                                color: Colors.white.withValues(alpha: 0.85),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: 2,
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              // Track -- kept per the approved sketch's `.rail`
-                              // background; without it the rail's own extent
-                              // is invisible at zero.
-                              Positioned.fill(
-                                child: ColoredBox(
-                                  color: Colors.white.withValues(alpha: 0.10),
+                            const SizedBox(width: GeniusWalletConsts.space6),
+                            Flexible(
+                              child: Text(
+                                _statusText,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                // bodySm already bakes the const `textSecondary`
+                                // colour -- passed explicitly anyway so the
+                                // safety is visible at the call site rather
+                                // than inherited from a default that could
+                                // change.
+                                style: GeniusWalletTypography.bodySm.copyWith(
+                                  color: context.gw.textSecondary,
                                 ),
                               ),
-                              TweenAnimationBuilder<double>(
-                                tween: Tween<double>(
-                                  begin: 0,
-                                  end: _railTarget,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 2,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Stack(
+                              alignment: Alignment.centerLeft,
+                              children: [
+                                // Track -- kept per the approved sketch's `.rail`
+                                // background; without it the rail's own extent
+                                // is invisible at zero.
+                                Positioned.fill(
+                                  child: ColoredBox(
+                                    color: Colors.white.withValues(alpha: 0.10),
+                                  ),
                                 ),
-                                duration: _railDuration,
-                                builder: (context, value, child) => Container(
-                                  width: constraints.maxWidth * value,
-                                  height: 2,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        context.gw.brandPrimary,
-                                        context.gw.brandSecondary,
-                                      ],
+                                TweenAnimationBuilder<double>(
+                                  tween: Tween<double>(
+                                    begin: 0,
+                                    end: _railTarget,
+                                  ),
+                                  duration: _railDuration,
+                                  builder: (context, value, child) => Container(
+                                    width: constraints.maxWidth * value,
+                                    height: 2,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          context.gw.brandPrimary,
+                                          context.gw.brandSecondary,
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
+                              ],
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],

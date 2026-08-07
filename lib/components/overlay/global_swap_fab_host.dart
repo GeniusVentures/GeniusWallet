@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:genius_wallet/components/buttons/gw_swap_fab.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 
 /// Wraps the app navigator and floats the global swap FAB over every
@@ -144,7 +145,20 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
     final path = config.isNotEmpty
         ? config.last.matchedLocation
         : config.uri.path;
-    final hidden = GlobalSwapFabHost._hiddenPaths.contains(path);
+    // 24-06: on a phone the bar now carries a Swap dock in its centre
+    // (`_MobileSwapDock`), so this floating button is the SAME action twice -
+    // and it was landing on top of the last asset row while doing it. Hidden
+    // wherever the mobile shell is the one mounted, which is the same
+    // condition `router.dart`'s ShellRoute uses to choose MobileOverlay, so
+    // the two cannot disagree.
+    //
+    // Desktop keeps the FAB: `_DesktopTopBar` has no dock and no bottom bar,
+    // so there the button is the only always-available route to /swap.
+    final usesMobileShell =
+        !GeniusBreakpoints.useDesktopOverlay(context) ||
+        GeniusBreakpoints.isMobileApp();
+    final hidden =
+        usesMobileShell || GlobalSwapFabHost._hiddenPaths.contains(path);
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Stack(

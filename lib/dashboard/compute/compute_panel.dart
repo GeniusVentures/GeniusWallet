@@ -110,13 +110,34 @@ class ComputePanel extends StatelessWidget {
       children: [
         // `GWSectionTitle`, not a kicker, so this panel reads at the SAME
         // geometry as Assets/Markets/Transactions/Chart: the component
-        // reserves a 44px header and owns its `space8` bottom gap, which is
-        // what puts Balance on the same baseline as the first Assets coin
-        // (Jakub, 2026-07-31 - a deliberate override of sketch 166, whose
-        // component inventory assigned `GWKicker` here). The 38px it costs
-        // over the old kicker is why `kDashboardPanelSlotHeight` went 300 ->
-        // 340. Do NOT add a spacer below - the title owns its own gap, and do
-        // not "restore" the kicker.
+        // reserves a 44px header and owns the gap below it (Jakub,
+        // 2026-07-31 - a deliberate override of sketch 166, whose component
+        // inventory assigned `GWKicker` here). Adopting it over the old kicker
+        // is why `kDashboardPanelSlotHeight` went 300 -> 340. Do NOT add a
+        // spacer below - the title owns its own gap, and do not "restore" the
+        // kicker.
+        //
+        // No `contentTopInset`: `_BalanceTile` is a `GWCard`, so it paints
+        // from its own first pixel (measured C = 0), which means this panel
+        // pays the FULL `space8` bottom pad and renders the shared 26px gap.
+        //
+        // This is the panel the 2026-08-06 rhythm pass was really about. On
+        // Jakub's iPhone it measured 27.9pt above the title against 17.7pt
+        // below - visibly bottom-tight next to Assets, which measured 28.9 /
+        // 31.3 and read balanced. Compute was tight precisely BECAUSE its
+        // content has no inset of its own: every other panel was getting the
+        // same 16px pad plus its content's own slack on top.
+        //
+        // Height cost: none, net. The panel is back where it started - the
+        // tallest state measures ~306 against the 314 budget
+        // (`compute_panel_height_test.dart`), so the slot stayed at 340.
+        //
+        // That budget is the DESKTOP slot's since phase 25. On the phone the
+        // panel is uncapped - `OneColumnDashBoardView` hands it an unbounded
+        // height so the page owns the only scroll - so it simply renders at its
+        // own height and has no budget to blow. The 306 and the 314 above are
+        // unchanged and still measured; only the surface they describe
+        // narrowed.
         const GWSectionTitle(title: 'Compute'),
         _BalanceTile(
           view: view,
@@ -430,16 +451,35 @@ class _UnitTrack extends StatelessWidget {
 /// deliberately kept rather than matched to the other tracks' bare
 /// `GestureDetector`).
 ///
-/// **Colour deviates from `_TimeframeTab` on purpose.** Selected is
-/// `gw.surfaceMenu` fill with `gw.textPrimary`; unselected is transparent
-/// with `gw.textSecondary`. No gradient in any state - this follows jx5's
-/// `_OrderToneChip` and the sketch's own drawing, and it obeys the CTA
-/// weight rule: the Compute panel already has one filled commitment CTA
-/// ("New processing job"), and a unit selector must not carry the same
-/// visual weight. `_TimeframeTab`/`_FilterChip` still use the brand gradient
-/// on their selected chip - that is not drift, it is because those two mark
-/// a *filter* selection on a surface with no competing CTA, and this one
-/// does.
+/// **Colour now MATCHES `_TimeframeTab`: the brand CTA gradient with
+/// `textOnBrand`.** Changed 2026-08-06 (sketch 175, scheme U1) by Jakub's
+/// explicit decision - "toggle GNUS / MIN should follow similar component
+/// like timeframe filter, to see way better what is selected".
+///
+/// **This REVERSES the 260731-kc5 decision, knowingly.** That earlier note
+/// read: "No gradient in any state ... it obeys the CTA weight rule: the
+/// Compute panel already has one filled commitment CTA (New processing job),
+/// and a unit selector must not carry the same visual weight." The reasoning
+/// was sound but it lost to a measurement. The old selected state,
+/// `surfaceMenu` `#171A21` on the track's `surfaceSunken` `#06080C`, measures
+/// **1.15:1** - two near-identical blacks. WCAG 1.4.11 requires **3:1** for a
+/// visual indicator of state, so the control was not merely subtle, it failed
+/// a Level AA criterion. The gradient stops measure 10.80:1 and 7.84:1 on the
+/// same track, and `textOnBrand` clears text AA on both (10.66:1 / 7.74:1).
+///
+/// Two alternatives were drawn and measured before this one was taken
+/// (sketch 175): a "lift chip" of `surfaceElevated` + `borderStrong`, which
+/// FAILS at 1.04:1 fill and 2.19:1 edge - `surfaceElevated` is *darker* than
+/// `surfaceMenu`, so lifting made it less visible - and a `brandSecondary`
+/// 14%-fill / 50%-edge tint at 4.00:1, which passes and preserves the CTA
+/// weight rule. Jakub chose the gradient over the tint.
+///
+/// **Known consequence, accepted:** this surface now carries TWO filled brand
+/// gradients - this chip and the "New processing job" button. The CTA weight
+/// rule ("fill means commitment, at most one per surface") is knowingly
+/// suspended here. The recorded partner move, if the doubled weight ever
+/// reads wrong, is to demote "New processing job" to an outline button rather
+/// than to quietly revert this chip.
 ///
 /// **Input handling deviates from the other tracks deliberately, and this
 /// must not be "corrected" to match them.** `_TimeframeTab`
@@ -496,11 +536,16 @@ class _UnitSegment extends StatelessWidget {
       child: GWHoverable(
         builder: (hovered) {
           final bool lifted = hovered && !selected;
+          // 260806 (sketch 175, scheme U1): selected is the brand CTA
+          // gradient with `textOnBrand`, identical to `_TimeframeTab`.
+          // `fill` stays null when selected because a `BoxDecoration` cannot
+          // carry both `color` and `gradient` - the gradient is applied in the
+          // decoration below.
           final Color foreground = selected
-              ? gw.textPrimary
+              ? gw.textOnBrand
               : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
           final Color? fill = selected
-              ? gw.surfaceMenu
+              ? null
               : (lifted ? gw.surfaceElevated : null);
 
           return Material(
@@ -525,6 +570,7 @@ class _UnitSegment extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: fill,
+                  gradient: selected ? GeniusWalletGradient.brandCta : null,
                   borderRadius: BorderRadius.circular(
                     GeniusWalletConsts.radiusPill,
                   ),

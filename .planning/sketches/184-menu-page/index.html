@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 184 - the Menu page</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{
+  --surfaceBase:#0B0D12; --surfaceElevated:#0C0E14; --surfaceMenu:#171A21; --surfaceSunken:#06080C;
+  --textPrimary:#FFFFFF; --textPrimary80:rgba(255,255,255,.80); --textPrimary60:rgba(255,255,255,.60);
+  --textPrimary38:rgba(255,255,255,.38); --textSecondary:#8A8F9D; --textOnBrand:#000B18;
+  --textMutedOnSunken:#8A8F9D;
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24); --borderControl:rgba(255,255,255,.36);
+  --brandPrimary:#14C8FF; --brandPrimaryStrong:#0AAEE6; --brandSecondary:#2BF5B4;
+  --gradientGreen:#0AD89C; --gradientBlue:#0AAEE6;
+  --statusError:#FF4D4D; --statusWarning:#FFC42E; --statusSuccess:#2BF5B4;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px; --s20:40px;
+  --rXs:4px; --rSm:8px; --rMd:12px; --rLg:15px; --rXl:24px; --rPill:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05070A;color:var(--textPrimary);font:400 15px/1.5 Inter,system-ui,-apple-system,sans-serif;padding:0 0 140px}
+code{font:12px/1.4 'JetBrains Mono',ui-monospace,monospace;background:var(--surfaceMenu);padding:1px 5px;border-radius:var(--rXs);color:var(--brandSecondary)}
+.wrap{max-width:1780px;margin:0 auto;padding:0 var(--s12)}
+.skhead{border-bottom:1px solid var(--borderSubtle);padding:var(--s16) 0 0;margin-bottom:var(--s12);position:sticky;top:0;background:#05070A;z-index:50}
+.skhead h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.skhead p{color:var(--textSecondary);max-width:110ch;margin-top:var(--s4);font-size:14px}
+.tabs{display:flex;gap:var(--s3);margin-top:var(--s10);flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:9px var(--s10);border-radius:var(--rSm) var(--rSm) 0 0;font:600 13px Inter;cursor:pointer;border-bottom:none}
+.tab:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.35);color:var(--textPrimary)}
+.tab[aria-selected=true]{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--borderStrong);position:relative}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));border-radius:3px 3px 0 0;box-shadow:0 0 10px rgba(20,200,255,.5)}
+.panel{display:none}.panel.on{display:block}
+.cols{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s12) 0}
+.notes{flex:1 1 430px;min-width:390px;max-width:820px}
+.h2{font-size:19px;font-weight:650;margin:var(--s12) 0 var(--s4);letter-spacing:-.01em}
+.h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--textSecondary);margin:var(--s12) 0 var(--s4)}
+.notes p{margin:var(--s4) 0;color:var(--textPrimary80);font-size:14px}
+.notes li{margin:var(--s3) 0;color:var(--textPrimary80);font-size:14px}
+.notes ul{padding-left:var(--s10)}
+.verdict{border-left:3px solid var(--brandSecondary);background:rgba(43,245,180,.06);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s8) 0;font-size:13.5px;color:var(--textPrimary80)}
+.verdict.bad{border-left-color:var(--statusError);background:rgba(255,77,77,.06)}
+.verdict.warn{border-left-color:var(--statusWarning);background:rgba(255,196,46,.06)}
+.verdict b{color:var(--textPrimary)}
+.try{border-left:3px solid var(--brandPrimary);background:rgba(20,200,255,.07);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s8) 0;font-size:13.5px;color:var(--textPrimary80)}
+.try b{color:var(--brandPrimary)}
+.tag{display:inline-block;font:700 9.5px/1 Inter;letter-spacing:.09em;text-transform:uppercase;padding:3px 6px;border-radius:var(--rXs);vertical-align:middle}
+.t-ex{background:rgba(43,245,180,.14);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.4)}
+.t-ad{background:rgba(255,196,46,.14);color:var(--statusWarning);border:1px solid rgba(255,196,46,.4)}
+.t-new{background:rgba(255,77,77,.14);color:#FF8A8A;border:1px solid rgba(255,77,77,.4)}
+.legend{display:flex;gap:var(--s10);flex-wrap:wrap;align-items:center;padding:var(--s6) 0 var(--s12);
+  border-bottom:1px solid var(--borderSubtle);margin-bottom:var(--s6)}
+.legend span{font-size:12.5px;color:var(--textSecondary)}
+table{border-collapse:collapse;width:100%;margin:var(--s6) 0;font-size:13px}
+th,td{text-align:left;padding:7px var(--s4);border-bottom:1px solid var(--borderSubtle);vertical-align:top}
+th{color:var(--textSecondary);font:700 11px Inter;text-transform:uppercase;letter-spacing:.07em}
+.pass{color:var(--brandSecondary);font-weight:700}.fail{color:#FF8A8A;font-weight:700}
+
+.stage{flex:0 0 auto}
+.phonewrap{flex:0 0 auto}
+.phonecap{font:600 12px Inter;color:var(--textSecondary);margin-bottom:var(--s4);text-align:center;letter-spacing:.04em}
+.phone{width:390px;height:844px;background:var(--surfaceBase);border:9px solid #1b1e26;border-radius:46px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1b1e26;border-radius:0 0 18px 18px;z-index:30}
+.sbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 var(--s10) 0 var(--s16);font:600 13px Inter}
+.sbar .r{font:400 11px Inter;color:var(--textPrimary80)}
+
+/* 60px app bar, 1px borderStrong bottom edge, titleSpacing space8 - mobile_header.dart:55,70,85 */
+.appbar{flex:0 0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s8);border-bottom:1px solid var(--borderStrong);background:var(--surfaceElevated);position:relative;z-index:20}
+.lockup{display:flex;align-items:center;gap:var(--s4)}
+.mark{width:21.37px;height:28px;border-radius:6px;background:linear-gradient(140deg,var(--gradientGreen),var(--gradientBlue));
+  display:grid;place-items:center;font:800 13px Inter;color:var(--textOnBrand)}
+.wordmark{font:700 18px/1 Inter;letter-spacing:-.01em}
+.hcluster{display:flex;align-items:center;gap:var(--s6)}
+.hbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.hbtn.wallet{background:var(--brandPrimaryStrong);color:var(--textOnBrand);font:700 12px Inter;width:44px;height:44px;position:relative}
+.hbtn.wallet i{position:absolute;width:32px;height:32px;border-radius:50%;background:var(--brandPrimaryStrong);
+  display:grid;place-items:center;font-style:normal}
+.hbtn.burg{color:var(--textPrimary80);font-size:20px}
+.hbtn.burg:hover{background:rgba(20,200,255,.07)}
+.hbtn.burg.act{color:var(--textPrimary)}
+.burglines{display:flex;flex-direction:column;gap:4px;align-items:center}
+.burglines span{display:block;width:18px;height:2px;background:currentColor;border-radius:2px}
+
+.scr{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:thin;background:var(--surfaceBase)}
+.scr::-webkit-scrollbar{width:4px}.scr::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+.statebar{display:flex;gap:var(--s3);margin-top:var(--s4);justify-content:center;flex-wrap:wrap}
+.statebar button{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:5px var(--s6);border-radius:var(--rSm);font:600 11px Inter;cursor:pointer}
+.statebar button.on{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--brandPrimaryStrong)}
+.statebar button:hover{color:var(--textPrimary)}
+.crumb{font:500 11px Inter;color:var(--textSecondary);text-align:center;margin-top:var(--s3)}
+.crumb b{color:var(--brandSecondary);font-weight:600}
+
+/* GWPageHeader - headlineLg 24, owns its own bottom gap (gw_page_header.dart) */
+.pagehead{padding:var(--s10) var(--s8) var(--s8);font:650 24px Inter;letter-spacing:-.02em}
+.pagehead .sub{font:400 13px Inter;color:var(--textSecondary);letter-spacing:0;margin-top:2px}
+/* GWBackLink - GWKicker.style(dense) + chevron (gw_back_link.dart:18) */
+.backlink{display:inline-flex;align-items:center;gap:var(--s3);padding:var(--s6) var(--s8) 0;cursor:pointer;
+  font:600 11px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--textSecondary)}
+.backlink:hover{color:var(--textPrimary)}
+/* GWCard - surfaceElevated sheen + borderSubtle hairline + radiusLg 15 (gw_card.dart) */
+.card{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);padding:var(--s4);margin:0 var(--s8) var(--s8)}
+.card.tight{padding:var(--s3)}
+/* GWKicker - 13px w600 textSecondary, owns no padding (gw_kicker.dart) */
+.kicker{font:600 13px Inter;text-transform:uppercase;letter-spacing:.5px;color:var(--textSecondary);padding:var(--s8) var(--s8) var(--s3)}
+.kicker.dense{font-size:11px;letter-spacing:.6px}
+/* GWSelectRow - space6 padding, radiusMd, space2 bottom margin, transparent resting border */
+.srow{display:flex;align-items:center;gap:var(--s6);padding:var(--s6);border-radius:var(--rMd);cursor:pointer;
+  border:1px solid transparent;margin-bottom:var(--s2)}
+.srow:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.35)}
+.srow .ic{width:24px;flex:0 0 auto;display:grid;place-items:center;font-size:18px;color:var(--textPrimary80)}
+.srow .mid{flex:1 1 auto;min-width:0}
+.srow .lbl{font:600 15px Inter;color:var(--textPrimary)}
+.srow .sub{font:400 12.5px Inter;color:var(--textSecondary);margin-top:1px}
+.srow .chev{color:var(--textPrimary60);font-size:17px;flex:0 0 auto}
+.srow.noico .ic{display:none}
+.hair{height:1px;background:var(--borderSubtle);margin:var(--s3) var(--s8)}
+.hair.inset{margin:var(--s2) var(--s6)}
+.flatrow{margin:0 var(--s4)}
+/* control track - CONVENTIONS.md: surfaceSunken + hairline + radiusPill + 3px pad */
+.track{display:inline-flex;align-items:center;gap:2px;background:var(--surfaceSunken);border:1px solid var(--borderSubtle);
+  border-radius:var(--rPill);padding:3px}
+.seg{padding:5px 12px;border-radius:var(--rPill);font:600 12px Inter;color:var(--textMutedOnSunken);cursor:pointer;white-space:nowrap}
+.seg.on{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));color:var(--textOnBrand)}
+/* tile grid - variant D */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4);padding:0 var(--s8) var(--s8)}
+.tile{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s8);min-height:92px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
+.tile:hover{border-color:var(--borderStrong);transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.tile .ti{font-size:22px;color:var(--textPrimary80)}
+.tile .tl{font:600 15px Inter;margin-top:var(--s6)}
+.tile .ts{font:400 11.5px Inter;color:var(--textSecondary);margin-top:1px}
+/* sheet - variant E, GWBottomSheet: surfaceMenu, radiusXl top, handle */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:24;display:none}
+.scrim.on{display:block}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surfaceMenu);border-radius:var(--rXl) var(--rXl) 0 0;
+  z-index:25;display:none;flex-direction:column;max-height:62%;padding-bottom:var(--s10)}
+.sheet.on{display:flex}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--borderStrong);margin:var(--s6) auto var(--s4)}
+.sheettitle{font:650 18px Inter;padding:0 var(--s8) var(--s4)}
+.sheetbody{overflow-y:auto;padding:0 var(--s6) 0;scrollbar-width:thin}
+.sheetbody::-webkit-scrollbar{width:4px}.sheetbody::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+.sheet .srow:hover{background:rgba(20,200,255,.06)}
+.sheetfade{position:absolute;left:0;right:0;bottom:0;height:34px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(23,26,33,0),var(--surfaceMenu))}
+/* home stub */
+.stub{padding:var(--s8) var(--s8) 0}
+.stubcard{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s8);margin-bottom:var(--s4)}
+.stubcard .st{font:650 18px Inter}
+.stubcard .sv{font:700 30px Inter;letter-spacing:-.03em;margin-top:var(--s3)}
+.stubcard .sm{font:400 12.5px Inter;color:var(--textSecondary);margin-top:var(--s2)}
+.ghost{border:1px dashed var(--borderSubtle);border-radius:var(--rLg);padding:var(--s8);margin:0 var(--s8) var(--s8);
+  color:var(--textSecondary);font:400 12.5px Inter}
+.ghost b{color:var(--textPrimary80);font-weight:600;display:block;margin-bottom:var(--s2);font-size:13.5px}
+.cite{font:500 10.5px 'JetBrains Mono',ui-monospace,monospace;color:var(--textPrimary60);margin-top:var(--s3);word-break:break-all}
+/* bottom bar - 60px bar + 20pt capped inset, 84px dock slot, 64px dock, 26px overhang */
+.barbox{flex:0 0 auto;height:106px;position:relative}
+.bar{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--surfaceElevated);border-top:.5px solid var(--borderSubtle);
+  display:flex;align-items:flex-start;padding-bottom:20px}
+.slot{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:var(--s2);padding-top:var(--s4);cursor:pointer}
+.slot .si{font-size:22px;line-height:1;color:var(--textSecondary)}
+.slot .sl{font:500 10px Inter;color:var(--textSecondary)}
+.slot.on .si,.slot.on .sl{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));
+  -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+.dockslot{flex:0 0 84px}
+.dock{position:absolute;top:0;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));border:3px solid var(--surfaceElevated);
+  display:grid;place-items:center;font-size:26px;color:var(--textOnBrand);box-shadow:0 0 22px rgba(10,174,230,.4);z-index:5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="skhead">
+    <h1>Sketch 184 - the Menu page</h1>
+    <p>S7 moves the menu out of the bottom bar and into a hamburger in the header. This is what the
+       hamburger opens. <b>Every row here was found in the code first</b> - route, screen and call site -
+       and anything that could not be found is not drawn. <b>Every phone already shows its own variant</b>
+       - tap a row and the child screen is real, which is the whole argument about page versus sheet.
+       The hamburger closes the menu and shows the dashboard behind it. Use the
+       <b>DEV TOOLS</b> switch under each phone.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-p="p0">The inventory</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pA">A - Flat list</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pB">B - Card per section</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pC">C - Kickers only ★</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pD">D - Tile grid</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pE">E - Sheet (control)</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pR">Recommendation</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="tag t-ex">exists</span> already in the codebase</span>
+    <span><span class="tag t-ad">adapted</span> existing component, new arrangement</span>
+    <span><span class="tag t-new">new</span> nothing like it ships today</span>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="panel on" id="p0">
+    <div class="cols">
+      <div class="notes" style="max-width:1080px">
+        <div class="h2">The menu has four rows. That is the finding.</div>
+        <p>The instruction was that the menu may contain <b>only what exists, with logic behind it</b>. So
+           the contents were derived rather than designed. Start at <code>_allDestinations</code>
+           (<code>responsive_overlay.dart:41</code>), subtract the S7 bottom bar - Home, Assets, Swap dock,
+           Activity, News - and what is left is <b>Markets, Web, Feedback, Settings</b>. Four rows.</p>
+        <div class="verdict"><b>The overflow is derived, not written</b> (<code>_moreDestinations</code>,
+          <code>responsive_overlay.dart:110</code>). Nobody has to maintain this list. Take a destination
+          onto the bar and it leaves the menu on its own.</div>
+
+        <div class="h3">Every row, with the code that proves it</div>
+        <table>
+          <tr><th>Row</th><th>Declared</th><th>Route</th><th>Screen</th></tr>
+          <tr><td><b>Markets</b></td><td><code>responsive_overlay.dart:58</code></td><td><code>router.dart:268</code></td><td><code>MarketsScreen</code></td></tr>
+          <tr><td><b>Web</b></td><td><code>responsive_overlay.dart:68</code>, hidden on Linux</td><td><code>router.dart:257</code></td><td>web view</td></tr>
+          <tr><td><b>Feedback</b></td><td><code>responsive_overlay.dart:74</code></td><td><code>router.dart:317</code> <code>/logs</code></td><td><code>SubmitLogsScreen</code></td></tr>
+          <tr><td><b>Settings</b></td><td><code>responsive_overlay.dart:79</code></td><td><code>router.dart:326</code></td><td><code>SettingsScreen</code></td></tr>
+          <tr><td>Design gallery <span class="tag t-ad">dev</span></td><td><code>dev_tools_bubble.dart:1210</code></td><td><code>router.dart:208</code></td><td><code>DesignGalleryScreen</code></td></tr>
+          <tr><td>Token probe <span class="tag t-ad">dev</span></td><td><code>dev_tools_bubble.dart:1206</code></td><td><code>router.dart:202</code></td><td><code>TokenProbeScreen</code></td></tr>
+          <tr><td>Appearance <span class="tag t-ad">dev</span></td><td><code>dev_tools_bubble.dart:1219</code></td><td>no route - a toggle</td><td><code>GWAppearance.setMode</code>, <code>gw_appearance.dart:40</code></td></tr>
+        </table>
+
+        <div class="h2">Four things in the brief that the code does not have</div>
+        <div class="verdict bad"><b>Settings is not a preferences screen.</b> <code>SettingsScreen</code>
+          (<code>lib/settings/settings_screen.dart</code>) contains exactly three cards: <b>Log Config</b>
+          (per-logger spdlog levels), <b>Network Config</b> (PubSub port, bind address, UPnP, high/low
+          water) and <b>CRDT Config</b> (backup interval, keep count, auto-restore). It writes JSON
+          overrides into the SDK directory. There is <b>no appearance, no security, no currency, no
+          language and no notifications setting anywhere in <code>lib/</code></b>. Those four section rows
+          from the brief are deleted, not deferred.</div>
+        <div class="verdict bad"><b>There is no version and no About.</b> <code>pubspec.yaml</code> says
+          <code>1.0.0+1</code> and nothing in <code>lib/</code> renders it - no <code>PackageInfo</code>,
+          no <code>showAboutDialog</code>, no licence page. So the Support section is one row: Feedback.</div>
+        <div class="verdict warn"><b>Appearance is the one genuine grey area, and it is worth stating
+          precisely.</b> The logic is complete and persisted - <code>GWAppearance</code> is a
+          <code>ValueNotifier</code> that writes to the Hive <code>preferences</code> box and re-skins the
+          whole app live (<code>gw_appearance.dart:40</code>). Its only user-facing control is inside the
+          dev-tools bubble (<code>dev_tools_bubble.dart:1219</code>). Its own doc comment says it is
+          "toggled from the Preferences sheet (Appearance row)" - <b>a sheet that does not exist</b>. So the
+          row is drawn only inside the DEVELOPER section, where its control really lives today. Promoting
+          it to a user-facing row is a one-line decision this sketch is not authorised to take.</div>
+        <div class="verdict bad"><b>No wallet section, and no Accounts row.</b> Sketch 181-F puts the
+          wallet icon 12px from the hamburger. <code>_MoreSheetBody</code> ships an Accounts row today
+          (<code>responsive_overlay.dart:528</code>); under F it must go, or two adjacent icons open the
+          same drawer. Its absence is the design, and it is why the menu is four rows and not five.</div>
+
+        <div class="h2">Sections, renamed to fit what is there</div>
+        <p>The brief's Explore / Settings / Support / Developer does not survive the inventory: the
+           Settings section would hold one row called Settings, which is a group header over its own
+           child. What the four rows actually divide into:</p>
+        <table>
+          <tr><th>Section</th><th>Rows</th><th>Why it is a group</th></tr>
+          <tr><td><b>Explore</b></td><td>Markets, Web</td><td>two places you go to look at something outside your wallet</td></tr>
+          <tr><td><b>App</b></td><td>Settings</td><td>the one row that configures the thing itself</td></tr>
+          <tr><td><b>Support</b></td><td>Feedback</td><td>the one row that talks to us</td></tr>
+          <tr><td><b>Developer</b></td><td>Design gallery, Token probe, Appearance</td><td>only under <code>GW_DEV_TOOLS</code></td></tr>
+        </table>
+        <div class="verdict warn"><b>Two of the four sections hold one row.</b> That is not a drafting
+          problem to tidy away, it is the shape of the app's current surface area, and variants B and C
+          exist partly to show what one-row groups look like at 1:1. Variant A takes the other view and
+          refuses to group four things at all.</div>
+        <div class="verdict"><b>News is deliberately absent.</b> Under S7 it owns a tab. A tab and a menu
+          row to the same route are two answers to "where does News live". The derived
+          <code>_moreDestinations</code> removes it automatically, so this costs nothing to honour.</div>
+
+        <div class="h2">The rule this menu is held to</div>
+        <div class="try"><b>The menu holds what you do rarely or once. Anything you do often belongs on a
+          tab or in the header.</b> If a row here turns out to be reached constantly, that is a signal to
+          promote it to the bar, not evidence that the menu is wrong.</div>
+
+        <div class="h2">Page or sheet, re-argued against a four-row menu</div>
+        <p>The brief gave three reasons for a full page. Measured against the real inventory, one is
+           strong, one is neutral and one is <b>weaker than claimed</b>, and it would be dishonest to keep
+           quoting all three at the same weight:</p>
+        <table>
+          <tr><th>Argument</th><th>Holds?</th><th>Why</th></tr>
+          <tr><td>The menu has children</td><td class="pass">holds, strongly</td><td><code>/settings</code>, <code>/markets</code>, <code>/web</code>, <code>/logs</code> are all full screens. A sheet that opens a screen loses the sheet's own dismiss gesture and stacks a push behind a modal. Tap Settings in tab E and watch what has to happen first.</td></tr>
+          <tr><td>A sheet has a height ceiling</td><td class="fail">weak at four rows</td><td><code>GWBottomSheet</code> passes <code>isScrollControlled: true</code> (<code>gw_bottom_sheet.dart:14</code>), so the ceiling is nearly the full screen. Four rows never reach it. <b>Seven rows with DEV ON do</b> at a 62% sheet - which is the only place this argument bites, and it bites in a build nobody ships.</td></tr>
+          <tr><td>A menu is a place you look around in</td><td class="fail">weak at four rows</td><td>Four rows is a pick-one-and-return list, which is exactly what sheets are good at. This argument earns its keep only if the menu grows.</td></tr>
+        </table>
+        <div class="verdict warn"><b>So the honest case for a page rests on the first row of that table
+          plus a bet on growth</b> - and E is drawn at 1:1 so the bet can be judged rather than asserted.</div>
+
+        <div class="h3">Conventions every variant respects</div>
+        <ul>
+          <li><b>One <code>GWPageHeader</code>, at the top, and no <code>GWSectionTitle</code> under it.</b>
+              The duplicate-title defect Jakub flagged on Transactions is called out in
+              <code>assets_screen.dart:354</code>. Sections are <code>GWKicker</code>, which is a label,
+              not a header.</li>
+          <li><b>No fills, no gradient decoration.</b> Nothing in this menu is a commitment, so nothing is
+              filled. The dock stays the app's only gradient fill; the <code>View all</code> links were
+              just reverted from gradient to flat grey (<code>gw_view_all_link.dart</code>), and a menu is
+              the last place to reintroduce it.</li>
+          <li><b>The control track</b> in the Appearance row is <code>surfaceSunken</code> + hairline +
+              <code>radiusPill</code> + 3px pad, per <code>CONVENTIONS.md</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- A -->
+  <div class="panel" id="pA"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">A - four rows, one card, no groups</div>
+      <div class="phone" data-phone="A"></div>
+      <div class="statebar"><button data-state="off">DEV TOOLS OFF</button><button data-state="on">DEV TOOLS ON</button></div>
+      <div class="crumb" data-crumb="A"></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">A - the flat list</div>
+      <p>A <code>GWPageHeader</code>, then one <code>GWCard</code> holding four <code>GWSelectRow</code>s
+         with leading icons. This is literally <code>_MoreSheetBody</code> given a page instead of a sheet,
+         minus the Accounts row 181-F deletes.</p>
+      <div class="try"><b>Tap the hamburger, then Settings.</b> The Settings screen it lands on is drawn
+        from the real one - Log Config, Network Config, CRDT Config. That is the child a sheet would have
+        had to open from inside itself.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <code>GWPageHeader</code> (<code>gw_page_header.dart</code>) - title only</li>
+        <li><span class="tag t-ex">exists</span> <code>GWCard</code> at default <code>space8</code> pad, <code>radiusLg</code></li>
+        <li><span class="tag t-ex">exists</span> <code>GWSelectRow</code> - leading icon at 21px <code>textPrimary80</code>, exactly as <code>responsive_overlay.dart:520</code> renders it</li>
+        <li><span class="tag t-new">new</span> nothing</li>
+      </ul>
+      <div class="verdict"><b>Zero new components and zero judgement calls.</b> Four rows do not need
+        headings, and a heading over one row is a promise the content cannot keep. If the answer is
+        "give the hamburger somewhere to land this week", this is it.</div>
+      <div class="verdict warn">Turn <b>DEV TOOLS ON</b> and the cost appears: seven rows in one
+        undifferentiated card, with the developer rows separated by a hairline that names nothing. The
+        brief asked for the Developer section to be <i>clearly</i> separated, and a rule is not a name.</div>
+      <div class="verdict bad">It also gives up on the question. If this page ever holds eight rows, A has
+        no structure to grow into and the next person adds a kicker anyway.</div>
+    </div>
+  </div></div>
+
+  <!-- B -->
+  <div class="panel" id="pB"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">B - a card per section</div>
+      <div class="phone" data-phone="B"></div>
+      <div class="statebar"><button data-state="off">DEV TOOLS OFF</button><button data-state="on">DEV TOOLS ON</button></div>
+      <div class="crumb" data-crumb="B"></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">B - each section is a GWCard</div>
+      <p><code>GWKicker</code> above, <code>GWCard</code> below, once per section: EXPLORE with two rows,
+         APP with one, SUPPORT with one, DEVELOPER with three when the define is on.</p>
+      <div class="try"><b>Look at the App and Support cards.</b> A 15px-radius card with a hairline around
+        a single row is the most expensive way this app can draw one row.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <code>GWKicker</code> at its default 13px step</li>
+        <li><span class="tag t-ex">exists</span> <code>GWCard</code>, four of them</li>
+        <li><span class="tag t-ex">exists</span> <code>GWSelectRow</code></li>
+        <li><span class="tag t-new">new</span> nothing</li>
+      </ul>
+      <div class="verdict">The grouping is unmistakable and the DEVELOPER card is separated by a box, not
+        by a rule - which is the clearest possible answer to "keep dev tools apart".</div>
+      <div class="verdict bad"><b>Measured, the boxes do almost nothing.</b> <code>surfaceElevated</code>
+        <code>#0C0E14</code> on <code>surfaceBase</code> <code>#0B0D12</code> is <b>1.01:1</b>. A GWCard's
+        fill is invisible on this page; the entire card is carried by a <code>borderSubtle</code> hairline
+        at <b>1.36:1</b>. So B pays four hairlines and four radii to draw a grouping the kicker above it
+        already stated in words.</div>
+      <div class="verdict warn">Two of the four cards hold one row. That is not B's fault - it is the
+        inventory's - but B is the variant that makes it loudest.</div>
+    </div>
+  </div></div>
+
+  <!-- C -->
+  <div class="panel" id="pC"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">C - kickers and hairlines, no boxes</div>
+      <div class="phone" data-phone="C"></div>
+      <div class="statebar"><button data-state="off">DEV TOOLS OFF</button><button data-state="on">DEV TOOLS ON</button></div>
+      <div class="crumb" data-crumb="C"></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">C - the structure is typographic ★</div>
+      <p>No cards at all. <code>GWKicker</code> names each section, rows sit straight on
+         <code>surfaceBase</code>, and a single <code>borderSubtle</code> hairline closes each group. The
+         page is a list with headings, which is what it is.</p>
+      <div class="try"><b>Flip DEV TOOLS ON.</b> The DEVELOPER group appears under its own kicker, below
+        its own rule, and nothing else on the page moves or restyles. That is the same edit B needs a
+        fourth card for.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <code>GWPageHeader</code>, <code>GWKicker</code>, <code>GWSelectRow</code></li>
+        <li><span class="tag t-ex">exists</span> the control track for the Appearance row - <code>surfaceSunken</code> + hairline + <code>radiusPill</code> + 3px, per <code>CONVENTIONS.md</code></li>
+        <li><span class="tag t-ad">adapted</span> a bare hairline as a group terminator. The app rules
+            between rows (<code>GWDetailGrid</code>) but has not used a rule to end a group; sketch 065
+            drew exactly this as variant D and did <b>not</b> pick it, so this is a deliberate reopening,
+            not an oversight</li>
+        <li><span class="tag t-new">new</span> nothing</li>
+      </ul>
+      <div class="verdict"><b>It spends nothing on saying what the kicker already says.</b> Given that
+        <code>surfaceElevated</code> measures 1.01:1 against the page, a card here is a hairline pretending
+        to be a container. C draws the hairline and skips the pretence.</div>
+      <div class="verdict"><b>A one-row section stops being embarrassing.</b> A kicker over one row is a
+        label; a bordered box over one row is a container with nothing in it. With two of four sections
+        holding a single row, that difference is most of the page.</div>
+      <div class="verdict"><b>It is the only variant that scales in both directions.</b> Rows can arrive
+        under an existing kicker, a kicker can arrive with its rows, and nothing needs re-boxing.</div>
+      <div class="verdict warn">Honest cost: the hairline that terminates each group measures <b>1.36:1</b>
+        and cannot be relied on. It is decoration, and the <b>kicker at 6.01:1 is what actually separates
+        the sections</b>. That is fine - the rule carries no information the label does not - but it does
+        mean C's structure is entirely typographic, and typographic structure is the first thing to go
+        wrong at large text sizes.</div>
+    </div>
+  </div></div>
+
+  <!-- D -->
+  <div class="panel" id="pD"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">D - two-up tiles</div>
+      <div class="phone" data-phone="D"></div>
+      <div class="statebar"><button data-state="off">DEV TOOLS OFF</button><button data-state="on">DEV TOOLS ON</button></div>
+      <div class="crumb" data-crumb="D"></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">D - four things, four tiles</div>
+      <p>Rows become tappable <code>GWCard</code>s in a two-column grid, with
+         <code>hoverLift: true</code> - the flag <code>gw_card.dart</code> already carries. The instinct is
+         reasonable: four rows on an 844px page look thin, and a grid fills the top of the screen.</p>
+      <div class="try"><b>Hover a tile.</b> That lift is the shipped <code>GWCard</code> hover, not a new
+        effect. Then turn DEV ON and watch the grid go to seven, which is three and a half rows.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <code>GWCard(onTap:, hoverLift: true)</code></li>
+        <li><span class="tag t-ad">adapted</span> a tile layout - icon over label over sublabel - which no
+            surface in this app renders today</li>
+        <li><span class="tag t-new">new</span> the grid itself, its column rule and its odd-count
+            behaviour; and a second visual language for "a place you can go", competing with
+            <code>GWSelectRow</code>, which every other list in the app uses</li>
+      </ul>
+      <div class="verdict">The one thing D genuinely buys: <b>the page does not look empty.</b> With four
+        rows that is a real problem and D is the only variant that solves it rather than admitting it.</div>
+      <div class="verdict bad"><b>It solves it by making the menu look important.</b> A grid of tiles is
+        the visual weight of a dashboard, and this is the least-visited surface in the app. The governing
+        rule says the menu holds what you do rarely; D dresses it as what you do first.</div>
+      <div class="verdict bad">It also breaks grouping. Sections in a two-column grid need either full-width
+        kicker rows between grid bands or no sections at all, and with 3 developer tiles the last row is
+        odd. <b>Two new components and a new visual language, to fix a whitespace problem that a page with
+        four rows is allowed to have.</b></div>
+    </div>
+  </div></div>
+
+  <!-- E -->
+  <div class="panel" id="pE"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">E - the sheet, for comparison</div>
+      <div class="phone" data-phone="E"></div>
+      <div class="statebar"><button data-state="off">DEV TOOLS OFF</button><button data-state="on">DEV TOOLS ON</button></div>
+      <div class="crumb" data-crumb="E"></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">E - what ships today, minus one row</div>
+      <p>The control, not a strawman. <code>GWBottomSheet.show</code> with
+         <code>_MoreSheetBody</code>: <code>surfaceMenu</code> <code>#171A21</code>,
+         <code>radiusXl</code> top corners, a handle, four <code>GWSelectRow</code>s. The only edit from
+         the live app is the Accounts row leaving, per 181-F.</p>
+      <div class="try"><b>Tap the hamburger, then Settings.</b> The sheet has to dismiss itself before the
+        push, which is what <code>responsive_overlay.dart:523</code> already does
+        (<code>Navigator.pop</code> then <code>context.go</code>) - so the menu is gone the moment you use
+        it, and coming back means reopening it. Then turn <b>DEV ON</b>: seven rows, and the sheet starts
+        scrolling inside itself.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> all of it - <code>GWBottomSheet</code>, <code>_MoreSheetBody</code>, <code>GWSelectRow</code></li>
+        <li><span class="tag t-new">new</span> nothing. E is a <b>deletion</b>, not a build</li>
+      </ul>
+      <div class="verdict"><b>At four rows E is defensible and it is the cheapest thing on this page.</b>
+        Two of the three arguments for a page are weak at this size, and pretending otherwise would be
+        arguing backwards from a conclusion. If nothing is ever added to this menu, E is right.</div>
+      <div class="verdict bad">What it cannot do is hold children. Every row here opens a full screen, and
+        a sheet that opens a screen must destroy itself first. On iOS the sheet also owns the swipe-down
+        gesture that the pushed screen then wants for back, which is the nesting the brief warned about.</div>
+      <div class="verdict warn"><b>DEV ON is where it breaks.</b> Seven rows in a 62% sheet scroll
+        internally - the exact behaviour phase 25 spent a phase removing from the dashboard. It only
+        happens under <code>GW_DEV_TOOLS</code> today, so it is a warning about growth rather than a
+        shipping defect.</div>
+    </div>
+  </div></div>
+
+  <!-- RECOMMENDATION -->
+  <div class="panel" id="pR"><div class="cols">
+    <div class="notes" style="max-width:1080px">
+      <div class="h2">Where I land</div>
+      <div class="verdict"><b>★ Ship C - the full page, kickers and hairlines, no boxes.</b> It is the only
+        variant that is honest about all three facts at once: the menu has <b>four rows</b>, two of its
+        sections hold <b>one row</b>, and a <code>GWCard</code> on this page is a <b>1.01:1 fill carried by
+        a 1.36:1 hairline</b>. A kicker over one row is a label and costs nothing; a box over one row is a
+        container with nothing in it. C uses <code>GWPageHeader</code>, <code>GWKicker</code> and
+        <code>GWSelectRow</code> exactly as they ship, adds no component, and is the only variant where
+        turning <code>GW_DEV_TOOLS</code> on adds a named group without restyling anything above it.</div>
+      <p><b>Runner-up: A - the flat list.</b> Genuinely close, and it wins outright if you accept that four
+         things do not need headings. A is <code>_MoreSheetBody</code> given a page: zero new anything,
+         and the smallest diff in this sketch. Take A over C if the DEVELOPER group can live behind a rule
+         rather than a name, because that is the single point on which they differ. <b>A is also strictly
+         inside C</b> - adding kickers to A is C, so nothing built for A is wasted.</p>
+      <p><b>Explicitly rejected: D - the tile grid.</b> Two new components and a second visual language for
+         "a place you can go", to fix the fact that a four-row page has whitespace. The menu is the app's
+         least-visited surface and D gives it the visual weight of a dashboard, which inverts the rule the
+         whole sketch is built on. If the page looks thin, that is information about the app, not a
+         defect to decorate away.</p>
+      <div class="verdict warn"><b>On E, which is not rejected.</b> At today's four rows the sheet is
+        defensible and it is the cheapest option here, because two of the brief's three arguments for a
+        page are weak at this size and only the children argument holds. <b>Ship the page anyway</b> - but
+        for the one reason that survives: every row opens a full screen, and a sheet that opens a screen
+        destroys itself to do it. If that reason ever stops mattering, E is the honest fallback and it is
+        a deletion rather than a build.</div>
+
+      <div class="h2">What building C touches</div>
+      <table>
+        <tr><th>File</th><th>Change</th></tr>
+        <tr><td><code>navigation/router.dart</code></td><td>a <code>/menu</code> route inside the shell - the seventh line of a <code>GoRoute</code> list</td></tr>
+        <tr><td>a new <code>MenuScreen</code></td><td><code>GWPageHeader</code> + three <code>GWKicker</code> groups over <code>GWSelectRow</code>s, driven by <code>_moreDestinations</code>, plus a <code>kShowDevTools</code> group</td></tr>
+        <tr><td><code>components/overlay/responsive_overlay.dart</code></td><td><code>_MoreSheetBody</code> and its Accounts row are deleted; <code>_moreDestinations</code> stays and becomes the page's source</td></tr>
+        <tr><td><code>components/overlay/mobile_header.dart</code></td><td>the hamburger from 181-F goes to <code>/menu</code></td></tr>
+      </table>
+
+      <div class="h2">Contrast, computed from the real tokens</div>
+      <table>
+        <tr><th>Pairing</th><th>Ratio</th><th>Needs</th><th></th></tr>
+        <tr><td>row label <code>#FFFFFF</code> on <code>surfaceBase</code> (C, D flat page)</td><td>19.43:1</td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td>row label <code>#FFFFFF</code> on <code>surfaceElevated</code> (A, B cards)</td><td>19.29:1</td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td>row label <code>#FFFFFF</code> on <code>surfaceMenu</code> (E sheet)</td><td>17.41:1</td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td>sublabel <code>#8A8F9D</code> on <code>surfaceBase</code></td><td>6.01:1</td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td>sublabel <code>#8A8F9D</code> on <code>surfaceElevated</code></td><td>5.97:1</td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td>sublabel <code>#8A8F9D</code> on <code>surfaceMenu</code></td><td>5.39:1</td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td><b>GWKicker <code>#8A8F9D</code> on <code>surfaceBase</code></b> - C's whole structure</td><td><b>6.01:1</b></td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td>leading icon <code>textPrimary80</code> -&gt; <code>#CECFD0</code> on <code>surfaceBase</code></td><td>12.46:1</td><td>3:1</td><td class="pass">pass</td></tr>
+        <tr><td>chevron <code>textPrimary60</code> -&gt; <code>#9D9EA0</code> on <code>surfaceBase</code></td><td>7.25:1</td><td>3:1</td><td class="pass">pass</td></tr>
+        <tr><td>track chip rest <code>#8A8F9D</code> on <code>surfaceSunken</code></td><td>6.20:1</td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td>track chip selected <code>#000B18</code> on <code>#0AAEE6</code> (worst stop)</td><td>7.74:1</td><td>4.5:1</td><td class="pass">pass</td></tr>
+        <tr><td>track edge <code>borderControl</code> -&gt; <code>#606163</code> on <code>surfaceSunken</code></td><td>3.23:1</td><td>3:1</td><td class="pass">pass</td></tr>
+        <tr><td><b>group hairline <code>borderSubtle</code> -&gt; <code>#282A2E</code> on <code>surfaceBase</code></b></td><td><b>1.35:1</b></td><td>3:1</td><td class="fail">fail</td></tr>
+        <tr><td><b>GWCard fill <code>#0C0E14</code> on page <code>#0B0D12</code></b> - B's boxes</td><td><b>1.01:1</b></td><td>-</td><td class="fail">invisible</td></tr>
+        <tr><td>GWCard edge <code>borderSubtle</code> -&gt; <code>#292B30</code> on <code>surfaceElevated</code></td><td>1.36:1</td><td>3:1</td><td class="fail">fail</td></tr>
+        <tr><td>app bar bottom edge <code>borderStrong</code> -&gt; <code>#46484C</code> on <code>surfaceElevated</code></td><td>2.11:1</td><td>3:1</td><td class="fail">below, shipped knowingly</td></tr>
+      </table>
+      <div class="verdict warn"><b>Read the three failing rows together, because they are the same
+        finding.</b> Neither the hairline nor the card edge nor the card fill can carry meaning on this
+        page. That is only acceptable because <b>none of them is asked to</b>: the sections are named in
+        text at 6.01:1, and every row is fully readable with all three removed. It is exactly the argument
+        <code>gw_detail_grid.dart</code> already records for its own rules - decorative separators, not
+        WCAG 1.4.11 graphical objects. <b>Variant B is the one that leans on them</b>, and B is not the
+        recommendation.</div>
+
+      <div class="h2">Still open</div>
+      <ul>
+        <li><b>Does Appearance get promoted out of the dev bubble?</b> The logic ships and persists; the
+            control does not exist for users, and <code>gw_appearance.dart:12</code> documents a
+            Preferences sheet that was never built. One row would close a stale comment and give the menu
+            its first thing that is not a destination. Not taken here.</li>
+        <li><b>Is "Settings" the right label</b> for a screen containing spdlog levels, PubSub ports and
+            CRDT backup intervals? Under <code>GW_DEV_TOOLS</code> the menu would then hold two developer
+            groups with one of them called Settings. Renaming is out of scope; noticing it is not.</li>
+        <li><b>Where does the page go back to?</b> The hamburger toggles in this mock. A pushed
+            <code>/menu</code> inside the shell has no back affordance of its own, and Transactions and
+            Assets both push without one today.</li>
+        <li>No device verification - this is a browser at 1:1, not Jakub's iPhone. Light mode not
+            computed, per the dark-first rule.</li>
+      </ul>
+
+      <p style="color:var(--textSecondary);font-size:13px;margin-top:var(--s8)">
+        Tokens verbatim from <code>gw_colors.dart</code> / <code>genius_wallet_consts.dart</code>. Header
+        geometry verbatim from <code>mobile_header.dart</code> (60px, 1px <code>borderStrong</code> bottom,
+        mark 28 / wordmark 18, <code>space8</code> titleSpacing); bar geometry from
+        <code>responsive_overlay.dart</code> (60px bar, 20pt capped inset, 64px dock, 26px overhang, 84px
+        slot). Phones are 390x844 at 1:1. Contrast by the WCAG 2.x relative-luminance formula, alpha
+        borders composited over their real surfaces first.</p>
+    </div>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.setAttribute('aria-selected','false'); });
+      t.setAttribute('aria-selected','true');
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+      var el = document.getElementById(t.dataset.p);
+      if (el) { el.classList.add('on'); }
+    });
+  });
+
+  // Every row below was found in the code before it was drawn. `cite` is the proof.
+  var ROWS = {
+    markets:    {icon:'◩', label:'Markets',        sub:'Prices and charts',
+                 cite:'responsive_overlay.dart:58 -> router.dart:268'},
+    web:        {icon:'◎', label:'Web',            sub:'In-app browser',
+                 cite:'responsive_overlay.dart:68 -> router.dart:257'},
+    settings:   {icon:'⚙', label:'Settings',       sub:'Log, network and CRDT config',
+                 cite:'responsive_overlay.dart:79 -> router.dart:326'},
+    feedback:   {icon:'✉', label:'Feedback',       sub:'Send logs to the team',
+                 cite:'responsive_overlay.dart:74 -> router.dart:317'},
+    gallery:    {icon:'▦', label:'Design gallery', sub:'Component reference',
+                 cite:'dev_tools_bubble.dart:1210 -> router.dart:208'},
+    tokens:     {icon:'⬡', label:'Token probe',    sub:'Inspect token data',
+                 cite:'dev_tools_bubble.dart:1206 -> router.dart:202'},
+    appearance: {icon:'◐', label:'Appearance',     sub:'Dark or light',
+                 cite:'dev_tools_bubble.dart:1219 -> gw_appearance.dart:40', track:true}
+  };
+
+  // Sections named for what is actually in them, not for the brief's headings.
+  var GROUPS = [
+    {kicker:'Explore',   rows:['markets','web']},
+    {kicker:'App',       rows:['settings']},
+    {kicker:'Support',   rows:['feedback']},
+    {kicker:'Developer', rows:['gallery','tokens','appearance'], dev:true}
+  ];
+
+  function groups(st){
+    return GROUPS.filter(function(g){ return !g.dev || st.dev; });
+  }
+  function flatRows(st){
+    var out = [];
+    groups(st).forEach(function(g){
+      g.rows.forEach(function(k){ out.push(k); });
+    });
+    return out;
+  }
+
+  function trackHtml(st){
+    return '<div class="track" data-act="noop">'+
+      '<div class="seg '+(st.mode==='dark'?'on':'')+'" data-act="mode" data-arg="dark">Dark</div>'+
+      '<div class="seg '+(st.mode==='light'?'on':'')+'" data-act="mode" data-arg="light">Light</div>'+
+      '</div>';
+  }
+
+  function rowHtml(key, st, opts){
+    var r = ROWS[key];
+    var o = opts || {};
+    var end = r.track ? trackHtml(st) : '<div class="chev">›</div>';
+    return '<div class="srow'+(o.noico?' noico':'')+(o.flat?' flatrow':'')+'" data-act="go" data-arg="'+key+'">'+
+      '<div class="ic">'+r.icon+'</div>'+
+      '<div class="mid"><div class="lbl">'+r.label+'</div>'+
+      '<div class="sub">'+r.sub+'</div></div>'+ end + '</div>';
+  }
+
+  function pageHeader(sub){
+    return '<div class="pagehead">Menu'+ (sub ? '<div class="sub">'+sub+'</div>' : '') +'</div>';
+  }
+
+  // ---- the menu body, one function per variant ----
+  var MENU = {
+    // A - one card, no groups. _MoreSheetBody given a page.
+    A: function(st){
+      var rows = flatRows(st).map(function(k, i){
+        var devStart = st.dev && k === 'gallery';
+        return (devStart ? '<div class="hair inset"></div>' : '') + rowHtml(k, st);
+      }).join('');
+      return pageHeader('') + '<div class="card">' + rows + '</div>';
+    },
+    // B - a GWCard per section, kicker above each.
+    B: function(st){
+      var html = pageHeader('');
+      groups(st).forEach(function(g){
+        html += '<div class="kicker">'+g.kicker+'</div><div class="card">'+
+          g.rows.map(function(k){ return rowHtml(k, st); }).join('') + '</div>';
+      });
+      return html;
+    },
+    // C - kickers and hairlines, nothing boxed.
+    C: function(st){
+      var html = pageHeader('');
+      var gs = groups(st);
+      gs.forEach(function(g, i){
+        html += '<div class="kicker">'+g.kicker+'</div>'+
+          g.rows.map(function(k){ return rowHtml(k, st, {flat:true}); }).join('');
+        if (i < gs.length - 1) { html += '<div class="hair"></div>'; }
+      });
+      return html + '<div style="height:16px"></div>';
+    },
+    // D - two-up tiles. A grid cannot carry one-row sections, so the kickers go.
+    D: function(st){
+      var tiles = flatRows(st).map(function(k){
+        var r = ROWS[k];
+        return '<div class="tile" data-act="go" data-arg="'+k+'">'+
+          '<div class="ti">'+r.icon+'</div>'+
+          '<div><div class="tl">'+r.label+'</div><div class="ts">'+r.sub+'</div></div></div>';
+      }).join('');
+      return pageHeader('') + '<div class="grid">'+tiles+'</div>';
+    }
+  };
+
+  // ---- child screens, drawn from the real ones ----
+  var SCREENS = {
+    settings: function(){
+      return backAnd('Settings') +
+        stubCard('Log Config', 'Per-logger spdlog level: trace, debug, info, warn, err, critical, off',
+                 'settings_screen.dart _buildLogSection') +
+        stubCard('Network Config', 'PubSub Port, Bind Address, UPnP, High Water, Low Water',
+                 'settings_screen.dart _buildNetworkSection') +
+        stubCard('CRDT Config', 'Backup Enabled, Interval (min), Keep Count, Auto Restore',
+                 'settings_screen.dart _buildCrdtSection') +
+        note('This is what <b>Settings</b> actually contains. No appearance, no security, no currency, '+
+             'no language, no notifications - none of those exist anywhere in lib/.');
+    },
+    markets: function(){
+      return backAnd('Markets') +
+        stubCard('Market list', 'Prices, 24h change, sort indicator', 'markets_screen.dart:105 GWPageHeader') +
+        note('A full screen inside the shell. A sheet would have had to close itself to get here.');
+    },
+    web: function(){
+      return backAnd('Web') +
+        stubCard('In-app browser', 'URL bar, tab strip', 'router.dart:257, hidden on Linux') +
+        note('Declared with <b>visible: !Platform.isLinux</b> - the one row in this menu that can '+
+             'disappear on its own.');
+    },
+    feedback: function(){
+      return backAnd('Feedback') +
+        stubCard('Submit logs', 'Message, attach logs, send', 'router.dart:317 SubmitLogsScreen') +
+        note('The route is <b>/logs</b>; the label is <b>Feedback</b>. Both are in the code, and the '+
+             'menu shows the label.');
+    },
+    gallery: function(){
+      return backAnd('Design gallery') +
+        stubCard('Component reference', 'Every GW* component at real size', 'router.dart:208') +
+        note('Reached today only from the dev bubble’s NAVIGATE section, '+
+             'dev_tools_bubble.dart:1210.');
+    },
+    tokens: function(){
+      return backAnd('Token probe') +
+        stubCard('Token data', 'Inspect balances and metadata', 'router.dart:202') +
+        note('Reached today only from the dev bubble’s NAVIGATE section, '+
+             'dev_tools_bubble.dart:1206.');
+    }
+  };
+
+  function backAnd(title){
+    return '<div class="backlink" data-act="back">‹ Menu</div>'+
+      '<div class="pagehead">'+title+'</div>';
+  }
+  function stubCard(t, v, cite){
+    return '<div class="card" style="padding:16px"><div class="stubcard" style="border:none;padding:0;margin:0">'+
+      '<div class="st">'+t+'</div><div class="sm">'+v+'</div>'+
+      '<div class="cite">'+cite+'</div></div></div>';
+  }
+  function note(html){
+    return '<div class="ghost"><b>Why you are here</b>'+html+'</div>';
+  }
+
+  function homeStub(){
+    return '<div class="stub">'+
+      '<div class="stubcard"><div class="sm">TOTAL BALANCE</div><div class="sv">$1,284.40</div>'+
+      '<div class="sm">+$12.10 today</div></div>'+
+      '<div class="stubcard"><div class="st">Assets</div>'+
+      '<div class="sm">GNUS, ETH, BTC and 5 more</div></div>'+
+      '<div class="stubcard"><div class="st">Transactions</div>'+
+      '<div class="sm">Nothing today</div></div></div>'+
+      '<div class="ghost"><b>Home, drawn only as context</b>'+
+      'The dashboard is not in scope here. Tap the hamburger, top right.</div>';
+  }
+
+  function createPhone(host){
+    var key = host.dataset.phone;
+    var wrap = host.parentElement;
+    // Every phone opens ON its own variant. Booting to the home stub made all five
+    // look identical until you tapped the hamburger, which is exactly how a set of
+    // five different designs reads as one design. E opens as a sheet OVER home,
+    // because that is what E is.
+    var st = { dev:false, screen: key === 'E' ? 'home' : 'menu', sheet: key === 'E', mode:'dark' };
+
+    host.innerHTML =
+      '<div class="notch"></div>'+
+      '<div class="sbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>'+
+      '<div class="appbar">'+
+        '<div class="lockup"><div class="mark">G</div><div class="wordmark">GNUS.AI</div></div>'+
+        '<div class="hcluster">'+
+          '<div class="hbtn wallet" title="Wallet and network - 181 scheme F"><i>S1</i></div>'+
+          '<div class="hbtn burg" data-act="burger" title="Menu">'+
+            '<div class="burglines"><span></span><span></span><span></span></div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="scr" data-scr></div>'+
+      '<div class="scrim" data-scrim></div>'+
+      '<div class="sheet" data-sheet></div>'+
+      '<div class="barbox"><div class="bar">'+
+        '<div class="slot on"><div class="si">▦</div><div class="sl">Home</div></div>'+
+        '<div class="slot"><div class="si">◈</div><div class="sl">Assets</div></div>'+
+        '<div class="dockslot"></div>'+
+        '<div class="slot"><div class="si">◴</div><div class="sl">Activity</div></div>'+
+        '<div class="slot"><div class="si">▤</div><div class="sl">News</div></div>'+
+      '</div><div class="dock">⇅</div></div>';
+
+    function body(){
+      if (st.screen === 'home') { return homeStub(); }
+      if (st.screen === 'menu') { return MENU[key](st); }
+      var s = SCREENS[st.screen];
+      return s ? s() : homeStub();
+    }
+
+    function sheetHtml(){
+      var rows = flatRows(st).map(function(k){ return rowHtml(k, st); }).join('');
+      return '<div class="grab"></div><div class="sheettitle">Menu</div>'+
+        '<div class="sheetbody">'+rows+'</div><div class="sheetfade"></div>';
+    }
+
+    function render(){
+      var scr = host.querySelector('[data-scr]');
+      var keep = scr.scrollTop;
+      scr.innerHTML = body();
+      scr.scrollTop = keep;
+
+      var sheet = host.querySelector('[data-sheet]');
+      var scrim = host.querySelector('[data-scrim]');
+      var open = (key === 'E') && st.sheet;
+      sheet.innerHTML = open ? sheetHtml() : '';
+      sheet.classList.toggle('on', open);
+      scrim.classList.toggle('on', open);
+
+      var burg = host.querySelector('[data-act="burger"]');
+      burg.classList.toggle('act', st.screen === 'menu' || open);
+
+      wrap.querySelectorAll('[data-state]').forEach(function(b){
+        b.classList.toggle('on', (b.dataset.state === 'on') === st.dev);
+      });
+
+      var crumb = document.querySelector('[data-crumb="'+key+'"]');
+      if (crumb) {
+        var where = open ? 'menu sheet' : st.screen;
+        var count = flatRows(st).length;
+        crumb.innerHTML = 'showing <b>'+where+'</b> · '+count+' menu rows · dev tools '+
+          (st.dev ? 'ON' : 'OFF');
+      }
+    }
+
+    function openMenu(){
+      if (key === 'E') { st.sheet = true; }
+      else { st.screen = 'menu'; }
+    }
+    function closeMenu(){
+      if (key === 'E') { st.sheet = false; }
+      else { st.screen = 'home'; }
+    }
+
+    host.addEventListener('click', function(e){
+      var el = e.target.closest('[data-act]');
+      if (!el) { return; }
+      var act = el.dataset.act;
+      if (act === 'burger') {
+        if (st.screen === 'menu' || st.sheet) { closeMenu(); } else { openMenu(); }
+        render();
+      } else if (act === 'go') {
+        var target = el.dataset.arg;
+        if (target === 'appearance') { return; }
+        st.sheet = false;
+        st.screen = target;
+        render();
+      } else if (act === 'mode') {
+        st.mode = el.dataset.arg;
+        render();
+      } else if (act === 'back') {
+        openMenu();
+        render();
+      }
+    });
+
+    host.querySelector('[data-scrim]').addEventListener('click', function(){
+      st.sheet = false;
+      render();
+    });
+
+    wrap.querySelectorAll('[data-state]').forEach(function(b){
+      b.addEventListener('click', function(){
+        st.dev = b.dataset.state === 'on';
+        render();
+      });
+    });
+
+    render();
+  }
+
+  document.querySelectorAll('[data-phone]').forEach(createPhone);
+})();
+</script>
+</body>
+</html>

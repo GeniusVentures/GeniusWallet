@@ -126,33 +126,58 @@ void main() {
   }
 
   // The Status pill is a WIDE-only affordance (sketch 030-A2). On the wide page
-  // the status is a pill and the subtitle drops its ` · Status` suffix; on the
-  // narrow panel there is no pill and the suffix stays. This pins that the
-  // status is stated exactly ONCE in each presentation, never twice and never
-  // zero times — the whole point of `subtitleBase`/`status` on TxRowContent.
-  group('wide-page Status pill (030-A2)', () {
+  // the status is a pill; on the narrow panel it is the subtitle line's pinned
+  // right-hand tail (sketch 179-C, which moved it out of the subtitle string and
+  // dropped its leading middle dot). This pins that the status is stated exactly
+  // ONCE in each presentation, never twice and never zero times - the whole
+  // point of `subtitleBase`/`status`/`statusTail` on TxRowContent.
+  //
+  // Each case now pins WHICH element states it, by its ink, rather than merely
+  // that something does: `gw.statusError` is the pill, `gw.textSecondary` is the
+  // tail. Presence alone could not tell the two apart once the tail stopped
+  // carrying a dot, and a row that drew the pill on the panel would have passed
+  // the old assertion.
+  group('wide-page Status pill (030-A2) and narrow tail (179-C)', () {
     final failed = _tx(status: TransactionStatus.failed);
 
-    testWidgets('wide (900): status is a pill, subtitle drops the suffix', (
+    testWidgets('wide (900): the status is the pill, and only the pill', (
       tester,
     ) async {
-      await tester.pumpWidget(_host(failed, width: 900, gw: GWColors.dark()));
+      final gw = GWColors.dark();
+      await tester.pumpWidget(_host(failed, width: 900, gw: gw));
       expect(tester.takeException(), isNull);
-      // The pill states it…
+      // Stated exactly once…
       expect(find.text('Failed'), findsOneWidget);
-      // …and the subtitle does NOT also (no ` · Failed`).
+      // …by the PILL, whose label takes the status colour.
+      expect(
+        tester.widget<Text>(find.text('Failed')).style?.color,
+        gw.statusError,
+      );
+      // …and the subtitle does not also carry it, in either shape.
       expect(find.textContaining('· Failed'), findsNothing);
     });
 
-    testWidgets('narrow (320): no pill, status stays folded in the subtitle', (
+    testWidgets('narrow (320): the status is the subtitle tail, and only that', (
       tester,
     ) async {
-      await tester.pumpWidget(_host(failed, width: 320, gw: GWColors.dark()));
+      final gw = GWColors.dark();
+      await tester.pumpWidget(_host(failed, width: 320, gw: gw));
       expect(tester.takeException(), isNull);
-      // The subtitle carries it…
-      expect(find.textContaining('· Failed'), findsOneWidget);
-      // …and there is no standalone pill label.
-      expect(find.text('Failed'), findsNothing);
+      // Stated exactly once…
+      expect(find.text('Failed'), findsOneWidget);
+      // …by the TAIL, which takes the subtitle's quiet ink and not the pill's
+      // red. This is what fails if the pill ever leaks onto the panel.
+      expect(
+        tester.widget<Text>(find.text('Failed')).style?.color,
+        gw.textSecondary,
+      );
+      expect(
+        tester.widget<Text>(find.text('Failed')).style?.color,
+        isNot(gw.statusError),
+      );
+      // The tail carries no leading middle dot: it is a separate, right-pinned
+      // element, and the 8px a dot costs is width the verb needs.
+      expect(find.textContaining('· Failed'), findsNothing);
     });
   });
 

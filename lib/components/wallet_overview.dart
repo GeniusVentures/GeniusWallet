@@ -138,15 +138,22 @@ class WalletsOverviewState extends State<WalletsOverview> {
 
   @override
   Widget build(BuildContext context) {
-    // WHY this exists (05-08, gap B1; re-justified by 14-08 Task 2): this
-    // widget is mounted in a slot capped at `kDashboardPanelSlotHeight`
-    // (`dashboard_screen.dart`), which is **340 since 2026-07-31** - raised
-    // from 300 so the panel could adopt `GWSectionTitle` and put Balance on
-    // the same baseline as the first Assets coin. That leaves 314px usable
-    // once `DashboardScrollContainer`'s own border fold-in is counted
+    // WHY this exists (05-08, gap B1; re-justified by 14-08 Task 2): on
+    // DESKTOP this widget is mounted in a slot capped at
+    // `kDashboardPanelSlotHeight` (`dashboard_screen.dart`), which is **340
+    // since 2026-07-31** - raised from 300 so the panel could adopt
+    // `GWSectionTitle` and put Balance on the same baseline as the first
+    // Assets coin. That leaves 314px usable once `DashboardScrollContainer`'s
+    // own border fold-in is counted
     // (`test/dashboard/compute_panel_height_test.dart` derives the budget
     // from the same constant rather than repeating a number, which is what
     // stops these two from drifting apart again).
+    //
+    // On MOBILE there is no slot at all since phase 25:
+    // `OneColumnDashBoardView` stopped capping its panels so the page owns the
+    // only scroll, so this widget is handed an unbounded height, `minHeight`
+    // below resolves to 0, and the panel is simply as tall as its content.
+    // There is no budget to blow there.
     //
     // This is NO LONGER a workaround for content that overflows - it is a
     // text-scale net. It costs nothing while the content fits (the gesture
@@ -164,6 +171,21 @@ class WalletsOverviewState extends State<WalletsOverview> {
     // the content does not fit (an enlarged text scale), the inner view
     // scrolls - which is the intended behavior in the only state where the
     // two differ.
+    //
+    // That argument carries a SECOND load since phase 25, and it is why this
+    // scroll view survived a sweep whose whole purpose was one page scroll.
+    // On the uncapped one-column dashboard this panel is never taller than its
+    // own viewport, because it IS its own viewport - so its extents are always
+    // equal, it always sits out of the gesture arena, and a drag started
+    // anywhere inside it reaches the page. It also cannot throw an overflow
+    // there: an overflow needs a binding constraint to exceed and there is
+    // none.
+    //
+    // So REMOVING this scroll view is NOT how one page scroll is achieved, and
+    // deleting it in the name of that goal would buy nothing and cost the
+    // text-scale net. What removed the competing scroll areas was deleting the
+    // fixed-height boxes in `OneColumnDashBoardView`, not deleting scroll
+    // views.
     //
     // KNOWN RISK: `LayoutBuilder` throws if an ancestor queries intrinsic
     // dimensions of its subtree. None of the three call sites above do -

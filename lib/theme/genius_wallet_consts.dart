@@ -47,3 +47,25 @@ class GeniusWalletConsts {
   static const double radiusXl = 24.0; // gnus.ai --radius-3xl
   static const double radiusPill = 48.0;
 }
+
+/// Ceiling on how much of the bottom safe-area inset a bottom-pinned chrome
+/// surface reserves below its content.
+///
+/// Named for the job rather than for the tab bar, because it now has two
+/// consumers: `_MobileTabBar` (`responsive_overlay.dart`) and the drawer
+/// shell's footer (`responsive_drawer.dart`). It lives here, in the neutral
+/// theme file, precisely so the drawer does not have to import a navigation
+/// file to get it - and so the two cannot drift apart, which is the failure
+/// this constant exists to prevent.
+///
+/// **Why 20 and not the raw 34 iOS reports.** 34 is the area iOS RESERVES for
+/// the home indicator, not what the indicator NEEDS: the indicator itself is a
+/// ~5pt bar whose top edge sits ~13pt above the screen bottom. 20 clears it
+/// with room to spare and still keeps content outside the ~20pt band where the
+/// system claims the swipe-up gesture, so nothing becomes harder to hit.
+/// Devices with no home indicator report 0 and are unaffected - the cap only
+/// ever removes, never adds.
+///
+/// 20 equals [GeniusWalletConsts.space10], so it is already on the 4-pt grid
+/// and needs no exception.
+const double kMaxBottomSafeInset = GeniusWalletConsts.space10;

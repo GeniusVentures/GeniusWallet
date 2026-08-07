@@ -528,8 +528,9 @@ void main() {
     _surface(tester);
     // ONE escrow row, not `_mixed()`: at 600-768px the harness's one-em-per-
     // character fallback font makes a busy transaction row overflow for a
-    // reason that does not exist on screen. `escrow` prints "Escrow locked" and
-    // "Locked in escrow", colliding with no rail label (15-03's finding).
+    // reason that does not exist on screen. `escrow`'s subtitle reads "Locked"
+    // then "in escrow" since 179-C deleted the action chip and moved the verb
+    // down to lead that line, colliding with no rail label (15-03's finding).
     final txs = [_tx(type: TransactionType.escrow)];
 
     // The surface stays 1400 throughout: the SizedBox shrinks, not the window,

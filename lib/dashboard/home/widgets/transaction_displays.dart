@@ -41,12 +41,30 @@ const double _wideAmountWidth = 184;
 
 /// Narrow row: the name+tag block takes this many parts against the amount's
 /// 1. Was 1:1, which gave the amount half the row for a string needing far
-/// less. A flex ratio, not a measured width — measuring per layout is what the
+/// less. A flex ratio, not a measured width - measuring per layout is what the
 /// freeze rule bans (37639d5).
 ///
-/// ponytail: long amounts truncate sooner; they keep their `exactAmount`
+/// Cost: long amounts truncate sooner; they keep their `exactAmount`
 /// tooltip. Upgrade path: 3:2 if balances read short.
 const int _narrowNameFlex = 2;
+
+/// The narrow row's status tail cap, and the row's ONLY non-flex subtitle child.
+///
+/// Why a cap at all: everything else on the subtitle line is inside an
+/// `Expanded`, so the tail is the single element that could push the `Row` past
+/// its line and raise a `RenderFlex` overflow. `statusLabel` is caller-supplied
+/// (the Buy GNUS orders rail sets `Expired`), so its length is not this file's
+/// to assume - the `ConstrainedBox` is what bounds it (T-txr-01).
+///
+/// Why 76: `Cancelled` is the widest word the status can print and measures
+/// 66.0px in the shipped Inter at `bodySm`, so 76 clears it by 10 and the cap
+/// never bites in practice. It must also stay inside the NARROWEST middle column
+/// the suite pumps - 90px at the 320px stress case - less the `space2` gutter,
+/// which leaves 10px of slack there too. 76 is on the 4-pt grid.
+///
+/// `transaction_row_subtitle_test.dart` asserts every status word stays under
+/// this, so a longer one reddens rather than silently ellipsising.
+const double _narrowStatusMaxWidth = 76;
 
 /// THE colour of a status - foreground and its wash - for every consumer.
 ///
@@ -57,9 +75,9 @@ const int _narrowNameFlex = 2;
 /// Completed receipt showed a green pill above a plain white "Completed" and a
 /// Pending one showed an amber pill above a white "Pending".
 ///
-/// Jakub, 2026-07-28: *"status completed brakuje im kolorów - powinien być
-/// przez komponent połączony"*. Connected here: one function, and neither
-/// consumer can drift from the other again.
+/// Jakub, 2026-07-28: the completed status is missing its colours, and the two
+/// places that print it should be connected through one component. Connected
+/// here: one function, and neither consumer can drift from the other again.
 ({Color fg, Color wash}) txStatusColors(
   TransactionStatus status,
   GWColors gw,
@@ -289,36 +307,13 @@ class TransactionRow extends StatelessWidget {
     // desktop, so row width would have re-styled desktop too.
     final bool compact = !GeniusBreakpoints.useDesktopLayout(context);
 
-    final Widget titleText = Text(
-      content.title,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: GeniusWalletTypography.titleMd.copyWith(
-        fontSize: compact ? 14 : null,
-        fontWeight: FontWeight.w600,
-        color: gw.textPrimary,
-      ),
-    );
-
-    final Widget actionChip = Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 3 : GeniusWalletConsts.space2,
-        vertical: compact ? 1 : 2,
-      ),
-      decoration: BoxDecoration(
-        color: gw.surfaceMenu,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusXs),
-      ),
-      child: Text(
-        content.action,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: GeniusWalletTypography.labelMd.copyWith(
-          fontSize: compact ? 11 : null,
-          color: gw.textSecondary,
-        ),
-      ),
-    );
+    // `titleText` and `actionChip` locals lived here until the 2026-08-07
+    // merge. Scheme C inlined the title into the Column below and DELETED the
+    // action chip outright: its `surfaceMenu` box measured 1.13:1 against the
+    // row canvas and was 44.5px on a phone, too narrow for 6 of the 8 strings
+    // `_actionFor` can return, so it clipped the word it existed to show. The
+    // action now leads the subtitle as `content.subtitleLead`. Their `compact`
+    // font sizes were carried to their replacements rather than lost.
 
     final Widget amountText = Text(
       content.amount,
@@ -430,28 +425,145 @@ class TransactionRow extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        children: [
-                          // Token-first (010-A): the asset is the headline, the
-                          // action a quiet chip beside it.
-                          //
-                          Flexible(child: titleText),
-                          const SizedBox(width: GeniusWalletConsts.space4),
-                          Flexible(child: actionChip),
-                        ],
-                      ),
-                      SizedBox(height: compact ? 1 : GeniusWalletConsts.space2),
+                      // Token-first (010-A), and since 179-C the token is ALONE
+                      // here: the action word moved down to lead the subtitle.
+                      // The chip it used to sit in was a `surfaceMenu` container
+                      // measuring 1.13:1 against the row canvas, and its box was
+                      // 44.5px on a phone - too narrow for 6 of the 8 strings
+                      // `_actionFor` can return, so it clipped the word it
+                      // existed to show. 010-A's decision is unchanged and this
+                      // strengthens it: the asset now has the whole line.
+                      //
+                      // A bare `Text` in the `Column`, not a `Row`: it takes
+                      // loose constraints here and ellipsises on its own, so
+                      // nothing on this line can overflow.
                       Text(
-                        // On the wide page the Status pill carries the status, so
-                        // the subtitle drops the ` · Failed` suffix (no double
-                        // statement). On the panel it keeps it — no pill there.
-                        wide ? content.subtitleBase : content.subtitle,
+                        content.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GeniusWalletTypography.bodySm.copyWith(
-                          fontSize: compact ? 11 : null,
-                          color: gw.textSecondary,
+                        style: GeniusWalletTypography.titleMd.copyWith(
+                          // From develop's `titleText` local (260806-hfe),
+                          // which scheme C inlined here. Carried across the
+                          // merge rather than dropped with the widget that
+                          // used to hold it.
+                          fontSize: compact ? 14 : null,
+                          fontWeight: FontWeight.w600,
+                          color: gw.textPrimary,
                         ),
+                      ),
+                      // `compact ? 1` comes from develop's phone-width work
+                      // (260806-hfe) and is kept through this merge: scheme C
+                      // rebuilt the subtitle around it, not instead of it.
+                      SizedBox(height: compact ? 1 : GeniusWalletConsts.space2),
+                      // THE SUBTITLE, in three pieces and TWO children.
+                      //
+                      // The lead is protected by being FIRST IN THE PARAGRAPH,
+                      // not by a flex fit, and that distinction is the whole
+                      // design. Flutter's `Row` hands a loose flex child only its
+                      // own share of the free space and never passes back a
+                      // narrower sibling's remainder - that is the precise
+                      // mechanism that capped the deleted chip at 44.5px. Two
+                      // NON-flex children would instead raise a `RenderFlex`
+                      // overflow at the 320px case the suite pumps. An end
+                      // ellipsis over one paragraph gives the qualifier-first
+                      // degradation order for free and cannot overflow at all.
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text.rich(
+                              TextSpan(
+                                children: [
+                                  if (content.subtitleLead != null)
+                                    TextSpan(
+                                      text: content.subtitleLead,
+                                      // Jakub, 2026-08-07 on device: at w500
+                                      // against the base's w400, in the SAME
+                                      // colour and joined by a plain space, the
+                                      // lead and the context read as one
+                                      // string - his words were that the job
+                                      // label and the information after it
+                                      // were hard to tell apart. One weight
+                                      // step at 13px is not a separator.
+                                      //
+                                      // Colour carries it instead: textPrimary
+                                      // against textSecondary is 19.4:1 against
+                                      // 6.01:1 on this canvas, which is the
+                                      // strongest separation available for
+                                      // ZERO width - and width is the whole
+                                      // constraint on this line. A middle-dot
+                                      // separator was the runner-up and was
+                                      // rejected here for costing ~10px, about
+                                      // 11% of the line, on rows whose context
+                                      // is already ellipsising.
+                                      //
+                                      // That argument got STRONGER on
+                                      // 2026-08-07, not weaker. The line is
+                                      // 113.0px and the longest lead it now
+                                      // draws is `Processing job` at 103.6px
+                                      // (measured w600), leaving 9.4px - so a
+                                      // separator costing ~10px would clip the
+                                      // very row the wording was restored for.
+                                      //
+                                      // It does not fight the token title
+                                      // above: that is 15px w600 and this is
+                                      // 13px, so the size step keeps the
+                                      // hierarchy. Named fallback if white
+                                      // reads too hot on the second line: white
+                                      // at 70%, still well clear of AA.
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: gw.textPrimary,
+                                      ),
+                                    ),
+                                  if (content.subtitleBase.isNotEmpty)
+                                    TextSpan(
+                                      text: content.subtitleLead == null
+                                          ? content.subtitleBase
+                                          : ' ${content.subtitleBase}',
+                                    ),
+                                ],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              // `fontSize: compact ? 11` is develop's
+                              // phone-width shrink (260806-hfe), carried across
+                              // this merge. It buys back line width, which is
+                              // exactly the currency the lead-plus-context
+                              // paragraph below is short of - the two changes
+                              // pull the same way rather than against.
+                              style: GeniusWalletTypography.bodySm.copyWith(
+                                fontSize: compact ? 11 : null,
+                                color: gw.textSecondary,
+                              ),
+                            ),
+                          ),
+                          // The status, pinned right. WIDE-SUPPRESSED and nothing
+                          // else is: the page states the status in its pill, so
+                          // drawing the tail there would say it twice - and
+                          // gating the whole subtitle on `wide` instead would
+                          // lose it on the panel entirely.
+                          if (!wide && content.statusTail != null) ...[
+                            const SizedBox(width: GeniusWalletConsts.space2),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: _narrowStatusMaxWidth,
+                              ),
+                              child: Text(
+                                content.statusTail!,
+                                maxLines: 1,
+                                softWrap: false,
+                                overflow: TextOverflow.ellipsis,
+                                // Same shrink as the paragraph beside it. If
+                                // only one of the two shrank, the subtitle
+                                // would print at two sizes on one line.
+                                style: GeniusWalletTypography.bodySm.copyWith(
+                                  fontSize: compact ? 11 : null,
+                                  color: gw.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
@@ -849,7 +961,7 @@ void showTransactionDetails(
         const SizedBox(height: GeniusWalletConsts.space12),
 
         // A kicker over a ruled well, which is 154-A's grouping restored
-        // (Jakub 2026-07-28: "tej siatki nie ma - chciałbym ją mieć"). The
+        // (Jakub, 2026-07-28: that grid is missing and he wanted it back). The
         // first pass shipped the rows bare on 067-A's reasoning; see
         // `GWDetailGrid`'s doc for why that reasoning covers a box around a
         // FORM and not a read-only table, and why `borderSubtle` rather than

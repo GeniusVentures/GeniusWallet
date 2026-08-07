@@ -19,18 +19,32 @@ const _toAddress = '0x5555666677778888999900001111222233334444';
 const _hash =
     '0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789';
 
-Transaction _tx({TransactionStatus status = TransactionStatus.completed}) =>
-    Transaction(
-      hash: _hash,
-      fromAddress: '0x1111222233334444555566667777888899990000',
-      recipients: [TransferRecipients(toAddr: _toAddress, amount: '1.25')],
-      timeStamp: DateTime(2026, 7, 20, 18, 42),
-      transactionDirection: TransactionDirection.sent,
-      fees: '0.00042',
-      coinSymbol: 'ETH',
-      transactionStatus: status,
-      type: TransactionType.transfer,
-    );
+Transaction _tx({
+  TransactionStatus status = TransactionStatus.completed,
+  TransactionType type = TransactionType.transfer,
+}) => Transaction(
+  hash: _hash,
+  fromAddress: '0x1111222233334444555566667777888899990000',
+  recipients: [TransferRecipients(toAddr: _toAddress, amount: '1.25')],
+  timeStamp: DateTime(2026, 7, 20, 18, 42),
+  transactionDirection: TransactionDirection.sent,
+  fees: '0.00042',
+  coinSymbol: 'ETH',
+  transactionStatus: status,
+  type: type,
+);
+
+Widget _app(Transaction tx) => MaterialApp(
+  theme: ThemeData(extensions: [GWColors.dark()]),
+  home: Scaffold(
+    body: Builder(
+      builder: (context) => ElevatedButton(
+        onPressed: () => showTransactionDetails(context, tx),
+        child: const Text('open'),
+      ),
+    ),
+  ),
+);
 
 void main() {
   late List<String> copied;
@@ -53,19 +67,7 @@ void main() {
 
   testWidgets('a copy row puts the FULL value in the clipboard, never the '
       'short form it draws', (tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData(extensions: [GWColors.dark()]),
-        home: Scaffold(
-          body: Builder(
-            builder: (context) => ElevatedButton(
-              onPressed: () => showTransactionDetails(context, _tx()),
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
+    await tester.pumpWidget(_app(_tx()));
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
 
@@ -99,8 +101,48 @@ void main() {
     expect(copied.last, _hash);
   });
 
-  // Jakub, 2026-07-28: "status completed brakuje im kolorów - powinien być
-  // przez komponent połączony". The pill and the Status row print the SAME
+  // THE GO/NO-GO GATE for the 2026-08-07 row change, and the reason it is
+  // written here rather than beside that change.
+  //
+  // Jakub, on device: the job row's second line printed the transaction's own
+  // hash (`Job 0x9f3a…4b21`) and he named it senseless there. The row is about
+  // to stop printing it. That is only DECLUTTERING if the hash stays reachable;
+  // if the drawer did not carry it, a job would become unverifiable against a
+  // block explorer and the change would be DATA LOSS.
+  //
+  // The drawer labels this row `Job` for a process transaction and `Hash` for
+  // every other type, because for a job the hash IS the job reference. Nothing
+  // covered the `Job` branch until now - the test above only ever opened a
+  // transfer. So this runs BEFORE the row loses the string, and if it cannot be
+  // made to pass the row change must not ship.
+  testWidgets('a processing job keeps its hash in the drawer, labelled Job '
+      'and copyable in full', (tester) async {
+    await tester.pumpWidget(_app(_tx(type: TransactionType.process)));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // The label is `Job`, and `Hash` is NOT also emitted: one row, not the same
+    // value printed twice under two labels.
+    expect(find.text('Job'), findsOneWidget);
+    expect(find.text('Hash'), findsNothing);
+    // The drawer's own header is the long form, and it is a different string
+    // from the row label - so the finder above cannot be matching the title.
+    expect(find.text('Processing job'), findsOneWidget);
+
+    // Same half-assertion as above: the full hash is not on screen, so the
+    // clipboard check below cannot pass by accident.
+    expect(find.text(_hash), findsNothing);
+
+    await tester.ensureVisible(find.text('Job'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Job'));
+    await tester.pumpAndSettle();
+    expect(copied, [_hash]);
+  });
+
+  // Jakub, 2026-07-28: the completed status is missing its colours, and the
+  // two places that print it should be connected through one component.
+  // The pill and the Status row print the SAME
   // word, so a drift between them is a drift between two colours on one
   // string. This asserts they cannot: both Texts are found by the same finder
   // and must agree, for every state.
@@ -112,20 +154,7 @@ void main() {
     testWidgets('the pill and the Status row take one colour -- $status', (
       tester,
     ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(extensions: [GWColors.dark()]),
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
-                onPressed: () =>
-                    showTransactionDetails(context, _tx(status: status)),
-                child: const Text('open'),
-              ),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(_app(_tx(status: status)));
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
 

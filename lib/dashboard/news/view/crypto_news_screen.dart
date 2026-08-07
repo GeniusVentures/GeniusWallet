@@ -355,23 +355,30 @@ class _NewsMagazine extends StatelessWidget {
             // the stories past the hero band.
             if (results != null) ...[
               const SizedBox(height: GeniusWalletConsts.space12),
+              // No `contentTopInset` in either branch: `_grid`'s first tile is
+              // a `GWCard` whose photo fills its top edge, and the empty-state
+              // Text paints from its own line box. Both are C = 0, so the
+              // title pays the full `space8` and this section renders the
+              // shared 26px gap (`gw_section_title_rhythm_test.dart`).
               const GWSectionTitle(title: 'Results'),
               if (results!.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: GeniusWalletConsts.space4,
-                  ),
-                  child: Text(
-                    'No headlines match “$query”.',
-                    style: GeniusWalletTypography.bodyMd.copyWith(
-                      color: gw.textSecondary,
-                    ),
+                // The `top: space4` this used to carry was a second gap
+                // stacked under the title's own, which pushed this branch to
+                // 34 while the grid branch beside it sat at 26. Removed
+                // 2026-08-06 so the empty message sits on exactly the same
+                // rhythm as the grid it replaces.
+                Text(
+                  'No headlines match “$query”.',
+                  style: GeniusWalletTypography.bodyMd.copyWith(
+                    color: gw.textSecondary,
                   ),
                 )
               else
                 _grid(results!),
             ] else if (rest.isNotEmpty) ...[
               const SizedBox(height: GeniusWalletConsts.space12),
+              // C = 0 - `_grid`'s first tile paints its photo at its own top
+              // edge - so this section reaches the rule exactly, like Results.
               const GWSectionTitle(title: 'More news'),
               _grid(rest),
             ],
@@ -495,7 +502,18 @@ class _NextUp extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const GWSectionTitle(title: 'Next up'),
+        // `_NextUpRow` pads itself `vertical: space4`, so the first row's ink
+        // starts 8px below its layout box. Declared rather than removed: that
+        // padding is the ROW's own rhythm, shared by every row in the column,
+        // and stripping it from the first one alone would make row 1 sit
+        // tighter than rows 2..n. The title spends its pad against it instead
+        // - `26 - 10 - 8` leaves `space4` - so this section renders the same
+        // 26px gap as every other one
+        // (`gw_section_title_rhythm_test.dart`).
+        const GWSectionTitle(
+          title: 'Next up',
+          contentTopInset: GeniusWalletConsts.space4,
+        ),
         for (var i = 0; i < articles.length; i++)
           _NextUpRow(index: i + 1, article: articles[i]),
       ],

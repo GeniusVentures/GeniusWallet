@@ -15,6 +15,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_navigator_observer.dart';
+import 'package:genius_wallet/dashboard/assets/assets_screen.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
@@ -224,6 +225,30 @@ final geniusWalletRouter = GoRouter(
           path: '/transactions',
           builder: (_, _) => const TransactionsScreen(),
         ),
+        // The dashboard's Assets `View all` destination (phase 25). INSIDE the
+        // shell is load-bearing: outside it the page would replace the bottom
+        // bar and the wallet header with its own chrome, which is the defect
+        // `/token-info`'s own move into the shell records below.
+        //
+        // Assets IS a nav tab as of 2026-08-07 (sketch 182 scheme S7): the
+        // phone bar reads Home / Assets / dock / Activity / News. It was not
+        // one before, which is why the dashboard's `View all` link used to call
+        // `context.push('/assets')`; that link now calls `context.go`, the same
+        // call `transactions_slim_view.dart:363` already makes for
+        // `/transactions`, so both entrances to this route behave alike. Two
+        // entrances with different back behaviour reads as randomness.
+        //
+        // The cost of `go` is that the dashboard is disposed rather than kept
+        // mounted, so the ONE market-data refresh timer in the process is torn
+        // down and re-armed. That is the trade `/transactions` already made.
+        //
+        // NOT a member of `allDestinations` (`nav_destinations.dart`), and it
+        // cannot become one without adding a NINTH tab to the desktop bar. So
+        // the derived More sheet can never catch this route: it is reachable
+        // only while it is on the phone bar, plus that one `View all` link.
+        // `kNonDerivableMobilePaths` records exactly that, and a test fails if
+        // a future tab-set change strands it.
+        GoRoute(path: '/assets', builder: (_, _) => const AssetsScreen()),
         GoRoute(
           path: '/swap',
           builder: (context, state) {

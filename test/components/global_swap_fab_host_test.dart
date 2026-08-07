@@ -18,11 +18,25 @@ import 'package:go_router/go_router.dart';
 /// shows the FAB once the post-frame callback lands, and correctly hides/
 /// reshows it across a hidden-path visit.
 
-Widget _app(GoRouter router) => MaterialApp.router(
+/// 24-06: the FAB is now DESKTOP-only - on the mobile shell the bottom bar
+/// carries a Swap dock in its centre, so a floating Swap button would be the
+/// same action twice and would sit on top of the asset list while doing it.
+///
+/// Every test below except the last one is about the desktop behaviour, which
+/// is unchanged, so they need a desktop-width viewport. The default test
+/// surface is 800x600 - narrower than `GeniusBreakpoints.large` (1024), which
+/// is the threshold `router.dart` itself uses to choose MobileOverlay. Without
+/// this width the app under test IS the mobile shell and the FAB is correctly
+/// absent, which would make these tests assert the wrong thing rather than
+/// fail honestly.
+Widget _app(GoRouter router, {double width = 1400}) => MaterialApp.router(
   routerConfig: router,
-  builder: (context, child) => GlobalSwapFabHost(
-    router: router,
-    child: child ?? const SizedBox.shrink(),
+  builder: (context, child) => MediaQuery(
+    data: MediaQuery.of(context).copyWith(size: Size(width, 900)),
+    child: GlobalSwapFabHost(
+      router: router,
+      child: child ?? const SizedBox.shrink(),
+    ),
   ),
 );
 
@@ -216,4 +230,20 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'the FAB is hidden on the mobile shell, where the bar has a Swap dock',
+    (tester) async {
+      final router = _router();
+      // Below GeniusBreakpoints.large (1024), so `useDesktopOverlay` is false
+      // and router.dart mounts MobileOverlay - the shell whose bottom bar owns
+      // `_MobileSwapDock`. This is the 24-06 contract: exactly one Swap
+      // affordance per shell, never two.
+      await tester.pumpWidget(_app(router, width: 390));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GWSwapFab), findsNothing);
+      expect(find.text('dashboard placeholder'), findsOneWidget);
+    },
+  );
 }

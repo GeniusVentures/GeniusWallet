@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 176 - the overflow schemes, clickable</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{
+  --surfaceBase:#0B0D12; --surfaceElevated:#0C0E14; --surfaceMenu:#171A21; --surfaceSunken:#06080C;
+  --textPrimary:#FFFFFF; --textPrimary80:rgba(255,255,255,.80); --textPrimary60:rgba(255,255,255,.60);
+  --textPrimary38:rgba(255,255,255,.38); --textSecondary:#8A8F9D; --textOnBrand:#000B18;
+  --textMutedOnSunken:#8A8F9D;
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --brandPrimary:#14C8FF; --brandPrimaryStrong:#0AAEE6; --brandSecondary:#2BF5B4;
+  --gradientGreen:#0AD89C; --gradientBlue:#0AAEE6;
+  --statusError:#FF4D4D; --statusWarning:#FFC42E; --statusSuccess:#2BF5B4;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px; --s20:40px;
+  --rXs:4px; --rSm:8px; --rMd:12px; --rLg:15px; --rXl:24px; --rPill:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05070A;color:var(--textPrimary);font:400 15px/1.5 Inter,system-ui,-apple-system,sans-serif;padding:0 0 80px}
+code{font:12px/1.4 'JetBrains Mono',ui-monospace,monospace;background:var(--surfaceMenu);padding:1px 5px;border-radius:var(--rXs);color:var(--brandSecondary)}
+.wrap{max-width:1500px;margin:0 auto;padding:0 var(--s12)}
+.skhead{border-bottom:1px solid var(--borderSubtle);padding:var(--s16) 0 var(--s10);margin-bottom:var(--s12)}
+.skhead h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.skhead p{color:var(--textSecondary);max-width:100ch;margin-top:var(--s4);font-size:14px}
+
+.schemebar{display:flex;gap:var(--s3);margin-top:var(--s10);flex-wrap:wrap}
+.sbtn{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:10px var(--s10);border-radius:var(--rSm);font:600 13px Inter;cursor:pointer;text-align:left}
+.sbtn:hover{background:rgba(20,200,255,.07);border-color:rgba(20,200,255,.4);color:var(--textPrimary)}
+.sbtn.on{background:var(--surfaceElevated);color:var(--textPrimary);border-color:transparent;
+  box-shadow:inset 0 0 0 1px var(--brandPrimaryStrong), 0 0 14px rgba(10,174,230,.28)}
+.sbtn small{display:block;font:400 11px Inter;color:var(--textSecondary);margin-top:2px}
+
+.cols{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s10) 0}
+.side{flex:1 1 380px;min-width:340px;max-width:640px}
+.h3{font:700 12px Inter;text-transform:uppercase;letter-spacing:.09em;color:var(--textSecondary);margin:var(--s10) 0 var(--s4)}
+.side p{color:var(--textPrimary80);font-size:14px;margin:var(--s4) 0}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:var(--s4) 0}
+th,td{text-align:left;padding:6px var(--s4);border-bottom:1px solid var(--borderSubtle)}
+th{color:var(--textSecondary);font:700 11px Inter;text-transform:uppercase;letter-spacing:.07em}
+td.n{font:700 13px 'JetBrains Mono',ui-monospace,monospace;text-align:center;width:52px}
+.g1{color:var(--brandSecondary)}.g2{color:var(--textPrimary)}.g3{color:var(--statusWarning)}.g4{color:#FF8A8A}
+.log{background:var(--surfaceSunken);border:1px solid var(--borderSubtle);border-radius:var(--rMd);
+  padding:var(--s6);height:190px;overflow-y:auto;font:12px/1.6 'JetBrains Mono',ui-monospace,monospace;color:var(--textPrimary80)}
+.log div{border-bottom:1px solid rgba(255,255,255,.05);padding:2px 0}
+.log .hit{color:var(--brandSecondary)}
+.resetb{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:6px var(--s6);border-radius:var(--rSm);font:600 12px Inter;cursor:pointer;margin-top:var(--s4)}
+.resetb:hover{color:var(--textPrimary);border-color:var(--borderStrong)}
+.verdict{border-left:3px solid var(--brandSecondary);background:rgba(43,245,180,.06);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s6) 0;font-size:13.5px;color:var(--textPrimary80)}
+.verdict.warn{border-left-color:var(--statusWarning);background:rgba(255,196,46,.06)}
+.verdict b{color:var(--textPrimary)}
+
+/* ---------- phone ---------- */
+.phonewrap{flex:0 0 auto}
+.phone{width:390px;height:844px;background:var(--surfaceBase);border:9px solid #1b1e26;border-radius:46px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.65)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1b1e26;
+  border-radius:0 0 18px 18px;z-index:30}
+.sbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s10) 0 var(--s16);font:600 13px Inter}
+.sbar .r{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--textPrimary80)}
+.appbar{flex:0 0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s8);border-bottom:.5px solid var(--borderSubtle);background:var(--surfaceElevated)}
+.idrow{display:flex;align-items:center;gap:var(--s6);min-width:0;cursor:pointer;padding:var(--s3);border-radius:var(--rMd)}
+.idrow:hover{background:rgba(20,200,255,.07)}
+.avatar{width:32px;height:32px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,#6C7BF5,#8E9BFF);
+  display:grid;place-items:center;font:700 13px Inter}
+.idname{font:600 14px Inter;display:flex;align-items:center;gap:2px}
+.idaddr{font:400 11px 'JetBrains Mono',ui-monospace,monospace;color:var(--textSecondary)}
+.rightcluster{display:flex;align-items:center;gap:var(--s3)}
+.netchip{display:flex;align-items:center;gap:var(--s3);padding:5px var(--s4);border-radius:var(--rPill);cursor:pointer}
+.netchip:hover{background:rgba(20,200,255,.07)}
+.netdot{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#6C7BF5,#8E9BFF)}
+.gear{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--textPrimary80);
+  border:1px solid var(--borderSubtle);background:var(--surfaceSunken);font-size:16px;cursor:pointer}
+.gear:hover{background:rgba(20,200,255,.1);border-color:rgba(20,200,255,.4);color:var(--textPrimary)}
+.backrow{display:flex;align-items:center;gap:var(--s4);cursor:pointer;padding:var(--s3) var(--s4);border-radius:var(--rMd)}
+.backrow:hover{background:rgba(20,200,255,.07)}
+.scr{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:thin}
+.scr::-webkit-scrollbar{width:4px}.scr::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+
+.card{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s6);margin:var(--s3)}
+.cardtitle{font:650 20px Inter;padding:var(--s3) var(--s3) var(--s6);display:flex;justify-content:space-between;align-items:center}
+.kicker{font:700 11px Inter;text-transform:uppercase;letter-spacing:.09em;color:var(--textSecondary);padding:var(--s6) var(--s6) var(--s3)}
+.pagehead{padding:var(--s8) var(--s6) var(--s4);font:650 24px Inter;letter-spacing:-.02em}
+.well{background:var(--surfaceSunken);border:1px solid var(--borderSubtle);border-radius:var(--rMd);padding:var(--s8) var(--s10)}
+.balkick{font:700 11px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--textSecondary)}
+.balrow{display:flex;align-items:center;gap:var(--s8);margin-top:var(--s3)}
+.balnum{font:700 38px Inter;letter-spacing:-.03em;line-height:1}
+.utrack{display:flex;align-items:center;gap:2px;background:var(--surfaceSunken);border:1px solid var(--borderSubtle);
+  border-radius:var(--rPill);padding:3px 6px}
+.useg{padding:6px 13px;border-radius:var(--rPill);font:600 12px Inter;color:var(--textMutedOnSunken);cursor:pointer}
+.useg.on{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));color:var(--textOnBrand)}
+.cta{margin-top:var(--s8);height:44px;border-radius:var(--rMd);display:grid;place-items:center;cursor:pointer;
+  background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));color:var(--textOnBrand);font:600 15px Inter}
+.selrow{display:flex;align-items:center;gap:var(--s6);padding:13px var(--s6);border-radius:var(--rMd);cursor:pointer}
+.selrow:hover{background:rgba(20,200,255,.07)}
+.selrow .ic{width:24px;text-align:center;color:var(--textPrimary80);font-size:17px;flex:0 0 auto}
+.selrow .tx{flex:1 1 auto;min-width:0}
+.selrow .t1{font:500 15px Inter}
+.selrow .t2{font:400 12px Inter;color:var(--textSecondary);margin-top:1px}
+.selrow .ch{color:var(--textPrimary38);font-size:15px}
+.selrow .amt{text-align:right}
+.selrow .amt .a1{font:700 15px Inter}
+.selrow .amt .a2{font:400 12px Inter;color:var(--textSecondary)}
+.divide{height:1px;background:var(--borderSubtle);margin:0 var(--s6)}
+.viewall{font:700 11px Inter;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+  background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.empty{display:flex;flex-direction:column;align-items:center;gap:var(--s4);padding:var(--s20) var(--s10);text-align:center}
+.emptyring{width:76px;height:76px;border-radius:50%;border:1px solid var(--borderSubtle);display:grid;place-items:center;
+  font-size:26px;color:var(--textPrimary38)}
+.badge{font:700 9px Inter;letter-spacing:.08em;padding:3px 6px;border-radius:var(--rXs);
+  background:rgba(43,245,180,.12);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.5)}
+
+/* bottom bar */
+.barbox{flex:0 0 auto;height:106px;position:relative}
+.bar{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--surfaceElevated);
+  border-top:.5px solid var(--borderSubtle);display:flex;align-items:flex-start;padding-bottom:20px}
+.slot{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:var(--s2);padding-top:var(--s4);cursor:pointer}
+.slot .si{font-size:22px;line-height:1;color:var(--textSecondary)}
+.slot .sl{font:500 10px Inter;color:var(--textSecondary)}
+.slot.on .si,.slot.on .sl{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));
+  -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+.dockslot{flex:0 0 84px}
+.dock{position:absolute;top:0;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));border:3px solid var(--surfaceElevated);
+  display:grid;place-items:center;font-size:26px;color:var(--textOnBrand);box-shadow:0 0 22px rgba(10,174,230,.4);cursor:pointer;z-index:5}
+
+/* sheet + rail */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:20;opacity:0;pointer-events:none;transition:opacity .18s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surfaceMenu);z-index:21;
+  border-radius:var(--rXl) var(--rXl) 0 0;border-top:1px solid var(--borderSubtle);
+  padding:var(--s4) var(--s3) var(--s12);transform:translateY(105%);transition:transform .22s cubic-bezier(.2,.8,.2,1);max-height:78%;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+.grab{width:36px;height:4px;border-radius:2px;background:var(--borderStrong);margin:var(--s2) auto var(--s6)}
+.sheettitle{font:650 17px Inter;padding:0 var(--s6) var(--s4)}
+.rail{position:absolute;left:var(--s6);right:var(--s6);bottom:92px;z-index:22;background:var(--surfaceSunken);
+  border:1px solid var(--borderSubtle);border-radius:var(--rPill);padding:var(--s3) var(--s4);display:flex;gap:2px;
+  box-shadow:0 12px 32px rgba(0,0,0,.75);transform:translateY(14px) scale(.96);opacity:0;pointer-events:none;
+  transition:all .2s cubic-bezier(.2,.8,.2,1)}
+.rail.on{transform:none;opacity:1;pointer-events:auto}
+.railchip{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:var(--s3) 2px;
+  border-radius:var(--rPill);cursor:pointer}
+.railchip:hover{background:var(--surfaceElevated)}
+.railchip .ri{font-size:18px;line-height:1;color:var(--textPrimary80)}
+.railchip .rl{font:600 9.5px Inter;color:var(--textSecondary)}
+.idcard{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s10) var(--s6);margin:var(--s3);display:flex;flex-direction:column;align-items:center;gap:var(--s3)}
+.idcard .big{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#6C7BF5,#8E9BFF);
+  display:grid;place-items:center;font:700 24px Inter}
+.idcard .nm{font:650 18px Inter}
+.idcard .ad{font:400 12px 'JetBrains Mono',ui-monospace,monospace;color:var(--textSecondary)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="skhead">
+    <h1>Sketch 176 - the three overflow schemes, actually clickable</h1>
+    <p>Pick a scheme, then use the phone like the app. Bottom tabs, the dock, the gear, the wallet chip,
+       every row and every Back all navigate for real. The counter on the right records how many taps
+       each destination costs you under the scheme you are currently in - that is the number the
+       decision actually turns on.</p>
+    <div class="schemebar" id="schemebar"></div>
+  </div>
+
+  <div class="cols">
+    <div class="phonewrap">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="sbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>
+        <div id="appbar"></div>
+        <div class="scr" id="scr"></div>
+        <div class="rail" id="rail"></div>
+        <div class="scrim" id="scrim"></div>
+        <div class="sheet" id="sheet"></div>
+        <div class="barbox" id="barbox"></div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="h3">Taps to reach, from Home</div>
+      <table id="costtable"></table>
+      <div class="verdict" id="costnote"></div>
+
+      <div class="h3">What you are looking at</div>
+      <div id="schemenote"></div>
+
+      <div class="h3">Tap log</div>
+      <div class="log" id="log"></div>
+      <button class="resetb" id="reset">Reset to Home and clear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SCHEMES = {
+    now: {
+      key:'now', name:'Now', sub:'three dots, flat sheet',
+      tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['more','More','···']],
+      gear:false,
+      cost:{'News':2,'Web':2,'Settings':2,'Feedback':2,'Accounts':'1 or 2'},
+      note:'<p>Today. The fourth slot is <code>···</code>, opening a flat five-row sheet. Accounts is in there '+
+           '<b>and</b> on the wallet chip - two entrances to one room. Tap the chip, then tap the dots, and '+
+           'notice you arrive at the same place twice.</p>'
+    },
+    C: {
+      key:'C', name:'C - no overflow', sub:'News gets the tab, gear takes utilities',
+      tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['news','News','📰']],
+      gear:true,
+      cost:{'News':1,'Web':3,'Settings':2,'Feedback':2,'Accounts':1},
+      note:'<p>No overflow exists. Every bottom tab is a place, the gear is utilities, the wallet chip is '+
+           'identity. Three rules, each one obvious.</p><p><b>Feel the cost:</b> tap the gear, then Web. '+
+           'That is the three-tap path this scheme trades away.</p>'
+    },
+    A: {
+      key:'A', name:'A - Wallet tab', sub:'identity-led, like every other wallet',
+      tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['wallet','Wallet','◍']],
+      gear:false,
+      cost:{'News':2,'Web':2,'Settings':2,'Feedback':2,'Accounts':'1 or 2'},
+      note:'<p>The fourth slot becomes you. Everything from the sheet is a grouped list on a real screen '+
+           'under headers that name what each group is.</p><p><b>Watch the duplication:</b> open Wallet and '+
+           'look at the identity card, then look at the header two centimetres above it. Same name, same '+
+           'address, twice on one screen. Accounts is still reachable both ways.</p>'
+    },
+    D: {
+      key:'D', name:'D - control-track rail', sub:'literally GWControlTrack, no modal',
+      tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['more','More','···']],
+      gear:false, rail:true,
+      cost:{'News':2,'Web':2,'Settings':2,'Feedback':2,'Accounts':'1 or 2'},
+      note:'<p>Tapping More expands a pill rail above the bar instead of covering the screen. It is the same '+
+           '<code>surfaceSunken</code> well with a hairline and pill radius that the timeframe segment, the '+
+           'transaction filter bar and the Buy GNUS orders track already use.</p>'+
+           '<p><b>Judge the size:</b> five chips across 342px is ~66px each with a 9.5px label. Look at it and '+
+           'decide whether you would hit those reliably with a thumb.</p>'
+    }
+  };
+
+  var state = { scheme:'C', screen:'home', stack:[], sheet:false, rail:false, unit:'GNUS', taps:0 };
+  var logEl = document.getElementById('log');
+
+  function log(msg, hit){
+    var d = document.createElement('div');
+    if (hit) { d.className = 'hit'; }
+    d.textContent = '[' + state.taps + '] ' + msg;
+    logEl.insertBefore(d, logEl.firstChild);
+  }
+  function tap(msg){ state.taps++; log(msg); }
+
+  function go(screen, label){
+    state.taps++;
+    if (screen !== state.screen) { state.stack.push(state.screen); }
+    state.screen = screen;
+    state.sheet = false;
+    state.rail = false;
+    log((label || screen) + '  ->  ' + screen + '   (' + state.taps + ' taps from reset)', true);
+    render();
+  }
+  function back(){
+    state.taps++;
+    var prev = state.stack.pop() || 'home';
+    state.screen = prev;
+    log('Back -> ' + prev);
+    render();
+  }
+
+  // ---------- fragments ----------
+  function coinRow(icon, name, price, chg, amt, unit, up){
+    return '<div class="selrow"><div class="ic">'+icon+'</div><div class="tx">'+
+      '<div class="t1">'+name+'</div><div class="t2">'+price+' <span style="color:'+
+      (up?'var(--statusSuccess)':'var(--statusError)')+'">'+chg+'</span></div></div>'+
+      '<div class="amt"><div class="a1">'+amt+'</div><div class="a2">'+unit+'</div></div></div>';
+  }
+
+  function homeScreen(){
+    return ''+
+    '<div class="card"><div class="cardtitle">Compute</div>'+
+      '<div class="well"><div class="balkick">Balance</div><div class="balrow">'+
+        '<div class="balnum">0.00</div>'+
+        '<div class="utrack">'+
+          '<div class="useg '+(state.unit==='GNUS'?'on':'')+'" data-act="unit" data-arg="GNUS">GNUS</div>'+
+          '<div class="useg '+(state.unit==='MIN'?'on':'')+'" data-act="unit" data-arg="MIN">MIN</div>'+
+        '</div></div></div>'+
+      '<div style="height:12px"></div>'+
+      '<div class="well"><div class="balkick">Compute node</div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">'+
+        '<div style="font:600 15px Inter">Starting up</div><div style="font:700 15px Inter">52%</div></div></div>'+
+      '<div class="cta" data-act="noop" data-arg="New processing job">New processing job</div>'+
+    '</div>'+
+    '<div class="card"><div class="cardtitle"><span>Assets</span><span style="font:700 20px Inter">$0.00</span></div>'+
+      coinRow('🧠','Genius Token','$0.67','+4.70%','$0.00','0.0000 GNUS',true)+
+      '<div class="divide"></div>'+
+      coinRow('◆','Ethereum','$1,906.11','-0.50%','$0.00','0.0000 ETH',false)+
+    '</div>'+
+    '<div class="card"><div class="cardtitle"><span>Transactions</span></div>'+
+      '<div style="color:var(--textSecondary);font-size:13px;padding:0 6px 8px">No transactions yet</div></div>'+
+    '<div style="height:12px"></div>';
+  }
+
+  function marketsScreen(){
+    return '<div class="pagehead">Markets</div><div class="card">'+
+      coinRow('🧠','GNUS','$0.67','+4.70%','','',true)+'<div class="divide"></div>'+
+      coinRow('₿','Bitcoin','$64,120.00','+1.20%','','',true)+'<div class="divide"></div>'+
+      coinRow('◆','Ethereum','$1,906.11','-0.50%','','',false)+'<div class="divide"></div>'+
+      coinRow('✕','XRP','$0.52','+0.80%','','',true)+'<div class="divide"></div>'+
+      coinRow('◈','BNB','$580.40','-0.20%','','',false)+'<div class="divide"></div>'+
+      coinRow('◎','Solana','$142.90','+3.10%','','',true)+
+    '</div>';
+  }
+
+  function activityScreen(){
+    return '<div class="pagehead">Activity</div>'+
+      '<div class="empty"><div class="emptyring">⇄</div>'+
+      '<div style="font:650 17px Inter">No transactions yet</div>'+
+      '<div style="color:var(--textSecondary);font-size:14px">Your sends, receives and swaps will appear here.</div></div>';
+  }
+
+  function newsScreen(){
+    return '<div class="pagehead">News</div><div class="card">'+
+      '<div class="selrow"><div class="ic">📰</div><div class="tx"><div class="t1">GNUS.AI expands compute network</div>'+
+        '<div class="t2">2h ago</div></div><div class="ch">›</div></div><div class="divide"></div>'+
+      '<div class="selrow"><div class="ic">📰</div><div class="tx"><div class="t1">Ethereum fees hit a monthly low</div>'+
+        '<div class="t2">5h ago</div></div><div class="ch">›</div></div><div class="divide"></div>'+
+      '<div class="selrow"><div class="ic">📰</div><div class="tx"><div class="t1">What minions actually pay for</div>'+
+        '<div class="t2">1d ago</div></div><div class="ch">›</div></div>'+
+    '</div>';
+  }
+
+  function walletScreen(){
+    return '<div class="pagehead">Wallet</div>'+
+      '<div class="idcard"><div class="big">E</div><div class="nm">Main Wallet</div>'+
+      '<div class="ad">0x5Ac1...9Cf6 ⧉</div></div>'+
+      '<div class="kicker">Accounts</div><div class="card" style="padding:4px">'+
+        '<div class="selrow" data-act="go" data-arg="accounts"><div class="ic">👛</div><div class="tx">'+
+          '<div class="t1">Your Accounts</div><div class="t2">3 wallets</div></div><div class="ch">›</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow" data-act="go" data-arg="accounts"><div class="ic">🧠</div><div class="tx">'+
+          '<div class="t1">SDK Accounts</div><div class="t2">Earning minions</div></div><div class="ch">›</div></div>'+
+      '</div>'+
+      '<div class="kicker">Explore</div><div class="card" style="padding:4px">'+
+        '<div class="selrow" data-act="go" data-arg="news"><div class="ic">📰</div><div class="tx"><div class="t1">News</div></div><div class="ch">›</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow" data-act="go" data-arg="web"><div class="ic">🌐</div><div class="tx"><div class="t1">Web</div></div><div class="ch">›</div></div>'+
+      '</div>'+
+      '<div class="kicker">App</div><div class="card" style="padding:4px">'+
+        '<div class="selrow" data-act="go" data-arg="settings"><div class="ic">⚙</div><div class="tx"><div class="t1">Settings</div></div><div class="ch">›</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow" data-act="go" data-arg="feedback"><div class="ic">💬</div><div class="tx"><div class="t1">Feedback</div></div><div class="ch">›</div></div>'+
+      '</div><div style="height:12px"></div>';
+  }
+
+  function settingsScreen(){
+    return '<div class="kicker">Account</div><div class="card" style="padding:4px">'+
+        '<div class="selrow" data-act="go" data-arg="accounts"><div class="ic">👛</div><div class="tx">'+
+        '<div class="t1">Accounts</div><div class="t2">SDK accounts and your wallets</div></div><div class="ch">›</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow" data-act="noop" data-arg="Connected apps"><div class="ic">🔗</div><div class="tx"><div class="t1">Connected apps</div></div><div class="ch">›</div></div>'+
+      '</div>'+
+      '<div class="kicker">App</div><div class="card" style="padding:4px">'+
+        '<div class="selrow" data-act="go" data-arg="web"><div class="ic">🌐</div><div class="tx"><div class="t1">Web</div></div><div class="ch">›</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow" data-act="noop" data-arg="Appearance"><div class="ic">🎨</div><div class="tx"><div class="t1">Appearance</div><div class="t2">Dark</div></div><div class="ch">›</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow" data-act="noop" data-arg="Notifications"><div class="ic">🔔</div><div class="tx"><div class="t1">Notifications</div></div><div class="ch">›</div></div>'+
+      '</div>'+
+      '<div class="kicker">Support</div><div class="card" style="padding:4px">'+
+        '<div class="selrow" data-act="go" data-arg="feedback"><div class="ic">💬</div><div class="tx"><div class="t1">Send feedback</div></div><div class="ch">›</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow" data-act="noop" data-arg="About"><div class="ic">ℹ</div><div class="tx"><div class="t1">About</div><div class="t2">v1.0.0</div></div><div class="ch">›</div></div>'+
+      '</div><div style="height:12px"></div>';
+  }
+
+  function accountsScreen(){
+    return '<div class="kicker">SDK Accounts</div>'+
+      '<div style="color:var(--textSecondary);font-size:12.5px;padding:0 18px 6px">Node accounts that earn minions '+
+      'for sharing your GPU. Balances come from the SuperGenius node; these cannot be renamed or deleted.</div>'+
+      '<div class="card" style="padding:4px">'+
+        '<div class="selrow"><div class="ic">🧠</div><div class="tx"><div class="t1">Super Genius Wallet</div>'+
+        '<div class="t2">0 minions</div></div><span class="badge">ACTIVE ON NODE</span></div>'+
+      '</div>'+
+      '<div class="kicker">Your Accounts</div>'+
+      '<div style="color:var(--textSecondary);font-size:12.5px;padding:0 18px 6px">Wallets you created or imported. '+
+      'Used for swaps, sends and everything else on-chain.</div>'+
+      '<div class="card" style="padding:4px">'+
+        '<div class="selrow"><div class="ic">◆</div><div class="tx"><div class="t1">Main Wallet</div>'+
+        '<div class="t2">0x5Ac1...9Cf6</div></div><div class="ch" style="color:var(--brandSecondary)">✓</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow"><div class="ic">◆</div><div class="tx"><div class="t1">Savings</div>'+
+        '<div class="t2">0x91Bd...4A02</div></div><div class="ch">›</div></div>'+
+      '</div><div style="height:12px"></div>';
+  }
+
+  function plainScreen(title, body){
+    return '<div class="pagehead">'+title+'</div><div class="empty">'+
+      '<div class="emptyring">'+body+'</div><div style="color:var(--textSecondary);font-size:14px">'+
+      'Placeholder - this screen already exists in the app.</div></div>';
+  }
+
+  var SCREENS = {
+    home:homeScreen, markets:marketsScreen, activity:activityScreen, news:newsScreen,
+    wallet:walletScreen, settings:settingsScreen, accounts:accountsScreen,
+    web:function(){ return plainScreen('Web','🌐'); },
+    feedback:function(){ return plainScreen('Feedback','💬'); }
+  };
+  var TITLES = { settings:'Settings', accounts:'Accounts', web:'Web', feedback:'Feedback' };
+
+  // ---------- render ----------
+  function render(){
+    var sc = SCHEMES[state.scheme];
+
+    // app bar
+    var ab = document.getElementById('appbar');
+    ab.className = 'appbar';
+    if (TITLES[state.screen]) {
+      ab.innerHTML = '<div class="backrow" data-act="back"><span style="font-size:20px">‹</span>'+
+        '<span style="font:600 17px Inter">'+TITLES[state.screen]+'</span></div>';
+    } else {
+      ab.innerHTML =
+        '<div class="idrow" data-act="go" data-arg="accounts"><div class="avatar">E</div><div>'+
+        '<div class="idname">Main Wallet <span style="font-size:12px">⌄</span></div>'+
+        '<div class="idaddr">0x5Ac1...9Cf6</div></div></div>'+
+        '<div class="rightcluster"><div class="netchip" data-act="noop" data-arg="Network selector">'+
+        '<div class="netdot"></div><span style="color:var(--textSecondary)">⌄</span></div>'+
+        (sc.gear ? '<div class="gear" data-act="go" data-arg="settings">⚙</div>' : '')+
+        '</div>';
+    }
+
+    // screen
+    document.getElementById('scr').innerHTML = (SCREENS[state.screen] || homeScreen)();
+
+    // bottom bar
+    var tabs = sc.tabs;
+    var html = '<div class="bar">';
+    for (var i=0;i<tabs.length;i++){
+      if (i===2) { html += '<div class="dockslot"></div>'; }
+      var t = tabs[i];
+      var on = (t[0] === state.screen);
+      var act = (t[0]==='more') ? (sc.rail ? 'rail' : 'sheet') : 'go';
+      html += '<div class="slot '+(on?'on':'')+'" data-act="'+act+'" data-arg="'+t[0]+'">'+
+              '<div class="si">'+t[2]+'</div><div class="sl">'+t[1]+'</div></div>';
+    }
+    html += '</div><div class="dock" data-act="noop" data-arg="Swap dock">⇅</div>';
+    document.getElementById('barbox').innerHTML = html;
+
+    // sheet
+    var sheet = document.getElementById('sheet');
+    sheet.className = 'sheet' + (state.sheet ? ' on' : '');
+    sheet.innerHTML = '<div class="grab"></div><div class="sheettitle">More</div>'+
+      '<div class="selrow" data-act="go" data-arg="news"><div class="ic">📰</div><div class="tx"><div class="t1">News</div></div><div class="ch">›</div></div>'+
+      '<div class="selrow" data-act="go" data-arg="web"><div class="ic">🌐</div><div class="tx"><div class="t1">Web</div></div><div class="ch">›</div></div>'+
+      '<div class="selrow" data-act="go" data-arg="feedback"><div class="ic">💬</div><div class="tx"><div class="t1">Feedback</div></div><div class="ch">›</div></div>'+
+      '<div class="selrow" data-act="go" data-arg="settings"><div class="ic">⚙</div><div class="tx"><div class="t1">Settings</div></div><div class="ch">›</div></div>'+
+      '<div class="selrow" data-act="go" data-arg="accounts"><div class="ic">👛</div><div class="tx"><div class="t1">Accounts</div>'+
+        '<div class="t2">SDK accounts and your wallets</div></div><div class="ch">›</div></div>';
+    document.getElementById('scrim').className = 'scrim' + (state.sheet ? ' on' : '');
+
+    // rail
+    var rail = document.getElementById('rail');
+    rail.className = 'rail' + (state.rail ? ' on' : '');
+    rail.innerHTML =
+      '<div class="railchip" data-act="go" data-arg="news"><div class="ri">📰</div><div class="rl">News</div></div>'+
+      '<div class="railchip" data-act="go" data-arg="web"><div class="ri">🌐</div><div class="rl">Web</div></div>'+
+      '<div class="railchip" data-act="go" data-arg="accounts"><div class="ri">👛</div><div class="rl">Accounts</div></div>'+
+      '<div class="railchip" data-act="go" data-arg="settings"><div class="ri">⚙</div><div class="rl">Settings</div></div>'+
+      '<div class="railchip" data-act="go" data-arg="feedback"><div class="ri">💬</div><div class="rl">Feedback</div></div>';
+
+    // side panel
+    var rows = '<tr><th>Destination</th><th style="text-align:center">Taps</th></tr>';
+    for (var k in sc.cost){
+      var v = sc.cost[k];
+      var cls = (v===1) ? 'g1' : (v===2 ? 'g2' : (v===3 ? 'g3' : 'g2'));
+      rows += '<tr><td>'+k+'</td><td class="n '+cls+'">'+v+'</td></tr>';
+    }
+    document.getElementById('costtable').innerHTML = rows;
+    document.getElementById('costnote').innerHTML = (state.scheme==='C')
+      ? '<b>C is the only scheme where News and Accounts cost one tap.</b> It pays for that with Web at three. '+
+        'Everything hinges on whether Web is a daily surface.'
+      : '<b>Accounts shows "1 or 2" wherever it is duplicated</b> - one tap via the wallet chip, two via the '+
+        'overflow. Two entrances to one room is the thing C removes.';
+    document.getElementById('schemenote').innerHTML = sc.note;
+
+    // scheme buttons
+    var sb = '';
+    for (var key in SCHEMES){
+      var s = SCHEMES[key];
+      sb += '<button class="sbtn '+(key===state.scheme?'on':'')+'" data-scheme="'+key+'">'+
+            s.name+'<small>'+s.sub+'</small></button>';
+    }
+    document.getElementById('schemebar').innerHTML = sb;
+  }
+
+  // ---------- events ----------
+  document.addEventListener('click', function(e){
+    var sbtn = e.target.closest('.sbtn');
+    if (sbtn){
+      state.scheme = sbtn.dataset.scheme;
+      state.screen = 'home'; state.stack = []; state.sheet = false; state.rail = false; state.taps = 0;
+      logEl.innerHTML = '';
+      log('--- scheme ' + SCHEMES[state.scheme].name + ', reset to Home ---');
+      render();
+      return;
+    }
+    var el = e.target.closest('[data-act]');
+    if (!el) {
+      if (e.target.id === 'scrim'){ state.sheet = false; render(); }
+      return;
+    }
+    var act = el.dataset.act, arg = el.dataset.arg;
+    if (act === 'go'){ go(arg, arg.charAt(0).toUpperCase()+arg.slice(1)); }
+    else if (act === 'back'){ back(); }
+    else if (act === 'sheet'){ state.taps++; state.sheet = !state.sheet; log('More -> sheet opened'); render(); }
+    else if (act === 'rail'){ state.taps++; state.rail = !state.rail; log('More -> rail expanded'); render(); }
+    else if (act === 'unit'){ state.taps++; state.unit = arg; log('Unit -> ' + arg); render(); }
+    else if (act === 'noop'){ tap(arg + ' (no destination in this prototype)'); }
+  });
+
+  document.getElementById('scrim').addEventListener('click', function(){
+    state.sheet = false; render();
+  });
+  document.getElementById('reset').addEventListener('click', function(){
+    state.screen='home'; state.stack=[]; state.sheet=false; state.rail=false; state.taps=0;
+    logEl.innerHTML=''; log('--- reset ---'); render();
+  });
+
+  log('--- scheme C, reset to Home ---');
+  render();
+})();
+</script>
+</body>
+</html>

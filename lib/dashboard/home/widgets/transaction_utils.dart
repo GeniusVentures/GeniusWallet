@@ -211,6 +211,7 @@ class TxRowContent {
     required this.subtitle,
     required this.subtitleBase,
     required this.status,
+    this.subtitleLead,
     required this.amount,
     required this.tone,
     required this.exactAmount,
@@ -231,18 +232,65 @@ class TxRowContent {
   /// The headline. 010-A is token-first: the asset leads, the action follows.
   final String title;
 
-  /// The quiet chip beside the headline — `Sent`, `Minted`, `Escrow locked`…
+  /// The DRAWER's title - `Sent`, `Minted`, `Escrow locked`, `Processing job`.
+  ///
+  /// It used to be the chip beside the headline too; sketch 179-C deleted that
+  /// chip, so the row no longer reads this at all. It stays because
+  /// `showTransactionDetails` passes it to `ResponsiveDrawer.show`, and because
+  /// four of the eight leads below deliberately differ from it: the drawer has a
+  /// whole header to spend, the subtitle has 113px.
   final String action;
 
   /// One line of real context. Carries the status token if, and only if, the
   /// status is not the happy path.
+  ///
+  /// The row no longer renders this field directly - it lays out
+  /// [subtitleLead], [subtitleBase] and [statusTail] as separate elements. This
+  /// is the COMPOSED whole line, it is the field a caller-built record supplies
+  /// (the Buy GNUS orders rail), and `transaction_utils_test.dart`'s invariant
+  /// test binds the three pieces back to it so they can never drift. Do not
+  /// "simplify" it away.
   final String subtitle;
 
-  /// [subtitle] WITHOUT the ` · Status` suffix — the context alone. The WIDE
-  /// page uses this and shows [status] as its own pill instead, so the status
-  /// is stated exactly once (pill), not twice (pill + subtitle suffix). For a
-  /// completed row this equals [subtitle] (there is no suffix to strip).
+  /// The part of the context line that MAY SHRINK - the qualifier.
+  ///
+  /// [subtitleLead] + [subtitleBase] is what the row lays out, in that order and
+  /// inside ONE paragraph, so an end ellipsis eats this piece first and only
+  /// reaches the lead once this is gone (sketch 179-C: the verb survives, the
+  /// qualifier gives way). Both branches render both pieces; only [statusTail]
+  /// is wide-suppressed.
+  ///
+  /// Carries no ` · Status` suffix, which is what keeps the status stated
+  /// exactly once per presentation: the pill on the wide page, [statusTail] on
+  /// the narrow one. For a completed row this equals [subtitle] minus the lead.
+  ///
+  /// MAY BE EMPTY - `purchase` has a lead and no qualifier. That is safe now
+  /// because the lead is what keeps the second line from collapsing; the old
+  /// contract that this was never empty no longer holds.
   final String subtitleBase;
+
+  /// The part of the context line that does NOT give way - the verb.
+  ///
+  /// Null means "no lead", which is what keeps the Buy GNUS orders rail
+  /// (`lib/banxa/`) rendering its single-piece line with no edit at all.
+  final String? subtitleLead;
+
+  /// The status as the NARROW row's pinned tail, or null on the happy path.
+  ///
+  /// Deliberately a COMPUTED GETTER and not a constructor field: a caller that
+  /// builds its own record keeps the narrow row's status without opting in, and
+  /// the tail and the wide page's pill read the same two fields, so they cannot
+  /// disagree about what a row's status is.
+  ///
+  /// The value carries NO LEADING MIDDLE DOT, which is a deviation from sketch
+  /// 179 and is forced by measurement. The row pins this to the right edge as a
+  /// separate element with its own `space2` gutter, so a separator between two
+  /// already-separated elements does nothing - and the 8px the dot costs is
+  /// exactly what makes a pending mint render `Minte…` instead of `Minted` on a
+  /// 113px line, which is the defect 179-C exists to remove.
+  String? get statusTail => status == TransactionStatus.completed
+      ? null
+      : (statusLabel ?? _statusLabel(status));
 
   /// Already signed and clamped, and never empty — every type produces a real
   /// number, including a job (its fee) and a failed row (the amount it
@@ -380,38 +428,134 @@ TxRowContent txRowContent(
     title = tx.coinSymbol;
   }
 
-  // SUBTITLE — one line of real context, never a repeated relative time.
+  // SUBTITLE - one line of real context, never a repeated relative time, and
+  // since 179-C split in two at a point the phrase already had: a LEAD that
+  // does not give way and a QUALIFIER that does.
+  //
   // `recipients` comes from an untrusted source and `.first` throws on empty,
   // which today's code does unguarded.
-  String subtitle;
+  //
+  // Five of these arms already carried their verb, so splitting at the space
+  // they already contain recomposes to a byte-identical line; only `transfer`
+  // and `swap` gain a word, because those two never stated their verb here.
+  //
+  // NO ROW PRINTS THE TRANSACTION'S OWN HASH. Jakub on device, 2026-08-07:
+  // remove the transaction ID, or whatever that string on the right is, it
+  // does not even make sense there. `process` was the only arm that did - its
+  // base was `_addressLine(tx.hash)`, drawn as `0xabcd...7890` - and a hash
+  // identifies
+  // the row you have already tapped, which is the one question a person
+  // scanning a list is not asking. It stays reachable and copyable IN FULL from
+  // the detail drawer, as a row labelled `Job`;
+  // `transaction_receipt_copy_test.dart` asserts that, and it was written
+  // BEFORE the row lost the string so the removal could be shown to be
+  // decluttering rather than data loss.
+  //
+  // WHAT SURVIVES, and why it is not the same thing. `to wallet`, `in escrow`
+  // and `from escrow` are QUALIFIERS - places, not values. `· 1.50 ETH` is a
+  // QUANTITY. Both `transfer` directions carry a COUNTERPARTY, which is the
+  // row's only WHO: delete it and a send to one person and a send to another
+  // become the same row - same token, same amount, same word `Sent`. All of
+  // them render as `0x` + 4 + `...` + 4 exactly like the hash did, so they LOOK
+  // identical; they are not. Do not "finish the job" by deleting them.
+  final String subtitleLead;
+  final String subtitleBase;
   switch (type) {
     case TransactionType.mint:
-      subtitle = 'Minted to wallet';
+      subtitleLead = 'Minted';
+      subtitleBase = 'to wallet';
     case TransactionType.escrow:
-      subtitle = 'Locked in escrow';
+      subtitleLead = 'Locked';
+      subtitleBase = 'in escrow';
     case TransactionType.escrowRelease:
-      subtitle = 'Released from escrow';
+      subtitleLead = 'Released';
+      subtitleBase = 'from escrow';
     case TransactionType.process:
-      subtitle = 'Job ${_addressLine(tx.hash)}';
+      // THE ONE ARM WHOSE WORDING VARIES WITH STATUS, and the one place in this
+      // file where that is deliberate. Jakub ruled it on 2026-08-07, choosing a
+      // hybrid over both alternatives he was shown (the full wording everywhere
+      // and clipping, or `Job` everywhere and never clipping).
+      //
+      // The rule: the full wording where it FITS, the short word where it does
+      // not. What decides the fit is the STATUS TAIL, because the tail is what
+      // sets the paragraph's box. The row's middle column is 113.0px at a 390pt
+      // phone; the paragraph gets that less `space2` (4) less the tail, and the
+      // tail is drawn if and only if the status is not completed:
+      //
+      //     completed  113.0px   `Processing job` is 103.6px      -> WHOLE
+      //     failed      68.2px   103.6 + 12.3 of ellipsis = 115.9 -> cut
+      //     pending     53.1px   same                             -> cut
+      //     cancelled   40.7px   same                             -> cut
+      //
+      // `Job` is 26.1px, so `Job` + ellipsis is 38.4px and clears even the
+      // 40.7px a cancelled row leaves. That is why the short word survives on
+      // all four statuses and the long one survives on exactly one.
+      //
+      // Why status and not a real width test: this is a PURE derivation with no
+      // `BuildContext`, no resolved `TextStyle` and no access to the engine, and
+      // it runs per row per frame in a scrolling list. A `TextPainter` here
+      // would need a style it cannot see and would break every unit test that
+      // calls it without a binding. So the predicate is the STRUCTURAL fact that
+      // produces the fit - `status == completed` is exactly "no status tail is
+      // pinned to this line, so the paragraph has the whole 113.0px" - and the
+      // measured arithmetic is written above so the mapping is checkable rather
+      // than magic. `transaction_row_subtitle_test.dart` measures all four
+      // boxes and both words and reddens if any of these numbers moves.
+      //
+      // THE ACCEPTED COST, stated because it is unusual: the label's length now
+      // varies with status. Jakub took that knowingly. His reasoning: on a
+      // failed, pending or cancelled row the status word sits right beside the
+      // lead, so `Job` next to `Pending` reads completely while `Proces…` next
+      // to `Pending` reads as nothing. Clipping was his original complaint about
+      // this row and it outweighs the wording.
+      //
+      // Four alternatives were measured and all four are closed. A shorter word:
+      // `Processing` alone is still about 76px and misses 68.2, 53.1 and 40.7.
+      // Moving the tail to the title line: at bodySm the pending tail would
+      // leave the title 53.1px, and `WSTETH` is about 60px while a swap's
+      // `ETH -> GNUS` is about 95px, so it trades a cut verb for a cut TOKEN,
+      // and the token is the headline the row is organised around (010-A).
+      // Wrapping to two lines: per-row height changes make a ragged list. Taking
+      // width from the amount column: that column already clips ordinary amounts
+      // (86.5 to 136.0px against the 113 it gets), so it is strictly worse.
+      subtitleLead = status == TransactionStatus.completed
+          ? 'Processing job'
+          : 'Job';
+      subtitleBase = '';
     case TransactionType.purchase:
-      subtitle = 'Card purchase';
+      // An empty base is legal: the lead is what keeps the second line from
+      // collapsing. `process` is the other arm with no qualifier, since
+      // 2026-08-07.
+      subtitleLead = 'Card purchase';
+      subtitleBase = '';
     case TransactionType.swap:
       final fromAmount = formatTxAmount(tx.fromAmount ?? '0');
-      subtitle = '$fromAmount ${tx.fromSymbol ?? tx.coinSymbol}';
+      subtitleLead = 'Swapped';
+      subtitleBase = '$_middot $fromAmount ${tx.fromSymbol ?? tx.coinSymbol}';
     case TransactionType.transfer:
     case null:
+      subtitleLead = isSent ? 'Sent' : 'Received';
       if (isSent) {
-        subtitle = tx.recipients.isEmpty
-            ? 'Unknown recipient'
-            : _addressLine(tx.recipients.first.toAddr);
+        subtitleBase = tx.recipients.isEmpty
+            ? '$_middot Unknown recipient'
+            : '$_middot ${_addressLine(tx.recipients.first.toAddr)}';
       } else {
-        subtitle = _addressLine(tx.fromAddress);
+        subtitleBase = '$_middot ${_addressLine(tx.fromAddress)}';
       }
   }
+  // The composed whole line. Built FROM the pieces rather than beside them, so
+  // the three can never state different things about one row.
+  //
+  // The middle dot survives INSIDE the qualifier, where it still separates two
+  // runs of one flow (`Sent · 0x7a3f…9c21`). It does not survive on the status
+  // tail, which the row draws as its own right-pinned element - see
+  // [TxRowContent.statusTail].
+  String subtitle = subtitleBase.isEmpty
+      ? subtitleLead
+      : '$subtitleLead $subtitleBase';
   // The whole of "status is rendered only when it is not the happy path".
-  // Captured BEFORE the append so the wide page can show the context alone and
-  // carry the status in its own pill.
-  final subtitleBase = subtitle;
+  // Appended LAST so the wide page can show the context alone and carry the
+  // status in its own pill.
   if (status != TransactionStatus.completed) {
     subtitle = '$subtitle $_middot ${_statusLabel(status)}';
   }
@@ -519,6 +663,7 @@ TxRowContent txRowContent(
     action: _actionFor(type, isSent),
     subtitle: subtitle,
     subtitleBase: subtitleBase,
+    subtitleLead: subtitleLead,
     status: status,
     amount: amount,
     tone: tone,
@@ -602,7 +747,21 @@ class TxDay {
 /// Sorts a COPY — the caller's list is bloc/stream-owned and must not be
 /// reordered under it. [now] is injectable so tests are not time-of-day
 /// dependent.
-List<TxDay> groupTransactionsByDay(List<Transaction> txs, {DateTime? now}) {
+///
+/// [limit] caps the result at the [limit] MOST RECENT transactions - the
+/// dashboard panel's "last 5" (phase 25). It is applied AFTER the newest-first
+/// sort below and BEFORE bucketing, which is what makes it mean "the most
+/// recent N" rather than "the first N the caller happened to hand us". A day
+/// whose every item fell outside the limit therefore never appears as an empty
+/// group.
+///
+/// Null - the default - keeps every existing caller byte-identical, which is
+/// what stops the dashboard cap from reaching the full `/transactions` page.
+List<TxDay> groupTransactionsByDay(
+  List<Transaction> txs, {
+  DateTime? now,
+  int? limit,
+}) {
   if (txs.isEmpty) {
     return const [];
   }
@@ -610,10 +769,11 @@ List<TxDay> groupTransactionsByDay(List<Transaction> txs, {DateTime? now}) {
   final reference = now ?? DateTime.now();
   final sorted = List<Transaction>.of(txs)
     ..sort((a, b) => b.timeStamp.compareTo(a.timeStamp));
+  final visible = limit == null ? sorted : sorted.take(limit);
 
   // Insertion-ordered, so iterating the buckets gives newest-day-first for free.
   final buckets = <DateTime, List<Transaction>>{};
-  for (final tx in sorted) {
+  for (final tx in visible) {
     final local = tx.timeStamp.toLocal();
     final key = DateTime(local.year, local.month, local.day);
     buckets.putIfAbsent(key, () => <Transaction>[]).add(tx);

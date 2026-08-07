@@ -133,6 +133,55 @@ class DevMockHoldings {
     };
   }
 
+  /// Scenario E - a held token the price feed does not cover.
+  ///
+  /// `UNLST` carries a real balance and has NO entry in [marketData], which
+  /// makes it an "unpriced holding": the one row on `/assets` that leads the
+  /// list when descending and trails it when ascending (phase 25 D-1). No
+  /// other scenario produces that case, and on Jakub's real wallet - where
+  /// every balance is zero - it is otherwise unreachable, so the rule could
+  /// only be checked in a unit test and never on a device.
+  ///
+  /// GNUS and ETH carry real balances AND prices so the unpriced row has
+  /// funded rows to be ranked against; against an all-zero wallet it would
+  /// lead trivially and prove nothing.
+  void loadUnpriced() {
+    mockMode = true;
+    coins = const [
+      Coin(
+        name: 'GeniusAI',
+        symbol: 'GNUS',
+        iconPath: 'assets/images/crypto/gnus.png',
+        balance: 1200,
+      ),
+      Coin(
+        name: 'Ethereum',
+        symbol: 'ETH',
+        iconPath: 'assets/images/crypto/eth.png',
+        balance: 1.35,
+      ),
+      Coin(
+        name: 'Unlisted Token',
+        symbol: 'UNLST',
+        iconPath: '',
+        balance: 42.5,
+      ),
+    ];
+    marketData = {
+      'gnus': _fixture(
+        symbol: 'GNUS',
+        currentPrice: 0.85,
+        priceChangePercentage24h: -5.40,
+      ),
+      'eth': _fixture(
+        symbol: 'ETH',
+        currentPrice: 3200.00,
+        priceChangePercentage24h: 3.20,
+      ),
+      // 'unlst' is deliberately absent. Do not add it.
+    };
+  }
+
   /// Scenario D — mock-mode OFF, wipe coins + market data, return to the
   /// real (empty) wallet state.
   void clear() {
