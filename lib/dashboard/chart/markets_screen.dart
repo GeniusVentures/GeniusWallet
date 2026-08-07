@@ -3,9 +3,9 @@ import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
+import 'package:genius_wallet/dashboard/chart/markets_cards.dart';
 import 'package:genius_wallet/dashboard/chart/markets_hero_card.dart';
 import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
-import 'package:genius_wallet/dashboard/chart/markets_table.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -190,8 +190,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
     // The bounded height comes from the Expanded wrapping FutureStateWidget in
     // build(); this just fills it and scrolls.
     // scrollbars:false — the desktop ScrollBehavior draws a vertical bar on the
-    // page's own scroll by default; hide it (still scrolls by trackpad/drag),
-    // matching the horizontal scroll inside MarketsTable (Jakub 2026-07-24).
+    // page's own scroll by default; hide it (still scrolls by trackpad/drag).
     return ScrollConfiguration(
       behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
       child: SingleChildScrollView(
@@ -217,18 +216,8 @@ class _MarketsScreenState extends State<MarketsScreen> {
               ),
               const SizedBox(height: GeniusWalletConsts.space12),
             ],
-            // `MarketsTable`'s header row is a `Container` with its own
-            // `vertical: space6` padding, so the table's first painted pixel
-            // (the `#` column label) sits 12px below the table's layout box.
-            // Declared so the section title spends its bottom pad against it:
-            // `26 - 10 - 12` leaves `space2`, and this section renders the
-            // same 26px gap as every other one
-            // (`gw_section_title_rhythm_test.dart`).
-            const GWSectionTitle(
-              title: 'All Markets',
-              contentTopInset: GeniusWalletConsts.space6,
-            ),
-            MarketsTable(
+            const GWSectionTitle(title: 'All Markets'),
+            MarketsCards(
               rows: rows,
               onTapRow: (r) => _openToken(r.coin, r.data),
             ),

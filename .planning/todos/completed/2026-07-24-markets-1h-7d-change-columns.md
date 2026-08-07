@@ -34,3 +34,12 @@ a data-model change (Hive), so it was deliberately deferred and marked rather th
 - Scope caveat (separate): the app fetches a limited `ids` set, so "the market" here is that set,
   not the true top-N by market cap. A full-market Markets page needs `/coins/markets` without the
   `ids=` filter (top-N + pagination).
+
+## Closed 2026-08-07 (quick 260807-bxs) — by removal, not implementation
+
+The table itself is gone: `markets_table.dart` became `markets_cards.dart`, and the card design
+(decision recorded in 260807-bxs-PLAN.md) drops both the 1h % and 7d % columns entirely rather
+than carry the `-` placeholders forward. There is no longer a column for this todo's upgrade path
+to fill. If 1h/7d change data is ever wired (steps 1-2 above are unaffected and still apply to
+`coin_gecko_api.dart` / `coin_gecko_market_data.dart`), it would surface on the card — e.g. as a
+third stat tile — rather than reopen this file.
