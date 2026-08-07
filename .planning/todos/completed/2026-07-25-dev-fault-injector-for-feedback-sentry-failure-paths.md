@@ -48,3 +48,8 @@ Mirror the Markets fixture:
 
 Then re-walk the three states **and** re-check the error-red status line for light-mode AA, and
 close `uncovered_by_walk` in `19-VERIFICATION.md`.
+
+---
+
+**CLOSED 2026-08-07**, verified against the tree at `e1d66b2`, not against the 2026-08-05 triage.
+`lib/dev/dev_fault_injector.dart` exists and carries the class.

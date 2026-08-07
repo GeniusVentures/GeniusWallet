@@ -3,19 +3,55 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart' show chartYBounds;
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
-import 'package:genius_wallet/components/effects/gw_hoverable.dart';
+import 'package:genius_wallet/components/custom_future_builder.dart';
+import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart'
+    as coin_gecko_api;
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
-import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
-import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:intl/intl.dart';
+
+/// The card's 24H/7D/30D/1Y tabs, paired with the day count each one asks
+/// `fetchHistoricalPrices` for. One list, not two — the labels the segment
+/// renders and the days the fetch uses cannot drift apart because the test
+/// reads this mapping instead of restating it.
+const List<({String label, int days})> kMarketsHeroTimeframeRanges = [
+  (label: '24H', days: 1),
+  (label: '7D', days: 7),
+  (label: '30D', days: 30),
+  (label: '1Y', days: 365),
+];
+
+/// A plotted series plus the real window it spans. A record, not a class — it
+/// carries no behaviour and needs no equality.
+typedef _MarketsHeroSeries = ({
+  List<double> values,
+  DateTime start,
+  DateTime end,
+});
+
+/// Picks the bottom-axis date format from the plotted window's span.
+///
+/// Top-level and pure for the same reason every rule in `chart_axis.dart` is:
+/// an axis-format bug looks like a working chart in every screenshot. Six
+/// identical day labels across a 24-hour window is the same class of lie as
+/// six identical clock-time labels across a week — which is what this card's
+/// old fixed-7-day assumption produced in the other direction.
+DateFormat chooseAxisDateFormat(Duration window) {
+  if (window <= const Duration(hours: 30)) {
+    return DateFormat('h:mm a');
+  }
+  if (window <= const Duration(days: 95)) {
+    return DateFormat('MMM d');
+  }
+  return DateFormat('MMM yyyy');
+}
 
 /// The hero chart's height in the WIDE (`IntrinsicHeight` row) layout.
 ///
@@ -42,33 +78,97 @@ import 'package:intl/intl.dart';
 /// the pixel - and the card holds **367.0** at both 180 and 253, with the
 /// chart's lower edge landing on the stat row at y=334 either way. The
 /// original arithmetic was right; the instrument was wrong.
+///
+/// **2026-08-07 (quick 260807-bxs): three corrections in one day moved the
+/// derivation, then moved one of the two literals.** In order:
+///
+/// 1. The stat block became a `Wrap` (fixed-width tiles at first) instead of
+///    a fixed 2x2 grid. 367.0/301.0 did NOT move, but which column produces
+///    them did: the RIGHT column — `GWTimeframeSegment` + `space8` + this
+///    constant — measures a hard, re-confirmed 301.0 of its own, independent
+///    of the stat block (not the "~299, two pixels of headroom"
+///    approximation the original plan estimated). The LEFT column's own
+///    height became variable instead of one constant, and could no longer
+///    exceed the right's fixed 301.0 — so the right column started driving
+///    `IntrinsicHeight` unconditionally.
+/// 2. The fixed tile width was dropped in favour of content-sized tiles
+///    (`GWStatTile` sizes to its own label/value, no `SizedBox` floor) —
+///    Braian's read that a uniform box sized to the widest LABEL left every
+///    tile carrying dead space next to its much-narrower VALUE. 367.0/301.0
+///    were RE-measured and again did not move (the LEFT column's practical
+///    range is still 242 with all four tiles on one row, or 301 with three
+///    and a wrap — same two numbers, since row height only depends on
+///    `GWStatTile`'s own fixed 39px, never on tile width). What DID change:
+///    four tiles now fit on one row starting around 1217px of card width
+///    instead of ~1700px, so the file's usual 1400px pinned surface shows
+///    all four abreast, not three.
+/// 3. The card's own outer padding halved (`space16` to `space8`) on a
+///    separate, explicit request. This DOES move a literal: 32px of
+///    padding (16 top + 16 bottom, since `space16` is 32px, not 16) comes
+///    off the card's total height, so the wide card is now **335.0**, not
+///    367.0. `IntrinsicHeight` itself is UNCHANGED at **301.0**, confirmed
+///    by direct re-measurement rather than assumed — the padding sits
+///    OUTSIDE the `IntrinsicHeight` row (`Container.padding`, not
+///    `content`'s own constraints), so it cannot touch that row's own
+///    height, only the finished card's.
+///
+/// **Where this leaves the two literals: 335.0 (card) / 301.0 (row).**
+/// `markets_hero_height_test.dart`'s reason strings record which column
+/// and which correction each number answers to, not just the numbers
+/// themselves — a future stat-block, chart, or padding change could move
+/// one without moving the other, and the test should say which.
 const double kMarketsHeroChartHeight = 253;
 
 /// The height used when the card STACKS (below `GeniusBreakpoints.medium`).
 ///
-/// Stays at 180 deliberately. The wide layout's 73px is free because a `Spacer`
-/// gives it back; the stacked layout has neither `Spacer` nor
-/// `IntrinsicHeight`, so every pixel added here is a pixel the card grows on
-/// the narrowest screens. 180 is also below `kChartFrameMinHeight`, so the
-/// stacked hero keeps the axis-free chart - the same runtime A/B rule the coin
-/// page already follows, arrived at by measuring the box rather than by
-/// flagging the surface.
-const double kMarketsHeroChartHeightStacked = 180;
+/// DERIVED from `kChartFrameMinHeight`, not a restated literal: the stacked
+/// hero now sits exactly at the threshold, because axis labels at phone width
+/// were asked for (BXS-02) and `chartUsesFrame` only grants the frame to a box
+/// that clears it. The ~40px this costs over the old 180 is repaid by the
+/// smaller type step on the same branch (see the price/`Text` below) — Task 1
+/// measures the real before/after and reports it in the plan's SUMMARY rather
+/// than assuming the repayment is exact. `chartUsesFrame` still measures the
+/// box it is actually handed (`c.maxHeight` in `_HeroChart`), so nothing here
+/// is a per-surface flag — the stacked layout earns the frame by growing its
+/// box, the same runtime rule the wide layout and the coin page both follow.
+///
+/// The stacked layout still has neither `Spacer` nor `IntrinsicHeight` (it
+/// stacks in an unbounded `Column`, where a `Spacer` would throw), so every
+/// pixel added here is still a pixel the card grows on the narrowest screens —
+/// which is why this cannot be raised casually.
+const double kMarketsHeroChartHeightStacked = kChartFrameMinHeight;
 
 /// Markets hero (sketch 103 · H1 "Refined split"): identity + oversized price
-/// + a 2×2 stat block on the left, the 7d chart with a timeframe selector on
-/// the right. All data is read off the already-fetched [CoinGeckoMarketData];
-/// nothing here triggers a new request.
+/// + a flowed, content-sized stat block on the left (as many tiles per row
+/// as fit, each sized to its own label/value rather than a fixed 2x2 grid —
+/// see the `Wrap` in `build`), the chart with a timeframe selector on the
+/// right. Data for whichever range is selected comes from
+/// [MarketsHeroCard.fetchHistoricalPrices]; the 7D default reads the
+/// already-fetched [CoinGeckoMarketData] and triggers no request.
 class MarketsHeroCard extends StatefulWidget {
   final CoinGeckoCoin coin;
   final CoinGeckoMarketData data;
   final VoidCallback? onTap;
+
+  /// The historical-price fetch, typed to match
+  /// `coin_gecko_api.fetchHistoricalPrices` exactly and defaulting to it as a
+  /// tear-off.
+  ///
+  /// `@visibleForTesting`, not premature configurability: the real function
+  /// opens a Hive box, and real Hive I/O inside `testWidgets` hangs forever in
+  /// this repo (`.planning/todos/completed/2026-07-29-real-hive-io-inside-
+  /// testwidgets-hangs-forever.md`). Without this seam the 24H/30D/1Y wiring
+  /// would have no runnable check at all.
+  @visibleForTesting
+  final Future<Map<int, double>> Function(String coinId, {int days})
+  fetchHistoricalPrices;
 
   const MarketsHeroCard({
     super.key,
     required this.coin,
     required this.data,
     this.onTap,
+    this.fetchHistoricalPrices = coin_gecko_api.fetchHistoricalPrices,
   });
 
   @override
@@ -76,6 +176,60 @@ class MarketsHeroCard extends StatefulWidget {
 }
 
 class _MarketsHeroCardState extends State<MarketsHeroCard> {
+  // Defaults to the 7D entry — the range widget.data.sparkline actually
+  // covers.
+  int _selectedIndex = 1;
+
+  // Null means the FREE path: 7D plots widget.data.sparkline, which
+  // fetchCoinsMarketData already retrieved, with a synthesised last-7-days
+  // window. Any other tab sets this to a real fetch.
+  Future<_MarketsHeroSeries>? _seriesFuture;
+
+  void _onTimeframeTap(int index) {
+    setState(() {
+      _selectedIndex = index;
+      final range = kMarketsHeroTimeframeRanges[index];
+      _seriesFuture = range.label == '7D' ? null : _startFetch(range.days);
+    });
+  }
+
+  // `setState` does not rebuild synchronously, so `FutureStateWidget`'s
+  // `FutureBuilder` only attaches its error listener on the NEXT frame — a
+  // real gap a fast-rejecting future (an immediate empty-map response) can
+  // cross before anything is listening, which Dart reports as a zone-level
+  // "Unhandled exception" even though `FutureStateWidget` handles it a
+  // moment later. `..ignore()` registers a synchronous, silent listener at
+  // creation time so that report never fires; it does not touch how the
+  // SAME future delivers its real value or error to `FutureStateWidget`
+  // (Futures support multiple independent listeners).
+  Future<_MarketsHeroSeries> _startFetch(int days) =>
+      _fetchSeries(days)..ignore();
+
+  Future<_MarketsHeroSeries> _fetchSeries(int days) async {
+    final raw = await widget.fetchHistoricalPrices(widget.coin.id, days: days);
+    // `fetchHistoricalPrices` never throws (see <measured_facts>) — every
+    // failure path returns either a stale cache entry or an empty map, so an
+    // empty map is the ONLY failure signal that reaches here. Rendering it as
+    // an empty chart would be exactly the silent blank BXS-03 forbids, so
+    // this throws instead, which is what routes FutureStateWidget below to
+    // its retry-affordance error branch.
+    if (raw.isEmpty) {
+      throw StateError(
+        'No historical prices returned for ${widget.coin.id} ($days d)',
+      );
+    }
+    // Sort ascending before projecting to values. CoinGecko returns the keys
+    // in order today and the map preserves insertion order, but the series
+    // the chart plots should not rest on two undocumented behaviours
+    // agreeing (T-bxs-03).
+    final keys = raw.keys.toList()..sort();
+    return (
+      values: [for (final k in keys) raw[k]!],
+      start: DateTime.fromMillisecondsSinceEpoch(keys.first * 1000),
+      end: DateTime.fromMillisecondsSinceEpoch(keys.last * 1000),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
@@ -83,7 +237,15 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
     final up = data.priceChangePercentage24h >= 0;
     final changeColor = up ? gw.statusSuccess : gw.statusError;
 
-    final left = Column(
+    // A local function, not a lifted `StatelessWidget`: it closes over `gw`,
+    // `data`, `changeColor` and `up`, and hoisting it would mean threading
+    // four constructor arguments to serve one call site. AGENTS.md's
+    // widgets-not-helper-methods rule targets extracted `_buildFoo()` methods
+    // on a State class that rebuild the whole enclosing widget; `buildLeft`
+    // matches `buildRight`'s already-established shape below for exactly this
+    // situation, and matching it is the smaller, more consistent diff — do
+    // not "fix" this into a StatelessWidget.
+    Widget buildLeft({required bool wide}) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -99,10 +261,13 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
               children: [
                 Text(
                   widget.coin.name,
-                  style: GeniusWalletTypography.titleLg.copyWith(
-                    color: gw.textPrimary,
-                    letterSpacing: -0.2,
-                  ),
+                  // titleLg (18) wide, titleMd (16) narrow — a breakpoint
+                  // choice between two tokens, not a measured search.
+                  style:
+                      (wide
+                              ? GeniusWalletTypography.titleLg
+                              : GeniusWalletTypography.titleMd)
+                          .copyWith(color: gw.textPrimary, letterSpacing: -0.2),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -111,23 +276,48 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
           ],
         ),
         const SizedBox(height: GeniusWalletConsts.space10),
-        // oversized price — a FIXED style (never AutoSizeText): a width-driven
-        // font search re-keys skia's ParagraphCache every resize frame and
-        // freezes the macOS embedder (see crypto_simple_chart.dart's note).
-        Text(
-          _price(data.currentPrice),
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 48,
-            height: 1,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -2,
-            color: gw.textPrimary,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        // Price is a FIXED style on both branches (never AutoSizeText): a
+        // width-driven font search re-keys skia's ParagraphCache every resize
+        // frame and freezes the macOS embedder (see crypto_simple_chart.dart's
+        // note). This branch is a breakpoint choice between two fixed styles,
+        // which does not reintroduce that per-frame search.
+        //
+        // The WIDE branch keeps 48 verbatim, with no token behind it.
+        // BXS-01 only asked for the narrow price to stop running the full
+        // card width, so only the narrow branch changes — but the reason
+        // this one is still pinned as-is moved on 2026-08-07: the right
+        // column (timeframe segment + fixed-height chart) is a hard 301.0,
+        // independent of anything on the left, and now drives the pinned
+        // `IntrinsicHeight` row unconditionally (the left column's own
+        // height varies with the stat block's `Wrap` — 242 to 301 depending
+        // on tiles-per-row — but can no longer exceed the right's fixed
+        // value). Shrinking this price would not buy the row anything
+        // anymore; it is not the ceiling. See `kMarketsHeroChartHeight`'s
+        // doc comment and `markets_hero_height_test.dart` for the measured
+        // derivation.
+        wide
+            ? Text(
+                _price(data.currentPrice),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 48,
+                  height: 1,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -2,
+                  color: gw.textPrimary,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : Text(
+                _price(data.currentPrice),
+                style: GeniusWalletTypography.numericDisplay.copyWith(
+                  color: gw.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
         const SizedBox(height: GeniusWalletConsts.space8),
         // % pill + absolute 24h change
         Row(
@@ -153,56 +343,116 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         const SizedBox(height: GeniusWalletConsts.space12),
         Container(height: 1, color: gw.borderSubtle),
         const SizedBox(height: GeniusWalletConsts.space12),
-        // 2×2 stat block
-        Row(
+        // Stat block: Rank, Market Cap, Volume 24h, All-Time High — as many
+        // as fit per row instead of a fixed 2x2 grid (2026-08-07, quick
+        // 260807-bxs). `Wrap`, never a `LayoutBuilder`-driven column count:
+        // on the wide branch `left` is a child of an `IntrinsicHeight` `Row`
+        // below, and `LayoutBuilder` throws when asked for an intrinsic
+        // dimension ("does not support returning intrinsic dimensions") —
+        // `Wrap` implements intrinsics natively, so it is the one flow
+        // primitive that survives being measured that way. Order is
+        // unchanged from the old 2x2 reading order (Rank, Market Cap /
+        // Volume 24h, All-Time High).
+        //
+        // No fixed per-tile width (2026-08-07 correction, same task): a
+        // uniform box sized to the widest LABEL left every tile carrying
+        // the label's own dead space on the right of its much-narrower
+        // VALUE ('All-Time High' / '$45.26'), which is what actually read
+        // as "too big" — tightening the gap alone would not have touched
+        // it. `Wrap` hands each child unbounded width, so `GWStatTile`
+        // sizes to its own intrinsic content and that slack disappears.
+        // The direct cost: tiles no longer align into columns — a value's
+        // x-position now depends on its own tile's content, not a shared
+        // grid, so the row reads as a chip line rather than a table. That
+        // trade is Braian's to keep or revert, not silently accepted.
+        //
+        // `spacing: space10` (20px). It was `space6` (12px) for one build:
+        // once the tiles lost their uniform-width slack, 12 read as too
+        // tight against content-sized neighbours, and Braian asked for
+        // roughly 8px more — which lands exactly on `space10`, an existing
+        // token, so the scale is not broken to get there. The gap and the
+        // run gap being equal is deliberate now: with ragged-width tiles
+        // there is no column grid to separate rows visually, so an even
+        // gutter in both axes is what keeps a wrapped block legible.
+        Wrap(
+          spacing: GeniusWalletConsts.space10,
+          runSpacing: GeniusWalletConsts.space10,
           children: [
-            Expanded(
-              child: GWStatTile(label: 'Rank', value: '#${data.marketCapRank}'),
-            ),
-            Expanded(
-              child: GWStatTile(
-                label: 'Market Cap',
-                value: _compact(data.marketCap),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: GeniusWalletConsts.space10),
-        Row(
-          children: [
-            Expanded(
-              child: GWStatTile(
-                label: 'Volume 24h',
-                value: _compact(data.totalVolume),
-              ),
-            ),
-            Expanded(
-              child: GWStatTile(
-                label: 'All-Time High',
-                value: _price(data.ath),
-              ),
-            ),
+            GWStatTile(label: 'Rank', value: '#${data.marketCapRank}'),
+            GWStatTile(label: 'Market Cap', value: _compact(data.marketCap)),
+            GWStatTile(label: 'Volume 24h', value: _compact(data.totalVolume)),
+            GWStatTile(label: 'All-Time High', value: _price(data.ath)),
           ],
         ),
       ],
     );
 
     // Wide layout drops the chart to the BOTTOM of the row so its lower edge
-    // lines up with the Volume 24h / All-Time High stat row on the left
-    // (Jakub 2026-07-24). A plain `Spacer()` above the fixed-height chart
-    // absorbs the extra height the IntrinsicHeight row inherits from the taller
-    // `left` column. The Spacer is the ONLY flex child and it is an empty box —
-    // intrinsic height 0 — so fl_chart is never intrinsic-measured (that is
-    // what froze the embedder when the chart itself was the Expanded child).
-    // Narrow layout stacks in an unbounded Column where a Spacer would throw,
-    // so it is omitted there.
+    // lines up with the LAST thing in the left column (Jakub 2026-07-24;
+    // re-stated 2026-08-07 when the stat block became a `Wrap` and its
+    // second row stopped existing as a fixed reference point). The mechanism
+    // does not care what that last thing IS — a plain `Spacer()` above the
+    // fixed-height chart absorbs whatever height difference the
+    // IntrinsicHeight row inherits from the taller `left` column, so the
+    // chart's bottom edge always tracks the left column's bottom edge,
+    // whether that is a second stat row (before) or the stat block's single
+    // flowed row (now). The Spacer is the ONLY flex child and it is an empty
+    // box — intrinsic height 0 — so fl_chart is never intrinsic-measured
+    // (that is what froze the embedder when the chart itself was the
+    // Expanded child). Narrow layout stacks in an unbounded Column where a
+    // Spacer would throw, so it is omitted there.
     Widget buildRight({required bool fill}) {
+      final Widget chart;
+      final future = _seriesFuture;
+      if (future == null) {
+        // FREE path (7D): the already-fetched sparkline, windowed as the
+        // last 7 days — the same window CoinGecko's sparkline_in_7d covers.
+        final now = DateTime.now();
+        chart = _HeroChart(
+          values: data.sparkline ?? const [],
+          start: now.subtract(const Duration(days: 7)),
+          end: now,
+        );
+      } else {
+        // `FutureStateWidget` is the right tool, not just a convenience: it
+        // is already this screen's loading/error idiom two levels up
+        // (`markets_screen.dart`), it supplies the spinner, the retry button
+        // and a snackbar for free, and because `FutureBuilder` drops results
+        // from a future it is no longer watching, rapid tab taps cannot
+        // paint a stale series — no request token needed.
+        chart = FutureStateWidget<_MarketsHeroSeries>(
+          future: future,
+          onRetry: () => setState(() {
+            _seriesFuture = _startFetch(
+              kMarketsHeroTimeframeRanges[_selectedIndex].days,
+            );
+          }),
+          error: Center(
+            child: Text(
+              "Couldn't load ${kMarketsHeroTimeframeRanges[_selectedIndex].label} prices",
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textSecondary,
+              ),
+            ),
+          ),
+          onData: (series) => _HeroChart(
+            values: series.values,
+            start: series.start,
+            end: series.end,
+          ),
+        );
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Align(
+          Align(
             alignment: Alignment.centerRight,
-            child: _TimeframeSegment(),
+            child: GWTimeframeSegment(
+              labels: [for (final r in kMarketsHeroTimeframeRanges) r.label],
+              initialIndex: _selectedIndex,
+              onChanged: _onTimeframeTap,
+            ),
           ),
           const SizedBox(height: GeniusWalletConsts.space8),
           if (fill) const Spacer(),
@@ -210,7 +460,7 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
             height: fill
                 ? kMarketsHeroChartHeight
                 : kMarketsHeroChartHeightStacked,
-            child: _HeroChart(sparkline: data.sparkline),
+            child: chart,
           ),
         ],
       );
@@ -218,12 +468,23 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
 
     final content = LayoutBuilder(
       builder: (context, c) {
-        final wide = c.maxWidth >= GeniusBreakpoints.medium;
+        // `wide` is the AND of the box and the window, not the box alone: the
+        // window (`useDesktopLayout`) is the authority on device class — a
+        // mobile app at a wide `MediaQuery` width is still mobile, and a
+        // desktop window between 769-791px (content 745-767px) still stacks
+        // the card even though the window itself reads "desktop". Reading
+        // only `c.maxWidth` (the literal instruction) would let this card's
+        // layout branch and its type step disagree in exactly those two real
+        // cases; one bool feeding BOTH `buildLeft`'s type step and the layout
+        // branch below makes that impossible by construction.
+        final wide =
+            c.maxWidth >= GeniusBreakpoints.medium &&
+            GeniusBreakpoints.useDesktopLayout(context);
         if (!wide) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              left,
+              buildLeft(wide: false),
               const SizedBox(height: GeniusWalletConsts.space12),
               buildRight(fill: false),
             ],
@@ -241,7 +502,7 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(flex: 5, child: left),
+              Expanded(flex: 5, child: buildLeft(wide: true)),
               const SizedBox(width: GeniusWalletConsts.space16),
               Expanded(flex: 7, child: buildRight(fill: true)),
             ],
@@ -267,7 +528,16 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
             decoration: GWDecorations.surface(
               radius: GeniusWalletConsts.radiusLg,
             ),
-            padding: const EdgeInsets.all(GeniusWalletConsts.space16),
+            // Halved from space16 (2026-08-07 correction, same task):
+            // Braian's ask was the card's own outer padding specifically,
+            // not every inset inside it. Two other candidates were swept
+            // and deliberately left alone: `_ChangePill`'s own padding
+            // (a component's shape, not the card's frame — halving it
+            // would deform the pill) and the chart's `kChartAxisGutter`
+            // padding (load-bearing for the narrow-width axis labels this
+            // same task added; halving it clips the money labels). space8
+            // is an existing 4-pt-scale token, not a new number.
+            padding: const EdgeInsets.all(GeniusWalletConsts.space8),
             child: content,
           ),
         ),
@@ -330,7 +600,7 @@ class _ChangePill extends StatelessWidget {
   }
 }
 
-/// The 7d hero chart, on the SAME runtime A/B rule as the coin page: scheme B's
+/// The hero chart, on the SAME runtime A/B rule as the coin page: scheme B's
 /// trading frame when the box it is handed clears [kChartFrameMinHeight],
 /// today's axis-free chart below it.
 ///
@@ -347,15 +617,26 @@ class _ChangePill extends StatelessWidget {
 /// the fill, the touch behaviour and the tooltip are byte-identical between
 /// branches and only the frame parts differ, so two widgets would be one widget
 /// copied twice.
+///
+/// Takes the plotted [values] plus the real [start]/[end] the window spans
+/// (quick 260807-bxs) — the caller passes either a fetched series or, on the
+/// free 7D path, the bundled sparkline windowed as the last 7 days. Neither
+/// branch hardcodes a 7-day assumption anymore.
 class _HeroChart extends StatelessWidget {
-  final List<double>? sparkline;
-  const _HeroChart({required this.sparkline});
+  final List<double> values;
+  final DateTime start;
+  final DateTime end;
+  const _HeroChart({
+    required this.values,
+    required this.start,
+    required this.end,
+  });
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final data = sparkline;
-    if (data == null || data.isEmpty) {
+    final data = values;
+    if (data.isEmpty) {
       return Center(
         child: Text(
           'Chart unavailable',
@@ -374,30 +655,28 @@ class _HeroChart extends StatelessWidget {
     // gradientGreen -> gradientBlue regardless of direction — while
     // `CryptoLiveChart` was always mint and the two sparklines (
     // `crypto_simple_chart.dart:53-55`) colour by sign. Uses the LOCAL `up`
-    // (first vs last point of the plotted 7d sparkline), not
-    // `data.priceChangePercentage24h`: the series on screen is 7 days, so a
-    // 24h-signed colour on a 7d line would be the same class of lie this
-    // whole task is removing.
+    // (first vs last point of the plotted series), not
+    // `data.priceChangePercentage24h`: the series on screen can be any of the
+    // four ranges, so a 24h-signed colour on a 30D/1Y line would be the same
+    // class of lie this whole task is removing.
     final bool up = data.last >= data.first;
     final Color trend = up ? gw.statusSuccess : gw.statusError;
 
-    // Hover tooltip (same effect as the dashboard's CryptoLiveChart): a touched
-    // point shows its time, price, and % change vs the window start. The
-    // sparkline carries no timestamps, so map each index onto the last 7 days —
-    // CoinGecko's `sparkline_in_7d` IS an evenly-spaced 7d series, and 7D is the
-    // only range wired (the timeframe tabs are visual-only), so this is honest
-    // for what is plotted.
-    // ponytail: assumes a 7d window because that is the only series fetched.
-    // Ceiling: wrong labels if a non-7d range is ever plotted here. Upgrade
-    // path: pass the real [start,end] in once timeframe ranges are wired
-    // (.planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-live-chart.md).
+    // Hover tooltip (same effect as the dashboard's CryptoLiveChart): a
+    // touched point shows its time, price, and % change vs the window start.
+    // Interpolated linearly across the real [start, end] window rather than a
+    // fixed 7-day span — points are assumed evenly spaced across it, which
+    // holds for CoinGecko's `market_chart` buckets and for `sparkline_in_7d`.
+    //
+    // ponytail: points are assumed evenly spaced across the window. Ceiling:
+    // a real gap in the series (a stale cache entry mid-fetch) would draw
+    // evenly regardless. Upgrade path: carry a timestamp per point instead of
+    // interpolating from the endpoints.
     final double first = data.first;
     final int n = data.length;
-    final DateTime now = DateTime.now();
-    const double windowMs = 7 * 24 * 60 * 60 * 1000;
-    final double stepMs = n > 1 ? windowMs / (n - 1) : 0;
+    final Duration window = end.difference(start);
     DateTime timeAt(double x) =>
-        now.subtract(Duration(milliseconds: ((n - 1 - x) * stepMs).round()));
+        n > 1 ? start.add(window * (x / (n - 1))) : start;
 
     return LayoutBuilder(
       builder: (context, c) {
@@ -573,10 +852,12 @@ class _HeroChart extends StatelessWidget {
         // sparkline's index positions without fighting the library. Same
         // reasoning, same constants as `crypto_live_chart.dart`'s frame.
         //
-        // The labels are DATES, not times. The coin chart prints clock times
-        // because its window can be an hour; this series is always the 7d
-        // `sparkline`, where six identical `h:mm a` labels would be the exact
-        // class of lie the timeframe work is removing.
+        // The format is chosen from the real window, not fixed to dates:
+        // clock time for a ~1-day window (24H), day-and-month for weeks/
+        // months (7D/30D), month-and-year beyond ~a quarter (1Y). Six
+        // identical day labels across a 24H window would be the same class
+        // of lie six identical clock times across a week used to be.
+        final DateFormat labelFormat = chooseAxisDateFormat(window);
         return Column(
           children: [
             Expanded(child: chart),
@@ -597,7 +878,7 @@ class _HeroChart extends StatelessWidget {
                             ? ((b / (count - 1)) * (spots.length - 1)).round()
                             : 0;
                         return Text(
-                          DateFormat('MMM d').format(timeAt(spots[ix].x)),
+                          labelFormat.format(timeAt(spots[ix].x)),
                           style: TextStyle(
                             fontSize: 11,
                             color: gw.textSecondary,
@@ -611,144 +892,6 @@ class _HeroChart extends StatelessWidget {
               ),
             ),
           ],
-        );
-      },
-    );
-  }
-}
-
-/// Visual-only 24H·7D·30D·1Y selector. Only 7d data exists on the card today,
-/// so tapping moves the chip but does not re-window the series.
-///
-/// ponytail: cosmetic selector — the plotted series is always the 7d
-/// `sparkline`. Ceiling: non-functional tabs. Upgrade path: the same captured
-/// follow-up that wires real ranges into `CryptoLiveChart`
-/// (.planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-
-/// live-chart.md) would feed this once markets adopts the live chart.
-class _TimeframeSegment extends StatefulWidget {
-  const _TimeframeSegment();
-
-  @override
-  State<_TimeframeSegment> createState() => _TimeframeSegmentState();
-}
-
-class _TimeframeSegmentState extends State<_TimeframeSegment> {
-  static const _labels = ['24H', '7D', '30D', '1Y'];
-  int _selected = 1; // 7D — the range the sparkline actually covers.
-
-  // VISUALLY IDENTICAL to the dashboard's _TimeframeSegment/_TimeframeTab
-  // (dashboard_screen.dart): surfaceMenu "baton" with 2px-gapped tabs, the
-  // selected tab on the brandCta gradient, unselected tabs lifting onto
-  // surfaceElevated on hover. Only the labels differ (markets ranges).
-  // ponytail: still visual-only — the chart under it is a fixed 7d sparkline, so
-  // 24H/30D/1Y select but change nothing. Ceiling: no range data. Upgrade path:
-  // .planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-live-chart.md
-  // The two copies of this widget SHOULD be one shared GWTimeframeSegment —
-  // .planning/todos/pending/2026-07-24-unify-timeframe-segment-component.md
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: gw.surfaceMenu,
-        border: Border.all(color: gw.borderSubtle),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < _labels.length; i++) ...[
-            if (i > 0) const SizedBox(width: 2),
-            _TimeframeTab(
-              label: _labels[i],
-              selected: i == _selected,
-              unselectedColor: gw.textMutedOnSunken,
-              hoverColor: gw.surfaceElevated,
-              hoverTextColor: gw.textPrimary,
-              onTap: () => setState(() => _selected = i),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Hover plumbing moved into `GWHoverable` (23-05); this widget held no other
-/// state, so it is a `StatelessWidget` now.
-class _TimeframeTab extends StatelessWidget {
-  const _TimeframeTab({
-    required this.label,
-    required this.selected,
-    required this.unselectedColor,
-    required this.hoverColor,
-    required this.hoverTextColor,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final Color unselectedColor;
-  final Color hoverColor;
-  final Color hoverTextColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GWHoverable(
-      builder: (hovered) {
-        final Color labelColor = selected
-            ? context.gw.textOnBrand
-            : (hovered ? hoverTextColor : unselectedColor);
-        final bool lifted = hovered && !selected;
-        // InkWell for focus + Enter/Space (WCAG 2.1.1 Level A); hoverColor
-        // cleared because the hover response is the lift, not an overlay.
-        return Semantics(
-          button: true,
-          selected: selected,
-          child: Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              onTap: onTap,
-              hoverColor: Colors.transparent,
-              borderRadius: BorderRadius.circular(
-                GeniusWalletConsts.radiusPill,
-              ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                transformAlignment: Alignment.center,
-                transform: lifted
-                    ? Matrix4.translationValues(0, -1, 0)
-                    : Matrix4.identity(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: GeniusWalletConsts.space4,
-                  vertical: GeniusWalletConsts.space3,
-                ),
-                decoration: BoxDecoration(
-                  gradient: selected ? GeniusWalletGradient.brandCta : null,
-                  color: selected
-                      ? null
-                      : (lifted ? hoverColor : Colors.transparent),
-                  borderRadius: BorderRadius.circular(
-                    GeniusWalletConsts.radiusPill,
-                  ),
-                  boxShadow: (selected || lifted)
-                      ? GeniusWalletElevation.card
-                      : null,
-                ),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: labelColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    height: 1,
-                  ),
-                ),
-              ),
-            ),
-          ),
         );
       },
     );

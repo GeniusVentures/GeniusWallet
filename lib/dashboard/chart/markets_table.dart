@@ -12,8 +12,10 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:intl/intl.dart';
 
-/// One row of the "All Markets" table: the display payload ([coin], [data])
-/// plus its Flutter-free [sort] projection (see [MarketRowData]).
+/// One row of the "All Markets" list: the display payload ([coin], [data])
+/// plus its Flutter-free [sort] projection (see [MarketRowData]). Shared by
+/// both renderings — this table and `markets_cards.dart`'s card grid — kept
+/// here as the canonical single definition (this table's original home).
 class MarketRow {
   final CoinGeckoCoin coin;
   final CoinGeckoMarketData data;
@@ -39,19 +41,36 @@ const double _wCap = 118;
 const double _wVol = 118;
 const double _wSpark = 120;
 const double _wCoinMin = 172;
-// _wChange * 3 = 1h + 24h + 7d change columns (1h/7d are placeholders for now).
-// + 8 inter-column gaps (Row spacing space6) between the 9 columns.
-const double _minTableWidth =
+// + 6 inter-column gaps (Row spacing space6) between the 7 columns (#, Coin,
+// Price, 24h %, Market Cap, Volume 24h, Last 7d). The 1h %/7d % columns this
+// sum used to reserve for (`_wChange * 3`, 8 gaps between 9 columns) were
+// deleted in quick 260807-bxs — CoinGecko's `/coins/markets` fetch has never
+// requested that data, so both columns rendered a permanent placeholder "-";
+// Braian's call was that a filter for those ranges belongs on the hero
+// graph's timeframe tabs (which now genuinely fetch), not a table column.
+//
+// PUBLIC (not `_minTableWidth`): `markets_cards.dart`'s picker widget reads
+// this to decide table vs. cards, so table and picker cannot drift onto two
+// different thresholds — they read the same constant.
+const double kMarketsTableMinWidth =
     _wRank +
     _wCoinMin +
     _wPrice +
-    _wChange * 3 +
+    _wChange +
     _wCap +
     _wVol +
     _wSpark +
-    GeniusWalletConsts.space6 * 8;
+    GeniusWalletConsts.space6 * 6;
 
 /// CoinGecko/CMC-style sortable markets table (sketch 103 · H1 body / B).
+///
+/// Desktop/wide-screen surface, restored 2026-08-07 (quick 260807-bxs) after
+/// a same-day detour replaced it with cards at every width — Braian's actual
+/// ask was cards for when the table doesn't fit, not a table deletion. This
+/// is `280f9b4^`'s table verbatim, minus the 1h %/7d % placeholder columns
+/// (see the follow-up correction above `kMarketsTableMinWidth`). Everything
+/// else — sort-on-header-tap, the sparkline column, the horizontal-scroll
+/// fallback — is unchanged.
 class MarketsTable extends StatefulWidget {
   final List<MarketRow> rows;
   final void Function(MarketRow row) onTapRow;
@@ -95,17 +114,24 @@ class _MarketsTableState extends State<MarketsTable> {
 
     return LayoutBuilder(
       builder: (context, c) {
-        if (c.maxWidth >= _minTableWidth) {
+        if (c.maxWidth >= kMarketsTableMinWidth) {
           return table;
         }
         // Narrow: keep columns legible and let the table scroll sideways.
+        // In practice `markets_cards.dart`'s picker widget already routes
+        // anything narrower than kMarketsTableMinWidth to the card grid
+        // before this widget is ever mounted, so this branch is not reached
+        // through that call site today. Kept anyway as cheap insurance —
+        // `MarketsTable` is a general-purpose widget, not solely the
+        // picker's callee, and a future direct call site (or a picker that
+        // measures a different box than this one) would need it.
         // scrollbars:false — the desktop ScrollBehavior draws a horizontal bar
         // by default; hide it (the row still scrolls by trackpad/drag).
         return ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: SizedBox(width: _minTableWidth, child: table),
+            child: SizedBox(width: kMarketsTableMinWidth, child: table),
           ),
         );
       },
@@ -188,11 +214,7 @@ class _MarketsTableState extends State<MarketsTable> {
           cell('#', MarketSort.rank, _wRank, alignEnd: false),
           cell('Coin', MarketSort.name, null, alignEnd: false),
           cell('Price', MarketSort.price, _wPrice),
-          // ponytail: 1h/7d are placeholder columns — no sort, no real data yet
-          // (see the data row + backlog todo below).
-          cell('1h %', null, _wChange),
           cell('24h %', MarketSort.change, _wChange),
-          cell('7d %', null, _wChange),
           cell('Market Cap', MarketSort.marketCap, _wCap),
           cell('Volume 24h', MarketSort.volume, _wVol),
           // right-aligned like every other value column (# and Coin stay left).
@@ -284,14 +306,6 @@ class _MarketsTableState extends State<MarketsTable> {
                 ),
               ),
             ),
-            // ponytail: 1h change is a PLACEHOLDER. CoinGeckoMarketData has no
-            // priceChangePercentage1h and the /coins/markets fetch does not
-            // request it, so this shows "-" (a marked-absent value), never a
-            // fabricated number. Ceiling: no 1h data. Upgrade path: add
-            // price_change_percentage=1h,24h,7d to the fetch + a nullable model
-            // field (Hive .g.dart regen + migration). Tracked in
-            // .planning/todos/pending/2026-07-24-markets-1h-7d-change-columns.md
-            _changePlaceholder(gw),
             SizedBox(
               width: _wChange,
               child: Align(
@@ -315,8 +329,6 @@ class _MarketsTableState extends State<MarketsTable> {
                 ),
               ),
             ),
-            // ponytail: 7d change PLACEHOLDER — same absent-data note as 1h above.
-            _changePlaceholder(gw),
             SizedBox(
               width: _wCap,
               child: Text(
@@ -356,22 +368,6 @@ class _MarketsTableState extends State<MarketsTable> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // ponytail: renders "-" for the not-yet-wired 1h/7d change columns (see the
-  // data-row comment + backlog todo). One helper so both cells stay identical
-  // and the placeholder is trivially swappable for a real value later.
-  Widget _changePlaceholder(GWColors gw) {
-    return SizedBox(
-      width: _wChange,
-      child: Text(
-        '-',
-        textAlign: TextAlign.right,
-        style: GeniusWalletTypography.numericBody.copyWith(
-          color: gw.textSecondary,
         ),
       ),
     );

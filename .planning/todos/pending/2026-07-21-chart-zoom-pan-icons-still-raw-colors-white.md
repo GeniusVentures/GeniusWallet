@@ -34,3 +34,12 @@ todo's step 3 asks whether zoom/pan is redundant once real timeframe ranges are 
 zoom/pan is deleted as part of answering that question, this todo dies with it. Settle that
 question first; do not spend the light-mode-pass budget re-skinning controls that may not
 survive.
+
+---
+
+**NOT CLOSED 2026-08-07 — the 2026-08-05 triage bucketed this as resolved on a claim that
+does not hold.** The triage says "Zero `Colors.*` / `Color(0x` remain in `lib/chart/`".
+Three remain, all in `crypto_live_chart.dart`: `:392`, `:820`, `:997`, each
+`Colors.transparent`. They are `fl_chart` sentinels (tooltip background, gradient stop),
+not themed surfaces, so they are arguably legitimate — but "zero remain" is not true and
+this should not be deleted on that reasoning. Decide the sentinel question on its merits.

@@ -36,3 +36,8 @@ Either way it should not sit unused indefinitely - an unused widget rots and the
 
 - `.planning/quick/260728-u8p-coin-page-071b-stat-rail/SUMMARY.md`
 - `.planning/sketches/071-coin-page-whole-screen/README.md`
+
+---
+
+**CLOSED 2026-08-07**, verified against the tree at `e1d66b2`, not against the 2026-08-05 triage.
+`TokenDetailHero` has zero references in `lib/` and `test/` and the file is gone.

@@ -118,10 +118,12 @@ class CryptoSparkLineChart extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Same sparkline geometry as the Markets TAB's table column
-            // (markets_table.dart:310-318 — 72x32, barWidth 1.6) so the two
-            // renderings of the same data read as one component instead of the
-            // dashboard's being a visibly shrunk 56x20 copy. Jakub, 2026-07-25.
+            // 72x32, barWidth 1.6 — Jakub, 2026-07-25, matched to the Markets
+            // page's own table-column sparkline so the two renderings of the
+            // same data read as one component instead of the dashboard's
+            // being a visibly shrunk 56x20 copy. The Markets page dropped its
+            // table (and that sparkline) for cards in quick 260807-bxs; this
+            // one is unaffected and keeps the same geometry.
             SizedBox(
               width: 72,
               height: 32,
