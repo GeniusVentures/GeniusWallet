@@ -239,3 +239,39 @@ No new test was added for the restored table's own rendering/sort behaviour — 
 ### A place I did not decide for you
 
 Braian's second message said the `1h %`/`7d %` columns don't belong "in the table, just in the graph" — read narrowly, that is about the timeframe/range filter, and the hero graph's tabs already fetch real ranged data (24H/7D/30D/1Y) as of this same task. Nothing in either message asked for a NEW 1h/7d change-percent surface on the graph itself — CoinGecko's `/coins/markets` fetch still does not request `price_change_percentage_1h,7d`, so that data does not exist anywhere in the app today, table or graph. I did not add one. If "just in the graph" meant "put 1h/7d change somewhere on the hero card," that is a new, unscoped surface this task did not build — flagging it rather than guessing.
+
+## Follow-up: stat block becomes a flex (Wrap), not a fixed 2×2 grid
+
+A third, separate correction from Braian: the hero card's stat block (Rank, Market Cap, Volume 24h, All-Time High — `markets_hero_card.dart`, previously two hardcoded `Row`s of `Expanded(GWStatTile)`) should flow as many tiles per row as actually fit, instead of always being two columns.
+
+### What changed
+
+- The two fixed `Row`s are replaced by one `Wrap`, `spacing`/`runSpacing` both `GeniusWalletConsts.space10` (reusing the existing token the file already used for this exact vertical gap, per the "keep spacing on existing tokens" instruction — no new spacing value introduced).
+- Each tile is wrapped in a `SizedBox(width: kMarketsHeroStatTileWidth)`. A new top-level constant, not a bare content-sized tile: an un-widthed `GWStatTile` sizes to its own shortest content and the four tiles would never line up as columns, and a `SizedBox` (not a flexible `Expanded`) is also the CEILING Braian asked for — a tile can never grow to fill leftover space on an extra-wide card.
+- **Why `Wrap` and not `LayoutBuilder`:** exactly per the instruction — `left` is a child of an `IntrinsicHeight` `Row` on the wide branch, and `LayoutBuilder` throws ("does not support returning intrinsic dimensions") when asked for one. `Wrap` implements intrinsics natively and was the only flow primitive considered; no `LayoutBuilder`-based column-count approach was attempted, per the instruction to stop and say so rather than reach for it — it would have crashed the wide layout, not merely produced a wrong number.
+- **`kMarketsHeroStatTileWidth = 152`, measured, not picked by eye.** `GWStatTile`'s label is a bare `GWKicker` with no `maxLines`/`overflow` of its own (unlike the Markets table's header cells, which wrap the same dense-kicker text style in an explicit ellipsis), so a tile narrower than its label wraps the label to two lines instead of truncating it. I measured the exact wrap threshold directly (a throwaway widget test bisecting candidate widths, deleted before committing): 'All-Time High', the widest of the four fixed labels, wraps its `GWKicker` at 150px width and clears at 151px. 152 is that threshold plus 1px of margin.
+- **The direct consequence, stated rather than hidden:** at the file's usual 1400×1000 wide surface, the left column (~543px) fits **three** unwrapped tiles per row, not four (`3 × 152 + 2 × space10 = 496` fits; `4 × 152 + 3 × space10 = 656` does not) — the fourth wraps to its own second row. All four only share one row above roughly **1700px** of total card width. At 402px, exactly two fit per row, unchanged from before. This still satisfies "more data in a row instead of always a 2 column structure" at every width it was asked for — it was never a promise that every desktop width shows all four abreast, and a narrower tile that wraps 'All-Time High' onto two lines would have been worse. The alternative of also widening the left column's flex share to force 4-across at 1400px was considered and rejected: that would resize the chart too, which nobody asked for.
+- **Jakub's chart-alignment comment** (previously: the wide chart's lower edge lines up with "the Volume 24h / All-Time High stat row") is rewritten, not silently left stale: the `Spacer`-absorption mechanism it documents never actually depended on what specifically sat at the bottom of the left column, only that SOMETHING did — the comment now says that plainly, and no longer points at a second stat row that no longer structurally exists.
+
+### The pinned 367.0/301.0: re-measured, numerically unchanged, structurally flipped
+
+Both were re-measured directly (not assumed) at the file's standard 1400×1000 surface, and at five widths spanning 1400 to 1900 to map exactly where the stat block's row count changes. **The numbers came back identical to before this correction: 367.0 and 301.0.** But which column produces them flipped, and that is the real, load-bearing change this correction records, per the instruction not to just carry a new number without explaining the derivation:
+
+- **Before:** the LEFT column's fixed 2×2 stat grid measured exactly 301.0, and the RIGHT column (timeframe segment + chart) measured "roughly 299" per the original plan's estimate — left drove the row, with about 2px of headroom.
+- **Now:** the RIGHT column measures a hard, re-confirmed **301.0** of its own (not an estimate — directly measured), completely independent of the stat block. The LEFT column's height is no longer one fixed number; it is **242.0** when all four tiles share one row (single `Wrap` run) or **301.0** when three do and the fourth wraps (two runs) — the practical range at any width the wide branch renders. Because the right column's fixed 301.0 is always `>=` the left's 242–301 range, **the right column now drives `IntrinsicHeight` unconditionally**, at every width tested (1400 through 1900), not as a close call that could tip either way.
+- The test's `reason:` strings and the widget file's doc comments (on `kMarketsHeroChartHeight` and the wide-price `Text`) are rewritten to state this derivation, not just re-assert the same two literals — a future stat-block or chart change could move one side without moving the other, and the test now says which side it is watching.
+
+### Tests
+
+`markets_hero_height_test.dart` (chosen over a new sibling file — this is squarely about the hero card's own pinned geometry, the file's existing subject):
+- The existing wide-card group is renamed and its comments/reason strings rewritten to describe the right-column derivation above; the two pinned literals (367.0, 301.0) are unchanged.
+- The 1400px "price is still 48" test's failure-reason string is corrected — a failure there no longer implies the pinned heights are about to move (they are not the left column's anymore).
+- Two new tests, geometric (off the tiles' rects, not by counting `Row`s), `pump()` only, never `pumpAndSettle()`: at 1800×1000 (a "genuinely wide" surface, not the usual 1400 pin, since 152px tiles need roughly 1700px+ of card width to fit all four) all four `GWStatTile`s share one `Wrap` run's top edge; at 402×900 they do not (the phone-width card still wraps across more than one row, unchanged from before this task).
+
+### Verification (same eight gates, re-run after this correction)
+
+- `flutter analyze`: **0 issues**, exit 0.
+- `flutter test`: **1033/1033** passed (up from 1031 — two new geometric tests added, none removed).
+- `tool/check_brace_style.sh`, `tool/check_raw_colors.sh`, `tool/check_onboarding_seed_safety.sh`, `tool/check_no_new_key_logging.sh --scan-tree`: all exit 0.
+- `tool/check_agent_rules_sync.sh`: exit 1, identical to the pre-existing baseline failure measured before any work in this task began — unrelated to any file this task touches, not fixed, per the scope-boundary rule.
+- One atomic commit: `6e8508f` — `fix(260807-bxs): hero stat block flows instead of a fixed 2x2 grid`. No attribution trailer. Not pushed. No PR (`gh pr list --head feat/markets-page-cards` returns empty).
