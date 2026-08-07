@@ -78,6 +78,30 @@ DateFormat chooseAxisDateFormat(Duration window) {
 /// the pixel - and the card holds **367.0** at both 180 and 253, with the
 /// chart's lower edge landing on the stat row at y=334 either way. The
 /// original arithmetic was right; the instrument was wrong.
+///
+/// **The 301.0/367.0 derivation flipped columns on 2026-08-07 (quick
+/// 260807-bxs) — the numbers did not move, but which column produces them
+/// did, and that is the real change.** The stat block became a `Wrap`
+/// (`kMarketsHeroStatTileWidth`) instead of a fixed 2x2 grid, so the LEFT
+/// column's own height is no longer one constant — it is 242 when all four
+/// tiles share one row, or 301 when three do and the fourth wraps to a
+/// second row (the practical range at any width the wide branch actually
+/// reaches; a stat block narrow enough to wrap to one tile per row would
+/// need a card far narrower than the wide branch's own `medium` floor).
+/// **The RIGHT column — `GWTimeframeSegment` + `space8` + this constant —
+/// never changes with the stat block at all, and measures a hard 301.0 of
+/// its own**, re-confirmed directly (not the "~299, two pixels of headroom"
+/// approximation the original plan estimated). Because the right column's
+/// fixed 301.0 is always `>=` the left column's 242-to-301 range, the right
+/// column now drives `IntrinsicHeight` unconditionally, at every width the
+/// wide branch renders — the left column can no longer be the one to watch.
+/// The literals happen to read the same (367.0/367.0, 301.0/301.0 before
+/// and after) purely because the right column's true fixed value equals the
+/// old left-driven one to the pixel; `markets_hero_height_test.dart`'s
+/// reason string records the derivation, not just the number, for exactly
+/// this reason — a future stat-block or chart change could easily move one
+/// side without moving the other, and the test should say which side it is
+/// watching.
 const double kMarketsHeroChartHeight = 253;
 
 /// The height used when the card STACKS (below `GeniusBreakpoints.medium`).
@@ -99,10 +123,45 @@ const double kMarketsHeroChartHeight = 253;
 /// which is why this cannot be raised casually.
 const double kMarketsHeroChartHeightStacked = kChartFrameMinHeight;
 
+/// Fixed width for each tile in the stat block's `Wrap` (2026-08-07, quick
+/// 260807-bxs) — Braian's ask was "a flex so we can show more data in a row
+/// instead of always a 2 column structure", which needs a per-tile width:
+/// an un-widthed tile sizes to its own shortest content ('Rank' / '#1') and
+/// the four tiles would never line up as columns the way a stat grid reads.
+///
+/// **152, measured, not guessed.** `GWStatTile`'s label is a bare `GWKicker`
+/// with no `maxLines`/`overflow` of its own (unlike, say, the Markets
+/// table's header cells, which wrap the same dense-kicker TEXT STYLE in an
+/// explicit ellipsis) — so a tile narrower than its label wraps to two
+/// lines instead of truncating. 'All-Time High', the widest of the four
+/// fixed labels, wraps at 150px and clears at 151px in this exact test
+/// harness; 152 is that measured threshold plus 1px of margin, not a round
+/// number picked by eye. Going narrower would wrap that one label on every
+/// wide render; going wider buys nothing (every label already fits) while
+/// costing tiles-per-row.
+///
+/// This IS the ceiling on a single tile's width, too — a `SizedBox`, not a
+/// flexible `Expanded`, so a tile never grows to fill leftover space on an
+/// extra-wide card, which is the "absurd width" Braian named.
+///
+/// **The consequence, stated plainly:** the wide card's ~543px left column
+/// fits three unwrapped tiles per row (3 * 152 + 2 * `space10` = 496), not
+/// four (4 * 152 + 3 * `space10` = 656) — the fourth wraps to its own
+/// second row. All four only share one row above roughly 1700px of total
+/// card width. This is still the improvement asked for: "more data in a
+/// row instead of always a 2 column structure" is true at every width from
+/// 402px (2 per row, unchanged from before) up through 1400px (3 per row)
+/// to a genuinely wide card (4 per row) — it was never a promise that
+/// every desktop width shows all four abreast, and the alternative (a
+/// narrower tile that wraps 'All-Time High') is worse.
+const double kMarketsHeroStatTileWidth = 152;
+
 /// Markets hero (sketch 103 · H1 "Refined split"): identity + oversized price
-/// + a 2×2 stat block on the left, the 7d chart with a timeframe selector on
-/// the right. All data is read off the already-fetched [CoinGeckoMarketData];
-/// nothing here triggers a new request.
+/// + a flowed stat block on the left (as many tiles per row as fit, not a
+/// fixed 2x2 grid — see [kMarketsHeroStatTileWidth]), the chart with a
+/// timeframe selector on the right. Data for whichever range is selected
+/// comes from [MarketsHeroCard.fetchHistoricalPrices]; the 7D default reads
+/// the already-fetched [CoinGeckoMarketData] and triggers no request.
 class MarketsHeroCard extends StatefulWidget {
   final CoinGeckoCoin coin;
   final CoinGeckoMarketData data;
@@ -240,12 +299,19 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         // note). This branch is a breakpoint choice between two fixed styles,
         // which does not reintroduce that per-frame search.
         //
-        // The WIDE branch keeps 48 verbatim, with no token behind it, on
-        // purpose: `markets_hero_height_test.dart` derives the pinned 301.0
-        // `IntrinsicHeight` row from this exact value, and the right column
-        // (the chart) sits within ~2px of becoming the taller one — shrinking
-        // this is not free. BXS-01 only asks for the narrow price to stop
-        // running the full card width, so only the narrow branch changes.
+        // The WIDE branch keeps 48 verbatim, with no token behind it.
+        // BXS-01 only asked for the narrow price to stop running the full
+        // card width, so only the narrow branch changes — but the reason
+        // this one is still pinned as-is moved on 2026-08-07: the right
+        // column (timeframe segment + fixed-height chart) is a hard 301.0,
+        // independent of anything on the left, and now drives the pinned
+        // `IntrinsicHeight` row unconditionally (the left column's own
+        // height varies with the stat block's `Wrap` — 242 to 301 depending
+        // on tiles-per-row — but can no longer exceed the right's fixed
+        // value). Shrinking this price would not buy the row anything
+        // anymore; it is not the ceiling. See `kMarketsHeroChartHeight`'s
+        // doc comment and `markets_hero_height_test.dart` for the measured
+        // derivation.
         wide
             ? Text(
                 _price(data.currentPrice),
@@ -294,30 +360,41 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         const SizedBox(height: GeniusWalletConsts.space12),
         Container(height: 1, color: gw.borderSubtle),
         const SizedBox(height: GeniusWalletConsts.space12),
-        // 2×2 stat block
-        Row(
+        // Stat block: Rank, Market Cap, Volume 24h, All-Time High — as many
+        // as fit per row instead of a fixed 2x2 grid (2026-08-07, quick
+        // 260807-bxs). `Wrap`, never a `LayoutBuilder`-driven column count:
+        // on the wide branch `left` is a child of an `IntrinsicHeight` `Row`
+        // below, and `LayoutBuilder` throws when asked for an intrinsic
+        // dimension ("does not support returning intrinsic dimensions") —
+        // `Wrap` implements intrinsics natively, so it is the one flow
+        // primitive that survives being measured that way. Order is
+        // unchanged from the old 2x2 reading order (Rank, Market Cap /
+        // Volume 24h, All-Time High), so at the narrow width where exactly
+        // two tiles still fit per row this renders identically to before.
+        Wrap(
+          spacing: GeniusWalletConsts.space10,
+          runSpacing: GeniusWalletConsts.space10,
           children: [
-            Expanded(
+            SizedBox(
+              width: kMarketsHeroStatTileWidth,
               child: GWStatTile(label: 'Rank', value: '#${data.marketCapRank}'),
             ),
-            Expanded(
+            SizedBox(
+              width: kMarketsHeroStatTileWidth,
               child: GWStatTile(
                 label: 'Market Cap',
                 value: _compact(data.marketCap),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: GeniusWalletConsts.space10),
-        Row(
-          children: [
-            Expanded(
+            SizedBox(
+              width: kMarketsHeroStatTileWidth,
               child: GWStatTile(
                 label: 'Volume 24h',
                 value: _compact(data.totalVolume),
               ),
             ),
-            Expanded(
+            SizedBox(
+              width: kMarketsHeroStatTileWidth,
               child: GWStatTile(
                 label: 'All-Time High',
                 value: _price(data.ath),
@@ -329,14 +406,19 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
     );
 
     // Wide layout drops the chart to the BOTTOM of the row so its lower edge
-    // lines up with the Volume 24h / All-Time High stat row on the left
-    // (Jakub 2026-07-24). A plain `Spacer()` above the fixed-height chart
-    // absorbs the extra height the IntrinsicHeight row inherits from the taller
-    // `left` column. The Spacer is the ONLY flex child and it is an empty box —
-    // intrinsic height 0 — so fl_chart is never intrinsic-measured (that is
-    // what froze the embedder when the chart itself was the Expanded child).
-    // Narrow layout stacks in an unbounded Column where a Spacer would throw,
-    // so it is omitted there.
+    // lines up with the LAST thing in the left column (Jakub 2026-07-24;
+    // re-stated 2026-08-07 when the stat block became a `Wrap` and its
+    // second row stopped existing as a fixed reference point). The mechanism
+    // does not care what that last thing IS — a plain `Spacer()` above the
+    // fixed-height chart absorbs whatever height difference the
+    // IntrinsicHeight row inherits from the taller `left` column, so the
+    // chart's bottom edge always tracks the left column's bottom edge,
+    // whether that is a second stat row (before) or the stat block's single
+    // flowed row (now). The Spacer is the ONLY flex child and it is an empty
+    // box — intrinsic height 0 — so fl_chart is never intrinsic-measured
+    // (that is what froze the embedder when the chart itself was the
+    // Expanded child). Narrow layout stacks in an unbounded Column where a
+    // Spacer would throw, so it is omitted there.
     Widget buildRight({required bool fill}) {
       final Widget chart;
       final future = _seriesFuture;
