@@ -324,18 +324,60 @@ class _ResponsiveDrawerScaffold extends StatelessWidget {
       // The footer's inset AND its top rule are the shell's, not each
       // caller's -- 030-B1 specified "footer with a top border" and exactly one
       // of the callers implemented it. See kDrawerFooterPadding.
-      bottomNavigationBar: footer != null
-          ? SafeArea(
-              top: false,
-              child: Container(
-                padding: kDrawerFooterPadding,
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: gw.borderSubtle)),
-                ),
-                child: footer!,
-              ),
-            )
-          : null,
+      bottomNavigationBar: footer != null ? _buildFooter(context, gw) : null,
+    );
+  }
+
+  /// The footer band: the shell's inset, its top rule, and a CAPPED share of
+  /// the bottom safe-area inset.
+  ///
+  /// **2026-08-07: this used to be a `SafeArea(top: false)` and that was a
+  /// measured defect.** The footer paid the bottom inset twice over. The mobile
+  /// route opens with `showModalBottomSheet(useSafeArea: true)`, which resolves
+  /// to `SafeArea(bottom: false, ...)` in the pinned SDK
+  /// (`material/bottom_sheet.dart`) - so it neither consumes the bottom padding
+  /// nor strips it from the MediaQuery, and the full 34pt of Jakub's iPhone
+  /// passed straight through to this SafeArea, which then consumed all of it on
+  /// top of [kDrawerFooterPadding]'s 20. Result: 20 above the button and 54
+  /// below it, a 2.7 to 1 asymmetry under a single hollow button. Reported live
+  /// on 2026-08-07 as "jakis taki duzy padding od spodu".
+  ///
+  /// The replacement is the pattern `_MobileTabBar` already ships
+  /// (`responsive_overlay.dart`): read `viewPaddingOf` explicitly, cap it at
+  /// [kMaxBottomSafeInset], and ADD the result to the design inset. 20 + at
+  /// most 20 gives 40 below, recovering 14pt. This is the SUM, matching the tab
+  /// bar's arithmetic that Jakub already approved on the device.
+  ///
+  /// The alternative is the MAX of the two, giving a symmetric 20 above and 20
+  /// below and recovering 34pt. It is a legitimate variant and it is the named
+  /// fallback if the band still reads bottom heavy on device - it is a
+  /// one-line change from here. Recorded rather than argued: the sum ships
+  /// first because it is the arithmetic already validated in this app.
+  ///
+  /// `viewPaddingOf` rather than `paddingOf` (which is viewPadding minus
+  /// viewInsets) for the same reason the tab bar uses it: with the keyboard
+  /// closed the two are identical, and this one keeps the footer stable instead
+  /// of collapsing to 0 if a keyboard ever opens beneath it.
+  ///
+  /// One thing the wrapper did that is deliberately NOT replaced: a `SafeArea`
+  /// also removes the consumed padding from its descendants' MediaQuery.
+  /// Nothing in any of the 12 current footers reads it, which was checked - but
+  /// the next author should know the wrapper had two jobs and only one of them
+  /// came back.
+  Widget _buildFooter(BuildContext context, GWColors gw) {
+    final rawInset = MediaQuery.viewPaddingOf(context).bottom;
+    final bottomInset = rawInset > kMaxBottomSafeInset
+        ? kMaxBottomSafeInset
+        : rawInset;
+
+    return Container(
+      padding: kDrawerFooterPadding.copyWith(
+        bottom: kDrawerFooterPadding.bottom + bottomInset,
+      ),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: gw.borderSubtle)),
+      ),
+      child: footer!,
     );
   }
 }
