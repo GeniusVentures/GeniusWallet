@@ -6,7 +6,6 @@ import 'package:genius_wallet/dashboard/chart/markets_table.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:intl/intl.dart';
 
@@ -49,7 +48,17 @@ class MarketsAllSection extends StatelessWidget {
         if (marketsSectionUsesTable(c.maxWidth)) {
           return MarketsTable(rows: rows, onTapRow: onTapRow);
         }
-        return _MarketsCardGrid(rows: rows, onTapRow: onTapRow);
+        // `c.maxWidth` IS the content width the card grid needs for its own
+        // column math (2026-08-07 correction) — passed straight through
+        // rather than having `_MarketsCardGrid` open a second `LayoutBuilder`
+        // for the same box. `LayoutBuilder` is safe in this file: the
+        // `IntrinsicHeight` constraint that rules it out is specific to the
+        // hero card's left column, not this page-width list.
+        return _MarketsCardGrid(
+          rows: rows,
+          onTapRow: onTapRow,
+          maxWidth: c.maxWidth,
+        );
       },
     );
   }
@@ -70,10 +79,57 @@ class MarketsAllSection extends StatelessWidget {
 /// doc comment was written to kill.
 bool marketsSectionUsesTable(double width) => width >= kMarketsTableMinWidth;
 
-/// The card grid: one card per coin, one per row at phone width and two per
-/// row at desktop, ordered rank ascending — the table's own default order.
-/// Reached only when [MarketsAllSection] measures a box narrower than the
-/// table's [kMarketsTableMinWidth].
+/// The widest a single market card is allowed to grow, in px
+/// (2026-08-07 correction, quick 260807-bxs). Braian's own estimate was
+/// 256; measured instead of trusted, because the card's real bottleneck is
+/// narrower than it looks at first glance.
+///
+/// **The binding constraints, both measured directly against the running
+/// card, not guessed:**
+/// - The two `GWStatTile`s split the card's content width evenly minus one
+///   `space10` gap. Their `GWKicker` labels ('Market Cap' / 'Volume 24h')
+///   wrap to two lines below 116px of PER-TILE width — bisected precisely,
+///   same as the hero card's own tile-label measurement earlier this task.
+/// - The price/change-pill column never wraps or shrinks (it must not, per
+///   the brief) — at the fixture's price ($63,480.00) it is a fixed 142.5px,
+///   which is the real reason the coin NAME column crushes toward zero
+///   width well before the stat tiles show any problem: at a 256px card the
+///   name rendered at 15.5px wide (effectively invisible, not merely
+///   ellipsised — a coin's name is the one thing on this card that must
+///   stay legible).
+///
+/// Both constraints converge empirically at the SAME card width: 285px
+/// still wraps a stat tile's label, 286px does not. 287 is that measured
+/// threshold plus 1px of margin, matching this task's own convention (the
+/// hero card's stat-tile width used the identical "+1px" margin rule).
+///
+/// **This conflicts with Braian's stated target of 3 columns near 846px
+/// (`kMarketsTableMinWidth`), and that conflict is reported rather than
+/// hidden.** 3 columns at `kMarketsTableMinWidth` would need a max width of
+/// roughly 266px (even at ZERO inter-card gap, 3 * 287 alone already
+/// exceeds 846) — 21px narrower than the measured 287px floor. Shipping
+/// 266 would wrap the stat-tile labels on every 3-column render, not as an
+/// edge case but as the normal state, and crush the coin name harder than
+/// the already-tight 256px case measured above. 287 was chosen over 266:
+/// content legibility over hitting the exact column count. The real
+/// column pattern this produces is documented on `_MarketsCardGrid`.
+const double kMarketsCardMaxWidth = 287;
+
+/// The card grid: as many columns as `kMarketsCardMaxWidth` and the box
+/// actually allow — `columns = max(1, (available + gap) ~/ (maxWidth +
+/// gap))` — continuous, with no device-class check anywhere in it. Reached
+/// only when [MarketsAllSection] measures a box narrower than the table's
+/// [kMarketsTableMinWidth]. Cards are ordered rank ascending, the table's
+/// own default order.
+///
+/// **Measured column counts (2026-08-07), not the 3/2/1 originally asked
+/// for — see [kMarketsCardMaxWidth]'s doc comment for why:**
+/// - 402px (phone): 1 column.
+/// - 600px: 2 columns.
+/// - 846px (just under the table's own threshold): 2 columns, not 3 — the
+///   honest per-card minimum (287px) is 21px wider than 3 columns at this
+///   width would allow without wrapping the stat tiles and crushing the
+///   coin name.
 ///
 /// Stateless: the sort state the table carries is gone here. Interactive
 /// column sorting stayed on the table (it never left, per the correction
@@ -82,8 +138,13 @@ bool marketsSectionUsesTable(double width) => width >= kMarketsTableMinWidth;
 class _MarketsCardGrid extends StatelessWidget {
   final List<MarketRow> rows;
   final void Function(MarketRow row) onTapRow;
+  final double maxWidth;
 
-  const _MarketsCardGrid({required this.rows, required this.onTapRow});
+  const _MarketsCardGrid({
+    required this.rows,
+    required this.onTapRow,
+    required this.maxWidth,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -94,13 +155,14 @@ class _MarketsCardGrid extends StatelessWidget {
       ...rows,
     ]..sort((a, b) => compareMarketRows(MarketSort.rank, true, a.sort, b.sort));
 
-    // This is the grid's OWN column count (1 vs 2), a separate question from
-    // whether the grid renders at all — that gate is `MarketsAllSection`'s,
-    // measured off the box (see its doc comment). A device-class check is
-    // fine here specifically because a card, unlike the table, has no fixed
-    // minimum width of its own to measure against — `useDesktopLayout` is
-    // the only signal available for "is there room for a second column".
-    final int columns = GeniusBreakpoints.useDesktopLayout(context) ? 2 : 1;
+    const double gap = GeniusWalletConsts.space12;
+    // `~/` truncates like `floor()` for non-negative operands, which these
+    // always are (`maxWidth` is a real `LayoutBuilder` box, `gap` a
+    // constant) — no columns fit at all only when `maxWidth` is smaller
+    // than a single card, and `max(1, ...)` below covers that floor.
+    final int rawColumns = ((maxWidth + gap) / (kMarketsCardMaxWidth + gap))
+        .floor();
+    final int columns = rawColumns < 1 ? 1 : rawColumns;
 
     final List<Widget> cardRows = [];
     for (var i = 0; i < sorted.length; i += columns) {
@@ -118,17 +180,37 @@ class _MarketsCardGrid extends StatelessWidget {
           // documents. `start` is visually indistinguishable from stretch
           // here because every text in a card is single-line and ellipsised,
           // so the cards are uniform height by construction.
+          //
+          // NO `spacing:` here, deliberately — `Row.spacing` inserts a gap
+          // between EVERY adjacent pair of children, including the one
+          // before the trailing `Spacer` below. That extra gap is not in
+          // `columns`' own width budget (only `columns - 1` gaps are, one
+          // between each pair of CARDS), and adding it caused a real
+          // overflow at 600px width during this fix (22px, caught by the
+          // widget test, not shipped). Gaps between cards are inserted by
+          // hand instead, so the Spacer gets none.
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: GeniusWalletConsts.space12,
           children: [
-            for (final row in chunk)
-              Expanded(
-                child: _MarketCard(row: row, onTap: () => onTapRow(row)),
+            for (var j = 0; j < chunk.length; j++) ...[
+              if (j > 0) const SizedBox(width: gap),
+              SizedBox(
+                width: kMarketsCardMaxWidth,
+                child: _MarketCard(
+                  row: chunk[j],
+                  onTap: () => onTapRow(chunk[j]),
+                ),
               ),
-            // An odd final row at 2 columns gets an empty flexible child so
-            // the last card stays at its normal column width instead of
-            // stretching to fill the row.
-            if (chunk.length < columns) const Spacer(),
+            ],
+            // Leftover width — a short final row, or the division's own
+            // remainder on a FULL row (the box rarely divides evenly by
+            // `kMarketsCardMaxWidth` exactly) — stays empty on the right,
+            // left-aligned, rather than stretching cards to eat it. A card
+            // growing to fill the leftover would defeat the point of
+            // setting a max width at all: distributing the slack across
+            // cards instead was considered and rejected for exactly that
+            // reason. `Spacer` is unconditional, not just for a short final
+            // row, because full rows can carry the same remainder.
+            const Spacer(),
           ],
         ),
       );

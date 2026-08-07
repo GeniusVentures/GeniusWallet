@@ -164,4 +164,69 @@ void main() {
       );
     });
   });
+
+  group('2026-08-07 follow-up: columns fall out of kMarketsCardMaxWidth, not '
+      'a device class', () {
+    testWidgets('at 402 (phone) every card is its own row', (tester) async {
+      await tester.pumpAllSectionAt(402, _scrambledRows());
+
+      expect(tester.takeException(), isNull);
+      final cards = find.byType(GWCard);
+      expect(cards, findsNWidgets(4));
+      final tops = [
+        for (var i = 0; i < 4; i++) tester.getTopLeft(cards.at(i)).dy,
+      ];
+      expect(
+        tops.toSet(),
+        hasLength(4),
+        reason: 'at phone width every card should sit on its own row',
+      );
+    });
+
+    testWidgets('at 600 cards share rows two at a time', (tester) async {
+      await tester.pumpAllSectionAt(600, _scrambledRows());
+
+      expect(tester.takeException(), isNull);
+      final cards = find.byType(GWCard);
+      expect(cards, findsNWidgets(4));
+      final tops = [
+        for (var i = 0; i < 4; i++) tester.getTopLeft(cards.at(i)).dy,
+      ];
+      expect(
+        tops.toSet(),
+        hasLength(2),
+        reason: 'four cards in pairs of two should produce two rows',
+      );
+    });
+
+    testWidgets('at 840 -- just under the table threshold -- cards STILL share '
+        'rows two at a time, not three: kMarketsCardMaxWidth (287) makes '
+        'a 3rd column unreachable below kMarketsTableMinWidth (846), and '
+        'no card exceeds the max width', (tester) async {
+      await tester.pumpAllSectionAt(840, _scrambledRows());
+
+      expect(tester.takeException(), isNull);
+      final cards = find.byType(GWCard);
+      expect(cards, findsNWidgets(4));
+      final tops = [
+        for (var i = 0; i < 4; i++) tester.getTopLeft(cards.at(i)).dy,
+      ];
+      expect(
+        tops.toSet(),
+        hasLength(2),
+        reason:
+            '3 columns would need roughly 909px of box width (3 * '
+            'kMarketsCardMaxWidth + gaps), which the table\'s own '
+            '846px fit-gate never lets the card grid reach -- 2 is '
+            'the real ceiling, not 3',
+      );
+
+      // Cards keep their width rather than stretching to eat the
+      // leftover space -- a card wider than kMarketsCardMaxWidth
+      // would mean the max being set means nothing.
+      for (var i = 0; i < 4; i++) {
+        expect(tester.getSize(cards.at(i)).width, kMarketsCardMaxWidth);
+      }
+    });
+  });
 }
