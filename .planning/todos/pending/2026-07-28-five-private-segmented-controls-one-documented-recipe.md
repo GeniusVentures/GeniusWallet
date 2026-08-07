@@ -54,3 +54,14 @@ migration is not a drawer task.
 
 - `.planning/todos/pending/2026-07-28-drawer-input-fields-are-hand-assembled-while-gwtextfield-exists.md`
   - the same shape of finding for input fields, deferred for the same reason.
+
+---
+
+**UPDATE 2026-08-07 — the number in the title is now wrong: three, not five.**
+
+- `dashboard_screen.dart` `_TimeframeSegment` — **gone**, moved onto `GWTimeframeSegment` (PR #221).
+- `markets_hero_card.dart` `_TimeframeSegment` — **gone**, deleted by quick `260807-bxs` (`5119d84`);
+  the shared component gained optional `labels`/`onChanged` to absorb it.
+
+Still open: `_FilterChip` (`transactions_slim_view.dart`), `_PresetChip`
+(`swap_settings_drawer.dart`), `_modeChip` (`sdk_account_manager.dart`).

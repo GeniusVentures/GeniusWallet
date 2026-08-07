@@ -44,3 +44,11 @@ It is Level A, it affects two of the dashboard's most-used controls (the chart's
 selector and the transaction list's filter bar), and the fix is mechanical - but it is a
 cross-file change to files a same-day quick task (`260731-jx5`) had just rewritten, so it
 wants its own run rather than a rider on `260731-kc5`.
+
+---
+
+**CLOSED 2026-08-07**, verified against the tree at `e1d66b2`, not against the 2026-08-05 triage.
+Fixed by `defe3b4` (merged in PR #221): `_TimeframeTab` and `_FilterChip` are now
+`Semantics` + `InkWell`, so both take focus and respond to Enter/Space. `_PresetChip` and
+`_modeChip` already used `InkWell`. Quick `260807-bxs` then deleted the Markets hero's own
+private copy of the segment, so that surface inherits the fix instead of needing its own.

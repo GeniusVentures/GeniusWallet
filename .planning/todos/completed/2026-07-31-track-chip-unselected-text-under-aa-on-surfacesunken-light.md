@@ -70,3 +70,11 @@ floor (4.2) back up to 4.5 and delete this todo.
 light mode at the measured 4.2 floor (not weakened further, not silently dropped) - visible
 in the test's own comment rather than hidden. No test covered this pairing for
 `_TimeframeTab` or `_FilterChip` before this todo; this file is the first.
+
+---
+
+**CLOSED 2026-08-07**, verified against the tree at `e1d66b2`, not against the 2026-08-05 triage.
+Fixed by `defe3b4` (merged in PR #221): a dedicated `textMutedOnSunken` token replaced
+`textSecondary` on control-track labels, pinned by `test/theme/control_track_contrast_test.dart`
+in both modes. The Markets hero inherited it when `260807-bxs` folded its private segment onto
+the shared component.
