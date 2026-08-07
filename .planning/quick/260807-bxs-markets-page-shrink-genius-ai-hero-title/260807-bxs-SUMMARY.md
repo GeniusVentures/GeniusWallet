@@ -275,3 +275,58 @@ Both were re-measured directly (not assumed) at the file's standard 1400×1000 s
 - `tool/check_brace_style.sh`, `tool/check_raw_colors.sh`, `tool/check_onboarding_seed_safety.sh`, `tool/check_no_new_key_logging.sh --scan-tree`: all exit 0.
 - `tool/check_agent_rules_sync.sh`: exit 1, identical to the pre-existing baseline failure measured before any work in this task began — unrelated to any file this task touches, not fixed, per the scope-boundary rule.
 - One atomic commit: `6e8508f` — `fix(260807-bxs): hero stat block flows instead of a fixed 2x2 grid`. No attribution trailer. Not pushed. No PR (`gh pr list --head feat/markets-page-cards` returns empty).
+
+## Follow-up: stat tiles size to content, tighter gap, halved card padding
+
+A fourth correction, in two parts Braian raised together: the stat tiles still "seemed too big" after becoming a `Wrap`, and separately, the card's own padding should also shrink.
+
+### Part 1 — content-sized tiles, not a fixed-width floor
+
+Braian's diagnosis (correct, and it drove the fix): the visible slack was mostly INSIDE each tile, not between them. `kMarketsHeroStatTileWidth` was a uniform 152px box sized to the widest LABEL ("All-Time High"), while the VALUES it held (`#1227`, `$10.6M`, `$45.26`, ...) were far narrower — every tile carried its label's leftover width as dead space next to a short value, and four of those read as one loose block.
+
+- **Dropped the `SizedBox(width: kMarketsHeroStatTileWidth)` wrappers entirely** — each `GWStatTile` now sits directly in the `Wrap` and sizes to its own content (`Wrap` hands children unbounded width, so a tile sizes to its widest line naturally; "All-Time High" cannot wrap under an unbounded constraint, which is why the whole 151px-wrap-threshold derivation from the previous follow-up simply stops applying rather than needing to be re-tuned).
+- **`kMarketsHeroStatTileWidth` is deleted**, not left unused — nothing else read it.
+- **`spacing` tightens from `space10` (20px) to `space6` (12px)** — reusing the SAME tight horizontal gap this card already uses twice (icon-to-name in the identity row, pill-to-text in the change row), rather than inventing a third spacing value. `runSpacing` stays at `space10`: Braian's own instruction was that rows still need to read as separate rows, and a gap this tight would blur that when the block wraps.
+- **The trade, stated plainly per instruction:** content-sized tiles no longer align into a column grid — each value's x-position now depends on its own tile's content width, not a shared grid, so the stat row reads as a chip line rather than a table. This is the direct, real cost of removing the slack. **I did not find the ragged edge looking worse than the old slack did** — the four values (rank, market cap, volume, ATH) are visually distinct enough by their `$`/`#` prefixes and position order that the loss of column alignment reads as compactness, not disorder, but this is a genuine judgment call and Braian should look at the running app himself rather than take that on my word.
+- **Knock-on, confirmed by direct measurement, not assumed:** without the fixed-width floor, four tiles now share one row starting around **1217px** of card width (down from ~1700px with the 152px floor) — comfortably below the file's usual 1400px surface. Braian was asked earlier whether to always show 4 tiles per row (at the cost of shortening labels or narrowing the chart) and chose to leave it at 2/3/4-by-width; this change gets him 4-at-1400 anyway, at neither cost, exactly as flagged before building it.
+
+### Part 2 — card padding halved
+
+- `markets_hero_card.dart`'s own outer `Container.padding` changes from `EdgeInsets.all(GeniusWalletConsts.space16)` to `EdgeInsets.all(GeniusWalletConsts.space8)` — an existing 4-pt-scale token (16px), not a new number.
+- **Swept the rest of the file for other card-frame insets, per instruction, rather than assuming this was the only one.** Two candidates were found and deliberately left alone:
+  - `_ChangePill`'s own `EdgeInsets.symmetric(horizontal: 8, vertical: 3)` — a component's own shape, not the card's frame; halving it would visibly deform the pill.
+  - The chart's `EdgeInsets.only(right: kChartAxisGutter)` — load-bearing for the narrow-width axis labels this same task added (BXS-02); halving it would clip the money labels, undoing that fix.
+  
+  No other padding/`EdgeInsets` occurrence exists in the file — confirmed by grep, not assumed.
+
+### The real numbers, re-measured after BOTH changes together
+
+Braian's own estimate ("`EdgeInsets.all(16)` → `all(8)` removes 16px... 367.0 should land near 351.0") assumed `space16` is 16px. **It is not — `GeniusWalletConsts.space16` is 32px** (this codebase's spacing tokens are `spaceN = 2 × N` above the 4-pt floor), so halving it to `space8` (16px) removes 32px total (16 top + 16 bottom), not 16px. Measured directly rather than trusting either estimate:
+
+| Surface | Before this follow-up | After (content-sizing + padding) |
+|---|---|---|
+| 1400×1000 card height | 367.0 | **335.0** |
+| 1400×1000 `IntrinsicHeight` row | 301.0 | **301.0 — confirmed unaffected**, exactly as predicted: the padding sits outside that row (`Container.padding`, not `content`'s own constraints), so it cannot touch the row's height, only the finished card's. |
+| 402×900 card height (stacked branch) | 651.0 | **619.0** (same −32px padding delta; the stat block is still 2 rows tall either way — 3-then-1 now vs. 2-then-2 before — so only the padding change shows up here, not a tile-count change) |
+
+### Tile counts at 402 / 1400 / 1800, confirmed after both changes (not assumed)
+
+- **402px:** 3 tiles share the top row (Rank, Market Cap, Volume 24h), All-Time High wraps alone to a second row. Still 2 rows total, unchanged in row-count from the previous follow-up (only the split changed, from 2-then-2 to 3-then-1, once the fixed-width floor was dropped).
+- **1400px:** **all 4 tiles share one row** — this is new since the previous follow-up (which showed 3-then-1 at 1400px under the 152px floor).
+- **1800px:** all 4 tiles share one row (unchanged from before — was already true at this width).
+
+### Tests
+
+`markets_hero_height_test.dart`, same file, extended not replaced:
+- The pinned wide-card literal is now **335.0** (was 367.0); `IntrinsicHeight` stays **301.0**. Both re-measured directly. The card-height test's `reason:` string states the padding change and the exact 32px delta so a future failure for an unrelated cause is not misattributed to padding.
+- The "all four stat tiles share one row" geometric test now pins **1400×1000 directly** (was 1800×1000 in the previous follow-up) — content-sizing makes the claim true at the width Braian actually asked about, so the test targets that width rather than a comfortably-wider one.
+- The 402px "tiles do NOT all share one row" test is unchanged in structure (still true, now via a 3-then-1 split instead of 2-then-2).
+- `kMarketsHeroStatTileWidth` references removed from test comments along with the deleted constant.
+
+### Verification (same eight gates, re-run after this correction)
+
+- `flutter analyze`: **0 issues**, exit 0.
+- `flutter test`: **1033/1033** passed (same count — two tests rewritten in place, none added or removed).
+- `tool/check_brace_style.sh`, `tool/check_raw_colors.sh`, `tool/check_onboarding_seed_safety.sh`, `tool/check_no_new_key_logging.sh --scan-tree`: all exit 0.
+- `tool/check_agent_rules_sync.sh`: exit 1, identical to the pre-existing baseline failure — unrelated, not fixed, per the scope-boundary rule.
+- One atomic commit (both the content-sizing change and the padding halving, per the coordinator's instruction to fold them together): `88808a5` — `fix(260807-bxs): stat tiles size to content, tighter gap, halved card padding`. No attribution trailer. Not pushed. No PR (`gh pr list --head feat/markets-page-cards` returns empty).
