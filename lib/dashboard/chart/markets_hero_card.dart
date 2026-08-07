@@ -366,15 +366,16 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
         // grid, so the row reads as a chip line rather than a table. That
         // trade is Braian's to keep or revert, not silently accepted.
         //
-        // `spacing: space6` (12px), not `space10` (20px): the same tight
-        // horizontal gap this card already uses twice — icon-to-name in
-        // the identity row, and pill-to-text in the change row — so this
-        // reuses an established rhythm rather than inventing a third
-        // value. `runSpacing` stays at `space10`: rows of tiles still need
-        // to read as separate rows when the block wraps, which a gap this
-        // tight would blur.
+        // `spacing: space10` (20px). It was `space6` (12px) for one build:
+        // once the tiles lost their uniform-width slack, 12 read as too
+        // tight against content-sized neighbours, and Braian asked for
+        // roughly 8px more — which lands exactly on `space10`, an existing
+        // token, so the scale is not broken to get there. The gap and the
+        // run gap being equal is deliberate now: with ragged-width tiles
+        // there is no column grid to separate rows visually, so an even
+        // gutter in both axes is what keeps a wrapped block legible.
         Wrap(
-          spacing: GeniusWalletConsts.space6,
+          spacing: GeniusWalletConsts.space10,
           runSpacing: GeniusWalletConsts.space10,
           children: [
             GWStatTile(label: 'Rank', value: '#${data.marketCapRank}'),
