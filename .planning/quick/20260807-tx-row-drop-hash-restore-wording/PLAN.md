@@ -36,9 +36,9 @@ must_haves:
 Two linked changes to the transaction row's second line, from Jakub on device,
 2026-08-07:
 
-> "Przy transakcji to 'jobs' i 'receiving' kategorie zostaw tak, jak byly
-> wczesniej. Natomiast usun ten 'transaction ID' czy cokolwiek jest po prawej
-> stronie, bo to nie ma nawet sensu."
+> On the transaction, leave the 'jobs' and 'receiving' categories the way they
+> were before. But remove that 'transaction ID' or whatever it is on the
+> right-hand side, because it does not even make sense.
 
 Asked to point at the element, he confirmed the hash / ID in the row's second
 line (`0x9f3a...4b21`), not the fiat value under the amount and not the status

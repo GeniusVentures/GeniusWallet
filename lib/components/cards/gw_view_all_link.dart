@@ -48,8 +48,8 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// every panel row it lives in.
 ///
 /// Jakub saw it on the phone the same day and chose consistency across the
-/// three dashboard sections over the extra emphasis. Verbatim: "a z view all -
-/// wrocmy do starego szarego koloru jak byl". Colour is therefore DECIDED. If
+/// three dashboard sections over the extra emphasis: take `View all` back to
+/// the old grey it used to be. Colour is therefore DECIDED. If
 /// the link ever reads too quiet, the next lever is weight or size, not
 /// colour.
 ///

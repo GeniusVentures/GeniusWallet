@@ -2,8 +2,8 @@
 status: superseded-in-part
 superseded_on: 2026-08-07
 superseded_by: >
-  Jakub, after this plan was written: "ok, zatem zostanmy przy Menu rozwijanym
-  od dolu". The Menu stays a BOTTOM SHEET. Everything in this plan that builds
+  Jakub, after this plan was written: ok, so let's stay with the Menu that
+  opens from the bottom. The Menu stays a BOTTOM SHEET. Everything in this plan that builds
   a top-level `/menu` route is dead - the new screen, the router entry, the
   right-to-left transition, the chromeless surface, the "back to where you came
   from" control, the `?from=` origin query parameter and the "‹ Menu" links on
@@ -68,15 +68,15 @@ has just landed.
 
 Jakub, 2026-08-07, picking C and amending it in the same breath:
 
-> "ok, zbudujmy zatem C opcje tylko ona bedzie full screen z breadcrumb by
-> wrocic do <- Menu top left corner i bez navigation bottom bar jak sie sie
-> klika na menu i to menu wjezdza od prawej stroni praktycznie bedzie wygladac
-> tak plus breadcrum (powrot do poprzednie strony)"
+> Let's build option C, only it will be full screen, with a breadcrumb back to
+> <- Menu in the top left corner and with no bottom navigation bar. When you tap
+> menu, the menu slides in from the right - it will look basically like this,
+> plus the breadcrumb (back to the previous page).
 
 And ruling on the two questions that amendment opened:
 
-> "tak tak, system powrotow ok"
-> "tak dzieci konkretne page maja pasek i top navigation normalnie"
+> Yes, the back system is fine.
+> Yes, the individual child pages keep their bar and top navigation as normal.
 
 Purpose: the hamburger currently opens a bottom sheet whose four rows each open
 a full screen, and a sheet that opens a screen must destroy itself to do it.

@@ -12,12 +12,13 @@ http://localhost:8899/180-mobile-header-brand-and-wallet/
 
 ## The request
 
-Jakub, 2026-08-07, verbatim:
+Jakub, 2026-08-07, in English:
 
-> "chcialbym miec na homepage'u logo Genius w lewym gornym rogu z nazwa, moze Genius AI. Ten wallet
-> przesuniety w prawa strone, a faktycznie tam tylko jedna informacja odnosnie walletu, bo teraz mamy
-> i wybor sieci, i wybor walleta. Natomiast po klikniecu wtedy sie wszystko by rozwijalo. Musimy to
-> chyba troszeczke zre-designowac, wiec zastanow sie jak najlepiej to zrobic i mi zaprezentuj."
+> He wants the Genius logo in the top-left corner of the homepage, with a name beside it, maybe
+> Genius AI. The wallet moved over to the right, and really only one piece of wallet information
+> there, because right now we have both a network chooser and a wallet chooser. On tap, everything
+> would then expand. He thinks this needs redesigning a little, so work out how best to do it and
+> show it to him.
 
 Three asks in one sentence: a **brand mark plus a wordmark on the left**, the wallet control **moved
 to the right**, and **one** wallet affordance where there are two today, with everything else
@@ -227,8 +228,8 @@ the brand block grows and B's 4px of slack goes negative. A is also the better a
 single-wallet user, which is most users.
 
 **Explicitly rejected: C - the segmented pill.** It looks diplomatic and is the smallest diff, which
-is exactly why it needs naming rather than quietly shipping. Jakub's complaint was *"teraz mamy i
-wybor sieci, i wybor walleta"* - two choosers. C still has two choosers wearing one border. It also
+is exactly why it needs naming rather than quietly shipping. Jakub's complaint was that right now we
+have both a network chooser and a wallet chooser - two choosers. C still has two choosers wearing one border. It also
 puts two 48px targets side by side in the top-right corner, the least accurate place a thumb reaches
 on a 390pt phone, trading a design complaint for a mis-tap.
 

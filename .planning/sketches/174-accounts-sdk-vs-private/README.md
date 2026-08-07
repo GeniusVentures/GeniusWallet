@@ -1,55 +1,55 @@
 ---
 sketch: 174
 name: accounts-sdk-vs-private
-question: "Jak arkusz kont ma rozróżniać konta SDK od portfeli prywatnych - i jakie ograniczenia narzuca kod?"
+question: "How should the accounts sheet tell SDK accounts apart from private wallets - and what constraints does the code impose?"
 winner: null
 tags: [mobile, ios, accounts, sdk, wallets, sheet, follows-173]
 ---
 
-# Sketch 174: Konta SDK vs portfele prywatne
+# Sketch 174: SDK accounts vs private wallets
 
 ## Design Question
 
-Jakub, 2026-08-06: *"musi byc tez rozroznienie miedzy SDK accounts oraz Your Accounts - zobacz w
-kodzie jak mozemy to przedstawic najlepiej czy sa jakie obowstrzenia"*.
+Jakub, 2026-08-06: there also has to be a distinction between SDK accounts and Your Accounts - look
+in the code for the best way to present it, and whether there are any constraints.
 
-## Co mówi kod
+## What the code says
 
-| | Konta SDK | Portfele prywatne |
+| | SDK accounts | Private wallets |
 |---|---|---|
-| Źródło | `api.getAvailableAccounts()` (natywny węzeł) | `_baseWallets`, lokalny magazyn |
-| Typ | `WalletType.sgnus` | mnemonic / privateKey / keystore / tracking |
-| Tworzone w | `app_bloc.dart:605-628` `_mergeSgnusWallet()` | `LoadWallets` |
-| Jednostka | `currencySymbol: 'minions'` | waluta sieci |
-| Saldo czyta | natywny SDK, `readSuperGeniusTokenAssets` (`wallet_details_cubit.dart:198-206`) | RPC sieci |
-| Transakcje | `SgnusTransactionsScreen` (`dashboard_screen.dart:407-411`) | `TransactionsStream` |
-| Nazwa | generowana `Super Genius Wallet N` (`app_bloc.dart:616-618`) | użytkownika |
-| Rename / Delete | zablokowane (`account_drawer.dart:307,320`) | dostępne |
-| Znikają | gdy `!connection.isConnected` (`app_bloc.dart:606-609`) | nigdy |
+| Source | `api.getAvailableAccounts()` (the native node) | `_baseWallets`, local storage |
+| Type | `WalletType.sgnus` | mnemonic / privateKey / keystore / tracking |
+| Created in | `app_bloc.dart:605-628` `_mergeSgnusWallet()` | `LoadWallets` |
+| Unit | `currencySymbol: 'minions'` | the network currency |
+| Balance read by | the native SDK, `readSuperGeniusTokenAssets` (`wallet_details_cubit.dart:198-206`) | the network RPC |
+| Transactions | `SgnusTransactionsScreen` (`dashboard_screen.dart:407-411`) | `TransactionsStream` |
+| Name | generated `Super Genius Wallet N` (`app_bloc.dart:616-618`) | the user's |
+| Rename / Delete | blocked (`account_drawer.dart:307,320`) | available |
+| Disappear | when `!connection.isConnected` (`app_bloc.dart:606-609`) | never |
 
-## Dwa ustalenia, które zmieniają design
+## Two findings that change the design
 
-**1. To są dwie niezależne osie, nie dwa rodzaje tej samej rzeczy.**
-Wybór w szufladzie kont woła tylko `walletCubit.selectWallet()` (`account_drawer.dart:69`) - mówi
-"co oglądam". To, które konto SDK jest **aktywne w węźle**, ustawia inna kontrolka:
-`sdk_account_manager.dart:185` wysyła `SelectSDKAccount` → `api.selectGeniusAccountAsync`.
-`SelectSDKAccount` nie jest wysyłane znikąd indziej w `lib/`. Podświetlenie listy i aktywne konto
-węzła to dwa różne stany, a UI nigdy tego nie mówi.
+**1. These are two independent axes, not two kinds of the same thing.**
+Picking in the accounts drawer only calls `walletCubit.selectWallet()` (`account_drawer.dart:69`) - it says
+"what am I looking at". Which SDK account is **active on the node** is set by a different control:
+`sdk_account_manager.dart:185` sends `SelectSDKAccount` → `api.selectGeniusAccountAsync`.
+`SelectSDKAccount` is not sent from anywhere else in `lib/`. The list highlight and the node's active
+account are two different states, and the UI never says so.
 
-**2. Konta SDK znikają bez komunikatu.** Pierwsze linie `_mergeSgnusWallet()`: brak połączenia →
-zwracane są same `_baseWallets`. Lista po prostu się kurczy.
+**2. SDK accounts disappear with no message.** The first lines of `_mergeSgnusWallet()`: no connection →
+only `_baseWallets` is returned. The list simply shrinks.
 
-## Co zmieniono względem 173
+## What changed against 173
 
-- Dwie sekcje z nagłówkami i jednozdaniowym wyjaśnieniem każdej.
-- Salda w prawdziwych jednostkach (minions vs waluta sieci), nie wspólna kolumna dolarowa.
-- Odznaka `AKTYWNE W NODZIE` + akcja `Ustaw w nodzie`, rozdzielające obie osie.
-- Jawny stan rozłączonego węzła zamiast cichego zniknięcia.
-- Adres wypłat widoczny w sekcji SDK - to on łączy oba światy.
-- `TYLKO PODGLĄD` przy portfelu typu `tracking`.
+- Two sections with headings and a one-sentence explanation of each.
+- Balances in their real units (minions vs the network currency), not a shared dollar column.
+- An `ACTIVE ON NODE` badge plus a `Set on node` action, separating the two axes.
+- An explicit disconnected-node state instead of a silent disappearance.
+- The payout address visible in the SDK section - it is what joins the two worlds.
+- `VIEW ONLY` on a `tracking` wallet.
 
 ## Open
 
-- Czy wybór konta SDK do podglądu powinien **jednocześnie** ustawiać je jako aktywne w węźle.
-  Kod trzyma to osobno; zlanie w jedno byłoby prostsze, ale zmienia zachowanie węzła.
-- Co pokazać, gdy węzeł jest połączony, ale nie ma żadnych kont SDK.
+- Whether picking an SDK account to view should **also** set it active on the node.
+  The code keeps these separate; merging them would be simpler, but it changes node behaviour.
+- What to show when the node is connected but there are no SDK accounts at all.

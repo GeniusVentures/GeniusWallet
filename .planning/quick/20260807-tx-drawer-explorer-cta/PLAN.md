@@ -43,11 +43,11 @@ comment above it is still true. Changing it is a design decision with app-wide
 consequences, so it goes to Jakub as a decision with a stated recommendation rather than
 being quietly applied.
 
-Purpose: Jakub, 2026-08-07, live on his iPhone. Verbatim: "jak klikne w transactions, to
-mam taki duzy CTA view on explorer. Chcialbym, zeby ten CTA byl wielkosci CTA, ktory jest
-normalnie na dashboardzie w sekcji assets: receive albo buy genius. Dodatkowo, ten CTA
-jest znacznie wyzej; jest jakis taki duzy padding od spodu. Mysle, ze to jest to samo, co
-jest na homepage, bylo z navigation bottom barem, wiec dostosuj go rowniez."
+Purpose: Jakub, 2026-08-07, live on his iPhone. When he taps into transactions he gets
+this big View on Explorer CTA. He wants that CTA sized like the CTA normally on the
+dashboard in the assets section: receive or buy genius. On top of that, the CTA sits much
+too high; there is some large padding underneath it. He thinks it is the same thing that
+was on the homepage with the bottom navigation bar, so it should be fixed as well.
 
 Output: one shell fix, one shared constant, one guard test, one decision put to Jakub,
 and a blocking on-device check against the exact buttons he named as the reference.

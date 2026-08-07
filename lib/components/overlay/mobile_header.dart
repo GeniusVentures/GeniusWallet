@@ -60,10 +60,10 @@ class MobileHeader extends StatelessWidget implements PreferredSizeWidget {
       // FROZEN, 2026-08-07, and this is the one line most likely to be
       // helpfully "fixed" by the next reader. Jakub asked twice for the brand
       // to move left and the pill to move right, then judged the alignment
-      // correct on device and withdrew both: "ok logo zostaw jest dobrze
-      // alignowane, ale zrob to wieksze", narrowed again to "rob po prostu to
-      // logo i nazwe wieksza na chwile obecne, wallet i alignemnt zostaw,
-      // ocenimy po zmianach".
+      // correct on device and withdrew both: leave the logo where it is, it is
+      // aligned well, just make it bigger - narrowed again to make only the
+      // logo and the wordmark bigger for now, leave the wallet and the
+      // alignment alone, and judge it after those changes.
       //
       // So the lockup GREW that day and nothing else moved: this
       // `titleSpacing`, the `actions` inset below and the mark-to-wordmark gap
@@ -535,10 +535,11 @@ class _NoWalletAvatar extends StatelessWidget {
 /// halves rather than two objects. That is the specific reason F beat it. F's
 /// ink gap is `12 + 13 = 25` against A's 12.
 ///
-/// The one-edit fallback Jakub reserved on 2026-08-07 ("183F sprobujmy potem
-/// mozemy cofnac do 183C jesli bedzie zle") is scheme C: drop the WALLET's
-/// border too, so neither control has a container. That is a removal from
-/// [WalletPill], never an addition here.
+/// The one-edit fallback Jakub reserved on 2026-08-07, when he asked to try F
+/// on the understanding that we could fall back to C if it read badly, is
+/// scheme C: drop the WALLET's border too, so neither control has a container.
+/// That is a removal from [WalletPill], never an addition here. C is what
+/// shipped later the same day.
 ///
 /// No gradient and no `GWGradientBorderCard`. That component's `onTap` path is
 /// `Material(transparent) > InkWell > card`, so its splash paints behind an
@@ -569,14 +570,10 @@ class HeaderMenuButton extends StatelessWidget {
         // both controls bordered) and reverted: the wallet holds a value and
         // this does not, which is the whole of scheme F's argument.
       ),
-      // 18, the same size as the caret this scheme deleted from the wallet
-      // control. Sketch 183's ink-gap arithmetic is built on it:
-      // `(44 - 18) / 2 = 13`, so F's separation is `12 + 13 = 25`. A 24 here
-      // would break that measured figure and is not what Jakub looked at.
-      // 24, raised from 18 on device 2026-08-07: "zostaw wiekszy hamburger
-      // menu i tyle". The 18 came from matching the caret that scheme F had
-      // just deleted from the wallet control, so it was sized against a glyph
-      // that no longer exists.
+      // 24, raised from 18 on device 2026-08-07: Jakub asked to keep the
+      // larger menu glyph and change nothing else. The 18 came from matching
+      // the caret that scheme F had just deleted from the wallet control, so
+      // it was sized against a glyph that no longer exists.
       //
       // It moves one measured figure. Sketch 183's ink gap is
       // `(44 - glyph) / 2`, so the glyph now stops 10 inside its box rather

@@ -1,19 +1,19 @@
 ---
 sketch: 173
 name: variant-a-interactive
-question: "Co się dzieje po tapnięciu w nazwę portfela - i czy wariant A trzyma się, gdy da się go faktycznie przeklikać?"
+question: "What happens when you tap the wallet name - and does variant A hold up once you can actually click through it?"
 winner: null
 tags: [mobile, ios, prototype, interactive, wallet-switcher, navigation, follows-171, follows-172]
 ---
 
-# Sketch 173: Wariant A jako klikalny prototyp
+# Sketch 173: Variant A as a clickable prototype
 
 ## Design Question
 
-Jakub wybrał **A · Curated Five** (2026-08-06) i od razu znalazł dziurę w statycznych makietach:
-*"aczkolwiek jak bedzie sie rozwijal wallet jak tam klikne? zrob interaktywny wersje w pelni"*.
+Jakub picked **A · Curated Five** (2026-08-06) and immediately found the hole in the static mockups:
+what happens when the wallet expands, when he taps in there - make a fully interactive version.
 
-Statyczny obrazek nie odpowiada na pytanie, co robi nagłówek. Ten sketch odpowiada przez działanie.
+A static image does not answer what the header does. This sketch answers by working.
 
 ## How to View
 
@@ -21,39 +21,39 @@ Statyczny obrazek nie odpowiada na pytanie, co robi nagłówek. Ten sketch odpow
 open http://localhost:8899/173-variant-a-interactive/
 ```
 
-Wszystko w telefonie jest klikalne. Każde tapnięcie ląduje w **dzienniku** po prawej z nazwą trasy,
-która odpaliłaby się w `router.dart` - albo z informacją, że takiej trasy nie ma.
+Everything on the phone is clickable. Every tap lands in the **log** on the right with the name of
+the route that would have fired in `router.dart` - or a note that no such route exists.
 
-## Główna odpowiedź: portfel to arkusz, nie dropdown
+## The main answer: the wallet is a sheet, not a dropdown
 
-Tapnięcie w nazwę portfela otwiera arkusz z listą portfeli (Main Wallet / Trading / Cold Storage),
-saldem i liczbą aktywów przy każdym, oraz akcjami: Dodaj portfel, Połącz przez WalletConnect,
-Zarządzaj portfelami. Wybór **realnie przełącza stan** - zmienia się nagłówek i saldo.
+Tapping the wallet name opens a sheet listing the wallets (Main Wallet / Trading / Cold Storage),
+with the balance and asset count beside each, plus the actions: Add wallet, Connect via WalletConnect,
+Manage wallets. Choosing one **really switches state** - the header and the balance change.
 
-**Dlaczego arkusz, a nie rozwijana lista.** Dropdown pod nagłówkiem musi zmieścić się w 390 px
-i rośnie w dół nad treścią. Przy wierszu ~56 px (nazwa + adres + saldo) cztery portfele zasłaniają
-pół ekranu i i tak wymagają przewijania, a górna krawędź listy jest poza zasięgiem kciuka.
-Arkusz przychodzi od dołu, ma miejsce na adres, saldo i sieć, i używa `GWBottomSheet`,
-który obsługuje już "More" - zero nowych wzorców.
+**Why a sheet and not a dropdown.** A dropdown under the header has to fit inside 390 px
+and grows downward over the content. At a ~56 px row (name + address + balance) four wallets cover
+half the screen and still need scrolling, and the top edge of the list is out of thumb reach.
+A sheet comes up from the bottom, has room for the address, balance and network, and uses `GWBottomSheet`,
+which already backs "More" - zero new patterns.
 
-## Co jeszcze działa
+## What else works
 
-- **Chip sieci** → arkusz sieci; zmiana sieci przebudowuje listę aktywów (Ethereum 3 / Polygon 2 / BNB 1).
-- **Adres** → kopiowanie z potwierdzeniem.
-- **Wiersz aktywu** → ekran monety, z paskiem powrotu pokazującym, skąd przyszedłeś.
-- **Swap z monety** → dziennik pokazuje `/swap extra:{symbol}`, czyli realny kontrakt z `router.dart:224`.
-- **Pasek dolny** → pięć pozycji; More otwiera arkusz z News / Web / Feedback / Settings.
-- **Rail akcji** → Send / Receive / Buy / Compute.
+- **Network chip** → the network sheet; changing network rebuilds the asset list (Ethereum 3 / Polygon 2 / BNB 1).
+- **Address** → copy with confirmation.
+- **Asset row** → the coin screen, with a back bar showing where you came from.
+- **Swap from a coin** → the log shows `/swap extra:{symbol}`, the real contract from `router.dart:224`.
+- **Bottom bar** → five items; More opens a sheet with News / Web / Feedback / Settings.
+- **Action rail** → Send / Receive / Buy / Compute.
 
-## Co dziennik ujawnia
+## What the log reveals
 
-Trzy tapnięcia kończą się `brak trasy`: **Receive**, **Send** i **Compute**. To nie jest usterka
-prototypu - to stan aplikacji. Send i Receive żyją dziś jako przyciski wewnątrz ekranów
-(`wallet_information.dart:176-185`, `coins_screen.dart:179,345`), a nie jako trasy, więc nawigacja
-nie ma ich jak pokazać. Ten prototyp czyni ten brak widocznym.
+Three taps end in `no route`: **Receive**, **Send** and **Compute**. That is not a defect of the
+prototype - it is the state of the app. Send and Receive live today as buttons inside screens
+(`wallet_information.dart:176-185`, `coins_screen.dart:179,345`) rather than as routes, so navigation
+has no way to show them. This prototype makes that gap visible.
 
 ## Open
 
-- Czy przełącznik portfeli ma też przełączać sieć, czy to dwie niezależne osie (teraz niezależne).
-- Czy Compute zasługuje na własną trasę.
-- Zachowanie przy jednym portfelu - arkusz z jedną pozycją jest bez sensu, potrzebny stan zwinięty.
+- Whether the wallet switcher should switch the network too, or whether those are two independent axes (independent for now).
+- Whether Compute deserves its own route.
+- Behaviour with a single wallet - a sheet with one item makes no sense, a collapsed state is needed.

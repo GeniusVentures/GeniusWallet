@@ -45,12 +45,12 @@ together.
 [Swap dock], Activity, News**, and the menu leaves the bar for a hamburger in
 the header:
 
-> "mozesz juz zaimplementowac S7 ale jeszcze bez otwierania menu"
+> Jakub, 2026-08-07: you can implement S7 now, but without the menu opening yet.
 
 **Sketch 183 scheme F** - the header's right side becomes a 44x44 wallet chip
 plus a bare 44x44 hamburger, replacing the 223.94px pill:
 
-> "183F sprobujmy potem mozemy cofnac do 183C jesli bedzie zle"
+> Jakub, 2026-08-07: let's try 183F; if it turns out badly we can fall back to 183C later.
 
 So: build S7 and F, and do NOT build the redesigned menu. The hamburger opens
 the sheet that is behind `More` today, unchanged. Sketch 184 (the menu page) is
@@ -745,8 +745,8 @@ as the one-edit fallback Jakub already reserved.
 
 Restructure `title`. **`titleSpacing` and `actions` are NOT touched.** Both
 controls sit in ONE right-aligned Row inside the existing `Expanded`, `space6`
-apart, hamburger outermost, which is the order Jakub asked for ("ikonke walletu
-... i obok tego hamburger menu"):
+apart, hamburger outermost, which is the order Jakub asked for - the wallet
+icon, and the hamburger menu next to it:
 
     title: Row(children: [
       const BrandLockup(),

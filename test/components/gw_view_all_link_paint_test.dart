@@ -1,9 +1,9 @@
 // Pins `GWViewAllLink`'s colour decision after the 2026-08-07 revert.
 //
 // The link painted the brand CTA blend at rest for part of 2026-08-07. Jakub
-// saw it on the phone and sent it back to grey the same day ("a z view all -
-// wrocmy do starego szarego koloru jak byl"), so rest is flat `textSecondary`
-// again and hover is flat `textPrimary`.
+// saw it on the phone and sent it back to grey the same day - take `View all`
+// back to the old grey it used to be - so rest is flat `textSecondary` again
+// and hover is flat `textPrimary`.
 //
 // This file was `gw_view_all_link_gradient_test.dart` until that revert. The
 // name went with the colour: a file whose name says gradient while asserting

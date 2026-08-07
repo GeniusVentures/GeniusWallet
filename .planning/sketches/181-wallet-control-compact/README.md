@@ -10,15 +10,16 @@ omission: how much of the bar that pill eats.
 
 Jakub, 2026-08-07, on device:
 
-> "nadal bym rozwazyl jak zaprezentowac ten wallet po prawej stronie, bo nie do konca mi sie on
-> podoba. Przygotuj 4-5 designow jak bys to ogarnal. Czy moze ikonke walleta a potem wszystko sie
-> rozwija, czy jakas bardziej krotsza forme, bo zajmuje to teraz polowe ekranu, co mi sie nie do
-> konca podoba."
+> He would still reconsider how the wallet on the right is presented, because he does not really
+> like it. Prepare 4-5 designs of how you would handle it. Maybe a wallet icon and then everything
+> expands, or some shorter form, because right now it takes up half the screen, which he is not
+> happy with.
 
 Jakub, later the same day, a new direction that arrived mid-build and is now scheme F:
 
-> "sprobuj w prawym gornym rogu zrobic ikonke walletu, czy cos podobnego w krotszej formie, i obok
-> tego hamburger menu. I wtedy, zamiast 'more' na samym dole, moglibysmy dac na przyklad 'news'."
+> Try putting a wallet icon in the top-right corner, or something similar in a shorter form, with
+> the hamburger menu next to it. And then, instead of 'more' at the very bottom, we could put
+> something like 'news'.
 
 ## He is right, and he is under by seven points
 

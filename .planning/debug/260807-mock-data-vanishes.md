@@ -1,6 +1,6 @@
 ---
 status: awaiting_human_verify
-trigger: "gdy robie mock transactions albo populate, to potem nagle te transakcje znikaja. Prosze zobacz dlaczego sie tak dzieje."
+trigger: "Jakub, 2026-08-07: after he presses mock transactions or populate, those transactions suddenly vanish; he asked to find out why."
 created: 2026-08-07T12:45:00Z
 updated: 2026-08-07T13:40:00Z
 ---

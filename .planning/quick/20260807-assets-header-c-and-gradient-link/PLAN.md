@@ -36,10 +36,10 @@ must_haves:
 ---
 
 <objective>
-Two changes Jakub decided on 2026-08-07 after reviewing sketch 178. Verbatim:
+Two changes Jakub decided on 2026-08-07 after reviewing sketch 178, in English:
 
-> "178 sprobujmy zatem z 178 C - wydaje sie dobrym rozwiazaniem, dodatkowo View All - zrob
-> gradient tak jak sugerujesz"
+> On 178, let's go with 178 C - it looks like a good solution; and on top of that, for
+> View All, do the gradient the way you are suggesting.
 
 **Change 1** is scheme C from the sketch: the Assets section header stops being a row of
 three competing elements and becomes a row of two. The word "Assets" demotes to a small
@@ -55,9 +55,9 @@ Neither change is fixing a bug. The Assets row is not overflowing - measured at 
 fits with about 25px to spare - so change 1 is a hierarchy decision, and a plan that only
 rearranges pixels without deciding which element is dominant has not delivered it.
 
-Purpose: Jakub, on his iPhone, 2026-08-07, on the current state: "nie podoba mi sie sekcja
-assets, poniewaz tam masz view all oraz kwote po prawej stronie, chcialbym zebysmy to
-dobrze jakos rozwiazali, bo nie wyglada to dobrze."
+Purpose: Jakub, on his iPhone, 2026-08-07, on the current state: he does not like the
+assets section, because it carries both view all and the amount on the right-hand side,
+and he wants it solved properly, because as it stands it does not look good.
 
 Output: one additive component parameter, one restyled call site, one global link
 treatment, four corrected comments, two new guard tests, one recorded design cost, one

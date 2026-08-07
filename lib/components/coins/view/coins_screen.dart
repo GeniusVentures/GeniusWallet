@@ -314,10 +314,10 @@ class CoinsScreenState extends State<CoinsScreen> {
                 // REVERT of scheme C, which shipped earlier the same day and
                 // which Jakub rejected on the phone hours later:
                 //
-                //   "sekcja assets w dashboardzie wyglada w porzadku,
-                //    natomiast assets mial respektowac ten sam komponent,
-                //    czyli ten sam kolor i wszystko jak transaction, jak
-                //    compute, jak market, wiec musisz to zmienic prosze."
+                //   The Assets section on the dashboard looks fine in itself,
+                //   but Assets was supposed to respect the SAME component -
+                //   the same colour and everything - as Transactions, as
+                //   Compute, as Markets. So that has to change.
                 //
                 // Scheme C demoted the word Assets to an 11px uppercase
                 // secondary kicker and gave the big type to the number. The

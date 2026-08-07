@@ -4,14 +4,15 @@ http://localhost:8899/182-bottom-nav-destinations/
 
 Jakub, 2026-08-07:
 
-> "zaproponuj jakie batony powinny byc na navigation bottom barze. Poki co mamy: home, markets, mamy
-> ikone swap, activity i more. More bym zmienil na menu potencjalnie, i nie wiem czy bym zostawil
-> markets i activity. Zasugeruj cos z twojej strony."
+> Propose which buttons belong on the bottom navigation bar. Right now we have: home, markets, the
+> swap icon, activity and more. He would potentially change more into menu, and he is not sure he
+> would keep markets and activity. Suggest something from your side.
 
 And later the same day, which changes the premise:
 
-> "sprobuj w prawym gornym rogu zrobic ikonke walletu, czy cos podobnego w krotszej formie, i obok
-> tego hamburger menu. I wtedy, zamiast 'more' na samym dole, moglibysmy dac na przyklad 'news'."
+> Try putting a wallet icon in the top-right corner, or something similar in a shorter form, with
+> the hamburger menu next to it. And then, instead of 'more' at the very bottom, we could put
+> something like 'news'.
 
 **The bar's shape is not in scope.** Sketch 171 **B** (four tabs plus a centre dock) crossed with 172
 **A** (the dock is Swap) were both picked on device on 2026-08-06 and are shipped. Every scheme here

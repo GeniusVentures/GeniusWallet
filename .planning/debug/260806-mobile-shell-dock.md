@@ -11,9 +11,8 @@ suspect_files:
 
 ## Report
 
-Jakub, 2026-08-06: *"apka cala popsula sie przez ten srodkowy CTA"* - the app broke because of the
-centre CTA, after phase 24 replaced `BottomNavigationBar` with a custom Row carrying
-`_MobileSwapDock`.
+Jakub, 2026-08-06: he reported that the whole app broke because of that centre CTA, after phase 24
+replaced `BottomNavigationBar` with a custom Row carrying `_MobileSwapDock`.
 
 ## Evidence so far
 
@@ -49,9 +48,9 @@ appearance but dead taps / something else. Then test the matching hypothesis.
 
 ## ROOT CAUSE (confirmed by the reported symptom, 2026-08-06)
 
-Jakub's description was decisive: *"Nowy CTA jest praktycznie na środku ekranu, a pozostała część
-ekranu Genius AI zaczyna się u samej góry mojego ekranu"* - the dock sits mid-screen and the content
-starts at the very top edge. That is two separate faults with one report.
+Jakub's description was decisive: the new CTA sits practically in the middle of the screen, and the
+rest of the Genius AI screen starts right at the very top edge of his display. That is two separate
+faults with one report.
 
 ### Fault 1 - the bar swallowed the viewport
 

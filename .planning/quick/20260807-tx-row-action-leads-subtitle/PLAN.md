@@ -42,7 +42,7 @@ line. The chip container is deleted.
 
 Jakub, 2026-08-07, on his iPhone, asked two questions at once: fix the truncated tags,
 and are the tags needed at all now that the badge sits on the coin logo. The sketch
-answered both and he picked C: "179 - tak idz z C zatem".
+answered both and he picked C: on 179, go with C.
 
 Purpose: the action word is not surplus, its POSITION is. The badge is chosen status
 first in `txRowContent`, so on any pending or failed row the badge has spent itself on

@@ -9,13 +9,15 @@ scope: TWO deliverables, to be planned as two plans and executed in parallel
 
 # Phase 25: one scroll on the dashboard
 
-## The request, verbatim
+## The request
 
-> "Nie podoba mi sie ze czasem zamiast isc w dol to scrolluje mi sie jakas sekcja... np. w assets -
-> wyswietl top 5 assets jesli chodzi o top holding w $$ i w transactions last 5 transactions,
-> markets - Gnus + 4 other coins (BTC / ETH / XRP / BNB / Solana) i view all otwiera calosc i tak
-> samo w corresponding sekcjach. Chce osiagnac lepszy feeling scrollingu a nie zeby mi sie sekcje
-> scrolluja."
+Jakub, 2026-08-06 live iPhone walk, reported in English:
+
+> He dislikes that sometimes, instead of the page moving down, some section scrolls instead. For
+> example in assets - show the top 5 assets by holding value in $$, and in transactions the last 5
+> transactions, markets - Gnus + 4 other coins (BTC / ETH / XRP / BNB / Solana), with view all
+> opening the full list, and the same in the corresponding sections. He wants a better scrolling
+> feel rather than sections scrolling under him.
 
 ## Diagnosis - confirmed in code, not inferred
 

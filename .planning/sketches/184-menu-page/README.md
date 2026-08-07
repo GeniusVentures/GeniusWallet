@@ -6,14 +6,12 @@ Follows **182** (S7 picked: Home, Assets, [Swap dock], Activity, News) and **181
 icon plus a hamburger in the header's top-right). Those two decide that a menu exists and where it is
 reached from. This sketch is about what is inside it.
 
-Jakub, 2026-08-07:
+Jakub, 2026-08-07: build the sketches from your own feedback, but with proper sections and the like,
+using our components exactly as they are.
 
-> "zrob sketche na bazie Twojego feedbacku tylko ladne sekcje etc uzywajac idealnie naszych komponentow"
-
-And, arriving mid-build and overriding the brief that started this:
-
-> "w tym menu ma sie znajdowac tylko to, co obecnie mamy, i do czego jest zbudowana logika oraz kod,
-> zebys nie wychodzil poza szereg. Wszystko ma byc robione na bazie kodu."
+And, arriving mid-build and overriding the brief that started this, he added: the menu is to hold only
+what we have today, and only what the logic and the code are already built for, so nobody steps out of
+line - everything is to be done on the basis of the code.
 
 **Every row in every variant was found in the code before it was drawn.** The proof list is below. Four
 items the original brief asked for were looked up and are not here, because they do not exist.

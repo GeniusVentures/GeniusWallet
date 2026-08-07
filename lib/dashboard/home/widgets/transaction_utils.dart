@@ -439,10 +439,11 @@ TxRowContent txRowContent(
   // they already contain recomposes to a byte-identical line; only `transfer`
   // and `swap` gain a word, because those two never stated their verb here.
   //
-  // NO ROW PRINTS THE TRANSACTION'S OWN HASH (Jakub on device, 2026-08-07:
-  // "usun ten 'transaction ID' czy cokolwiek jest po prawej stronie, bo to nie
-  // ma nawet sensu"). `process` was the only arm that did - its base was
-  // `_addressLine(tx.hash)`, drawn as `0xabcd...7890` - and a hash identifies
+  // NO ROW PRINTS THE TRANSACTION'S OWN HASH. Jakub on device, 2026-08-07:
+  // remove the transaction ID, or whatever that string on the right is, it
+  // does not even make sense there. `process` was the only arm that did - its
+  // base was `_addressLine(tx.hash)`, drawn as `0xabcd...7890` - and a hash
+  // identifies
   // the row you have already tapped, which is the one question a person
   // scanning a list is not asking. It stays reachable and copyable IN FULL from
   // the detail drawer, as a row labelled `Job`;

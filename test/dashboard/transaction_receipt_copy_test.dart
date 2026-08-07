@@ -140,8 +140,9 @@ void main() {
     expect(copied, [_hash]);
   });
 
-  // Jakub, 2026-07-28: "status completed brakuje im kolorów - powinien być
-  // przez komponent połączony". The pill and the Status row print the SAME
+  // Jakub, 2026-07-28: the completed status is missing its colours, and the
+  // two places that print it should be connected through one component.
+  // The pill and the Status row print the SAME
   // word, so a drift between them is a drift between two colours on one
   // string. This asserts they cannot: both Texts are found by the same finder
   // and must agree, for every state.

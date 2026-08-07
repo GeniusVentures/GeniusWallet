@@ -48,11 +48,12 @@ must_haves:
 <objective>
 Jakub picked scheme B from sketch 180 on 2026-08-07:
 
-> "tak super 180B tak jak sugerujesz a logo Geniusz masz wiec wprowadzaj temat"
+> Yes, 180B is great, exactly as you suggest - and you already have the Genius logo, so
+> go ahead and bring it in.
 
 and confirmed the wordmark string in the same session:
 
-> "tak napisz GeniusAI"
+> Yes, write GeniusAI.
 
 Three things move at once, and they are one change because none of them survives alone:
 
@@ -60,8 +61,8 @@ Three things move at once, and they are one change because none of them survives
    that already ships in the desktop app bar plus the wordmark `GeniusAI` as live text.
 2. **The wallet control moves right and becomes ONE thing.** Today there are two controls
    and the wallet one is on the wrong side: an `InkWell` wallet block in `AppBar.title` on
-   the LEFT, and `NetworkDropdownSelector` alone in `actions`. Jakub's complaint verbatim
-   was "teraz mamy i wybor sieci, i wybor walleta" - two choosers for one question.
+   the LEFT, and `NetworkDropdownSelector` alone in `actions`. Jakub's complaint was that
+   right now we have both a network chooser and a wallet chooser - two choosers for one question.
 3. **Everything else expands on tap.** One sheet, "Wallet and network", carrying the
    network strip on top of the two account sections sketch 174 built this session.
 

@@ -75,9 +75,9 @@ const double _narrowStatusMaxWidth = 76;
 /// Completed receipt showed a green pill above a plain white "Completed" and a
 /// Pending one showed an amber pill above a white "Pending".
 ///
-/// Jakub, 2026-07-28: *"status completed brakuje im kolorów - powinien być
-/// przez komponent połączony"*. Connected here: one function, and neither
-/// consumer can drift from the other again.
+/// Jakub, 2026-07-28: the completed status is missing its colours, and the two
+/// places that print it should be connected through one component. Connected
+/// here: one function, and neither consumer can drift from the other again.
 ({Color fg, Color wash}) txStatusColors(
   TransactionStatus status,
   GWColors gw,
@@ -479,10 +479,11 @@ class TransactionRow extends StatelessWidget {
                                       // Jakub, 2026-08-07 on device: at w500
                                       // against the base's w400, in the SAME
                                       // colour and joined by a plain space, the
-                                      // lead and the context read as one string
-                                      // ("Job oraz info za nim - ciezko
-                                      // odroznic"). One weight step at 13px is
-                                      // not a separator.
+                                      // lead and the context read as one
+                                      // string - his words were that the job
+                                      // label and the information after it
+                                      // were hard to tell apart. One weight
+                                      // step at 13px is not a separator.
                                       //
                                       // Colour carries it instead: textPrimary
                                       // against textSecondary is 19.4:1 against
@@ -960,7 +961,7 @@ void showTransactionDetails(
         const SizedBox(height: GeniusWalletConsts.space12),
 
         // A kicker over a ruled well, which is 154-A's grouping restored
-        // (Jakub 2026-07-28: "tej siatki nie ma - chciałbym ją mieć"). The
+        // (Jakub, 2026-07-28: that grid is missing and he wanted it back). The
         // first pass shipped the rows bare on 067-A's reasoning; see
         // `GWDetailGrid`'s doc for why that reasoning covers a box around a
         // FORM and not a read-only table, and why `borderSubtle` rather than

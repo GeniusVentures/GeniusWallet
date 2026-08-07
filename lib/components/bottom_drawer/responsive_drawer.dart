@@ -48,8 +48,8 @@ const EdgeInsets kDrawerFooterPadding = EdgeInsets.all(
 /// The drawer panel is painted in THREE places -- the desktop `Container`, the
 /// mobile sheet's `backgroundColor`, and the `Scaffold` inside both. Sketch
 /// **156-A "Card canvas"** moved all three from `surfaceMenu` #171A21 to
-/// `surfaceElevated` #0C0E14, which is Jakub's *"ciemniejsze, bardziej
-/// kompatybilne z resztą"* taken literally: the drawer was the ONLY large
+/// `surfaceElevated` #0C0E14, which is Jakub's ask - darker, and more
+/// consistent with everything else - taken literally: the drawer was the ONLY large
 /// surface in the app at #171A21, roughly two steps lighter than anything it
 /// ever opened over. It is now the same value as every card on the dashboard.
 ///

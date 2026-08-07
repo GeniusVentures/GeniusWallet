@@ -9,8 +9,8 @@ is live in `lib/components/overlay/mobile_header.dart` right now.
 
 Jakub, 2026-08-07, on device, immediately after walking the S7 header:
 
-> "ok jedna zmiana ktora chce zrobic, chcialbym bys tam po prostu pokazal wallet icon obok menu icon -
-> zaprojektuj kilka rozwiazan tych icon i podeslij w HTML 4-5 designow"
+> One change he wants to make: just show a wallet icon next to the menu icon there - design a few
+> treatments of those icons and send over 4-5 designs in HTML.
 
 So the header's left control stops being the account avatar and becomes a generic **wallet glyph**
 beside the menu glyph. Five whole treatments of that pair, plus the shipped bar for scale, all
@@ -32,8 +32,8 @@ does not "tidy" it into a matching pair.
 every chain and every state but one. It is strictly *less* identifying than the avatar it replaces,
 which at least varied by currency. Both controls become the same kind of object - a value-free door to
 a sheet - so the similarity F said "is not there" **is now there**, and by F's own reasoning the pair
-should match. That is 183 scheme **C**, both bare, the fallback Jakub reserved himself:
-*"183F sprobujmy potem mozemy cofnac do 183C jesli bedzie zle"*.
+should match. That is 183 scheme **C**, both bare, the fallback Jakub reserved himself when he said
+let's try 183F and fall back to 183C later if it turns out badly.
 
 Schemes **A**, **B** and **E** here are that pair. **C** and **D** keep containers and have to earn them
 on some other ground. Two are available and neither holds:

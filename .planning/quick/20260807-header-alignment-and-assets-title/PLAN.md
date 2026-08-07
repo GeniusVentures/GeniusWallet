@@ -44,11 +44,11 @@ Three changes Jakub asked for on his iPhone, 2026-08-07, in four messages over t
 the walk. All three are the same instinct: **put the dashboard sections back to one
 consistent treatment**, and make the brand readable.
 
-**Change 1 - the Assets section title goes back to the standard component.** Verbatim:
+**Change 1 - the Assets section title goes back to the standard component.** In English:
 
-> "sekcja assets w dashboardzie wyglada w porzadku, natomiast assets mial respektowac ten
-> sam komponent, czyli ten sam kolor i wszystko jak transaction, jak compute, jak market,
-> wiec musisz to zmienie prosze."
+> The assets section on the dashboard looks alright, but Assets was supposed to respect the
+> same component - the same colour and everything, like transaction, like compute, like
+> market - so it needs changing.
 
 This reverses sketch 178 scheme C, which shipped hours ago. C demoted the word Assets to an
 11px uppercase kicker in textSecondary and promoted the total to the section headline. His
@@ -61,18 +61,18 @@ sketch 178 **scheme A**, and that is what this plan builds.
 device. It began as four asks (bigger, move left, pill moves right, corner radius) and
 landed here:
 
-> "ok logo zostaw jest dobrze alignowane, ale zrob to wieksze"
-> "ok, rob po prostu to logo i nazwe wieksza na chwile obecne, wallet i alignemnt zostaw,
-> ocenimy po zmianach"
+> Leave the logo where it is, the alignment is right, just make it bigger.
+> Just make the logo and the name bigger for now, leave the wallet and the alignment as
+> they are, we will judge after the changes.
 
 So: the mark and the wordmark grow together. **Nothing else in the header moves.** He is
 deferring the rest until he has seen the bigger lockup. The `WalletPill` radius question he
 asked directly is answered in this plan as ANALYSIS with a recommendation, and deliberately
 not built.
 
-**Change 3 - View all goes back to grey.** Verbatim:
+**Change 3 - View all goes back to grey.** In English:
 
-> "a z view all - wrocmy do starego szarego koloru jak byl"
+> And on view all - let's go back to the old grey colour it used to have.
 
 This reverses the second half of the same quick task that shipped scheme C. It belongs in
 this plan rather than its own, because it is the same instinct as Change 1: the dashboard
@@ -194,7 +194,7 @@ Scheme A's band has 336px with no link competing, so the full pair fits: `336 - 
 
 **Do not restore it in this task.** It fits, but 15.73px is thin, Jakub asked for the title
 treatment and not the total's content, and he explicitly asked to keep this small and judge
-after ("ocenimy po zmianach"). Restoring it here would confound the thing he is about to
+it after the changes land. Restoring it here would confound the thing he is about to
 assess. Recorded as a named one-line follow-up with its real margin attached.
 
 ### Desktop, which this reaches whether we like it or not
@@ -591,8 +591,8 @@ wordmark's `fontSize: 15` to **18**. Change the wordmark's `ConstrainedBox(maxWi
 Three things must not change, and one of them is the whole point of the task's narrowness:
 `titleSpacing: GeniusWalletConsts.space8` on the `AppBar` stays, `actions: const [SizedBox(width: GeniusWalletConsts.space8)]`
 stays, and the `SizedBox(width: GeniusWalletConsts.space4)` between mark and wordmark stays.
-Jakub judged the alignment correct on device on 2026-08-07 - verbatim "ok logo zostaw jest
-dobrze alignowane, ale zrob to wieksze" - after an earlier message had asked for the opposite.
+Jakub judged the alignment correct on device on 2026-08-07 - leave the logo where it is, the
+alignment is right, just make it bigger - after an earlier message had asked for the opposite.
 Write that at the call site, with the date, so the next reader does not helpfully re-align
 it.
 
@@ -762,7 +762,7 @@ dropped in, 28 becomes lossless and 32 and 36 become available too. Without it, 
 as I would go; 32 is where I expect the blur to be visible.
 
 **7. Is the lockup big enough?** 24 -> 28 on the mark and 15 -> 18 on the text is +17% and
-+20%. If it still is not "zdecydowanie wieksze", the answer is the 114x114 export followed by
++20%. If it is still not decidedly bigger, the answer is the 114x114 export followed by
 32 or 36, not a bigger draw from the file we have.
 
 **8. Both ends of the header, since nothing moved.** The logo still sits at the `AppBar`
@@ -785,7 +785,7 @@ Type "approved" to accept all three changes, or describe what is wrong.
 Four things are waiting on your word and are deliberately not built:
   - the 114x114 logo export, and whether to go past 28 once it exists;
   - the `WalletPill` radius (recommendation: keep the stadium, take it from `radiusPill`);
-  - the `WalletPill`'s position, which you deferred with "ocenimy po zmianach";
+  - the `WalletPill`'s position, which you deferred until after the changes land;
   - the dollar figure on the 24h change, which scheme C dropped for want of width and the new
     band has room for again (measured: it fits with 15.73px to spare at the worst realistic
     total).
@@ -841,7 +841,7 @@ Named here so they are one step to pick up, not rediscoveries.
 | --- | --- | --- |
 | 1 | `geniusappbarlogo.png` at **114x114** (3x of 38), same path, same name | Ask Jakub. It is a pure drop-in - the render height is fixed in code and the crop is a `widthFactor`, so no layout number changes. Unlocks `height` up to 38 losslessly. |
 | 2 | `WalletPill` shape | Keep the stadium; express it as `RoundedRectangleBorder(BorderRadius.circular(GeniusWalletConsts.radiusPill))`, which clamps to 22 at h=44 and paints identically. Squarer step if wanted: `radius2xl` (16). Keep `borderControl` either way. |
-| 3 | `WalletPill` position | Deferred by Jakub ("ocenimy po zmianach"). He asked twice for it to move right before freezing the logo's position, so expect it back. |
+| 3 | `WalletPill` position | Deferred by Jakub until after the changes land. He asked twice for it to move right before freezing the logo's position, so expect it back. |
 | 4 | The dollar figure on the Assets 24h change | Fits the new band with **15.73px** to spare at `$1,234,567.89` with `+$1,234.56 - +12.34%`. Restores what shipped before 2026-08-07. Held back only so it does not confound this review. |
 | 5 | `gw_section_title_rhythm_test.dart` doc table | Its Assets row (`C=20 / R2=30`) and the `ROW INSET - CoinCardRow (Assets)` label describe the pre-scheme-A panel. Assertions stay correct; the prose is stale. Docs-only pass. |
 | 6 | The bottom-bar active tab gradient | **Leave it.** With the links flat it is the only gradient text on the dashboard, so its meaning sharpened rather than blurred, it is on a different surface, and Jakub approved it on 2026-08-06. Listed so it is a decision on the record, not an oversight. |

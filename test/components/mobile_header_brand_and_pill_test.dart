@@ -332,9 +332,10 @@ void main() {
   // The 2026-08-07 growth: mark 24 -> 28, wordmark 15 -> 18.
   //
   // Jakub asked for the brand to be bigger and for NOTHING else in the header
-  // to move ("rob po prostu to logo i nazwe wieksza na chwile obecne, wallet i
-  // alignemnt zostaw"). These cases pin the two sizes so an accidental revert
-  // to 24/15, or a creep to 32/20, fails loudly instead of silently.
+  // to move: make only the logo and the wordmark bigger for now, leave the
+  // wallet and the alignment alone. These cases pin the two sizes so an
+  // accidental revert to 24/15, or a creep to 32/20, fails loudly instead of
+  // silently.
   // -------------------------------------------------------------------------
 
   testWidgets('the mark renders at 28, the ceiling this 38px asset supports', (
@@ -590,10 +591,10 @@ void main() {
       ),
     );
     expect(icon.icon, Icons.menu);
-    // Raised 18 to 24 on device, 2026-08-07: "zostaw wiekszy hamburger menu i
-    // tyle". The original 18 was matched to the caret scheme F had just
-    // deleted from the wallet control, so it was sized against a glyph that no
-    // longer exists.
+    // Raised 18 to 24 on device, 2026-08-07: Jakub asked to keep the larger
+    // menu glyph and change nothing else. The original 18 was matched to the
+    // caret scheme F had just deleted from the wallet control, so it was sized
+    // against a glyph that no longer exists.
     //
     // This DOES move sketch 183's ink-gap figure, and the move is intended
     // rather than overlooked: the gap is `(44 - glyph) / 2`, so the glyph

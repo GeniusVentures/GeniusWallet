@@ -11,12 +11,12 @@ branch: redesign/navigation-260806
 
 # 260806-wys - dashboard section rhythm
 
-Jakub, reading the panels side by side on his iPhone: "w kazdej z sekcji jest box -> title -> i
-reszta rzeczy w boxie, wiec te paddingi/gapy powinny byc takie same". Then, when the first framing
-missed his point: "zobacz w Asset odleglosc miedzy borderem a 'Assets' a 'Assets' a tokenem
-pierwszym jest taka sama - o to mi chodzilo".
+Jakub, reading the panels side by side on his iPhone: every section is a box -> title -> and the
+rest of the content in the box, so those paddings and gaps should be the same. Then, when the first
+framing missed his point: look at Assets, the distance from the border to "Assets" and from
+"Assets" to the first token is the same - that is what he meant.
 
-**Approved on device 2026-08-07:** "tak border tytul jest ok - approved".
+**Approved on device 2026-08-07:** the border-to-title gap is right - approved.
 
 ## What was actually wrong
 
@@ -54,8 +54,8 @@ Markets and Assets floor at 0 because their content inset exceeds the 16 the pad
 **Assets at 30 is the section Jakub measured as already correct**, so that overshoot is the target,
 not a residual.
 
-**R1 = 12 at every site, unchanged.** He said "zachowaj padding ktory jest uzyty box vs title", so
-R1 was an input to this task, never an output. Every resulting pad is an existing token.
+**R1 = 12 at every site, unchanged.** He asked to keep the padding already used between box and
+title, so R1 was an input to this task, never an output. Every resulting pad is an existing token.
 
 ## Why option B, since it was first presented wrongly
 

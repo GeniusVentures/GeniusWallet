@@ -53,8 +53,8 @@ both out of bounds, so unifying would have split the population 3/3 - worse than
 of those untouchable files is a structural twin of this very button. The middle option (keep `lg`,
 drop `expand`) died on the same census, since all six are full-bleed.
 
-**DECIDED 2026-08-07: `leave-it`.** Jakub walked the space fix first, said the CTA "wyglada raczej
-dobrze", asked for the height comparison, then chose to leave it. The numbers he was given:
+**DECIDED 2026-08-07: `leave-it`.** Jakub walked the space fix first, said the CTA looked pretty
+good, asked for the height comparison, then chose to leave it. The numbers he was given:
 
 | | Height | Label | Horizontal padding |
 | --- | --- | --- | --- |

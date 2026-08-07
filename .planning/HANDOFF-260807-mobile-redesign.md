@@ -18,8 +18,8 @@ context around it.
 - **Mobile only, iOS.** Dark mode first.
 - **Use existing `GW*` components**; extend additively, never hand-roll. A hand-rolled `WalletPill`
   cost us a whole review round.
-- **Design only what the code already supports.** Jakub, 2026-08-07: "w tym menu ma sie znajdowac
-  tylko to, co obecnie mamy (...) Wszystko ma byc robione na bazie kodu." Every proposed row needs a
+- **Design only what the code already supports.** Jakub, 2026-08-07: the menu is to hold only what we
+  have today (...) and everything is to be built on the basis of the code. Every proposed row needs a
   file and line proving it exists.
 - **Open every sketch in the browser the moment it is built.** A URL in a terminal is not a delivered
   design.

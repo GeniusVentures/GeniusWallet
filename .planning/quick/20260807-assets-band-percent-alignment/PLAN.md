@@ -4,12 +4,12 @@ Slug `260807-pct` · branch `redesign/navigation-260806` · 2026-08-07
 
 ## The request
 
-Jakub, on device:
+Jakub, on device, reported in English:
 
-> "gdy mam assets i kwoty ponizej, to zmiana procentowa nie jest wysrodkowana.
-> Nie jest align z kwota po lewo, wiec chcialbym aby znajdowala sie na samym
-> jej srodku. Oczywiscie po prawej stronie tak jak jest, tylko troszeczke
-> podniesiona do gory."
+> With Assets and the amounts below it, the percentage change is not centred.
+> It is not aligned with the amount on the left, so he wants it sitting on
+> that amount's exact middle. On the right-hand side as it is now, of course,
+> just raised up a touch.
 
 The Assets total band (sketch 178 scheme A, shipped hours ago) puts the
 portfolio total on the left and the 24h percentage to its right. The

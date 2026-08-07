@@ -7,30 +7,30 @@ files:
   - lib/screens/splash.dart
 ---
 
-# Splash: dolny pasek STATUS wchodzi pod home indicator
+# Splash: the bottom STATUS bar runs under the home indicator
 
-## Zgłoszenie
+## The report
 
-Jakub, 2026-08-06, ze zrzutu z iPhone'a Sidney: *"na Iphonie ten status bar jest troche odciety
-wiec podnies go do gory troche prosze daj tam jakis padding od spodu"*.
+Jakub, 2026-08-06, from a screenshot off the iPhone Sidney: on iPhone the status bar is slightly cut
+off, so raise it a bit and give it some padding at the bottom.
 
-## Przyczyna
+## Cause
 
-`lib/screens/splash.dart` nie zawiera **żadnego** `SafeArea` ani odczytu `MediaQuery.viewPadding`.
-Dolna zawartość to `Align(alignment: Alignment.bottomCenter)` z `Column`, którego ostatnim dzieckiem
-jest 2-pikselowy pasek postępu (`SizedBox(height: 2)`, `:249`). `Align` przykleja go do fizycznej
-krawędzi ekranu.
+`lib/screens/splash.dart` contains **no** `SafeArea` and never reads `MediaQuery.viewPadding`.
+The bottom content is an `Align(alignment: Alignment.bottomCenter)` around a `Column` whose last
+child is a 2-pixel progress bar (`SizedBox(height: 2)`, `:249`). `Align` glues it to the physical
+edge of the screen.
 
-Na iPhonie z home indicatorem dolne ~34 px są zajęte przez systemowy uchwyt, a rogi są zaokrąglone -
-więc pasek postępu jest częściowo zasłonięty i przycięty, a wiersz `STATUS` ma nad nim tylko
-`space6` (12 px) własnego odstępu.
+On an iPhone with a home indicator the bottom ~34 px are taken by the system handle and the corners
+are rounded - so the progress bar is partly hidden and clipped, and the `STATUS` row has only
+`space6` (12 px) of its own spacing above it.
 
-To nie jest problem kosmetyczny jednego ekranu: to brak obsługi bezpiecznego obszaru na ekranie,
-który jako pierwszy pokazuje się użytkownikowi.
+This is not a cosmetic problem on one screen: it is missing safe-area handling on the screen that is
+the first thing a user ever sees.
 
-## Rozwiązanie
+## Solution
 
-Zawinąć dolną `Column` w `SafeArea(top: false)` z podłogą `minimum`:
+Wrap the bottom `Column` in `SafeArea(top: false)` with a `minimum` floor:
 
 ```dart
 child: SafeArea(
@@ -40,24 +40,24 @@ child: SafeArea(
 ),
 ```
 
-**Dlaczego `SafeArea`, a nie ręczne dodanie liczby:** to rung 4 z `AGENTS.md` - natywna funkcja
-platformy pokrywa problem. Ręczne `EdgeInsets.only(bottom: 34)` byłoby literałem zgadniętym pod
-jeden model telefonu i rozjechałoby się na każdym innym.
+**Why `SafeArea` rather than adding a number by hand:** it is rung 4 from `AGENTS.md` - a native
+platform feature covers the problem. A hand-written `EdgeInsets.only(bottom: 34)` would be a literal
+guessed for one phone model and would break on every other one.
 
-**Dlaczego dodatkowo `minimum`, a nie sam `SafeArea`:** na urządzeniach bez gestowego uchwytu
-(starsze iPhone'y, część Androidów) `viewPadding.bottom` wynosi 0 i sam `SafeArea` zostawiłby pasek
-znów przyklejony do krawędzi. `minimum` działa jak podłoga - wynikowy odstęp to większa z dwóch
-wartości, więc iPhone dostaje swoje ~34 px, a urządzenie bez uchwytu dostaje 12 px z siatki 4-pt.
+**Why `minimum` on top of that, rather than `SafeArea` alone:** on devices without a gesture handle
+(older iPhones, some Androids) `viewPadding.bottom` is 0 and `SafeArea` on its own would leave the
+bar glued to the edge again. `minimum` acts as a floor - the resulting inset is the larger of the two
+values, so the iPhone gets its ~34 px and a device without a handle gets 12 px off the 4-pt grid.
 
-`top: false`, bo górna krawędź ma zostać jak jest - logo jest wyśrodkowane w `Stack` i nic go nie tnie.
+`top: false`, because the top edge stays as it is - the logo is centred in a `Stack` and nothing clips it.
 
-## Weryfikacja
+## Verification
 
-1. `dart format` + `flutter analyze` - baseline z pamięci projektu: 409 issues, 0 errors.
-2. Hot reload na Sidney i zrzut ekranu splasha - pasek postępu i wiersz STATUS mają odstąpić od
-   dolnej krawędzi i nie mogą być zasłonięte przez home indicator.
+1. `dart format` + `flutter analyze` - baseline from project memory: 409 issues, 0 errors.
+2. Hot reload on Sidney and a screenshot of the splash - the progress bar and the STATUS row must
+   stand off the bottom edge and must not be covered by the home indicator.
 
-## Poza zakresem
+## Out of scope
 
-- Wygląd samego paska postępu i copy statusów (walk 13-03 to już ustalił).
-- Bezpieczny obszar na pozostałych ekranach - jeśli problem jest szerszy, to osobne zadanie.
+- The look of the progress bar itself and the status copy (walk 13-03 already settled that).
+- The safe area on the remaining screens - if the problem is wider, that is a separate task.

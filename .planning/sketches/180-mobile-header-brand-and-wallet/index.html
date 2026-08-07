@@ -195,11 +195,11 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;colo
   <h1>180 - the mobile header: a brand on the left, ONE wallet control on the right</h1>
 
   <p class="quote">
-    Jakub, 2026-08-07, verbatim: <b>"chcialbym miec na homepage'u logo Genius w lewym gornym rogu z
-    nazwa, moze Genius AI. Ten wallet przesuniety w prawa strone, a faktycznie tam tylko jedna
-    informacja odnosnie walletu, bo teraz mamy i wybor sieci, i wybor walleta. Natomiast po klikniecu
-    wtedy sie wszystko by rozwijalo. Musimy to chyba troszeczke zre-designowac, wiec zastanow sie jak
-    najlepiej to zrobic i mi zaprezentuj."</b>
+    Jakub, 2026-08-07, in English: <b>he wants the Genius logo in the top-left corner of the
+    homepage, with a name beside it, maybe Genius AI. The wallet moved over to the right, and really
+    only one piece of wallet information there, because right now we have both a network chooser and
+    a wallet chooser. On tap, everything would then expand. He thinks this needs redesigning a
+    little, so work out how best to do it and show it to him.</b>
   </p>
 
   <p class="sub">
@@ -519,7 +519,7 @@ var SCHEMES = [
   },
   {
     id:'A', tab:'A - avatar only', title:'A - one avatar, no text, one sheet that carries both',
-    one:'A single 44x44 button holding a 32px <code>AccountAvatar</code>. No name, no address, no network glyph, no caret. The most literal reading of "tylko jedna informacja odnosnie walletu": the header answers <i>whose wallet</i> with a face and nothing else.',
+    one:'A single 44x44 button holding a 32px <code>AccountAvatar</code>. No name, no address, no network glyph, no caret. The most literal reading of "only one piece of wallet information": the header answers <i>whose wallet</i> with a face and nothing else.',
     reveal:'One sheet, "Wallet and network". A Network section at the top as a horizontal chip strip, then the two account sections from sketch 174 unchanged underneath. Everything the header used to say is inside it.',
     network:'Inside that one sheet, visible without scrolling. <b>1 tap</b> to the list, 2 to switch - identical to today.',
     defect:'<b class="good">No.</b> The header carries zero text, so it cannot print anything twice. The name and address still appear together in the sheet rows, which is where they belong: a picker needs both to disambiguate.',
@@ -545,7 +545,7 @@ var SCHEMES = [
     defect:'<b class="good">No.</b> No text in the header at all.',
     targets:'96px wide over 44 tall gives two 48x44 halves - both clear the floor. But two adjacent targets 48px apart on a 390pt phone, at the top-right corner where the thumb is least accurate, is the classic mis-tap geometry.',
     longname:'Immune, same as A - fixed 96px control.',
-    cost:'It answers the layout half of the request and quietly declines the other half. Jakub said "teraz mamy i wybor sieci, i wybor walleta" - C still has both, just wearing one border. If it ships, it should ship as an explicit decision that the two controls are worth keeping, not as a compromise nobody names.'
+    cost:'It answers the layout half of the request and quietly declines the other half. Jakub said we currently have both a network chooser and a wallet chooser - C still has both, just wearing one border. If it ships, it should ship as an explicit decision that the two controls are worth keeping, not as a compromise nobody names.'
   },
   {
     id:'D', tab:'D - network leaves the header', title:'D - the header is wallet-only; the network moves next to the balances it changes',
@@ -707,8 +707,8 @@ function recPane(){
 
   h += '<div class="rej"><b>Explicitly rejected: C - the segmented pill.</b> It looks like the ' +
        'diplomatic answer and it is the smallest diff, which is exactly why it should be named and ' +
-       'refused rather than quietly shipped. Jakub\'s complaint was <i>"teraz mamy i wybor sieci, i ' +
-       'wybor walleta"</i> - two choosers. C still has two choosers; it draws one border around them ' +
+       'refused rather than quietly shipped. Jakub\'s complaint was <i>that we currently have both a ' +
+       'network chooser and a wallet chooser</i> - two choosers. C still has two choosers; it draws one border around them ' +
        'and calls it one control. It also puts two 48px targets side by side in the top-right corner, ' +
        'the least accurate place a thumb reaches on a 390pt phone, so it trades a design complaint for ' +
        'a mis-tap. If C ships it must ship as a stated decision that two controls are correct, not as ' +

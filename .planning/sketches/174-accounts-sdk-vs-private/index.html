@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Sketch 174 — Konta SDK vs portfele prywatne</title>
+<title>Sketch 174 - SDK accounts vs private wallets</title>
 <link rel="stylesheet" href="../themes/default.css">
 <style>
 :root{
@@ -237,16 +237,16 @@ td.n{color:var(--textPrimary80)}
 
 <div class="wrap">
 <div class="skhead" style="position:static">
-  <h1>Sketch 174 — Dwa rodzaje kont: SDK vs prywatne</h1>
-  <p>Wariant <b>A · Curated Five</b> z sketcha 171 i 172, ale <b>działający</b>: nawigacja, arkusze,
-  przełącznik portfeli, przełącznik sieci, ekran monety, swap, powrót. Odpowiedź na Twoje pytanie
-  <i>„jak będzie się rozwijał wallet, jak tam kliknę"</i> — <b>kliknij nazwę portfela w nagłówku</b>.
-  Każde tapnięcie ląduje w dzienniku po prawej, żeby było widać, jaka trasa by się odpaliła.</p>
+  <h1>Sketch 174 - Two kinds of account: SDK vs private</h1>
+  <p>Variant <b>A · Curated Five</b> from sketches 171 and 172, but <b>working</b>: navigation, sheets,
+  wallet switcher, network switcher, coin screen, swap, back. The answer to your question
+  <i>what happens when the wallet expands, when I tap in there</i> - <b>tap the wallet name in the header</b>.
+  Every tap lands in the log on the right, so you can see which route would have fired.</p>
 </div>
 
 <div class="appshell">
   <div class="phonewrap">
-    <div class="phonecap">A · PROTOTYP — 390×844 · wszystko klikalne</div>
+    <div class="phonecap">A · PROTOTYPE - 390×844 · everything clickable</div>
     <div class="phone">
       <div class="notch"></div>
       <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
@@ -260,58 +260,58 @@ td.n{color:var(--textPrimary80)}
   </div>
 
   <div class="notes">
-    <h2 class="h2">Skąd biorą się dwa rodzaje kont</h2>
-    <p class="lead">Sprawdziłem w kodzie. Twój model był trafny, ale różnica jest głębsza niż "jeden zarabia, drugi swapuje" — to <b>dwa różne systemy</b>, które dziś siedzą w jednej liście.</p>
+    <h2 class="h2">Where the two kinds of account come from</h2>
+    <p class="lead">Checked in the code. Your model was right, but the difference runs deeper than "one earns, the other swaps" - these are <b>two different systems</b> that today sit in one list.</p>
 
     <table>
-      <tr><th></th><th>Konta SDK</th><th>Twoje portfele</th></tr>
-      <tr><td class="n">Skąd</td><td>natywny węzeł, <code>api.getAvailableAccounts()</code></td><td>lokalne, <code>_baseWallets</code></td></tr>
-      <tr><td class="n">Typ</td><td><code>WalletType.sgnus</code></td><td>mnemonic / privateKey / keystore / tracking</td></tr>
-      <tr><td class="n">Jednostka</td><td><b>minions</b></td><td>waluta sieci / USD</td></tr>
-      <tr><td class="n">Saldo czyta</td><td>natywny SDK</td><td>RPC sieci</td></tr>
-      <tr><td class="n">Transakcje</td><td><code>SgnusTransactionsScreen</code></td><td><code>TransactionsStream</code></td></tr>
-      <tr><td class="n">Nazwa</td><td>generowana, <b>nieedytowalna</b></td><td>Twoja, edytowalna</td></tr>
-      <tr><td class="n">Usuwanie</td><td class="fail">niemożliwe</td><td class="pass">możliwe</td></tr>
-      <tr><td class="n">Znika, gdy…</td><td class="fail">węzeł się rozłączy</td><td>nigdy</td></tr>
+      <tr><th></th><th>SDK accounts</th><th>Your wallets</th></tr>
+      <tr><td class="n">Where from</td><td>the native node, <code>api.getAvailableAccounts()</code></td><td>local, <code>_baseWallets</code></td></tr>
+      <tr><td class="n">Type</td><td><code>WalletType.sgnus</code></td><td>mnemonic / privateKey / keystore / tracking</td></tr>
+      <tr><td class="n">Unit</td><td><b>minions</b></td><td>the network currency / USD</td></tr>
+      <tr><td class="n">Balance read by</td><td>the native SDK</td><td>the network RPC</td></tr>
+      <tr><td class="n">Transactions</td><td><code>SgnusTransactionsScreen</code></td><td><code>TransactionsStream</code></td></tr>
+      <tr><td class="n">Name</td><td>generated, <b>not editable</b></td><td>yours, editable</td></tr>
+      <tr><td class="n">Deletion</td><td class="fail">impossible</td><td class="pass">possible</td></tr>
+      <tr><td class="n">Disappears when…</td><td class="fail">the node disconnects</td><td>never</td></tr>
     </table>
 
-    <div class="call"><b>Największe odkrycie: to są DWIE NIEZALEŻNE OSIE, nie dwa rodzaje tej samej rzeczy.</b>
-    Wybór portfela w szufladzie woła tylko <code>walletCubit.selectWallet()</code> — czyli mówi
-    <b>„co oglądam"</b>. To, które konto SDK jest <b>aktywne w węźle</b>, ustawia zupełnie inna kontrolka:
-    <code>sdk_account_manager.dart:185</code> wysyła <code>SelectSDKAccount</code> →
-    <code>api.selectGeniusAccountAsync</code>. Podświetlenie w liście i aktywne konto węzła to
-    <b>dwa różne stany</b>, które mogą wskazywać na różne konta — i nic w UI tego nie mówi.</div>
+    <div class="call"><b>The biggest finding: these are TWO INDEPENDENT AXES, not two kinds of the same thing.</b>
+    Picking a wallet in the drawer only calls <code>walletCubit.selectWallet()</code> - that is, it says
+    <b>"what am I looking at"</b>. Which SDK account is <b>active on the node</b> is set by a completely different control:
+    <code>sdk_account_manager.dart:185</code> sends <code>SelectSDKAccount</code> →
+    <code>api.selectGeniusAccountAsync</code>. The highlight in the list and the node's active account are
+    <b>two different states</b> that can point at different accounts - and nothing in the UI says so.</div>
 
-    <div class="call warn"><b>Drugie: konta SDK znikają bez słowa.</b>
-    <code>app_bloc.dart:606-609</code> — jeśli <code>!connection.isConnected</code>, funkcja zwraca
-    same portfele prywatne. Konta SDK wyparowują z listy bez komunikatu.
-    <b>Kliknij chip „Węzeł połączony"</b> w arkuszu, żeby to zobaczyć.</div>
+    <div class="call warn"><b>Second: SDK accounts disappear without a word.</b>
+    <code>app_bloc.dart:606-609</code> - if <code>!connection.isConnected</code>, the function returns
+    the private wallets alone. SDK accounts evaporate from the list with no message.
+    <b>Tap the "Node connected" chip</b> in the sheet to see it.</div>
 
-    <h3 class="h3">Co zmieniłem w designie</h3>
+    <h3 class="h3">What I changed in the design</h3>
     <ul>
-      <li><b>Dwie osobne sekcje z nagłówkami</b> zamiast jednej listy. Dziś <code>_mergeSgnusWallet()</code> skleja je w <code>[...sgnusWallets, ..._baseWallets]</code> — konta SDK są na górze, ale bez żadnego oznaczenia.</li>
-      <li><b>Jedno zdanie wyjaśnienia pod każdym nagłówkiem</b> — bo „Super Genius Wallet 1" nikomu nic nie mówi.</li>
-      <li><b>Salda w prawdziwych jednostkach</b>: minions na zielono dla SDK, waluta sieci dla prywatnych. Wspólna kolumna „$0.00" byłaby kłamstwem.</li>
-      <li><b>Osobna odznaka „AKTYWNE W NODZIE"</b> — rozdziela obie osie. Przy nieaktywnych kontach SDK jest przycisk „Ustaw w nodzie". <span class="tag t-new">New</span></li>
-      <li><b>Stan rozłączenia</b> z wyjaśnieniem, zamiast cichego zniknięcia. <span class="tag t-new">New</span></li>
-      <li><b>Adres wypłat</b> widoczny w sekcji SDK — dziś schowany w <code>_showSetPayoutAddressDialog</code>. To on łączy oba światy: zarobki z węzła lądują na Twoim prywatnym portfelu.</li>
-      <li><b>„Tylko podgląd"</b> przy portfelu typu <code>tracking</code> — bo nim nie wyślesz.</li>
-      <li>Brak „Zarządzaj portfelami" jako osobnej pozycji — zarządzanie jest per wiersz, jak w <code>account_drawer.dart</code>.</li>
+      <li><b>Two separate sections with headings</b> instead of one list. Today <code>_mergeSgnusWallet()</code> glues them into <code>[...sgnusWallets, ..._baseWallets]</code> - SDK accounts sit on top, but with no marking at all.</li>
+      <li><b>One sentence of explanation under each heading</b> - because "Super Genius Wallet 1" tells nobody anything.</li>
+      <li><b>Balances in their real units</b>: minions in green for SDK, the network currency for private ones. A shared "$0.00" column would be a lie.</li>
+      <li><b>A separate "ACTIVE ON NODE" badge</b> - it splits the two axes apart. Inactive SDK accounts carry a "Set on node" button. <span class="tag t-new">New</span></li>
+      <li><b>A disconnected state</b> with an explanation, instead of a silent disappearance. <span class="tag t-new">New</span></li>
+      <li><b>The payout address</b> visible in the SDK section - today it is hidden in <code>_showSetPayoutAddressDialog</code>. It is what joins the two worlds: node earnings land in your private wallet.</li>
+      <li><b>"View only"</b> on a <code>tracking</code> wallet - because you cannot send from it.</li>
+      <li>No "Manage wallets" as a separate item - management is per row, as in <code>account_drawer.dart</code>.</li>
     </ul>
 
-    <div class="call good"><b>Wybierz konto SDK w arkuszu</b> — lista aktywów przełącza się na Minions,
-    bo saldo idzie z natywnego SDK, nie z RPC. To nie kosmetyka: <code>wallet_details_cubit.dart:198-206</code>
-    naprawdę używa innego źródła danych.</div>
+    <div class="call good"><b>Pick an SDK account in the sheet</b> - the asset list switches to Minions,
+    because the balance comes from the native SDK, not from RPC. This is not cosmetic: <code>wallet_details_cubit.dart:198-206</code>
+    really does use a different data source.</div>
 
-    <h3 class="h3">Dziennik tapnięć</h3>
-    <p style="font-size:13px;color:var(--textSecondary)">Każde tapnięcie pokazuje, jaka trasa w
-    <code>router.dart</code> by się odpaliła. Puste = trasa jeszcze nie istnieje.</p>
+    <h3 class="h3">Tap log</h3>
+    <p style="font-size:13px;color:var(--textSecondary)">Every tap shows which route in
+    <code>router.dart</code> would have fired. Blank = the route does not exist yet.</p>
     <div class="log" id="log"></div>
-    <button class="cta ghost" style="margin-top:var(--s6);padding:8px;font-size:12px" id="clearlog">Wyczyść dziennik</button>
+    <button class="cta ghost" style="margin-top:var(--s6);padding:8px;font-size:12px" id="clearlog">Clear log</button>
   </div>
 </div>
 </div>
-<div id="sketch-tools"><span style="opacity:.6">174</span><button id="annbtn">Adnotacje: WŁ</button></div>
+<div id="sketch-tools"><span style="opacity:.6">174</span><button id="annbtn">Annotations: ON</button></div>
 
 <script>
 (function () {
@@ -362,7 +362,7 @@ td.n{color:var(--textPrimary80)}
 
   function log(action, route) {
     var el = $('log');
-    var r = route ? '<b>' + route + '</b>' : '<span style="color:var(--statusError)">brak trasy</span>';
+    var r = route ? '<b>' + route + '</b>' : '<span style="color:var(--statusError)">no route</span>';
     el.innerHTML = '<div>' + action + ' → ' + r + '</div>' + el.innerHTML;
   }
   var toastT = null;
@@ -443,7 +443,7 @@ td.n{color:var(--textPrimary80)}
       + '<span class="bignum" style="font-size:38px">' + w.total + '</span>'
       + '<span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span></div>'
       + '<div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">'
-      + list.length + ' aktywa · sieć ' + net().name + '</div></div>'
+      + list.length + ' assets · network ' + net().name + '</div></div>'
       + '<div class="rail" style="margin-top:var(--s8)">'
       + '<span class="chip tapz" data-act="send"><svg><use href="#i-send"/></svg>Send</span>'
       + '<span class="chip tapz" data-act="receive"><svg><use href="#i-recv"/></svg>Receive</span>'
@@ -456,7 +456,7 @@ td.n{color:var(--textPrimary80)}
       + '<svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>'
       + '<div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div>'
       + '<div style="font-size:12.5px;color:var(--textPrimary80)">Starting up · 0.00 GNUS MIN</div></div>'
-      + '<span class="chip" style="padding:5px 10px">Otwórz</span></div></div><div style="height:40px"></div>';
+      + '<span class="chip" style="padding:5px 10px">Open</span></div></div><div style="height:40px"></div>';
   }
   function scrCoin() {
     var a = S.coin;
@@ -467,7 +467,7 @@ td.n{color:var(--textPrimary80)}
       + '<div style="margin-top:var(--s3)"><span class="chip" style="padding:3px 9px;font-size:11px">'
       + '<span class="' + (a.up ? 'up' : '') + '">' + a.chg + '</span> 24h</span></div></div>'
       + '<div class="pad" style="margin-top:var(--s10)"><div class="card">'
-      + '<div class="kick">TWOJE SALDO</div>'
+      + '<div class="kick">YOUR BALANCE</div>'
       + '<div style="display:flex;align-items:baseline;gap:6px;margin-top:2px">'
       + '<span class="bignum" style="font-size:26px">' + a.fiat + '</span>'
       + '<span class="unit">' + a.bal + ' ' + a.sym + '</span></div></div></div>'
@@ -480,25 +480,25 @@ td.n{color:var(--textPrimary80)}
   function scrSwap() {
     var seed = S.coin ? S.coin.sym : 'GNUS';
     return '<div class="pad" style="padding-top:var(--s12)">'
-      + '<div class="card"><div class="kick">Z</div>'
+      + '<div class="card"><div class="kick">FROM</div>'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--s4)">'
       + '<span class="bignum" style="font-size:28px">0.00</span>'
       + '<span class="chip" style="padding:6px 12px">' + seed + ' <svg class="caret" style="stroke:var(--textPrimary80)"><use href="#i-caret"/></svg></span></div>'
-      + '<div style="font-size:12px;color:var(--textPrimary80);margin-top:var(--s3)">Saldo: 0.0000 ' + seed + '</div></div>'
+      + '<div style="font-size:12px;color:var(--textPrimary80);margin-top:var(--s3)">Balance: 0.0000 ' + seed + '</div></div>'
       + '<div style="text-align:center;margin:var(--s4) 0"><span class="chip" style="padding:8px;border-radius:50%">'
       + '<svg style="width:18px;height:18px"><use href="#d-swap"/></svg></span></div>'
-      + '<div class="card"><div class="kick">NA</div>'
+      + '<div class="card"><div class="kick">TO</div>'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--s4)">'
       + '<span class="bignum" style="font-size:28px;color:var(--textPrimary38)">0.00</span>'
       + '<span class="chip" style="padding:6px 12px">USDC <svg class="caret" style="stroke:var(--textPrimary80)"><use href="#i-caret"/></svg></span></div></div>'
-      + '<button class="cta" style="margin-top:var(--s12);opacity:.5">Wpisz kwotę</button></div>';
+      + '<button class="cta" style="margin-top:var(--s12);opacity:.5">Enter an amount</button></div>';
   }
   function scrTransactions() {
     return '<div class="pad" style="padding-top:var(--s10)"><div class="sect"><h4>Transactions</h4></div></div>'
-      + '<div class="rail"><span class="chip">Wszystkie</span><span class="chip">Sent</span>'
+      + '<div class="rail"><span class="chip">All</span><span class="chip">Sent</span>'
       + '<span class="chip">Received</span><span class="chip">Swap</span></div>'
-      + '<div class="empty">Brak transakcji na sieci ' + net().name + '.<br><br>'
-      + 'Portfel bez historii nie jest portfelem zepsutym — gdy zrobisz pierwszy przelew, pojawi się tutaj.</div>';
+      + '<div class="empty">No transactions on ' + net().name + '.<br><br>'
+      + 'A wallet with no history is not a broken wallet - once you make your first transfer, it shows up here.</div>';
   }
   function scrMarkets() {
     var rows = assets().map(function (a, i) {
@@ -515,7 +515,7 @@ td.n{color:var(--textPrimary80)}
       + '<div class="empty">' + body + '</div>';
   }
   function scrSettings() {
-    var items = ['Konta i sieć', 'Bezpieczeństwo i PIN', 'Wygląd', 'Waluta wyświetlania', 'O aplikacji'];
+    var items = ['Accounts and network', 'Security and PIN', 'Appearance', 'Display currency', 'About the app'];
     return '<div class="pad" style="padding-top:var(--s10)"><div class="sect"><h4>Settings</h4></div></div>'
       + items.map(function (t) {
         return '<div class="row tapz" data-act="noop"><div class="mid"><div class="nm" style="font-weight:500">' + t + '</div></div>'
@@ -525,21 +525,21 @@ td.n{color:var(--textPrimary80)}
   function scrReceive() {
     var w = wallet();
     return '<div class="pad" style="padding-top:var(--s16);text-align:center">'
-      + '<div style="width:190px;height:190px;margin:0 auto;background:#fff;border-radius:var(--rLg);display:grid;place-items:center;color:#000;font:700 12px Inter">KOD QR</div>'
+      + '<div style="width:190px;height:190px;margin:0 auto;background:#fff;border-radius:var(--rLg);display:grid;place-items:center;color:#000;font:700 12px Inter">QR CODE</div>'
       + '<div style="margin-top:var(--s12);font:600 14px Inter">' + w.name + '</div>'
       + '<div class="waddr" style="margin-top:var(--s3);font-size:13px">' + w.addr + '</div>'
-      + '<div style="margin-top:var(--s4);font-size:12.5px;color:var(--textPrimary80)">Sieć: ' + net().name + '</div>'
-      + '<button class="cta tapz" data-act="copy" style="margin-top:var(--s12)">Kopiuj adres</button></div>';
+      + '<div style="margin-top:var(--s4);font-size:12.5px;color:var(--textPrimary80)">Network: ' + net().name + '</div>'
+      + '<button class="cta tapz" data-act="copy" style="margin-top:var(--s12)">Copy address</button></div>';
   }
 
   var SCREENS = {
     dashboard: scrDashboard, coin: scrCoin, swap: scrSwap, transactions: scrTransactions,
     markets: scrMarkets, settings: scrSettings, receive: scrReceive,
-    news: function () { return simple('News', 'Kanał wiadomości — poza zakresem tego prototypu.'); },
-    web: function () { return simple('Web', 'Przeglądarka dApp — poza zakresem tego prototypu.'); },
-    feedback: function () { return simple('Feedback', 'Formularz zgłoszenia — poza zakresem tego prototypu.'); },
-    send: function () { return simple('Send', 'Formularz wysyłki — poza zakresem tego prototypu.'); },
-    buy: function () { return simple('Buy GNUS', 'Formularz Banxa — trasa /buy istnieje w router.dart.'); }
+    news: function () { return simple('News', 'The news feed - out of scope for this prototype.'); },
+    web: function () { return simple('Web', 'The dApp browser - out of scope for this prototype.'); },
+    feedback: function () { return simple('Feedback', 'The report form - out of scope for this prototype.'); },
+    send: function () { return simple('Send', 'The send form - out of scope for this prototype.'); },
+    buy: function () { return simple('Buy GNUS', 'The Banxa form - the /buy route exists in router.dart.'); }
   };
 
   /* ---------------- bottom nav ---------------- */
@@ -561,7 +561,7 @@ td.n{color:var(--textPrimary80)}
   /* ---------------- render ---------------- */
   function render() {
     $('topbar').innerHTML = topbar();
-    var fn = SCREENS[S.screen] || function () { return simple(titleOf(S.screen), 'Ekran poza zakresem.'); };
+    var fn = SCREENS[S.screen] || function () { return simple(titleOf(S.screen), 'Screen out of scope.'); };
     $('screen').innerHTML = fn();
     $('screen').scrollTop = 0;
     $('bnav').innerHTML = bottomnav();
@@ -576,12 +576,12 @@ td.n{color:var(--textPrimary80)}
     var badge = '';
     if (nodeActive) {
       badge = '<span class="chip" style="padding:2px 7px;font-size:9.5px;border-color:rgba(43,245,180,.5);'
-        + 'background:rgba(43,245,180,.12);color:var(--brandSecondary)">AKTYWNE W NODZIE</span>';
+        + 'background:rgba(43,245,180,.12);color:var(--brandSecondary)">ACTIVE ON NODE</span>';
     } else if (isSdk) {
       badge = '<span class="chip tapz" data-act="setnode" data-id="' + w.id
-        + '" style="padding:2px 7px;font-size:9.5px">Ustaw w nodzie</span>';
+        + '" style="padding:2px 7px;font-size:9.5px">Set on node</span>';
     } else if (w.wtype === 'tracking') {
-      badge = '<span class="chip" style="padding:2px 7px;font-size:9.5px;color:var(--textSecondary)">TYLKO PODGLĄD</span>';
+      badge = '<span class="chip" style="padding:2px 7px;font-size:9.5px;color:var(--textSecondary)">VIEW ONLY</span>';
     }
     return '<div class="wrow' + (sel ? ' sel' : '') + '" data-act="pickw" data-id="' + w.id + '">'
       + '<div class="wav" style="width:32px;height:32px;' + (isSdk
@@ -599,32 +599,32 @@ td.n{color:var(--textPrimary80)}
     var sdkBody;
     if (!NODE.connected) {
       sdkBody = '<div style="padding:var(--s8) var(--s12) var(--s10);color:var(--textPrimary80);font-size:12.5px;line-height:1.6">'
-        + 'Węzeł SuperGenius jest <b>rozłączony</b>, więc konta SDK nie są w tej chwili dostępne.<br>'
-        + '<span style="color:var(--textSecondary)">Dziś w aplikacji znikają wtedy z listy bez słowa wyjaśnienia '
+        + 'The SuperGenius node is <b>disconnected</b>, so SDK accounts are not available right now.<br>'
+        + '<span style="color:var(--textSecondary)">In the app today they simply vanish from the list with no explanation '
         + '(<code style="font-size:11px">app_bloc.dart:606-609</code>).</span></div>';
     } else {
       sdkBody = SDK.map(accRow).join('')
         + '<div class="srow tapz" data-act="payout" style="padding-top:var(--s6)">'
-        + '<svg><use href="#i-recv"/></svg><span style="font-size:13.5px">Adres wypłat: '
+        + '<svg><use href="#i-recv"/></svg><span style="font-size:13.5px">Payout address: '
         + '<span style="color:var(--textPrimary80)">' + NODE.payout + '</span></span></div>';
     }
     return '<div style="padding:0 var(--s12) var(--s4);display:flex;align-items:center;justify-content:space-between">'
-      + '<span class="kick">KONTA SDK · ZAROBKI Z GPU</span>'
+      + '<span class="kick">SDK ACCOUNTS · GPU EARNINGS</span>'
       + '<span class="chip tapz" data-act="togglenode" style="padding:3px 8px;font-size:10px">'
       + '<span class="dot" style="background:' + (NODE.connected ? 'var(--brandSecondary)' : 'var(--statusError)')
-      + '"></span>' + (NODE.connected ? 'Węzeł połączony' : 'Węzeł rozłączony') + '</span></div>'
+      + '"></span>' + (NODE.connected ? 'Node connected' : 'Node disconnected') + '</span></div>'
       + '<div style="padding:0 var(--s12) var(--s6);font-size:11.5px;color:var(--textSecondary);line-height:1.55">'
-      + 'Konta węzła SuperGenius. Zarabiają <b>minions</b> za udostępnienie GPU. Nie da się ich '
-      + 'przemianować ani usunąć, a saldo czyta natywny SDK, nie RPC.</div>'
+      + 'SuperGenius node accounts. They earn <b>minions</b> for sharing a GPU. They cannot be '
+      + 'renamed or deleted, and the balance is read by the native SDK, not RPC.</div>'
       + sdkBody
       + '<div class="hr" style="margin:var(--s8) var(--s12)"></div>'
-      + '<div style="padding:0 var(--s12) var(--s4)"><span class="kick">TWOJE PORTFELE</span></div>'
+      + '<div style="padding:0 var(--s12) var(--s4)"><span class="kick">YOUR WALLETS</span></div>'
       + '<div style="padding:0 var(--s12) var(--s6);font-size:11.5px;color:var(--textSecondary);line-height:1.55">'
-      + 'Portfele, które utworzyłeś lub zaimportowałeś. Saldo w walucie sieci, obsługują swap i wysyłkę.</div>'
+      + 'Wallets you created or imported. Balance in the network currency; they support swap and send.</div>'
       + PRIVATE.map(accRow).join('')
       + '<div class="hr" style="margin:var(--s6) var(--s12)"></div>'
-      + '<div class="srow tapz" data-act="addw"><svg><use href="#i-plus"/></svg><span>Dodaj portfel</span></div>'
-      + '<div class="srow tapz" data-act="connect"><svg><use href="#i-link"/></svg><span>Połącz przez WalletConnect</span></div>';
+      + '<div class="srow tapz" data-act="addw"><svg><use href="#i-plus"/></svg><span>Add wallet</span></div>'
+      + '<div class="srow tapz" data-act="connect"><svg><use href="#i-link"/></svg><span>Connect via WalletConnect</span></div>';
   }
   function netSheet() {
     var rows = NETWORKS.map(function (n) {
@@ -632,21 +632,21 @@ td.n{color:var(--textPrimary80)}
       return '<div class="wrow' + (sel ? ' sel' : '') + '" data-act="pickn" data-id="' + n.id + '">'
         + '<span class="dot" style="background:' + n.color + ';width:12px;height:12px"></span>'
         + '<div style="flex:1 1 auto"><div style="font:600 14.5px Inter">' + n.name + '</div>'
-        + '<div class="waddr">' + (ASSETS[n.id] || []).length + ' aktywa</div></div>'
+        + '<div class="waddr">' + (ASSETS[n.id] || []).length + ' assets</div></div>'
         + (sel ? '<svg class="check"><use href="#i-check"/></svg>' : '<span style="width:19px"></span>') + '</div>';
     }).join('');
-    return '<div style="padding:0 var(--s12) var(--s6)"><span class="kick">SIEĆ</span></div>' + rows;
+    return '<div style="padding:0 var(--s12) var(--s6)"><span class="kick">NETWORK</span></div>' + rows;
   }
   function moreSheet() {
     var items = [['news', 'i-news', 'News'], ['web', 'i-globe', 'Web'],
       ['feedback', 'i-chat', 'Feedback'], ['settings', 'i-gear', 'Settings']];
-    return '<div style="padding:0 var(--s12) var(--s4)"><span class="kick">WIĘCEJ</span></div>'
+    return '<div style="padding:0 var(--s12) var(--s4)"><span class="kick">MORE</span></div>'
       + items.map(function (it) {
         return '<div class="srow tapz" data-act="goscreen" data-k="' + it[0] + '">'
           + '<svg><use href="#' + it[1] + '"/></svg><span>' + it[2] + '</span></div>';
       }).join('')
       + '<div class="hr" style="margin:var(--s6) var(--s12)"></div>'
-      + '<div class="srow tapz" data-act="wallets"><svg><use href="#i-copy"/></svg><span>Konta i sieć</span></div>';
+      + '<div class="srow tapz" data-act="wallets"><svg><use href="#i-copy"/></svg><span>Accounts and network</span></div>';
   }
 
   /* ---------------- binding ---------------- */
@@ -662,29 +662,29 @@ td.n{color:var(--textPrimary80)}
       el.addEventListener('click', function (e) {
         e.stopPropagation();
         var a = el.dataset.act;
-        if (a === 'wallets') { log('Tap: nazwa portfela', 'arkusz — brak trasy'); openSheet(walletSheet()); }
-        else if (a === 'nets') { log('Tap: chip sieci', 'arkusz — brak trasy'); openSheet(netSheet()); }
-        else if (a === 'pickw') { S.wallet = el.dataset.id; log('Wybrano portfel do PODGLĄDU: ' + wallet().name, 'WalletDetailsCubit.selectWallet (NIE zmienia konta w nodzie)'); toast('Portfel: ' + wallet().name); closeSheet(); render(); }
-        else if (a === 'pickn') { S.net = el.dataset.id; log('Wybrano sieć: ' + net().name, 'WalletDetailsCubit'); toast('Sieć: ' + net().name); closeSheet(); render(); }
-        else if (a === 'setnode') { NODE.active = el.dataset.id; log('Ustaw aktywne konto w nodzie', 'AppBloc: SelectSDKAccount → api.selectGeniusAccountAsync'); toast('Konto SDK aktywne w nodzie'); openSheet(walletSheet()); }
-        else if (a === 'togglenode') { NODE.connected = !NODE.connected; if (!NODE.connected && wallet().kind === 'sdk') { S.wallet = 'w1'; } log('Przełącz stan węzła (symulacja)', 'SGNUSConnection.isConnected'); openSheet(walletSheet()); render(); }
-        else if (a === 'payout') { log('Tap: adres wypłat', 'AppBloc: SetSDKPayoutAddress'); toast('Ustaw adres wypłat'); }
-        else if (a === 'copy') { log('Tap: kopiuj adres', 'schowek'); toast('Adres skopiowany'); }
+        if (a === 'wallets') { log('Tap: wallet name', 'sheet - no route'); openSheet(walletSheet()); }
+        else if (a === 'nets') { log('Tap: network chip', 'sheet - no route'); openSheet(netSheet()); }
+        else if (a === 'pickw') { S.wallet = el.dataset.id; log('Picked wallet to VIEW: ' + wallet().name, 'WalletDetailsCubit.selectWallet (does NOT change the node account)'); toast('Wallet: ' + wallet().name); closeSheet(); render(); }
+        else if (a === 'pickn') { S.net = el.dataset.id; log('Picked network: ' + net().name, 'WalletDetailsCubit'); toast('Network: ' + net().name); closeSheet(); render(); }
+        else if (a === 'setnode') { NODE.active = el.dataset.id; log('Set the active account on the node', 'AppBloc: SelectSDKAccount → api.selectGeniusAccountAsync'); toast('SDK account active on the node'); openSheet(walletSheet()); }
+        else if (a === 'togglenode') { NODE.connected = !NODE.connected; if (!NODE.connected && wallet().kind === 'sdk') { S.wallet = 'w1'; } log('Toggle the node state (simulated)', 'SGNUSConnection.isConnected'); openSheet(walletSheet()); render(); }
+        else if (a === 'payout') { log('Tap: payout address', 'AppBloc: SetSDKPayoutAddress'); toast('Set the payout address'); }
+        else if (a === 'copy') { log('Tap: copy address', 'clipboard'); toast('Address copied'); }
         else if (a === 'coin') { S.coin = assets()[parseInt(el.dataset.i, 10)]; log('Tap: ' + S.coin.name, '/token-info'); go('coin', { push: true }); }
         else if (a === 'nav') {
           var k = el.dataset.k;
-          if (k === 'more') { log('Tap: More', 'arkusz — brak trasy'); openSheet(moreSheet()); }
+          if (k === 'more') { log('Tap: More', 'sheet - no route'); openSheet(moreSheet()); }
           else { log('Nav: ' + k, ROUTES[k]); go(k); }
         }
         else if (a === 'goscreen') { log('Tap: ' + el.dataset.k, ROUTES[el.dataset.k]); go(el.dataset.k, { push: true }); }
-        else if (a === 'back') { log('Tap: wstecz', 'context.pop()'); back(); }
-        else if (a === 'swapcoin') { log('Tap: Swap z monety ' + S.coin.sym, '/swap  extra:{symbol}'); go('swap', { push: true }); }
+        else if (a === 'back') { log('Tap: back', 'context.pop()'); back(); }
+        else if (a === 'swapcoin') { log('Tap: Swap from coin ' + S.coin.sym, '/swap  extra:{symbol}'); go('swap', { push: true }); }
         else if (a === 'send' || a === 'receive' || a === 'buy') { log('Tap: ' + a, ROUTES[a]); go(a, { push: true }); }
-        else if (a === 'compute') { log('Tap: Compute', 'brak dedykowanej trasy'); toast('Compute — trasa do ustalenia'); }
-        else if (a === 'addw') { log('Tap: Dodaj portfel', '/onboarding'); toast('Kreator nowego portfela'); closeSheet(); }
-        else if (a === 'connect') { log('Tap: WalletConnect', 'ReownConnectButton'); toast('Parowanie WalletConnect'); closeSheet(); }
-        else if (a === 'managew') { log('Tap: Zarządzaj portfelami', '/settings'); go('settings'); }
-        else if (a === 'noop') { toast('Poza zakresem prototypu'); }
+        else if (a === 'compute') { log('Tap: Compute', 'no dedicated route'); toast('Compute - route to be decided'); }
+        else if (a === 'addw') { log('Tap: Add wallet', '/onboarding'); toast('New wallet wizard'); closeSheet(); }
+        else if (a === 'connect') { log('Tap: WalletConnect', 'ReownConnectButton'); toast('WalletConnect pairing'); closeSheet(); }
+        else if (a === 'managew') { log('Tap: Manage wallets', '/settings'); go('settings'); }
+        else if (a === 'noop') { toast('Out of scope for the prototype'); }
       });
     });
   }
@@ -693,11 +693,11 @@ td.n{color:var(--textPrimary80)}
   $('clearlog').addEventListener('click', function () { $('log').innerHTML = ''; });
   $('annbtn').addEventListener('click', function () {
     document.body.classList.toggle('noann');
-    this.textContent = document.body.classList.contains('noann') ? 'Adnotacje: WYŁ' : 'Adnotacje: WŁ';
+    this.textContent = document.body.classList.contains('noann') ? 'Annotations: OFF' : 'Annotations: ON';
   });
 
   render();
-  log('Prototyp gotowy', 'start: /dashboard');
+  log('Prototype ready', 'start: /dashboard');
 })();
 </script>
 </body>

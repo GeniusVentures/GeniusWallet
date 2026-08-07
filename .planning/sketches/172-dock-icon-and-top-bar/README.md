@@ -1,20 +1,20 @@
 ---
 sketch: 172
 name: dock-icon-and-top-bar
-question: "Jaka konkretna ikona ma stać w środkowym doku zamiast plusa - i czym ten dok właściwie jest?"
+question: "Which concrete icon should stand in the centre dock instead of the plus - and what is that dock actually for?"
 winner: null
 tags: [mobile, ios, bottom-nav, dock, icon, top-bar, total-balance, follows-171]
 ---
 
-# Sketch 172: Ikona doku + górny pasek
+# Sketch 172: Dock icon + top bar
 
 ## Design Question
 
-Prośba Jakuba, 2026-08-06: *"jak wygląda bottom navigation z określoną ikoną zamiast plusa"*, górny pasek
-wzięty z wariantu **D** sketcha 171, Total Balance uwzględniony, Assets bez zmian.
+Jakub asked, 2026-08-06: show what the bottom navigation looks like with a specific icon instead of the plus.
+The top bar is taken from variant **D** of sketch 171, Total Balance is included, Assets unchanged.
 
-Kluczowe przeformułowanie: cztery warianty nie różnią się **rysunkiem**, tylko tym, **czym dok jest**.
-Ikona jest konsekwencją tej decyzji, nie jej przedmiotem.
+The key reframing: the four variants do not differ in the **drawing**, but in **what the dock is**.
+The icon is a consequence of that decision, not its subject.
 
 ## How to View
 
@@ -24,41 +24,41 @@ open http://localhost:8899/172-dock-icon-and-top-bar/
 
 ## Variants
 
-- **A: Swap ★** - dok = jedno tapnięcie w `/swap`. Ikona `Icons.swap_vert_rounded`, ta sama co dzisiejszy FAB.
-- **B: Move** - dok otwiera arkusz Send / Receive / Buy / Swap. Daje Send i Receive pierwsze miejsce w nawigacji.
-- **C: Scan** - dok otwiera skaner QR. Najczytelniejsza ikona, ale skanera nie ma.
-- **D: GNUS** - dok niesie znak marki i otwiera Compute. Jedyny, w którym dok to marka, nie czynność.
-- **Obok siebie** - cztery doki w jednym rzędzie, test czytelności bez etykiety.
-- **Total Balance + inwentarz** - trzy kosmetyczne wersje bloku salda, tabela kosztów, rekomendacja.
+- **A: Swap ★** - the dock = one tap into `/swap`. Icon `Icons.swap_vert_rounded`, the same one as today's FAB.
+- **B: Move** - the dock opens a Send / Receive / Buy / Swap sheet. Gives Send and Receive their first place in navigation.
+- **C: Scan** - the dock opens the QR scanner. The clearest icon, but there is no scanner.
+- **D: GNUS** - the dock carries the brand mark and opens Compute. The only one where the dock is a brand, not an action.
+- **Side by side** - four docks in one row, a legibility test with no label.
+- **Total Balance + inventory** - three cosmetic versions of the balance block, a cost table, a recommendation.
 
 ## What to Look For
 
-1. **Czy ikona czyta się bez podpisu.** Dok jako jedyny element paska nie ma etykiety.
-   Przewidywanie do sprawdzenia: C natychmiast, A bo znane z FAB-a, B mylone z A, D wymaga nauki.
-2. **Zależność TB-3 ↔ dok B.** Jeśli dok to "Move", to para CTA Receive/Send pod saldem dubluje go
-   na tym samym ekranie. TB-3 ma sens tylko z dokiem A, C albo D.
-3. **Koszt.** Pozycji `New` poza wspólnym dokiem i paskiem: A = 0, B = 1, C = 2, D = 1.
+1. **Whether the icon reads without a caption.** The dock is the only element on the bar with no label.
+   Prediction to check: C immediately, A because it is familiar from the FAB, B confused with A, D has to be learned.
+2. **The TB-3 to dock-B dependency.** If the dock is "Move", then the Receive/Send CTA pair under the balance duplicates it
+   on the same screen. TB-3 only makes sense with dock A, C or D.
+3. **Cost.** `New` items beyond the shared dock and bar: A = 0, B = 1, C = 2, D = 1.
 
 ## Findings grounded in code
 
-| Fakt | Miejsce |
+| Fact | Place |
 |---|---|
-| Istniejący FAB używa `Icons.swap_vert_rounded` | `gw_swap_fab.dart:73` |
-| Send i Receive nie mają domu w nawigacji - są przyciskami wewnątrz ekranów | `wallet_information.dart:176-185`, `coins_screen.dart:179,345` |
-| `mobile_scanner: ^5.2.3` w zależnościach, zero użyć w `lib/` | `pubspec.yaml:35` |
-| W repo jest tylko wyświetlanie QR, nie czytanie | `components/qr/crypto_address_qr.dart` |
-| Zerowe saldo na `textPrimary38` = 3.54:1, poniżej AA | `coin_card_row.dart:126,134` |
+| The existing FAB uses `Icons.swap_vert_rounded` | `gw_swap_fab.dart:73` |
+| Send and Receive have no home in navigation - they are buttons inside screens | `wallet_information.dart:176-185`, `coins_screen.dart:179,345` |
+| `mobile_scanner: ^5.2.3` in the dependencies, zero uses in `lib/` | `pubspec.yaml:35` |
+| The repo only displays QR codes, it never reads them | `components/qr/crypto_address_qr.dart` |
+| Zero balance on `textPrimary38` = 3.54:1, below AA | `coin_card_row.dart:126,134` |
 
 ## Recommendation
 
-**A · Swap**, ale warunkowo. A nie wprowadza żadnego nowego pojęcia - ta sama ikona, ta sama trasa,
-ten sam kontrakt co FAB, więc ryzyko nieporozumienia jest zerowe. **Jeśli jednak jest przeczucie, że
-użytkownicy częściej wysyłają niż zamieniają, B jest lepszą inwestycją** - zamyka udokumentowaną lukę
-zamiast przestawiać istniejący przycisk. Odrzucone: C (skanera nie ma, a `mobile_scanner` to jeden z
-dwóch powodów, dla których symulator iOS tu nie działa) i D (marka zamiast czynności w elemencie bez etykiety).
+**A · Swap**, but conditionally. A introduces no new concept at all - the same icon, the same route,
+the same contract as the FAB, so the risk of misreading it is zero. **If, however, there is a hunch that
+users send more often than they swap, B is the better investment** - it closes a documented gap
+instead of relocating an existing button. Rejected: C (there is no scanner, and `mobile_scanner` is one of
+the two reasons the iOS simulator does not work here) and D (a brand instead of an action in an element with no label).
 
 ## Open
 
-- Skład czterech pozostałych pozycji przeniesiony z 171-B bez zmian; zależy od rozstrzygnięcia 171.
-- Dok łamie regułę "jeden wypełniony gradient na powierzchnię" w każdym wariancie - decyzja raz, nie per ikona.
-- Czy dok jest stały w całej powłoce, czy tylko na Home.
+- The composition of the four remaining items was carried over from 171-B unchanged; it depends on how 171 is settled.
+- The dock breaks the "one filled gradient per surface" rule in every variant - decide that once, not per icon.
+- Whether the dock is constant across the whole shell, or only on Home.

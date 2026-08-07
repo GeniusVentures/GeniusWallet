@@ -4,9 +4,10 @@ http://localhost:8899/178-assets-header-total-vs-view-all/
 
 Jakub, 2026-08-07, on his iPhone:
 
-> "nie podoba mi sie sekcja assets, poniewaz tam masz view all oraz kwote po prawej stronie,
-> chcialbym zebysmy to dobrze jakos rozwiazali, bo nie wyglada to dobrze. (...) Czy usuwamy stamtad
-> total kwote i ona jest dopiero wyswietlana na subpage'u, jakby po klikniecu view all?"
+> He does not like the assets section, because it carries both view all and the amount on the
+> right-hand side, and he wants it solved properly, because as it stands it does not look good.
+> (...) Do we drop the total amount from there and only show it on the subpage, after tapping
+> view all?
 
 ## The row is not overflowing, and that changes what a fix has to do
 
