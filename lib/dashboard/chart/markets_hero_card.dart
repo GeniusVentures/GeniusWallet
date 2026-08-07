@@ -3,19 +3,55 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart' show chartYBounds;
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
-import 'package:genius_wallet/components/effects/gw_hoverable.dart';
+import 'package:genius_wallet/components/custom_future_builder.dart';
+import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart'
+    as coin_gecko_api;
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
-import 'package:genius_wallet/theme/genius_wallet_elevation.dart';
-import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:intl/intl.dart';
+
+/// The card's 24H/7D/30D/1Y tabs, paired with the day count each one asks
+/// `fetchHistoricalPrices` for. One list, not two — the labels the segment
+/// renders and the days the fetch uses cannot drift apart because the test
+/// reads this mapping instead of restating it.
+const List<({String label, int days})> kMarketsHeroTimeframeRanges = [
+  (label: '24H', days: 1),
+  (label: '7D', days: 7),
+  (label: '30D', days: 30),
+  (label: '1Y', days: 365),
+];
+
+/// A plotted series plus the real window it spans. A record, not a class — it
+/// carries no behaviour and needs no equality.
+typedef _MarketsHeroSeries = ({
+  List<double> values,
+  DateTime start,
+  DateTime end,
+});
+
+/// Picks the bottom-axis date format from the plotted window's span.
+///
+/// Top-level and pure for the same reason every rule in `chart_axis.dart` is:
+/// an axis-format bug looks like a working chart in every screenshot. Six
+/// identical day labels across a 24-hour window is the same class of lie as
+/// six identical clock-time labels across a week — which is what this card's
+/// old fixed-7-day assumption produced in the other direction.
+DateFormat chooseAxisDateFormat(Duration window) {
+  if (window <= const Duration(hours: 30)) {
+    return DateFormat('h:mm a');
+  }
+  if (window <= const Duration(days: 95)) {
+    return DateFormat('MMM d');
+  }
+  return DateFormat('MMM yyyy');
+}
 
 /// The hero chart's height in the WIDE (`IntrinsicHeight` row) layout.
 ///
@@ -72,11 +108,25 @@ class MarketsHeroCard extends StatefulWidget {
   final CoinGeckoMarketData data;
   final VoidCallback? onTap;
 
+  /// The historical-price fetch, typed to match
+  /// `coin_gecko_api.fetchHistoricalPrices` exactly and defaulting to it as a
+  /// tear-off.
+  ///
+  /// `@visibleForTesting`, not premature configurability: the real function
+  /// opens a Hive box, and real Hive I/O inside `testWidgets` hangs forever in
+  /// this repo (`.planning/todos/completed/2026-07-29-real-hive-io-inside-
+  /// testwidgets-hangs-forever.md`). Without this seam the 24H/30D/1Y wiring
+  /// would have no runnable check at all.
+  @visibleForTesting
+  final Future<Map<int, double>> Function(String coinId, {int days})
+  fetchHistoricalPrices;
+
   const MarketsHeroCard({
     super.key,
     required this.coin,
     required this.data,
     this.onTap,
+    this.fetchHistoricalPrices = coin_gecko_api.fetchHistoricalPrices,
   });
 
   @override
@@ -84,6 +134,60 @@ class MarketsHeroCard extends StatefulWidget {
 }
 
 class _MarketsHeroCardState extends State<MarketsHeroCard> {
+  // Defaults to the 7D entry — the range widget.data.sparkline actually
+  // covers.
+  int _selectedIndex = 1;
+
+  // Null means the FREE path: 7D plots widget.data.sparkline, which
+  // fetchCoinsMarketData already retrieved, with a synthesised last-7-days
+  // window. Any other tab sets this to a real fetch.
+  Future<_MarketsHeroSeries>? _seriesFuture;
+
+  void _onTimeframeTap(int index) {
+    setState(() {
+      _selectedIndex = index;
+      final range = kMarketsHeroTimeframeRanges[index];
+      _seriesFuture = range.label == '7D' ? null : _startFetch(range.days);
+    });
+  }
+
+  // `setState` does not rebuild synchronously, so `FutureStateWidget`'s
+  // `FutureBuilder` only attaches its error listener on the NEXT frame — a
+  // real gap a fast-rejecting future (an immediate empty-map response) can
+  // cross before anything is listening, which Dart reports as a zone-level
+  // "Unhandled exception" even though `FutureStateWidget` handles it a
+  // moment later. `..ignore()` registers a synchronous, silent listener at
+  // creation time so that report never fires; it does not touch how the
+  // SAME future delivers its real value or error to `FutureStateWidget`
+  // (Futures support multiple independent listeners).
+  Future<_MarketsHeroSeries> _startFetch(int days) =>
+      _fetchSeries(days)..ignore();
+
+  Future<_MarketsHeroSeries> _fetchSeries(int days) async {
+    final raw = await widget.fetchHistoricalPrices(widget.coin.id, days: days);
+    // `fetchHistoricalPrices` never throws (see <measured_facts>) — every
+    // failure path returns either a stale cache entry or an empty map, so an
+    // empty map is the ONLY failure signal that reaches here. Rendering it as
+    // an empty chart would be exactly the silent blank BXS-03 forbids, so
+    // this throws instead, which is what routes FutureStateWidget below to
+    // its retry-affordance error branch.
+    if (raw.isEmpty) {
+      throw StateError(
+        'No historical prices returned for ${widget.coin.id} ($days d)',
+      );
+    }
+    // Sort ascending before projecting to values. CoinGecko returns the keys
+    // in order today and the map preserves insertion order, but the series
+    // the chart plots should not rest on two undocumented behaviours
+    // agreeing (T-bxs-03).
+    final keys = raw.keys.toList()..sort();
+    return (
+      values: [for (final k in keys) raw[k]!],
+      start: DateTime.fromMillisecondsSinceEpoch(keys.first * 1000),
+      end: DateTime.fromMillisecondsSinceEpoch(keys.last * 1000),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
@@ -234,12 +338,57 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
     // Narrow layout stacks in an unbounded Column where a Spacer would throw,
     // so it is omitted there.
     Widget buildRight({required bool fill}) {
+      final Widget chart;
+      final future = _seriesFuture;
+      if (future == null) {
+        // FREE path (7D): the already-fetched sparkline, windowed as the
+        // last 7 days — the same window CoinGecko's sparkline_in_7d covers.
+        final now = DateTime.now();
+        chart = _HeroChart(
+          values: data.sparkline ?? const [],
+          start: now.subtract(const Duration(days: 7)),
+          end: now,
+        );
+      } else {
+        // `FutureStateWidget` is the right tool, not just a convenience: it
+        // is already this screen's loading/error idiom two levels up
+        // (`markets_screen.dart`), it supplies the spinner, the retry button
+        // and a snackbar for free, and because `FutureBuilder` drops results
+        // from a future it is no longer watching, rapid tab taps cannot
+        // paint a stale series — no request token needed.
+        chart = FutureStateWidget<_MarketsHeroSeries>(
+          future: future,
+          onRetry: () => setState(() {
+            _seriesFuture = _startFetch(
+              kMarketsHeroTimeframeRanges[_selectedIndex].days,
+            );
+          }),
+          error: Center(
+            child: Text(
+              "Couldn't load ${kMarketsHeroTimeframeRanges[_selectedIndex].label} prices",
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textSecondary,
+              ),
+            ),
+          ),
+          onData: (series) => _HeroChart(
+            values: series.values,
+            start: series.start,
+            end: series.end,
+          ),
+        );
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Align(
+          Align(
             alignment: Alignment.centerRight,
-            child: _TimeframeSegment(),
+            child: GWTimeframeSegment(
+              labels: [for (final r in kMarketsHeroTimeframeRanges) r.label],
+              initialIndex: _selectedIndex,
+              onChanged: _onTimeframeTap,
+            ),
           ),
           const SizedBox(height: GeniusWalletConsts.space8),
           if (fill) const Spacer(),
@@ -247,7 +396,7 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
             height: fill
                 ? kMarketsHeroChartHeight
                 : kMarketsHeroChartHeightStacked,
-            child: _HeroChart(sparkline: data.sparkline),
+            child: chart,
           ),
         ],
       );
@@ -378,7 +527,7 @@ class _ChangePill extends StatelessWidget {
   }
 }
 
-/// The 7d hero chart, on the SAME runtime A/B rule as the coin page: scheme B's
+/// The hero chart, on the SAME runtime A/B rule as the coin page: scheme B's
 /// trading frame when the box it is handed clears [kChartFrameMinHeight],
 /// today's axis-free chart below it.
 ///
@@ -395,15 +544,26 @@ class _ChangePill extends StatelessWidget {
 /// the fill, the touch behaviour and the tooltip are byte-identical between
 /// branches and only the frame parts differ, so two widgets would be one widget
 /// copied twice.
+///
+/// Takes the plotted [values] plus the real [start]/[end] the window spans
+/// (quick 260807-bxs) — the caller passes either a fetched series or, on the
+/// free 7D path, the bundled sparkline windowed as the last 7 days. Neither
+/// branch hardcodes a 7-day assumption anymore.
 class _HeroChart extends StatelessWidget {
-  final List<double>? sparkline;
-  const _HeroChart({required this.sparkline});
+  final List<double> values;
+  final DateTime start;
+  final DateTime end;
+  const _HeroChart({
+    required this.values,
+    required this.start,
+    required this.end,
+  });
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final data = sparkline;
-    if (data == null || data.isEmpty) {
+    final data = values;
+    if (data.isEmpty) {
       return Center(
         child: Text(
           'Chart unavailable',
@@ -422,30 +582,28 @@ class _HeroChart extends StatelessWidget {
     // gradientGreen -> gradientBlue regardless of direction — while
     // `CryptoLiveChart` was always mint and the two sparklines (
     // `crypto_simple_chart.dart:53-55`) colour by sign. Uses the LOCAL `up`
-    // (first vs last point of the plotted 7d sparkline), not
-    // `data.priceChangePercentage24h`: the series on screen is 7 days, so a
-    // 24h-signed colour on a 7d line would be the same class of lie this
-    // whole task is removing.
+    // (first vs last point of the plotted series), not
+    // `data.priceChangePercentage24h`: the series on screen can be any of the
+    // four ranges, so a 24h-signed colour on a 30D/1Y line would be the same
+    // class of lie this whole task is removing.
     final bool up = data.last >= data.first;
     final Color trend = up ? gw.statusSuccess : gw.statusError;
 
-    // Hover tooltip (same effect as the dashboard's CryptoLiveChart): a touched
-    // point shows its time, price, and % change vs the window start. The
-    // sparkline carries no timestamps, so map each index onto the last 7 days —
-    // CoinGecko's `sparkline_in_7d` IS an evenly-spaced 7d series, and 7D is the
-    // only range wired (the timeframe tabs are visual-only), so this is honest
-    // for what is plotted.
-    // ponytail: assumes a 7d window because that is the only series fetched.
-    // Ceiling: wrong labels if a non-7d range is ever plotted here. Upgrade
-    // path: pass the real [start,end] in once timeframe ranges are wired
-    // (.planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-live-chart.md).
+    // Hover tooltip (same effect as the dashboard's CryptoLiveChart): a
+    // touched point shows its time, price, and % change vs the window start.
+    // Interpolated linearly across the real [start, end] window rather than a
+    // fixed 7-day span — points are assumed evenly spaced across it, which
+    // holds for CoinGecko's `market_chart` buckets and for `sparkline_in_7d`.
+    //
+    // ponytail: points are assumed evenly spaced across the window. Ceiling:
+    // a real gap in the series (a stale cache entry mid-fetch) would draw
+    // evenly regardless. Upgrade path: carry a timestamp per point instead of
+    // interpolating from the endpoints.
     final double first = data.first;
     final int n = data.length;
-    final DateTime now = DateTime.now();
-    const double windowMs = 7 * 24 * 60 * 60 * 1000;
-    final double stepMs = n > 1 ? windowMs / (n - 1) : 0;
+    final Duration window = end.difference(start);
     DateTime timeAt(double x) =>
-        now.subtract(Duration(milliseconds: ((n - 1 - x) * stepMs).round()));
+        n > 1 ? start.add(window * (x / (n - 1))) : start;
 
     return LayoutBuilder(
       builder: (context, c) {
@@ -621,10 +779,12 @@ class _HeroChart extends StatelessWidget {
         // sparkline's index positions without fighting the library. Same
         // reasoning, same constants as `crypto_live_chart.dart`'s frame.
         //
-        // The labels are DATES, not times. The coin chart prints clock times
-        // because its window can be an hour; this series is always the 7d
-        // `sparkline`, where six identical `h:mm a` labels would be the exact
-        // class of lie the timeframe work is removing.
+        // The format is chosen from the real window, not fixed to dates:
+        // clock time for a ~1-day window (24H), day-and-month for weeks/
+        // months (7D/30D), month-and-year beyond ~a quarter (1Y). Six
+        // identical day labels across a 24H window would be the same class
+        // of lie six identical clock times across a week used to be.
+        final DateFormat labelFormat = chooseAxisDateFormat(window);
         return Column(
           children: [
             Expanded(child: chart),
@@ -645,7 +805,7 @@ class _HeroChart extends StatelessWidget {
                             ? ((b / (count - 1)) * (spots.length - 1)).round()
                             : 0;
                         return Text(
-                          DateFormat('MMM d').format(timeAt(spots[ix].x)),
+                          labelFormat.format(timeAt(spots[ix].x)),
                           style: TextStyle(
                             fontSize: 11,
                             color: gw.textSecondary,
@@ -659,144 +819,6 @@ class _HeroChart extends StatelessWidget {
               ),
             ),
           ],
-        );
-      },
-    );
-  }
-}
-
-/// Visual-only 24H·7D·30D·1Y selector. Only 7d data exists on the card today,
-/// so tapping moves the chip but does not re-window the series.
-///
-/// ponytail: cosmetic selector — the plotted series is always the 7d
-/// `sparkline`. Ceiling: non-functional tabs. Upgrade path: the same captured
-/// follow-up that wires real ranges into `CryptoLiveChart`
-/// (.planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-
-/// live-chart.md) would feed this once markets adopts the live chart.
-class _TimeframeSegment extends StatefulWidget {
-  const _TimeframeSegment();
-
-  @override
-  State<_TimeframeSegment> createState() => _TimeframeSegmentState();
-}
-
-class _TimeframeSegmentState extends State<_TimeframeSegment> {
-  static const _labels = ['24H', '7D', '30D', '1Y'];
-  int _selected = 1; // 7D — the range the sparkline actually covers.
-
-  // VISUALLY IDENTICAL to the dashboard's _TimeframeSegment/_TimeframeTab
-  // (dashboard_screen.dart): surfaceMenu "baton" with 2px-gapped tabs, the
-  // selected tab on the brandCta gradient, unselected tabs lifting onto
-  // surfaceElevated on hover. Only the labels differ (markets ranges).
-  // ponytail: still visual-only — the chart under it is a fixed 7d sparkline, so
-  // 24H/30D/1Y select but change nothing. Ceiling: no range data. Upgrade path:
-  // .planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-live-chart.md
-  // The two copies of this widget SHOULD be one shared GWTimeframeSegment —
-  // .planning/todos/pending/2026-07-24-unify-timeframe-segment-component.md
-  @override
-  Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: gw.surfaceMenu,
-        border: Border.all(color: gw.borderSubtle),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < _labels.length; i++) ...[
-            if (i > 0) const SizedBox(width: 2),
-            _TimeframeTab(
-              label: _labels[i],
-              selected: i == _selected,
-              unselectedColor: gw.textMutedOnSunken,
-              hoverColor: gw.surfaceElevated,
-              hoverTextColor: gw.textPrimary,
-              onTap: () => setState(() => _selected = i),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Hover plumbing moved into `GWHoverable` (23-05); this widget held no other
-/// state, so it is a `StatelessWidget` now.
-class _TimeframeTab extends StatelessWidget {
-  const _TimeframeTab({
-    required this.label,
-    required this.selected,
-    required this.unselectedColor,
-    required this.hoverColor,
-    required this.hoverTextColor,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final Color unselectedColor;
-  final Color hoverColor;
-  final Color hoverTextColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GWHoverable(
-      builder: (hovered) {
-        final Color labelColor = selected
-            ? context.gw.textOnBrand
-            : (hovered ? hoverTextColor : unselectedColor);
-        final bool lifted = hovered && !selected;
-        // InkWell for focus + Enter/Space (WCAG 2.1.1 Level A); hoverColor
-        // cleared because the hover response is the lift, not an overlay.
-        return Semantics(
-          button: true,
-          selected: selected,
-          child: Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              onTap: onTap,
-              hoverColor: Colors.transparent,
-              borderRadius: BorderRadius.circular(
-                GeniusWalletConsts.radiusPill,
-              ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                transformAlignment: Alignment.center,
-                transform: lifted
-                    ? Matrix4.translationValues(0, -1, 0)
-                    : Matrix4.identity(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: GeniusWalletConsts.space4,
-                  vertical: GeniusWalletConsts.space3,
-                ),
-                decoration: BoxDecoration(
-                  gradient: selected ? GeniusWalletGradient.brandCta : null,
-                  color: selected
-                      ? null
-                      : (lifted ? hoverColor : Colors.transparent),
-                  borderRadius: BorderRadius.circular(
-                    GeniusWalletConsts.radiusPill,
-                  ),
-                  boxShadow: (selected || lifted)
-                      ? GeniusWalletElevation.card
-                      : null,
-                ),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: labelColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    height: 1,
-                  ),
-                ),
-              ),
-            ),
-          ),
         );
       },
     );

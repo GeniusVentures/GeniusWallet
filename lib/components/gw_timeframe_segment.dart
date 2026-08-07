@@ -7,46 +7,57 @@ import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
-/// Visual-only 1H·1D·1W·1M·1Y segmented control (sketch 006 `.tf`), extracted
-/// from `dashboard_screen.dart`'s private `_TimeframeSegment` — this is now
-/// the THIRD occurrence in the codebase (dashboard, the coin-page/dashboard
-/// chart header, and — before this extraction — a second, differently
-/// labelled copy on the Markets hero), which is what makes the extraction
-/// correct under the Rule of Three (`AGENTS.md`).
+/// 1H·1D·1W·1M·1Y segmented control (sketch 006 `.tf`), extracted from
+/// `dashboard_screen.dart`'s private `_TimeframeSegment` — this is now the
+/// THIRD occurrence in the codebase (dashboard, the coin-page/dashboard chart
+/// header, and — before this extraction — a second, differently labelled copy
+/// on the Markets hero), which is what makes the extraction correct under the
+/// Rule of Three (`AGENTS.md`).
 ///
-/// The label set and the track are both settled by evidence, not taste (sketch
-/// 078 README §3): Robinhood's own documented set is the "1X" grammar
-/// (`1H/1D/1W/1M/1Y`), and the control-track convention
+/// The default label set and the track are both settled by evidence, not
+/// taste (sketch 078 README §3): Robinhood's own documented set is the "1X"
+/// grammar (`1H/1D/1W/1M/1Y`), and the control-track convention
 /// (`.planning/codebase/CONVENTIONS.md`, "Control track") calls for a recessed
 /// `surfaceSunken` well, not a raised `surfaceMenu` chip.
 ///
-/// Tapping a tab only moves the selected chip — it does not re-fetch or
-/// re-window any series. Wiring real ranges is a captured follow-up (see
-/// `.planning/todos/pending/2026-07-21-wire-real-timeframe-ranges-in-crypto-
-/// live-chart.md`), so there is deliberately NO `onChanged` callback: nothing
-/// would consume it yet.
-///
-/// The Markets hero card (`markets_hero_card.dart`) keeps its OWN
-/// `24H/7D/30D/1Y` segment and is NOT folded into this one here — that is the
-/// separate, still-open
-/// `.planning/todos/pending/2026-07-24-unify-timeframe-segment-component.md`.
-///
-/// ponytail: this segment only changes its own selected state — it does not
-/// re-fetch or re-window the series. Ceiling: non-functional tabs. Upgrade
-/// path: the follow-up todo above wires real ranges into `CryptoLiveChart`.
+/// **Uncontrolled, plus an optional callback — not fully controlled.** Tapping
+/// a tab always moves the selected chip locally; [onChanged], when supplied,
+/// additionally reports the tapped index so a consumer can react (re-fetch,
+/// re-window a series). The dashboard and coin-page chart header pass no
+/// callback, so they stay exactly as visual as before. The Markets hero
+/// (`markets_hero_card.dart`, quick 260807-bxs) is the first consumer that
+/// does, closing
+/// `.planning/todos/pending/2026-07-24-unify-timeframe-segment-component.md`
+/// with its own `24H/7D/30D/1Y` [labels] — the reason this stays uncontrolled
+/// rather than gaining a required `selectedIndex` is that a failed fetch
+/// should leave the tapped tab selected and show the error in the chart box
+/// instead, which a controlled component would make the parent responsible
+/// for re-deriving.
 class GWTimeframeSegment extends StatefulWidget {
-  const GWTimeframeSegment({super.key, this.initialIndex = 1});
+  const GWTimeframeSegment({
+    super.key,
+    this.initialIndex = 1,
+    this.labels = const ['1H', '1D', '1W', '1M', '1Y'],
+    this.onChanged,
+  });
 
   /// Which tab starts selected. Defaults to index 1 ('1D'), matching the
   /// sketch's default.
   final int initialIndex;
+
+  /// The tab labels, in order. Defaults to the sketch's "1X" grammar.
+  final List<String> labels;
+
+  /// Reports the tapped index, after the chip has already moved. Null (the
+  /// default) keeps a consumer purely visual — the dashboard and coin-page
+  /// call sites pass none, and this widget renders byte-identically for them.
+  final ValueChanged<int>? onChanged;
 
   @override
   State<GWTimeframeSegment> createState() => _GWTimeframeSegmentState();
 }
 
 class _GWTimeframeSegmentState extends State<GWTimeframeSegment> {
-  static const _labels = ['1H', '1D', '1W', '1M', '1Y'];
   late int _selected;
 
   @override
@@ -66,9 +77,9 @@ class _GWTimeframeSegmentState extends State<GWTimeframeSegment> {
     // file.
     return GWControlTrack(
       children: [
-        for (var i = 0; i < _labels.length; i++)
+        for (var i = 0; i < widget.labels.length; i++)
           _TimeframeTab(
-            label: _labels[i],
+            label: widget.labels[i],
             selected: i == _selected,
             // Selected chip wears the brand CTA gradient with textOnBrand
             // (near-black) -- AA-safe in BOTH modes, so no light-mode fallback
@@ -79,7 +90,10 @@ class _GWTimeframeSegmentState extends State<GWTimeframeSegment> {
             unselectedColor: gw.textMutedOnSunken,
             hoverColor: gw.surfaceElevated,
             hoverTextColor: gw.textPrimary,
-            onTap: () => setState(() => _selected = i),
+            onTap: () {
+              setState(() => _selected = i);
+              widget.onChanged?.call(i);
+            },
           ),
       ],
     );

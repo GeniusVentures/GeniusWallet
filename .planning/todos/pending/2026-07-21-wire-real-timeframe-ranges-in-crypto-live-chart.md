@@ -43,3 +43,18 @@ TBD — when this is picked up:
    settle this before spending the light-mode-pass budget on it.
 4. Keep the % pill / hero price / mint chart / hover tooltip styling from 260721-dws
    untouched; this follow-up is data-wiring only.
+
+## 2026-08-07 note (quick 260807-bxs)
+
+Step 1's shape is now built and shipped, but on the **Markets hero** (`markets_hero_card.dart`),
+not `CryptoLiveChart`: `fetchHistoricalPrices` gained an optional `days` parameter (cache key
+scoped per-range so a 30D/1Y Markets fetch cannot land on top of `CryptoLiveChart`'s 1D cache
+entry), and the Markets hero's own timeframe tabs now actually re-fetch and re-plot. Step 2 also
+landed there — `GWTimeframeSegment` gained `onChanged` (see the now-closed unify todo) and the
+Markets hero consumes it.
+
+`CryptoLiveChart` itself is untouched: its call site (`crypto_live_chart.dart:638`) still passes
+no `onChanged`, so its tabs remain visual-only. What remains for THIS file is: (a) wire
+`CryptoLiveChart`'s own `_fetchHistoricalData` through `fetchHistoricalPrices(..., days: ...)` the
+same way the Markets hero now does, and (b) the step 3 zoom/pan product call above, which this
+note does not resolve.

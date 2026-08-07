@@ -22,15 +22,30 @@ const Duration cacheDuration = Duration(minutes: 3);
 // network-down walk in 13-05 is what revisits this value.
 const Duration requestTimeout = Duration(seconds: 3);
 
-/// Fetches historical prices for a coin from CoinGecko API
-Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
+/// Fetches historical prices for a coin from CoinGecko API.
+///
+/// [days] defaults to 1 (today's/dashboard's window) so the two existing
+/// callers (`crypto_live_chart.dart`, `splash.dart`) are unaffected — both
+/// want the default and neither passes [days].
+///
+/// The Hive cache key is the bare [coinId] ONLY at the default [days]: every
+/// entry already in the box was written under that key, so keeping it bare
+/// there means no migration and no orphaned entry. Any other [days] value
+/// gets its own `coinId:days` key — the Markets hero's 30D/1Y fetches
+/// (quick 260807-bxs) cannot otherwise land on top of, or be served back as,
+/// the dashboard chart's 1D series (T-bxs-01).
+Future<Map<int, double>> fetchHistoricalPrices(
+  String coinId, {
+  int days = 1,
+}) async {
   final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final String cacheKey = days == 1 ? coinId : '$coinId:$days';
 
   final Box<HistoricalPriceCacheEntry> box =
       Hive.box<HistoricalPriceCacheEntry>(historicalPricesBox);
 
   // Check for existing cached entry
-  final HistoricalPriceCacheEntry? cacheEntry = box.get(coinId);
+  final HistoricalPriceCacheEntry? cacheEntry = box.get(cacheKey);
 
   if (cacheEntry != null) {
     final cacheAge = now - cacheEntry.timestamp;
@@ -42,7 +57,7 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
 
   // API endpoint
   final String historyApi =
-      'https://api.coingecko.com/api/v3/coins/$coinId/market_chart?vs_currency=usd&days=1';
+      'https://api.coingecko.com/api/v3/coins/$coinId/market_chart?vs_currency=usd&days=$days';
 
   try {
     final response = await http
@@ -62,7 +77,7 @@ Future<Map<int, double>> fetchHistoricalPrices(String coinId) async {
         historicalPrices,
         now,
       );
-      await box.put(coinId, newCacheEntry);
+      await box.put(cacheKey, newCacheEntry);
 
       return historicalPrices;
     } else {
