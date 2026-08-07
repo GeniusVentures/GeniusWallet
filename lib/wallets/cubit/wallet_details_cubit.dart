@@ -97,6 +97,37 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
 
     final balance = selectedWallet.balance.toString();
 
+    // DEV-ONLY, release-safe: same const-led gate, same reason, different
+    // mechanism from the two in `getCoins()`.
+    //
+    // The emit below is the one place in this cubit that builds a state from
+    // the CONSTRUCTOR rather than `copyWith`, so it resets every field it does
+    // not name - including `coins`, back to its `const []` default. Nothing
+    // guarded it, so a `LoadWallets` (boot, but also the dashboard's
+    // pull-to-refresh, one accidental overscroll away on a phone) wiped the
+    // injected holdings outright.
+    //
+    // That was the WORSE of the two: `mockMode` stayed true afterwards, so the
+    // guard at the top of `getCoins()` then blocked the refetch as well and
+    // the panel sat EMPTY until Clear - it did not even revert to real data.
+    //
+    // The mock branch still does the reload's real work (wallet, network,
+    // initStatus) through `copyWith`, which preserves `coins`. It deliberately
+    // does NOT write `selectedWalletBalance` from `balance` above: that field
+    // belongs to the fixture total `injectMockCoins` set, and overwriting it
+    // with the real wallet's balance would half-revert the injection - a
+    // fixture list under a live total, which is a state neither path produces.
+    if (kDebugMode && kShowDevTools && mockMode) {
+      emit(
+        state.copyWith(
+          selectedWallet: selectedWallet,
+          selectedNetwork: selectedNetwork,
+          initStatus: WalletStatus.successful,
+        ),
+      );
+      return;
+    }
+
     emit(
       WalletDetailsState(
         selectedWallet: selectedWallet,
@@ -221,6 +252,29 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       }
 
       final coinList = await coinFuture;
+      // DEV-ONLY, release-safe: the SECOND half of the guard at the top of
+      // this method, and it is not redundant with it - it is the `act` half
+      // of a check-then-act pair whose `check` is now stale.
+      //
+      // The guard above runs BEFORE `await coinFuture`. A read that has
+      // already passed it keeps running while the network takes its time, so
+      // pressing a MOCK button during that window injects fixtures into a
+      // cubit that is still holding a live result it is about to emit - and
+      // this emit then silently replaced them. That is the whole "rows appear,
+      // then vanish on their own a while later" report
+      // (`.planning/debug/260807-mock-data-vanishes.md`); the delay the user
+      // sees is simply however long the fetch had left to run, measured at
+      // 28517ms on device with the RPC timing out and CoinGecko rate-limiting.
+      //
+      // `mockMode` must therefore be re-read AFTER the await, never cached
+      // across it. Same ordering rule as the guard above: the two const bools
+      // lead, so a release build folds this to `false`, drops the field read
+      // with it, and this method's executed behaviour is byte-for-byte what it
+      // was - the live read still wins for every real wallet, which is what
+      // the third case in `test/dev/dev_mock_holdings_race_test.dart` pins.
+      if (kDebugMode && kShowDevTools && mockMode) {
+        return;
+      }
       if (!isClosed) {
         emit(
           state.copyWith(

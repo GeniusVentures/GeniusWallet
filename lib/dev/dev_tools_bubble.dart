@@ -395,6 +395,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             balance: DevMockHoldings.instance.totalBalance,
                           );
                         }, tooltip: 'Missing icon scenario'),
+                        _devButton('Unpriced', () {
+                          DevMockHoldings.instance.loadUnpriced();
+                          context.read<WalletDetailsCubit>().injectMockCoins(
+                            DevMockHoldings.instance.coins,
+                            balance: DevMockHoldings.instance.totalBalance,
+                          );
+                        }, tooltip: 'Held token with no market data'),
                         _devButton('Mock txns', () {
                           context.read<TransactionsCubit>().addTransactions(
                             DevMockTransactions.instance.batch(isSgnus: false),
