@@ -296,7 +296,17 @@ void main() {
         await tester.tap(find.text('open drawer'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Your Accounts'), findsOneWidget);
+        // 24-02: the drawer now holds TWO sections, so its title dropped the
+        // "Your" - that word moved down onto the section header which actually
+        // owns those rows. Both are asserted, which is strictly stronger than
+        // the single title check this replaced: it pins the split itself, not
+        // just that something rendered.
+        expect(find.text('Accounts'), findsOneWidget);
+        expect(find.text('YOUR ACCOUNTS'), findsOneWidget);
+        // The harness has no sgnus wallets and an empty `sdkAccounts`, so the
+        // SDK section must NOT be drawn at all - an empty box above the user's
+        // own wallets is exactly what the conditional in the drawer prevents.
+        expect(find.text('SDK ACCOUNTS'), findsNothing);
         expect(find.text('Wallet A'), findsOneWidget);
         expect(find.text('Wallet B'), findsOneWidget);
         expect(find.text('Add Wallet'), findsOneWidget);

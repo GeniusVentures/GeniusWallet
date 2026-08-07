@@ -1,12 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/overlay/mobile_header.dart';
+import 'package:genius_wallet/components/overlay/nav_destinations.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/reown/reown_connect_button.dart';
@@ -19,78 +18,6 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
-
-class _TabDestination {
-  final String path;
-  final String label;
-  final IconData icon;
-  final bool visible;
-
-  const _TabDestination({
-    required this.path,
-    required this.label,
-    required this.icon,
-    this.visible = true,
-  });
-}
-
-final List<_TabDestination> _allDestinations = [
-  const _TabDestination(
-    path: '/dashboard',
-    label: 'Dashboard',
-    icon: Icons.dashboard_outlined,
-  ),
-  _TabDestination(
-    path: '/transactions',
-    label: 'Transactions',
-    icon: FontAwesomeIcons.clock.data,
-  ),
-  const _TabDestination(
-    path: '/swap',
-    label: 'Swap',
-    icon: Icons.swap_horiz_outlined,
-  ),
-  const _TabDestination(
-    path: '/markets',
-    label: 'Markets',
-    icon: Icons.show_chart,
-  ),
-  const _TabDestination(
-    path: '/news',
-    label: 'News',
-    icon: Icons.article_outlined,
-  ),
-  _TabDestination(
-    path: '/web',
-    label: 'Web',
-    icon: FontAwesomeIcons.globe.data,
-    visible: !Platform.isLinux,
-  ),
-  const _TabDestination(
-    path: '/logs',
-    label: 'Feedback',
-    icon: Icons.chat_bubble_outline,
-  ),
-  const _TabDestination(
-    path: '/settings',
-    label: 'Settings',
-    icon: Icons.settings_outlined,
-  ),
-];
-
-List<_TabDestination> get _visibleDestinations =>
-    _allDestinations.where((d) => d.visible).toList();
-
-int _currentIndex(BuildContext context) {
-  final location = GoRouterState.of(context).uri.path;
-  final visible = _visibleDestinations;
-  for (var i = 0; i < visible.length; i++) {
-    if (location.startsWith(visible[i].path)) {
-      return i;
-    }
-  }
-  return 0;
-}
 
 List<Widget> _buildActionRowWidgets(BuildContext context) {
   final walletDetailsCubit = context.read<WalletDetailsCubit>();
@@ -160,63 +87,301 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
 Widget _trackDivider(GWColors gw) =>
     Container(width: 1, height: 22, color: gw.borderSubtle);
 
-const _kIconSize = 23.0;
+/// Nav icon size, shared by the phone bar's slots and the desktop bar's tabs.
+///
+/// Public so `mobile_nav_destinations_test.dart` computes the slot's vertical
+/// budget from the same number the widget draws with. Named for mobile because
+/// mobile is the surface whose budget is measured against it - the desktop bar
+/// has no comparable height constraint - but BOTH bars read it, so changing it
+/// changes both.
+const kMobileNavIconSize = 23.0;
 
+/// Painted height of the phone bottom bar, excluding the bottom safe-area
+/// inset. Fits a 23px icon, a 4px gap, a 10px label and 8px of padding.
+///
+/// Public for the same reason as [kMobileNavIconSize]: the vertical budget is
+/// 56.85 against this 60.00, which is 3.15 of slack, and only the label line
+/// scales. That is asserted rather than described.
+const double kMobileBarHeight = 60.0;
+
+/// Diameter of the Swap dock. Larger than the bar is tall, on purpose - it is
+/// meant to read as a control sitting ON the bar, not a tab inside it.
+const double _kDockSize = 64.0;
+
+/// How far the dock rises ABOVE the bar's top edge.
+///
+/// The dock is drawn inside the bar's own box (a taller box whose lower part
+/// carries the painted bar), NOT translated out of it. That distinction is the
+/// whole reason taps on the protruding half work: Flutter hit-tests a child
+/// only within its parent's bounds, so a `Transform.translate` would have
+/// produced the right picture and a dead top half.
+const double _kDockOverhang = 26.0;
+
+/// Width the bar's Row reserves for the dock, so the four tabs lay themselves
+/// out around it instead of underneath it.
+///
+/// Public so the label-width test computes the per-tab slot as
+/// `(390 - kMobileDockSlotWidth) / 4` = 76.50 rather than typing 76.50 twice.
+const double kMobileDockSlotWidth = 84.0;
+
+/// Bottom bar for phones: four labelled destinations with a Swap dock between
+/// the second and third.
+///
+/// Sketch 171 variant B (shape) x 172 variant A (what the dock is), both picked
+/// by Jakub on 2026-08-06. The dock is Swap and carries the SAME glyph the
+/// floating action button already used, `Icons.swap_vert_rounded`
+/// (`gw_swap_fab.dart:73`) - the point was to move a control that already
+/// existed out of the way of the asset list, not to invent a new one, so
+/// changing its icon would have thrown away the only recognition it had.
+///
+/// 2026-08-07, sketch 182 scheme S7: all four slots are now PLACES. The fourth
+/// used to be `More`, which opened a sheet and was the one slot with no route
+/// behind it; the header's hamburger took that job in the same change.
+///
+/// The active-tab consequence, recorded rather than discovered: `/markets`
+/// moved into the sheet, so standing on it lights NO tab -
+/// [navIndexForLocation] returns -1, which is the shipped 24-05 answer and not
+/// a gap. `/assets` and `/news` each gained a lit tab, so the count of in-shell
+/// routes that light nothing went from seven to six. Nothing lights WRONGLY,
+/// which is the property 24-05 was about. Lighting the HAMBURGER instead was
+/// considered and refused: the header has no selection idiom, and inventing one
+/// is the redesigned-menu work that sketch 184 has not settled.
 class _MobileTabBar extends StatelessWidget {
   const _MobileTabBar();
 
   @override
   Widget build(BuildContext context) {
-    // Fail-soft GWColors read (04-02 const-widget live-flip pattern) --
-    // this widget is const-instanced (`bottomNavigationBar: const
-    // _MobileTabBar()`), so appearance-aware tokens must come from the
-    // Theme.of(context) InheritedWidget dependency, not a static getter.
+    // Fail-soft GWColors read (04-02 const-widget live-flip pattern): this
+    // widget is const-instanced by MobileOverlay, so appearance-aware tokens
+    // must come from the Theme.of(context) dependency, not a static getter.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final destinations = _visibleDestinations;
-    final selected = _currentIndex(context);
+    final destinations = mobileDestinations;
+    final selected = currentIndex(context, destinations);
+    final onSwap = GoRouterState.of(context).uri.path.startsWith('/swap');
 
-    // Background: GWDecorations.surfaceSheen (Gen-B's token vocabulary,
-    // §2.5) -- a top-lit gradient consistent with the rest of the redesign's
-    // elevated surfaces, rather than a flat transparent fill. Safe to read
-    // directly (not gated through `gw`): it is itself appearance-aware
-    // (GWAppearance.isLight) and, because this Container lives inside
-    // _MobileTabBar's build(), it is only ever evaluated on a build() call
-    // already forced by the `gw` read above.
-    return Container(
-      decoration: BoxDecoration(
-        gradient: GWDecorations.surfaceSheen,
-        border: Border(top: BorderSide(color: gw.borderSubtle, width: 0.5)),
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        currentIndex: selected,
-        onTap: (index) => context.go(destinations[index].path),
-        selectedItemColor: context.gw.brandPrimaryStrong,
-        unselectedItemColor: gw.textSecondary,
-        selectedIconTheme: IconThemeData(color: gw.brandPrimaryStrong),
-        unselectedIconTheme: IconThemeData(color: gw.textSecondary),
-        selectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
-          color: context.gw.brandPrimaryStrong,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: GeniusWalletTypography.labelMd.copyWith(
-          color: gw.textSecondary,
-          fontWeight: FontWeight.w500,
-        ),
-        items: destinations
-            .map(
-              (d) => BottomNavigationBarItem(
-                icon: Icon(d.icon),
-                activeIcon: Icon(d.icon),
-                label: d.label,
-                tooltip: d.label,
+    // Read the inset explicitly rather than wrapping in `SafeArea`. The bar's
+    // painted surface has to run all the way to the physical bottom edge -
+    // a SafeArea around the whole thing would leave a transparent strip of
+    // page canvas under it - while the ROW inside it must still clear the home
+    // indicator. One number, used in both places, does both.
+    //
+    // 24-10: CAPPED at `kMaxBottomSafeInset`. The raw `viewPadding.bottom` is
+    // 34 on Jakub's iPhone, and reserving all of it left a visibly dead band
+    // under the tab labels (reported on the 2026-08-06 walk). See that
+    // constant's doc for why 20 clears the home indicator with room to spare.
+    //
+    // 2026-08-07: the cap moved out of this file into
+    // `genius_wallet_consts.dart` so the drawer shell's footer could share it.
+    // Same value, same reasoning, now one place - see
+    // `responsive_drawer.dart`'s footer.
+    final rawInset = MediaQuery.viewPaddingOf(context).bottom;
+    final bottomInset = rawInset > kMaxBottomSafeInset
+        ? kMaxBottomSafeInset
+        : rawInset;
+
+    return SizedBox(
+      // Every height here is stated. 24-07 was caused by exactly one box that
+      // left an axis free inside a slot Scaffold offers the whole screen to,
+      // and the failure was silent - no overflow, no exception, all tests
+      // green, app unusable.
+      height: _kDockOverhang + kMobileBarHeight + bottomInset,
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: kMobileBarHeight + bottomInset,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: GWDecorations.surfaceSheen,
+                border: Border(
+                  top: BorderSide(color: gw.borderSubtle, width: 0.5),
+                ),
               ),
-            )
-            .toList(),
+              padding: EdgeInsets.only(bottom: bottomInset),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _MobileTabItem(
+                    dest: destinations[0],
+                    selected: selected == 0,
+                  ),
+                  _MobileTabItem(
+                    dest: destinations[1],
+                    selected: selected == 1,
+                  ),
+                  // The dock is NOT a child of this Row - it is painted above,
+                  // overlapping the bar's top edge. This reserves its footprint
+                  // so the four tabs sit either side rather than beneath it.
+                  const SizedBox(width: kMobileDockSlotWidth),
+                  _MobileTabItem(
+                    dest: destinations[2],
+                    selected: selected == 2,
+                  ),
+                  _MobileTabItem(
+                    dest: destinations[3],
+                    selected: selected == 3,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: _kDockSize,
+            child: Center(child: _MobileSwapDock(active: onSwap)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One labelled tab. Its own widget rather than a `_buildTab()` so it can be
+/// `const`-constructed and shows up in the DevTools inspector (AGENTS.md).
+class _MobileTabItem extends StatelessWidget {
+  const _MobileTabItem({required this.dest, required this.selected});
+
+  final NavDestination dest;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return _MobileBarSlot(
+      icon: dest.icon,
+      label: dest.label,
+      selected: selected,
+      onTap: () => context.go(dest.path),
+    );
+  }
+}
+
+/// Shared geometry for every slot in the bar, so the dock cannot drift out of
+/// alignment with the tabs beside it.
+class _MobileBarSlot extends StatelessWidget {
+  const _MobileBarSlot({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    // 24-08: the active tab was a FLAT `brandPrimaryStrong` blue. The design
+    // system's active-nav state is the brand GRADIENT (Jakub, live walk
+    // 2026-08-06 - "follow the component"), which is what the desktop bar's
+    // selected underline already paints.
+    //
+    // Same single-paint-path recipe `gw_view_all_link.dart` uses: children are
+    // drawn opaque WHITE and recoloured by one srcIn ShaderMask, so there is no
+    // `selected ? ... : ...` branch in the widget tree - only in the shader.
+    // Inactive collapses to a flat two-stop `textSecondary`, which paints
+    // identically to a plain colour.
+    //
+    // `brandCtaText` (not raw `brandCta`) because the raw gradient measures
+    // 1.65:1 on a light surface; the helper degrades it to
+    // `brandPrimaryOnSurface` there. `surfaceElevated` is the bar's own fill,
+    // so it is the correct appearance proxy.
+    final shader = selected
+        ? GeniusWalletGradient.brandCtaText(gw.surfaceElevated)
+        : LinearGradient(colors: [gw.textSecondary, gw.textSecondary]);
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: GeniusWalletConsts.space4,
+          ),
+          child: ShaderMask(
+            blendMode: BlendMode.srcIn,
+            shaderCallback: shader.createShader,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: kMobileNavIconSize, color: Colors.white),
+                const SizedBox(height: GeniusWalletConsts.space2),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GeniusWalletTypography.labelMd.copyWith(
+                    fontSize: 10,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The centre dock: Swap, raised out of the bar.
+///
+/// This is the one place in the app where a filled gradient sits on a surface
+/// that may already carry a gradient CTA, which the CTA-weight rule normally
+/// forbids. It is a deliberate, single exception: the dock is chrome, not a
+/// page action, and it is the same gradient the FAB it replaces already used.
+class _MobileSwapDock extends StatelessWidget {
+  const _MobileSwapDock({required this.active});
+
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return SizedBox(
+      // Both axes stated. A box with one free axis inside a slot that offers
+      // the whole screen is precisely what caused 24-07.
+      width: _kDockSize,
+      height: _kDockSize,
+      child: Center(
+        child: Semantics(
+          button: true,
+          label: 'Swap',
+          child: InkWell(
+            onTap: () => context.go('/swap'),
+            customBorder: const CircleBorder(),
+            child: Container(
+              width: _kDockSize,
+              height: _kDockSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: GeniusWalletGradient.brandCta,
+                border: Border.all(color: gw.surfaceElevated, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: gw.brandPrimaryStrong.withValues(
+                      alpha: active ? 0.55 : 0.35,
+                    ),
+                    blurRadius: active ? 18 : 12,
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.swap_vert_rounded,
+                size: 30,
+                color: gw.textOnBrand,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -232,8 +397,8 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final destinations = _visibleDestinations;
-    final selected = _currentIndex(context);
+    final destinations = visibleDestinations;
+    final selected = currentIndex(context, destinations);
     final hideLabels = MediaQuery.sizeOf(context).width < GeniusBreakpoints.xxl;
 
     return ColoredBox(
@@ -291,7 +456,7 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                               children: [
                                 Icon(
                                   dest.icon,
-                                  size: _kIconSize,
+                                  size: kMobileNavIconSize,
                                   color: labelColor,
                                 ),
                                 if (!hideLabels)
@@ -449,7 +614,7 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                   // it was the only element forcing a hierarchy on this side,
                   // and without it the cluster can read as one instrument
                   // rather than a row of buttons. `/buy` is still routed and
-                  // still reachable — this drops the shortcut, not the feature.
+                  // still reachable - this drops the shortcut, not the feature.
                   ..._buildActionRowWidgets(context),
                 ],
               ),
@@ -467,23 +632,36 @@ class MobileOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text("Genius Wallet"),
-            actions: [
-              Flexible(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    spacing: GeniusWalletConsts.space6,
-                    children: [..._buildActionRowWidgets(context)],
-                  ),
-                ),
-              ),
-            ],
-          ),
+          // 24-09: FLAT `surfaceBase`, not `GWCanvasBackground`.
+          //
+          // Jakub on the 2026-08-06 walk: the home page reads "szarawy" (washed
+          // grey) and should be one solid dark. `GWCanvasBackground` paints
+          // three layers over the page - a 3-stop `canvas` gradient whose TOP
+          // stop is `#14171E` (a lift of ~+9 L* over `surfaceBase` `#0B0D12`),
+          // a `canvasTopLight` radial white-12% glow centred near the top, and
+          // a 4% noise texture. On a 390px-wide phone the glow's radius covers
+          // most of the visible width, so all three land in the same place: the
+          // top third, exactly where the grey was seen.
+          //
+          // The fix is to stop painting them, not to retune them - so this uses
+          // the component that was already here: `Scaffold.backgroundColor`
+          // with `gw.surfaceBase`, the same line `DesktopOverlay` below already
+          // carries, and the same value `theme.dart:66` sets as
+          // `scaffoldBackgroundColor`.
+          //
+          // DESKTOP KEEPS THE CANVAS deliberately. The layered wash exists to
+          // stop a very large dark fill reading as dead, which is a real
+          // problem at 1400px and not one at 390px. Mobile-only per the
+          // mobile-first rule now in force.
+          backgroundColor: gw.surfaceBase,
+          // 24-03: was an AppBar whose title was the literal string
+          // "Genius Wallet" and whose actions held the desktop control track
+          // inside a horizontal SingleChildScrollView. See MobileHeader.
+          appBar: const MobileHeader(),
           // Single-child Stack kept deliberately (D-05, quick task
           // 260731-gow): the dev bubble that used to be this Stack's second
           // child now mounts above the root Navigator via
@@ -492,7 +670,7 @@ class MobileOverlay extends StatelessWidget {
           // constraints, so a Stack expands to the full body box while a
           // bare child may size to itself - dropping this Stack would
           // silently change body sizing for every page in the shell.
-          body: GWCanvasBackground(child: Stack(children: [child])),
+          body: Stack(children: [child]),
           bottomNavigationBar: const _MobileTabBar(),
         );
       },
