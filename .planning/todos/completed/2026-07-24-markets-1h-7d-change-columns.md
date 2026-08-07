@@ -37,9 +37,19 @@ a data-model change (Hive), so it was deliberately deferred and marked rather th
 
 ## Closed 2026-08-07 (quick 260807-bxs) — by removal, not implementation
 
-The table itself is gone: `markets_table.dart` became `markets_cards.dart`, and the card design
-(decision recorded in 260807-bxs-PLAN.md) drops both the 1h % and 7d % columns entirely rather
-than carry the `-` placeholders forward. There is no longer a column for this todo's upgrade path
-to fill. If 1h/7d change data is ever wired (steps 1-2 above are unaffected and still apply to
-`coin_gecko_api.dart` / `coin_gecko_market_data.dart`), it would surface on the card — e.g. as a
-third stat tile — rather than reopen this file.
+**Superseded same day.** The table was first replaced entirely by cards (closing this todo because
+the card design dropped both placeholder columns), then that replacement was itself corrected —
+Braian's actual ask was cards only when the table doesn't fit, with the table restored for the
+fits case. At that point Braian gave a second, direct instruction: delete the `1h %`/`7d %`
+columns from the restored table too — "we dont need that filter in the table just in the graph."
+Timeframe ranges belong to the hero graph's tabs (which genuinely fetch as of this same task), not
+a table column.
+
+**Net effect:** both columns are gone from BOTH renderings — the restored `markets_table.dart`
+(`kMarketsTableMinWidth` recomputed without them, from `_wChange * 3` + 8 gaps down to `_wChange`
++ 6 gaps) and the card grid in `markets_cards.dart`. This is a stronger close than the original
+"cards replaced the table" reasoning: the columns are not merely absent from one surface while a
+now-deleted second surface still theoretically claimed them — they are deleted outright, from the
+one surface that carries this concern going forward. If 1h/7d change data is ever wired (fetch/
+model steps 1-2 above are unaffected and still apply to `coin_gecko_api.dart` /
+`coin_gecko_market_data.dart`), it belongs on the hero graph's timeframe tabs, not reopened here.

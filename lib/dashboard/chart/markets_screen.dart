@@ -6,6 +6,8 @@ import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/dashboard/chart/markets_cards.dart';
 import 'package:genius_wallet/dashboard/chart/markets_hero_card.dart';
 import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
+import 'package:genius_wallet/dashboard/chart/markets_table.dart'
+    show MarketRow;
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -216,8 +218,26 @@ class _MarketsScreenState extends State<MarketsScreen> {
               ),
               const SizedBox(height: GeniusWalletConsts.space12),
             ],
-            const GWSectionTitle(title: 'All Markets'),
-            MarketsCards(
+            // The title's `contentTopInset` has to follow the SAME branch the
+            // section itself takes, so both read `marketsSectionUsesTable`.
+            // `MarketsTable`'s header row is a `Container` with its own
+            // `vertical: space6`, so the table's first painted pixel (the `#`
+            // column label) sits 12px below its layout box, and the title
+            // spends its bottom pad against that: `26 - 10 - 12` leaves
+            // `space2` and the section renders the same 26px gap as every
+            // other one (`gw_section_title_rhythm_test.dart`). The card grid
+            // leads with a `GWCard` instead, whose surface starts at its box
+            // edge — 0 inset — so declaring 12 there would render the gap 12px
+            // short. One constant for both branches is wrong on one of them.
+            LayoutBuilder(
+              builder: (context, c) => GWSectionTitle(
+                title: 'All Markets',
+                contentTopInset: marketsSectionUsesTable(c.maxWidth)
+                    ? GeniusWalletConsts.space6
+                    : 0,
+              ),
+            ),
+            MarketsAllSection(
               rows: rows,
               onTapRow: (r) => _openToken(r.coin, r.data),
             ),

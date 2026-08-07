@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
 import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
-import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
-import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/dashboard/chart/markets_table.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -11,39 +10,80 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/image_utils.dart';
 import 'package:intl/intl.dart';
 
-/// One row of the "All Markets" list: the display payload ([coin], [data])
-/// plus its Flutter-free [sort] projection (see [MarketRowData]).
-class MarketRow {
-  final CoinGeckoCoin coin;
-  final CoinGeckoMarketData data;
-  final MarketRowData sort;
+// `MarketRow` lives in `markets_table.dart` (its original home, restored
+// 2026-08-07) — imported here, not redefined, so both renderings share one
+// definition.
 
-  MarketRow(this.coin, this.data)
-    : sort = MarketRowData(
-        rank: data.marketCapRank,
-        name: coin.name,
-        price: data.currentPrice,
-        changePct: data.priceChangePercentage24h,
-        marketCap: data.marketCap,
-        volume: data.totalVolume,
-      );
-}
-
-/// "All Markets" body: a card per coin (sketch 103 · H1 body), one per row at
-/// phone width and two per row at desktop, ordered rank ascending — the
-/// table's own default order.
+/// "All Markets" body: the table when it fits, cards when it does not.
 ///
-/// Stateless: the sort state that made the old table stateful is gone.
-/// Interactive column sorting went with the table headers it lived on; only
-/// rank order remains (a decision recorded in quick 260807-bxs, which the
-/// user can revisit — `markets_sort.dart` and its comparator stay live
-/// specifically so a sort control could be added back above the list without
-/// rework).
-class MarketsCards extends StatelessWidget {
+/// Braian's actual ask, corrected 2026-08-07 (quick 260807-bxs) after a
+/// same-day detour replaced the desktop table with cards unconditionally:
+/// "cards ... only when the data does not fit a table". The gate is
+/// literally that — this box's own measured width against the table's own
+/// minimum width (`kMarketsTableMinWidth`, the sum of its column-width
+/// constants) — not a device-class check like `useDesktopLayout`. A
+/// hardcoded breakpoint would be a different rule that happens to agree at
+/// common sizes; measuring the actual box is what makes "does the table fit"
+/// true by construction rather than by coincidence.
+///
+/// Single call site (`markets_screen.dart`), and the ONE page-width surface
+/// for "All Markets" — this is not the shared-row-widget trap from
+/// 260806-hfe (a widget reused across many differently-sized containers, so
+/// measuring its OWN box was the wrong signal there). Here the box this
+/// `LayoutBuilder` is handed IS the page's content width, so reading it
+/// directly is correct. Do not "fix" this into a `useDesktopLayout` check.
+class MarketsAllSection extends StatelessWidget {
   final List<MarketRow> rows;
   final void Function(MarketRow row) onTapRow;
 
-  const MarketsCards({super.key, required this.rows, required this.onTapRow});
+  const MarketsAllSection({
+    super.key,
+    required this.rows,
+    required this.onTapRow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        if (marketsSectionUsesTable(c.maxWidth)) {
+          return MarketsTable(rows: rows, onTapRow: onTapRow);
+        }
+        return _MarketsCardGrid(rows: rows, onTapRow: onTapRow);
+      },
+    );
+  }
+}
+
+/// Whether [MarketsAllSection] renders the TABLE, rather than the card grid,
+/// in a box this wide.
+///
+/// Exists so the caller can pick its `GWSectionTitle`'s `contentTopInset`
+/// from the same predicate the section itself branches on. The two must
+/// agree: `GWSectionTitle` spends its bottom pad against whatever internal
+/// top padding the content below declares, and the two branches here declare
+/// DIFFERENT amounts — the table's header row carries `vertical: space6`, so
+/// its first painted pixel sits 12px into its box, while a card grid leads
+/// with a `GWCard` whose surface starts at its box edge and declares 0. Ship
+/// one constant for both and the section's rendered gap is wrong on one of
+/// them, which is the inconsistent-title-rhythm defect `GWSectionTitle`'s own
+/// doc comment was written to kill.
+bool marketsSectionUsesTable(double width) => width >= kMarketsTableMinWidth;
+
+/// The card grid: one card per coin, one per row at phone width and two per
+/// row at desktop, ordered rank ascending — the table's own default order.
+/// Reached only when [MarketsAllSection] measures a box narrower than the
+/// table's [kMarketsTableMinWidth].
+///
+/// Stateless: the sort state the table carries is gone here. Interactive
+/// column sorting stayed on the table (it never left, per the correction
+/// above); the card grid keeps rank order only (`markets_sort.dart` and its
+/// comparator are reused, not reimplemented).
+class _MarketsCardGrid extends StatelessWidget {
+  final List<MarketRow> rows;
+  final void Function(MarketRow row) onTapRow;
+
+  const _MarketsCardGrid({required this.rows, required this.onTapRow});
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +94,12 @@ class MarketsCards extends StatelessWidget {
       ...rows,
     ]..sort((a, b) => compareMarketRows(MarketSort.rank, true, a.sort, b.sort));
 
-    // The window is the authority on device class here, not a `LayoutBuilder`
-    // reading this list's own box width: this list is a page-width surface
-    // with one call site, and gating on a box's own width is how a previous
-    // task restyled the desktop dashboard from a 376px panel that was never
-    // the page.
+    // This is the grid's OWN column count (1 vs 2), a separate question from
+    // whether the grid renders at all — that gate is `MarketsAllSection`'s,
+    // measured off the box (see its doc comment). A device-class check is
+    // fine here specifically because a card, unlike the table, has no fixed
+    // minimum width of its own to measure against — `useDesktopLayout` is
+    // the only signal available for "is there room for a second column".
     final int columns = GeniusBreakpoints.useDesktopLayout(context) ? 2 : 1;
 
     final List<Widget> cardRows = [];
