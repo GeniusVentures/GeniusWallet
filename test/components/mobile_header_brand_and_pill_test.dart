@@ -36,6 +36,7 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/overlay/mobile_header.dart';
 import 'package:genius_wallet/components/overlay/more_sheet.dart';
+import 'package:genius_wallet/components/overlay/nav_destinations.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -545,9 +546,34 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(MoreSheetBody), findsOneWidget);
-      expect(find.text('Markets'), findsOneWidget);
-      expect(find.text('Web'), findsOneWidget);
-      expect(find.text('Feedback'), findsOneWidget);
+
+      // Read the labels from `moreDestinations` rather than typing them out.
+      // The literal list this used to hold said `Web`, which does not exist on
+      // every platform - `nav_destinations.dart:67` declares it
+      // `visible: !Platform.isLinux`, and CI's quality job runs on Linux. The
+      // test passed on a Mac and failed in CI for a reason that was about the
+      // runner, not the code.
+      //
+      // A `if (!Platform.isLinux)` guard would also have worked and is what
+      // `mobile_nav_destinations_test.dart` does, but that spreads one
+      // platform rule across two files. Deriving keeps the rule in one place:
+      // if another destination ever becomes conditional, this assertion
+      // follows it with no edit, while still failing loudly if the SHEET stops
+      // showing what the model says it holds.
+      for (final label in moreDestinations.map((d) => d.label)) {
+        expect(
+          find.text(label),
+          findsOneWidget,
+          reason:
+              '$label is in moreDestinations but the sheet did not render it. '
+              'On the phone this sheet is the ONLY entrance to these, so a '
+              'missing row is a stranded destination, not a cosmetic gap',
+        );
+      }
+      // Settings is named explicitly on top of the loop above. It is the one
+      // whose loss would be worst and the one the whole change exists to keep
+      // reachable, so it gets an assertion that does not depend on the
+      // derivation being right.
       expect(find.text('Settings'), findsOneWidget);
       // The row the sheet body appends by hand, which is not derived.
       expect(find.text('Accounts'), findsOneWidget);
