@@ -115,12 +115,12 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
-        // top space32 (64) navbar→title gap; sides 12 to match Transactions and
-        // Markets so the 'Crypto News' title sits at the SAME X as their titles.
-        padding: const EdgeInsets.fromLTRB(
-          12,
-          GeniusWalletConsts.space32,
-          12,
+        // Shared gap and gutter (`GeniusBreakpoints`), so 'Crypto News' sits
+        // at the SAME X as Transactions and Markets.
+        padding: EdgeInsets.fromLTRB(
+          GeniusBreakpoints.pageGutter(context),
+          GeniusBreakpoints.pageTitleGap(context),
+          GeniusBreakpoints.pageGutter(context),
           GeniusWalletConsts.space4,
         ),
         child: ConstrainedBox(

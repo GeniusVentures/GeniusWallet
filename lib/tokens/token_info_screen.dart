@@ -289,9 +289,8 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
             // title lands on the same x as "Markets" on the page you came from.
             // It used to be `EdgeInsets.all(space10)` around a 1200-wide centred
             // column, which put the title ~170px further in on a 1500px window.
-            // Top `space32` (64) is the shared navbar->title gap every content
-            // page uses - `transactions_screen.dart`'s own comment names it as
-            // such, and Markets/News inherit it. This page carried `space6`
+            // Top gap is the shared `GeniusBreakpoints.pageTitleGap` every
+            // content page uses. This page carried `space6`
             // (12), so it sat 52px tighter under the nav bar than every tab it
             // is reached from (Jakub, 2026-07-31).
             //
@@ -301,9 +300,9 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
             // itself would mean shrinking this pad below the shared value,
             // which trades one mismatch for another - left as the shared gap
             // deliberately, not overlooked.
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               0,
-              GeniusWalletConsts.space32,
+              GeniusBreakpoints.pageTitleGap(context),
               0,
               GeniusWalletConsts.space20,
             ),
@@ -327,7 +326,9 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                     // Receive needs no market price and must survive the
                     // no-data route.
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: GeniusBreakpoints.pageGutter(context),
+                      ),
                       child: _CoinActionRow(
                         selectedCoin: selectedCoin,
                         selectedWallet: selectedWallet,
@@ -340,7 +341,9 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                     const SizedBox(height: GeniusWalletConsts.space8),
                     if (_marketData != null) ...[
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: GeniusBreakpoints.pageGutter(context),
+                        ),
                         child: _StatRail(data: _marketData!),
                       ),
                       const SizedBox(height: GeniusWalletConsts.space8),
@@ -349,13 +352,17 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                     // so this is a plain label for the chart card again. It
                     // stops reserving the 44px an action row needed - which is
                     // the height E2 hands back.
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: GWKicker('Price'),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: GeniusBreakpoints.pageGutter(context),
+                      ),
+                      child: const GWKicker('Price'),
                     ),
                     const SizedBox(height: GeniusWalletConsts.space4),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: GeniusBreakpoints.pageGutter(context),
+                      ),
                       child: isWide && _marketData != null
                           // >=1024: chart | Info+Convert side by side, and the
                           // chart is EXACTLY as tall as the column beside it.
@@ -506,7 +513,9 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
         .toUpperCase();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: GeniusBreakpoints.pageGutter(context),
+      ),
       child: GWPageHeader(
         title: title,
         subtitle: symbol.isEmpty ? null : symbol,

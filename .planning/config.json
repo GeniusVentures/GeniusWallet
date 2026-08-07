@@ -1,5 +1,5 @@
 {
-  "model_profile": "adaptive",
+  "model_profile": "balanced",
   "dynamic_routing": {
     "enabled": true,
     "tier_models": {

@@ -507,6 +507,21 @@ above; tracked separately (see the per-phase detail sections below):
 | 20. Feedback page frame (153-B) | 1/1 | Complete    | 2026-07-30 |
 | 21. Drawer language rollout | 6/6 | Complete    | 2026-07-30 |
 
+> **This table is stale and was NOT repaired wholesale on 2026-08-06.** Verified against
+> `.planning/phases/*/` on that date: every phase dir has plans == summaries and a VERIFICATION.md,
+> and the only phase genuinely open is **14** (`gaps_found`, 1/8 must-haves, 14-08 never executed).
+> Rows above claiming 12 = 5/6, 15 = 5/6 and 13 = 2/5 are wrong; those three are `passed`.
+> Phases 1, 10 and 11 have no phase directory at all and were never started.
+>
+> **Phase 18 is NOT open**, despite `18-VERIFICATION.md`'s body still reading `gaps_found` at
+> 10/11. That gap was the orphaned `webTabCanClose()`, deleted on 2026-07-25 by `cccd20c` after the
+> verification itself ratified reset-on-close as an accepted override. The document is stale, not
+> the code — a first pass on 2026-08-06 read it and wrongly reported 18 as outstanding.
+>
+> The 2026-08-06 mobile work on `/transactions` was run as a **quick task**, not a phase —
+> `.planning/quick/260806-hfe-transactions-at-phone-width/`. It extends Phases 12+15's surface at
+> sub-768 only and does not reopen them.
+
 > **Two approved designs are queued as extensions of their owning phases, not as new phases**
 > (2026-07-31). The surface ownership map above is the binding rule: a new phase for either would
 > create the second owner it exists to prevent.
@@ -992,8 +1007,6 @@ Plans:
 - [x] 19-01-PLAN.md — Feedback tab re-skin to sketch 150-D (guided receipt card, `feedback_type` tag,
   five states, button ladder) — SUMMARY + VERIFICATION written
 
----
-
 ### Phase 20: Feedback page frame — 153-B "Focused frame" (left title + receipt rail)
 
 **Goal:** Phase 19 fixed the Feedback **card**. This fixes the **page** it floats in. Today a 560px
@@ -1358,3 +1371,4 @@ Plans:
 - [x] 21-04-PLAN.md — Wave 1: 033-B1 for the two signing drawers, with a threat model and a six-outcome behavioural-identity contract test
 - [x] 21-05-PLAN.md — Wave 1: 034-A2 receive — real 4-char chunking, the third Receive caller's ad-hoc wrapper deleted, More Options confirmed inset-only
 - [x] 21-06-PLAN.md — Wave 2: the legacy `BottomDrawer` shell deleted and the padding invariant proven across every call site at once
+

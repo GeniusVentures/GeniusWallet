@@ -370,7 +370,12 @@ class DashboardScrollContainer extends StatelessWidget {
         border: gw.borderSubtle,
       ),
       child: Padding(
-        padding: const EdgeInsets.all(GeniusWalletConsts.space6),
+        // Halved on a phone. Shared card — this lands on all 11 call sites.
+        padding: EdgeInsets.all(
+          GeniusBreakpoints.useDesktopLayout(context)
+              ? GeniusWalletConsts.space6
+              : GeniusWalletConsts.space3,
+        ),
         child: child,
       ),
     );
