@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 
 /// Pure unit tests — no `pumpWidget`, no Hive binding, no asset bundle. That is
 /// deliberate: sketch 010's diagnosis table is mostly formatting and content
@@ -353,9 +354,132 @@ void main() {
       expect(content.tone, TxAmountTone.outgoing);
       // 0.002 * 3200. The word `fee` is what stops it reading as a transfer.
       expect(content.valueLine, r'$6.40 fee');
+      // The DRAWER title is unchanged - the header has room for the long form.
       expect(content.action, 'Processing job');
-      // Derived from the hash — the model carries no job id.
-      expect(content.subtitle, startsWith('Job '));
+      // `makeTx` defaults to COMPLETED, so this is the row that has the whole
+      // 113.0px line and takes the full wording. Exact equality replaces the old
+      // `startsWith('Job ')`: the line is now the word and nothing else, so a
+      // prefix check would no longer be able to tell a bare lead from a lead
+      // that regrew a qualifier.
+      expect(content.subtitle, 'Processing job');
+      expect(content.subtitleLead, 'Processing job');
+      // An EQUALITY where there used to be an inequality, and that identity IS
+      // the restoration Jakub asked for on 2026-08-07: the row's lead and the
+      // drawer's title are the same string for this type again. The old
+      // assertion pinned the opposite - that the row deliberately said something
+      // shorter than the drawer - and it was true only while the hash shared
+      // this line.
+      expect(content.subtitleLead, content.action);
+      // The hash left the row entirely, so there is no qualifier at all. The
+      // general form of this is the every-type loop below.
+      expect(content.subtitleBase, isEmpty);
+    });
+
+    // THE HYBRID, ruled by Jakub on 2026-08-07 after being shown the measured
+    // table: the full wording where it fits, the short word where it does not.
+    //
+    // A COMPLETED job row has the whole 113.0px line and `Processing job` is
+    // 103.6px. The other three statuses pin a status tail to that line, leaving
+    // 68.2px (failed), 53.1px (pending) or 40.7px (cancelled), and the full
+    // wording needs 115.9px including its ellipsis - so those rows keep `Job`
+    // at 26.1px, which clears even the narrowest of them.
+    //
+    // The accepted cost is that the label's length varies with status. That is
+    // unusual and it is deliberate: on those three rows the status word sits
+    // right beside the lead, so `Job` next to `Pending` reads completely while
+    // `Proces…` next to `Pending` reads as nothing.
+    //
+    // `transaction_row_subtitle_test.dart` holds the pixel side of this. What is
+    // asserted here is the MAPPING - which word each status gets - so the two
+    // halves cannot drift apart.
+    test('the job row takes the full wording only where it fits', () {
+      for (final status in TransactionStatus.values) {
+        final content = txRowContent(
+          makeTx(type: TransactionType.process, status: status),
+          prices: prices,
+        );
+        final expected = status == TransactionStatus.completed
+            ? 'Processing job'
+            : 'Job';
+        expect(
+          content.subtitleLead,
+          expected,
+          reason: 'a $status job row should lead with "$expected"',
+        );
+        // Whichever word it is, it is the WHOLE second line: no qualifier, and
+        // above all no hash.
+        expect(content.subtitleBase, isEmpty, reason: 'status=$status');
+        // The drawer's title does not vary. It has a header to spend, so it says
+        // the long form on all four.
+        expect(content.action, 'Processing job', reason: 'status=$status');
+      }
+    });
+
+    // THE REMOVAL, made permanent. `process` was the only arm that printed the
+    // transaction's own hash, and this is what stops it coming back anywhere.
+    //
+    // The fixture makes this a real check rather than a vacuous one: `makeTx`'s
+    // hash `0xabcdef1234567890` is 18 characters and is DISTINCT from both
+    // `fromAddress` and the recipient's `toAddr`, so its display form
+    // `0xabcd...7890` cannot collide with a counterparty that is legitimately on
+    // the row. Change any of those three and check this again.
+    test('no row prints the transaction hash, at any type or status', () {
+      final hashDisplay = WalletUtils.getAddressForDisplay(
+        '0xabcdef1234567890',
+      );
+      expect(hashDisplay, isNotEmpty);
+      for (final type in typeCases) {
+        for (final direction in TransactionDirection.values) {
+          for (final status in TransactionStatus.values) {
+            final where = 'type=$type direction=$direction status=$status';
+            final content = txRowContent(
+              makeTx(type: type, direction: direction, status: status),
+              prices: prices,
+            );
+            expect(
+              content.subtitleBase,
+              isNot(contains(hashDisplay)),
+              reason: 'the hash is back in the qualifier for $where',
+            );
+            expect(
+              content.subtitle,
+              isNot(contains(hashDisplay)),
+              reason: 'the hash is back in the composed line for $where',
+            );
+          }
+        }
+      }
+    });
+
+    // The other half of that, and the half that stops a future edit from
+    // "finishing the job": exactly ONE type has an empty qualifier for content
+    // reasons and one for having no qualifier at all. Every other type still
+    // carries its own - a place, a quantity or a counterparty - and none of
+    // those is a transaction identifier.
+    test('only the job and card rows have an empty qualifier', () {
+      for (final type in typeCases) {
+        for (final direction in TransactionDirection.values) {
+          final content = txRowContent(
+            makeTx(type: type, direction: direction),
+            prices: prices,
+          );
+          final where = 'type=$type direction=$direction';
+          if (type == TransactionType.process ||
+              type == TransactionType.purchase) {
+            expect(content.subtitleBase, isEmpty, reason: where);
+          } else {
+            expect(
+              content.subtitleBase,
+              isNotEmpty,
+              reason:
+                  'the qualifier vanished for $where. `to wallet`, `in escrow`, '
+                  '`from escrow`, the swap amount and both transfer '
+                  'counterparties are NOT transaction identifiers and were '
+                  'never in scope for the 2026-08-07 removal',
+            );
+          }
+        }
+      }
     });
 
     test('a job fee keeps its full precision for the tooltip', () {
@@ -397,8 +521,13 @@ void main() {
       // half-way case — as an IEEE754 double it is 1020.42499…, so it rounds
       // down. Deterministic on every platform; pinned here on purpose.
       expect(content.valueLine, r'$1,020.42');
-      // The subtitle states the FROM side.
-      expect(content.subtitle, '1.50 ETH');
+      // The subtitle states the FROM side. 179-C: it now also states the VERB,
+      // which is the one word a swap row never carried. Asserted as three
+      // separate facts rather than the old single composed string, so a future
+      // edit that moves the word between the pieces still fails here.
+      expect(content.subtitleLead, 'Swapped');
+      expect(content.subtitleBase, '· 1.50 ETH');
+      expect(content.subtitle, 'Swapped · 1.50 ETH');
     });
 
     test('a completed subtitle carries no status token at all', () {
@@ -507,7 +636,13 @@ void main() {
         makeTx(recipients: const []),
         prices: prices,
       );
-      expect(content.subtitle, 'Unknown recipient');
+      // 179-C: the fallback keeps its own words and gains the verb in front of
+      // them. Both pieces are pinned, not just the composed line, so the
+      // fallback cannot quietly migrate into the lead where it would stop
+      // ellipsising.
+      expect(content.subtitleBase, '· Unknown recipient');
+      expect(content.subtitleLead, 'Sent');
+      expect(content.subtitle, 'Sent · Unknown recipient');
       expect(content.amount, '$minus 0.00 ETH');
     });
 
@@ -533,6 +668,130 @@ void main() {
         prices: prices,
       );
       expect(content.iconSymbols, ['etcpasswd']);
+    });
+
+    // ---------------------------------------------------------------------
+    // 179-C: the subtitle is three pieces now, and these are what stop them
+    // from ever stating three different things about one row.
+    // ---------------------------------------------------------------------
+
+    test('the three pieces recompose to the subtitle, for every row', () {
+      // THE invariant. `subtitle` is the composed whole line and the row draws
+      // the pieces; if this fails, one presentation is lying about a row.
+      for (final type in typeCases) {
+        for (final direction in TransactionDirection.values) {
+          for (final status in TransactionStatus.values) {
+            final content = txRowContent(
+              makeTx(type: type, direction: direction, status: status),
+              prices: prices,
+            );
+            final where = 'type=$type direction=$direction status=$status';
+            final lead = content.subtitleLead ?? '';
+            final base = content.subtitleBase;
+            var composed = [
+              lead,
+              base,
+            ].where((piece) => piece.isNotEmpty).join(' ');
+            final tail = content.statusTail;
+            if (tail != null) {
+              composed = '$composed · $tail';
+            }
+            expect(composed, content.subtitle, reason: 'recompose for $where');
+          }
+        }
+      }
+    });
+
+    test('the qualifier never repeats the lead', () {
+      // The doubling the deleted chip caused - `Minted` in the chip and
+      // `Minted to wallet` beneath it - must not be reintroduceable.
+      for (final type in typeCases) {
+        for (final direction in TransactionDirection.values) {
+          final content = txRowContent(
+            makeTx(type: type, direction: direction),
+            prices: prices,
+          );
+          expect(
+            content.subtitleBase,
+            isNot(startsWith(content.subtitleLead!)),
+            reason: 'subtitleBase repeats the lead for type=$type',
+          );
+        }
+      }
+    });
+
+    test('every type has a non-empty lead', () {
+      // The lead is what keeps the second line from collapsing now that the
+      // qualifier is allowed to be empty (purchase).
+      for (final type in typeCases) {
+        for (final direction in TransactionDirection.values) {
+          final content = txRowContent(
+            makeTx(type: type, direction: direction),
+            prices: prices,
+          );
+          expect(
+            content.subtitleLead,
+            isNotNull,
+            reason: 'null lead for type=$type',
+          );
+          expect(
+            content.subtitleLead,
+            isNotEmpty,
+            reason: 'empty lead for type=$type',
+          );
+        }
+      }
+    });
+
+    test('statusTail is null on the happy path and set on the other three', () {
+      // The narrow row draws this and the wide page draws a pill from the same
+      // two fields, so this is also what stops the two from disagreeing.
+      expect(
+        txRowContent(
+          makeTx(status: TransactionStatus.completed),
+          prices: prices,
+        ).statusTail,
+        isNull,
+      );
+      for (final status in [
+        TransactionStatus.pending,
+        TransactionStatus.failed,
+        TransactionStatus.cancelled,
+      ]) {
+        final content = txRowContent(makeTx(status: status), prices: prices);
+        expect(
+          content.statusTail,
+          status.name[0].toUpperCase() + status.name.substring(1),
+          reason: 'statusTail for $status',
+        );
+        // No leading middle dot: the row pins this as its own element with its
+        // own gutter, and the 8px a dot costs is what clips `Minted` at 113px.
+        expect(content.statusTail, isNot(contains('·')));
+      }
+    });
+
+    test('a caller-supplied statusLabel reaches the tail, not the enum name', () {
+      // The Buy GNUS orders rail's `Expired` folds onto `failed`. The tail is a
+      // GETTER over status + statusLabel precisely so the rail keeps its own
+      // word on the narrow row without an edit to `lib/banxa/`.
+      const content = TxRowContent(
+        badge: TransactionBadgeKind.purchase,
+        title: 'GNUS',
+        action: 'Purchased',
+        subtitle: 'Today · Card purchase · Expired',
+        subtitleBase: 'Today · Card purchase',
+        status: TransactionStatus.failed,
+        amount: '+ 100.00 GNUS',
+        tone: TxAmountTone.incoming,
+        exactAmount: null,
+        valueLine: null,
+        iconSymbols: ['gnus'],
+        time: '18:42',
+        statusLabel: 'Expired',
+      );
+      expect(content.statusTail, 'Expired');
+      // And a record that opts out of the lead keeps its single-piece line.
+      expect(content.subtitleLead, isNull);
     });
   });
 
