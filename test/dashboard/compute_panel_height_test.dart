@@ -24,6 +24,38 @@ import 'package:genius_wallet/theme/theme.dart';
 /// the first Assets coin. The arithmetic below is unchanged; only the slot it
 /// starts from moved. The old numbers were `300 - 26 = 274`.
 ///
+/// **Headroom re-measured 2026-08-07, slot NOT moved, budget unchanged.** The
+/// section-rhythm pass rewrote `GWSectionTitle`'s bottom pad from a fixed
+/// `space8` to `max(0, 26 - slack - contentTopInset)`, so the pad now varies
+/// per call site while the RENDERED gap is constant
+/// (`test/components/gw_section_title_rhythm_test.dart` derives both terms).
+/// The Compute panel declares no content inset - `_BalanceTile` is a `GWCard`
+/// and paints at its own top edge - so it still pays the full 16 and its
+/// height is EXACTLY where it was.
+///
+/// Measured, not assumed: 306 for the tallest state, at both widths and in
+/// both units, against this file's 314. 8px of slack, the same 8px it had
+/// before. An intermediate build during the same pass had the pad at 2 and
+/// measured 292; that build was rejected on device (the panel read
+/// bottom-tight, 27.9pt above the title against 17.7pt below) and the 14px it
+/// freed went back into the gap where it came from. Nothing here needed
+/// relaxing and `kDashboardPanelSlotHeight` did not move.
+///
+/// **The budget is the DESKTOP slot's since phase 25 (2026-08-07), and that is
+/// the only thing about this file that changed.** `OneColumnDashBoardView`
+/// removed its `ConstrainedBox` caps so the mobile dashboard has ONE scroll, so
+/// on the phone this panel is handed an unbounded height, sizes to its content
+/// and has no budget it could blow. `kDashboardPanelSlotHeight` did not move -
+/// the desktop two- and three-column layouts still cap and floor the
+/// Overview/Contributions row with it - and no assertion below was touched.
+///
+/// **No new test case was added for the mobile path, and that absence is a
+/// decision rather than an omission.** `_pump` already wraps the panel in a
+/// `SingleChildScrollView`, i.e. it has ALWAYS measured the panel under an
+/// unbounded height - the intrinsic height the mobile path now renders. Every
+/// number below is therefore already the uncapped measurement; a second case
+/// pumping the same widget the same way would assert the same pixels twice.
+///
 /// The slot is `kDashboardPanelSlotHeight` (`dashboard_screen.dart`), imported
 /// here rather than copied, so this file cannot silently disagree with the
 /// layout again. `DashboardScrollContainer` (`dashboard_screen.dart`) is a
@@ -186,7 +218,7 @@ void main() {
                   'DashboardScrollContainer measured ${container.height} for '
                   '${state.name} ($unitLabel) at ${width}px - over the '
                   'dashboard\'s own $_kContainerBudget cap '
-                  '(dashboard_screen.dart:210/212).',
+                  '(kDashboardPanelSlotHeight, dashboard_screen.dart).',
             );
             expect(
               panel.height,

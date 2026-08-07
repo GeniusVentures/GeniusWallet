@@ -3,6 +3,7 @@ import 'package:genius_wallet/chart/crypto_simple_chart.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
+import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -41,9 +42,10 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
 
   @override
   Widget build(BuildContext context) {
-    // Fail-soft read: registers the InheritedWidget dependency that forces
-    // this subtree to rebuild on a live appearance toggle (04-04 discipline).
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    // The GWColors read that used to sit here has moved down into
+    // `_MarketRows`, which is now the only consumer (the row separators). It is
+    // still a fail-soft read registering the InheritedWidget dependency, just
+    // one level lower - see that widget's own build.
     return FutureStateWidget<Map<String, CoinGeckoMarketData?>>(
       future: _future,
       error: const Text("Failed to load market data"),
@@ -53,58 +55,155 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
           return const Center(child: Text("No market data available"));
         }
 
-        final visibleCoins = widget.coins.where((coin) {
-          return marketData[coin.symbol.toLowerCase()] != null;
-        }).toList();
+        // The availability test that used to run inline here, moved WHOLE into
+        // `dashboardMarketRows` so the filter rule and the cap live together
+        // and cannot be applied in the wrong order.
+        final pricedSymbols = <String>{
+          for (final coin in widget.coins)
+            if (marketData[coin.symbol.toLowerCase()] != null)
+              coin.symbol.toLowerCase(),
+        };
+        final visibleCoins = dashboardMarketRows(widget.coins, pricedSymbols);
 
         // Real "Markets" panel header above the rows (003-A) via the shared
-        // GWSectionTitle, not a title crammed into the first list item. The
-        // list stays bounded via Column + Expanded (the panel already gives it
-        // bounded height).
-        return Column(
-          children: [
-            GWSectionTitle(
-              title: widget.title ?? 'Markets',
-              trailing: GWViewAllLink(onTap: () => context.go('/markets')),
-            ),
-            Expanded(
-              child: ListView.separated(
-                itemCount: visibleCoins.length,
-                separatorBuilder: (context, index) =>
-                    Container(height: 1, color: gw.borderSubtle),
-                itemBuilder: (context, index) {
-                  final coin = visibleCoins[index];
-                  final data = marketData[coin.symbol.toLowerCase()]!;
+        // GWSectionTitle, not a title crammed into the first list item.
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // BOUNDEDNESS decides the whole shape (phase 25). Bounded - every
+            // desktop host - means fill the slot and scroll inside it, which is
+            // what shipped. Unbounded - the one-column mobile dashboard, whose
+            // ListView now caps nothing - means HUG, because `Expanded` under an
+            // unbounded main-axis constraint is a `RenderFlex` assertion rather
+            // than a layout ("children have non-zero flex but incoming height
+            // constraints are unbounded"). `Flexible` asserts identically, so
+            // loosening the fit does not save it; the hug branch has to carry no
+            // flex child at all.
+            //
+            // A BOOL, read once per layout from a bounded two-value set - which
+            // is what the freeze rule (37639d5) permits. It is not a dimension
+            // derived continuously from constraints, so it cannot take a new
+            // value every frame and cannot thrash the paragraph cache.
+            //
+            // `LayoutBuilder` throws if an ancestor queries intrinsic dimensions
+            // of its subtree; checked, and no host does. The one-column host is
+            // a `ListView` and both desktop hosts are flex rows, none of which
+            // runs an intrinsic pass. Same hazard `wallet_overview.dart` records
+            // for its own LayoutBuilder.
+            final bool hug = !constraints.maxHeight.isFinite;
 
-                  return CryptoSparkLineChart(
-                    onTap: () {
-                      // Same payload shape as `markets_screen.dart`'s
-                      // `_openToken` - this panel had no `coin` key at all
-                      // before, so it gains an identity it never carried.
-                      context.push(
-                        '/token-info',
-                        extra: TokenInfoArgs(
-                          coinGeckoId: coin.id,
-                          symbol: coin.symbol,
-                          marketData: data,
-                        ),
-                      );
-                    },
-                    title: coin.name,
-                    symbol: coin.symbol,
-                    iconPath: data.imageUrl,
-                    currentPrice: data.currentPrice,
-                    high24h: data.high24h,
-                    low24h: data.low24h,
-                    priceChangePercent: data.priceChangePercentage24h,
-                    sparkline: data.sparkline,
-                  );
-                },
-              ),
-            ),
-          ],
+            // ONE rows widget feeding both branches, so they cannot drift into
+            // rendering different lists.
+            final rows = _MarketRows(
+              coins: visibleCoins,
+              marketData: marketData,
+            );
+
+            return Column(
+              mainAxisSize: hug ? MainAxisSize.min : MainAxisSize.max,
+              children: [
+                GWSectionTitle(
+                  title: widget.title ?? 'Markets',
+                  trailing: GWViewAllLink(onTap: () => context.go('/markets')),
+                  // MEASURED, not chosen - same mechanism as Assets.
+                  // `CryptoSparkLineChart` is a `ListTile` too, so it snaps to a
+                  // 72px tile and centres its content: its first painted pixel
+                  // sits 16.75px below its own layout box
+                  // (`gw_section_title_rhythm_test.dart`). Declared here so the
+                  // component spends its pad against it instead of stacking a
+                  // `space8` on top: the pad lands at 0 and this panel renders
+                  // 26.75 against the shared 26, three quarters of a pixel out.
+                  // See the Assets call site for why the row is not normalised.
+                  //
+                  // UNCHANGED by phase 25's `ListView.separated` -> plain column
+                  // swap below, because the first row is still the same
+                  // `CryptoSparkLineChart` and that inset describes the ROW, not
+                  // its host. The one thing the swap could have moved is the
+                  // list's own leading pad, and a `ListView` with a null
+                  // `padding` inherits the ambient `MediaQuery` vertical padding
+                  // - which `DashboardScreen`'s `SafeArea` has already consumed
+                  // by the time it reaches here, so there was none to lose.
+                  // Neither this panel nor its rows is test-mountable (the widget
+                  // fetches in `initState`), so that is confirmed on device.
+                  contentTopInset: 16.75,
+                ),
+                if (hug)
+                  rows
+                else
+                  Expanded(child: SingleChildScrollView(child: rows)),
+              ],
+            );
+          },
         );
       },
+    );
+  }
+}
+
+/// The Markets panel's rows, built eagerly.
+///
+/// A widget rather than a `_buildRows()` method returning a `Widget`
+/// (`AGENTS.md`), and a plain `Column` rather than the `ListView.separated`
+/// this replaced: the list is capped at [kDashboardMarketsCap], so there is no
+/// laziness left worth a second layout pass, and a lazy list cannot be handed
+/// the unbounded height the mobile dashboard now gives this panel.
+class _MarketRows extends StatelessWidget {
+  const _MarketRows({required this.coins, required this.marketData});
+
+  final List<CoinGeckoCoin> coins;
+  final Map<String, CoinGeckoMarketData?> marketData;
+
+  @override
+  Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces this
+    // subtree to rebuild on a live appearance toggle (04-04 discipline).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    // Flattened HERE, in build, the same way `transactions_slim_view._body`
+    // interleaves its day/row/divider entries - it keeps the per-row locals
+    // (`coin`, `data`) in scope without a `Builder` layer per row.
+    final entries = <Widget>[];
+    for (var i = 0; i < coins.length; i++) {
+      if (i > 0) {
+        entries.add(Container(height: 1, color: gw.borderSubtle));
+      }
+      final coin = coins[i];
+      // Non-null by construction: `dashboardMarketRows` only ever returns coins
+      // whose symbol IS in the priced set it was handed.
+      final data = marketData[coin.symbol.toLowerCase()]!;
+      entries.add(
+        CryptoSparkLineChart(
+          onTap: () {
+            // Same payload shape as `markets_screen.dart`'s `_openToken` - this
+            // panel had no `coin` key at all before, so it gains an identity it
+            // never carried.
+            context.push(
+              '/token-info',
+              extra: TokenInfoArgs(
+                coinGeckoId: coin.id,
+                symbol: coin.symbol,
+                marketData: data,
+              ),
+            );
+          },
+          title: coin.name,
+          symbol: coin.symbol,
+          iconPath: data.imageUrl,
+          currentPrice: data.currentPrice,
+          high24h: data.high24h,
+          low24h: data.low24h,
+          priceChangePercent: data.priceChangePercentage24h,
+          sparkline: data.sparkline,
+        ),
+      );
+    }
+
+    return Column(
+      // stretch, because a `Column` centres by default where a `ListView`
+      // stretched: without it every row would shrink to its own intrinsic width
+      // and the hairlines would stop running full-bleed.
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: entries,
     );
   }
 }

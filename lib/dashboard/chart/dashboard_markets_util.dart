@@ -39,6 +39,47 @@ List<String> getAllMarketDataCoinIds() {
   return topCoinsByCapitalization;
 }
 
+/// How many rows the dashboard Markets PANEL renders (phase 25).
+///
+/// Six, because Jakub named six: GNUS, BTC, ETH, XRP, BNB and SOL. They come
+/// out in exactly that order for free - [topCoinsByCapitalization]'s first six
+/// entries already ARE that list, in that order - which is why
+/// [dashboardMarketRows] contains no re-ordering step. If that list is ever
+/// re-sorted, this panel's order moves with it and that is the file to fix.
+///
+/// The full `/markets` page behind the panel's `View all` is unaffected: it
+/// goes through [getMarketCoins], which takes the whole list.
+const int kDashboardMarketsCap = 6;
+
+/// The rows the dashboard Markets panel shows: [coins] that actually have a
+/// quote, capped at [kDashboardMarketsCap], in the incoming order.
+///
+/// [pricedSymbols] is the set of LOWERCASED symbols the caller resolved market
+/// data for - the same `marketData[symbol.toLowerCase()] != null` test the
+/// panel used to run inline. Passing the set rather than the map keeps this
+/// function free of the Hive model.
+///
+/// **The cap is taken AFTER the availability filter, and that ordering is the
+/// point.** Filtering a pre-capped list renders five rows with a silent hole
+/// whenever one of the named six is unpriced; capping a pre-filtered list
+/// renders six whenever six are priced, falling back on whatever
+/// [getDashboardMarketCoins] fetched next.
+///
+/// Which is also why that function's `.take(8)` is NOT narrowed to 6. Two
+/// reasons, both load-bearing: `splash.dart` calls it to warm the market
+/// cache, so narrowing it would change PREFETCH behaviour as a side effect of
+/// a DISPLAY decision; and the extra two coins are exactly the fallback this
+/// cap draws on.
+List<CoinGeckoCoin> dashboardMarketRows(
+  List<CoinGeckoCoin> coins,
+  Set<String> pricedSymbols,
+) {
+  return coins
+      .where((coin) => pricedSymbols.contains(coin.symbol.toLowerCase()))
+      .take(kDashboardMarketsCap)
+      .toList();
+}
+
 /// DEV-ONLY: the injected-fault half of [getDashboardMarketCoins], extracted
 /// out of it so that function reads as the real fetch with one guarded call
 /// at the top. Returns the response the armed fault demands, or `null` when

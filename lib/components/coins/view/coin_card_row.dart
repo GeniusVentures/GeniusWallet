@@ -123,7 +123,17 @@ class CoinCardRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: GeniusWalletTypography.numericBody.copyWith(
                 fontWeight: FontWeight.bold,
-                color: noBalance ? gw.textPrimary38 : gw.textPrimary,
+                // 24-01: was `textPrimary38`. Measured on `surfaceBase`
+                // #0B0D12 that composites to 3.54:1 -- under WCAG AA's 4.5:1
+                // for body text, and this IS body text: a balance is content,
+                // not a disabled control. `textPrimary80` lands at 12.4:1.
+                //
+                // The dimming is kept, just legibly: a zero balance still reads
+                // quieter than a funded one (80% against 100%), which is the
+                // whole point of the `noBalance` branch. It stops reading as
+                // broken -- the sketch MANIFEST's own rule, "a wallet with no
+                // funds is not a broken wallet".
+                color: noBalance ? gw.textPrimary80 : gw.textPrimary,
               ),
             ),
             Text(
@@ -131,7 +141,10 @@ class CoinCardRow extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GeniusWalletTypography.bodySm.copyWith(
-                color: noBalance ? gw.textPrimary38 : gw.textSecondary,
+                // Same 24-01 fix. `textSecondary` (#8A8F9D) is itself 6.0:1, so
+                // the funded branch was already fine; only the zero branch fell
+                // through the floor.
+                color: noBalance ? gw.textPrimary80 : gw.textSecondary,
               ),
             ),
           ],

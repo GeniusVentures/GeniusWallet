@@ -217,7 +217,17 @@ class _MarketsScreenState extends State<MarketsScreen> {
               ),
               const SizedBox(height: GeniusWalletConsts.space12),
             ],
-            const GWSectionTitle(title: 'All Markets'),
+            // `MarketsTable`'s header row is a `Container` with its own
+            // `vertical: space6` padding, so the table's first painted pixel
+            // (the `#` column label) sits 12px below the table's layout box.
+            // Declared so the section title spends its bottom pad against it:
+            // `26 - 10 - 12` leaves `space2`, and this section renders the
+            // same 26px gap as every other one
+            // (`gw_section_title_rhythm_test.dart`).
+            const GWSectionTitle(
+              title: 'All Markets',
+              contentTopInset: GeniusWalletConsts.space6,
+            ),
             MarketsTable(
               rows: rows,
               onTapRow: (r) => _openToken(r.coin, r.data),

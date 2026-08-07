@@ -30,23 +30,41 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-/// The fixed height of the Overview (Compute) and Contributions panel slots,
-/// in both the one- and two-column layouts.
+/// The fixed height of the Overview (Compute) and Contributions panel slots in
+/// the DESKTOP two- and three-column layouts.
+///
+/// **Desktop-only since phase 25 (2026-08-07).** It used to govern the
+/// one-column layout too. That layout now caps nothing: `OneColumnDashBoardView`
+/// hands every panel except the Chart an UNBOUNDED height so each one hugs its
+/// content and the PAGE owns the only scroll. On the phone there is therefore
+/// no slot and no budget - a panel is exactly as tall as its rows. Everything
+/// below still describes the desktop row, which is unchanged, and the value
+/// itself did not move.
 ///
 /// **Raised 300 -> 340 on 2026-07-31 (Jakub).** The Compute panel's title was
 /// a `GWKicker` (18px line box, no padding of its own) while Assets, Markets,
 /// Transactions and the Bitcoin chart all use `GWSectionTitle`, which reserves
-/// a 44px header and owns a `space8` bottom gap. That left Balance starting
-/// ~38px higher than the first Assets coin: 2+44+16 there against 18+6 here.
-/// Adopting the shared title costs those 38px, and the old 300 slot had no
-/// room for them - the panel would have gone quietly scrollable inside its own
-/// box (it sits in a `SingleChildScrollView`, so it never throws an overflow),
-/// pushing the CTA below the fold and re-opening the "vanishing primary
-/// action" bug plan 14-08 had just closed.
+/// a 44px header and then charged a `space8` bottom gap on top of it. That
+/// left Balance starting ~38px higher than the first Assets coin: 2+44+16
+/// there against 18+6 here. Adopting the shared title cost those 38px, and the
+/// old 300 slot had no room for them - the panel would have gone quietly
+/// scrollable inside its own box (it sits in a `SingleChildScrollView`, so it
+/// never throws an overflow), pushing the CTA below the fold and re-opening
+/// the "vanishing primary action" bug plan 14-08 had just closed.
+///
+/// **Unchanged by the 2026-08-07 rhythm pass, and that is a measurement.**
+/// That pass made `GWSectionTitle`'s bottom pad derived rather than fixed -
+/// `max(0, 26 - slack - contentTopInset)` - so the RENDERED title->content gap
+/// is the same 26 in every section while the pad itself varies
+/// (`test/components/gw_section_title_rhythm_test.dart`). Compute declares no
+/// content inset, so it still pays the full 16 and its height did not move:
+/// the tallest state measures 306 against the 314 content budget, at both
+/// widths and in both units, exactly as before.
 ///
 /// The two-column layout constrains Overview and Contributions as ONE row
-/// (`_OverviewContributionsRow`), so they cannot differ there; the one-column
-/// sites use the same constant so the two layouts stay in agreement.
+/// (`_OverviewContributionsRow`), so they cannot differ there, and the
+/// three-column layout uses the same constant as that row's FLOOR - which is
+/// what keeps the two desktop layouts in agreement.
 ///
 /// `test/dashboard/compute_panel_height_test.dart` derives the panel's own
 /// content budget from this number and asserts every state against it.
@@ -311,39 +329,63 @@ class OneColumnDashBoardView extends StatelessWidget {
   Widget build(BuildContext context) {
     const spacing = SizedBox(height: GeniusWalletConsts.space3);
 
+    // ONE SCROLL (phase 25, Jakub's live iPhone walk 2026-08-06: "zamiast isc w
+    // dol to scrolluje mi sie jakas sekcja"). Every panel below except the
+    // Chart is handed UNBOUNDED height by this ListView, so each hugs its
+    // content and none of them installs a drag recognizer of its own. That is
+    // the whole mechanism - the four fixed-height boxes that used to be here
+    // are what created four competing scroll areas, not the scroll views
+    // inside the panels.
+    //
+    // Two of those inner scroll views deliberately SURVIVE, and deleting them
+    // is not the way to get one page scroll: `wallet_overview.dart`'s and
+    // `coins_screen.dart`'s. Under an unbounded height their min and max
+    // scroll extents are equal, and a `Scrollable` in that state installs no
+    // drag recognizer and never enters the gesture arena
+    // (`ScrollPhysics.shouldAcceptUserOffset`). They are inert here and still
+    // load-bearing on desktop, where the slot above still exists, and on any
+    // device with an enlarged text scale.
+    //
+    // No `minHeight` floors replace the removed caps. The caps were `maxHeight`
+    // only, so the page already reflowed as the async sections resolved; a
+    // floor would give a wallet with every balance at zero four tall empty
+    // boxes. Panels are short when empty and tall when full.
     return RefreshIndicator(
       onRefresh: () => _onRefresh(context),
       child: ListView(
         padding: const EdgeInsets.all(GeniusWalletConsts.space3),
         children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxHeight: kDashboardPanelSlotHeight,
-            ),
-            child: const OverviewDashboardView(),
-          ),
+          const OverviewDashboardView(),
           spacing,
-          ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxHeight: kDashboardPanelSlotHeight,
-            ),
-            child: const ContributionsDashboardView(),
-          ),
+          const ContributionsDashboardView(),
           spacing,
+          // 24-08 ORDER: Transactions moved up from LAST to third, directly
+          // under Assets (Jakub, live walk 2026-08-06).
+          //
+          // Compute -> Assets -> Transactions -> Chart -> Markets. Compute is
+          // the differentiator and the only card that changes while you watch
+          // it. Assets answers "what do I own" and Transactions "did my thing
+          // go through" - the two questions a wallet is opened for, so neither
+          // should sit behind a chart and a market list. Chart and Markets are
+          // browsing rather than tasks, and Markets already owns a bottom-nav
+          // tab of its own.
+          //
+          // Assets stays ABOVE Transactions: balance is the more frequent
+          // question, which is the order every mainstream wallet uses.
+          const TransactionsDashboardView(),
+          spacing,
+          // The ONE survivor of the uncapping sweep, and deliberately so. The
+          // Chart holds no scrollable at all - nothing in `crypto_live_chart
+          // .dart` registers a drag or a pan - so it never competed for the
+          // page's gesture in the first place, and its content is a chart in an
+          // `Expanded` that genuinely needs a bounded box. Capping it costs the
+          // user nothing. Do not uncap it "for consistency".
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 350),
             child: const ChartDashboardView(),
           ),
           spacing,
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 350),
-            child: const MarketsDashboardView(),
-          ),
-          spacing,
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 400),
-            child: const TransactionsDashboardView(),
-          ),
+          const MarketsDashboardView(),
         ],
       ),
     );
@@ -604,9 +646,16 @@ class ChartDashboardView extends StatelessWidget {
 
 /// A→ header for the Bitcoin Chart card (sketch 006): coin identity on the
 /// left, a visual-only 1H·1D·1W·1M·1Y timeframe segment on the right, pushed
-/// apart on one row. Reproduces GWSectionTitle's exact geometry (same
-/// padding + minHeight) so this panel's title->body rhythm matches the
-/// Assets/Markets/Transactions panels that still use GWSectionTitle.
+/// apart on one row.
+///
+/// Reproduces GWSectionTitle's TOP geometry exactly - the same `space4`
+/// horizontal inset, the same 2px top pad, the same 44px reserved min-height -
+/// so its box->title gap is the identical 12 the shared component produces.
+/// The BOTTOM is deliberately not the component's: `space24` here, where the
+/// shared component would derive `space8`, a chart-only override kept below.
+/// This header therefore renders a 34px title->content gap against everyone
+/// else's 26 ON PURPOSE, which is why it is a local widget and not a
+/// `GWSectionTitle` call.
 class _ChartSectionHeader extends StatelessWidget {
   const _ChartSectionHeader();
 
@@ -617,9 +666,10 @@ class _ChartSectionHeader extends StatelessWidget {
         GeniusWalletConsts.space4,
         2,
         GeniusWalletConsts.space4,
-        // ~3x the shared space8 gap (per request): pushes the price/% down away
-        // from the Bitcoin·BTC + timeframe row and shrinks the chart, which was
-        // taking too much height. Chart-only override of the section rhythm.
+        // ~3x the space8 the shared component derives for zero-inset content
+        // (per request): pushes the price/% down away from the Bitcoin·BTC +
+        // timeframe row and shrinks the chart, which was taking too much
+        // height. Chart-only override of the section rhythm.
         GeniusWalletConsts.space24,
       ),
       child: ConstrainedBox(
