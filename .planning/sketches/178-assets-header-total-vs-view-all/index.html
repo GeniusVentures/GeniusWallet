@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>178 - Assets header: the total and View all</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --sunken:#06080C; --menu:#171A21;
+  --text:#FFFFFF; --text2:#8A8F9D; --onbrand:#000B18;
+  --border:rgba(255,255,255,.12); --border2:rgba(255,255,255,.24);
+  --ok:#0AD89C; --err:#FF4D4D; --g1:#0AD89C; --g2:#0AAEE6; --brand:#14C8FF;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#07090D;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1280px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:26px;margin:0 0 6px;font-weight:700}
+.sub{color:var(--text2);font-size:14px;line-height:1.6;margin:0 0 22px;max-width:900px}
+.sub b{color:var(--text)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;
+  color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+.tab:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.tab.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand);border-color:transparent}
+.statebar{display:flex;gap:10px;align-items:center;margin:16px 0 22px;font-size:13px;color:var(--text2)}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--border);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--text2);font-size:12px;font-weight:600;
+  padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand)}
+.pane{display:none}
+.pane.on{display:block}
+.cols{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+.notes{flex:1;min-width:340px;max-width:620px}
+.notes h3{font-size:15px;margin:0 0 8px}
+.notes p{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 12px}
+.notes p b{color:var(--text)}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 16px}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.04);color:var(--text2);font-weight:600}
+.good{color:var(--ok)} .bad{color:var(--err)} .warn{color:#FFC42E}
+.tag{display:inline-block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:var(--menu);color:var(--text2);font-weight:600}
+
+/* ---------- phone, 1:1 ---------- */
+.phone{width:390px;height:844px;background:var(--base);border:1px solid var(--border2);
+  border-radius:38px;overflow:hidden;position:relative;flex:0 0 auto}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.statusbar{height:54px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-size:12px;color:var(--text2)}
+.apphead{height:56px;flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:0 16px;
+  border-bottom:1px solid var(--border)}
+.avatar{width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2))}
+.whead{flex:1;min-width:0}
+.whead .n{font-size:13.5px;font-weight:600}
+.whead .a{font-size:11.5px;color:var(--text2)}
+.body{flex:1;overflow-y:auto;padding:12px 6px 120px}
+.body::-webkit-scrollbar{width:0}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;margin:0 0 12px}
+.sect{min-height:44px;display:flex;align-items:center;gap:12px;padding:2px 8px 0}
+.stitle{font-size:18px;line-height:24px;font-weight:600;flex:0 0 auto}
+.kick{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-weight:600;line-height:14px}
+.spacer{flex:1}
+.vall{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;cursor:pointer;flex:0 0 auto;
+  background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.total{font-size:20px;font-weight:700;line-height:24px;font-variant-numeric:tabular-nums}
+.chg{font-size:13px;line-height:16px;font-variant-numeric:tabular-nums}
+.chg.up{color:var(--ok)} .chg.dn{color:var(--err)}
+
+.row{height:72px;display:flex;align-items:center;gap:12px;padding:0 8px}
+.ico{width:40px;height:40px;border-radius:999px;flex:0 0 auto;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:700;color:var(--onbrand)}
+.rmid{flex:1;min-width:0}
+.rname{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:12.5px;color:var(--text2);margin-top:2px}
+.rend{text-align:right;flex:0 0 auto}
+.rfiat{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.ramt{font-size:12.5px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:2px}
+.dim{color:var(--text2)}
+
+.hero{display:flex;align-items:flex-end;gap:10px;padding:0 8px}
+.hero .big{font-size:28px;font-weight:700;line-height:32px;font-variant-numeric:tabular-nums}
+.chip{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--menu);
+  font-variant-numeric:tabular-nums}
+.well{background:var(--sunken);border:1px solid var(--border);border-radius:12px;padding:10px 12px;
+  display:flex;align-items:center;gap:12px}
+
+.btm{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--card);
+  border-top:1px solid var(--border)}
+.tabsrow{display:flex;height:60px;align-items:center}
+.slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--text2)}
+.slot.act{background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent;font-weight:600}
+.dot{width:22px;height:22px;border-radius:6px;background:currentColor;opacity:.85}
+.dock{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;width:64px;height:64px;
+  border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2));
+  display:flex;align-items:center;justify-content:center;color:var(--onbrand);font-weight:700;font-size:12px}
+
+.pgh{font-size:26px;font-weight:700;padding:8px 8px 0}
+.srch{margin:12px 6px 0;height:44px;border-radius:12px;background:var(--sunken);
+  border:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:0 12px;
+  color:var(--text2);font-size:14px}
+.sortrow{display:flex;align-items:center;padding:12px 8px 0;gap:8px}
+.sortbtn{margin-left:auto;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.sortbtn .arw{color:var(--text);font-size:14px}
+.back{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);
+  padding:0 8px 6px;cursor:pointer;font-weight:600}
+.ann{position:absolute;font-size:10px;color:#FFC42E;background:rgba(0,0,0,.72);border:1px solid #FFC42E;
+  border-radius:4px;padding:1px 5px;pointer-events:none;white-space:nowrap}
+.caption{font-size:12px;color:var(--text2);margin:10px 0 0;text-align:center;width:390px}
+.flag{border-left:3px solid #FFC42E;background:rgba(255,196,46,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.6;color:#e6e2d4}
+.flag b{color:#FFC42E}
+.rec{border-left:3px solid var(--g1);background:rgba(10,216,156,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.6;color:#d6efe7}
+.rec b{color:var(--ok)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>178 - the Assets header: a total and a View all in one row</h1>
+  <p class="sub">
+    Jakub, 2026-08-07, on his iPhone: <b>"nie podoba mi sie sekcja assets, poniewaz tam masz view all
+    oraz kwote po prawej stronie ... czy usuwamy stamtad total kwote i ona jest dopiero wyswietlana na
+    subpage'u?"</b><br>
+    The row is not overflowing. Measured at 390pt it fits with about 25px to spare. This is a
+    <b>hierarchy</b> problem: three things compete for one row and two of them are both trying to be
+    the thing you look at. Every scheme below says what it fixes, what it costs in height, and what it
+    does to the title gap Jakub approved this morning.
+  </p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="statebar">
+    <span>Wallet state</span>
+    <span class="seg" id="stateSeg">
+      <button data-st="funded" class="on">FUNDED</button>
+      <button data-st="zero">ALL ZERO (Jakub's real wallet)</button>
+    </span>
+    <span>Tap <b style="color:#fff">VIEW ALL</b> in any phone to see where the total lives on the subpage.</span>
+  </div>
+
+  <div id="panes"></div>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+var COINS = [
+  {sym:'GNUS', name:'Genius Tokens', amt:12480,   px:0.39,    chg:2.41,  c1:'#0AD89C', c2:'#0AAEE6'},
+  {sym:'ETH',  name:'Ethereum',      amt:1.2043,  px:3248.50, chg:1.12,  c1:'#8A8F9D', c2:'#5b6070'},
+  {sym:'BTC',  name:'Bitcoin',       amt:0.0412,  px:70000,   chg:-0.42, c1:'#F7931A', c2:'#c9761a'},
+  {sym:'SOL',  name:'Solana',        amt:24.5,    px:45.00,   chg:3.10,  c1:'#14C8FF', c2:'#0AAEE6'},
+  {sym:'USDC', name:'USD Coin',      amt:640,     px:1.00,    chg:0.00,  c1:'#2775CA', c2:'#1c5490'}
+];
+
+var STATE = 'funded';
+
+function rows(){
+  if (STATE === 'zero') {
+    return COINS.map(function(c){
+      return {sym:c.sym, name:c.name, amt:0, px:c.px, chg:c.chg, val:0, c1:c.c1, c2:c.c2};
+    });
+  }
+  return COINS.map(function(c){
+    return {sym:c.sym, name:c.name, amt:c.amt, px:c.px, chg:c.chg, val:c.amt*c.px, c1:c.c1, c2:c.c2};
+  });
+}
+function total(){ return rows().reduce(function(a,r){ return a + r.val; }, 0); }
+function dayChange(){
+  return rows().reduce(function(a,r){ return a + (r.val - r.val/(1 + r.chg/100)); }, 0);
+}
+function usd(n){
+  return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function amtStr(n){
+  return n.toLocaleString('en-US',{minimumFractionDigits:4, maximumFractionDigits:4});
+}
+
+/* ---------------- fragments ---------------- */
+function viewAll(){ return '<span class="vall" data-go="assets">VIEW ALL &rarr;</span>'; }
+
+function totalBlock(align){
+  var t = total(), d = dayChange();
+  var pct = t === 0 ? 0 : d / t * 100;
+  var s = '<div style="text-align:' + align + '">';
+  s += '<div class="total">' + usd(t) + '</div>';
+  if (t > 0) {
+    s += '<div class="chg ' + (d >= 0 ? 'up' : 'dn') + '">' +
+         (d >= 0 ? '+' : '') + usd(d) + ' &middot; ' + (d >= 0 ? '+' : '') + pct.toFixed(2) + '%</div>';
+  }
+  s += '</div>';
+  return s;
+}
+
+function coinRows(n){
+  return rows().slice(0, n).map(function(r){
+    var zero = r.val === 0;
+    return '<div class="row">' +
+      '<div class="ico" style="background:linear-gradient(135deg,' + r.c1 + ',' + r.c2 + ')">' +
+        r.sym.slice(0,2) + '</div>' +
+      '<div class="rmid">' +
+        '<div class="rname">' + r.name + '</div>' +
+        '<div class="rsub">' + usd(r.px) + ' <span class="' + (r.chg >= 0 ? 'good' : 'bad') + '">' +
+          (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2) + '%</span></div>' +
+      '</div>' +
+      '<div class="rend">' +
+        '<div class="rfiat' + (zero ? ' dim' : '') + '">' + usd(r.val) + '</div>' +
+        '<div class="ramt">' + amtStr(r.amt) + ' ' + r.sym + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ---------------- the five headers ---------------- */
+function headerNow(){
+  return '<div class="sect">' +
+    '<div class="stitle">Assets</div><div class="spacer"></div>' +
+    totalBlock('right') +
+    '<div style="width:24px"></div>' + viewAll() +
+  '</div>';
+}
+function headerA(){
+  var s = '<div class="sect">' +
+    '<div class="stitle">Assets</div><div class="spacer"></div>' + viewAll() + '</div>';
+  var t = total(), d = dayChange(), pct = t === 0 ? 0 : d / t * 100;
+  s += '<div style="height:10px"></div>';
+  s += '<div class="hero"><div class="big">' + usd(t) + '</div>';
+  if (t > 0) {
+    s += '<div class="chip ' + (d >= 0 ? 'good' : 'bad') + '">' +
+         (d >= 0 ? '+' : '') + pct.toFixed(2) + '%</div>';
+  }
+  s += '</div><div style="height:14px"></div>';
+  return s;
+}
+function headerB(){
+  return '<div class="sect">' +
+    '<div class="stitle">Assets</div><div class="spacer"></div>' + viewAll() + '</div>';
+}
+function headerC(){
+  var t = total(), d = dayChange(), pct = t === 0 ? 0 : d / t * 100;
+  var s = '<div class="sect">';
+  s += '<div><div class="kick">Assets</div>';
+  s += '<div style="display:flex;align-items:baseline;gap:8px">';
+  s += '<div class="total" style="font-size:24px;line-height:28px">' + usd(t) + '</div>';
+  if (t > 0) {
+    s += '<div class="chg ' + (d >= 0 ? 'up' : 'dn') + '">' +
+         (d >= 0 ? '+' : '') + pct.toFixed(2) + '%</div>';
+  }
+  s += '</div></div>';
+  s += '<div class="spacer"></div>' + viewAll() + '</div>';
+  return s;
+}
+function headerD(){
+  var t = total(), d = dayChange(), pct = t === 0 ? 0 : d / t * 100;
+  var s = '<div class="sect">' +
+    '<div class="stitle">Assets</div><div class="spacer"></div>' + viewAll() + '</div>';
+  s += '<div style="height:8px"></div><div class="well">';
+  s += '<div style="flex:1"><div class="kick">Total value</div>' +
+       '<div style="font-size:12.5px;color:var(--text2);margin-top:2px">' +
+       rows().length + ' assets</div></div>';
+  s += '<div style="text-align:right"><div class="total">' + usd(t) + '</div>';
+  if (t > 0) {
+    s += '<div class="chg ' + (d >= 0 ? 'up' : 'dn') + '">' +
+         (d >= 0 ? '+' : '') + pct.toFixed(2) + '%</div>';
+  }
+  s += '</div></div><div style="height:8px"></div>';
+  return s;
+}
+
+var HEADERS = {now:headerNow, A:headerA, B:headerB, C:headerC, D:headerD};
+
+/* ---------------- screens ---------------- */
+function dashScreen(scheme){
+  var s = '<div class="statusbar"><span>9:41</span><span>5G &nbsp; 100%</span></div>';
+  s += '<div class="apphead"><div class="avatar"></div><div class="whead">' +
+       '<div class="n">Main wallet</div><div class="a">0x7a3f...9c21</div></div></div>';
+  s += '<div class="body">';
+  s += '<div class="card">' + HEADERS[scheme]() + coinRows(5) + '</div>';
+  s += '<div class="card"><div class="sect"><div class="stitle">Transactions</div>' +
+       '<div class="spacer"></div>' + '<span class="vall">VIEW ALL &rarr;</span></div>' +
+       '<div style="height:26px"></div>' +
+       '<div style="padding:0 8px;font-size:12.5px;color:var(--text2)">Today</div>' +
+       '<div class="row"><div class="ico" style="background:#171A21;color:#8A8F9D">TX</div>' +
+       '<div class="rmid"><div class="rname">Ethereum</div>' +
+       '<div class="rsub">To 0x91b2...44de</div></div>' +
+       '<div class="rend"><div class="rfiat">-0.2100 ETH</div></div></div>';
+  s += '</div>';
+  s += '</div>';
+  s += bottomBar();
+  return s;
+}
+
+function assetsScreen(scheme){
+  var t = total(), d = dayChange(), pct = t === 0 ? 0 : d / t * 100;
+  var s = '<div class="statusbar"><span>9:41</span><span>5G &nbsp; 100%</span></div>';
+  s += '<div class="apphead"><div class="avatar"></div><div class="whead">' +
+       '<div class="n">Main wallet</div><div class="a">0x7a3f...9c21</div></div></div>';
+  s += '<div class="body">';
+  s += '<div class="back" data-go="dash">&lsaquo; HOME</div>';
+  s += '<div class="pgh">Assets</div>';
+  if (scheme === 'B') {
+    s += '<div style="padding:10px 8px 0"><div class="hero" style="padding:0">' +
+         '<div class="big">' + usd(t) + '</div>';
+    if (t > 0) {
+      s += '<div class="chip ' + (d >= 0 ? 'good' : 'bad') + '">' +
+           (d >= 0 ? '+' : '') + pct.toFixed(2) + '%</div>';
+    }
+    s += '</div><div style="font-size:12.5px;color:var(--text2);margin-top:4px">' +
+         'Total value &middot; ' + rows().length + ' assets</div></div>';
+  }
+  s += '<div class="srch"><span>&#9906;</span><span>Search assets</span></div>';
+  s += '<div class="sortrow"><span class="kick">' + rows().length + ' assets</span>' +
+       '<span class="sortbtn">VALUE <span class="arw">&darr;</span></span></div>';
+  s += '<div style="height:4px"></div>' + coinRows(5);
+  s += '</div>' + bottomBar();
+  return s;
+}
+
+function bottomBar(){
+  return '<div class="btm"><div class="tabsrow">' +
+    '<div class="slot act"><div class="dot"></div>Home</div>' +
+    '<div class="slot"><div class="dot"></div>Wallet</div>' +
+    '<div style="width:84px"></div>' +
+    '<div class="slot"><div class="dot"></div>Markets</div>' +
+    '<div class="slot"><div class="dot"></div>News</div>' +
+    '</div></div><div class="dock">SWAP</div>';
+}
+
+/* ---------------- copy ---------------- */
+var SCHEMES = [
+  {id:'now', tab:'Now', title:'What ships today',
+   what:'The section title row is a Row of three: the word "Assets", a right-aligned column holding the total at 20px w700 over its 24h change line at 13px, a 24px gap, then GWViewAllLink.',
+   fixes:'Nothing. This is the state Jakub is objecting to.',
+   height:'0',
+   gap:'contentTopInset 20, rendered gap 30. Approved on device this morning.',
+   cost:'Two elements in the same row both claim to be the thing you read. The total is the biggest ink in the row and sits next to the only tappable thing in the row, so the eye cannot settle. The link is also the smallest element and is pushed hardest against the card edge.'},
+
+  {id:'A', tab:'A - total gets its own band', title:'A - the title row is cleaned, the total becomes a hero under it',
+   what:'The title row drops to two elements, exactly like Markets and Transactions: "Assets" left, VIEW ALL far right. The total moves to its own full-width band directly under the title, at 28px, with the 24h move as a chip beside it.',
+   fixes:'The hierarchy. One number is now unmistakably the headline, and the link no longer competes with it. The title row also becomes byte-identical in shape to the other two sections.',
+   height:'+52px',
+   gap:'CHANGES. The first thing under the title is no longer a CoinCardRow, so contentTopInset goes 20 to 0 and the rendered gap becomes 26 - the same number every other panel now uses. Arguably more consistent than today, but it is a change to a number Jakub approved this morning and must be re-walked.',
+   cost:'52px of height, spent immediately after phase 25 went to some trouble to cap these panels. The band is also a fourth distinct block in a card that already has a title, rows and a link.'},
+
+  {id:'B', tab:"B - Jakub's own", title:"B - the total leaves the dashboard and lives on /assets",
+   what:'The panel keeps only the title and the link. The total moves to the /assets page, as a hero directly under GWPageHeader. Tap VIEW ALL in the phone to see it.',
+   fixes:'The crowding, completely and at zero cost in height or geometry. The panel becomes the calmest of the three sections.',
+   height:'0',
+   gap:'UNCHANGED. The first thing under the title is still a CoinCardRow, so contentTopInset stays 20 and the approved 30 survives untouched.',
+   cost:'The dashboard loses the portfolio total, and this is the load-bearing objection: it appears NOWHERE else on the home screen. The Compute panel\'s balance tile is the GNUS compute balance, a different number, verified in compute_panel.dart. So after B, "how much am I holding" costs a tap.'},
+
+  {id:'C', tab:'C - total becomes the header', title:'C - "Assets" demotes to a kicker and the total becomes the section headline',
+   what:'The left side of the title row becomes a two-line block: a small uppercase ASSETS kicker over the total at 24px, with the 24h move inline beside it. VIEW ALL stays far right. Two elements in the row instead of three.',
+   fixes:'The hierarchy, without spending a pixel of height. The 44px header min-height already absorbs a 14px kicker over a 28px line.',
+   height:'0',
+   gap:'UNCHANGED. First content is still a CoinCardRow, contentTopInset stays 20, the approved 30 survives.',
+   cost:'Assets stops looking like Markets and Transactions. Their names are 18px white titles; here the name drops to an 11px secondary kicker. That is a real inconsistency introduced by the one phase that was about making sections consistent.'},
+
+  {id:'D', tab:'D - total as a summary row', title:'D - the total becomes a summary row above the list',
+   what:'Title row is cleaned to two elements. A bordered well on surfaceSunken sits above the coins carrying "Total value / N assets" on the left and the amount plus 24h on the right, at CoinCardRow geometry.',
+   fixes:'The hierarchy, and it gives the total a labelled home so the number is never ambiguous about what it counts.',
+   height:'+64px',
+   gap:'CHANGES. First content becomes the well, not a ListTile, so contentTopInset goes 20 to 0 and the rendered gap becomes 26. Same re-walk as A.',
+   cost:'The most height of any scheme, on the panel we just capped. It also reads as a sixth row in a five-row list, which is exactly the confusion the cap was meant to remove.'}
+];
+
+/* ---------------- render ---------------- */
+function paneHTML(s){
+  var body = '<div class="cols">';
+  body += '<div><div class="phone" data-scheme="' + s.id + '"><div class="screen"></div></div>' +
+          '<div class="caption">390 x 844 at 1:1, real shipping geometry</div></div>';
+  body += '<div class="notes">';
+  body += '<h3>' + s.title + '</h3>';
+  body += '<p><b>What it is.</b> ' + s.what + '</p>';
+  body += '<p><b>What it fixes.</b> ' + s.fixes + '</p>';
+  body += '<p><b>What it costs.</b> ' + s.cost + '</p>';
+  body += '<table><tr><th>Height change</th><td>' + s.height + '</td></tr>' +
+          '<tr><th>Title gap</th><td>' + s.gap + '</td></tr></table>';
+  body += '</div></div>';
+  return body;
+}
+
+function problemPane(){
+  var h = '<div class="notes" style="max-width:900px">';
+  h += '<h3>The row is not overflowing, and that matters</h3>';
+  h += '<p>Measured at 390pt: the title row content box is <b>336</b> ' +
+       '(390 minus 2x space3 list padding, minus 2x (space6 + 1px border) card inset, ' +
+       'minus 2x space4 title inset). "Assets" takes about 58, VIEW ALL about 86, the gap 24. ' +
+       'That leaves about <b>168</b> for the total block, and the widest realistic pair ' +
+       '(<code>$1,234,567.89</code> at 20px over its change line at 13px) measures about 143 and 126. ' +
+       'It <b>fits</b>, with room to spare.</p>';
+  h += '<p>So no scheme here is fixing an overflow. They are fixing the fact that the biggest ' +
+       'number in the row and the only tappable thing in the row are 24px apart, and neither wins. ' +
+       'A scheme that only moves pixels around without resolving which element is dominant has not ' +
+       'fixed anything.</p>';
+  h += '<div class="flag"><b>The constraint every scheme is measured against.</b> ' +
+       'Markets and Transactions both put GWViewAllLink at the far right of their title rows, and ' +
+       'the current Assets arrangement deliberately matches that pixel region so the eye learns one ' +
+       'place for it. Every scheme below keeps the link there. A scheme that moved it would have to ' +
+       'move all three.</div>';
+  h += '<div class="flag"><b>The second constraint.</b> ' +
+       'Jakub approved the Assets title gap on device this morning: contentTopInset 20, rendered gap ' +
+       '30. Two of the four schemes change it, because they change what the first widget under the ' +
+       'title is. That is not a blocker, but it is a re-walk, and it is recorded per scheme rather ' +
+       'than discovered later.</div>';
+  h += '<h3>Contrast, computed from the real tokens</h3>';
+  h += '<table><tr><th>Pairing</th><th>Ratio</th><th>Needs</th><th></th></tr>' +
+       '<tr><td>total #FFFFFF on card #0C0E14</td><td>19.6:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>change up #0AD89C on #0C0E14</td><td>10.4:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>change down #FF4D4D on #0C0E14</td><td>5.9:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>kicker #8A8F9D on #0C0E14 (scheme C)</td><td>6.0:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>VIEW ALL gradient stops on #0C0E14</td><td>10.4:1 / 7.6:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '</table>';
+  h += '<p>No scheme is blocked on contrast. The decision is entirely about hierarchy, height and ' +
+       'consistency.</p>';
+  h += '</div>';
+  return h;
+}
+
+function recPane(){
+  var h = '<div class="notes" style="max-width:900px">';
+  h += '<div class="rec"><b>Recommendation: C</b>, the kicker plus total header. It is the only scheme ' +
+       'that fixes the hierarchy at <b>zero height cost</b> and <b>without touching the title gap ' +
+       'Jakub approved this morning</b>. Two elements in the row instead of three, and the number a ' +
+       'wallet exists to show is the biggest ink on the section.</div>';
+  h += '<p><b>Runner-up: A.</b> If the kicker treatment reads as too different from Markets and ' +
+       'Transactions when seen side by side on the phone, A is the safe answer: it keeps the 18px ' +
+       'white title identical to its siblings and pays 52px for the privilege. Pick A over C the ' +
+       'moment section-title consistency matters more than height.</p>';
+  h += '<p><b>Explicitly rejected: D.</b> It costs the most height of any scheme, on the exact panel ' +
+       'phase 25 just capped to five rows, and a bordered summary well above a five-row list reads as ' +
+       'a sixth row. It solves the problem by adding furniture.</p>';
+  h += '<div class="flag"><b>On B, which is Jakub\'s own proposal, and why I am not recommending it.</b> ' +
+       'B is the calmest panel here and costs nothing, so it is genuinely tempting. The problem is ' +
+       'what it removes rather than how it looks: the portfolio total appears <b>nowhere else on the ' +
+       'home screen</b>. I checked - the Compute panel\'s balance tile is the GNUS compute balance, a ' +
+       'different number. So B makes "how much am I holding" a navigation, and that is the single ' +
+       'most common question a wallet is opened to answer. If Jakub still wants B after seeing it, it ' +
+       'is a legitimate product call and it is one line of work; I just do not think the crowding is ' +
+       'worth that much.</div>';
+  h += '<p><b>A note on all four.</b> None of them touches Markets or Transactions. If C is chosen ' +
+       'and the kicker treatment turns out to be right, there is a follow-up worth discussing later: ' +
+       'whether Markets should carry its 24h index move the same way. That is not in this sketch and ' +
+       'should not be bundled into it.</p>';
+  h += '</div>';
+  return h;
+}
+
+/* ---------------- wiring ---------------- */
+var tabsEl = document.getElementById('tabs');
+var panesEl = document.getElementById('panes');
+var TABS = [{id:'problem', tab:'The problem'}]
+  .concat(SCHEMES)
+  .concat([{id:'rec', tab:'Recommendation'}]);
+
+TABS.forEach(function(t, i){
+  var b = document.createElement('button');
+  b.className = 'tab' + (i === 0 ? ' on' : '');
+  b.textContent = t.tab;
+  b.setAttribute('data-pane', t.id);
+  tabsEl.appendChild(b);
+
+  var p = document.createElement('div');
+  p.className = 'pane' + (i === 0 ? ' on' : '');
+  p.id = 'pane-' + t.id;
+  if (t.id === 'problem') { p.innerHTML = problemPane(); }
+  else if (t.id === 'rec') { p.innerHTML = recPane(); }
+  else { p.innerHTML = paneHTML(t); }
+  panesEl.appendChild(p);
+});
+
+tabsEl.addEventListener('click', function(e){
+  var b = e.target.closest('.tab');
+  if (!b) return;
+  Array.prototype.forEach.call(tabsEl.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  Array.prototype.forEach.call(panesEl.children, function(x){ x.classList.remove('on'); });
+  document.getElementById('pane-' + b.getAttribute('data-pane')).classList.add('on');
+});
+
+document.getElementById('stateSeg').addEventListener('click', function(e){
+  var b = e.target.closest('button');
+  if (!b) return;
+  Array.prototype.forEach.call(this.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  STATE = b.getAttribute('data-st');
+  renderAll();
+});
+
+var SCREEN = {};
+
+function renderPhone(ph){
+  var scheme = ph.getAttribute('data-scheme');
+  var where = SCREEN[scheme] || 'dash';
+  var scr = ph.querySelector('.screen');
+  scr.innerHTML = where === 'dash' ? dashScreen(scheme) : assetsScreen(scheme);
+}
+
+function renderAll(){
+  Array.prototype.forEach.call(document.querySelectorAll('.phone'), renderPhone);
+}
+
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-go]');
+  if (!t) return;
+  var ph = t.closest('.phone');
+  if (!ph) return;
+  var scheme = ph.getAttribute('data-scheme');
+  SCREEN[scheme] = t.getAttribute('data-go');
+  renderPhone(ph);
+});
+
+renderAll();
+</script>
+</body>
+</html>

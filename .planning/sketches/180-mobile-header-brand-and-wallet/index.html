@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>180 - the mobile header: a brand on the left, ONE wallet control on the right</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --sunken:#06080C; --menu:#171A21;
+  --text:#FFFFFF; --text2:#8A8F9D; --onbrand:#000B18;
+  --border:rgba(255,255,255,.12); --border2:rgba(255,255,255,.24);
+  --ok:#0AD89C; --err:#FF4D4D; --g1:#0AD89C; --g2:#0AAEE6; --brand:#14C8FF;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#07090D;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1320px;margin:0 auto;padding:32px 24px 90px}
+h1{font-size:26px;margin:0 0 6px;font-weight:700}
+.sub{color:var(--text2);font-size:14px;line-height:1.65;margin:0 0 22px;max-width:960px}
+.sub b{color:var(--text)}
+.quote{border-left:3px solid var(--border2);padding:2px 0 2px 14px;margin:0 0 14px;
+  color:#c9ccd4;font-size:14px;line-height:1.7;max-width:960px}
+.quote b{color:var(--text)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;
+  color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+.tab:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.tab.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand);border-color:transparent}
+.statebar{display:flex;gap:10px;align-items:center;margin:16px 0 10px;font-size:13px;color:var(--text2);flex-wrap:wrap}
+.statebar .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--border);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--text2);font-size:12px;font-weight:600;
+  padding:6px 13px;border-radius:999px;cursor:pointer}
+.seg button.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand)}
+.hint{font-size:12.5px;color:var(--text2);margin:0 0 20px}
+.hint b{color:#fff}
+.pane{display:none}
+.pane.on{display:block}
+.cols{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+.notes{flex:1;min-width:360px;max-width:660px}
+.notes h3{font-size:15px;margin:0 0 8px}
+.notes h3.sec{margin-top:22px}
+.notes p{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 12px}
+.notes p b{color:var(--text)}
+.notes li{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 6px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 16px}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.04);color:var(--text2);font-weight:600}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#cfd3dc}
+.good{color:var(--ok)} .bad{color:var(--err)} .warn{color:#FFC42E}
+.tag{display:inline-block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:var(--menu);color:var(--text2);font-weight:600}
+
+/* ---------- phone, 1:1 ---------- */
+.phone{width:390px;height:844px;background:var(--base);border:1px solid var(--border2);
+  border-radius:38px;overflow:hidden;position:relative;flex:0 0 auto}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.statusbar{height:54px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-size:12px;color:var(--text2)}
+
+/* the app bar: 56px, surfaceElevated, hairline bottom */
+.apphead{height:56px;flex:0 0 auto;display:flex;align-items:center;padding:0 16px;
+  background:var(--card);border-bottom:.5px solid var(--border)}
+.brand{display:flex;align-items:center;gap:8px;flex:0 0 auto;min-width:0}
+.mark{width:28px;height:28px;border-radius:9px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  display:flex;align-items:center;justify-content:center;
+  color:var(--onbrand);font-weight:800;font-size:15px;letter-spacing:-.02em}
+.mark.ph{outline:1px dashed rgba(255,196,46,.85);outline-offset:2px}
+.word{font-size:15px;font-weight:700;letter-spacing:-.01em;line-height:1;white-space:nowrap}
+.word .ai{color:var(--text2);font-weight:600}
+.word.grad{background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.gap{flex:1}
+
+/* right-hand controls */
+.ctl{flex:0 0 auto;display:flex;align-items:center;cursor:pointer;user-select:none}
+.tap44{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;
+  border-radius:12px}
+.tap44:hover{background:rgba(255,255,255,.06)}
+.av{width:32px;height:32px;border-radius:999px;flex:0 0 auto;position:relative;
+  background:linear-gradient(135deg,#0AD89C,#0AAEE6)}
+.av.b{background:linear-gradient(135deg,#8247E5,#14C8FF)}
+.av.none{background:transparent;border:1px dashed var(--border2);
+  display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:16px}
+.badge{position:absolute;right:-3px;bottom:-3px;width:16px;height:16px;border-radius:999px;
+  border:2px solid var(--card);display:flex;align-items:center;justify-content:center;
+  font-size:7.5px;font-weight:800;color:#fff}
+.pill{height:44px;display:flex;align-items:center;gap:8px;padding:0 10px 0 6px;border-radius:999px;
+  border:1px solid var(--border);max-width:236px;min-width:0}
+.pill:hover{border-color:var(--border2);background:rgba(255,255,255,.05)}
+.pill .nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pill .sub2{font-size:11px;color:var(--text2);font-family:ui-monospace,Menlo,monospace}
+.caret{color:var(--text2);font-size:11px;flex:0 0 auto}
+.segpill{height:44px;display:flex;align-items:stretch;border:1px solid var(--border);
+  border-radius:999px;overflow:hidden}
+.segpill .half{width:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;gap:2px}
+.segpill .half:hover{background:rgba(255,255,255,.07)}
+.segpill .rule{width:1px;background:var(--border);align-self:center;height:24px}
+.netglyph{width:20px;height:20px;border-radius:999px;flex:0 0 auto;display:flex;
+  align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff}
+.oldwrap{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.oldcol{min-width:0}
+.oldcol .n{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oldcol .a{font-size:11px;color:var(--text2);font-family:ui-monospace,Menlo,monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oldchip{height:36px;padding:0 8px;border-radius:10px;display:flex;align-items:center;gap:4px;
+  cursor:pointer;flex:0 0 auto}
+.oldchip:hover{background:rgba(255,255,255,.06)}
+
+.body{flex:1;overflow-y:auto;padding:12px 6px 120px}
+.body::-webkit-scrollbar{width:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;margin:0 0 12px}
+.sect{min-height:44px;display:flex;align-items:center;gap:10px;padding:2px 8px 0}
+.stitle{font-size:18px;line-height:24px;font-weight:600;flex:0 0 auto}
+.kick{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-weight:600}
+.spacer{flex:1}
+.vall{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;flex:0 0 auto;
+  background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.netchip{height:32px;padding:0 10px 0 6px;border-radius:999px;border:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;flex:0 0 auto}
+.netchip:hover{border-color:var(--border2);background:rgba(255,255,255,.05)}
+.row{height:68px;display:flex;align-items:center;gap:12px;padding:0 8px}
+.ico{width:38px;height:38px;border-radius:999px;flex:0 0 auto;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;color:var(--onbrand)}
+.rmid{flex:1;min-width:0}
+.rname{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:12.5px;color:var(--text2);margin-top:2px}
+.rend{text-align:right;flex:0 0 auto}
+.rfiat{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.ramt{font-size:12.5px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:2px}
+
+/* bottom bar: 60px painted, 64px dock, 26px overhang, 84px slot */
+.btm{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--card);
+  border-top:1px solid var(--border)}
+.tabsrow{display:flex;height:60px;align-items:center}
+.slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--text2)}
+.slot.act{background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent;font-weight:600}
+.dot{width:22px;height:22px;border-radius:6px;background:currentColor;opacity:.85}
+.dock{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;width:64px;height:64px;
+  border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2));
+  display:flex;align-items:center;justify-content:center;color:var(--onbrand);font-weight:700;font-size:12px}
+
+/* sheet */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:74%;background:var(--menu);
+  border-top-left-radius:20px;border-top-right-radius:20px;z-index:6;display:flex;flex-direction:column;
+  border-top:1px solid var(--border)}
+.grab{width:36px;height:4px;border-radius:999px;background:var(--border2);margin:8px auto 4px;flex:0 0 auto}
+.shead{padding:6px 20px 10px;font-size:16px;font-weight:600;flex:0 0 auto;display:flex;align-items:center}
+.shead .x{margin-left:auto;color:var(--text2);font-size:13px;cursor:pointer;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.shead .x:hover{background:rgba(255,255,255,.07)}
+.sbody{overflow-y:auto;padding:0 20px 22px}
+.sbody::-webkit-scrollbar{width:0}
+.secthead{font-size:13px;font-weight:600;margin:12px 0 2px}
+.secthead.first{margin-top:2px}
+.sectcap{font-size:11.5px;line-height:1.5;color:var(--text2);margin:0 0 8px}
+.srow{min-height:56px;display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:12px;
+  border:1px solid transparent;cursor:pointer;margin-bottom:4px}
+.srow:hover{background:rgba(255,255,255,.05)}
+.srow.on{background:rgba(20,200,255,.08);border-color:rgba(20,200,255,.45)}
+.srow .mid{flex:1;min-width:0}
+.srow .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .s{font-size:11.5px;color:var(--text2);font-family:ui-monospace,Menlo,monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .ck{color:var(--brand);font-size:14px;flex:0 0 auto}
+.netstrip{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px}
+.netstrip::-webkit-scrollbar{height:0}
+.nchip{height:44px;flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:0 12px;
+  border-radius:999px;border:1px solid var(--border);font-size:13px;font-weight:600;cursor:pointer}
+.nchip:hover{border-color:var(--border2)}
+.nchip.on{border-color:rgba(20,200,255,.6);background:rgba(20,200,255,.10)}
+.note{font-size:12px;color:var(--text2);border:1px dashed var(--border);border-radius:10px;
+  padding:10px 12px;margin:0 0 8px;line-height:1.5}
+
+.caption{font-size:12px;color:var(--text2);margin:10px 0 0;text-align:center;width:390px;line-height:1.5}
+.flag{border-left:3px solid #FFC42E;background:rgba(255,196,46,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#e6e2d4}
+.flag b{color:#FFC42E}
+.rec{border-left:3px solid var(--g1);background:rgba(10,216,156,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#d6efe7}
+.rec b{color:var(--ok)}
+.rej{border-left:3px solid var(--err);background:rgba(255,77,77,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#f2d9d9}
+.rej b{color:var(--err)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>180 - the mobile header: a brand on the left, ONE wallet control on the right</h1>
+
+  <p class="quote">
+    Jakub, 2026-08-07, verbatim: <b>"chcialbym miec na homepage'u logo Genius w lewym gornym rogu z
+    nazwa, moze Genius AI. Ten wallet przesuniety w prawa strone, a faktycznie tam tylko jedna
+    informacja odnosnie walletu, bo teraz mamy i wybor sieci, i wybor walleta. Natomiast po klikniecu
+    wtedy sie wszystko by rozwijalo. Musimy to chyba troszeczke zre-designowac, wiec zastanow sie jak
+    najlepiej to zrobic i mi zaprezentuj."</b>
+  </p>
+
+  <p class="sub">
+    Three asks in one sentence. A <b>brand mark plus a wordmark on the left</b>, the wallet control
+    <b>moved to the right</b>, and <b>one</b> wallet affordance where there are two today, with
+    everything else revealed on tap. The four schemes below differ in <b>what that one control is</b>,
+    not in where it sits - every one of them puts it in the same top-right corner. Tap the control in
+    any phone and the sheet it claims to open actually opens.
+  </p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="statebar">
+    <span class="lbl">Wallet</span>
+    <span class="seg" id="nameSeg">
+      <button data-st="short" class="on">SHORT NAME</button>
+      <button data-st="long">VERY LONG NAME</button>
+      <button data-st="addr">ADDRESS-SHAPED NAME</button>
+      <button data-st="none">NO WALLET</button>
+    </span>
+    <span class="lbl">Brand block</span>
+    <span class="seg" id="brandSeg">
+      <button data-br="both" class="on">MARK + WORDMARK</button>
+      <button data-br="word">WORDMARK ONLY</button>
+      <button data-br="mark">MARK ONLY</button>
+    </span>
+  </div>
+  <p class="hint">
+    ADDRESS-SHAPED NAME is the real defect case: a wallet saved with an address typed into the free-text
+    name field at <code>import_security_screen.dart:236</code>. The mark is drawn from the brand gradient
+    and ringed in yellow because <b>there is no logo asset in this repository</b> - see the Problem tab.
+  </p>
+
+  <div id="panes"></div>
+</div>
+
+<script>
+/* ============================== data ============================== */
+
+var WALLETS = {
+  short: {name:'Main wallet',  addr:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21'},
+  long:  {name:'Jakub imported Ledger Nano X hardware wallet', addr:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21'},
+  addr:  {name:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21',   addr:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21'},
+  none:  null
+};
+
+/* Mirrors WalletUtils.getAddressForDisplay - first 6, ellipsis, last 4. */
+function shortAddr(a){
+  if (!a || a.length < 6) return a || '';
+  return a.slice(0,6) + '...' + a.slice(-4);
+}
+
+var NETWORKS = [
+  {id:'eth',  name:'Ethereum',  sym:'ETH',   c:'#627EEA', ab:'E'},
+  {id:'poly', name:'Polygon',   sym:'MATIC', c:'#8247E5', ab:'P'},
+  {id:'base', name:'Base',      sym:'ETH',   c:'#0052FF', ab:'B'},
+  {id:'bnb',  name:'BNB Chain', sym:'BNB',   c:'#F3BA2F', ab:'B'},
+  {id:'sol',  name:'Solana',    sym:'SOL',   c:'#14C8FF', ab:'S'}
+];
+
+var SDK_WALLETS = [
+  {name:'Super Genius Wallet 1', addr:'0x11c8ff41de88a0f5c3d7e6b1a4928c0d3f6a01'},
+  {name:'Super Genius Wallet 2', addr:'0x22d89c41de88a0f5c3d7e6b1a4928c0d3f6b02'}
+];
+
+/* per-scheme UI state */
+var NAME_ST  = 'short';
+var BRAND_ST = 'both';
+var NET      = {};   /* scheme -> network id */
+var SHEET    = {};   /* scheme -> null | 'accounts' | 'networks' | 'combined' */
+
+function wal(){ return WALLETS[NAME_ST]; }
+function net(scheme){
+  var id = NET[scheme] || 'eth';
+  for (var i=0;i<NETWORKS.length;i++){ if (NETWORKS[i].id === id) return NETWORKS[i]; }
+  return NETWORKS[0];
+}
+
+/* ============================== fragments ============================== */
+
+function brandBlock(){
+  var mark = '<div class="mark ph">G</div>';
+  var word = '<div class="word">Genius <span class="ai">AI</span></div>';
+  if (BRAND_ST === 'word') return '<div class="brand">' + word + '</div>';
+  if (BRAND_ST === 'mark') return '<div class="brand">' + mark + '</div>';
+  return '<div class="brand">' + mark + word + '</div>';
+}
+
+function glyph(n, size){
+  var s = size || 20;
+  return '<div class="netglyph" style="background:' + n.c + ';width:' + s + 'px;height:' + s + 'px">' +
+         n.ab + '</div>';
+}
+
+function avatar(cls, extra){
+  var w = wal();
+  if (!w) return '<div class="av none">+</div>';
+  return '<div class="av ' + (cls || '') + '">' + (extra || '') + '</div>';
+}
+
+/* ---------- the five headers ---------- */
+
+/* NOW: title = avatar + name + truncated address, opens Accounts.
+        actions = network image + caret, opens Networks. Two controls, neither on the right. */
+function headNow(scheme){
+  var w = wal(), n = net(scheme);
+  var s = '<div class="apphead">';
+  s += '<div class="oldwrap ctl" data-open="accounts">';
+  s += w ? avatar() : '<div class="av none">+</div>';
+  s += '<div class="oldcol"><div class="n">' + (w ? esc(w.name) : 'No wallet') + ' &#9662;</div>';
+  if (w) s += '<div class="a">' + shortAddr(w.addr) + '</div>';
+  s += '</div></div>';
+  s += '<div class="oldchip ctl" data-open="networks">' + glyph(n) +
+       '<span class="caret">&#9662;</span></div>';
+  s += '</div>';
+  return s;
+}
+
+/* A: one 44x44 avatar button, no text at all. Opens a combined sheet. */
+function headA(scheme){
+  var s = '<div class="apphead">' + brandBlock() + '<div class="gap"></div>';
+  s += '<div class="ctl tap44" data-open="combined">' + avatar() + '</div>';
+  s += '</div>';
+  return s;
+}
+
+/* B: wallet pill - avatar with the network badged onto it, the name, a caret. Opens combined sheet. */
+function headB(scheme){
+  var w = wal(), n = net(scheme);
+  var badge = '<div class="badge" style="background:' + n.c + '">' + n.ab + '</div>';
+  var s = '<div class="apphead">' + brandBlock() + '<div class="gap"></div>';
+  s += '<div class="ctl pill" data-open="combined">';
+  s += w ? avatar('', badge) : '<div class="av none">+</div>';
+  s += '<span class="nm">' + (w ? esc(w.name) : 'No wallet') + '</span>';
+  s += '<span class="caret">&#9662;</span></div>';
+  s += '</div>';
+  return s;
+}
+
+/* C: one segmented pill, two targets. Left half = networks, right half = accounts. */
+function headC(scheme){
+  var n = net(scheme);
+  var s = '<div class="apphead">' + brandBlock() + '<div class="gap"></div>';
+  s += '<div class="ctl segpill">';
+  s += '<div class="half" data-open="networks">' + glyph(n, 22) + '</div>';
+  s += '<div class="rule"></div>';
+  s += '<div class="half" data-open="accounts">' +
+       (wal() ? '<div class="av" style="width:26px;height:26px"></div>'
+              : '<div class="av none" style="width:26px;height:26px;font-size:13px">+</div>') +
+       '</div>';
+  s += '</div></div>';
+  return s;
+}
+
+/* D: one 44x44 avatar button. No network in the header at all. */
+function headD(scheme){
+  var s = '<div class="apphead">' + brandBlock() + '<div class="gap"></div>';
+  s += '<div class="ctl tap44" data-open="accounts">' + avatar('b') + '</div>';
+  s += '</div>';
+  return s;
+}
+
+var HEADS = {now:headNow, A:headA, B:headB, C:headC, D:headD};
+
+/* ---------- body ---------- */
+
+var COINS = [
+  {sym:'GNUS', name:'Genius Tokens', amt:'12,480.0000', fiat:'$4,867.20', px:'$0.39',     chg:'+2.41%', up:1, c1:'#0AD89C', c2:'#0AAEE6'},
+  {sym:'ETH',  name:'Ethereum',      amt:'1.2043',      fiat:'$3,911.11', px:'$3,248.50', chg:'+1.12%', up:1, c1:'#8A8F9D', c2:'#5b6070'},
+  {sym:'BTC',  name:'Bitcoin',       amt:'0.0412',      fiat:'$2,884.00', px:'$70,000.00',chg:'-0.42%', up:0, c1:'#F7931A', c2:'#c9761a'}
+];
+
+function coinRows(){
+  return COINS.map(function(r){
+    return '<div class="row">' +
+      '<div class="ico" style="background:linear-gradient(135deg,' + r.c1 + ',' + r.c2 + ')">' +
+        r.sym.slice(0,2) + '</div>' +
+      '<div class="rmid"><div class="rname">' + r.name + '</div>' +
+      '<div class="rsub">' + r.px + ' <span class="' + (r.up ? 'good' : 'bad') + '">' + r.chg +
+      '</span></div></div>' +
+      '<div class="rend"><div class="rfiat">' + r.fiat + '</div>' +
+      '<div class="ramt">' + r.amt + ' ' + r.sym + '</div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function homeBody(scheme){
+  var n = net(scheme);
+  var s = '<div class="body">';
+  s += '<div class="card"><div class="sect"><div class="stitle">Assets</div>';
+  if (scheme === 'D') {
+    s += '<div class="netchip ctl" data-open="networks">' + glyph(n, 20) +
+         '<span>' + n.name + '</span><span class="caret">&#9662;</span></div>';
+  }
+  s += '<div class="spacer"></div><span class="vall">VIEW ALL &rarr;</span></div>';
+  s += coinRows();
+  s += '</div>';
+  s += '<div class="card"><div class="sect"><div class="stitle">Transactions</div>' +
+       '<div class="spacer"></div><span class="vall">VIEW ALL &rarr;</span></div>' +
+       '<div style="height:20px"></div>' +
+       '<div style="padding:0 8px;font-size:12.5px;color:var(--text2)">Today</div>' +
+       '<div class="row"><div class="ico" style="background:#171A21;color:#8A8F9D">TX</div>' +
+       '<div class="rmid"><div class="rname">Ethereum</div>' +
+       '<div class="rsub">To 0x91b2...44de</div></div>' +
+       '<div class="rend"><div class="rfiat">-0.2100 ETH</div></div></div>';
+  s += '</div></div>';
+  return s;
+}
+
+function bottomBar(){
+  return '<div class="btm"><div class="tabsrow">' +
+    '<div class="slot act"><div class="dot"></div>Home</div>' +
+    '<div class="slot"><div class="dot"></div>Wallet</div>' +
+    '<div style="width:84px"></div>' +
+    '<div class="slot"><div class="dot"></div>Markets</div>' +
+    '<div class="slot"><div class="dot"></div>News</div>' +
+    '</div></div><div class="dock">SWAP</div>';
+}
+
+/* ---------- sheets ---------- */
+
+function netStrip(scheme){
+  var cur = net(scheme).id;
+  return '<div class="netstrip">' + NETWORKS.map(function(n){
+    return '<div class="nchip' + (n.id === cur ? ' on' : '') + '" data-net="' + n.id + '">' +
+      glyph(n, 20) + '<span>' + n.name + '</span></div>';
+  }).join('') + '</div>';
+}
+
+function netRows(scheme){
+  var cur = net(scheme).id;
+  return NETWORKS.map(function(n){
+    return '<div class="srow' + (n.id === cur ? ' on' : '') + '" data-net="' + n.id + '">' +
+      glyph(n, 32) +
+      '<div class="mid"><div class="t">' + n.name + '</div>' +
+      '<div class="s" style="font-family:inherit">' + n.sym + '</div></div>' +
+      (n.id === cur ? '<div class="ck">&#10003;</div>' : '') + '</div>';
+  }).join('');
+}
+
+function accountRows(){
+  var w = wal();
+  var s = '<div class="secthead first">SDK Accounts</div>';
+  s += '<div class="sectcap">Node accounts that earn minions for sharing your GPU. Balances come from ' +
+       'the SuperGenius node, and these accounts cannot be renamed or deleted.</div>';
+  s += SDK_WALLETS.map(function(x){
+    return '<div class="srow"><div class="av" style="background:linear-gradient(135deg,#0AD89C,#14C8FF);' +
+      'width:32px;height:32px"></div><div class="mid"><div class="t">' + x.name + '</div>' +
+      '<div class="s">' + shortAddr(x.addr) + '</div></div></div>';
+  }).join('');
+  s += '<div class="secthead">Your Accounts</div>';
+  s += '<div class="sectcap">Wallets you created or imported. Used for swaps, sends and everything ' +
+       'else on-chain.</div>';
+  if (!w) {
+    s += '<div class="note">No wallets yet.</div>';
+  } else {
+    s += '<div class="srow on"><div class="av" style="width:32px;height:32px"></div>' +
+      '<div class="mid"><div class="t">' + esc(w.name) + '</div>' +
+      '<div class="s">' + shortAddr(w.addr) + '</div></div><div class="ck">&#10003;</div></div>';
+    s += '<div class="srow"><div class="av b" style="width:32px;height:32px"></div>' +
+      '<div class="mid"><div class="t">Savings</div>' +
+      '<div class="s">' + shortAddr('0x5be21a41de88a0f5c3d7e6b1a4928c0d3f6c07') + '</div></div></div>';
+  }
+  return s;
+}
+
+function sheetHTML(scheme, kind){
+  var title = kind === 'networks' ? 'Select Network'
+            : kind === 'combined' ? 'Wallet and network'
+            : 'Accounts';
+  var s = '<div class="scrim" data-close="1"></div><div class="sheet">';
+  s += '<div class="grab"></div>';
+  s += '<div class="shead">' + title + '<span class="x" data-close="1">&#10005;</span></div>';
+  s += '<div class="sbody">';
+  if (kind === 'networks') {
+    s += netRows(scheme);
+  } else if (kind === 'combined') {
+    s += '<div class="secthead first">Network</div>';
+    s += '<div class="sectcap">Which chain the balances below are read from.</div>';
+    s += netStrip(scheme);
+    s += accountRows();
+  } else {
+    s += accountRows();
+  }
+  s += '</div></div>';
+  return s;
+}
+
+function esc(t){
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ============================== screens ============================== */
+
+function screenHTML(scheme){
+  var s = '<div class="statusbar"><span>9:41</span><span>5G &nbsp; 100%</span></div>';
+  s += HEADS[scheme](scheme);
+  s += homeBody(scheme);
+  s += bottomBar();
+  var k = SHEET[scheme];
+  if (k) s += sheetHTML(scheme, k);
+  return s;
+}
+
+/* ============================== copy ============================== */
+
+var SCHEMES = [
+  {
+    id:'now', tab:'Now', title:'What ships today',
+    one:'There is no ONE thing. There are two controls, and neither is on the right: the wallet block is the AppBar <code>title</code> on the LEFT (avatar + name + truncated address, opening <code>AccountDrawer.show</code>), and <code>NetworkDropdownSelector</code> is the only entry in <code>actions</code>. There is no brand mark anywhere on the phone shell.',
+    reveal:'The wallet block reveals the Accounts drawer. The network chip reveals a separate Select Network drawer. They never appear together.',
+    network:'In the header, at the far right. <b>1 tap</b> to the list, 2 to switch.',
+    defect:'<b class="bad">Yes.</b> Name on line one, truncated address on line two. Switch the state selector to ADDRESS-SHAPED NAME and the header prints the address twice.',
+    targets:'The network chip is a <code>TextButton</code> with <code>navContextChipStyle</code> - about 36px tall, <b class="bad">under the 44pt floor</b>. The title <code>InkWell</code> is padded by <code>space3</code> (6px) on a 32px avatar, so about 44 tall but its width is whatever the name happens to be.',
+    longname:'The name <code>Flexible</code>s and ellipsizes, so a long name simply eats the whole bar. There is no brand block to protect.',
+    cost:'Everything Jakub is objecting to. Two controls for one question, the wallet on the wrong side, no brand, and the only network signal is a 20px image with no accessible name.'
+  },
+  {
+    id:'A', tab:'A - avatar only', title:'A - one avatar, no text, one sheet that carries both',
+    one:'A single 44x44 button holding a 32px <code>AccountAvatar</code>. No name, no address, no network glyph, no caret. The most literal reading of "tylko jedna informacja odnosnie walletu": the header answers <i>whose wallet</i> with a face and nothing else.',
+    reveal:'One sheet, "Wallet and network". A Network section at the top as a horizontal chip strip, then the two account sections from sketch 174 unchanged underneath. Everything the header used to say is inside it.',
+    network:'Inside that one sheet, visible without scrolling. <b>1 tap</b> to the list, 2 to switch - identical to today.',
+    defect:'<b class="good">No.</b> The header carries zero text, so it cannot print anything twice. The name and address still appear together in the sheet rows, which is where they belong: a picker needs both to disambiguate.',
+    targets:'44x44 exactly, and it is the only target in the bar. Chips inside the sheet are 44 tall.',
+    longname:'Structurally immune. The control is a fixed 44px square, so the brand block never moves and a 200-character wallet name changes nothing in the header.',
+    cost:'You lose the wallet name from the chrome. On a multi-wallet device the avatar gradient is the only thing telling you which wallet is live, and <code>AccountAvatar</code> is a colour, not a label - a user who cannot tell two gradients apart has to open the sheet to know where they are. That is the real price and it is not small.'
+  },
+  {
+    id:'B', tab:'B - wallet pill, network badged', title:'B - one pill: the name, with the network badged onto the avatar',
+    one:'A single pill: a 32px avatar carrying a 16px network badge at its bottom-right, the wallet name, a caret. One object, one target, one tap. The network is present as a <i>property of the wallet you are looking at</i> rather than as a second control - which is what it actually is, since <code>selectNetwork</code> is stored per wallet.',
+    reveal:'The same combined sheet as A: network chips at the top, then SDK Accounts and Your Accounts.',
+    network:'Inside the sheet. <b>1 tap</b> to the list, 2 to switch. No regression.',
+    defect:'<b class="warn">Halved.</b> The pill shows the name and NOT the address, so an address-shaped name renders <i>once</i> instead of twice - it looks like an odd name rather than a bug. Switch to ADDRESS-SHAPED NAME and compare against the Now tab.',
+    targets:'44 tall. The badge is decoration inside the pill, not a target, so there is no 16px hit area anywhere.',
+    longname:'The pill is capped at 236px and the name ellipsizes inside it; the brand block is <code>flex:0 0 auto</code> so it never shrinks. Worst case at 390pt with MARK + WORDMARK: brand 102, gap 12, pill 236 - it fits with 4px to spare, and that is the tightest number in this sketch.',
+    cost:'The badge is 16px. It is enough to say "the chain changed" but not enough to read a logo, so it is a change-detector rather than an identifier, and it inherits today\'s problem of a network identified by picture alone. It is also the widest scheme, which is why the arithmetic above has almost no slack.'
+  },
+  {
+    id:'C', tab:'C - segmented pill', title:'C - one object, two halves: network | wallet',
+    one:'One pill, visually. Functionally it is a segmented control: the left half is the network glyph and opens Networks, the right half is the avatar and opens Accounts. This is the honest middle - it gives Jakub the single right-hand object and the tidied header, but it does <b>not</b> give him one affordance.',
+    reveal:'Left half reveals Select Network exactly as it is today. Right half reveals the Accounts drawer from sketch 174, untouched. Neither sheet is redesigned, so this is the smallest code change of the four.',
+    network:'Still in the header. <b>1 tap</b> to the list, 2 to switch. The only scheme that keeps network switching at header level.',
+    defect:'<b class="good">No.</b> No text in the header at all.',
+    targets:'96px wide over 44 tall gives two 48x44 halves - both clear the floor. But two adjacent targets 48px apart on a 390pt phone, at the top-right corner where the thumb is least accurate, is the classic mis-tap geometry.',
+    longname:'Immune, same as A - fixed 96px control.',
+    cost:'It answers the layout half of the request and quietly declines the other half. Jakub said "teraz mamy i wybor sieci, i wybor walleta" - C still has both, just wearing one border. If it ships, it should ship as an explicit decision that the two controls are worth keeping, not as a compromise nobody names.'
+  },
+  {
+    id:'D', tab:'D - network leaves the header', title:'D - the header is wallet-only; the network moves next to the balances it changes',
+    one:'A single 44x44 avatar button, same as A. But the sheet behind it is the Accounts drawer from 174 <b>unchanged</b> - no network section, because the network is no longer a header concern at all.',
+    reveal:'The Accounts drawer, exactly as redesigned this session. No new surface, no extension.',
+    network:'A <code>GWChip</code>-shaped control in the <b>Assets section header</b>, next to the numbers it actually governs, on every chain-scoped surface: Home Assets, the Wallet tab, Swap. From Home: <b>1 tap</b> to the list, 2 to switch. From News or Markets: <b>3 taps</b> - Home, chip, row - because the control is deliberately absent where the chain means nothing. That is the trade, stated out loud.',
+    defect:'<b class="good">No.</b> Header carries no text.',
+    targets:'44x44 avatar. The Assets chip is 32 tall as drawn, which is <b class="warn">under the floor</b> and must be padded to 44 or given a 44-tall row - the one thing to fix before this ships.',
+    longname:'Immune - fixed 44px control.',
+    cost:'The network control now exists in three places instead of one, and three placements is three chances to drift. It is also the only scheme that changes a screen other than the header, so it is the largest diff. In exchange it is the only scheme where the network is next to the balances it silently rewrites, which is where a user looks when the numbers change.'
+  }
+];
+
+/* ============================== panes ============================== */
+
+function paneHTML(s){
+  var b = '<div class="cols">';
+  b += '<div><div class="phone" data-scheme="' + s.id + '"><div class="screen"></div></div>' +
+       '<div class="caption">390 x 844 at 1:1. 56px app bar, 60px bottom bar, 64px dock, ' +
+       '26px overhang, 84px slot. Tap the right-hand control.</div></div>';
+  b += '<div class="notes">';
+  b += '<h3>' + s.title + '</h3>';
+  b += '<table>';
+  b += '<tr><th style="width:150px">The ONE thing on the right</th><td>' + s.one + '</td></tr>';
+  b += '<tr><th>What tapping it reveals</th><td>' + s.reveal + '</td></tr>';
+  b += '<tr><th>Where network switching lives, and what it costs</th><td>' + s.network + '</td></tr>';
+  b += '<tr><th>Inherits the double-address defect?</th><td>' + s.defect + '</td></tr>';
+  b += '<tr><th>44pt touch targets</th><td>' + s.targets + '</td></tr>';
+  b += '<tr><th>Very long wallet name</th><td>' + s.longname + '</td></tr>';
+  b += '</table>';
+  b += '<p><b>What it costs.</b> ' + s.cost + '</p>';
+  b += '</div></div>';
+  return b;
+}
+
+function problemPane(){
+  var h = '<div class="notes" style="max-width:1000px">';
+
+  h += '<h3>What is in the code today</h3>';
+  h += '<p><code>_MobileHeader</code> at <code>lib/components/overlay/responsive_overlay.dart:559</code> ' +
+       'is a real <code>AppBar</code>. Its <code>title</code> is an <code>InkWell</code> on the ' +
+       '<b>left</b> holding <code>AccountAvatar(size: 32)</code> plus a column of ' +
+       '<code>wallet?.walletName ?? \'No wallet\'</code> over ' +
+       '<code>WalletUtils.getAddressForDisplay(wallet.address)</code>, opening ' +
+       '<code>AccountDrawer.show(context)</code>. Its <code>actions</code> is ' +
+       '<code>const [NetworkDropdownSelector(), SizedBox(width: space8)]</code>. ' +
+       'So there are <b>two</b> controls, the wallet one is on the wrong side, and there is ' +
+       '<b>no brand mark anywhere in the phone shell</b>.</p>';
+
+  h += '<div class="flag"><b>Blocking dependency: there is no logo asset in this repository.</b> ' +
+       '<code>assets/images/</code> holds screen furniture and <code>assets/images/crypto/</code> holds ' +
+       'coin icons - <code>gnus.png</code> and <code>sgnus.png</code> among them. There is no app icon, ' +
+       'no wordmark, no SVG mark. So the left block is one of three things, and this sketch does not ' +
+       'pretend otherwise: <b>(1)</b> a new asset Jakub supplies, <b>(2)</b> the GNUS coin mark reused, ' +
+       'which is wrong because it is a <i>token</i> mark and would read as a balance, or <b>(3)</b> a ' +
+       'mark drawn from the brand gradient in code, which is what the yellow-ringed square in every ' +
+       'phone above is. <b>The wordmark is not blocked.</b> Switch the brand block to WORDMARK ONLY in ' +
+       'any scheme: "Genius <span style="color:#8A8F9D">AI</span>" at 15px w700 is ~66px wide, needs no ' +
+       'asset, and ships today. Every scheme here works in all three brand modes, so the decision on ' +
+       'the wallet control does not have to wait for the logo.</div>';
+
+  h += '<h3 class="sec">The defect every scheme has to answer for</h3>';
+  h += '<p>On some wallets the header prints the address twice. <b>Already diagnosed, do not ' +
+       're-investigate:</b> the title line is <code>wallet.walletName</code> and the line under it is ' +
+       'the truncated address, and no code anywhere derives a name from an address. The wallet was ' +
+       '<i>saved</i> with an address-shaped name through the free-text field at ' +
+       '<code>import_security_screen.dart:236</code> (<code>walletName: walletNameController.text</code>). ' +
+       'SDK wallets never hit this - <code>app_bloc.dart:616</code> names them ' +
+       '<code>\'Super Genius Wallet\'</code> or <code>\'Super Genius Wallet N\'</code>.</p>';
+  h += '<p>The consequence for this sketch: <b>any header showing a name and an address together ' +
+       'inherits it. A header showing one line, or none, sidesteps it.</b> That is recorded per scheme ' +
+       'rather than treated as a fix, because the real fix is validation on that text field and it is ' +
+       'not this sketch\'s job.</p>';
+
+  h += '<h3 class="sec">Where "everything expands" has to land</h3>';
+  h += '<p><code>AccountDrawer</code> was redesigned this session per sketch 174 into two sections - ' +
+       '<b>SDK Accounts</b> (with the note that they cannot be renamed or deleted, and that the section ' +
+       'only appears when it has something to say) and <b>Your Accounts</b>. Every sheet in this sketch ' +
+       'either <i>is</i> that drawer or <i>extends</i> it with a network block on top. <b>No scheme ' +
+       'invents a third wallet surface</b>, which is the failure mode a "one control that expands into ' +
+       'everything" brief invites.</p>';
+
+  h += '<h3 class="sec">Geometry, measured at 390pt</h3>';
+  h += '<table><tr><th>Piece</th><th>Width</th><th>Note</th></tr>' +
+       '<tr><td>Bar content box</td><td>358</td><td>390 minus 2x space8 (16) padding</td></tr>' +
+       '<tr><td>Brand: mark + wordmark</td><td>~102</td><td>28 mark + 8 gap + ~66 wordmark</td></tr>' +
+       '<tr><td>Brand: wordmark only</td><td>~66</td><td>ships with no asset</td></tr>' +
+       '<tr><td>Brand: mark only</td><td>28</td><td>needs the asset to be recognisable</td></tr>' +
+       '<tr><td>A / D control</td><td>44</td><td>leaves 212 of slack</td></tr>' +
+       '<tr><td>B control</td><td>up to 236</td><td>102 + 12 + 236 = 350 of 358. <b class="warn">4px ' +
+       'of slack</b>, the tightest number here</td></tr>' +
+       '<tr><td>C control</td><td>96</td><td>two 48x44 halves</td></tr>' +
+       '</table>';
+  h += '<p>The app bar is drawn at <b>56</b> here, per the brief. <b class="warn">The shipped code says ' +
+       '<code>toolbarHeight: 60</code></b> and <code>preferredSize = 60</code> in the same class. Every ' +
+       'scheme fits either - a 44pt target needs 6px of breathing room in a 56 bar and 8 in a 60 - but ' +
+       'the discrepancy is real and whoever implements this should pick one number deliberately rather ' +
+       'than inherit both.</p>';
+
+  h += '<h3 class="sec">Contrast, computed from the real tokens</h3>';
+  h += '<table><tr><th>Pairing</th><th>Ratio</th><th>Needs</th><th></th></tr>' +
+       '<tr><td>Wordmark #FFFFFF on app bar #0C0E14</td><td>19.3:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>Wordmark in brand gradient on #0C0E14 (both stops)</td><td>10.4:1 / 7.5:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>Wallet name #FFFFFF on #0C0E14</td><td>19.3:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td><b>Secondary text #8A8F9D on the app bar #0C0E14</b> - the address line, the "AI" in the wordmark, the caret</td><td><b>5.97:1</b></td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>brandPrimary #14C8FF on #0C0E14</td><td>9.9:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>textOnBrand #000B18 on the gradient (both stops)</td><td>10.7:1 / 7.7:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>Network glyph, Polygon #8247E5 on #0C0E14</td><td>3.66:1</td><td>3:1 (1.4.11)</td><td class="good">pass, thin</td></tr>' +
+       '<tr><td>Network glyph, Base #0052FF on #0C0E14</td><td><b>3.35:1</b></td><td>3:1 (1.4.11)</td><td class="warn">pass, marginal</td></tr>' +
+       '<tr><td>borderSubtle hairline (white 12% over #0B0D12 = #282A2E) against the bar</td><td><b>1.34:1</b></td><td>3:1</td><td class="bad">fail</td></tr>' +
+       '<tr><td>App bar surfaceElevated #0C0E14 against body surfaceBase #0B0D12</td><td><b>1.004:1</b></td><td>-</td><td class="bad">indistinguishable</td></tr>' +
+       '</table>';
+
+  h += '<div class="flag"><b>Two contrast findings that outlive whichever scheme wins.</b><br>' +
+       '<b>1. The app bar has no visible edge.</b> <code>surfaceElevated</code> and ' +
+       '<code>surfaceBase</code> are <b>1.004:1</b> apart - the same colour to any eye - and the only ' +
+       'separator is a 0.5px <code>borderSubtle</code> hairline sitting at <b>1.34:1</b> against the ' +
+       'bar. Today that barely matters because the header is a name in the corner. The moment a brand ' +
+       'block anchors the top-left, the bar becomes a <i>band</i>, and a band with no edge floats. Fix ' +
+       'is one line: take the hairline to <code>borderStrong</code> (white 24%), which lands at ' +
+       '<b>2.6:1</b> and reads, or give the bar <code>surfaceMenu #171A21</code>, which is <b>2.9:1</b> ' +
+       'against the body and separates on its own.<br>' +
+       '<b>2. The network is identified by picture alone.</b> ' +
+       '<code>NetworkDropdownSelector.build</code> renders <code>Image.asset(iconPath)</code> at 20x20 ' +
+       'plus a caret and nothing else, and its <code>Tooltip</code> says <i>"Select network"</i> - the ' +
+       'action, not the current value. So there is no text anywhere in the header naming the chain you ' +
+       'are on, which is 1.1.1 as much as 1.4.11, and it survives untouched in schemes Now, B and C. ' +
+       'Only <b>D</b> fixes it, because its chip carries the network <i>name</i> next to the glyph. Any ' +
+       'other winner should adopt that: a glyph plus a word, not a glyph.</div>';
+
+  h += '</div>';
+  return h;
+}
+
+function recPane(){
+  var h = '<div class="notes" style="max-width:1000px">';
+
+  h += '<div class="rec"><b>&#9733; Ship B - the wallet pill with the network badged onto the ' +
+       'avatar.</b> It is the only scheme that satisfies all three halves of the request at once: a ' +
+       'brand block on the left, <b>one</b> object on the right, and <b>one</b> tap that expands ' +
+       'everything. It keeps the wallet name in the chrome, which is the piece of information a ' +
+       'multi-wallet user needs at a glance and the piece A and D both throw away. It keeps network ' +
+       'switching at today\'s tap count. And it half-fixes the double-address defect for free by ' +
+       'dropping the address line, so an address-shaped name reads as an ugly name rather than a bug.</div>';
+
+  h += '<p><b>Two conditions on B, both cheap.</b> The pill must cap at 236px and ellipsize - the ' +
+       'arithmetic leaves 4px of slack at 390pt with the full brand block, so this is not optional. And ' +
+       'the badge should be adopted <i>together with</i> D\'s naming fix somewhere: 16px of coloured ' +
+       'circle tells you the chain changed, it does not tell you to what. The cheapest version is a ' +
+       'network name at the top of the sheet the pill opens, which the combined sheet already has.</p>';
+
+  h += '<p><b>Runner-up: A - avatar only.</b> It is the purest reading of the brief and it is the only ' +
+       'scheme that is <i>structurally</i> immune to every text problem in this sketch: no name, no ' +
+       'address, no overflow, no double-print, no matter what anyone types into that free-text field. ' +
+       'Pick A over B the moment Jakub says the name is noise in the chrome, or the moment the brand ' +
+       'block grows and the 4px of slack goes negative. A is also the better answer for a ' +
+       'single-wallet user, which is most users - the name only earns its pixels when there is more ' +
+       'than one wallet to confuse.</p>';
+
+  h += '<div class="rej"><b>Explicitly rejected: C - the segmented pill.</b> It looks like the ' +
+       'diplomatic answer and it is the smallest diff, which is exactly why it should be named and ' +
+       'refused rather than quietly shipped. Jakub\'s complaint was <i>"teraz mamy i wybor sieci, i ' +
+       'wybor walleta"</i> - two choosers. C still has two choosers; it draws one border around them ' +
+       'and calls it one control. It also puts two 48px targets side by side in the top-right corner, ' +
+       'the least accurate place a thumb reaches on a 390pt phone, so it trades a design complaint for ' +
+       'a mis-tap. If C ships it must ship as a stated decision that two controls are correct, not as ' +
+       'a compromise.</div>';
+
+  h += '<p><b>On D, which I like more than its ranking suggests.</b> D is the only scheme with a real ' +
+       'argument about <i>where the network belongs</i> rather than how to shrink it: next to the ' +
+       'balances it silently rewrites, absent from News and Markets where the chain means nothing. It ' +
+       'is also the only scheme that names the network in text, which is the accessibility fix in the ' +
+       'Problem tab. I am not recommending it because it is the largest diff - three placements instead ' +
+       'of one, and it is the only scheme that edits a screen other than the header - and because it ' +
+       'makes network switching <b>3 taps</b> from News and Markets. If Jakub decides the network is a ' +
+       'per-screen concern rather than a global one, D is right and B is wrong, and that is a product ' +
+       'call, not a design one. <b>D\'s naming fix should be lifted into whichever scheme wins ' +
+       'regardless.</b></p>';
+
+  h += '<h3 class="sec">If B ships, what actually changes</h3>';
+  h += '<table><tr><th>File</th><th>Change</th></tr>' +
+       '<tr><td><code>responsive_overlay.dart</code> <code>_MobileHeader</code></td><td>' +
+       '<code>title</code> becomes the brand block, <code>actions</code> becomes the single wallet ' +
+       'pill, <code>NetworkDropdownSelector</code> leaves the header</td></tr>' +
+       '<tr><td><code>account_drawer.dart</code></td><td>a Network section prepended above the two ' +
+       'existing 174 sections; the sections themselves are untouched</td></tr>' +
+       '<tr><td><code>network_dropdown_selector.dart</code></td><td>the drawer body is reused inside ' +
+       'that section; only the collapsed chip in <code>build</code> stops being mounted in the ' +
+       'header</td></tr>' +
+       '<tr><td><code>AccountAvatar</code></td><td>gains an optional network badge, additively - it ' +
+       'already serves both the drawer rows and the collapsed chip</td></tr>' +
+       '<tr><td>a brand asset</td><td><b class="warn">blocked on Jakub.</b> Ships as WORDMARK ONLY ' +
+       'until it lands, and the mark drops in later with no layout change</td></tr>' +
+       '</table>';
+
+  h += '</div>';
+  return h;
+}
+
+/* ============================== wiring ============================== */
+
+var tabsEl  = document.getElementById('tabs');
+var panesEl = document.getElementById('panes');
+var TABS = [{id:'problem', tab:'The problem'}]
+  .concat(SCHEMES)
+  .concat([{id:'rec', tab:'Recommendation'}]);
+
+TABS.forEach(function(t, i){
+  var b = document.createElement('button');
+  b.className = 'tab' + (i === 0 ? ' on' : '');
+  b.textContent = t.tab;
+  b.setAttribute('data-pane', t.id);
+  tabsEl.appendChild(b);
+
+  var p = document.createElement('div');
+  p.className = 'pane' + (i === 0 ? ' on' : '');
+  p.id = 'pane-' + t.id;
+  if (t.id === 'problem')   { p.innerHTML = problemPane(); }
+  else if (t.id === 'rec')  { p.innerHTML = recPane(); }
+  else                      { p.innerHTML = paneHTML(t); }
+  panesEl.appendChild(p);
+});
+
+tabsEl.addEventListener('click', function(e){
+  var b = e.target.closest('.tab');
+  if (!b) return;
+  Array.prototype.forEach.call(tabsEl.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  Array.prototype.forEach.call(panesEl.children, function(x){ x.classList.remove('on'); });
+  document.getElementById('pane-' + b.getAttribute('data-pane')).classList.add('on');
+});
+
+document.getElementById('nameSeg').addEventListener('click', function(e){
+  var b = e.target.closest('button');
+  if (!b) return;
+  Array.prototype.forEach.call(this.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  NAME_ST = b.getAttribute('data-st');
+  renderAll();
+});
+
+document.getElementById('brandSeg').addEventListener('click', function(e){
+  var b = e.target.closest('button');
+  if (!b) return;
+  Array.prototype.forEach.call(this.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  BRAND_ST = b.getAttribute('data-br');
+  renderAll();
+});
+
+function renderPhone(ph){
+  ph.querySelector('.screen').innerHTML = screenHTML(ph.getAttribute('data-scheme'));
+}
+
+function renderAll(){
+  Array.prototype.forEach.call(document.querySelectorAll('.phone'), renderPhone);
+}
+
+document.addEventListener('click', function(e){
+  var ph = e.target.closest ? e.target.closest('.phone') : null;
+  if (!ph) return;
+  var scheme = ph.getAttribute('data-scheme');
+
+  var open = e.target.closest('[data-open]');
+  if (open) { SHEET[scheme] = open.getAttribute('data-open'); renderPhone(ph); return; }
+
+  var pick = e.target.closest('[data-net]');
+  if (pick) {
+    NET[scheme] = pick.getAttribute('data-net');
+    if (SHEET[scheme] === 'networks') SHEET[scheme] = null;
+    renderPhone(ph);
+    return;
+  }
+
+  var close = e.target.closest('[data-close]');
+  if (close) { SHEET[scheme] = null; renderPhone(ph); return; }
+});
+
+renderAll();
+</script>
+</body>
+</html>

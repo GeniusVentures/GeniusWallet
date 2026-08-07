@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Sketch 171 — Mobile home + navigation</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{
+  /* REAL tokens, lifted verbatim from lib/theme/genius_wallet_colors.dart (dark) */
+  --surfaceBase:#0B0D12; --surfaceElevated:#0C0E14; --surfaceMenu:#171A21; --surfaceSunken:#06080C;
+  --textPrimary:#FFFFFF; --textPrimary80:rgba(255,255,255,.80); --textPrimary60:rgba(255,255,255,.60);
+  --textPrimary38:rgba(255,255,255,.38); --textSecondary:#8A8F9D;
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24); --borderControl:rgba(255,255,255,.36);
+  --brandPrimary:#14C8FF; --brandPrimaryStrong:#0AAEE6; --brandSecondary:#2BF5B4; --brandSecondaryStrong:#0AD89C;
+  --statusError:#FF4D4D; --statusWarning:#FFC42E;
+  /* spacing tokens, genius_wallet_consts.dart */
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px; --s20:40px;
+  --rXs:4px; --rSm:8px; --rBase:10px; --rMd:12px; --rLg:15px; --r2xl:16px; --rXl:24px; --rPill:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05070A;color:var(--textPrimary);font:400 15px/1.5 Inter,system-ui,-apple-system,sans-serif;padding:0 0 120px}
+a{color:var(--brandPrimary)}
+code{font:12px/1.4 'JetBrains Mono',ui-monospace,monospace;background:var(--surfaceMenu);padding:1px 5px;border-radius:var(--rXs);color:var(--brandSecondary)}
+
+/* ---------- page chrome ---------- */
+.wrap{max-width:1700px;margin:0 auto;padding:0 var(--s12)}
+.skhead{border-bottom:1px solid var(--borderSubtle);padding:var(--s16) 0 0;margin-bottom:var(--s12);position:sticky;top:0;background:#05070A;z-index:50}
+.skhead h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.skhead p{color:var(--textSecondary);max-width:105ch;margin-top:var(--s4);font-size:14px}
+.tabs{display:flex;gap:var(--s3);margin-top:var(--s10);flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:9px var(--s10);border-radius:var(--rSm) var(--rSm) 0 0;font:600 13px Inter,sans-serif;cursor:pointer;border-bottom:none}
+.tab:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.35);color:var(--textPrimary)}
+.tab[aria-selected=true]{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--borderStrong);position:relative}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));border-radius:3px 3px 0 0;box-shadow:0 0 10px rgba(20,200,255,.5)}
+.panel{display:none}
+.panel.on{display:block}
+
+/* ---------- layout ---------- */
+.cols{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s12) 0}
+.notes{flex:1 1 420px;min-width:380px;max-width:760px}
+.h2{font-size:19px;font-weight:650;margin:var(--s12) 0 var(--s4);letter-spacing:-.01em}
+.h3{font-size:14px;font-weight:650;text-transform:uppercase;letter-spacing:.08em;color:var(--textSecondary);margin:var(--s12) 0 var(--s4)}
+.lead{color:var(--textPrimary80);font-size:14.5px}
+.notes p{margin:var(--s4) 0;color:var(--textPrimary80);font-size:14px}
+.notes li{margin:var(--s3) 0;color:var(--textPrimary80);font-size:14px}
+.notes ul{padding-left:var(--s10)}
+
+/* ---------- provenance ---------- */
+.tag{display:inline-block;font:700 9.5px/1 Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 6px;border-radius:var(--rXs);vertical-align:middle;white-space:nowrap}
+.t-ex{background:rgba(43,245,180,.14);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.4)}
+.t-ad{background:rgba(255,196,46,.14);color:var(--statusWarning);border:1px solid rgba(255,196,46,.4)}
+.t-new{background:rgba(255,77,77,.14);color:#FF8A8A;border:1px solid rgba(255,77,77,.4)}
+.legend{display:flex;gap:var(--s10);flex-wrap:wrap;align-items:center;padding:var(--s6) 0 var(--s12);
+  border-bottom:1px solid var(--borderSubtle);margin-bottom:var(--s6)}
+.legend span{font-size:12.5px;color:var(--textSecondary)}
+
+/* ---------- phone ---------- */
+.stage{flex:0 0 auto;display:flex;gap:var(--s16);flex-wrap:wrap}
+.phonewrap{flex:0 0 auto}
+.phonecap{font:600 12px Inter,sans-serif;color:var(--textSecondary);margin-bottom:var(--s4);text-align:center;letter-spacing:.04em}
+.phone{width:390px;height:844px;background:var(--surfaceBase);border:9px solid #1b1e26;border-radius:46px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1b1e26;
+  border-radius:0 0 18px 18px;z-index:9}
+.sbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s10) 0 var(--s16);font:600 13px Inter;color:var(--textPrimary)}
+.sbar .r{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--textPrimary80)}
+.scr{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
+.scr::-webkit-scrollbar{width:4px}.scr::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+
+/* app bar */
+.appbar{flex:0 0 auto;height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s8);border-bottom:1px solid var(--borderSubtle);background:var(--surfaceElevated)}
+.appbar .title{font:600 17px Inter}
+.track{display:flex;align-items:center;gap:2px;background:var(--surfaceSunken);border:1px solid var(--borderSubtle);
+  border-radius:var(--rPill);padding:3px 6px}
+.trackchip{font:600 10px Inter;color:var(--textPrimary80);padding:3px 5px;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.trackdiv{width:1px;height:16px;background:var(--borderSubtle)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--brandSecondary);flex:0 0 auto}
+
+/* content blocks */
+.pad{padding:var(--s8) var(--s8) 0}
+.kick{font:700 10.5px Inter;letter-spacing:.11em;text-transform:uppercase;color:var(--textSecondary)}
+.sect{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.sect h4{font:650 17px Inter;letter-spacing:-.01em}
+.card{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s10);background-image:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0))}
+.bignum{font:650 30px/1 Inter;letter-spacing:-.02em}
+.unit{font:700 11px Inter;color:var(--textSecondary);letter-spacing:.06em}
+.cta{display:block;width:100%;text-align:center;border:none;border-radius:var(--rPill);padding:13px;
+  font:650 14px Inter;color:#00131f;background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));cursor:pointer}
+.cta.ghost{background:transparent;border:1px solid var(--borderControl);color:var(--textPrimary)}
+.row{display:flex;align-items:center;gap:var(--s6);padding:var(--s6) var(--s8)}
+.ico{width:40px;height:40px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font:700 13px Inter;color:#001}
+.row .mid{flex:1 1 auto;min-width:0}
+.row .nm{font:600 14.5px Inter;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{font-size:12.5px;color:var(--textSecondary);display:flex;gap:6px;align-items:center}
+.up{color:var(--brandSecondary);font-weight:600}
+.row .rt{text-align:right;flex:0 0 auto}
+.dim{color:var(--textPrimary38)}         /* current shipped value colour — FAILS AA */
+.fixed{color:var(--textPrimary80)}       /* proposed */
+.hr{height:1px;background:var(--borderSubtle);margin:0 var(--s8)}
+
+/* bottom navs */
+.bn{flex:0 0 auto;border-top:1px solid var(--borderSubtle);background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,0)),var(--surfaceElevated);
+  display:flex;padding:var(--s3) 0 var(--s10)}
+.bi{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:var(--s3) 2px;cursor:pointer;position:relative}
+.bi svg{width:23px;height:23px;stroke:var(--textSecondary);fill:none;stroke-width:1.9}
+.bi span{font:500 10px Inter;color:var(--textSecondary);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bi.on svg{stroke:var(--brandPrimaryStrong)}
+.bi.on span{color:var(--brandPrimaryStrong);font-weight:600}
+.bi.on::before{content:"";position:absolute;top:-3px;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));box-shadow:0 0 10px rgba(20,200,255,.55)}
+.bn.eight .bi span{font-size:9px}
+
+/* fab */
+.fab{position:absolute;right:20px;bottom:96px;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(160deg,var(--brandPrimary),var(--brandSecondary));display:grid;place-items:center;
+  box-shadow:0 6px 24px rgba(20,200,255,.45);z-index:8}
+/* center dock action */
+.dock{width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;margin-top:-26px;
+  background:linear-gradient(160deg,var(--brandPrimary),var(--brandSecondary));display:grid;place-items:center;
+  box-shadow:0 6px 22px rgba(20,200,255,.45),0 0 0 5px var(--surfaceElevated)}
+
+/* sheet */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surfaceMenu);border-top:1px solid var(--borderStrong);
+  border-radius:var(--rXl) var(--rXl) 0 0;padding:var(--s6) 0 var(--s16);transform:translateY(101%);
+  transition:transform .28s cubic-bezier(.32,.72,0,1);z-index:20}
+.sheet.open{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--borderStrong);margin:var(--s3) auto var(--s8)}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:19}
+.scrim.open{opacity:1;pointer-events:auto}
+.srow{display:flex;align-items:center;gap:var(--s8);padding:13px var(--s12);cursor:pointer}
+.srow:hover{background:rgba(255,255,255,.05)}
+.srow svg{width:21px;height:21px;stroke:var(--textPrimary80);fill:none;stroke-width:1.9}
+.srow span{font:500 15px Inter}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4);padding:0 var(--s10)}
+.sgi{display:flex;flex-direction:column;align-items:center;gap:var(--s3);padding:var(--s8) 2px;border-radius:var(--rMd);cursor:pointer}
+.sgi:hover{background:rgba(255,255,255,.06)}
+.sgi svg{width:24px;height:24px;stroke:var(--textPrimary);fill:none;stroke-width:1.8}
+.sgi span{font:500 11px Inter;color:var(--textPrimary80)}
+
+/* chip rail */
+.rail{display:flex;gap:var(--s4);overflow-x:auto;padding:var(--s4) var(--s8) var(--s6);scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;display:flex;align-items:center;gap:5px;padding:7px var(--s8);border-radius:var(--rPill);
+  border:1px solid var(--borderSubtle);background:var(--surfaceSunken);font:600 12px Inter;color:var(--textPrimary80);cursor:pointer;white-space:nowrap}
+.chip:hover{background:rgba(20,200,255,.08);border-color:rgba(20,200,255,.45);color:var(--textPrimary)}
+.chip svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* wallet header */
+.whead{padding:var(--s10) var(--s8) var(--s6)}
+.wid{display:flex;align-items:center;gap:var(--s6)}
+.wav{width:36px;height:36px;border-radius:50%;background:linear-gradient(140deg,var(--brandPrimary),var(--brandSecondary));flex:0 0 auto}
+.waddr{font:500 11.5px 'JetBrains Mono',monospace;color:var(--textSecondary)}
+
+/* annotations */
+.ann{position:absolute;background:rgba(255,77,77,.92);color:#fff;font:700 10px Inter;padding:2px 6px;border-radius:3px;z-index:30;white-space:nowrap}
+.ann.ok{background:rgba(43,245,180,.92);color:#00291d}
+.measure{position:absolute;border:1px dashed rgba(255,77,77,.8);z-index:29;pointer-events:none}
+body.noann .ann,body.noann .measure{display:none}
+
+/* tables */
+table{border-collapse:collapse;width:100%;margin:var(--s6) 0;font-size:13px}
+th,td{text-align:left;padding:7px var(--s6);border-bottom:1px solid var(--borderSubtle);vertical-align:top}
+th{color:var(--textSecondary);font:700 10.5px Inter;letter-spacing:.08em;text-transform:uppercase}
+td.n{color:var(--textPrimary80)}
+.pass{color:var(--brandSecondary);font-weight:700}
+.fail{color:var(--statusError);font-weight:700}
+
+/* callouts */
+.call{border-left:3px solid var(--statusError);background:rgba(255,77,77,.07);padding:var(--s6) var(--s10);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s6) 0}
+.call.good{border-color:var(--brandSecondary);background:rgba(43,245,180,.07)}
+.call.warn{border-color:var(--statusWarning);background:rgba(255,196,46,.07)}
+.call b{color:var(--textPrimary)}
+.rec{border:1px solid rgba(43,245,180,.45);background:rgba(43,245,180,.08);border-radius:var(--rLg);padding:var(--s10) var(--s12);margin:var(--s12) 0}
+.rec h3{font-size:17px;margin-bottom:var(--s4)}
+
+/* toolbar */
+#sketch-tools{position:fixed;bottom:12px;right:12px;z-index:9999;font:12px system-ui;background:rgba(0,0,0,.82);
+  color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;transition:opacity .2s;display:flex;gap:10px;align-items:center}
+#sketch-tools:hover{opacity:1}
+#sketch-tools button,#sketch-tools select{font:12px system-ui;background:#1b1e26;color:#fff;border:1px solid #333;border-radius:5px;padding:3px 7px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="skhead">
+  <h1>Sketch 171 — Mobile home page + navigation</h1>
+  <p>Cztery spójne schematy dla ekranu głównego i nawigacji na iOS. Wszystkie kolory, odstępy i promienie to
+  <b>realne tokeny z repo</b> (<code>genius_wallet_colors.dart</code>, <code>genius_wallet_consts.dart</code>), nie wartości wymyślone na potrzeby makiety.
+  Telefony renderowane 1:1 w 390&nbsp;px — bez skalowania.</p>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-p="now">Dziś (baseline)</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="a">A · Curated Five ★</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="b">B · Center Action</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="c">C · Wallet Header</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="d">D · Rail + Four</button>
+    <button class="tab" role="tab" aria-selected="false" data-p="cmp">Inwentarz i kontrast</button>
+  </div>
+</div>
+
+<div class="legend">
+  <span class="tag t-ex">Existing</span><span>komponent już w repo, użyty bez zmian</span>
+  <span class="tag t-ad">Adapted</span><span>istniejący komponent, zmieniona jedna właściwość</span>
+  <span class="tag t-new">New</span><span>trzeba napisać</span>
+</div>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+<symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 5-7 4 4"/></symbol>
+<symbol id="i-news" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 3 2.6 15 0 18M12 3c-2.6 3-2.6 15 0 18"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16.5 14.5h.01"/></symbol>
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+<symbol id="i-recv" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+<symbol id="i-buy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h5M9.5 14.5h5"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+</svg>
+
+<!-- ==================== BASELINE ==================== -->
+<section class="panel on" id="p-now">
+<div class="cols">
+  <div class="stage"><div class="phonewrap">
+    <div class="phonecap">DZIŚ — stan na Twoim iPhonie, 390×844</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar">
+        <span class="title">Genius Wallet</span>
+        <div class="track" style="max-width:190px;overflow-x:auto">
+          <span class="trackchip"><span class="dot"></span>ETH</span><span class="trackdiv"></span>
+          <span class="trackchip">Acct 1</span><span class="trackdiv"></span>
+          <span class="trackchip">0x7a…3f</span><span class="trackdiv"></span>
+          <span class="trackchip">Connect</span>
+        </div>
+        <div class="ann" style="top:56px;right:8px">cały desktopowy track w AppBar.actions, scroll poziomy</div>
+      </div>
+
+      <div class="scr">
+        <div class="pad">
+          <div class="sect"><h4>Compute</h4></div>
+          <div class="kick" style="margin-top:var(--s4)">BALANCE</div>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:2px">
+            <span class="bignum">0.00</span><span class="unit">GNUS</span><span class="unit dim">MIN</span>
+          </div>
+          <div class="kick" style="margin-top:var(--s10)">COMPUTE NODE</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span class="dot"></span><span style="font:600 13px Inter">Starting up</span></div>
+          <div style="font-size:12px;color:var(--textPrimary38);margin-top:2px">Feed live</div>
+          <button class="cta" style="margin-top:var(--s10);opacity:.55">New processing job</button>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="sect"><h4>Assets</h4><span style="font:650 16px Inter">$0.00</span></div>
+        </div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT Collections</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="dim" style="font:600 14px Inter">$0.00</div><div class="dim" style="font-size:12px">0.0000 GNUS</div></div>
+        </div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">Ξ</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="dim" style="font:600 14px Inter">$0.00</div><div class="dim" style="font-size:12px">0.0000 ETH</div></div>
+        </div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="dim" style="font:600 14px Inter">$0.00</div><div class="dim" style="font-size:12px">0.0000 USDC</div></div>
+          <div class="ann" style="top:8px;right:78px">textPrimary38 → 3.54:1 ✗ AA</div>
+        </div>
+        <div style="height:70px"></div>
+      </div>
+
+      <button class="fab"><svg viewBox="0 0 24 24" width="24" height="24" style="stroke:#00131f;fill:none;stroke-width:2.4"><use href="#i-swap"/></svg></button>
+      <div class="ann" style="bottom:132px;right:22px">FAB nachodzi na wiersz USD Coin</div>
+
+      <div class="bn eight">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Dashb…</span></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Trans…</span></div>
+        <div class="bi"><svg><use href="#i-swap"/></svg><span>Swap</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi"><svg><use href="#i-news"/></svg><span>News</span></div>
+        <div class="bi"><svg><use href="#i-globe"/></svg><span>Web</span></div>
+        <div class="bi"><svg><use href="#i-chat"/></svg><span>Feedb…</span></div>
+        <div class="bi"><svg><use href="#i-gear"/></svg><span>Settings</span></div>
+      </div>
+      <div class="ann" style="bottom:12px;left:8px">8 pozycji · 3 etykiety ucięte · 48,7 px na kafelek</div>
+    </div>
+  </div></div>
+
+  <div class="notes">
+    <h2 class="h2">Co jest nie tak — z kodu, nie z wrażenia</h2>
+    <p class="lead">Pięć problemów. Każdy da się wskazać palcem w pliku, więc żaden nie jest kwestią gustu.</p>
+
+    <div class="call"><b>1. Osiem pozycji w bottom navie, trzy etykiety ucięte.</b>
+    <code>_allDestinations</code> w <code>responsive_overlay.dart:38-75</code> trzyma jedną listę dla desktopu i mobile.
+    390 px ÷ 8 = <b>48,7 px na kafelek</b>. „Dashboard", „Transactions" i „Feedback" nie mieszczą się i lecą w wielokropek —
+    widać to na Twoim telefonie. Material podaje 3-5 destynacji dla <code>BottomNavigationBar</code>. Minimalny cel dotykowy
+    Apple to 44 px — mieścimy się, ale bez zapasu.</div>
+
+    <div class="call"><b>2. Aktywna zakładka potrafi kłamać.</b>
+    <code>_currentIndex()</code> (<code>responsive_overlay.dart:82-92</code>) dopasowuje <code>location.startsWith(dest.path)</code>
+    i kończy się cichym <code>return 0</code>. Trasy <code>/buy</code> i <code>/token-info</code> siedzą wewnątrz ShellRoute, ale nie ma ich
+    w destynacjach — więc stojąc na formularzu zakupu albo na stronie monety podświetla się <b>Dashboard</b>. Bez ostrzeżenia.</div>
+
+    <div class="call"><b>3. Header to desktopowy instrument wciśnięty w telefon.</b>
+    <code>MobileOverlay</code> (<code>:470-500</code>) wkłada <code>_buildActionRowWidgets()</code> — ten sam control track co na desktopie:
+    sieć, konto SDK, portfel, Connect — do <code>AppBar.actions</code> owinięte w poziomy <code>SingleChildScrollView</code>.
+    Cztery pola i trzy separatory w ~190 px. Tytuł „Genius Wallet" zjada resztę i nie niesie żadnej informacji.</div>
+
+    <div class="call"><b>4. Zerowe saldo malowane jak wyłączona kontrolka.</b>
+    <code>coin_card_row.dart:126,134</code> — przy <code>noBalance</code> wartości idą na <code>gw.textPrimary38</code>.
+    Policzone na <code>surfaceBase #0B0D12</code>: <b class="fail">3.54:1</b>, poniżej AA 4.5:1. Wasz MANIFEST mówi wprost:
+    <i>„a wallet with no funds is not a broken wallet"</i> — a ten kod robi dokładnie odwrotnie.</div>
+
+    <div class="call warn"><b>5. FAB wchodzi na treść.</b>
+    <code>global_swap_fab_host.dart:124-128</code> ustawia <code>bottom: 80 + bottomInset</code> i <code>right: 20</code>.
+    Na telefonie nakłada się na ostatni wiersz aktywów. Osobny znany błąd: te 80 px omija bottom nav, którego
+    desktop w ogóle nie montuje — jest na to todo z 2026-07-27.</div>
+
+    <h3 class="h3">Twarde ograniczenie każdego schematu</h3>
+    <p>Wszystkie 8 destynacji <b>musi zostać osiągalnych</b> — to kryterium 2 z Phase 4 i warunek z todo
+    <code>2026-07-18-mobile-nav-ia-curate-bottom-nav.md</code>. Żaden wariant niczego nie usuwa; różnią się tylko tym,
+    <b>gdzie</b> trafia to, co wypada z paska.</p>
+  </div>
+</div>
+</section>
+<!-- ==================== A ==================== -->
+<section class="panel" id="p-a">
+<div class="cols">
+  <div class="stage"><div class="phonewrap">
+    <div class="phonecap">A · CURATED FIVE + MORE — 390×844</div>
+    <div class="phone" id="ph-a">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div>
+          <div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c…3f21</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--s4)">
+          <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" style="stroke:var(--textPrimary80);fill:none;stroke-width:1.9"><use href="#i-bell"/></svg>
+        </div>
+      </div>
+
+      <div class="scr">
+        <div class="pad">
+          <div class="kick">TOTAL BALANCE</div>
+          <div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">
+            <span class="bignum" style="font-size:36px">$0.00</span>
+          </div>
+          <div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s2)">3 aktywa · sieć Ethereum</div>
+        </div>
+
+        <div class="rail" style="margin-top:var(--s8)">
+          <span class="chip"><svg><use href="#i-send"/></svg>Send</span>
+          <span class="chip"><svg><use href="#i-recv"/></svg>Receive</span>
+          <span class="chip"><svg><use href="#i-buy"/></svg>Buy</span>
+          <span class="chip"><svg><use href="#i-cpu"/></svg>Compute</span>
+        </div>
+
+        <div class="pad"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div>
+          <div class="ann ok" style="top:6px;right:80px">textPrimary80 → 12.4:1 ✓</div>
+        </div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">Ξ</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div>
+        </div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="sect"><h4>Compute</h4></div>
+          <div class="card" style="margin-top:var(--s4)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div><div class="kick">BALANCE</div>
+                <div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><span class="bignum" style="font-size:26px">0.00</span><span class="unit">GNUS MIN</span></div></div>
+              <span class="chip" style="padding:4px 9px"><span class="dot" style="background:var(--statusWarning)"></span>Starting up</span>
+            </div>
+            <button class="cta ghost" style="margin-top:var(--s8)">New processing job</button>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="scrim" data-scrim="a"></div>
+      <div class="sheet" data-sheet="a">
+        <div class="grab"></div>
+        <div style="padding:0 var(--s12) var(--s4)"><span class="kick">WIĘCEJ</span></div>
+        <div class="srow"><svg><use href="#i-news"/></svg><span>News</span></div>
+        <div class="srow"><svg><use href="#i-globe"/></svg><span>Web</span></div>
+        <div class="srow"><svg><use href="#i-chat"/></svg><span>Feedback</span></div>
+        <div class="srow"><svg><use href="#i-gear"/></svg><span>Settings</span></div>
+        <div class="hr" style="margin:var(--s6) var(--s12)"></div>
+        <div class="srow"><svg><use href="#i-wallet"/></svg><span>Konta i sieć</span></div>
+      </div>
+
+      <div class="bn">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Dashboard</span></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Transactions</span></div>
+        <div class="bi"><svg><use href="#i-swap"/></svg><span>Swap</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" data-open="a"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+      <div class="ann ok" style="bottom:12px;left:12px">5 pozycji · 78 px na kafelek · zero ucięć</div>
+    </div>
+  </div></div>
+
+  <div class="notes">
+    <h2 class="h2">A · Curated Five <span class="tag t-ex">najtańszy</span></h2>
+    <p class="lead">Pasek schodzi do pięciu pozycji, cztery wypadające trafiają do arkusza „More". Nic nie znika.
+    <b>Kliknij „More" w makiecie</b> — arkusz działa.</p>
+
+    <h3 class="h3">Co się zmienia</h3>
+    <ul>
+      <li><b>Bottom nav 5:</b> Dashboard · Transactions · Swap · Markets · More. 78 px na kafelek zamiast 48,7 — pełne etykiety, żadnego wielokropka. <span class="tag t-ad">Adapted</span></li>
+      <li><b>More = <code>GWBottomSheet</code></b> z News, Web, Feedback, Settings i wejściem „Konta i sieć". Komponent już istnieje w <code>lib/components/overlays/gw_bottom_sheet.dart</code>. <span class="tag t-ex">Existing</span></li>
+      <li><b>Header niesie portfel</b>, nie napis „Genius Wallet": nazwa, skrócony adres, chip sieci, dzwonek. Control track przenosi się do arkusza. <span class="tag t-new">New</span></li>
+      <li><b>FAB usunięty</b> — Swap jest pozycją w pasku, więc pływający przycisk dublował trasę i zasłaniał listę. Zamyka też błąd 80 px. <span class="tag t-ad">Adapted</span></li>
+      <li><b>Balans na górze</b>, Compute schodzi pod Assets. Compute to funkcja dla części użytkowników; saldo dotyczy wszystkich.</li>
+      <li><b>Rail szybkich akcji</b> Send / Receive / Buy / Compute z <code>.chip</code> w recepturze control-track. <span class="tag t-ad">Adapted</span></li>
+    </ul>
+
+    <div class="call good"><b>Dlaczego to rekomendacja.</b> Realizuje dokładnie to, co opisuje todo z 2026-07-18
+    („curate to most-used, overflow the rest"), nie wymyślając nowego języka nawigacji. Zmiana dotyka
+    <b>jednego pliku</b> chrome'u (<code>responsive_overlay.dart</code>) plus arkusza z gotowego komponentu.
+    Desktop zostaje nietknięty — <code>_DesktopTopBar</code> dalej czyta pełną listę.</div>
+
+    <div class="call warn"><b>Koszt.</b> „More" to worek bez hierarchii — cztery rzeczy o zupełnie różnej wadze
+    (News, Web, Feedback, Settings) lądują na jednej płaskiej liście. Jeśli Web okaże się często używany,
+    schowaliśmy go o jedno tapnięcie za daleko i trzeba będzie wracać do składu piątki.</div>
+  </div>
+</div>
+</section>
+
+<!-- ==================== B ==================== -->
+<section class="panel" id="p-b">
+<div class="cols">
+  <div class="stage"><div class="phonewrap">
+    <div class="phonecap">B · CENTER ACTION — 390×844</div>
+    <div class="phone" id="ph-b">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">Ethereum · 0x7a4c…3f21</div></div></div>
+        <svg viewBox="0 0 24 24" width="22" height="22" style="stroke:var(--textPrimary80);fill:none;stroke-width:1.9"><use href="#i-gear"/></svg>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s12)">
+          <div class="card" style="text-align:center;padding:var(--s12) var(--s10)">
+            <div class="kick">TOTAL BALANCE</div>
+            <div class="bignum" style="font-size:40px;margin-top:var(--s3)">$0.00</div>
+            <div style="font-size:12.5px;color:var(--textPrimary80);margin-top:var(--s3)">Brak środków — portfel gotowy do wpłaty</div>
+          </div>
+        </div>
+
+        <div class="pad" style="margin-top:var(--s12)"><div class="sect"><h4>Assets</h4><span class="chip" style="padding:4px 10px">Zobacz wszystko</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">Ξ</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="card" style="display:flex;gap:var(--s8);align-items:center">
+            <svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>
+            <div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div><div style="font-size:12.5px;color:var(--textPrimary80)">Starting up · 0.00 GNUS MIN</div></div>
+            <span class="chip" style="padding:5px 10px">Otwórz</span>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="scrim" data-scrim="b"></div>
+      <div class="sheet" data-sheet="b">
+        <div class="grab"></div>
+        <div style="padding:0 var(--s12) var(--s8)"><span class="kick">SZYBKA AKCJA</span></div>
+        <div class="sgrid">
+          <div class="sgi"><svg><use href="#i-send"/></svg><span>Send</span></div>
+          <div class="sgi"><svg><use href="#i-recv"/></svg><span>Receive</span></div>
+          <div class="sgi"><svg><use href="#i-swap"/></svg><span>Swap</span></div>
+          <div class="sgi"><svg><use href="#i-buy"/></svg><span>Buy</span></div>
+        </div>
+        <div class="hr" style="margin:var(--s10) var(--s12) var(--s4)"></div>
+        <div class="sgrid">
+          <div class="sgi"><svg><use href="#i-news"/></svg><span>News</span></div>
+          <div class="sgi"><svg><use href="#i-globe"/></svg><span>Web</span></div>
+          <div class="sgi"><svg><use href="#i-chat"/></svg><span>Feedback</span></div>
+          <div class="sgi"><svg><use href="#i-cpu"/></svg><span>Compute</span></div>
+        </div>
+      </div>
+
+      <div class="bn" style="align-items:flex-start">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" style="flex:0 0 78px" data-open="b"><button class="dock"><svg viewBox="0 0 24 24" width="26" height="26" style="stroke:#00131f;fill:none;stroke-width:2.6"><use href="#i-plus"/></svg></button></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+      <div class="ann ok" style="bottom:12px;left:10px">4 etykiety + dok · akcje zamiast tras</div>
+    </div>
+  </div></div>
+
+  <div class="notes">
+    <h2 class="h2">B · Center Action</h2>
+    <p class="lead">Pasek przestaje być wyłącznie listą tras. Środkowy przycisk otwiera arkusz <b>czynności</b>
+    — Send, Receive, Swap, Buy — bo tego użytkownik portfela szuka najczęściej. <b>Kliknij (+)</b>.</p>
+
+    <h3 class="h3">Co się zmienia</h3>
+    <ul>
+      <li><b>Bottom nav 4 + dok:</b> Home · Markets · (+) · Activity · More. <span class="tag t-new">New</span></li>
+      <li><b>(+) to arkusz dwupoziomowy:</b> górna siatka to akcje, dolna to reszta destynacji. <span class="tag t-ad">Adapted</span></li>
+      <li><b>Swap przestaje być zakładką</b> i staje się akcją — czym w istocie jest. Trasa <code>/swap</code> zostaje bez zmian.</li>
+      <li><b>Saldo w karcie hero</b> na <code>surfaceElevated</code> z sheenem. <span class="tag t-ex">Existing</span></li>
+      <li><b>Compute jako pasek</b> na dole, nie sekcja na górze. <span class="tag t-ad">Adapted</span></li>
+    </ul>
+
+    <div class="call good"><b>Zaleta.</b> Jako jedyny wariant odpowiada na pytanie „co ja tu mogę zrobić", a nie tylko
+    „gdzie mogę pójść". Send i Receive nie mają dziś <b>żadnego</b> stałego miejsca w nawigacji — siedzą w szufladach
+    wewnątrz ekranów. Dok wynosi je na stały poziom.</div>
+
+    <div class="call"><b>Ryzyko, i jest realne.</b> Dok to <span class="tag t-new">New</span> od zera: nowy widget,
+    własne stany focus/hover, własna obsługa dostępności. Do tego łamie regułę CTA z pamięci projektu —
+    <i>„max one filled gradient per surface"</i> — bo dok jest wypełniony gradientem i konkuruje z każdym CTA na ekranie.
+    Trzeba by świadomie zdecydować, że pasek jest wyjęty spod tej reguły.</div>
+  </div>
+</div>
+</section>
+<!-- ==================== C ==================== -->
+<section class="panel" id="p-c">
+<div class="cols">
+  <div class="stage"><div class="phonewrap">
+    <div class="phonecap">C · WALLET HEADER (bez AppBara) — 390×844</div>
+    <div class="phone" id="ph-c">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="scr">
+        <div class="whead">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="wid"><div class="wav"></div>
+              <div><div style="font:650 16px Inter">Main Wallet</div><div class="waddr">0x7a4c…3f21</div></div>
+            </div>
+            <div style="display:flex;gap:var(--s4)">
+              <span class="chip" style="padding:6px 10px"><span class="dot"></span>Ethereum</span>
+              <span class="chip" style="padding:6px 9px"><svg><use href="#i-more"/></svg></span>
+            </div>
+          </div>
+          <div class="ann ok" style="top:2px;right:8px">track → chip + menu, 4 pola → 2</div>
+
+          <div style="margin-top:var(--s12)">
+            <span class="kick">TOTAL BALANCE</span>
+            <div class="bignum" style="font-size:38px;margin-top:var(--s2)">$0.00</div>
+            <div style="display:flex;gap:var(--s4);margin-top:var(--s8)">
+              <button class="cta" style="flex:1 1 0;padding:11px;font-size:13px">Receive</button>
+              <button class="cta ghost" style="flex:1 1 0;padding:11px;font-size:13px">Send</button>
+            </div>
+          </div>
+        </div>
+        <div class="ann" style="top:52px;left:8px">nagłówek PRZEWIJA SIĘ — +56 px treści</div>
+
+        <div class="pad" style="margin-top:var(--s6)"><div class="sect"><h4>Assets</h4><span style="font:650 15px Inter;color:var(--textPrimary80)">$0.00</span></div></div>
+        <div class="row"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">Ξ</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+
+        <div class="pad" style="margin-top:var(--s12)">
+          <div class="sect"><h4>Compute</h4><span class="chip" style="padding:4px 9px"><span class="dot" style="background:var(--statusWarning)"></span>Starting up</span></div>
+          <div class="card" style="margin-top:var(--s4)">
+            <div class="kick">BALANCE</div>
+            <div style="display:flex;align-items:baseline;gap:6px;margin-top:2px"><span class="bignum" style="font-size:26px">0.00</span><span class="unit">GNUS MIN</span></div>
+            <button class="cta ghost" style="margin-top:var(--s8)">New processing job</button>
+          </div>
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="scrim" data-scrim="c"></div>
+      <div class="sheet" data-sheet="c">
+        <div class="grab"></div>
+        <div style="padding:0 var(--s12) var(--s4)"><span class="kick">WIĘCEJ</span></div>
+        <div class="srow"><svg><use href="#i-news"/></svg><span>News</span></div>
+        <div class="srow"><svg><use href="#i-globe"/></svg><span>Web</span></div>
+        <div class="srow"><svg><use href="#i-chat"/></svg><span>Feedback</span></div>
+        <div class="srow"><svg><use href="#i-gear"/></svg><span>Settings</span></div>
+      </div>
+
+      <div class="bn">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi"><svg><use href="#i-swap"/></svg><span>Swap</span></div>
+        <div class="bi"><svg><use href="#i-chart"/></svg><span>Markets</span></div>
+        <div class="bi" data-open="c"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="notes">
+    <h2 class="h2">C · Wallet Header</h2>
+    <p class="lead">Ten sam pasek co w A, ale <b>AppBar znika całkowicie</b>. Tożsamość portfela staje się częścią
+    przewijanej treści — jak w Revolucie czy Rainbow. <b>Przewiń makietę</b>, żeby zobaczyć jak nagłówek odjeżdża.</p>
+
+    <h3 class="h3">Co się zmienia</h3>
+    <ul>
+      <li><b>Zero AppBara.</b> <code>MobileOverlay</code> przestaje montować <code>AppBar</code>; nagłówek buduje sama strona przez <code>GWPageHeader</code>. <span class="tag t-ad">Adapted</span></li>
+      <li><b>+56 px treści</b> — wysokość paska wraca do listy aktywów. Na 844 px to widoczna różnica: jeden wiersz więcej nad zgięciem.</li>
+      <li><b>Control track kurczy się do dwóch pól</b>: chip sieci i menu kebab. Konto SDK, portfel i Connect idą do menu. <span class="tag t-ad">Adapted</span></li>
+      <li><b>Receive / Send jako para CTA</b> pod saldem — wypełniony i outline, zgodnie z regułą wagi CTA. <span class="tag t-ex">Existing</span></li>
+      <li>Bottom nav identyczny jak w A. <span class="tag t-ad">Adapted</span></li>
+    </ul>
+
+    <div class="call good"><b>Zaleta.</b> Najwięcej odzyskanej przestrzeni pionowej i najbardziej „portfelowy" charakter.
+    Header niosący adres i sieć jest realnie użyteczny; napis „Genius Wallet" nie niósł nic.</div>
+
+    <div class="call warn"><b>Koszt, i to nie drobny.</b> Każdy ekran w ShellRoute zakłada dziś, że
+    <code>Scaffold</code> daje mu AppBar. Zdjęcie go dotyka <b>wszystkich</b> tras w powłoce, nie tylko home:
+    <code>/transactions</code>, <code>/markets</code>, <code>/news</code>, <code>/swap</code>, <code>/logs</code>,
+    <code>/settings</code>, <code>/token-info</code>, <code>/buy</code>. Każda musi dostać własny nagłówek albo zostanie bez
+    tytułu i bez powrotu. To najszersza zmiana z czterech.</div>
+  </div>
+</div>
+</section>
+
+<!-- ==================== D ==================== -->
+<section class="panel" id="p-d">
+<div class="cols">
+  <div class="stage"><div class="phonewrap">
+    <div class="phonecap">D · SEGMENTED HOME — 390×844</div>
+    <div class="phone" id="ph-d">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+
+      <div class="appbar" style="padding-left:var(--s10)">
+        <div class="wid"><div class="wav"></div><div><div style="font:600 14px Inter">Main Wallet</div><div class="waddr">0x7a4c…3f21</div></div></div>
+        <span class="chip" style="padding:5px 10px"><span class="dot"></span>Ethereum</span>
+      </div>
+
+      <div class="scr">
+        <div class="pad" style="padding-top:var(--s10)">
+          <span class="kick">TOTAL BALANCE</span>
+          <div class="bignum" style="font-size:36px;margin-top:var(--s2)">$0.00</div>
+        </div>
+
+        <div class="rail" style="margin-top:var(--s10);border-bottom:1px solid var(--borderSubtle);padding-bottom:var(--s6)">
+          <span class="chip seg on" data-seg="d" style="background:rgba(20,200,255,.14);border-color:var(--brandPrimary);color:#fff">Assets</span>
+          <span class="chip seg" data-seg="d">Compute</span>
+          <span class="chip seg" data-seg="d">Markets</span>
+          <span class="chip seg" data-seg="d">News</span>
+        </div>
+        <div class="ann" style="top:170px;left:8px">treść jako segmenty, nie zakładki paska</div>
+
+        <div class="row" style="margin-top:var(--s4)"><div class="ico" style="background:#1b2a3a"><svg viewBox="0 0 24 24" width="20" height="20" style="stroke:#14C8FF;fill:none;stroke-width:2"><circle cx="12" cy="12" r="8"/></svg></div>
+          <div class="mid"><div class="nm">Genius Token &amp; NFT</div><div class="sub">$0.64 <span class="up">+3.80%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 GNUS</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#3a3f6b;color:#fff">Ξ</div>
+          <div class="mid"><div class="nm">Ethereum</div><div class="sub">$1,893.17 <span class="up">+1.60%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 ETH</div></div></div>
+        <div class="hr"></div>
+        <div class="row"><div class="ico" style="background:#1c4a7a;color:#fff">$</div>
+          <div class="mid"><div class="nm">USD Coin</div><div class="sub">$1.00 <span class="up">+0.00%</span></div></div>
+          <div class="rt"><div class="fixed" style="font:600 14px Inter">$0.00</div><div class="fixed" style="font-size:12px">0.0000 USDC</div></div></div>
+        <div class="hr"></div>
+        <div style="padding:var(--s12) var(--s8);text-align:center;color:var(--textPrimary60);font-size:13px">
+          Segment „Assets" · przełącz chip, żeby zobaczyć Compute / Markets / News w tym samym miejscu
+        </div>
+        <div style="height:40px"></div>
+      </div>
+
+      <div class="scrim" data-scrim="d"></div>
+      <div class="sheet" data-sheet="d">
+        <div class="grab"></div>
+        <div style="padding:0 var(--s12) var(--s4)"><span class="kick">WIĘCEJ</span></div>
+        <div class="srow"><svg><use href="#i-globe"/></svg><span>Web</span></div>
+        <div class="srow"><svg><use href="#i-chat"/></svg><span>Feedback</span></div>
+        <div class="srow"><svg><use href="#i-gear"/></svg><span>Settings</span></div>
+      </div>
+
+      <div class="bn">
+        <div class="bi on"><svg><use href="#i-dash"/></svg><span>Home</span></div>
+        <div class="bi"><svg><use href="#i-swap"/></svg><span>Swap</span></div>
+        <div class="bi"><svg><use href="#i-clock"/></svg><span>Activity</span></div>
+        <div class="bi" data-open="d"><svg><use href="#i-more"/></svg><span>More</span></div>
+      </div>
+      <div class="ann ok" style="bottom:12px;left:12px">4 pozycje · 97,5 px na kafelek</div>
+    </div>
+  </div></div>
+
+  <div class="notes">
+    <h2 class="h2">D · Segmented Home</h2>
+    <p class="lead">Najostrzejszy podział: pasek trzyma tylko <b>czynności</b> (Home, Swap, Activity), a wszystkie
+    ekrany <b>treściowe</b> — Assets, Compute, Markets, News — stają się segmentami wewnątrz Home.
+    <b>Kliknij chipy</b> Assets / Compute / Markets / News.</p>
+
+    <h3 class="h3">Co się zmienia</h3>
+    <ul>
+      <li><b>Bottom nav 4:</b> Home · Swap · Activity · More. 97,5 px na kafelek — najwięcej z wszystkich wariantów. <span class="tag t-ad">Adapted</span></li>
+      <li><b>Markets i News przestają być trasami w pasku</b> i stają się segmentami Home. Trasy <code>/markets</code> i <code>/news</code> zostają — zmienia się tylko sposób wejścia. <span class="tag t-new">New</span></li>
+      <li><b>Segment = <code>GWTimeframeSegment</code></b> w recepturze control-track, komponent już istnieje. <span class="tag t-ad">Adapted</span></li>
+      <li><b>Compute przestaje być sekcją na home</b> i dostaje własny segment — dziś zajmuje górę ekranu każdemu, także tym, którzy go nie używają.</li>
+    </ul>
+
+    <div class="call good"><b>Zaleta.</b> Jedyny wariant, który realnie odpowiada na pytanie „czego tu jest za dużo",
+    a nie tylko „gdzie to schować". Rozdziela dwie rzeczy, które dziś siedzą w jednym pasku: <b>miejsca, do których idziesz</b>
+    i <b>rzeczy, które oglądasz</b>.</div>
+
+    <div class="call"><b>Ryzyko.</b> Segmenty na home to nowa oś nawigacji obok paska — użytkownik ma dwa mechanizmy
+    zamiast jednego i musi się nauczyć, że Markets jest „w Home", a nie na dole. Głębokie linki do
+    <code>/markets</code> muszą teraz umieć ustawić segment, inaczej wejście z powiadomienia wyląduje na Assets.
+    Najwięcej pracy w routerze z czterech wariantów.</div>
+  </div>
+</div>
+</section>
+<!-- ==================== COMPARE ==================== -->
+<section class="panel" id="p-cmp">
+<div style="padding:var(--s12) 0;max-width:1180px">
+
+  <h2 class="h2">Rekomendacja</h2>
+  <div class="rec">
+    <h3>★ A · Curated Five — z jednym zapożyczeniem z C</h3>
+    <p style="color:var(--textPrimary80);font-size:14.5px">Wchodzimy z <b>A</b>, ale bierzemy z <b>C</b> kurczenie control tracku do
+    <b>chipa sieci + menu</b>. A jest jedynym wariantem, który realizuje zapisane w todo rozwiązanie
+    („curate to most-used, overflow the rest") <b>nie wymyślając nowego języka nawigacji</b> — a to znaczy, że da się go
+    zweryfikować na telefonie w jednym cyklu, zamiast projektować dok albo przepinać router.</p>
+    <p style="color:var(--textPrimary80);font-size:14.5px;margin-top:var(--s4)"><b>Koszt, uczciwie:</b> „More" zostaje płaskim workiem
+    bez hierarchii, a skład piątki jest zgadywany — nie mamy danych o użyciu. Jeśli Web albo News okażą się częste,
+    wrócimy do składu. To poprawka na 20 minut, nie przeprojektowanie.</p>
+  </div>
+
+  <p style="color:var(--textPrimary80);font-size:14px"><b>Runner-up: C · Wallet Header.</b> Projektowo najlepszy —
+  odzyskuje 56 px pionu i daje nagłówek, który naprawdę coś mówi. Odpada na teraz wyłącznie przez zasięg:
+  zdjęcie AppBara dotyka ośmiu tras w powłoce naraz, więc to własna faza, nie krok przy okazji nawigacji.</p>
+  <p style="color:var(--textPrimary80);font-size:14px;margin-top:var(--s4)"><b>Odrzucony: B · Center Action.</b>
+  Dok jest atrakcyjny i rozwiązuje realny brak (Send/Receive nie mają stałego miejsca), ale to nowy widget od zera,
+  który dodatkowo łamie regułę „jeden wypełniony gradient na powierzchnię" — konkuruje z każdym CTA na ekranie.
+  Wrócić do niego, gdy nawigacja się ustabilizuje.</p>
+
+  <h2 class="h2">Inwentarz komponentów — co istnieje, co trzeba napisać</h2>
+  <table>
+    <tr><th>Element</th><th>A</th><th>B</th><th>C</th><th>D</th><th>Dowód w repo</th></tr>
+    <tr><td class="n">Bottom nav (skład listy)</td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-new">New</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><code>responsive_overlay.dart:38-75</code> — filtr na <code>_allDestinations</code></td></tr>
+    <tr><td class="n">Arkusz „More"</td><td><span class="tag t-ex">Ex</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ex">Ex</span></td><td><span class="tag t-ex">Ex</span></td><td><code>components/overlays/gw_bottom_sheet.dart</code></td></tr>
+    <tr><td class="n">Chip sieci / control track</td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><code>network_dropdown_selector.dart</code> + receptura track z <code>:100-150</code></td></tr>
+    <tr><td class="n">Nagłówek portfela w AppBarze</td><td><span class="tag t-new">New</span></td><td><span class="tag t-new">New</span></td><td>—</td><td><span class="tag t-new">New</span></td><td>dziś tylko <code>Text("Genius Wallet")</code></td></tr>
+    <tr><td class="n">Nagłówek w treści (bez AppBara)</td><td>—</td><td>—</td><td><span class="tag t-ad">Ad</span></td><td>—</td><td><code>components/scaffold/gw_page_header.dart</code> — ma już <code>leading</code>, <code>titleTrailing</code></td></tr>
+    <tr><td class="n">Wiersz aktywu</td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><code>coin_card_row.dart</code> — zmiana wyłącznie koloru w <code>:126,134</code></td></tr>
+    <tr><td class="n">CTA wypełniony / outline</td><td><span class="tag t-ex">Ex</span></td><td><span class="tag t-ex">Ex</span></td><td><span class="tag t-ex">Ex</span></td><td><span class="tag t-ex">Ex</span></td><td><code>components/buttons/gw_button.dart</code></td></tr>
+    <tr><td class="n">Rail szybkich akcji</td><td><span class="tag t-ad">Ad</span></td><td>—</td><td>—</td><td>—</td><td>receptura chipa = control track</td></tr>
+    <tr><td class="n">Segment treści na home</td><td>—</td><td>—</td><td>—</td><td><span class="tag t-ad">Ad</span></td><td><code>components/gw_timeframe_segment.dart</code></td></tr>
+    <tr><td class="n">Dok / środkowy przycisk</td><td>—</td><td><span class="tag t-new">New</span></td><td>—</td><td>—</td><td>brak precedensu w repo</td></tr>
+    <tr><td class="n">Usunięcie globalnego FAB-a</td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><span class="tag t-ad">Ad</span></td><td><code>global_swap_fab_host.dart:124-128</code></td></tr>
+    <tr><td class="n">Router — segment z deep linku</td><td>—</td><td>—</td><td>—</td><td><span class="tag t-new">New</span></td><td><code>navigation/router.dart</code> ShellRoute</td></tr>
+  </table>
+  <p style="font-size:13px;color:var(--textSecondary)">Liczba pozycji <span class="tag t-new">New</span>:
+  <b>A = 1</b> · B = 2 · C = 0 (ale najszerszy zasięg zmian) · D = 2. Kolumna „dowód" to plik, w którym siedzi punkt zaczepienia.</p>
+
+  <h2 class="h2">Kontrast — policzony, nie oszacowany</h2>
+  <p style="color:var(--textPrimary80);font-size:14px">Wszystko liczone metodą WCAG 2.x (relative luminance) na realnym tle
+  <code>surfaceBase #0B0D12</code> i <code>surfaceElevated #0C0E14</code>. Próg dla tekstu: <b>4.5:1</b>, dla dużego tekstu i granic kontrolek: <b>3:1</b>.</p>
+  <table>
+    <tr><th>Token</th><th>Wartość</th><th>Na tle</th><th>Ratio</th><th>AA</th><th>Gdzie</th></tr>
+    <tr><td class="n">textPrimary</td><td><code>#FFFFFF</code></td><td>surfaceBase</td><td>19.5:1</td><td class="pass">✓</td><td>nazwy aktywów, salda</td></tr>
+    <tr><td class="n">textPrimary80</td><td><code>white 80%</code></td><td>surfaceBase</td><td>12.4:1</td><td class="pass">✓</td><td><b>proponowana</b> wartość zerowego salda</td></tr>
+    <tr><td class="n">textSecondary</td><td><code>#8A8F9D</code></td><td>surfaceBase</td><td>6.0:1</td><td class="pass">✓</td><td>etykiety, kickery</td></tr>
+    <tr><td class="n">textSecondary</td><td><code>#8A8F9D</code></td><td>surfaceElevated</td><td>6.0:1</td><td class="pass">✓</td><td>nieaktywne etykiety paska</td></tr>
+    <tr><td class="n">brandPrimary</td><td><code>#14C8FF</code></td><td>surfaceBase</td><td>10.0:1</td><td class="pass">✓</td><td>linki, akcenty</td></tr>
+    <tr><td class="n">brandPrimaryStrong</td><td><code>#0AAEE6</code></td><td>surfaceElevated</td><td>7.6:1</td><td class="pass">✓</td><td>aktywna zakładka paska</td></tr>
+    <tr style="background:rgba(255,77,77,.08)"><td class="n"><b>textPrimary38</b></td><td><code>white 38%</code></td><td>surfaceBase</td><td><b>3.54:1</b></td><td class="fail">✗</td><td><b>dziś</b> — <code>coin_card_row.dart:126,134</code></td></tr>
+  </table>
+  <div class="call"><b>Jedno realne naruszenie, wspólne dla wszystkich wariantów.</b>
+  <code>textPrimary38</code> na zerowym saldzie daje 3.54:1 — brakuje prawie całego stopnia do AA.
+  Podniesienie do <code>textPrimary80</code> daje 12.4:1 i jest zmianą <b>jednego słowa w dwóch linijkach</b>.
+  Każdy z czterech schematów to zawiera, bo to naprawa błędu, nie decyzja projektowa.</div>
+
+  <h2 class="h2">Porównanie liczbowe</h2>
+  <table>
+    <tr><th></th><th>Dziś</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+    <tr><td class="n">Pozycji w pasku</td><td>8</td><td>5</td><td>4 + dok</td><td>5</td><td>4</td></tr>
+    <tr><td class="n">Szerokość na kafelek</td><td class="fail">48,7 px</td><td>78,0 px</td><td>78,0 px</td><td>78,0 px</td><td>97,5 px</td></tr>
+    <tr><td class="n">Ucięte etykiety</td><td class="fail">3</td><td class="pass">0</td><td class="pass">0</td><td class="pass">0</td><td class="pass">0</td></tr>
+    <tr><td class="n">Pion oddany treści</td><td>—</td><td>0</td><td>0</td><td class="pass">+56 px</td><td>0</td></tr>
+    <tr><td class="n">Tapnięć do Settings</td><td>1</td><td>2</td><td>2</td><td>2</td><td>2</td></tr>
+    <tr><td class="n">Tapnięć do Swap</td><td>1</td><td>1</td><td>2</td><td>1</td><td>1</td></tr>
+    <tr><td class="n">Nowe komponenty</td><td>—</td><td class="pass">1</td><td>2</td><td class="pass">0</td><td>2</td></tr>
+    <tr><td class="n">Dotknięte trasy</td><td>—</td><td class="pass">1</td><td>1</td><td class="fail">8</td><td>3</td></tr>
+  </table>
+
+  <h2 class="h2">Co każdy wariant naprawia, a czego nie</h2>
+  <table>
+    <tr><th>Problem</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+    <tr><td class="n">1 · 8 pozycji, ucięte etykiety</td><td class="pass">✓</td><td class="pass">✓</td><td class="pass">✓</td><td class="pass">✓</td></tr>
+    <tr><td class="n">2 · aktywna zakładka kłamie na <code>/buy</code></td><td class="pass">✓*</td><td class="pass">✓*</td><td class="pass">✓*</td><td class="pass">✓*</td></tr>
+    <tr><td class="n">3 · desktopowy track w AppBarze</td><td class="pass">✓</td><td class="pass">✓</td><td class="pass">✓✓</td><td class="pass">✓</td></tr>
+    <tr><td class="n">4 · zerowe saldo 3.54:1</td><td class="pass">✓</td><td class="pass">✓</td><td class="pass">✓</td><td class="pass">✓</td></tr>
+    <tr><td class="n">5 · FAB na treści</td><td class="pass">✓</td><td class="pass">✓</td><td class="pass">✓</td><td class="pass">✓</td></tr>
+  </table>
+  <p style="font-size:13px;color:var(--textSecondary)">* Problem 2 nie znika sam z siebie w żadnym wariancie — wymaga
+  zamiany cichego <code>return 0</code> na jawny „brak dopasowania" i przypisania <code>/buy</code> oraz
+  <code>/token-info</code> do rodzica. Jest wspólny dla wszystkich czterech i wpisany w każdy z nich.</p>
+
+  <h2 class="h2">Czego ten sketch NIE rozstrzyga</h2>
+  <ul style="padding-left:var(--s10)">
+    <li style="color:var(--textPrimary80);font-size:14px;margin:var(--s3) 0"><b>Składu piątki.</b> Wybrałem Dashboard/Transactions/Swap/Markets na podstawie tego, co wygląda na trzon portfela — <b>nie na danych o użyciu</b>. Jeśli je macie, wygrywają nad moim domysłem.</li>
+    <li style="color:var(--textPrimary80);font-size:14px;margin:var(--s3) 0"><b>Light mode.</b> Zgodnie z regułą „dark first" liczyłem kontrast tylko dla ciemnego. Jasny wymaga własnego przebiegu.</li>
+    <li style="color:var(--textPrimary80);font-size:14px;margin:var(--s3) 0"><b>Realnego wyglądu z danymi.</b> Makiety pokazują portfel z zerowym saldem, bo taki jest Twój stan. Z prawdziwymi kwotami trzeba sprawdzić, czy prawa kolumna się nie łamie.</li>
+    <li style="color:var(--textPrimary80);font-size:14px;margin:var(--s3) 0"><b>Androida.</b> Brian go prowadzi; gesty i wysokość paska mogą wymagać osobnej decyzji.</li>
+  </ul>
+</div>
+</section>
+
+</div><!-- /wrap -->
+
+<div id="sketch-tools">
+  <span style="opacity:.6">171</span>
+  <button id="annbtn">Adnotacje: WŁ</button>
+  <select id="themesel"><option value="default">default</option></select>
+</div>
+
+<script>
+(function () {
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.setAttribute('aria-selected', 'false'); });
+      t.setAttribute('aria-selected', 'true');
+      panels.forEach(function (p) { p.classList.remove('on'); });
+      var el = document.getElementById('p-' + t.dataset.p);
+      if (el) { el.classList.add('on'); }
+      window.scrollTo(0, 0);
+    });
+  });
+
+  function closeSheet(key) {
+    var s = document.querySelector('[data-sheet="' + key + '"]');
+    var c = document.querySelector('[data-scrim="' + key + '"]');
+    if (s) { s.classList.remove('open'); }
+    if (c) { c.classList.remove('open'); }
+  }
+  document.querySelectorAll('[data-open]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.dataset.open;
+      var s = document.querySelector('[data-sheet="' + key + '"]');
+      var c = document.querySelector('[data-scrim="' + key + '"]');
+      if (s) { s.classList.add('open'); }
+      if (c) { c.classList.add('open'); }
+    });
+  });
+  document.querySelectorAll('.scrim').forEach(function (c) {
+    c.addEventListener('click', function () { closeSheet(c.dataset.scrim); });
+  });
+  document.querySelectorAll('.sheet .srow, .sheet .sgi').forEach(function (r) {
+    r.addEventListener('click', function () {
+      var sheet = r.closest('.sheet');
+      if (sheet) { closeSheet(sheet.dataset.sheet); }
+    });
+  });
+
+  document.querySelectorAll('.seg').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var group = chip.parentElement.querySelectorAll('.seg');
+      group.forEach(function (g) {
+        g.classList.remove('on');
+        g.style.background = 'var(--surfaceSunken)';
+        g.style.borderColor = 'var(--borderSubtle)';
+        g.style.color = 'var(--textPrimary80)';
+      });
+      chip.classList.add('on');
+      chip.style.background = 'rgba(20,200,255,.14)';
+      chip.style.borderColor = 'var(--brandPrimary)';
+      chip.style.color = '#fff';
+    });
+  });
+
+  var ann = document.getElementById('annbtn');
+  ann.addEventListener('click', function () {
+    document.body.classList.toggle('noann');
+    ann.textContent = document.body.classList.contains('noann') ? 'Adnotacje: WYŁ' : 'Adnotacje: WŁ';
+  });
+
+  document.getElementById('themesel').addEventListener('change', function () {
+    var link = document.querySelector('link[href*=themes]');
+    if (link) { link.href = '../themes/' + this.value + '.css'; }
+  });
+})();
+</script>
+</body>
+</html>

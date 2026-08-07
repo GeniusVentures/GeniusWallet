@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>185 - a wallet ICON beside the menu icon: five treatments of the pair</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --sunken:#06080C; --menu:#171A21;
+  --text:#FFFFFF; --text2:#8A8F9D; --onbrand:#000B18;
+  --border:rgba(255,255,255,.12); --border2:rgba(255,255,255,.24); --borderctl:rgba(255,255,255,.36);
+  --ok:#0AD89C; --err:#FF4D4D; --g1:#0AD89C; --g2:#0AAEE6; --brand:#14C8FF; --strong:#0AAEE6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#07090D;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1500px;margin:0 auto;padding:30px 24px 110px}
+h1{font-size:25px;margin:0 0 6px;font-weight:700}
+.sub{color:var(--text2);font-size:13.5px;line-height:1.65;margin:0 0 16px;max-width:1040px}
+.sub b{color:var(--text)}
+.quote{border-left:3px solid var(--border2);padding:2px 0 2px 14px;margin:0 0 14px;
+  color:#c9ccd4;font-size:13.5px;line-height:1.7;max-width:1040px}
+.quote b{color:var(--text)}
+.alert{border:1px solid rgba(255,196,46,.4);background:rgba(255,196,46,.06);border-radius:12px;
+  padding:13px 16px;margin:0 0 18px;max-width:1040px;font-size:13.5px;line-height:1.68;color:#d8dbe2}
+.alert b{color:#FFC42E}
+.alert .k{color:#fff;font-weight:600}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;
+  color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+.tab:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.tab.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand);border-color:transparent}
+.statebar{display:flex;gap:12px;align-items:center;margin:14px 0 6px;font-size:13px;color:var(--text2);flex-wrap:wrap}
+.statebar .lbl{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:#6e737f}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--border);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--text2);font-size:12px;font-weight:600;
+  padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit}
+.seg button.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand)}
+.hint{font-size:12.5px;color:var(--text2);margin:6px 0 18px;line-height:1.6;max-width:1040px}
+.hint b{color:#fff}
+.pane{display:none}
+.pane.on{display:block}
+.cols{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+.notes{flex:1;min-width:400px;max-width:760px}
+.notes h3{font-size:15px;margin:0 0 8px}
+.notes h3.sec{margin-top:26px}
+.notes p{font-size:13.5px;line-height:1.66;color:#c9ccd4;margin:0 0 12px}
+.notes p b{color:var(--text)}
+.notes li{font-size:13.5px;line-height:1.66;color:#c9ccd4;margin:0 0 6px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 16px}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.04);color:var(--text2);font-weight:600}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#cfd3dc}
+.good{color:var(--ok)} .bad{color:var(--err)} .warn{color:#FFC42E}
+.num{font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 7px;border-radius:5px;border:1px solid var(--border2);color:var(--text2);margin-right:5px}
+.tag.ship{border-color:rgba(10,216,156,.5);color:var(--ok)}
+.tag.new{border-color:rgba(255,77,77,.5);color:var(--err)}
+.tag.dead{border-color:rgba(255,196,46,.5);color:#FFC42E}
+
+/* ---------- phone, 1:1 at 390 x 844 ---------- */
+.phone{width:390px;height:844px;background:var(--base);border:1px solid var(--border2);
+  border-radius:38px;overflow:hidden;position:relative;flex:0 0 auto}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.statusbar{height:54px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-size:12px;color:var(--text2)}
+
+/* the app bar: toolbarHeight 60, surfaceElevated, 1px borderStrong bottom */
+.apphead{height:60px;flex:0 0 auto;display:flex;align-items:center;position:relative;
+  background:var(--card);border-bottom:1px solid var(--border2)}
+.ts{width:16px;flex:0 0 auto}     /* AppBar titleSpacing, charged on BOTH sides */
+.acts{width:16px;flex:0 0 auto}   /* actions: a single SizedBox(width: space8) */
+.titlerow{flex:1;min-width:0;display:flex;align-items:center}  /* 390-16-16-16 = 342.00 */
+
+/* BrandLockup: cropped mark 29/38 x 28 = 21.37, space4 = 8, GNUS.AI Inter Bold 18 = 76.69 */
+.brand{display:flex;align-items:center;flex:0 0 auto;width:106.06px}
+.mark{width:21.37px;height:28px;border-radius:5px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--g1),var(--g2));display:flex;align-items:center;
+  justify-content:center;color:var(--onbrand);font-weight:800;font-size:13px}
+.markgap{width:8px;flex:0 0 auto}
+.word{width:76.69px;flex:0 0 auto;font-size:18px;font-weight:700;line-height:1;
+  white-space:nowrap;letter-spacing:-.035em}
+.slotright{flex:1;min-width:0;display:flex;justify-content:flex-end;align-items:center}
+.gap6{width:12px;flex:0 0 auto}
+
+/* ---------- the pair. Geometry FROZEN: every control is 44.00 x 44.00. ----------
+   The classes below differ only in fill and edge; the glyph inside is an
+   inline SVG traced from the real shipping outline.                            */
+.ctl{width:44px;height:44px;flex:0 0 auto;position:relative;display:flex;align-items:center;
+  justify-content:center;border-radius:999px;cursor:pointer;user-select:none;color:var(--text)}
+.ctl svg path{fill:currentColor}
+/* the chip: Material(color: surfaceMenu, shape: StadiumBorder(side: borderControl)).
+   On a square box a StadiumBorder renders as a circle, so the shipped recipe transfers. */
+.t-chip{background:var(--menu);border:1px solid var(--borderctl)}
+/* bare: no Material, no Container, no border, no fill. The glyph sits on the bar. */
+.t-bare{background:transparent;border:1px solid transparent}
+.ctl:active{background:rgba(255,255,255,.09)}
+
+/* the 44 x 44 touch-target overlay, drawn on the control's real bounds */
+.tt{position:absolute;left:-1px;top:-1px;width:44px;height:44px;border-radius:999px;
+  border:1px dashed rgba(255,196,46,.95);pointer-events:none;display:none}
+.ttshow .tt{display:block}
+.ttshow .ctl::after{content:"44.00";position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);
+  font-size:9px;color:#FFC42E;font-weight:700;white-space:nowrap;pointer-events:none}
+
+/* AccountAvatar: CircleAvatar(radius: size/2 - 2) on brandPrimaryStrong #0AAEE6 */
+.av{width:32px;height:32px;flex:0 0 auto;position:relative}
+.av .disc{position:absolute;inset:2px;border-radius:999px;background:var(--strong);
+  display:flex;align-items:center;justify-content:center;color:var(--onbrand);
+  font-weight:800;font-size:10px;letter-spacing:-.02em;overflow:hidden}
+/* the 16px network badge: a 2px ring of the bar colour, decorative by its own doc */
+.badge{position:absolute;width:16px;height:16px;border-radius:999px;background:var(--card);
+  display:flex;align-items:center;justify-content:center;pointer-events:none}
+.badge i{width:12px;height:12px;border-radius:999px;display:flex;align-items:center;
+  justify-content:center;font-size:6px;font-weight:800;font-style:normal;color:#fff}
+.badge.onav{right:6px;bottom:6px}    /* shipped: bottom-right of the 32px avatar */
+.badge.onbox{right:0;bottom:0}       /* generic glyph: bottom-right of the 44 box */
+
+.ruler{position:absolute;top:2px;height:12px;border-left:1px solid rgba(255,196,46,.9);
+  border-right:1px solid rgba(255,196,46,.9);pointer-events:none;z-index:4;display:none}
+.rulershow .ruler{display:block}
+.ruler i{position:absolute;top:6px;left:0;right:0;height:1px;background:rgba(255,196,46,.5)}
+.ruler b{position:absolute;top:-2px;left:50%;transform:translateX(-50%);font-size:9px;color:#FFC42E;
+  font-weight:700;white-space:nowrap;background:rgba(0,0,0,.7);padding:0 3px;border-radius:3px}
+
+/* phone body */
+.body{flex:1;overflow-y:auto;padding:14px 12px 24px}
+.body::-webkit-scrollbar{width:0}
+.bcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin:0 0 12px}
+.bal{font-size:11px;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.balv{font-size:30px;font-weight:700;letter-spacing:-.03em;margin-top:4px}
+.stitle{font-size:18px;line-height:24px;font-weight:600}
+.arow{display:flex;align-items:center;gap:10px;padding:9px 0}
+.arow .cd{width:32px;height:32px;border-radius:999px;background:var(--strong);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--onbrand)}
+.arow .an{flex:1;min-width:0;font-size:14px;font-weight:600}
+.arow .an s{display:block;text-decoration:none;font-size:12px;color:var(--text2);font-weight:500}
+.arow .av2{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* bottom bar - Home / Assets / Activity / News under sketch 182 scheme S7 */
+.botwrap{flex:0 0 auto;position:relative;height:60px}
+.botbar{position:absolute;inset:0;background:var(--card);border-top:1px solid var(--border2);
+  display:flex;align-items:center}
+.dest{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text2);cursor:default}
+.dest svg path{fill:currentColor}
+.dest span{font-size:10px;font-weight:600}
+.dest.act{color:var(--text)}
+.destgap{width:64px;flex:0 0 auto}
+.dock{position:absolute;left:50%;transform:translateX(-50%);top:-26px;width:64px;height:64px;
+  border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2));display:flex;
+  align-items:center;justify-content:center;color:var(--onbrand);font-size:22px;font-weight:800;
+  border:4px solid var(--base)}
+
+/* sheets */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);display:none;z-index:6}
+.scrim.on{display:block}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--border2);
+  border-radius:20px 20px 0 0;padding:10px 16px 26px;z-index:7;display:none}
+.sheet.on{display:block}
+.grab{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 12px}
+.sh{font-size:16px;font-weight:700;margin:0 0 10px}
+.srow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.srow:last-child{border-bottom:0}
+.srow .st{font-size:14px;font-weight:600;flex:1}
+.srow .st s{display:block;text-decoration:none;font-size:12px;color:var(--text2);font-weight:500}
+.srow svg path{fill:currentColor}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 6px}
+.nchip{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;
+  background:var(--menu);border:1px solid var(--borderctl);font-size:12px;font-weight:600;cursor:pointer}
+.nchip i{width:12px;height:12px;border-radius:999px;font-style:normal}
+.nchip.on{border-color:var(--brand)}
+
+/* compare strip: real 390-wide bars stacked, 1:1, no scaling */
+.cmp{display:flex;flex-direction:column;gap:14px;flex:0 0 auto}
+.cmpitem{width:390px}
+.cmplbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text2);margin:0 0 5px}
+.cmplbl em{font-style:normal;color:var(--text);text-transform:none;letter-spacing:0;font-weight:600}
+.cmpbar{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+
+/* glyph inventory */
+.ginv{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 18px}
+.gcell{width:172px;border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--card)}
+.gart{height:70px;display:flex;align-items:center;justify-content:center;gap:14px;
+  background:var(--card);border-radius:8px;color:var(--text)}
+.gart svg path{fill:currentColor}
+.gart img{image-rendering:auto}
+.gname{font-size:11.5px;font-weight:700;margin:9px 0 4px;word-break:break-all}
+.gmeta{font-size:11px;color:var(--text2);line-height:1.5}
+.gmeta b{color:#fff;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>185 - a wallet ICON beside the menu icon: five treatments of the pair</h1>
+
+<p class="quote">Jakub, 2026-08-07, on device, straight after walking the S7 header: <b>"ok jedna zmiana ktora
+chce zrobic, chcialbym bys tam po prostu pokazal wallet icon obok menu icon - zaprojektuj kilka
+rozwiazan tych icon i podeslij w HTML 4-5 designow"</b></p>
+
+<p class="sub">The header's left control stops being the account avatar and becomes a generic <b>wallet
+glyph</b> beside the menu glyph. Geometry is frozen at what shipped this afternoon: title row
+<b class="num">342.00</b>, lockup <b class="num">106.06</b>, two <b class="num">44 x 44</b> controls,
+<code>space6</code> = 12 between them, cluster <b class="num">100.00</b>, free space
+<b class="num">135.94</b>. What varies is the pair: which wallet glyph, whether the two match in weight,
+whether either keeps a container, and whether the network badge survives. Everything is drawn on the
+real 60px bar with its 1px <code>borderStrong</code> edge at 390 x 844, 1:1.</p>
+
+<div class="alert">
+<b>The argument this change knocks out, stated before any pictures.</b> Sketch 183 shipped scheme
+<span class="k">F</span> - the wallet keeps a hairline chip, the hamburger goes bare - on one specific
+claim, quoted from its README: <em>"the wallet icon holds a value - which wallet, and through the 16px
+badge which chain - and its content changes when that value changes. The hamburger holds nothing."</em>
+That asymmetry is the whole reason F beat scheme A (both chipped) and scheme C (both bare), and the
+shipped <code>HeaderMenuButton</code> doc restates it in the code.
+<br><br>
+A generic wallet glyph <span class="k">has no value in it</span>. Its pixels are identical for every
+wallet, every chain and every state but one. It is strictly <em>less</em> identifying than the avatar it
+replaces, which at least varied by currency. So both controls are now the same kind of object: a
+value-free door to a sheet - and the similarity F said "is not there" <span class="k">is now
+there</span>. <b>By F's own reasoning the pair should match</b>, which points at 183 scheme C, the
+fallback Jakub already reserved: <em>"183F sprobujmy potem mozemy cofnac do 183C jesli bedzie zle"</em>.
+Schemes <span class="k">A</span>, <span class="k">B</span> and <span class="k">E</span> below are that
+pair. <span class="k">C</span> and <span class="k">D</span> keep containers and have to earn them on some
+other ground - see the "Does the split survive?" section on the C tab.
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="statebar">
+  <span class="lbl">Wallet</span>
+  <span class="seg" id="segwal"></span>
+  <span class="lbl">Chain</span>
+  <span class="seg" id="segnet"></span>
+</div>
+<div class="statebar">
+  <span class="lbl">Network badge</span>
+  <span class="seg" id="segbadge"></span>
+  <span class="lbl">Weight match</span>
+  <span class="seg" id="segwt"></span>
+  <span class="lbl">44pt targets</span>
+  <span class="seg" id="segtt"></span>
+  <span class="lbl">Ruler</span>
+  <span class="seg" id="segrul"></span>
+</div>
+<p class="hint" id="hint"></p>
+
+<div id="panes"></div>
+
+</div>
+
+<script>
+/* ==========================================================================
+   MEASURED CONSTANTS. Nothing on this page is eyeballed.
+
+   Geometry, frozen from sketch 183 scheme F as it shipped on 2026-08-07 and
+   verified against lib/components/overlay/mobile_header.dart:
+
+     title Row   = 390 - 2*titleSpacing(16) - actions(16)          = 342.00
+     BrandLockup = 29/38*28 mark 21.37 + space4 8 + GNUS.AI 76.69  = 106.06
+     the cluster = 44 + space6 12 + 44                             = 100.00
+     free space  = 342.00 - 106.06 - 100.00                        = 135.94
+
+   Glyph ink was measured by rasterising the real shipping outline at 960px
+   and counting opaque pixels, then scaling back to the 24-unit Material grid.
+   The Material outlines below are traced verbatim out of
+   MaterialIcons-Regular.otf in the pinned Flutter SDK, so they are the
+   shipping glyph and not a redraw.
+
+   Contrast: sRGB relative luminance, WCAG 2.x. Translucent edges are
+   COMPOSITED over surfaceElevated #0C0E14 first, then measured against it.
+     borderControl white 36% -> #636569 -> 3.30:1  PASS
+     borderStrong  white 24% -> #46484C -> 2.11:1  fail (the bar's own edge)
+     borderSubtle  white 12% -> #292B30 -> 1.36:1  fail
+     surfaceMenu   #171A21               -> 1.11:1  fail - a fill cannot
+                                            identify a control in this bar
+   ========================================================================== */
+
+var TITLEROW = 342.00, LOCKUP = 106.06, CLUSTER = 100.00, FREE = 135.94;
+
+/* ---- Material outlines, traced from MaterialIcons-Regular.otf, 24 grid ---- */
+var PATHS = {
+  menu: 'M3 18H21V15.984H3V18ZM3 12.984H21V11.016H3V12.984ZM3 6V8.016H21V6H3Z',
+  wallet_abw: 'M21 7.266V5.016C21 3.891 20.109 3 18.984 3H5.016C3.891 3 3 3.891 3 5.016V18.984C3 20.109 3.891 21 5.016 21H18.984C20.109 21 21 20.109 21 18.984V16.734C21.609 16.359 21.984 15.75 21.984 15V9C21.984 8.25 21.609 7.641 21 7.266ZM20.016 9V15H12.984V9H20.016ZM5.016 18.984V5.016H18.984V6.984H12.984C11.906 6.984 11.016 7.922 11.016 9V15C11.016 16.078 11.906 17.016 12.984 17.016H18.984V18.984H5.016ZM14.484 12C14.484 11.156 15.188 10.5 15.984 10.5C16.828 10.5 17.484 11.156 17.484 12C17.484 12.844 16.828 13.5 15.984 13.5C15.188 13.5 14.484 12.844 14.484 12Z',
+  person: 'M12 5.906C13.172 5.906 14.109 6.844 14.109 8.016C14.109 9.141 13.172 10.078 12 10.078C10.828 10.078 9.891 9.141 9.891 8.016C9.891 6.844 10.828 5.906 12 5.906ZM12 14.906C14.953 14.906 18.094 16.359 18.094 17.016V18.094H5.906V17.016C5.906 16.359 9.047 14.906 12 14.906ZM12 3.984C9.797 3.984 8.016 5.812 8.016 8.016C8.016 10.219 9.797 12 12 12C14.203 12 15.984 10.219 15.984 8.016C15.984 5.812 14.203 3.984 12 3.984ZM12 12.984C9.328 12.984 3.984 14.344 3.984 17.016V20.016H20.016V17.016C20.016 14.344 14.672 12.984 12 12.984Z',
+  dash: 'M3 13H11V3H3V13ZM3 21H11V15H3V21ZM13 21H21V11H13V21ZM13 3V9H21V3H13Z',
+  clock: 'M12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2ZM12 20C7.6 20 4 16.4 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20ZM12.5 7H11V13L16.2 16.2L17 14.9L12.5 12.2V7Z',
+  article: 'M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19ZM7 9H17V7H7V9ZM7 13H17V11H7V13ZM7 17H14V15H7V17Z',
+  cog: 'M12 8C9.79 8 8 9.79 8 12C8 14.21 9.79 16 12 16C14.21 16 16 14.21 16 12C16 9.79 14.21 8 12 8ZM12 14C10.9 14 10 13.1 10 12C10 10.9 10.9 10 12 10C13.1 10 14 10.9 14 12C14 13.1 13.1 14 12 14ZM19.4 13C19.5 12.7 19.5 12.3 19.5 12C19.5 11.7 19.5 11.3 19.4 11L21.5 9.4L19.5 5.9L17 6.9C16.5 6.5 15.9 6.2 15.3 5.9L15 3.2H11L10.7 5.9C10.1 6.2 9.5 6.5 9 6.9L6.5 5.9L4.5 9.4L6.6 11C6.5 11.3 6.5 11.7 6.5 12C6.5 12.3 6.5 12.7 6.6 13L4.5 14.6L6.5 18.1L9 17.1C9.5 17.5 10.1 17.8 10.7 18.1L11 20.8H15L15.3 18.1C15.9 17.8 16.5 17.5 17 17.1L19.5 18.1L21.5 14.6L19.4 13Z',
+  globe: 'M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM11 19.93C7.05 19.44 4 16.08 4 12C4 11.38 4.08 10.79 4.21 10.21L9 15V16C9 17.1 9.9 18 11 18V19.93ZM17.9 17.39C17.64 16.58 16.9 16 16 16H15V13C15 12.45 14.55 12 14 12H8V10H10C10.55 10 11 9.55 11 9V7H13C14.1 7 15 6.1 15 5V4.59C17.93 5.78 20 8.65 20 12C20 14.08 19.2 15.97 17.9 17.39Z',
+  chart: 'M3.5 18.49L9.5 12.48L13.5 16.48L22 6.92L20.59 5.51L13.5 13.48L9.5 9.48L2 16.99L3.5 18.49Z',
+  chat: 'M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z',
+  plus: 'M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z'
+};
+
+/* ---- the shipping SVG assets, traced verbatim from lib/assets/images ---- */
+/* walleticon.svg - an 18x18 SOLID billfold, artwork edge to edge, fill white */
+var SVG_WALLETICON = 'M1.47578e-06 2.07692C1.47578e-06 1.52609 0.21882 0.997815 0.608318 0.608317C0.997817 0.218818 1.52609 0 2.07692 0H13.6731C14.2698 0 14.8421 0.237053 15.2641 0.65901C15.686 1.08097 15.9231 1.65326 15.9231 2.25V2.94646C17.1332 3.37431 18 4.52838 18 5.88462V14.8846C18 15.7109 17.6718 16.5033 17.0875 17.0875C16.5033 17.6718 15.7109 18 14.8846 18H3.11539C2.28913 18 1.49672 17.6718 0.912476 17.0875C0.328229 16.5033 1.47578e-06 15.7109 1.47578e-06 14.8846V2.25H0.00692455C0.00224271 2.19243 -6.69293e-05 2.13469 1.47578e-06 2.07692ZM14.5385 2.25C14.5385 1.77231 14.1508 1.38462 13.6731 1.38462H2.07692C1.89331 1.38462 1.71722 1.45755 1.58739 1.58739C1.45756 1.71722 1.38462 1.89331 1.38462 2.07692C1.38462 2.26053 1.45756 2.43663 1.58739 2.56646C1.71722 2.69629 1.89331 2.76923 2.07692 2.76923H14.5385V2.25ZM12.4615 10.3846C12.2779 10.3846 12.1018 10.4576 11.972 10.5874C11.8422 10.7172 11.7692 10.8933 11.7692 11.0769C11.7692 11.2605 11.8422 11.4366 11.972 11.5665C12.1018 11.6963 12.2779 11.7692 12.4615 11.7692H14.5385C14.7221 11.7692 14.8982 11.6963 15.028 11.5665C15.1578 11.4366 15.2308 11.2605 15.2308 11.0769C15.2308 10.8933 15.1578 10.7172 15.028 10.5874C14.8982 10.4576 14.7221 10.3846 14.5385 10.3846H12.4615Z';
+/* navwalletbuttoncustom.svg - an 18x18 card-stack, filled with a THIRD gradient
+   (#00A9FE -> #00F4A8), which is neither brandCta nor brandBorder */
+var SVG_NAVWALLET = 'M1.04 0C0.465624 0 0 0.465625 0 1.04V16.96C0 17.5344 0.465624 18 1.04 18H16.0381C16.6125 18 17.0781 17.5344 17.0781 16.96L17.0781 15H6.89678C6.3224 15 5.85678 14.5344 5.85678 13.96V4.04C5.85678 3.46562 6.3224 3 6.89678 3H17.0781L17.0781 1.04C17.0781 0.465624 16.6125 0 16.0381 0H1.04ZM8.11981 5.84C8.11981 5.26562 8.58543 4.8 9.15981 4.8H16.4985C17.0728 4.8 17.5385 5.26562 17.5385 5.84V12.16C17.5385 12.7344 17.0728 13.2 16.4985 13.2H9.15981C8.58543 13.2 8.11981 12.7344 8.11981 12.16V5.84ZM11.002 7.45391C10.7148 7.45391 10.482 7.68672 10.482 7.97391V10.0355C10.482 10.3226 10.7148 10.5555 11.002 10.5555H12.8543C13.1415 10.5555 13.3743 10.3226 13.3743 10.0355V7.97391C13.3743 7.68672 13.1415 7.45391 12.8543 7.45391H11.002Z';
+/* copywalletsymbol.svg - 14x16, and it is NOT a wallet: two stacked documents,
+   i.e. a COPY glyph. The filename lies. Drawn here so that is checkable. */
+var SVG_COPYWALLET = 'M12.75 2.5H3.25C3.05109 2.5 2.86032 2.57902 2.71967 2.71967C2.57902 2.86032 2.5 3.05109 2.5 3.25V15.25C2.5 15.4489 2.57902 15.6397 2.71967 15.7803C2.86032 15.921 3.05109 16 3.25 16H12.75C12.9489 16 13.1397 15.921 13.2803 15.7803C13.421 15.6397 13.5 15.4489 13.5 15.25V3.25C13.5 3.05109 13.421 2.86032 13.2803 2.71967C13.1397 2.57902 12.9489 2.5 12.75 2.5V2.5ZM12.5 15H3.5V3.5H12.5V15ZM11 0.75C11 0.551088 10.921 0.360322 10.7803 0.21967C10.6397 0.0790177 10.4489 0 10.25 0H0.75C0.551088 0 0.360322 0.0790177 0.21967 0.21967C0.0790175 0.360322 0 0.551088 0 0.75V12.75C0 12.9489 0.0790175 13.1397 0.21967 13.2803C0.360322 13.421 0.551088 13.5 0.75 13.5H1V1H11V0.75Z';
+
+/* ---- the three raster assets, inlined so the page is self contained. These
+   are the FILES, byte for byte, at their true pixel sizes: 18x18, 16x16, 33x33,
+   with no @2x or @3x variant anywhere in the repo. ---- */
+var PNG_ACTIVE  = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAChSURBVHgBzZPBDYAgDEWLcQBHYAMdwRXcwBFcwcl0A91AnECdAD8JJhwUSuDgSxoIbT6lpaS1XnQaGwFhdpSOLCgXH+keMBmjU36cn0IIZS+qsDTkAbFzSWGmkBAuGzg1qjgxnIweZmuGHiZdZ5QQajGajW1E7zqztT8mo9b5u22SEL0IPHCepjgxnIw6WO3xX2jCmm1E/jf9RmilNBRqtN8Wd51e8g2AdwAAAABJRU5ErkJggg==';
+var PNG_CUSTOM  = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAADkSURBVHgBnZO7kcJAEES7F1nn3IVACpeBCvBkHCEcEYAyIATIBAMKB/HJgBAIAQxwQDPsUmAA0mrR87a65u1vhu1OsgIQ41OIXX4+/ppaxQ5F05iv76gk3qtiggpETodCgVC6q8V8gwAiX9jqJAMCf2W5oaZewb04LstzYd8reKDQLZRbkj921X06RYiAytEym/Xy6JK+ZkECH0FXsNsMW+0k5uV2hRoC2zQk/l+LqwXKsX2AkpD7hpFxoaCh7qhAlk1dN3o7knaY3rewg6KCNSqQ/JgWCwJR0ab7xjVqoKo7N0xXfZxM35lFS/kAAAAASUVORK5CYII=';
+var PNG_PROFILE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAhCAYAAABX5MJvAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAIGSURBVHgB7ZdBbtNAFIb/N44llj6CqRBsc4O6aipRhFTfAG4AN2hzg+xYFm6QBZSIFDq9gdmCoD6Cd0hgz+ONUApUbd+MXbVd9JMiR8k/M7+en8f/ECIpijJL0vYZmEuAxgBncm3kWsHgdWrS48ViXsfMSTHizc3tEpTs/1n4whlr+ex9/PDuDQJJQoWTydM9EL2Sr/cUaQZGeX/tEZ18/2IRQFAlxEDB4CNE0oE27OFbq+kMAmDiffQgCRynmvBVkPLm6IOMK/z4oSYceAcDMOh2dI2CNM0YAyBQrmmCemIYlGkK3YR/7gfBjaYIqARVGALTXJOoJrpfo+Cd79zxXXesaVQT1s4bBmboAcPNrF3Umi6oMV2bTpm5RgRe79of0xBtkAlfDde5jVAjssVXXm+tVZvSE/UW9UwmT3Yd4zkR5ef8LbeOZ58OD4Iq0NvEiq2t7XWHZMzsMiLTOHTV0fK92oR33Hqie8JnTPj0NGpzQy5f/e7Y1Cm5Zrk8iN5hVRN+UZP+LOFonQxLtqBcG+MfUXl6KpndhgRfumjhv4kaBYZjL0vidHbx0ah9Kdv0i0sTdW/kaEA8T5N0+q+Z07Tt47xJIGGWH0NP1H3x844du3LtwcPm5NvXz6cmIuL8VfHfsYD6xvmrwh8LjBjYxQ2SyPr+LVrgZimuIejq3JlYcStM/Abir8ceYvIpRQAAAABJRU5ErkJggg==';
+
+/* ---- MEASURED INK. Rasterised at 960px, counted, scaled to the 24 grid. ----
+   value = ink area in square units on the glyph's own viewBox              */
+var INK24 = {          /* Material glyphs, 24 x 24 = 576 units              */
+  menu: 108.000,       /* 18.75% coverage, ink bbox 18.00 x 12.00           */
+  wallet_abw: 177.148, /* 30.75%,          ink bbox 18.98 x 18.00           */
+  person: 102.458      /* 17.79%,          ink bbox 16.03 x 16.03           */
+};
+var INK18 = {                  /* the repo SVGs, 18 x 18 = 324 units        */
+  walleticon: 287.607,         /* 88.77% coverage - a SOLID mark            */
+  navwallet: 241.676           /* 74.59% coverage - a SOLID mark            */
+};
+var BBOX24 = { menu:[18.000,12.000], wallet_abw:[18.984,18.000], person:[16.031,16.031] };
+
+/* ---- the two weight-match modes ----------------------------------------
+   BOX: every glyph at the header's shipped nominal size, 18. Two Material
+        outlines at one nominal size have the SAME STROKE by construction
+        (both are 2 units on the 24 grid = 1.5px at 18), so a Material pair
+        is stroke-matched for free. The repo SVG has no 24-grid padding -
+        its artwork runs edge to edge - so it is sized by its INK instead,
+        at 13.5, which is menu@18's ink width.
+   INK: sizes chosen so the two glyphs carry the SAME ink area, at the
+        geometric mean of the BOX pair, 77.80 square px. Both land on the
+        4-pt grid: menu 20, wallet 16.                                     */
+var SIZE = {
+  BOX: { menu:18, wallet_abw:18, person:18, walleticon:13.5 },
+  INK: { menu:20, wallet_abw:16, person:20, walleticon:9 }
+};
+function inkAt(g,s){
+  if (g === 'walleticon') return INK18.walleticon * (s/18) * (s/18);
+  if (g === 'navwallet')  return INK18.navwallet  * (s/18) * (s/18);
+  return INK24[g] * (s/24) * (s/24);
+}
+function bboxAt(g,s){
+  if (g === 'walleticon' || g === 'navwallet') return [s,s];
+  var b = BBOX24[g];
+  return [b[0]*s/24, b[1]*s/24];
+}
+
+/* ---- data ---- */
+var WALLETS = {
+  short: {name:'Main wallet', sym:'ETH', mono:'MW'},
+  sdk:   {name:'Super Genius Wallet 1', sym:'ETH', mono:'S1'},
+  long:  {name:'Jakub imported Ledger Nano X hardware wallet', sym:'ETH', mono:'JI'},
+  addr:  {name:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21', sym:'ETH', mono:'7A'},
+  none:  null
+};
+/* verbatim from assets/json/networks/networks.json */
+var NETWORKS = [
+  {id:'eth',   name:'Ethereum',     c:'#627EEA', ab:'E'},
+  {id:'matic', name:'Polygon',      c:'#8247E5', ab:'P'},
+  {id:'gnus',  name:'Super Genius', c:'#0AD89C', ab:'G'},
+  {id:'bnb',   name:'BNB',          c:'#F3BA2F', ab:'B'},
+  {id:'base',  name:'Base',         c:'#0052FF', ab:'B'}
+];
+
+/* ---- THE FIVE TREATMENTS, plus Now for scale ----
+   glyph   : which wallet mark
+   wchip   : does the WALLET control keep a container
+   mchip   : does the MENU control keep a container
+   asset   : ship | new  - does this need an export that does not exist today  */
+var VARIANTS = [
+  {id:'now', tab:'Now (shipped F)', glyph:'avatar', wchip:true,  mchip:false, asset:'ship'},
+  {id:'A',   tab:'A - bare pair, Material billfold', glyph:'wallet_abw', wchip:false, mchip:false, asset:'ship'},
+  {id:'B',   tab:'B - bare pair, walleticon.svg',    glyph:'walleticon', wchip:false, mchip:false, asset:'ship'},
+  {id:'C',   tab:'C - split, F kept',                glyph:'wallet_abw', wchip:true,  mchip:false, asset:'ship'},
+  {id:'D',   tab:'D - chip pair',                    glyph:'wallet_abw', wchip:true,  mchip:true,  asset:'ship'},
+  {id:'E',   tab:'E - bare pair, person mark',       glyph:'person',     wchip:false, mchip:false, asset:'ship'}
+];
+var TABS = [{id:'cmp',tab:'Compare all six'}].concat(VARIANTS).concat([{id:'inv',tab:'Glyph inventory'}]);
+
+/* ---- state ---- */
+var ST = { wal:'short', net:'eth', badge:'off', wt:'BOX', tt:'off', rul:'off', tab:'cmp' };
+var SHEET = {};   /* variant id -> null | 'wallet' | 'more' */
+
+function wal(){ return WALLETS[ST.wal]; }
+function net(){
+  for (var i=0;i<NETWORKS.length;i++){ if (NETWORKS[i].id === ST.net) return NETWORKS[i]; }
+  return NETWORKS[0];
+}
+function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function f2(n){ return n.toFixed(2); }
+
+/* ---- glyph rendering. Every mark below is the real outline, not a redraw. ---- */
+function mat(name,size){
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" aria-hidden="true">'+
+         '<path d="'+PATHS[name]+'"/></svg>';
+}
+function svgAsset(which,size){
+  if (which === 'walleticon')
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 18 18" aria-hidden="true">'+
+           '<path d="'+SVG_WALLETICON+'"/></svg>';
+  if (which === 'navwallet')
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 18 18" aria-hidden="true">'+
+           '<defs><linearGradient id="ng'+Math.round(size*10)+'" x1="1.36" y1="9" x2="16.81" y2="9.18" '+
+           'gradientUnits="userSpaceOnUse"><stop stop-color="#00A9FE"/><stop offset="1" stop-color="#00F4A8"/>'+
+           '</linearGradient></defs><path d="'+SVG_NAVWALLET+'" fill="url(#ng'+Math.round(size*10)+')"/></svg>';
+  return '<svg width="'+(size*14/16)+'" height="'+size+'" viewBox="0 0 14 16" aria-hidden="true">'+
+         '<path d="'+SVG_COPYWALLET+'"/></svg>';
+}
+function badgeHTML(pos){
+  var n = net();
+  return '<span class="badge '+pos+'"><i style="background:'+n.c+'">'+n.ab+'</i></span>';
+}
+/* the shipped AccountAvatar: a 32px brandPrimaryStrong disc carrying
+   crypto/{symbol}.png. It identifies the CURRENCY, not the wallet. */
+function avatarHTML(){
+  var w = wal();
+  if (!w) return '<span class="av"><span class="disc">'+mat('plus',20)+'</span></span>';
+  return '<span class="av"><span class="disc">'+esc(w.sym)+'</span>'+
+         (ST.badge === 'on' ? badgeHTML('onav') : '') + '</span>';
+}
+function walletGlyphHTML(v){
+  var w = wal();
+  /* THE ONE PIECE OF INFORMATION A GENERIC GLYPH STILL CARRIES: whether a
+     wallet exists at all. _NoWalletAvatar survives every scheme, because the
+     sheet it opens is where Add Wallet lives. */
+  if (!w) return '<span class="av"><span class="disc">'+mat('plus',20)+'</span></span>';
+  if (v.glyph === 'avatar')     return avatarHTML();
+  var s = SIZE[ST.wt][v.glyph];
+  if (v.glyph === 'walleticon') return svgAsset('walleticon', s);
+  return mat(v.glyph, s);
+}
+function ctlPairHTML(v){
+  var ms = SIZE[ST.wt].menu;
+  var wbadge = (ST.badge === 'on' && v.glyph !== 'avatar')
+      ? badgeHTML('onbox') : '';
+  var h = '';
+  h += '<span class="ctl '+(v.wchip?'t-chip':'t-bare')+'" data-act="wallet" data-v="'+v.id+'">'+
+       walletGlyphHTML(v) + wbadge + '<span class="tt"></span></span>';
+  h += '<span class="gap6"></span>';
+  h += '<span class="ctl '+(v.mchip?'t-chip':'t-bare')+'" data-act="more" data-v="'+v.id+'">'+
+       mat('menu', ms) + '<span class="tt"></span></span>';
+  return h;
+}
+function barHTML(v){
+  var h = '<div class="apphead">';
+  h += '<span class="ts"></span>';
+  h += '<span class="titlerow">';
+  h +=   '<span class="brand"><span class="mark">G</span><span class="markgap"></span>'+
+         '<span class="word">GNUS.AI</span></span>';
+  h +=   '<span class="slotright">'+ctlPairHTML(v)+'</span>';
+  h += '</span>';
+  h += '<span class="acts"></span>';
+  /* rulers, in the bar's own coordinates: the cluster ends 16px from the right */
+  h += '<span class="ruler" style="right:16px;width:100px"><i></i><b>cluster 100.00</b></span>';
+  h += '<span class="ruler" style="left:37.37px;width:'+FREE+'px"><i></i><b>free '+FREE+'</b></span>';
+  h += '</div>';
+  return h;
+}
+
+/* ---- the phone ---- */
+function bottomBarHTML(){
+  /* sketch 182 scheme S7: Home / Assets / Activity / News, More moved to the
+     hamburger. The ASSETS tab draws Icons.account_balance_wallet_outlined at
+     kMobileNavIconSize = 23 - nav_destinations.dart line 153. It is drawn here
+     on purpose: scheme A puts the SAME glyph in the header, and that cost is
+     only judgeable if both are on screen at once. */
+  var d = [
+    ['dash','Home',true], ['wallet_abw','Assets',false],
+    ['clock','Activity',false], ['article','News',false]
+  ];
+  var h = '<div class="botwrap"><div class="botbar">';
+  for (var i=0;i<d.length;i++){
+    if (i === 2) h += '<span class="destgap"></span>';
+    h += '<span class="dest'+(d[i][2]?' act':'')+'">'+mat(d[i][0],23)+'<span>'+d[i][1]+'</span></span>';
+  }
+  h += '</div><div class="dock">&#8645;</div></div>';
+  return h;
+}
+function bodyHTML(){
+  var w = wal();
+  var h = '<div class="body">';
+  h += '<div class="bcard"><div class="bal">Total balance</div>'+
+       '<div class="balv">$12,480.35</div></div>';
+  h += '<div class="bcard"><div class="stitle">Assets</div>';
+  var rows = [['ETH','Ethereum','2.4100','$8,120.00'],
+              ['GNUS','Super Genius','1,204.0','$3,610.35'],
+              ['MATIC','Polygon','980.00','$750.00']];
+  for (var i=0;i<rows.length;i++){
+    h += '<div class="arow"><span class="cd">'+rows[i][0].slice(0,3)+'</span>'+
+         '<span class="an">'+rows[i][1]+'<s>'+rows[i][2]+' '+rows[i][0]+'</s></span>'+
+         '<span class="av2">'+rows[i][3]+'</span></div>';
+  }
+  h += '</div>';
+  h += '<div class="bcard"><div class="stitle">Active wallet</div>'+
+       '<div class="arow"><span class="an" style="font-size:13px">'+
+       (w ? esc(w.name) : 'No wallet selected') + '<s>on '+esc(net().name)+'</s></span></div>'+
+       '<p style="font-size:11.5px;color:#8A8F9D;line-height:1.55;margin:2px 0 0">'+
+       'This card is NOT in the app. It is here so you can see which wallet is live while the header '+
+       'cannot say. Cover it with a thumb to read the header the way a user does.</p></div>';
+  h += '</div>';
+  return h;
+}
+function sheetHTML(v){
+  var s = SHEET[v.id] || null;
+  if (!s) return '';
+  var h = '<div class="scrim on" data-act="close" data-v="'+v.id+'"></div><div class="sheet on">';
+  h += '<div class="grab"></div>';
+  if (s === 'wallet'){
+    h += '<div class="sh">Wallet and network</div><div class="chips">';
+    for (var i=0;i<NETWORKS.length;i++){
+      h += '<span class="nchip'+(NETWORKS[i].id===ST.net?' on':'')+'" data-act="net" data-net="'+
+           NETWORKS[i].id+'"><i style="background:'+NETWORKS[i].c+'"></i>'+NETWORKS[i].name+'</span>';
+    }
+    h += '</div>';
+    var ws = ['short','sdk','long','addr'];
+    for (var j=0;j<ws.length;j++){
+      var ww = WALLETS[ws[j]];
+      h += '<div class="srow" data-act="wal" data-wal="'+ws[j]+'">'+
+           '<span class="av" style="width:32px;height:32px"><span class="disc">'+ww.sym+'</span></span>'+
+           '<span class="st">'+esc(ww.name)+'<s>'+esc(net().name)+'</s></span>'+
+           (ST.wal===ws[j]?'<span class="good">&#10003;</span>':'')+'</div>';
+    }
+    h += '<div class="srow" data-act="wal" data-wal="none"><span class="st">Add wallet</span></div>';
+  } else {
+    h += '<div class="sh">Menu</div>';
+    var rs = [['chart','Markets','Prices and movers'],['globe','Web','The in-app browser'],
+              ['chat','Feedback','Tell us what is broken'],['cog','Settings','Currency, security, node'],
+              ['wallet_abw','Accounts','Wallets and keys']];
+    for (var k=0;k<rs.length;k++){
+      h += '<div class="srow">'+mat(rs[k][0],20)+'<span class="st">'+rs[k][1]+'<s>'+rs[k][2]+'</s></span></div>';
+    }
+  }
+  h += '</div>';
+  return h;
+}
+function phoneHTML(v){
+  var cls = 'phone' + (ST.tt==='on'?' ttshow':'') + (ST.rul==='on'?' rulershow':'');
+  var h = '<div class="'+cls+'" data-phone="'+v.id+'"><div class="screen">';
+  h += '<div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>';
+  h += barHTML(v);
+  h += bodyHTML();
+  h += bottomBarHTML();
+  h += '</div>'+sheetHTML(v)+'</div>';
+  return h;
+}
+
+/* ==========================================================================
+   Per-variant prose. Everything numeric in here is computed from the tables
+   above by measureTable(), so a size change cannot desynchronise the text.
+   ========================================================================== */
+function measureTable(v){
+  var mode = ST.wt, ms = SIZE[mode].menu;
+  var g = (v.glyph === 'avatar') ? null : v.glyph;
+  var mi = inkAt('menu', ms), mb = bboxAt('menu', ms);
+  var h = '<table><tr><th>Control</th><th>Mark</th><th>Size</th><th>Ink area</th>'+
+          '<th>Ink bbox</th><th>Stroke</th></tr>';
+  if (g){
+    var gi = inkAt(g, SIZE[mode][g]), gb = bboxAt(g, SIZE[mode][g]);
+    var solid = (g === 'walleticon');
+    h += '<tr><td>Wallet</td><td>'+(solid?'<code>walleticon.svg</code>':'<code>Icons.'+
+         (g==='person'?'person_outline':'account_balance_wallet_outlined')+'</code>')+'</td>'+
+         '<td class="num">'+SIZE[mode][g]+'</td><td class="num">'+f2(gi)+' px&sup2;</td>'+
+         '<td class="num">'+f2(gb[0])+' x '+f2(gb[1])+'</td>'+
+         '<td>'+(solid?'<span class="bad">solid</span>':f2(1.5*SIZE[mode][g]/18)+' px')+'</td></tr>';
+    h += '<tr><td>Menu</td><td><code>Icons.menu</code></td><td class="num">'+ms+'</td>'+
+         '<td class="num">'+f2(mi)+' px&sup2;</td><td class="num">'+f2(mb[0])+' x '+f2(mb[1])+'</td>'+
+         '<td>'+f2(1.5*ms/18)+' px</td></tr>';
+    var d = Math.abs(gi-mi)/Math.max(gi,mi)*100;
+    h += '<tr><td colspan="3"><b>Ink mismatch</b></td><td colspan="3" class="'+
+         (d<10?'good':(d<40?'warn':'bad'))+'"><b>'+f2(d)+'%</b>'+
+         (d<10?' - matched':(d<40?' - visible':' - the wallet dominates'))+'</td></tr>';
+  } else {
+    h += '<tr><td>Wallet</td><td>AccountAvatar 32px disc + 16px badge</td><td class="num">32</td>'+
+         '<td class="num">804.25 px&sup2;</td><td class="num">32.00 x 32.00</td><td>solid disc</td></tr>';
+    h += '<tr><td>Menu</td><td><code>Icons.menu</code></td><td class="num">18</td>'+
+         '<td class="num">60.75 px&sup2;</td><td class="num">13.50 x 9.00</td><td>1.50 px</td></tr>';
+    h += '<tr><td colspan="3"><b>Ink mismatch</b></td><td colspan="3" class="bad"><b>92.44%</b>'+
+         ' - and nobody has ever complained, because the disc is not read as a glyph</td></tr>';
+  }
+  h += '</table>';
+  return h;
+}
+function contrastTable(v){
+  var rows = [];
+  if (v.glyph === 'avatar'){
+    rows.push(['<code>borderControl</code> edge, composited <code>#636569</code>','3.30:1',true]);
+    rows.push(['<code>brandPrimaryStrong</code> #0AAEE6 disc','7.54:1',true]);
+    rows.push(['<code>surfaceMenu</code> fill #171A21 - identifies nothing','1.11:1',false]);
+    rows.push(['<code>textPrimary</code> hamburger bars','19.29:1',true]);
+  } else if (v.glyph === 'walleticon'){
+    rows.push(['<code>walleticon.svg</code> tinted <code>textPrimary</code>','19.29:1',true]);
+    rows.push(['the same asset UNTINTED, its file colour is <code>#FFFFFF</code>','19.29:1',true]);
+    rows.push(['<code>textPrimary</code> hamburger bars','19.29:1',true]);
+    if (v.wchip) rows.push(['<code>borderControl</code> edge, composited <code>#636569</code>','3.30:1',true]);
+  } else {
+    rows.push(['<code>textPrimary</code> wallet glyph','19.29:1',true]);
+    rows.push(['<code>textPrimary</code> hamburger bars','19.29:1',true]);
+    if (v.wchip) rows.push(['wallet <code>borderControl</code> edge, composited <code>#636569</code>','3.30:1',true]);
+    if (v.mchip) rows.push(['menu <code>borderControl</code> edge, composited <code>#636569</code>','3.30:1',true]);
+    if (v.wchip) rows.push(['<code>surfaceMenu</code> fill under it - carries nothing','1.11:1',false]);
+  }
+  if (ST.badge === 'on'){
+    rows.push(['badge ring <code>surfaceElevated</code> vs '+net().name+' '+net().c,
+               ({eth:'5.23:1',matic:'3.66:1',gnus:'10.39:1',bnb:'10.91:1',base:'3.35:1'})[net().id], true]);
+  }
+  var h = '<table><tr><th>Identifying element</th><th>vs the bar #0C0E14</th><th>1.4.11 at 3:1</th></tr>';
+  for (var i=0;i<rows.length;i++){
+    h += '<tr><td>'+rows[i][0]+'</td><td class="num">'+rows[i][1]+'</td><td class="'+
+         (rows[i][2]?'good':'bad')+'">'+(rows[i][2]?'PASS':'fail')+'</td></tr>';
+  }
+  h += '</table>';
+  return h;
+}
+
+var PROSE = {
+now:
+ '<h3>Now - what shipped this afternoon, drawn for scale</h3>'+
+ '<p>Sketch 183 scheme <b>F</b>: a 44px chip on <code>surfaceMenu</code> with a <code>borderControl</code> '+
+ 'edge holding a 32px <code>AccountAvatar</code> and the 16px network badge, then <code>space6</code>, then a '+
+ 'bare <code>Icons.menu</code> at 18. This tab is not a proposal. It is here so the five below are judged '+
+ 'against the thing they replace rather than against a memory of it.</p>'+
+ '<p><b>What the avatar actually identifies, measured rather than assumed.</b> <code>AccountAvatar</code> '+
+ 'paints <code>crypto/{currencySymbol}.png</code> on a flat <code>brandPrimaryStrong</code> disc - no '+
+ 'per-wallet colour, no blockie, no seed. So it identifies the <b>currency</b>, not the wallet. Switch '+
+ 'the wallet picker above between <b>Main wallet</b> and <b>Super Genius Wallet 1</b>: both are ETH, and '+
+ 'the header does not change by one pixel. That is sketch 181 finding 1, and it is the reason Jakub\'s '+
+ 'request costs less than it sounds.</p>'+
+ '<p>It is also why the shipped code has a 16-line comment admitting the same thing, and why the badge\'s '+
+ 'own doc calls it <em>"a change-detector - the chain moved - and not an identifier"</em>.</p>',
+
+A:
+ '<h3>A - the bare pair, on the app\'s own outlined billfold <span class="tag ship">no new asset</span></h3>'+
+ '<p><code>Icons.account_balance_wallet_outlined</code> beside <code>Icons.menu</code>, neither in a '+
+ 'container. This is 183 scheme <b>C</b> applied to the new brief, and it is where the expired argument '+
+ 'points.</p>'+
+ '<p><b>The thing A gets for free, and it is the strongest reason to pick it.</b> Both marks come off the '+
+ 'same Material 24-unit grid, so at one nominal size their strokes are <b>identical by construction</b>: '+
+ '2 units on the grid, which is 1.50px at 18. Nothing has to be measured or nudged, and nothing drifts if '+
+ 'the size changes later. Every other wallet mark in this sketch, including both bundled SVGs, breaks that '+
+ 'and has to be matched by hand.</p>'+
+ '<p><b>What A costs, and it is not small.</b> <code>Icons.account_balance_wallet_outlined</code> is '+
+ '<em>already the Assets tab</em> on the bottom bar - <code>nav_destinations.dart</code> line 153 - and '+
+ 'that file\'s own comment justifies the reuse on the grounds that <em>"the two are never adjacent - one '+
+ 'is on the bar, the other is a sheet away"</em>. Under A they are not a sheet away: they are both on '+
+ 'screen at once, 700px apart, meaning two different things. Look at the bottom bar in the phone beside '+
+ 'this text; that is the collision, at real size.</p>'+
+ '<p>My reading of the collision: it is a cost and not a defect. The header mark is 18px and unlabelled, '+
+ 'the tab mark is 23px with the word <b>Assets</b> under it, and they are at opposite ends of the screen. '+
+ 'They also mean adjacent things - your holdings, and the wallet those holdings sit in - so a shared glyph '+
+ 'reads as a family rather than as an error. But it is the reason A is not free, and if it bothers Jakub '+
+ 'on device the fix is <b>E</b>, not a new export.</p>',
+
+B:
+ '<h3>B - the bare pair, on the shipping <code>walleticon.svg</code> <span class="tag dead">bundled but dead</span></h3>'+
+ '<p>The 18x18 asset that has been in <code>lib/assets/images/</code> since July, traced verbatim into this '+
+ 'page. It is a <b>solid billfold</b>: a full-bleed rounded body, a cut-out lip across the top, and a small '+
+ 'capsule slot near the right edge.</p>'+
+ '<p><b>Two facts about it that change how much it is worth.</b> First, it is declared in '+
+ '<code>pubspec.yaml</code> line 127 and referenced by <b>zero</b> Dart files - so "reuses a shipping asset" '+
+ 'is really "reuses a bundled asset nothing has ever drawn". It has never been seen on a screen. Second, '+
+ 'rendering it costs one line, because <code>lib/components/gw_icon.dart</code> already wraps '+
+ '<code>SvgPicture.asset</code> with a <code>ColorFilter</code>: <code>GWIcon.svg(\'assets/images/'+
+ 'walleticon.svg\', size: 13.5, color: gw.textPrimary)</code>. The hardcoded white fill is not a blocker.</p>'+
+ '<p><b>Where it loses, and the loss is structural.</b> Its ink covers <b>88.77%</b> of its own box against '+
+ '<code>Icons.menu</code>\'s <b>18.75%</b>. A solid mark and a stroke mark cannot be matched by ink area at '+
+ 'any sensible size: to carry the same ink as <code>menu</code> at 18 this asset would have to render at '+
+ '<b>8.27px</b>. Flip the weight toggle to <b>INK</b> and look at what that does. So B has to be matched by '+
+ 'bounding box instead - 13.5, which is <code>menu</code>@18\'s ink width - and even matched that way it '+
+ 'reads about four times heavier. That is a choice, not a bug: it makes the wallet the dominant object in '+
+ 'the bar. Judge whether you want that.</p>'+
+ '<p>The asset also has no 24-grid padding at all - the artwork runs edge to edge - so its nominal size and '+
+ 'its ink size are the same number. That is what marks it as artwork drawn for a nav <em>button</em> rather '+
+ 'than an icon drawn for an icon slot.</p>',
+
+C:
+ '<h3>C - the split kept: F\'s chip, a generic glyph inside it</h3>'+
+ '<p>The minimum-change option. <code>WalletPill</code> keeps its <code>Material(color: surfaceMenu, shape: '+
+ 'StadiumBorder(side: borderControl))</code> byte for byte and only its child changes. <b>Three lines.</b> '+
+ 'That makes C the cheapest diff on this page, and it is the reason it has to be argued about rather than '+
+ 'dismissed.</p>'+
+ '<h3 class="sec">Does the split survive?</h3>'+
+ '<p>F\'s ground is gone - see the box at the top. Two other grounds exist for keeping the chip, and I do '+
+ 'not think either holds:</p>'+
+ '<p><b>1. Anchoring.</b> The hamburger is pinned to the screen edge by the 16px <code>actions</code> inset. '+
+ 'The wallet floats with <b>135.94px</b> of empty bar to its left. A bare glyph in that position has no '+
+ 'left-hand reference, and a chip gives it one. <b>It does not hold</b>, because the wallet is only 12px '+
+ 'from the hamburger: the two read as one anchored group, not as a floating mark and a pinned one. Turn the '+
+ 'ruler on and look at where the 100.00 sits.</p>'+
+ '<p><b>2. Consequence.</b> Switching wallets changes every number on the screen; opening a menu changes '+
+ 'nothing. The more consequential control could earn more emphasis. <b>It does not hold either</b>, and the '+
+ 'reason is a measurement: in this bar the chip\'s fill is <b>1.11:1</b>, so the only visible part of a chip '+
+ 'is its edge, and <code>borderControl</code>\'s own doc in <code>genius_wallet_colors.dart</code> defines '+
+ 'it as <em>"the edge of a CONTROL whose fill cannot identify it"</em> - an <b>identification</b> token, not '+
+ 'an emphasis one. A bare glyph already identifies at <b>19.29:1</b>, nearly six times the edge\'s 3.30:1. '+
+ 'So the chip buys emphasis using the wrong token, and buys it on the control that needs identification '+
+ 'least.</p>'+
+ '<p><b>Where C genuinely wins.</b> It is the only bare-glyph scheme where the network badge has an edge to '+
+ 'sit on. Turn the badge on and compare C against A: on the chip it reads as attached, on a bare glyph it '+
+ 'floats in empty space. If the badge must stay, C or D is the honest answer and A is not.</p>',
+
+D:
+ '<h3>D - the chip pair, both controls containered</h3>'+
+ '<p>183 scheme <b>A</b>, revisited now that the value asymmetry is gone. If the two controls really are the '+
+ 'same kind of object, giving them the same container is at least consistent - and it is the only scheme '+
+ 'here where an untrained eye can tell at a glance that there are two buttons.</p>'+
+ '<p><b>The defect 183 measured, unchanged.</b> Two identical 44px stadiums 12px apart at a 56px pitch read '+
+ 'as a <b>segmented control</b> - one object with two halves - rather than as two objects. The ink gap is '+
+ '<b>12.00</b> in D against <b>25.00</b> in C and <b>up to 31.00</b> in the bare pairs, so the treatment '+
+ 'moves the apparent separation by a factor of 2.6 while the touch geometry never moves. Turn the 44pt '+
+ 'targets on: the boxes are identical in every scheme, which is exactly the point.</p>'+
+ '<p><b>The one thing D is best at.</b> The badge. A 16px disc tangent to the bottom-right of a 44px ring is '+
+ 'the oldest badge position there is and it reads immediately. If chain identity has to stay in the bar, D '+
+ 'is the treatment that hosts it most comfortably, and it costs the segmented-control read to get it.</p>'+
+ '<p>D also re-adds what F deliberately deleted: <code>HeaderMenuButton</code> would need a '+
+ '<code>Material</code> / <code>StadiumBorder</code> wrapper, about ten lines, plus the class doc that '+
+ 'currently forbids exactly this.</p>',
+
+E:
+ '<h3>E - the bare pair, on a person mark <span class="tag ship">no new asset</span></h3>'+
+ '<p><code>Icons.person_outline</code> beside <code>Icons.menu</code>. Same Material grid, so the same '+
+ 'stroke-by-construction guarantee A gets, and it is <b>ink-matched almost exactly</b> without tuning: '+
+ '57.63 against 60.75 square px at 18/18, <b>5.1% apart</b>. It is the best-balanced pair on this page, and '+
+ 'it is the only one that solves all three of A\'s constraints at once - stroke-matched, unique in the '+
+ 'shell, and no new export. Nothing else in the phone shell draws a person.</p>'+
+ '<p><b>What is wrong with it, and it is enough to lose.</b> It names the wrong thing. The sheet behind '+
+ 'this control is <code>AccountDrawer.show(context, includeNetwork: true)</code> - wallets and chains. A '+
+ 'person mark promises a <em>profile</em>: name, photo, preferences. This app has none of that, and '+
+ 'Settings is already one row inside the other sheet. E is a nicer pair that answers a question the user '+
+ 'did not ask.</p>'+
+ '<p>It is also not what Jakub asked for. The words were <em>"pokazal wallet icon"</em>. E is filed because '+
+ 'the alternative reading is real - most consumer apps do put an account avatar in this exact corner, and '+
+ 'the control this replaces <em>was</em> an avatar - so it deserves to be seen once rather than argued '+
+ 'about from memory. There is also a shipping asset for it, <code>profileicon.png</code> at 33x33, though '+
+ 'see the inventory tab for why that file cannot be used.</p>'
+};
+
+/* ---- the compare strip: six real 390-wide bars, 1:1 ---- */
+function comparePane(){
+  var h = '<div class="cols"><div class="cmp">';
+  for (var i=0;i<VARIANTS.length;i++){
+    var v = VARIANTS[i];
+    var g = v.glyph === 'avatar' ? 'AccountAvatar 32 + badge'
+          : v.glyph === 'walleticon' ? 'walleticon.svg @ '+SIZE[ST.wt].walleticon
+          : (v.glyph === 'person' ? 'person_outline' : 'account_balance_wallet_outlined')+' @ '+SIZE[ST.wt][v.glyph];
+    h += '<div class="cmpitem"><div class="cmplbl">'+v.id.toUpperCase()+' &nbsp;<em>'+esc(v.tab)+
+         '</em> &nbsp;&middot;&nbsp; '+esc(g)+' &nbsp;&middot;&nbsp; '+
+         (v.wchip?'chip':'bare')+' + '+(v.mchip?'chip':'bare')+'</div>'+
+         '<div class="cmpbar" style="width:390px">'+barHTML(v)+'</div></div>';
+  }
+  h += '</div><div class="notes">'+
+  '<h3>Six bars, real size, one on top of the other</h3>'+
+  '<p>Same 390pt width, same 60px bar, same 100.00 cluster, same 135.94 of free space. Every difference you '+
+  'can see below is a difference in the <b>pair</b>, because nothing else is allowed to move.</p>'+
+  '<p>Read them in this order. <b>Now</b> against <b>A</b> is the whole of Jakub\'s request: a coloured disc '+
+  'carrying a coin picture becomes a white outline carrying nothing. <b>A</b> against <b>C</b> is the '+
+  'question the top of this page raises - is the chip still earned. <b>A</b> against <b>B</b> is solid '+
+  'versus stroke. <b>C</b> against <b>D</b> is whether a matching pair reads as two buttons or as one '+
+  'segmented control.</p>'+
+  '<h3 class="sec">The two weight-match modes, and what each is for</h3>'+
+  '<table><tr><th>Mode</th><th>Menu</th><th>Wallet (billfold)</th><th>Person</th><th>walleticon.svg</th></tr>'+
+  '<tr><td><b>BOX</b> - one nominal size</td><td class="num">18</td><td class="num">18</td>'+
+  '<td class="num">18</td><td class="num">13.5</td></tr>'+
+  '<tr><td>ink area, px&sup2;</td><td class="num">60.75</td><td class="num">99.65</td>'+
+  '<td class="num">57.63</td><td class="num">161.78</td></tr>'+
+  '<tr><td><b>INK</b> - one ink area</td><td class="num">20</td><td class="num">16</td>'+
+  '<td class="num">20</td><td class="num">9</td></tr>'+
+  '<tr><td>ink area, px&sup2;</td><td class="num">75.00</td><td class="num">78.73</td>'+
+  '<td class="num">71.15</td><td class="num">71.90</td></tr></table>'+
+  '<p><b>BOX</b> is what the codebase does today: pick a nominal size and let the glyphs land where they '+
+  'land. It is right whenever both marks come off the same grid, because then the stroke matches for free '+
+  'and the eye reads stroke before area. <b>INK</b> equalises the painted area at the geometric mean of '+
+  'the BOX pair, 77.80 px&sup2;, and both of its numbers happen to land on the 4-pt grid - menu 20, wallet '+
+  '16. It is right when the marks come off different grids.</p>'+
+  '<p><b>The rule this sketch arrives at: match CLASS first, then bounding box, then area.</b> Two stroke '+
+  'marks at one nominal size need nothing else. A solid mark next to a stroke mark can only ever be matched '+
+  'on box, and will always read heavier - INK mode drives <code>walleticon.svg</code> down to <b>9px</b> '+
+  'trying, which is the proof rather than a bug. Flip the toggle and watch B.</p>'+
+  '<h3 class="sec">Geometry, held to the pixel in all six</h3>'+
+  '<table><tr><th>Held constant</th><th>Value</th></tr>'+
+  '<tr><td>title Row at 390pt - <code>AppBar</code> charges <code>titleSpacing</code> on BOTH sides</td>'+
+  '<td class="num">342.00</td></tr>'+
+  '<tr><td><code>BrandLockup</code>, mark 28 / wordmark 18</td><td class="num">106.06</td></tr>'+
+  '<tr><td>wallet control</td><td class="num">44.00 x 44.00</td></tr>'+
+  '<tr><td>gap, <code>space6</code></td><td class="num">12.00</td></tr>'+
+  '<tr><td>menu control</td><td class="num">44.00 x 44.00</td></tr>'+
+  '<tr><td><b>cluster</b></td><td class="num"><b>100.00</b></td></tr>'+
+  '<tr><td>free space left in the title Row</td><td class="num">135.94</td></tr></table>'+
+  '<p>342 and not 358, because <code>NavigationToolbar</code> lays the middle slot at <code>width - leading '+
+  '- trailing - middleSpacing * 2</code>. Both controls stay in <code>title</code> and not in '+
+  '<code>actions</code>: in <code>actions</code> the title Row drops to 246.00 and the BRAND becomes the '+
+  'thing that shrinks under Dynamic Type, which is backwards.</p>'+
+  '</div></div>';
+  return h;
+}
+
+/* ---- the glyph inventory ---- */
+function invPane(){
+  function cell(art, name, tag, meta){
+    return '<div class="gcell"><div class="gart">'+art+'</div><div class="gname">'+name+'</div>'+
+           '<div class="gmeta">'+tag+meta+'</div></div>';
+  }
+  var h = '<div class="ginv">';
+  h += cell(mat('wallet_abw',24)+mat('wallet_abw',18),
+      'Icons.account_balance_wallet_outlined',
+      '<span class="tag ship">in use</span>',
+      'Outlined billfold with a card compartment and a dot. <b>Ink 30.75%</b>, bbox 18.98 x 18.00, stroke 2 '+
+      'units. Already the Assets tab (<code>nav_destinations.dart</code>:153), the More sheet Accounts row, '+
+      'and two empty states. Viable at 18 and at 24. <b>Used by A, C, D.</b>');
+  h += cell(mat('person',24)+mat('person',18),
+      'Icons.person_outline',
+      '<span class="tag ship">free</span>',
+      'Outlined bust. <b>Ink 17.79%</b>, bbox 16.03 x 16.03. Nearly ink-identical to <code>Icons.menu</code> '+
+      '(17.79% against 18.75%). Unused anywhere in the phone shell, so no collision. Viable at any header '+
+      'size. <b>Used by E.</b>');
+  h += cell(mat('menu',24)+mat('menu',18),
+      'Icons.menu',
+      '<span class="tag ship">shipped</span>',
+      'Three bars. <b>Ink 18.75%</b>, bbox 18.00 x 12.00 - a wide, flat mark, so it can never match a square '+
+      'wallet mark on bbox height. That is idiomatic: SF <code>line.3.horizontal</code> is 17 x 11 in a 20 '+
+      'box. Match the width and the stroke, not the height.');
+  h += cell(svgAsset('walleticon',24)+svgAsset('walleticon',18),
+      'walleticon.svg',
+      '<span class="tag dead">0 refs</span>',
+      '18x18 SOLID billfold, artwork edge to edge, fill hardcoded <code>#FFFFFF</code>. <b>Ink 88.77%</b>. '+
+      'In <code>pubspec.yaml</code>:127 and referenced by no Dart file. Drawn for a nav button, not an icon '+
+      'slot. Viable at 24 only if you want the wallet to dominate. <b>Used by B.</b>');
+  h += cell(svgAsset('navwallet',24)+svgAsset('navwallet',18),
+      'navwalletbuttoncustom.svg',
+      '<span class="tag dead">0 refs</span>',
+      '18x18 card-stack, solid, filled with <b>a third gradient</b>: #00A9FE to #00F4A8, which is neither '+
+      '<code>brandCta</code> (#0AD89C to #0AAEE6) nor <code>brandBorder</code> (#14C8FF to #5BFFD0). '+
+      '<b>Ink 74.59%</b>. Rejected: a gradient-filled header control is a lone secondary action wearing the '+
+      'app signature, which the CTA weight rule refuses in as many words.');
+  h += cell('<img src="'+PNG_ACTIVE+'" width="36" height="36" alt="">'+
+      '<img src="'+PNG_CUSTOM+'" width="24" height="24" alt="">',
+      'navwalletbuttonactive.png / navwalletbuttoncustom.png',
+      '<span class="tag new">not viable</span>',
+      '18x18 and 16x16 rasters with <b>no @2x or @3x</b> anywhere in the repo. At 24pt on a 3x iPhone that '+
+      'is a 4.5x upscale from a 16px source. The 16px pair is also hardcoded <code>#43444B</code>, which '+
+      'measures <b>1.99:1</b> on the bar - invisible untinted. Both are 0-ref.');
+  h += cell(svgAsset('copywallet',24),
+      'copywalletsymbol.svg',
+      '<span class="tag new">misnamed</span>',
+      '14x16, and it is <b>not a wallet</b>: two stacked documents, i.e. a COPY glyph. The filename lies. '+
+      'Drawn here at 24 so that is checkable rather than assumed. 0 refs.');
+  h += cell('<img src="'+PNG_PROFILE+'" width="33" height="33" alt="">',
+      'profileicon.png',
+      '<span class="tag new">not viable</span>',
+      '33x33 person bust, hardcoded <code>#43444B</code> (<b>1.99:1</b> on the bar), 0 refs, no @2x/@3x. '+
+      '<code>Icons.person_outline</code> is the same idea, vector, tintable and free. If E ever wins, it '+
+      'wins on the Material glyph and this file stays dead.');
+  h += '</div>';
+
+  h += '<div class="notes" style="max-width:1040px">'+
+  '<h3>What the bundled wallet art is actually worth</h3>'+
+  '<p>The brief\'s standing rule is that a treatment reusing a shipping asset beats one needing a new '+
+  'export. That rule is <b>weaker here than it looks</b>, and the reason is one grep: <code>walleticon.svg</code>, '+
+  '<code>navwalletbuttoncustom.svg</code>, <code>navwalletbuttoncustom.png</code>, '+
+  '<code>navwalletbuttoncustom2.png</code>, <code>navwalletbuttonactive.png</code>, '+
+  '<code>copywalletsymbol.svg</code> and <code>profileicon.png</code> appear in <code>pubspec.yaml</code> '+
+  'and in <b>no Dart file at all</b>. They are bundled into every build and drawn by nothing. So "reuse" '+
+  'means adopting art nobody has ever seen on a screen, not continuing something the app already does.</p>'+
+  '<p><b>The thing that IS worth reusing is the Material set</b>, because it is genuinely in service: the '+
+  'Assets tab, the Accounts row and two empty states all already draw '+
+  '<code>Icons.account_balance_wallet_outlined</code>, and the house wrapper '+
+  '<code>lib/components/gw_icon.dart</code> exists precisely so call sites stop mixing <code>Icons.*</code>, '+
+  '<code>SvgPicture.asset</code> and <code>Image.asset</code>.</p>'+
+  '<h3 class="sec">A trap worth writing down: <code>Icons.wallet_outlined</code> is not outlined</h3>'+
+  '<p>The obvious move - a Material glyph that says wallet and does not collide with the Assets tab - is '+
+  '<code>Icons.wallet_outlined</code>. It exists in the pinned SDK at <code>0xf0724</code>. It is a '+
+  '<b>trap</b>: extracting both glyphs from <code>MaterialIcons-Regular.otf</code> and comparing the '+
+  'outlines shows <code>Icons.wallet_outlined</code> and <code>Icons.wallet</code> are the <b>same 330-'+
+  'character path</b>, byte for byte. Both render a solid 40.85%-coverage mark. There is no outlined '+
+  'variant of that glyph in the shipped font, and pairing it with a stroke hamburger has the same problem '+
+  'as B with none of B\'s excuse. Recorded so it is not proposed later as new.</p>'+
+  '<h3 class="sec">How the ink numbers on this page were produced</h3>'+
+  '<p>Not eyeballed and not estimated from the path string. Each outline was pulled from the shipping font '+
+  'or the shipping SVG, rasterised at 960px on its own viewBox, and the opaque pixels counted, then scaled '+
+  'back to the glyph\'s own grid. That handles holes and counters correctly, which a signed-area walk of '+
+  'the contours does not - the first attempt at this reported the FILLED billfold as lighter than the '+
+  'OUTLINED one, which is impossible, and rasterising is what caught it.</p>'+
+  '</div>';
+  return h;
+}
+
+function variantPane(v){
+  var h = '<div class="cols">';
+  h += phoneHTML(v);
+  h += '<div class="notes">';
+  h += PROSE[v.id];
+  h += '<h3 class="sec">Optical weight, measured</h3>';
+  h += measureTable(v);
+  h += '<h3 class="sec">Contrast, composited then measured</h3>';
+  h += contrastTable(v);
+  h += '<h3 class="sec">The network badge in this scheme</h3>';
+  if (v.glyph === 'avatar'){
+    h += '<p>Shipped position: bottom-right of the 32px avatar, so it sits 6px inside the 44 box and never '+
+         'touches the edge. It reads because it is attached to a disc.</p>';
+  } else if (v.wchip){
+    h += '<p><b>It reads.</b> With a container, the badge sits at the bottom-right of the 44px ring - the '+
+         'oldest badge position there is - and the ring gives it something to be attached to. This is the '+
+         'one axis on which the container earns its keep.</p>';
+  } else {
+    h += '<p><b>It floats, and I would drop it.</b> With no container there is nothing for a 16px disc to '+
+         'hang off: it lands in empty bar roughly 10 to 14px from the glyph\'s ink and reads as a third '+
+         'object beside two icons rather than as a badge on one. Turn the badge on above and judge it '+
+         'directly. Where chain identity goes instead is on the README\'s "what is lost" list.</p>';
+  }
+  h += '<h3 class="sec">The diff against what shipped today</h3>';
+  var diff = {
+    now:  ['nothing','This is the current file.'],
+    A:    ['about 6 lines in <code>WalletPill</code>','Drop <code>color</code>, <code>shape</code> and '+
+           '<code>clipBehavior</code> from the <code>Material</code> (keep the Material itself with '+
+           '<code>color: Colors.transparent, shape: const CircleBorder()</code> so the ripple still clips '+
+           'round), and swap the <code>Padding</code> + <code>AccountAvatar</code> child for '+
+           '<code>Icon(Icons.account_balance_wallet_outlined, size: 18, color: gw.textPrimary)</code>. '+
+           '<code>HeaderMenuButton</code> is untouched. No new token, no new component, no new asset.'],
+    B:    ['about 7 lines in <code>WalletPill</code>','As A, but the child is '+
+           '<code>GWIcon.svg(\'assets/images/walleticon.svg\', size: 13.5, color: gw.textPrimary)</code> '+
+           'plus one import of <code>gw_icon.dart</code>. <code>flutter_svg</code> is already a dependency '+
+           'and <code>GWIcon</code> already applies the <code>ColorFilter</code>.'],
+    C:    ['3 lines in <code>WalletPill</code>','Only the child changes. The <code>Material</code> / '+
+           '<code>StadiumBorder</code> / <code>borderControl</code> decoration stays byte for byte. '+
+           '<b>The cheapest diff on this page.</b>'],
+    D:    ['C, plus about 10 lines in <code>HeaderMenuButton</code>','The menu button gains the '+
+           '<code>Material</code> / <code>StadiumBorder(borderControl)</code> wrapper that scheme F '+
+           'deliberately deleted, and its class doc - which currently forbids exactly this in four '+
+           'paragraphs - has to be rewritten.'],
+    E:    ['about 6 lines in <code>WalletPill</code>','Identical to A with a different '+
+           '<code>IconData</code>: <code>Icons.person_outline</code>.']
+  }[v.id];
+  h += '<table><tr><th>Size</th><th>What moves</th></tr><tr><td><b>'+diff[0]+'</b></td><td>'+diff[1]+
+       '</td></tr></table>';
+  if (v.id !== 'now'){
+    h += '<p><b>The cost every scheme shares, and it is not in the diff line count.</b> Three doc comments '+
+         'in <code>mobile_header.dart</code> currently state F\'s rationale as fact - '+
+         '<code>WalletPill</code>\'s class doc, the <code>Material</code> comment inside it, and '+
+         '<code>HeaderMenuButton</code>\'s "THE SPLIT IS THE WHOLE OF SCHEME F" block. All three become '+
+         'false the moment the avatar leaves. Rewriting them is the real work in this change, and leaving '+
+         'them is how the next reader restores a border on an argument that expired.</p>';
+    h += '<p>Also unchanged in every scheme: the <code>semanticLabel</code> block. It is the only place in '+
+         'the header that names the wallet or the chain in words, and it becomes <em>more</em> load-bearing '+
+         'once the avatar goes, not less. It must survive byte for byte.</p>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+/* ---- render ---- */
+function segHTML(id, opts, cur){
+  var h = '';
+  for (var i=0;i<opts.length;i++){
+    h += '<button data-seg="'+id+'" data-val="'+opts[i][0]+'"'+
+         (opts[i][0]===cur?' class="on"':'')+'>'+opts[i][1]+'</button>';
+  }
+  return h;
+}
+function renderControls(){
+  document.getElementById('segwal').innerHTML = segHTML('wal',
+    [['short','Main wallet'],['sdk','SDK 1'],['long','Long name'],['addr','Address-shaped'],['none','NO WALLET']], ST.wal);
+  var nopts = [];
+  for (var i=0;i<NETWORKS.length;i++) nopts.push([NETWORKS[i].id, NETWORKS[i].name]);
+  document.getElementById('segnet').innerHTML = segHTML('net', nopts, ST.net);
+  document.getElementById('segbadge').innerHTML = segHTML('badge',[['off','off'],['on','on']], ST.badge);
+  document.getElementById('segwt').innerHTML = segHTML('wt',[['BOX','BOX - one size'],['INK','INK - one area']], ST.wt);
+  document.getElementById('segtt').innerHTML = segHTML('tt',[['off','off'],['on','on']], ST.tt);
+  document.getElementById('segrul').innerHTML = segHTML('rul',[['off','off'],['on','on']], ST.rul);
+  var t = '';
+  for (var j=0;j<TABS.length;j++){
+    t += '<button class="tab'+(TABS[j].id===ST.tab?' on':'')+'" data-tab="'+TABS[j].id+'">'+
+         esc(TABS[j].tab)+'</button>';
+  }
+  document.getElementById('tabs').innerHTML = t;
+  document.getElementById('hint').innerHTML =
+    'Tap either control on a phone to open the sheet behind it. <b>Wallet</b> proves the point that a '+
+    'generic glyph cannot make: switch between <b>Main wallet</b> and <b>SDK 1</b> - both ETH - and watch '+
+    'how little the shipped header on the Now tab changes even today. <b>NO WALLET</b> is the one state '+
+    'every scheme still renders differently, because <code>_NoWalletAvatar</code> survives all of them.';
+}
+function renderPanes(){
+  var h = '';
+  for (var i=0;i<TABS.length;i++){
+    var id = TABS[i].id;
+    var inner;
+    if (id === 'cmp')      inner = comparePane();
+    else if (id === 'inv') inner = invPane();
+    else {
+      var v = null;
+      for (var k=0;k<VARIANTS.length;k++){ if (VARIANTS[k].id === id) v = VARIANTS[k]; }
+      inner = variantPane(v);
+    }
+    h += '<div class="pane'+(id===ST.tab?' on':'')+'" data-pane="'+id+'">'+inner+'</div>';
+  }
+  document.getElementById('panes').innerHTML = h;
+}
+function render(){ renderControls(); renderPanes(); }
+
+document.addEventListener('click', function(ev){
+  var t = ev.target;
+  while (t && t !== document.body){
+    if (t.getAttribute){
+      var tab = t.getAttribute('data-tab');
+      if (tab){ ST.tab = tab; render(); return; }
+      var seg = t.getAttribute('data-seg');
+      if (seg){ ST[seg] = t.getAttribute('data-val'); render(); return; }
+      var act = t.getAttribute('data-act');
+      if (act === 'wallet' || act === 'more'){
+        var v = t.getAttribute('data-v');
+        SHEET[v] = (SHEET[v] === (act==='wallet'?'wallet':'more'))
+                 ? null : (act==='wallet'?'wallet':'more');
+        render(); return;
+      }
+      if (act === 'close'){ SHEET[t.getAttribute('data-v')] = null; render(); return; }
+      if (act === 'net'){ ST.net = t.getAttribute('data-net'); render(); return; }
+      if (act === 'wal'){ ST.wal = t.getAttribute('data-wal'); render(); return; }
+    }
+    t = t.parentNode;
+  }
+});
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Sketch 173 — Wariant A, prototyp interaktywny</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{
+  /* REAL tokens, lifted verbatim from lib/theme/genius_wallet_colors.dart (dark) */
+  --surfaceBase:#0B0D12; --surfaceElevated:#0C0E14; --surfaceMenu:#171A21; --surfaceSunken:#06080C;
+  --textPrimary:#FFFFFF; --textPrimary80:rgba(255,255,255,.80); --textPrimary60:rgba(255,255,255,.60);
+  --textPrimary38:rgba(255,255,255,.38); --textSecondary:#8A8F9D;
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24); --borderControl:rgba(255,255,255,.36);
+  --brandPrimary:#14C8FF; --brandPrimaryStrong:#0AAEE6; --brandSecondary:#2BF5B4; --brandSecondaryStrong:#0AD89C;
+  --statusError:#FF4D4D; --statusWarning:#FFC42E;
+  /* spacing tokens, genius_wallet_consts.dart */
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px; --s20:40px;
+  --rXs:4px; --rSm:8px; --rBase:10px; --rMd:12px; --rLg:15px; --r2xl:16px; --rXl:24px; --rPill:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05070A;color:var(--textPrimary);font:400 15px/1.5 Inter,system-ui,-apple-system,sans-serif;padding:0 0 120px}
+a{color:var(--brandPrimary)}
+code{font:12px/1.4 'JetBrains Mono',ui-monospace,monospace;background:var(--surfaceMenu);padding:1px 5px;border-radius:var(--rXs);color:var(--brandSecondary)}
+
+/* ---------- page chrome ---------- */
+.wrap{max-width:1700px;margin:0 auto;padding:0 var(--s12)}
+.skhead{border-bottom:1px solid var(--borderSubtle);padding:var(--s16) 0 0;margin-bottom:var(--s12);position:sticky;top:0;background:#05070A;z-index:50}
+.skhead h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.skhead p{color:var(--textSecondary);max-width:105ch;margin-top:var(--s4);font-size:14px}
+.tabs{display:flex;gap:var(--s3);margin-top:var(--s10);flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:9px var(--s10);border-radius:var(--rSm) var(--rSm) 0 0;font:600 13px Inter,sans-serif;cursor:pointer;border-bottom:none}
+.tab:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.35);color:var(--textPrimary)}
+.tab[aria-selected=true]{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--borderStrong);position:relative}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));border-radius:3px 3px 0 0;box-shadow:0 0 10px rgba(20,200,255,.5)}
+.panel{display:none}
+.panel.on{display:block}
+
+/* ---------- layout ---------- */
+.cols{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s12) 0}
+.notes{flex:1 1 420px;min-width:380px;max-width:760px}
+.h2{font-size:19px;font-weight:650;margin:var(--s12) 0 var(--s4);letter-spacing:-.01em}
+.h3{font-size:14px;font-weight:650;text-transform:uppercase;letter-spacing:.08em;color:var(--textSecondary);margin:var(--s12) 0 var(--s4)}
+.lead{color:var(--textPrimary80);font-size:14.5px}
+.notes p{margin:var(--s4) 0;color:var(--textPrimary80);font-size:14px}
+.notes li{margin:var(--s3) 0;color:var(--textPrimary80);font-size:14px}
+.notes ul{padding-left:var(--s10)}
+
+/* ---------- provenance ---------- */
+.tag{display:inline-block;font:700 9.5px/1 Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 6px;border-radius:var(--rXs);vertical-align:middle;white-space:nowrap}
+.t-ex{background:rgba(43,245,180,.14);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.4)}
+.t-ad{background:rgba(255,196,46,.14);color:var(--statusWarning);border:1px solid rgba(255,196,46,.4)}
+.t-new{background:rgba(255,77,77,.14);color:#FF8A8A;border:1px solid rgba(255,77,77,.4)}
+.legend{display:flex;gap:var(--s10);flex-wrap:wrap;align-items:center;padding:var(--s6) 0 var(--s12);
+  border-bottom:1px solid var(--borderSubtle);margin-bottom:var(--s6)}
+.legend span{font-size:12.5px;color:var(--textSecondary)}
+
+/* ---------- phone ---------- */
+.stage{flex:0 0 auto;display:flex;gap:var(--s16);flex-wrap:wrap}
+.phonewrap{flex:0 0 auto}
+.phonecap{font:600 12px Inter,sans-serif;color:var(--textSecondary);margin-bottom:var(--s4);text-align:center;letter-spacing:.04em}
+.phone{width:390px;height:844px;background:var(--surfaceBase);border:9px solid #1b1e26;border-radius:46px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1b1e26;
+  border-radius:0 0 18px 18px;z-index:9}
+.sbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s10) 0 var(--s16);font:600 13px Inter;color:var(--textPrimary)}
+.sbar .r{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--textPrimary80)}
+.scr{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
+.scr::-webkit-scrollbar{width:4px}.scr::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+
+/* app bar */
+.appbar{flex:0 0 auto;height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s8);border-bottom:1px solid var(--borderSubtle);background:var(--surfaceElevated)}
+.appbar .title{font:600 17px Inter}
+.track{display:flex;align-items:center;gap:2px;background:var(--surfaceSunken);border:1px solid var(--borderSubtle);
+  border-radius:var(--rPill);padding:3px 6px}
+.trackchip{font:600 10px Inter;color:var(--textPrimary80);padding:3px 5px;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.trackdiv{width:1px;height:16px;background:var(--borderSubtle)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--brandSecondary);flex:0 0 auto}
+
+/* content blocks */
+.pad{padding:var(--s8) var(--s8) 0}
+.kick{font:700 10.5px Inter;letter-spacing:.11em;text-transform:uppercase;color:var(--textSecondary)}
+.sect{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.sect h4{font:650 17px Inter;letter-spacing:-.01em}
+.card{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s10);background-image:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0))}
+.bignum{font:650 30px/1 Inter;letter-spacing:-.02em}
+.unit{font:700 11px Inter;color:var(--textSecondary);letter-spacing:.06em}
+.cta{display:block;width:100%;text-align:center;border:none;border-radius:var(--rPill);padding:13px;
+  font:650 14px Inter;color:#00131f;background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));cursor:pointer}
+.cta.ghost{background:transparent;border:1px solid var(--borderControl);color:var(--textPrimary)}
+.row{display:flex;align-items:center;gap:var(--s6);padding:var(--s6) var(--s8)}
+.ico{width:40px;height:40px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font:700 13px Inter;color:#001}
+.row .mid{flex:1 1 auto;min-width:0}
+.row .nm{font:600 14.5px Inter;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{font-size:12.5px;color:var(--textSecondary);display:flex;gap:6px;align-items:center}
+.up{color:var(--brandSecondary);font-weight:600}
+.row .rt{text-align:right;flex:0 0 auto}
+.dim{color:var(--textPrimary38)}         /* current shipped value colour — FAILS AA */
+.fixed{color:var(--textPrimary80)}       /* proposed */
+.hr{height:1px;background:var(--borderSubtle);margin:0 var(--s8)}
+
+/* bottom navs */
+.bn{flex:0 0 auto;border-top:1px solid var(--borderSubtle);background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,0)),var(--surfaceElevated);
+  display:flex;padding:var(--s3) 0 var(--s10)}
+.bi{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:var(--s3) 2px;cursor:pointer;position:relative}
+.bi svg{width:23px;height:23px;stroke:var(--textSecondary);fill:none;stroke-width:1.9}
+.bi span{font:500 10px Inter;color:var(--textSecondary);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bi.on svg{stroke:var(--brandPrimaryStrong)}
+.bi.on span{color:var(--brandPrimaryStrong);font-weight:600}
+.bi.on::before{content:"";position:absolute;top:-3px;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));box-shadow:0 0 10px rgba(20,200,255,.55)}
+.bn.eight .bi span{font-size:9px}
+
+/* fab */
+.fab{position:absolute;right:20px;bottom:96px;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(160deg,var(--brandPrimary),var(--brandSecondary));display:grid;place-items:center;
+  box-shadow:0 6px 24px rgba(20,200,255,.45);z-index:8}
+/* center dock action */
+.dock{width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;margin-top:-26px;
+  background:linear-gradient(160deg,var(--brandPrimary),var(--brandSecondary));display:grid;place-items:center;
+  box-shadow:0 6px 22px rgba(20,200,255,.45),0 0 0 5px var(--surfaceElevated)}
+
+/* sheet */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surfaceMenu);border-top:1px solid var(--borderStrong);
+  border-radius:var(--rXl) var(--rXl) 0 0;padding:var(--s6) 0 var(--s16);transform:translateY(101%);
+  transition:transform .28s cubic-bezier(.32,.72,0,1);z-index:20}
+.sheet.open{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--borderStrong);margin:var(--s3) auto var(--s8)}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:19}
+.scrim.open{opacity:1;pointer-events:auto}
+.srow{display:flex;align-items:center;gap:var(--s8);padding:13px var(--s12);cursor:pointer}
+.srow:hover{background:rgba(255,255,255,.05)}
+.srow svg{width:21px;height:21px;stroke:var(--textPrimary80);fill:none;stroke-width:1.9}
+.srow span{font:500 15px Inter}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4);padding:0 var(--s10)}
+.sgi{display:flex;flex-direction:column;align-items:center;gap:var(--s3);padding:var(--s8) 2px;border-radius:var(--rMd);cursor:pointer}
+.sgi:hover{background:rgba(255,255,255,.06)}
+.sgi svg{width:24px;height:24px;stroke:var(--textPrimary);fill:none;stroke-width:1.8}
+.sgi span{font:500 11px Inter;color:var(--textPrimary80)}
+
+/* chip rail */
+.rail{display:flex;gap:var(--s4);overflow-x:auto;padding:var(--s4) var(--s8) var(--s6);scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;display:flex;align-items:center;gap:5px;padding:7px var(--s8);border-radius:var(--rPill);
+  border:1px solid var(--borderSubtle);background:var(--surfaceSunken);font:600 12px Inter;color:var(--textPrimary80);cursor:pointer;white-space:nowrap}
+.chip:hover{background:rgba(20,200,255,.08);border-color:rgba(20,200,255,.45);color:var(--textPrimary)}
+.chip svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* wallet header */
+.whead{padding:var(--s10) var(--s8) var(--s6)}
+.wid{display:flex;align-items:center;gap:var(--s6)}
+.wav{width:36px;height:36px;border-radius:50%;background:linear-gradient(140deg,var(--brandPrimary),var(--brandSecondary));flex:0 0 auto}
+.waddr{font:500 11.5px 'JetBrains Mono',monospace;color:var(--textSecondary)}
+
+/* annotations */
+.ann{position:absolute;background:rgba(255,77,77,.92);color:#fff;font:700 10px Inter;padding:2px 6px;border-radius:3px;z-index:30;white-space:nowrap}
+.ann.ok{background:rgba(43,245,180,.92);color:#00291d}
+.measure{position:absolute;border:1px dashed rgba(255,77,77,.8);z-index:29;pointer-events:none}
+body.noann .ann,body.noann .measure{display:none}
+
+/* tables */
+table{border-collapse:collapse;width:100%;margin:var(--s6) 0;font-size:13px}
+th,td{text-align:left;padding:7px var(--s6);border-bottom:1px solid var(--borderSubtle);vertical-align:top}
+th{color:var(--textSecondary);font:700 10.5px Inter;letter-spacing:.08em;text-transform:uppercase}
+td.n{color:var(--textPrimary80)}
+.pass{color:var(--brandSecondary);font-weight:700}
+.fail{color:var(--statusError);font-weight:700}
+
+/* callouts */
+.call{border-left:3px solid var(--statusError);background:rgba(255,77,77,.07);padding:var(--s6) var(--s10);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s6) 0}
+.call.good{border-color:var(--brandSecondary);background:rgba(43,245,180,.07)}
+.call.warn{border-color:var(--statusWarning);background:rgba(255,196,46,.07)}
+.call b{color:var(--textPrimary)}
+.rec{border:1px solid rgba(43,245,180,.45);background:rgba(43,245,180,.08);border-radius:var(--rLg);padding:var(--s10) var(--s12);margin:var(--s12) 0}
+.rec h3{font-size:17px;margin-bottom:var(--s4)}
+
+/* toolbar */
+#sketch-tools{position:fixed;bottom:12px;right:12px;z-index:9999;font:12px system-ui;background:rgba(0,0,0,.82);
+  color:#fff;padding:8px 12px;border-radius:8px;opacity:.45;transition:opacity .2s;display:flex;gap:10px;align-items:center}
+#sketch-tools:hover{opacity:1}
+#sketch-tools button,#sketch-tools select{font:12px system-ui;background:#1b1e26;color:#fff;border:1px solid #333;border-radius:5px;padding:3px 7px;cursor:pointer}
+</style>
+</head>
+<body>
+<style>
+.appshell{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s12) 0}
+#screen{flex:1 1 auto;overflow-y:auto;overflow-x:hidden}
+#screen::-webkit-scrollbar{width:4px}#screen::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+.tapz{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tapz:active{background:rgba(255,255,255,.06)}
+.navbtn{display:flex;align-items:center;gap:var(--s4);font:600 13px Inter;color:var(--brandPrimary);cursor:pointer;padding:var(--s6) var(--s8)}
+.navbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2.4}
+.wsel{display:flex;align-items:center;gap:var(--s6);cursor:pointer;padding:var(--s3) var(--s4);border-radius:var(--rMd)}
+.wsel:hover{background:rgba(255,255,255,.06)}
+.caret{width:14px;height:14px;stroke:var(--textSecondary);fill:none;stroke-width:2.4;flex:0 0 auto}
+.wrow{display:flex;align-items:center;gap:var(--s8);padding:12px var(--s12);cursor:pointer}
+.wrow:hover{background:rgba(255,255,255,.05)}
+.wrow.sel{background:rgba(20,200,255,.10)}
+.check{width:19px;height:19px;stroke:var(--brandPrimary);fill:none;stroke-width:2.6;flex:0 0 auto}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:110px;background:var(--surfaceMenu);
+  border:1px solid var(--borderStrong);color:var(--textPrimary);font:600 12.5px Inter;padding:9px 16px;
+  border-radius:var(--rPill);opacity:0;transition:opacity .25s;pointer-events:none;z-index:40;white-space:nowrap}
+.toast.on{opacity:1}
+.log{background:var(--surfaceSunken);border:1px solid var(--borderSubtle);border-radius:var(--rSm);
+  padding:var(--s6);font:11.5px/1.7 'JetBrains Mono',monospace;color:var(--textPrimary80);max-height:300px;overflow:auto}
+.log b{color:var(--brandSecondary)}
+.empty{padding:var(--s20) var(--s12);text-align:center;color:var(--textPrimary60);font-size:13.5px}
+</style>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 17l5-6 4 3 5-7 4 4"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+<symbol id="i-news" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 3 2.6 15 0 18M12 3c-2.6 3-2.6 15 0 18"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></symbol>
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+<symbol id="i-recv" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+<symbol id="i-buy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h5M9.5 14.5h5"/></symbol>
+<symbol id="d-swap" viewBox="0 0 24 24"><path d="M7 4v15M7 19l-3.4-3.4M7 19l3.4-3.4M17 20V5M17 5l-3.4 3.4M17 5l3.4 3.4"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="i-caret" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5.5 5.5L20 7"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></symbol>
+</svg>
+
+<div class="wrap">
+<div class="skhead" style="position:static">
+  <h1>Sketch 173 — Wariant A, prototyp w pełni klikalny</h1>
+  <p>Wariant <b>A · Curated Five</b> z sketcha 171 i 172, ale <b>działający</b>: nawigacja, arkusze,
+  przełącznik portfeli, przełącznik sieci, ekran monety, swap, powrót. Odpowiedź na Twoje pytanie
+  <i>„jak będzie się rozwijał wallet, jak tam kliknę"</i> — <b>kliknij nazwę portfela w nagłówku</b>.
+  Każde tapnięcie ląduje w dzienniku po prawej, żeby było widać, jaka trasa by się odpaliła.</p>
+</div>
+
+<div class="appshell">
+  <div class="phonewrap">
+    <div class="phonecap">A · PROTOTYP — 390×844 · wszystko klikalne</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="sbar"><span>15:16</span><div class="r"><span>5G</span><span>WiFi</span><span>92%</span></div></div>
+      <div id="topbar"></div>
+      <div class="scr" id="screen"></div>
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet"></div>
+      <div class="toast" id="toast"></div>
+      <div class="bn" id="bnav" style="align-items:flex-start"></div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h2 class="h2">Co odpowiada na Twoje pytanie</h2>
+    <p class="lead">Tapnięcie w nazwę portfela w nagłówku otwiera <b>przełącznik portfeli</b>.
+    To jest ta „rozwijanka", o którą pytałeś — i celowo jest arkuszem, nie rozwijaną listą.</p>
+    <div class="call good"><b>Dlaczego arkusz, a nie dropdown.</b> Rozwijana lista pod nagłówkiem musi
+    zmieścić się w 390 px szerokości i rośnie w dół nad treścią — przy czterech portfelach z adresem i saldem
+    każdy wiersz ma ~56 px, więc lista zasłania pół ekranu i i tak wymaga przewijania.
+    Arkusz przychodzi od dołu, jest w zasięgu kciuka i ma miejsce na adres, saldo, sieć oraz akcje
+    „Dodaj portfel" i „Zarządzaj". Ten sam komponent <code>GWBottomSheet</code> obsługuje już „More",
+    więc nie dokładamy nowego wzorca. <span class="tag t-ex">Existing</span></div>
+
+    <h3 class="h3">Co jest klikalne</h3>
+    <ul>
+      <li><b>Nazwa portfela</b> → przełącznik portfeli (wybór zmienia saldo i aktywa)</li>
+      <li><b>Chip sieci</b> → przełącznik sieci (zmienia listę aktywów)</li>
+      <li><b>Adres</b> → kopiuje, z potwierdzeniem</li>
+      <li><b>Wiersz aktywu</b> → ekran monety z powrotem</li>
+      <li><b>Dok (swap)</b> → ekran Swap, z podstawioną monetą jeśli wszedłeś z monety</li>
+      <li><b>Pasek dolny</b> → Dashboard / Transactions / Swap / Markets / More</li>
+      <li><b>More</b> → News, Web, Feedback, Settings — każde otwiera swój ekran</li>
+      <li><b>Send / Receive / Buy</b> z railu szybkich akcji</li>
+    </ul>
+
+    <h3 class="h3">Dziennik tapnięć</h3>
+    <p style="font-size:13px;color:var(--textSecondary)">Każde tapnięcie pokazuje, jaka trasa w
+    <code>router.dart</code> by się odpaliła. Puste = trasa jeszcze nie istnieje.</p>
+    <div class="log" id="log"></div>
+    <button class="cta ghost" style="margin-top:var(--s6);padding:8px;font-size:12px" id="clearlog">Wyczyść dziennik</button>
+  </div>
+</div>
+</div>
+<div id="sketch-tools"><span style="opacity:.6">173</span><button id="annbtn">Adnotacje: WŁ</button></div>
+
+<script>
+(function () {
+  var NETWORKS = [
+    { id: 'eth', name: 'Ethereum', color: '#627EEA' },
+    { id: 'poly', name: 'Polygon', color: '#8247E5' },
+    { id: 'bsc', name: 'BNB Chain', color: '#F0B90B' }
+  ];
+  var ASSETS = {
+    eth: [
+      { sym: 'GNUS', name: 'Genius Token & NFT', price: '$0.64', chg: '+3.80%', up: true, bal: '0.0000', fiat: '$0.00', bg: '#1b2a3a', gl: 'G' },
+      { sym: 'ETH', name: 'Ethereum', price: '$1,893.17', chg: '+1.60%', up: true, bal: '0.0000', fiat: '$0.00', bg: '#3a3f6b', gl: 'Ξ' },
+      { sym: 'USDC', name: 'USD Coin', price: '$1.00', chg: '+0.00%', up: true, bal: '0.0000', fiat: '$0.00', bg: '#1c4a7a', gl: '$' }
+    ],
+    poly: [
+      { sym: 'MATIC', name: 'Polygon', price: '$0.41', chg: '-1.20%', up: false, bal: '0.0000', fiat: '$0.00', bg: '#42277a', gl: 'M' },
+      { sym: 'USDC', name: 'USD Coin', price: '$1.00', chg: '+0.00%', up: true, bal: '0.0000', fiat: '$0.00', bg: '#1c4a7a', gl: '$' }
+    ],
+    bsc: [
+      { sym: 'BNB', name: 'BNB', price: '$602.10', chg: '+0.42%', up: true, bal: '0.0000', fiat: '$0.00', bg: '#5c4a05', gl: 'B' }
+    ]
+  };
+  var WALLETS = [
+    { id: 'w1', name: 'Main Wallet', addr: '0x7a4c…3f21', total: '$0.00', assets: 3 },
+    { id: 'w2', name: 'Trading', addr: '0x91be…88d4', total: '$0.00', assets: 2 },
+    { id: 'w3', name: 'Cold Storage', addr: '0x2f07…c519', total: '$0.00', assets: 1 }
+  ];
+
+  var S = { wallet: 'w1', net: 'eth', screen: 'dashboard', stack: [], coin: null };
+
+  var $ = function (id) { return document.getElementById(id); };
+  function wallet() { return WALLETS.filter(function (w) { return w.id === S.wallet; })[0]; }
+  function net() { return NETWORKS.filter(function (n) { return n.id === S.net; })[0]; }
+  function assets() { return ASSETS[S.net] || []; }
+
+  function log(action, route) {
+    var el = $('log');
+    var r = route ? '<b>' + route + '</b>' : '<span style="color:var(--statusError)">brak trasy</span>';
+    el.innerHTML = '<div>' + action + ' → ' + r + '</div>' + el.innerHTML;
+  }
+  var toastT = null;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    if (toastT) { clearTimeout(toastT); }
+    toastT = setTimeout(function () { t.classList.remove('on'); }, 1500);
+  }
+
+  function closeSheet() {
+    $('sheet').classList.remove('open');
+    $('scrim').classList.remove('open');
+  }
+  function openSheet(html) {
+    $('sheet').innerHTML = '<div class="grab"></div>' + html;
+    $('sheet').classList.add('open');
+    $('scrim').classList.add('open');
+    bind();
+  }
+
+  function go(screen, opts) {
+    opts = opts || {};
+    if (opts.push) { S.stack.push(S.screen); }
+    if (!opts.push) { S.stack = []; }
+    S.screen = screen;
+    if (opts.coin) { S.coin = opts.coin; }
+    closeSheet();
+    render();
+  }
+  function back() {
+    S.screen = S.stack.pop() || 'dashboard';
+    render();
+  }
+
+  /* ---------------- top bar ---------------- */
+  function topbar() {
+    var w = wallet(), n = net();
+    if (S.stack.length) {
+      return '<div class="appbar" style="padding-left:var(--s4)">'
+        + '<div class="navbtn" data-act="back"><svg><use href="#i-back"/></svg>' + titleOf(S.stack[S.stack.length - 1]) + '</div>'
+        + '<span style="font:600 15px Inter">' + titleOf(S.screen) + '</span>'
+        + '<span style="width:56px"></span></div>';
+    }
+    return '<div class="appbar" style="padding-left:var(--s8)">'
+      + '<div class="wsel" data-act="wallets"><div class="wav"></div>'
+      + '<div><div style="font:600 14px Inter;display:flex;align-items:center;gap:5px">' + w.name
+      + '<svg class="caret"><use href="#i-caret"/></svg></div>'
+      + '<div class="waddr tapz" data-act="copy">' + w.addr + '</div></div></div>'
+      + '<span class="chip" data-act="nets" style="padding:5px 10px">'
+      + '<span class="dot" style="background:' + n.color + '"></span>' + n.name + '</span></div>';
+  }
+  function titleOf(s) {
+    var m = { dashboard: 'Dashboard', transactions: 'Transactions', swap: 'Swap', markets: 'Markets',
+      news: 'News', web: 'Web', feedback: 'Feedback', settings: 'Settings', coin: S.coin ? S.coin.sym : 'Coin',
+      send: 'Send', receive: 'Receive', buy: 'Buy GNUS' };
+    return m[s] || s;
+  }
+
+  /* ---------------- rows ---------------- */
+  function assetRow(a, i) {
+    return '<div class="row tapz" data-act="coin" data-i="' + i + '">'
+      + '<div class="ico" style="background:' + a.bg + ';color:#fff">' + a.gl + '</div>'
+      + '<div class="mid"><div class="nm">' + a.name + '</div>'
+      + '<div class="sub">' + a.price + ' <span class="' + (a.up ? 'up' : '') + '" style="' + (a.up ? '' : 'color:var(--statusError);font-weight:600') + '">' + a.chg + '</span></div></div>'
+      + '<div class="rt"><div class="fixed" style="font:600 14px Inter">' + a.fiat + '</div>'
+      + '<div class="fixed" style="font-size:12px">' + a.bal + ' ' + a.sym + '</div></div></div>';
+  }
+
+  /* ---------------- screens ---------------- */
+  function scrDashboard() {
+    var w = wallet(), list = assets();
+    var rows = list.map(assetRow).join('<div class="hr"></div>');
+    return '<div class="pad" style="padding-top:var(--s12)">'
+      + '<span class="kick">TOTAL BALANCE</span>'
+      + '<div style="display:flex;align-items:baseline;gap:var(--s6);margin-top:var(--s2)">'
+      + '<span class="bignum" style="font-size:38px">' + w.total + '</span>'
+      + '<span class="chip" style="padding:3px 8px;font-size:11px"><span class="up">+0.00%</span> 24h</span></div>'
+      + '<div style="font-size:13px;color:var(--textPrimary80);margin-top:var(--s3)">'
+      + list.length + ' aktywa · sieć ' + net().name + '</div></div>'
+      + '<div class="rail" style="margin-top:var(--s8)">'
+      + '<span class="chip tapz" data-act="send"><svg><use href="#i-send"/></svg>Send</span>'
+      + '<span class="chip tapz" data-act="receive"><svg><use href="#i-recv"/></svg>Receive</span>'
+      + '<span class="chip tapz" data-act="buy"><svg><use href="#i-buy"/></svg>Buy</span>'
+      + '<span class="chip tapz" data-act="compute"><svg><use href="#i-cpu"/></svg>Compute</span></div>'
+      + '<div class="pad"><div class="sect"><h4>Assets</h4>'
+      + '<span style="font:650 15px Inter;color:var(--textPrimary80)">' + w.total + '</span></div></div>'
+      + rows
+      + '<div class="pad" style="margin-top:var(--s12)"><div class="card tapz" data-act="compute" style="display:flex;gap:var(--s8);align-items:center">'
+      + '<svg viewBox="0 0 24 24" width="26" height="26" style="stroke:var(--brandPrimary);fill:none;stroke-width:1.8;flex:0 0 auto"><use href="#i-cpu"/></svg>'
+      + '<div style="flex:1 1 auto"><div style="font:600 14px Inter">Compute node</div>'
+      + '<div style="font-size:12.5px;color:var(--textPrimary80)">Starting up · 0.00 GNUS MIN</div></div>'
+      + '<span class="chip" style="padding:5px 10px">Otwórz</span></div></div><div style="height:40px"></div>';
+  }
+  function scrCoin() {
+    var a = S.coin;
+    return '<div class="pad" style="padding-top:var(--s12);text-align:center">'
+      + '<div class="ico" style="background:' + a.bg + ';color:#fff;width:56px;height:56px;margin:0 auto;font-size:20px">' + a.gl + '</div>'
+      + '<div style="font:650 19px Inter;margin-top:var(--s6)">' + a.name + '</div>'
+      + '<div class="bignum" style="font-size:32px;margin-top:var(--s4)">' + a.price + '</div>'
+      + '<div style="margin-top:var(--s3)"><span class="chip" style="padding:3px 9px;font-size:11px">'
+      + '<span class="' + (a.up ? 'up' : '') + '">' + a.chg + '</span> 24h</span></div></div>'
+      + '<div class="pad" style="margin-top:var(--s10)"><div class="card">'
+      + '<div class="kick">TWOJE SALDO</div>'
+      + '<div style="display:flex;align-items:baseline;gap:6px;margin-top:2px">'
+      + '<span class="bignum" style="font-size:26px">' + a.fiat + '</span>'
+      + '<span class="unit">' + a.bal + ' ' + a.sym + '</span></div></div></div>'
+      + '<div class="pad" style="margin-top:var(--s10);display:flex;gap:var(--s4)">'
+      + '<button class="cta tapz" data-act="receive" style="flex:1 1 0;padding:12px;font-size:13px">Receive</button>'
+      + '<button class="cta ghost tapz" data-act="send" style="flex:1 1 0;padding:12px;font-size:13px">Send</button>'
+      + '<button class="cta ghost tapz" data-act="swapcoin" style="flex:1 1 0;padding:12px;font-size:13px">Swap</button></div>'
+      + '<div style="height:40px"></div>';
+  }
+  function scrSwap() {
+    var seed = S.coin ? S.coin.sym : 'GNUS';
+    return '<div class="pad" style="padding-top:var(--s12)">'
+      + '<div class="card"><div class="kick">Z</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--s4)">'
+      + '<span class="bignum" style="font-size:28px">0.00</span>'
+      + '<span class="chip" style="padding:6px 12px">' + seed + ' <svg class="caret" style="stroke:var(--textPrimary80)"><use href="#i-caret"/></svg></span></div>'
+      + '<div style="font-size:12px;color:var(--textPrimary80);margin-top:var(--s3)">Saldo: 0.0000 ' + seed + '</div></div>'
+      + '<div style="text-align:center;margin:var(--s4) 0"><span class="chip" style="padding:8px;border-radius:50%">'
+      + '<svg style="width:18px;height:18px"><use href="#d-swap"/></svg></span></div>'
+      + '<div class="card"><div class="kick">NA</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:var(--s4)">'
+      + '<span class="bignum" style="font-size:28px;color:var(--textPrimary38)">0.00</span>'
+      + '<span class="chip" style="padding:6px 12px">USDC <svg class="caret" style="stroke:var(--textPrimary80)"><use href="#i-caret"/></svg></span></div></div>'
+      + '<button class="cta" style="margin-top:var(--s12);opacity:.5">Wpisz kwotę</button></div>';
+  }
+  function scrTransactions() {
+    return '<div class="pad" style="padding-top:var(--s10)"><div class="sect"><h4>Transactions</h4></div></div>'
+      + '<div class="rail"><span class="chip">Wszystkie</span><span class="chip">Sent</span>'
+      + '<span class="chip">Received</span><span class="chip">Swap</span></div>'
+      + '<div class="empty">Brak transakcji na sieci ' + net().name + '.<br><br>'
+      + 'Portfel bez historii nie jest portfelem zepsutym — gdy zrobisz pierwszy przelew, pojawi się tutaj.</div>';
+  }
+  function scrMarkets() {
+    var rows = assets().map(function (a, i) {
+      return '<div class="row tapz" data-act="coin" data-i="' + i + '">'
+        + '<div class="ico" style="background:' + a.bg + ';color:#fff">' + a.gl + '</div>'
+        + '<div class="mid"><div class="nm">' + a.name + '</div><div class="sub">' + a.sym + '</div></div>'
+        + '<div class="rt"><div style="font:600 14px Inter">' + a.price + '</div>'
+        + '<div style="font-size:12px" class="' + (a.up ? 'up' : '') + '">' + a.chg + '</div></div></div>';
+    }).join('<div class="hr"></div>');
+    return '<div class="pad" style="padding-top:var(--s10)"><div class="sect"><h4>Markets</h4></div></div>' + rows;
+  }
+  function simple(title, body) {
+    return '<div class="pad" style="padding-top:var(--s10)"><div class="sect"><h4>' + title + '</h4></div></div>'
+      + '<div class="empty">' + body + '</div>';
+  }
+  function scrSettings() {
+    var items = ['Konta i sieć', 'Bezpieczeństwo i PIN', 'Wygląd', 'Waluta wyświetlania', 'O aplikacji'];
+    return '<div class="pad" style="padding-top:var(--s10)"><div class="sect"><h4>Settings</h4></div></div>'
+      + items.map(function (t) {
+        return '<div class="row tapz" data-act="noop"><div class="mid"><div class="nm" style="font-weight:500">' + t + '</div></div>'
+          + '<svg class="caret" style="transform:rotate(-90deg)"><use href="#i-caret"/></svg></div>';
+      }).join('<div class="hr"></div>');
+  }
+  function scrReceive() {
+    var w = wallet();
+    return '<div class="pad" style="padding-top:var(--s16);text-align:center">'
+      + '<div style="width:190px;height:190px;margin:0 auto;background:#fff;border-radius:var(--rLg);display:grid;place-items:center;color:#000;font:700 12px Inter">KOD QR</div>'
+      + '<div style="margin-top:var(--s12);font:600 14px Inter">' + w.name + '</div>'
+      + '<div class="waddr" style="margin-top:var(--s3);font-size:13px">' + w.addr + '</div>'
+      + '<div style="margin-top:var(--s4);font-size:12.5px;color:var(--textPrimary80)">Sieć: ' + net().name + '</div>'
+      + '<button class="cta tapz" data-act="copy" style="margin-top:var(--s12)">Kopiuj adres</button></div>';
+  }
+
+  var SCREENS = {
+    dashboard: scrDashboard, coin: scrCoin, swap: scrSwap, transactions: scrTransactions,
+    markets: scrMarkets, settings: scrSettings, receive: scrReceive,
+    news: function () { return simple('News', 'Kanał wiadomości — poza zakresem tego prototypu.'); },
+    web: function () { return simple('Web', 'Przeglądarka dApp — poza zakresem tego prototypu.'); },
+    feedback: function () { return simple('Feedback', 'Formularz zgłoszenia — poza zakresem tego prototypu.'); },
+    send: function () { return simple('Send', 'Formularz wysyłki — poza zakresem tego prototypu.'); },
+    buy: function () { return simple('Buy GNUS', 'Formularz Banxa — trasa /buy istnieje w router.dart.'); }
+  };
+
+  /* ---------------- bottom nav ---------------- */
+  var NAV = [
+    { k: 'dashboard', i: 'i-dash', l: 'Dashboard' },
+    { k: 'transactions', i: 'i-clock', l: 'Transactions' },
+    { k: 'swap', i: 'd-swap', l: 'Swap' },
+    { k: 'markets', i: 'i-chart', l: 'Markets' },
+    { k: 'more', i: 'i-more', l: 'More' }
+  ];
+  function bottomnav() {
+    return NAV.map(function (d) {
+      var on = (d.k === S.screen) || (d.k === 'dashboard' && S.screen === 'coin' && false);
+      return '<div class="bi' + (on ? ' on' : '') + '" data-act="nav" data-k="' + d.k + '">'
+        + '<svg><use href="#' + d.i + '"/></svg><span>' + d.l + '</span></div>';
+    }).join('');
+  }
+
+  /* ---------------- render ---------------- */
+  function render() {
+    $('topbar').innerHTML = topbar();
+    var fn = SCREENS[S.screen] || function () { return simple(titleOf(S.screen), 'Ekran poza zakresem.'); };
+    $('screen').innerHTML = fn();
+    $('screen').scrollTop = 0;
+    $('bnav').innerHTML = bottomnav();
+    bind();
+  }
+
+  /* ---------------- sheets ---------------- */
+  function walletSheet() {
+    var rows = WALLETS.map(function (w) {
+      var sel = w.id === S.wallet;
+      return '<div class="wrow' + (sel ? ' sel' : '') + '" data-act="pickw" data-id="' + w.id + '">'
+        + '<div class="wav" style="width:32px;height:32px"></div>'
+        + '<div style="flex:1 1 auto;min-width:0"><div style="font:600 14.5px Inter">' + w.name + '</div>'
+        + '<div class="waddr">' + w.addr + ' · ' + w.assets + ' aktywa</div></div>'
+        + '<div style="text-align:right"><div style="font:600 14px Inter">' + w.total + '</div></div>'
+        + (sel ? '<svg class="check"><use href="#i-check"/></svg>' : '<span style="width:19px"></span>')
+        + '</div>';
+    }).join('');
+    return '<div style="padding:0 var(--s12) var(--s6)"><span class="kick">TWOJE PORTFELE</span></div>'
+      + rows
+      + '<div class="hr" style="margin:var(--s6) var(--s12)"></div>'
+      + '<div class="srow tapz" data-act="addw"><svg><use href="#i-plus"/></svg><span>Dodaj portfel</span></div>'
+      + '<div class="srow tapz" data-act="connect"><svg><use href="#i-link"/></svg><span>Połącz przez WalletConnect</span></div>'
+      + '<div class="srow tapz" data-act="managew"><svg><use href="#i-gear"/></svg><span>Zarządzaj portfelami</span></div>';
+  }
+  function netSheet() {
+    var rows = NETWORKS.map(function (n) {
+      var sel = n.id === S.net;
+      return '<div class="wrow' + (sel ? ' sel' : '') + '" data-act="pickn" data-id="' + n.id + '">'
+        + '<span class="dot" style="background:' + n.color + ';width:12px;height:12px"></span>'
+        + '<div style="flex:1 1 auto"><div style="font:600 14.5px Inter">' + n.name + '</div>'
+        + '<div class="waddr">' + (ASSETS[n.id] || []).length + ' aktywa</div></div>'
+        + (sel ? '<svg class="check"><use href="#i-check"/></svg>' : '<span style="width:19px"></span>') + '</div>';
+    }).join('');
+    return '<div style="padding:0 var(--s12) var(--s6)"><span class="kick">SIEĆ</span></div>' + rows;
+  }
+  function moreSheet() {
+    var items = [['news', 'i-news', 'News'], ['web', 'i-globe', 'Web'],
+      ['feedback', 'i-chat', 'Feedback'], ['settings', 'i-gear', 'Settings']];
+    return '<div style="padding:0 var(--s12) var(--s4)"><span class="kick">WIĘCEJ</span></div>'
+      + items.map(function (it) {
+        return '<div class="srow tapz" data-act="goscreen" data-k="' + it[0] + '">'
+          + '<svg><use href="#' + it[1] + '"/></svg><span>' + it[2] + '</span></div>';
+      }).join('')
+      + '<div class="hr" style="margin:var(--s6) var(--s12)"></div>'
+      + '<div class="srow tapz" data-act="wallets"><svg><use href="#i-copy"/></svg><span>Konta i sieć</span></div>';
+  }
+
+  /* ---------------- binding ---------------- */
+  var ROUTES = {
+    dashboard: '/dashboard', transactions: '/transactions', swap: '/swap', markets: '/markets',
+    news: '/news', web: '/web', feedback: '/logs', settings: '/settings', coin: '/token-info',
+    buy: '/buy', receive: null, send: null
+  };
+  function bind() {
+    document.querySelectorAll('[data-act]').forEach(function (el) {
+      if (el.dataset.bound) { return; }
+      el.dataset.bound = '1';
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var a = el.dataset.act;
+        if (a === 'wallets') { log('Tap: nazwa portfela', 'arkusz — brak trasy'); openSheet(walletSheet()); }
+        else if (a === 'nets') { log('Tap: chip sieci', 'arkusz — brak trasy'); openSheet(netSheet()); }
+        else if (a === 'pickw') { S.wallet = el.dataset.id; log('Wybrano portfel: ' + wallet().name, 'WalletDetailsCubit'); toast('Portfel: ' + wallet().name); closeSheet(); render(); }
+        else if (a === 'pickn') { S.net = el.dataset.id; log('Wybrano sieć: ' + net().name, 'WalletDetailsCubit'); toast('Sieć: ' + net().name); closeSheet(); render(); }
+        else if (a === 'copy') { log('Tap: kopiuj adres', 'schowek'); toast('Adres skopiowany'); }
+        else if (a === 'coin') { S.coin = assets()[parseInt(el.dataset.i, 10)]; log('Tap: ' + S.coin.name, '/token-info'); go('coin', { push: true }); }
+        else if (a === 'nav') {
+          var k = el.dataset.k;
+          if (k === 'more') { log('Tap: More', 'arkusz — brak trasy'); openSheet(moreSheet()); }
+          else { log('Nav: ' + k, ROUTES[k]); go(k); }
+        }
+        else if (a === 'goscreen') { log('Tap: ' + el.dataset.k, ROUTES[el.dataset.k]); go(el.dataset.k, { push: true }); }
+        else if (a === 'back') { log('Tap: wstecz', 'context.pop()'); back(); }
+        else if (a === 'swapcoin') { log('Tap: Swap z monety ' + S.coin.sym, '/swap  extra:{symbol}'); go('swap', { push: true }); }
+        else if (a === 'send' || a === 'receive' || a === 'buy') { log('Tap: ' + a, ROUTES[a]); go(a, { push: true }); }
+        else if (a === 'compute') { log('Tap: Compute', 'brak dedykowanej trasy'); toast('Compute — trasa do ustalenia'); }
+        else if (a === 'addw') { log('Tap: Dodaj portfel', '/onboarding'); toast('Kreator nowego portfela'); closeSheet(); }
+        else if (a === 'connect') { log('Tap: WalletConnect', 'ReownConnectButton'); toast('Parowanie WalletConnect'); closeSheet(); }
+        else if (a === 'managew') { log('Tap: Zarządzaj portfelami', '/settings'); go('settings'); }
+        else if (a === 'noop') { toast('Poza zakresem prototypu'); }
+      });
+    });
+  }
+
+  $('scrim').addEventListener('click', closeSheet);
+  $('clearlog').addEventListener('click', function () { $('log').innerHTML = ''; });
+  $('annbtn').addEventListener('click', function () {
+    document.body.classList.toggle('noann');
+    this.textContent = document.body.classList.contains('noann') ? 'Adnotacje: WYŁ' : 'Adnotacje: WŁ';
+  });
+
+  render();
+  log('Prototyp gotowy', 'start: /dashboard');
+})();
+</script>
+</body>
+</html>

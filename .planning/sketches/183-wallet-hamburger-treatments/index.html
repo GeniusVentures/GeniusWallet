@@ -1,0 +1,1365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>183 - the wallet icon and the hamburger: six surface treatments</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --sunken:#06080C; --menu:#171A21;
+  --text:#FFFFFF; --text2:#8A8F9D; --onbrand:#000B18;
+  --border:rgba(255,255,255,.12); --border2:rgba(255,255,255,.24); --borderctl:rgba(255,255,255,.36);
+  --ok:#0AD89C; --err:#FF4D4D; --g1:#0AD89C; --g2:#0AAEE6; --brand:#14C8FF; --strong:#0AAEE6;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#07090D;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1400px;margin:0 auto;padding:32px 24px 90px}
+h1{font-size:26px;margin:0 0 6px;font-weight:700}
+.sub{color:var(--text2);font-size:14px;line-height:1.65;margin:0 0 22px;max-width:1000px}
+.sub b{color:var(--text)}
+.quote{border-left:3px solid var(--border2);padding:2px 0 2px 14px;margin:0 0 14px;
+  color:#c9ccd4;font-size:14px;line-height:1.7;max-width:1000px}
+.quote b{color:var(--text)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;
+  color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+.tab:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.tab.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand);border-color:transparent}
+.statebar{display:flex;gap:10px;align-items:center;margin:16px 0 10px;font-size:13px;color:var(--text2);flex-wrap:wrap}
+.statebar .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--border);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--text2);font-size:12px;font-weight:600;
+  padding:6px 13px;border-radius:999px;cursor:pointer}
+.seg button.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand)}
+.hint{font-size:12.5px;color:var(--text2);margin:0 0 20px;line-height:1.6;max-width:1000px}
+.hint b{color:#fff}
+.pane{display:none}
+.pane.on{display:block}
+.cols{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+.notes{flex:1;min-width:380px;max-width:720px}
+.notes h3{font-size:15px;margin:0 0 8px}
+.notes h3.sec{margin-top:24px}
+.notes p{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 12px}
+.notes p b{color:var(--text)}
+.notes li{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 6px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 16px}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.04);color:var(--text2);font-weight:600}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#cfd3dc}
+.good{color:var(--ok)} .bad{color:var(--err)} .warn{color:#FFC42E}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- phone, 1:1 at 390 x 844 ---------- */
+.phone{width:390px;height:844px;background:var(--base);border:1px solid var(--border2);
+  border-radius:38px;overflow:hidden;position:relative;flex:0 0 auto}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.statusbar{height:54px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-size:12px;color:var(--text2)}
+
+/* the app bar: toolbarHeight 60, surfaceElevated, 1px borderStrong bottom */
+.apphead{height:60px;flex:0 0 auto;display:flex;align-items:center;
+  background:var(--card);border-bottom:1px solid var(--border2)}
+.ts{width:16px;flex:0 0 auto}            /* AppBar titleSpacing, charged BOTH sides */
+.acts{width:16px;flex:0 0 auto}          /* actions: a single SizedBox(width: space8) */
+.titlerow{flex:1;min-width:0;display:flex;align-items:center}  /* 390-16-16-16 = 342 */
+
+/* BrandLockup: cropped mark 29/38 x 28 = 21.37, space4 = 8, GNUS.AI Inter Bold 18 = 76.69 */
+.brand{display:flex;align-items:center;flex:0 0 auto;width:106.06px}
+.mark{width:21.37px;height:28px;border-radius:5px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  display:flex;align-items:center;justify-content:center;
+  color:var(--onbrand);font-weight:800;font-size:13px}
+.markgap{width:8px;flex:0 0 auto}
+.word{width:76.69px;flex:0 0 auto;font-size:18px;font-weight:700;line-height:1;
+  white-space:nowrap;letter-spacing:-.035em;overflow:visible}
+.slotright{flex:1;min-width:0;display:flex;justify-content:flex-end;align-items:center}
+.gap6{width:12px;flex:0 0 auto}
+
+/* ---------- THE SIX TREATMENTS. Same geometry every time, only the skin changes. ----------
+   Every control below is exactly 44 x 44. The classes differ ONLY in fill and edge.        */
+.ctl{width:44px;height:44px;flex:0 0 auto;position:relative;display:flex;align-items:center;
+  justify-content:center;border-radius:999px;cursor:pointer;user-select:none}
+
+/* A - as shipped: Material(color: surfaceMenu, shape: StadiumBorder(side: borderControl)).
+      At 44 x 44 a StadiumBorder IS a circle, so the shipped recipe transfers unchanged. */
+.t-hair{background:var(--menu);border:1px solid var(--borderctl)}
+/* B - the fill alone. surfaceMenu on surfaceElevated is 1.11:1. */
+.t-fill{background:var(--menu);border:1px solid transparent}
+/* C - nothing. The glyph sits on the bar. */
+.t-bare{background:transparent;border:1px solid transparent}
+/* D - the brand gradient as the edge: a 1.5px ring, inner disc 41.0. */
+.t-grad{background:linear-gradient(90deg,var(--g1),var(--g2));border:0;padding:1.5px}
+.t-grad .inner{width:100%;height:100%;border-radius:999px;background:var(--menu);
+  display:flex;align-items:center;justify-content:center}
+/* E - borderSubtle, white 12%. The "make it quieter" instinct, measured. */
+.t-sub{background:var(--menu);border:1px solid var(--border)}
+/* considered, not built as a tab: the sunken well. */
+.t-well{background:var(--sunken);border:1px solid var(--border)}
+
+/* the 44 x 44 touch-target overlay, drawn on the control's real bounds */
+.tt{position:absolute;left:-1px;top:-1px;width:44px;height:44px;border-radius:999px;
+  border:1px dashed rgba(255,196,46,.95);pointer-events:none}
+.ctl.t-grad .tt{left:0;top:0}
+
+/* avatar: CircleAvatar(radius: size/2 - 2) on brandPrimaryStrong #0AAEE6 */
+.av{width:32px;height:32px;flex:0 0 auto;position:relative}
+.av .disc{position:absolute;inset:2px;border-radius:999px;background:var(--strong);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--onbrand);font-weight:800;font-size:10px;letter-spacing:-.02em;overflow:hidden}
+.av .disc.mono{font-size:12px;letter-spacing:0}
+.badge{position:absolute;right:0;bottom:0;width:16px;height:16px;border-radius:999px;
+  background:var(--card);display:flex;align-items:center;justify-content:center}
+.badge i{width:12px;height:12px;border-radius:999px;display:flex;align-items:center;
+  justify-content:center;font-size:6px;font-weight:800;font-style:normal}
+.bars{display:flex;flex-direction:column;gap:4px;align-items:center}
+.bars i{display:block;width:18px;height:2px;border-radius:2px;background:var(--text)}
+
+/* the shipped pill, for the Now tab only */
+.pill{height:44px;flex:0 0 auto;display:flex;align-items:center;cursor:pointer;position:relative;
+  background:var(--menu);border:1px solid var(--borderctl);border-radius:999px}
+.pill .tt{width:auto;left:-1px;right:-1px;top:-1px;height:44px}
+.pad3{width:6px;flex:0 0 auto}
+.pad4{width:8px;flex:0 0 auto}
+.pad2{width:4px;flex:0 0 auto}
+.nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:-.03em}
+.caret{color:var(--text2);font-size:12px;flex:0 0 auto;width:18px;text-align:center}
+
+.measure{position:absolute;top:116px;height:14px;border-left:1px solid rgba(255,196,46,.9);
+  border-right:1px solid rgba(255,196,46,.9);pointer-events:none;z-index:4}
+.measure b{position:absolute;top:14px;right:0;font-size:10px;color:#FFC42E;font-weight:700;
+  white-space:nowrap;background:rgba(0,0,0,.55);padding:1px 4px;border-radius:3px}
+.measure i{position:absolute;top:6px;left:0;right:0;height:1px;background:rgba(255,196,46,.55)}
+
+.body{flex:1;overflow-y:auto;padding:12px 6px 130px}
+.body::-webkit-scrollbar{width:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;margin:0 0 12px}
+.sect{min-height:44px;display:flex;align-items:center;gap:10px;padding:2px 8px 0}
+.stitle{font-size:18px;line-height:24px;font-weight:600;flex:0 0 auto}
+.spacer{flex:1}
+.vall{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;flex:0 0 auto;color:var(--text2)}
+.row{height:68px;display:flex;align-items:center;gap:12px;padding:0 8px}
+.ico{width:38px;height:38px;border-radius:999px;flex:0 0 auto;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;color:var(--onbrand)}
+.rmid{flex:1;min-width:0}
+.rname{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:12.5px;color:var(--text2);margin-top:2px}
+.rend{text-align:right;flex:0 0 auto}
+.rfiat{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.ramt{font-size:12.5px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:2px}
+
+/* bottom bar: 60px painted, 64px dock, 26px overhang, 84px slot */
+.btm{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--card);
+  border-top:1px solid var(--border)}
+.tabsrow{display:flex;height:60px;align-items:center}
+.slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--text2)}
+.slot.act{background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent;font-weight:600}
+.dot{width:22px;height:22px;border-radius:6px;background:currentColor;opacity:.85}
+.dock{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;width:64px;height:64px;
+  border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2));
+  display:flex;align-items:center;justify-content:center;color:var(--onbrand);font-weight:700;font-size:12px}
+
+/* sheet */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:74%;background:var(--menu);
+  border-top-left-radius:20px;border-top-right-radius:20px;z-index:6;display:flex;flex-direction:column;
+  border-top:1px solid var(--border)}
+.grab{width:36px;height:4px;border-radius:999px;background:var(--border2);margin:8px auto 4px;flex:0 0 auto}
+.shead{padding:6px 20px 10px;font-size:16px;font-weight:600;flex:0 0 auto;display:flex;align-items:center}
+.shead .x{margin-left:auto;color:var(--text2);font-size:13px;cursor:pointer;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.shead .x:hover{background:rgba(255,255,255,.07)}
+.sbody{overflow-y:auto;padding:0 20px 22px}
+.sbody::-webkit-scrollbar{width:0}
+.secthead{font-size:13px;font-weight:600;margin:12px 0 2px}
+.secthead.first{margin-top:2px}
+.sectcap{font-size:11.5px;line-height:1.5;color:var(--text2);margin:0 0 8px}
+.srow{min-height:56px;display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:12px;
+  border:1px solid transparent;cursor:pointer;margin-bottom:4px}
+.srow:hover{background:rgba(255,255,255,.05)}
+.srow.on{background:rgba(20,200,255,.08);border-color:rgba(20,200,255,.45)}
+.srow .mid{flex:1;min-width:0}
+.srow .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .s{font-size:11.5px;color:var(--text2);font-family:ui-monospace,Menlo,monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .ck{color:var(--brand);font-size:14px;flex:0 0 auto}
+.netstrip{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px}
+.netstrip::-webkit-scrollbar{height:0}
+.nchip{height:44px;flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:0 12px;
+  border-radius:999px;border:1px solid var(--borderctl);font-size:13px;font-weight:600;cursor:pointer;
+  background:var(--menu)}
+.nchip:hover{background:#1d212a}
+.nchip.on{border-color:rgba(20,200,255,.7);background:rgba(20,200,255,.12)}
+.glyph{border-radius:999px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-style:normal}
+.note{font-size:12px;color:var(--text2);border:1px dashed var(--border);border-radius:10px;
+  padding:10px 12px;margin:0 0 8px;line-height:1.5}
+
+.caption{font-size:12px;color:var(--text2);margin:10px 0 0;width:390px;line-height:1.6}
+.caption .w{display:block;font-size:15px;font-weight:700;color:#fff;margin-bottom:3px;
+  font-variant-numeric:tabular-nums}
+.caption .w em{font-style:normal;color:#FFC42E}
+.caption .w em.ok{color:var(--ok)}
+.caption .w em.no{color:var(--err)}
+.flag{border-left:3px solid #FFC42E;background:rgba(255,196,46,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#e6e2d4}
+.flag b{color:#FFC42E}
+.rec{border-left:3px solid var(--g1);background:rgba(10,216,156,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#d6efe7}
+.rec b{color:var(--ok)}
+.rej{border-left:3px solid var(--err);background:rgba(255,77,77,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#f2d9d9}
+.rej b{color:var(--err)}
+
+/* the stack: every treatment on a real 390px bar strip, 1:1, one under the other */
+.stack{margin:0 0 18px}
+.strip{width:390px;margin:0 0 14px}
+.strip .lab{font-size:11.5px;color:var(--text2);margin:0 0 4px;line-height:1.4}
+.strip .lab b{color:#fff}
+.striphold{width:390px;height:60px;background:var(--card);border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;border-radius:8px 8px 0 0;overflow:hidden}
+.stackrow{display:flex;gap:26px;flex-wrap:wrap}
+
+/* the seam proof - real size, real gap, measured */
+.proof{border:1px solid var(--border);border-radius:12px;padding:12px;margin:0 0 14px;background:var(--card)}
+.proof .ttl{font-size:12px;font-weight:700;margin:0 0 10px;color:#fff}
+.seamrow{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start}
+.seamone{width:200px}
+.seamhold{height:60px;background:var(--card);border:1px solid var(--border);border-radius:8px;
+  display:flex;align-items:center;justify-content:flex-end;padding-right:16px;position:relative}
+.seamone .lab{font-size:10.5px;color:var(--text2);margin-top:7px;line-height:1.4}
+.seamone .lab b{color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>183 - the wallet icon and the hamburger: six surface treatments</h1>
+
+  <p class="quote">
+    Jakub, 2026-08-07, after picking scheme F in sketch 181: <b>"chcialbym zebys przygotowal mi kilka
+    innych opcji i jak beda one wyswietlane - czy z tym borderem, czy bez bordera, czy border z
+    gradientem, i tak dalej. Wiec przygotuj 5-6 takich wersji, a zobaczymy."</b>
+  </p>
+
+  <p class="sub">
+    <b>The composition is settled and is not reopened here.</b> Two controls, top-right, inside
+    <code>title</code>: a 44 px wallet icon, <code>space6</code> = 12, a 44 px hamburger.
+    <b>100.00 px</b> against the shipped pill's <b>223.94</b>. This sketch changes <b>only the skin</b> -
+    fill, edge, gradient - and every variant carries <b>the same geometry to the pixel</b> so the
+    comparison is about the treatment and nothing else.
+  </p>
+  <p class="sub">
+    <b>One constraint decides most of it, and it is not taste.</b> <code>surfaceMenu</code> #171A21 on
+    <code>surfaceElevated</code> #0C0E14 measures <b>1.11:1</b>. The fill genuinely cannot identify the
+    control, which is exactly why the shipped pill puts <code>borderControl</code> (white 36%,
+    <b>3.30:1</b>) on its edge - the boundary carries <b>WCAG 1.4.11</b> alone. So <b>"no border" is not
+    a look, it is a question</b>: what identifies this as a control at 3:1 instead? Every variant below
+    prints its own measured answer and a pass or a fail. Two of them fail and are shown anyway.
+  </p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="statebar">
+    <span class="lbl">Wallet</span>
+    <span class="seg" id="nameSeg">
+      <button data-st="short" class="on">SHORT NAME</button>
+      <button data-st="sdk">SUPER GENIUS WALLET 1</button>
+      <button data-st="long">VERY LONG NAME</button>
+      <button data-st="addr">ADDRESS-SHAPED NAME</button>
+      <button data-st="none">NO WALLET</button>
+    </span>
+    <span class="lbl">Wallet icon</span>
+    <span class="seg" id="faceSeg">
+      <button data-fc="mono" class="on">MONOGRAM (181 E)</button>
+      <button data-fc="coin">COIN AVATAR (ships)</button>
+    </span>
+    <span class="lbl">44pt targets</span>
+    <span class="seg" id="ttSeg">
+      <button data-tt="off" class="on">HIDE</button>
+      <button data-tt="on">SHOW</button>
+    </span>
+    <span class="lbl">Width ruler</span>
+    <span class="seg" id="rulerSeg">
+      <button data-rl="on" class="on">SHOW</button>
+      <button data-rl="off">HIDE</button>
+    </span>
+  </div>
+  <p class="hint">
+    The wallet-name states are here because <b>the monogram behaves differently in each</b>, and one of
+    them is a defect case: <b>ADDRESS-SHAPED NAME</b> is a wallet saved with an address typed into the
+    free-text name field at <code>import_security_screen.dart:236</code>. Sketch 181 shipped a monogram
+    rule that got its own ordering wrong on the first pass and rendered that wallet as <b>21</b> - an
+    address fragment. The rule here tests address-shaped <b>first</b>; the live output is printed under
+    every phone, so the address test runs on every render.
+    <b>44pt targets</b> overlays the real 44 x 44 hit box on both controls - the point of the toggle is
+    that the box is identical in all six variants and only the paint inside it moves.
+  </p>
+
+  <div id="panes"></div>
+</div>
+
+<script>
+/* ============================== measured constants ==============================
+   Geometry is inherited from sketch 181 and is FROZEN for this sketch:
+
+     title Row   = 390 - 2*titleSpacing(16) - actions(16)          = 342.00
+     BrandLockup = 29/38*28 mark 21.37 + space4 8 + GNUS.AI 76.69  = 106.06
+     remainder for the control                                     = 223.94
+     the F cluster = 44 + space6 12 + 44                           = 100.00
+     free space  = 342.00 - 106.06 - 100.00                        = 135.94
+
+   Contrast: sRGB relative luminance per WCAG 2.x, translucent hairlines
+   composited over surfaceElevated #0C0E14 FIRST, then measured against it.
+     borderControl white 36% -> #636569 -> 3.30:1
+     borderStrong  white 24% -> #46484C -> 2.11:1
+     borderSubtle  white 12% -> #292B30 -> 1.36:1
+=================================================================================== */
+
+var BAR       = 390;
+var TITLEROW  = 342.00;
+var LOCKUP    = 106.06;
+var REMAINDER = 223.94;
+var CLUSTER   = 100.00;
+
+/* Inter SemiBold 14 advances, measured off the bundled TTF in sketch 181. */
+var NAMEW = {
+  'Main wallet': 77.05,
+  'Super Genius Wallet 1': 146.88,
+  'Jakub imported Ledger Nano X hardware wallet': 321.87,
+  '0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21': 345.80,
+  'No wallet': 63.02
+};
+
+var WALLETS = {
+  short: {name:'Main wallet',  addr:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21', sym:'ETH'},
+  sdk:   {name:'Super Genius Wallet 1', addr:'0x11c8ff41de88a0f5c3d7e6b1a4928c0d3f6a01', sym:'ETH'},
+  long:  {name:'Jakub imported Ledger Nano X hardware wallet', addr:'0x5be21a41de88a0f5c3d7e6b1a4928c0d3f6c07', sym:'ETH'},
+  addr:  {name:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21',   addr:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21', sym:'ETH'},
+  none:  null
+};
+
+/* The real network list, verbatim from assets/json/networks/networks.json. */
+var NETWORKS = [
+  {id:'eth',   name:'Ethereum',     sym:'ETH',   c:'#627EEA', ab:'E'},
+  {id:'matic', name:'Polygon',      sym:'MATIC', c:'#8247E5', ab:'P'},
+  {id:'gnus',  name:'Super Genius', sym:'GNUS',  c:'#0AD89C', ab:'G'},
+  {id:'bnb',   name:'BNB',          sym:'BNB',   c:'#F3BA2F', ab:'B'},
+  {id:'base',  name:'Base',         sym:'BASE',  c:'#0052FF', ab:'B'}
+];
+
+var SDK_WALLETS = [
+  {name:'Super Genius Wallet 1', addr:'0x11c8ff41de88a0f5c3d7e6b1a4928c0d3f6a01', sym:'ETH'},
+  {name:'Super Genius Wallet 2', addr:'0x22d89c41de88a0f5c3d7e6b1a4928c0d3f6b02', sym:'ETH'}
+];
+
+var MORE_ROWS = [
+  {t:'News',     s:'Market and project headlines'},
+  {t:'Web',      s:'The in-app browser'},
+  {t:'Feedback', s:'Tell us what is broken'},
+  {t:'Settings', s:'Currency, security, node'}
+];
+
+/* per-variant UI state */
+var NAME_ST  = 'short';
+var FACE_ST  = 'mono';
+var TT_ST    = 'off';
+var RULER_ST = 'on';
+var NET      = {};    /* variant -> network id */
+var SHEET    = {};    /* variant -> null | 'wallet' | 'more' */
+
+function wal(){ return WALLETS[NAME_ST]; }
+function net(v){
+  var id = NET[v] || 'eth';
+  for (var i=0;i<NETWORKS.length;i++){ if (NETWORKS[i].id === id) return NETWORKS[i]; }
+  return NETWORKS[0];
+}
+function esc(t){
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function nameW(n){ return NAMEW[n] || (n.length * 7.4); }
+
+/* Mirrors WalletUtils.getAddressForDisplay - first 6, ellipsis, last 4. */
+function shortAddr(a){
+  if (!a || a.length < 6) return a || '';
+  return a.slice(0,6) + '...' + a.slice(-4);
+}
+
+/* ---------- the monogram rule from sketch 181 E, carried over verbatim ----------
+   1. address-shaped   -> the two chars after 0x   '0x7a3f...'             -> 7A
+   2. ends in 1-2 digits -> first letter + digits  'Super Genius Wallet 1' -> S1
+   3. two words or more  -> the initials           'Main wallet'           -> MW
+   4. one word           -> its first two letters  'Savings'               -> SA
+
+   THE ORDER IS LOAD-BEARING. An address ends in hex, very often two digits, so
+   with 1 and 2 reversed the address-shaped wallet renders as '21' - an address
+   fragment in the one header that must never print one. Address test FIRST.   */
+function monogram(name){
+  if (!name) return '+';
+  if (/^0x[0-9a-fA-F]{20,}$/.test(name)) return name.slice(2,4).toUpperCase();
+  var m = name.match(/(\d{1,2})$/);
+  if (m) return (name.charAt(0) + m[1]).toUpperCase();
+  var parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  return name.slice(0,2).toUpperCase();
+}
+
+/* ============================== fragments ============================== */
+
+function brandBlock(){
+  return '<div class="brand"><div class="mark">G</div><div class="markgap"></div>' +
+         '<div class="word">GNUS.AI</div></div>';
+}
+
+function glyph(n, size, fs){
+  /* textOnBrand on BNB is 11.19:1 and on Super Genius 10.66:1; white on both is
+     under 2:1, so the badge label flips with the fill's luminance. */
+  var dark = (n.id === 'bnb' || n.id === 'gnus');
+  return '<i class="glyph" style="background:' + n.c + ';width:' + size + 'px;height:' + size +
+         'px;font-size:' + fs + 'px;color:' + (dark ? '#000B18' : '#FFFFFF') + '">' + n.ab + '</i>';
+}
+
+/* The 32px AccountAvatar. COIN mode is exactly what ships:
+   assets/images/crypto/{currencySymbol}.png on brandPrimaryStrong #0AAEE6.
+   MONO mode replaces the coin image with the 2-character monogram (181 scheme E). */
+function avatarFor(w, n, withBadge, faceOverride){
+  var face = faceOverride || FACE_ST;
+  var inner;
+  if (!w) {
+    inner = '<div class="disc">+</div>';
+  } else if (face === 'mono') {
+    inner = '<div class="disc mono">' + esc(monogram(w.name)) + '</div>';
+  } else {
+    inner = '<div class="disc">' + esc(w.sym) + '</div>';
+  }
+  var badge = '';
+  if (withBadge && n) badge = '<div class="badge">' + glyph(n, 12, 6) + '</div>';
+  return '<div class="av">' + inner + badge + '</div>';
+}
+
+function burgerInner(){
+  return '<span class="bars"><i></i><i></i><i></i></span>';
+}
+
+/* ---------- ONE chip builder. The treatment is a class name and nothing else. ----------
+   This is the whole point of the sketch: every variant runs through this function
+   with the same 44 x 44 box, so a difference you can see is a difference in the skin. */
+function chip(cls, inner, attrs){
+  var s = '<div class="ctl ' + cls + '" ' + (attrs || '') + '>';
+  s += (cls === 't-grad') ? '<div class="inner">' + inner + '</div>' : inner;
+  s += tt();
+  s += '</div>';
+  return s;
+}
+
+/* The 44 x 44 hit box, drawn on the control's real bounds. The whole claim of
+   this sketch is that this overlay is IDENTICAL in all six variants and only
+   the paint under it moves, so it is emitted from one place. */
+function tt(){ return (TT_ST === 'on') ? '<div class="tt"></div>' : ''; }
+
+function bar(inner){
+  return '<div class="apphead"><div class="ts"></div><div class="titlerow">' + brandBlock() +
+         inner + '</div><div class="ts"></div><div class="acts"></div></div>';
+}
+
+/* the treatment class each variant paints on each of the two controls */
+var TREAT = {
+  now: {wallet:'t-hair', burger:'t-hair'},
+  A:   {wallet:'t-hair', burger:'t-hair'},
+  B:   {wallet:'t-fill', burger:'t-fill'},
+  C:   {wallet:'t-bare', burger:'t-bare'},
+  D:   {wallet:'t-grad', burger:'t-grad'},
+  E:   {wallet:'t-sub',  burger:'t-sub'},
+  F:   {wallet:'t-hair', burger:'t-bare'}
+};
+
+function cluster(v){
+  var t = TREAT[v];
+  var s = '<div class="slotright">';
+  s += chip(t.wallet, avatarFor(wal(), net(v), true), 'data-open="wallet"');
+  s += '<div class="gap6"></div>';
+  s += chip(t.burger, burgerInner(), 'data-open="more"');
+  s += '</div>';
+  return bar(s);
+}
+
+/* NOW - the shipped WalletPill, for comparison only. space3 + avatar32 + space4 +
+   name + space2 + caret18 + space4, capped by the 223.94 remainder, not by the
+   declared kWalletPillMaxWidth of 236. */
+function headNow(){
+  var w = wal();
+  var width = Math.min(76 + nameW(w ? w.name : 'No wallet'), REMAINDER);
+  var s = '<div class="slotright"><div class="pill" data-open="wallet" style="width:' + width + 'px">';
+  s += '<div class="pad3"></div>' + avatarFor(w, net('now'), true);
+  s += '<div class="pad4"></div>';
+  s += '<div class="nm" style="flex:1;min-width:0">' + esc(w ? w.name : 'No wallet') + '</div>';
+  s += '<div class="pad2"></div><div class="caret">&#9662;</div><div class="pad4"></div>';
+  s += tt();
+  s += '</div></div>';
+  return bar(s);
+}
+
+function headFor(v){ return (v === 'now') ? headNow() : cluster(v); }
+
+/* ---------- the width ruler drawn on the phone itself ---------- */
+
+function ctlWidth(v){
+  if (v === 'now') {
+    var w = wal();
+    return Math.min(76 + nameW(w ? w.name : 'No wallet'), REMAINDER);
+  }
+  return CLUSTER;
+}
+
+function rulerFor(v){
+  if (RULER_ST !== 'on') return '';
+  var wpx = ctlWidth(v);
+  return '<div class="measure" style="right:32px;width:' + wpx + 'px">' +
+         '<i></i><b>' + wpx.toFixed(2) + ' px &middot; ' + (100*wpx/BAR).toFixed(1) + '% of the bar</b>' +
+         '</div>';
+}
+
+/* ---------- body ---------- */
+
+var COINS = [
+  {sym:'GNUS', name:'Genius Tokens', amt:'12,480.0000', fiat:'$4,867.20', px:'$0.39',      chg:'+2.41%', up:1, c1:'#0AD89C', c2:'#0AAEE6'},
+  {sym:'ETH',  name:'Ethereum',      amt:'1.2043',      fiat:'$3,911.11', px:'$3,248.50',  chg:'+1.12%', up:1, c1:'#8A8F9D', c2:'#5b6070'},
+  {sym:'BTC',  name:'Bitcoin',       amt:'0.0412',      fiat:'$2,884.00', px:'$70,000.00', chg:'-0.42%', up:0, c1:'#F7931A', c2:'#c9761a'}
+];
+
+function coinRows(){
+  return COINS.map(function(r){
+    return '<div class="row">' +
+      '<div class="ico" style="background:linear-gradient(135deg,' + r.c1 + ',' + r.c2 + ')">' +
+        r.sym.slice(0,2) + '</div>' +
+      '<div class="rmid"><div class="rname">' + r.name + '</div>' +
+      '<div class="rsub">' + r.px + ' <span class="' + (r.up ? 'good' : 'bad') + '">' + r.chg +
+      '</span></div></div>' +
+      '<div class="rend"><div class="rfiat">' + r.fiat + '</div>' +
+      '<div class="ramt">' + r.amt + ' ' + r.sym + '</div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function homeBody(){
+  var s = '<div class="body">';
+  s += '<div class="card"><div class="sect"><div class="stitle">Assets</div>' +
+       '<div class="spacer"></div><span class="vall">VIEW ALL &rarr;</span></div>';
+  s += coinRows();
+  s += '</div>';
+  s += '<div class="card"><div class="sect"><div class="stitle">Transactions</div>' +
+       '<div class="spacer"></div><span class="vall">VIEW ALL &rarr;</span></div>' +
+       '<div style="height:16px"></div>' +
+       '<div style="padding:0 8px;font-size:12.5px;color:var(--text2)">Today</div>' +
+       '<div class="row"><div class="ico" style="background:#171A21;color:#8A8F9D">TX</div>' +
+       '<div class="rmid"><div class="rname">Ethereum</div>' +
+       '<div class="rsub">To 0x91b2...44de</div></div>' +
+       '<div class="rend"><div class="rfiat">-0.2100 ETH</div></div></div>';
+  s += '</div></div>';
+  return s;
+}
+
+/* The bottom bar as sketch 181 F leaves it: More has gone to the hamburger and
+   News stands in the freed fourth slot. 182 owns which destination that is. */
+function bottomBar(){
+  return '<div class="btm"><div class="tabsrow">' +
+    '<div class="slot act"><div class="dot"></div>Home</div>' +
+    '<div class="slot"><div class="dot"></div>Markets</div>' +
+    '<div style="width:84px"></div>' +
+    '<div class="slot"><div class="dot"></div>Activity</div>' +
+    '<div class="slot"><div class="dot"></div>News</div>' +
+    '</div></div><div class="dock">SWAP</div>';
+}
+
+/* ---------- sheets ---------- */
+
+function netStrip(v){
+  var cur = net(v).id;
+  return '<div class="netstrip">' + NETWORKS.map(function(n){
+    return '<div class="nchip' + (n.id === cur ? ' on' : '') + '" data-net="' + n.id + '">' +
+      glyph(n, 20, 8) + '<span>' + n.name + '</span></div>';
+  }).join('') + '</div>';
+}
+
+function accountRows(v){
+  var w = wal(), n = net(v);
+  var s = '<div class="secthead first">SDK Accounts</div>';
+  s += '<div class="sectcap">Node accounts that earn minions for sharing your GPU.</div>';
+  s += SDK_WALLETS.map(function(x){
+    var sel = (w && w.name === x.name);
+    return '<div class="srow' + (sel ? ' on' : '') + '">' + avatarFor(x, n, false) +
+      '<div class="mid"><div class="t">' + esc(x.name) + '</div>' +
+      '<div class="s">' + shortAddr(x.addr) + '</div></div>' +
+      (sel ? '<div class="ck">&#10003;</div>' : '') + '</div>';
+  }).join('');
+  s += '<div class="secthead">Your Accounts</div>';
+  s += '<div class="sectcap">Wallets you created or imported.</div>';
+  if (!w) {
+    s += '<div class="note">No wallets yet. <b>Add Wallet</b> lives here, which is why the control ' +
+         'stays tappable with no wallet selected.</div>';
+  } else {
+    var isSdk = (w.name.indexOf('Super Genius Wallet') === 0);
+    s += '<div class="srow' + (isSdk ? '' : ' on') + '">' + avatarFor(w, n, false) +
+      '<div class="mid"><div class="t">' + esc(w.name) + '</div>' +
+      '<div class="s">' + shortAddr(w.addr) + '</div></div>' +
+      (isSdk ? '' : '<div class="ck">&#10003;</div>') + '</div>';
+  }
+  return s;
+}
+
+function moreRows(){
+  var s = '<div class="sectcap">What the hamburger opens - <code>_MoreSheetBody</code>, minus its ' +
+          'Accounts row. Sketch 181 made that deletion a condition of shipping F.</div>';
+  s += MORE_ROWS.map(function(r){
+    return '<div class="srow">' +
+      '<div class="av" style="width:32px;height:32px"><div class="disc" ' +
+      'style="background:#232830;color:#8A8F9D;font-size:9px">' + r.t.slice(0,2).toUpperCase() +
+      '</div></div><div class="mid"><div class="t">' + r.t + '</div>' +
+      '<div class="s" style="font-family:inherit">' + r.s + '</div></div></div>';
+  }).join('');
+  return s;
+}
+
+function sheetHTML(v, kind){
+  var title = (kind === 'more') ? 'Menu' : 'Wallet and network';
+  var s = '<div class="scrim" data-close="1"></div><div class="sheet">';
+  s += '<div class="grab"></div>';
+  s += '<div class="shead">' + title + '<span class="x" data-close="1">&#10005;</span></div>';
+  s += '<div class="sbody">';
+  if (kind === 'more') {
+    s += moreRows();
+  } else {
+    s += '<div class="secthead first">Network</div>';
+    s += '<div class="sectcap">Which chain the balances are read from. Tap a chip.</div>';
+    s += netStrip(v);
+    s += accountRows(v);
+  }
+  s += '</div></div>';
+  return s;
+}
+
+function screenHTML(v){
+  var s = '<div class="statusbar"><span>9:41</span><span>5G &nbsp; 100%</span></div>';
+  s += headFor(v);
+  s += rulerFor(v);
+  s += homeBody();
+  s += bottomBar();
+  var k = SHEET[v];
+  if (k) s += sheetHTML(v, k);
+  return s;
+}
+
+/* ============================== the stack: all seven on real bar strips ============================== */
+
+function stripFor(v, label){
+  var h = '<div class="strip"><div class="lab">' + label + '</div>';
+  h += '<div class="striphold">' + '<div class="ts"></div><div class="titlerow">' + brandBlock() +
+       (v === 'now'
+         ? (function(){
+             var w = wal();
+             var width = Math.min(76 + nameW(w ? w.name : 'No wallet'), REMAINDER);
+             return '<div class="slotright"><div class="pill" style="width:' + width + 'px;cursor:default">' +
+               '<div class="pad3"></div>' + avatarFor(w, net('now'), true) + '<div class="pad4"></div>' +
+               '<div class="nm" style="flex:1;min-width:0">' + esc(w ? w.name : 'No wallet') + '</div>' +
+               '<div class="pad2"></div><div class="caret">&#9662;</div><div class="pad4"></div>' +
+               tt() + '</div></div>';
+           })()
+         : (function(){
+             var t = TREAT[v];
+             return '<div class="slotright">' +
+               chip(t.wallet, avatarFor(wal(), net(v), true), 'style="cursor:default"') +
+               '<div class="gap6"></div>' +
+               chip(t.burger, burgerInner(), 'style="cursor:default"') + '</div>';
+           })()) +
+       '</div><div class="ts"></div><div class="acts"></div></div></div>';
+  return h;
+}
+
+var STACK_LABELS = {
+  now:'<b>Now</b> - the shipped 224 px pill, hairline <code>borderControl</code>. 3.30:1',
+  A:'<b>A - hairline, as shipped</b>. <code>surfaceMenu</code> + <code>borderControl</code>. 3.30:1 <span class="good">pass</span>',
+  B:'<b>B - filled, no border</b>. <code>surfaceMenu</code> alone. 1.11:1 <span class="bad">fail</span>, the glyphs carry it instead',
+  C:'<b>C - bare</b>. No fill, no edge. Container n/a; glyphs 7.54:1 and 19.29:1 <span class="good">pass</span>',
+  D:'<b>D - gradient ring</b>. 1.5 px <code>brandCta</code> edge. 10.39:1 and 7.54:1 <span class="good">pass</span>',
+  E:'<b>E - borderSubtle</b>. White 12%. 1.36:1 <span class="bad">fail</span> - the counter-example',
+  F:'<b>F - split</b>. Wallet keeps the hairline, the hamburger goes bare. 3.30:1 and 19.29:1 <span class="good">pass</span>'
+};
+
+function stackBlock(){
+  var h = '<div class="stack"><div class="stackrow">';
+  h += '<div>' + stripFor('now', STACK_LABELS.now) + stripFor('A', STACK_LABELS.A) +
+       stripFor('B', STACK_LABELS.B) + stripFor('C', STACK_LABELS.C) + '</div>';
+  h += '<div>' + stripFor('D', STACK_LABELS.D) + stripFor('E', STACK_LABELS.E) +
+       stripFor('F', STACK_LABELS.F) +
+       '<div class="note" style="width:390px">Every strip above is a real 60 px bar at 1:1 on ' +
+       '<code>surfaceElevated</code> with its 1 px <code>borderStrong</code> bottom edge, not a flat ' +
+       'swatch. That matters: the bar is 1.004:1 against the page behind it, so a treatment judged ' +
+       'against any other background is judged against the wrong number.</div>' +
+       '</div>';
+  h += '</div></div>';
+  return h;
+}
+
+/* ============================== the seam proof ============================== */
+/* Two adjacent controls: do they read as two things or as one wide thing? The
+   answer is measurable, because the treatment changes the INK gap without
+   changing the LAYOUT gap. space6 = 12 is the layout gap in all three. */
+
+function seamOne(wcls, bcls, title, lab){
+  var h = '<div class="seamone"><div class="seamhold">' +
+    '<div style="display:flex;align-items:center">' +
+    chip(wcls, avatarFor(wal(), net('seam'), true), 'style="cursor:default"') +
+    '<div class="gap6"></div>' +
+    chip(bcls, burgerInner(), 'style="cursor:default"') +
+    '</div></div>';
+  h += '<div class="lab"><b>' + title + '</b><br>' + lab + '</div></div>';
+  return h;
+}
+
+function seamProof(){
+  var h = '<div class="proof"><div class="ttl">The seam. Same 12 px of layout in all three - and ' +
+          'three different apparent gaps, because the treatment decides where the ink stops.</div>' +
+          '<div class="seamrow">';
+  h += seamOne('t-hair','t-hair','Both bordered',
+    'Painted edges 12.00 px apart, and the pair spans <b>100.00 px of continuous chrome</b>. Two ' +
+    'stadiums of identical weight at that pitch is the geometry of a <i>segmented control</i> - the ' +
+    'risk is that it reads as one two-part widget, not as two doors.');
+  h += seamOne('t-bare','t-bare','Both bare',
+    'The disc stops 6 px inside its box, the bars 13 px inside theirs, so the visible gap is ' +
+    '<b>6 + 12 + 13 = 31.00 px</b>. Maximum separation, zero chrome - and nothing at all says ' +
+    'where to press.');
+  h += seamOne('t-hair','t-bare','Split - the wallet only',
+    'Ink gap <b>12 + 13 = 25.00 px</b>. One object is a chip that carries state, the other is a ' +
+    'glyph that opens a menu. They look different <i>because they are different</i>, and the 44 x 44 ' +
+    'hit boxes are still identical.');
+  h += '</div><p style="font-size:12px;color:#c9ccd4;line-height:1.6;margin:12px 0 0">' +
+       'The layout gap is <code>space6</code> = <b>12.00</b> in every case. Sketch 181 chose 12 over ' +
+       '<code>space4</code> = 8 because 8 puts the two centres 52 px apart in the top-right corner, ' +
+       'the least accurate place a thumb reaches on a 390pt phone. <b>Nothing in this sketch may ' +
+       'change that number</b> - the treatment is allowed to change how far apart the two controls ' +
+       '<i>look</i>, and it does, by a factor of 2.6 between the first and second panel.</p></div>';
+  return h;
+}
+
+/* ============================== variant copy ============================== */
+
+var VARIANTS = [
+  {
+    id:'now', tab:'Now - the pill',
+    title:'Now - the shipped 224 px pill, here only as the yardstick',
+    treat:'<code>Material(color: surfaceMenu, shape: StadiumBorder(side: BorderSide(gw.borderControl)))</code> ' +
+      'with <code>clipBehavior: Clip.antiAlias</code> and the <code>InkWell</code> <i>inside</i> the ' +
+      'Material, so the ripple is clipped to the stadium. This is the house recipe and every variant ' +
+      'below is a departure from it.',
+    same:'One control, so the question does not arise - which is itself the thing that changed. ' +
+      'The moment there are two, "what do they look like relative to each other" becomes a design ' +
+      'decision that has to be made rather than inherited.',
+    ident:'<code>borderControl</code>, white 36%, composited to <b>#636569</b> against the bar: ' +
+      '<b>3.30:1</b>. <span class="good">Pass.</span> The fill underneath it is <b>1.11:1</b> and ' +
+      'contributes nothing.',
+    target:'44 tall by 139.02 - 223.94 wide. Over the floor by three to five times, which is the ' +
+      'complaint sketch 181 answered.',
+    verdict:'<span class="warn">Baseline.</span> Not a candidate - the composition it belongs to was ' +
+      'replaced on 2026-08-07. It is drawn here so the six skins are compared against the thing they ' +
+      'replace, at the same scale, in the same bar.'
+  },
+  {
+    id:'A', tab:'A - hairline',
+    title:'A - the hairline, exactly as shipped',
+    treat:'The pill recipe transferred unchanged to a 44 x 44 box. <b>At 44 x 44 a ' +
+      '<code>StadiumBorder</code> IS a circle</b>, so this is not a new shape token, a new border ' +
+      'token or a new component - it is <code>WalletPill</code> with its name column and caret ' +
+      'deleted. Cheapest possible diff.',
+    same:'<b>Same on both.</b> Two identical stadiums, 12 px apart. That is the honest default and ' +
+      'also A\'s one real weakness - see the seam proof: 100 px of continuous chrome at that pitch is ' +
+      'the geometry of a segmented control.',
+    ident:'<code>borderControl</code> <b>#636569</b> on the bar: <b>3.30:1</b>. ' +
+      '<span class="good">Pass.</span> The boundary carries 1.4.11 alone, exactly as the token\'s own ' +
+      'doc in <code>genius_wallet_colors.dart</code> says it should.',
+    target:'44 x 44 for both, and the painted edge <i>is</i> the target boundary - the only variant ' +
+      'here where what you see and what you can press are the same 44 px. Turn on 44PT TARGETS: the ' +
+      'dashed ring lands exactly on the border.',
+    verdict:'<span class="good">Safe, correct, and slightly loud.</span> Zero risk, zero new code, ' +
+      'and it passes without an argument. The cost is that the hamburger - a glyph every phone on ' +
+      'earth draws bare - is put in a box it does not need, and the pair reads as one widget.'
+  },
+  {
+    id:'B', tab:'B - filled, no border',
+    title:'B - the fill alone, no edge',
+    treat:'<code>Material(color: gw.surfaceMenu, shape: const CircleBorder())</code>. The border is ' +
+      'simply dropped. This is the literal reading of "bez bordera" while keeping a visible container.',
+    same:'<b>Same on both.</b> Two soft dark circles. They separate from each other less than A\'s do, ' +
+      'because a 1.11:1 disc has no edge to draw the eye to the seam.',
+    ident:'<b class="bad">The container identifies nothing.</b> <code>surfaceMenu</code> #171A21 on ' +
+      '<code>surfaceElevated</code> #0C0E14 is <b>1.11:1</b> - <span class="bad">fail</span> against ' +
+      '3:1. What actually carries 1.4.11 here is the <i>content</i>: the ' +
+      '<code>brandPrimaryStrong</code> disc at <b>7.54:1</b> and the hamburger bars in ' +
+      '<code>textPrimary</code> at <b>17.41:1</b> on the fill. Those pass, so <b>B is compliant</b> - ' +
+      'but not because of the treatment.',
+    target:'44 x 44, and the painted circle is the full 44, so the target is still legible. This is ' +
+      'the one thing B has over C.',
+    verdict:'<span class="warn">Honest but pointless.</span> If the glyphs are what identify the ' +
+      'control, the fill is decoration - and it is decoration you can barely see. B pays a paint ' +
+      'operation and a visual object for <b>1.11:1</b> of information. Either keep the edge and let ' +
+      'the container mean something (A, F) or drop the container entirely (C, F). B is the middle, ' +
+      'and the middle buys nothing.'
+  },
+  {
+    id:'C', tab:'C - bare',
+    title:'C - no border, no fill: the glyph on the bar',
+    treat:'<code>IconButton</code> / <code>InkResponse</code> with no decoration at all - a 44 x 44 ' +
+      'hit box around a 32 px avatar and an 18 px hamburger. The most minimal case there is, and the ' +
+      'idiom every native phone header actually uses.',
+    same:'<b>Same on both, and this is the variant where "same" costs the least</b> - because neither ' +
+      'object has chrome, "identical treatment" does not make them look like one widget. It makes ' +
+      'them look like two icons, which is what they are.',
+    ident:'<b>There is no container to measure</b>, so 1.4.11 falls entirely on the glyphs, and both ' +
+      'clear it with room: the avatar disc <code>brandPrimaryStrong</code> #0AAEE6 at <b>7.54:1</b> ' +
+      'and the hamburger bars <code>textPrimary</code> #FFFFFF at <b>19.29:1</b>, both against the ' +
+      'bar. <span class="good">Pass</span>, and by a wider margin than A\'s border.',
+    target:'44 x 44 - unchanged, and this is the variant where you have to prove it. Turn on ' +
+      '<b>44PT TARGETS</b>: the dashed ring is the same size as A\'s painted border, but there is ' +
+      'nothing under it. <b>The target is compliant and invisible</b>, which is legal and is still a ' +
+      'usability question rather than an accessibility one.',
+    verdict:'<span class="good">The strongest minimal answer, with one real cost.</span> C measures ' +
+      'better than A - 7.54 and 19.29 against 3.30 - because a bright disc is a louder identifier ' +
+      'than a grey hairline. What it gives up is the <i>affordance</i>: nothing says "press here", ' +
+      'and the ink ripple needs an explicit shape since there is no container to clip it to. On a ' +
+      'header where both objects are already conventional buttons, that cost is small.'
+  },
+  {
+    id:'D', tab:'D - gradient ring',
+    title:'D - the brand gradient as the edge',
+    treat:'A 1.5 px ring of <code>GeniusWalletGradient.brandCta</code> (#0AD89C &rarr; #0AAEE6) with a ' +
+      '<code>surfaceMenu</code> disc inside it: outer 44.0, ring 1.5, inner <b>41.0</b>, and the 32 px ' +
+      'avatar leaves 4.5 px of clear fill each side. <b>See the reuse note below - the component that ' +
+      'does this already exists, and it is the wrong one.</b>',
+    same:'<b>Same on both as drawn</b>, and that is what exposes the seam problem: ' +
+      '<code>brandCta</code> runs <code>centerLeft &rarr; centerRight</code>, so each ring sweeps ' +
+      'green-to-blue across its own 44 px. At x=44 the first ring is at its blue stop and at x=56 the ' +
+      'second restarts at green. <b>The hue reverses across a 12 px gap.</b> Spanning one gradient ' +
+      'across the whole 100 px would fix that and would make the pair read as one object - the exact ' +
+      'failure the seam proof warns about. Both answers are worse than not having the problem.',
+    ident:'Both stops clear 3:1 enormously: <b>#0AD89C = 10.39:1</b> and <b>#0AAEE6 = 7.54:1</b> on ' +
+      'the bar. <span class="good">Pass</span> at every point along the sweep, since the whole ramp ' +
+      'lies between those two. <b>Measured, not assumed</b> - a gradient edge is only as compliant as ' +
+      'its <i>weakest</i> stop, and here the weakest is 7.54.',
+    target:'44 x 44 unchanged; the ring is drawn <i>inside</i> the box, so the touch target and the ' +
+      'painted circle still coincide as in A.',
+    verdict:'<span class="bad">Measures beautifully and breaks a standing rule.</span> Two objections ' +
+      'that have nothing to do with contrast, both below.'
+  },
+  {
+    id:'E', tab:'E - borderSubtle',
+    title:'E - the quiet hairline, white 12%',
+    treat:'A\'s recipe with <code>gw.borderSubtle</code> in place of <code>gw.borderControl</code>. ' +
+      'The most likely "can we make it a bit subtler" edit, drawn so the answer is a number rather ' +
+      'than an opinion.',
+    same:'<b>Same on both.</b> It looks calmer than A and it is calmer for exactly the reason that ' +
+      'disqualifies it.',
+    ident:'<code>borderSubtle</code> white 12%, composited to <b>#292B30</b>: <b>1.36:1</b>. ' +
+      '<span class="bad">Fail.</span> Not marginal - it is a third of the requirement. The token\'s ' +
+      'own doc in <code>genius_wallet_colors.dart</code> prints this exact number in a table and ' +
+      'reserves <code>borderSubtle</code> for <b>decorative separators</b>, which carry no ' +
+      'information and therefore have no threshold to meet.',
+    target:'44 x 44, painted at 1.36:1 - the target is nominally visible and practically is not, ' +
+      'which is the worst of both C and A.',
+    verdict:'<span class="bad">Shown so it can be rejected out loud.</span> Included because it will ' +
+      'otherwise be proposed later as a tweak, by someone reasonable, on the grounds that it looks ' +
+      'nicer - and it does look nicer. Note that the fill inside it is 1.11:1 too, so E has no second ' +
+      'identifier to fall back on the way B does: the glyphs still carry it, but E has <i>added</i> a ' +
+      'visible boundary that is below threshold, which is worse than B\'s honest absence of one.'
+  },
+  {
+    id:'F', tab:'F - split',
+    title:'F - the wallet keeps the edge, the hamburger goes bare',
+    treat:'Two different treatments, on purpose. Wallet: A\'s recipe, <code>surfaceMenu</code> + ' +
+      '<code>borderControl</code>. Hamburger: C\'s, no fill and no edge. Same 44 x 44 boxes, same ' +
+      '<code>space6</code> = 12 between them.',
+    same:'<b>Different, and the difference is the argument.</b> The two controls are not the same ' +
+      'kind of object. The wallet icon <i>carries state</i> - it says which wallet and, through the ' +
+      '16 px badge, which chain, and its content changes when you switch. The hamburger carries ' +
+      'nothing; it is a fixed door to a fixed list. A chip is the right shape for a thing with a ' +
+      'value in it. A bare glyph is the right shape for a menu, and it is what every phone header ' +
+      'draws.',
+    ident:'Two identifiers, measured separately because they are different objects. Wallet: ' +
+      '<code>borderControl</code> <b>#636569</b> at <b>3.30:1</b> <span class="good">pass</span> - ' +
+      'and its content is a second, stronger identifier at 7.54:1. Hamburger: ' +
+      '<code>textPrimary</code> bars at <b>19.29:1</b> on the bar <span class="good">pass</span>. ' +
+      '<b>Neither control depends on a fill that measures 1.11:1.</b>',
+    target:'Two 44 x 44 boxes, centres 56 px apart, identical to every other variant. Turn on ' +
+      '<b>44PT TARGETS</b>: the two dashed rings are the same size even though only one of them has ' +
+      'anything painted on it. That is the whole claim - <b>different skin, identical geometry</b>.',
+    verdict:'<span class="good">The only variant that answers the same-or-different question rather ' +
+      'than assuming it.</span> It also has the best measured pair here after D, without D\'s rule ' +
+      'problem, and it keeps the wallet control on the shipped recipe so the diff against ' +
+      '<code>mobile_header.dart</code> stays a deletion.'
+  }
+];
+
+/* ============================== panes ============================== */
+
+function paneHTML(s){
+  var b = '<div class="cols">';
+  b += '<div><div class="phone" data-var="' + s.id + '"><div class="screen"></div></div>' +
+       '<div class="caption" data-cap="' + s.id + '"></div></div>';
+  b += '<div class="notes">';
+  b += '<h3>' + s.title + '</h3>';
+  b += '<table>';
+  b += '<tr><th style="width:210px">The treatment, in code</th><td>' + s.treat + '</td></tr>';
+  b += '<tr><th>Wallet vs hamburger</th><td>' + s.same + '</td></tr>';
+  b += '<tr><th>What identifies it (1.4.11)</th><td>' + s.ident + '</td></tr>';
+  b += '<tr><th>44pt touch target</th><td>' + s.target + '</td></tr>';
+  b += '<tr><th>Verdict</th><td>' + s.verdict + '</td></tr>';
+  b += '</table>';
+  if (s.id === 'D') b += gradientNotes();
+  if (s.id === 'A' || s.id === 'C' || s.id === 'F') b += seamProof();
+  b += '</div></div>';
+  return b;
+}
+
+function gradientNotes(){
+  var h = '';
+  h += '<h3 class="sec">Does this reuse <code>GWGradientBorderCard</code>? Partly, and it should not.</h3>';
+  h += '<p>The component exists - <code>lib/components/cards/gw_gradient_border_card.dart</code> - and ' +
+       'it does the geometry correctly: a <code>Container</code> with the gradient as its decoration, ' +
+       '<code>padding: EdgeInsets.all(borderWidth)</code>, and an inner surface at ' +
+       '<code>radius - borderWidth</code>. Passing <code>width: 44, height: 44, radius: 22, ' +
+       'padding: EdgeInsets.zero, background: gw.surfaceMenu</code> would render this variant exactly. ' +
+       '<b>Three things are wrong with doing that</b>, and the third is disqualifying.</p>';
+  h += '<table><tr><th style="width:150px">Mismatch</th><th>Detail</th></tr>' +
+       '<tr><td>Wrong gradient by default</td><td>its default is ' +
+       '<code>GeniusWalletGradient.brandBorder</code> = <b>#14C8FF &rarr; #5BFFD0</b>, not the ' +
+       '<code>brandCta</code> #0AD89C &rarr; #0AAEE6 this sketch was asked for. Both pass 1.4.11 ' +
+       '(<b>9.86:1</b> and <b>15.30:1</b> on the bar), so this is a brand-voice choice, not a ' +
+       'contrast one - but it must be passed explicitly or the header quietly gets a different ' +
+       'gradient from the dock.</td></tr>' +
+       '<tr><td>It is a card, not a button</td><td>defaults are <code>radius2xl</code> = 16 and ' +
+       '<code>padding: EdgeInsets.all(space8)</code>. Every one of them has to be overridden, which ' +
+       'is the usual sign that the component is not the one you want.</td></tr>' +
+       '<tr><td class="bad">The ripple disappears</td><td><b>this is the disqualifying one.</b> Its ' +
+       '<code>onTap</code> path is <code>Material(color: transparent) &gt; InkWell &gt; card</code>, ' +
+       'so the splash paints on the transparent Material <i>behind</i> an opaque gradient Container ' +
+       'and is never seen. The shipped <code>WalletPill</code> does the opposite - ' +
+       '<code>Material(color: surfaceMenu, shape: StadiumBorder(...), clipBehavior: Clip.antiAlias)</code> ' +
+       'with the <code>InkWell</code> <i>inside</i> - so its ripple is visible and clipped to the ' +
+       'stadium. On a card nobody notices. On a 44 px header button, tap feedback is most of the ' +
+       'feedback there is.</td></tr>' +
+       '</table>';
+  h += '<p><b>So: not a reuse.</b> D needs a small new widget - the gradient <code>Container</code> ' +
+       'as the ring, with the shipped <code>Material</code>-outside-<code>InkWell</code>-inside ' +
+       'recipe as the disc, roughly fifteen lines. That is not a large cost. It is simply not the ' +
+       '"we already have this" that it looks like from the file listing.</p>';
+
+  h += '<h3 class="sec">Where a gradient edge sits against the standing CTA rule</h3>';
+  h += '<p>The rule, verbatim from <code>AGENTS.md</code> and ' +
+       '<code>.planning/codebase/CONVENTIONS.md</code>: <b>fill means commitment, outline means ' +
+       'everything else</b>; <code>gradientOutline</code> is <b>"only for a secondary action standing ' +
+       'beside or under a filled gradient CTA, as its deliberate twin. Never for a lone secondary ' +
+       'action."</b> And: <b>at most one filled gradient per surface.</b></p>';
+  h += '<div class="flag"><b>A gradient-edged header control is a lone secondary action wearing the ' +
+       'signature.</b> It does not break the <i>filled</i>-gradient reservation - the SWAP dock stays ' +
+       'the only gradient fill in the app, and D leaves it alone. But it is precisely the case the ' +
+       'outline half of the rule names and refuses. The wallet icon and the hamburger are not twins ' +
+       'of the dock; they are not on its ladder, they are 700 px away from it at the other end of the ' +
+       'screen, and neither of them commits to anything.</div>';
+  h += '<p>Count what is on the home surface with D applied: the brand mark top-left (gradient), two ' +
+       'gradient rings top-right, the SWAP dock (gradient fill), and the active bottom-bar label ' +
+       '(gradient text). <b>Five gradient objects on one screen, and the two new ones are the only ' +
+       'ones that are neither the brand itself nor the primary action.</b> The app is also currently ' +
+       'moving the other way: the dashboard\'s <code>View all</code> links were reverted from gradient ' +
+       'to flat grey at Jakub\'s request this week. D pushes against a decision that was just made.</p>';
+  h += '<p><b>Two smaller observations, both real.</b> (1) The ring\'s blue stop is <b>#0AAEE6</b>, ' +
+       'which is <code>brandPrimaryStrong</code> - <i>the same colour as the avatar disc it ' +
+       'surrounds</i>. They do not merge, because the 4.5 px of <code>surfaceMenu</code> between them ' +
+       'measures <b>6.81:1</b> against both, but the right-hand side of the wallet icon becomes two ' +
+       'concentric rings of one colour. (2) At <b>1.5 px</b> - 4.5 physical px on a 3x iPhone - a ' +
+       'two-stop ramp across a 44 px arc does not read as <i>a gradient</i>. It reads as a bright ' +
+       'teal ring. <b>D therefore pays the gradient\'s full systemic cost and collects very little of ' +
+       'its look.</b></p>';
+  return h;
+}
+
+function problemPane(){
+  var h = '<div class="notes" style="max-width:1060px">';
+
+  h += '<h3>What is settled, and what this sketch is allowed to touch</h3>';
+  h += '<p>Jakub picked scheme <b>F</b> from sketch 181 on 2026-08-07: a short-form wallet control ' +
+       'plus a hamburger, both top-right, replacing the 224 px pill. <b>The composition, the count of ' +
+       'controls and their position are closed.</b> This sketch changes one thing - the surface ' +
+       'treatment - and holds everything else to the pixel.</p>';
+  h += '<table><tr><th style="width:260px">Held constant in all six variants</th><th>Value</th></tr>' +
+       '<tr><td>title Row at 390pt</td><td class="num"><b>342.00</b> - <code>titleSpacing</code> is ' +
+       'charged on BOTH sides (<code>NavigationToolbar</code> lays the middle slot at ' +
+       '<code>width - leading - trailing - middleSpacing * 2</code>), so it is not 358</td></tr>' +
+       '<tr><td><code>BrandLockup</code>, mark 28 / wordmark 18</td><td class="num">106.06</td></tr>' +
+       '<tr><td>Wallet control</td><td class="num">44.00 x 44.00</td></tr>' +
+       '<tr><td>Gap, <code>space6</code></td><td class="num">12.00</td></tr>' +
+       '<tr><td>Hamburger</td><td class="num">44.00 x 44.00</td></tr>' +
+       '<tr><td><b>Cluster</b></td><td class="num"><b>100.00</b> - 25.6% of the bar, against the ' +
+       'shipped pill\'s 223.94 (57.4%)</td></tr>' +
+       '<tr><td>Free space left in the title Row</td><td class="num">135.94</td></tr>' +
+       '<tr><td>Where both icons live</td><td><b><code>title</code>, not <code>actions</code>.</b> ' +
+       'In <code>actions</code> the title Row drops from 342.00 to <b>246.00</b> and the BRAND becomes ' +
+       'the thing that shrinks under Dynamic Type - backwards. Renders identically; fails ' +
+       'differently.</td></tr>' +
+       '</table>';
+
+  h += '<h3 class="sec">The constraint that decides this, and it is not a matter of taste</h3>';
+  h += '<p><code>surfaceMenu</code> #171A21 on <code>surfaceElevated</code> #0C0E14 measures ' +
+       '<b>1.11:1</b>. Not "low" - <b>invisible</b>. No two dark surface tokens in this palette ' +
+       'separate by even 1.2:1: <code>surfaceSunken</code> against the bar is <b>1.04:1</b> and ' +
+       '<code>surfaceBase</code> is <b>1.004:1</b>. <b>A fill cannot identify a control in this bar. ' +
+       'Only a line, or the content, can.</b></p>';
+  h += '<div class="flag"><b>That is why the shipped pill has a border at all</b>, and the token was ' +
+       'created for exactly this: <code>genius_wallet_colors.dart</code>\'s ' +
+       '<code>_borderControl</code> doc says it is <b>"the edge of a CONTROL whose fill cannot ' +
+       'identify it"</b>, prints the same comparison table this sketch recomputes, and closes with ' +
+       '<b>"Decorative separators stay on borderSubtle - a rule that carries no information has no ' +
+       '1.4.11 threshold to meet, and painting every hairline at 36% would make the app a ' +
+       'wireframe."</b> So the question a no-border variant has to answer is not "does it look ' +
+       'cleaner". It is <b>"what identifies this as a control at 3:1 instead"</b> - and there are ' +
+       'only three honest answers: a stronger edge, the content itself, or an accepted failure ' +
+       'labelled as one.</div>';
+
+  h += '<h3 class="sec">All seven, on real bars, at 1:1</h3>';
+  h += '<p>The state selectors above drive these too. Switch to <b>ADDRESS-SHAPED NAME</b> and every ' +
+       'strip re-renders with the monogram <b>7A</b>, never <b>21</b>.</p>';
+  h += stackBlock();
+
+  h += '<h3 class="sec">Do the two controls get the same treatment, or different?</h3>';
+  h += '<p>This is a real question and the brief was right to force it. <b>Two adjacent controls that ' +
+       'look identical can read as one wide control; two that look different imply two different ' +
+       'kinds of action.</b> Both readings are available at 12 px of separation, and the treatment - ' +
+       'not the layout - decides which one you get.</p>';
+  h += seamProof();
+  h += '<p><b>The answer this sketch arrives at: different, and for a reason that is about what the ' +
+       'objects are, not about how they look.</b> The wallet icon holds a <i>value</i> - which wallet, ' +
+       'which chain - and its content changes when that value changes. The hamburger holds nothing; ' +
+       'it is a fixed door. In this codebase a thing with a value in it is a chip on ' +
+       '<code>surfaceMenu</code> with a <code>borderControl</code> edge (the recipe ' +
+       '<code>responsive_drawer.dart</code> states in its own class doc, and the one the network chips ' +
+       'in the sheet already use). A menu glyph is a bare icon, which is what every native phone ' +
+       'header ships. <b>Making them match would be inventing a similarity that is not there.</b></p>';
+
+  h += '<h3 class="sec">One more treatment, measured and not built</h3>';
+  h += '<p><b>The sunken well</b> - <code>surfaceSunken</code> #06080C fill, i.e. a control that is ' +
+       '<i>darker</i> than the bar rather than lighter. It is a reasonable instinct and it fails on ' +
+       'two counts before it gets to taste. <b>Contrast:</b> #06080C on #0C0E14 is <b>1.04:1</b>, ' +
+       'worse than <code>surfaceMenu</code>\'s 1.11, so it needs <code>borderControl</code> anyway and ' +
+       'collapses into variant A with a darker middle. <b>Language:</b> the house interaction is the ' +
+       '<b>lift chip</b> - on activation an element <i>rises</i> onto <code>surfaceElevated</code> ' +
+       'with a card shadow and a 1 px upward translate. A control that starts in a well has to fall ' +
+       'to be pressed, or rise out of a hole, and neither is a motion this app makes anywhere. Drawn ' +
+       'nowhere, recorded here so it is not proposed as new.</p>';
+
+  h += '</div>';
+  return h;
+}
+
+/* ============================== the contrast table ============================== */
+
+var CONTRAST = [
+  ['<b>Now</b> - shipped pill', '<code>borderControl</code> white 36% edge', '#636569', '3.30', 1,
+   'the boundary carries 1.4.11 alone; the fill under it is 1.11:1'],
+  ['<b>A</b> - hairline', '<code>borderControl</code> white 36% edge', '#636569', '3.30', 1,
+   'same recipe, 44 x 44 box; a StadiumBorder at 44 x 44 is a circle'],
+  ['<b>B</b> - filled, no border', '<code>surfaceMenu</code> fill', '#171A21', '1.11', 0,
+   'the container fails; the CONTENT passes - disc 7.54:1, bars 17.41:1 on the fill'],
+  ['<b>C</b> - bare', 'no container - the glyphs alone', '#0AAEE6 / #FFFFFF', '7.54 / 19.29', 1,
+   'nothing to measure a container against; both glyphs clear 3:1 with room'],
+  ['<b>D</b> - gradient ring', '<code>brandCta</code> 1.5 px edge, both stops', '#0AD89C / #0AAEE6', '10.39 / 7.54', 1,
+   'a gradient edge is only as compliant as its WEAKEST stop; that is 7.54'],
+  ['<b>E</b> - borderSubtle', '<code>borderSubtle</code> white 12% edge', '#292B30', '1.36', 0,
+   'a third of the requirement; the token doc reserves 12% for decorative separators'],
+  ['<b>F</b> - split', 'wallet <code>borderControl</code> / hamburger glyph', '#636569 / #FFFFFF', '3.30 / 19.29', 1,
+   'two different objects, two different identifiers, measured separately'],
+  ['<i>considered</i> - sunken well', '<code>surfaceSunken</code> fill', '#06080C', '1.04', 0,
+   'worse than surfaceMenu; needs borderControl anyway, so it collapses into A']
+];
+
+var SUPPORT = [
+  ['<code>surfaceMenu</code> #171A21 on the bar', '1.11', 0, 'the fill identifies nothing - the rule that binds every variant'],
+  ['<code>surfaceSunken</code> #06080C on the bar', '1.04', 0, 'no dark surface pair in this palette reaches 1.2:1'],
+  ['<code>surfaceBase</code> #0B0D12 on the bar', '1.004', 0, 'which is why the bar itself needs a painted bottom edge'],
+  ['<code>borderStrong</code> white 24% (#46484C) on the bar', '2.11', 0, 'the bar\'s bottom edge - below 3:1 and shipped knowingly, because a separator carries no state'],
+  ['<code>brandPrimaryStrong</code> #0AAEE6 disc on the bar', '7.54', 1, 'what lets B, C and F drop or ignore the container edge'],
+  ['<code>textOnBrand</code> #000B18 monogram on that disc', '7.74', 1, 'scheme 181-E\'s two characters'],
+  ['<code>textOnBrand</code> on the gradient green stop #0AD89C', '10.66', 1, 'if a monogram ever sat on the gradient itself'],
+  ['<code>textPrimary</code> #FFFFFF bars on the bar (bare hamburger)', '19.29', 1, 'C and F'],
+  ['<code>textPrimary</code> #FFFFFF bars on <code>surfaceMenu</code> (chipped hamburger)', '17.41', 1, 'Now, A, B, D, E'],
+  ['<code>brandBorder</code> #14C8FF on the bar', '9.86', 1, 'GWGradientBorderCard\'s DEFAULT gradient, not brandCta'],
+  ['<code>brandBorder</code> #5BFFD0 on the bar', '15.30', 1, 'its other stop'],
+  ['<code>surfaceMenu</code> ring gap against #0AAEE6 either side of it', '6.81', 1, 'the 4.5 px between D\'s ring and the disc - they do not merge'],
+  ['<code>textSecondary</code> #8A8F9D on the bar', '5.97', 1, 'available if a control ever needed a quieter glyph than white']
+];
+
+function contrastPane(){
+  var h = '<div class="notes" style="max-width:1060px">';
+  h += '<h3>The contrast table. One row per variant, computed from the tokens.</h3>';
+  h += '<p>Every ratio is sRGB relative luminance per WCAG 2.x. <b>Translucent hairlines are ' +
+       'composited over <code>surfaceElevated</code> #0C0E14 first and then measured against it</b> - ' +
+       'measuring the raw white before compositing would report 19.29:1 for a 12% border, which is ' +
+       'how a failing edge gets shipped. The threshold is <b>3:1</b>, WCAG 2.2 <b>1.4.11 Non-text ' +
+       'Contrast</b>, which applies to whatever is needed to <i>identify</i> the control.</p>';
+  h += '<table><tr><th style="width:150px">Variant</th><th>Identifying element</th>' +
+       '<th style="width:120px">Composited</th><th style="width:80px">vs the bar</th>' +
+       '<th style="width:60px">3:1</th><th>Note</th></tr>';
+  h += CONTRAST.map(function(r){
+    return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="num"><code>' + r[2] +
+      '</code></td><td class="num"><b>' + r[3] + ':1</b></td><td class="' + (r[4] ? 'good' : 'bad') +
+      '"><b>' + (r[4] ? 'PASS' : 'FAIL') + '</b></td><td>' + r[5] + '</td></tr>';
+  }).join('');
+  h += '</table>';
+
+  h += '<div class="flag"><b>Read rows B and C together - they are the interesting pair.</b> B keeps ' +
+       'a container and that container <b>fails</b> at 1.11:1. C has no container at all and ' +
+       '<b>passes</b> at 7.54 and 19.29. The variant with less paint measures better, because in this ' +
+       'bar a fill is not an identifier and a bright glyph is. <b>Neither B nor C is inaccessible</b> ' +
+       '- in both, the content carries 1.4.11 - but only C is honest about it.</div>';
+  h += '<div class="flag"><b>And read row E as the counter-example it was drawn to be.</b> E is the ' +
+       'only variant that <i>paints a boundary below threshold</i>. B\'s container also fails, but B ' +
+       'never claims to have an edge. E draws one you can almost see, at 1.36:1, and an edge you can ' +
+       'almost see is worse than no edge at all: it looks like the control is identified when it is ' +
+       'not.</div>';
+
+  h += '<h3 class="sec">Supporting pairings, all computed the same way</h3>';
+  h += '<table><tr><th>Pairing</th><th style="width:80px">Ratio</th><th style="width:60px">3:1</th>' +
+       '<th>Note</th></tr>';
+  h += SUPPORT.map(function(r){
+    return '<tr><td>' + r[0] + '</td><td class="num"><b>' + r[1] + ':1</b></td><td class="' +
+      (r[2] ? 'good' : 'bad') + '">' + (r[2] ? 'pass' : 'fail') + '</td><td>' + r[3] + '</td></tr>';
+  }).join('');
+  h += '</table>';
+
+  h += '<h3 class="sec">Text contrast, since two variants change what the glyphs sit on</h3>';
+  h += '<p>The hamburger bars are not text and are governed by 1.4.11, not 1.4.3 - but the monogram ' +
+       '<i>is</i> text and needs <b>4.5:1</b>. It sits on <code>brandPrimaryStrong</code> at ' +
+       '<b>7.74:1</b> in every variant here, because <b>no treatment in this sketch touches the ' +
+       'inside of the disc</b>. That is deliberate: what is drawn in the circle was decided in sketch ' +
+       '181 and is not reopened.</p>';
+
+  h += '<h3 class="sec">Light mode</h3>';
+  h += '<p>Deferred, consistent with the current dark-first pass, and flagged rather than assumed ' +
+       'safe: on the light bar <code>borderControl</code> flips to ink at 46% for the same 3:1 reason, ' +
+       'so <b>A and F transfer by construction</b> - they use the token, not a literal. <b>D does ' +
+       'not:</b> #0AD89C and #0AAEE6 are fixed brand values, and their ratios against a light bar are ' +
+       'a different calculation that this sketch has not run. One more reason the gradient ring is ' +
+       'the expensive answer.</p>';
+
+  h += '</div>';
+  return h;
+}
+
+/* ============================== recommendation ============================== */
+
+function recPane(){
+  var h = '<div class="notes" style="max-width:1060px">';
+
+  h += stackBlock();
+
+  h += '<div class="rec"><b>&#9733; Ship F - the wallet keeps the hairline, the hamburger goes ' +
+       'bare.</b> It is the only variant that <i>decides</i> the same-or-different question instead of ' +
+       'defaulting to one answer, and it decides it on what the objects are rather than on how they ' +
+       'look: the wallet icon carries a value that changes, so it gets the app\'s existing chip recipe ' +
+       '(<code>surfaceMenu</code> + <code>borderControl</code>, <b>3.30:1</b>); the hamburger carries ' +
+       'nothing and opens a fixed list, so it gets the idiom every phone header on earth uses, at ' +
+       '<b>19.29:1</b>. Both identifiers pass 1.4.11 on their own terms and <b>neither depends on the ' +
+       '1.11:1 fill</b>. It also fixes A\'s one real defect for free - two identical stadiums 12 px ' +
+       'apart read as a segmented control, and F\'s pair cannot, because only one of them is a ' +
+       'stadium.</div>';
+
+  h += '<p><b>What shipping F costs in code: less than any other variant here.</b> The wallet control ' +
+       'stays on the shipped <code>Material(color: surfaceMenu, shape: StadiumBorder(side: ' +
+       'BorderSide(gw.borderControl)))</code> recipe, so the diff against ' +
+       '<code>mobile_header.dart</code> is a <i>deletion</i> - the name column and the caret go, the ' +
+       'decoration does not move. The hamburger is a plain <code>IconButton</code> at 44 x 44. <b>No ' +
+       'new token, no new component, no new gradient.</b></p>';
+
+  h += '<div class="rec" style="border-left-color:#8A8F9D;background:rgba(138,143,157,.07);color:#c9ccd4">' +
+       '<b style="color:#fff">Runner-up: C - both bare.</b> If Jakub wants the header quieter than F, ' +
+       '<b>C is the next stop and not B</b>, which is the non-obvious part. C measures better than the ' +
+       'shipped border does (7.54 and 19.29 against 3.30), it is the only variant with no chrome to ' +
+       'get wrong in light mode, and it gives the cleanest bar of the seven. What it gives up is the ' +
+       'affordance: nothing says "press here", and the ripple needs an explicit shape because there ' +
+       'is no container to clip it to. <b>C is F with the wallet\'s chip removed</b>, so the two are ' +
+       'one edit apart in either direction - which makes this a safe pair to decide between on device ' +
+       'rather than on a screen.</div>';
+
+  h += '<div class="rej"><b>Explicitly rejected: D - the gradient ring.</b> Not on contrast, which it ' +
+       'wins outright (<b>10.39:1</b> and <b>7.54:1</b>, the best pair in the sketch), but on three ' +
+       'things contrast does not see. <b>(1)</b> It is a lone secondary action wearing the app\'s ' +
+       'signature, which the standing CTA rule names and refuses in as many words: ' +
+       '<code>gradientOutline</code> is <b>"only for a secondary action standing beside or under a ' +
+       'filled gradient CTA, as its deliberate twin. Never for a lone secondary action."</b> The ' +
+       'header icons are 700 px from the SWAP dock and commit to nothing. <b>(2)</b> The app is moving ' +
+       'the other way - the dashboard\'s <code>View all</code> links were reverted from gradient to ' +
+       'flat grey at Jakub\'s own request this week - and D would make five gradient objects on the ' +
+       'home screen, the two new ones being the only ones that are neither the brand nor the primary ' +
+       'action. <b>(3)</b> It does not even look like what it costs: at 1.5 px, 4.5 physical px on a ' +
+       '3x iPhone, a two-stop ramp across a 44 px arc reads as a bright teal ring, not as a gradient. ' +
+       '<b>Full systemic price, very little of the look.</b> And the component that appears to already ' +
+       'do this - <code>GWGradientBorderCard</code> - is a card whose <code>onTap</code> path buries ' +
+       'the ink splash under an opaque container, so D is new code as well.</div>';
+
+  h += '<h3 class="sec">Where the other three land, and why each is still worth having seen</h3>';
+  h += '<table><tr><th style="width:170px">Variant</th><th>Standing</th></tr>' +
+       '<tr><td><b>A - hairline as shipped</b></td><td><b>Third, and the safe fallback.</b> Zero risk, ' +
+       'zero new code, passes without an argument at 3.30:1. If the split in F reads as ' +
+       'inconsistency on device rather than as intent, A is where to retreat to - it is one class ' +
+       'name away. Its only real cost is the seam: two identical stadiums at a 56 px pitch is the ' +
+       'geometry of a segmented control, and it puts a hamburger in a box no hamburger needs.</td></tr>' +
+       '<tr><td><b>B - filled, no border</b></td><td><b>Fifth. The middle that buys nothing.</b> It ' +
+       'is the literal reading of "bez bordera" and it keeps the least useful half: a container you ' +
+       'can barely see (<b>1.11:1</b>) doing none of the identifying, while the glyphs quietly do all ' +
+       'of it. Either the container means something (A, F) or it should not be painted (C, F). B is ' +
+       'worth building only to see that the fill was never the point.</td></tr>' +
+       '<tr><td><b>E - borderSubtle</b></td><td><b>Last, and drawn on purpose.</b> <b>1.36:1</b>, less ' +
+       'than half the requirement, and it is included because it is the edit that will otherwise be ' +
+       'proposed later by someone reasonable on the grounds that it looks calmer - which it does. It ' +
+       'is also worse than B: B has no boundary, E paints one below threshold, and an edge you can ' +
+       'almost see claims an identification it is not making.</td></tr>' +
+       '</table>';
+
+  h += '<h3 class="sec">If F ships</h3>';
+  h += '<table><tr><th style="width:300px">File</th><th>Change</th></tr>' +
+       '<tr><td><code>lib/components/overlay/mobile_header.dart</code></td><td><code>WalletPill</code> ' +
+       'keeps its <code>Material</code> / <code>StadiumBorder</code> / <code>borderControl</code> ' +
+       'decoration <b>unchanged</b> and loses the name <code>Flexible</code>, the ' +
+       '<code>space2</code>, the caret and the trailing <code>space4</code>; the leading ' +
+       '<code>space3</code> becomes symmetric padding around the 32 px avatar in a 44 px box. The ' +
+       'hamburger is a new sibling with no decoration at all, <code>space6</code> to its right. ' +
+       '<code>kWalletPillMaxWidth</code> is deleted.</td></tr>' +
+       '<tr><td><code>lib/components/cards/gw_gradient_border_card.dart</code></td><td><b>Untouched.</b> ' +
+       'Only D would have needed it, and D does not use it - see the reuse note in tab D.</td></tr>' +
+       '<tr><td>tokens</td><td><b>None added.</b> F uses <code>surfaceMenu</code>, ' +
+       '<code>borderControl</code>, <code>textPrimary</code> and <code>space6</code>, all of which ' +
+       'the header already imports.</td></tr>' +
+       '<tr><td><code>mobile_header_brand_and_pill_test.dart</code></td><td>a test that the two hit ' +
+       'boxes are both 44 x 44 <b>despite the different decorations</b> - the one assertion this ' +
+       'sketch adds that the composition sketch could not, because before there was only one ' +
+       'treatment to assert about.</td></tr>' +
+       '</table>';
+
+  h += '<p><b>Still owned by other sketches, and not decided here:</b> which four destinations stand ' +
+       'on the bottom bar once <code>More</code> leaves (<code>182-bottom-nav-destinations</code>), ' +
+       'and what is drawn inside the wallet disc - the monogram from <code>181-E</code> is used ' +
+       'throughout this sketch and is not reopened by it.</p>';
+
+  h += '</div>';
+  return h;
+}
+
+/* ============================== wiring ============================== */
+
+var tabsEl  = document.getElementById('tabs');
+var panesEl = document.getElementById('panes');
+var TABS = [{id:'problem', tab:'The problem'}]
+  .concat(VARIANTS)
+  .concat([{id:'contrast', tab:'Contrast table'}, {id:'rec', tab:'Recommendation'}]);
+
+TABS.forEach(function(t, i){
+  var b = document.createElement('button');
+  b.className = 'tab' + (i === 0 ? ' on' : '');
+  b.textContent = t.tab;
+  b.setAttribute('data-pane', t.id);
+  tabsEl.appendChild(b);
+
+  var p = document.createElement('div');
+  p.className = 'pane' + (i === 0 ? ' on' : '');
+  p.id = 'pane-' + t.id;
+  if (t.id === 'problem')       { p.innerHTML = problemPane(); }
+  else if (t.id === 'contrast') { p.innerHTML = contrastPane(); }
+  else if (t.id === 'rec')      { p.innerHTML = recPane(); }
+  else                          { p.innerHTML = paneHTML(t); }
+  panesEl.appendChild(p);
+});
+
+tabsEl.addEventListener('click', function(e){
+  var b = e.target.closest('.tab');
+  if (!b) return;
+  Array.prototype.forEach.call(tabsEl.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  Array.prototype.forEach.call(panesEl.children, function(x){ x.classList.remove('on'); });
+  document.getElementById('pane-' + b.getAttribute('data-pane')).classList.add('on');
+});
+
+function segWire(id, attr, set){
+  document.getElementById(id).addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if (!b) return;
+    Array.prototype.forEach.call(this.children, function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    set(b.getAttribute(attr));
+    renderAll();
+  });
+}
+segWire('nameSeg',  'data-st', function(v){ NAME_ST  = v; });
+segWire('faceSeg',  'data-fc', function(v){ FACE_ST  = v; });
+segWire('ttSeg',    'data-tt', function(v){ TT_ST    = v; });
+segWire('rulerSeg', 'data-rl', function(v){ RULER_ST = v; });
+
+var IDENT = {
+  now: ['borderControl #636569', '3.30:1', 1],
+  A:   ['borderControl #636569', '3.30:1', 1],
+  B:   ['surfaceMenu fill #171A21', '1.11:1', 0],
+  C:   ['the glyphs alone', '7.54:1 / 19.29:1', 1],
+  D:   ['brandCta stops, weakest first', '7.54:1 / 10.39:1', 1],
+  E:   ['borderSubtle #292B30', '1.36:1', 0],
+  F:   ['borderControl / the bars', '3.30:1 / 19.29:1', 1]
+};
+
+function captionFor(v){
+  var wpx = ctlWidth(v);
+  var id  = IDENT[v];
+  var w   = wal();
+  var mono = w ? monogram(w.name) : '+';
+  return '<span class="w">' + wpx.toFixed(2) + ' px at 390pt &middot; <em>' +
+    (100*wpx/BAR).toFixed(1) + '% of the bar</em> &middot; <em class="' + (id[2] ? 'ok' : 'no') + '">' +
+    id[1] + ' ' + (id[2] ? 'PASS' : 'FAIL') + '</em></span>' +
+    'Identifier: ' + id[0] + ', measured against the bar\'s <code>surfaceElevated</code> #0C0E14. ' +
+    '390 x 844 at 1:1 - 60 px app bar with its 1 px <code>borderStrong</code> edge, 60 px bottom bar, ' +
+    '64 px dock, 26 px overhang, 84 px slot. Monogram now rendering: <b>' + esc(mono) + '</b>. ' +
+    'Tap either control - each opens the sheet it claims to.';
+}
+
+function renderPhone(ph){
+  var v = ph.getAttribute('data-var');
+  ph.querySelector('.screen').innerHTML = screenHTML(v);
+  var cap = document.querySelector('[data-cap="' + v + '"]');
+  if (cap) cap.innerHTML = captionFor(v);
+}
+
+function renderAll(){
+  Array.prototype.forEach.call(document.querySelectorAll('.phone'), renderPhone);
+  Array.prototype.forEach.call(document.querySelectorAll('.stack'), function(el){
+    el.outerHTML = stackBlock();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.proof'), function(el){
+    el.outerHTML = seamProof();
+  });
+}
+
+document.addEventListener('click', function(e){
+  if (!e.target.closest) return;
+  var ph = e.target.closest('.phone');
+  if (!ph) return;
+  var v = ph.getAttribute('data-var');
+
+  var open = e.target.closest('[data-open]');
+  if (open) { SHEET[v] = open.getAttribute('data-open'); renderPhone(ph); return; }
+
+  var pick = e.target.closest('[data-net]');
+  if (pick) { NET[v] = pick.getAttribute('data-net'); renderPhone(ph); return; }
+
+  var close = e.target.closest('[data-close]');
+  if (close) { SHEET[v] = null; renderPhone(ph); return; }
+});
+
+renderAll();
+</script>
+</body>
+</html>

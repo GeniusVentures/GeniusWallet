@@ -1,0 +1,1074 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 179 - the transaction row's action tag</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{
+  --surfaceBase:#0B0D12; --surfaceElevated:#0C0E14; --surfaceMenu:#171A21; --surfaceSunken:#06080C;
+  --textPrimary:#FFFFFF; --textPrimary80:rgba(255,255,255,.80); --textPrimary60:rgba(255,255,255,.60);
+  --textPrimary38:rgba(255,255,255,.38); --textSecondary:#8A8F9D; --textOnBrand:#000B18;
+  --textMutedOnSunken:#8A8F9D;
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --brandPrimary:#14C8FF; --brandPrimaryStrong:#0AAEE6; --brandSecondary:#2BF5B4; --brandTertiary:#C28FFF;
+  --gradientGreen:#0AD89C; --gradientBlue:#0AAEE6;
+  --statusError:#FF4D4D; --statusWarning:#FFC42E; --statusSuccess:#0AD89C; --statusNeutral:#64748B;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px; --s20:40px;
+  --rXs:4px; --rSm:8px; --rMd:12px; --rLg:15px; --rXl:24px; --rPill:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05070A;color:var(--textPrimary);font:400 15px/1.5 Inter,system-ui,-apple-system,sans-serif;padding:0 0 140px}
+code{font:12px/1.4 'JetBrains Mono',ui-monospace,monospace;background:var(--surfaceMenu);padding:1px 5px;border-radius:var(--rXs);color:var(--brandSecondary)}
+.wrap{max-width:1780px;margin:0 auto;padding:0 var(--s12)}
+.skhead{border-bottom:1px solid var(--borderSubtle);padding:var(--s16) 0 0;margin-bottom:var(--s12);position:sticky;top:0;background:#05070A;z-index:50}
+.skhead h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.skhead p{color:var(--textSecondary);max-width:118ch;margin-top:var(--s4);font-size:14px}
+.tabs{display:flex;gap:var(--s3);margin-top:var(--s10);flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:9px var(--s10);border-radius:var(--rSm) var(--rSm) 0 0;font:600 13px Inter;cursor:pointer;border-bottom:none}
+.tab:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.35);color:var(--textPrimary)}
+.tab[aria-selected=true]{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--borderStrong);position:relative}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));border-radius:3px 3px 0 0;box-shadow:0 0 10px rgba(20,200,255,.5)}
+.panel{display:none}.panel.on{display:block}
+.cols{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s12) 0}
+.notes{flex:1 1 430px;min-width:390px;max-width:820px}
+.h2{font-size:19px;font-weight:650;margin:var(--s12) 0 var(--s4);letter-spacing:-.01em}
+.h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--textSecondary);margin:var(--s12) 0 var(--s4)}
+.notes p{margin:var(--s4) 0;color:var(--textPrimary80);font-size:14px}
+.notes li{margin:var(--s3) 0;color:var(--textPrimary80);font-size:14px}
+.notes ul{padding-left:var(--s10)}
+.verdict{border-left:3px solid var(--brandSecondary);background:rgba(43,245,180,.06);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s8) 0;font-size:13.5px;color:var(--textPrimary80)}
+.verdict.bad{border-left-color:var(--statusError);background:rgba(255,77,77,.06)}
+.verdict.warn{border-left-color:var(--statusWarning);background:rgba(255,196,46,.06)}
+.verdict b{color:var(--textPrimary)}
+.try{border-left:3px solid var(--brandPrimary);background:rgba(20,200,255,.07);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s8) 0;font-size:13.5px;color:var(--textPrimary80)}
+.try b{color:var(--brandPrimary)}
+.tag{display:inline-block;font:700 9.5px/1 Inter;letter-spacing:.09em;text-transform:uppercase;padding:3px 6px;border-radius:var(--rXs);vertical-align:middle}
+.t-ex{background:rgba(43,245,180,.14);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.4)}
+.t-ad{background:rgba(255,196,46,.14);color:var(--statusWarning);border:1px solid rgba(255,196,46,.4)}
+.t-new{background:rgba(255,77,77,.14);color:#FF8A8A;border:1px solid rgba(255,77,77,.4)}
+.legend{display:flex;gap:var(--s10);flex-wrap:wrap;align-items:center;padding:var(--s6) 0 var(--s12);
+  border-bottom:1px solid var(--borderSubtle);margin-bottom:var(--s6)}
+.legend span{font-size:12.5px;color:var(--textSecondary)}
+table{border-collapse:collapse;width:100%;margin:var(--s6) 0;font-size:13px}
+th,td{text-align:left;padding:7px var(--s4);border-bottom:1px solid var(--borderSubtle);vertical-align:top}
+th{color:var(--textSecondary);font:700 11px Inter;text-transform:uppercase;letter-spacing:.07em}
+td.n{font:500 12.5px 'JetBrains Mono',ui-monospace,monospace;text-align:right}
+.pass{color:var(--brandSecondary);font-weight:700}.fail{color:#FF8A8A;font-weight:700}
+
+/* ---- the phone, real shipping geometry ------------------------------------ */
+.stage{flex:0 0 auto}
+.phonewrap{flex:0 0 auto;width:430px}
+.phonecap{font:600 12px Inter;color:var(--textSecondary);margin-bottom:var(--s4);text-align:center;letter-spacing:.04em}
+/* 408 = 390 + 2x9 bezel, box-sizing:border-box. The INNER viewport is exactly
+   390x844, which is what every width in this sketch is measured against. */
+.phone{width:408px;height:862px;background:var(--surfaceBase);border:9px solid #1b1e26;border-radius:46px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1b1e26;border-radius:0 0 18px 18px;z-index:30}
+.sbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 var(--s10) 0 var(--s16);font:600 13px Inter}
+.sbar .r{font:400 11px Inter;color:var(--textPrimary80)}
+.appbar{flex:0 0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s8);border-bottom:.5px solid var(--borderSubtle);background:var(--surfaceElevated)}
+/* Scrollbar hidden, not thinned: a 4px classic scrollbar would steal 4px of
+   content width and every measurement on this page would be 4px optimistic. */
+.scr{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:none}
+.scr::-webkit-scrollbar{width:0;height:0}
+.statebar{display:flex;gap:var(--s3);margin-top:var(--s4);justify-content:center;flex-wrap:wrap}
+.statebar button{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:5px var(--s6);border-radius:var(--rSm);font:600 11px Inter;cursor:pointer}
+.statebar button.on{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--brandPrimaryStrong)}
+.statebar button:hover{color:var(--textPrimary)}
+.readout{margin-top:var(--s6);border:1px solid var(--borderSubtle);border-radius:var(--rSm);padding:var(--s6);
+  font:500 12px Inter;color:var(--textSecondary);background:var(--surfaceElevated)}
+.readout b{color:var(--textPrimary)}
+.readout .bad{color:#FF8A8A;font-weight:700}
+.readout .warn{color:var(--statusWarning);font-weight:700}
+.readout .ok{color:var(--brandSecondary);font-weight:700}
+.readout .sev{display:block;margin-top:4px;font-size:11.5px;color:var(--textPrimary60)}
+
+/* page frame: 12pt gutter, no card on the narrow branch (transactions_screen.dart) */
+.pagepad{padding:var(--s6) var(--s6) var(--s8)}
+.pagehead{font:650 24px Inter;letter-spacing:-.02em;padding:0 0 var(--s8)}
+.filterbar{display:flex;gap:var(--s3);align-items:center;justify-content:flex-end;padding-bottom:var(--s4)}
+.fchip{width:32px;height:32px;border-radius:var(--rSm);border:1px solid var(--borderSubtle);display:grid;place-items:center;
+  color:var(--textSecondary);cursor:pointer}
+.fchip.on{border-color:var(--brandPrimaryStrong);color:var(--brandSecondary)}
+.fchip:hover{background:rgba(20,200,255,.06);color:var(--textPrimary)}
+.kick{font:500 13px/18px Inter;letter-spacing:.05em;color:var(--textSecondary);padding:var(--s4) var(--s6) var(--s2)}
+.rule{height:1px;background:var(--borderSubtle)}
+
+/* THE ROW - geometry byte for byte: padding space6/space4, 44 time, space6, 40 icon, space6 */
+.row{display:flex;align-items:center;padding:var(--s4) var(--s6);cursor:pointer;position:relative}
+.row:hover{background:rgba(20,200,255,.06);border-radius:var(--rMd)}
+.rtime{flex:0 0 44px;font:400 13px/20px Inter;font-variant-numeric:tabular-nums;color:var(--textSecondary);margin-right:var(--s6)}
+.rid{flex:0 0 40px;width:40px;height:40px;position:relative;margin-right:var(--s6)}
+.coin{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:700 14px Inter;color:#fff}
+.badge{position:absolute;right:-2px;bottom:-2px;width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--surfaceElevated);display:grid;place-items:center}
+.badge.pair{bottom:auto;top:-2px}
+.badge svg{width:11px;height:11px;display:block}
+.rmid{flex:1 1 0;min-width:0}
+.tline{display:flex;align-items:center}
+.ttl{font:600 16px/22px Inter;color:var(--textPrimary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl.grow{flex:1 1 0;min-width:0}
+.gap4{flex:0 0 8px}
+.chipbox{display:flex;min-width:0}
+.chipbox.grow{flex:1 1 0}
+.chipbox.fixed{flex:0 0 auto}
+.chip{background:var(--surfaceMenu);border-radius:var(--rXs);padding:2px var(--s2);
+  font:500 13px/18px Inter;color:var(--textSecondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.chip.plain{background:transparent;padding:2px 0}
+.sline{display:flex;align-items:baseline;margin-top:var(--s2);font:400 14px/20px Inter;color:var(--textSecondary)}
+.sline span{white-space:nowrap}
+.slead{flex:0 0 auto;font-weight:500}
+.smid{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.stail{flex:0 0 auto}
+.ramt{text-align:right;min-width:0;margin-left:var(--s4)}
+.ramt.flexed{flex:1 1 0}
+.ramt.reserved{flex:0 0 96px}
+.anum{font:500 14px/20px Inter;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.anum.out{color:var(--textPrimary)}
+.anum.in{color:var(--statusSuccess)}
+.anum.none{color:var(--textSecondary)}
+.aval{font:400 14px/20px Inter;color:var(--textSecondary);margin-top:var(--s2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cut{outline:1px dashed rgba(255,77,77,.75);outline-offset:1px}
+
+/* bottom bar: 60 visible, 64 dock, 26 overhang, 84 slot */
+.barbox{flex:0 0 auto;height:106px;position:relative}
+.bar{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--surfaceElevated);border-top:.5px solid var(--borderSubtle);
+  display:flex;align-items:flex-start;padding-bottom:20px}
+.slot{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:var(--s2);padding-top:var(--s4);cursor:pointer}
+.slot .si{font-size:22px;line-height:1;color:var(--textSecondary)}
+.slot .sl{font:500 10px Inter;color:var(--textSecondary)}
+.slot.on .si,.slot.on .sl{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));
+  -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+.dockslot{flex:0 0 84px}
+.dock{position:absolute;top:0;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));border:3px solid var(--surfaceElevated);
+  display:grid;place-items:center;font-size:26px;color:var(--textOnBrand);box-shadow:0 0 22px rgba(10,174,230,.4);z-index:5}
+
+/* the badge vocabulary board */
+.vocab{display:flex;flex-wrap:wrap;gap:var(--s8);margin:var(--s6) 0}
+.vcell{width:118px;background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rMd);
+  padding:var(--s6);display:flex;flex-direction:column;align-items:center;gap:var(--s2)}
+.vcell .vb{position:relative;width:40px;height:40px}
+.vcell .vname{font:600 12px Inter}
+.vcell .vfill{font:500 10.5px 'JetBrains Mono',ui-monospace,monospace;color:var(--textSecondary)}
+.vcell .vguess{font:400 11px Inter;color:var(--textPrimary60);text-align:center;min-height:28px}
+.ruler{position:relative;height:22px;margin:var(--s4) 0 0}
+.ruler i{position:absolute;top:8px;height:1px;background:var(--brandPrimary)}
+.ruler b{position:absolute;top:0;font:600 10px 'JetBrains Mono',monospace;color:var(--brandPrimary)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="skhead">
+    <h1>Sketch 179 - the transaction row's action tag</h1>
+    <p>Jakub, 2026-08-07, on his iPhone: <i>"wszystkie te tagi: Processing, Send, Receive, Purchase sa uciete.
+       Zastanawiam sie czy faktycznie jest to niezbedne zebysmy to tam mieli? Czy wystarcza te male ikonki przy
+       logo?"</i> Two questions: <b>fix the truncation</b>, and <b>should the word exist at all</b> when the badge
+       already sits on the coin. Every phone is 390x844 at 1:1 with the shipping row geometry, and every scheme
+       is shown across the <b>whole nine-kind badge vocabulary</b> plus a long-token-name row and the
+       <code>Processing job</code> row. The dashed red outline marks text the browser actually clipped - it is
+       measured after layout, not drawn by hand.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-p="p0">The brief</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pN">Today (broken)</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pA">A - Intrinsic chip</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pB">B - Badge only</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pC">C - Subtitle leads ★</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pD">D - Action first</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pM">The numbers</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pR">Recommendation</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="tag t-ex">exists</span> already in the codebase</span>
+    <span><span class="tag t-ad">adapted</span> existing component, new arrangement</span>
+    <span><span class="tag t-new">new</span> nothing like it ships today</span>
+    <span style="color:#FF8A8A">dashed red = measured clipping</span>
+  </div>
+
+  <!-- ================= BRIEF ================= -->
+  <div class="panel on" id="p0">
+    <div class="cols">
+      <div class="notes" style="max-width:1080px">
+        <div class="h2">1. Why the tags are cut - it is a layout defect, not evidence</div>
+        <p><code>transaction_displays.dart:366-405</code>. The title line is a <code>Row</code> with
+           <b>two <code>Flexible</code> children</b>: the token title and the action chip. Flutter's
+           <code>Row</code> hands each flex child an equal share of the free space and <i>does not give the
+           leftover back</i> when a loose child turns out to be narrower. So the chip is capped at half the line
+           no matter how short its word is.</p>
+
+        <div class="h3">The arithmetic, at 390pt, exact</div>
+        <table>
+          <tr><th>Step</th><th>Source</th><th class="n">px</th></tr>
+          <tr><td>Window</td><td>iPhone 14 / 15 logical width</td><td class="n">390</td></tr>
+          <tr><td>Page gutter, both sides</td><td><code>transactions_screen.dart</code> <code>fromLTRB(12, space32, 12, space8)</code></td><td class="n">-24</td></tr>
+          <tr><td>Row width</td><td>no card on the narrow branch - a page below 768 <i>is</i> the panel</td><td class="n">366</td></tr>
+          <tr><td>Row padding, both sides</td><td><code>space6</code> horizontal</td><td class="n">-24</td></tr>
+          <tr><td>Row content box</td><td></td><td class="n">342</td></tr>
+          <tr><td>Time column + gap</td><td><code>SizedBox(width: 44)</code> + <code>space6</code></td><td class="n">-56</td></tr>
+          <tr><td>Identity + gap</td><td><code>_identity(size: 40)</code> + <code>space6</code></td><td class="n">-52</td></tr>
+          <tr><td>Gap before the amount</td><td><code>space4</code>, narrow branch</td><td class="n">-8</td></tr>
+          <tr><td>Free space for the two <code>Expanded</code></td><td>middle column and amount column, flex 1 each</td><td class="n">226</td></tr>
+          <tr><td><b>Middle column</b></td><td>half of it</td><td class="n"><b>113</b></td></tr>
+          <tr><td>Gap inside the title line</td><td><code>space4</code></td><td class="n">-8</td></tr>
+          <tr><td>Free space for title + chip</td><td>two <code>Flexible</code>, flex 1 each</td><td class="n">105</td></tr>
+          <tr><td><b>Chip's cap</b></td><td>half of it</td><td class="n"><b>52.5</b></td></tr>
+          <tr><td>Chip padding</td><td><code>space2</code> horizontal, twice</td><td class="n">-8</td></tr>
+          <tr><td><b>Text box the action word gets</b></td><td><code>labelMd</code>, 13px w500</td><td class="n"><b>44.5</b></td></tr>
+        </table>
+        <div class="verdict bad"><b>44.5px is about six characters.</b> Of the eight action strings
+          <code>_actionFor</code> can return, the browser fits exactly two: <code>Sent</code> and
+          <code>Minted</code>. <code>Received</code>, <code>Swapped</code>, <code>Purchased</code>,
+          <code>Escrow locked</code>, <code>Escrow released</code> and <code>Processing job</code> are all
+          clipped. Jakub reported four; the real answer is <b>six of the eight strings the app can produce, on
+          six of the eleven rows on the phone</b>. <b>Open the "Today (broken)" tab and read the measured
+          table</b> - it is filled in from <code>scrollWidth</code> vs <code>clientWidth</code> at render
+          time.</div>
+        <p>There is a second, quieter waste in the same <code>Row</code>: the amount column is also an
+           <code>Expanded</code> with flex 1, so it takes 113px whether it needs it or not. A typical
+           <code>&minus; 0.0021 ETH</code> needs about 90. The middle column is paying for slack the amount
+           column is not using.</p>
+
+        <div class="h2">2. Can the badge carry it alone? The vocabulary is nine, not three</div>
+        <p><code>transaction_badge.dart:9-19</code>. Nine kinds, each an 18px circle with an
+           <b>11px</b> knocked-out glyph, painted at <code>right:-2, bottom:-2</code> on a 40px coin.</p>
+        <div class="vocab" id="vocab"></div>
+        <div class="verdict warn"><b>Six distinct fills for nine kinds.</b> <code>#64748B</code> carries
+          <b>sent, escrow and swap</b>; <code>#0AD89C</code> carries <b>received and purchase</b>. Colour
+          therefore cannot be the discriminator - the 11px glyph is the entire signal. An arrow and a clock are
+          learnable. A pickaxe, a server rack and a padlock at 11px, meaning <i>mint</i>, <i>job</i> and
+          <i>escrow</i>, are not conventions anybody arrives already knowing.</div>
+
+        <div class="h2">3. The finding that decides it: on 6 of 9 rows the badge does not show the type at all</div>
+        <p>In <code>txRowContent</code> the badge is chosen <b>status first</b>:</p>
+        <table>
+          <tr><th>Order</th><th>Rule</th></tr>
+          <tr><td>1</td><td><code>if (status == pending) badge = pending</code></td></tr>
+          <tr><td>2</td><td><code>else if (failed || cancelled) badge = failed</code></td></tr>
+          <tr><td>3</td><td><code>else badge = _badgeForType(type, isSent)</code></td></tr>
+        </table>
+        <div class="verdict bad"><b>A pending mint shows a clock. A failed swap shows a cross.</b> On any row that
+          is not the happy path the badge has already spent itself on the status, and the <i>type</i> is not
+          drawn anywhere in the icon. Delete the word and those rows say nothing about what was attempted -
+          and those are exactly the rows a user opens the page to find.</div>
+
+        <div class="h2">4. And the chip is duplicating the line below it</div>
+        <p>Compare <code>_actionFor</code> against the subtitle switch in the same file:</p>
+        <table>
+          <tr><th>Type</th><th>Chip says</th><th>Subtitle already says</th><th>Verdict</th></tr>
+          <tr><td>mint</td><td>Minted</td><td>Minted to wallet</td><td class="fail">duplicate</td></tr>
+          <tr><td>escrow</td><td>Escrow locked</td><td>Locked in escrow</td><td class="fail">duplicate</td></tr>
+          <tr><td>escrowRelease</td><td>Escrow released</td><td>Released from escrow</td><td class="fail">duplicate</td></tr>
+          <tr><td>purchase</td><td>Purchased</td><td>Card purchase</td><td class="fail">duplicate</td></tr>
+          <tr><td>process</td><td>Processing job</td><td>Job 0x44ab…10ff</td><td class="fail">says "job" twice</td></tr>
+          <tr><td>swap</td><td>Swapped</td><td>0.25 ETH</td><td class="pass">adds meaning</td></tr>
+          <tr><td>transfer (sent)</td><td>Sent</td><td>0x7a3f…9c21</td><td class="pass">adds meaning</td></tr>
+          <tr><td>transfer (received)</td><td>Received</td><td>0x1b8e…4d70</td><td class="pass">adds meaning</td></tr>
+        </table>
+        <div class="verdict"><b>On five of eight the chip restates the line directly beneath it</b>, in a 44.5px
+          box, truncated, while a 113px line says the same thing in full 4px lower. That reframes the question
+          Jakub asked. The action word is not the problem. <b>Its position is.</b></div>
+
+        <div class="h3">The four schemes</div>
+        <table>
+          <tr><th>Scheme</th><th>Idea</th><th>What it costs</th></tr>
+          <tr><td><b>A</b></td><td>Chip stops flexing, title absorbs all shrink. Nothing removed.</td><td>A long action word now eats the token headline instead</td></tr>
+          <tr><td><b>B</b></td><td>Jakub's: delete the chip, the badge carries the kind</td><td>mint / job / escrow become unnamed; every pending and failed row loses its type</td></tr>
+          <tr><td><b>C</b> ★</td><td>The action leads the subtitle, which already half-says it</td><td>The context string is what ellipsises now</td></tr>
+          <tr><td><b>D</b></td><td>Action becomes the headline, the token drops to line two</td><td>Re-opens 010-A's token-first decision; kills the token scan column</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TODAY ================= -->
+  <div class="panel" id="pN"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">TODAY - as shipped</div>
+      <div class="phone" data-phone="now"></div>
+      <div class="statebar">
+        <button data-state="short">SHORT TOKEN NAMES</button>
+        <button data-state="long">LONG TOKEN NAMES</button>
+      </div>
+      <div class="readout" data-readout></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">What is actually on the glass today</div>
+      <p>This is <code>TransactionRow</code> rendered at its real width with its real tokens. Two
+         <code>Flexible</code> children on the title line, two <code>Expanded</code> children on the row.
+         Nothing here is exaggerated - the dashed outlines are computed from
+         <code>scrollWidth &gt; clientWidth</code> after layout.</p>
+      <div class="try"><b>Read the table below</b>, then flip to <b>LONG TOKEN NAMES</b>. Notice the chip's cap
+        does not move: it is half the line whatever the title does, so a short title just leaves dead space
+        between the clipped chip and the amount.</div>
+
+      <div class="h3">Measured, live, per row</div>
+      <table id="curmeas"><tr><th>Kind</th><th>Action</th><th class="n">needs</th><th class="n">gets</th><th>Renders as</th></tr></table>
+
+      <div class="h3">Two defects, one line of code apart</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <b>Title line:</b> both children are <code>Flexible</code>. The
+            chip is intrinsically ~50-100px wide and is handed 52.5.</li>
+        <li><span class="tag t-ex">exists</span> <b>Row:</b> the amount is <code>Expanded</code>, flex 1, so it
+            claims 113px for content that needs ~90. That 23px never reaches the words that need it.</li>
+      </ul>
+      <div class="verdict bad">The chip's own fill is the third quiet problem. <code>surfaceMenu</code>
+        <code>#171A21</code> on the narrow page's <code>surfaceBase</code> <code>#0B0D12</code> canvas measures
+        <b>1.13:1</b>. It is a container you cannot see. Whatever we do with the word, that box is buying
+        nothing.</div>
+    </div>
+  </div></div>
+
+  <!-- ================= A ================= -->
+  <div class="panel" id="pA"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">A - the chip takes its intrinsic width</div>
+      <div class="phone" data-phone="A"></div>
+      <div class="statebar">
+        <button data-state="short">SHORT TOKEN NAMES</button>
+        <button data-state="long">LONG TOKEN NAMES</button>
+      </div>
+      <div class="statebar">
+        <button data-amt="flexed">AMOUNT = EXPANDED (today)</button>
+        <button data-amt="reserved">AMOUNT = 96px RESERVED</button>
+      </div>
+      <div class="readout" data-readout></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">A - the pure layout fix</div>
+      <p>One change: the chip's <code>Flexible</code> becomes a plain child, the title's
+         <code>Flexible</code> stays. The title absorbs every pixel of shrink; the chip always shows its whole
+         word. <b>Nothing is removed and no copy changes.</b></p>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> the same widget - delete one <code>Flexible</code> wrapper</li>
+        <li><span class="tag t-ad">adapted</span> optionally the amount column, from <code>Expanded</code> to a
+            reserved width, the way the wide branch already does it with <code>_wideAmountWidth</code></li>
+      </ul>
+      <div class="try"><b>This is where A is paid for, and you do not need the long-name toggle to see it.</b>
+        On <b>SHORT TOKEN NAMES</b> the readout already reports clipped token names: the
+        <code>Processing job</code>, <code>Escrow locked</code> and <code>Escrow released</code> chips need
+        84-93px of a 113px line, so a four-character <code>GNUS</code> is what gets ellipsised - the headline,
+        the thing 010-A deliberately put first. Then flip to <b>LONG TOKEN NAMES</b>, and then try
+        <b>AMOUNT = 96px RESERVED</b>: it buys the middle column ~17px and does not save it.</div>
+      <div class="verdict"><b>Honest, minimal, and correct as far as it goes.</b> It is the change I would make
+        today if the answer had to be one line. Every action word becomes readable, which is literally what
+        Jakub asked for first.</div>
+      <div class="verdict bad"><b>But it only moves the truncation.</b> 113px cannot hold a token symbol and a
+        fourteen-character action word at 16px and 13px. A does not create width; it chooses a different victim,
+        and it chooses the headline. The arithmetic says the title line is the wrong home for two strings,
+        whichever one you protect.</div>
+    </div>
+  </div></div>
+
+  <!-- ================= B ================= -->
+  <div class="panel" id="pB"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">B - no chip, the badge carries it</div>
+      <div class="phone" data-phone="B"></div>
+      <div class="statebar">
+        <button data-state="short">SHORT TOKEN NAMES</button>
+        <button data-state="long">LONG TOKEN NAMES</button>
+      </div>
+      <div class="readout" data-readout></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">B - Jakub's proposal, built and then stress-tested</div>
+      <p>Delete the chip. The title line is the token alone, the subtitle is unchanged, the 11px badge is the
+         only statement of what happened. <b>It is the calmest of the five phones, and that is a real
+         argument.</b> Nothing is clipped, the rows breathe, the scan column down the left is clean.</p>
+      <div class="try"><b>Scroll to the four hard rows</b> - <code>Minted</code>, <code>Processing job</code>,
+        <code>Escrow locked</code>, <code>Escrow released</code> - and answer, without the tab bar above:
+        which is which. Then look at the <b>Pending</b> and <b>Failed</b> rows.</div>
+
+      <div class="h3">What is lost, kind by kind</div>
+      <table>
+        <tr><th>Kind</th><th>Glyph at 11px</th><th>Reads as</th></tr>
+        <tr><td>sent</td><td>arrow up-right</td><td class="pass">Sent - conventional</td></tr>
+        <tr><td>received</td><td>arrow down-left</td><td class="pass">Received - conventional</td></tr>
+        <tr><td>swap</td><td>two horizontal arrows</td><td class="pass">Swapped - conventional, and the title is already <code>ETH → USDC</code></td></tr>
+        <tr><td>purchase</td><td>credit card</td><td>Plausible, but on <code>#0AD89C</code>, the same fill as received</td></tr>
+        <tr><td>pending</td><td>clock</td><td class="pass">Pending - conventional</td></tr>
+        <tr><td>failed</td><td>cross</td><td class="pass">Failed - conventional</td></tr>
+        <tr><td><b>mint</b></td><td>pickaxe</td><td class="fail">Nothing. A pickaxe is not a mint convention, and at 11px it is a smudge</td></tr>
+        <tr><td><b>job</b></td><td>server rack</td><td class="fail">Nothing, and it is 12x12 of stacked rectangles</td></tr>
+        <tr><td><b>escrow</b></td><td>padlock</td><td class="fail">"Locked" - but locked <i>how</i>, and it cannot say <b>released</b> at all: <code>escrowRelease</code> has no badge of its own</td></tr>
+      </table>
+      <div class="verdict bad"><b>The killer is not the exotic kinds, it is the status override.</b> Every pending
+        and every failed row shows the status badge, so its <i>type</i> is drawn nowhere. Under B a failed swap
+        and a failed send are one red cross and one address. That is 2 of the 11 rows on this phone, and in a
+        real wallet it is every row that matters.</div>
+
+      <div class="h3">The accessibility position, stated precisely</div>
+      <p><b>SC 1.4.1 Use of Color</b> is not the operative criterion and it would be sloppy to claim it is: the
+         badges differ by <i>glyph</i>, not by colour alone. What 1.4.1 <i>does</i> catch is the fill collision -
+         six fills for nine kinds means colour is never sufficient here, so the 11px glyph is load-bearing and may
+         never be dropped for a coloured dot.</p>
+      <p><b>SC 1.1.1 Non-text Content</b> is the one that applies, and <b>B already passes it</b>:
+         <code>TransactionBadge</code> wraps itself in <code>Semantics(label: spec.label)</code>, so VoiceOver
+         announces "Mint". So B is <b>conformant and still wrong</b> - the cost is comprehension for sighted
+         users, which no success criterion measures.</p>
+      <div class="verdict warn"><b>If B ships anyway, the text equivalent has to live somewhere visible.</b> The
+        honest place is the subtitle - which is scheme C. The detail drawer does not count: a label you must tap a
+        row to read is not a label on the row.</div>
+    </div>
+  </div></div>
+
+  <!-- ================= C ================= -->
+  <div class="panel" id="pC"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">C - the action leads the subtitle ★</div>
+      <div class="phone" data-phone="C"></div>
+      <div class="statebar">
+        <button data-state="short">SHORT TOKEN NAMES</button>
+        <button data-state="long">LONG TOKEN NAMES</button>
+      </div>
+      <div class="statebar">
+        <button data-addr="full">ADDRESS 4+4 (today)</button>
+        <button data-addr="tight">ADDRESS 3+3</button>
+      </div>
+      <div class="readout" data-readout></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">C - move the word to the line that already half-says it</div>
+      <p>The title line becomes the token alone, exactly as in B. The action moves down to the subtitle and
+         <b>leads</b> it. The subtitle is then three pieces with three different layout rules:</p>
+      <table>
+        <tr><th>Piece</th><th>Flex</th><th>Example</th></tr>
+        <tr><td>Action</td><td><code>flex: 0 0 auto</code> - never shrinks</td><td>Sent</td></tr>
+        <tr><td>Context</td><td><code>Expanded</code> - ellipsises</td><td>0x7a3f…9c21</td></tr>
+        <tr><td>Status</td><td><code>flex: 0 0 auto</code> - never shrinks</td><td>· Failed</td></tr>
+      </table>
+      <p>And where the subtitle already carried the action, <b>the copy is deduplicated rather than doubled</b>:
+         mint stays <code>Minted to wallet</code>, escrow stays <code>Locked in escrow</code>, purchase stays
+         <code>Card purchase</code>, and the job row becomes <code>Processing job 0x44ab…10ff</code> instead of
+         saying "job" twice. On those rows the fixed / flexible boundary falls <i>inside</i> the phrase - the
+         verb (<code>Minted</code>, <code>Locked</code>, <code>Released</code>) is the piece that never shrinks
+         and the qualifier (<code>to wallet</code>, <code>in escrow</code>) is the piece that may. Visually it is
+         still one sentence; the verb is at w500 so the eye finds it without a second colour.</p>
+      <div class="try"><b>Flip to LONG TOKEN NAMES.</b> The token still ellipsises - it is on a 113px line - but
+        <b>no action word is ever clipped in any state</b>, because it is the one piece with no flex. Compare the
+        readout with A's.</div>
+
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <code>TxRowContent.action</code>, <code>subtitleBase</code> and
+            <code>status</code> are already separate fields on the record - C is a re-arrangement of data the
+            derivation already produces</li>
+        <li><span class="tag t-ad">adapted</span> the title line loses one child; the subtitle <code>Text</code>
+            becomes a three-child <code>Row</code></li>
+        <li><span class="tag t-new">new</span> five deduplicated subtitle strings in <code>_actionFor</code>'s
+            neighbour switch</li>
+      </ul>
+      <div class="verdict"><b>It answers both of Jakub's questions with one move.</b> The truncation stops
+        because the word is no longer competing for a 44.5px box, and the "is it necessary" question is answered
+        with "yes, but not there" - the word survives for mint, job and escrow, and it survives the pending and
+        failed status override, which is where B breaks.</div>
+      <div class="verdict"><b>It also removes the invisible chip.</b> No <code>surfaceMenu</code> box at 1.13:1
+        pretending to be a container, no second background on a row that already has enough surfaces. The action
+        becomes what it always was in practice: the first words of the context line.</div>
+      <div class="verdict warn"><b>The honest cost, and it is bigger than it looks in the readout.</b> C clips
+        <b>eight</b> context strings where today clips three. Do not read that as "C is worse": today's three are
+        clipped alongside six clipped action labels, and an action word losing eight characters is a row that no
+        longer says what happened, while an address losing two is an abbreviation of an abbreviation. That is why
+        the readout colours the two differently rather than adding them up. The full address is one tap away in
+        the detail drawer with a copy button; the action word has no such fallback.</div>
+      <div class="try"><b>Tap ADDRESS 3+3.</b> The mitigation, if the double ellipsis on
+        <code>0x7a3f…9c2…</code> bothers you: when the action leads the line, the address abbreviation gives back
+        the characters the action just took. <code>WalletUtils.getAddressForDisplay</code> is the single place
+        that decides it, so this is one constant, not a new rule per surface. Watch the amber count drop.</div>
+      <div class="verdict"><b>It also fixes a truncation nobody has reported yet.</b> On the Today phone, look at
+        the <b>Pending</b> row: <code>Minted to wallet · Pending</code> is about 172px on a 113px line, so the
+        status is <i>already</i> being clipped off the end today - the app is losing the word "Pending" on the one
+        row where it matters most. C's three-piece rule pins the status to the right edge and lets the qualifier
+        give way instead, so it reads <code>Minted … · Pending</code>. Less pretty, strictly more true.</div>
+      <div class="verdict warn"><b>And one real regression:</b> the title line is now a single 16px w600 token
+        symbol with a lot of air beside it. The row reads slightly emptier at the top. If that bothers Jakub, the
+        title line is where the fiat value could eventually go - not in this change.</div>
+    </div>
+  </div></div>
+
+  <!-- ================= D ================= -->
+  <div class="panel" id="pD"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">D - the action is the headline</div>
+      <div class="phone" data-phone="D"></div>
+      <div class="statebar">
+        <button data-state="short">SHORT TOKEN NAMES</button>
+        <button data-state="long">LONG TOKEN NAMES</button>
+      </div>
+      <div class="readout" data-readout></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">D - my own: invert it, because the amount already names the token</div>
+      <p>The premise nobody has questioned is that the <i>token</i> earns the headline and the action is the
+         guest. But look right: <code>content.amount</code> is
+         <code>&minus; 12.5 GNUS</code> - <b>every row already prints its symbol in the amount column</b>, at
+         14px tabular, on every single row, with no branch. The token symbol on the title line is therefore the
+         string that is duplicated, not the action.</p>
+      <p>So D makes the action the 16px w600 headline and folds the token into the subtitle:
+         <code>GNUS · 0x7a3f…9c21</code>. A swap's two-token title moves down whole
+         (<code>ETH → USDC · 0.25 ETH</code>).</p>
+      <div class="try"><b>Scan the title column down the phone.</b> It now reads as a verb list - Sent, Received,
+        Minted, Processing job - which is genuinely how you look for one transaction. Then scan A's or C's, which
+        read as a token list.</div>
+      <div class="verdict"><b>It gives the action the widest text slot on the row</b> - the whole 113px title
+        line, at 16px w600 - and it is the only scheme where the action outranks everything else instead of
+        surviving on leftovers. Check the readout: the only string that still touches its limit is the
+        fourteen-character <code>Processing job</code>, and that one is a copy problem
+        (<code>Processing</code> would do) rather than a layout one. It also makes the badge honestly redundant,
+        which is the strongest version of Jakub's own instinct.</div>
+      <div class="verdict bad"><b>And the readout is brutal: 11 of 11 context strings clipped.</b> Folding the
+        token onto line two means that line now carries token + context + status in 113px, so it truncates on
+        <i>every single row</i>. D does not remove the crowding, it relocates it - and it relocates it onto the
+        line that was previously the only uncrowded thing on the row.</div>
+      <div class="verdict bad"><b>Rejected for two more reasons.</b> First, it re-opens sketch 010-A
+        (<i>"the asset is the headline, the action a quiet chip beside it"</i>) which was decided and shipped -
+        and a redesign that silently reverses a locked decision is exactly the failure mode the quick-task
+        regressions came from. Second, it destroys the token scan column: on a transactions page the question
+        "what happened to my GNUS" is asked far more than "show me every send", and D makes the first question
+        require reading line two of every row.</div>
+      <div class="verdict warn">Worth keeping on the shelf for a <b>filtered</b> view. When the list is already
+        filtered to one token, the token headline is pure repetition and D is strictly better. Not the default.</div>
+    </div>
+  </div></div>
+
+  <!-- ================= NUMBERS ================= -->
+  <div class="panel" id="pM"><div class="cols">
+    <div class="notes" style="max-width:1080px">
+      <div class="h2">Contrast, computed from the shipped tokens</div>
+      <p>WCAG 2.x relative luminance, sRGB. The pairing to check hardest is the chip label, because <b>the chip's
+         fill is not the row's fill</b> - <code>labelMd</code> at <code>textSecondary</code> sits on
+         <code>surfaceMenu</code>, one step lighter than the canvas, so it has less contrast than the same grey
+         anywhere else on the row.</p>
+      <table>
+        <tr><th>Pairing</th><th>Where</th><th class="n">Ratio</th><th>AA (4.5 text / 3.0 UI)</th></tr>
+        <tr><td><code>#8A8F9D</code> on <code>#171A21</code></td><td><b>chip label on the chip fill</b> - today's chip</td><td class="n">5.30</td><td class="pass">PASS</td></tr>
+        <tr><td><code>#8A8F9D</code> on <code>#0B0D12</code></td><td>the same label with no chip - schemes B, C, D</td><td class="n">6.01</td><td class="pass">PASS</td></tr>
+        <tr><td><code>#8A8F9D</code> on <code>#0C0E14</code></td><td>the same label on a carded surface (wide page)</td><td class="n">5.97</td><td class="pass">PASS</td></tr>
+        <tr><td><code>#8A8F9D</code> on <code>#06080C</code></td><td>the same label on <code>surfaceSunken</code></td><td class="n">6.20</td><td class="pass">PASS</td></tr>
+        <tr><td><code>#FFFFFF</code> on <code>#0B0D12</code></td><td>the token title</td><td class="n">19.41</td><td class="pass">PASS</td></tr>
+        <tr><td><code>#171A21</code> vs <code>#0B0D12</code></td><td><b>the chip's fill against the row canvas</b></td><td class="n">1.13</td><td class="fail">invisible</td></tr>
+        <tr><td><code>#171A21</code> vs <code>#0C0E14</code></td><td>the chip's fill on the wide page's card</td><td class="n">1.13</td><td class="fail">invisible</td></tr>
+      </table>
+      <div class="verdict"><b>The chip's label is fine. The chip is not.</b> Removing the word costs 0.71 of a
+        ratio the label never needed - it gets <i>better</i> at 6.01:1 without the box. So no scheme here is
+        blocked on contrast, and the argument for keeping the <code>surfaceMenu</code> container is now down to
+        1.13:1 of nothing.</div>
+
+      <div class="h2">Badge glyph contrast, which is the one that actually gates</div>
+      <p><code>badgeGlyphColor</code> computes white-vs-ink per fill rather than hardcoding, so all nine clear
+         AA against their own fill. That is not the problem. The problem is 11px.</p>
+      <table>
+        <tr><th>Fill</th><th>Kinds</th><th>Glyph</th><th class="n">Glyph vs fill</th></tr>
+        <tr><td><code>#64748B</code></td><td>sent, escrow, swap</td><td>white</td><td class="n">4.75</td></tr>
+        <tr><td><code>#0AD89C</code></td><td>received, purchase</td><td><code>#000B18</code></td><td class="n">10.65</td></tr>
+        <tr><td><code>#C28FFF</code></td><td>mint</td><td><code>#000B18</code></td><td class="n">8.17</td></tr>
+        <tr><td><code>#0AAEE6</code></td><td>job</td><td><code>#000B18</code></td><td class="n">7.75</td></tr>
+        <tr><td><code>#FFC42E</code></td><td>pending</td><td><code>#000B18</code></td><td class="n">12.43</td></tr>
+        <tr><td><code>#FF4D4D</code></td><td>failed</td><td><code>#000B18</code></td><td class="n">6.05</td></tr>
+      </table>
+      <div class="verdict warn"><b>Three kinds share one fill and two share another.</b> Nine meanings, six
+        colours, one 11px glyph each. That is the whole capacity of the badge, and it is why B cannot be the only
+        carrier.</div>
+
+      <div class="h2">The spacing tokens this row spends</div>
+      <table>
+        <tr><th>Token</th><th class="n">px</th><th>Used for</th></tr>
+        <tr><td><code>space2</code></td><td class="n">4</td><td>chip horizontal padding; title-to-subtitle gap; amount-to-value gap</td></tr>
+        <tr><td><code>space3</code></td><td class="n">6</td><td>not on this row - the one documented exception to the 4-pt grid</td></tr>
+        <tr><td><code>space4</code></td><td class="n">8</td><td>row vertical padding; title-to-chip gap; gap before the amount (narrow)</td></tr>
+        <tr><td><code>space6</code></td><td class="n">12</td><td>row horizontal padding; time-to-icon; icon-to-content; page gutter</td></tr>
+        <tr><td><code>space8</code></td><td class="n">16</td><td>page header bottom gap</td></tr>
+        <tr><td><code>space10</code> / <code>space12</code></td><td class="n">20 / 24</td><td>day-group separation above a later day label</td></tr>
+      </table>
+      <p>The chip's vertical padding is a hardcoded <code>2</code>, not a token - the only untokened value on the
+         title line. It survives because <code>space2</code> at 4 would make the chip 26px tall against a 22px
+         line box. Under C and B that value disappears with the chip, so the row becomes fully tokened.</p>
+    </div>
+  </div></div>
+
+  <!-- ================= RECOMMENDATION ================= -->
+  <div class="panel" id="pR"><div class="cols">
+    <div class="notes" style="max-width:1080px">
+      <div class="h2">Where I land</div>
+      <div class="verdict"><b>★ Ship C - the action leads the subtitle.</b> It is the only scheme that answers
+        both halves of the question. The truncation stops for good, because the action word is the one piece on
+        its line with no flex and can therefore never be the thing that shrinks. And the word survives in the
+        three places B loses it: the kinds with no learnable icon (mint, job, escrow), the
+        <code>escrowRelease</code> type that has no badge of its own at all, and every pending or failed row
+        where the status has already spent the badge. It costs nothing new structurally -
+        <code>TxRowContent</code> already carries <code>action</code>, <code>subtitleBase</code> and
+        <code>status</code> as three separate fields, which is precisely the three-piece subtitle C needs. And it
+        deletes a container that measures <b>1.13:1</b> against its own canvas.</div>
+
+      <p><b>Runner-up: A.</b> If the answer has to be one line of Dart this week, delete the chip's
+         <code>Flexible</code> and stop. Every word becomes readable, which is the literal complaint. Take A over
+         C if you want the fix in today's build and want to think about the anatomy separately - but know that A
+         chooses which string gets destroyed rather than creating room, and the string it sacrifices is the token
+         headline that 010-A deliberately put first.</p>
+
+      <p><b>Rejected: B.</b> Not because the instinct is wrong - the instinct that the row is saying too much is
+         <i>right</i>, and B's phone is the calmest of the five. It is rejected on arithmetic: nine kinds, six
+         fills, an 11px glyph, no convention for a pickaxe or a server rack, no glyph at all for
+         <code>escrowRelease</code>, and a status-first badge rule that hides the type on exactly the rows a user
+         opens the page to investigate. <b>D</b> is rejected too, and more firmly: it would work, but it silently
+         reverses sketch 010-A's locked token-first decision and it costs the token scan column.</p>
+
+      <div class="h2">The answer to Jakub, in two sentences</div>
+      <div class="try">The tags are cut because both children of the title line are <code>Flexible</code>, so the
+        tag is capped at half the line no matter how short the word is - it is a bug, not a sign the word is
+        surplus. But the badge cannot replace it either: there are nine badge kinds, only six colours, and on any
+        pending or failed row the badge shows the status and stops showing the type at all - so the word should
+        move down one line, where the subtitle is already saying half of it anyway.</div>
+
+      <div class="h2">What building C touches</div>
+      <table>
+        <tr><th>File</th><th>Change</th></tr>
+        <tr><td><code>lib/dashboard/home/widgets/transaction_displays.dart</code></td><td>title line drops the chip child; the subtitle <code>Text</code> becomes a three-child <code>Row</code> - fixed action, <code>Expanded</code> context, fixed status</td></tr>
+        <tr><td><code>lib/dashboard/home/widgets/transaction_utils.dart</code></td><td>five deduplicated subtitle strings so mint / escrow / escrowRelease / purchase / process do not say it twice; <code>action</code> and <code>subtitleBase</code> stay separate fields, which is what makes the three-piece row possible</td></tr>
+        <tr><td>the WIDE page</td><td>unchanged in structure - the wide branch keeps its status pill, so C's third piece is simply absent there and <code>subtitleBase</code> is already the field it reads</td></tr>
+        <tr><td>tests</td><td>the row's golden and any test asserting the chip's presence; the subtitle assertions in the derivation tests move from "context only" to "action, context"</td></tr>
+      </table>
+
+      <div class="verdict warn"><b>One thing to settle before building.</b> On the WIDE page the status pill and
+        the subtitle would both be present, so C's third piece must be suppressed there exactly as
+        <code>subtitleBase</code> already is - otherwise the status is stated twice, which is the defect the
+        <code>subtitle</code> / <code>subtitleBase</code> split exists to prevent. The rule is already written in
+        that field's doc comment; C just has to obey it.</div>
+
+      <p style="color:var(--textSecondary);font-size:13px;margin-top:var(--s8)">
+        Tokens verbatim from <code>genius_wallet_colors.dart</code> / <code>genius_wallet_consts.dart</code> /
+        <code>genius_wallet_typography.dart</code>. Phones are 390x844 at 1:1 with the real shipping geometry -
+        60px visible bottom bar, 64px dock with a 26px overhang, 84px dock slot, 44px time column, 40px identity,
+        18px badge with an 11px glyph. Row arithmetic is exact; which words fit is measured live in the browser
+        after layout, not asserted. Contrast ratios computed from the hexes above.</p>
+    </div>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------------- tabs ---------------- */
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.setAttribute('aria-selected','false'); });
+      t.setAttribute('aria-selected','true');
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+      var el = document.getElementById(t.dataset.p);
+      if (el) { el.classList.add('on'); }
+      remeasure();
+    });
+  });
+
+  /* ---------------- the nine badge kinds, verbatim from transaction_badge.dart ---------------- */
+  var GLYPH = {
+    sent:     '<path d="M7 17L17 7M9 7h8v8"/>',
+    received: '<path d="M17 7L7 17M15 17H7V9"/>',
+    mint:     '<path d="M4 20l8-8"/><path d="M7.5 9.5c4-3.5 9.5-3.5 13.5 0-4.5 1-9.5 3.5-13.5 0z"/>',
+    job:      '<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><circle cx="7" cy="7.5" r="1.1" fill="currentColor"/><circle cx="7" cy="16.5" r="1.1" fill="currentColor"/>',
+    escrow:   '<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/>',
+    swap:     '<path d="M4 9h13l-3-3M20 15H7l3 3"/>',
+    purchase: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+    pending:  '<circle cx="12" cy="12" r="9"/><path d="M12 6.5V12l3.5 2"/>',
+    failed:   '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+  var FILL = {
+    sent:'#64748B', received:'#0AD89C', mint:'#C28FFF', job:'#0AAEE6', escrow:'#64748B',
+    swap:'#64748B', purchase:'#0AD89C', pending:'#FFC42E', failed:'#FF4D4D'
+  };
+  /* badgeGlyphColor(): whichever of white / #000B18 reads better ON the fill. */
+  var INK = {
+    sent:'#FFFFFF', received:'#000B18', mint:'#000B18', job:'#000B18', escrow:'#FFFFFF',
+    swap:'#FFFFFF', purchase:'#000B18', pending:'#000B18', failed:'#000B18'
+  };
+  var KINDLABEL = {
+    sent:'Sent', received:'Received', mint:'Mint', job:'Job', escrow:'Escrow',
+    swap:'Swapped', purchase:'Purchased', pending:'Pending', failed:'Failed'
+  };
+  var GUESS = {
+    sent:'Arrow out. Universal.',
+    received:'Arrow in. Universal.',
+    mint:'A pickaxe. Mining, maybe? Not "mint".',
+    job:'A server rack at 11px. Two grey bars.',
+    escrow:'A padlock. Locked - but locked how?',
+    swap:'Two arrows. Universal.',
+    purchase:'A card. Same fill as received.',
+    pending:'A clock. Universal.',
+    failed:'A cross. Universal.'
+  };
+
+  function badgeSvg(kind, size){
+    var s = size || 11;
+    return '<svg viewBox="0 0 24 24" width="'+s+'" height="'+s+'" fill="none" stroke="'+INK[kind]+
+      '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color:'+INK[kind]+'">'+
+      GLYPH[kind]+'</svg>';
+  }
+
+  /* ---------------- the vocabulary board on the brief ---------------- */
+  (function(){
+    var host = document.getElementById('vocab');
+    if (!host) { return; }
+    var html = '';
+    Object.keys(FILL).forEach(function(k){
+      html += '<div class="vcell">'+
+        '<div class="vb"><div class="coin" style="background:#2A2F3A">?</div>'+
+        '<div class="badge" style="background:'+FILL[k]+'">'+badgeSvg(k)+'</div></div>'+
+        '<div class="vname">'+KINDLABEL[k]+'</div>'+
+        '<div class="vfill">'+FILL[k]+'</div>'+
+        '<div class="vguess">'+GUESS[k]+'</div></div>';
+    });
+    host.innerHTML = html;
+  })();
+
+  /* ---------------- the data: eleven rows, all nine kinds ----------------
+     Fields mirror TxRowContent: badge, title, action, subtitleBase, status,
+     amount, tone, valueLine.  `cLead` / `cMid` are scheme C's deduplicated
+     subtitle, split into the piece that must never shrink and the piece that may. */
+  var ROWS = [
+    { time:'10:24', kind:'sent',     sym:'GNUS', long:'WRAPPED-GNUS-V2',
+      coin:'#0AD89C', ink:'#000B18', g:'G',
+      action:'Sent',              sub:'0x7a3f…9c21',          status:null,
+      cLead:'Sent',               cMid:'· 0x7a3f…9c21',
+      amt:'− 12.5 GNUS',          tone:'out',  val:'$8.38' },
+
+    { time:'09:58', kind:'received', sym:'ETH', long:'ETHEREUM-MAINNET',
+      coin:'#6C7BF5', ink:'#FFFFFF', g:'E',
+      action:'Received',          sub:'0x1b8e…4d70',          status:null,
+      cLead:'Received',           cMid:'· 0x1b8e…4d70',
+      amt:'+ 0.42 ETH',           tone:'in',   val:'$800.00' },
+
+    { time:'09:12', kind:'mint',     sym:'GNUS', long:'WRAPPED-GNUS-V2',
+      coin:'#0AD89C', ink:'#000B18', g:'G',
+      action:'Minted',            sub:'Minted to wallet',     status:null,
+      cLead:'Minted',             cMid:'to wallet',
+      amt:'+ 500 GNUS',           tone:'in',   val:'$335.00' },
+
+    { time:'08:40', kind:'job',      sym:'ETH', long:'ETHEREUM-MAINNET',
+      coin:'#6C7BF5', ink:'#FFFFFF', g:'E',
+      action:'Processing job',    sub:'Job 0x44ab…10ff',      status:null,
+      cLead:'Processing job',     cMid:'0x44ab…10ff',
+      amt:'− 0.0021 ETH',         tone:'out',  val:'$4.00 fee' },
+
+    { time:'08:05', kind:'escrow',   sym:'GNUS', long:'WRAPPED-GNUS-V2',
+      coin:'#0AD89C', ink:'#000B18', g:'G',
+      action:'Escrow locked',     sub:'Locked in escrow',     status:null,
+      cLead:'Locked',             cMid:'in escrow',
+      amt:'− 250 GNUS',           tone:'out',  val:'$167.50' },
+
+    { time:'07:44', kind:'escrow',   sym:'GNUS', long:'WRAPPED-GNUS-V2',
+      coin:'#0AD89C', ink:'#000B18', g:'G',
+      action:'Escrow released',   sub:'Released from escrow', status:null,
+      cLead:'Released',           cMid:'from escrow',
+      amt:'+ 250 GNUS',           tone:'in',   val:'$167.50' },
+
+    { time:'07:02', kind:'swap',     sym:'ETH → USDC', long:'ETHEREUM → USD-COIN',
+      coin:'#6C7BF5', ink:'#FFFFFF', g:'E', pair:true,
+      action:'Swapped',           sub:'0.25 ETH',             status:null,
+      cLead:'Swapped',            cMid:'· 0.25 ETH',
+      amt:'+ 476.18 USDC',        tone:'in',   val:'$476.18' },
+
+    { time:'06:30', kind:'purchase', sym:'USDC', long:'USD-COIN-BRIDGED',
+      coin:'#2775CA', ink:'#FFFFFF', g:'U',
+      action:'Purchased',         sub:'Card purchase',        status:null,
+      cLead:'Card purchase',      cMid:'',
+      amt:'+ 100 USDC',           tone:'in',   val:'$100.00' },
+
+    { time:'06:02', kind:'pending',  sym:'GNUS', long:'WRAPPED-GNUS-V2',
+      coin:'#0AD89C', ink:'#000B18', g:'G',
+      action:'Minted',            sub:'Minted to wallet',     status:'Pending',
+      cLead:'Minted',             cMid:'to wallet',
+      amt:'+ 500 GNUS',           tone:'in',   val:'$335.00' },
+
+    { time:'05:41', kind:'failed',   sym:'ETH', long:'ETHEREUM-MAINNET',
+      coin:'#6C7BF5', ink:'#FFFFFF', g:'E',
+      action:'Sent',              sub:'0x1b8e…4d70',          status:'Failed',
+      cLead:'Sent',               cMid:'· 0x1b8e…4d70',
+      amt:'− 0.42 ETH',           tone:'none', val:'Not charged' },
+
+    { time:'05:10', kind:'sent',     sym:'WSTETH', long:'WRAPPED-STAKED-ETHER',
+      coin:'#00A3FF', ink:'#000B18', g:'W',
+      action:'Sent',              sub:'0x9d2c…31a8',          status:null,
+      cLead:'Sent',               cMid:'· 0x9d2c…31a8',
+      amt:'− 1.25 WSTETH',        tone:'out',  val:'$4,120.00' }
+  ];
+
+  function title(r, st){ return st.names === 'long' ? r.long : r.sym; }
+
+  /* Scheme C's optional mitigation: when the action leads the subtitle, the
+     address abbreviation can give back the characters the action just took.
+     `WalletUtils.getAddressForDisplay` produces 4+4 hex today; this is 3+3. */
+  function tighten(s, st){
+    if (st.addr !== 'tight') { return s; }
+    return s.replace(/0x([0-9a-fA-F]{4})…([0-9a-fA-F]{4})/g, function(_, a, b){
+      return '0x' + a.slice(0, 3) + '…' + b.slice(1);
+    });
+  }
+
+  /* ---------------- the row, one builder per scheme ---------------- */
+  function identity(r){
+    return '<div class="rid">'+
+      '<div class="coin" style="background:'+r.coin+';color:'+r.ink+'">'+r.g+'</div>'+
+      '<div class="badge'+(r.pair?' pair':'')+'" style="background:'+FILL[r.kind]+'">'+badgeSvg(r.kind)+'</div>'+
+      '</div>';
+  }
+  function amountCol(r, st){
+    var mode = (st.amt === 'reserved') ? 'reserved' : 'flexed';
+    return '<div class="ramt '+mode+'">'+
+      '<div class="anum '+r.tone+' meas" data-m="amount">'+r.amt+'</div>'+
+      '<div class="aval meas" data-m="value">'+r.val+'</div></div>';
+  }
+  function subtitlePlain(r){
+    var s = r.sub + (r.status ? ' · ' + r.status : '');
+    return '<div class="sline"><span class="smid meas" data-m="context">'+s+'</span></div>';
+  }
+
+  var SCHEME = {
+    /* TODAY: two Flexible children, so the chip is capped at half the line. */
+    now: function(r, st){
+      return '<div class="rmid">'+
+        '<div class="tline">'+
+          '<div class="ttl grow meas" data-m="title">'+title(r,st)+'</div>'+
+          '<div class="gap4"></div>'+
+          '<div class="chipbox grow"><span class="chip meas" data-m="action" data-kind="'+r.kind+
+            '" data-word="'+r.action+'">'+r.action+'</span></div>'+
+        '</div>'+ subtitlePlain(r) + '</div>';
+    },
+    /* A: the chip is no longer flexible - it takes its intrinsic width. */
+    A: function(r, st){
+      return '<div class="rmid">'+
+        '<div class="tline">'+
+          '<div class="ttl grow meas" data-m="title">'+title(r,st)+'</div>'+
+          '<div class="gap4"></div>'+
+          '<div class="chipbox fixed"><span class="chip meas" data-m="action">'+r.action+'</span></div>'+
+        '</div>'+ subtitlePlain(r) + '</div>';
+    },
+    /* B: no chip at all. */
+    B: function(r, st){
+      return '<div class="rmid">'+
+        '<div class="tline"><div class="ttl grow meas" data-m="title">'+title(r,st)+'</div></div>'+
+        subtitlePlain(r) + '</div>';
+    },
+    /* C: action leads the subtitle and never shrinks; the context ellipsises. */
+    C: function(r, st){
+      /* NBSP, not a plain space: a leading ordinary space in a flex item is
+         collapsible and the action would touch the address. */
+      var body = tighten(r.cMid, st);
+      var mid = body ? '<span class="smid meas" data-m="context"> '+body+'</span>' :
+                       '<span class="smid"></span>';
+      var tail = r.status ? '<span class="stail meas" data-m="status"> · '+r.status+'</span>' : '';
+      return '<div class="rmid">'+
+        '<div class="tline"><div class="ttl grow meas" data-m="title">'+title(r,st)+'</div></div>'+
+        '<div class="sline">'+
+          '<span class="slead meas" data-m="action" style="color:var(--textSecondary)">'+r.cLead+'</span>'+
+          mid + tail +
+        '</div></div>';
+    },
+    /* D: the action is the headline; the token drops into the subtitle. */
+    D: function(r, st){
+      var s = title(r,st) + ' · ' + r.sub + (r.status ? ' · ' + r.status : '');
+      return '<div class="rmid">'+
+        '<div class="tline"><div class="ttl grow meas" data-m="action">'+r.action+'</div></div>'+
+        '<div class="sline"><span class="smid meas" data-m="context">'+s+'</span></div></div>';
+    }
+  };
+
+  function rowHtml(r, st, scheme){
+    return '<div class="row">'+
+      '<div class="rtime">'+r.time+'</div>'+
+      identity(r) + SCHEME[scheme](r, st) + amountCol(r, st) +
+      '</div>';
+  }
+
+  function listHtml(st, scheme){
+    var html = '<div class="pagepad">'+
+      '<div class="pagehead">Transactions</div>'+
+      '<div class="filterbar">'+
+        '<div class="fchip on">▦</div><div class="fchip">↑</div>'+
+        '<div class="fchip">↓</div><div class="fchip">⋯</div>'+
+      '</div>'+
+      '<div class="kick">TODAY</div>';
+    ROWS.forEach(function(r, i){
+      html += rowHtml(r, st, scheme);
+      if (i !== ROWS.length - 1) { html += '<div class="rule"></div>'; }
+    });
+    return html + '</div>';
+  }
+
+  /* ---------------- measurement: what did the browser actually clip? ---------------- */
+  function measure(host, readout, tableHost){
+    /* A phone inside a `display:none` panel has no layout at all, so every
+       width comes back 0 and everything would report "nothing clipped".
+       Bail instead of lying; `remeasure()` runs again on every tab switch. */
+    if (host.offsetParent === null || host.clientWidth === 0) {
+      if (readout) {
+        readout.innerHTML = '<b>Open this tab</b> - clipping is measured live, after layout.';
+      }
+      return;
+    }
+
+    var counts = { action:0, title:0, context:0, status:0, amount:0, value:0 };
+    var rows = [];
+    host.querySelectorAll('.meas').forEach(function(el){
+      el.classList.remove('cut');
+      var clipped = el.scrollWidth > el.clientWidth + 0.5;
+      if (clipped) {
+        el.classList.add('cut');
+        var k = el.dataset.m;
+        if (counts[k] !== undefined) { counts[k] += 1; }
+      }
+      if (el.dataset.kind) {
+        rows.push({
+          kind: el.dataset.kind,
+          word: el.dataset.word,
+          need: Math.round(el.scrollWidth),
+          got:  Math.round(el.clientWidth),
+          clipped: clipped,
+          shown: visiblePrefix(el, clipped)
+        });
+      }
+    });
+
+    if (readout) {
+      /* Not all clipping is equal, and a flat count would say scheme C is worse
+         than today. SEVERE = the row stops saying what happened (the action, the
+         token, the status). MINOR = an already-abbreviated address or qualifier
+         loses a character or two, with the full value one tap away in the
+         detail drawer. The colours state that position rather than hide it. */
+      var severe = [], minor = [];
+      function push(bucket, k, one, many){
+        if (counts[k]) { bucket.push(counts[k] + ' ' + (counts[k] === 1 ? one : many)); }
+      }
+      push(severe, 'action', 'action label', 'action labels');
+      push(severe, 'title',  'token name',   'token names');
+      push(severe, 'status', 'status word',  'status words');
+      push(minor,  'context','context string','context strings');
+      push(minor,  'amount', 'amount',        'amounts');
+      push(minor,  'value',  'value line',    'value lines');
+
+      var bits = [];
+      if (severe.length) { bits.push('<span class="bad">' + severe.join(', ') + '</span>'); }
+      if (minor.length)  { bits.push('<span class="warn">' + minor.join(', ') + '</span>'); }
+      readout.innerHTML = '<b>Measured after layout, ' + ROWS.length + ' rows:</b> ' +
+        (bits.length ? bits.join(' + ') + ' clipped.'
+                     : '<span class="ok">nothing clipped.</span>') +
+        '<span class="sev">red = the row stops saying what happened &nbsp;·&nbsp; ' +
+        'amber = an abbreviation gets shorter</span>';
+    }
+
+    if (tableHost && rows.length) {
+      var html = '<tr><th>Kind</th><th>Action</th><th class="n">needs</th><th class="n">gets</th><th>Renders as</th></tr>';
+      rows.forEach(function(x){
+        html += '<tr><td><code>'+x.kind+'</code></td><td>'+x.word+'</td>'+
+          '<td class="n">'+x.need+'</td><td class="n">'+x.got+'</td>'+
+          '<td class="'+(x.clipped?'fail':'pass')+'">'+x.shown+'</td></tr>';
+      });
+      tableHost.innerHTML = html;
+    }
+  }
+
+  /* What the user actually SEES in a clipped box, measured with the element's
+     own computed font rather than guessed from a character count. */
+  var _cv = document.createElement('canvas');
+  var _cx = _cv.getContext('2d');
+  function visiblePrefix(el, clipped){
+    var txt = el.textContent;
+    var cs = window.getComputedStyle(el);
+    _cx.font = cs.fontStyle+' '+cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;
+    /* Canvas metrics and the layout engine can disagree by a pixel or two, so
+       the ELEMENT's own verdict wins: if it says it clipped, never print the
+       whole string back. */
+    var w = el.clientWidth;
+    if (!clipped && _cx.measureText(txt).width <= w) { return txt; }
+    var ell = _cx.measureText('…').width;
+    var lo = 0, hi = txt.length, mid;
+    while (lo < hi) {
+      mid = Math.ceil((lo + hi) / 2);
+      if (_cx.measureText(txt.slice(0, mid)).width + ell <= w) { lo = mid; } else { hi = mid - 1; }
+    }
+    if (lo >= txt.length) { lo = txt.length - 1; }
+    return txt.slice(0, Math.max(1, lo)) + '…';
+  }
+
+  /* ---------------- the phone ---------------- */
+  var PHONES = [];
+
+  function createPhone(host){
+    var scheme = host.dataset.phone;
+    var wrap = host.parentElement;
+    var st = { names:'short', amt:'flexed', addr:'full' };
+    var readout = wrap.querySelector('[data-readout]');
+    var tableHost = (scheme === 'now') ? document.getElementById('curmeas') : null;
+
+    host.innerHTML =
+      '<div class="notch"></div>'+
+      '<div class="sbar"><span>9:41</span><span class="r">▮▮▮ ᯬ ▰</span></div>'+
+      '<div class="appbar"><div style="display:flex;align-items:center;gap:8px;padding:0 8px">'+
+        '<span style="font-size:20px">‹</span>'+
+        '<span style="font:600 17px Inter">Genius Wallet</span></div></div>'+
+      '<div class="scr" data-scr></div>'+
+      '<div class="barbox"><div class="bar">'+
+        '<div class="slot"><div class="si">▦</div><div class="sl">Home</div></div>'+
+        '<div class="slot"><div class="si">◠</div><div class="sl">Markets</div></div>'+
+        '<div class="dockslot"></div>'+
+        '<div class="slot on"><div class="si">◴</div><div class="sl">Activity</div></div>'+
+        '<div class="slot"><div class="si">···</div><div class="sl">More</div></div>'+
+      '</div><div class="dock">⇅</div></div>';
+
+    function render(){
+      var scr = host.querySelector('[data-scr]');
+      var keep = scr.scrollTop;
+      scr.innerHTML = listHtml(st, scheme);
+      scr.scrollTop = keep;
+      wrap.querySelectorAll('[data-state]').forEach(function(b){
+        b.classList.toggle('on', b.dataset.state === st.names);
+      });
+      wrap.querySelectorAll('[data-amt]').forEach(function(b){
+        b.classList.toggle('on', b.dataset.amt === st.amt);
+      });
+      wrap.querySelectorAll('[data-addr]').forEach(function(b){
+        b.classList.toggle('on', b.dataset.addr === st.addr);
+      });
+      measure(host, readout, tableHost);
+    }
+
+    wrap.querySelectorAll('[data-state]').forEach(function(b){
+      b.addEventListener('click', function(){ st.names = b.dataset.state; render(); });
+    });
+    wrap.querySelectorAll('[data-amt]').forEach(function(b){
+      b.addEventListener('click', function(){ st.amt = b.dataset.amt; render(); });
+    });
+    wrap.querySelectorAll('[data-addr]').forEach(function(b){
+      b.addEventListener('click', function(){ st.addr = b.dataset.addr; render(); });
+    });
+
+    PHONES.push({ host:host, readout:readout, tableHost:tableHost });
+    render();
+  }
+
+  function remeasure(){
+    PHONES.forEach(function(p){ measure(p.host, p.readout, p.tableHost); });
+  }
+
+  document.querySelectorAll('[data-phone]').forEach(createPhone);
+
+  /* Fonts land after first paint and change every width, so measure again. */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(remeasure);
+  }
+  window.addEventListener('load', remeasure);
+})();
+</script>
+</body>
+</html>

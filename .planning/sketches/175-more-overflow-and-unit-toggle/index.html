@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 175 - replacing the "More" overflow + the GNUS/MIN toggle</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{
+  /* REAL tokens, lifted verbatim from lib/theme/genius_wallet_colors.dart (dark) */
+  --surfaceBase:#0B0D12; --surfaceElevated:#0C0E14; --surfaceMenu:#171A21; --surfaceSunken:#06080C;
+  --textPrimary:#FFFFFF; --textPrimary80:rgba(255,255,255,.80); --textPrimary60:rgba(255,255,255,.60);
+  --textPrimary38:rgba(255,255,255,.38); --textSecondary:#8A8F9D; --textOnBrand:#000B18;
+  --textMutedOnSunken:#8A8F9D;
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --brandPrimary:#14C8FF; --brandPrimaryStrong:#0AAEE6; --brandSecondary:#2BF5B4; --brandSecondaryStrong:#0AD89C;
+  --gradientGreen:#0AD89C; --gradientBlue:#0AAEE6;
+  --statusError:#FF4D4D; --statusWarning:#FFC42E; --statusSuccess:#2BF5B4;
+  /* spacing + radius tokens, genius_wallet_consts.dart */
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px; --s20:40px;
+  --rXs:4px; --rSm:8px; --rBase:10px; --rMd:12px; --rLg:15px; --r2xl:16px; --rXl:24px; --rPill:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05070A;color:var(--textPrimary);font:400 15px/1.5 Inter,system-ui,-apple-system,sans-serif;padding:0 0 140px}
+a{color:var(--brandPrimary)}
+code{font:12px/1.4 'JetBrains Mono',ui-monospace,monospace;background:var(--surfaceMenu);padding:1px 5px;border-radius:var(--rXs);color:var(--brandSecondary)}
+
+.wrap{max-width:1780px;margin:0 auto;padding:0 var(--s12)}
+.skhead{border-bottom:1px solid var(--borderSubtle);padding:var(--s16) 0 0;margin-bottom:var(--s12);position:sticky;top:0;background:#05070A;z-index:50}
+.skhead h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.skhead p{color:var(--textSecondary);max-width:110ch;margin-top:var(--s4);font-size:14px}
+.tabs{display:flex;gap:var(--s3);margin-top:var(--s10);flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:9px var(--s10);border-radius:var(--rSm) var(--rSm) 0 0;font:600 13px Inter,sans-serif;cursor:pointer;border-bottom:none}
+.tab:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.35);color:var(--textPrimary)}
+.tab[aria-selected=true]{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--borderStrong);position:relative}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));border-radius:3px 3px 0 0;box-shadow:0 0 10px rgba(20,200,255,.5)}
+.panel{display:none}
+.panel.on{display:block}
+
+.cols{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s12) 0}
+.notes{flex:1 1 430px;min-width:390px;max-width:780px}
+.h2{font-size:19px;font-weight:650;margin:var(--s12) 0 var(--s4);letter-spacing:-.01em}
+.h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--textSecondary);margin:var(--s12) 0 var(--s4)}
+.notes p{margin:var(--s4) 0;color:var(--textPrimary80);font-size:14px}
+.notes li{margin:var(--s3) 0;color:var(--textPrimary80);font-size:14px}
+.notes ul{padding-left:var(--s10)}
+.verdict{border-left:3px solid var(--brandSecondary);background:rgba(43,245,180,.06);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s8) 0;font-size:13.5px;color:var(--textPrimary80)}
+.verdict.bad{border-left-color:var(--statusError);background:rgba(255,77,77,.06)}
+.verdict.warn{border-left-color:var(--statusWarning);background:rgba(255,196,46,.06)}
+.verdict b{color:var(--textPrimary)}
+.try{border-left:3px solid var(--brandPrimary);background:rgba(20,200,255,.07);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s8) 0;font-size:13.5px;color:var(--textPrimary80)}
+.try b{color:var(--brandPrimary)}
+
+.tag{display:inline-block;font:700 9.5px/1 Inter,sans-serif;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 6px;border-radius:var(--rXs);vertical-align:middle;white-space:nowrap}
+.t-ex{background:rgba(43,245,180,.14);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.4)}
+.t-ad{background:rgba(255,196,46,.14);color:var(--statusWarning);border:1px solid rgba(255,196,46,.4)}
+.t-new{background:rgba(255,77,77,.14);color:#FF8A8A;border:1px solid rgba(255,77,77,.4)}
+.legend{display:flex;gap:var(--s10);flex-wrap:wrap;align-items:center;padding:var(--s6) 0 var(--s12);
+  border-bottom:1px solid var(--borderSubtle);margin-bottom:var(--s6)}
+.legend span{font-size:12.5px;color:var(--textSecondary)}
+
+table{border-collapse:collapse;width:100%;margin:var(--s6) 0;font-size:13px}
+th,td{text-align:left;padding:7px var(--s4);border-bottom:1px solid var(--borderSubtle);vertical-align:top}
+th{color:var(--textSecondary);font:700 11px Inter;text-transform:uppercase;letter-spacing:.07em}
+td.num{font:600 13px 'JetBrains Mono',ui-monospace,monospace}
+td.n{font:700 13px 'JetBrains Mono',ui-monospace,monospace;text-align:center;width:56px}
+.pass{color:var(--brandSecondary);font-weight:700}
+.fail{color:#FF8A8A;font-weight:700}
+.g1{color:var(--brandSecondary)}.g3{color:var(--statusWarning)}
+
+/* ---------- phone (real size, 1:1) ---------- */
+.stage{flex:0 0 auto;display:flex;gap:var(--s16);flex-wrap:wrap}
+.phonewrap{flex:0 0 auto}
+.phonecap{font:600 12px Inter,sans-serif;color:var(--textSecondary);margin-bottom:var(--s4);text-align:center;letter-spacing:.04em}
+.phone{width:390px;height:844px;background:var(--surfaceBase);border:9px solid #1b1e26;border-radius:46px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1b1e26;
+  border-radius:0 0 18px 18px;z-index:30}
+.sbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s10) 0 var(--s16);font:600 13px Inter;color:var(--textPrimary)}
+.sbar .r{display:flex;gap:5px;align-items:center;font:400 11px Inter;color:var(--textPrimary80)}
+.scr{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:thin}
+.scr::-webkit-scrollbar{width:4px}.scr::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+.tapbar{display:flex;justify-content:space-between;align-items:center;margin-top:var(--s4);
+  font:600 11.5px Inter;color:var(--textSecondary);padding:0 var(--s4)}
+.tapbar b{color:var(--brandSecondary);font:700 12px 'JetBrains Mono',monospace}
+.tapbar button{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:4px var(--s6);border-radius:var(--rSm);font:600 11px Inter;cursor:pointer}
+.tapbar button:hover{color:var(--textPrimary);border-color:var(--borderStrong)}
+.crumb{font:500 11px 'JetBrains Mono',monospace;color:var(--textPrimary60);margin-top:var(--s3);
+  padding:0 var(--s4);min-height:16px;text-align:center}
+
+.appbar{flex:0 0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s8);border-bottom:.5px solid var(--borderSubtle);background:var(--surfaceElevated)}
+.idrow{display:flex;align-items:center;gap:var(--s6);min-width:0;cursor:pointer;padding:var(--s3);border-radius:var(--rMd)}
+.idrow:hover{background:rgba(20,200,255,.07)}
+.avatar{width:32px;height:32px;border-radius:50%;flex:0 0 auto;background:linear-gradient(135deg,#6C7BF5,#8E9BFF);
+  display:grid;place-items:center;font:700 13px Inter;color:#fff}
+.idname{font:600 14px Inter;display:flex;align-items:center;gap:2px}
+.idaddr{font:400 11px 'JetBrains Mono',ui-monospace,monospace;color:var(--textSecondary)}
+.rightcluster{display:flex;align-items:center;gap:var(--s3)}
+.netchip{display:flex;align-items:center;gap:var(--s3);padding:5px var(--s4);border-radius:var(--rPill);cursor:pointer}
+.netchip:hover{background:rgba(20,200,255,.07)}
+.netdot{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#6C7BF5,#8E9BFF)}
+.gear{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--textPrimary80);
+  border:1px solid var(--borderSubtle);background:var(--surfaceSunken);font-size:16px;cursor:pointer}
+.gear:hover{background:rgba(20,200,255,.1);border-color:rgba(20,200,255,.4);color:var(--textPrimary)}
+.backrow{display:flex;align-items:center;gap:var(--s4);cursor:pointer;padding:var(--s3) var(--s4);border-radius:var(--rMd)}
+.backrow:hover{background:rgba(20,200,255,.07)}
+
+.card{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s6);margin:var(--s3)}
+.cardtitle{font:650 20px Inter;padding:var(--s3) var(--s3) var(--s6);display:flex;justify-content:space-between;align-items:center}
+.kicker{font:700 11px Inter;text-transform:uppercase;letter-spacing:.09em;color:var(--textSecondary);padding:var(--s6) var(--s6) var(--s3)}
+.pagehead{padding:var(--s8) var(--s6) var(--s4);font:650 24px Inter;letter-spacing:-.02em}
+.well{background:var(--surfaceSunken);border:1px solid var(--borderSubtle);border-radius:var(--rMd);padding:var(--s8) var(--s10)}
+.balkick{font:700 11px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--textSecondary)}
+.balrow{display:flex;align-items:center;gap:var(--s8);margin-top:var(--s3)}
+.balnum{font:700 38px Inter;letter-spacing:-.03em;line-height:1}
+.utrack{display:flex;align-items:center;gap:2px;background:var(--surfaceSunken);border:1px solid var(--borderSubtle);
+  border-radius:var(--rPill);padding:3px 6px}
+.useg{padding:6px 13px;border-radius:var(--rPill);font:600 12px Inter;color:var(--textMutedOnSunken);cursor:pointer;border:1px solid transparent}
+.useg.on{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));color:var(--textOnBrand)}
+.useg.sel-now{background:var(--surfaceMenu);color:var(--textPrimary)}
+.useg.sel-u1{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));color:var(--textOnBrand)}
+.useg.sel-u2{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--borderStrong);box-shadow:0 2px 8px rgba(0,0,0,.55)}
+.useg.sel-u3{background:rgba(43,245,180,.14);color:var(--brandSecondary);border-color:rgba(43,245,180,.5)}
+.cta{margin-top:var(--s8);height:44px;border-radius:var(--rMd);display:grid;place-items:center;cursor:pointer;
+  background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));color:var(--textOnBrand);font:600 15px Inter}
+.selrow{display:flex;align-items:center;gap:var(--s6);padding:13px var(--s6);border-radius:var(--rMd);cursor:pointer}
+.selrow:hover{background:rgba(20,200,255,.07)}
+.selrow .ic{width:24px;text-align:center;color:var(--textPrimary80);font-size:17px;flex:0 0 auto}
+.selrow .tx{flex:1 1 auto;min-width:0}
+.selrow .t1{font:500 15px Inter}
+.selrow .t2{font:400 12px Inter;color:var(--textSecondary);margin-top:1px}
+.selrow .ch{color:var(--textPrimary38);font-size:15px}
+.selrow .amt{text-align:right}
+.selrow .amt .a1{font:700 15px Inter}
+.selrow .amt .a2{font:400 12px Inter;color:var(--textSecondary)}
+.divide{height:1px;background:var(--borderSubtle);margin:0 var(--s6)}
+.empty{display:flex;flex-direction:column;align-items:center;gap:var(--s4);padding:var(--s20) var(--s10);text-align:center}
+.emptyring{width:76px;height:76px;border-radius:50%;border:1px solid var(--borderSubtle);display:grid;place-items:center;
+  font-size:26px;color:var(--textPrimary38)}
+.badge{font:700 9px Inter;letter-spacing:.08em;padding:3px 6px;border-radius:var(--rXs);
+  background:rgba(43,245,180,.12);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.5)}
+.idcard{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);
+  padding:var(--s10) var(--s6);margin:var(--s3);display:flex;flex-direction:column;align-items:center;gap:var(--s3)}
+.idcard .big{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#6C7BF5,#8E9BFF);
+  display:grid;place-items:center;font:700 24px Inter}
+.idcard .nm{font:650 18px Inter}
+.idcard .ad{font:400 12px 'JetBrains Mono',ui-monospace,monospace;color:var(--textSecondary)}
+
+.barbox{flex:0 0 auto;height:106px;position:relative}
+.bar{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--surfaceElevated);
+  border-top:.5px solid var(--borderSubtle);display:flex;align-items:flex-start;padding-bottom:20px}
+.slot{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:var(--s2);padding-top:var(--s4);cursor:pointer}
+.slot .si{font-size:22px;line-height:1;color:var(--textSecondary)}
+.slot .sl{font:500 10px Inter;color:var(--textSecondary)}
+.slot.on .si,.slot.on .sl{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));
+  -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+.dockslot{flex:0 0 84px}
+.dock{position:absolute;top:0;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));border:3px solid var(--surfaceElevated);
+  display:grid;place-items:center;font-size:26px;color:var(--textOnBrand);box-shadow:0 0 22px rgba(10,174,230,.4);cursor:pointer;z-index:5}
+
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:20;opacity:0;pointer-events:none;transition:opacity .18s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surfaceMenu);z-index:21;
+  border-radius:var(--rXl) var(--rXl) 0 0;border-top:1px solid var(--borderSubtle);
+  padding:var(--s4) var(--s3) var(--s12);transform:translateY(105%);transition:transform .22s cubic-bezier(.2,.8,.2,1);max-height:78%;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+.grab{width:36px;height:4px;border-radius:2px;background:var(--borderStrong);margin:var(--s2) auto var(--s6)}
+.sheettitle{font:650 17px Inter;padding:0 var(--s6) var(--s4)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3);padding:0 var(--s3)}
+.tile{background:var(--surfaceSunken);border:1px solid var(--borderSubtle);border-radius:var(--rMd);
+  padding:var(--s8) var(--s3);display:flex;flex-direction:column;align-items:center;gap:var(--s3);cursor:pointer}
+.tile:hover{background:rgba(20,200,255,.08);border-color:rgba(20,200,255,.4)}
+.tile .ti{font-size:24px;line-height:1}
+.tile .tl{font:600 11.5px Inter;text-align:center}
+.rail{position:absolute;left:var(--s6);right:var(--s6);bottom:92px;z-index:22;background:var(--surfaceSunken);
+  border:1px solid var(--borderSubtle);border-radius:var(--rPill);padding:var(--s3) var(--s4);display:flex;gap:2px;
+  box-shadow:0 12px 32px rgba(0,0,0,.75);transform:translateY(14px) scale(.96);opacity:0;pointer-events:none;
+  transition:all .2s cubic-bezier(.2,.8,.2,1)}
+.rail.on{transform:none;opacity:1;pointer-events:auto}
+.railchip{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:var(--s3) 2px;
+  border-radius:var(--rPill);cursor:pointer}
+.railchip:hover{background:var(--surfaceElevated)}
+.railchip .ri{font-size:18px;line-height:1;color:var(--textPrimary80)}
+.railchip .rl{font:600 9.5px Inter;color:var(--textSecondary)}
+
+.spec{display:flex;flex-direction:column;gap:var(--s10);padding:var(--s8) 0}
+.balancetile{width:342px;background:var(--surfaceElevated);border:1px solid var(--borderSubtle);
+  border-radius:var(--rMd);padding:var(--s8) var(--s10)}
+.speclabel{font:700 12px Inter;letter-spacing:.07em;text-transform:uppercase;color:var(--textSecondary);margin-bottom:var(--s3)}
+.decided{display:inline-block;font:700 10px Inter;letter-spacing:.09em;padding:4px 8px;border-radius:var(--rXs);
+  background:rgba(43,245,180,.14);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.5);margin-left:var(--s4)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="skhead">
+    <h1>Sketch 175 - killing the three-dots overflow, and making "selected" visible</h1>
+    <p>Two problems on the mobile shell, both from Jakub's 2026-08-06 live walk. <b>Every scheme below is
+       clickable</b> - use the phone like the app: bottom tabs, the dock, the gear, the wallet chip, every
+       row and every Back navigate for real, and the counter under each phone records what each trip cost
+       you. Tokens are verbatim from <code>genius_wallet_colors.dart</code>; phones are 390x844 at 1:1.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-p="p0">The problem</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pA">A - Wallet tab</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pB">B - Tile sheet</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pC">C - No overflow ★</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pD">D - Rail</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pU">GNUS / MIN toggle</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pR">Recommendation</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="tag t-ex">exists</span> already in the codebase, reused as-is</span>
+    <span><span class="tag t-ad">adapted</span> existing component, new arrangement</span>
+    <span><span class="tag t-new">new</span> nothing like it ships today</span>
+  </div>
+
+  <!-- ============================ P0 ============================ -->
+  <div class="panel on" id="p0">
+    <div class="cols">
+      <div class="stage">
+        <div class="phonewrap">
+          <div class="phonecap">TODAY - tap the three dots</div>
+          <div class="phone" data-phone="now"></div>
+          <div class="tapbar"><span>Taps: <b data-taps>0</b></span><button data-reset>Reset to Home</button></div>
+          <div class="crumb" data-crumb></div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="h2">What is actually behind the dots</div>
+        <p>Not a guess - this is <code>_moreDestinations</code> in <code>responsive_overlay.dart</code>:
+           <code>_allDestinations</code> minus Swap and minus the three tabs already in the bar, plus one
+           hard-coded Accounts row.</p>
+        <table>
+          <tr><th>Row</th><th>What kind of thing it is</th><th>Reachable elsewhere?</th></tr>
+          <tr><td>News</td><td>Content destination</td><td>No</td></tr>
+          <tr><td>Web</td><td>Content destination</td><td>No</td></tr>
+          <tr><td>Feedback</td><td>Utility</td><td>No</td></tr>
+          <tr><td>Settings</td><td>Utility</td><td>No</td></tr>
+          <tr><td>Accounts</td><td>Identity</td><td><b class="pass">Yes</b> - the header wallet chip</td></tr>
+        </table>
+        <div class="try"><b>Try it:</b> tap the wallet chip in the header, hit Reset, then tap the dots and
+          choose Accounts. Same room, two doors, and the second one costs an extra tap.</div>
+        <div class="h3">Three findings, all code-grounded</div>
+        <div class="verdict bad"><b>1. Three unlike kinds of thing in one flat list.</b> Destinations,
+          utilities and identity, undifferentiated. No rule can be stated about what lives behind the dots,
+          so no memory of it can form.</div>
+        <div class="verdict bad"><b>2. Accounts is duplicated.</b> The header chip already calls
+          <code>AccountDrawer.show(context)</code>; the sheet row calls the identical method.</div>
+        <div class="verdict warn"><b>3. Built from the wrong component.</b> <code>GWSelectRow</code> is a
+          <i>selection</i> control - its job elsewhere is "pick one of these, here is a checkmark". Using it
+          for navigation borrows semantics that do not match.</div>
+        <p>So the brief is not "redraw the sheet". Three of the four schemes take things <i>out</i> of it;
+           only B keeps all five rows behind the dots. That is the axis to judge them on.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ A ============================ -->
+  <div class="panel" id="pA">
+    <div class="cols">
+      <div class="stage">
+        <div class="phonewrap">
+          <div class="phonecap">A - the 4th slot becomes YOU</div>
+          <div class="phone" data-phone="A"></div>
+          <div class="tapbar"><span>Taps: <b data-taps>0</b></span><button data-reset>Reset to Home</button></div>
+          <div class="crumb" data-crumb></div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="h2">A - "Wallet", an identity-led destination</div>
+        <p>The dots become an avatar glyph and a real route. Everything from the sheet becomes a grouped
+           list on a full screen, under headers that name what each group is.</p>
+        <div class="try"><b>Try it:</b> tap <b>Wallet</b>, then look at the identity card and at the header
+          two centimetres above it. Same name, same address, twice on one screen. Then tap the header chip -
+          you land on Accounts from there too.</div>
+        <table>
+          <tr><th>Destination</th><th class="n">Taps</th></tr>
+          <tr><td>News</td><td class="n">2</td></tr>
+          <tr><td>Web</td><td class="n">2</td></tr>
+          <tr><td>Settings</td><td class="n">2</td></tr>
+          <tr><td>Feedback</td><td class="n">2</td></tr>
+          <tr><td>Accounts</td><td class="n">1 or 2</td></tr>
+        </table>
+        <div class="h3">Built from</div>
+        <ul>
+          <li><span class="tag t-ex">exists</span> <code>GWSelectRow</code>, <code>GWCard</code>, kickers</li>
+          <li><span class="tag t-ad">adapted</span> identity card = the account-drawer header, re-laid out centred</li>
+          <li><span class="tag t-new">new</span> a <code>/wallet</code> route</li>
+        </ul>
+        <div class="h3">Why it is good</div>
+        <p>It gives the fourth slot an <b>identity</b>, which "···" can never have. It is also what Rainbow,
+           Trust and Coinbase all do, so the muscle memory already exists.</p>
+        <div class="verdict warn">But it <b>doubles down on the duplication</b> rather than removing it, and
+          spends a whole tab on a screen most people open once a month.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ B ============================ -->
+  <div class="panel" id="pB">
+    <div class="cols">
+      <div class="stage">
+        <div class="phonewrap">
+          <div class="phonecap">B - same sheet, tiles instead of rows</div>
+          <div class="phone" data-phone="B"></div>
+          <div class="tapbar"><span>Taps: <b data-taps>0</b></span><button data-reset>Reset to Home</button></div>
+          <div class="crumb" data-crumb></div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="h2">B - keep the sheet, upgrade the sheet</div>
+        <p>Smallest possible change: the flat row list becomes a 3-across tile grid under two kickers. Each
+           tile is a <code>surfaceSunken</code> well with a hairline - the same recessed material the control
+           track uses.</p>
+        <div class="try"><b>Try it:</b> tap <b>More</b>. Scanning genuinely improves - six labelled targets in
+          one glance beats reading a five-row list top to bottom, and the grouping finally states a rule.</div>
+        <table>
+          <tr><th>Destination</th><th class="n">Taps</th></tr>
+          <tr><td>News</td><td class="n">2</td></tr>
+          <tr><td>Web</td><td class="n">2</td></tr>
+          <tr><td>Settings</td><td class="n">2</td></tr>
+          <tr><td>Feedback</td><td class="n">2</td></tr>
+          <tr><td>Accounts</td><td class="n">1 or 2</td></tr>
+        </table>
+        <div class="h3">Built from</div>
+        <ul>
+          <li><span class="tag t-ex">exists</span> <code>GWBottomSheet</code>, <code>GWKicker</code></li>
+          <li><span class="tag t-new">new</span> the tile - <b>there is no icon-tile grid anywhere in this app</b></li>
+        </ul>
+        <div class="verdict bad">It fails your own criterion. The brief was "ideally it fits the other
+          components", and this introduces a tile grid that exists nowhere else while <i>leaving the dumping
+          ground exactly where it was</i>. Most pixels changed, least structure changed.</div>
+        <p>Included because it is the honest cheap option: if the answer is "just make the sheet nicer", this
+           is what that looks like.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ C ============================ -->
+  <div class="panel" id="pC">
+    <div class="cols">
+      <div class="stage">
+        <div class="phonewrap">
+          <div class="phonecap">C - no overflow at all</div>
+          <div class="phone" data-phone="C"></div>
+          <div class="tapbar"><span>Taps: <b data-taps>0</b></span><button data-reset>Reset to Home</button></div>
+          <div class="crumb" data-crumb></div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="h2">C - delete the overflow ★</div>
+        <p>There is no More sheet. The five rows are redistributed by <i>what kind of thing they are</i> -
+           the distinction the flat list refused to make.</p>
+        <div class="try"><b>Try both trips:</b> tap <b>News</b> - one tap, it is a real tab now. Then Reset and
+          go gear → Web: <b>three taps.</b> That second number is the whole cost of this scheme, and the only
+          question that decides it.</div>
+        <table>
+          <tr><th>Row</th><th>Goes to</th><th class="n">Taps</th></tr>
+          <tr><td>News</td><td>The 4th bottom tab</td><td class="n g1">1</td></tr>
+          <tr><td>Accounts</td><td>Header wallet chip <i>(already there)</i></td><td class="n g1">1</td></tr>
+          <tr><td>Settings</td><td>Gear</td><td class="n">2</td></tr>
+          <tr><td>Feedback</td><td>Gear → Send feedback</td><td class="n">2</td></tr>
+          <tr><td>Web</td><td>Gear → App → Web</td><td class="n g3">3</td></tr>
+        </table>
+        <div class="h3">Built from</div>
+        <ul>
+          <li><span class="tag t-ex">exists</span> <code>/news</code>, <code>/web</code>, <code>/settings</code>,
+              <code>/feedback</code> are <b>already routes</b> - this re-points them, it does not create them</li>
+          <li><span class="tag t-ex">exists</span> the gear is the same 36px chip shape the network selector
+              already is: <code>surfaceSunken</code> fill, <code>borderSubtle</code> hairline, pill radius</li>
+          <li><span class="tag t-ex">exists</span> <code>GWSelectRow</code> + <code>GWCard</code> + kickers</li>
+          <li><span class="tag t-new">new</span> a settings screen <i>layout</i> (the route exists)</li>
+        </ul>
+        <div class="verdict"><b>It removes the defect instead of decorating it.</b> Afterwards no surface's
+          contents are unpredictable from its label. Every bottom tab is a place, the gear is utilities, the
+          wallet chip is identity. Three rules, each obvious - and it adds the fewest new components.</div>
+        <div class="verdict warn"><b>The honest cost: Web goes from one tap to three.</b> If Web is a daily
+          surface, C is wrong and A is right. That is the one question worth answering before building.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ D ============================ -->
+  <div class="panel" id="pD">
+    <div class="cols">
+      <div class="stage">
+        <div class="phonewrap">
+          <div class="phonecap">D - tap More, the rail expands (no modal)</div>
+          <div class="phone" data-phone="D"></div>
+          <div class="tapbar"><span>Taps: <b data-taps>0</b></span><button data-reset>Reset to Home</button></div>
+          <div class="crumb" data-crumb></div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="h2">D - the overflow becomes a control track</div>
+        <p>No sheet, no scrim, no modal. Tapping More expands a horizontal pill rail directly above the bar.
+           That rail <b>is</b> <code>GWControlTrack</code> - the same <code>surfaceSunken</code> well with a
+           hairline and pill radius used by the timeframe segment, the transaction filter bar, the Buy GNUS
+           orders track and the Compute unit toggle.</p>
+        <div class="try"><b>Try it:</b> tap <b>More</b>, then judge the chips by eye. Five across 342px is
+          ~66px each with a 9.5px label. Would you hit those reliably with a thumb?</div>
+        <div class="h3">The case for it</div>
+        <p>On the literal question you asked - "ideally it fits the other components" - <b>D wins outright.</b>
+           It is not a component resembling the others; it is the same component, its fifth consumer. It is
+           also the fastest: nothing to dismiss, everything under the thumb, nothing occluded.</p>
+        <div class="verdict warn">Five chips at ~66px with a 9.5px label is under the comfortable tap target
+          and under the app's smallest shipping type. Add a sixth item and it breaks.</div>
+        <div class="verdict bad">And it is still the dumping ground - a faster, prettier one with a hard
+          ceiling. It fixes the <i>presentation</i> complaint completely and the <i>structural</i> one not at all.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ UNIT TOGGLE ============================ -->
+  <div class="panel" id="pU">
+    <div class="cols">
+      <div class="stage">
+        <div class="spec">
+          <div><div class="speclabel">Today - selected = surfaceMenu</div>
+            <div class="balancetile"><div class="balkick">Balance</div>
+              <div class="balrow"><div class="balnum">0.00</div>
+                <div class="utrack"><div class="useg sel-now">GNUS</div><div class="useg">MIN</div></div></div>
+              <div class="cta">New processing job</div></div></div>
+          <div><div class="speclabel">U1 - brand gradient, like the timeframe segment<span class="decided">CHOSEN &amp; BUILT</span></div>
+            <div class="balancetile"><div class="balkick">Balance</div>
+              <div class="balrow"><div class="balnum">0.00</div>
+                <div class="utrack"><div class="useg sel-u1">GNUS</div><div class="useg">MIN</div></div></div>
+              <div class="cta">New processing job</div></div></div>
+          <div><div class="speclabel">U2 - lift chip (rejected, fails contrast)</div>
+            <div class="balancetile"><div class="balkick">Balance</div>
+              <div class="balrow"><div class="balnum">0.00</div>
+                <div class="utrack"><div class="useg sel-u2">GNUS</div><div class="useg">MIN</div></div></div>
+              <div class="cta">New processing job</div></div></div>
+          <div><div class="speclabel">U3 - brand tint + brand edge (was the recommendation)</div>
+            <div class="balancetile"><div class="balkick">Balance</div>
+              <div class="balrow"><div class="balnum">0.00</div>
+                <div class="utrack"><div class="useg sel-u3">GNUS</div><div class="useg">MIN</div></div></div>
+              <div class="cta">New processing job</div></div></div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="h2">You were right, and here is the number</div>
+        <p>The selected chip's fill against its track measures <b class="fail">1.15:1</b>. WCAG 1.4.11 requires
+           <b>3:1</b> for a visual indicator of state. <code>surfaceMenu</code> <code>#171A21</code> on
+           <code>surfaceSunken</code> <code>#06080C</code> are two nearly identical blacks. A measurable
+           failure, not a preference.</p>
+        <div class="h3">State indicator - chip fill vs track (needs 3:1)</div>
+        <table>
+          <tr><th>Scheme</th><th>Selected fill</th><th>Ratio</th><th></th></tr>
+          <tr><td>Today</td><td><code>surfaceMenu</code></td><td class="num">1.15:1</td><td class="fail">FAIL</td></tr>
+          <tr><td>U1</td><td>gradient stops</td><td class="num">10.80 / 7.84:1</td><td class="pass">PASS</td></tr>
+          <tr><td>U2</td><td><code>surfaceElevated</code> fill</td><td class="num">1.04:1</td><td class="fail">FAIL</td></tr>
+          <tr><td>U2</td><td>its <code>borderStrong</code> edge</td><td class="num">2.19:1</td><td class="fail">FAIL</td></tr>
+          <tr><td>U3</td><td><code>brandSecondary</code> 14% fill</td><td class="num">1.29:1</td><td class="fail">FAIL</td></tr>
+          <tr><td>U3</td><td>its 50% edge</td><td class="num">4.00:1</td><td class="pass">PASS</td></tr>
+        </table>
+        <p style="font-size:13px;color:var(--textSecondary)">U2 is the instructive failure:
+           <code>surfaceElevated</code> is <i>darker</i> than <code>surfaceMenu</code>, so "lifting" the chip
+           made it <b>less</b> visible. The lift-chip hover works on the page canvas, not inside a sunken well.</p>
+        <div class="h2">Decided: U1 <span class="decided">BUILT 2026-08-06</span></div>
+        <div class="verdict"><b>Jakub chose U1</b> after seeing the alternatives and the maths. The
+          recommendation had been U3, which satisfies both the contrast bar and the CTA weight rule. U1 is
+          brighter still and the trade was made knowingly.</div>
+        <div class="verdict warn"><b>What it reverses, on the record.</b> <code>compute_panel.dart</code>'s
+          <code>_UnitSegment</code> carried an explicit note: <i>"no gradient in any state ... the Compute
+          panel already has one filled commitment CTA (New processing job), and a unit selector must not carry
+          the same visual weight."</i> That surface now has TWO filled brand gradients. The recorded partner
+          move, if the doubled weight ever reads wrong, is to demote "New processing job" to an outline button
+          rather than quietly reverting the chip. The doc comment now says all of this.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ RECOMMENDATION ============================ -->
+  <div class="panel" id="pR">
+    <div class="cols">
+      <div class="notes" style="max-width:1000px">
+        <div class="h2">Where I land</div>
+        <div class="h3">Overflow: ★ C, runner-up A, rejected B, wildcard D</div>
+        <div class="verdict"><b>★ C - delete the overflow.</b> The defect is not that the sheet is ugly, it is
+          that "···" promises nothing while holding three unlike kinds of thing, one of which already has a
+          home elsewhere. C is the only scheme where every surface's contents follow from its name, and it
+          introduces the fewest new components - the criterion you set. The gear is a chip shape the app
+          already draws, all four routes already exist, and the settings screen is the accounts drawer's own
+          construction.</div>
+        <p><b>Runner-up: A.</b> Take it if Web turns out to matter daily, or if you want the profile tab every
+           other wallet has. Safer and more conventional; it just keeps the account duplication.</p>
+        <p><b>Rejected: B.</b> Most pixels, least structure, and a tile grid that exists nowhere else.</p>
+        <p><b>Wildcard: D.</b> Wins "fits our components" outright by literally being
+           <code>GWControlTrack</code>, but five chips at ~66px with 9.5px labels sit under the app's own floor
+           and hard-cap what the overflow can hold.</p>
+        <div class="h3">Unit toggle: DECIDED - U1, built</div>
+        <p>See the toggle tab. Old chip was <b class="fail">1.15:1</b> and failed WCAG 1.4.11; it is now the
+           brand gradient at 10.80 / 7.84:1.</p>
+        <div class="h2">The one question I still need answered</div>
+        <div class="verdict warn"><b>How often does anyone actually open Web?</b> Under C it goes from one tap
+          to three. If it is a daily surface, C is wrong and A is right. Nothing else here hinges on a fact I
+          do not have. Click through C's gear → Web and A's Wallet → Web and compare how they feel.</div>
+        <div class="h2">What building C touches</div>
+        <table>
+          <tr><th>File</th><th>Change</th></tr>
+          <tr><td><code>responsive_overlay.dart</code></td><td><code>_mobileDestinations</code> gains News as the 4th tab; <code>_MobileMoreItem</code> and <code>_MoreSheetBody</code> deleted; <code>_MobileHeader.actions</code> gains the gear</td></tr>
+          <tr><td><code>router.dart</code></td><td>nothing - every route already exists</td></tr>
+          <tr><td>settings screen</td><td>grouped <code>GWCard</code> + <code>GWSelectRow</code> layout</td></tr>
+        </table>
+        <p style="color:var(--textSecondary);font-size:13px;margin-top:var(--s8)">
+          Tokens verbatim from <code>genius_wallet_colors.dart</code> / <code>genius_wallet_consts.dart</code>.
+          Contrast via the WCAG 2.x relative-luminance formula. Phones 390x844 at 1:1 with the real shipping
+          bar geometry (60px bar, 64px dock, 26px overhang, 84px slot).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- tabs ----------
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.setAttribute('aria-selected','false'); });
+      t.setAttribute('aria-selected','true');
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+      var target = document.getElementById(t.dataset.p);
+      if (target) { target.classList.add('on'); }
+    });
+  });
+
+  // ---------- scheme definitions ----------
+  var SCHEMES = {
+    now: { tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['more','More','···']],
+           gear:false, overflow:'sheet' },
+    A:   { tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['wallet','Wallet','◍']],
+           gear:false, overflow:null },
+    B:   { tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['more','More','···']],
+           gear:false, overflow:'tiles' },
+    C:   { tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['news','News','📰']],
+           gear:true, overflow:null },
+    D:   { tabs:[['home','Home','▦'],['markets','Markets','📈'],['activity','Activity','🕐'],['more','More','···']],
+           gear:false, overflow:'rail' }
+  };
+  var TITLES = { settings:'Settings', accounts:'Accounts', web:'Web', feedback:'Feedback' };
+
+  // ---------- shared screen fragments ----------
+  function coinRow(icon, name, price, chg, amt, unit, up){
+    return '<div class="selrow"><div class="ic">'+icon+'</div><div class="tx">'+
+      '<div class="t1">'+name+'</div><div class="t2">'+price+' <span style="color:'+
+      (up?'var(--statusSuccess)':'var(--statusError)')+'">'+chg+'</span></div></div>'+
+      (amt ? '<div class="amt"><div class="a1">'+amt+'</div><div class="a2">'+unit+'</div></div>' : '')+'</div>';
+  }
+  function row(icon, title, sub, act, arg){
+    return '<div class="selrow" data-act="'+act+'" data-arg="'+arg+'"><div class="ic">'+icon+'</div>'+
+      '<div class="tx"><div class="t1">'+title+'</div>'+(sub?'<div class="t2">'+sub+'</div>':'')+'</div>'+
+      '<div class="ch">›</div></div>';
+  }
+
+  var SCREENS = {
+    home: function(st){
+      return '<div class="card"><div class="cardtitle">Compute</div>'+
+        '<div class="well"><div class="balkick">Balance</div><div class="balrow">'+
+          '<div class="balnum">0.00</div><div class="utrack">'+
+          '<div class="useg '+(st.unit==='GNUS'?'on':'')+'" data-act="unit" data-arg="GNUS">GNUS</div>'+
+          '<div class="useg '+(st.unit==='MIN'?'on':'')+'" data-act="unit" data-arg="MIN">MIN</div>'+
+          '</div></div></div><div style="height:12px"></div>'+
+        '<div class="well"><div class="balkick">Compute node</div>'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">'+
+          '<div style="font:600 15px Inter">Starting up</div><div style="font:700 15px Inter">52%</div></div></div>'+
+        '<div class="cta" data-act="noop" data-arg="New processing job">New processing job</div></div>'+
+      '<div class="card"><div class="cardtitle"><span>Assets</span><span style="font:700 20px Inter">$0.00</span></div>'+
+        coinRow('🧠','Genius Token','$0.67','+4.70%','$0.00','0.0000 GNUS',true)+'<div class="divide"></div>'+
+        coinRow('◆','Ethereum','$1,906.11','-0.50%','$0.00','0.0000 ETH',false)+'</div>'+
+      '<div class="card"><div class="cardtitle"><span>Transactions</span></div>'+
+        '<div style="color:var(--textSecondary);font-size:13px;padding:0 6px 8px">No transactions yet</div></div>'+
+      '<div style="height:12px"></div>';
+    },
+    markets: function(){
+      return '<div class="pagehead">Markets</div><div class="card">'+
+        coinRow('🧠','GNUS','$0.67','+4.70%','','',true)+'<div class="divide"></div>'+
+        coinRow('₿','Bitcoin','$64,120.00','+1.20%','','',true)+'<div class="divide"></div>'+
+        coinRow('◆','Ethereum','$1,906.11','-0.50%','','',false)+'<div class="divide"></div>'+
+        coinRow('✕','XRP','$0.52','+0.80%','','',true)+'<div class="divide"></div>'+
+        coinRow('◈','BNB','$580.40','-0.20%','','',false)+'<div class="divide"></div>'+
+        coinRow('◎','Solana','$142.90','+3.10%','','',true)+'</div>';
+    },
+    activity: function(){
+      return '<div class="pagehead">Activity</div><div class="empty"><div class="emptyring">⇄</div>'+
+        '<div style="font:650 17px Inter">No transactions yet</div>'+
+        '<div style="color:var(--textSecondary);font-size:14px">Your sends, receives and swaps will appear here.</div></div>';
+    },
+    news: function(){
+      return '<div class="pagehead">News</div><div class="card">'+
+        row('📰','GNUS.AI expands compute network','2h ago','noop','article')+'<div class="divide"></div>'+
+        row('📰','Ethereum fees hit a monthly low','5h ago','noop','article')+'<div class="divide"></div>'+
+        row('📰','What minions actually pay for','1d ago','noop','article')+'</div>';
+    },
+    wallet: function(){
+      return '<div class="pagehead">Wallet</div>'+
+        '<div class="idcard"><div class="big">E</div><div class="nm">Main Wallet</div>'+
+        '<div class="ad">0x5Ac1...9Cf6 ⧉</div></div>'+
+        '<div class="kicker">Accounts</div><div class="card" style="padding:4px">'+
+          row('👛','Your Accounts','3 wallets','go','accounts')+'<div class="divide"></div>'+
+          row('🧠','SDK Accounts','Earning minions','go','accounts')+'</div>'+
+        '<div class="kicker">Explore</div><div class="card" style="padding:4px">'+
+          row('📰','News','','go','news')+'<div class="divide"></div>'+
+          row('🌐','Web','','go','web')+'</div>'+
+        '<div class="kicker">App</div><div class="card" style="padding:4px">'+
+          row('⚙','Settings','','go','settings')+'<div class="divide"></div>'+
+          row('💬','Feedback','','go','feedback')+'</div><div style="height:12px"></div>';
+    },
+    settings: function(){
+      return '<div class="kicker">Account</div><div class="card" style="padding:4px">'+
+          row('👛','Accounts','SDK accounts and your wallets','go','accounts')+'<div class="divide"></div>'+
+          row('🔗','Connected apps','','noop','Connected apps')+'</div>'+
+        '<div class="kicker">App</div><div class="card" style="padding:4px">'+
+          row('🌐','Web','','go','web')+'<div class="divide"></div>'+
+          row('🎨','Appearance','Dark','noop','Appearance')+'<div class="divide"></div>'+
+          row('🔔','Notifications','','noop','Notifications')+'</div>'+
+        '<div class="kicker">Support</div><div class="card" style="padding:4px">'+
+          row('💬','Send feedback','','go','feedback')+'<div class="divide"></div>'+
+          row('ℹ','About','v1.0.0','noop','About')+'</div><div style="height:12px"></div>';
+    },
+    accounts: function(){
+      return '<div class="kicker">SDK Accounts</div>'+
+        '<div style="color:var(--textSecondary);font-size:12.5px;padding:0 18px 6px">Node accounts that earn '+
+        'minions for sharing your GPU. Balances come from the SuperGenius node; these cannot be renamed or deleted.</div>'+
+        '<div class="card" style="padding:4px"><div class="selrow"><div class="ic">🧠</div><div class="tx">'+
+        '<div class="t1">Super Genius Wallet</div><div class="t2">0 minions</div></div>'+
+        '<span class="badge">ACTIVE ON NODE</span></div></div>'+
+        '<div class="kicker">Your Accounts</div>'+
+        '<div style="color:var(--textSecondary);font-size:12.5px;padding:0 18px 6px">Wallets you created or '+
+        'imported. Used for swaps, sends and everything else on-chain.</div>'+
+        '<div class="card" style="padding:4px">'+
+        '<div class="selrow"><div class="ic">◆</div><div class="tx"><div class="t1">Main Wallet</div>'+
+        '<div class="t2">0x5Ac1...9Cf6</div></div><div class="ch" style="color:var(--brandSecondary)">✓</div></div>'+
+        '<div class="divide"></div>'+
+        '<div class="selrow"><div class="ic">◆</div><div class="tx"><div class="t1">Savings</div>'+
+        '<div class="t2">0x91Bd...4A02</div></div><div class="ch">›</div></div></div><div style="height:12px"></div>';
+    },
+    web: function(){ return plain('Web','🌐'); },
+    feedback: function(){ return plain('Feedback','💬'); }
+  };
+  function plain(title, glyph){
+    return '<div class="pagehead">'+title+'</div><div class="empty"><div class="emptyring">'+glyph+'</div>'+
+      '<div style="color:var(--textSecondary);font-size:14px">Placeholder - this screen already exists in the app.</div></div>';
+  }
+
+  // ---------- one independent phone per host ----------
+  function createPhone(host){
+    var schemeKey = host.dataset.phone;
+    var sc = SCHEMES[schemeKey];
+    var wrap = host.parentElement;
+    var tapsEl = wrap.querySelector('[data-taps]');
+    var crumbEl = wrap.querySelector('[data-crumb]');
+    var st = { screen:'home', stack:[], sheet:false, rail:false, unit:'GNUS', taps:0, trail:[] };
+
+    host.innerHTML =
+      '<div class="notch"></div>'+
+      '<div class="sbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>'+
+      '<div class="appbar" data-appbar></div>'+
+      '<div class="scr" data-scr></div>'+
+      '<div class="rail" data-rail></div>'+
+      '<div class="scrim" data-scrim></div>'+
+      '<div class="sheet" data-sheet></div>'+
+      '<div class="barbox" data-barbox></div>';
+
+    var $ = function(sel){ return host.querySelector(sel); };
+
+    function note(label){
+      st.trail.push(label);
+      if (st.trail.length > 4) { st.trail.shift(); }
+      crumbEl.textContent = st.trail.join('  →  ');
+      tapsEl.textContent = st.taps;
+    }
+    function go(screen, label){
+      st.taps++;
+      if (screen !== st.screen) { st.stack.push(st.screen); }
+      st.screen = screen; st.sheet = false; st.rail = false;
+      note(label || screen);
+      render();
+    }
+    function back(){
+      st.taps++; st.screen = st.stack.pop() || 'home'; note('back'); render();
+    }
+    function reset(){
+      st.screen='home'; st.stack=[]; st.sheet=false; st.rail=false; st.taps=0; st.trail=[];
+      crumbEl.textContent=''; tapsEl.textContent='0'; render();
+    }
+
+    function render(){
+      var ab = $('[data-appbar]');
+      if (TITLES[st.screen]) {
+        ab.innerHTML = '<div class="backrow" data-act="back"><span style="font-size:20px">‹</span>'+
+          '<span style="font:600 17px Inter">'+TITLES[st.screen]+'</span></div>';
+      } else {
+        ab.innerHTML =
+          '<div class="idrow" data-act="go" data-arg="accounts"><div class="avatar">E</div><div>'+
+          '<div class="idname">Main Wallet <span style="font-size:12px">⌄</span></div>'+
+          '<div class="idaddr">0x5Ac1...9Cf6</div></div></div>'+
+          '<div class="rightcluster"><div class="netchip" data-act="noop" data-arg="Network"><div class="netdot"></div>'+
+          '<span style="color:var(--textSecondary)">⌄</span></div>'+
+          (sc.gear ? '<div class="gear" data-act="go" data-arg="settings">⚙</div>' : '')+'</div>';
+      }
+
+      $('[data-scr]').innerHTML = (SCREENS[st.screen] || SCREENS.home)(st);
+
+      var html = '<div class="bar">';
+      for (var i=0;i<sc.tabs.length;i++){
+        if (i===2) { html += '<div class="dockslot"></div>'; }
+        var t = sc.tabs[i];
+        var act = (t[0]==='more')
+          ? (sc.overflow==='rail' ? 'rail' : 'sheet')
+          : 'go';
+        html += '<div class="slot '+(t[0]===st.screen?'on':'')+'" data-act="'+act+'" data-arg="'+t[0]+'">'+
+                '<div class="si">'+t[2]+'</div><div class="sl">'+t[1]+'</div></div>';
+      }
+      html += '</div><div class="dock" data-act="noop" data-arg="Swap">⇅</div>';
+      $('[data-barbox]').innerHTML = html;
+
+      var sheet = $('[data-sheet]');
+      sheet.className = 'sheet' + (st.sheet ? ' on' : '');
+      if (sc.overflow === 'tiles') {
+        sheet.innerHTML = '<div class="grab"></div><div class="sheettitle">More</div>'+
+          '<div class="kicker" style="padding-left:18px">Explore</div><div class="tiles">'+
+          '<div class="tile" data-act="go" data-arg="news"><div class="ti">📰</div><div class="tl">News</div></div>'+
+          '<div class="tile" data-act="go" data-arg="web"><div class="ti">🌐</div><div class="tl">Web</div></div>'+
+          '<div class="tile" data-act="go" data-arg="markets"><div class="ti">📊</div><div class="tl">Markets</div></div></div>'+
+          '<div class="kicker" style="padding-left:18px">Account</div><div class="tiles">'+
+          '<div class="tile" data-act="go" data-arg="accounts"><div class="ti">👛</div><div class="tl">Accounts</div></div>'+
+          '<div class="tile" data-act="go" data-arg="settings"><div class="ti">⚙</div><div class="tl">Settings</div></div>'+
+          '<div class="tile" data-act="go" data-arg="feedback"><div class="ti">💬</div><div class="tl">Feedback</div></div></div>';
+      } else {
+        sheet.innerHTML = '<div class="grab"></div><div class="sheettitle">More</div>'+
+          row('📰','News','','go','news')+row('🌐','Web','','go','web')+
+          row('💬','Feedback','','go','feedback')+row('⚙','Settings','','go','settings')+
+          row('👛','Accounts','SDK accounts and your wallets','go','accounts');
+      }
+      $('[data-scrim]').className = 'scrim' + (st.sheet ? ' on' : '');
+
+      var rail = $('[data-rail]');
+      rail.className = 'rail' + (st.rail ? ' on' : '');
+      rail.innerHTML =
+        '<div class="railchip" data-act="go" data-arg="news"><div class="ri">📰</div><div class="rl">News</div></div>'+
+        '<div class="railchip" data-act="go" data-arg="web"><div class="ri">🌐</div><div class="rl">Web</div></div>'+
+        '<div class="railchip" data-act="go" data-arg="accounts"><div class="ri">👛</div><div class="rl">Accounts</div></div>'+
+        '<div class="railchip" data-act="go" data-arg="settings"><div class="ri">⚙</div><div class="rl">Settings</div></div>'+
+        '<div class="railchip" data-act="go" data-arg="feedback"><div class="ri">💬</div><div class="rl">Feedback</div></div>';
+    }
+
+    host.addEventListener('click', function(e){
+      if (e.target.matches('[data-scrim]')) { st.sheet = false; render(); return; }
+      var el = e.target.closest('[data-act]');
+      if (!el) { return; }
+      var act = el.dataset.act, arg = el.dataset.arg;
+      if (act === 'go') { go(arg, arg); }
+      else if (act === 'back') { back(); }
+      else if (act === 'sheet') { st.taps++; st.sheet = !st.sheet; note('More sheet'); render(); }
+      else if (act === 'rail') { st.taps++; st.rail = !st.rail; note('More rail'); render(); }
+      else if (act === 'unit') { st.taps++; st.unit = arg; note('unit ' + arg); render(); }
+      else if (act === 'noop') { st.taps++; note(arg); }
+    });
+
+    var rb = wrap.querySelector('[data-reset]');
+    if (rb) { rb.addEventListener('click', reset); }
+
+    render();
+  }
+
+  document.querySelectorAll('[data-phone]').forEach(createPhone);
+})();
+</script>
+</body>
+</html>

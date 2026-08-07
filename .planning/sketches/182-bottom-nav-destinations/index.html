@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>182 - which four destinations belong on the bottom bar</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --sunken:#06080C; --menu:#171A21;
+  --text:#FFFFFF; --text2:#8A8F9D; --onbrand:#000B18;
+  --border:rgba(255,255,255,.12); --border2:rgba(255,255,255,.24);
+  --ok:#0AD89C; --err:#FF4D4D; --g1:#0AD89C; --g2:#0AAEE6; --brand:#14C8FF;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#07090D;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1340px;margin:0 auto;padding:32px 24px 90px}
+h1{font-size:26px;margin:0 0 6px;font-weight:700}
+.sub{color:var(--text2);font-size:14px;line-height:1.65;margin:0 0 22px;max-width:960px}
+.sub b{color:var(--text)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;
+  color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+.tab:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.tab.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand);border-color:transparent}
+.statebar{display:flex;gap:12px;align-items:center;margin:16px 0 22px;font-size:13px;color:var(--text2);flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--border);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--text2);font-size:12px;font-weight:600;
+  padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand)}
+.pane{display:none}
+.pane.on{display:block}
+.cols{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+.notes{flex:1;min-width:360px;max-width:700px}
+.notes h3{font-size:15px;margin:18px 0 8px}
+.notes h3:first-child{margin-top:0}
+.notes p{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 12px}
+.notes p b{color:var(--text)}
+.notes ul{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 12px;padding-left:18px}
+.notes li b{color:var(--text)}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 16px}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.04);color:var(--text2);font-weight:600}
+.good{color:var(--ok)} .bad{color:var(--err)} .warn{color:#FFC42E}
+.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
+.tag{display:inline-block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:var(--menu);color:var(--text2);font-weight:600}
+.flag{border-left:3px solid #FFC42E;background:rgba(255,196,46,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.65;color:#e6e2d4}
+.flag b{color:#FFC42E}
+.rec{border-left:3px solid var(--g1);background:rgba(10,216,156,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.65;color:#d6efe7}
+.rec b{color:var(--ok)}
+
+/* ---------- phone, 1:1 at 390x844 ---------- */
+.phonewrap{flex:0 0 auto}
+.phone{width:390px;height:844px;background:var(--base);border:1px solid var(--border2);
+  border-radius:38px;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.statusbar{height:54px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-size:12px;color:var(--text2)}
+/* mobile_header.dart -> preferredSize 60 / toolbarHeight 60 */
+.apphead{height:60px;flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:0 16px;
+  border-bottom:1px solid var(--border)}
+.avatar{width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2));flex:0 0 auto}
+.whead{flex:1;min-width:0}
+.whead .n{font-size:13.5px;font-weight:600}
+.whead .a{font-size:11.5px;color:var(--text2)}
+.netchip{font-size:11px;color:var(--text2);border:1px solid var(--border);border-radius:999px;
+  padding:5px 10px;flex:0 0 auto}
+.gear{width:34px;height:34px;border-radius:999px;border:1px solid var(--border);flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.gear .ic{width:19px;height:19px;background:var(--text2);-webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.brandmark{width:26px;height:26px;border-radius:8px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--g1),var(--g2))}
+.wpill{display:flex;align-items:center;gap:7px;height:34px;padding:0 11px;border-radius:999px;
+  border:1px solid var(--border);flex:0 0 auto;font-size:12.5px;font-weight:600}
+.wpill .wdot{width:18px;height:18px;border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2))}
+.wpill .car{color:var(--text2);font-size:10px}
+/* 80 = 60 bar + 20 capped safe inset; 26 dock overhang on top of that */
+.body{flex:1;overflow-y:auto;padding:6px 6px 118px}
+.body::-webkit-scrollbar{width:0}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;margin:0 0 6px}
+.sect{min-height:44px;display:flex;align-items:center;gap:12px;padding:2px 8px 0}
+.stitle{font-size:18px;line-height:24px;font-weight:600;flex:0 0 auto}
+.kick{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-weight:600}
+.spacer{flex:1}
+.vall{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;cursor:pointer;flex:0 0 auto;
+  background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.total{font-size:20px;font-weight:700;line-height:24px;font-variant-numeric:tabular-nums;text-align:right}
+.chg{font-size:12.5px;line-height:16px;font-variant-numeric:tabular-nums;text-align:right}
+.chg.up{color:var(--ok)} .chg.dn{color:var(--err)}
+
+.row{height:64px;display:flex;align-items:center;gap:12px;padding:0 8px;border-top:1px solid rgba(255,255,255,.06)}
+.row:first-of-type{border-top:0}
+.ico{width:34px;height:34px;border-radius:999px;flex:0 0 auto;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;color:var(--onbrand)}
+.rmid{flex:1;min-width:0}
+.rname{font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rend{text-align:right;flex:0 0 auto}
+.rfiat{font-size:14.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.ramt{font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:2px}
+.dim{color:var(--text2)}
+
+.pgh{font-size:26px;font-weight:700;padding:10px 8px 0}
+.back{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);
+  padding:8px 8px 0;font-weight:600}
+.srch{margin:12px 6px 0;height:44px;border-radius:12px;background:var(--sunken);
+  border:1px solid var(--border);display:flex;align-items:center;gap:8px;padding:0 12px;
+  color:var(--text2);font-size:14px}
+.srch .ic{width:17px;height:17px;background:var(--text2)}
+.sortrow{display:flex;align-items:center;padding:12px 8px 4px;gap:8px}
+.sortbtn{margin-left:auto;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+  color:var(--text2);display:inline-flex;align-items:center;gap:6px}
+.chips{display:flex;gap:6px;padding:10px 8px 2px;overflow-x:auto}
+.chips::-webkit-scrollbar{height:0}
+.chip{font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:999px;background:var(--menu);
+  color:var(--text2);white-space:nowrap;flex:0 0 auto}
+.chip.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand)}
+.hero{padding:6px 8px 0}
+.hero .big{font-size:30px;font-weight:700;line-height:36px;font-variant-numeric:tabular-nums}
+.empty{padding:34px 16px;text-align:center}
+.empty .t{font-size:15px;font-weight:600;margin-bottom:6px}
+.empty .m{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:16px}
+.cta{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 20px;border-radius:999px;
+  background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand);font-size:14px;font-weight:700}
+.cta .ic{width:16px;height:16px;background:var(--onbrand)}
+.ghost{display:inline-flex;align-items:center;height:40px;padding:0 18px;border-radius:999px;
+  border:1px solid var(--border2);color:var(--text);font-size:13.5px;font-weight:600}
+.well{background:var(--sunken);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:0 8px}
+.mini{height:120px;margin:6px 8px 0;border-radius:12px;background:
+  linear-gradient(180deg,rgba(10,216,156,.16),rgba(10,216,156,0));border:1px solid var(--border);
+  position:relative;overflow:hidden}
+.mini svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---------- the bar: real shipping geometry ---------- */
+.btm{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--card);
+  border-top:.5px solid var(--border)}
+.tabsrow{display:flex;height:60px;align-items:center}
+.dockslot{width:84px;flex:0 0 84px}
+.slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;cursor:pointer;
+  min-width:0}
+.slot .ic{width:23px;height:23px;background:var(--text2);-webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.slot .lbl{font-size:10px;font-weight:500;color:var(--text2);line-height:12px;max-width:76px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot.act .ic{background:linear-gradient(90deg,var(--g1),var(--g2))}
+.slot.act .lbl{background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent;font-weight:600}
+.dock{position:absolute;left:50%;transform:translateX(-50%);bottom:42px;width:64px;height:64px;
+  border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2));border:3px solid var(--card);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 0 12px rgba(20,200,255,.35)}
+.dock.act{box-shadow:0 0 18px rgba(20,200,255,.55)}
+.dock .ic{width:30px;height:30px;background:var(--onbrand);-webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+
+/* the Menu / More sheet */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--menu);border-top-left-radius:20px;
+  border-top-right-radius:20px;border-top:1px solid var(--border);padding:8px 0 24px}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--border2);margin:4px auto 8px}
+.sheeth{font-size:16px;font-weight:600;padding:4px 18px 10px}
+.srow{display:flex;align-items:center;gap:14px;padding:13px 18px;cursor:pointer}
+.srow .ic{width:21px;height:21px;background:rgba(255,255,255,.8);-webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;flex:0 0 auto}
+.srow .st{font-size:14.5px;font-weight:500}
+.srow .ss{font-size:12px;color:var(--text2);margin-top:2px}
+.caption{font-size:12px;color:var(--text2);margin:12px 0 0;text-align:center;width:390px;line-height:1.55}
+.caption b{color:var(--text)}
+.legend{width:390px;margin-top:10px;font-size:11.5px;color:var(--text2);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>182 - which four destinations belong on the bottom bar</h1>
+  <p class="sub">
+    Jakub, 2026-08-07: <b>"zaproponuj jakie batony powinny byc na navigation bottom barze. Poki co
+    mamy: home, markets, mamy ikone swap, activity i more. More bym zmienil na menu potencjalnie, i
+    nie wiem czy bym zostawil markets i activity. Zasugeruj cos z twojej strony."</b><br><br>
+    And then, later the same day: <b>"sprobuj w prawym gornym rogu zrobic ikonke walletu, czy cos
+    podobnego w krotszej formie, i obok tego hamburger menu. I wtedy, zamiast 'more' na samym dole,
+    moglibysmy dac na przyklad 'news'."</b> That second message changes the premise - if a hamburger
+    moves into the header, the fourth bottom slot stops being a lid and becomes a fourth
+    destination. Schemes <b>S6</b> and <b>S7</b> are that world.<br><br>
+    This sketch is about <b>which destinations</b>, not about the bar. The shape is settled and
+    shipped - sketch <b>171 B</b> (four tabs plus a centre dock) crossed with <b>172 A</b> (the dock
+    is Swap), both picked on 2026-08-06 and live in
+    <span class="mono">responsive_overlay.dart</span>. Every scheme below keeps four tabs and the
+    Swap dock. What changes is which four. <b>Tap the tabs</b> - each phone really switches screen,
+    so a set can be felt rather than read.
+  </p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="statebar">
+    <span>Wallet state</span>
+    <span class="seg" id="stateSeg">
+      <button data-st="funded" class="on">FUNDED</button>
+      <button data-st="zero">ALL ZERO (Jakub's real wallet, and every new user)</button>
+    </span>
+    <span>The zero state is where nav sets stop being interchangeable.</span>
+  </div>
+
+  <div id="panes"></div>
+</div>
+
+<script>
+/* ============================ icons ============================ */
+var ICONS = {
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/>',
+  markets:'<path d="M3.5 17.5l5-5 4 3 6.5-7.5"/><path d="M14.5 8h4.5v4.5"/>',
+  activity:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  more:'<circle cx="5.2" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.8" cy="12" r="1.5"/>',
+  menu:'<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>',
+  assets:'<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10.5h18"/><circle cx="17" cy="14.8" r="1.3"/>',
+  compute:'<rect x="7.5" y="7.5" width="9" height="9" rx="2"/><path d="M10 3.5v4M14 3.5v4M10 16.5v4M14 16.5v4M3.5 10h4M3.5 14h4M16.5 10h4M16.5 14h4"/>',
+  explore:'<circle cx="12" cy="12" r="8.5"/><path d="M15.6 8.4l-2 5.2-5.2 2 2-5.2z"/>',
+  swap:'<path d="M8 3.5v17M8 20.5l-3.6-3.6M8 20.5l3.6-3.6"/><path d="M16 20.5v-17M16 3.5l-3.6 3.6M16 3.5l3.6 3.6"/>',
+  news:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M7 9h7M7 12.5h10M7 16h6"/>',
+  web:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.7 3 2.7 14 0 17"/><path d="M12 3.5c-2.7 3-2.7 14 0 17"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2.6v3.2M12 18.2v3.2M2.6 12h3.2M18.2 12h3.2M5.3 5.3l2.2 2.2M16.5 16.5l2.2 2.2M18.7 5.3l-2.2 2.2M7.5 16.5l-2.2 2.2"/>',
+  chat:'<path d="M4 5.5h16v10.5H9.5L4 20z"/>',
+  wallet:'<rect x="3" y="6" width="18" height="13" rx="3"/><circle cx="17" cy="12.5" r="1.4"/>',
+  search:'<circle cx="10.8" cy="10.8" r="6.2"/><path d="M15.4 15.4L20 20"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  sort:'<path d="M7 4v16M7 20l-3-3M7 20l3-3"/><path d="M14 8h6M14 12h5M14 16h4"/>'
+};
+function mask(name){
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000"' +
+          ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + ICONS[name] + '</svg>';
+  return 'url("data:image/svg+xml,' + encodeURIComponent(s) + '")';
+}
+function icoStyle(name){
+  var m = mask(name);
+  return '-webkit-mask-image:' + m + ';mask-image:' + m;
+}
+
+/* ============================ data ============================ */
+var COINS = [
+  {sym:'GNUS', name:'Genius Tokens', amt:12480,  px:0.39,    chg:2.41,  c1:'#0AD89C', c2:'#0AAEE6'},
+  {sym:'ETH',  name:'Ethereum',      amt:1.2043, px:3248.50, chg:1.12,  c1:'#8A8F9D', c2:'#5b6070'},
+  {sym:'BTC',  name:'Bitcoin',       amt:0.0412, px:70000,   chg:-0.42, c1:'#F7931A', c2:'#c9761a'},
+  {sym:'SOL',  name:'Solana',        amt:24.5,   px:45.00,   chg:3.10,  c1:'#14C8FF', c2:'#0AAEE6'},
+  {sym:'USDC', name:'USD Coin',      amt:640,    px:1.00,    chg:0.00,  c1:'#2775CA', c2:'#1c5490'}
+];
+var TXS = [
+  {act:'Received', sym:'GNUS', ctx:'from 0x9f2a...c41d', amt:'+1,200.00', st:'Confirmed', up:true},
+  {act:'Sent',     sym:'ETH',  ctx:'to 0x41b8...9e02',   amt:'-0.2400',   st:'Confirmed', up:false},
+  {act:'Swap',     sym:'SOL',  ctx:'SOL to GNUS',        amt:'-4.0000',   st:'Confirmed', up:false},
+  {act:'Minted',   sym:'GNUS', ctx:'job 8842',           amt:'+18.4000',  st:'Processing', up:true},
+  {act:'Purchase', sym:'GNUS', ctx:'Banxa order 3312',   amt:'+900.00',   st:'Confirmed', up:true}
+];
+var MKT = [
+  {sym:'BTC', name:'Bitcoin',   px:70000,   chg:-0.42},
+  {sym:'ETH', name:'Ethereum',  px:3248.50, chg:1.12},
+  {sym:'SOL', name:'Solana',    px:45.00,   chg:3.10},
+  {sym:'GNUS',name:'Genius',    px:0.39,    chg:2.41},
+  {sym:'AVAX',name:'Avalanche', px:28.10,   chg:-1.30},
+  {sym:'LINK',name:'Chainlink', px:14.62,   chg:0.88}
+];
+var NEWS = [
+  {t:'GNUS compute nodes cross 4,000 online', s:'Genius Ventures - 2h ago'},
+  {t:'Bitcoin holds above 70k into the close',  s:'CoinDesk - 4h ago'},
+  {t:'Solana fees hit a monthly low',           s:'The Block - 6h ago'}
+];
+var STATE = 'funded';
+
+function coinRows(){
+  return COINS.map(function(c){
+    var amt = (STATE === 'zero') ? 0 : c.amt;
+    return {sym:c.sym, name:c.name, amt:amt, px:c.px, chg:c.chg, val:amt*c.px, c1:c.c1, c2:c.c2};
+  });
+}
+function total(){ return coinRows().reduce(function(a,r){ return a + r.val; }, 0); }
+function usd(n){ return '$' + n.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function amtStr(n){
+  if (n === 0) return '0';
+  return n.toLocaleString('en-US',{maximumFractionDigits:4});
+}
+function txList(){ return (STATE === 'zero') ? [] : TXS; }
+
+/* ============================ schemes ============================ */
+/* Each tab: label, icon, screen it opens, whether that route exists today.  */
+var T = {
+  home:    {label:'Home',     ico:'home',     screen:'home',     route:'/dashboard',    exists:true},
+  markets: {label:'Markets',  ico:'markets',  screen:'markets',  route:'/markets',      exists:true},
+  activity:{label:'Activity', ico:'activity', screen:'activity', route:'/transactions', exists:true},
+  more:    {label:'More',     ico:'more',     screen:'menu',     route:'sheet',         exists:true},
+  menu:    {label:'Menu',     ico:'menu',     screen:'menu',     route:'sheet',         exists:true},
+  assets:  {label:'Assets',   ico:'assets',   screen:'assets',   route:'/assets',       exists:true},
+  compute: {label:'Compute',  ico:'compute',  screen:'compute',  route:'/compute',      exists:false},
+  explore: {label:'Explore',  ico:'explore',  screen:'explore',  route:'/explore',      exists:false},
+  news:    {label:'News',     ico:'news',     screen:'news',     route:'/news',         exists:true}
+};
+
+var SCHEMES = [
+  {id:'today', tab:'Today (shipping)', name:'Today - what is live right now',
+   tabs:['home','markets','activity','more'], gear:false},
+  {id:'s1', tab:'S1 - Rename only', name:'S1 - the rename, and nothing else',
+   tabs:['home','markets','activity','menu'], gear:false},
+  {id:'s2', tab:'S2 - Holdings first', name:'S2 - Assets takes the Markets slot',
+   tabs:['home','assets','activity','menu'], gear:false},
+  {id:'s3', tab:'S3 - Compute', name:'S3 - the differentiator gets the fourth slot',
+   tabs:['home','assets','activity','compute'], gear:true},
+  {id:'s4', tab:'S4 - Explore', name:'S4 - three content routes collapse into one tab',
+   tabs:['home','assets','activity','explore'], gear:true},
+  {id:'s5', tab:'S5 - Browse first', name:'S5 - Activity leaves instead of Markets',
+   tabs:['home','assets','markets','menu'], gear:false},
+  {id:'s6', tab:'S6 - News (Jakub)', name:'S6 - Jakub\'s second message, taken literally',
+   tabs:['home','markets','activity','news'], gear:true},
+  {id:'s7', tab:'S7 - News + Assets', name:'S7 - the same move, with Assets instead of Markets',
+   tabs:['home','assets','activity','news'], gear:true}
+];
+var BY_ID = {};
+SCHEMES.forEach(function(s){ BY_ID[s.id] = s; });
+
+/* What the Menu / More sheet holds under each scheme.
+   Today this list is DERIVED in code: _moreDestinations = _allDestinations
+   minus /swap minus whatever _mobileDestinations holds. Drop a destination
+   from the bar and it reappears in the sheet by itself. */
+var SHEETS = {
+  today: ['news','web','chat','settings','accounts'],
+  s1:    ['news','web','chat','settings','accounts'],
+  s2:    ['markets','news','web','chat','settings','accounts'],
+  s3:    ['markets','news','web','chat','settings','accounts'],
+  s4:    ['chat','settings','accounts'],
+  s5:    ['activity','news','web','chat','settings','accounts'],
+  s6:    ['web','chat','settings','accounts'],
+  s7:    ['markets','web','chat','settings','accounts']
+};
+var SHEET_ROW = {
+  markets: {ico:'markets',  t:'Markets',  s:'Prices and 24h moves'},
+  activity:{ico:'activity', t:'Activity', s:'Your transaction history'},
+  news:    {ico:'news',     t:'News',     s:''},
+  web:     {ico:'web',      t:'Web',      s:''},
+  chat:    {ico:'chat',     t:'Feedback', s:''},
+  settings:{ico:'settings', t:'Settings', s:'Log, network and CRDT config'},
+  accounts:{ico:'wallet',   t:'Accounts', s:'SDK accounts and your wallets'}
+};
+
+/* ============================ measured label widths ============================ */
+/* Inter advance widths at fontSize 10, read straight out of the shipped
+   assets/fonts/Inter-*.ttf with fontTools (unitsPerEm 2048). labelMd carries
+   no letterSpacing, so this is the whole story. Slot = (390 - 84) / 4 = 76.5. */
+var WIDTHS = {
+  Home:[28.24,28.46], Markets:[38.93,39.57], Activity:[36.21,37.15], More:[24.91,25.20],
+  Menu:[27.03,27.38], Assets:[32.52,33.20], Compute:[43.73,44.27], Explore:[36.08,36.57],
+  Transactions:[62.29,63.34], Settings:[39.26,39.96], News:[27.11,27.39], Wallet:[30.02,30.62],
+  Portfolio:[40.64,41.34], Discover:[42.42,43.00], History:[34.41,35.04], Buy:[18.33,18.60]
+};
+var SLOT = 76.5;
+
+/* ============================ screens ============================ */
+function head(scheme){
+  var s = BY_ID[scheme];
+  var h = '<div class="statusbar"><span>9:41</span><span>5G &nbsp; 100%</span></div>';
+  if (s.gear) {
+    /* The header Jakub asked for on 2026-08-07: a short-form wallet control in the
+       top right with a hamburger beside it. The exact shape of that control is
+       sketch 181's job, NOT this sketch's - it is drawn here only far enough to
+       show what the hamburger costs the bar. */
+    h += '<div class="apphead">';
+    h += '<div class="brandmark"></div>';
+    h += '<div class="whead"><div class="n">Genius AI</div></div>';
+    h += '<div class="wpill"><div class="wdot"></div><span>Sidney</span><span class="car">&#9662;</span></div>';
+    h += '<div class="gear" data-go="menu"><div class="ic" style="' + icoStyle('menu') + '"></div></div>';
+    h += '</div>';
+    return h;
+  }
+  h += '<div class="apphead">';
+  h += '<div class="avatar"></div>';
+  h += '<div class="whead"><div class="n">Sidney</div><div class="a">0x9f2a...c41d</div></div>';
+  h += '<div class="netchip">Ethereum</div>';
+  h += '</div>';
+  return h;
+}
+
+function sectionTitle(title, right){
+  return '<div class="sect"><div class="stitle">' + title + '</div><div class="spacer"></div>' +
+         (right || '') + '</div>';
+}
+function viewAll(go){
+  return '<div class="vall" data-go="' + go + '">VIEW ALL &rsaquo;</div>';
+}
+
+function coinRow(r){
+  return '<div class="row">' +
+    '<div class="ico" style="background:linear-gradient(135deg,' + r.c1 + ',' + r.c2 + ')">' + r.sym.slice(0,2) + '</div>' +
+    '<div class="rmid"><div class="rname">' + r.name + '</div>' +
+    '<div class="rsub">' + amtStr(r.amt) + ' ' + r.sym + '</div></div>' +
+    '<div class="rend"><div class="rfiat">' + usd(r.val) + '</div>' +
+    '<div class="ramt ' + (r.chg >= 0 ? 'good' : 'bad') + '">' + (r.chg >= 0 ? '+' : '') + r.chg.toFixed(2) + '%</div></div>' +
+    '</div>';
+}
+function txRow(t){
+  return '<div class="row">' +
+    '<div class="ico" style="background:linear-gradient(135deg,#0AD89C,#0AAEE6)">' + t.sym.slice(0,2) + '</div>' +
+    '<div class="rmid"><div class="rname">' + t.sym + '</div>' +
+    '<div class="rsub">' + t.act + ' &middot; ' + t.ctx + '</div></div>' +
+    '<div class="rend"><div class="rfiat ' + (t.up ? 'good' : '') + '">' + t.amt + '</div>' +
+    '<div class="ramt">' + t.st + '</div></div>' +
+    '</div>';
+}
+function mktRow(m){
+  return '<div class="row">' +
+    '<div class="ico" style="background:linear-gradient(135deg,#2a2f3a,#171A21);color:#fff">' + m.sym.slice(0,2) + '</div>' +
+    '<div class="rmid"><div class="rname">' + m.name + '</div><div class="rsub">' + m.sym + '</div></div>' +
+    '<div class="rend"><div class="rfiat">' + usd(m.px) + '</div>' +
+    '<div class="ramt ' + (m.chg >= 0 ? 'good' : 'bad') + '">' + (m.chg >= 0 ? '+' : '') + m.chg.toFixed(2) + '%</div></div>' +
+    '</div>';
+}
+function newsRow(n){
+  return '<div class="row" style="height:auto;padding:12px 8px">' +
+    '<div class="rmid"><div class="rname" style="white-space:normal">' + n.t + '</div>' +
+    '<div class="rsub">' + n.s + '</div></div></div>';
+}
+
+function sparkline(){
+  return '<div class="mini"><svg viewBox="0 0 340 120" preserveAspectRatio="none">' +
+    '<polyline points="0,86 28,74 56,80 84,58 112,64 140,40 168,48 196,30 224,38 252,22 280,28 308,14 340,20"' +
+    ' fill="none" stroke="#0AD89C" stroke-width="2"/></svg></div>';
+}
+
+function homeScreen(scheme){
+  var rs = coinRows();
+  var txs = txList();
+  var h = '<div class="body">';
+
+  /* Compute panel - wallet_overview.dart -> ComputePanel, the first panel on Home */
+  h += '<div class="card">' + sectionTitle('Compute', '<span class="tag">1 job</span>');
+  h += '<div class="hero"><div class="big">' + (STATE === 'zero' ? '0.0000' : '18.4000') + ' <span style="font-size:15px;color:var(--text2)">GNUS</span></div></div>';
+  h += '<div class="well" style="margin-top:10px"><div class="rmid"><div class="rname" style="font-size:13.5px">' +
+       (STATE === 'zero' ? 'No processing jobs yet' : 'Job 8842 - minting') + '</div>' +
+       '<div class="rsub">' + (STATE === 'zero' ? 'Start one to earn GNUS' : 'Bridged, awaiting mint') + '</div></div></div>';
+  h += '</div>';
+
+  /* Assets - capped at 5 by phase 25, View all -> /assets */
+  h += '<div class="card">';
+  h += '<div class="sect"><div class="stitle">Assets</div><div class="spacer"></div>' +
+       '<div><div class="total">' + usd(total()) + '</div><div class="chg ' + (STATE === 'zero' ? 'dim' : 'up') + '">' +
+       (STATE === 'zero' ? '0.00%' : '+1.84%') + '</div></div></div>';
+  h += '<div style="padding:0 8px 6px">' + viewAll('assets') + '</div>';
+  h += rs.slice(0,5).map(coinRow).join('');
+  h += '</div>';
+
+  /* Transactions - capped at 5, View all -> /transactions */
+  h += '<div class="card">' + sectionTitle('Transactions', viewAll('activity'));
+  h += (txs.length ? txs.slice(0,4).map(txRow).join('')
+                   : '<div class="empty"><div class="t">No transactions yet</div>' +
+                     '<div class="m">Anything you send, receive, swap or mint will land here.</div></div>');
+  h += '</div>';
+
+  h += '<div class="card">' + sectionTitle('Bitcoin', '<span class="tag">1D</span>') + sparkline() + '</div>';
+
+  h += '<div class="card">' + sectionTitle('Markets', viewAll('markets'));
+  h += MKT.slice(0,3).map(mktRow).join('');
+  h += '</div>';
+
+  h += '</div>';
+  return h;
+}
+
+function assetsScreen(scheme){
+  var rs = coinRows();
+  var onBar = BY_ID[scheme].tabs.indexOf('assets') >= 0;
+  var h = '<div class="body">';
+  if (!onBar) { h += '<div class="back" data-go="home">&lsaquo; DASHBOARD</div>'; }
+  h += '<div class="pgh">Assets</div>';
+  h += '<div class="hero"><div class="big">' + usd(total()) + '</div></div>';
+  h += '<div class="srch"><div class="ic" style="' + icoStyle('search') + '"></div><span>Search assets</span></div>';
+  h += '<div class="sortrow"><span class="kick">' + rs.length + ' assets</span>' +
+       '<span class="sortbtn">VALUE <span style="color:#fff">&darr;</span></span></div>';
+  h += '<div class="card" style="margin-top:6px">';
+  if (STATE === 'zero') {
+    h += '<div class="empty"><div class="t">Nothing here yet</div>' +
+         '<div class="m">Your wallet holds no balances. Fund it once and this page becomes the ' +
+         'page you open the app for.</div>' +
+         '<div class="cta"><div class="ic" style="' + icoStyle('plus') + '"></div>Buy GNUS</div></div>';
+  } else {
+    h += rs.map(coinRow).join('');
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function activityScreen(scheme){
+  var txs = txList();
+  var onBar = BY_ID[scheme].tabs.indexOf('activity') >= 0;
+  var h = '<div class="body">';
+  if (!onBar) { h += '<div class="back" data-go="home">&lsaquo; DASHBOARD</div>'; }
+  h += '<div class="pgh">Transactions</div>';
+  h += '<div class="chips"><span class="chip on">All ' + txs.length + '</span><span class="chip">Sent</span>' +
+       '<span class="chip">Received</span><span class="chip">Swap</span><span class="chip">Mint</span>' +
+       '<span class="chip">Escrow</span></div>';
+  h += '<div class="card" style="margin-top:8px">';
+  if (!txs.length) {
+    h += '<div class="empty"><div class="t">No transactions yet</div>' +
+         '<div class="m">Nothing has moved in or out of this wallet.</div>' +
+         '<div class="ghost">Fund the wallet</div></div>';
+  } else {
+    h += txs.map(txRow).join('');
+    h += txs.map(txRow).join('');
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function marketsScreen(scheme){
+  var onBar = BY_ID[scheme].tabs.indexOf('markets') >= 0;
+  var h = '<div class="body">';
+  if (!onBar) { h += '<div class="back" data-go="home">&lsaquo; DASHBOARD</div>'; }
+  h += '<div class="pgh">Markets</div>';
+  h += '<div class="srch"><div class="ic" style="' + icoStyle('search') + '"></div><span>Search markets</span></div>';
+  h += '<div class="sortrow"><span class="kick">Top by market cap</span>' +
+       '<span class="sortbtn">24H <span style="color:#fff">&darr;</span></span></div>';
+  h += '<div class="card" style="margin-top:6px">' + MKT.map(mktRow).join('') + MKT.map(mktRow).join('') + '</div>';
+  h += '</div>';
+  return h;
+}
+
+function computeScreen(scheme){
+  var h = '<div class="body">';
+  h += '<div class="pgh">Compute</div>';
+  h += '<div class="hero"><div class="big">' + (STATE === 'zero' ? '0.0000' : '18.4000') +
+       ' <span style="font-size:15px;color:var(--text2)">GNUS</span></div>' +
+       '<div class="kick" style="margin-top:6px">EARNED, ALL TIME</div></div>';
+  h += '<div class="chips"><span class="chip on">Active</span><span class="chip">Completed</span>' +
+       '<span class="chip">Failed</span></div>';
+  h += '<div class="card" style="margin-top:8px">';
+  if (STATE === 'zero') {
+    h += '<div class="empty"><div class="t">No processing jobs</div>' +
+         '<div class="m">This page exists only once you have run something. There is no route ' +
+         'behind it today - it would have to be built.</div>' +
+         '<div class="cta"><div class="ic" style="' + icoStyle('plus') + '"></div>New processing job</div></div>';
+  } else {
+    h += '<div class="row"><div class="ico" style="background:linear-gradient(135deg,#0AD89C,#0AAEE6)">83</div>' +
+         '<div class="rmid"><div class="rname">Job 8842</div><div class="rsub">Minting &middot; bridged</div></div>' +
+         '<div class="rend"><div class="rfiat good">+18.40</div><div class="ramt">Processing</div></div></div>';
+    h += '<div class="row"><div class="ico" style="background:linear-gradient(135deg,#0AD89C,#0AAEE6)">83</div>' +
+         '<div class="rmid"><div class="rname">Job 8811</div><div class="rsub">Completed &middot; 2d ago</div></div>' +
+         '<div class="rend"><div class="rfiat good">+41.20</div><div class="ramt">Confirmed</div></div></div>';
+  }
+  h += '</div>';
+  h += '<div class="well" style="margin-top:8px"><div class="rsub warn">NEW ROUTE - ' +
+       'nothing at /compute today. The panel lives on Home (wallet_overview.dart &rarr; ComputePanel).</div></div>';
+  h += '</div>';
+  return h;
+}
+
+function exploreScreen(scheme){
+  var h = '<div class="body">';
+  h += '<div class="pgh">Explore</div>';
+  h += '<div class="chips" style="padding-top:12px"><span class="chip on">Markets</span>' +
+       '<span class="chip">News</span><span class="chip">Web</span></div>';
+  h += '<div class="card" style="margin-top:8px">' + MKT.slice(0,4).map(mktRow).join('') + '</div>';
+  h += '<div class="card">' + sectionTitle('Latest', '') + NEWS.map(newsRow).join('') + '</div>';
+  h += '<div class="well"><div class="rsub warn">NEW ROUTE - /markets, /news and /web all exist; ' +
+       'the page that puts them under one segmented header does not.</div></div>';
+  h += '</div>';
+  return h;
+}
+
+function swapScreen(scheme){
+  var h = '<div class="body">';
+  h += '<div class="pgh">Swap</div>';
+  h += '<div class="card" style="margin-top:10px"><div class="kick" style="padding:0 8px 8px">YOU PAY</div>' +
+       '<div class="row"><div class="ico" style="background:linear-gradient(135deg,#0AD89C,#0AAEE6)">GN</div>' +
+       '<div class="rmid"><div class="rname">GNUS</div><div class="rsub">Balance ' +
+       (STATE === 'zero' ? '0' : '12,480') + '</div></div>' +
+       '<div class="rend"><div class="rfiat">' + (STATE === 'zero' ? '0.00' : '1,000.00') + '</div></div></div></div>';
+  h += '<div class="card"><div class="kick" style="padding:0 8px 8px">YOU RECEIVE</div>' +
+       '<div class="row"><div class="ico" style="background:linear-gradient(135deg,#8A8F9D,#5b6070)">ET</div>' +
+       '<div class="rmid"><div class="rname">ETH</div><div class="rsub">Balance ' +
+       (STATE === 'zero' ? '0' : '1.2043') + '</div></div>' +
+       '<div class="rend"><div class="rfiat">' + (STATE === 'zero' ? '0.0000' : '0.1201') + '</div></div></div></div>';
+  h += '<div style="text-align:center;padding:14px 0">' +
+       (STATE === 'zero'
+         ? '<div class="ghost">Nothing to swap yet</div>'
+         : '<div class="cta">Review swap</div>') + '</div>';
+  h += '</div>';
+  return h;
+}
+
+function newsScreen(scheme){
+  var h = '<div class="body">';
+  h += '<div class="pgh">News</div>';
+  h += '<div class="sortrow"><span class="kick">Updated 2 minutes ago</span>' +
+       '<span class="sortbtn">REFRESH</span></div>';
+  h += '<div class="card" style="margin-top:6px">' + NEWS.map(newsRow).join('') +
+       NEWS.map(newsRow).join('') + '</div>';
+  h += '<div class="well"><div class="rsub good">/news EXISTS - CryptoNewsScreen, already inside the ' +
+       'shell, already a row in the More sheet today. This slot costs no new route.</div></div>';
+  h += '</div>';
+  return h;
+}
+
+var SCREENS = {
+  home:homeScreen, assets:assetsScreen, activity:activityScreen, markets:marketsScreen,
+  compute:computeScreen, explore:exploreScreen, swap:swapScreen, news:newsScreen
+};
+
+/* ============================ the bar ============================ */
+function barHTML(scheme, active, menuOpen){
+  var s = BY_ID[scheme];
+  var h = '<div class="btm"><div class="tabsrow">';
+  for (var i = 0; i < 4; i++) {
+    if (i === 2) { h += '<div class="dockslot"></div>'; }
+    var t = T[s.tabs[i]];
+    /* the More / Menu slot is never drawn selected - there is no route behind it */
+    var on = (t.screen !== 'menu') && (t.screen === active);
+    h += '<div class="slot' + (on ? ' act' : '') + '" data-go="' + t.screen + '">' +
+         '<div class="ic" style="' + icoStyle(t.ico) + '"></div>' +
+         '<div class="lbl">' + t.label + '</div></div>';
+  }
+  h += '</div>';
+  h += '<div class="dock' + (active === 'swap' ? ' act' : '') + '" data-go="swap">' +
+       '<div class="ic" style="' + icoStyle('swap') + '"></div></div>';
+  h += '</div>';
+  return h;
+}
+
+function sheetHTML(scheme){
+  var s = BY_ID[scheme];
+  var title = (s.tabs.indexOf('more') >= 0) ? 'More' : 'Menu';
+  var h = '<div class="scrim" data-go="close"></div>';
+  h += '<div class="sheet"><div class="grab"></div><div class="sheeth">' + title + '</div>';
+  SHEETS[scheme].forEach(function(k){
+    var r = SHEET_ROW[k];
+    h += '<div class="srow" data-go="' + (k === 'markets' ? 'markets' : (k === 'activity' ? 'activity' : 'close')) + '">' +
+         '<div class="ic" style="' + icoStyle(r.ico) + '"></div>' +
+         '<div><div class="st">' + r.t + '</div>' + (r.s ? '<div class="ss">' + r.s + '</div>' : '') + '</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+/* ============================ phone ============================ */
+var WHERE = {};
+var MENU = {};
+
+function phoneHTML(scheme){
+  return '<div class="phonewrap"><div class="phone" data-scheme="' + scheme + '">' +
+         '<div class="screen"></div></div>' +
+         '<div class="caption" id="cap-' + scheme + '"></div>' +
+         '</div>';
+}
+
+function renderPhone(ph){
+  var scheme = ph.getAttribute('data-scheme');
+  var where = WHERE[scheme] || 'home';
+  var scr = ph.querySelector('.screen');
+  var h = head(scheme) + SCREENS[where](scheme) + barHTML(scheme, where, MENU[scheme]);
+  if (MENU[scheme]) { h += sheetHTML(scheme); }
+  scr.innerHTML = h;
+  var cap = document.getElementById('cap-' + scheme);
+  if (cap) {
+    var s = BY_ID[scheme];
+    cap.innerHTML = '<b>' + s.tabs.map(function(k, i){
+      return (i === 2 ? '[Swap] &middot; ' : '') + T[k].label;
+    }).join(' &middot; ') + '</b><br>390x844 at 1:1 - 60px header, 60px bar, 20pt capped inset, ' +
+    '64px dock with 26px overhang in an 84px slot. Tap anything.' +
+    (s.gear ? '<br><b>The menu is the hamburger in the top right</b> - short-form wallet control ' +
+              'beside it, both sketch 181\'s territory, drawn here only to show the cost.' : '');
+  }
+}
+function renderAll(){
+  Array.prototype.forEach.call(document.querySelectorAll('.phone'), renderPhone);
+}
+
+/* ============================ notes ============================ */
+function tabTable(scheme){
+  var s = BY_ID[scheme];
+  var h = '<table><tr><th>Slot</th><th>Tab</th><th>Opens</th><th>Route today</th><th>Label at 10px</th></tr>';
+  var order = [s.tabs[0], s.tabs[1], '_dock', s.tabs[2], s.tabs[3]];
+  order.forEach(function(k, i){
+    if (k === '_dock') {
+      h += '<tr><td>dock</td><td><b>Swap</b></td><td>The swap form</td>' +
+           '<td class="good">/swap - exists</td><td class="dim">no label</td></tr>';
+      return;
+    }
+    var t = T[k];
+    var w = WIDTHS[t.label];
+    h += '<tr><td>' + (i < 2 ? i + 1 : i) + '</td><td><b>' + t.label + '</b></td>' +
+         '<td>' + (t.route === 'sheet' ? 'A bottom sheet, not a route' : t.label + ' page') + '</td>' +
+         '<td class="' + (t.exists ? 'good' : 'bad') + '">' +
+           (t.route === 'sheet' ? 'n/a - GWBottomSheet' : t.route + (t.exists ? ' - exists' : ' - MUST BE BUILT')) + '</td>' +
+         '<td class="mono">' + w[0].toFixed(1) + ' / ' + w[1].toFixed(1) +
+           ' <span class="good">fits</span></td></tr>';
+  });
+  h += '</table>';
+  return h;
+}
+
+var NOTES = {
+
+today: function(){
+  var h = '';
+  h += '<h3>What is live, read out of the file this morning</h3>';
+  h += '<p><span class="mono">responsive_overlay.dart</span> holds a mobile-only list of three ' +
+       'destinations plus a hard-coded More slot: <b>Home &rarr; /dashboard</b>, ' +
+       '<b>Markets &rarr; /markets</b>, <b>Activity &rarr; /transactions</b>, and a More slot that ' +
+       'opens a sheet. The dock is Swap. Nothing here is a proposal - it is the baseline every ' +
+       'scheme below has to beat.</p>';
+  h += tabTable('today');
+  h += '<h3>What the sheet holds, and why it is derived</h3>';
+  h += '<p>The sheet is not a written list. <span class="mono">_moreDestinations</span> is computed ' +
+       'as <i>all eight desktop destinations, minus Swap, minus whatever the mobile bar already ' +
+       'shows</i>. Today that resolves to News, Web, Feedback, Settings, plus a hand-written ' +
+       'Accounts row. <b>This matters for every scheme below</b>: taking Markets off the bar puts ' +
+       'Markets into the sheet automatically, with no second edit and no chance of losing it.</p>';
+  h += '<h3>Three things already known to be wrong here</h3>';
+  h += '<ul>' +
+       '<li><b>Accounts is duplicated</b> - the header wallet chip and the sheet row call the same ' +
+       '<span class="mono">AccountDrawer.show(context)</span> (sketch 175).</li>' +
+       '<li><b>The sheet is built from GWSelectRow</b>, a component whose job everywhere else is ' +
+       '"pick one of these, here is a checkmark" (sketch 175).</li>' +
+       '<li><b>/assets has no way in from the bar.</b> Phase 25 built a full Assets page with search ' +
+       'and sort, and the only route to it is the dashboard panel\'s View all.</li>' +
+       '</ul>';
+  h += '<h3>The empty wallet</h3>';
+  h += '<div class="flag">Flip the toggle to ALL ZERO. Home is zeros, Activity is empty, More is a ' +
+       'sheet - and <b>the one tab with anything in it shows other people\'s prices</b>. That is a ' +
+       'real argument for keeping Markets, and it is the argument every scheme below has to answer, ' +
+       'including mine.</div>';
+  return h;
+},
+
+s1: function(){
+  var h = '';
+  h += '<p>Jakub\'s own first instinct, taken literally and nothing else changed: <b>More</b> becomes ' +
+       '<b>Menu</b>. Two lines in <span class="mono">_mobileDestinations</span>\'s neighbour, the ' +
+       'hard-coded <span class="mono">_MobileMoreItem</span>.</p>';
+  h += tabTable('s1');
+  h += '<h3>The icon has to move with the word</h3>';
+  h += '<p>Today the slot is <span class="mono">Icons.more_horiz</span> - three dots - under the word ' +
+       '"More". Dots and "More" say the same thing twice, which is fine. Dots under <b>"Menu"</b> ' +
+       'say two different things, so the glyph should become a hamburger. Shown that way here. ' +
+       'Cost: one constant.</p>';
+  h += '<h3>What it buys, honestly</h3>';
+  h += '<p>"More" is a promise of an unspecified quantity; "Menu" is a promise of a place. That is a ' +
+       'genuine improvement and it costs nothing. But it answers only the easy half of the request. ' +
+       'Jakub also said <b>"nie wiem czy bym zostawil markets i activity"</b>, and S1 leaves both ' +
+       'exactly where they are.</p>';
+  h += '<table><tr><th>Question</th><th>S1\'s answer</th></tr>' +
+       '<tr><td>Harder to reach vs today</td><td class="good">Nothing. Every tap count is identical.</td></tr>' +
+       '<tr><td>Menu contains</td><td>News, Web, Feedback, Settings, Accounts. Still a ' +
+       '<b>bottom sheet</b> (GWBottomSheet, GWSelectRow rows).</td></tr>' +
+       '<tr><td>Overlapping tabs</td><td>Home carries a Markets top-3 whose View all lands on the ' +
+       'Markets tab, and a Transactions top-5 whose View all lands on the Activity tab. Two of the ' +
+       'four tabs are also panels on the first tab.</td></tr>' +
+       '<tr><td>Empty wallet</td><td>Same as today - 2 of 4 tabs are empty, and the populated one ' +
+       'is not the user\'s money.</td></tr>' +
+       '</table>';
+  h += '<div class="flag"><b>S1 is the floor, not a scheme.</b> It should ship regardless of which ' +
+       'set wins, because every scheme below also renames the slot. The question is only whether ' +
+       'anything else changes with it.</div>';
+  return h;
+},
+
+s2: function(){
+  var h = '';
+  h += '<p>Jakub\'s leaning, and the one I was asked to test rather than adopt: <b>Assets takes the ' +
+       'Markets slot.</b> Home, Assets, [Swap], Activity, Menu.</p>';
+  h += tabTable('s2');
+  h += '<h3>The change is smaller than it looks, and the overflow heals itself</h3>';
+  h += '<p>Swap one entry in <span class="mono">_mobileDestinations</span> and rename the More slot. ' +
+       'That is the whole edit. Markets does not need to be filed anywhere: ' +
+       '<span class="mono">_moreDestinations</span> is derived, so the moment Markets leaves the bar ' +
+       'it appears in the Menu sheet by itself. And <span class="mono">/assets</span> is not a member ' +
+       'of <span class="mono">_allDestinations</span> at all - it was added straight to the router by ' +
+       'phase 25 - so adding it to the mobile bar cannot disturb that derivation either.</p>';
+  h += '<h3>Tap costs against today</h3>';
+  h += '<table><tr><th>Destination</th><th>Today</th><th>S2</th><th></th></tr>' +
+       '<tr><td>Assets (full page)</td><td>2 - Home, then scroll past Compute, then View all</td>' +
+       '<td class="good">1</td><td class="good">better</td></tr>' +
+       '<tr><td>Markets</td><td>1</td><td>2 - Menu, then the row</td><td class="warn">worse</td></tr>' +
+       '<tr><td>Activity, Swap, Home</td><td>1</td><td>1</td><td>unchanged</td></tr>' +
+       '<tr><td>News / Web / Feedback / Settings</td><td>2</td><td>2</td><td>unchanged</td></tr>' +
+       '</table>';
+  h += '<p>The trade is one tap on a browse surface for one tap on the user\'s own holdings, and it ' +
+       'follows the same logic phase 25 used when it capped the dashboard panels: <b>the nav should ' +
+       'surface the pages people actually go to.</b></p>';
+  h += '<h3>One follow-up this scheme creates, worth naming now</h3>';
+  h += '<div class="flag"><b>The Assets panel\'s View all uses <span class="mono">context.push</span>, ' +
+       'a nav tab uses <span class="mono">context.go</span>.</b> ' +
+       '<span class="mono">coins_screen.dart:409</span> pushes /assets on purpose, so the dashboard ' +
+       'stays mounted and keeps its market-data timer. With Assets on the bar there would be two ways ' +
+       'onto one route with different back behaviour. The fix is the one the Transactions panel already ' +
+       'made - <span class="mono">go</span>, with the comment "/transactions is a bottom-nav ' +
+       'destination" - or drop the panel link entirely, since the tab is now one tap away.</div>';
+  h += '<h3>Overlap, counted</h3>';
+  h += '<p>S2 has <b>the most routes to Markets of any scheme</b>: the Menu row, and the Home ' +
+       'panel\'s own View all. It also puts an Assets top-5 on Home directly above an Assets tab - ' +
+       'the same doubling Activity already lives with. That is not fatal (a preview and a page are ' +
+       'different jobs) but it is the honest cost of a dashboard where every section hands off to a ' +
+       'full page.</p>';
+  h += '<h3>The empty wallet, which is the real objection</h3>';
+  h += '<div class="flag">Flip to ALL ZERO. <b>Three of the four tabs are now empty</b> - Home is ' +
+       'zeros, Assets is a blank list, Activity is a blank list - and the one tab that had content ' +
+       'on day one has been moved into a sheet. A brand-new user taps three tabs and finds nothing ' +
+       'three times.<br><br>I do not think that overturns S2, and here is why: <b>that is an ' +
+       'empty-state problem, and it should be fixed in the empty state.</b> The Assets zero screen in ' +
+       'this sketch carries a <b>Buy GNUS</b> CTA, and <span class="mono">/buy</span> already exists ' +
+       'and already defaults to USD &rarr; GNUS with the user\'s own wallet address filled in. Keeping ' +
+       'a price browser in the nav so that one tab has content is solving a first-run problem with ' +
+       'someone else\'s data.<br><br>There is also a better answer than either, and it arrived a few ' +
+       'hours after this scheme was drawn: <b>S7</b> keeps every tab S2 has and puts News in the ' +
+       'fourth slot instead of a sheet, which fills the hole without spending the slot on prices.</div>';
+  return h;
+},
+
+s3: function(){
+  var h = '';
+  h += '<p>Markets goes, Assets and Activity both stay, and the fourth slot goes to the thing this ' +
+       'wallet has that no other wallet has: <b>Compute</b>. The Menu leaves the bar for a gear in ' +
+       'the header - look at the top right of the phone.</p>';
+  h += tabTable('s3');
+  h += '<h3>The argument for it</h3>';
+  h += '<p>The dashboard\'s own ordering comment already says it: Compute is <i>"the differentiator ' +
+       'and the only card that changes while you watch it"</i>, which is why it sits first on Home. ' +
+       'A nav made of Home / Assets / Activity is a nav any wallet could ship. Compute is the only ' +
+       'slot in this sketch that says what <i>this</i> app is.</p>';
+  h += '<h3>Two costs, one of them disqualifying today</h3>';
+  h += '<table><tr><th></th><th>Cost</th></tr>' +
+       '<tr><td>Route</td><td class="bad">There is no /compute. ComputePanel is a dashboard panel ' +
+       '(<span class="mono">wallet_overview.dart</span>). A page is a phase, not an edit.</td></tr>' +
+       '<tr><td>The hamburger</td><td class="warn">With no Menu slot, Markets, News, Web, Feedback, ' +
+       'Settings and Accounts need a home, so the menu moves to the header. Jakub asked for exactly ' +
+       'that later the same day, so this is no longer a liberty - but it is still a dependency on ' +
+       '<b>sketch 181</b>, and it puts a 44pt target in the corner furthest from the thumb. The ' +
+       'ergonomics are counted properly in S6.</td></tr>' +
+       '</table>';
+  h += '<h3>The rest of the answers</h3>';
+  h += '<table><tr><th>Question</th><th>S3</th></tr>' +
+       '<tr><td>Harder to reach</td><td>Markets 1 &rarr; 2 (gear). News/Web/Feedback/Settings stay at ' +
+       '2 but move from a thumb-reachable slot to the far corner. Compute 1 tap plus a scroll ' +
+       '&rarr; 1 tap.</td></tr>' +
+       '<tr><td>Menu contains</td><td>The same six rows, same <b>bottom sheet</b>, opened from the ' +
+       'header instead of the bar.</td></tr>' +
+       '<tr><td>Overlap</td><td>Home\'s first panel <i>is</i> Compute, and it is now also a tab. ' +
+       'Home\'s Markets panel points at a page no tab reaches.</td></tr>' +
+       '<tr><td>Empty wallet</td><td>Worst of any scheme. Four tabs, four empty screens - the Compute ' +
+       'page for a user who has never run a job is the emptiest page in the app.</td></tr>' +
+       '</table>';
+  h += '<div class="flag"><b>Right instinct, wrong slot.</b> Compute earns nav weight, but a tab is ' +
+       'the wrong instrument for something a new user has never done. If Compute deserves promotion ' +
+       'it is as an entry point on Home, not as a quarter of the chrome.</div>';
+  return h;
+},
+
+s4: function(){
+  var h = '';
+  h += '<p>My own. Same first three tabs as S2, but the fourth slot stops being a lid on a box and ' +
+       'becomes a destination: <b>Explore</b> - Markets, News and Web under one segmented header. The ' +
+       'Menu shrinks to a gear holding only utilities and identity.</p>';
+  h += tabTable('s4');
+  h += '<h3>Why this is the shape the overflow has been asking for</h3>';
+  h += '<p>Sketch 175 found that the More sheet holds <b>three unlike kinds of thing</b> - ' +
+       'destinations (News, Web), utilities (Feedback, Settings) and identity (Accounts) - so no rule ' +
+       'can be stated about what lives behind it, and no memory of it can form. Its recommendation ' +
+       'was scheme C, <i>delete the overflow</i>. That pick was never made and is still open.</p>';
+  h += '<p>S4 executes it. Every <b>destination</b> in the sheet moves into Explore; what is left is ' +
+       'two utilities and one identity row, which is a rule you can say out loud. The sheet drops from ' +
+       'six rows to three.</p>';
+  h += '<table><tr><th>Sheet under S2</th><th>Sheet under S4</th></tr>' +
+       '<tr><td>Markets, News, Web, Feedback, Settings, Accounts</td>' +
+       '<td>Feedback, Settings, Accounts</td></tr></table>';
+  h += '<h3>Costs</h3>';
+  h += '<table><tr><th></th><th>Cost</th></tr>' +
+       '<tr><td>Route</td><td class="warn">/explore does not exist. But /markets, /news and /web all ' +
+       'do, so this is a page that hosts three existing screens under a segmented control - the same ' +
+       'shape <span class="mono">GWTimeframeSegment</span> already is. Cheaper than /compute, ' +
+       'still not free.</td></tr>' +
+       '<tr><td>The hamburger</td><td class="warn">Same dependency on sketch 181 as S3, S6 and S7, ' +
+       'but only three rows behind it, so the case for a separate sheet is weakest here and the case ' +
+       'for folding those three into the wallet sheet 181 is designing is strongest.</td></tr>' +
+       '<tr><td>Naming</td><td>"Explore" is 36.1px, comfortably inside the slot. "Discover" (43.0) ' +
+       'and "Browse" (36.5) also fit, so the word is a free choice.</td></tr>' +
+       '</table>';
+  h += '<h3>The rest of the answers</h3>';
+  h += '<table><tr><th>Question</th><th>S4</th></tr>' +
+       '<tr><td>Harder to reach</td><td>Markets 1 &rarr; 2 (tab, then the Markets segment - though ' +
+       'the segment can default to Markets, making it 1). News 2 &rarr; 2. Web 2 &rarr; 2. Assets ' +
+       '2 &rarr; 1.</td></tr>' +
+       '<tr><td>Menu contains</td><td>Feedback, Settings, Accounts. Small enough that it should ' +
+       'probably stop being its own sheet and join the wallet sheet sketch 180 is building.</td></tr>' +
+       '<tr><td>Overlap</td><td>Home\'s Markets panel and the Explore tab. Home\'s Assets and ' +
+       'Transactions panels and their tabs. Same as S2, one fewer route to Markets.</td></tr>' +
+       '<tr><td>Empty wallet</td><td class="good">The best of the four-real-tab schemes: three tabs ' +
+       'are empty but the fourth is full, and it is named as a place to look around rather than as a ' +
+       'price list. A new user has somewhere to go that is not a blank.</td></tr>' +
+       '</table>';
+  h += '<div class="rec"><b>S4 is where this should end up.</b> It is also a strict superset of S2: ' +
+       'S2 ships today by swapping one list entry, and S4 is reached later by replacing the Menu slot ' +
+       'with Explore. Nothing done for S2 has to be undone.</div>';
+  return h;
+},
+
+s5: function(){
+  var h = '';
+  h += '<p>The foil, and it has to be built to be argued against: what if <b>Activity</b> is the one ' +
+       'that leaves and Markets stays? Home, Assets, [Swap], Markets, Menu.</p>';
+  h += tabTable('s5');
+  h += '<h3>The case, stated as strongly as it goes</h3>';
+  h += '<p>Activity is a <i>verification</i> surface - you check it after you have done something, ' +
+       'and the app knows when you have done something, so it can take you there. A swap that ends by ' +
+       'landing on the transaction it just created does not need a permanent tab. Markets, by ' +
+       'contrast, is a browsing surface with no trigger, so it needs a door. And Markets is the only ' +
+       'tab that is not empty on day one.</p>';
+  h += '<h3>Why it still loses</h3>';
+  h += '<ul>' +
+       '<li><b>The Transactions page became a real destination this morning.</b> The transaction ' +
+       'filter bar was moved OFF the dashboard panel onto the page - the panel now shows a View all ' +
+       'and the page owns the ten filters ' +
+       '(<span class="mono">transactions_slim_view.dart</span>, the <span class="mono">widget.page</span> ' +
+       'branch). Demoting that page on the day it grew its controls is backwards.</li>' +
+       '<li><b>"Did my thing go through" is a wallet question; "what is BTC at" is not.</b> S5 spends ' +
+       'a permanent slot on the one tab whose content belongs to nobody in particular.</li>' +
+       '<li><b>The auto-navigate argument is a promise, not a fact.</b> Nothing in the app takes you ' +
+       'to /transactions after a swap today. Until it does, S5 costs a real tap on a real question.</li>' +
+       '</ul>';
+  h += '<table><tr><th>Question</th><th>S5</th></tr>' +
+       '<tr><td>Harder to reach</td><td class="bad">Activity 1 &rarr; 2. Everything else unchanged ' +
+       'from S2.</td></tr>' +
+       '<tr><td>Menu contains</td><td>Activity, News, Web, Feedback, Settings, Accounts - six rows, ' +
+       'still a <b>bottom sheet</b>, and now with a first-class wallet destination filed behind a ' +
+       'lid.</td></tr>' +
+       '<tr><td>Overlap</td><td>Home carries an Assets panel and a Markets panel, and both are tabs. ' +
+       'Two of the four tabs are previews on the first tab.</td></tr>' +
+       '<tr><td>Empty wallet</td><td class="good">Reads best of all on day one - two of four tabs ' +
+       'have content. That is exactly the trap: it is optimised for a state the user leaves after ' +
+       'five minutes and never returns to.</td></tr>' +
+       '</table>';
+  return h;
+},
+
+s6: function(){
+  var h = '';
+  h += '<p>Jakub\'s second message, taken literally: the hamburger moves to the header beside a ' +
+       'short-form wallet control, and the freed bottom slot goes to <b>News</b>. Home, Markets, ' +
+       '[Swap], Activity, News. Look at the top right of the phone - that is the whole premise.</p>';
+  h += tabTable('s6');
+  h += '<div class="rec"><b>The move itself is right and I would keep it.</b> A slot that opens a ' +
+       'sheet is the only one of the four that is not a place, and a bar where three slots navigate ' +
+       'and one does something else is a bar with a rule and an exception. Putting the menu in the ' +
+       'header removes the exception. <b>/news already exists</b> ' +
+       '(<span class="mono">CryptoNewsScreen</span>, inside the shell, already a row in today\'s More ' +
+       'sheet) so the slot costs no new route.</div>';
+  h += '<h3>The hamburger is not free, and the taps hide the cost</h3>';
+  h += '<p>Tap count is identical - one tap from anywhere, because the shell keeps the header mounted ' +
+       'on every pushed page. What changes is everything around the tap:</p>';
+  h += '<table><tr><th></th><th>Menu as a tab</th><th>Hamburger in the header</th></tr>' +
+       '<tr><td>Taps from anywhere</td><td>1</td><td>1</td></tr>' +
+       '<tr><td>Target size</td><td class="good">76.5 x 60 = 4590 sq pt</td>' +
+       '<td class="warn">44 x 44 = 1936 sq pt, about 2.4x smaller</td></tr>' +
+       '<tr><td>Where the thumb is</td><td class="good">Already there - it is the bar</td>' +
+       '<td class="bad">The far top corner. On a 6.7-inch phone held in the right hand that is a ' +
+       'regrip, not a reach.</td></tr>' +
+       '<tr><td>Neighbours competing for it</td><td>Three sibling tabs, same weight</td>' +
+       '<td class="warn">The wallet control, which is the single most important thing in the header ' +
+       'and the thing sketch 181 is trying to make read as one control</td></tr>' +
+       '<tr><td>Discoverability</td><td>A labelled slot</td>' +
+       '<td>An unlabelled glyph, though a universally understood one</td></tr>' +
+       '</table>';
+  h += '<h3>What the hamburger holds under S6</h3>';
+  h += '<p>Four rows: <b>Web, Feedback, Settings, Accounts</b>. Both content destinations are now ' +
+       'tabs, so what is left is two utilities and one identity - the cleanest sheet in the sketch, ' +
+       'and small enough that it should probably not be a sheet of its own at all but a section of ' +
+       'the wallet sheet 181 is designing.</p>';
+  h += '<div class="flag"><b>And Assets is not in it.</b> The sheet is derived from ' +
+       '<span class="mono">_allDestinations</span>, and <span class="mono">/assets</span> was added ' +
+       'straight to the router by phase 25 - it is not a member. So under S6 the Assets page is ' +
+       'reachable from exactly one place in the entire app: scroll past Compute on Home, then tap ' +
+       'View all. Phase 25 built a searchable, sortable page and S6 leaves it as a footnote.</div>';
+  h += '<h3>The real objection: two content tabs out of four</h3>';
+  h += '<p>The argument I made against Markets applies to News word for word - it is content, not a ' +
+       'wallet function, it belongs to nobody in particular, and it already has a View all on the ' +
+       'dashboard. A set holding <b>both</b> is spending half the bar on things that are not the ' +
+       'user\'s, and they overlap with each other: Markets is "what is BTC at", News is "why". Two ' +
+       'doors onto the same room.</p>';
+  h += '<table><tr><th>Question</th><th>S6</th></tr>' +
+       '<tr><td>Harder to reach</td><td>News 2 &rarr; 1. Web/Feedback/Settings/Accounts stay at 2 but ' +
+       'move to the far corner. <b>Assets stays at 2 and loses its only shortcut candidate.</b></td></tr>' +
+       '<tr><td>Menu contains</td><td>Web, Feedback, Settings, Accounts - a <b>sheet from the ' +
+       'header</b>, four rows.</td></tr>' +
+       '<tr><td>Overlap</td><td>Markets and News are both market context. Home carries panels for ' +
+       'Markets, Transactions AND Assets - so three of Home\'s five panels point at pages, two of ' +
+       'which are tabs and one of which is not.</td></tr>' +
+       '<tr><td>Empty wallet</td><td class="good">Two of four tabs have content on day one. Reads ' +
+       'better than any Assets-carrying scheme - and, as with S5, that is a state the user leaves ' +
+       'after five minutes.</td></tr>' +
+       '</table>';
+  return h;
+},
+
+s7: function(){
+  var h = '';
+  h += '<p>The same header move, with the substitution the evidence points at: <b>Assets takes the ' +
+       'Markets slot and News keeps the freed one.</b> Home, Assets, [Swap], Activity, News. This is ' +
+       'S2 with the lid removed, and it is S6 with the second content tab traded for the user\'s own ' +
+       'holdings.</p>';
+  h += tabTable('s7');
+  h += '<h3>It fixes the one thing S2 could not</h3>';
+  h += '<p>S2\'s honest weakness is the empty wallet: Home zeros, Assets blank, Activity blank, and ' +
+       'the fourth slot is a sheet, so a new user taps three tabs and finds nothing three times. S7 ' +
+       'answers that <b>without keeping a price browser in the nav</b> - the fourth tab is full on ' +
+       'day one, and it is full for every user forever rather than only while the wallet is empty. ' +
+       'Flip the toggle and compare S2 and S7 side by side; that is the whole argument.</p>';
+  h += '<h3>And it costs no new route</h3>';
+  h += '<table><tr><th>Scheme</th><th>New routes needed</th></tr>' +
+       '<tr><td>S2</td><td class="good">none</td></tr>' +
+       '<tr><td>S7</td><td class="good">none - /assets and /news both exist</td></tr>' +
+       '<tr><td>S4 (Explore)</td><td class="warn">one - a page hosting three existing screens</td></tr>' +
+       '<tr><td>S3 (Compute)</td><td class="bad">one, and it is a phase</td></tr>' +
+       '</table>';
+  h += '<p>S7 gets most of what S4 was for - a fourth slot that is a destination, an overflow reduced ' +
+       'to utilities plus identity - for the price of a list edit, because News is the single item in ' +
+       'Explore that a wallet user opens on a normal day.</p>';
+  h += '<h3>What the hamburger holds under S7</h3>';
+  h += '<p>Five rows: <b>Markets, Web, Feedback, Settings, Accounts</b>. One more than S6 because ' +
+       'Markets is displaced. Markets goes from 1 tap to 2 - the same trade S2 makes, and the same ' +
+       'defence: Markets is browsing, it has no trigger, and its View all still sits on Home.</p>';
+  h += '<table><tr><th>Question</th><th>S7</th></tr>' +
+       '<tr><td>Harder to reach</td><td>Markets 1 &rarr; 2 (hamburger). Web/Feedback/Settings stay at ' +
+       '2 but move to the corner. <b>Assets 2 &rarr; 1. News 2 &rarr; 1.</b> Two destinations get ' +
+       'cheaper, one gets dearer.</td></tr>' +
+       '<tr><td>Menu contains</td><td>Markets, Web, Feedback, Settings, Accounts - a <b>sheet from ' +
+       'the header</b>, five rows. Still mixes a destination with utilities, so sketch 175\'s ' +
+       'complaint is reduced rather than closed.</td></tr>' +
+       '<tr><td>Overlap</td><td>Home carries Assets, Transactions and Markets panels; two of those ' +
+       'three are tabs. News is the only tab with no preview on Home - arguably a reason to give it ' +
+       'one, arguably a reason it deserves the slot.</td></tr>' +
+       '<tr><td>Empty wallet</td><td class="good">Three tabs empty, one full, and the full one is ' +
+       'fresh every day rather than only interesting before you have money. Best empty-wallet reading ' +
+       'of any scheme that also carries Assets.</td></tr>' +
+       '</table>';
+  h += '<div class="flag"><b>This scheme has a dependency and it is not inside this sketch.</b> S6 ' +
+       'and S7 only exist if the header actually adopts a hamburger, and that is being decided in ' +
+       '<b>sketch 181 - wallet-control-compact</b>, in flight right now. I am deliberately not ' +
+       'designing the header here; the phone above draws it only far enough to show what the ' +
+       'hamburger costs the bar. <b>If 181 lands on a header with no room for a second control, S6 ' +
+       'and S7 fall with it</b> and the answer reverts to S2, which is the same set with Menu back in ' +
+       'the fourth slot.</div>';
+  return h;
+},
+
+labels: function(){
+  var h = '';
+  h += '<h3>The slot is 76.5px, and that turns out not to be the constraint</h3>';
+  h += '<p>The bar\'s Row lays out four <span class="mono">Expanded</span> tabs around one fixed ' +
+       '84px dock slot, and <span class="mono">_MobileBarSlot</span> adds vertical padding only. So ' +
+       'every label has <b>(390 - 84) / 4 = 76.5px</b> of width, with nothing taken off it.</p>';
+  h += '<p>These are not estimates. They are advance-width sums read straight out of the shipped ' +
+       '<span class="mono">assets/fonts/Inter-Medium.ttf</span> and ' +
+       '<span class="mono">Inter-SemiBold.ttf</span> (unitsPerEm 2048) at ' +
+       '<span class="mono">fontSize: 10</span>, which is what the tab label is. ' +
+       '<span class="mono">labelMd</span> carries no letterSpacing, so the sum is the whole width. ' +
+       'Inactive tabs are w500, the active tab is w600.</p>';
+  h += '<table><tr><th>Label</th><th>w500 (inactive)</th><th>w600 (active)</th><th>Fits 76.5?</th>' +
+       '<th>Truncates at text scale</th></tr>';
+  ['Home','Assets','Markets','Activity','Menu','More','Explore','Compute','News','Wallet','History',
+   'Portfolio','Discover','Settings','Buy','Transactions'].forEach(function(k){
+    var w = WIDTHS[k];
+    var fits = w[1] <= SLOT;
+    var scale = SLOT / w[1];
+    h += '<tr><td><b>' + k + '</b></td><td class="mono">' + w[0].toFixed(2) + '</td>' +
+         '<td class="mono">' + w[1].toFixed(2) + '</td>' +
+         '<td class="' + (fits ? 'good' : 'bad') + '">' + (fits ? 'yes' : 'NO') + '</td>' +
+         '<td class="mono ' + (scale < 1.35 ? 'warn' : '') + '">' + scale.toFixed(2) + 'x</td></tr>';
+  });
+  h += '</table>';
+  h += '<div class="flag"><b>A briefing assumption that does not survive measurement.</b> ' +
+       '"Transactions will not fit where Activity does" is true of the <i>eight</i>-tab bar that was ' +
+       'ripped out on 2026-08-06 - at 48.7pt a slot, 62.3px truncated. On the shipping four-tab bar ' +
+       'it fits with 13px to spare. Every candidate word in this sketch fits, so <b>label length must ' +
+       'not be used as an argument for or against any scheme.</b> Pick the right word, then check the ' +
+       'number.</div>';
+  h += '<p><b>News</b>, measured rather than eyeballed because it is the newest candidate: ' +
+       '<span class="mono">27.11px</span> at w500 and <span class="mono">27.39px</span> at w600. That ' +
+       'is the second-shortest word in the table after "More" and "Buy", it survives a 2.79x text ' +
+       'scale, and it is 11px narrower than the "Markets" it would sit beside in S6. Nothing about ' +
+       'the word is a risk.</p>';
+  h += '<h3>Where it does still bite: Dynamic Type</h3>';
+  h += '<p>The last column is how far the system text scale can go before the label ellipsises. ' +
+       'Nothing in the app clamps <span class="mono">textScaler</span> on this bar, so an iPhone at ' +
+       'Larger Text really does scale it. <b>"Transactions" breaks at 1.21x</b>, which is one notch up ' +
+       'from default - which is the actual reason "Activity" (2.06x) is the right word for that tab. ' +
+       '"Compute" (1.73x) is the tightest of the new candidates and still clears the accessibility ' +
+       'sizes people commonly use.</p>';
+  h += '<h3>Contrast, computed from the real tokens</h3>';
+  h += '<p>The bar\'s fill on dark is <b>flat</b> - <span class="mono">surfaceSheen</span> puts ' +
+       '<span class="mono">surfaceElevated</span> at both stops and the file says so ' +
+       '("same stop - flat, no sheen"). So <span class="mono">#0C0E14</span> is the whole background, ' +
+       'not an average.</p>';
+  h += '<table><tr><th>Pairing</th><th>Ratio</th><th>Needs</th><th></th></tr>' +
+       '<tr><td>Inactive label <span class="mono">#8A8F9D</span> on bar <span class="mono">#0C0E14</span></td>' +
+       '<td class="mono">5.97:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>Active gradient stop 1 <span class="mono">#0AD89C</span> on <span class="mono">#0C0E14</span></td>' +
+       '<td class="mono">10.39:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>Active gradient stop 2 <span class="mono">#0AAEE6</span> on <span class="mono">#0C0E14</span></td>' +
+       '<td class="mono">7.54:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>Dock glyph <span class="mono">#000B18</span> on the gradient (worst stop)</td>' +
+       '<td class="mono">7.74:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>Sheet label <span class="mono">#8A8F9D</span> on <span class="mono">#171A21</span></td>' +
+       '<td class="mono">5.39:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '</table>';
+  h += '<p>Active against inactive is <b>1.74:1</b> (10.39 / 5.97) on the mint stop - below the 3:1 ' +
+       'WCAG 1.4.11 asks of a non-text state indicator. The gradient is not carrying the selected ' +
+       'state on colour alone though: the active tab is also <b>w600 against w500</b>. That is the ' +
+       'shipped behaviour and no scheme here changes it - noting it so it is not discovered later and ' +
+       'blamed on this sketch.</p>';
+  h += '<p class="dim">Method: WCAG 2.x relative luminance, sRGB. Every hex above is the token ' +
+       'verbatim from <span class="mono">gw_colors.dart</span>.</p>';
+  return h;
+},
+
+rec: function(){
+  var h = '';
+  h += '<div class="rec"><b>&#9733; Ship S7 - Home &middot; Assets &middot; [Swap] &middot; Activity ' +
+       '&middot; News, with the menu in a header hamburger.</b> It is the only set that answers both ' +
+       'of Jakub\'s messages at once: the fourth slot stops being a lid, the wallet\'s own holdings ' +
+       'page finally reaches the bar, and a new user with an empty wallet still has one tab worth ' +
+       'opening. <b>It needs no new routes</b> - <span class="mono">/assets</span> and ' +
+       '<span class="mono">/news</span> both exist and are both inside the shell - and the overflow ' +
+       'shrinks to five rows on its own, because ' +
+       '<span class="mono">_moreDestinations</span> is derived rather than written.</div>';
+  h += '<p><b>Conditional on one thing, and it is not mine to decide:</b> the header must actually ' +
+       'take the hamburger. That is <b>sketch 181 - wallet-control-compact</b>, in flight. If 181 ' +
+       'lands on a header that cannot carry a second control, S7 becomes S2 - the identical set with ' +
+       'Menu back in the fourth slot - and nothing built for one is wasted on the other.</p>';
+  h += '<h3>Runner-up: S2 - Home, Assets, [Swap], Activity, Menu</h3>';
+  h += '<p>The same set, one slot different, and <b>zero dependencies</b>. It is one entry swapped in ' +
+       '<span class="mono">_mobileDestinations</span> plus a rename, it can ship this afternoon ' +
+       'without waiting on the header, and it is a strict prefix of both S7 and S4. Ship S2 now if ' +
+       '181 is going to take another day; upgrade the fourth slot to News the moment the hamburger ' +
+       'lands. Its one real weakness stays on the record: on a brand-new wallet three of four tabs ' +
+       'are blank, which is exactly the hole News fills.</p>';
+  h += '<h3>Explicitly rejected: S6 - Home, Markets, [Swap], Activity, News</h3>';
+  h += '<p>This is Jakub\'s own second message taken literally, and I am rejecting it while keeping ' +
+       'both halves of the idea that make it good. <b>The hamburger move is right and I have adopted ' +
+       'it. News on the bar is right and I have adopted it.</b> What I will not take is the ' +
+       'combination it leaves behind:</p>';
+  h += '<ul>' +
+       '<li><b>Two of four tabs are content that belongs to nobody.</b> The objection I raised ' +
+       'against Markets applies to News unchanged, and a set carrying both spends half the bar on it. ' +
+       'They also overlap with each other - Markets is what BTC is at, News is why - so it is two ' +
+       'doors onto one room.</li>' +
+       '<li><b>Assets ends up with exactly one entrance in the whole app.</b> Not on the bar, and not ' +
+       'in the hamburger either, because the sheet is derived from ' +
+       '<span class="mono">_allDestinations</span> and <span class="mono">/assets</span> is not a ' +
+       'member of it. Phase 25 built a searchable, sortable holdings page yesterday; S6 leaves it ' +
+       'behind a scroll and a View all.</li>' +
+       '<li><b>S6 becomes S7 with one substitution.</b> Trade the Markets tab for Assets and every ' +
+       'objection above disappears, at the price of Markets going from one tap to two - the cheapest ' +
+       'trade in this sketch.</li>' +
+       '</ul>';
+  h += '<h3>Where the rest land</h3>';
+  h += '<table><tr><th>Scheme</th><th>Verdict</th></tr>' +
+       '<tr><td><b>S1 - rename only</b></td><td>Not a competitor, a <b>prerequisite</b>. Every scheme ' +
+       'renames or removes that slot; S1 is the rename with nothing attached. If the hamburger lands, ' +
+       'S1 is moot - the slot ceases to exist.</td></tr>' +
+       '<tr><td><b>S3 - Compute</b></td><td>The most interesting idea here and the least ready. No ' +
+       'route, and the tab a new user would find emptiest. Keep the instinct - Compute is what makes ' +
+       'this not a generic wallet - and spend it on Home, where the panel already leads.</td></tr>' +
+       '<tr><td><b>S4 - Explore</b></td><td>Still the tidiest long-term answer and the one that ' +
+       'closes sketch 175 completely. But S7 gets most of it for free: News is the one item in ' +
+       'Explore a wallet user opens on a normal day, and it already has a route. Revisit Explore only ' +
+       'if Markets and Web turn out to be missed from the hamburger.</td></tr>' +
+       '<tr><td><b>S5 - Activity leaves</b></td><td>Rejected on the same day the Transactions page ' +
+       'took ownership of the ten transaction filters. It reads best on an empty wallet, which is ' +
+       'precisely the state a user leaves after five minutes.</td></tr>' +
+       '</table>';
+  h += '<h3>Three things S7 must ship with, or it is worse than today</h3>';
+  h += '<ul>' +
+       '<li><b>Make the Assets panel link <span class="mono">go</span> instead of ' +
+       '<span class="mono">push</span></b> (or delete it). <span class="mono">coins_screen.dart:409</span> ' +
+       'pushes /assets so the dashboard stays mounted; a tab would <span class="mono">go</span>. Two ' +
+       'entrances to one route with different back behaviour reads as randomness. The Transactions ' +
+       'panel already made this exact fix and says why in a comment.</li>' +
+       '<li><b>Give the zero states somewhere to go.</b> Three of four tabs are still blank for a new ' +
+       'user; News only means they are not all blank. The Assets empty state should carry the Buy ' +
+       'GNUS CTA - <span class="mono">/buy</span> exists, is inside the shell, and already defaults ' +
+       'to USD &rarr; GNUS with the user\'s own address filled in.</li>' +
+       '<li><b>Do not let the hamburger become the second More sheet.</b> It holds Markets, Web, ' +
+       'Feedback, Settings and Accounts - still three unlike kinds of thing, which is sketch 175\'s ' +
+       'original complaint, moved rather than answered. And Accounts is still duplicated by the ' +
+       'wallet control sitting next to it. 181 should absorb the identity row.</li>' +
+       '</ul>';
+  h += '<h3>What I am not proposing, and why</h3>';
+  h += '<ul>' +
+       '<li><b>Five tabs.</b> 171 settled four plus a dock and the dock is the fifth thing. Reopening ' +
+       'it re-litigates a decision made on device.</li>' +
+       '<li><b>Dropping Home.</b> Every dashboard section now hands off to a page, so Home does look ' +
+       'like a table of contents - but it is also the only surface carrying Compute, the chart, and ' +
+       'the wallet\'s own summary. Losing it would cost more than the slot is worth.</li>' +
+       '<li><b>Renaming Assets to Wallet or Portfolio.</b> Both fit (30.6, 41.3). "Assets" is what ' +
+       'the dashboard section, the route and the page header already say. Three names for one thing ' +
+       'is how the More sheet got the way it is.</li>' +
+       '</ul>';
+  return h;
+}
+
+};
+
+/* ============================ wiring ============================ */
+var TABS = [{id:'today', tab:'Today (shipping)'}]
+  .concat(SCHEMES.slice(1).map(function(s){ return {id:s.id, tab:s.tab}; }))
+  .concat([{id:'labels', tab:'Labels, fit and contrast'}, {id:'rec', tab:'Recommendation'}]);
+
+var tabsEl = document.getElementById('tabs');
+var panesEl = document.getElementById('panes');
+
+TABS.forEach(function(t, i){
+  var b = document.createElement('button');
+  b.className = 'tab' + (i === 0 ? ' on' : '');
+  b.textContent = t.tab;
+  b.setAttribute('data-pane', t.id);
+  tabsEl.appendChild(b);
+
+  var p = document.createElement('div');
+  p.className = 'pane' + (i === 0 ? ' on' : '');
+  p.id = 'pane-' + t.id;
+
+  if (t.id === 'labels' || t.id === 'rec') {
+    p.innerHTML = '<div class="notes" style="max-width:980px">' + NOTES[t.id]() + '</div>';
+  } else {
+    var s = BY_ID[t.id];
+    p.innerHTML = '<h2 style="font-size:19px;margin:4px 0 14px">' + s.name + '</h2>' +
+      '<div class="cols">' + phoneHTML(s.id) +
+      '<div class="notes">' + NOTES[t.id]() + '</div></div>';
+  }
+  panesEl.appendChild(p);
+});
+
+tabsEl.addEventListener('click', function(e){
+  var b = e.target.closest('.tab');
+  if (!b) { return; }
+  Array.prototype.forEach.call(tabsEl.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  Array.prototype.forEach.call(panesEl.children, function(x){ x.classList.remove('on'); });
+  document.getElementById('pane-' + b.getAttribute('data-pane')).classList.add('on');
+});
+
+document.getElementById('stateSeg').addEventListener('click', function(e){
+  var b = e.target.closest('button');
+  if (!b) { return; }
+  Array.prototype.forEach.call(this.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  STATE = b.getAttribute('data-st');
+  renderAll();
+});
+
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-go]');
+  if (!t) { return; }
+  var ph = t.closest('.phone');
+  if (!ph) { return; }
+  var scheme = ph.getAttribute('data-scheme');
+  var go = t.getAttribute('data-go');
+  if (go === 'menu') {
+    MENU[scheme] = true;
+  } else if (go === 'close') {
+    MENU[scheme] = false;
+  } else {
+    MENU[scheme] = false;
+    WHERE[scheme] = go;
+  }
+  renderPhone(ph);
+});
+
+renderAll();
+</script>
+</body>
+</html>

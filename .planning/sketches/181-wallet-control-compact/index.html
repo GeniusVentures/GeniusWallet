@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>181 - the wallet control is too wide: six ways to give the bar its pixels back</title>
+<style>
+:root{
+  --base:#0B0D12; --card:#0C0E14; --sunken:#06080C; --menu:#171A21;
+  --text:#FFFFFF; --text2:#8A8F9D; --onbrand:#000B18;
+  --border:rgba(255,255,255,.12); --border2:rgba(255,255,255,.24); --borderctl:rgba(255,255,255,.36);
+  --ok:#0AD89C; --err:#FF4D4D; --g1:#0AD89C; --g2:#0AAEE6; --brand:#14C8FF; --strong:#0AAEE6;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#07090D;color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1400px;margin:0 auto;padding:32px 24px 90px}
+h1{font-size:26px;margin:0 0 6px;font-weight:700}
+.sub{color:var(--text2);font-size:14px;line-height:1.65;margin:0 0 22px;max-width:1000px}
+.sub b{color:var(--text)}
+.quote{border-left:3px solid var(--border2);padding:2px 0 2px 14px;margin:0 0 14px;
+  color:#c9ccd4;font-size:14px;line-height:1.7;max-width:1000px}
+.quote b{color:var(--text)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.tab{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;
+  color:var(--text2);font-size:13px;font-weight:600;cursor:pointer}
+.tab:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.tab.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand);border-color:transparent}
+.statebar{display:flex;gap:10px;align-items:center;margin:16px 0 10px;font-size:13px;color:var(--text2);flex-wrap:wrap}
+.statebar .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--border);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--text2);font-size:12px;font-weight:600;
+  padding:6px 13px;border-radius:999px;cursor:pointer}
+.seg button.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:var(--onbrand)}
+.hint{font-size:12.5px;color:var(--text2);margin:0 0 20px;line-height:1.6;max-width:1000px}
+.hint b{color:#fff}
+.pane{display:none}
+.pane.on{display:block}
+.cols{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+.notes{flex:1;min-width:380px;max-width:720px}
+.notes h3{font-size:15px;margin:0 0 8px}
+.notes h3.sec{margin-top:24px}
+.notes p{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 12px}
+.notes p b{color:var(--text)}
+.notes li{font-size:13.5px;line-height:1.65;color:#c9ccd4;margin:0 0 6px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 16px}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.04);color:var(--text2);font-weight:600}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#cfd3dc}
+.good{color:var(--ok)} .bad{color:var(--err)} .warn{color:#FFC42E}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- phone, 1:1 at 390 x 844 ---------- */
+.phone{width:390px;height:844px;background:var(--base);border:1px solid var(--border2);
+  border-radius:38px;overflow:hidden;position:relative;flex:0 0 auto}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+.statusbar{height:54px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 26px 6px;font-size:12px;color:var(--text2)}
+
+/* the app bar: toolbarHeight 60, surfaceElevated, 1px borderStrong bottom */
+.apphead{height:60px;flex:0 0 auto;display:flex;align-items:center;
+  background:var(--card);border-bottom:1px solid var(--border2)}
+.ts{width:16px;flex:0 0 auto}            /* AppBar titleSpacing, charged BOTH sides */
+.acts{width:16px;flex:0 0 auto}          /* actions: a single SizedBox(width: space8) */
+.titlerow{flex:1;min-width:0;display:flex;align-items:center}  /* 390-16-16-16 = 342 */
+
+/* BrandLockup: cropped mark 29/38 x 28 = 21.37, space4 = 8, GNUS.AI Inter Bold 18 = 76.69 */
+.brand{display:flex;align-items:center;flex:0 0 auto;width:106.06px}
+.mark{width:21.37px;height:28px;border-radius:5px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  display:flex;align-items:center;justify-content:center;
+  color:var(--onbrand);font-weight:800;font-size:13px}
+.markgap{width:8px;flex:0 0 auto}
+.word{width:76.69px;flex:0 0 auto;font-size:18px;font-weight:700;line-height:1;
+  white-space:nowrap;letter-spacing:-.035em;overflow:visible}
+.grow{flex:1;min-width:0}
+
+/* the control slot, right-aligned inside the title row */
+.slotright{flex:1;min-width:0;display:flex;justify-content:flex-end;align-items:center}
+.ctl{flex:0 0 auto;display:flex;align-items:center;cursor:pointer;user-select:none;
+  background:var(--menu);border:1px solid var(--borderctl);border-radius:999px;height:44px}
+.ctl:hover{background:#1d212a}
+.ctl.plain{background:transparent;border-color:transparent}
+.pad3{width:6px;flex:0 0 auto}
+.pad4{width:8px;flex:0 0 auto}
+.pad2{width:4px;flex:0 0 auto}
+
+/* avatar: CircleAvatar(radius: size/2 - 2) on brandPrimaryStrong #0AAEE6 */
+.av{width:32px;height:32px;flex:0 0 auto;position:relative}
+.av .disc{position:absolute;inset:2px;border-radius:999px;background:var(--strong);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--onbrand);font-weight:800;font-size:10px;letter-spacing:-.02em;overflow:hidden}
+.av .disc.mono{font-size:12px;letter-spacing:0}
+.av.none .disc{background:var(--strong)}
+.badge{position:absolute;right:0;bottom:0;width:16px;height:16px;border-radius:999px;
+  background:var(--card);display:flex;align-items:center;justify-content:center}
+.badge i{width:12px;height:12px;border-radius:999px;display:flex;align-items:center;
+  justify-content:center;font-size:6px;font-weight:800;font-style:normal}
+/* letter-spacing calibrates the fallback system font back onto Inter's measured
+   advances: 'Main wallet' is 77.05 in Inter SemiBold 14 and about 82 in SF, so
+   without this a name that fits in the shipped app would falsely ellipsize here. */
+.nm{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:-.03em}
+.chainnm{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:-.03em}
+.caret{color:var(--text2);font-size:12px;flex:0 0 auto;width:18px;text-align:center}
+.addr{font-size:12px;color:var(--text2);font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.burger{width:44px;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px}
+.burger span{display:block;width:18px;height:2px;border-radius:2px;background:var(--text)}
+.gap6{width:12px;flex:0 0 auto}
+.ruler{position:absolute;left:0;right:0;height:0;pointer-events:none}
+.measure{position:absolute;top:116px;height:14px;border-left:1px solid rgba(255,196,46,.9);
+  border-right:1px solid rgba(255,196,46,.9);pointer-events:none;z-index:4}
+.measure b{position:absolute;top:14px;right:0;font-size:10px;color:#FFC42E;font-weight:700;
+  white-space:nowrap;background:rgba(0,0,0,.55);padding:1px 4px;border-radius:3px}
+.measure i{position:absolute;top:6px;left:0;right:0;height:1px;background:rgba(255,196,46,.55)}
+
+.body{flex:1;overflow-y:auto;padding:12px 6px 130px}
+.body::-webkit-scrollbar{width:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;margin:0 0 12px}
+.sect{min-height:44px;display:flex;align-items:center;gap:10px;padding:2px 8px 0}
+.stitle{font-size:18px;line-height:24px;font-weight:600;flex:0 0 auto}
+.kick{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);font-weight:600}
+.spacer{flex:1}
+.vall{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;flex:0 0 auto;
+  background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.row{height:68px;display:flex;align-items:center;gap:12px;padding:0 8px}
+.ico{width:38px;height:38px;border-radius:999px;flex:0 0 auto;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;color:var(--onbrand)}
+.rmid{flex:1;min-width:0}
+.rname{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsub{font-size:12.5px;color:var(--text2);margin-top:2px}
+.rend{text-align:right;flex:0 0 auto}
+.rfiat{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.ramt{font-size:12.5px;color:var(--text2);font-variant-numeric:tabular-nums;margin-top:2px}
+
+/* bottom bar: 60px painted, 64px dock, 26px overhang, 84px slot */
+.btm{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--card);
+  border-top:1px solid var(--border)}
+.tabsrow{display:flex;height:60px;align-items:center}
+.slot{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--text2)}
+.slot.act{background:linear-gradient(90deg,var(--g1),var(--g2));-webkit-background-clip:text;
+  background-clip:text;color:transparent;font-weight:600}
+.slot.freed{color:#FFC42E}
+.dot{width:22px;height:22px;border-radius:6px;background:currentColor;opacity:.85}
+.dock{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;width:64px;height:64px;
+  border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2));
+  display:flex;align-items:center;justify-content:center;color:var(--onbrand);font-weight:700;font-size:12px}
+
+/* sheet */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:74%;background:var(--menu);
+  border-top-left-radius:20px;border-top-right-radius:20px;z-index:6;display:flex;flex-direction:column;
+  border-top:1px solid var(--border)}
+.grab{width:36px;height:4px;border-radius:999px;background:var(--border2);margin:8px auto 4px;flex:0 0 auto}
+.shead{padding:6px 20px 10px;font-size:16px;font-weight:600;flex:0 0 auto;display:flex;align-items:center}
+.shead .x{margin-left:auto;color:var(--text2);font-size:13px;cursor:pointer;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.shead .x:hover{background:rgba(255,255,255,.07)}
+.sbody{overflow-y:auto;padding:0 20px 22px}
+.sbody::-webkit-scrollbar{width:0}
+.secthead{font-size:13px;font-weight:600;margin:12px 0 2px}
+.secthead.first{margin-top:2px}
+.sectcap{font-size:11.5px;line-height:1.5;color:var(--text2);margin:0 0 8px}
+.srow{min-height:56px;display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:12px;
+  border:1px solid transparent;cursor:pointer;margin-bottom:4px}
+.srow:hover{background:rgba(255,255,255,.05)}
+.srow.on{background:rgba(20,200,255,.08);border-color:rgba(20,200,255,.45)}
+.srow .mid{flex:1;min-width:0}
+.srow .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .s{font-size:11.5px;color:var(--text2);font-family:ui-monospace,Menlo,monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .ck{color:var(--brand);font-size:14px;flex:0 0 auto}
+.netstrip{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px}
+.netstrip::-webkit-scrollbar{height:0}
+.nchip{height:44px;flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:0 12px;
+  border-radius:999px;border:1px solid var(--borderctl);font-size:13px;font-weight:600;cursor:pointer;
+  background:var(--menu)}
+.nchip:hover{background:#1d212a}
+.nchip.on{border-color:rgba(20,200,255,.7);background:rgba(20,200,255,.12)}
+.glyph{border-radius:999px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-style:normal}
+.note{font-size:12px;color:var(--text2);border:1px dashed var(--border);border-radius:10px;
+  padding:10px 12px;margin:0 0 8px;line-height:1.5}
+
+.caption{font-size:12px;color:var(--text2);margin:10px 0 0;width:390px;line-height:1.6}
+.caption .w{display:block;font-size:15px;font-weight:700;color:#fff;margin-bottom:3px;
+  font-variant-numeric:tabular-nums}
+.caption .w em{font-style:normal;color:#FFC42E}
+.flag{border-left:3px solid #FFC42E;background:rgba(255,196,46,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#e6e2d4}
+.flag b{color:#FFC42E}
+.rec{border-left:3px solid var(--g1);background:rgba(10,216,156,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#d6efe7}
+.rec b{color:var(--ok)}
+.rej{border-left:3px solid var(--err);background:rgba(255,77,77,.07);padding:10px 12px;margin:0 0 14px;
+  font-size:13px;line-height:1.62;color:#f2d9d9}
+.rej b{color:var(--err)}
+.proof{border:1px solid var(--border);border-radius:12px;padding:12px;margin:0 0 14px;background:var(--card)}
+.proof .ttl{font-size:12px;font-weight:700;margin:0 0 10px;color:#fff}
+.proofrow{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+.proofone{text-align:center}
+.proofone .lab{font-size:10.5px;color:var(--text2);margin-top:6px;max-width:96px;line-height:1.35}
+.proofhold{display:flex;justify-content:center}
+.bars{margin:0 0 16px}
+.barrow{display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:12px}
+.barrow .k{width:150px;flex:0 0 auto;color:#c9ccd4}
+.barrow .t{height:16px;border-radius:4px;background:linear-gradient(90deg,var(--g1),var(--g2));flex:0 0 auto}
+.barrow .t.now{background:linear-gradient(90deg,#FF4D4D,#FF8A4D)}
+.barrow .v{font-size:11.5px;color:var(--text2);font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>181 - the wallet control is too wide: six ways to give the bar its pixels back</h1>
+
+  <p class="quote">
+    Jakub, 2026-08-07, on device: <b>"nadal bym rozwazyl jak zaprezentowac ten wallet po prawej stronie,
+    bo nie do konca mi sie on podoba. Przygotuj 4-5 designow jak bys to ogarnal. Czy moze ikonke walleta
+    a potem wszystko sie rozwija, czy jakas bardziej krotsza forme, bo zajmuje to teraz polowe ekranu, co
+    mi sie nie do konca podoba."</b>
+  </p>
+  <p class="quote">
+    Jakub, later the same day, a new direction: <b>"sprobuj w prawym gornym rogu zrobic ikonke walletu,
+    czy cos podobnego w krotszej formie, i obok tego hamburger menu. I wtedy, zamiast 'more' na samym
+    dole, moglibysmy dac na przyklad 'news'."</b>
+  </p>
+
+  <p class="sub">
+    <b>The complaint is width, and it is arithmetically correct.</b> At 390pt the shipped pill occupies
+    up to <b>223.94 px</b> - <b>57.4% of the bar</b>, and 65.5% of the 342 px the title Row actually
+    gets. Every scheme below is judged first on <b>how many pixels it occupies at 390pt</b>, printed
+    under its phone, and then on what you can still tell without tapping. Tapping any control opens the
+    sheet it claims to open.
+  </p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="statebar">
+    <span class="lbl">Wallet</span>
+    <span class="seg" id="nameSeg">
+      <button data-st="short" class="on">SHORT NAME</button>
+      <button data-st="sdk">SUPER GENIUS WALLET 1</button>
+      <button data-st="long">VERY LONG NAME</button>
+      <button data-st="addr">ADDRESS-SHAPED NAME</button>
+      <button data-st="none">NO WALLET</button>
+    </span>
+    <span class="lbl">Wallet icon</span>
+    <span class="seg" id="faceSeg">
+      <button data-fc="coin" class="on">COIN AVATAR (ships)</button>
+      <button data-fc="mono">MONOGRAM (scheme E)</button>
+    </span>
+    <span class="lbl">Width ruler</span>
+    <span class="seg" id="rulerSeg">
+      <button data-rl="on" class="on">SHOW</button>
+      <button data-rl="off">HIDE</button>
+    </span>
+  </div>
+  <p class="hint">
+    <b>ADDRESS-SHAPED NAME</b> is the defect case: a wallet saved with an address typed into the
+    free-text name field at <code>import_security_screen.dart:236</code>.
+    <b>SUPER GENIUS WALLET 1</b> is the name the app generates for itself at
+    <code>app_bloc.dart:616</code>, and it is the state that decides between the schemes - it is the one
+    a user actually has two of. The <b>wallet icon</b> toggle is orthogonal to the scheme: it swaps
+    what is drawn inside the 32 px circle, and it composes with A, D and F. The mark is drawn from the
+    brand gradient at the true cropped size (21.37 x 28); the real asset is
+    <code>geniusappbarlogo.png</code> and it drops in with no layout change.
+  </p>
+
+  <div id="panes"></div>
+</div>
+
+<script>
+/* ============================== measured constants ==============================
+   Every width below was derived by walking the bundled Inter TTF's hmtx advance
+   table (assets/fonts/Inter-*.ttf), not estimated.
+
+     AppBar charges titleSpacing on BOTH sides - NavigationToolbar lays the middle
+     slot at width - leading - trailing - middleSpacing * 2 - so at 390pt:
+       title Row = 390 - 0 - 16 (actions) - 2*16 (titleSpacing) = 342.00
+     BrandLockup at mark 28 / wordmark 18:
+       mark 29/38 * 28 = 21.37 + space4 8 + 'GNUS.AI' Inter Bold 18 = 76.69  ->  106.06
+     Remainder for the control = 342 - 106.06 - space6 12 = 223.94
+     kWalletPillMaxWidth is 236, so the cap NO LONGER BINDS at 390pt.
+=================================================================================== */
+
+var BAR       = 390;
+var TITLEROW  = 342.00;
+var LOCKUP    = 106.06;
+var REMAINDER = 223.94;
+
+/* Inter SemiBold 14 advances, measured. */
+var NAMEW = {
+  'Main wallet': 77.05,
+  'Super Genius Wallet 1': 146.88,
+  'Super Genius Wallet 2': 146.88,
+  'Jakub imported Ledger Nano X hardware wallet': 321.87,
+  '0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21': 345.80,
+  'No wallet': 63.02,
+  'Savings': 54.04
+};
+
+var WALLETS = {
+  short: {name:'Main wallet',  addr:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21', sym:'ETH'},
+  sdk:   {name:'Super Genius Wallet 1', addr:'0x11c8ff41de88a0f5c3d7e6b1a4928c0d3f6a01', sym:'ETH'},
+  long:  {name:'Jakub imported Ledger Nano X hardware wallet', addr:'0x5be21a41de88a0f5c3d7e6b1a4928c0d3f6c07', sym:'ETH'},
+  addr:  {name:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21',   addr:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21', sym:'ETH'},
+  none:  null
+};
+
+/* The real network list, verbatim from assets/json/networks/networks.json.
+   Widths are Inter SemiBold 13, measured. */
+var NETWORKS = [
+  {id:'eth',   name:'Ethereum',     sym:'ETH',   c:'#627EEA', ab:'E',  w:60.62,  icon:'assets/images/crypto/eth.png'},
+  {id:'matic', name:'Polygon',      sym:'MATIC', c:'#8247E5', ab:'P',  w:51.35,  icon:'assets/images/crypto/matic.png'},
+  {id:'gnus',  name:'Super Genius', sym:'GNUS',  c:'#0AD89C', ab:'G',  w:84.53,  icon:'assets/images/crypto/sgnus.png'},
+  {id:'bnb',   name:'BNB',          sym:'BNB',   c:'#F3BA2F', ab:'B',  w:27.01,  icon:'assets/images/crypto/bnb.png'},
+  {id:'base',  name:'Base',         sym:'BASE',  c:'#0052FF', ab:'B',  w:30.86,  icon:'assets/images/crypto/base.png'}
+];
+
+var SDK_WALLETS = [
+  {name:'Super Genius Wallet 1', addr:'0x11c8ff41de88a0f5c3d7e6b1a4928c0d3f6a01', sym:'ETH'},
+  {name:'Super Genius Wallet 2', addr:'0x22d89c41de88a0f5c3d7e6b1a4928c0d3f6b02', sym:'ETH'}
+];
+
+var MORE_ROWS = [
+  {t:'News',     s:'Market and project headlines'},
+  {t:'Web',      s:'The in-app browser'},
+  {t:'Feedback', s:'Tell us what is broken'},
+  {t:'Settings', s:'Currency, security, node'}
+];
+
+/* per-scheme UI state */
+var NAME_ST  = 'short';
+var FACE_ST  = 'coin';
+var RULER_ST = 'on';
+var NET      = {};    /* scheme -> network id */
+var SHEET    = {};    /* scheme -> null | 'wallet' | 'more' */
+var EXPAND   = {};    /* scheme -> bool, scheme D only */
+
+function wal(){ return WALLETS[NAME_ST]; }
+function net(scheme){
+  var id = NET[scheme] || 'eth';
+  for (var i=0;i<NETWORKS.length;i++){ if (NETWORKS[i].id === id) return NETWORKS[i]; }
+  return NETWORKS[0];
+}
+function esc(t){
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function nameW(n){ return NAMEW[n] || (n.length * 7.4); }
+
+/* Mirrors WalletUtils.getAddressForDisplay - first 6, ellipsis, last 4. */
+function shortAddr(a){
+  if (!a || a.length < 6) return a || '';
+  return a.slice(0,6) + '...' + a.slice(-4);
+}
+
+/* ---------- scheme E's monogram rule, stated once and implemented once ----------
+   1. name is address-shaped           -> the two chars after 0x, upper '0x7a3f...'            -> 7A
+   2. name ends in 1-2 digits          -> first letter + those digits   'Super Genius Wallet 1' -> S1
+   3. two or more words                -> the two initials              'Main wallet'          -> MW
+   4. one word                         -> the first two letters         'Savings'              -> SA
+   Deterministic, needs no storage, and never prints an address.
+
+   THE ORDER IS LOAD-BEARING and this was a bug on the first pass. An address ends
+   in hex, which is very often two digits, so rule 2 fires first and
+   '0x7a3f...3f6e21' becomes '21' - an address fragment in a header that is not
+   supposed to be able to print one. Address test FIRST.                          */
+function monogram(name){
+  if (!name) return '+';
+  if (/^0x[0-9a-fA-F]{20,}$/.test(name)) return name.slice(2,4).toUpperCase();
+  var m = name.match(/(\d{1,2})$/);
+  if (m) return (name.charAt(0) + m[1]).toUpperCase();
+  var parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  return name.slice(0,2).toUpperCase();
+}
+
+/* ============================== fragments ============================== */
+
+function brandBlock(){
+  return '<div class="brand"><div class="mark">G</div><div class="markgap"></div>' +
+         '<div class="word">GNUS.AI</div></div>';
+}
+
+function glyph(n, size, fs){
+  /* textOnBrand on BNB is 11.19:1 and on Super Genius 10.66:1; white on both is
+     under 2:1, so the glyph label flips with the fill's luminance. */
+  var dark = (n.id === 'bnb' || n.id === 'gnus');
+  return '<i class="glyph" style="background:' + n.c + ';width:' + size + 'px;height:' + size +
+         'px;font-size:' + fs + 'px;color:' + (dark ? '#000B18' : '#FFFFFF') + '">' + n.ab + '</i>';
+}
+
+/* The 32px AccountAvatar. In COIN mode it is exactly what ships:
+   assets/images/crypto/{currencySymbol}.png on brandPrimaryStrong #0AAEE6.
+   In MONO mode the coin image is replaced by the monogram. */
+function avatarFor(w, n, withBadge, faceOverride){
+  var face = faceOverride || FACE_ST;
+  var inner;
+  if (!w) {
+    inner = '<div class="disc">+</div>';
+  } else if (face === 'mono') {
+    inner = '<div class="disc mono">' + esc(monogram(w.name)) + '</div>';
+  } else {
+    inner = '<div class="disc">' + esc(w.sym) + '</div>';
+  }
+  var badge = '';
+  if (withBadge && n) {
+    badge = '<div class="badge">' + glyph(n, 12, 6) + '</div>';
+  }
+  return '<div class="av' + (w ? '' : ' none') + '">' + inner + badge + '</div>';
+}
+
+function avatar(scheme, withBadge, faceOverride){
+  return avatarFor(wal(), net(scheme), withBadge, faceOverride);
+}
+
+/* ---------- the seven headers ---------- */
+
+function bar(inner){
+  return '<div class="apphead"><div class="ts"></div><div class="titlerow">' + brandBlock() +
+         inner + '</div><div class="ts"></div><div class="acts"></div></div>';
+}
+
+/* NOW - the shipped WalletPill. space3 + avatar32 + space4 + name + space2 + caret18 + space4,
+   Expanded/Align right, capped by whatever is left (223.94), not by the declared 236. */
+function headNow(scheme){
+  var w = wal();
+  var intrinsic = 76 + nameW(w ? w.name : 'No wallet');
+  var width = Math.min(intrinsic, REMAINDER);
+  var s = '<div class="slotright"><div class="ctl" data-open="wallet" style="width:' + width + 'px">';
+  s += '<div class="pad3"></div>' + avatar(scheme, true);
+  s += '<div class="pad4"></div>';
+  s += '<div class="nm" style="flex:1;min-width:0">' + esc(w ? w.name : 'No wallet') + '</div>';
+  s += '<div class="pad2"></div><div class="caret">&#9662;</div><div class="pad4"></div>';
+  s += '</div></div>';
+  return bar(s);
+}
+
+/* A - a bare 44x44 stadium holding the 32px avatar. No text at all. */
+function headA(scheme){
+  var s = '<div class="slotright"><div class="ctl" data-open="wallet" style="width:44px;' +
+          'justify-content:center">' + avatar(scheme, true) + '</div></div>';
+  return bar(s);
+}
+
+/* B - the short pill: the name survives, clamped to a fixed 84px column. No caret. 138 fixed. */
+function headB(scheme){
+  var w = wal();
+  var s = '<div class="slotright"><div class="ctl" data-open="wallet" style="width:138px">';
+  s += '<div class="pad3"></div>' + avatar(scheme, true) + '<div class="pad4"></div>';
+  s += '<div class="nm" style="width:84px;flex:0 0 auto">' + esc(w ? w.name : 'No wallet') + '</div>';
+  s += '<div class="pad4"></div></div></div>';
+  return bar(s);
+}
+
+/* C - the chain survives instead of the wallet: avatar + the network NAME, clamped to 88. 142 fixed. */
+function headC(scheme){
+  var n = net(scheme);
+  var s = '<div class="slotright"><div class="ctl" data-open="wallet" style="width:142px">';
+  s += '<div class="pad3"></div>' + avatar(scheme, false) + '<div class="pad4"></div>';
+  s += '<div class="chainnm" style="width:88px;flex:0 0 auto">' + esc(n.name) + '</div>';
+  s += '<div class="pad4"></div></div></div>';
+  return bar(s);
+}
+
+/* D - collapsed to 44, expands in place across the whole title row, then the sheet follows. */
+function headD(scheme){
+  var w = wal(), n = net(scheme);
+  if (!EXPAND[scheme]) {
+    return bar('<div class="slotright"><div class="ctl" data-expand="1" style="width:44px;' +
+               'justify-content:center">' + avatar(scheme, true) + '</div></div>');
+  }
+  var s = '<div class="slotright" style="position:absolute;left:16px;right:32px">';
+  s += '<div class="ctl" data-open="wallet" style="width:342px">';
+  s += '<div class="pad3"></div>' + avatar(scheme, true) + '<div class="pad4"></div>';
+  s += '<div style="flex:1;min-width:0">' +
+       '<div class="nm">' + esc(w ? w.name : 'No wallet') + '</div>' +
+       '<div class="addr">' + (w ? shortAddr(w.addr) + ' &middot; ' + esc(n.name) : 'Tap to add') +
+       '</div></div>';
+  s += '<div class="pad2"></div><div class="caret">&#9662;</div><div class="pad4"></div>';
+  s += '</div></div>';
+  return '<div class="apphead" style="position:relative"><div class="ts"></div>' +
+         '<div class="titlerow" style="opacity:.12">' + brandBlock() + '</div>' +
+         '<div class="ts"></div><div class="acts"></div>' + s + '</div>';
+}
+
+/* E - 44x44, but the circle carries a 2-character monogram. Identity at zero width. */
+function headE(scheme){
+  var s = '<div class="slotright"><div class="ctl" data-open="wallet" style="width:44px;' +
+          'justify-content:center">' + avatar(scheme, true, 'mono') + '</div></div>';
+  return bar(s);
+}
+
+/* F - Jakub's newest: the wallet icon plus a hamburger. Both stay inside `title`, not `actions`. */
+function headF(scheme){
+  var s = '<div class="slotright">';
+  s += '<div class="ctl" data-open="wallet" style="width:44px;justify-content:center">' +
+       avatar(scheme, true) + '</div>';
+  s += '<div class="gap6"></div>';
+  s += '<div class="ctl burger" data-open="more"><span></span><span></span><span></span></div>';
+  s += '</div>';
+  return bar(s);
+}
+
+var HEADS = {now:headNow, A:headA, B:headB, C:headC, D:headD, E:headE, F:headF};
+
+/* ---------- the width ruler drawn on the phone itself ---------- */
+
+function rulerFor(scheme){
+  if (RULER_ST !== 'on') return '';
+  var wpx = ctlWidth(scheme);
+  if (scheme === 'D' && EXPAND[scheme]) wpx = 342;
+  var right = 32;                       /* actions 16 + titleSpacing 16 */
+  return '<div class="measure" style="right:' + right + 'px;width:' + wpx + 'px">' +
+         '<i></i><b>' + wpx.toFixed(2) + ' px &middot; ' + (100*wpx/BAR).toFixed(1) + '% of the bar</b>' +
+         '</div>';
+}
+
+function ctlWidth(scheme){
+  var w = wal();
+  if (scheme === 'now') return Math.min(76 + nameW(w ? w.name : 'No wallet'), REMAINDER);
+  if (scheme === 'B') return 138;
+  if (scheme === 'C') return 142;
+  if (scheme === 'F') return 100;       /* 44 + space6 12 + 44 */
+  return 44;                            /* A, D collapsed, E */
+}
+
+/* ---------- body ---------- */
+
+var COINS = [
+  {sym:'GNUS', name:'Genius Tokens', amt:'12,480.0000', fiat:'$4,867.20', px:'$0.39',      chg:'+2.41%', up:1, c1:'#0AD89C', c2:'#0AAEE6'},
+  {sym:'ETH',  name:'Ethereum',      amt:'1.2043',      fiat:'$3,911.11', px:'$3,248.50',  chg:'+1.12%', up:1, c1:'#8A8F9D', c2:'#5b6070'},
+  {sym:'BTC',  name:'Bitcoin',       amt:'0.0412',      fiat:'$2,884.00', px:'$70,000.00', chg:'-0.42%', up:0, c1:'#F7931A', c2:'#c9761a'}
+];
+
+function coinRows(){
+  return COINS.map(function(r){
+    return '<div class="row">' +
+      '<div class="ico" style="background:linear-gradient(135deg,' + r.c1 + ',' + r.c2 + ')">' +
+        r.sym.slice(0,2) + '</div>' +
+      '<div class="rmid"><div class="rname">' + r.name + '</div>' +
+      '<div class="rsub">' + r.px + ' <span class="' + (r.up ? 'good' : 'bad') + '">' + r.chg +
+      '</span></div></div>' +
+      '<div class="rend"><div class="rfiat">' + r.fiat + '</div>' +
+      '<div class="ramt">' + r.amt + ' ' + r.sym + '</div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function homeBody(){
+  var s = '<div class="body">';
+  s += '<div class="card"><div class="sect"><div class="stitle">Assets</div>' +
+       '<div class="spacer"></div><span class="vall">VIEW ALL &rarr;</span></div>';
+  s += coinRows();
+  s += '</div>';
+  s += '<div class="card"><div class="sect"><div class="stitle">Transactions</div>' +
+       '<div class="spacer"></div><span class="vall">VIEW ALL &rarr;</span></div>' +
+       '<div style="height:16px"></div>' +
+       '<div style="padding:0 8px;font-size:12.5px;color:var(--text2)">Today</div>' +
+       '<div class="row"><div class="ico" style="background:#171A21;color:#8A8F9D">TX</div>' +
+       '<div class="rmid"><div class="rname">Ethereum</div>' +
+       '<div class="rsub">To 0x91b2...44de</div></div>' +
+       '<div class="rend"><div class="rfiat">-0.2100 ETH</div></div></div>';
+  s += '</div></div>';
+  return s;
+}
+
+function bottomBar(scheme){
+  var fourth = (scheme === 'F')
+    ? '<div class="slot freed"><div class="dot"></div>News</div>'
+    : '<div class="slot"><div class="dot"></div>More</div>';
+  return '<div class="btm"><div class="tabsrow">' +
+    '<div class="slot act"><div class="dot"></div>Home</div>' +
+    '<div class="slot"><div class="dot"></div>Markets</div>' +
+    '<div style="width:84px"></div>' +
+    '<div class="slot"><div class="dot"></div>Activity</div>' +
+    fourth +
+    '</div></div><div class="dock">SWAP</div>';
+}
+
+/* ---------- sheets ---------- */
+
+function netStrip(scheme){
+  var cur = net(scheme).id;
+  return '<div class="netstrip">' + NETWORKS.map(function(n){
+    return '<div class="nchip' + (n.id === cur ? ' on' : '') + '" data-net="' + n.id + '">' +
+      glyph(n, 20, 8) + '<span>' + n.name + '</span></div>';
+  }).join('') + '</div>';
+}
+
+function accountRows(scheme){
+  var w = wal(), n = net(scheme);
+  var s = '<div class="secthead first">SDK Accounts</div>';
+  s += '<div class="sectcap">Node accounts that earn minions for sharing your GPU. Balances come from ' +
+       'the SuperGenius node, and these accounts cannot be renamed or deleted.</div>';
+  s += SDK_WALLETS.map(function(x){
+    var sel = (w && w.name === x.name);
+    return '<div class="srow' + (sel ? ' on' : '') + '">' + avatarFor(x, n, false) +
+      '<div class="mid"><div class="t">' + esc(x.name) + '</div>' +
+      '<div class="s">' + shortAddr(x.addr) + '</div></div>' +
+      (sel ? '<div class="ck">&#10003;</div>' : '') + '</div>';
+  }).join('');
+  s += '<div class="secthead">Your Accounts</div>';
+  s += '<div class="sectcap">Wallets you created or imported. Used for swaps, sends and everything ' +
+       'else on-chain.</div>';
+  if (!w) {
+    s += '<div class="note">No wallets yet.</div>';
+  } else {
+    var isSdk = (w.name.indexOf('Super Genius Wallet') === 0);
+    s += '<div class="srow' + (isSdk ? '' : ' on') + '">' + avatarFor(w, n, false) +
+      '<div class="mid"><div class="t">' + esc(w.name) + '</div>' +
+      '<div class="s">' + shortAddr(w.addr) + '</div></div>' +
+      (isSdk ? '' : '<div class="ck">&#10003;</div>') + '</div>';
+    s += '<div class="srow">' +
+      avatarFor({name:'Savings', addr:'0x5be21a41de88a0f5c3d7e6b1a4928c0d3f6c07', sym:'ETH'}, n, false) +
+      '<div class="mid"><div class="t">Savings</div>' +
+      '<div class="s">' + shortAddr('0x5be21a41de88a0f5c3d7e6b1a4928c0d3f6c07') + '</div></div></div>';
+  }
+  return s;
+}
+
+function moreRows(scheme){
+  var s = '';
+  s += '<div class="sectcap">Everything the four-slot bottom bar cannot hold. In scheme F this is what ' +
+       'the hamburger opens, and the <b>Accounts</b> row that lives here today is deleted - the wallet ' +
+       'icon 12 px to its left already owns that job.</div>';
+  s += MORE_ROWS.map(function(r){
+    var freed = (scheme === 'F' && r.t === 'News');
+    return '<div class="srow"' + (freed ? ' style="opacity:.45"' : '') + '>' +
+      '<div class="av" style="width:32px;height:32px"><div class="disc" ' +
+      'style="background:#232830;color:#8A8F9D;font-size:9px">' + r.t.slice(0,2).toUpperCase() +
+      '</div></div><div class="mid"><div class="t">' + r.t + (freed ? ' - moved to the bottom bar' : '') +
+      '</div><div class="s" style="font-family:inherit">' + r.s + '</div></div></div>';
+  }).join('');
+  s += '<div class="note"><b>Accounts</b> - <span style="text-decoration:line-through">SDK accounts ' +
+       'and your wallets</span>. Removed in F. Two adjacent icons that both reach the accounts drawer ' +
+       'is the discoverability problem this scheme has to avoid.</div>';
+  return s;
+}
+
+function sheetHTML(scheme, kind){
+  var title = (kind === 'more') ? 'Menu' : 'Wallet and network';
+  var s = '<div class="scrim" data-close="1"></div><div class="sheet">';
+  s += '<div class="grab"></div>';
+  s += '<div class="shead">' + title + '<span class="x" data-close="1">&#10005;</span></div>';
+  s += '<div class="sbody">';
+  if (kind === 'more') {
+    s += moreRows(scheme);
+  } else {
+    s += '<div class="secthead first">Network</div>';
+    s += '<div class="sectcap">Which chain the balances below are read from.</div>';
+    s += netStrip(scheme);
+    s += accountRows(scheme);
+  }
+  s += '</div></div>';
+  return s;
+}
+
+/* ============================== screens ============================== */
+
+function screenHTML(scheme){
+  var s = '<div class="statusbar"><span>9:41</span><span>5G &nbsp; 100%</span></div>';
+  s += HEADS[scheme](scheme);
+  s += rulerFor(scheme);
+  s += homeBody();
+  s += bottomBar(scheme);
+  var k = SHEET[scheme];
+  if (k) s += sheetHTML(scheme, k);
+  return s;
+}
+
+/* ============================== the proof block ============================== */
+
+/* Three wallets, all on Ethereum. Under COIN AVATAR all three render the SAME
+   file - assets/images/crypto/eth.png on brandPrimaryStrong - because
+   AccountAvatar keys off wallet.currencySymbol, not off the wallet. */
+var PROOF = [
+  {name:'Main wallet',           addr:'0x7a3f9b2c41de88a0f5c3d7e6b1a4928c0d3f6e21', sym:'ETH'},
+  {name:'Super Genius Wallet 1', addr:'0x11c8ff41de88a0f5c3d7e6b1a4928c0d3f6a01',  sym:'ETH'},
+  {name:'Super Genius Wallet 2', addr:'0x22d89c41de88a0f5c3d7e6b1a4928c0d3f6b02',  sym:'ETH'}
+];
+
+function proofBlock(){
+  var n = NETWORKS[0];
+  var h = '<div class="proof"><div class="ttl">Three wallets, all on Ethereum, drawn at the real ' +
+          '44 px. Flip the WALLET ICON toggle above.</div><div class="proofrow">';
+  h += PROOF.map(function(p){
+    return '<div class="proofone"><div class="proofhold"><div class="ctl" style="width:44px;' +
+      'justify-content:center;cursor:default">' + avatarFor(p, n, true) + '</div></div>' +
+      '<div class="lab">' + esc(p.name) + '</div></div>';
+  }).join('');
+  h += '</div><p style="font-size:12px;color:#c9ccd4;line-height:1.6;margin:12px 0 0">' +
+       'Under <b style="color:#fff">COIN AVATAR</b> these three are the same picture. ' +
+       '<code>AccountAvatar</code> paints <code>brandPrimaryStrong</code> and then ' +
+       '<code>assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png</code>, so the circle is ' +
+       'keyed to the <i>currency</i>, never to the wallet. Under <b style="color:#fff">MONOGRAM</b> ' +
+       'they read MW / S1 / S2.</p></div>';
+  return h;
+}
+
+/* ============================== the width chart ============================== */
+
+function widthChart(){
+  var rows = [
+    {k:'Now - the shipped pill', v:223.94, now:1},
+    {k:'C - chain named',        v:142},
+    {k:'B - short pill',         v:138},
+    {k:'F - icon + hamburger',   v:100},
+    {k:'A / D / E - icon only',  v:44}
+  ];
+  var h = '<div class="bars">';
+  h += rows.map(function(r){
+    return '<div class="barrow"><span class="k">' + r.k + '</span>' +
+      '<span class="t' + (r.now ? ' now' : '') + '" style="width:' + (r.v * 0.9) + 'px"></span>' +
+      '<span class="v">' + r.v.toFixed(2) + ' px &middot; ' + (100*r.v/BAR).toFixed(1) + '%</span></div>';
+  }).join('');
+  h += '</div>';
+  return h;
+}
+
+/* ============================== copy ============================== */
+
+var SCHEMES = [
+  {
+    id:'now', tab:'Now', title:'What ships today - the WalletPill',
+    width:'<b>139.02 to 223.94 px</b>, and it is the wallet\'s name that decides which. The pill is ' +
+      '<code>Expanded(Align(centerRight, ConstrainedBox(maxWidth: 236, child: WalletPill)))</code> over ' +
+      'a <code>Row(mainAxisSize: min)</code>, so it takes <code>76 + nameWidth</code> up to whatever the ' +
+      'title Row has left. That left-over is <b>223.94</b>, not 236 - the cap stopped binding when the ' +
+      'lockup grew to mark 28 / wordmark 18 this morning. <b>57.4% of the bar</b> at the top end.',
+    know:'Which wallet, by name, until the name ellipsizes. Which chain, by a 16 px badge - a ' +
+      'change-detector, not an identifier.',
+    taps:'Wallet <b>2</b> (pill, row). Network <b>2</b> (pill, chip). This is the baseline every ' +
+      'scheme below is measured against.',
+    defect:'<b class="warn">Halved already.</b> One line, name only - the address line went when the ' +
+      'header was rebuilt this morning. An address-shaped name still prints once, as an odd name.',
+    target:'44 tall, 139 to 224 wide. Comfortably over the floor, and that is the problem: it is over ' +
+      'the floor by 3 to 5 times.',
+    ident:'<code>surfaceMenu</code> fill at <b>1.11:1</b> against the bar, so the fill identifies ' +
+      'nothing. The <code>borderControl</code> stadium carries WCAG 1.4.11 alone at <b>3.30:1</b>.',
+    cost:'It answers three questions and one of them twice. On the most ordinary configuration in the ' +
+      'app - an ETH wallet on Ethereum - the 32 px circle draws <code>eth.png</code> and the 16 px ' +
+      'badge draws <code>eth.png</code>, the same file at two sizes, 3 px apart. That is 224 px spent ' +
+      'to say "Ethereum" twice and a name once.'
+  },
+  {
+    id:'A', tab:'A - avatar only', title:'A - a 44 x 44 avatar, nothing else',
+    width:'<b>44.00 px</b> exactly, <b>11.3% of the bar</b>. It leaves <b>191.94 px</b> of the 342 px ' +
+      'title Row empty. Jakub\'s first suggestion, taken literally: an icon, and everything on tap.',
+    know:'<b class="bad">Neither.</b> Not "which wallet" and, if you drop the badge, not "which chain" ' +
+      'either. See the proof block below: this is not a judgement about how readable a small avatar is, ' +
+      'it is a fact about the widget.',
+    taps:'Wallet <b>2</b>. Network <b>2</b>. Unchanged, because the sheet is unchanged.',
+    defect:'<b class="good">No.</b> Zero text in the header, so nothing can print twice.',
+    target:'44 x 44, the floor exactly, and the only target in the bar.',
+    ident:'The 44 px stadium keeps <code>surfaceMenu</code> + <code>borderControl</code> at 3.30:1. It ' +
+      'could drop the border - the avatar\'s own <code>brandPrimaryStrong</code> #0AAEE6 fill is ' +
+      '<b>7.54:1</b> against the bar and clears 1.4.11 on its own - but then nothing says it is a ' +
+      'menu rather than a decoration.',
+    cost:'The real price, and it is bigger than "the name is nice to have". <code>AccountAvatar</code> ' +
+      'renders <code>brandPrimaryStrong</code> plus the coin icon for ' +
+      '<code>wallet.currencySymbol</code>. Two ETH wallets are therefore <b>pixel-identical</b>. A ' +
+      'user with Main wallet and Savings, both on Ethereum, cannot tell which is live without opening ' +
+      'the sheet - not "with difficulty", at all. Scheme E is this scheme with that one hole filled.'
+  },
+  {
+    id:'B', tab:'B - short pill', title:'B - the shorter form, and the name is what survives',
+    width:'<b>138.00 px fixed</b>, <b>35.4% of the bar</b>: <code>space3 6 + avatar 32 + space4 8 + ' +
+      'name 84 + space4 8</code>. The caret is gone - it costs <code>space2 + 18</code> = 22 px, 5.6% ' +
+      'of the bar, to repeat what a 44 px avatar in a top bar already says. <b>Fixed</b> is the real ' +
+      'win: today the control breathes with the wallet name, here the bar never reflows.',
+    know:'Which wallet, up to 84 px of name. Which chain, by the badge.',
+    taps:'Wallet <b>2</b>. Network <b>2</b>.',
+    defect:'<b class="warn">Leaks.</b> It prints the name, so an address-shaped name renders as ' +
+      '<code>0x7a3f9b&hellip;</code> - a truncated address sitting in the slot reserved for a name. Not ' +
+      'the double print, but the same root cause showing through.',
+    target:'138 x 44.',
+    ident:'Same as today: <code>borderControl</code> at 3.30:1.',
+    cost:'<b>The measurement that decides this scheme.</b> An 84 px column at Inter SemiBold 14 holds ' +
+      '70.62 px of glyphs before the ellipsis. <code>Super Genius Wallet 1</code> (146.88) and ' +
+      '<code>Super Genius Wallet 2</code> (146.88) both render as <b>"Super Ge&hellip;"</b> - the phone ' +
+      'above fits a character or two more because it falls back to the system font, but the number is ' +
+      'Inter\'s and the collapse is identical either way. So B pays ' +
+      '<b>94 px more than A</b> to keep a name, and then fails on precisely the wallets a name was ' +
+      'supposed to disambiguate - the ones the app generates for itself. To separate them the column ' +
+      'needs 150, which puts the control back at 224. Switch the state selector to SUPER GENIUS ' +
+      'WALLET 1 and read the pill.'
+  },
+  {
+    id:'C', tab:'C - chain named', title:'C - the chain survives instead of the wallet',
+    width:'<b>142.00 px fixed</b>, <b>36.4% of the bar</b>: <code>6 + avatar 32 + 8 + chain 88 + 8</code>. ' +
+      '88 is the widest MAINNET name in <code>networks.json</code> - <code>Super Genius</code> at ' +
+      '84.53. The badge is gone: naming the chain in text makes a 16 px picture of it redundant.',
+    know:'Which chain, <b>in words, at zero taps</b> - which nothing in the app has ever done. Which ' +
+      'wallet: no.',
+    taps:'Wallet <b>2</b>. Network <b>2</b>.',
+    defect:'<b class="good">No.</b> The only text is a chain name from a fixed list.',
+    target:'142 x 44.',
+    ident:'<code>borderControl</code> at 3.30:1. The network glyph is gone, so the marginal contrast of ' +
+      'Base #0052FF (3.03:1 on <code>surfaceMenu</code>) stops being load-bearing in the header.',
+    cost:'It fixes a real accessibility gap - the chain has only ever been a picture, and the tooltip ' +
+      'said "Select network", the action rather than the value - and it fixes it in the wrong place. ' +
+      'Six of the ten networks in <code>networks.json</code> are testnets, and every one of them ' +
+      'ellipsizes in 88 px. <code>Super Genius - TestNet</code> measures <b>147.28</b>, which would need ' +
+      'a <b>223 px</b> control: <b>naming the chain in the header costs exactly what naming the wallet ' +
+      'costs today.</b> The chain is already named on the chips one tap away and in the pill\'s ' +
+      'accessible label at zero taps. Buy the fix there, not with 98 px of bar.'
+  },
+  {
+    id:'D', tab:'D - expand in place', title:'D - the icon expands across the bar before the sheet opens',
+    width:'<b>44.00 px at rest</b> (11.3%), <b>342.00 px expanded</b> (<b>87.7% of the bar</b>, the ' +
+      'entire title Row). Tap the avatar: it expands, the brand fades under it, and the sheet follows ' +
+      '260 ms later. The literal reading of "ikonke walleta a potem wszystko sie rozwija".',
+    know:'At rest, nothing - same as A. Expanded, everything: name, address, chain.',
+    taps:'Wallet <b>2</b>, network <b>2</b>, <i>if</i> the expansion is a transition inside one tap. If ' +
+      'it is its own state that needs a second tap to reach the sheet, both become <b>3</b>, and that ' +
+      'is the version to refuse.',
+    defect:'<b class="bad">Yes, it brings it back.</b> The expanded row is the only surface in this ' +
+      'sketch that prints a name and an address together, which is exactly the shape of the shipped ' +
+      'defect. Switch to ADDRESS-SHAPED NAME and expand: the address renders twice, 340 px wide, for ' +
+      'a quarter of a second.',
+    target:'44 x 44 at rest, 342 x 44 expanded. The expanded state has no other target in it, so a ' +
+      'stray tap anywhere in the bar hits it.',
+    ident:'<code>borderControl</code> at 3.30:1 in both states.',
+    cost:'<b>Say what the animation buys.</b> It buys one thing: a reading of the wallet\'s full ' +
+      'details that does not require the sheet. Against that it costs a third UI state to build and ' +
+      'test, 260 ms before the sheet a single tap could have opened, a second layout of data the sheet ' +
+      'already lays out, and the width problem returning on a timer at 87.7% of the bar. If the ' +
+      'expanded row is worth reading, it is worth reading in the sheet, where it already is.'
+  },
+  {
+    id:'E', tab:'E - monogram ★', title:'E - A, with the one hole filled: the circle carries a monogram',
+    width:'<b>44.00 px</b>, <b>11.3% of the bar</b>. Identical to A. <b>The identity is free</b> - it ' +
+      'is drawn inside pixels the avatar was already occupying.',
+    know:'<b>Which wallet</b>, by a 2-character monogram, and <b>which chain</b>, by the badge. At 44 ' +
+      'px. Nothing else here does both under 100 px.',
+    taps:'Wallet <b>2</b>. Network <b>2</b>.',
+    defect:'<b class="good">No, and it is the only scheme that improves on the defect.</b> When the ' +
+      'name IS an address the monogram takes the two characters after <code>0x</code> - so ' +
+      '<code>0x7a3f&hellip;</code> becomes <b>7A</b> and <code>0x22d8&hellip;</code> becomes ' +
+      '<b>22</b>. The header never prints an address, and two address-named wallets still look ' +
+      'different.',
+    target:'44 x 44.',
+    ident:'<code>borderControl</code> at 3.30:1. The monogram is <code>textOnBrand</code> #000B18 on ' +
+      '<code>brandPrimaryStrong</code> #0AAEE6 at <b>7.74:1</b>, so the glyphs clear 4.5:1 with room.',
+    cost:'It replaces the coin icon in the circle, so the 32 px picture of the chain goes and the 16 px ' +
+      'badge becomes the only one - which is the <b>double-icon defect fixed as a side effect</b>. The ' +
+      'genuine costs: it is a new visual convention in this app, and it needs a rule that must be ' +
+      'written down once and implemented once. That rule, with the app\'s own names in mind: ' +
+      '<b>(1)</b> address-shaped, take the two characters after <code>0x</code>; <b>(2)</b> name ends ' +
+      'in 1-2 digits, take the first letter plus those digits - <code>Super Genius Wallet 1</code> ' +
+      'becomes <b>S1</b> and <code>2</code> becomes <b>S2</b>, which is the case B cannot do at any ' +
+      'width under 224; <b>(3)</b> two words or more, the initials; <b>(4)</b> one word, its first two ' +
+      'letters. <b>The order matters and it caught me out while building this:</b> an address ends in ' +
+      'hex, which is very often two digits, so with rules 1 and 2 the other way round ' +
+      '<code>0x7a3f&hellip;3f6e21</code> renders as <b>21</b> - an address fragment in the one header ' +
+      'that is supposed to be incapable of printing one. Widest case <code>WW</code> at Inter Bold 12 ' +
+      'is 24.90 px inside a 32 px circle, so it fits with 3.55 px each side; the longest output, ' +
+      '<code>S10</code>, is 21.12.'
+  },
+  {
+    id:'F', tab:'F - icon + hamburger ★', title:'F - Jakub 2026-08-07: a wallet icon, a hamburger beside it, and News takes the freed slot',
+    width:'<b>100.00 px</b> of control, <b>25.6% of the bar</b>: <code>44 + space6 12 + 44</code>. ' +
+      'Second-narrowest here, and less than half of today\'s 223.94. But <b>read the accounting ' +
+      'honestly: the wallet control in F is 44 px, the same as A and E. The extra 56 px is not buying ' +
+      'wallet information - it is buying back a bottom-bar slot.</b>',
+    know:'Same as whichever icon you put in the left target. With the shipped COIN AVATAR: neither ' +
+      'wallet nor - at 16 px - a readable chain. With E\'s MONOGRAM: both. Flip the toggle on this ' +
+      'phone; the difference is the whole argument.',
+    taps:'Wallet <b>2</b>. Network <b>2</b>. And everything the More sheet holds drops from <b>2</b> ' +
+      '(More, row) to <b>2</b> (hamburger, row) - no change in count, but it moves off the bottom bar ' +
+      'and frees the fourth slot.',
+    defect:'<b class="good">No</b> with the coin avatar or the monogram; <b class="warn">it would</b> ' +
+      'if the "shorter form" in that left target were a truncated address or a clamped name, which is ' +
+      'why it should be neither.',
+    target:'Two 44 x 44 targets, <b>12 px apart</b>, centres 56 px apart. <code>space4</code> = 8 would ' +
+      'also clear Apple\'s minimum but puts the centres 52 apart in the top-right corner, the least ' +
+      'accurate place a thumb reaches on a 390pt phone. 12 costs 4 px and is worth it. The two targets ' +
+      'are visually unlike - a filled circle and three lines - and open obviously different sheets, ' +
+      'which is what makes this survivable where sketch 180\'s scheme C did not.',
+    ident:'Both targets are <code>surfaceMenu</code> + <code>borderControl</code> at 3.30:1. The ' +
+      'hamburger\'s three bars are <code>textPrimary</code> at <b>17.41:1</b> on ' +
+      '<code>surfaceMenu</code>.',
+    cost:'<b>Two dependencies, both real.</b> <b>(1)</b> This scheme only makes sense if the bottom bar ' +
+      'gives up <code>More</code> - otherwise the hamburger and the More slot are the same menu in two ' +
+      'places. What replaces the freed slot is <b>not decided here</b>; Jakub\'s suggestion is News and ' +
+      'sketch <code>182-bottom-nav-destinations</code> owns that question. The phone above shows News ' +
+      'in the slot as an illustration of the dependency, not as a recommendation. <b>(2)</b> The More ' +
+      'sheet contains an <b>Accounts</b> row today (<code>responsive_overlay.dart</code>, ' +
+      '<code>_MoreSheetBody</code>). It has to go, or two icons 12 px apart both lead to the accounts ' +
+      'drawer. Open the hamburger above and look at the struck-through row.'
+  }
+];
+
+/* ============================== panes ============================== */
+
+function paneHTML(s){
+  var b = '<div class="cols">';
+  b += '<div><div class="phone" data-scheme="' + s.id + '"><div class="screen"></div></div>' +
+       '<div class="caption" data-cap="' + s.id + '"></div></div>';
+  b += '<div class="notes">';
+  b += '<h3>' + s.title + '</h3>';
+  b += '<table>';
+  b += '<tr><th style="width:190px">Width at 390pt</th><td>' + s.width + '</td></tr>';
+  b += '<tr><th>Knowable without tapping</th><td>' + s.know + '</td></tr>';
+  b += '<tr><th>Taps to switch wallet / network</th><td>' + s.taps + '</td></tr>';
+  b += '<tr><th>Double-address defect</th><td>' + s.defect + '</td></tr>';
+  b += '<tr><th>44pt touch target</th><td>' + s.target + '</td></tr>';
+  b += '<tr><th>What identifies the control (1.4.11)</th><td>' + s.ident + '</td></tr>';
+  b += '</table>';
+  b += '<p><b>What it costs.</b> ' + s.cost + '</p>';
+  if (s.id === 'A' || s.id === 'E' || s.id === 'F') b += proofBlock();
+  b += '</div></div>';
+  return b;
+}
+
+function problemPane(){
+  var h = '<div class="notes" style="max-width:1040px">';
+
+  h += '<h3>The complaint is arithmetic, and the arithmetic changed this morning</h3>';
+  h += '<p><code>MobileHeader</code> (<code>lib/components/overlay/mobile_header.dart</code>) is an ' +
+       '<code>AppBar</code> at <code>toolbarHeight: 60</code> whose <code>title</code> is a Row of ' +
+       '<code>BrandLockup</code>, <code>space6</code>, and an <code>Expanded</code> holding the pill ' +
+       'against the right edge. <code>actions</code> is one <code>SizedBox(width: space8)</code>.</p>';
+  h += '<table><tr><th style="width:280px">Piece</th><th>Width at 390pt</th><th></th></tr>' +
+       '<tr><td>Bar</td><td class="num">390.00</td><td></td></tr>' +
+       '<tr><td><code>titleSpacing</code>, charged on BOTH sides</td><td class="num">-32.00</td>' +
+       '<td><code>NavigationToolbar</code> lays the middle slot at ' +
+       '<code>width - leading - trailing - middleSpacing * 2</code></td></tr>' +
+       '<tr><td><code>actions</code></td><td class="num">-16.00</td><td>one ' +
+       '<code>SizedBox(width: space8)</code></td></tr>' +
+       '<tr><td><b>title Row</b></td><td class="num"><b>342.00</b></td><td>not 358</td></tr>' +
+       '<tr><td><code>BrandLockup</code> at mark 28 / wordmark 18</td><td class="num">-106.06</td>' +
+       '<td>21.37 mark + 8 gap + 76.69 <code>GNUS.AI</code> at Inter Bold 18</td></tr>' +
+       '<tr><td><code>space6</code></td><td class="num">-12.00</td><td></td></tr>' +
+       '<tr><td><b>Left for the pill</b></td><td class="num"><b>223.94</b></td>' +
+       '<td><b class="warn">vs the declared <code>kWalletPillMaxWidth</code> of 236: the cap no longer ' +
+       'binds.</b> At the previous 24/15 lockup the pill had 239.77 and 236 did bind.</td></tr>' +
+       '</table>';
+  h += '<p><b>223.94 is 57.4% of the bar.</b> Jakub said half the screen; he was under by seven ' +
+       'points. Every scheme in this sketch is scored against that number first.</p>';
+  h += widthChart();
+
+  h += '<h3 class="sec">What the control is actually spending those pixels on</h3>';
+  h += '<p>Three code-grounded findings. None of them is a guess, and two of them are new.</p>';
+
+  h += '<div class="flag"><b>1. The avatar is not a wallet identity. It is a currency icon.</b> ' +
+       '<code>AccountAvatar.build</code> paints a <code>CircleAvatar</code> with ' +
+       '<code>backgroundColor: brandPrimaryStrong</code> and a child of ' +
+       '<code>Image.asset(\'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png\')</code>. ' +
+       'There is no per-wallet colour, no blockie, no seed. <b>Two ETH wallets render the same ' +
+       'pixels.</b> This is why "just show the avatar" is not a smaller version of "show the name" - it ' +
+       'is a different answer, and on a multi-wallet device it is no answer at all. It is also the ' +
+       'single fact that separates scheme A from scheme E.</div>';
+
+  h += '<div class="flag"><b>2. The pill can print the same picture twice.</b> The 32 px circle draws ' +
+       '<code>crypto/{currencySymbol}.png</code>. The 16 px badge draws ' +
+       '<code>network.iconPath</code>, which for Ethereum in <code>networks.json</code> is ' +
+       '<code>assets/images/crypto/eth.png</code>. For an ETH wallet on Ethereum - the default state of ' +
+       'this app - <b>those are the same file</b>, rendered 3 px apart at two sizes. Call it the ' +
+       'double-icon defect, a sibling of the double-address one, and note which schemes below still ' +
+       'have it.</div>';
+
+  h += '<div class="flag"><b>3. The double-address defect, restated because every scheme has to answer ' +
+       'for it.</b> Wallets imported through the free-text name field at ' +
+       '<code>import_security_screen.dart:236</code> (<code>walletName: walletNameController.text</code>) ' +
+       'can have an <i>address</i> as their name. The shipped header already halved this by printing ' +
+       'the name only. Any scheme that reintroduces a name AND an address together brings it back at ' +
+       'full strength - which is exactly what scheme D\'s expanded row does. A related smell in the ' +
+       'same area, worth a todo and not a fix here: <code>account_drawer.dart</code> decides which row ' +
+       'is selected with <code>w.walletName == _selectedWallet?.walletName</code>, so two wallets ' +
+       'sharing a name both highlight. Names are not identity anywhere in this app.</div>';
+
+  h += '<h3 class="sec">What the header has to answer, and what each answer costs</h3>';
+  h += '<table><tr><th>Question</th><th>Cheapest honest answer</th><th>Cost at 390pt</th></tr>' +
+       '<tr><td>Which wallet?</td><td>a 2-character monogram inside the existing circle</td>' +
+       '<td class="num good">0 px</td></tr>' +
+       '<tr><td>Which wallet, by its real name?</td><td>an 84 px text column</td>' +
+       '<td class="num warn">94 px, and it still collapses <code>Super Genius Wallet 1</code> and ' +
+       '<code>2</code> to the same string</td></tr>' +
+       '<tr><td>Which chain?</td><td>the 16 px badge already on the avatar</td>' +
+       '<td class="num good">0 px</td></tr>' +
+       '<tr><td>Which chain, by name?</td><td>an 88 px text column</td>' +
+       '<td class="num warn">98 px, and every testnet name still ellipsizes</td></tr>' +
+       '<tr><td>Reach the sheet</td><td>a 44 px target</td><td class="num good">44 px</td></tr>' +
+       '<tr><td>Reach the app\'s other destinations</td><td>a second 44 px target beside it</td>' +
+       '<td class="num">56 px, and it frees a bottom-bar slot</td></tr>' +
+       '</table>';
+  h += '<p><b>Read that table downward and the shape of the answer appears before any scheme does:</b> ' +
+       'both of the things the header must say can be said for nothing, inside pixels already spent. ' +
+       'Every text column here costs about 95 px and none of them finishes the job it was bought for.</p>';
+
+  h += '<h3 class="sec">A note on where scheme F\'s two icons should live in the widget tree</h3>';
+  h += '<p>The obvious move is to put both icons in <code>actions</code>. <b>Do not.</b> ' +
+       '<code>AppBar</code> lays <code>actions</code> out at their intrinsic size and hands the ' +
+       '<i>remainder</i> to <code>title</code>: with a 44 + 12 + 44 + 16 trailing block the title Row ' +
+       'drops from <b>342.00</b> to <b>246.00</b>, and the brand becomes the thing that shrinks when ' +
+       'Dynamic Type grows. That reverses the priority the shipped header was built to express - the ' +
+       'lockup is non-flex and laid out first precisely so <code>GNUS.AI</code> can never be what ' +
+       'truncates. Keep the cluster inside <code>title</code>, right-aligned in the same ' +
+       '<code>Expanded</code> the pill uses now, and <code>actions</code> stays the single ' +
+       '<code>SizedBox(width: space8)</code>. The rendered result is identical; the failure mode is ' +
+       'not. Either way the free space works out the same: <b>342 - 106.06 - 100 = 135.94</b>.</p>';
+
+  h += '<h3 class="sec">Contrast, computed from the real tokens</h3>';
+  h += '<table><tr><th>Pairing</th><th>Ratio</th><th>Needs</th><th></th></tr>' +
+       '<tr><td><code>surfaceMenu</code> #171A21 on <code>surfaceElevated</code> #0C0E14 - the pill\'s ' +
+       'fill against the bar</td><td class="num"><b>1.11:1</b></td><td>-</td>' +
+       '<td class="bad">the fill identifies nothing</td></tr>' +
+       '<tr><td><code>borderControl</code> white 36% over the bar (#636569)</td>' +
+       '<td class="num"><b>3.30:1</b></td><td>3:1 (1.4.11)</td>' +
+       '<td class="good">pass - <b>the border carries the control alone</b></td></tr>' +
+       '<tr><td><code>borderStrong</code> white 24% over the bar (#46484C) - the bar\'s bottom edge</td>' +
+       '<td class="num">2.11:1</td><td>3:1</td><td class="warn">below, and shipped knowingly</td></tr>' +
+       '<tr><td><code>borderSubtle</code> white 12% over the bar (#292B30)</td><td class="num">1.36:1</td>' +
+       '<td>3:1</td><td class="bad">fail - never the edge of a control</td></tr>' +
+       '<tr><td><code>textPrimary</code> #FFFFFF on <code>surfaceMenu</code> - names, the hamburger</td>' +
+       '<td class="num">17.41:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td><code>textSecondary</code> #8A8F9D on <code>surfaceMenu</code> - the caret, addresses</td>' +
+       '<td class="num">5.39:1</td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td><code>brandPrimaryStrong</code> #0AAEE6 avatar fill on the bar</td>' +
+       '<td class="num">7.54:1</td><td>3:1 (1.4.11)</td>' +
+       '<td class="good">pass - <b>this is what lets A and E drop the border if they want to</b></td></tr>' +
+       '<tr><td><code>textOnBrand</code> #000B18 on that fill - <b>E\'s monogram</b></td>' +
+       '<td class="num"><b>7.74:1</b></td><td>4.5:1</td><td class="good">pass</td></tr>' +
+       '<tr><td>Network glyph, Base #0052FF on <code>surfaceMenu</code></td>' +
+       '<td class="num"><b>3.03:1</b></td><td>3:1 (1.4.11)</td><td class="warn">pass by 0.03</td></tr>' +
+       '<tr><td>Network glyph, Polygon #8247E5 on <code>surfaceMenu</code></td>' +
+       '<td class="num">3.30:1</td><td>3:1</td><td class="good">pass, thin</td></tr>' +
+       '<tr><td>White on the BNB glyph #F3BA2F</td><td class="num"><b>1.77:1</b></td><td>4.5:1</td>' +
+       '<td class="bad">fail - the badge label must flip to #000B18 (11.19:1) on light chains</td></tr>' +
+       '</table>';
+  h += '<p><b>The rule that follows from row one, and that every scheme here is bound by:</b> ' +
+       '<code>surfaceMenu</code> on <code>surfaceElevated</code> is 1.11:1, so a control in this bar is ' +
+       'invisible unless its edge or its fill does the work. <code>borderControl</code> does it at ' +
+       '3.30:1. A scheme that drops the border must name its replacement - and for A, E and F the ' +
+       'replacement exists and is stronger: the avatar\'s own #0AAEE6 disc at 7.54:1.</p>';
+
+  h += '</div>';
+  return h;
+}
+
+function recPane(){
+  var h = '<div class="notes" style="max-width:1040px">';
+
+  h += widthChart();
+
+  h += '<div class="rec"><b>&#9733; Ship F - the wallet icon plus the hamburger - with E\'s monogram ' +
+       'inside the icon.</b> It is the direction Jakub asked for, it cuts the control from 223.94 px ' +
+       'to <b>100.00</b> (57.4% of the bar down to 25.6%), and the accounting is honest: the wallet ' +
+       'control itself is <b>44 px</b>, exactly as small as the icon-only schemes, and the other 56 px ' +
+       'buys back the bottom bar\'s fourth slot rather than buying header decoration. The one thing F ' +
+       'gets wrong on its own is the thing E fixes for nothing - a bare coin avatar cannot say which ' +
+       'wallet is live, because <code>AccountAvatar</code> is keyed to the currency, so two ETH wallets ' +
+       'are the same picture. Put the monogram in that circle and F answers <b>which wallet</b> and ' +
+       '<b>which chain</b> at 44 px, which no other scheme here does under 100.</div>';
+
+  h += '<p><b>Three conditions on F, all of them cheap and none of them optional.</b> <b>(1)</b> The ' +
+       'bottom bar must give up <code>More</code>, or the hamburger is a second door to the same room. ' +
+       'What takes the freed slot is sketch <code>182-bottom-nav-destinations</code>\'s question, not ' +
+       'this one; Jakub\'s suggestion is News and the phone in tab F draws it that way as an ' +
+       'illustration of the dependency. <b>(2)</b> The <b>Accounts</b> row inside ' +
+       '<code>_MoreSheetBody</code> is deleted - two icons 12 px apart must not both reach the accounts ' +
+       'drawer. <b>(3)</b> Both icons stay inside <code>title</code>, right-aligned in the existing ' +
+       '<code>Expanded</code>. Moving them to <code>actions</code> renders identically and quietly ' +
+       'makes the brand the thing that shrinks under Dynamic Type.</p>';
+
+  h += '<p><b>Runner-up: E alone - the monogram avatar at 44 px.</b> If the bottom bar keeps ' +
+       '<code>More</code>, the hamburger has no job and E is simply F minus 56 px: the narrowest ' +
+       'control in this sketch that still tells you which wallet and which chain you are on. E is also ' +
+       'the piece of F that is worth building first, because it is additive - a new branch inside ' +
+       '<code>AccountAvatar</code>, no layout change anywhere - and because it fixes the double-icon ' +
+       'defect on the way past. <b>Build E, then decide F.</b> That ordering is not a hedge; E is a ' +
+       'strict prerequisite for F being any good.</p>';
+
+  h += '<div class="rej"><b>Explicitly rejected: B - the short pill.</b> It is the literal answer to ' +
+       '"jakas bardziej krotsza forme" and it is the worst value per pixel here, which is why it needs ' +
+       'refusing out loud rather than quietly losing. B spends <b>94 px more than E</b> to keep the ' +
+       'wallet name, and then the 84 px column renders both <code>Super Genius Wallet 1</code> and ' +
+       '<code>Super Genius Wallet 2</code> as <b>"Super Ge&hellip;"</b> - it fails on the exact case a ' +
+       'name exists to disambiguate, the one the app generates for itself. Widening the column until ' +
+       'those two separate puts the control back at 224 px, which is where we started. <b>A name is ' +
+       'either full width or it is decoration</b>; there is no useful middle, and B is the middle.</div>';
+
+  h += '<p><b>On A, which is Jakub\'s own first idea and which I am not recommending only because E ' +
+       'exists.</b> A is right about everything except one fact it could not have known: the circle it ' +
+       'relies on is a picture of the currency, not of the wallet. Everything else about A - 44 px, ' +
+       'structurally immune to every text problem in this app, one target, one sheet - is exactly ' +
+       'right, and E keeps all of it. <b>A and E are the same scheme; E is A after reading ' +
+       '<code>AccountAvatar.build</code>.</b></p>';
+
+  h += '<p><b>On C.</b> Fourth, and it deserves better than fourth for the problem it noticed: the ' +
+       'chain has never been named in text anywhere in this app, and a coloured circle is not a chain. ' +
+       'But 98 px of bar is the wrong currency to pay in, and it does not even close the gap - every ' +
+       'testnet name ellipsizes at 88 px and <code>Super Genius - TestNet</code> would need the full ' +
+       '223. <b>Lift C\'s finding into the winner and pay for it elsewhere:</b> the chain is already ' +
+       'named on the sheet\'s chips and in the control\'s semantic label, which is 0 px and reaches ' +
+       'screen readers too.</p>';
+
+  h += '<p><b>On D.</b> Fifth, and the only scheme I would argue against building even if it were free. ' +
+       'The expansion buys a second reading of data the sheet already shows, 260 ms before the sheet ' +
+       'opens, in a layout that reintroduces the name-plus-address pairing the header just got rid of, ' +
+       'at 87.7% of the bar. "Everything expands" is the right instinct and A, E and F all honour it - ' +
+       '<b>the sheet is the expansion.</b> D only differs by animating an intermediate state on the way ' +
+       'there.</p>';
+
+  h += '<h3 class="sec">If F ships</h3>';
+  h += '<table><tr><th style="width:280px">File</th><th>Change</th></tr>' +
+       '<tr><td><code>lib/components/overlay/mobile_header.dart</code></td><td><code>WalletPill</code> ' +
+       'loses its name column and caret and becomes a 44 px icon button; a hamburger button joins it ' +
+       'in the same right-aligned <code>Expanded</code>, <code>space6</code> apart. ' +
+       '<code>kWalletPillMaxWidth</code> and its doc comment are deleted - there is no longer anything ' +
+       'to cap.</td></tr>' +
+       '<tr><td><code>lib/account/account_drawer.dart</code> <code>AccountAvatar</code></td>' +
+       '<td>a <code>monogram</code> branch, additively, the same way <code>networkIconPath</code> was ' +
+       'added: null keeps today\'s exact <code>CircleAvatar</code> for the drawer rows.</td></tr>' +
+       '<tr><td><code>lib/components/overlay/responsive_overlay.dart</code></td><td>the ' +
+       '<code>More</code> slot leaves <code>_mobileDestinations</code>\'s trailing position; ' +
+       '<code>_MoreSheetBody</code> is reused verbatim behind the hamburger <b>minus its Accounts ' +
+       'row</b>.</td></tr>' +
+       '<tr><td>the bottom bar\'s fourth slot</td><td><b class="warn">not decided here.</b> See ' +
+       '<code>182-bottom-nav-destinations</code>. F is blocked on it only in the sense that F must not ' +
+       'ship while <code>More</code> is still in the bar.</td></tr>' +
+       '<tr><td><code>mobile_header_brand_and_pill_test.dart</code></td><td>the width assertions move ' +
+       'from "the pill is capped at 236" to "the cluster is 100 and the lockup is untouched at ' +
+       '106.06". The invariant that matters - <code>GNUS.AI</code> never truncates - gets easier to ' +
+       'hold, not harder.</td></tr>' +
+       '</table>';
+
+  h += '</div>';
+  return h;
+}
+
+/* ============================== wiring ============================== */
+
+var tabsEl  = document.getElementById('tabs');
+var panesEl = document.getElementById('panes');
+var TABS = [{id:'problem', tab:'The problem'}]
+  .concat(SCHEMES)
+  .concat([{id:'rec', tab:'Recommendation'}]);
+
+TABS.forEach(function(t, i){
+  var b = document.createElement('button');
+  b.className = 'tab' + (i === 0 ? ' on' : '');
+  b.textContent = t.tab;
+  b.setAttribute('data-pane', t.id);
+  tabsEl.appendChild(b);
+
+  var p = document.createElement('div');
+  p.className = 'pane' + (i === 0 ? ' on' : '');
+  p.id = 'pane-' + t.id;
+  if (t.id === 'problem')   { p.innerHTML = problemPane(); }
+  else if (t.id === 'rec')  { p.innerHTML = recPane(); }
+  else                      { p.innerHTML = paneHTML(t); }
+  panesEl.appendChild(p);
+});
+
+tabsEl.addEventListener('click', function(e){
+  var b = e.target.closest('.tab');
+  if (!b) return;
+  Array.prototype.forEach.call(tabsEl.children, function(x){ x.classList.remove('on'); });
+  b.classList.add('on');
+  Array.prototype.forEach.call(panesEl.children, function(x){ x.classList.remove('on'); });
+  document.getElementById('pane-' + b.getAttribute('data-pane')).classList.add('on');
+});
+
+function segWire(id, attr, set){
+  document.getElementById(id).addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if (!b) return;
+    Array.prototype.forEach.call(this.children, function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    set(b.getAttribute(attr));
+    renderAll();
+  });
+}
+segWire('nameSeg',  'data-st', function(v){ NAME_ST  = v; EXPAND = {}; });
+segWire('faceSeg',  'data-fc', function(v){ FACE_ST  = v; });
+segWire('rulerSeg', 'data-rl', function(v){ RULER_ST = v; });
+
+function captionFor(scheme){
+  var wpx = ctlWidth(scheme);
+  var extra = '';
+  if (scheme === 'D' && EXPAND[scheme]) {
+    wpx = 342;
+    extra = ' Expanded state.';
+  }
+  var free = TITLEROW - LOCKUP - wpx;
+  return '<span class="w">' + wpx.toFixed(2) + ' px at 390pt &middot; <em>' +
+    (100*wpx/BAR).toFixed(1) + '% of the bar</em></span>' +
+    '390 x 844 at 1:1. 60 px app bar, 60 px bottom bar, 64 px dock, 26 px overhang, 84 px slot. ' +
+    'Title Row 342.00, lockup 106.06, so ' + free.toFixed(2) + ' px of it is left empty.' + extra +
+    ' Tap the control.';
+}
+
+function renderPhone(ph){
+  var scheme = ph.getAttribute('data-scheme');
+  ph.querySelector('.screen').innerHTML = screenHTML(scheme);
+  var cap = document.querySelector('[data-cap="' + scheme + '"]');
+  if (cap) cap.innerHTML = captionFor(scheme);
+}
+
+function renderAll(){
+  Array.prototype.forEach.call(document.querySelectorAll('.phone'), renderPhone);
+  Array.prototype.forEach.call(document.querySelectorAll('.proof'), function(el){
+    var host = el.parentNode;
+    el.outerHTML = proofBlock();
+    void host;
+  });
+}
+
+document.addEventListener('click', function(e){
+  if (!e.target.closest) return;
+  var ph = e.target.closest('.phone');
+  if (!ph) return;
+  var scheme = ph.getAttribute('data-scheme');
+
+  var exp = e.target.closest('[data-expand]');
+  if (exp) {
+    EXPAND[scheme] = true;
+    renderPhone(ph);
+    setTimeout(function(){
+      SHEET[scheme] = 'wallet';
+      renderPhone(ph);
+    }, 260);
+    return;
+  }
+
+  var open = e.target.closest('[data-open]');
+  if (open) { SHEET[scheme] = open.getAttribute('data-open'); renderPhone(ph); return; }
+
+  var pick = e.target.closest('[data-net]');
+  if (pick) { NET[scheme] = pick.getAttribute('data-net'); renderPhone(ph); return; }
+
+  var close = e.target.closest('[data-close]');
+  if (close) { SHEET[scheme] = null; EXPAND[scheme] = false; renderPhone(ph); return; }
+});
+
+renderAll();
+</script>
+</body>
+</html>

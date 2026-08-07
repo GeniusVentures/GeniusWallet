@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sketch 177 - the Assets page</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+:root{
+  --surfaceBase:#0B0D12; --surfaceElevated:#0C0E14; --surfaceMenu:#171A21; --surfaceSunken:#06080C;
+  --textPrimary:#FFFFFF; --textPrimary80:rgba(255,255,255,.80); --textPrimary60:rgba(255,255,255,.60);
+  --textPrimary38:rgba(255,255,255,.38); --textSecondary:#8A8F9D; --textOnBrand:#000B18;
+  --textMutedOnSunken:#8A8F9D;
+  --borderSubtle:rgba(255,255,255,.12); --borderStrong:rgba(255,255,255,.24);
+  --brandPrimary:#14C8FF; --brandPrimaryStrong:#0AAEE6; --brandSecondary:#2BF5B4;
+  --gradientGreen:#0AD89C; --gradientBlue:#0AAEE6;
+  --statusError:#FF4D4D; --statusWarning:#FFC42E; --statusSuccess:#2BF5B4;
+  --s2:4px; --s3:6px; --s4:8px; --s6:12px; --s8:16px; --s10:20px; --s12:24px; --s16:32px; --s20:40px;
+  --rXs:4px; --rSm:8px; --rMd:12px; --rLg:15px; --rXl:24px; --rPill:48px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#05070A;color:var(--textPrimary);font:400 15px/1.5 Inter,system-ui,-apple-system,sans-serif;padding:0 0 140px}
+code{font:12px/1.4 'JetBrains Mono',ui-monospace,monospace;background:var(--surfaceMenu);padding:1px 5px;border-radius:var(--rXs);color:var(--brandSecondary)}
+.wrap{max-width:1780px;margin:0 auto;padding:0 var(--s12)}
+.skhead{border-bottom:1px solid var(--borderSubtle);padding:var(--s16) 0 0;margin-bottom:var(--s12);position:sticky;top:0;background:#05070A;z-index:50}
+.skhead h1{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.skhead p{color:var(--textSecondary);max-width:110ch;margin-top:var(--s4);font-size:14px}
+.tabs{display:flex;gap:var(--s3);margin-top:var(--s10);flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:9px var(--s10);border-radius:var(--rSm) var(--rSm) 0 0;font:600 13px Inter;cursor:pointer;border-bottom:none}
+.tab:hover{background:rgba(20,200,255,.06);border-color:rgba(20,200,255,.35);color:var(--textPrimary)}
+.tab[aria-selected=true]{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--borderStrong);position:relative}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brandPrimary),var(--brandSecondary));border-radius:3px 3px 0 0;box-shadow:0 0 10px rgba(20,200,255,.5)}
+.panel{display:none}.panel.on{display:block}
+.cols{display:flex;gap:var(--s20);align-items:flex-start;flex-wrap:wrap;padding:var(--s12) 0}
+.notes{flex:1 1 430px;min-width:390px;max-width:780px}
+.h2{font-size:19px;font-weight:650;margin:var(--s12) 0 var(--s4);letter-spacing:-.01em}
+.h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--textSecondary);margin:var(--s12) 0 var(--s4)}
+.notes p{margin:var(--s4) 0;color:var(--textPrimary80);font-size:14px}
+.notes li{margin:var(--s3) 0;color:var(--textPrimary80);font-size:14px}
+.notes ul{padding-left:var(--s10)}
+.verdict{border-left:3px solid var(--brandSecondary);background:rgba(43,245,180,.06);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s8) 0;font-size:13.5px;color:var(--textPrimary80)}
+.verdict.bad{border-left-color:var(--statusError);background:rgba(255,77,77,.06)}
+.verdict.warn{border-left-color:var(--statusWarning);background:rgba(255,196,46,.06)}
+.verdict b{color:var(--textPrimary)}
+.try{border-left:3px solid var(--brandPrimary);background:rgba(20,200,255,.07);padding:var(--s6) var(--s8);
+  border-radius:0 var(--rSm) var(--rSm) 0;margin:var(--s8) 0;font-size:13.5px;color:var(--textPrimary80)}
+.try b{color:var(--brandPrimary)}
+.tag{display:inline-block;font:700 9.5px/1 Inter;letter-spacing:.09em;text-transform:uppercase;padding:3px 6px;border-radius:var(--rXs);vertical-align:middle}
+.t-ex{background:rgba(43,245,180,.14);color:var(--brandSecondary);border:1px solid rgba(43,245,180,.4)}
+.t-ad{background:rgba(255,196,46,.14);color:var(--statusWarning);border:1px solid rgba(255,196,46,.4)}
+.t-new{background:rgba(255,77,77,.14);color:#FF8A8A;border:1px solid rgba(255,77,77,.4)}
+.legend{display:flex;gap:var(--s10);flex-wrap:wrap;align-items:center;padding:var(--s6) 0 var(--s12);
+  border-bottom:1px solid var(--borderSubtle);margin-bottom:var(--s6)}
+.legend span{font-size:12.5px;color:var(--textSecondary)}
+table{border-collapse:collapse;width:100%;margin:var(--s6) 0;font-size:13px}
+th,td{text-align:left;padding:7px var(--s4);border-bottom:1px solid var(--borderSubtle);vertical-align:top}
+th{color:var(--textSecondary);font:700 11px Inter;text-transform:uppercase;letter-spacing:.07em}
+.pass{color:var(--brandSecondary);font-weight:700}.fail{color:#FF8A8A;font-weight:700}
+
+.stage{flex:0 0 auto}
+.phonewrap{flex:0 0 auto}
+.phonecap{font:600 12px Inter;color:var(--textSecondary);margin-bottom:var(--s4);text-align:center;letter-spacing:.04em}
+.phone{width:390px;height:844px;background:var(--surfaceBase);border:9px solid #1b1e26;border-radius:46px;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1b1e26;border-radius:0 0 18px 18px;z-index:30}
+.sbar{height:50px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 var(--s10) 0 var(--s16);font:600 13px Inter}
+.sbar .r{font:400 11px Inter;color:var(--textPrimary80)}
+.appbar{flex:0 0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--s8);border-bottom:.5px solid var(--borderSubtle);background:var(--surfaceElevated)}
+.backrow{display:flex;align-items:center;gap:var(--s4);cursor:pointer;padding:var(--s3) var(--s4);border-radius:var(--rMd)}
+.backrow:hover{background:rgba(20,200,255,.07)}
+.scr{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:thin}
+.scr::-webkit-scrollbar{width:4px}.scr::-webkit-scrollbar-thumb{background:var(--borderSubtle);border-radius:2px}
+.statebar{display:flex;gap:var(--s3);margin-top:var(--s4);justify-content:center}
+.statebar button{appearance:none;border:1px solid var(--borderSubtle);background:transparent;color:var(--textSecondary);
+  padding:5px var(--s6);border-radius:var(--rSm);font:600 11px Inter;cursor:pointer}
+.statebar button.on{background:var(--surfaceElevated);color:var(--textPrimary);border-color:var(--brandPrimaryStrong)}
+.statebar button:hover{color:var(--textPrimary)}
+
+.pagehead{padding:var(--s8) var(--s6) var(--s3);font:650 24px Inter;letter-spacing:-.02em}
+.card{background:var(--surfaceElevated);border:1px solid var(--borderSubtle);border-radius:var(--rLg);padding:var(--s4);margin:var(--s3)}
+.kicker{font:700 11px Inter;text-transform:uppercase;letter-spacing:.09em;color:var(--textSecondary);padding:var(--s8) var(--s8) var(--s3)}
+.totalblock{padding:var(--s4) var(--s8) var(--s8)}
+.totalkick{font:700 11px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--textSecondary)}
+.totalnum{font:700 40px Inter;letter-spacing:-.03em;line-height:1.1;margin-top:2px}
+.totalchg{font:600 14px Inter;margin-top:var(--s2)}
+.trow{display:flex;align-items:center;gap:var(--s6);padding:12px var(--s6);border-radius:var(--rMd);cursor:pointer}
+.trow:hover{background:rgba(20,200,255,.06)}
+.tico{width:40px;height:40px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;font:700 15px Inter;color:#fff}
+.tmid{flex:1 1 auto;min-width:0}
+.tname{font:600 15px Inter}
+.tsub{font:400 12.5px Inter;color:var(--textSecondary);margin-top:1px;display:flex;align-items:center;gap:var(--s3)}
+.pill{font:600 11px Inter;padding:2px 6px;border-radius:var(--rXs)}
+.up{background:rgba(43,245,180,.14);color:var(--brandSecondary)}
+.dn{background:rgba(255,77,77,.16);color:#FF8A8A}
+.tend{text-align:right}
+.tval{font:700 15px Inter}
+.tamt{font:400 12.5px Inter;color:var(--textPrimary80);margin-top:1px}
+.tzero .tval,.tzero .tamt{color:var(--textPrimary60)}
+.divide{height:1px;background:var(--borderSubtle);margin:0 var(--s6)}
+.track{display:inline-flex;align-items:center;gap:2px;background:var(--surfaceSunken);border:1px solid var(--borderSubtle);
+  border-radius:var(--rPill);padding:3px 6px;margin:0 var(--s6)}
+.seg{padding:6px 12px;border-radius:var(--rPill);font:600 12px Inter;color:var(--textMutedOnSunken);cursor:pointer;white-space:nowrap}
+.seg.on{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));color:var(--textOnBrand)}
+.sortbar{display:flex;align-items:center;justify-content:space-between;padding:var(--s4) var(--s8) var(--s3)}
+.sortlink{font:600 12px Inter;color:var(--textSecondary);cursor:pointer;display:flex;align-items:center;gap:3px}
+.sortlink:hover{color:var(--textPrimary)}
+.search{margin:var(--s3) var(--s6);display:flex;align-items:center;gap:var(--s4);background:var(--surfaceSunken);
+  border:1px solid var(--borderSubtle);border-radius:var(--rMd);padding:10px var(--s6)}
+.search input{flex:1 1 auto;background:transparent;border:none;outline:none;color:var(--textPrimary);font:400 14px Inter}
+.search input::placeholder{color:var(--textMutedOnSunken)}
+.alloc{display:flex;height:10px;border-radius:var(--rPill);overflow:hidden;margin:var(--s6) var(--s8) var(--s4);background:var(--surfaceSunken)}
+.alloc div{height:100%}
+.alloclegend{display:flex;flex-wrap:wrap;gap:var(--s6);padding:0 var(--s8) var(--s6);font:500 11.5px Inter;color:var(--textSecondary)}
+.alloclegend span{display:flex;align-items:center;gap:4px}
+.dotk{width:8px;height:8px;border-radius:2px}
+.expander{display:flex;align-items:center;justify-content:center;gap:var(--s4);padding:14px;cursor:pointer;
+  font:600 13px Inter;color:var(--textSecondary);border-top:1px solid var(--borderSubtle);margin-top:var(--s3)}
+.expander:hover{color:var(--textPrimary);background:rgba(20,200,255,.05)}
+.actions{display:flex;gap:var(--s4);padding:var(--s6) var(--s6) var(--s8)}
+.btn{flex:1 1 0;height:44px;border-radius:var(--rMd);display:grid;place-items:center;font:600 14px Inter;cursor:pointer}
+.btnout{border:1px solid var(--brandSecondary);color:var(--brandSecondary)}
+.btnfill{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));color:var(--textOnBrand)}
+.empty{display:flex;flex-direction:column;align-items:center;gap:var(--s4);padding:var(--s16) var(--s10);text-align:center}
+.emptyring{width:72px;height:72px;border-radius:50%;border:1px solid var(--borderSubtle);display:grid;place-items:center;font-size:26px;color:var(--textPrimary38)}
+.barbox{flex:0 0 auto;height:106px;position:relative}
+.bar{position:absolute;left:0;right:0;bottom:0;height:80px;background:var(--surfaceElevated);border-top:.5px solid var(--borderSubtle);
+  display:flex;align-items:flex-start;padding-bottom:20px}
+.slot{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:var(--s2);padding-top:var(--s4);cursor:pointer}
+.slot .si{font-size:22px;line-height:1;color:var(--textSecondary)}
+.slot .sl{font:500 10px Inter;color:var(--textSecondary)}
+.slot.on .si,.slot.on .sl{background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));
+  -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+.dockslot{flex:0 0 84px}
+.dock{position:absolute;top:0;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(90deg,var(--gradientGreen),var(--gradientBlue));border:3px solid var(--surfaceElevated);
+  display:grid;place-items:center;font-size:26px;color:var(--textOnBrand);box-shadow:0 0 22px rgba(10,174,230,.4);z-index:5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="skhead">
+    <h1>Sketch 177 - the Assets page</h1>
+    <p>Home will show the top 5 holdings behind a <b>View all</b>. This is where that link lands. Every
+       variant is clickable - filters, sorts, expanders and search all work. <b>Use the FUNDED / EMPTY
+       switch under each phone:</b> Jakub's real wallet has every balance at zero, and a page that only
+       looks right when full is a page that looks broken most of the time.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-p="p0">The brief</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pA">A - Plain list</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pB">B - Segmented</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pC">C - Grouped ★</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pD">D - Search + sort</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pE">E - Portfolio</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="pR">Recommendation</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="tag t-ex">exists</span> already in the codebase</span>
+    <span><span class="tag t-ad">adapted</span> existing component, new arrangement</span>
+    <span><span class="tag t-new">new</span> nothing like it ships today</span>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="panel on" id="p0">
+    <div class="cols">
+      <div class="notes" style="max-width:1000px">
+        <div class="h2">Why this page has to exist</div>
+        <p>Phase 25 caps the Home dashboard at <b>top 5 assets</b> so the page has one scroll instead of four.
+           Transactions and Markets already have full screens to send you to - <code>/transactions</code> and
+           <code>/markets</code> are real routes. <b>Assets has nowhere to go.</b> There is no
+           <code>/assets</code> route today.</p>
+        <div class="verdict"><b>The screen almost exists already.</b> <code>CoinsScreen</code> takes an
+          <code>isDashboard</code> flag; when false it drops the section header and renders the full list.
+          So this is mostly a route plus a layout decision, not a new screen from scratch.</div>
+
+        <div class="h3">What the code gives us for free</div>
+        <table>
+          <tr><th>Thing</th><th>Where</th></tr>
+          <tr><td>Full coin list with market data</td><td><code>CoinsScreen(isDashboard: false)</code></td></tr>
+          <tr><td>The row, with price, 24h % and fiat value</td><td><code>CoinCardRow</code></td></tr>
+          <tr><td>Portfolio total and 24h change</td><td><code>assetsTotal()</code>, <code>assets_totals.dart</code></td></tr>
+          <tr><td>GNUS-first ordering</td><td>already a stable partition in <code>coins_screen.dart:240</code></td></tr>
+          <tr><td>Segmented control</td><td><code>GWControlTrack</code> - 4 consumers already</td></tr>
+          <tr><td>Row tap to the coin page</td><td><code>onCoinSelected</code> -&gt; <code>/token-info</code></td></tr>
+        </table>
+
+        <div class="h2">The constraint that decides this</div>
+        <div class="verdict warn"><b>Every balance in the real wallet is 0.0000.</b> Look at the phone on any
+          tab and flip to <b>EMPTY</b>. A design that sorts by value, draws an allocation bar, or leads with a
+          big total has <i>nothing to say</i> in that state - and that is the state Jakub actually sees today.
+          The variants differ mostly in how gracefully they collapse when there is nothing to show.</div>
+        <p>The app also already ships a WCAG fix in this exact area: zero balances were painted at
+           <code>textPrimary38</code> (3.54:1, failing AA) and are now <code>textPrimary80</code> (12.4:1). So
+           "grey out the empty ones" is not available as a shortcut - it was just removed on purpose.</p>
+
+        <div class="h3">What every variant shares</div>
+        <ul>
+          <li>A back row to Home, because this is a pushed screen, not a tab</li>
+          <li>Portfolio total with 24h change</li>
+          <li>Rows that open the coin page</li>
+          <li>The bottom bar stays - it is inside the shell</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- A -->
+  <div class="panel" id="pA"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">A - total, then everything</div>
+      <div class="phone" data-phone="A"></div>
+      <div class="statebar"><button data-state="funded">FUNDED</button><button data-state="empty">EMPTY</button></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">A - the plain list</div>
+      <p>Total at the top, then every asset the wallet knows about, GNUS first and the rest in fetched order.
+         Exactly what <code>CoinsScreen(isDashboard: false)</code> renders today, given a page header and a total.</p>
+      <div class="try"><b>Try EMPTY.</b> This is the variant's whole story: with no balances it becomes a
+        wall of identical <code>$0.00 / 0.0000</code> rows and the total says nothing.</div>
+      <div class="h3">Built from</div>
+      <ul><li><span class="tag t-ex">exists</span> everything - no new component at all</li></ul>
+      <div class="verdict"><b>Cheapest by a wide margin.</b> One route, one flag, a header. If the goal is
+        only "View all has somewhere to land", this ships today.</div>
+      <div class="verdict bad">But it answers no question beyond "what tokens exist". It cannot tell you what
+        you <i>hold</i> without you reading every row, and it is the worst of the five when empty.</div>
+    </div>
+  </div></div>
+
+  <!-- B -->
+  <div class="panel" id="pB"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">B - All / Holdings / Watch</div>
+      <div class="phone" data-phone="B"></div>
+      <div class="statebar"><button data-state="funded">FUNDED</button><button data-state="empty">EMPTY</button></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">B - one segmented filter</div>
+      <p>A <code>GWControlTrack</code> under the total: <b>All</b>, <b>Holdings</b>, <b>Watch</b>. Holdings shows
+         only funded assets; Watch shows the zero-balance ones you could hold.</p>
+      <div class="try"><b>Tap the segments.</b> Then flip to EMPTY and tap <b>Holdings</b> - the empty state is
+        honest and specific there ("nothing yet, here is how to get some") instead of a wall of zeros.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <code>GWControlTrack</code> - its fifth consumer, same recipe
+            as the timeframe segment and the transaction filter bar</li>
+        <li><span class="tag t-ex">exists</span> <code>CoinCardRow</code>, totals helper</li>
+      </ul>
+      <div class="verdict"><b>Strong fit with the app's own language.</b> The transactions panel already filters
+        exactly this way, so the gesture transfers. It gives the empty wallet a place to stand.</div>
+      <div class="verdict warn">The cost is a control the user must discover and operate. With 6-8 assets, a
+        filter may be solving a problem the list does not have - and "Watch" implies a watchlist feature that
+        does not exist. Naming it wrong here would promise something the app cannot do.</div>
+    </div>
+  </div></div>
+
+  <!-- C -->
+  <div class="panel" id="pC"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">C - the structure does the filtering</div>
+      <div class="phone" data-phone="C"></div>
+      <div class="statebar"><button data-state="funded">FUNDED</button><button data-state="empty">EMPTY</button></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">C - grouped by whether you hold it ★</div>
+      <p>Two sections. <b>Your holdings</b>, sorted by value, largest first. Then <b>Other assets</b>, collapsed
+         behind a single row that says how many there are. No control to find, no state to remember.</p>
+      <div class="try"><b>Tap "Show 4 other assets".</b> Then flip to EMPTY: the holdings section is replaced by
+        a single honest sentence, and everything you <i>could</i> hold is still one tap away.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <code>GWKicker</code> section headers, <code>GWCard</code>,
+            <code>CoinCardRow</code>, the totals helper</li>
+        <li><span class="tag t-ad">adapted</span> the same two-section shape sketch 174 gave the accounts sheet
+            (SDK Accounts / Your Accounts) - so this page and that sheet read as one system</li>
+        <li><span class="tag t-new">new</span> the expander row</li>
+      </ul>
+      <div class="verdict"><b>It answers the question without being asked.</b> "What do I hold and what is it
+        worth" is the reason anyone opens an assets page, and C puts that at the top, sorted, with nothing else
+        competing. The zero-balance tokens stay reachable but stop being noise.</div>
+      <div class="verdict"><b>It degrades best.</b> Every other variant needs balances to make sense. C's empty
+        state is a complete, non-embarrassing screen - which matters because that is today's real state.</div>
+      <div class="verdict warn">One honest cost: a collapsed group hides things, and a user who does not
+        realise USDC is behind the expander may think it is missing. The row states the count for exactly that
+        reason - and it starts expanded when there are no holdings at all.</div>
+    </div>
+  </div></div>
+
+  <!-- D -->
+  <div class="panel" id="pD"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">D - search and sort</div>
+      <div class="phone" data-phone="D"></div>
+      <div class="statebar"><button data-state="funded">FUNDED</button><button data-state="empty">EMPTY</button></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">D - search plus a sort control</div>
+      <p>A search field, and a sort link cycling <b>Value</b> → <b>Name</b> → <b>24h</b>. The power-user answer.</p>
+      <div class="try"><b>Type in the search box</b> and <b>tap the sort link</b> a few times - both are live.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> <code>CoinCardRow</code>, the totals helper</li>
+        <li><span class="tag t-new">new</span> a search field on this surface, and sort state to persist</li>
+      </ul>
+      <div class="verdict bad"><b>The list is too short to need this.</b> A wallet holds 6-10 assets; search
+        earns its place at 50+. Sorting by name is a rare want, and sorting by 24h is a markets question that
+        <code>/markets</code> already answers properly.</div>
+      <p>Included because it is the obvious "make it a real page" instinct, and because seeing it makes clear
+         how little it adds here. If the asset list ever grows past a screen or two, revisit it.</p>
+    </div>
+  </div></div>
+
+  <!-- E -->
+  <div class="panel" id="pE"><div class="cols">
+    <div class="stage"><div class="phonewrap">
+      <div class="phonecap">E - allocation first</div>
+      <div class="phone" data-phone="E"></div>
+      <div class="statebar"><button data-state="funded">FUNDED</button><button data-state="empty">EMPTY</button></div>
+    </div></div>
+    <div class="notes">
+      <div class="h2">E - portfolio, not list</div>
+      <p>Total, then an allocation bar showing what share each holding is of the portfolio, then the holdings.
+         Treats the page as a portfolio view rather than an inventory.</p>
+      <div class="try"><b>Compare FUNDED and EMPTY.</b> The bar is the most informative thing on this page when
+        there is money, and the most awkward when there is not.</div>
+      <div class="h3">Built from</div>
+      <ul>
+        <li><span class="tag t-ex">exists</span> totals helper, <code>CoinCardRow</code></li>
+        <li><span class="tag t-new">new</span> the allocation bar and its legend</li>
+      </ul>
+      <div class="verdict">Genuinely the most useful <i>at a glance</i> of the five, for a funded wallet. One
+        look tells you concentration, which no list can.</div>
+      <div class="verdict bad">Two problems. It <b>collapses in the empty state</b> - an allocation bar of
+        nothing is a grey stripe. And with 2-3 holdings the bar tells you what the rows already told you,
+        which is most wallets most of the time.</div>
+      <p>Worth revisiting once real portfolios exist. Not the first version of this page.</p>
+    </div>
+  </div></div>
+
+  <!-- RECOMMENDATION -->
+  <div class="panel" id="pR"><div class="cols">
+    <div class="notes" style="max-width:1000px">
+      <div class="h2">Where I land</div>
+      <div class="verdict"><b>★ C - grouped by whether you hold it.</b> It answers the page's actual question
+        ("what do I hold, what is it worth") at the top without asking the user to operate anything, it keeps
+        every zero-balance token one tap away, and it is the only variant whose <b>empty state is a finished
+        screen</b> rather than a degraded one. It also reuses the two-section shape sketch 174 gave the accounts
+        sheet, so the two surfaces read as one system instead of two ideas.</div>
+      <p><b>Runner-up: B.</b> If you would rather have an explicit control than an implicit structure, B is the
+         same idea with a <code>GWControlTrack</code> doing the work - and that track is already the app's
+         standard filter gesture. Take B over C if you expect people to switch views often. Rename "Watch" to
+         something the app can honour.</p>
+      <p><b>Rejected: D.</b> Search and sort for a list of eight. <b>E</b> is a good <i>second</i> version once
+         portfolios are real; today its centrepiece is empty. <b>A</b> is the fallback if the answer is "just
+         give View all somewhere to land this week" - it is genuinely one route and one flag.</p>
+
+      <div class="h2">What building C touches</div>
+      <table>
+        <tr><th>File</th><th>Change</th></tr>
+        <tr><td><code>navigation/router.dart</code></td><td>a new <code>/assets</code> route inside the shell</td></tr>
+        <tr><td><code>coins_screen.dart</code></td><td>partition into held / not-held; ordering by fiat value within holdings; the expander</td></tr>
+        <tr><td>Home dashboard</td><td><code>GWViewAllLink</code> on the Assets panel pointing at <code>/assets</code> (phase 25)</td></tr>
+      </table>
+      <div class="verdict warn"><b>One thing to settle before building:</b> does a row with a balance but no
+        market data (price unknown, so fiat value unknown) count as a holding? It has a balance, so yes - but it
+        cannot be sorted by value. Proposal: sort those to the top of holdings by balance, since "you own this
+        and we cannot price it" is more urgent than any priced row.</div>
+      <p style="color:var(--textSecondary);font-size:13px;margin-top:var(--s8)">
+        Tokens verbatim from <code>genius_wallet_colors.dart</code> / <code>genius_wallet_consts.dart</code>.
+        Phones 390x844 at 1:1 with the real shipping bar geometry. Prices are illustrative; the ordering,
+        totals and percentages are computed live from them in every variant.</p>
+    </div>
+  </div></div>
+</div>
+
+<script>
+(function(){
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.setAttribute('aria-selected','false'); });
+      t.setAttribute('aria-selected','true');
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+      var el = document.getElementById(t.dataset.p);
+      if (el) { el.classList.add('on'); }
+    });
+  });
+
+  var COINS = [
+    {sym:'GNUS', name:'Genius Token', price:0.67,     chg:4.70,  bal:1240.5, col:'#0AD89C', glyph:'G'},
+    {sym:'ETH',  name:'Ethereum',     price:1904.70,  chg:-0.20, bal:0.42,   col:'#6C7BF5', glyph:'E'},
+    {sym:'BTC',  name:'Bitcoin',      price:64120.00, chg:1.20,  bal:0.004,  col:'#F7931A', glyph:'B'},
+    {sym:'USDC', name:'USD Coin',     price:1.00,     chg:0.00,  bal:250,    col:'#2775CA', glyph:'U'},
+    {sym:'USDT', name:'Tether USD',   price:1.00,     chg:0.00,  bal:0,      col:'#26A17B', glyph:'T'},
+    {sym:'SOL',  name:'Solana',       price:142.90,   chg:3.10,  bal:0,      col:'#9945FF', glyph:'S'},
+    {sym:'XRP',  name:'XRP',          price:0.52,     chg:0.80,  bal:0,      col:'#23292F', glyph:'X'},
+    {sym:'BNB',  name:'BNB',          price:580.40,   chg:-0.20, bal:0,      col:'#F3BA2F', glyph:'N'}
+  ];
+  function coins(st){
+    return COINS.map(function(c){
+      var b = (st.wallet === 'empty') ? 0 : c.bal;
+      return {sym:c.sym,name:c.name,price:c.price,chg:c.chg,bal:b,col:c.col,glyph:c.glyph,val:b*c.price};
+    });
+  }
+  function money(v){
+    return '$' + v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  function amt(c){
+    var d = c.bal === 0 ? 4 : (c.bal < 1 ? 4 : 2);
+    return c.bal.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}) + ' ' + c.sym;
+  }
+  function chgPill(c){
+    var up = c.chg >= 0;
+    return '<span class="pill '+(up?'up':'dn')+'">'+(up?'+':'')+c.chg.toFixed(2)+'%</span>';
+  }
+  function rowHtml(c){
+    return '<div class="trow '+(c.bal===0?'tzero':'')+'">'+
+      '<div class="tico" style="background:'+c.col+'">'+c.glyph+'</div>'+
+      '<div class="tmid"><div class="tname">'+c.name+'</div>'+
+      '<div class="tsub">'+money(c.price)+' '+chgPill(c)+'</div></div>'+
+      '<div class="tend"><div class="tval">'+money(c.val)+'</div>'+
+      '<div class="tamt">'+amt(c)+'</div></div></div>';
+  }
+  function joined(list){
+    return list.map(rowHtml).join('<div class="divide"></div>');
+  }
+  function totalOf(list){
+    return list.reduce(function(a,c){ return a + c.val; }, 0);
+  }
+  function dayChangeOf(list){
+    return list.reduce(function(a,c){ return a + c.val * (c.chg/100); }, 0);
+  }
+  function totalBlock(list){
+    var t = totalOf(list), d = dayChangeOf(list);
+    var pct = t === 0 ? 0 : (d / t) * 100;
+    var up = d >= 0;
+    return '<div class="totalblock"><div class="totalkick">Total balance</div>'+
+      '<div class="totalnum">'+money(t)+'</div>'+
+      '<div class="totalchg" style="color:'+(up?'var(--statusSuccess)':'var(--statusError)')+'">'+
+      (up?'+':'')+money(Math.abs(d)).replace('$','$')+' · '+(up?'+':'')+pct.toFixed(2)+'% today</div></div>';
+  }
+  function actions(){
+    return '<div class="actions"><div class="btn btnout">Receive</div><div class="btn btnfill">Buy GNUS</div></div>';
+  }
+  function emptyBlock(msg){
+    return '<div class="empty"><div class="emptyring">◎</div>'+
+      '<div style="font:650 16px Inter">Nothing here yet</div>'+
+      '<div style="color:var(--textSecondary);font-size:13.5px">'+msg+'</div></div>';
+  }
+
+  var VARIANTS = {
+    A: function(st){
+      var list = coins(st);
+      return totalBlock(list) + '<div class="card">' + joined(list) + '</div>' + actions();
+    },
+    B: function(st){
+      var list = coins(st);
+      var held = list.filter(function(c){ return c.bal > 0; });
+      var not  = list.filter(function(c){ return c.bal === 0; });
+      var show = st.seg === 'holdings' ? held : (st.seg === 'watch' ? not : list);
+      var body = show.length
+        ? '<div class="card">' + joined(show) + '</div>'
+        : emptyBlock('You are not holding any assets yet. Buy GNUS or receive to get started.');
+      return totalBlock(list) +
+        '<div class="track">'+
+          '<div class="seg '+(st.seg==='all'?'on':'')+'" data-act="seg" data-arg="all">All</div>'+
+          '<div class="seg '+(st.seg==='holdings'?'on':'')+'" data-act="seg" data-arg="holdings">Holdings</div>'+
+          '<div class="seg '+(st.seg==='watch'?'on':'')+'" data-act="seg" data-arg="watch">Watch</div>'+
+        '</div>' + body + actions();
+    },
+    C: function(st){
+      var list = coins(st);
+      var held = list.filter(function(c){ return c.bal > 0; })
+                     .sort(function(a,b){ return b.val - a.val; });
+      var not  = list.filter(function(c){ return c.bal === 0; });
+      var open = st.expanded || held.length === 0;
+      var html = totalBlock(list);
+      if (held.length){
+        html += '<div class="kicker">Your holdings</div><div class="card">' + joined(held) + '</div>';
+      } else {
+        html += '<div class="kicker">Your holdings</div>' +
+          emptyBlock('Nothing yet. Everything you could hold is listed below.');
+      }
+      html += '<div class="kicker">Other assets</div>';
+      if (open){
+        html += '<div class="card">' + joined(not) + '</div>';
+        if (held.length){
+          html += '<div class="expander" data-act="expand">Hide</div>';
+        }
+      } else {
+        html += '<div class="expander" data-act="expand">Show '+not.length+' other assets  ⌄</div>';
+      }
+      return html + actions();
+    },
+    D: function(st){
+      var list = coins(st);
+      var q = (st.q || '').toLowerCase();
+      if (q) {
+        list = list.filter(function(c){
+          return c.name.toLowerCase().indexOf(q) >= 0 || c.sym.toLowerCase().indexOf(q) >= 0;
+        });
+      }
+      var label = {value:'Value', name:'Name', chg:'24h'}[st.sort];
+      list = list.slice().sort(function(a,b){
+        if (st.sort === 'name') { return a.name.localeCompare(b.name); }
+        if (st.sort === 'chg')  { return b.chg - a.chg; }
+        return b.val - a.val;
+      });
+      var body = list.length
+        ? '<div class="card">' + joined(list) + '</div>'
+        : emptyBlock('No asset matches that search.');
+      return totalBlock(coins(st)) +
+        '<div class="search"><span style="color:var(--textMutedOnSunken)">⌕</span>'+
+        '<input type="text" placeholder="Search assets" value="'+(st.q||'')+'" data-act="q"></div>'+
+        '<div class="sortbar"><span style="font:700 11px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--textSecondary)">'+
+        list.length+' assets</span>'+
+        '<span class="sortlink" data-act="sort">Sort: '+label+' ⇅</span></div>' + body + actions();
+    },
+    E: function(st){
+      var list = coins(st);
+      var held = list.filter(function(c){ return c.bal > 0; })
+                     .sort(function(a,b){ return b.val - a.val; });
+      var t = totalOf(list);
+      var bar = '', legend = '';
+      if (t > 0){
+        held.forEach(function(c){
+          var pct = c.val / t * 100;
+          bar += '<div style="width:'+pct.toFixed(2)+'%;background:'+c.col+'"></div>';
+          legend += '<span><i class="dotk" style="background:'+c.col+'"></i>'+c.sym+' '+pct.toFixed(0)+'%</span>';
+        });
+      } else {
+        bar = '<div style="width:100%;background:var(--surfaceMenu)"></div>';
+        legend = '<span style="color:var(--textMutedOnSunken)">No allocation to show yet</span>';
+      }
+      var body = held.length
+        ? '<div class="card">' + joined(held) + '</div>'
+        : emptyBlock('Buy GNUS or receive assets and your allocation appears here.');
+      return totalBlock(list) +
+        '<div class="alloc">'+bar+'</div><div class="alloclegend">'+legend+'</div>' +
+        '<div class="kicker">Holdings</div>' + body + actions();
+    }
+  };
+
+  function createPhone(host){
+    var key = host.dataset.phone;
+    var wrap = host.parentElement;
+    var st = { wallet:'funded', seg:'all', expanded:false, sort:'value', q:'' };
+
+    host.innerHTML =
+      '<div class="notch"></div>'+
+      '<div class="sbar"><span>9:41</span><span class="r">▮▮▮ ᯤ ▰</span></div>'+
+      '<div class="appbar"><div class="backrow"><span style="font-size:20px">‹</span>'+
+        '<span style="font:600 17px Inter">Assets</span></div></div>'+
+      '<div class="scr" data-scr></div>'+
+      '<div class="barbox"><div class="bar">'+
+        '<div class="slot on"><div class="si">▦</div><div class="sl">Home</div></div>'+
+        '<div class="slot"><div class="si">📈</div><div class="sl">Markets</div></div>'+
+        '<div class="dockslot"></div>'+
+        '<div class="slot"><div class="si">🕐</div><div class="sl">Activity</div></div>'+
+        '<div class="slot"><div class="si">···</div><div class="sl">More</div></div>'+
+      '</div><div class="dock">⇅</div></div>';
+
+    function render(){
+      var scr = host.querySelector('[data-scr]');
+      var keep = scr.scrollTop;
+      scr.innerHTML = VARIANTS[key](st);
+      scr.scrollTop = keep;
+      wrap.querySelectorAll('[data-state]').forEach(function(b){
+        b.classList.toggle('on', b.dataset.state === st.wallet);
+      });
+    }
+
+    host.addEventListener('click', function(e){
+      var el = e.target.closest('[data-act]');
+      if (!el) { return; }
+      var act = el.dataset.act;
+      if (act === 'seg') { st.seg = el.dataset.arg; render(); }
+      else if (act === 'expand') { st.expanded = !st.expanded; render(); }
+      else if (act === 'sort') {
+        st.sort = st.sort === 'value' ? 'name' : (st.sort === 'name' ? 'chg' : 'value');
+        render();
+      }
+    });
+    host.addEventListener('input', function(e){
+      if (e.target.dataset.act === 'q') {
+        st.q = e.target.value;
+        render();
+        var inp = host.querySelector('[data-act="q"]');
+        if (inp) { inp.focus(); inp.setSelectionRange(st.q.length, st.q.length); }
+      }
+    });
+    wrap.querySelectorAll('[data-state]').forEach(function(b){
+      b.addEventListener('click', function(){
+        st.wallet = b.dataset.state;
+        if (st.wallet === 'empty') { st.expanded = false; }
+        render();
+      });
+    });
+
+    render();
+  }
+
+  document.querySelectorAll('[data-phone]').forEach(createPhone);
+})();
+</script>
+</body>
+</html>
