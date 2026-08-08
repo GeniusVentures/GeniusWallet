@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/components/cards/gw_row_rhythm.dart';
 import 'package:genius_wallet/components/effects/gw_hover_row.dart';
-import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -38,15 +38,12 @@ class GWTokenRow extends StatelessWidget {
     return GWHoverRow(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: GeniusWalletConsts.space6,
-          vertical: GeniusWalletConsts.space4,
-        ),
+        padding: kGWRowPadding,
         child: Row(
           children: [
             SizedBox(
-              width: 40,
-              height: 40,
+              width: kGWRowIconSize,
+              height: kGWRowIconSize,
               child:
                   iconWidget ??
                   (iconAsset != null
@@ -57,7 +54,7 @@ class GWTokenRow extends StatelessWidget {
                         )
                       : const _FallbackDot()),
             ),
-            const SizedBox(width: GeniusWalletConsts.space6),
+            const SizedBox(width: kGWRowIconToText),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +121,7 @@ class _FallbackDot extends StatelessWidget {
     // fail-soft read.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return CircleAvatar(
-      radius: 20,
+      radius: kGWRowIconSize / 2,
       backgroundColor: gw.surfaceMenu,
       child: Icon(Icons.token, size: 18, color: gw.textSecondary),
     );

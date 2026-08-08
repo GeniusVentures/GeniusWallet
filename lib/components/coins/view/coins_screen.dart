@@ -427,12 +427,14 @@ class CoinsScreenState extends State<CoinsScreen> {
                   ),
                 ],
                 // NO spacer between the band and the first `CoinCardRow`, and
-                // that absence is a decision. The row's own ~20px ListTile
-                // centring snap IS the gap, and it is byte-for-byte the
-                // total-to-first-row relationship that shipped under scheme C.
-                // The sketch drew 14px here; adding it would render 34 below
-                // the band against 26 above it and read bottom-heavy. Do not
-                // add it later.
+                // that absence is still a decision (260807-wbu, Task 2). The
+                // row's own top inset IS the gap; it used to be the ~20px
+                // `ListTile` centring snap, and as of this task it is
+                // `kGWRowSeparatorGap` (`gw_row_rhythm.dart`) = 12, a
+                // DECLARED value rather than a Material default. 12 lands
+                // closer to sketch 178's drawn 14 than the 20 it replaces.
+                // Do not add a spacer here without walking it on device first
+                // - Jakub has not seen the tighter gap yet.
                 for (int i = 0; i < orderedCoins.length; i++) ...[
                   CoinCardRow(
                     onTap: () {
