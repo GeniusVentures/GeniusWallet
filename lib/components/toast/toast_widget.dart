@@ -82,16 +82,26 @@ class ToastWidget extends StatelessWidget {
       container: true,
       liveRegion: true,
       label: semanticLabel,
-      child: density == ToastDensity.compact
-          ? _Compact(accent: accent, icon: _icon(), message: message, gw: gw)
-          : _Card(
-              accent: accent,
-              icon: _icon(),
-              title: title!,
-              message: message,
-              onDismiss: onDismiss,
-              gw: gw,
-            ),
+      // A toast is inserted straight into the root Overlay, which has no
+      // Material ancestor. Without this, Text falls back to the debug style —
+      // reddish with a yellow double underline — because `decoration` is
+      // inherited from the ambient DefaultTextStyle and the typography tokens
+      // only set colour and size. It also gives the dismiss IconButton
+      // something to paint its ink into. `transparency` so the Container
+      // below stays the only thing painting a surface.
+      child: Material(
+        type: MaterialType.transparency,
+        child: density == ToastDensity.compact
+            ? _Compact(accent: accent, icon: _icon(), message: message, gw: gw)
+            : _Card(
+                accent: accent,
+                icon: _icon(),
+                title: title!,
+                message: message,
+                onDismiss: onDismiss,
+                gw: gw,
+              ),
+      ),
     );
   }
 }
@@ -173,58 +183,71 @@ class _Card extends StatelessWidget {
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
         boxShadow: GeniusWalletElevation.card,
       ),
-      child: Row(
+      // Two rows, not two columns. The icon and the title are one statement -
+      // what happened - so they share a line; the message is explanation and
+      // gets the full width under it. Side by side, a 20px icon sat against a
+      // two-line column with dead space beneath it, and the message lost ~32px
+      // of width it needs more on a phone than the indent was buying.
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // The status edge. `IntrinsicHeight` is deliberately NOT used to
-          // stretch it — a fixed 40 keeps the row cheap to lay out and still
-          // spans both text lines at every supported text scale.
-          Container(
-            width: GeniusWalletConsts.space2,
-            height: 40,
-            decoration: BoxDecoration(
-              color: accent,
-              borderRadius: BorderRadius.circular(GeniusWalletConsts.space2),
-            ),
-          ),
-          const SizedBox(width: GeniusWalletConsts.space6),
-          Icon(icon, color: accent, size: 20),
-          const SizedBox(width: GeniusWalletConsts.space3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
+          Row(
+            children: [
+              // The icon is the only thing carrying the status. No leading
+              // edge: two coloured objects saying the same thing is one too
+              // many, and the glyph distinguishes the three kinds by shape
+              // rather than by colour, which is what keeps 1.4.1 satisfied.
+              Icon(icon, color: accent, size: 20),
+              const SizedBox(width: GeniusWalletConsts.space3),
+              Expanded(
+                child: Text(
                   title,
                   style: GeniusWalletTypography.titleMd.copyWith(
                     color: gw.textPrimary,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: GeniusWalletConsts.space2),
-                Text(
-                  message,
-                  style: GeniusWalletTypography.bodySm.copyWith(
-                    color: gw.textSecondary,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              _DismissButton(onDismiss: onDismiss, gw: gw),
+            ],
           ),
-          // 44pt, matching the floor phase 25 set for the filter chips. The
-          // swipe is the primary dismissal on a phone — the top of the screen
-          // is out of thumb reach — but this has to be reachable too.
-          IconButton(
-            onPressed: onDismiss,
-            icon: const Icon(Icons.close),
-            iconSize: 18,
-            color: gw.textSecondary,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 44, height: 44),
-            tooltip: 'Dismiss',
+          const SizedBox(height: GeniusWalletConsts.space2),
+          Text(
+            message,
+            style: GeniusWalletTypography.bodySm.copyWith(
+              color: gw.textSecondary,
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DismissButton extends StatelessWidget {
+  final VoidCallback onDismiss;
+  final GWColors gw;
+
+  const _DismissButton({required this.onDismiss, required this.gw});
+
+  @override
+  Widget build(BuildContext context) {
+    // 44pt, matching the floor phase 25 set for the filter chips. The swipe is
+    // the primary dismissal on a phone — the top of the screen is out of thumb
+    // reach — but this has to be reachable too.
+    //
+    // The 18px glyph therefore sits ~13px inside its own box and ~25px from the
+    // card edge. Pulling it flush would need a negative margin, which Container
+    // turns into a Padding and asserts on — the target keeps its size instead.
+    return IconButton(
+      onPressed: onDismiss,
+      icon: const Icon(Icons.close),
+      iconSize: 18,
+      color: gw.textSecondary,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 44, height: 44),
+      tooltip: 'Dismiss',
     );
   }
 }

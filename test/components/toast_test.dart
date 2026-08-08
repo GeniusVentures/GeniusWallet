@@ -106,6 +106,34 @@ void main() {
     expect(semantics.properties.liveRegion, isTrue);
   });
 
+  testWidgets('toast text carries no inherited debug underline', (
+    tester,
+  ) async {
+    final context = await _pumpHost(tester);
+    showToast(
+      context,
+      'Please try again.',
+      title: 'Verification failed',
+      type: ToastType.error,
+    );
+    await tester.pump();
+
+    // The overlay has no Material ancestor of its own. Without one, Text
+    // inherits Flutter's fallback DefaultTextStyle — reddish, with a yellow
+    // double underline — because the typography tokens set colour and size
+    // but not `decoration`. It showed up on the first desktop walk.
+    for (final text in <String>['Verification failed', 'Please try again.']) {
+      final rich = tester.widget<RichText>(
+        find.descendant(of: find.text(text), matching: find.byType(RichText)),
+      );
+      expect(
+        rich.text.style?.decoration ?? TextDecoration.none,
+        TextDecoration.none,
+        reason: '"$text" picked up the no-Material fallback decoration',
+      );
+    }
+  });
+
   testWidgets('the top offset is derived from the safe area, not a literal', (
     tester,
   ) async {
