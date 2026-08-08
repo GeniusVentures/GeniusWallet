@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 
 import 'fixtures.dart';
 import 'gw_pump.dart';
@@ -96,7 +97,49 @@ void main() {
 
       expect(find.text('Not charged'), findsOneWidget);
       expect(find.text('444.44 USD'), findsNothing);
+      // Sketch 186 scheme A: the value line's colour is `statusError` exactly
+      // when it reads `Not charged` - see `transaction_displays.dart`'s
+      // `amountColumn`.
+      expect(
+        tester.widget<Text>(find.text('Not charged')).style?.color,
+        GWColors.dark().statusError,
+      );
     });
+
+    testWidgets(
+      'an unrecognised-status order keeps its real fiat in the QUIET ink, '
+      'not statusError (186-A must not colour orderRowContent\'s neutral '
+      'bucket as a failure)',
+      (tester) async {
+        // `orderRowContent`'s own doc: `neutral` is the UNRECOGNISED bucket,
+        // folded onto `TransactionStatus.cancelled` - the SAME enum value
+        // `txRowContent`'s dead-status override treats as failed's sibling -
+        // but it deliberately keeps the order's real fiat rather than
+        // printing `Not charged`, because no money is known to have failed to
+        // move. `amountColumn`'s new value-line rule keys off the `Not
+        // charged` STRING rather than re-deriving "isDead" from
+        // `content.status` for exactly this reason: a status-based rule would
+        // repaint this row's honest fiat number in the failure colour.
+        final unrecognised = testOrder(
+          id: 'ord_unrecognised',
+          status: 'someFutureBanxaStatus',
+          fiatAmount: '77.00',
+          cryptoAmount: '0.0077',
+        );
+        await pumpRail(tester, [unrecognised]);
+
+        expect(find.text('77.00 USD'), findsOneWidget);
+        expect(find.text('Not charged'), findsNothing);
+        expect(
+          tester.widget<Text>(find.text('77.00 USD')).style?.color,
+          GWColors.dark().textSecondary,
+        );
+        expect(
+          tester.widget<Text>(find.text('77.00 USD')).style?.color,
+          isNot(GWColors.dark().statusError),
+        );
+      },
+    );
 
     testWidgets('rows are divider-separated, with no day headers', (
       tester,

@@ -43,9 +43,12 @@ Future<void> _loadInter() async {
 }
 
 /// A 390pt phone's `/transactions` content box. It gives the row's middle column
-/// exactly 113.0px: 366 - 2*space6 padding - 44 time - space6 - 40 identity -
-/// space6, then the remaining 234 less the space4 gutter, split between the
-/// subtitle column and the amount column.
+/// exactly 114.0px: 366 - 2*space6 padding - 44 time - space6 - 38 identity -
+/// space6, then the remaining 236 less the space4 gutter, split between the
+/// subtitle column and the amount column. (38, not 40: Jakub picked Assets' row
+/// geometry as the pattern on 2026-08-07, and Assets' leading glyph measures
+/// 38 - the freed 2px is split 1:1 between this column and the amount column,
+/// so the box gained 1px, not 2.)
 const double _kPhoneWidth = 366;
 
 /// The wide `/transactions` page, above `_wideRowThreshold` (720).
@@ -252,7 +255,7 @@ void main() {
             // The exact condition, not an approximation of it. The lead is
             // drawn whole if EITHER the paragraph fits entirely (no ellipsis is
             // appended at all, which is how `purchase` keeps its 101.4px lead on
-            // a 113px line) OR the line can hold the lead plus the ellipsis
+            // a 114px line) OR the line can hold the lead plus the ellipsis
             // glyph, in which case the truncation point cannot fall inside the
             // lead. `…` is 12.3px at bodySm and is a real cost - not the ~4.4px
             // sketch 179 assumed.
@@ -276,7 +279,7 @@ void main() {
   group('179-C: the status is pinned and can no longer be clipped', () {
     // 2. THE UNREPORTED DEFECT. Nobody filed this one and 1081 green tests
     //    permitted it: on a pending mint the narrow subtitle was the single
-    //    string `Minted to wallet · Pending`, which needs 177.6px on a 113.0px
+    //    string `Minted to wallet · Pending`, which needs 177.6px on a 114.0px
     //    line. The row clipped the word `Pending` off the one row where the
     //    status is the entire reason the page is open.
     final pendingMint = _tx(
@@ -333,11 +336,11 @@ void main() {
       // a 4.3px MARGIN here, on the strength of `Minted` 46.2 plus a 4.4px
       // ellipsis against 54.9px. Measured in the shipped Inter, all three inputs
       // are wrong: the lead renders at w600 and measures 48.5, `Pending`
-      // measures 55.9 (not 54.1) so the paragraph gets 53.1 (not 54.9), and `…`
+      // measures 55.9 (not 54.1) so the paragraph gets 54.1 (not 54.9), and `…`
       // (U+2026) is a three-dot glyph measuring 12.3px, not 4.4. Verb plus
-      // ellipsis is therefore 60.8px against 53.1px available - a 7.7px
+      // ellipsis is therefore 60.8px against 54.1px available - a 6.7px
       // SHORTFALL, not a margin. This row renders `Minte…` with the qualifier
-      // gone entirely. 113px cannot hold 48.5 + 12.3 + 4 + 55.9 = 120.7px; no
+      // gone entirely. 114px cannot hold 48.5 + 12.3 + 4 + 55.9 = 120.7px; no
       // arrangement of a `Row` fixes that, and taking the difference from the
       // amount column is what finding 3 measured as strictly worse.
       //
@@ -483,7 +486,7 @@ void main() {
   // 6. THE LEDGER. Every type by every direction by every status, measured.
   //
   // Group 1 above proves the lead survives on a COMPLETED row, which is the row
-  // with the whole 113.0px line. It says nothing about the other three statuses,
+  // with the whole 114.0px line. It says nothing about the other three statuses,
   // where the pinned status tail takes 44 to 70px of that line - and those are
   // exactly the rows a person opens the panel to read.
   //
@@ -503,12 +506,12 @@ void main() {
     // cannot even hold the LEAD plus an ellipsis, so the verb itself is cut.
     //
     // THE BOXES, measured on this tree at a 366px host. The paragraph gets
-    // 113.0 less `space2` (4) less the status tail's own width:
+    // 114.0 less `space2` (4) less the status tail's own width:
     //
-    //     completed  113.0   (no tail at all)
-    //     failed      68.2   (`Failed`    40.8)
-    //     pending     53.1   (`Pending`   55.9)
-    //     cancelled   40.7   (`Cancelled` 68.3)
+    //     completed  114.0   (no tail at all)
+    //     failed      69.2   (`Failed`    40.8)
+    //     pending     54.1   (`Pending`   55.9)
+    //     cancelled   41.7   (`Cancelled` 68.3)
     //
     // A lead survives when the WHOLE paragraph fits its box (no ellipsis is
     // appended at all) or when lead + 12.3 fits it - 12.3px being the `…` glyph
@@ -523,23 +526,23 @@ void main() {
     //
     // NOTE WHAT IS NOT HERE: no `process` cell, at any status. That is the
     // hybrid Jakub ruled on 2026-08-07 - the job row takes the full
-    // `Processing job` only where the full 113.0px line exists, and keeps the
-    // short `Job` (26.1 + 12.3 = 38.4, under even the 40.7px a cancelled row
+    // `Processing job` only where the full 114.0px line exists, and keeps the
+    // short `Job` (26.1 + 12.3 = 38.4, under even the 41.7px a cancelled row
     // leaves) everywhere a status tail narrows it. The job row is the ONE type
     // that clips nothing at any status, and that is the whole point of the
     // hybrid. If a `process` entry ever needs adding here, the hybrid stopped
     // delivering what it promised - stop and re-read the `process` arm of
     // `txRowContent` rather than widening this list.
     const leadCutAllowlist = <String>{
-      // `Minted` 48.5 + 12.3 = 60.8. Clears the 68.2 a failed row leaves,
-      // misses 53.1 and 40.7. The pending case is the 7.7px shortfall this file
+      // `Minted` 48.5 + 12.3 = 60.8. Clears the 69.2 a failed row leaves,
+      // misses 54.1 and 41.7. The pending case is the 6.7px shortfall this file
       // already documents in the pending-mint test above, and it is still open.
       'mint/sent/pending',
       'mint/received/pending',
       'mint/sent/cancelled',
       'mint/received/cancelled',
-      // `Locked` 50.8 + 12.3 = 63.1. Same shape: clears 68.2, misses 53.1
-      // and 40.7.
+      // `Locked` 50.8 + 12.3 = 63.1. Same shape: clears 69.2, misses 54.1
+      // and 41.7.
       'escrow/sent/pending',
       'escrow/received/pending',
       'escrow/sent/cancelled',
@@ -567,8 +570,8 @@ void main() {
       'swap/received/failed',
       'swap/sent/cancelled',
       'swap/received/cancelled',
-      // `Sent` 31.9 + 12.3 = 44.2 against the 40.7 a cancelled row leaves - it
-      // misses by 3.5px, and clears every other status comfortably. The
+      // `Sent` 31.9 + 12.3 = 44.2 against the 41.7 a cancelled row leaves - it
+      // misses by 2.5px, and clears every other status comfortably. The
       // shortest verb on the row and the only near miss in this list.
       'transfer/sent/cancelled',
       'null/sent/cancelled',
@@ -679,12 +682,18 @@ void main() {
         '${rp.size.width.toStringAsFixed(1)}px',
       );
 
-      // A COMPLETED job row has the whole 113.0px line - no status tail - and
+      // A COMPLETED job row has the whole 114.0px line - no status tail - and
       // the full wording fits it with room to spare. This is what dropping the
       // hash bought.
+      //
+      // 113.0 -> 114.0 on 2026-08-07: Jakub picked Assets' row geometry as the
+      // pattern and Assets' leading glyph measures 38, not 40. The freed 2px
+      // splits 1:1 between this name-block column and the amount column, so
+      // the box gained 1px, not 2 - see `_kPhoneWidth`'s doc comment for the
+      // full derivation.
       expect(
         rp.size.width,
-        closeTo(113.0, 0.5),
+        closeTo(114.0, 0.5),
         reason: 'a completed row keeps the whole line',
       );
       expect(
@@ -695,26 +704,26 @@ void main() {
             '${rp.size.width.toStringAsFixed(1)}px line',
       );
 
-      // …and it fits NO other status. 68.2 is the widest of the three narrowed
+      // …and it fits NO other status. 69.2 is the widest of the three narrowed
       // boxes (failed), so failing that fails pending and cancelled too.
       expect(
         full + ellipsis,
-        greaterThan(68.2),
+        greaterThan(69.2),
         reason:
             'if this now passes, the full wording survives a FAILED job row - '
             'widen the hybrid in `txRowContent` and say so here. '
             '"Processing job" ${full.toStringAsFixed(1)}px + '
-            '${ellipsis.toStringAsFixed(1)}px of ellipsis against 68.2px',
+            '${ellipsis.toStringAsFixed(1)}px of ellipsis against 69.2px',
       );
 
       // The short word is what makes the hybrid work: it clears even the
-      // narrowest box, the 40.7px a cancelled row leaves.
+      // narrowest box, the 41.7px a cancelled row leaves.
       expect(
         short + ellipsis,
-        lessThan(40.7),
+        lessThan(41.7),
         reason:
             '"Job" ${short.toStringAsFixed(1)}px + '
-            '${ellipsis.toStringAsFixed(1)}px of ellipsis against the 40.7px a '
+            '${ellipsis.toStringAsFixed(1)}px of ellipsis against the 41.7px a '
             'cancelled row leaves',
       );
     });

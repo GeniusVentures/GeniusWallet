@@ -628,13 +628,18 @@ TxRowContent txRowContent(
   // that override. It is load-bearing, not decoration: `− 0.75 ETH` with no
   // value line reads as a wallet that lost 0.75 ETH. Never drop it.
   //
-  // TONE stays `none` -> gw.textSecondary, and that is a call worth arguing:
-  //   - `outgoing` -> textPrimary is the exact ink a successful spend uses, so
-  //     a failed row at that weight is indistinguishable from a completed one
-  //     when scanning the column — the double-counting sketch 021 §2 objected
-  //     to.
-  //   - `incoming` -> statusSuccess GREEN on a failed receive would be actively
-  //     false; green is this app's success colour.
+  // TONE stays `none` -> gw.textSecondary, and that is a call worth arguing —
+  // an argument sketch 186 scheme A makes STRONGER, not weaker, because
+  // `_toneColor` now maps BOTH `outgoing` and `incoming` to the same ink:
+  //   - `outgoing`/`incoming` -> textPrimary is the exact ink EVERY live row
+  //     uses, so a failed row at that weight would be indistinguishable from
+  //     a completed one when scanning the column — the double-counting
+  //     sketch 021 §2 objected to, and under A it is not one ink among three
+  //     a dead row could borrow, it is the row's ONLY "this moved" ink.
+  //   - `incoming` -> statusSuccess GREEN does not exist as a live-row ink at
+  //     all any more (186-A retired it — see `_toneColor`'s own doc for why),
+  //     so there is no green left for a dead receive to borrow and read as a
+  //     false success.
   //   - `none` measures 6.0:1 dark (#8A8F9D on #0C0E14) and 6.3:1 light
   //     (#5A606E on white) — AA text in both appearances, so quiet is not weak.
   // No fourth tone: `none` + `Not charged` + the badge + the `· Failed`
