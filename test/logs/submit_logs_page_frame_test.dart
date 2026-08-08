@@ -98,12 +98,36 @@ void main() {
         reason: 'the page frame must cap at large (1024), not xxl (1536)',
       );
 
+      // The title used to share the composer's left EDGE exactly. Since
+      // 2026-08-08 `GWPageHeader` insets its left-aligned identity row by
+      // `gwPageHeaderContentInset`, so the title sits that far inside the
+      // card's edge - heading the page's content column, the change Jakub
+      // asked for on every page title.
+      //
+      // The assertion this case exists for is unchanged in kind: it still
+      // fails the moment the 560 `Center` wrapper or `centered: true` comes
+      // back, because either would move the title by far more than this inset
+      // and in the wrong direction. The inset is READ from the component
+      // rather than restated, so the two cannot drift.
+      //
+      // Named cost: the composer's own text starts at `space12` + 1 = 25
+      // inside its card, so the title lands 4px left of it at this width. One
+      // inset for every page title beats four insets that each align with one
+      // page.
+      final BuildContext headerContext = tester.element(
+        find.byType(GWPageHeader),
+      );
       expect(
         tester.getTopLeft(find.text('Send Feedback')).dx,
-        moreOrLessEquals(tester.getTopLeft(_composerCard()).dx, epsilon: 0.5),
+        moreOrLessEquals(
+          tester.getTopLeft(_composerCard()).dx +
+              gwPageHeaderContentInset(headerContext),
+          epsilon: 0.5,
+        ),
         reason:
-            'the title shares the composer\'s left edge. This is the assertion '
-            'that fails if the 560 Center wrapper or centered: true comes back',
+            'the title sits one content inset inside the composer\'s left '
+            'edge. This is the assertion that fails if the 560 Center wrapper '
+            'or centered: true comes back',
       );
 
       expect(
