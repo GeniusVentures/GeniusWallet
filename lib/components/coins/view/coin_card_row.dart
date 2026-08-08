@@ -121,7 +121,7 @@ class CoinCardRow extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      // Filled 24h% chip — market data, always full strength.
+                      // Filled 24h% chip - market data, always full strength.
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,

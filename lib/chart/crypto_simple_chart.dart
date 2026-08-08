@@ -94,13 +94,13 @@ class CryptoSparkLineChart extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // NAME is primary (titleMd / textPrimary), price secondary
-                  // (bodySm / textSecondary) — mirrors the Assets CoinCardRow
+                  // (bodySm / textSecondary) - mirrors the Assets CoinCardRow
                   // hierarchy.
                   // A FIXED style with an ellipsis, never AutoSizeText.
                   // AutoSizeText searches for a font size that fits the box,
                   // so as the window is drag-resized it emits a different
-                  // size — and therefore a different TextStyle, and therefore
-                  // a different skia ParagraphCacheKey — on essentially every
+                  // size - and therefore a different TextStyle, and therefore
+                  // a different skia ParagraphCacheKey - on essentially every
                   // frame. With one of these per market row, that fills and
                   // evicts the fixed-size cache continuously, layout never
                   // settles, no frame is ever committed, and the macOS
@@ -118,7 +118,7 @@ class CryptoSparkLineChart extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: GeniusWalletConsts.space2),
-                  // Ticker · price when a symbol is given (Jakub 2026-07-24 —
+                  // Ticker · price when a symbol is given (Jakub 2026-07-24 -
                   // "add the ticker if there's room"); ellipsis so a long
                   // pair degrades gracefully in the narrow dashboard panel
                   // rather than overflowing.

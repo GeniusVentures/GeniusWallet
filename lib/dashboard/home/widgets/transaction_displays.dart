@@ -168,14 +168,14 @@ Widget _statusPill(TransactionStatus status, GWColors gw, {String? label}) {
 ///
 /// Sketch 186 scheme A, Jakub on device 2026-08-08: `incoming` no longer takes
 /// `statusSuccess`. Measured ink against ink, `statusSuccess` against
-/// `textPrimary` — the entire green/white distinction — is 1.86:1, under a
+/// `textPrimary` - the entire green/white distinction - is 1.86:1, under a
 /// third of WCAG 1.4.11's 3:1 bar for a non-text indicator, and it was a
 /// FOURTH statement of a fact the row already states three times: the sign
 /// glyph already inside `content.amount` (`+`/`−`, a shape at 19.29:1) and the
 /// direction badge at the left wall (fill AND arrow, in both directions). The
 /// tint was spending the column's only colour channel on the weakest of the
 /// four cues and leaving it with nothing left to say STATUS, which a sign
-/// cannot say. Colour is freed for exactly that — see `amountColumn`'s value
+/// cannot say. Colour is freed for exactly that - see `amountColumn`'s value
 /// line and the status tail below. The honest cost, named rather than hidden:
 /// a credit stops being green here. What still says it: the badge, at the
 /// left wall where the eye enters the row.
@@ -355,7 +355,7 @@ class TransactionRow extends StatelessWidget {
         // Sketch 186 scheme A: the slot is NEVER empty any more. `?? 'No
         // price'` replaces the old `if (content.valueLine != null)` gate,
         // which is what let a one-line amount column centre 11.571px lower
-        // than its two-line neighbours — a visible break in a right-aligned
+        // than its two-line neighbours - a visible break in a right-aligned
         // stack with no height change to explain it, worst on the unpriced
         // BTC row. `No price` and not a dash or `$0.00`: both are ruled out
         // by this codebase in writing (`_emDash`'s TT-06 removal and
@@ -371,8 +371,8 @@ class TransactionRow extends StatelessWidget {
           textAlign: TextAlign.right,
           style: GeniusWalletTypography.bodySm.copyWith(
             // `Not charged` is the one sentinel `valueLine` ever carries for a
-            // dead (failed/cancelled) row — see the override in
-            // `transaction_utils.dart`'s `txRowContent` — so keying off the
+            // dead (failed/cancelled) row - see the override in
+            // `transaction_utils.dart`'s `txRowContent` - so keying off the
             // STRING rather than re-deriving "isDead" from `content.status`
             // here keeps this correct for `orderRowContent` too: a banxa
             // order's UNRECOGNISED status also folds to
@@ -636,14 +636,14 @@ class TransactionRow extends StatelessWidget {
                                 maxLines: 1,
                                 softWrap: false,
                                 overflow: TextOverflow.ellipsis,
-                                // Same SIZE token as the paragraph beside it —
+                                // Same SIZE token as the paragraph beside it -
                                 // if only one of the two took a different
                                 // size, the subtitle would print at two sizes
                                 // on one line. The COLOUR, since sketch 186
-                                // scheme A, is `txStatusColors` — the same
+                                // scheme A, is `txStatusColors` - the same
                                 // function `_statusPill` already uses for the
                                 // wide page, already correct for all four
-                                // statuses — so `Pending`/`Failed` read in
+                                // statuses - so `Pending`/`Failed` read in
                                 // their status colour here too, not the flat
                                 // grey every other subtitle word takes. This
                                 // is colour A freed from the amount column,
