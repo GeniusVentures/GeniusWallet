@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show GeniusApi;
@@ -13,6 +14,7 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -88,6 +90,18 @@ class _UnusedApi implements GeniusApi {
 
 Coin _coin(String symbol, {required double balance}) =>
     Coin(name: symbol, symbol: symbol, iconPath: '', balance: balance);
+
+/// A real 390pt iPhone width at 3x density - makes `compact` true. Every host
+/// in this file otherwise runs on the harness's default 800x600 surface,
+/// which sits above the 768 breakpoint (`transaction_row_test.dart`'s "phone
+/// window" tests hit the same gap), so nothing here exercises the compact
+/// branch without it.
+void _setPhoneWidth(WidgetTester tester) {
+  tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+  tester.view.devicePixelRatio = 3.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
 
 // ---------------------------------------------------------------------------
 
@@ -303,6 +317,70 @@ void main() {
       expect(find.text(emptyTransactionsTitle), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    // `endOfTransactionsLabel` used to render unconditionally, so a capped
+    // dashboard panel that hid three of eight transactions behind `View all`
+    // also claimed there were no more. Guarded by `limit == null`
+    // (2026-08-07) - the three tests below pin the guard from both sides,
+    // at PHONE width so `compact` is exercised (see `_setPhoneWidth`).
+    testWidgets(
+      'phone: the capped panel renders its rows with no end-of-list terminus',
+      (tester) async {
+        _setPhoneWidth(tester);
+        await tester.pumpWidget(host(height: null));
+
+        // The cap still applies at phone width - eight transactions in, five
+        // rows out.
+        expect(find.byType(TransactionRow), findsNWidgets(5));
+        // The terminus belongs to the uncapped PAGE only; leaking onto a
+        // panel that just truncated the list is the exact regression this
+        // guards.
+        expect(find.text(endOfTransactionsLabel), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'phone: the uncapped page renders the end-of-list terminus once, '
+      'after the rows',
+      (tester) async {
+        _setPhoneWidth(tester);
+        await tester.pumpWidget(host(height: null, page: true));
+
+        expect(find.byType(TransactionRow), findsNWidgets(8));
+        expect(find.text(endOfTransactionsLabel), findsOneWidget);
+        // After the rows, not before - it is a terminus, not a header.
+        final double lastRowBottom = tester
+            .getBottomLeft(find.byType(TransactionRow).last)
+            .dy;
+        final double labelTop = tester
+            .getTopLeft(find.text(endOfTransactionsLabel))
+            .dy;
+        expect(labelTop, greaterThan(lastRowBottom));
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'phone: the terminus takes bodySm, not the compact override it used '
+      'to carry',
+      (tester) async {
+        _setPhoneWidth(tester);
+        await tester.pumpWidget(host(height: null, page: true));
+
+        final RenderParagraph paragraph = tester.renderObject<RenderParagraph>(
+          find.text(endOfTransactionsLabel),
+        );
+        // Read from the TOKEN, never a literal: a deliberate token change
+        // moves this test with it, and only a re-introduced local `fontSize`
+        // override reddens it.
+        expect(
+          paragraph.text.style?.fontSize,
+          GeniusWalletTypography.bodySm.fontSize,
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 
   group('Assets - the dashboard panel is the head of the /assets list', () {
