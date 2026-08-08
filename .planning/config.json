@@ -17,6 +17,7 @@
   "firecrawl": false,
   "exa_search": false,
   "git": {
+    "base_branch": "develop",
     "branching_strategy": "none",
     "create_tag": true,
     "phase_branch_template": "gsd/phase-{phase}-{slug}",
@@ -28,7 +29,10 @@
     "plan_check": true,
     "verifier": true,
     "nyquist_validation": true,
-    "auto_advance": true,
+    "auto_advance": false,
+    "use_worktrees": false,
+    "api_coverage_gate": false,
+    "test_gate_timeout": 600,
     "node_repair": true,
     "node_repair_budget": 2,
     "ui_phase": true,
@@ -87,7 +91,11 @@
   "project_code": null,
   "phase_naming": "sequential",
   "agent_skills": {},
-  "claude_md_path": "./.claude/CLAUDE.md",
+  "claude_md_path": "./CLAUDE.md",
+  "planner": {
+    "stall_threshold_minutes": 10,
+    "stall_detect_interval_minutes": 5
+  },
   "plan_review": {
     "source_grounding": true,
     "source_grounding_authority": "grep"
