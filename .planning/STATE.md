@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 14
-current_phase_name: "Compute panel & job flow — CLOSED WITH GAPS (14-08 never executed)"
+current_phase: 25
+current_phase_name: "Dashboard section caps & one scroll — SHIPPED on develop"
 status: idle
-stopped_at: "No active phase. Last work was quick task 260806-hfe (transactions at phone width), committed on branch gsd/phase-25-transactions-mobile — NOT pushed, no PR. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs). Next screen of the mobile pass is unchosen — the shared pageTitleGap/pageGutter helpers already reach all seven page-header screens, so their frames are done and only content remains."
-last_updated: "2026-08-06T00:00:00.000Z"
-last_activity: 2026-08-06
+stopped_at: "No active phase. Everything below is merged into `develop` (tip fa74006d), not sitting on a feature branch. Quick task 260806-hfe (transactions at phone width) shipped as PR #224 and quick task 260807-bxs (Markets hero, real timeframe tabs, cards) as PR #226 — an earlier note here claiming 260806-hfe was 'NOT pushed, no PR' was wrong. Phases 24 (mobile nav shell) and 25 (dashboard section caps + Assets page) also shipped, executed by Jakub outside GSD: their completion is measured from merged code, NOT from GSD artifacts — phase 24 has no SUMMARY and its PLAN still reads status: in-progress; 25-01 has no SUMMARY and the BRIEF still reads ready-to-plan. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs)."
+last_updated: "2026-08-08T00:00:00.000Z"
+last_activity: 2026-08-08
 progress:
-  total_phases: 23
-  completed_phases: 21
-  total_plans: 107
-  completed_plans: 106
-  percent: 91
+  total_phases: 25
+  completed_phases: 23
+  total_plans: 110
+  completed_plans: 109
+  percent: 92
 ---
 
 # Project State
@@ -26,6 +26,21 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 **Current focus:** Phase 23 — design-system-consolidation-theme-tokens-shared-components
 
 ## Current Position
+
+**As of 2026-08-08 — read this first; everything under it is history.**
+
+All tracked work is merged into `develop` (tip `fa74006d`). The `ui-redesign-port` branch still
+exists locally but its remote was pruned — it is no longer where work lands. Phases 24 and 25
+shipped; phases 1, 10, 11 never started; phase 14 is the one phase still genuinely open (14-08
+unwired). Latest merges: PR #224 (transactions at phone width) and PR #226 (Markets hero,
+timeframe tabs, cards).
+
+Two phases shipped outside GSD and their artifacts never caught up: **phase 24 has no SUMMARY and
+its PLAN still says `status: in-progress`; phase 25's BRIEF still says `ready-to-plan` and 25-01
+has no SUMMARY.** Both are complete in the code. Trust `git` over the phase metadata here.
+
+The narrative below predates 2026-08-06 and describes the dual-track period. It is kept as the
+record of how the tracks ran, not as a statement of where things stand.
 
 > **DUAL-TRACK (both live on branch `ui-redesign-port`).** This project runs two parallel tracks.
 > The frontmatter counters above track only the **official GSD roadmap (Phases 1-11)**.
