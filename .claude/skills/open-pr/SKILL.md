@@ -50,23 +50,72 @@ descriptions, PR comments and release notes.
 
 ## The description
 
-Written for a reviewer deciding whether to trust the change, not for a machine
-summarising it.
+A reviewer skims this on a phone before deciding whether the diff is worth
+opening. Write for that person, not for a machine summarising the change.
 
-- **Lead with what a user hits.** "The order list could never show anyone
-  their orders" beats "refactored OrdersCubit".
-- **One short verification section.** Test count, analyzer state, gates.
-- **A "deliberately not here" list.** What you found and chose not to fix, with
-  the reason. This is what stops a reviewer hunting for something you already
-  considered.
-- No walls of implementation detail. If a decision needs three paragraphs, it
-  belongs in a code comment or the commit message.
+**Shape — roughly this, roughly this long:**
+
+```
+One sentence: what someone can now do, or what stopped being broken.
+
+## What changed
+Three to six bullets. Each one names a behaviour, not a mechanism.
+
+## Verification
+One line: tests, analyzer, gates.
+
+## Deliberately not here
+What you chose not to fix, and why. Drop the heading if there's nothing.
+```
+
+**A screenful is the budget.** Past ~30 lines you have started explaining the
+implementation. Cut until every bullet is something a person could notice while
+using the app.
+
+**Behaviour, not mechanism.** The diff already says how. Compare a real one:
+
+> Hero price was a hardcoded `fontSize: 48` — ran the full card width on a
+> phone. Its box was 180px and `chartUsesFrame()` needs 220, so it silently
+> used the axis-free variant.
+
+against what the reviewer needed:
+
+> On a phone the Markets price was so large it ran the whole width of the card,
+> and the chart under it showed no prices and no dates. Both fixed. Desktop is
+> untouched.
+
+Same change. Only the second tells anyone what to go and look at.
+
+**Keep out of the summary:** pixel values, function and class names, file paths,
+cache keys, widget internals. A number earns its place only when someone will
+argue about it — a breakpoint, a threshold. Everything else belongs in the commit
+message, where the person who wants that detail is already reading.
+
+**"Deliberately not here" is product writing too.** *"Cards stop at 2 columns;
+below 287px the name collapses because the price column is fixed at 142.5px"* is
+a note to yourself. *"Cards don't go 3 across — that needs a card redesign, not a
+number change"* is a note to your reviewer. Write the second.
+
+**Say what is unverified.** Light mode unchecked, real hardware unwalked, one
+platform only — a reviewer can accept a gap they can see, and cannot forgive one
+they find themselves.
 
 ## Open it as a draft
 
 ```
-gh pr create --draft --base develop --title "<title>" --body-file <file>
+/gsd-ship --draft
 ```
+
+It pushes the branch and opens the PR against the base it resolves from
+`.planning/config.json` (`git.base_branch`, pinned to `develop` — this repo's
+GitHub default is `main`, so without that pin ship targets the release branch).
+A PR opened against `main` means that key went missing.
+
+**Rewrite the body it generates.** `gsd-ship` assembles it from PLAN.md and
+SUMMARY.md, so it arrives as a machine summary of the planning docs — phase
+numbers, requirement IDs, task counts. That is the opposite of the section above.
+Treat it as raw material: keep the verification numbers, throw away the rest, and
+write the description as if no plan existed.
 
 Draft by default. Mark it ready when CI is green and you have re-read the
 diff yourself. Opening non-draft is the exception, not the norm.
