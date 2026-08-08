@@ -1372,3 +1372,48 @@ Plans:
 - [x] 21-05-PLAN.md — Wave 1: 034-A2 receive — real 4-char chunking, the third Receive caller's ad-hoc wrapper deleted, More Options confirmed inset-only
 - [x] 21-06-PLAN.md — Wave 2: the legacy `BottomDrawer` shell deleted and the padding invariant proven across every call site at once
 
+### Phase 24: Mobile nav shell — centre dock, wallet header, two-section accounts sheet
+
+**Goal:** Give the phone a navigation shell of its own instead of a squeezed desktop one: a bottom
+bar naming real destinations, a header that fits, and an accounts sheet that distinguishes SDK
+accounts from the user's own.
+
+**Sketches:** 171, 172, 173, 174 · **Decisions by:** Jakub, 2026-08-06
+**Depends on:** Phase 15 (transactions frame)
+**Plans:** 1/1 shipped — `PLAN.md` (unnumbered, single plan)
+
+**Decisions locked:** 171 variant B — the bottom bar is 4 destinations plus a centre dock, not 5
+flat tabs. 172 variant A — the dock is **Swap**, reusing `Icons.swap_vert_rounded`. 174 — the
+accounts sheet carries two labelled sections, SDK Accounts and Your Accounts.
+
+**Shipped:** merged via PR #225 (`redesign/navigation-260806`). Added
+`lib/components/overlay/mobile_header.dart`, `nav_destinations.dart` and `more_sheet.dart`, with a
+substantial `responsive_overlay.dart` rework. Covered by
+`test/components/mobile_header_brand_and_pill_test.dart` and `mobile_nav_destinations_test.dart`.
+
+> **Artifact gap — trust the code, not this metadata.** Executed by Jakub outside GSD. There is no
+> SUMMARY, and `PLAN.md` still reads `status: in-progress`. Completion here is measured from merged
+> code on `develop`.
+
+### Phase 25: One scroll on the dashboard — capped sections with View all
+
+**Goal:** Make the dashboard a single scroll by capping each section and moving the overflow behind
+a real "View all" destination, which is what forces the Assets page into existence.
+
+**Raised by:** Jakub, 2026-08-06 live iPhone walk · **Scope:** two deliverables, planned as two
+plans and executed in parallel
+**Depends on:** quick task 260806-wys (dashboard section rhythm), landed 2026-08-07
+**Plans:** 2/2 shipped
+
+- [x] 25-01-PLAN.md — capped dashboard sections and the one-scroll page (no SUMMARY written)
+- [x] 25-02-PLAN.md — the Assets page the caps require — `25-02-SUMMARY.md` written
+
+**Shipped:** `lib/dashboard/assets/assets_screen.dart`, `assets_sort.dart` and
+`assets_market_data.dart`, plus the section caps in `dashboard_screen.dart`. Covered by
+`test/dashboard/dashboard_section_caps_test.dart`, `assets_screen_test.dart` and
+`assets_sort_test.dart`. Walk evidence in `WALK-260807.md`; open items in `deferred-items.md`.
+
+> **Artifact gap.** `BRIEF.md` still reads `status: ready-to-plan` and 25-01 has no SUMMARY, though
+> both plans' code is merged. `deferred-items.md` is unresolved, so milestone close will prompt
+> `[R]/[A]/[C]` on it under GSD 1.10.0.
+
