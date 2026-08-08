@@ -414,12 +414,11 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           )) {
                             sgnusTxController.addTransaction(tx);
                           }
-                          ToastManager.instance.showToast(
-                            context: context,
+                          showToast(
+                            context,
+                            'Added 11 mock transactions. STICKY until '
+                            'Clear.',
                             title: 'Mock transactions added',
-                            message:
-                                'Added 11 mock transactions. STICKY until '
-                                'Clear.',
                             type: ToastType.success,
                           );
                         }, tooltip: 'Inject mock transactions batch'),
@@ -428,13 +427,12 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           () {
                             DevFaultInjector.instance.armAccountLoadFailure();
                             context.read<AppBloc>().add(FetchAccount());
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'One-shot: already spent by the fetch just '
+                              'dispatched. Press the dashboard\'s Retry '
+                              'to recover.',
                               title: 'Account-load failure armed',
-                              message:
-                                  'One-shot: already spent by the fetch just '
-                                  'dispatched. Press the dashboard\'s Retry '
-                                  'to recover.',
                               type: ToastType.warning,
                             );
                           },
@@ -466,14 +464,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             context.read<AppBloc>().add(
                               ProcessingStatusTicked(),
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'WalletsOverview now renders the SGNUS '
+                              'branch, isProcessing: false. A '
+                              'pull-to-refresh destroys this fixture — '
+                              're-press to restore it.',
                               title: 'SGNUS fixture armed (idle)',
-                              message:
-                                  'WalletsOverview now renders the SGNUS '
-                                  'branch, isProcessing: false. A '
-                                  'pull-to-refresh destroys this fixture — '
-                                  're-press to restore it.',
                               type: ToastType.success,
                             );
                           },
@@ -518,14 +515,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             context.read<AppBloc>().add(
                               ProcessingStatusTicked(),
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'The compute panel reads ComputeState.'
+                              'ready and "New processing job" is '
+                              'clickable. STICKY - pressing Clear '
+                              'releases it.',
                               title: 'SGNUS fixture armed (ready)',
-                              message:
-                                  'The compute panel reads ComputeState.'
-                                  'ready and "New processing job" is '
-                                  'clickable. STICKY - pressing Clear '
-                                  'releases it.',
                               type: ToastType.success,
                             );
                           },
@@ -554,14 +550,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             context.read<AppBloc>().add(
                               ProcessingStatusTicked(),
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'WalletsOverview now renders the SGNUS '
+                              'branch, isProcessing: true — its tallest '
+                              'shape. A pull-to-refresh destroys this '
+                              'fixture — re-press to restore it.',
                               title: 'SGNUS fixture armed (processing)',
-                              message:
-                                  'WalletsOverview now renders the SGNUS '
-                                  'branch, isProcessing: true — its tallest '
-                                  'shape. A pull-to-refresh destroys this '
-                                  'fixture — re-press to restore it.',
                               type: ToastType.success,
                             );
                           },
@@ -596,15 +591,14 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             context.read<AppBloc>().add(
                               ProcessingStatusTicked(),
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'The compute panel reads the '
+                              'post-completion acknowledgement state. '
+                              'STICKY - pressing Clear starts the real '
+                              '60s window after which it decays to '
+                              'Ready.',
                               title: 'Job-complete fixture armed',
-                              message:
-                                  'The compute panel reads the '
-                                  'post-completion acknowledgement state. '
-                                  'STICKY - pressing Clear starts the real '
-                                  '60s window after which it decays to '
-                                  'Ready.',
                               type: ToastType.success,
                             );
                           },
@@ -629,14 +623,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             context.read<AppBloc>().add(
                               ProcessingStatusTicked(),
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'The node reads as starting up. Sticky — '
+                              'press Clear to release it. This state '
+                              'was previously unreachable because 37.0 '
+                              'failed the < 1.0 gate.',
                               title: 'Initialization fixture armed (37%)',
-                              message:
-                                  'The node reads as starting up. Sticky — '
-                                  'press Clear to release it. This state '
-                                  'was previously unreachable because 37.0 '
-                                  'failed the < 1.0 gate.',
                               type: ToastType.success,
                             );
                           },
@@ -652,15 +645,14 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             context.read<AppBloc>().add(
                               ProcessingStatusTicked(),
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'A dead feed is now distinguishable from a '
+                              'healthy idle node. Retry re-arms the timer '
+                              'but this STICKY override re-asserts '
+                              'unavailable on the next tick — press Clear '
+                              'to watch it actually recover.',
                               title: 'Processing feed armed unavailable',
-                              message:
-                                  'A dead feed is now distinguishable from a '
-                                  'healthy idle node. Retry re-arms the timer '
-                                  'but this STICKY override re-asserts '
-                                  'unavailable on the next tick — press Clear '
-                                  'to watch it actually recover.',
                               type: ToastType.warning,
                             );
                           },
@@ -688,15 +680,14 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             DevFaultInjector.instance.armMarketsFault(
                               DevMarketsFault.error,
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'HELD until Clear is pressed: resize and '
+                              'toggle appearance freely. Pressing the '
+                              "panel's own Retry will keep failing "
+                              'while armed — press Clear first, then '
+                              'Retry, to see it recover.',
                               title: 'Markets error armed',
-                              message:
-                                  'HELD until Clear is pressed: resize and '
-                                  'toggle appearance freely. Pressing the '
-                                  "panel's own Retry will keep failing "
-                                  'while armed — press Clear first, then '
-                                  'Retry, to see it recover.',
                               type: ToastType.warning,
                             );
                           },
@@ -712,12 +703,11 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             DevFaultInjector.instance.armMarketsFault(
                               DevMarketsFault.empty,
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'HELD until Clear is pressed: resize and '
+                              'toggle appearance freely.',
                               title: 'Markets empty armed',
-                              message:
-                                  'HELD until Clear is pressed: resize and '
-                                  'toggle appearance freely.',
                               type: ToastType.warning,
                             );
                           },
@@ -793,14 +783,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           'Priced OK',
                           () {
                             DevMockJob.instance.arm(DevJobScenario.pricedOk);
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'STICKY, released by Clear. Steps 2 and 3 '
+                              'populate, Continue enables, the walk ends '
+                              'on the job-started terminal. A file '
+                              'already chosen is re-priced immediately.',
                               title: 'Job fixture armed: priced OK',
-                              message:
-                                  'STICKY, released by Clear. Steps 2 and 3 '
-                                  'populate, Continue enables, the walk ends '
-                                  'on the job-started terminal. A file '
-                                  'already chosen is re-priced immediately.',
                               type: ToastType.success,
                             );
                           },
@@ -816,17 +805,16 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             DevMockJob.instance.arm(
                               DevJobScenario.insufficientFunds,
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'STICKY, released by Clear. The cost is '
+                              'above the balance, so step 2 shows the '
+                              'shortfall note and Continue stays '
+                              'disabled - the walk deliberately stops '
+                              'there. That is the screen, not a bug. A '
+                              'file already chosen is re-priced '
+                              'immediately.',
                               title: 'Job fixture armed: insufficient funds',
-                              message:
-                                  'STICKY, released by Clear. The cost is '
-                                  'above the balance, so step 2 shows the '
-                                  'shortfall note and Continue stays '
-                                  'disabled - the walk deliberately stops '
-                                  'there. That is the screen, not a bug. A '
-                                  'file already chosen is re-priced '
-                                  'immediately.',
                               type: ToastType.warning,
                             );
                           },
@@ -840,14 +828,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           'Cost fail',
                           () {
                             DevMockJob.instance.arm(DevJobScenario.costFailure);
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'STICKY, released by Clear. Pricing '
+                              'fails - step 1 still shows the filename '
+                              'and step 2 shows the reason. A file '
+                              'already chosen is re-priced immediately.',
                               title: 'Job fixture armed: cost failure',
-                              message:
-                                  'STICKY, released by Clear. Pricing '
-                                  'fails - step 1 still shows the filename '
-                                  'and step 2 shows the reason. A file '
-                                  'already chosen is re-priced immediately.',
                               type: ToastType.warning,
                             );
                           },
@@ -862,14 +849,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             DevMockJob.instance.arm(
                               DevJobScenario.bridgeFailed,
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'STICKY, released by Clear. The walk '
+                              'reaches the terminal where nothing was '
+                              'sent. A file already chosen is re-priced '
+                              'immediately.',
                               title: 'Job fixture armed: bridge failed',
-                              message:
-                                  'STICKY, released by Clear. The walk '
-                                  'reaches the terminal where nothing was '
-                                  'sent. A file already chosen is re-priced '
-                                  'immediately.',
                               type: ToastType.warning,
                             );
                           },
@@ -884,17 +870,16 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                             DevMockJob.instance.arm(
                               DevJobScenario.bridgedNotProcessed,
                             );
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'STICKY, released by Clear. Tokens '
+                              'burned, job never started - otherwise '
+                              'unreachable without spending real GNUS. '
+                              'A file already chosen is re-priced '
+                              'immediately.',
                               title:
                                   'Job fixture armed: bridged, not '
                                   'processed',
-                              message:
-                                  'STICKY, released by Clear. Tokens '
-                                  'burned, job never started - otherwise '
-                                  'unreachable without spending real GNUS. '
-                                  'A file already chosen is re-priced '
-                                  'immediately.',
                               type: ToastType.warning,
                             );
                           },
@@ -933,11 +918,10 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               .getSGNUSTransactionsController();
                           final fakeTx = getFakeTransaction(true);
                           txController.addTransaction(fakeTx);
-                          ToastManager.instance.showToast(
-                            context: context,
+                          showToast(
+                            context,
+                            'Added: ${fakeTx.type} | ${fakeTx.transactionDirection}',
                             title: 'Transaction Added',
-                            message:
-                                'Added: ${fakeTx.type} | ${fakeTx.transactionDirection}',
                             type: ToastType.success,
                           );
                         }, tooltip: 'Add SGNUS Test Transaction'),
@@ -1102,14 +1086,13 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               DevBanxaOrders.seeded,
                             );
                             context.read<OrdersCubit>().fetchOrders();
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'Four orders, one per status bucket: '
+                              'completed, pendingPayment, declined, and '
+                              'an UNKNOWN status that must read neutral '
+                              'rather than green. HELD until Clear.',
                               title: 'Banxa orders seeded',
-                              message:
-                                  'Four orders, one per status bucket: '
-                                  'completed, pendingPayment, declined, and '
-                                  'an UNKNOWN status that must read neutral '
-                                  'rather than green. HELD until Clear.',
                               type: ToastType.warning,
                             );
                           },
@@ -1125,13 +1108,12 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           () {
                             DevBanxaFixtures.instance.arm(DevBanxaOrders.empty);
                             context.read<OrdersCubit>().fetchOrders();
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'A SUCCESSFUL fetch returning zero orders — '
+                              "the GWEmptyState branch 09-02 added. This "
+                              'is what a new wallet sees. HELD until Clear.',
                               title: 'Banxa empty state armed',
-                              message:
-                                  'A SUCCESSFUL fetch returning zero orders — '
-                                  "the GWEmptyState branch 09-02 added. This "
-                                  'is what a new wallet sees. HELD until Clear.',
                               type: ToastType.warning,
                             );
                           },
@@ -1145,15 +1127,14 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           () {
                             DevBanxaFixtures.instance.arm(DevBanxaOrders.error);
                             context.read<OrdersCubit>().fetchOrders();
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              "The GWErrorState branch 09-02 added, which "
+                              'replaced a bare "❌" string. Its own Retry '
+                              'will KEEP failing while armed — press '
+                              'Clear first, then Retry, to watch it '
+                              'recover.',
                               title: 'Banxa orders error armed',
-                              message:
-                                  "The GWErrorState branch 09-02 added, which "
-                                  'replaced a bare "❌" string. Its own Retry '
-                                  'will KEEP failing while armed — press '
-                                  'Clear first, then Retry, to watch it '
-                                  'recover.',
                               type: ToastType.warning,
                             );
                           },
@@ -1167,12 +1148,11 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                           () {
                             DevBanxaFixtures.instance.disarm();
                             context.read<OrdersCubit>().fetchOrders();
-                            ToastManager.instance.showToast(
-                              context: context,
+                            showToast(
+                              context,
+                              'Next fetch runs for real against the '
+                              'sandbox.',
                               title: 'Banxa fixtures cleared',
-                              message:
-                                  'Next fetch runs for real against the '
-                                  'sandbox.',
                               type: ToastType.success,
                             );
                           },

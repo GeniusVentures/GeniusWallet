@@ -6,6 +6,7 @@ import 'package:genius_api/types/security_type.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/onboarding/existing_wallet/bloc/existing_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/widgets/paste_field.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -85,12 +86,11 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
         BlocListener<ExistingWalletBloc, ExistingWalletState>(
           listener: (context, state) async {
             if (state.importWalletStatus == ExistingWalletStatus.error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Failed to import wallet. Check your import settings and try again.',
-                  ),
-                ),
+              showToast(
+                context,
+                'Check your import settings and try again.',
+                title: 'Could not import wallet',
+                type: ToastType.error,
               );
             }
           },

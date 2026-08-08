@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -92,7 +92,7 @@ class GWCopyRow extends StatelessWidget {
           // The FULL value goes to the clipboard, never the truncated
           // display form - this is the security property Phase 23 audited.
           Clipboard.setData(ClipboardData(text: value));
-          showAppSnackBar(context, '$label copied');
+          showToast(context, '$label copied');
         },
         // The inset is INSIDE the detector, so the whole grid cell is the
         // target - see kGWDetailRowPadding's doc for why GWDetailGrid does

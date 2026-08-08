@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -30,7 +30,7 @@ class _WalletAddressCustomState extends State<WalletAddressCustom> {
 
         /// Display snackbar if we have a change in status
         if (message.isNotEmpty) {
-          showAppSnackBar(context, message);
+          showToast(context, message);
 
           context.read<WalletDetailsCubit>().messageShowed();
         }

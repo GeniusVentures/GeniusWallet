@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
@@ -164,10 +164,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         if (approved == null || !approved) {
           debugPrint("❌ Connection request rejected by user");
           if (mounted) {
-            showAppSnackBar(
+            showToast(
               context,
               "DApp connection was rejected.",
-              backgroundColor: context.gw.statusError,
+              type: ToastType.error,
             );
           }
 
@@ -238,10 +238,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       });
       debugPrint('❌ Connection failed: WalletKit not initialized');
       if (mounted && context.mounted) {
-        showAppSnackBar(
+        showToast(
           context,
           "WalletKit failed to initialize. Please restart the app.",
-          backgroundColor: context.gw.statusError,
+          type: ToastType.error,
         );
       }
       return;
@@ -453,10 +453,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
           });
           debugPrint('⏱ Timeout hit – no session received.');
           if (context.mounted) {
-            showAppSnackBar(
+            showToast(
               context,
               "Wallet connection failed. Please try again.",
-              backgroundColor: context.gw.statusError,
+              type: ToastType.error,
             );
           }
         }

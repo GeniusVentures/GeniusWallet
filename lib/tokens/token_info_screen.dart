@@ -21,7 +21,7 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -1176,7 +1176,7 @@ class _CopyAddressRow extends StatelessWidget {
         onTap: () {
           // The FULL address goes to the clipboard, never the truncated form.
           Clipboard.setData(ClipboardData(text: a));
-          showAppSnackBar(context, 'Address copied to clipboard');
+          showToast(context, 'Address copied to clipboard');
         },
         // Inside the detector, so the whole cell is the target.
         child: Padding(

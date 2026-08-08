@@ -6,7 +6,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -175,7 +174,7 @@ class _SwapScreenState extends State<SwapScreen> {
     } catch (e) {
       setState(() => isLoading = false);
       if (mounted) {
-        showAppSnackBar(
+        showToast(
           context,
           'Failed to load tokens. Check your connection and try again.',
         );
@@ -275,7 +274,7 @@ class _SwapScreenState extends State<SwapScreen> {
         isFetchingRoute = false;
       });
       if (mounted) {
-        showAppSnackBar(
+        showToast(
           context,
           'Failed to fetch route. Check your input and try again.',
         );
@@ -338,11 +337,10 @@ class _SwapScreenState extends State<SwapScreen> {
         fromIconUrl: fromToken?.logoURI,
       );
 
-      ToastManager.instance.showToast(
-        context: context,
+      showToast(
+        context,
+        'Swapping ${params.fromAmount} ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
         title: 'Swap Submitted',
-        message:
-            'Swapping ${params.fromAmount} ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
         type: ToastType.success,
       );
 

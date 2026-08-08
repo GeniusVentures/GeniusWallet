@@ -10,7 +10,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -190,7 +190,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
 
     // Guard: require at least one wallet to remain.
     if (appBloc.state.wallets.length <= 1) {
-      showAppSnackBar(
+      showToast(
         navigator.context,
         'You must keep at least one wallet.',
         duration: const Duration(seconds: 2),
@@ -415,7 +415,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                     Clipboard.setData(ClipboardData(text: wallet.address));
                     HapticFeedback.lightImpact();
                     Navigator.of(context).pop();
-                    showAppSnackBar(
+                    showToast(
                       context,
                       'Address copied to clipboard',
                       duration: const Duration(seconds: 1),

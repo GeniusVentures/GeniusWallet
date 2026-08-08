@@ -7,7 +7,7 @@ import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/effects/gw_hover_row.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -738,7 +738,7 @@ class _CopyRow extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: () {
           Clipboard.setData(ClipboardData(text: value));
-          showAppSnackBar(context, '$label copied');
+          showToast(context, '$label copied');
         },
         // The inset is INSIDE the detector, so the whole grid cell is the
         // target -- see kGWDetailRowPadding for why the grid does not pad.

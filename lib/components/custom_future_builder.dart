@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 class FutureStateWidget<T> extends StatelessWidget {
@@ -29,7 +29,7 @@ class FutureStateWidget<T> extends StatelessWidget {
           return loading ?? const Center(child: Loading());
         } else if (snapshot.hasError) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            showAppSnackBar(context, 'Error: ${snapshot.error}');
+            showToast(context, 'Error: ${snapshot.error}');
           });
 
           return Center(

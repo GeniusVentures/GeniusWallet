@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -203,11 +204,7 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
                   if (!context.mounted) {
                     return;
                   }
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Recovery phrase copied to clipboard!"),
-                    ),
-                  );
+                  showToast(context, 'Recovery phrase copied');
                 },
                 icon: const Icon(Icons.copy),
                 label: const Text("Copy to clipboard"),

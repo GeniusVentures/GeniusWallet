@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -45,18 +46,16 @@ class _VerifyRecoveryPhraseScreenState
     final completeWordsList = _inputAndWordsKey.currentState?.completeWordsList;
 
     if (completeWordsList == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please complete all fields before continuing.'),
-        ),
+      showToast(
+        context,
+        'Complete all fields before continuing',
+        type: ToastType.warning,
       );
       return;
     }
 
     if (completeWordsList.any((word) => word.trim().isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all missing words.')),
-      );
+      showToast(context, 'Fill in all missing words', type: ToastType.warning);
       return;
     }
 
@@ -72,10 +71,11 @@ class _VerifyRecoveryPhraseScreenState
     return BlocListener<NewWalletBloc, NewWalletState>(
       listener: (context, state) {
         if (state.verificationStatus == VerificationStatus.failed) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verification failed. Please try again.'),
-            ),
+          showToast(
+            context,
+            'Please try again.',
+            title: 'Verification failed',
+            type: ToastType.error,
           );
         }
       },
