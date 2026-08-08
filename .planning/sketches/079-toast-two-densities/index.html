@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>079 - the toast, two densities, safe-area aware</title>
+<style>
+:root{
+  --base:#0B0D12; --elev:#0C0E14; --sunken:#06080C; --menu:#171A21;
+  --text:#FFFFFF; --text2:#8A8F9D;
+  --border:rgba(255,255,255,.12); --border2:rgba(255,255,255,.24); --borderctl:rgba(255,255,255,.36);
+  --ok:#0AD89C; --err:#FF4D4D; --warn:#FFC42E;
+  --g1:#0AD89C; --g2:#0AAEE6; --brand:#14C8FF; --onbrand:#000B18;
+}
+/* light-mode phone paint, straight from GWColors.light() */
+.light{
+  --base:#DCE0E6; --elev:#FFFFFF; --menu:#F1F3F6;
+  --text:#10131A; --text2:#5A606E;
+  --border:rgba(16,19,26,.12); --border2:rgba(16,19,26,.24); --borderctl:rgba(16,19,26,.36);
+  --ok:#07875F; --err:#D92D2D; --warn:#92400E;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#07090D;color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:1500px;margin:0 auto;padding:30px 24px 110px}
+h1{font-size:25px;margin:0 0 6px;font-weight:700}
+.sub{color:#8A8F9D;font-size:13.5px;line-height:1.65;margin:0 0 16px;max-width:1040px}
+.sub b{color:#fff}
+.quote{border-left:3px solid rgba(255,255,255,.24);padding:2px 0 2px 14px;margin:0 0 14px;
+  color:#c9ccd4;font-size:13.5px;line-height:1.7;max-width:1040px}
+.quote b{color:#fff}
+.alert{border:1px solid rgba(255,196,46,.4);background:rgba(255,196,46,.06);border-radius:12px;
+  padding:13px 16px;margin:0 0 18px;max-width:1040px;font-size:13.5px;line-height:1.68;color:#d8dbe2}
+.alert b{color:#FFC42E}
+.statebar{display:flex;gap:12px;align-items:center;margin:16px 0 10px;font-size:13px;color:#8A8F9D;flex-wrap:wrap}
+.statebar .lbl{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:#6e737f}
+.seg{display:inline-flex;background:#06080C;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:#8A8F9D;font-size:12px;font-weight:600;
+  padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit}
+.seg button.on{background:linear-gradient(90deg,var(--g1),var(--g2));color:#000B18}
+
+.cols{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+.phones{display:flex;gap:26px;flex-wrap:wrap}
+.col{width:300px}
+.col h3{font-size:14px;margin:0 0 4px;font-weight:700;color:#fff}
+.col .cap{font-size:12px;color:#8A8F9D;line-height:1.55;margin:0 0 10px;min-height:52px}
+.col .cap b{color:#fff}
+
+/* ---- phone ---- */
+.phone{width:300px;height:600px;border-radius:34px;border:1px solid rgba(255,255,255,.18);
+  background:var(--base);position:relative;overflow:hidden;color:var(--text)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:110px;height:26px;
+  background:#000;border-radius:0 0 16px 16px;z-index:9}
+.safearea{height:44px}                      /* MediaQuery.padding.top, iPhone 14 Pro */
+.hdr{height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;border-bottom:1px solid var(--border)}
+.brandmark{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--g1),var(--g2))}
+.brandrow{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.hdrctl{display:flex;gap:12px}
+.hdrctl i{width:26px;height:26px;border-radius:7px;border:1px solid var(--border2);display:block}
+.page{padding:14px 12px;display:flex;flex-direction:column;gap:9px}
+.skel{background:var(--elev);border:1px solid var(--border);border-radius:12px;height:58px}
+.skel.tall{height:96px}
+
+/* bottom dock, kMobileBarHeight 60 */
+.dock{position:absolute;left:0;right:0;bottom:0;height:60px;background:var(--elev);
+  border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding:0 14px}
+.dock span{width:19px;height:19px;border-radius:6px;background:var(--text2);opacity:.5}
+.dock .mid{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));opacity:1}
+
+/* ---- the toasts ---- */
+.toastzone{position:absolute;left:0;right:0;z-index:8;padding:0 6px}   /* pageGutter phone = 6 */
+.grab{width:34px;height:4px;border-radius:2px;background:var(--text2);opacity:.45;margin:0 auto 5px}
+
+/* CARD density - alerts */
+.t-card{background:var(--elev);border-radius:12px;padding:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.38);display:flex;gap:12px;align-items:flex-start;
+  border:1px solid var(--border)}
+.t-card .edge{width:4px;align-self:stretch;border-radius:2px;flex:0 0 4px}
+.t-card .ico{font-size:19px;line-height:1;margin-top:1px}
+.t-card .body{flex:1;min-width:0}
+.t-card .ttl{font-size:14px;font-weight:700;line-height:1.35;margin:0 0 2px}
+.t-card .msg{font-size:12.5px;color:var(--text2);line-height:1.45;margin:0}
+.t-card .x{width:44px;height:44px;margin:-11px -11px -11px 0;display:flex;align-items:center;
+  justify-content:center;color:var(--text2);font-size:15px;flex:0 0 44px}
+
+/* COMPACT density - ambient confirmations */
+.t-compact{background:var(--elev);border-radius:999px;padding:9px 16px;
+  box-shadow:0 6px 18px rgba(0,0,0,.34);display:inline-flex;gap:9px;align-items:center;
+  border:1px solid var(--border);font-size:13px;font-weight:600;max-width:100%}
+.t-compact .ico{font-size:15px;line-height:1}
+.center{display:flex;justify-content:center}
+
+/* NOW - the shipping toast, for scale */
+.t-now{background:var(--elev);border-radius:8px;padding:16px;display:flex;gap:12px;align-items:flex-start;
+  box-shadow:0 8px 24px rgba(0,0,0,.38)}
+.t-now .ico{font-size:33px;line-height:1}
+.t-now .ttl{font-size:16px;font-weight:700;margin:0 0 4px}
+.t-now .msg{font-size:14px;color:var(--text2);margin:0;line-height:1.4}
+.t-now .x{color:var(--text2);font-size:17px;padding:4px}
+
+.ok .edge,.ok .ico{color:var(--ok);background:var(--ok)}
+.ok .ico{background:none}
+.err .edge,.err .ico{color:var(--err);background:var(--err)}
+.err .ico{background:none}
+.warn .edge,.warn .ico{color:var(--warn);background:var(--warn)}
+.warn .ico{background:none}
+
+.ruler{position:absolute;right:6px;font-size:9.5px;color:var(--text2);z-index:10;
+  font-variant-numeric:tabular-nums;background:rgba(0,0,0,.45);padding:1px 4px;border-radius:3px}
+
+.notes{flex:1;min-width:400px;max-width:720px}
+.notes h3{font-size:15px;margin:26px 0 8px}
+.notes h3:first-child{margin-top:0}
+.notes p{font-size:13.5px;line-height:1.66;color:#c9ccd4;margin:0 0 12px}
+.notes p b,.notes li b{color:#fff}
+.notes li{font-size:13.5px;line-height:1.66;color:#c9ccd4;margin:0 0 7px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 16px}
+th,td{border:1px solid rgba(255,255,255,.12);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.04);color:#8A8F9D;font-weight:600}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#cfd3dc}
+.good{color:#0AD89C} .bad{color:#FF4D4D} .warnc{color:#FFC42E}
+.num{font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 7px;border-radius:5px;border:1px solid rgba(255,255,255,.24);color:#8A8F9D;margin-right:5px}
+.tag.rec{border-color:rgba(10,216,156,.5);color:#0AD89C}
+.tag.dead{border-color:rgba(255,77,77,.5);color:#FF4D4D}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>079 · the toast, two densities, safe-area aware</h1>
+<p class="sub">Braian: <b>redesign the toast we have, and make sure it is actually used across the app</b> — then, on the shape of it: make it <b>the best user-friendly way for mobile specifically</b>. Decisions already taken: the toast stays at the <b>top</b>, becomes <b>safe-area aware</b>, and is <b>dismissed by swiping up</b>; one component carries <b>two densities</b>.</p>
+
+<div class="alert">
+<b>The app ships two notification systems.</b> The custom toast (26 call sites, colours re-derived in 23-03 with measured WCAG ratios) and Material's <code>SnackBar</code> (32 sites — 26 behind the <code>showAppSnackBar</code> helper, 6 direct). <code>snackBarTheme</code> is <b>not defined in theme.dart</b>, so those 32 render as unstyled Material defaults: grey pill, Roboto, bottom of the screen, under the dock.
+</div>
+
+<div class="statebar">
+  <span class="lbl">Appearance</span>
+  <span class="seg"><button class="on" onclick="setMode(this,'dark')">Dark</button><button onclick="setMode(this,'light')">Light</button></span>
+  <span class="lbl" style="margin-left:10px">Type</span>
+  <span class="seg"><button class="on" onclick="setType(this,'err')">Error</button><button onclick="setType(this,'warn')">Warning</button><button onclick="setType(this,'ok')">Success</button></span>
+</div>
+
+<div class="cols">
+<div class="phones" id="phones">
+
+  <!-- NOW -->
+  <div class="col">
+    <h3><span class="tag dead">Now</span>Shipping today</h3>
+    <p class="cap">Full-bleed edge to edge. <b>top: 100</b> hardcoded — no <code>MediaQuery.padding</code> anywhere in the file, so it is a guess that lands differently on every device.</p>
+    <div class="phone" id="p-now">
+      <div class="notch"></div>
+      <div class="safearea"></div>
+      <div class="hdr"><div class="brandrow"><div class="brandmark"></div>Genius AI</div><div class="hdrctl"><i></i><i></i></div></div>
+      <div class="ruler" style="top:100px">top: 100 ← guessed</div>
+      <div class="toastzone" style="top:100px;padding:0">
+        <div class="t-now err">
+          <div class="ico">⚠</div>
+          <div class="body" style="flex:1">
+            <p class="ttl">Verification failed</p>
+            <p class="msg">Please try again.</p>
+          </div>
+          <div class="x">✕</div>
+        </div>
+      </div>
+      <div class="page" style="padding-top:96px"><div class="skel tall"></div><div class="skel"></div><div class="skel"></div></div>
+      <div class="dock"><span></span><span></span><span class="mid"></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <!-- CARD -->
+  <div class="col">
+    <h3><span class="tag rec">A</span>Card density</h3>
+    <p class="cap">For <b>errors and warnings</b>. Offset derives from <code>padding.top + header</code>. Inset by <code>pageGutter</code> 6, radius <code>radiusMd</code> 12, status edge instead of a 2px ring. Close target <b>44pt</b>.</p>
+    <div class="phone" id="p-card">
+      <div class="notch"></div>
+      <div class="safearea"></div>
+      <div class="hdr"><div class="brandrow"><div class="brandmark"></div>Genius AI</div><div class="hdrctl"><i></i><i></i></div></div>
+      <div class="ruler" style="top:112px">44 + 60 + 8 = 112 ← derived</div>
+      <div class="toastzone" style="top:112px">
+        <div class="grab"></div>
+        <div class="t-card err">
+          <div class="edge"></div>
+          <div class="ico">⚠</div>
+          <div class="body">
+            <p class="ttl">Verification failed</p>
+            <p class="msg">Please try again.</p>
+          </div>
+          <div class="x">✕</div>
+        </div>
+      </div>
+      <div class="page" style="padding-top:104px"><div class="skel tall"></div><div class="skel"></div><div class="skel"></div></div>
+      <div class="dock"><span></span><span></span><span class="mid"></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <!-- COMPACT -->
+  <div class="col">
+    <h3><span class="tag rec">B</span>Compact density</h3>
+    <p class="cap">For <b>ambient confirmations</b> — "Link copied". One line, auto-width, no title, no close, ~2s. The user already knows; this is a receipt, not an alert.</p>
+    <div class="phone" id="p-compact">
+      <div class="notch"></div>
+      <div class="safearea"></div>
+      <div class="hdr"><div class="brandrow"><div class="brandmark"></div>Genius AI</div><div class="hdrctl"><i></i><i></i></div></div>
+      <div class="toastzone" style="top:112px">
+        <div class="center"><div class="t-compact ok"><span class="ico">✓</span>Link copied</div></div>
+      </div>
+      <div class="page" style="padding-top:104px"><div class="skel tall"></div><div class="skel"></div><div class="skel"></div></div>
+      <div class="dock"><span></span><span></span><span class="mid"></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <!-- STACK -->
+  <div class="col">
+    <h3><span class="tag">C</span>Stack, capped at 3</h3>
+    <p class="cap">Today: <code>100 + n × 85</code>, uncapped — the sixth toast walks off screen. Capped at 3, oldest evicted, densities interleave on one stack.</p>
+    <div class="phone" id="p-stack">
+      <div class="notch"></div>
+      <div class="safearea"></div>
+      <div class="hdr"><div class="brandrow"><div class="brandmark"></div>Genius AI</div><div class="hdrctl"><i></i><i></i></div></div>
+      <div class="toastzone" style="top:112px">
+        <div class="grab"></div>
+        <div class="t-card err" style="margin-bottom:8px">
+          <div class="edge"></div><div class="ico">⚠</div>
+          <div class="body"><p class="ttl">Verification failed</p><p class="msg">Please try again.</p></div>
+          <div class="x">✕</div>
+        </div>
+        <div class="t-card warn" style="margin-bottom:8px">
+          <div class="edge"></div><div class="ico">!</div>
+          <div class="body"><p class="ttl">Network changed</p><p class="msg">Now on Base.</p></div>
+          <div class="x">✕</div>
+        </div>
+        <div class="center"><div class="t-compact ok"><span class="ico">✓</span>Link copied</div></div>
+      </div>
+      <div class="page" style="padding-top:104px"><div class="skel"></div><div class="skel"></div></div>
+      <div class="dock"><span></span><span></span><span class="mid"></span><span></span><span></span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="notes">
+
+<h3>What is actually wrong today</h3>
+<p>Not appearance. Every item below is measured from <code>toast_widget.dart</code> and <code>toast_manager.dart</code>.</p>
+<table>
+<tr><th>Defect</th><th>Where</th><th>Consequence on a phone</th></tr>
+<tr><td><b>No safe-area awareness</b></td><td><code>toast_manager.dart:33</code></td><td><code>top: 100</code> is a literal. Zero references to <code>MediaQuery.padding</code>, <code>viewPadding</code> or <code>SafeArea</code> in the file. On a 14 Pro the top inset alone is 44–59pt before the 60pt header.</td></tr>
+<tr><td><b>Full-bleed</b></td><td><code>left: 0, right: 0</code>, <code>maxWidth: infinity</code></td><td>The card touches both screen edges, which is why it needs a 2px ring to look contained.</td></tr>
+<tr><td><b>Close target ~28pt</b></td><td>icon 20 + padding 4</td><td>Below the 44pt you adopted for filter chips in phase 25. And it sits at the top of the screen, the worst place for a thumb.</td></tr>
+<tr><td class="bad"><b>Never announced</b></td><td>no <code>Semantics</code></td><td>VoiceOver and TalkBack say nothing. "Verification failed" does not exist for a blind user.</td></tr>
+<tr><td><b>Uncapped stack</b></td><td><code>100 + n × 85</code></td><td>4th toast at 355px, 6th off screen.</td></tr>
+<tr><td><b>Raw numbers</b></td><td>16 / 12 / 8 / 4 / 36 / 2</td><td>Predates the token discipline. <code>TextStyle(fontSize: 16)</code> rather than typography tokens.</td></tr>
+<tr><td><b>One 5s duration</b></td><td><code>toast_manager.dart:17</code></td><td>Too long for "Link copied", too short for a two-line error.</td></tr>
+<tr><td><b><code>SelectableText</code></b></td><td><code>toast_widget.dart:87</code></td><td>Text selection inside a 5-second transient, competing with the swipe.</td></tr>
+</table>
+
+<h3>Why two densities, not one</h3>
+<p>The 26 toast calls split <b>14 success · 13 warning · 3 error</b>, and the 32 SnackBars are mostly <i>"Link copied"</i>, <i>"Checkout link copied"</i>, <i>"Order ${status}"</i>. Those are two different jobs:</p>
+<ul>
+<li><b>Ambient</b> — the user just tapped copy. They know. A bordered card with a bold title, a 36px icon and a close button is shouting a receipt at them. <span class="good">Compact, ~2s, no close.</span></li>
+<li><b>Alert</b> — something failed and the user did not ask for it. <span class="good">Card, dismissible, longer, announced assertively.</span></li>
+</ul>
+<p>One widget, one <code>showToast</code> call, a <code>ToastDensity</code> enum. Not two systems again — that is the mistake being undone.</p>
+
+<h3>Mobile specifics this settles</h3>
+<ul>
+<li><b>Offset is derived, never guessed:</b> <code>padding.top + kHeaderHeight + space4</code> = 44 + 60 + 8 = <b>112</b> on a 14 Pro, and correct by construction on every other device.</li>
+<li><b>Swipe up to dismiss</b> is the primary affordance, with a grab handle to advertise it. The top of a phone is out of thumb reach — a 44pt target there is still a stretch, so the gesture matters more than the button.</li>
+<li><b>Duration scales with length</b> — ~2s compact, 5s card, and never auto-dismiss while a screen reader is announcing.</li>
+<li><b>Reduced motion</b> — the 300ms slide is currently unconditional. Cross-fade when the OS asks for it.</li>
+<li><b>Bottom was considered and rejected:</b> <code>kMobileBarHeight</code> 60 plus the dock overhang plus the bottom inset means a bottom toast either covers the nav or floats ~90px up, which reads as detached. Top also matches where iOS puts system banners, which suits a wallet's alerts.</li>
+</ul>
+
+<h3>Making it used everywhere — the cheap part</h3>
+<p><code>showAppSnackBar</code> is <b>18 lines</b> and fans out to <b>26 call sites</b>. Point its body at <code>ToastManager</code> and all 26 convert in one edit, with no call-site churn. Then 6 direct <code>showSnackBar</code> calls by hand.</p>
+<p>Two findings that shrink it further: <b>zero callers pass an <code>action</code></b> — the parameter is dead, so the toast needs no action slot; and <b>4 pass <code>backgroundColor</code></b>, hand-rolling what <code>ToastType</code> already means.</p>
+
+<h3>Colours are not being redesigned</h3>
+<p>Every value here is the shipping token, both modes, from the 23-03 contrast work: success <code>#0AD89C</code> dark / <code>#07875F</code> light (4.5:1 on white), error <code>#FF4D4D</code> / <code>#D92D2D</code> (4.8:1), surface <code>#0C0E14</code> / <code>#FFFFFF</code>, secondary text <code>#8A8F9D</code> / <code>#5A606E</code>. <b>The accent moves from a 2px full ring to a 4px leading edge — same colour, less ink.</b> Title and message stay on the neutral ladder, so the toast still never depends on a status colour for legibility.</p>
+
+<h3>Open question for the walk</h3>
+<p>The compact pill is <b>centred</b> here and the card is <b>full-width inset</b>. That is deliberate — an auto-width pill reads as ambient, a full-width card as an alert — but it means two toasts of different densities on one stack do not share a left edge. Variant C shows exactly that. Worth a look on the device before it is built.</p>
+
+</div>
+</div>
+
+</div>
+<script>
+function setMode(btn,mode){
+  btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.phone').forEach(p=>p.classList.toggle('light',mode==='light'));
+}
+function setType(btn,t){
+  btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const icons={err:'⚠',warn:'!',ok:'✓'};
+  const titles={err:['Verification failed','Please try again.'],
+                warn:['Network changed','Now on Base.'],
+                ok:['Wallet created','Your recovery phrase is saved.']};
+  ['p-now','p-card'].forEach(id=>{
+    const el=document.getElementById(id).querySelector('.t-now,.t-card');
+    el.classList.remove('ok','err','warn'); el.classList.add(t);
+    el.querySelector('.ico').textContent=icons[t];
+    el.querySelector('.ttl').textContent=titles[t][0];
+    el.querySelector('.msg').textContent=titles[t][1];
+  });
+}
+</script>
+</body>
+</html>
