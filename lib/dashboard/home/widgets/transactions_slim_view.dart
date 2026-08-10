@@ -706,26 +706,40 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     }
 
     // Reached only in BRANCH 3, so a row always precedes it — it can never
-    // contradict an empty state. Neither presentation truncates, so "no more"
-    // is literally true.
-    entries.add(
-      Padding(
-        padding: EdgeInsets.fromLTRB(
-          compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
-          GeniusWalletConsts.space4,
-          compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
-          GeniusWalletConsts.space2,
-        ),
-        child: Text(
-          endOfTransactionsLabel,
-          textAlign: TextAlign.center,
-          style: GeniusWalletTypography.bodySm.copyWith(
-            fontSize: compact ? 11 : null,
-            color: gw.textSecondary,
+    // contradict an empty state.
+    //
+    // THE PAGE ONLY, and that is what `limit == null` tests. The dashboard
+    // panel passes [kDashboardTransactionsCap], so it renders the five most
+    // recent rows and leaves the rest behind `View all`. A terminus under a
+    // capped list states the opposite of what the panel just did: a wallet with
+    // forty transactions showed five and then said there were no more. The
+    // label was added unconditionally until 2026-08-07, and the comment here
+    // asserted "neither presentation truncates" - true of the page, never true
+    // of the panel.
+    if (limit == null) {
+      entries.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
+            GeniusWalletConsts.space4,
+            compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
+            GeniusWalletConsts.space2,
+          ),
+          child: Text(
+            endOfTransactionsLabel,
+            textAlign: TextAlign.center,
+            // No `compact` size gate. This label carried the last of develop's
+            // phone type-scale shrink after `transaction_displays.dart` lost
+            // the rest of it on 2026-08-07, so it printed at 11 under rows that
+            // print at 14. It takes `bodySm` at every width now, like they do.
+            // The padding above stays gated: that is density, not type scale.
+            style: GeniusWalletTypography.bodySm.copyWith(
+              color: gw.textSecondary,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
 
     // A Column, not a shrink-wrapped ListView: `entries` is already fully
     // built above, so there is no laziness left to preserve and shrinkWrap

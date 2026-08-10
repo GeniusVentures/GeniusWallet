@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/chart/crypto_simple_chart.dart';
+import 'package:genius_wallet/components/cards/gw_row_rhythm.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
@@ -104,15 +105,25 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                 GWSectionTitle(
                   title: widget.title ?? 'Markets',
                   trailing: GWViewAllLink(onTap: () => context.go('/markets')),
-                  // MEASURED, not chosen - same mechanism as Assets.
-                  // `CryptoSparkLineChart` is a `ListTile` too, so it snaps to a
-                  // 72px tile and centres its content: its first painted pixel
-                  // sits 16.75px below its own layout box
-                  // (`gw_section_title_rhythm_test.dart`). Declared here so the
-                  // component spends its pad against it instead of stacking a
-                  // `space8` on top: the pad lands at 0 and this panel renders
-                  // 26.75 against the shared 26, three quarters of a pixel out.
-                  // See the Assets call site for why the row is not normalised.
+                  // DECLARED, not measured through a probe - 260807-wbu.
+                  // `CryptoSparkLineChart` used to be a bare `ListTile` with
+                  // no `contentPadding`, so its first painted pixel sat
+                  // 16.75px below its own layout box purely as Material's
+                  // default two-line tile centring - a fact nobody chose,
+                  // rediscovered by measurement
+                  // (`gw_section_title_rhythm_test.dart`). The row now
+                  // declares its own top inset via `kGWRowPadding`
+                  // (`lib/components/cards/gw_row_rhythm.dart`), so this
+                  // panel states that same number, `kGWRowSeparatorGap` (12),
+                  // instead of a measured fact about a Material snap.
+                  //
+                  // The panel FULLY ABSORBS it now: the derived bottom pad
+                  // moves from 0 to `space2` (4), and the rendered R2 moves
+                  // from 26.75 to exactly 26 - this panel joins the app's
+                  // shared 26 rather than overshooting it by three quarters
+                  // of a pixel. `gw_section_title_rhythm_test.dart`'s
+                  // `CONTRACT` loop already runs the C = 12 iteration, so no
+                  // new case was needed for this to be covered.
                   //
                   // UNCHANGED by phase 25's `ListView.separated` -> plain column
                   // swap below, because the first row is still the same
@@ -124,7 +135,7 @@ class _DashboardMarketsState extends State<DashboardMarkets> {
                   // by the time it reaches here, so there was none to lose.
                   // Neither this panel nor its rows is test-mountable (the widget
                   // fetches in `initState`), so that is confirmed on device.
-                  contentTopInset: 16.75,
+                  contentTopInset: kGWRowSeparatorGap,
                 ),
                 if (hug)
                   rows
@@ -164,7 +175,13 @@ class _MarketRows extends StatelessWidget {
     final entries = <Widget>[];
     for (var i = 0; i < coins.length; i++) {
       if (i > 0) {
-        entries.add(Container(height: 1, color: gw.borderSubtle));
+        // `Divider`, not a bare `Container` - 260807-wbu. Same pixel as every
+        // other row rule in the app (`transactions_slim_view.dart`,
+        // `markets_table.dart`), but this site drew it as a plain
+        // `Container(height: 1, color: gw.borderSubtle)` instead - a known,
+        // unresolved inconsistency sketch 019's README recorded. Aligned here
+        // while this file was already open for the row-rhythm change.
+        entries.add(Divider(height: 1, thickness: 1, color: gw.borderSubtle));
       }
       final coin = coins[i];
       // Non-null by construction: `dashboardMarketRows` only ever returns coins

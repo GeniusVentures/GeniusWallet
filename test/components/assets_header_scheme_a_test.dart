@@ -116,6 +116,8 @@ import 'package:genius_api/genius_api.dart' show GeniusApi;
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
+import 'package:genius_wallet/components/coins/assets_total_band.dart'
+    as gwband;
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
@@ -186,11 +188,14 @@ String _pctLabel(double pct) =>
     '${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(2)}%';
 
 /// The total band, built exactly as `coins_screen.dart` builds its private
-/// `_AssetsTotalBand`.
+/// `AssetsTotalBand`.
 ///
-/// A `StatelessWidget`, not a `_build...()` helper - AGENTS.md. The band is
-/// private at the call site because nothing else may mount it, so the
-/// composition is restated here for the parameterised probes. That duplication
+/// A `StatelessWidget`, not a `_build...()` helper - AGENTS.md. The composition
+/// is restated here for the parameterised probes, which need a `total` and a
+/// `pctOfTotal` and nothing else. **It deliberately keeps the same NAME as the
+/// shipping widget it restates**, which is why the last case imports that one
+/// `as gwband` - a probe called something else would drift out of step with
+/// what it claims to mirror. That duplication
 /// is the reason the LAST case in this file mounts the real `CoinsScreen` and
 /// measures the real call site: a fixture alone would stay green through a
 /// regression that only touched `coins_screen.dart`.
@@ -558,9 +563,12 @@ void main() {
         kAssetsHeaderCost,
         reason:
             'a spacer between the band and the first CoinCardRow would show up '
-            'here and nowhere else. There must not be one: the row brings its '
-            "own ~20px ListTile snap and that IS the gap, byte-for-byte what "
-            'scheme C shipped between the total and the first row',
+            'here and nowhere else. There must not be one: since 260807-wbu '
+            'the row declares its own kGWRowSeparatorGap (12) top inset '
+            "(previously a ~20px ListTile snap) and that IS the gap - the "
+            'header cost holds at 94 either way because this measures layout '
+            'box to layout box, not painted ink, and internal row padding '
+            "does not move a box's top",
       );
       expect(tester.takeException(), isNull);
     },
@@ -583,17 +591,23 @@ void main() {
       await tester.pumpWidget(_realDashboardAssets());
       await tester.pump();
 
-      final Finder band = find.byWidgetPredicate(
-        (Widget w) => w.runtimeType.toString() == '_AssetsTotalBand',
-      );
+      // REPOINTED 2026-08-08 (quick 260808-whb): the band was promoted out of
+      // `coins_screen.dart`'s private `_AssetsTotalBand` into the public
+      // `AssetsTotalBand` (`components/coins/assets_total_band.dart`) so
+      // `/assets`' scheme-C panel renders the SAME widget as this panel rather
+      // than a copy of it. Repointed rather than deleted, exactly as the reason
+      // string below has always instructed. A type finder now, not a string
+      // predicate - the type is public, so there is no reason to match on a
+      // name that a rename would silently break.
+      final Finder band = find.byType(gwband.AssetsTotalBand);
       expect(
         band,
         findsOneWidget,
         reason:
-            'the private `_AssetsTotalBand` in `coins_screen.dart` was renamed '
-            'or removed. Repoint this finder rather than deleting the case: '
-            'without it the probe below stops testing the shipping band and '
-            'starts testing itself',
+            '`AssetsTotalBand` no longer renders inside the dashboard Assets '
+            'panel. Repoint this finder rather than deleting the case: without '
+            'it the probe below stops testing the shipping band and starts '
+            'testing itself',
       );
       final CrossAxisAlignment shipped = tester
           .widget<Row>(find.descendant(of: band, matching: find.byType(Row)))

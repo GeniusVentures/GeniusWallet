@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
@@ -8,6 +9,7 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:hive_ce/hive.dart';
 
@@ -125,6 +127,81 @@ void main() {
     }
   }
 
+  // WHY THIS TEST EXISTS (260807-ubg): 260806-hfe's merge gated every font
+  // size in this row on `compact`, and `compact` reads the WINDOW
+  // (`GeniusBreakpoints.useDesktopLayout`), not this row's own constraints -
+  // so it is true on every phone surface, the Home dashboard panel included.
+  // Every host above and every host in `transaction_row_subtitle_test.dart`
+  // pumps into the default 800x600 test window, so `compact` has always been
+  // false there and none of them could have caught a phone-only shrink. This
+  // is the one test in either file that sets a real phone window, and it is
+  // the guard for that specific blind spot.
+  group('phone-width type scale (260807-ubg)', () {
+    testWidgets(
+      'phone window: title/subtitle/amount paint at the token sizes, not a '
+      'compact override',
+      (tester) async {
+        // A real 390pt iPhone width at 3x density - makes `compact` true.
+        tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+        tester.view.devicePixelRatio = 3.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final gw = GWColors.dark();
+        final tx = _tx(type: TransactionType.transfer);
+        final content = txRowContent(tx, prices: const <String, double>{});
+        // 366: the phone content box the plan derives (PLAN Finding 2).
+        await tester.pumpWidget(_host(tx, width: 366, gw: gw));
+        expect(tester.takeException(), isNull);
+
+        // This harness runs the fallback one-em-per-character font - that is
+        // fine here, because every assertion below reads a resolved STYLE
+        // property, never a measured width.
+        double? styleFontSize(Finder finder) =>
+            tester.renderObject<RenderParagraph>(finder).text.style?.fontSize;
+
+        // Content-addressed, like `transaction_row_subtitle_test.dart`'s
+        // `_paragraphWith`: resolves the same paragraph before and after the
+        // anatomy change instead of relying on tree position.
+        RenderParagraph paragraphWith(String needle) =>
+            tester.renderObject<RenderParagraph>(
+              find.byWidgetPredicate(
+                (w) =>
+                    w is Text &&
+                    (w.data ?? w.textSpan?.toPlainText() ?? '').contains(
+                      needle,
+                    ),
+                description: 'the Text containing "$needle"',
+              ),
+            );
+
+        // Read from the TOKEN, never a literal: a deliberate future token
+        // change moves this test with it, and only a re-introduced local
+        // `fontSize` override reddens it.
+        expect(
+          styleFontSize(find.text(content.title)),
+          GeniusWalletTypography.titleMd.fontSize,
+          reason: 'the title should paint at titleMd, not a compact override',
+        );
+
+        final subtitleRp = paragraphWith(content.subtitleLead!);
+        expect(
+          (subtitleRp.text as TextSpan).style?.fontSize,
+          GeniusWalletTypography.bodySm.fontSize,
+          reason:
+              'the subtitle paragraph should paint at bodySm, not a compact '
+              'override',
+        );
+
+        expect(
+          styleFontSize(find.text(content.amount)),
+          16,
+          reason: 'the amount should always paint at 16',
+        );
+      },
+    );
+  });
+
   // The Status pill is a WIDE-only affordance (sketch 030-A2). On the wide page
   // the status is a pill; on the narrow panel it is the subtitle line's pinned
   // right-hand tail (sketch 179-C, which moved it out of the subtitle string and
@@ -132,11 +209,17 @@ void main() {
   // ONCE in each presentation, never twice and never zero times - the whole
   // point of `subtitleBase`/`status`/`statusTail` on TxRowContent.
   //
-  // Each case now pins WHICH element states it, by its ink, rather than merely
-  // that something does: `gw.statusError` is the pill, `gw.textSecondary` is the
-  // tail. Presence alone could not tell the two apart once the tail stopped
-  // carrying a dot, and a row that drew the pill on the panel would have passed
-  // the old assertion.
+  // Each case pins WHICH element states it. Before sketch 186 scheme A that was
+  // colour: `gw.statusError` for the pill, `gw.textSecondary` for the tail.
+  // 186-A retires that distinction on purpose - the tail's ink is now
+  // `txStatusColors(content.status, gw).fg`, the SAME function `_statusPill`
+  // already uses, so a failed row's tail reads `gw.statusError` too (colour
+  // freed from the amount column, spent on the one thing a sign glyph cannot
+  // say). What still tells pill and tail apart is SIZE: the pill's label is
+  // `labelMd` (13), the tail is `bodySm` (14) - the same size the subtitle
+  // paragraph beside it takes, because the tail is subtitle text with a status
+  // ink, not a miniature pill. A pill that leaked onto the panel would still
+  // read at 13, not 14.
   group('wide-page Status pill (030-A2) and narrow tail (179-C)', () {
     final failed = _tx(status: TransactionStatus.failed);
 
@@ -148,11 +231,10 @@ void main() {
       expect(tester.takeException(), isNull);
       // Stated exactly once…
       expect(find.text('Failed'), findsOneWidget);
-      // …by the PILL, whose label takes the status colour.
-      expect(
-        tester.widget<Text>(find.text('Failed')).style?.color,
-        gw.statusError,
-      );
+      // …by the PILL, whose label takes the status colour at the pill's size.
+      final pillText = tester.widget<Text>(find.text('Failed'));
+      expect(pillText.style?.color, gw.statusError);
+      expect(pillText.style?.fontSize, GeniusWalletTypography.labelMd.fontSize);
       // …and the subtitle does not also carry it, in either shape.
       expect(find.textContaining('· Failed'), findsNothing);
     });
@@ -165,19 +247,138 @@ void main() {
       expect(tester.takeException(), isNull);
       // Stated exactly once…
       expect(find.text('Failed'), findsOneWidget);
-      // …by the TAIL, which takes the subtitle's quiet ink and not the pill's
-      // red. This is what fails if the pill ever leaks onto the panel.
+      // …by the TAIL: sketch 186 scheme A gives it the SAME status ink the
+      // pill uses (`txStatusColors`, so a failed row's tail is
+      // `gw.statusError` here too - see the group doc above) but at the
+      // subtitle's `bodySm` size, not the pill's `labelMd`. Size, not colour,
+      // is what fails if the pill ever leaks onto the panel now.
+      final tailText = tester.widget<Text>(find.text('Failed'));
+      expect(tailText.style?.color, gw.statusError);
+      expect(tailText.style?.fontSize, GeniusWalletTypography.bodySm.fontSize);
       expect(
-        tester.widget<Text>(find.text('Failed')).style?.color,
-        gw.textSecondary,
-      );
-      expect(
-        tester.widget<Text>(find.text('Failed')).style?.color,
-        isNot(gw.statusError),
+        tailText.style?.fontSize,
+        isNot(GeniusWalletTypography.labelMd.fontSize),
       );
       // The tail carries no leading middle dot: it is a separate, right-pinned
       // element, and the 8px a dot costs is width the verb needs.
       expect(find.textContaining('· Failed'), findsNothing);
+    });
+
+    testWidgets(
+      'narrow (320): a cancelled row keeps its tail neutral, unlike failed',
+      (tester) async {
+        // 186-A routes the tail through `txStatusColors`, which is already
+        // correct for all four statuses (`_statusPill`'s own doc) - cancelled
+        // stays `textSecondary`, the one status this change does NOT redden.
+        final gw = GWColors.dark();
+        final cancelled = _tx(status: TransactionStatus.cancelled);
+        await tester.pumpWidget(_host(cancelled, width: 320, gw: gw));
+        expect(tester.takeException(), isNull);
+        expect(find.text('Cancelled'), findsOneWidget);
+        expect(
+          tester.widget<Text>(find.text('Cancelled')).style?.color,
+          gw.textSecondary,
+        );
+      },
+    );
+  });
+
+  // Sketch 186 scheme A + lead L2, Jakub approved on device 2026-08-08
+  // (quick task 260808-k2l). Pinned against TOKENS, never literal colour
+  // values, so a future palette edit moves these tests with it.
+  group('sketch 186 scheme A (amount tone, always-on value line) + lead L2', () {
+    testWidgets(
+      'the amount is textPrimary for BOTH an incoming and an outgoing row - '
+      'the asymmetry cannot return silently',
+      (tester) async {
+        final gw = GWColors.dark();
+        final outgoing = _tx(
+          type: TransactionType.transfer,
+          direction: TransactionDirection.sent,
+        );
+        final incoming = _tx(
+          type: TransactionType.transfer,
+          direction: TransactionDirection.received,
+        );
+
+        await tester.pumpWidget(_host(outgoing, width: 320, gw: gw));
+        final outgoingAmount = txRowContent(
+          outgoing,
+          prices: const <String, double>{},
+        ).amount;
+        expect(
+          tester.widget<Text>(find.text(outgoingAmount)).style?.color,
+          gw.textPrimary,
+        );
+
+        await tester.pumpWidget(_host(incoming, width: 320, gw: gw));
+        final incomingAmount = txRowContent(
+          incoming,
+          prices: const <String, double>{},
+        ).amount;
+        final incomingStyle = tester
+            .widget<Text>(find.text(incomingAmount))
+            .style;
+        expect(incomingStyle?.color, gw.textPrimary);
+        // The regression this guards: a credit quietly getting its green back.
+        expect(incomingStyle?.color, isNot(gw.statusSuccess));
+      },
+    );
+
+    testWidgets(
+      'a row whose price is unknown still renders a second line, reading '
+      '"No price"',
+      (tester) async {
+        final gw = GWColors.dark();
+        // The default fixture's ETH carries no price in this file - no Hive
+        // box is opened here and `DevMockHoldings` is never touched, so
+        // `livePricesBySymbol()` resolves to `const {}` for every case above
+        // too (see the closed-box group's own test of that fact, declared
+        // last in this file).
+        final unpriced = _tx(type: TransactionType.transfer);
+        await tester.pumpWidget(_host(unpriced, width: 320, gw: gw));
+        expect(tester.takeException(), isNull);
+        expect(find.text('No price'), findsOneWidget);
+        expect(
+          tester.widget<Text>(find.text('No price')).style?.color,
+          gw.textSecondary,
+        );
+      },
+    );
+
+    testWidgets('a failed row still reads "Not charged", and its value line is '
+        'statusError', (tester) async {
+      final gw = GWColors.dark();
+      final failed = _tx(status: TransactionStatus.failed);
+      await tester.pumpWidget(_host(failed, width: 320, gw: gw));
+      expect(tester.takeException(), isNull);
+      expect(find.text('Not charged'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.text('Not charged')).style?.color,
+        gw.statusError,
+      );
+    });
+
+    testWidgets('the subtitle lead is textPrimary70 (lead L2)', (tester) async {
+      final gw = GWColors.dark();
+      final tx = _tx(type: TransactionType.transfer);
+      final content = txRowContent(tx, prices: const <String, double>{});
+      await tester.pumpWidget(_host(tx, width: 320, gw: gw));
+      expect(tester.takeException(), isNull);
+
+      // Read from the WIDGET's own `TextSpan` tree, not a resolved/merged
+      // paragraph style: the lead's colour is a literal set directly on its
+      // span, and this is the one `Text.rich` in the row.
+      final richText = tester.widget<Text>(
+        find.byWidgetPredicate((w) => w is Text && w.textSpan != null),
+      );
+      final rootSpan = richText.textSpan! as TextSpan;
+      final leadSpan = rootSpan.children!.first as TextSpan;
+      expect(leadSpan.text, content.subtitleLead);
+      expect(leadSpan.style?.color, gw.textPrimary70);
+      // The regression this guards: the lead quietly collapsing back onto the
+      // ticker's ink, which is complaint 1 this lead treatment exists to fix.
+      expect(leadSpan.style?.color, isNot(gw.textPrimary));
     });
   });
 

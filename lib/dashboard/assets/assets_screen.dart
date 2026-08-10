@@ -5,27 +5,31 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
+import 'package:genius_wallet/components/coins/assets_total_band.dart';
 import 'package:genius_wallet/components/coins/assets_totals.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
-import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
+// `DashboardScrollContainer` lives in the dashboard screen's own file. Importing
+// it from here is the SAME move `transactions_slim_view.dart` already makes for
+// the same reason: it is the app's one panel container, and re-creating its
+// recipe as a local `GWCard(padding: space3)` would render identical pixels
+// today and drift the day the panel changes.
 import 'package:genius_wallet/dashboard/assets/assets_market_data.dart';
 import 'package:genius_wallet/dashboard/assets/assets_sort.dart';
+import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
-import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 /// The `/assets` page: every coin in the selected wallet, searchable and
 /// sortable by value. The destination the dashboard's Assets `View all` points
@@ -34,6 +38,20 @@ import 'package:intl/intl.dart';
 /// Sketch 177 variant **D as Jakub simplified it**: a page header, a search
 /// field, and ONE sort control keyed on value whose tap toggles the direction.
 /// No name sort, no 24h sort.
+///
+/// **Framed by sketch 187 scheme C (Jakub, 2026-08-08, quick 260808-whb): two
+/// panels, drawn with the homepage's own `DashboardScrollContainer`.** Panel 1
+/// is the portfolio total, panel 2 the search, the count/sort line and the
+/// rows. The decision that settled it is a fact about the app rather than a
+/// preference: `/transactions` already boxes its list on a phone
+/// (`transactions_slim_view.dart:483`), Markets draws a `GWCard` per coin and
+/// News one per article, so **this page was the only unboxed list in the
+/// app**. The cost is stated rather than hidden - a boxed row has 348px of
+/// content at 390pt where a flat one has 362 - and it is the cost the
+/// neighbouring tab already pays.
+///
+/// The back link went with the same change; see the note at its old site in
+/// `_pageChildren`.
 ///
 /// **This page starts NO periodic refresh.** `CoinsScreen` owns a 1-minute
 /// timer and `fetchCoinsMarketData` is backed by a 3-minute Hive cache shared
@@ -284,15 +302,21 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                      // Horizontal gutter is 0 HERE and 12 on each child.
-                      // GWBackLink already carries its own 12, so an outer 12
-                      // would double it and push the back link off the x-axis
-                      // every other content page shares. Top space32 is the
-                      // shared navbar-to-title gap.
-                      padding: const EdgeInsets.fromLTRB(
-                        0,
-                        GeniusWalletConsts.space32,
-                        0,
+                      // THE SHARED PAGE FRAME, and this screen was the one
+                      // page-header surface not using it (quick 260808-whb).
+                      // It hardcoded `space32` (64) on top and 12 on each
+                      // child, while Transactions, Markets, News, Swap,
+                      // Feedback and Banxa all call these two helpers - which
+                      // at phone width are 24 and 6. Measured, the Assets
+                      // title used to sit 40px lower and 6px further in than
+                      // the Transactions title on the same device.
+                      //
+                      // The gutter is charged ONCE here now; every child below
+                      // sits at 0 and the panels take it from this padding.
+                      padding: EdgeInsets.fromLTRB(
+                        GeniusBreakpoints.pageGutter(context),
+                        GeniusBreakpoints.pageTitleGap(context),
+                        GeniusBreakpoints.pageGutter(context),
                         GeniusWalletConsts.space8,
                       ),
                       child: ConstrainedBox(
@@ -339,94 +363,132 @@ class _AssetsScreenState extends State<AssetsScreen> {
         .toList();
 
     return [
-      GWBackLink(
-        label: 'HOME',
-        // Not defensive padding: `dashboard_markets.dart` navigates with
-        // `context.go`, so if 25-01 copies that shape for Assets there is
-        // nothing to pop - and a deep link has nothing to pop either.
-        onTap: () =>
-            context.canPop() ? context.pop() : context.go('/dashboard'),
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        // The page's ONLY title. Mount no section-title component under it or
-        // the screen prints "Assets" twice at two sizes - the exact
-        // duplicate-title defect flagged on Transactions. GWPageHeader owns
-        // its own bottom gap, so no spacer follows it.
-        child: GWPageHeader(title: 'Assets', trailing: _totalBlock(state, gw)),
-      ),
-      if (hasCoins) ...[
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: GWSearchField(
-            controller: _searchController,
-            hint: 'Search assets',
-            // Neither callback may trigger a fetch. The query reaches
-            // `matchesAssetQuery` and nothing else (threat T-25-02-02).
-            onChanged: (value) => setState(() => _query = value),
-            onClear: () {
-              _searchController.clear();
-              setState(() => _query = '');
-            },
-          ),
+      // The page's ONLY title, sitting at the frame's own gutter - the same X
+      // `transactions_screen.dart:114` puts "Transactions" at. Mount no
+      // `GWSectionTitle` under it or the screen prints "Assets" twice at two
+      // sizes, which is the duplicate-title defect flagged on Transactions.
+      //
+      // NO `GWBackLink` any more (sketch 187 C, 2026-08-08). It read
+      // "< HOME" and was written when the only way onto this page was the
+      // dashboard panel's `View all`. `/assets` has been the bar's second
+      // tab since sketch 182 scheme S7 (`nav_destinations.dart:143`), and a
+      // tab has no back: Home is one tap away on the same screen, 5px lower.
+      // The sibling tab `/transactions` carries no back link either, so this
+      // deletion makes the two agree rather than making Assets unusual.
+      // The page's ONLY title. Mount no `GWSectionTitle` under it or the
+      // screen prints "Assets" twice at two sizes, which is the
+      // duplicate-title defect flagged on Transactions.
+      //
+      // Its left inset now lives in the COMPONENT
+      // (`gwPageHeaderContentInset`), applied 2026-08-08 at Jakub's
+      // instruction to every page title rather than to this one - so Assets,
+      // Activity, Markets and News all head their content column instead of
+      // their container.
+      //
+      // NO `GWBackLink` any more (sketch 187 C, 2026-08-08). It read
+      // "< HOME" and was written when the only way onto this page was the
+      // dashboard panel's `View all`. `/assets` has been the bar's second
+      // tab since sketch 182 scheme S7 (`nav_destinations.dart:143`), and a
+      // tab has no back: Home is one tap away on the same screen, 5px lower.
+      // The sibling tab `/transactions` carries no back link either, so this
+      // deletion makes the two agree rather than making Assets unusual.
+      const GWPageHeader(title: 'Assets'),
+
+      // PANEL 1 - the total. `DashboardScrollContainer` unchanged from the
+      // homepage: `GWDecorations.surface`, `radiusLg`, `borderSubtle`, and
+      // `space3` of padding at phone width.
+      DashboardScrollContainer(child: _totalPanel(state)),
+      const SizedBox(height: GeniusWalletConsts.space3),
+
+      // PANEL 2 - the controls and the list. `space3` above it is the gap
+      // `OneColumnDashBoardView` puts between every pair of homepage panels,
+      // so the two pages share one rhythm.
+      DashboardScrollContainer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasCoins) ...[
+              // Full card width, NO `space4` wall. That is the dashboard's own
+              // answer for a full-width child: `coins_screen.dart`'s
+              // Receive / Buy GNUS row runs edge to edge inside the panel
+              // while `GWSectionTitle` and the rows take the wall. A field is
+              // a full-width child; its own border is the edge the eye reads.
+              GWSearchField(
+                controller: _searchController,
+                hint: 'Search assets',
+                // Neither callback may trigger a fetch. The query reaches
+                // `matchesAssetQuery` and nothing else (threat T-25-02-02).
+                onChanged: (value) => setState(() => _query = value),
+                onClear: () {
+                  _searchController.clear();
+                  setState(() => _query = '');
+                },
+              ),
+              const SizedBox(height: GeniusWalletConsts.space6),
+              Padding(
+                // `space4`, the same wall `GWSectionTitle` charges inside a
+                // panel (`gw_section_title.dart:168`) and the same one
+                // `kGWRowWall` gives every `CoinCardRow` below, so the count,
+                // the sort control and the rows share one left edge.
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space4,
+                ),
+                // Lower-case: GWKicker upper-cases it itself and its doc
+                // forbids callers pre-calling toUpperCase().
+                child: GWKicker(
+                  visible.length == pairs.length
+                      ? '${pairs.length} assets'
+                      : '${visible.length} of ${pairs.length} assets',
+                  dense: true,
+                  trailing: _AssetsSortToggle(
+                    ascending: _ascending,
+                    onTap: () => setState(() => _ascending = !_ascending),
+                  ),
+                ),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space4),
+            ],
+            ..._body(context, state, gw, pairs: pairs, visible: visible),
+          ],
         ),
-        const SizedBox(height: GeniusWalletConsts.space6),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          // Lower-case: GWKicker upper-cases it itself and its doc forbids
-          // callers pre-calling toUpperCase().
-          child: GWKicker(
-            visible.length == pairs.length
-                ? '${pairs.length} assets'
-                : '${visible.length} of ${pairs.length} assets',
-            dense: true,
-            trailing: _AssetsSortToggle(
-              ascending: _ascending,
-              onTap: () => setState(() => _ascending = !_ascending),
-            ),
-          ),
-        ),
-        const SizedBox(height: GeniusWalletConsts.space4),
-      ],
-      ..._body(context, state, gw, pairs: pairs, visible: visible),
+      ),
     ];
   }
 
-  /// The header's total. Byte-for-byte the trailing block the dashboard's
-  /// Assets section builds (`coins_screen.dart:288-311`), so the two surfaces
-  /// stay consistent.
+  /// Panel 1's contents: a kicker over the portfolio total.
   ///
-  /// Deviation from sketch 177 D, stated: the sketch draws a 40px hero total
-  /// in its own block under the header. On a 390pt phone that is a second
-  /// title-sized element before the first row, the app already renders this
-  /// exact total-in-a-header pairing on Home, and the hero total is variant
-  /// E's idea - E was not chosen. Header trailing costs zero vertical space.
-  Widget _totalBlock(WalletDetailsState state, GWColors gw) {
-    final currencyFormatter = NumberFormat.currency(symbol: "\$");
+  /// [AssetsTotalBand] is the DASHBOARD's band, not a copy of it - promoted out
+  /// of `coins_screen.dart` in this same task precisely so the panel and this
+  /// page cannot disagree about a number the user reads as one fact. It brings
+  /// its own `space4` wall and its own `numericHeadline` 24/32 at w700, so
+  /// nothing here restates them.
+  ///
+  /// A `GWKicker` rather than a `GWSectionTitle`: the page header two widgets
+  /// up already says "Assets", and a second title-weight string is the
+  /// duplicate-title defect. The kicker is the same 11px dense label panel 2
+  /// uses for its count, so the two panels are labelled in one voice.
+  Widget _totalPanel(WalletDetailsState state) {
     final double total = assetsTotal(_valueHoldings(state.coins));
     final double dayChange = assetsDayChange(_changeHoldings(state.coins));
     final double pctOfTotal = total == 0 ? 0 : dayChange / total * 100;
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          currencyFormatter.format(total),
-          style: GeniusWalletTypography.numericBody.copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: gw.textPrimary,
-          ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: GeniusWalletConsts.space4),
+          child: GWKicker('total value', dense: true),
         ),
-        if (total > 0)
-          Text(
-            '${dayChange >= 0 ? '+' : ''}${currencyFormatter.format(dayChange)} · ${dayChange >= 0 ? '+' : ''}${pctOfTotal.toStringAsFixed(2)}%',
-            style: GeniusWalletTypography.labelMd.copyWith(
-              color: dayChange >= 0 ? gw.statusSuccess : gw.statusError,
-            ),
-          ),
+        // `space2` - the title-to-subtitle gap this app already uses between a
+        // label and the line it introduces (`coin_card_row.dart:109`).
+        const SizedBox(height: GeniusWalletConsts.space2),
+        AssetsTotalBand(
+          total: total,
+          dayChange: dayChange,
+          pctOfTotal: pctOfTotal,
+        ),
       ],
     );
   }
@@ -447,10 +509,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
     if (state.coinsStatus == WalletStatus.loading && state.coins.isEmpty) {
       return const [
         Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: GeniusWalletConsts.space24,
-          ),
+          padding: EdgeInsets.symmetric(vertical: GeniusWalletConsts.space24),
           child: Center(child: Loading()),
         ),
       ];
@@ -459,12 +518,9 @@ class _AssetsScreenState extends State<AssetsScreen> {
     // S2
     if (state.coinsStatus == WalletStatus.error && state.coins.isEmpty) {
       return [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: GWErrorState(
-            message: 'Failed to load your assets.',
-            onRetry: () => context.read<WalletDetailsCubit>().getCoins(),
-          ),
+        GWErrorState(
+          message: 'Failed to load your assets.',
+          onRetry: () => context.read<WalletDetailsCubit>().getCoins(),
         ),
       ];
     }
@@ -475,21 +531,15 @@ class _AssetsScreenState extends State<AssetsScreen> {
     // CTA the weight rule allows on a surface.
     if (state.coins.isEmpty) {
       return [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: GWEmptyState(
-            icon: Icons.account_balance_wallet_outlined,
-            title: 'No coins yet',
-            message: 'Your holdings will appear here once you receive a token.',
-          ),
+        const GWEmptyState(
+          icon: Icons.account_balance_wallet_outlined,
+          title: 'No coins yet',
+          message: 'Your holdings will appear here once you receive a token.',
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            12,
-            GeniusWalletConsts.space8,
-            12,
-            0,
-          ),
+          // Full card width and `space8` above, byte for byte the recipe the
+          // dashboard's own value-empty footer uses (`coins_screen.dart:481`).
+          padding: const EdgeInsets.only(top: GeniusWalletConsts.space8),
           child: Row(
             children: [
               Expanded(
@@ -521,15 +571,11 @@ class _AssetsScreenState extends State<AssetsScreen> {
     // S4 - coins present, the query matches none of them.
     if (visible.isEmpty) {
       return const [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: GWEmptyState(
-            icon: Icons.search_off,
-            title: 'No assets found',
-            message:
-                'Nothing matches that search. Clear it to see all your '
-                'assets.',
-          ),
+        GWEmptyState(
+          icon: Icons.search_off,
+          title: 'No assets found',
+          message:
+              'Nothing matches that search. Clear it to see all your assets.',
         ),
       ];
     }

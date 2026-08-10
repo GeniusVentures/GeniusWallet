@@ -117,9 +117,11 @@ shared file is not.
 **Sketch number ranges are reserved, not first-come.** Execution 000-099 · design lane A 100-149 ·
 design lane B 150-199. A shared counter has now collided on two consecutive days.
 
-**Every session writes its own `.planning/HANDOFF-<topic>.md` before it ends.** On 2026-07-22 this
-was the only reason one session's work could be summarised by another. A session that ends without
-one has produced no day summary.
+**Every session writes its own `.planning/handoffs/HANDOFF-<topic>.md` before it ends.** On
+2026-07-22 this was the only reason one session's work could be summarised by another. A session
+that ends without one has produced no day summary. The `handoffs/` subdirectory is the path:
+`.planning/` root accepts only canonical GSD artifacts, and a handoff left there is reported as a
+warning by `/gsd-health` forever. (`HANDOFF.json` is a different thing and does stay at the root.)
 
 **A parallel agent's claim that "a concurrent session changed the tree" is a hypothesis, not a fact.**
 Every such report on 2026-07-22 turned out to be a sibling from the same wave or a stale git snapshot
