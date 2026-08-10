@@ -2,6 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
+
+/// How far a page title sits inside its page frame, so it heads the page's
+/// CONTENT rather than the page's container.
+///
+/// **Jakub, 2026-08-08, walking `/assets` scheme C: a bigger left offset for
+/// the title component, and the same for the other titles - Activity, Crypto
+/// News and the rest.** Before this, every page title sat flush with the frame
+/// gutter while everything the page actually said - section kickers, coin
+/// names, row icons, transaction rows - sat this much further in, so the title
+/// read as having escaped to the left of its own page.
+///
+/// **Derived, never a literal**, from the app's panel container
+/// (`DashboardScrollContainer`, `dashboard_screen.dart`):
+///
+///  * `1` - the `borderSubtle` hairline the panel draws;
+///  * the padding the panel charges, which switches on the SAME breakpoint it
+///    does: `space6` on desktop, `space3` on a phone;
+///  * `space4` - the wall `GWSectionTitle` (`gw_section_title.dart`) and
+///    `kGWRowWall` (`gw_row_rhythm.dart`) already share inside that panel.
+///
+/// At 390pt that is 15, which puts a page title at **21 from the screen edge -
+/// the exact X the dashboard's own section titles land on** (`ListView`
+/// `space3` + border + card `space3` + `space4`). So "Assets" on the page now
+/// lines up with "Assets" on Home.
+///
+/// **Two costs, both stated rather than discovered later.** (1) On pages whose
+/// content sits in a plain `GWCard` rather than a panel, the card's own padding
+/// is not the panel's, so the title lands NEAR its text and not on it: a
+/// default `GWCard` (`space8`) starts its content 17 inside its edge, which is
+/// 2 more than this inset on a phone and 4 less on desktop; the Feedback
+/// composer (`space12`) starts at 25, 4 more. Those pages have no text column
+/// at the panel inset to align with, and ONE inset shared by every page title -
+/// so the tabs agree with each other - beats four insets that each agree with
+/// one page and with no other. (2)
+/// It does NOT apply to the [GWPageHeader.centered] form (Swap, Feedback):
+/// there the header sits inside a centred card column rather than above a
+/// content column, and `submit_logs_page_frame_test.dart` pins its title to
+/// that card's own left edge.
+double gwPageHeaderContentInset(BuildContext context) =>
+    1 +
+    (GeniusBreakpoints.useDesktopLayout(context)
+        ? GeniusWalletConsts.space6
+        : GeniusWalletConsts.space3) +
+    GeniusWalletConsts.space4;
 
 /// Shared in-body page-title header. Renders a left-aligned `headlineLg`
 /// title (with an optional trailing action) and OWNS the gap below it — the
@@ -197,18 +242,30 @@ class GWPageHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (centered && trailing != null)
-          Stack(
-            alignment: Alignment.centerRight,
-            children: [
-              // Full width, so the centred text centres on the column and not
-              // on whatever space the trailing widget leaves over.
-              SizedBox(width: double.infinity, child: identityBlock),
-              trailing!,
-            ],
-          )
-        else
-          SizedBox(width: double.infinity, child: identityBlock),
+        Padding(
+          // The identity row only. The `space8` below stays outside it, and so
+          // does this widget's own top-left - `transactions_page_frame_test`
+          // measures the HEADER's box against the page gutter and must keep
+          // measuring the frame rather than this inset.
+          //
+          // Symmetric, so a `trailing` lands on the same column the content
+          // below the header ends at instead of hanging past it.
+          padding: EdgeInsets.symmetric(
+            horizontal: centered ? 0 : gwPageHeaderContentInset(context),
+          ),
+          child: centered && trailing != null
+              ? Stack(
+                  alignment: Alignment.centerRight,
+                  children: [
+                    // Full width, so the centred text centres on the column
+                    // and not on whatever space the trailing widget leaves
+                    // over.
+                    SizedBox(width: double.infinity, child: identityBlock),
+                    trailing!,
+                  ],
+                )
+              : SizedBox(width: double.infinity, child: identityBlock),
+        ),
         const SizedBox(height: GeniusWalletConsts.space8),
       ],
     );

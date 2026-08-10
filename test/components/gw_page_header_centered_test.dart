@@ -9,16 +9,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 
+/// Captured from inside the pumped tree, so the left-aligned expectation below
+/// reads the SAME inset the component applies at the SAME breakpoint instead of
+/// restating a number that could silently disagree with it.
+late double _inset;
+
 Widget _host({required bool centered, Widget? trailing}) => MaterialApp(
   home: Scaffold(
     body: Center(
       child: SizedBox(
         width: 600,
-        child: GWPageHeader(
-          title: 'Swap',
-          subtitle: 'Trade any token across chains',
-          centered: centered,
-          trailing: trailing,
+        child: Builder(
+          builder: (context) {
+            _inset = gwPageHeaderContentInset(context);
+            return GWPageHeader(
+              title: 'Swap',
+              subtitle: 'Trade any token across chains',
+              centered: centered,
+              trailing: trailing,
+            );
+          },
         ),
       ),
     ),
@@ -61,7 +71,12 @@ void main() {
     final title = tester.getRect(find.text('Swap'));
     final subtitle = tester.getRect(find.text('Trade any token across chains'));
 
-    expect(title.left, moreOrLessEquals(column.left, epsilon: 0.5));
-    expect(subtitle.left, moreOrLessEquals(column.left, epsilon: 0.5));
+    // `+ _inset` since 2026-08-08 (Jakub, walking `/assets` scheme C): the
+    // left-aligned form insets its identity row by `gwPageHeaderContentInset`
+    // so a page title heads the page's CONTENT column rather than its
+    // container. The centred form above is deliberately NOT inset, and that
+    // asymmetry is the thing these two cases together now pin.
+    expect(title.left, moreOrLessEquals(column.left + _inset, epsilon: 0.5));
+    expect(subtitle.left, moreOrLessEquals(column.left + _inset, epsilon: 0.5));
   });
 }
