@@ -307,6 +307,13 @@ class _SwapScreenState extends State<SwapScreen> {
     try {
       debugPrint('Swapping with params: ${params.toJson()}');
       // TODO: invoke Squid API
+      //
+      // WHOEVER WIRES THIS: move the `_clearForm()` call at the bottom of this
+      // method behind the real success. Today nothing executes here (D-01), so
+      // there is no genuine success to hang the reset on and clearing after
+      // the local record is written is the best available. Once a live call
+      // lands, a rejected, reverted or timed-out swap would reach the same
+      // line and wipe amounts the user typed and still needs.
 
       final walletState = context.read<WalletDetailsCubit>().state;
       final walletAddress = walletState.selectedWallet?.address;
@@ -358,11 +365,49 @@ class _SwapScreenState extends State<SwapScreen> {
         walletAddress,
         transaction,
       );
+
+      // The receipt opens ON TOP of this screen, so whatever the form still
+      // holds is what the user comes back to when they close it: a fully
+      // populated swap, one stray tap on the CTA away from running the whole
+      // thing again. Read the TODO above before moving this line.
+      if (mounted) {
+        _clearForm();
+      }
     } finally {
       if (mounted) {
         setState(() => isSubmitting = false);
       }
     }
+  }
+
+  /// Returns the form to its empty state after a submit, KEEPING the token
+  /// pair seated.
+  ///
+  /// The wallet/network listener in `build` runs the same reset and also nulls
+  /// `fromToken`/`toToken`. That difference is deliberate: there the chain
+  /// changed underneath the form, so the seated tokens are about to stop being
+  /// members of the catalogue `_loadTokens` is reloading. Nothing changed
+  /// here. The pair the user just traded is the likeliest pair they want
+  /// again, and re-picking both out of a drawer is the expensive half of this
+  /// form.
+  void _clearForm() {
+    // A quote debounced from the last keystroke would otherwise land on an
+    // empty form. It already refuses (`_fetchRoute` returns on `!canSwap`), so
+    // this is about not leaving a timer alive with nothing left to do.
+    _debounce?.cancel();
+    setState(() {
+      fromAmount = '';
+      toAmount = '';
+      fromAmountController.clear();
+      toAmountController.clear();
+      fetchedRoute = null;
+      // Unreachable from the READY rung that got us here - the route-error
+      // rung retries rather than submits - but a "clean state" that left a red
+      // notice standing would not be one. `isFetchingRoute` is deliberately
+      // NOT touched: `ready` already implies no fetch is in flight, and
+      // forcing the flag would desync a real one if that ever changes.
+      routeError = false;
+    });
   }
 
   /// D-09 / finding 22's inline notice — background `statusError` @ ~12%
@@ -641,23 +686,47 @@ class _SwapScreenState extends State<SwapScreen> {
                             ),
                             child: Column(
                               children: [
-                                // Header lives INSIDE the focused column and
-                                // centres over it (Jakub's call, 26-07): a
+                                // The header lives INSIDE the focused column,
+                                // so it and the two cards share one left
+                                // edge, and it is CENTRED at every width -
+                                // the only one of the nine page headers that
+                                // is. Two decisions, and the second one is a
+                                // road already walked:
+                                //
+                                // **Jakub, 2026-07-26 - centred.** A
                                 // left-gutter title with the form parked in
                                 // the middle of a 1536 frame left the two
-                                // agreeing on nothing. Settings icon stays on
-                                // the column's right edge, where it was before
-                                // the GWPageHeader migration (905a2a91).
+                                // agreeing on nothing. The settings glyph
+                                // sits on the column's right edge, where it
+                                // was before the GWPageHeader migration
+                                // (905a2a91).
+                                //
+                                // **2026-08-10 - left on the phone: TRIED,
+                                // REJECTED ON DEVICE.** The argument was that
+                                // at 390 the column IS the page, so there is
+                                // no wide frame left to disagree with, and
+                                // every other tab reads left. It shipped as a
+                                // `useDesktopLayout` split, Jakub looked at
+                                // it on his iPhone the same hour and asked
+                                // for the centre back, subtitle included. Do
+                                // not re-run this experiment: it is not that
+                                // nobody thought of it.
+                                //
+                                // What DID survive from that pass is the
+                                // vertical fix, which was always a separate
+                                // request: the glyph rides the TITLE's line,
+                                // the relationship `/transactions` already
+                                // has between its filter trigger and its
+                                // title. Before it, the glyph's centre sat
+                                // 22px below the title's, because a plain
+                                // `trailing` centres on the whole identity
+                                // block - title + `space2` + subtitle.
                                 GWPageHeader(
                                   title: "Swap",
                                   subtitle: "Trade any token across chains",
                                   centered: true,
-                                  trailing: IconButton(
-                                    icon: Icon(
-                                      Icons.tune,
-                                      color: gw.textSecondary,
-                                      size: 24,
-                                    ),
+                                  trailingOnTitleLine: true,
+                                  trailing: _SwapSettingsTrigger(
                                     onPressed: () {
                                       SwapSettingsDrawer.show(
                                         context,
@@ -793,6 +862,56 @@ class _SwapScreenState extends State<SwapScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The Swap header's settings trigger - `Icons.tune`, opening
+/// [SwapSettingsDrawer].
+///
+/// A widget rather than a bare `IconButton` at the call site because of the
+/// BOX around the glyph, which is load-bearing and needs the paragraph below
+/// next to it rather than four levels deep in an already deep tree.
+///
+/// This is the SECOND copy of the 48x32 trigger box `TransactionsFilterTrigger`
+/// documents at length (`transactions_slim_view.dart`), and it is a copy on
+/// purpose: two occurrences do not earn a shared component, and the two
+/// triggers agree on nothing except this one measurement. What holds it up
+/// here is `GWPageHeader`'s `trailingOnTitleLine` `Stack`, which is as tall as
+/// its tallest child: a 48-tall control over a 32px title line makes the line
+/// 48 and pushes "Swap" 8px down its own header. Measured on the phone at
+/// 390x844 - a plain 48x48 `IconButton` gives a 108px header with its title at
+/// y=32, this box gives 92 and y=24, and 24 is where "Assets" and
+/// "Transactions" put their titles. The price is the same one that page paid:
+/// 48x32 clears WCAG 2.2 SC 2.5.8's 24x24 floor and Android's 48dp on the
+/// horizontal axis, and is under Apple's 44pt on the vertical one.
+class _SwapSettingsTrigger extends StatelessWidget {
+  const _SwapSettingsTrigger({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this subtree to rebuild on a live appearance toggle (04-04 discipline).
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    return IconButton(
+      icon: Icon(Icons.tune, color: gw.textSecondary, size: 24),
+      onPressed: onPressed,
+      padding: EdgeInsets.zero,
+      // Tight, not `min*`: a minimum leaves `IconButton` free to grow, and
+      // the default `MaterialTapTargetSize.padded` does exactly that - back
+      // out to 48 on both axes, which is the 48 that was setting the header
+      // row height. `shrinkWrap` and an explicit STANDARD density are what
+      // make the constraint the final word: `VisualDensity` shrinks the
+      // MINIMUM of a constraint by 4px per unit, and `ThemeData` defaults to
+      // compact on every desktop platform, this repo's test harness included.
+      constraints: const BoxConstraints.tightFor(width: 48, height: 32),
+      visualDensity: VisualDensity.standard,
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
   }

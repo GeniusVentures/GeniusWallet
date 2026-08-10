@@ -61,6 +61,7 @@ class GWPageHeader extends StatelessWidget {
     this.titleTrailing,
     this.centered = false,
     this.trailingHugsTitle = false,
+    this.trailingOnTitleLine = false,
   });
 
   final String title;
@@ -120,6 +121,38 @@ class GWPageHeader extends StatelessWidget {
   /// `Stack` instead of the row, so there is nothing to hug.
   final bool trailingHugsTitle;
 
+  /// Narrows the [centered] form's `Stack` to the TITLE's line, so [trailing]
+  /// centres on the title rather than on the whole identity block.
+  ///
+  /// **Only read on the [centered] path, and only with a [subtitle].** Without
+  /// a subtitle the identity block IS the title line, so both placements land
+  /// on the same pixel. With one, the default centres the trailing on
+  /// `title + space2 + subtitle`: measured 22px below the title's own centre
+  /// on the phone Swap header (title centre y=40, glyph centre y=62 at
+  /// 390x844).
+  ///
+  /// Jakub, 2026-08-10, comparing Swap against `/transactions` on the phone:
+  /// the settings glyph must sit on the "Swap" line the way the filter trigger
+  /// sits on the "Transactions" line. Transactions gets that for free - it has
+  /// no subtitle - and it pays for it with a trailing constrained to 48x32 so
+  /// a 48-tall control cannot set the row's height. **A caller opting in here
+  /// owes the same constraint**, and here it is the `Stack` rather than a Row
+  /// that charges for it: a `Stack` is as tall as its tallest child, so a
+  /// 48-tall trailing over a 32px title line makes the line 48, pushes the
+  /// title 8px down its own header and grows the header by 16. Measured on
+  /// Swap at 390x844: a plain 48x48 `IconButton` gave a 108px header with its
+  /// title at y=32; the 48x32 box gives 92 and y=24, which is the y "Assets"
+  /// and "Transactions" sit on.
+  ///
+  /// The title still centres against the FULL width - the `Stack`'s first
+  /// child expands to the line and centres the text inside itself, so the
+  /// trailing cannot pull the title off centre. That is the same property the
+  /// whole-block `Stack` was written for; see the comment on it below.
+  ///
+  /// Additive and defaulted to false, so the eight OTHER call sites render the
+  /// identical tree - and so does a [centered] caller that does not ask.
+  final bool trailingOnTitleLine;
+
   /// Optional one-line subtitle rendered under the title row. Defaults to
   /// null so every existing caller (Transactions, Markets, News, and Swap as
   /// it stands today) renders exactly the widget tree it produces today —
@@ -146,6 +179,12 @@ class GWPageHeader extends StatelessWidget {
             ),
           );
 
+    // Which of the two centred `Stack`s runs: this one, over the title line
+    // alone, or the whole-block one below. False on every left-aligned path -
+    // there the trailing sits beside the identity block, in a Row.
+    final bool trailingOnTitle =
+        centered && trailingOnTitleLine && trailing != null;
+
     // Centred: a Stack, not a Row with a balancing SizedBox. The old swap
     // header balanced a 24px icon with a 24px box while the IconButton it sat
     // in is 48 wide, so the title was off-centre by half a hit target. A Stack
@@ -157,27 +196,46 @@ class GWPageHeader extends StatelessWidget {
           : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        centered
-            ? titleText
-            : Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                // Default `MainAxisSize.max` claims the full width, which is
-                // right for an edge-to-edge header and wrong for a hugging
-                // one: with `trailingHugsTitle` the outer `Flexible` cannot
-                // pull the trailing in while this Row is still expanding to
-                // meet it, so the gap survives the outer fix (measured ~470px
-                // on the coin page before this line existed).
-                mainAxisSize: trailingHugsTitle
-                    ? MainAxisSize.min
-                    : MainAxisSize.max,
-                children: [
-                  // The only flex child here, so it gets ALL the space
-                  // titleTrailing does not need and ellipsizes instead of
-                  // overflowing once the row runs out.
-                  Flexible(child: titleText),
-                  ?titleTrailing,
-                ],
-              ),
+        if (centered && !trailingOnTitle)
+          titleText
+        else if (centered)
+          // [trailingOnTitleLine]: the same Stack the whole block gets below,
+          // wrapped around the title LINE instead, so the trailing centres on
+          // the title and not on title + `space2` + subtitle.
+          //
+          // `Center`, not the bare Text: an `Align` with no width factor takes
+          // the full bounded width and centres its child inside it, so the
+          // title is centred against the whole line while the Text keeps its
+          // own intrinsic box. Drop it and the Stack shrinks to the width of
+          // the word, which is the "centred on what the trailing leaves"
+          // failure the note on the outer Stack describes.
+          Stack(
+            alignment: Alignment.centerRight,
+            children: [
+              Center(child: titleText),
+              trailing!,
+            ],
+          )
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            // Default `MainAxisSize.max` claims the full width, which is
+            // right for an edge-to-edge header and wrong for a hugging
+            // one: with `trailingHugsTitle` the outer `Flexible` cannot
+            // pull the trailing in while this Row is still expanding to
+            // meet it, so the gap survives the outer fix (measured ~470px
+            // on the coin page before this line existed).
+            mainAxisSize: trailingHugsTitle
+                ? MainAxisSize.min
+                : MainAxisSize.max,
+            children: [
+              // The only flex child here, so it gets ALL the space
+              // titleTrailing does not need and ellipsizes instead of
+              // overflowing once the row runs out.
+              Flexible(child: titleText),
+              ?titleTrailing,
+            ],
+          ),
         if (subtitleText != null) ...[
           const SizedBox(height: GeniusWalletConsts.space2),
           subtitleText,
@@ -253,7 +311,7 @@ class GWPageHeader extends StatelessWidget {
           padding: EdgeInsets.symmetric(
             horizontal: centered ? 0 : gwPageHeaderContentInset(context),
           ),
-          child: centered && trailing != null
+          child: centered && trailing != null && !trailingOnTitle
               ? Stack(
                   alignment: Alignment.centerRight,
                   children: [
