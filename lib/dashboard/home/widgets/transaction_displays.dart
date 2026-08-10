@@ -39,15 +39,6 @@ const double _wideRowThreshold = 720;
 /// amount; a rare bigger one ellipsizes and keeps its `exactAmount` tooltip.
 const double _wideAmountWidth = 184;
 
-/// Narrow row: the name+tag block takes this many parts against the amount's
-/// 1. Was 1:1, which gave the amount half the row for a string needing far
-/// less. A flex ratio, not a measured width - measuring per layout is what the
-/// freeze rule bans (37639d5).
-///
-/// Cost: long amounts truncate sooner; they keep their `exactAmount`
-/// tooltip. Upgrade path: 3:2 if balances read short.
-const int _narrowNameFlex = 2;
-
 /// The narrow row's status tail cap, and the row's ONLY non-flex subtitle child.
 ///
 /// Why a cap at all: everything else on the subtitle line is inside an
@@ -64,6 +55,10 @@ const int _narrowNameFlex = 2;
 ///
 /// `transaction_row_subtitle_test.dart` asserts every status word stays under
 /// this, so a longer one reddens rather than silently ellipsising.
+///
+/// On a real phone the middle column is narrower still than either measured
+/// case above (the 1:1 name-block flex restored 2026-08-07), and the 76 cap
+/// still clears it - see Finding 2 in the 260807-ubg plan for the derivation.
 const double _narrowStatusMaxWidth = 76;
 
 /// THE colour of a status - foreground and its wash - for every consumer.
@@ -170,10 +165,23 @@ Widget _statusPill(TransactionStatus status, GWColors gw, {String? label}) {
 /// `tx.type`. `none` (a dash: failed, cancelled, a processing job) takes
 /// `textSecondary` and NOT the sketch's `--text-primary-38`, which measures
 /// ~3.0:1 on the dark panel and fails AA for what is meaningful text.
+///
+/// Sketch 186 scheme A, Jakub on device 2026-08-08: `incoming` no longer takes
+/// `statusSuccess`. Measured ink against ink, `statusSuccess` against
+/// `textPrimary` - the entire green/white distinction - is 1.86:1, under a
+/// third of WCAG 1.4.11's 3:1 bar for a non-text indicator, and it was a
+/// FOURTH statement of a fact the row already states three times: the sign
+/// glyph already inside `content.amount` (`+`/`−`, a shape at 19.29:1) and the
+/// direction badge at the left wall (fill AND arrow, in both directions). The
+/// tint was spending the column's only colour channel on the weakest of the
+/// four cues and leaving it with nothing left to say STATUS, which a sign
+/// cannot say. Colour is freed for exactly that - see `amountColumn`'s value
+/// line and the status tail below. The honest cost, named rather than hidden:
+/// a credit stops being green here. What still says it: the badge, at the
+/// left wall where the eye enters the row.
 Color _toneColor(TxAmountTone tone, GWColors gw) => switch (tone) {
-  TxAmountTone.incoming => gw.statusSuccess,
-  TxAmountTone.outgoing => gw.textPrimary,
   TxAmountTone.none => gw.textSecondary,
+  TxAmountTone.incoming || TxAmountTone.outgoing => gw.textPrimary,
 };
 
 /// Copy of `_FallbackDot` in `gw_token_row.dart` (private there) so the Assets
@@ -269,8 +277,9 @@ Widget _identity(TxRowContent content, GWColors gw, {required double size}) {
 /// — a missing case belongs in 12-02's derivation, not in this widget. That
 /// single rule is what makes "one anatomy" true rather than aspirational.
 ///
-/// Geometry matches `GWTokenRow` (40px icon slot, space6/space4 padding,
-/// radiusMd InkWell) so Assets and Transactions read as one system.
+/// Geometry matches the shared row rhythm declared in `gw_row_rhythm.dart`
+/// (38px icon slot, space4/space6 padding, radiusMd InkWell) so Assets,
+/// Markets and Transactions read as one system.
 class TransactionRow extends StatelessWidget {
   const TransactionRow({
     super.key,
@@ -313,7 +322,8 @@ class TransactionRow extends StatelessWidget {
     // row canvas and was 44.5px on a phone, too narrow for 6 of the 8 strings
     // `_actionFor` can return, so it clipped the word it existed to show. The
     // action now leads the subtitle as `content.subtitleLead`. Their `compact`
-    // font sizes were carried to their replacements rather than lost.
+    // font sizes were carried across the merge and then removed on
+    // 2026-08-07 when the type-scale half of the gate went, per Jakub's call.
 
     final Widget amountText = Text(
       content.amount,
@@ -323,7 +333,7 @@ class TransactionRow extends StatelessWidget {
       textAlign: TextAlign.right,
       style: GeniusWalletTypography.numericBody.copyWith(
         // Still the largest thing in the row, and still w600.
-        fontSize: compact ? 13 : 16,
+        fontSize: 16,
         fontWeight: FontWeight.w600,
         color: _toneColor(content.tone, gw),
       ),
@@ -342,20 +352,38 @@ class TransactionRow extends StatelessWidget {
           Tooltip(message: content.exactAmount!, child: amountText)
         else
           amountText,
-        if (content.valueLine != null) ...[
-          SizedBox(height: compact ? 1 : GeniusWalletConsts.space2),
-          Text(
-            content.valueLine!,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.right,
-            style: GeniusWalletTypography.bodySm.copyWith(
-              // Matches the subtitle across the row.
-              fontSize: compact ? 11 : null,
-              color: gw.textSecondary,
-            ),
+        // Sketch 186 scheme A: the slot is NEVER empty any more. `?? 'No
+        // price'` replaces the old `if (content.valueLine != null)` gate,
+        // which is what let a one-line amount column centre 11.571px lower
+        // than its two-line neighbours - a visible break in a right-aligned
+        // stack with no height change to explain it, worst on the unpriced
+        // BTC row. `No price` and not a dash or `$0.00`: both are ruled out
+        // by this codebase in writing (`_emDash`'s TT-06 removal and
+        // `fiatValue`'s "inventing a zero is the same defect sketch 010
+        // flagged"), so a real phrase is the only honest option left, and at
+        // 56.27px it is shorter than `Not charged` already prints in this
+        // slot.
+        const SizedBox(height: GeniusWalletConsts.space2),
+        Text(
+          content.valueLine ?? 'No price',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.right,
+          style: GeniusWalletTypography.bodySm.copyWith(
+            // `Not charged` is the one sentinel `valueLine` ever carries for a
+            // dead (failed/cancelled) row - see the override in
+            // `transaction_utils.dart`'s `txRowContent` - so keying off the
+            // STRING rather than re-deriving "isDead" from `content.status`
+            // here keeps this correct for `orderRowContent` too: a banxa
+            // order's UNRECOGNISED status also folds to
+            // `TransactionStatus.cancelled`, but it keeps its real fiat and
+            // deliberately does NOT print `Not charged` (see that file's own
+            // doc), so it must stay quiet rather than turn alarmingly red.
+            color: content.valueLine == 'Not charged'
+                ? gw.statusError
+                : gw.textSecondary,
           ),
-        ],
+        ),
       ],
     );
 
@@ -369,14 +397,34 @@ class TransactionRow extends StatelessWidget {
     return GWHoverRow(
       onTap: onTap,
       child: Padding(
-        // Halved on phone so more history fits on screen.
+        // SEPARATOR RHYTHM PILOT, 2026-08-07. Jakub, on device: the gaps around
+        // the horizontal rules should be one value across the app, and it
+        // should sit between what Transactions renders and what Assets does.
+        //
+        // Measured before choosing, ink to ink, at 390pt:
+        //   Transactions  4.00 / 4.00   symmetric, and the only one of the three
+        //                               that was an owned decision
+        //   Markets      13.25 / 16.75  asymmetric, 100% Material's bare
+        //                               `ListTile` default, nobody chose it
+        //   Assets       15.63 / 20.00  asymmetric, `vertical: 4` plus 27.62 of
+        //                               `ListTile` centring snap
+        //
+        // `space6` = 12 is the midpoint of the [4, 20] range, on the 4-pt grid,
+        // and already ships symmetrically at three other row lists
+        // (`route_details_card.dart:104`, `markets_table.dart:181` and `:228`),
+        // so it is a value this app already settled on rather than a new one.
+        // Vertical is now ONE number at both widths: the rule between two rows
+        // is the same object on a phone and on a desktop, so a breakpoint here
+        // would only mean it is not.
+        //
+        // Horizontal keeps its breakpoint. The phone wall moves 6 -> `space4` 8
+        // to match Assets' declared `contentPadding`, which is Jakub's pick for
+        // the row geometry; desktop keeps `space6` because nothing measured it.
         padding: EdgeInsets.symmetric(
           horizontal: compact
-              ? GeniusWalletConsts.space3
+              ? GeniusWalletConsts.space4
               : GeniusWalletConsts.space6,
-          vertical: compact
-              ? GeniusWalletConsts.space2
-              : GeniusWalletConsts.space4,
+          vertical: GeniusWalletConsts.space6,
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -411,15 +459,22 @@ class TransactionRow extends StatelessWidget {
                   ),
                   const SizedBox(width: GeniusWalletConsts.space6),
                 ],
-                // 40 -> 28 on a phone (30% smaller).
-                _identity(content, gw, size: compact ? 28 : 40),
+                // 38, not 40: Jakub picked Assets' row geometry as the pattern
+                // on 2026-08-07, and Assets' leading glyph measures 38. This
+                // supersedes this morning's restore to 40, which was about
+                // undoing develop's phone shrink to 28, not about the target.
+                _identity(content, gw, size: 38),
+                // Icon to text, phone: `space4` 8, being shown to Jakub on
+                // device 2026-08-07 against the 6 it replaced. Assets renders
+                // 16 here (`ListTile.horizontalTitleGap`), and matching it
+                // exactly would spend 10 of the subtitle's ~151px, which is the
+                // line `Processing job` already fills to 103.6. 8 spends 2.
                 SizedBox(
                   width: compact
-                      ? GeniusWalletConsts.space3
+                      ? GeniusWalletConsts.space4
                       : GeniusWalletConsts.space6,
                 ),
                 Expanded(
-                  flex: compact ? _narrowNameFlex : 1,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -442,19 +497,18 @@ class TransactionRow extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GeniusWalletTypography.titleMd.copyWith(
-                          // From develop's `titleText` local (260806-hfe),
-                          // which scheme C inlined here. Carried across the
-                          // merge rather than dropped with the widget that
-                          // used to hold it.
-                          fontSize: compact ? 14 : null,
+                          // The title takes `titleMd` (16) at every width,
+                          // w600 for the row. `titleText`, the develop local
+                          // this line used to be attributed to, is gone with
+                          // the 2026-08-07 gate removal.
                           fontWeight: FontWeight.w600,
                           color: gw.textPrimary,
                         ),
                       ),
-                      // `compact ? 1` comes from develop's phone-width work
-                      // (260806-hfe) and is kept through this merge: scheme C
-                      // rebuilt the subtitle around it, not instead of it.
-                      SizedBox(height: compact ? 1 : GeniusWalletConsts.space2),
+                      // One fixed gap, not two: the phone-width shrink that
+                      // used to collapse this to 1px went with the rest of
+                      // the type-scale gate on 2026-08-07 (Jakub's call).
+                      const SizedBox(height: GeniusWalletConsts.space2),
                       // THE SUBTITLE, in three pieces and TWO children.
                       //
                       // The lead is protected by being FIRST IN THE PARAGRAPH,
@@ -483,7 +537,8 @@ class TransactionRow extends StatelessWidget {
                                       // string - his words were that the job
                                       // label and the information after it
                                       // were hard to tell apart. One weight
-                                      // step at 13px is not a separator.
+                                      // step at bodySm's 14px is not a
+                                      // separator.
                                       //
                                       // Colour carries it instead: textPrimary
                                       // against textSecondary is 19.4:1 against
@@ -497,22 +552,52 @@ class TransactionRow extends StatelessWidget {
                                       // is already ellipsising.
                                       //
                                       // That argument got STRONGER on
-                                      // 2026-08-07, not weaker. The line is
-                                      // 113.0px and the longest lead it now
-                                      // draws is `Processing job` at 103.6px
-                                      // (measured w600), leaving 9.4px - so a
-                                      // separator costing ~10px would clip the
-                                      // very row the wording was restored for.
+                                      // 2026-08-07, not weaker, but its numbers
+                                      // are two different rows. The line is
+                                      // 114.0px and the longest lead it draws
+                                      // is `Processing job` at 103.6px
+                                      // (measured w600), leaving 10.4px - on the
+                                      // DESKTOP dashboard panel and on the two
+                                      // test hosts, all three of which keep the
+                                      // 44px time column. The phone row drops
+                                      // that column, but the 38px icon (Jakub's
+                                      // Assets-geometry pick, same day) and the
+                                      // 1:1 name-block flex leave the subtitle
+                                      // only ~151px wide, of which a pending
+                                      // row's status tail takes its share - so
+                                      // `Processing job` is expected to
+                                      // ellipsise on the phone where it does
+                                      // not on the desktop panel. These phone
+                                      // figures are DERIVED, not measured;
+                                      // Task 3 walks the real device.
                                       //
                                       // It does not fight the token title
-                                      // above: that is 15px w600 and this is
-                                      // 13px, so the size step keeps the
-                                      // hierarchy. Named fallback if white
-                                      // reads too hot on the second line: white
-                                      // at 70%, still well clear of AA.
+                                      // above: that is titleMd's 16px w600 and
+                                      // this is bodySm's 14px, so the size step
+                                      // keeps the hierarchy.
+                                      //
+                                      // Sketch 186, Jakub on device
+                                      // 2026-08-08: `git show 0cd2889b` proved
+                                      // this line's OWN colour decision had
+                                      // collapsed the lead onto the ticker
+                                      // above it (`titleMd` `textPrimary`,
+                                      // 1.00:1 apart) rather than separating it
+                                      // from the qualifier beside it - two
+                                      // strings, 4px apart, same ink, same
+                                      // weight, 2px apart in size. Scheme L2
+                                      // fixes exactly that: `textPrimary70`,
+                                      // the fallback this comment already
+                                      // named, is now the shipped choice. On
+                                      // this canvas it holds 9.60:1 for AA text
+                                      // and buys 2.01:1 against the ticker -
+                                      // the pairing complaint 1 is about -
+                                      // while keeping 1.61:1 against the
+                                      // qualifier beside it (weak alone, but
+                                      // the w600 step above still carries most
+                                      // of that separation).
                                       style: TextStyle(
                                         fontWeight: FontWeight.w600,
-                                        color: gw.textPrimary,
+                                        color: gw.textPrimary70,
                                       ),
                                     ),
                                   if (content.subtitleBase.isNotEmpty)
@@ -525,14 +610,12 @@ class TransactionRow extends StatelessWidget {
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              // `fontSize: compact ? 11` is develop's
-                              // phone-width shrink (260806-hfe), carried across
-                              // this merge. It buys back line width, which is
-                              // exactly the currency the lead-plus-context
-                              // paragraph below is short of - the two changes
-                              // pull the same way rather than against.
+                              // Develop's phone-width shrink (260806-hfe) that
+                              // used to bring this below the token is gone
+                              // (2026-08-07, Jakub's call): the paragraph now
+                              // runs at bodySm on a narrower line, which is
+                              // the cost he accepted for legible type.
                               style: GeniusWalletTypography.bodySm.copyWith(
-                                fontSize: compact ? 11 : null,
                                 color: gw.textSecondary,
                               ),
                             ),
@@ -553,12 +636,21 @@ class TransactionRow extends StatelessWidget {
                                 maxLines: 1,
                                 softWrap: false,
                                 overflow: TextOverflow.ellipsis,
-                                // Same shrink as the paragraph beside it. If
-                                // only one of the two shrank, the subtitle
-                                // would print at two sizes on one line.
+                                // Same SIZE token as the paragraph beside it -
+                                // if only one of the two took a different
+                                // size, the subtitle would print at two sizes
+                                // on one line. The COLOUR, since sketch 186
+                                // scheme A, is `txStatusColors` - the same
+                                // function `_statusPill` already uses for the
+                                // wide page, already correct for all four
+                                // statuses - so `Pending`/`Failed` read in
+                                // their status colour here too, not the flat
+                                // grey every other subtitle word takes. This
+                                // is colour A freed from the amount column,
+                                // spent on the one thing a sign glyph cannot
+                                // say.
                                 style: GeniusWalletTypography.bodySm.copyWith(
-                                  fontSize: compact ? 11 : null,
-                                  color: gw.textSecondary,
+                                  color: txStatusColors(content.status, gw).fg,
                                 ),
                               ),
                             ),

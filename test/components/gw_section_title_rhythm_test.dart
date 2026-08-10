@@ -57,24 +57,38 @@
 /// made a FIXED bottom pad produce a different rendered gap in every panel.
 ///
 /// ---------------------------------------------------------------------
-/// MEASURED - 2026-08-06/07, from this file's own output
+/// MEASURED - 2026-08-06/07, from this file's own output; the two `ListTile`
+/// rows updated 2026-08-08 when 260807-wbu deleted both snaps (see the note
+/// marked `*` below)
 /// ---------------------------------------------------------------------
 ///
 /// `C` is the content's OWN top inset: its first painted pixel minus its
 /// layout box top. `B` is [GWSectionTitle]'s bottom pad, now derived as
 /// `max(0, 26 - slack - C)` rather than fixed.
 ///
-/// | Section              | C     | B before | R2 before | B after | R2 after |
-/// | -------------------- | ----- | -------- | --------- | ------- | -------- |
-/// | component baseline   |  0    | 16       | 26        | 16      | 26       |
-/// | Compute              |  0    | 16       | 26        | 16      | 26       |
-/// | More news / Results  |  0    | 16       | 26        | 16      | 26       |
-/// | Results (empty)      |  8->0 | 16       | 34        | 16      | 26       |
-/// | Transactions (panel) |  8->0 | 16       | 34        | 16      | 26       |
-/// | Next up              |  8    | 16       | 34        |  8      | 26       |
-/// | All Markets          | 12    | 16       | 38        |  4      | 26       |
-/// | Markets (panel)      | 16.75 | 16       | 42.75     |  0      | 26.75    |
-/// | Assets               | 20    | 16       | 46        |  0      | 30       |
+/// | Section                | C         | B before | R2 before | B after   | R2 after  |
+/// | ----------------------- | --------- | -------- | --------- | --------- | --------- |
+/// | component baseline      |  0        | 16       | 26        | 16        | 26        |
+/// | Compute                 |  0        | 16       | 26        | 16        | 26        |
+/// | More news / Results     |  0        | 16       | 26        | 16        | 26        |
+/// | Results (empty)         |  8->0     | 16       | 34        | 16        | 26        |
+/// | Transactions (panel)    |  8->0     | 16       | 34        | 16        | 26        |
+/// | Next up                 |  8        | 16       | 34        |  8        | 26        |
+/// | All Markets             | 12        | 16       | 38        |  4        | 26        |
+/// | Markets (panel)         | 16.75->12 | 16       | 42.75     |  0->4     | 26.75->26 |
+/// | Assets (row's own C) *  | 20->12    | 16       | 46        |  0->4     | 30->26    |
+///
+/// \* The Assets row's own top inset - measured on `CoinCardRow` standalone,
+/// because the real Assets panel cannot be mounted here (bloc / network
+/// future). It is NOT what the live Assets section feeds its title: the total
+/// band sits between the title and the first row there, so the section's real
+/// content inset is 0, not this row's C - see
+/// `assets_header_scheme_a_test.dart`'s "THE REAL CALL SITE" case, which pins
+/// header cost at 94 (title to total band to row, nothing else). **The
+/// section's own R2 was always 26 via that C=0, before this change and after
+/// it** - the row's C moving from 20 to 12 changes only what this table's
+/// hypothetical "if the row fed the title directly" column shows, never what
+/// the shipping panel renders.
 ///
 /// Every resulting pad is an existing token - `space8` 16, `space4` 8,
 /// `space2` 4, and 0 - so nothing off-grid was introduced. The `C` values are
@@ -90,17 +104,33 @@
 ///                    it and keeps its space4.
 ///   - Next up        `_NextUpRow`'s own `vertical: space4`.
 ///   - All Markets    `MarketsTable`'s header `Container(vertical: space6)`.
-///   - Markets panel  `CryptoSparkLineChart`'s ListTile snap - measured here.
-///   - Assets         `CoinCardRow`'s ListTile snap - measured here.
+///   - Markets panel  `CryptoSparkLineChart`'s own `kGWRowPadding` top inset
+///                    (`kGWRowSeparatorGap`, 12) since 260807-wbu; before that
+///                    it was a `ListTile` snap measured at 16.75.
+///   - Assets         `CoinCardRow`'s own `kGWRowPadding` top inset
+///                    (`kGWRowSeparatorGap`, 12) since 260807-wbu; before that
+///                    it was a `ListTile` snap measured at 20. See the `*`
+///                    note above - this C was never what the live section
+///                    reads.
 ///
-/// **The two overshoots are deliberate.** The pad floors at zero, so C above
-/// 16 renders `slack + C` instead of 26: Assets at 30 and the Markets panel at
-/// 26.75. Assets is the section Jakub measured on device as ALREADY correct -
-/// 28.9pt above the title against 31.3pt below, painted ink to painted ink -
-/// and named as the target the others should match. Normalising those
-/// `ListTile`s to close the last 4px would change row-to-row rhythm, divider
-/// spacing and touch-target heights across three panels; it was considered and
-/// withdrawn.
+/// **The overshoot is gone from both rows; one synthetic case is all that is
+/// left.** Before 260807-wbu, both rows brought more top inset than the pad
+/// could absorb: the Markets panel's `ListTile` measured 16.75 and Assets'
+/// measured 20, so both rendered `slack + C` instead of 26 - 26.75 and 30 in
+/// this table's row-fed-title sense. 260807-wbu deleted both `ListTile`s and
+/// replaced them with the row's own declared inset, `kGWRowSeparatorGap`
+/// (12), which is BELOW `kMaxAbsorbableInset` (16) and therefore fully
+/// absorbable. The Markets panel now genuinely renders the shared 26 - see
+/// `dashboard_markets.dart`'s `contentTopInset` and the
+/// `ROW INSET - CryptoSparkLineChart` case below. Assets' section R2 was
+/// never fed by this row in the first place (see the `*` note above), so
+/// nothing there moved either way.
+///
+/// That leaves the `OVERSHOOT` loop below as a PURE contract test: its two
+/// `InsetProbe` values, 16.75 and 20, used to restate real call-site numbers
+/// and now exercise the floor-at-zero behaviour in the abstract, with no
+/// shipping panel behind either number any more. A reader who goes looking
+/// for the panel that used to overshoot at 16.75 will not find one.
 ///
 /// ---------------------------------------------------------------------
 /// WHY 12 ABOVE AND 26 BELOW IS SYMMETRIC ON GLASS
@@ -144,6 +174,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/chart/crypto_simple_chart.dart';
+import 'package:genius_wallet/components/cards/gw_row_rhythm.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/dashboard/compute/compute_panel.dart';
@@ -552,13 +583,18 @@ void main() {
     );
   });
 
-  // The two ListTile rows, measured standalone. Their numbers are the `C`
-  // column for Assets and the Markets panel in the table above - neither panel
-  // can be mounted here (bloc / network future), so the row is measured on its
-  // own and the section's rendered gap derived as `slack + C`.
+  // The two rows, measured standalone. Their `C` is the same column the table
+  // above calls out for Assets and the Markets panel - neither panel can be
+  // mounted here (bloc / network future), so the row is measured on its own.
   //
-  // Both assert `C > kMaxAbsorbableInset`, which is what makes those two the
-  // overshoot cases rather than ordinary ones.
+  // Both used to assert `C > kMaxAbsorbableInset`, back when each row brought
+  // a `ListTile` snap bigger than the pad could absorb. 260807-wbu deleted
+  // both `ListTile`s; each row now declares its own `kGWRowSeparatorGap` (12)
+  // top inset, which the pad CAN absorb. Both cases below assert exactly
+  // that: C equals the row's own declared gap, and sits at or below
+  // `kMaxAbsorbableInset` - the property that makes each an ABSORBED case now
+  // rather than an OVERSHOOT one. See the `*` note in the MEASURED table above
+  // for why this still says nothing about the live Assets section's own R2.
   testWidgets('ROW INSET - CoinCardRow (Assets)', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -587,16 +623,27 @@ void main() {
         row.top;
     debugPrint(
       'RHYTHM | CoinCardRow          height=${row.height} C=$c '
-      '-> Assets gap = ${kGWSectionTitleSlack + c}',
+      '-> row is now ABSORBED, section renders the shared '
+      '$kGWSectionTitleRenderedGap',
     );
     expect(
       c,
-      greaterThan(kMaxAbsorbableInset),
+      closeTo(kGWRowSeparatorGap, 0.5),
       reason:
-          'Assets overshoots the shared gap because its ListTile brings more '
-          'top inset than the section title has pad to spend. If this row ever '
-          'drops below $kMaxAbsorbableInset, Assets joins the shared 26 and '
-          "the table in this file's doc comment is stale.",
+          'CoinCardRow now declares its own top inset ($kGWRowSeparatorGap, '
+          'kGWRowSeparatorGap) instead of bringing a ListTile snap. Measured '
+          '$c.',
+    );
+    expect(
+      c,
+      lessThanOrEqualTo(kMaxAbsorbableInset),
+      reason:
+          'that inset is BELOW kMaxAbsorbableInset ($kMaxAbsorbableInset), so '
+          'GWSectionTitle can absorb it - the derived bottom pad goes from 0 '
+          'to space2 (4) and a section fed directly by this row would render '
+          'the shared $kGWSectionTitleRenderedGap instead of overshooting past '
+          'it. If C ever rises back above $kMaxAbsorbableInset, Assets '
+          "reverts to an overshoot case and this assertion is what catches it.",
     );
   });
 
@@ -636,8 +683,29 @@ void main() {
         row.top;
     debugPrint(
       'RHYTHM | CryptoSparkLineChart height=${row.height} C=$c '
-      '-> Markets gap = ${kGWSectionTitleSlack + c}',
+      '-> row is now ABSORBED, section renders the shared '
+      '$kGWSectionTitleRenderedGap',
     );
-    expect(c, greaterThan(kMaxAbsorbableInset));
+    expect(
+      c,
+      closeTo(kGWRowSeparatorGap, 0.5),
+      reason:
+          'CryptoSparkLineChart now declares its own top inset '
+          '($kGWRowSeparatorGap, kGWRowSeparatorGap) instead of bringing a '
+          'ListTile snap. Measured $c.',
+    );
+    expect(
+      c,
+      lessThanOrEqualTo(kMaxAbsorbableInset),
+      reason:
+          'that inset is BELOW kMaxAbsorbableInset ($kMaxAbsorbableInset), so '
+          'GWSectionTitle can absorb it - the derived bottom pad goes from 0 '
+          'to space2 (4) and the Markets panel now genuinely renders the '
+          'shared $kGWSectionTitleRenderedGap (dashboard_markets.dart declares '
+          'contentTopInset: kGWRowSeparatorGap) instead of the old 26.75 '
+          'overshoot. If C ever rises back above $kMaxAbsorbableInset, the '
+          'Markets panel reverts to an overshoot case and this assertion is '
+          'what catches it.',
+    );
   });
 }

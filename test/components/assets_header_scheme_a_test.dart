@@ -558,9 +558,12 @@ void main() {
         kAssetsHeaderCost,
         reason:
             'a spacer between the band and the first CoinCardRow would show up '
-            'here and nowhere else. There must not be one: the row brings its '
-            "own ~20px ListTile snap and that IS the gap, byte-for-byte what "
-            'scheme C shipped between the total and the first row',
+            'here and nowhere else. There must not be one: since 260807-wbu '
+            'the row declares its own kGWRowSeparatorGap (12) top inset '
+            "(previously a ~20px ListTile snap) and that IS the gap - the "
+            'header cost holds at 94 either way because this measures layout '
+            'box to layout box, not painted ink, and internal row padding '
+            "does not move a box's top",
       );
       expect(tester.takeException(), isNull);
     },
