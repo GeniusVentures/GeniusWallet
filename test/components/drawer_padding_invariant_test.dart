@@ -51,6 +51,11 @@ const _census = <String, _Inset>{
   // demo is now a plain scrolling ListView, same shape as the five pickers
   // above.
   'lib/dev/design_gallery_screen.dart': _Inset.ownsScrollingViewport,
+  // Sketch 195: the /transactions filter picker, a ten-row GWSelectRow list.
+  // Same shape as the pickers above - the inset is on the ListView, so the
+  // rows still reach the panel edge when it scrolls.
+  'lib/dashboard/home/widgets/transactions_slim_view.dart':
+      _Inset.ownsScrollingViewport,
 
   // -- shellInset (the default): no bodyPadding argument at all -- the
   // shell's own kDrawerBodyPadding is the whole inset.
