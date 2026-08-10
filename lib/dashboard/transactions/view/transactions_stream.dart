@@ -13,13 +13,34 @@ class TransactionsStream extends StatelessWidget {
   /// `/transactions` route opts in.
   final bool page;
 
-  const TransactionsStream({super.key, this.page = false});
+  /// Forwarded verbatim to [TransactionsSlimView.selectedFilter] and
+  /// [TransactionsSlimView.onFilterChanged] - the PAGE owns the filter as of
+  /// sketch 195, because its trigger sits in `GWPageHeader.trailing` above this
+  /// widget.
+  ///
+  /// Both default to null so the dashboard's `const TransactionsStream()`
+  /// (`dashboard_screen.dart`) keeps the slim view's own internal filter with
+  /// no call-site edit.
+  final Filters? selectedFilter;
+  final ValueChanged<Filters>? onFilterChanged;
+
+  const TransactionsStream({
+    super.key,
+    this.page = false,
+    this.selectedFilter,
+    this.onFilterChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionsCubit, List<Transaction>>(
       builder: (context, transactions) {
-        return TransactionsSlimView(transactions: transactions, page: page);
+        return TransactionsSlimView(
+          transactions: transactions,
+          page: page,
+          selectedFilter: selectedFilter,
+          onFilterChanged: onFilterChanged,
+        );
       },
     );
   }

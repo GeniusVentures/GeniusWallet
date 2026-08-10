@@ -124,9 +124,17 @@ final Finder railFinder = find.byWidgetPredicate(
 final Finder rowFinder = find.byWidgetPredicate(
   (w) => w.runtimeType.toString() == '_RailRow',
 );
-final Finder barFinder = find.byWidgetPredicate(
-  (w) => w.runtimeType.toString() == '_TransactionFilterBar',
-);
+
+/// The narrow page's marker, now that it has no filter control of its own.
+///
+/// This used to be a `_TransactionFilterBar` finder: below 768 the page drew a
+/// flat filter track, so the bar's presence WAS the narrow branch. Sketch 195
+/// moved that control into `GWPageHeader.trailing`, which is the route's
+/// widget and not this one's, so the branch has to be identified by its CARDS
+/// instead - one on the narrow page, two on the wide (the rail's and the
+/// list's). That is a stronger marker anyway: it is the layout itself rather
+/// than a control that happened to live in it.
+final Finder cardFinder = find.byType(DashboardScrollContainer);
 
 /// A `Text` finder scoped to the rail — see trap (b) in the header comment.
 Finder railText(String s) =>
@@ -545,7 +553,8 @@ void main() {
       // RED if the `wide` boolean is removed and a 220px rail is forced beside
       // a list at phone width.
       expect(railFinder, findsNothing, reason: '$width');
-      expect(barFinder, findsOneWidget, reason: '$width');
+      // ONE card: the list's. The rail's card is what the second one would be.
+      expect(cardFinder, findsOneWidget, reason: '$width');
     }
 
     // The boundary PAIR. `wide` is the one layout-derived value in the whole
@@ -555,6 +564,6 @@ void main() {
     );
     expect(tester.takeException(), isNull);
     expect(railFinder, findsOneWidget);
-    expect(barFinder, findsNothing);
+    expect(cardFinder, findsNWidgets(2));
   });
 }

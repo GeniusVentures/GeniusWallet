@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
@@ -396,107 +397,196 @@ void main() {
     });
   });
 
-  // The bar lives in GWSectionTitle's trailing slot beside an unwrapped title
-  // Text, and the `FittedBox(scaleDown)` that used to absorb overflow is gone
-  // (it derives a continuous scale — the 37639d5 freeze class). So the ONLY
-  // thing keeping the title row from a RenderFlex overflow is that the bar is
-  // narrow enough on its own. That is what this group measures.
-  group('bar fits the title row', () {
-    final barFinder = find.byWidgetPredicate(
-      (w) => w.runtimeType.toString() == '_TransactionFilterBar',
+  // The phone page's filter control, as sketch 195 scheme G2 rebuilt it: the
+  // trigger left the card for `GWPageHeader.trailing`, the picker became the
+  // app's own drawer, and the live filter is named on a dismissible chip above
+  // the list.
+  //
+  // **This group replaces `bar fits the title row`.** That group measured
+  // `_TransactionFilterBar` on this same surface - the narrow `page: true`
+  // branch - which was the bar's last live call site; 195 deleted it, so those
+  // pixel pins (52 x 243) now have nothing to measure. The bar itself is still
+  // in the file, referenced only from a dead arm in `_panel`; see that method's
+  // doc comment.
+  //
+  // What the pins protected is not lost, it moved: the 44pt touch target is
+  // asserted on the trigger below, and the "a live filter must never be
+  // invisible" rule the `⋯` menu introduced is asserted twice - on the trigger's
+  // tooltip and on the chip row.
+  group('the phone page filter control', () {
+    /// Two escrow rows, a mint and a swap: four transactions across three
+    /// filters, so `Escrow` is a real subset (2 of 4) rather than everything.
+    ///
+    /// None of the three labels collides with a transaction row's own copy the
+    /// way `Sent` does - the same reason the old group reached for escrow.
+    List<Transaction> some() => [
+      _tx(type: TransactionType.escrow),
+      _tx(type: TransactionType.escrow),
+      _tx(type: TransactionType.mint),
+      _tx(type: TransactionType.swap),
+    ];
+
+    /// A REAL phone surface, not a `SizedBox` inside the harness's 800x600.
+    ///
+    /// Both halves need it. `_page` picks its narrow branch off the incoming
+    /// constraints, and `ResponsiveDrawer` picks the bottom SHEET over the
+    /// desktop side panel off `MediaQuery.sizeOf` - so at the default surface
+    /// this group would silently test the wide page and the desktop drawer.
+    void surface(WidgetTester tester) {
+      tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+    }
+
+    Widget host(List<Transaction> txs, [GWColors? gw]) => MaterialApp(
+      theme: ThemeData(extensions: [gw ?? GWColors.dark()]),
+      home: Scaffold(body: _PhonePage(txs: txs)),
     );
 
-    // EXACTLY ONE ROW by default, and it must be escrow.
-    //
-    // This host used to pump an EMPTY list, for a reason that was sound: no
-    // rows means no coin assets to decode and no row printing "Sent" to
-    // collide with the label the tests below search for. But an empty scope now
-    // hides the bar entirely, so the fixture needs the minimum that makes the
-    // scope non-empty - one row.
-    //
-    // `escrow` is that row because its subtitle reads "Locked" then "in escrow"
-    // (179-C deleted the action chip and moved the verb down to lead the
-    // subtitle), neither of which collides with `find.text('Sent')` in the two
-    // icon-only tests. `_tx`'s other strings are
-    // already short — `coinSymbol: 'ETH'`, `hash: '0xabc'` — which matters at
-    // 419px, where the harness's fallback font draws one em per character.
-    //
-    // [txs] is an override, not a second fixture: the two tests that need an
-    // EMPTY wallet pass it explicitly, so "empty" can never be the accidental
-    // default again.
-    //
-    // `page: true` since phase 25, and it is what keeps this whole group
-    // pointed at the surface the bar now lives on. Jakub moved the filter bar
-    // off the dashboard panel on 2026-08-07: the panel's title row cannot hold
-    // both the bar's pinned 183 and a `GWViewAllLink`'s ~86 beside
-    // "Transactions" in a 336px content box, and the link won. The bar still
-    // renders on the NARROW `/transactions` route, which is `_panel` reached
-    // through `_page` - i.e. exactly this host, below 768. Every width below is
-    // therefore sub-768; see the loop's own note.
-    Widget host(double width, GWColors gw, [List<Transaction>? txs]) =>
-        MaterialApp(
-          theme: ThemeData(extensions: [gw]),
-          home: Scaffold(
-            body: Center(
-              child: SizedBox(
-                width: width,
-                height: 600,
-                child: TransactionsSlimView(
-                  page: true,
-                  transactions: txs ?? [_tx(type: TransactionType.escrow)],
-                ),
-              ),
-            ),
-          ),
-        );
+    /// The drawer's own rows, so a `find.text` cannot match the page behind the
+    /// sheet - which is still mounted while the sheet is up.
+    Finder drawerRow(String label) => find.descendant(
+      of: find.byType(GWSelectRow),
+      matching: find.text(label),
+    );
 
-    for (final mode in GWAppearanceMode.values) {
-      // 419/420 straddle the compact threshold; 700 is the widest the NARROW
-      // /transactions route goes (768 = GeniusBreakpoints.medium is where
-      // `_page` switches to the two-card rail layout, which has no bar at all
-      // and is covered by `transaction_filter_rail_test.dart`). It replaced 900
-      // in phase 25, when the bar moved off the dashboard panel and this host
-      // became `page: true`.
+    // TT-05, and the PAIR is the assertion: absent-then-present is what proves
+    // the control is bound to the scope rather than merely missing by accident.
+    //
+    // 15-03's rule, carried onto the header: a control that filters an empty
+    // set is an offer the app cannot honour, and here it would sit directly
+    // above the "no transactions yet" block.
+    testWidgets('an empty wallet offers no filter control at all', (
+      tester,
+    ) async {
+      surface(tester);
+      await tester.pumpWidget(host(const []));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TransactionsFilterTrigger), findsOneWidget);
+      // Mounted but drawing nothing - the widget is what the page hands the
+      // header, so the assertion has to be on what it PAINTS.
+      expect(find.byIcon(Icons.filter_alt_outlined), findsNothing);
+      expect(find.text(emptyTransactionsTitle), findsOneWidget);
+
+      // One row is all it takes to earn the control back.
+      await tester.pumpWidget(host([_tx(type: TransactionType.escrow)]));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.filter_alt_outlined), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the trigger is 48x32, wide enough to hit and short enough '
+        'not to move the title', (tester) async {
+      surface(tester);
+      await tester.pumpWidget(host(some()));
+      await tester.pumpAndSettle();
+
+      // 48x32, and the SHORT side is the deliberate part. This widget is
+      // `GWPageHeader.trailing`, and the header centres its trailing against
+      // the identity block - so anything taller than the 32px title line sets
+      // the row's height and pushes the title down. At 48 tall it did: the
+      // Transactions header measured 64 with its title 8px in, against 48/0 on
+      // Assets and Crypto News. See `transactions_page_frame_test.dart`, which
+      // measures that alignment on the real page.
       //
-      // 320 is NOT in this list, and the reason matters: the test
-      // environment's fallback font draws one em per character, so
-      // "Transactions" measures 213.6px here against roughly 110 in real
-      // Inter. Everything below ~409 therefore overflows in the harness for a
-      // reason that does not exist on screen. The number that IS
-      // font-independent — and the one real headroom depends on — is the bar's
-      // own width, pinned below at every width.
-      for (final width in <double>[419, 420, 700]) {
-        testWidgets('${width.toInt()}px (${mode.name})', (tester) async {
-          await tester.pumpWidget(host(width, gwFor(mode)));
-          expect(tester.takeException(), isNull);
+      // The trade, stated rather than buried: 32 clears WCAG 2.2 SC 2.5.8's
+      // 24x24 floor and 48 clears 48dp Android horizontally, but 32 is under
+      // Apple's 44pt recommendation on the vertical axis. Jakub asked for the
+      // title alignment explicitly (2026-08-09). The GLYPH is 22.
+      expect(
+        tester.getSize(find.byType(TransactionsFilterTrigger)),
+        const Size(48, 32),
+      );
+      expect(tester.takeException(), isNull);
+    });
 
-          final bar = tester.getSize(barFinder);
-          // 52 and 243, raised from 40 and 183 in the 2026-08-07 merge with
-          // develop, and the reason is a real improvement rather than drift.
-          //
-          // Develop's 260806-hfe gave the NARROW page its own branch in
-          // `_page`, where the bar sits on a row of its own instead of in a
-          // title row, and passes `chipSize: _TransactionFilterBar
-          // .touchChipSize` = 44 with the comment "the bar has its own row
-          // here, so the width for a real touch target exists". 32px chips
-          // were always under the 44pt minimum; they existed because the
-          // title row could not afford more.
-          //
-          // So the numbers below are the SAME arithmetic this group always
-          // used, with 44 substituted for 32:
-          //   height 44 + 3px track padding + 1px border, each side       = 52
-          //   width  4x44 + 3x2 inter-chip + space2 + 1px rule + space2
-          //          + 44 trigger + the 3px/1px shell                     = 243
-          //
-          // Still PINNED rather than bounded, but the thing it now protects is
-          // different: not the title row's headroom, which this surface no
-          // longer has to share, but the touch target itself. A drift back
-          // toward 40/183 means the phone page has quietly lost 44pt targets.
-          expect(bar.height, 52);
-          expect(bar.width, 243);
-        });
+    testWidgets('the drawer offers every filter, nothing behind an overflow', (
+      tester,
+    ) async {
+      surface(tester);
+      await tester.pumpWidget(host(some()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Filter transactions'));
+      await tester.pumpAndSettle();
+
+      // The drawer is `ResponsiveDrawer`'s, with the header Jakub asked for.
+      expect(find.text('Filter'), findsOneWidget);
+      // Ten rows: All plus the nine identities. The `⋯` menu exists only
+      // because a 376px dashboard panel cannot show nine filters; a full-width
+      // sheet can, so nothing hides here.
+      expect(find.byType(GWSelectRow), findsNWidgets(Filters.values.length));
+      for (final f in Filters.values) {
+        expect(
+          drawerRow(f.label),
+          findsOneWidget,
+          reason: '${f.name} is a row',
+        );
       }
+      expect(tester.takeException(), isNull);
+    });
+
+    // Run in BOTH appearances: the drawer's selected row paints a ShaderMask
+    // and a gradient tint, and light is where this repo has historically
+    // broken. `gwFor` is what makes the light iteration genuinely light - see
+    // its doc comment.
+    for (final mode in GWAppearanceMode.values) {
+      testWidgets('picking a filter filters the list and names it (${mode.name})', (
+        tester,
+      ) async {
+        surface(tester);
+        await tester.pumpWidget(host(some(), gwFor(mode)));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(TransactionRow), findsNWidgets(4));
+
+        await tester.tap(find.byTooltip('Filter transactions'));
+        await tester.pumpAndSettle();
+        await tester.tap(drawerRow('Escrow'));
+        await tester.pumpAndSettle();
+
+        // The drawer closed itself, the list filtered, and - the whole point of
+        // the chip row - the page SAYS which filter is on and by how much. With
+        // the trigger off the card, this is the only thing on screen naming it.
+        expect(find.text('Filter'), findsNothing);
+        expect(find.byType(TransactionRow), findsNWidgets(2));
+        expect(find.text('Escrow'), findsOneWidget);
+        // GWKicker upper-cases its own label, and the shape is Assets'
+        // (`3 of 11 assets`) minus the noun the chip already carries.
+        expect(find.text('2 OF 4'), findsOneWidget);
+        // And the trigger is marked, so a partial list can never read as a
+        // complete one - the `⋯` trigger's own defect, carried forward.
+        expect(find.byTooltip('Filtered: Escrow'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
     }
+
+    testWidgets('the chip drops the filter without opening anything', (
+      tester,
+    ) async {
+      surface(tester);
+      await tester.pumpWidget(host(some()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Filter transactions'));
+      await tester.pumpAndSettle();
+      await tester.tap(drawerRow('Escrow'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TransactionRow), findsNWidgets(2));
+
+      await tester.tap(find.byTooltip('Clear filter'));
+      await tester.pumpAndSettle();
+
+      // Back to unfiltered, and the chip row is GONE rather than emptied - it
+      // costs 0px idle, which is what let the permanent count line be dropped.
+      expect(find.byType(TransactionRow), findsNWidgets(4));
+      expect(find.byTooltip('Clear filter'), findsNothing);
+      expect(find.text('2 OF 4'), findsNothing);
+      expect(find.byTooltip('Filter transactions'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
 
     // The branch SELECTION, not just the copy: `scoped.isEmpty` picks the
     // never-transacted state and `txs.isEmpty` picks the filtered one. Getting
@@ -505,98 +595,58 @@ void main() {
     testWidgets('an empty wallet and an empty filter render differently', (
       tester,
     ) async {
-      await tester.pumpWidget(host(700, GWColors.dark(), const []));
+      surface(tester);
+      await tester.pumpWidget(host(const []));
+      await tester.pumpAndSettle();
       expect(find.text(emptyTransactionsTitle), findsOneWidget);
       expect(find.text('Show all'), findsNothing);
       // Sketch 022's glyph — two opposed arrows, not the receipt this shipped
       // with. Reverting the icon reddens here.
       expect(find.byIcon(Icons.sync_alt), findsOneWidget);
 
-      // One SENT transfer, then filter to Received: history exists, this
-      // filter matched none of it.
-      await tester.pumpWidget(
-        host(700, GWColors.dark(), [_tx(type: TransactionType.transfer)]),
-      );
-      await tester.tap(find.byTooltip('Received'));
+      // History exists; `Received` matches none of it.
+      await tester.pumpWidget(host(some()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Filter transactions'));
+      await tester.pumpAndSettle();
+      await tester.tap(drawerRow('Received'));
       await tester.pumpAndSettle();
 
       expect(find.text(emptyTransactionsTitle), findsNothing);
       expect(find.text(filteredEmptyTitle(Filters.received)), findsOneWidget);
-      expect(find.text(filteredEmptyMessage(1)), findsOneWidget);
+      expect(find.text(filteredEmptyMessage(4)), findsOneWidget);
 
       // And "Show all" is a real way out, not decoration.
       await tester.tap(find.text('Show all'));
       await tester.pumpAndSettle();
       expect(find.text('Show all'), findsNothing);
-      // Back to the unfiltered list: the one row returns and the empty state
-      // is gone. (No footer count to assert any more — removed on the walk.)
-      expect(find.byType(TransactionRow), findsOneWidget);
-      expect(find.text(emptyTransactionsTitle), findsNothing);
+      expect(find.byType(TransactionRow), findsNWidgets(4));
       expect(tester.takeException(), isNull);
     });
 
-    // TT-05, and the PAIR is the assertion: absent-then-present is what proves
-    // the control is bound to the scope rather than merely missing by accident.
+    // T-15-07, the inverse guard - and the one that catches the most likely
+    // WRONG fix. A filtered-empty wallet is NOT an empty wallet: it has
+    // history, the user simply picked a filter with no hits, so BOTH ways back
+    // must survive or they are stranded.
     //
-    // Goes red if the `scoped.isEmpty ? null :` guard on GWSectionTitle's
-    // trailing is removed — or if it is written against `txs`, which is empty
-    // here too and so would hide the bar for the wrong reason.
-    testWidgets('an empty wallet offers no filter control at all', (
+    // Goes red if either guard is written against `txs.isEmpty`.
+    testWidgets('the filtered-empty branch keeps both ways out', (
       tester,
     ) async {
-      await tester.pumpWidget(host(700, GWColors.dark(), const []));
-
-      // Hidden ENTIRELY, not dimmed: neither the chips nor the `⋯` trigger.
-      expect(barFinder, findsNothing);
-      expect(find.byTooltip('More filters'), findsNothing);
-      expect(find.text(emptyTransactionsTitle), findsOneWidget);
-
-      // One row is all it takes to earn the control back.
-      await tester.pumpWidget(
-        host(700, GWColors.dark(), [_tx(type: TransactionType.escrow)]),
-      );
+      surface(tester);
+      await tester.pumpWidget(host(some()));
       await tester.pumpAndSettle();
-      expect(barFinder, findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
-
-    // T-15-07, the inverse guard — and the one that catches the most likely
-    // WRONG fix. A filtered-empty wallet is NOT an empty wallet: it has
-    // history, the user simply picked a filter with no hits, so the control
-    // must survive or they are stranded with no route back to All.
-    //
-    // Goes red if the guard is written against `txs.isEmpty`.
-    testWidgets('the filtered-empty branch keeps its way out', (tester) async {
-      await tester.pumpWidget(
-        host(700, GWColors.dark(), [_tx(type: TransactionType.transfer)]),
-      );
-      await tester.tap(find.byTooltip('Received'));
+      await tester.tap(find.byTooltip('Filter transactions'));
+      await tester.pumpAndSettle();
+      await tester.tap(drawerRow('Received'));
       await tester.pumpAndSettle();
 
-      expect(barFinder, findsOneWidget);
+      // The trigger, the chip's dismiss, and the empty state's own action.
+      expect(find.byTooltip('Filtered: Received'), findsOneWidget);
+      expect(find.byTooltip('Clear filter'), findsOneWidget);
       expect(find.text('Show all'), findsOneWidget);
-      // And it must not have collapsed into the never-transacted copy.
       expect(find.text(emptyTransactionsTitle), findsNothing);
       expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('wide: the active chip stays icon-only too', (tester) async {
-      // The chip is icon-only in EVERY state at EVERY width — the active one
-      // is marked by its gradient fill alone. Selecting a filter must not
-      // reveal a label, because a chip that grows on tap shoves its
-      // neighbours sideways under the cursor. The tooltip carries the name.
-      await tester.pumpWidget(host(700, GWColors.dark()));
-      final before = tester.getSize(barFinder).width;
-
-      await tester.tap(find.byTooltip('Sent'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Sent'), findsNothing);
-      expect(tester.takeException(), isNull);
-      // Selecting changes no width at all — this is the assertion that fails
-      // if the expand-to-label animation is ever reintroduced.
-      expect(tester.getSize(barFinder).width, before);
-      expect(tester.getSize(barFinder).width, lessThan(300));
     });
 
     // Phase 25's half of the move, and the half no other test covers: the bar
@@ -605,7 +655,7 @@ void main() {
     // facts that could drift into "neither surface has a filter" or "both do".
     //
     // Goes red if the trailing is written unconditionally, in either direction.
-    testWidgets('the dashboard panel trades the filter bar for View all', (
+    testWidgets('the dashboard panel shows a View all and no filter at all', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -616,8 +666,11 @@ void main() {
               child: SizedBox(
                 width: 700,
                 height: 600,
-                // `page: false` is the DASHBOARD panel. The only difference
-                // from `host()` above.
+                // `page: false` is the DASHBOARD panel, and it passes neither
+                // `selectedFilter` nor `onFilterChanged` - exactly the call
+                // `dashboard_screen.dart` makes. That is the additive half of
+                // 195's state lift: the panel keeps its own internal filter
+                // with no call-site edit.
                 child: TransactionsSlimView(
                   transactions: [_tx(type: TransactionType.escrow)],
                 ),
@@ -627,58 +680,62 @@ void main() {
         ),
       );
 
-      expect(barFinder, findsNothing);
-      expect(find.byTooltip('More filters'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w.runtimeType.toString() == '_TransactionFilterBar',
+        ),
+        findsNothing,
+      );
+      expect(find.byIcon(Icons.filter_alt_outlined), findsNothing);
       expect(find.byType(GWViewAllLink), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
-
-    testWidgets('compact: the active chip stays icon-only', (tester) async {
-      // 419 is one pixel under the compact threshold — and the narrowest the
-      // harness's oversized title font allows without a false overflow.
-      await tester.pumpWidget(host(419, GWColors.dark()));
-      await tester.tap(find.byTooltip('Sent'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Sent'), findsNothing);
-      expect(tester.takeException(), isNull);
-      // Same 243 as the resting bar: selecting changes no geometry at all.
-      // Was 183 before the 2026-08-07 merge raised the phone page's chips to
-      // the 44pt touch minimum; the invariant this asserts is unchanged.
-      expect(tester.getSize(barFinder).width, 243);
-    });
-
-    // Run in both appearances: the selected menu label goes through a
-    // ShaderMask whose stops differ per appearance (see _activeLabelShader —
-    // brandCta's own stops are 1.65:1 and 2.28:1 as light-mode text), so both
-    // branches need to have actually been painted at least once. `gwFor` is
-    // what makes that true rather than nominal — see its doc comment.
-    for (final mode in GWAppearanceMode.values) {
-      testWidgets(
-        'an overflow filter marks the trigger, never nothing (${mode.name})',
-        (tester) async {
-          await tester.pumpWidget(host(700, gwFor(mode)));
-          expect(find.byTooltip('More filters'), findsOneWidget);
-
-          await tester.tap(find.byTooltip('More filters'));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Swapped'));
-          await tester.pumpAndSettle();
-
-          // T-12-11: a filter chosen from the menu leaves no chip on the title
-          // row, so the trigger itself must carry the state or a partial list
-          // reads as a complete one.
-          expect(find.byTooltip('Filtered: Swapped'), findsOneWidget);
-          expect(find.byTooltip('More filters'), findsNothing);
-
-          // And the menu still renders with that filter selected — the
-          // gradient-label branch.
-          await tester.tap(find.byTooltip('Filtered: Swapped'));
-          await tester.pumpAndSettle();
-          expect(find.text('Swapped'), findsOneWidget);
-          expect(tester.takeException(), isNull);
-        },
-      );
-    }
   });
+}
+
+/// The page's two halves as `TransactionsScreen` wires them: the trigger in the
+/// header slot and the list below it, with ONE filter between them.
+///
+/// Pumping them together is the only way to exercise sketch 195's state lift -
+/// the control and the list it filters are no longer the same widget, so a test
+/// that pumps `TransactionsSlimView` alone can no longer reach a filter at all.
+class _PhonePage extends StatefulWidget {
+  const _PhonePage({required this.txs});
+
+  final List<Transaction> txs;
+
+  @override
+  State<_PhonePage> createState() => _PhonePageState();
+}
+
+class _PhonePageState extends State<_PhonePage> {
+  Filters filter = Filters.all;
+
+  void _select(Filters f) => setState(() => filter = f);
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: TransactionsFilterTrigger(
+              transactions: widget.txs,
+              selected: filter,
+              onChanged: _select,
+            ),
+          ),
+          TransactionsSlimView(
+            page: true,
+            transactions: widget.txs,
+            selectedFilter: filter,
+            onFilterChanged: _select,
+          ),
+        ],
+      ),
+    );
+  }
 }

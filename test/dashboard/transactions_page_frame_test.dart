@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show GeniusApi;
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
+import 'package:genius_wallet/dashboard/assets/assets_screen.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -111,6 +113,43 @@ void _surface(WidgetTester tester, double width, [double height = 900]) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
+/// The `/assets` page, the reference every other page title is measured
+/// against. Same two-piece apparatus `assets_screen_test.dart` documents: the
+/// unused api, plus a stub resolver that keeps the pump off Hive and off the
+/// network. One coin, because a funded wallet is the state the header sits
+/// above on the phone.
+Widget _assetsHost() => BlocProvider(
+  create: (_) => WalletDetailsCubit(
+    initialState: const WalletDetailsState(
+      coins: [Coin(name: 'GeniusAI', symbol: 'GNUS', iconPath: '', balance: 1)],
+      coinsStatus: WalletStatus.successful,
+    ),
+    geniusApi: _UnusedApi(),
+    networkTokensProvider: NetworkTokensProvider(),
+  ),
+  child: MaterialApp(
+    theme: ThemeData(extensions: [GWColors.dark()]),
+    home: AssetsScreen(resolveMarketData: (_) async => const {}),
+  ),
+);
+
+/// A page header's vertical frame, all three numbers relative to the header's
+/// own top so a different page gutter cannot leak into the comparison.
+///
+/// A record rather than three loose doubles: `expect(a, b)` then reports all
+/// three at once when they disagree, instead of failing on the first.
+typedef _Geometry = ({double headerHeight, double titleTop, double contentTop});
+
+_Geometry _headerGeometry(WidgetTester tester, String title, Finder content) {
+  final header = find.byType(GWPageHeader);
+  final double top = tester.getTopLeft(header).dy;
+  return (
+    headerHeight: tester.getSize(header).height,
+    titleTop: tester.getTopLeft(find.text(title)).dy - top,
+    contentTop: tester.getTopLeft(content).dy - top,
+  );
+}
+
 /// The frame's content box, measured at BOTH ends of its `Column`: the header
 /// above and the branch below. Both are direct children of the stretched
 /// `Column` inside the `ConstrainedBox`, so both report the capped width — and
@@ -198,12 +237,7 @@ void main() {
     // branch and renders identically either way. Logged for 15-06 in
     // `deferred-items.md`.
     await tester.pumpWidget(_host(txs: const []));
-    // `pump`, NOT `pumpAndSettle`: below 768 the page mounts
-    // `GWMeshBackground`, whose controller `..repeat()`s forever, so
-    // pumpAndSettle times out. Every other test here runs at 1000px+, where no
-    // mesh mounts and settling is still correct.
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
 
     // At 360 the xxl cap is inert, so this gutter is the Padding's alone.
     // Delete the Padding and the content sits on the window bezel — the defect
@@ -280,56 +314,112 @@ void main() {
 
   // ── The phone page (quick task 260806-hfe) ────────────────────────────────
   //
-  // Both use `pump`, not `pumpAndSettle` — below 768 the page mounts
-  // `GWMeshBackground`, whose controller repeats forever.
+  // These settle like every other test in the file. Until 2026-08-09 they
+  // could not: below 768 the page wrapped its body in `GWMeshBackground`,
+  // whose controller `..repeat()`s forever, so `pumpAndSettle` timed out. The
+  // mesh is gone - the phone page now sits on the same flat `surfaceBase`
+  // canvas Assets does.
 
   testWidgets('phone: a never-transacted wallet gets the empty state, and no '
       'filter control', (tester) async {
     _surface(tester, 360, 800);
     await tester.pumpWidget(_host(txs: const []));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
 
     // BRANCH 1. The page title stays — only the panel's duplicate went.
     expect(find.byType(GWPageHeader), findsOneWidget);
     expect(find.byType(GWEmptyState), findsOneWidget);
     expect(find.text(emptyTransactionsTitle), findsOneWidget);
 
-    // 15-03's rule, carried into the phone page: a control that filters an
-    // empty set is an offer the app cannot honour. This is the half that was
-    // never walked, so it is pinned here instead.
+    // 15-03's rule, carried onto the header: a control that filters an empty
+    // set is an offer the app cannot honour. The GLYPH is what is asserted -
+    // the trigger widget is always handed to the header, and hides itself by
+    // painting nothing.
     expect(
-      find.byType(GWControlTrack),
+      find.byIcon(Icons.filter_alt_outlined),
       findsNothing,
-      reason: 'the filter bar must be hidden entirely on an empty scope',
+      reason: 'the filter trigger must be hidden entirely on an empty scope',
     );
+    // And the track it replaced must not come back with it: sketch 195 took
+    // the flat filter row out of the card for good.
+    expect(find.byType(GWControlTrack), findsNothing);
     // The narrow page must never re-emit the panel's own title (the duplicate
     // "Transactions" this phase removed), empty scope included.
     expect(find.byType(GWSectionTitle), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('phone: the filter chips are a real touch target', (
+  testWidgets(
+    'phone: the filter trigger is a real touch target in the header',
+    (tester) async {
+      // 320 is the stress case, not 360: the header now carries a title AND a
+      // control, so this is where they compete for the row.
+      _surface(tester, 320, 800);
+      await tester.pumpWidget(_host());
+      await tester.pumpAndSettle();
+
+      // 48 WIDE and 32 TALL. The width is the tap target - it clears 48dp
+      // Android and 44pt iOS on that axis. The height is capped at the title
+      // line's own 32 so the trigger cannot set the header row's height; the
+      // geometry test below is what that number is FOR, and the trade it costs
+      // (32 is under Apple's 44pt vertically, though it clears WCAG 2.2
+      // SC 2.5.8's 24x24 floor) is stated at `TransactionsFilterTrigger`.
+      //
+      // It is the WIRING assertion as much as the size one: the trigger is
+      // mounted by `TransactionsScreen`, so nothing below `_host` can produce
+      // it.
+      expect(
+        tester.getSize(find.byType(TransactionsFilterTrigger)),
+        const Size(48, 32),
+        reason: 'the header trigger must not outgrow the title line',
+      );
+      // And it must still FIT beside the title at 320 without overflowing.
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('phone: the page title sits exactly where Assets puts its own', (
     tester,
   ) async {
-    // 320 is the stress case, not 360: if the wider chips fit here they fit
-    // on every phone.
-    _surface(tester, 320, 800);
-    await tester.pumpWidget(_host());
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
+    // THE regression this test exists for, and it is measured rather than
+    // eyeballed. `GWPageHeader` lays `trailing` out beside the identity block
+    // with `CrossAxisAlignment.center`, so a trailing TALLER than the 32px
+    // title line sets the identity row's height and centres the title inside
+    // it. With the filter trigger at 48x48 this page measured a 64px header
+    // with its title 8px down, while every other page - Assets, Crypto News -
+    // measured 48 with the title at 0. Jakub saw the 8px on the phone.
+    //
+    // Both screens are pumped HERE rather than the numbers being copied from
+    // `assets_screen_test.dart`, so the assertion is a comparison and not a
+    // pair of literals that can drift apart silently.
+    _surface(tester, 390, 844);
 
-    // 44 chip + GWControlTrack's 3px padding each side + its 1px hairline each
-    // side = 52. Measuring the track rather than the private _FilterChip keeps
-    // this assertion on a public surface; the border is in the number because
-    // it is in the painted control.
-    expect(
-      tester.getSize(find.byType(GWControlTrack)).height,
-      closeTo(44 + 6 + 2, 0.01),
-      reason: 'phone chips must be 44 (44pt iOS), not the panel-inline 32',
+    await tester.pumpWidget(_host());
+    await tester.pumpAndSettle();
+    final _Geometry transactions = _headerGeometry(
+      tester,
+      'Transactions',
+      find.byType(TransactionsSlimView),
     );
-    // The whole point of the audit: the wider bar must still FIT at 320, which
-    // it only does because the phone page gives it its own row.
+
+    await tester.pumpWidget(_assetsHost());
+    await tester.pumpAndSettle();
+    final _Geometry assets = _headerGeometry(
+      tester,
+      'Assets',
+      find.byType(DashboardScrollContainer).first,
+    );
+
+    expect(
+      transactions,
+      assets,
+      reason: 'the two page headers must agree on height, title and content',
+    );
+    // And the absolute numbers, so a change that moved BOTH pages together
+    // still reddens: a 32px title line plus `GWPageHeader`'s own space8 gap.
+    expect(transactions.headerHeight, 48);
+    expect(transactions.titleTop, 0);
+    expect(transactions.contentTop, 48);
     expect(tester.takeException(), isNull);
   });
 }

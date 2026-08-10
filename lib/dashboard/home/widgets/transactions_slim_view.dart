@@ -6,8 +6,10 @@
 // settled). Do not reintroduce it, and do not swap in a FittedBox either.
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
@@ -28,6 +30,7 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -145,11 +148,6 @@ const String emptyTransactionsTitle = 'No transactions yet';
 const String emptyTransactionsMessage =
     'Your sends, receives and swaps will appear here.';
 
-/// End-of-list terminus, so a scrolled history reads as finished rather than
-/// as a load that stopped. Not the footer count Phase 12 removed — that was a
-/// running total; this carries no number.
-const String endOfTransactionsLabel = 'No more transactions';
-
 /// The FILTER-MATCHED-NOTHING title, e.g. `No swapped transactions`.
 ///
 /// Naming the filter is the whole point: the shipped app printed
@@ -186,11 +184,29 @@ class TransactionsSlimView extends StatefulWidget {
   /// inherited.
   final bool page;
 
+  /// The live filter, when something ABOVE this widget owns it.
+  ///
+  /// The PAGE owns it as of sketch 195: its trigger lives in
+  /// `GWPageHeader.trailing` (`transactions_screen.dart`), two widgets above
+  /// this one, so the value cannot live down here any more. Null means nobody
+  /// above claimed it and the view keeps its own - which is the DASHBOARD
+  /// panel, unchanged and with no call-site edit.
+  ///
+  /// Both halves are needed together: a selection with no [onFilterChanged] is
+  /// a filter the list cannot clear, so the two are read as one owner.
+  final Filters? selectedFilter;
+
+  /// Where a filter change goes when the owner is above. Null keeps the change
+  /// local (the dashboard panel's `setState`).
+  final ValueChanged<Filters>? onFilterChanged;
+
   const TransactionsSlimView({
     super.key,
     required this.transactions,
     this.isShowOnlySGNUSTransactions,
     this.page = false,
+    this.selectedFilter,
+    this.onFilterChanged,
   });
 
   @override
@@ -198,7 +214,20 @@ class TransactionsSlimView extends StatefulWidget {
 }
 
 class _TransactionsSlimViewState extends State<TransactionsSlimView> {
-  Filters selectedFilter = Filters.all;
+  /// The filter when nobody above owns it - see
+  /// [TransactionsSlimView.selectedFilter].
+  Filters _ownFilter = Filters.all;
+
+  Filters get selectedFilter => widget.selectedFilter ?? _ownFilter;
+
+  void _selectFilter(Filters f) {
+    final owner = widget.onFilterChanged;
+    if (owner != null) {
+      owner(f);
+      return;
+    }
+    setState(() => _ownFilter = f);
+  }
 
   /// SGNUS scoping only, NO filter applied — the ONE list that both the menu
   /// counts and the filtered-empty "you have N" number read, so the two can
@@ -274,20 +303,25 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
   /// The dashboard PANEL - a five-row preview with a `View all` on its title
   /// row.
   ///
-  /// Also the narrow branch of [_page]: below 768 a page IS this panel, which
-  /// is the correct answer rather than a compromise. The two differ in two
-  /// places and both key off [TransactionsSlimView.page]: the page is UNCAPPED,
-  /// and the page is where the filter bar now lives.
-  ///
   /// **The filter bar left the dashboard in phase 25 (Jakub, 2026-08-07).** The
   /// title row cannot hold both it and the link: measured at 390pt the row's
   /// content box is 336, against "Transactions" ~112 + the bar's pinned 183
   /// (`transaction_filters_test.dart`) + the link's ~86 = 381. No spacing token
   /// closes a 45px gap and the bar cannot shrink - it is icon-only at every
   /// width by an explicit locked decision (sketches 014, 022). So the bar
-  /// became a full-screen control: it still renders on the NARROW
-  /// `/transactions` route, which is this same method with `page: true`, and
-  /// the wide route has always had the better control anyway in [_FilterRail].
+  /// became a full-screen control instead, on the narrow `/transactions` route.
+  ///
+  /// **[_TransactionFilterBar] now has no reachable call site, and the one
+  /// below is dead.** This method is entered only from `build`'s
+  /// `widget.page ? _page(...) : _panel(...)`, so `widget.page` is false here
+  /// and the ternary on the trailing always takes the `GWViewAllLink` arm. That
+  /// was already half true before sketch 195: the 2026-08-07 merge gave the
+  /// narrow page its OWN branch in [_page] rather than delegating to this
+  /// method, which is what moved the bar's last live call site there - and 195
+  /// then deleted that row in favour of [TransactionsFilterTrigger]. The widget
+  /// is kept rather than deleted because that is a design call, not a mechanical
+  /// one; the dead arm is what keeps it referenced. Delete the arm and the whole
+  /// control (plus [_FilterChip]) goes with it.
   Widget _panel(
     BuildContext context,
     GWColors gw,
@@ -358,8 +392,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                           ? _TransactionFilterBar(
                               selected: selectedFilter,
                               counts: filterCounts(scoped),
-                              onChanged: (f) =>
-                                  setState(() => selectedFilter = f),
+                              onChanged: _selectFilter,
                             )
                           // `go`, not `push` - `/transactions` is a bottom-nav
                           // destination, the same call `dashboard_markets.dart`
@@ -442,46 +475,52 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         // its own presentation instead. `_panel` is untouched; the dashboard
         // still needs its title.
         if (!wide) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Same `scoped.isEmpty` rule as the panel's chips and the wide
-              // rail (15-03).
-              if (scoped.isNotEmpty) ...[
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: _TransactionFilterBar(
-                    selected: selectedFilter,
-                    // `scoped`, NEVER `txs` — counts over the already-filtered
-                    // list read 0 for every inactive filter.
-                    counts: filterCounts(scoped),
-                    onChanged: (f) => setState(() => selectedFilter = f),
-                    // The bar has its own row here, so the width for a real
-                    // touch target exists. The panel's inline bar does not.
-                    chipSize: _TransactionFilterBar.touchChipSize,
+          // NO filter track above the list any more (sketch 195, scheme G2).
+          // The control left the panel for `GWPageHeader.trailing`, where it
+          // costs 0px on the page and 0px inside the card, so the panel opens
+          // straight onto the list. Its own row here was 56px carrying one 44px
+          // chip cluster; 192 measured that row as 13% ink.
+          //
+          // What the track carried and the header trigger cannot is the NAME of
+          // the live filter, so that job moves to [_LiveFilterRow] below rather
+          // than being dropped: idle it does not exist, filtered it names the
+          // filter, quantifies it and can be dismissed without opening
+          // anything. Sketch 193 measured the alternative - a permanent kicker
+          // count - as a row that buys nothing.
+          return DashboardScrollContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // `scoped`, not `txs`: the row must survive the
+                // filtered-empty branch, which is precisely where dropping the
+                // filter is the way out (the same distinction the panel's
+                // `scoped.isEmpty` guard turns on).
+                if (scoped.isNotEmpty && selectedFilter != Filters.all)
+                  _LiveFilterRow(
+                    filter: selectedFilter,
+                    shown: txs.length,
+                    total: scoped.length,
+                    onClear: () => _selectFilter(Filters.all),
                   ),
-                ),
-                const SizedBox(height: GeniusWalletConsts.space6),
-              ],
-              // NOT scrollable: the PAGE scrolls (`transactions_screen.dart`).
-              //
-              // The two arguments below are the 2026-08-07 merge repair. This
-              // narrow-page branch arrived from develop (260806-hfe) while
-              // `_body` was gaining two REQUIRED parameters on this branch, and
-              // the two changes never touched the same lines, so git produced
-              // no conflict here - only `flutter analyze` caught it.
-              //
-              // `underSectionTitle: false` because this branch deliberately has
-              // NO `GWSectionTitle` above it - the route supplies a
-              // `GWPageHeader` instead, and the comment above says so. Passing
-              // true would zero a gap that nothing else has paid, closing the
-              // first day label onto the header.
-              //
-              // `limit: null` because this is the PAGE, which is uncapped by
-              // definition; the five-row cap belongs to the dashboard panel.
-              DashboardScrollContainer(
-                child: _body(
+                // NOT scrollable: the PAGE scrolls
+                // (`transactions_screen.dart`).
+                //
+                // The two arguments below are the 2026-08-07 merge repair. This
+                // narrow-page branch arrived from develop (260806-hfe) while
+                // `_body` was gaining two REQUIRED parameters on this branch,
+                // and the two changes never touched the same lines, so git
+                // produced no conflict here - only `flutter analyze` caught it.
+                //
+                // `underSectionTitle: false` because this branch deliberately
+                // has NO `GWSectionTitle` above it - the route supplies a
+                // `GWPageHeader` instead, and the comment above says so.
+                // Passing true would zero a gap that nothing else has paid,
+                // closing the first day label onto the header.
+                //
+                // `limit: null` because this is the PAGE, which is uncapped by
+                // definition; the five-row cap belongs to the dashboard panel.
+                _body(
                   context,
                   gw,
                   scoped,
@@ -490,8 +529,8 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                   underSectionTitle: false,
                   limit: null,
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         }
 
@@ -517,7 +556,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                     // list would read 0 for every inactive filter. Same list
                     // the panel reads at its own call site.
                     counts: filterCounts(scoped),
-                    onChanged: (f) => setState(() => selectedFilter = f),
+                    onChanged: _selectFilter,
                   ),
                 ),
               ),
@@ -609,7 +648,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         title: filteredEmptyTitle(selectedFilter),
         message: filteredEmptyMessage(scoped.length),
         actionLabel: 'Show all',
-        onAction: () => setState(() => selectedFilter = Filters.all),
+        onAction: () => _selectFilter(Filters.all),
       );
     }
 
@@ -705,41 +744,11 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
       }
     }
 
-    // Reached only in BRANCH 3, so a row always precedes it — it can never
-    // contradict an empty state.
-    //
-    // THE PAGE ONLY, and that is what `limit == null` tests. The dashboard
-    // panel passes [kDashboardTransactionsCap], so it renders the five most
-    // recent rows and leaves the rest behind `View all`. A terminus under a
-    // capped list states the opposite of what the panel just did: a wallet with
-    // forty transactions showed five and then said there were no more. The
-    // label was added unconditionally until 2026-08-07, and the comment here
-    // asserted "neither presentation truncates" - true of the page, never true
-    // of the panel.
-    if (limit == null) {
-      entries.add(
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-            compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
-            GeniusWalletConsts.space4,
-            compact ? GeniusWalletConsts.space3 : GeniusWalletConsts.space6,
-            GeniusWalletConsts.space2,
-          ),
-          child: Text(
-            endOfTransactionsLabel,
-            textAlign: TextAlign.center,
-            // No `compact` size gate. This label carried the last of develop's
-            // phone type-scale shrink after `transaction_displays.dart` lost
-            // the rest of it on 2026-08-07, so it printed at 11 under rows that
-            // print at 14. It takes `bodySm` at every width now, like they do.
-            // The padding above stays gated: that is density, not type scale.
-            style: GeniusWalletTypography.bodySm.copyWith(
-              color: gw.textSecondary,
-            ),
-          ),
-        ),
-      );
-    }
+    // No end-of-list terminus. The page carried a "No more transactions" line
+    // under the last row until 2026-08-09, gated to `limit == null` so it never
+    // reached the capped panel. Jakub took it out on the phone walk: the last
+    // row IS the end of the list, and a label saying so is a sentence the user
+    // has to read to learn nothing.
 
     // A Column, not a shrink-wrapped ListView: `entries` is already fully
     // built above, so there is no laziness left to preserve and shrinkWrap
@@ -758,6 +767,400 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
       padding: EdgeInsets.zero,
       itemCount: entries.length,
       itemBuilder: (_, i) => entries[i],
+    );
+  }
+}
+
+/// The PAGE's filter control, for `GWPageHeader.trailing` (sketch 195, scheme
+/// G2 - the scheme 192 recommended and 195 adjusted).
+///
+/// A page-level control at page level: the filter is a property of the whole
+/// `/transactions` route, not of the card the rows happen to sit in, and the
+/// header row already exists so the glyph costs nothing vertically. That is the
+/// whole argument for this scheme over the flat track it replaces.
+///
+/// PUBLIC, unlike [_TransactionFilterBar] and [_FilterRail], because its call
+/// site is another file - `transactions_screen.dart` mounts it in the header
+/// while the list it filters is mounted two widgets below. It still lives here
+/// because [Filters], [filterCounts] and the other two filter presentations do.
+///
+/// [transactions] is the SCOPED list, the same one the view itself filters -
+/// so the counts in the drawer and the "you have N" in the filtered-empty state
+/// can never disagree about how much history exists.
+class TransactionsFilterTrigger extends StatelessWidget {
+  const TransactionsFilterTrigger({
+    super.key,
+    required this.transactions,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final List<Transaction> transactions;
+  final Filters selected;
+  final ValueChanged<Filters> onChanged;
+
+  /// The trigger's box: 48 wide, **32 tall**. The glyph inside it is 22, so the
+  /// box is the target rather than the mark.
+  ///
+  /// **32 on the short side is a deliberate, stated trade, not a slip.** This
+  /// widget is [GWPageHeader.trailing], and the header lays its trailing out
+  /// beside the identity block with `CrossAxisAlignment.center` - so a trailing
+  /// taller than the 32px title line sets the identity row's height and pushes
+  /// the title down by half the difference. At 48 tall the page header measured
+  /// 64 with the title 8px from its top, while Assets and Crypto News measured
+  /// 48 with the title at 0. Jakub asked for the Transactions title to land
+  /// where the others land (2026-08-09), and this is what buys it.
+  ///
+  /// The price, honestly: the tap target goes from 48x48 to 48x32. 32 still
+  /// clears WCAG 2.2 SC 2.5.8's 24x24 conformance floor on both axes, and it
+  /// clears 48dp Android on the horizontal one - but it is **under Apple's
+  /// 44pt recommendation vertically**. That is the cost of the alignment, and
+  /// it was asked for explicitly.
+  static const double _triggerWidth = 48;
+  static const double _triggerHeight = 32;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    // The same rule the panel's chips and the wide rail already answer to
+    // (15-03): a control that filters an empty set is an offer the app cannot
+    // honour, and here it would sit directly above the "no transactions yet"
+    // block, two statements on one screen contradicting each other.
+    if (transactions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final bool filtered = selected != Filters.all;
+
+    // `Icons.filter_alt_outlined`, and it is the CONSISTENT choice rather than
+    // a free one. Both candidate glyphs are already spoken for: `Icons.tune` is
+    // the Swap settings trigger (`swap_screen.dart`), and this funnel is what
+    // THIS screen already draws when a filter matches nothing (`_body`'s
+    // BRANCH 2). Anything else makes the trigger and the empty state it
+    // produces disagree. Jakub picked the funnel, 2026-08-09.
+    //
+    // A filter chosen here leaves no mark on the list, so without the tint and
+    // the dot a partial list reads as a complete one - the `⋯` trigger's own
+    // defect, named at `_overflowTrigger`. `brandPrimaryOnSurface`, not the
+    // vibrant `brandPrimary`: this is brand as FOREGROUND, and it is the token
+    // that stays AA in both appearances.
+    return IconButton(
+      tooltip: filtered ? 'Filtered: ${selected.label}' : 'Filter transactions',
+      onPressed: () => _open(context),
+      padding: EdgeInsets.zero,
+      // Tight, not `min*`: a minimum leaves `IconButton` free to grow, and it
+      // does - the default `MaterialTapTargetSize.padded` inflates the hit box
+      // to 48 on BOTH axes, which is exactly the 48 that was setting the header
+      // row's height. `shrinkWrap` + `VisualDensity.compact` are what make the
+      // constraint the final word.
+      constraints: const BoxConstraints.tightFor(
+        width: _triggerWidth,
+        height: _triggerHeight,
+      ),
+      // STANDARD, explicitly, and it is not noise. `VisualDensity` shrinks the
+      // MINIMUM of the constraints above (4 logical px per density unit) while
+      // leaving the maximum alone, so a tight 48x32 becomes a 40x24 box the
+      // moment the density is anything but zero - and `ThemeData`'s default is
+      // `defaultDensityForPlatform`, which is COMPACT on every desktop
+      // platform, the harness this repo's tests run on included. Measured:
+      // without this line the trigger came out 40x24, under Android's 48dp on
+      // the axis that is meant to carry the target.
+      visualDensity: VisualDensity.standard,
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      icon: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Icon(
+            Icons.filter_alt_outlined,
+            size: 22,
+            color: filtered ? gw.brandPrimaryOnSurface : gw.textSecondary,
+          ),
+          if (filtered)
+            Positioned(
+              top: -2,
+              right: -2,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  gradient: GeniusWalletGradient.brandCta,
+                  shape: BoxShape.circle,
+                  // The page's own canvas, so the dot reads as punched through
+                  // the glyph rather than stuck on top of it - the same ring
+                  // trick `TransactionBadge` uses over coin art.
+                  border: Border.all(color: gw.surfaceBase, width: 1.5),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _open(BuildContext context) {
+    ResponsiveDrawer.show<void>(
+      context: context,
+      title: 'Filter',
+      // Owns a SCROLLING viewport, so the inset lives on the list and scrolls
+      // with it - the documented opt-out on `kDrawerBodyPadding`, the same call
+      // `token_selector_drawer.dart` makes.
+      bodyPadding: EdgeInsets.zero,
+      child: _FilterDrawerBody(
+        selected: selected,
+        counts: filterCounts(transactions),
+        total: transactions.length,
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+/// The picker behind [TransactionsFilterTrigger]: the app's own drawer, with
+/// the app's own row.
+///
+/// All ten filters are here, nothing behind an overflow. The `⋯` menu exists
+/// only because a 376px dashboard panel cannot show nine of them; a full-width
+/// sheet can, which is the same reason [_FilterRail] unrolls them on a wide
+/// page.
+///
+/// Rows are [GWSelectRow] in its COMPACT form - a bare 21px glyph in the
+/// leading slot, which is `more_sheet.dart`'s call rather than the ~36px avatar
+/// the token and account pickers pass. The component does not fix its own
+/// height; it pays `space6` above and below whatever leading it is handed, so
+/// compact rows and "use the component" were never in conflict.
+///
+/// **The check glyph is not optional and must not be hand-rolled.**
+/// `GWSelectRow` measures its own selection treatment on this panel: the
+/// gradient tint is 1.39:1 and the brand edge 1.60:1, so neither carries
+/// selection alone, while its `Icons.check_circle` at 6.81:1 carries it by
+/// itself. Selection is a state, so WCAG 1.4.11 applies. Passing `selected:`
+/// is what buys all three.
+class _FilterDrawerBody extends StatelessWidget {
+  const _FilterDrawerBody({
+    required this.selected,
+    required this.counts,
+    required this.total,
+    required this.onChanged,
+  });
+
+  final Filters selected;
+  final Map<Filters, int> counts;
+
+  /// The scoped total, which is [Filters.all]'s count - [filterCounts] does not
+  /// compute one for `all` (every other filter's count is a subset of it).
+  final int total;
+
+  final ValueChanged<Filters> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    Widget row(Filters f) => GWSelectRow(
+      // `Filters.all` is the one value with no `badgeKind`, so it needs its own
+      // mark - the neutral ledger glyph [_RailRow] already answers this with.
+      // Reaching for `badgeSpec` here instead throws on the null.
+      leading: f.badgeKind == null
+          ? Icon(Icons.list_alt_outlined, size: 21, color: gw.textSecondary)
+          : badgeGlyph(
+              badgeSpec(f.badgeKind!, gw),
+              color: gw.textSecondary,
+              size: 21,
+            ),
+      title: f.label,
+      trailing: Text(
+        '${f == Filters.all ? total : counts[f] ?? 0}',
+        // Tabular figures so the count column does not jitter, at the 13 the
+        // rail and the menu already print theirs at.
+        style: GeniusWalletTypography.numericBody.copyWith(
+          fontSize: 13,
+          color: gw.textSecondary,
+        ),
+      ),
+      selected: f == selected,
+      onTap: () {
+        Navigator.of(context).pop();
+        onChanged(f);
+      },
+    );
+
+    // The group split is [_FilterRail]'s, so the two page presentations name
+    // the same things the same way. `All` joins Type because it is the way back
+    // out of one, and because a group of its own above the first header is the
+    // clutter sketch 023 removed from the rail.
+    return ListView(
+      padding: kDrawerBodyPadding,
+      children: [
+        // `space6` horizontally so the label sits over the rows' own inset
+        // rather than over the panel edge; no top gap on the first, which
+        // `kDrawerBodyPadding` has already paid.
+        const Padding(
+          padding: EdgeInsets.fromLTRB(
+            GeniusWalletConsts.space6,
+            0,
+            GeniusWalletConsts.space6,
+            GeniusWalletConsts.space3,
+          ),
+          child: GWKicker('Type', dense: true),
+        ),
+        row(Filters.all),
+        for (final f in Filters.primary) row(f),
+        for (final f in Filters.overflowTypes) row(f),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(
+            GeniusWalletConsts.space6,
+            GeniusWalletConsts.space4,
+            GeniusWalletConsts.space6,
+            GeniusWalletConsts.space3,
+          ),
+          child: GWKicker('Status', dense: true),
+        ),
+        for (final f in Filters.overflowStatuses) row(f),
+      ],
+    );
+  }
+}
+
+/// The live filter, named on a row of its own above the list.
+///
+/// It exists ONLY while a filter is on - 0px idle - which is what makes it
+/// affordable where a permanent count line was not: sketch 193 measured the
+/// kicker's 24px as buying no extra row above the fold, so it was dropped and
+/// this took the one job it actually did, telling you the list is filtered and
+/// by how much.
+///
+/// It is also the only place a live filter can be DROPPED without opening
+/// anything, which matters because the trigger that set it now lives in the
+/// page header, off the card entirely.
+class _LiveFilterRow extends StatelessWidget {
+  const _LiveFilterRow({
+    required this.filter,
+    required this.shown,
+    required this.total,
+    required this.onClear,
+  });
+
+  final Filters filter;
+  final int shown;
+  final int total;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    // The day labels' OWN horizontal inset, read the same way `_body` reads it
+    // (window-derived, the same bool `TransactionRow` uses) rather than picked
+    // to look close. The chip sits directly above the first day label, so any
+    // other value puts two things that should share a left edge 2px apart.
+    final double wall = GeniusBreakpoints.useDesktopLayout(context)
+        ? GeniusWalletConsts.space6
+        : GeniusWalletConsts.space3;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        wall,
+        GeniusWalletConsts.space3,
+        wall,
+        GeniusWalletConsts.space2,
+      ),
+      child: Row(
+        children: [
+          Flexible(
+            child: _LiveFilterChip(filter: filter, onClear: onClear),
+          ),
+          // Assets' own shape (`assets_screen.dart`: `3 of 11 assets`), minus
+          // the noun the chip beside it already carries. Suppressed when the
+          // filter narrows nothing: `3 of 3` states a difference that is not
+          // there.
+          if (shown != total) ...[
+            const SizedBox(width: GeniusWalletConsts.space3),
+            GWKicker('$shown of $total', dense: true),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The live filter itself: its badge mark, its name, and a dismiss.
+///
+/// The mark is `badgeSpec`'s, like every other filter surface in this file, so
+/// the chip and the rows it filtered carry one glyph.
+class _LiveFilterChip extends StatelessWidget {
+  const _LiveFilterChip({required this.filter, required this.onClear});
+
+  final Filters filter;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+
+    return Semantics(
+      button: true,
+      label: 'Clear filter: ${filter.label}',
+      excludeSemantics: true,
+      child: Tooltip(
+        message: 'Clear filter',
+        child: GWHoverable(
+          builder: (hovered) => Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onClear,
+              borderRadius: BorderRadius.circular(
+                GeniusWalletConsts.radiusPill,
+              ),
+              child: Container(
+                height: GeniusWalletConsts.space16,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space4,
+                ),
+                decoration: BoxDecoration(
+                  color: hovered ? GWDecorations.hoverFill : Colors.transparent,
+                  borderRadius: BorderRadius.circular(
+                    GeniusWalletConsts.radiusPill,
+                  ),
+                  // Brand as FOREGROUND, the same token the header trigger
+                  // takes when it is live, so the two marks of one state are
+                  // one colour. A non-text edge answers to WCAG 1.4.11's 3:1,
+                  // which this clears in both appearances.
+                  border: Border.all(color: gw.brandPrimaryOnSurface),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    badgeGlyph(
+                      badgeSpec(filter.badgeKind!, gw),
+                      color: gw.textSecondary,
+                      size: 13,
+                    ),
+                    const SizedBox(width: GeniusWalletConsts.space3),
+                    Flexible(
+                      child: Text(
+                        filter.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GeniusWalletTypography.labelMd.copyWith(
+                          color: gw.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: GeniusWalletConsts.space3),
+                    Icon(
+                      Icons.close,
+                      size: 13,
+                      color: hovered ? gw.textPrimary : gw.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -813,27 +1216,23 @@ class _TransactionFilterBar extends StatelessWidget {
     required this.selected,
     required this.counts,
     required this.onChanged,
-    this.chipSize = _chipSize,
   });
 
   final Filters selected;
   final Map<Filters, int> counts;
   final ValueChanged<Filters> onChanged;
 
-  /// Chip edge. Defaults to the 32 the panel has always drawn, where the bar
-  /// shares a row with `GWSectionTitle` and has no width to spare.
+  /// Chip edge: the 32 the panel has always drawn, where the bar shares a row
+  /// with `GWSectionTitle` and has no width to spare.
   ///
-  /// The phone PAGE passes [touchChipSize]: there the bar sits on its own row,
-  /// so the width exists to reach a real touch target. `transaction_filters_
-  /// test.dart` pins both widths.
-  final double chipSize;
-
-  static const double _chipSize = 32;
-
-  /// 44 — the larger of the two platform minima (44pt iOS, 48dp Android is
-  /// still unmet) and comfortably over WCAG 2.2 SC 2.5.8's 24x24, which is the
-  /// only one of the three that is a conformance requirement.
-  static const double touchChipSize = 44;
+  /// This used to be a PARAMETER, because the phone page gave the bar a row of
+  /// its own and passed 44 there to reach a real touch target. Sketch 195 moved
+  /// that control into the page header, so the 44 case has no caller left and
+  /// `flutter analyze` says so - see the note on [_panel] for what is left of
+  /// this widget. The 44 itself is not lost: it is
+  /// [TransactionsFilterTrigger._targetSize] now, on the control that replaced
+  /// the row.
+  static const double chipSize = 32;
 
   @override
   Widget build(BuildContext context) {

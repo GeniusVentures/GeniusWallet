@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart' show GeniusApi;
@@ -14,7 +13,6 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
-import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -318,69 +316,40 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    // `endOfTransactionsLabel` used to render unconditionally, so a capped
-    // dashboard panel that hid three of eight transactions behind `View all`
-    // also claimed there were no more. Guarded by `limit == null`
-    // (2026-08-07) - the three tests below pin the guard from both sides,
-    // at PHONE width so `compact` is exercised (see `_setPhoneWidth`).
-    testWidgets(
-      'phone: the capped panel renders its rows with no end-of-list terminus',
-      (tester) async {
-        _setPhoneWidth(tester);
-        await tester.pumpWidget(host(height: null));
+    // The pair below pins the cap at PHONE width, from both sides - capped
+    // panel five rows, uncapped page all eight - so `compact` is exercised
+    // (see `_setPhoneWidth`) rather than only the harness's 800px default.
+    //
+    // These two used to be three, and they used to assert the cap THROUGH
+    // `endOfTransactionsLabel`: the terminus was gated on `limit == null`, so
+    // its absence proved the panel was capped and its presence proved the page
+    // was not. Jakub removed the label on 2026-08-09, so the row counts below
+    // now carry the cap on their own. The third test, which pinned the
+    // terminus's own type scale to `bodySm`, has NO successor - its entire
+    // subject is gone.
+    testWidgets('phone: the panel caps at five rows', (tester) async {
+      _setPhoneWidth(tester);
+      await tester.pumpWidget(host(height: null));
 
-        // The cap still applies at phone width - eight transactions in, five
-        // rows out.
-        expect(find.byType(TransactionRow), findsNWidgets(5));
-        // The terminus belongs to the uncapped PAGE only; leaking onto a
-        // panel that just truncated the list is the exact regression this
-        // guards.
-        expect(find.text(endOfTransactionsLabel), findsNothing);
-        expect(tester.takeException(), isNull);
-      },
-    );
+      // Eight transactions in, five rows out - the rest live behind
+      // `View all`.
+      expect(find.byType(TransactionRow), findsNWidgets(5));
+      expect(find.byType(GWViewAllLink), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
 
-    testWidgets(
-      'phone: the uncapped page renders the end-of-list terminus once, '
-      'after the rows',
-      (tester) async {
-        _setPhoneWidth(tester);
-        await tester.pumpWidget(host(height: null, page: true));
+    testWidgets('phone: the uncapped page renders every row, and offers no '
+        'View all', (tester) async {
+      _setPhoneWidth(tester);
+      await tester.pumpWidget(host(height: null, page: true));
 
-        expect(find.byType(TransactionRow), findsNWidgets(8));
-        expect(find.text(endOfTransactionsLabel), findsOneWidget);
-        // After the rows, not before - it is a terminus, not a header.
-        final double lastRowBottom = tester
-            .getBottomLeft(find.byType(TransactionRow).last)
-            .dy;
-        final double labelTop = tester
-            .getTopLeft(find.text(endOfTransactionsLabel))
-            .dy;
-        expect(labelTop, greaterThan(lastRowBottom));
-        expect(tester.takeException(), isNull);
-      },
-    );
-
-    testWidgets(
-      'phone: the terminus takes bodySm, not the compact override it used '
-      'to carry',
-      (tester) async {
-        _setPhoneWidth(tester);
-        await tester.pumpWidget(host(height: null, page: true));
-
-        final RenderParagraph paragraph = tester.renderObject<RenderParagraph>(
-          find.text(endOfTransactionsLabel),
-        );
-        // Read from the TOKEN, never a literal: a deliberate token change
-        // moves this test with it, and only a re-introduced local `fontSize`
-        // override reddens it.
-        expect(
-          paragraph.text.style?.fontSize,
-          GeniusWalletTypography.bodySm.fontSize,
-        );
-        expect(tester.takeException(), isNull);
-      },
-    );
+      expect(find.byType(TransactionRow), findsNWidgets(8));
+      // The other half of the cap: the page IS the destination, so there is
+      // nothing left to view all of. A `View all` here would mean the page had
+      // silently taken the panel's limit.
+      expect(find.byType(GWViewAllLink), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('Assets - the dashboard panel is the head of the /assets list', () {

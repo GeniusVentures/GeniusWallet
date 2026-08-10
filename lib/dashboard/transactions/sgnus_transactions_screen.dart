@@ -14,7 +14,23 @@ class SgnusTransactionsScreen extends StatefulWidget {
   /// `/transactions` route opts in.
   final bool page;
 
-  const SgnusTransactionsScreen({super.key, this.page = false});
+  /// Forwarded verbatim to [TransactionsSlimView.selectedFilter] and
+  /// [TransactionsSlimView.onFilterChanged] - the PAGE owns the filter as of
+  /// sketch 195, because its trigger sits in `GWPageHeader.trailing` above this
+  /// widget.
+  ///
+  /// Both default to null so the dashboard's `const SgnusTransactionsScreen()`
+  /// (`dashboard_screen.dart`) keeps the slim view's own internal filter with
+  /// no call-site edit.
+  final Filters? selectedFilter;
+  final ValueChanged<Filters>? onFilterChanged;
+
+  const SgnusTransactionsScreen({
+    super.key,
+    this.page = false,
+    this.selectedFilter,
+    this.onFilterChanged,
+  });
 
   @override
   State<SgnusTransactionsScreen> createState() =>
@@ -56,6 +72,8 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
           transactions: sgnusTx,
           isShowOnlySGNUSTransactions: true,
           page: widget.page,
+          selectedFilter: widget.selectedFilter,
+          onFilterChanged: widget.onFilterChanged,
         );
 
         // The page frame already centres, and its branch sits in an `Expanded`
