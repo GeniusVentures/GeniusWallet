@@ -3,13 +3,17 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
+import 'package:genius_wallet/components/cards/gw_kicker.dart';
+import 'package:genius_wallet/components/cards/gw_row_rhythm.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
+import 'package:genius_wallet/components/effects/gw_hover_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
+import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/hive/models/news_article.dart';
 import 'package:genius_wallet/services/coin_telegraph/coin_telegraph_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -18,11 +22,22 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 
-/// Crypto News, redesigned as **B2 · Hero + Next up** (sketches 100–102). The
-/// old staggered grid of scrim-covered photo tiles is replaced by a photo-led
-/// magazine: a lead hero + a "Next up" column, then the rest as an even photo
-/// grid. Hover is the shared `GWCard` lift chip, not a black scrim that reprints
-/// the title. Search filters the already-fetched list locally (no network).
+/// Crypto News. **Two presentations, one breakpoint** (`_bandBreakpoint`, 760).
+///
+/// **Wide** is **B2 · Hero + Next up** (sketches 100–102): a lead hero beside a
+/// "Next up" column, then the rest as an even photo grid. Unchanged.
+///
+/// **Narrow** is **sketch 189 scheme C · "Lead + digest"** (Jakub, 2026-08-09):
+/// the same hero, then ONE `DashboardScrollContainer` panel holding the search
+/// field, the story count and every remaining article as a 72px-thumbnail row.
+/// It replaces the grid, which at `maxCrossAxisExtent: 360` resolved to two
+/// 181px columns on a phone and gave a 16px headline 147px of line - truncated
+/// on nearly every article - and it absorbs "Next up", whose three stories are
+/// simply the first three rows.
+///
+/// Hover is the shared `GWCard` lift chip (hero, grid) or `GWHoverRow` (digest),
+/// never a black scrim that reprints the title. Search filters the
+/// already-fetched list locally (no network).
 class CryptoNewsScreen extends StatefulWidget {
   const CryptoNewsScreen({super.key});
 
@@ -125,68 +140,93 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.xxl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GWPageHeader(
-                title: 'Crypto News',
-                // Desktop-reachable refresh (pull-to-refresh alone is
-                // unreachable with a mouse), now paired with a freshness stamp
-                // (sketch 031 · R3): the stamp says whether the feed is even
-                // stale before you press.
-                trailing: _UpdatedStamp(
-                  lastUpdated: _lastUpdated,
-                  onRefresh: _retryNews,
-                ),
-              ),
-              GWSearchField(
+          // ONE breakpoint for the whole page. `_bandBreakpoint` used to be
+          // read only inside the magazine, but sketch 189 C gives the search
+          // field a width-dependent HOME - page column on desktop, inside the
+          // digest panel on a phone - so the decision has to be made where both
+          // halves can see it. This builder measures the SAME width the
+          // magazine's own one did: the Column below fills this ConstrainedBox
+          // (`GWPageHeader` claims `double.infinity`), and the magazine's
+          // scroll view adds no horizontal padding.
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final wide =
+                  constraints.maxWidth >= _NewsMagazine._bandBreakpoint;
+              final searchField = GWSearchField(
                 controller: _searchController,
                 hint: 'Search headlines',
                 onChanged: _onSearchChanged,
                 onClear: _clearSearch,
-              ),
-              const SizedBox(height: GeniusWalletConsts.space8),
-              Expanded(
-                child: FutureStateWidget<List<NewsArticle>>(
-                  future: _newsFuture,
-                  // The fetch collapses network failures to an empty list
-                  // rather than throwing, so this branch is a rare last resort;
-                  // the empty-list case below is the real failure surface.
-                  error: GWErrorState(
-                    message: 'Failed to load news.',
-                    onRetry: _retryNews,
+              );
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GWPageHeader(
+                    title: 'Crypto News',
+                    // The freshness stamp (sketch 031 · R3): it says whether
+                    // the feed is even stale before you reach for a refresh.
+                    // It mounts a refresh button of its own on desktop only -
+                    // see `_UpdatedStamp`.
+                    trailing: _UpdatedStamp(
+                      lastUpdated: _lastUpdated,
+                      onRefresh: _retryNews,
+                    ),
                   ),
-                  onData: (articles) {
-                    if (articles.isEmpty) {
-                      // A genuinely empty feed (failed fetch, no cache) is the
-                      // ONLY page-level empty state now. A search MISS no longer
-                      // blanks the page — the hero band stays put and the
-                      // "Results" section reports the miss inline (Jakub's call).
-                      return GWEmptyState(
-                        icon: Icons.article_outlined,
-                        title: 'No news right now',
-                        message: 'Try again in a moment.',
-                        actionLabel: 'Refresh',
-                        onAction: _retryNews,
-                      );
-                    }
-                    final q = _query.trim();
-                    return RefreshIndicator(
-                      onRefresh: () async => _retryNews(),
-                      // Hero + "Next up" ALWAYS come from the full feed; `results`
-                      // (non-null only while searching) drives the bottom section,
-                      // retitled "Results" — so searching never reshuffles the
-                      // top band.
-                      child: _NewsMagazine(
-                        items: articles,
-                        query: q,
-                        results: q.isEmpty ? null : _filter(articles),
+                  // WIDE only. On a phone this exact field is mounted by the
+                  // digest panel instead, so the first screen is a photo and a
+                  // headline rather than a field the reader rarely uses - which
+                  // is the reverse of what shipped before (sketch 189 C).
+                  if (wide) ...[
+                    searchField,
+                    const SizedBox(height: GeniusWalletConsts.space8),
+                  ],
+                  Expanded(
+                    child: FutureStateWidget<List<NewsArticle>>(
+                      future: _newsFuture,
+                      // The fetch collapses network failures to an empty list
+                      // rather than throwing, so this branch is a rare last
+                      // resort; the empty-list case below is the real failure
+                      // surface.
+                      error: GWErrorState(
+                        message: 'Failed to load news.',
+                        onRetry: _retryNews,
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                      onData: (articles) {
+                        if (articles.isEmpty) {
+                          // A genuinely empty feed (failed fetch, no cache) is
+                          // the ONLY page-level empty state now. A search MISS
+                          // no longer blanks the page - the hero stays put and
+                          // the "Results" section (wide) or the digest panel
+                          // (narrow) reports the miss inline (Jakub's call).
+                          return GWEmptyState(
+                            icon: Icons.article_outlined,
+                            title: 'No news right now',
+                            message: 'Try again in a moment.',
+                            actionLabel: 'Refresh',
+                            onAction: _retryNews,
+                          );
+                        }
+                        final q = _query.trim();
+                        return RefreshIndicator(
+                          onRefresh: () async => _retryNews(),
+                          // The hero (and "Next up") ALWAYS come from the full
+                          // feed; `results` (non-null only while searching)
+                          // drives the bottom section, retitled "Results" - so
+                          // searching never reshuffles the top band.
+                          child: _NewsMagazine(
+                            items: articles,
+                            query: q,
+                            results: q.isEmpty ? null : _filter(articles),
+                            wide: wide,
+                            searchField: searchField,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -194,10 +234,11 @@ class _CryptoNewsScreenState extends State<CryptoNewsScreen> {
   }
 }
 
-/// The header freshness control (sketch 031 · R3): "Updated 3m ago" beside a
-/// refresh icon. Owns its OWN 30s ticker so only the stamp re-renders as the
-/// label ages — never the whole magazine (that per-minute relayout is exactly
-/// what the search debounce exists to avoid).
+/// The header freshness control (sketch 031 · R3): "Updated 3m ago", beside a
+/// refresh icon **on desktop only** (sketch 194 scheme A). Owns its OWN 30s
+/// ticker so only the stamp re-renders as the label ages - never the whole
+/// magazine (that per-minute relayout is exactly what the search debounce
+/// exists to avoid).
 class _UpdatedStamp extends StatefulWidget {
   const _UpdatedStamp({required this.lastUpdated, required this.onRefresh});
 
@@ -207,6 +248,11 @@ class _UpdatedStamp extends StatefulWidget {
   @override
   State<_UpdatedStamp> createState() => _UpdatedStampState();
 }
+
+/// Optical, not structural: the gap between where the title's letters sit and
+/// where a geometrically centred smaller line puts its own. Derived at the use
+/// site below, and only correct for THIS pairing (bodySm beside headlineLg).
+const double _opticalNudge = 1;
 
 class _UpdatedStampState extends State<_UpdatedStamp> {
   Timer? _ticker;
@@ -235,31 +281,69 @@ class _UpdatedStampState extends State<_UpdatedStamp> {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Always shown (Jakub's call) so the header never looks empty / jumps
-        // when the first fetch settles — "Updating…" until then.
-        Text(
-          updated == null ? 'Updating…' : 'Updated ${shortTimeAgo(updated)}',
-          style: GeniusWalletTypography.bodySm.copyWith(
-            color: gw.textSecondary,
+        // when the first fetch settles - "Updating…" until then.
+        //
+        // Nudged down 1px. `GWPageHeader` centres its trailing with
+        // `CrossAxisAlignment.center`, which centres the two LINE BOXES, and a
+        // line box is not where the letters are: Inter's proportional leading
+        // split (typo asc 1984 / desc -494 of 2048 upem) puts the baseline at
+        // 80.06% of the box, so the 24/32 title's ink lands at 7.93..30.61
+        // (mid 19.27) while this 14/20 stamp's lands at 11.49..25.03
+        // (mid 18.26). Measuring the x-height band alone agrees: 0.88px.
+        // Baseline alignment is the wrong fix here - it moves the stamp 3.61px
+        // and overshoots 2.6px the other way. `Transform`, not `Padding`, so
+        // the correction cannot change the header's measured height.
+        Transform.translate(
+          offset: const Offset(0, _opticalNudge),
+          child: Text(
+            updated == null ? 'Updating…' : 'Updated ${shortTimeAgo(updated)}',
+            style: GeniusWalletTypography.bodySm.copyWith(
+              color: gw.textSecondary,
+            ),
           ),
         ),
-        const SizedBox(width: GeniusWalletConsts.space4),
-        // A bare icon button — no fill/border box — to match the Markets
-        // header's trailing action (markets_screen.dart, the magnifying glass).
-        IconButton(
-          tooltip: 'Refresh',
-          onPressed: widget.onRefresh,
-          icon: Icon(Icons.refresh, size: 18, color: gw.textSecondary),
-          visualDensity: VisualDensity.compact,
-        ),
+        // DESKTOP ONLY (sketch 194 scheme A). The button exists because
+        // pull-to-refresh is unreachable with a mouse - a reason that only
+        // holds where there IS a mouse. On a phone `RefreshIndicator` is
+        // already mounted over this same feed, so the glyph was a second door
+        // into a room that has one, and its 40px tap target (not the 32px
+        // title line) was what set the header row's height.
+        //
+        // `useDesktopLayout`, not this page's own 760px `wide` test: it also
+        // rules out a mobile app at tablet width, which is exactly the case
+        // the "no mouse" reason cares about. No new breakpoint - the page
+        // frame around this header already sizes itself with it.
+        //
+        // A bare icon button, no fill/border box: `GWPageHeader.trailing` has
+        // only two other callers, a `GWButton` on Buy GNUS and a centred
+        // `Icons.tune` on Swap, and neither is a peer of a left-aligned
+        // content tab. Markets, Transactions, Assets and Submit job mount no
+        // trailing at all - which is what this page now matches on a phone.
+        if (GeniusBreakpoints.useDesktopLayout(context)) ...[
+          const SizedBox(width: GeniusWalletConsts.space4),
+          IconButton(
+            tooltip: 'Refresh',
+            onPressed: widget.onRefresh,
+            icon: Icon(Icons.refresh, size: 18, color: gw.textSecondary),
+            visualDensity: VisualDensity.compact,
+          ),
+        ],
       ],
     );
   }
 }
 
-/// The B2 body: a hero + "Next up" band, then the remaining stories as an even
-/// photo grid. Everything scrolls as one surface.
+/// The body, in both presentations. Wide: a hero + "Next up" band, then the
+/// remaining stories as an even photo grid (B2). Narrow: the hero, then one
+/// digest panel (sketch 189 C). Everything scrolls as one surface either way.
 class _NewsMagazine extends StatelessWidget {
-  const _NewsMagazine({required this.items, this.query = '', this.results});
+  const _NewsMagazine({
+    required this.items,
+    required this.wide,
+    required this.searchField,
+    this.query = '',
+    this.results,
+  });
 
   /// The full, unfiltered feed — hero + "Next up" always come from here, so the
   /// top band never reshuffles on a search.
@@ -273,7 +357,20 @@ class _NewsMagazine extends StatelessWidget {
   /// section in place of "More news".
   final List<NewsArticle>? results;
 
-  // Below this the "Next up" column drops beneath the hero (sketch 101 B2).
+  /// Which presentation to render. Decided ONCE, by the page, against
+  /// [_bandBreakpoint] - this widget no longer measures for itself, because the
+  /// search field's home is decided by the same number one level up.
+  final bool wide;
+
+  /// The page's search field. Mounted here only on the NARROW path, inside the
+  /// digest panel; on the wide path the page column mounts it above this
+  /// widget and this reference goes unused.
+  final Widget searchField;
+
+  // Below this the "Next up" column used to drop beneath the hero (sketch 101
+  // B2). Since sketch 189 C it does not drop - below this the whole page
+  // switches to the lead + digest presentation, and "Next up" is not rendered
+  // at all. Read by `_CryptoNewsScreenState.build`, which owns the decision.
   static const double _bandBreakpoint = 760;
 
   @override
@@ -282,6 +379,13 @@ class _NewsMagazine extends StatelessWidget {
     final hero = items.first;
     final nextUp = items.skip(1).take(3).toList();
     final rest = items.skip(1 + nextUp.length).toList();
+
+    // NARROW: every story except the lead becomes a digest row - including the
+    // three that are "Next up" on a wide window. While searching the rows are
+    // the MATCHES, minus the hero if it is one of them: the hero is frozen on
+    // the full feed directly above, and printing the same story twice on one
+    // phone screen would read as a duplicate rather than as a match.
+    final digest = (results ?? items).where((a) => a != hero).toList();
 
     return ScrollConfiguration(
       // No scrollbar on the News surface (Jakub's call) — the desktop default
@@ -296,91 +400,98 @@ class _NewsMagazine extends StatelessWidget {
         // scroll view clips at its viewport edge (Clip.hardEdge). With the hero
         // flush at the top, its 2px hover lift + deepened shadow paint ABOVE the
         // viewport and get clipped — the "border escapes / overlaps the section
-        // above" report. The padding gives the lift room inside the clip.
-        // Horizontal 0 so the hero + grid align with the 'Crypto News' title
-        // and search field above (all at the ConstrainedBox left edge, not 8px
-        // further in). Top space6 stays — the hoverLift hero needs room above
-        // it inside this clipping scroll or its lift/shadow gets cut.
+        // above" report. The padding gives the lift room inside the clip, and
+        // the hero is still the first child in BOTH presentations, so it is
+        // still the card that needs it.
+        // Horizontal 0 so the hero, the grid and the digest panel align with
+        // the 'Crypto News' title above (all at the ConstrainedBox left edge,
+        // not 8px further in). The search field is only above them on a wide
+        // window now - on a phone it lives inside the digest panel.
         padding: const EdgeInsets.fromLTRB(0, GeniusWalletConsts.space6, 0, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final wide = constraints.maxWidth >= _bandBreakpoint;
-                final heroCard = _HeroCard(article: hero, wide: wide);
-                if (!wide) {
-                  // Narrow: single column. One result is just the hero; more
-                  // results stack "Next up" beneath it.
-                  if (nextUp.isEmpty) {
-                    return heroCard;
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      heroCard,
-                      const SizedBox(height: GeniusWalletConsts.space8),
-                      _NextUp(articles: nextUp),
-                    ],
-                  );
-                }
-                // Wide: the hero ALWAYS sits at flex 3, so a single filtered
-                // result looks identical to the hero in the full magazine
-                // instead of sprawling edge-to-edge (Jakub: "one huge article
-                // should look the same as finding a few"). When there is no
-                // "Next up", the right 2/5 is an empty spacer that reserves the
-                // band width — it does NOT stretch the hero. IntrinsicHeight
-                // also keeps the stretch-Row self-bounding in the page's
-                // vertical scroll (the earlier infinite-height freeze).
-                return IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(flex: 3, child: heroCard),
-                      const SizedBox(width: GeniusWalletConsts.space8),
-                      Expanded(
-                        flex: 2,
-                        child: nextUp.isEmpty
-                            ? const SizedBox.shrink()
-                            : _NextUp(articles: nextUp),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            // Bottom section. Searching → "Results": every match, shown here so
-            // the hero band above stays frozen on the latest stories instead of
-            // the whole feed reshuffling on each search. Browsing → "More news":
-            // the stories past the hero band.
-            if (results != null) ...[
-              const SizedBox(height: GeniusWalletConsts.space12),
-              // No `contentTopInset` in either branch: `_grid`'s first tile is
-              // a `GWCard` whose photo fills its top edge, and the empty-state
-              // Text paints from its own line box. Both are C = 0, so the
-              // title pays the full `space8` and this section renders the
-              // shared 26px gap (`gw_section_title_rhythm_test.dart`).
-              const GWSectionTitle(title: 'Results'),
-              if (results!.isEmpty)
-                // The `top: space4` this used to carry was a second gap
-                // stacked under the title's own, which pushed this branch to
-                // 34 while the grid branch beside it sat at 26. Removed
-                // 2026-08-06 so the empty message sits on exactly the same
-                // rhythm as the grid it replaces.
-                Text(
-                  'No headlines match “$query”.',
-                  style: GeniusWalletTypography.bodyMd.copyWith(
-                    color: gw.textSecondary,
-                  ),
-                )
-              else
-                _grid(results!),
-            ] else if (rest.isNotEmpty) ...[
-              const SizedBox(height: GeniusWalletConsts.space12),
-              // C = 0 - `_grid`'s first tile paints its photo at its own top
-              // edge - so this section reaches the rule exactly, like Results.
-              const GWSectionTitle(title: 'More news'),
-              _grid(rest),
+            if (!wide) ...[
+              // NARROW - sketch 189 C. The hero is today's narrow `_HeroCard`
+              // unchanged (photo 16:9 on top, then text); everything behind it
+              // is one panel. "Next up" is NOT mounted here: on a phone it was
+              // a numbered list of three headlines sitting between two other
+              // lists, and its three articles are the digest's first three
+              // rows instead. `_NextUp`/`_NextUpRow` stay - the wide path
+              // below still mounts them as the band's right-hand column.
+              _HeroCard(article: hero, wide: false),
+              // `space3` - the gap `OneColumnDashBoardView` puts between two
+              // dashboard panels, so the hero card and the digest sit on the
+              // homepage's rhythm rather than a rhythm of their own.
+              const SizedBox(height: GeniusWalletConsts.space3),
+              _NewsDigestPanel(
+                articles: digest,
+                query: query,
+                searching: results != null,
+                searchField: searchField,
+              ),
+            ] else ...[
+              // WIDE: the hero ALWAYS sits at flex 3, so a single filtered
+              // result looks identical to the hero in the full magazine
+              // instead of sprawling edge-to-edge (Jakub: "one huge article
+              // should look the same as finding a few"). When there is no
+              // "Next up", the right 2/5 is an empty spacer that reserves the
+              // band width - it does NOT stretch the hero. IntrinsicHeight
+              // also keeps the stretch-Row self-bounding in the page's
+              // vertical scroll (the earlier infinite-height freeze).
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: _HeroCard(article: hero, wide: true),
+                    ),
+                    const SizedBox(width: GeniusWalletConsts.space8),
+                    Expanded(
+                      flex: 2,
+                      child: nextUp.isEmpty
+                          ? const SizedBox.shrink()
+                          : _NextUp(articles: nextUp),
+                    ),
+                  ],
+                ),
+              ),
+              // Bottom section. Searching → "Results": every match, shown here
+              // so the hero band above stays frozen on the latest stories
+              // instead of the whole feed reshuffling on each search. Browsing
+              // → "More news": the stories past the hero band.
+              if (results != null) ...[
+                const SizedBox(height: GeniusWalletConsts.space12),
+                // No `contentTopInset` in either branch: `_grid`'s first tile
+                // is a `GWCard` whose photo fills its top edge, and the
+                // empty-state Text paints from its own line box. Both are
+                // C = 0, so the title pays the full `space8` and this section
+                // renders the shared 26px gap
+                // (`gw_section_title_rhythm_test.dart`).
+                const GWSectionTitle(title: 'Results'),
+                if (results!.isEmpty)
+                  // The `top: space4` this used to carry was a second gap
+                  // stacked under the title's own, which pushed this branch to
+                  // 34 while the grid branch beside it sat at 26. Removed
+                  // 2026-08-06 so the empty message sits on exactly the same
+                  // rhythm as the grid it replaces.
+                  Text(
+                    'No headlines match “$query”.',
+                    style: GeniusWalletTypography.bodyMd.copyWith(
+                      color: gw.textSecondary,
+                    ),
+                  )
+                else
+                  _grid(results!),
+              ] else if (rest.isNotEmpty) ...[
+                const SizedBox(height: GeniusWalletConsts.space12),
+                // C = 0 - `_grid`'s first tile paints its photo at its own top
+                // edge - so this section reaches the rule exactly, like
+                // Results.
+                const GWSectionTitle(title: 'More news'),
+                _grid(rest),
+              ],
             ],
             const SizedBox(height: GeniusWalletConsts.space8),
           ],
@@ -490,7 +601,190 @@ class _HeroCard extends StatelessWidget {
   }
 }
 
+/// The phone's digest (sketch 189 C): ONE `DashboardScrollContainer` holding
+/// the search field, the story count and every story past the hero as a row.
+///
+/// The order and the spacing are `/assets`' second panel
+/// (`assets_screen.dart:406-455`): field at full card width, `space6`, the
+/// dense kicker at the `space4` wall, `space4`, then rows separated by a
+/// `borderSubtle` `Divider`. Copied rather than re-decided so the two boxed
+/// pages read as one list language instead of two.
+class _NewsDigestPanel extends StatelessWidget {
+  const _NewsDigestPanel({
+    required this.articles,
+    required this.query,
+    required this.searching,
+    required this.searchField,
+  });
+
+  /// The rows, hero already removed.
+  final List<NewsArticle> articles;
+
+  /// The active query (trimmed). Used only to label the miss line.
+  final String query;
+
+  /// True while a query is active. Switches the count from "N stories" to
+  /// "N results", and turns an empty [articles] into the inline miss line
+  /// rather than a silently short panel - a search MISS must never blank the
+  /// page (the same rule the wide "Results" section follows).
+  final bool searching;
+
+  final Widget searchField;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return DashboardScrollContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Full card width, NO `space4` wall - the field's own border is the
+          // edge the eye reads, which is exactly why `/assets` mounts its field
+          // this way (`assets_screen.dart:417`).
+          searchField,
+          const SizedBox(height: GeniusWalletConsts.space6),
+          Padding(
+            // `space4`, the wall `GWSectionTitle` charges inside a panel and
+            // the one `kGWRowWall` gives every row below, so the count and the
+            // headlines share one left edge.
+            padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space4,
+            ),
+            // Lower-case: GWKicker upper-cases it itself and its doc forbids
+            // callers pre-calling toUpperCase().
+            child: GWKicker(
+              searching
+                  ? '${articles.length} results'
+                  : '${articles.length} stories',
+              dense: true,
+              // NOT a control - the feed has exactly one order and this states
+              // it, which is why it is a plain `Text` in the kicker's own type
+              // rather than `/assets`' tappable sort toggle. Drawn by sketch
+              // 189 C; it is also the one piece of chrome on this panel that
+              // could go without changing what the page does.
+              trailing: Text(
+                'NEWEST FIRST',
+                style: GWKicker.style(gw, dense: true),
+              ),
+            ),
+          ),
+          const SizedBox(height: GeniusWalletConsts.space4),
+          if (searching && articles.isEmpty)
+            Padding(
+              // At the same wall as the kicker above it, so the miss line
+              // starts where the headlines it replaces would have.
+              padding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space4,
+              ),
+              child: Text(
+                'No headlines match “$query”.',
+                style: GeniusWalletTypography.bodyMd.copyWith(
+                  color: gw.textSecondary,
+                ),
+              ),
+            ),
+          // A `for` loop, not a list widget: the page's SingleChildScrollView is
+          // the one scroll, exactly as `/assets` builds its rows.
+          //
+          // ponytail: every row is built eagerly, so the whole 30-item feed
+          // builds at once. Upgrade path is a sliver list, once the feed is
+          // long enough for that to be measurable.
+          for (int i = 0; i < articles.length; i++) ...[
+            _NewsListRow(article: articles[i]),
+            if (i < articles.length - 1)
+              Divider(height: 1, thickness: 1, color: gw.borderSubtle),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// One story in the digest: a square thumbnail, two lines of headline, one line
+/// of dek, then the age.
+///
+/// This is the phone's ONLY story component past the hero - it replaces both
+/// the "Next up" row and the grid tile, whose 16px headline got 147px of line
+/// at two 181px columns and truncated on nearly every article.
+class _NewsListRow extends StatelessWidget {
+  const _NewsListRow({required this.article});
+
+  final NewsArticle article;
+
+  /// The thumbnail's side. Untokened for the same reason [kGWRowIconSize] is:
+  /// it measures a SIZE, not a gap. Derived from that 38 rather than invented -
+  /// doubled, then back to the nearest 4-pt step (76 → 72) - so the digest's
+  /// leading slot is the app's row glyph at photo scale.
+  static const double _thumb = 72;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return GWHoverRow(
+      onTap: () => launchWebSite(context, article.link),
+      child: Padding(
+        // The shared row box: `kGWRowWall` each side, `kGWRowSeparatorGap`
+        // above and below, so a story row and a `CoinCardRow` sit on one
+        // rhythm and the `Divider` between two of them lands where every other
+        // list's does.
+        padding: kGWRowPadding,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
+              child: SizedBox(
+                width: _thumb,
+                height: _thumb,
+                child: _NewsPhoto(url: article.imageUrl),
+              ),
+            ),
+            const SizedBox(width: kGWRowIconToText),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    article.title.trim(),
+                    style: GeniusWalletTypography.titleMd.copyWith(
+                      color: gw.textPrimary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (article.dek.isNotEmpty) ...[
+                    const SizedBox(height: GeniusWalletConsts.space2),
+                    Text(
+                      article.dek,
+                      style: GeniusWalletTypography.bodySm.copyWith(
+                        color: gw.textSecondary,
+                      ),
+                      // ONE line. The headline is the story here; the dek is
+                      // the hint that decides whether to open it, and a second
+                      // line of it costs 20px on every row of a 29-row page.
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: GeniusWalletConsts.space2),
+                  _MetaLine(article: article),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// The "Next up" column: a section title over headline-only rows (no photo).
+///
+/// **Wide only** since sketch 189 C. It fills the right 2/5 of the hero band, a
+/// column that would otherwise be empty; on a phone that band does not exist
+/// and its stories are digest rows instead.
 class _NextUp extends StatelessWidget {
   const _NextUp({required this.articles});
 
