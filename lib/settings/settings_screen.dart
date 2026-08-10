@@ -7,6 +7,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_switch.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
@@ -396,25 +397,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (v) => setState(() => config[entry.key] = v),
           );
         }
+        final isNumber = numberKeys.contains(entry.key);
         return Row(
           children: [
             Expanded(child: Text(label)),
             Expanded(
-              child: GWTextField(
-                initialValue: entry.value.toString(),
-                keyboardType: numberKeys.contains(entry.key)
-                    ? TextInputType.number
-                    : TextInputType.text,
-                onChanged: (v) {
-                  if (numberKeys.contains(entry.key)) {
-                    final parsed = int.tryParse(v);
-                    if (parsed != null) {
-                      setState(() => config[entry.key] = parsed);
+              // `TextInputType.number` opens the iOS number pad, which has no
+              // return key either - the same trap as the decimal pads, so the
+              // same bar. The text rows keep their return key and do not need
+              // one.
+              child: GWKeyboardDoneBar(
+                enabled: isNumber,
+                child: GWTextField(
+                  initialValue: entry.value.toString(),
+                  keyboardType: isNumber
+                      ? TextInputType.number
+                      : TextInputType.text,
+                  onChanged: (v) {
+                    if (isNumber) {
+                      final parsed = int.tryParse(v);
+                      if (parsed != null) {
+                        setState(() => config[entry.key] = parsed);
+                      }
+                    } else {
+                      setState(() => config[entry.key] = v);
                     }
-                  } else {
-                    setState(() => config[entry.key] = v);
-                  }
-                },
+                  },
+                ),
               ),
             ),
           ],

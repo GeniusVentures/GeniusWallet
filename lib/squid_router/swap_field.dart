@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
@@ -111,60 +112,67 @@ class SwapField extends StatelessWidget {
                             style: heroStyle.copyWith(color: gw.textPrimary38),
                           ),
                         )
-                      : TextField(
-                          style: heroStyle.copyWith(color: gw.textPrimary),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
+                      : GWKeyboardDoneBar(
+                          // The pay side only. "You Receive" is `readOnly`
+                          // just below, so it focuses without ever opening a
+                          // keyboard - the same flag the GWFocusRing above
+                          // takes, for the same reason.
+                          enabled: isSelectingFrom,
+                          child: TextField(
+                            style: heroStyle.copyWith(color: gw.textPrimary),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            // The bridge — this screen's twin — has guarded its
+                            // amount field since 08-04; Swap accepted letters.
+                            // `decimalRange` caps precision at what the token can
+                            // actually represent, so the field cannot promise more
+                            // digits than survive on chain.
+                            inputFormatters: [
+                              DecimalTextInputFormatter(
+                                decimalRange: selectedToken?.decimals,
+                              ),
+                            ],
+                            // "You Receive" is derived from the route, never typed:
+                            // its `onChanged` only calls `setState`, and the next
+                            // quote overwrites whatever was entered. A field that
+                            // accepts input and silently discards it is worse than
+                            // one that declines it. If a reverse quote ever lands,
+                            // this becomes its own flag rather than riding along.
+                            readOnly: !isSelectingFrom,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            decoration: InputDecoration(
+                              hintText: "0.0",
+                              hintStyle: heroStyle.copyWith(
+                                color: gw.textPrimary38,
+                              ),
+                              border: InputBorder.none,
+                              // `border` is only the FALLBACK. theme.dart:242 sets
+                              // an app-wide `focusedBorder` (a radiusLg brand
+                              // outline), and a per-state border always beats the
+                              // fallback — so this "borderless" hero amount grew a
+                              // blue rounded box the moment it took focus, cutting
+                              // across the card that is its real frame. Silencing
+                              // the state explicitly is the only thing that holds;
+                              // the card already carries the border.
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              // Material 3's default for an unfilled, non-dense
+                              // borderless field is vertical 8 (measured, not
+                              // assumed: input_decorator.dart:2617). Pinning it
+                              // keeps this branch and the placeholder branch above
+                              // on ONE baseline — a framework default drifting
+                              // would otherwise make the amount jump as the "—"
+                              // is replaced by a number.
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                              ),
+                            ),
+                            controller: controller,
+                            onChanged: onChanged,
                           ),
-                          // The bridge — this screen's twin — has guarded its
-                          // amount field since 08-04; Swap accepted letters.
-                          // `decimalRange` caps precision at what the token can
-                          // actually represent, so the field cannot promise more
-                          // digits than survive on chain.
-                          inputFormatters: [
-                            DecimalTextInputFormatter(
-                              decimalRange: selectedToken?.decimals,
-                            ),
-                          ],
-                          // "You Receive" is derived from the route, never typed:
-                          // its `onChanged` only calls `setState`, and the next
-                          // quote overwrites whatever was entered. A field that
-                          // accepts input and silently discards it is worse than
-                          // one that declines it. If a reverse quote ever lands,
-                          // this becomes its own flag rather than riding along.
-                          readOnly: !isSelectingFrom,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          decoration: InputDecoration(
-                            hintText: "0.0",
-                            hintStyle: heroStyle.copyWith(
-                              color: gw.textPrimary38,
-                            ),
-                            border: InputBorder.none,
-                            // `border` is only the FALLBACK. theme.dart:242 sets
-                            // an app-wide `focusedBorder` (a radiusLg brand
-                            // outline), and a per-state border always beats the
-                            // fallback — so this "borderless" hero amount grew a
-                            // blue rounded box the moment it took focus, cutting
-                            // across the card that is its real frame. Silencing
-                            // the state explicitly is the only thing that holds;
-                            // the card already carries the border.
-                            focusedBorder: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            // Material 3's default for an unfilled, non-dense
-                            // borderless field is vertical 8 (measured, not
-                            // assumed: input_decorator.dart:2617). Pinning it
-                            // keeps this branch and the placeholder branch above
-                            // on ONE baseline — a framework default drifting
-                            // would otherwise make the amount jump as the "—"
-                            // is replaced by a number.
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                            ),
-                          ),
-                          controller: controller,
-                          onChanged: onChanged,
                         ),
                 ),
                 const SizedBox(width: GeniusWalletConsts.space4),

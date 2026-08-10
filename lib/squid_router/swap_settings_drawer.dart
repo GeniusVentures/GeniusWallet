@@ -5,6 +5,7 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/squid_router/slippage_state.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -240,38 +241,43 @@ class _SlippageFormState extends State<_SlippageForm> {
             // apply", and the second outranks the first.
             restingColor: edge,
             enabled: !state.isError,
-            child: TextField(
-              controller: _controller,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              // Same shared guard the amount fields use. Two decimals is plenty
-              // for a percentage — nobody sets slippage to 0.125%.
-              inputFormatters: [DecimalTextInputFormatter(decimalRange: 2)],
-              onChanged: (_) => setState(() {}),
-              style: GeniusWalletTypography.titleMd.copyWith(
-                color: gw.textPrimary,
-              ),
-              decoration: InputDecoration(
-                // No hint any more: the label above says `Custom value`, and a
-                // placeholder repeating it would be the same word twice for a
-                // state (empty field) that lasts one keystroke.
-                suffixText: '%',
-                suffixStyle: GeniusWalletTypography.titleMd.copyWith(
-                  color: gw.textSecondary,
+            // Inside a ResponsiveDrawer, which is a root-navigator modal
+            // sheet - the bar hosts itself in the ROOT overlay precisely so it
+            // lands on top of that sheet rather than behind it.
+            child: GWKeyboardDoneBar(
+              child: TextField(
+                controller: _controller,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: GeniusWalletConsts.space6,
-                  vertical: GeniusWalletConsts.space6,
+                // Same shared guard the amount fields use. Two decimals is plenty
+                // for a percentage — nobody sets slippage to 0.125%.
+                inputFormatters: [DecimalTextInputFormatter(decimalRange: 2)],
+                onChanged: (_) => setState(() {}),
+                style: GeniusWalletTypography.titleMd.copyWith(
+                  color: gw.textPrimary,
                 ),
-                // All four silenced: the ring is the border now, and the
-                // theme's app-wide focusedBorder would otherwise paint a
-                // second, flat one inside it.
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
+                decoration: InputDecoration(
+                  // No hint any more: the label above says `Custom value`, and a
+                  // placeholder repeating it would be the same word twice for a
+                  // state (empty field) that lasts one keystroke.
+                  suffixText: '%',
+                  suffixStyle: GeniusWalletTypography.titleMd.copyWith(
+                    color: gw.textSecondary,
+                  ),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: GeniusWalletConsts.space6,
+                    vertical: GeniusWalletConsts.space6,
+                  ),
+                  // All four silenced: the ring is the border now, and the
+                  // theme's app-wide focusedBorder would otherwise paint a
+                  // second, flat one inside it.
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                ),
               ),
             ),
           ),

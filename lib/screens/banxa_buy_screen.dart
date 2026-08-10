@@ -24,6 +24,7 @@ import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
@@ -669,20 +670,23 @@ class _BanxaBuyFormState extends State<BanxaBuyForm> {
           // column to column.
           _LabelledField(
             'You spend',
-            GWTextField(
-              controller: _amountController,
-              textStyle: GeniusWalletTypography.numericHeadline,
-              // An INLINE prefix, on the digits' own baseline and sized to
-              // the glyph - not the 48px centred icon gutter it used to
-              // land in. Bare `Text` on purpose: the field supplies the
-              // type step and the secondary ink through `prefixStyle`, and
-              // restating them here would silently defeat it.
-              prefix: symbol.isEmpty ? null : Text(symbol),
-              helper: _limitsHelper(state),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+            GWKeyboardDoneBar(
+              child: GWTextField(
+                controller: _amountController,
+                textStyle: GeniusWalletTypography.numericHeadline,
+                // An INLINE prefix, on the digits' own baseline and sized to
+                // the glyph - not the 48px centred icon gutter it used to
+                // land in. Bare `Text` on purpose: the field supplies the
+                // type step and the secondary ink through `prefixStyle`, and
+                // restating them here would silently defeat it.
+                prefix: symbol.isEmpty ? null : Text(symbol),
+                helper: _limitsHelper(state),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                onChanged: (v) =>
+                    context.read<MakeOrderCubit>().setAmountText(v),
               ),
-              onChanged: (v) => context.read<MakeOrderCubit>().setAmountText(v),
             ),
           ),
           const SizedBox(height: GeniusWalletConsts.space8),
