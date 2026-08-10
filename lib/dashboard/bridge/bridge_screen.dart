@@ -10,6 +10,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/inputs/gw_keyboard_done_bar.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_cta_state.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
@@ -422,39 +423,49 @@ class BridgeScreenState extends State<BridgeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(
-                child: TextField(
-                  controller: fromAmountController,
-                  style: heroStyle.copyWith(color: gw.textPrimary),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [DecimalTextInputFormatter()],
-                  decoration: InputDecoration(
-                    hintText: "0.0",
-                    hintStyle: heroStyle.copyWith(color: gw.textPrimary38),
-                    border: InputBorder.none,
-                  ),
-                  onChanged: (value) async {
-                    // Cancel any existing debounce timer
-                    if (_debounce?.isActive ?? false) {
-                      _debounce!.cancel();
-                    }
+                child: GWKeyboardDoneBar(
+                  child: TextField(
+                    controller: fromAmountController,
+                    style: heroStyle.copyWith(color: gw.textPrimary),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [DecimalTextInputFormatter()],
+                    decoration: InputDecoration(
+                      hintText: "0.0",
+                      hintStyle: heroStyle.copyWith(color: gw.textPrimary38),
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (value) async {
+                      // Cancel any existing debounce timer
+                      if (_debounce?.isActive ?? false) {
+                        _debounce!.cancel();
+                      }
 
-                    // Start a new debounce timer
-                    _debounce = Timer(
-                      const Duration(milliseconds: 300),
-                      () async {
-                        // If an API call is already in progress, do nothing
-                        if (_isApiCallInProgress) {
-                          return;
-                        }
+                      // Start a new debounce timer
+                      _debounce = Timer(
+                        const Duration(milliseconds: 300),
+                        () async {
+                          // If an API call is already in progress, do nothing
+                          if (_isApiCallInProgress) {
+                            return;
+                          }
 
-                        // Validate input immediately
-                        try {
-                          if ((double.parse(value)) >
-                                  (fromToken?.balance ?? 0) ||
-                              fromToken?.balance == null) {
-                            // Not enough balance or invalid balance
+                          // Validate input immediately
+                          try {
+                            if ((double.parse(value)) >
+                                    (fromToken?.balance ?? 0) ||
+                                fromToken?.balance == null) {
+                              // Not enough balance or invalid balance
+                              setState(() {
+                                transactionCost = null;
+                                toAmountController.text = '';
+                                isError = true;
+                              });
+                              return;
+                            }
+                          } catch (e) {
+                            // Input wasn't a proper double
                             setState(() {
                               transactionCost = null;
                               toAmountController.text = '';
@@ -462,53 +473,45 @@ class BridgeScreenState extends State<BridgeScreen> {
                             });
                             return;
                           }
-                        } catch (e) {
-                          // Input wasn't a proper double
-                          setState(() {
-                            transactionCost = null;
-                            toAmountController.text = '';
-                            isError = true;
-                          });
-                          return;
-                        }
 
-                        // Set API call in progress
-                        _isApiCallInProgress = true;
-                        setState(() => isEstimating = true);
+                          // Set API call in progress
+                          _isApiCallInProgress = true;
+                          setState(() => isEstimating = true);
 
-                        // Make the API call
-                        final api = context.read<GeniusApi>();
-                        final gasCostResponse = await api.getBrigeOutGasCost(
-                          sourceChainId: state.selectedNetwork?.chainId ?? 0,
-                          contractAddress: fromToken?.address ?? "",
-                          rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
-                          address: state.selectedWallet?.address ?? "",
-                          amountToBurn: value,
-                          destinationChainId: toNetwork?.chainId ?? 0,
-                        );
+                          // Make the API call
+                          final api = context.read<GeniusApi>();
+                          final gasCostResponse = await api.getBrigeOutGasCost(
+                            sourceChainId: state.selectedNetwork?.chainId ?? 0,
+                            contractAddress: fromToken?.address ?? "",
+                            rpcUrl: state.selectedNetwork?.rpcUrl ?? "",
+                            address: state.selectedWallet?.address ?? "",
+                            amountToBurn: value,
+                            destinationChainId: toNetwork?.chainId ?? 0,
+                          );
 
-                        // Reset API call progress
-                        _isApiCallInProgress = false;
+                          // Reset API call progress
+                          _isApiCallInProgress = false;
 
-                        // Handle API response
-                        if (gasCostResponse.isSuccess) {
-                          setState(() {
-                            toAmountController.text = value;
-                            transactionCost = gasCostResponse.data;
-                            isError = false;
-                            isEstimating = false;
-                          });
-                        } else {
-                          setState(() {
-                            transactionCost = null;
-                            toAmountController.text = '';
-                            isError = true;
-                            isEstimating = false;
-                          });
-                        }
-                      },
-                    );
-                  },
+                          // Handle API response
+                          if (gasCostResponse.isSuccess) {
+                            setState(() {
+                              toAmountController.text = value;
+                              transactionCost = gasCostResponse.data;
+                              isError = false;
+                              isEstimating = false;
+                            });
+                          } else {
+                            setState(() {
+                              transactionCost = null;
+                              toAmountController.text = '';
+                              isError = true;
+                              isEstimating = false;
+                            });
+                          }
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
               const SizedBox(width: GeniusWalletConsts.space4),
