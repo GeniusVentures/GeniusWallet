@@ -12,8 +12,8 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/custom/wallet_address_custom.dart';
 import 'package:genius_wallet/components/job/submit_job_button.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
 import 'package:genius_wallet/components/sliding_drawer_button.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -231,7 +231,7 @@ class WalletInformationState extends State<WalletInformation> {
                                 geniusApi.deleteWallet(
                                   state.selectedWallet?.address ?? "",
                                 );
-                                showAppSnackBar(
+                                showToast(
                                   context,
                                   'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!',
                                 );

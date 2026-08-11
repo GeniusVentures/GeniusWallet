@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -95,9 +95,10 @@ class CheckoutOptionsSheet extends StatelessWidget {
                     mode: LaunchMode.externalApplication,
                   );
                 } catch (_) {
-                  showAppSnackBar(
+                  showToast(
                     context,
                     'Cannot open browser. Try QR or copy link.',
+                    type: ToastType.error,
                   );
                 }
               },
@@ -128,7 +129,7 @@ class CheckoutOptionsSheet extends StatelessWidget {
                 await Clipboard.setData(ClipboardData(text: checkoutUrl));
                 if (parentContext.mounted) {
                   Navigator.of(context).pop();
-                  showAppSnackBar(context, 'Checkout link copied');
+                  showToast(context, 'Checkout link copied');
                 }
               },
             ),

@@ -332,10 +332,10 @@ class BridgeScreenState extends State<BridgeScreen> {
           ? errorMessage
           : 'Bridge transaction failed.';
 
-      ToastManager.instance.showToast(
-        context: context,
+      showToast(
+        context,
+        isSuccess ? 'Bridge transaction completed.' : failureMessage,
         title: isSuccess ? 'Success' : 'Error',
-        message: isSuccess ? 'Bridge transaction completed.' : failureMessage,
         type: isSuccess ? ToastType.success : ToastType.error,
       );
 

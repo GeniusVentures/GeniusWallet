@@ -7,7 +7,7 @@ import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_state.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -59,7 +59,7 @@ class CheckoutQrPage extends StatelessWidget {
             !cubit.hasNavigated) {
           cubit.hasNavigated = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            showAppSnackBar(context, 'Order ${state.order!.status}');
+            showToast(context, 'Order ${state.order!.status}');
           });
         }
 
@@ -163,7 +163,7 @@ class CheckoutQrPage extends StatelessWidget {
                   onPressed: () async {
                     await Clipboard.setData(ClipboardData(text: checkoutUrl));
                     if (context.mounted) {
-                      showAppSnackBar(context, 'Link copied');
+                      showToast(context, 'Link copied');
                     }
                   },
                 ),

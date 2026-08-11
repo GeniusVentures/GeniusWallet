@@ -43,10 +43,10 @@ class NetworkSelection {
   }) async {
     walletCubit.selectNetwork(network);
 
-    ToastManager.instance.showToast(
-      context: context,
+    showToast(
+      context,
+      'Switched to ${network.name ?? network.symbol ?? "network"}.',
       title: 'Network Changed',
-      message: 'Switched to ${network.name ?? network.symbol ?? "network"}.',
       type: ToastType.success,
     );
 

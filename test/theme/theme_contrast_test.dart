@@ -335,9 +335,7 @@ void main() {
       ToastType.warning => Icons.warning_amber_outlined,
     };
 
-    // Mirrors ToastWidget's own private `_warningAccent` -- the fourth
-    // occurrence of the documented light-mode amber workaround (see the
-    // widget's own ponytail note).
+    // Mirrors ToastWidget's own `_accent` for the warning case.
     Color warningAccentFor(GWAppearanceMode mode, GWColors gw) =>
         gw.statusWarningText;
 
@@ -399,9 +397,11 @@ void main() {
             reason: 'toast title on surface $surface in $mode mode',
           );
 
-          final message = tester.widget<SelectableText>(
-            find.byType(SelectableText),
-          );
+          // Was a SelectableText. Text selection inside a transient that is
+          // gone in five seconds, and that is dismissed by dragging it, was
+          // fighting the swipe — so the message is a plain Text now. The
+          // contrast claim below is unchanged and is the point of this test.
+          final message = tester.widget<Text>(find.text('Message'));
           expect(
             message.style?.color,
             gw.textSecondary,

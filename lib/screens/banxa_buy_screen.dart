@@ -28,7 +28,7 @@ import 'package:genius_wallet/components/inputs/gw_select.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -111,11 +111,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             p.errorMessage != c.errorMessage || p.step != c.step,
         listener: (context, state) async {
           if (state.errorMessage.isNotEmpty) {
-            showAppSnackBar(
-              context,
-              state.errorMessage,
-              backgroundColor: context.gw.statusError,
-            );
+            showToast(context, state.errorMessage, type: ToastType.error);
 
             context.read<MakeOrderCubit>().clearError();
           }
@@ -153,7 +149,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             );
 
             if (!accepted) {
-              showAppSnackBar(
+              showToast(
                 context,
                 'You must agree to the disclaimer to proceed.',
               );

@@ -12,7 +12,7 @@ import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -183,7 +183,7 @@ class SDKAccountManagerButton extends StatelessWidget {
       onTap: () {
         if (!isSelected) {
           context.read<AppBloc>().add(SelectSDKAccount(address));
-          showAppSnackBar(
+          showToast(
             context,
             'SDK account selected',
             duration: const Duration(seconds: 1),
@@ -340,7 +340,7 @@ class SDKAccountManagerButton extends StatelessWidget {
       // `navigator.context` is the ROOT navigator's and outlives the popped
       // drawer, so the guard above is the correct one -- the analyzer
       // cannot see that and reads it as unrelated to this context.
-      showAppSnackBar(
+      showToast(
         // ignore: use_build_context_synchronously
         navigator.context,
         'Recovery phrase copied to clipboard',
@@ -452,12 +452,13 @@ class SDKAccountManagerButton extends StatelessWidget {
     // `navigator.context` is the ROOT navigator's and outlives the popped
     // drawer, so the guard above is the correct one -- the analyzer
     // cannot see that and reads it as unrelated to this context.
-    showAppSnackBar(
+    showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
       removed
           ? 'SDK account deleted'
           : 'The SDK refused to delete that account.',
+      type: removed ? ToastType.success : ToastType.error,
       duration: Duration(seconds: removed ? 1 : 3),
     );
   }
@@ -520,7 +521,7 @@ class SDKAccountManagerButton extends StatelessWidget {
       return;
     }
     bloc.add(RefreshSDKAccounts());
-    showAppSnackBar(
+    showToast(
       context,
       'Account added successfully',
       duration: const Duration(seconds: 1),
@@ -577,13 +578,14 @@ class SDKAccountManagerButton extends StatelessWidget {
     // `navigator.context` is the ROOT navigator's and outlives the popped
     // drawer, so the guard above is the correct one -- the analyzer
     // cannot see that and reads it as unrelated to this context.
-    showAppSnackBar(
+    showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
       ok
           ? 'Payout address set'
           : 'The SDK refused that payout address'
                 '${result == null ? '' : ' (${result.name})'}.',
+      type: ok ? ToastType.success : ToastType.error,
       duration: Duration(seconds: ok ? 1 : 3),
     );
   }

@@ -8,7 +8,7 @@ import 'package:genius_wallet/banxa/handle_banxa_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/custom_future_builder.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
-import 'package:genius_wallet/components/scaffold/scaffold_helper.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -49,7 +49,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       _bannerText = bannerInfo.text;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showAppSnackBar(context, _bannerText!);
+        showToast(context, _bannerText!);
       });
     }
   }
