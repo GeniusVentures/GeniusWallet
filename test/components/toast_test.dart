@@ -37,7 +37,7 @@ Future<BuildContext> _pumpHost(
 void main() {
   tearDown(() => ToastManager.instance.disposeAll());
 
-  group('density is chosen by whether there is a title', () {
+  group('density is chosen by the title, except for errors', () {
     testWidgets('no title gives a compact pill with no dismiss button', (
       tester,
     ) async {
@@ -75,6 +75,37 @@ void main() {
       // button was ~28 before this.
       expect(button.width, greaterThanOrEqualTo(44));
       expect(button.height, greaterThanOrEqualTo(44));
+    });
+
+    testWidgets('an untitled error still gets the card', (tester) async {
+      // The migration left several failure paths calling showToast with a
+      // type and no title — swap_screen's two, banxa's browser failure. As a
+      // compact pill each was ellipsized to one line, carried no dismiss
+      // button and vanished in two seconds, taking the half of the sentence
+      // that says what to do with it.
+      final context = await _pumpHost(tester);
+      showToast(
+        context,
+        'Failed to load tokens. Check your connection and try again.',
+        type: ToastType.error,
+      );
+      await tester.pump();
+
+      final toast = tester.widget<ToastWidget>(find.byType(ToastWidget));
+      expect(toast.density, ToastDensity.card);
+      expect(toast.title, 'Error');
+      expect(find.byTooltip('Dismiss'), findsOneWidget);
+    });
+
+    testWidgets('an untitled success is still a receipt', (tester) async {
+      final context = await _pumpHost(tester);
+      showToast(context, 'Link copied', type: ToastType.success);
+      await tester.pump();
+
+      expect(
+        tester.widget<ToastWidget>(find.byType(ToastWidget)).density,
+        ToastDensity.compact,
+      );
     });
   });
 

@@ -177,6 +177,7 @@ class _SwapScreenState extends State<SwapScreen> {
         showToast(
           context,
           'Failed to load tokens. Check your connection and try again.',
+          type: ToastType.error,
         );
       }
     }
@@ -277,6 +278,7 @@ class _SwapScreenState extends State<SwapScreen> {
         showToast(
           context,
           'Failed to fetch route. Check your input and try again.',
+          type: ToastType.error,
         );
       }
     }

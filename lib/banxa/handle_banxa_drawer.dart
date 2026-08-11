@@ -98,6 +98,7 @@ class CheckoutOptionsSheet extends StatelessWidget {
                   showToast(
                     context,
                     'Cannot open browser. Try QR or copy link.',
+                    type: ToastType.error,
                   );
                 }
               },

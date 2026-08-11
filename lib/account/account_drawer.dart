@@ -193,6 +193,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       showToast(
         navigator.context,
         'You must keep at least one wallet.',
+        type: ToastType.warning,
         duration: const Duration(seconds: 2),
       );
       return;

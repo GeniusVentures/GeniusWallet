@@ -29,7 +29,7 @@ class FutureStateWidget<T> extends StatelessWidget {
           return loading ?? const Center(child: Loading());
         } else if (snapshot.hasError) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            showToast(context, 'Error: ${snapshot.error}');
+            showToast(context, '${snapshot.error}', type: ToastType.error);
           });
 
           return Center(

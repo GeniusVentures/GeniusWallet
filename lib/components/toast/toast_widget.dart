@@ -23,9 +23,9 @@ enum ToastDensity { compact, card }
 ///
 /// Colours are the 23-03 palette unchanged: every pair here was measured in
 /// both appearance modes (see `23-03-CONTRAST.md`). The status colour is
-/// carried by the leading edge and the icon only — title and message stay on
-/// the neutral `textPrimary`/`textSecondary` ladder, so the toast never
-/// depends on a status colour for legibility.
+/// carried by the icon alone — title and message stay on the neutral
+/// `textPrimary`/`textSecondary` ladder, so the toast never depends on a
+/// status colour for legibility.
 class ToastWidget extends StatelessWidget {
   final String message;
 
@@ -136,9 +136,9 @@ class _Compact extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        spacing: GeniusWalletConsts.space3,
         children: [
           Icon(icon, color: accent, size: 16),
-          const SizedBox(width: GeniusWalletConsts.space3),
           Flexible(
             child: Text(
               message,
@@ -193,13 +193,13 @@ class _Card extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            spacing: GeniusWalletConsts.space3,
             children: [
               // The icon is the only thing carrying the status. No leading
               // edge: two coloured objects saying the same thing is one too
               // many, and the glyph distinguishes the three kinds by shape
               // rather than by colour, which is what keeps 1.4.1 satisfied.
               Icon(icon, color: accent, size: 20),
-              const SizedBox(width: GeniusWalletConsts.space3),
               Expanded(
                 child: Text(
                   title,

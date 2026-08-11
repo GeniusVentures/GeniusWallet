@@ -37,7 +37,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// **Component owns:** the display truncation ([shorten]), copying the FULL
 /// [value] (never the truncated form - the security property Phase 23
 /// audited at `token_info_screen.dart:993`), the copy confirmation via
-/// [showAppSnackBar], the hover state, the copy glyph, and
+/// [showToast], the hover state, the copy glyph, and
 /// [kGWDetailRowPadding] placed INSIDE the gesture detector so the whole grid
 /// cell is the tap target (`gw_detail_grid.dart:5-15` documents why the grid
 /// itself does not pad its rows).

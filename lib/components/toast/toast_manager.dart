@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/toast/toast_widget.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 enum ToastType { success, error, warning }
 
@@ -9,12 +10,17 @@ enum ToastType { success, error, warning }
 /// one flat stride, because a compact pill is roughly half a card.
 ///
 /// ponytail: these are measured constants, not laid-out heights — a card whose
-/// message wraps to three lines at 2.0x text scale will overlap the toast
-/// under it. The upgrade is to hoist all live toasts into a single
-/// `OverlayEntry` holding a `Column`, at which point the stack lays itself out
-/// and these disappear. Not done here because it rewrites the entry lifecycle
-/// for a case only large text scale reaches.
-const double _kCardStride = 84.0;
+/// message WRAPS, or is scaled up, still overlaps the toast under it. The
+/// upgrade is to hoist all live toasts into a single `OverlayEntry` holding a
+/// `Column`, at which point the stack lays itself out and these disappear. Not
+/// done here because it rewrites the entry lifecycle.
+///
+/// A card is 92 at 1.0x — `space6` padding twice (24) + the 44pt dismiss row +
+/// `space2` (4) + one `bodySm` line (20) — so 84 overlapped two stacked cards
+/// by 8px before anything wrapped. 4 of slack on top of the 92.
+const double _kCardStride = 96.0;
+
+/// A pill is 30 — `space3` padding twice (12) + one `labelMd` line (18).
 const double _kCompactStride = 44.0;
 
 /// Beyond this the oldest is evicted. Was uncapped: at the old flat 85px
@@ -24,6 +30,16 @@ const int _kMaxVisible = 3;
 /// Mobile app bar height — `MobileHeader.preferredSize`.
 const double _kMobileHeaderHeight = 60.0;
 
+/// The title an untitled error is given so it still gets the card.
+///
+/// Density is chosen by [showToast]'s `title`, which for a receipt is the
+/// right question — but an error is never a receipt. Left compact, "Failed to
+/// load tokens. Check your connection and try again." ellipsized to one line,
+/// carried no dismiss button and was gone in two seconds, which is how you
+/// lose the half of the sentence that says what to do. `bridge_screen` had
+/// already written this exact title by hand.
+const String _kErrorTitle = 'Error';
+
 /// The one call. Everything in the app that has something to tell the user
 /// comes through here.
 ///
@@ -32,6 +48,9 @@ const double _kMobileHeaderHeight = 60.0;
 /// confirmation and gets the compact pill. That is not a shortcut — a title is
 /// what distinguishes "Verification failed / Please try again" from
 /// "Link copied", and the two want different amounts of the screen.
+///
+/// One exception: [ToastType.error] always gets the card, titled or not — see
+/// [_kErrorTitle]. Nothing the user has to act on is allowed to be a receipt.
 void showToast(
   BuildContext context,
   String message, {
@@ -76,7 +95,8 @@ class ToastManager {
     // Deliberately no early return if neither resolves: throwing is what
     // `Overlay.of` already did, and swallowing the toast would be worse.
     final overlay = Overlay.maybeOf(context) ?? Navigator.of(context).overlay!;
-    final isCard = title != null;
+    final cardTitle = title ?? (type == ToastType.error ? _kErrorTitle : null);
+    final isCard = cardTitle != null;
 
     while (_toasts.length >= _kMaxVisible) {
       _dismiss(_toasts.first, null);
@@ -88,7 +108,7 @@ class ToastManager {
     entry = OverlayEntry(
       builder: (_) => _AnimatedToast(
         offsetAbove: _offsetAbove(toast),
-        title: title,
+        title: cardTitle,
         message: message,
         type: type,
         // The auto-dismiss timer lives on the State, not here, so that a tree
@@ -240,7 +260,12 @@ class _AnimatedToastState extends State<_AnimatedToast>
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
-    final isMobile = media.size.width < 600;
+    // The repo's own breakpoint, not a second one — a literal 600 here meant a
+    // toast switched to its phone placement at a width nothing else in the app
+    // treats as a phone. `useDesktopLayout` also forces this branch on native
+    // iOS/Android whatever the width, which is what the safe-area maths below
+    // is for.
+    final isMobile = !GeniusBreakpoints.useDesktopLayout(context);
 
     // Derived, never guessed. The old `top: 100` was a literal with no
     // reference to the inset anywhere in this file, so it landed differently

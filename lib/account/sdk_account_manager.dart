@@ -458,6 +458,7 @@ class SDKAccountManagerButton extends StatelessWidget {
       removed
           ? 'SDK account deleted'
           : 'The SDK refused to delete that account.',
+      type: removed ? ToastType.success : ToastType.error,
       duration: Duration(seconds: removed ? 1 : 3),
     );
   }
@@ -584,6 +585,7 @@ class SDKAccountManagerButton extends StatelessWidget {
           ? 'Payout address set'
           : 'The SDK refused that payout address'
                 '${result == null ? '' : ' (${result.name})'}.',
+      type: ok ? ToastType.success : ToastType.error,
       duration: Duration(seconds: ok ? 1 : 3),
     );
   }
