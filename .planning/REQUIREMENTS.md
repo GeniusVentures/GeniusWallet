@@ -50,6 +50,17 @@ verified by running the flow.
 - [ ] **SCR-05**: Banxa (buy, KYC, checkout, order history/details) wears the redesign and keeps develop's rework — including the real KYC redirect URL
 - [ ] **SCR-06**: dApp connectivity (Reown/WalletConnect) wears the redesign and keeps develop's idempotent init guard — an arch-based skip kills WalletConnect on all x64 desktop
 
+### Functional wiring (SWAP)
+
+Coined 2026-09-16. The SCR requirements above are all "wears the redesign" — they say nothing
+about whether the surface *works*. A code sweep found `swap_screen.dart` fabricating a success
+receipt for a swap that never called Squid, which no existing requirement forbids. Tracked outside
+the 24 v1 count, like ORG.
+
+- [ ] **SWAP-01**: A swap moves real funds or reports why it could not. No success toast, receipt
+  or stored transaction is produced unless a transaction hash came back, and quote, rate, price
+  impact and fees come from the live route rather than a constant.
+
 ### Design Gaps (GAP)
 
 develop added 12 files the design has never seen. They have no mockup, no `DESIGN_SYSTEM.md` entry
@@ -169,8 +180,9 @@ Deferred to future milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GSD-01 | Phase 1 — Adopt GSD | ✓ Complete (PR #207, `12fd40d`) |
-| BLD-01 | Phase 1 — Adopt GSD | ✓ Complete (`4395da7`) |
+| SWAP-01 | Phase 26 — Swap that actually swaps | Pending (blocked on Squid integrator ID) |
+| GSD-01 | Pre-roadmap (GSD adoption) | ✓ Complete (PR #207, `12fd40d`) |
+| BLD-01 | Pre-roadmap (GSD adoption) | ✓ Complete (`4395da7`) |
 | DS-01 | Phase 2 — Design tokens & verification loop | Complete |
 | BLD-02 | Phase 2 — Design tokens & verification loop | Complete |
 | BLD-03 | Phase 2 — Design tokens & verification loop | Complete |
@@ -222,6 +234,7 @@ Deferred to future milestones.
 - Mapped to phases: **24/24 ✓** — every v1 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases (official track): 11 — **5 complete (1, 2, 4, 5, 6)**, Phase 3 executed/walk-gated, 7-11 remaining. The redesign track (Phases 12-17) is tracked separately in ROADMAP.md.
 - Note: WIRE-01/WIRE-02 are tracked as guard requirements outside the 24 v1 count by design (they are "do-not-port" guards, not deliverables).
+- Note: SWAP-01 is tracked outside the 24 v1 count, coined 2026-09-16 — the v1 set only ever asked whether a surface *wore* the redesign, never whether it worked. Phase 26 owns it.
 - Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — Phase 22: 3 complete (ORG-01 closed on developer judgement with CI still unexecuted, ORG-02, ORG-03); Phase 23: 1 complete (ORG-04) and 1 PARTIAL (ORG-05, four extractions refused/deferred).
 
 ---

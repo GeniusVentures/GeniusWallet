@@ -4,7 +4,8 @@
 
 This milestone lands the `ui-redesign-3.514` design on `develop` **incrementally, layer by layer**,
 on branch `ui-redesign-port` (`branching_strategy: none` — phases land on the current branch, not
-per-phase branches). Phase 1 (Adopt GSD) shipped on `develop` via PR #207.
+per-phase branches). The `.planning/` GSD setup itself shipped on `develop` via PR #207 (`12fd40d`) before the
+numbered phases below began.
 
 ### Why this order
 
@@ -96,7 +97,6 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [x] **Phase 1: Adopt GSD** - Establish and commit `.planning/` infrastructure (shipped, PR #207)
 - [x] **Phase 2: Design tokens & verification loop** - Redesign token vocabulary lands invisibly; debug-build loop and dev-gating established (completed 2026-07-16)
 - [ ] **Phase 3: gw_* component library** - The 82 additive primitives + design gallery + gap treatment decided
 - [x] **Phase 4: Navigation shell & chrome** - Shell, header chrome, Settings and SDK account manager wear the redesign (7/7 plans; 04-VERIFICATION.md = passed 6/6, 2026-07-18)
@@ -106,7 +106,8 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - [x] **Phase 8: Swap & bridge** - Squid Router and GNUS bridge (completed 2026-07-27)
 - [x] **Phase 9: Banxa** - Buy, KYC, checkout, order history/details (completed 2026-07-27)
 - [ ] **Phase 10: dApp connectivity** - Reown/WalletConnect
-- [ ] **Phase 11: Port closeout** - Full-app walk; all 37 findings signed off (now also signs off the redesign-track surfaces 12/13/14/15/16/17 + the shadow-name baseline)
+- [ ] **Phase 11: Functional closeout** - Every reachable feature works or is honestly unavailable (walk script: `11-WALK.md`)
+- [ ] **Phase 26: Swap that actually swaps** - Replace the mocked Squid layer with the real v2 API; no success shown for a swap that did not happen
 
 ### Surface ownership map (2026-07-23 — one surface, one owning phase; no overlap)
 
@@ -135,28 +136,10 @@ redesign-track phase supersedes a Phase 5 first pass, Phase 5's version is histo
 
 ## Phase Details
 
-### Phase 1: Adopt GSD
-
-**Goal**: A committed, usable GSD setup on `develop`
-**Depends on**: Nothing (first phase)
-**Requirements**: GSD-01, BLD-01
-**Success Criteria** (what must be TRUE):
-
-  1. `.planning/` contains PROJECT.md, config.json, codebase map, REQUIREMENTS.md, ROADMAP.md, STATE.md — ✓
-  2. The setup is merged into `develop` — ✓ PR #207 (`12fd40d`)
-  3. A Windows debug build links and runs — ✓ `4395da7` (cherry-picked to develop)
-
-**Plans**: 1/1 complete
-**Status**: ✓ COMPLETE
-
-Plans:
-
-- [x] 01-01: Finalize and commit `.planning/` scaffolding
-
 ### Phase 2: Design tokens & verification loop
 
 **Goal**: The redesign's visual vocabulary is on develop and every later phase can be checked by running the app
-**Depends on**: Phase 1
+**Depends on**: Nothing (first phase)
 **Requirements**: DS-01, BLD-02, BLD-03
 **Success Criteria** (what must be TRUE):
 
@@ -447,26 +430,27 @@ includes the KYC redirect, which D-02 defers. See `09-OUTSTANDING.md` (written b
 **UI hint**: yes
 **Findings**: 3, 20.
 
-### Phase 11: Port closeout
+### Phase 11: Functional closeout
 
-**Goal**: The redesign is confirmed landed and non-regressive across the whole app
-**Depends on**: Phases 5, 6, 7, 8, 9, 10 — **and the redesign track 12, 13, 14, 15, 16, 17**
+**Goal**: Every feature a user can reach either works, or is honestly unavailable
+**Depends on**: Phases 5-10, 12-17
 
-> **EXPANDED SCOPE (2026-07-23).** Beyond the original 37 findings, closeout now also signs off the
-> redesign-track surfaces that landed in parallel: **Transactions (12/15), Boot (13), Compute (14),
-> Markets (16), News (17)** — including the **outstanding walks for 16/17** and the **incomplete
-> 13-04/13-05** — and must **resolve the shadow-name baseline** (`verify_additive_boundary.sh` is red on
-> `_TimeframeSegment`/`_SplashState` added by 16/boot). No surface may still wear develop's old skin, old
-> OR new track.
+> **REFRAMED 2026-09-16.** This phase used to ask "did the redesign land without regressing?".
+> That question is answered. The open question is whether the app *does* anything: a code sweep
+> on 2026-09-16 found Swap fabricates a success receipt without calling Squid, Send is a disabled
+> stub, dApp connect cannot initialize on Windows, and both Banxa webviews have no Windows
+> implementation. The walk script is `11-WALK.md`.
 
 **Requirements**: BEH-01
 **Success Criteria** (what must be TRUE):
 
-  1. Every one of the 37 findings in `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` is confirmed non-regressed by running the app, each with a recorded observation — or consciously accepted with a written reason
-  2. A single walk from cold start through onboarding, dashboard, token, swap, Banxa and dApp connect completes with no runtime exception and no screen still wearing develop's old skin
-  3. Windows debug and release builds both succeed and `flutter analyze` reports 0 errors
+  1. Every row in `11-WALK.md` is marked works, or accepted in writing with a reason
+  2. No screen reports success for something that did not happen
+  3. A single walk from cold start through onboarding, dashboard, bridge and a compute job
+     completes with no runtime exception
+  4. Windows debug and release both build and `flutter analyze` reports 0 errors
 
-**Plans**: TBD
+**Plans**: TBD — written from the findings the walk produces
 
 ## Progress
 
@@ -1417,3 +1401,39 @@ plans and executed in parallel
 > both plans' code is merged. `deferred-items.md` is unresolved, so milestone close will prompt
 > `[R]/[A]/[C]` on it under GSD 1.10.0.
 
+### Phase 26: Swap that actually swaps
+
+**Goal**: A swap either moves funds or says why it could not. Nothing in between.
+**Depends on**: Phase 8 (owns the swap skin; this phase changes no visual design)
+**Requirements**: SWAP-01
+**Blocked on**: a Squid integrator ID — see `26-CONTEXT.md`
+
+> **Why this exists.** `swap_screen.dart:301` never calls Squid. It builds a `completed`
+> Transaction, shows a success toast, opens the receipt and writes the row to Hive. The service
+> beneath it returns `mockTokens` / `mockSquidRoute` at a fixed rate of 993.72, and the
+> commented-out "real" calls reference a `_baseUrl` that is never defined. None of it is behind
+> `kDebugMode`.
+>
+> A generated Squid v2 client already exists as the unused `squidrouter` submodule. Verified
+> 2026-09-16: it resolves, analyzes with 0 errors, and is callable from app code. So this phase is
+> mostly deletion and wiring — `lib/squid_router/models/` duplicates it and goes away.
+
+**Success Criteria** (what must be TRUE):
+
+  1. A swap on a real network moves real funds, and the receipt's hash is on the explorer
+  2. No success toast, receipt or stored transaction is produced unless a hash came back
+  3. A failed or rejected swap leaves no row in Hive and tells the user what happened
+  4. Quote, rate, price impact and fees on screen come from the live route, not a constant
+  5. `SquidTokenService` contains no `mock*` return and no commented-out HTTP
+
+**Plans**: 7 plans — waves 1-6. Plans 01-05 cost nothing to run; 06 spends real funds; 07 needs dust.
+Only 03, 04, 06 and 07 need the integrator ID, and only for their live half.
+
+Plans:
+- [ ] 26-01-PLAN.md — wire the `squidrouter` submodule; integrator ID via `--dart-define`; an unconfigured build reports swap unavailable (wave 1)
+- [ ] 26-02-PLAN.md — ERC-20 `allowance`, `approve` and `rawBalanceOf` on Web3, plus the exact-amount approval rule (wave 1)
+- [ ] 26-03-PLAN.md — live `quoteOnly` `/v2/route`; base-unit conversion; the route card reads the real estimate (wave 2)
+- [ ] 26-04-PLAN.md — live token catalogue and real balances; `SwapToken` replaces `lib/squid_router/models/` (wave 3)
+- [ ] 26-05-PLAN.md — the swap orchestrator: route, approval, send, status polling; no-hash-no-side-effects is structural (wave 4)
+- [ ] 26-06-PLAN.md — delete the fabricated transaction and wire `_submitSwap` to the outcome; first real swap (wave 5)
+- [ ] 26-07-PLAN.md — a distinct message per failure, and no stored row on any of them (wave 6)

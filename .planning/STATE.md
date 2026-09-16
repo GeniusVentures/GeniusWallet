@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 25
-current_phase_name: "Dashboard section caps & one scroll — SHIPPED on develop"
-status: idle
-stopped_at: "No active phase. Everything below is merged into `develop` (tip fa74006d), not sitting on a feature branch. Quick task 260806-hfe (transactions at phone width) shipped as PR #224 and quick task 260807-bxs (Markets hero, real timeframe tabs, cards) as PR #226 — an earlier note here claiming 260806-hfe was 'NOT pushed, no PR' was wrong. Phases 24 (mobile nav shell) and 25 (dashboard section caps + Assets page) also shipped, executed by Jakub outside GSD: their completion is measured from merged code, NOT from GSD artifacts — phase 24 has no SUMMARY and its PLAN still reads status: in-progress; 25-01 has no SUMMARY and the BRIEF still reads ready-to-plan. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs)."
-last_updated: "2026-08-08T00:00:00.000Z"
-last_activity: 2026-08-08
+current_phase: 26
+current_phase_name: "Swap that actually swaps — waves 1-3 landed (4/7 plans), wave 4 awaiting a status-mapping decision"
+status: in_progress
+stopped_at: "Phase 26 (Swap that actually swaps) wave 1 COMPLETE on branch `phase-26-swap-wiring`, 10 commits, not pushed and no PR. 26-01 wired the vendored `squidrouter` submodule and gated the swap screen behind `GW_SQUID_INTEGRATOR_ID`; 26-02 added ERC-20 `allowance`/`approve`/`rawBalanceOf` with exact-amount-only approval. Tests 1216 -> 1239, analyzer 0 in both packages. **Waves 2-6 are BLOCKED on a Squid integrator ID** (applied for at squidrouter.typeform.com/integrator-id, not yet received); 26-03 carries a hard precondition and will halt rather than stub. **The original bug is NOT yet fixed** - swap_screen.dart:327 still reads `// TODO: invoke Squid API` and squid_token_service.dart still has 3 `return mock` lines. A build WITHOUT the ID is now honest (refuses); a build WITH one would still fabricate a completed transaction. 26-05 owns the TODO, 26-03 owns the mocks. Live walk decided: Base mainnet 8453, NOT the dead 84531 'Base - Sepolia' entry. Phase 11 was reframed from port closeout to functional closeout with walk script 11-WALK.md and 3 findings logged. New requirement SWAP-01 coined - no prior requirement asked whether a surface worked, only whether it wore the redesign."
+last_updated: "2026-09-16T00:00:00.000Z"
+last_activity: 2026-09-16
 progress:
   total_phases: 25
   completed_phases: 23
-  total_plans: 110
-  completed_plans: 109
+  total_plans: 117
+  completed_plans: 113
   percent: 92
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 All tracked work is merged into `develop` (tip `fa74006d`). The `ui-redesign-port` branch still
 exists locally but its remote was pruned — it is no longer where work lands. Phases 24 and 25
-shipped; phases 1, 10, 11 never started; phase 14 is the one phase still genuinely open (14-08
+shipped; phases 10 and 11 never started; phase 14 is the one phase still genuinely open (14-08
 unwired). Latest merges: PR #224 (transactions at phone width) and PR #226 (Markets hero,
 timeframe tabs, cards).
 
@@ -43,7 +43,7 @@ The narrative below predates 2026-08-06 and describes the dual-track period. It 
 record of how the tracks ran, not as a statement of where things stand.
 
 > **DUAL-TRACK (both live on branch `ui-redesign-port`).** This project runs two parallel tracks.
-> The frontmatter counters above track only the **official GSD roadmap (Phases 1-11)**.
+> The frontmatter counters above track only the **official GSD roadmap (Phases 2-11)**.
 > - **Official track:** Phase 06 (Onboarding) — **COMPLETE 6/6 (closed 2026-07-23).** Phase 07
 >   (Token screens) EXECUTING, 07-03 human walk still blocking (see below). **Phase 08 (Swap &
 >   bridge) execution started in parallel 2026-07-25: 08-01 (swap component family re-skin, 3/3
