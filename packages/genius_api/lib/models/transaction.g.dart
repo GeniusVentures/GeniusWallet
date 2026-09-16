@@ -177,6 +177,12 @@ class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
         return TransactionStatus.completed;
       case 3:
         return TransactionStatus.failed;
+      case 4:
+        return TransactionStatus.needsGas;
+      case 5:
+        return TransactionStatus.partialSuccess;
+      case 6:
+        return TransactionStatus.refunded;
       default:
         return TransactionStatus.pending;
     }
@@ -193,6 +199,12 @@ class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
         writer.writeByte(2);
       case TransactionStatus.failed:
         writer.writeByte(3);
+      case TransactionStatus.needsGas:
+        writer.writeByte(4);
+      case TransactionStatus.partialSuccess:
+        writer.writeByte(5);
+      case TransactionStatus.refunded:
+        writer.writeByte(6);
     }
   }
 

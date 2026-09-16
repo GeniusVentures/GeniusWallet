@@ -290,7 +290,7 @@ class TxRowContent {
   /// 113px line, which is the defect 179-C exists to remove.
   String? get statusTail => status == TransactionStatus.completed
       ? null
-      : (statusLabel ?? _statusLabel(status));
+      : (statusLabel ?? statusWordFor(status));
 
   /// Already signed and clamped, and never empty — every type produces a real
   /// number, including a job (its fee) and a failed row (the amount it
@@ -385,8 +385,14 @@ String _actionFor(TransactionType? type, bool isSent) {
   }
 }
 
-String _statusLabel(TransactionStatus status) =>
-    status.name[0].toUpperCase() + status.name.substring(1);
+/// The narrow row pins this into a 76px box, so every word must fit there.
+/// The full sentence belongs on the receipt, not here.
+String statusWordFor(TransactionStatus status) => switch (status) {
+  TransactionStatus.needsGas => 'Paused',
+  TransactionStatus.partialSuccess => 'Partial',
+  TransactionStatus.refunded => 'Refunded',
+  _ => status.name[0].toUpperCase() + status.name.substring(1),
+};
 
 /// Never returns an empty string — an address can be blank on a malformed
 /// record and a blank subtitle would collapse the row's second line.
@@ -557,7 +563,7 @@ TxRowContent txRowContent(
   // Appended LAST so the wide page can show the context alone and carry the
   // status in its own pill.
   if (status != TransactionStatus.completed) {
-    subtitle = '$subtitle $_middot ${_statusLabel(status)}';
+    subtitle = '$subtitle $_middot ${statusWordFor(status)}';
   }
 
   // AMOUNT + TONE + VALUE LINE.

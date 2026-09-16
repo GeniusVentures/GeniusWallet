@@ -438,7 +438,7 @@ void main() {
       final tail = _paragraphWith(tester, 'Pending');
       final style = _styleOf(tail);
       for (final status in TransactionStatus.values) {
-        final word = status.name[0].toUpperCase() + status.name.substring(1);
+        final word = statusWordFor(status);
         final width = _widthOf(TextSpan(text: word, style: style), tail);
         expect(
           width,

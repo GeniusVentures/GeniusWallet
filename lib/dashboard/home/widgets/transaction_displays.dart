@@ -19,8 +19,14 @@ import 'package:intl/intl.dart';
 
 final _dateFormat = DateFormat("MMMM d, y 'at' h:mm a");
 
-String _capitalizeStatus(TransactionStatus status) =>
-    status.name[0].toUpperCase() + status.name.substring(1);
+/// Must agree with the row's own status word; these two surfaces have drifted
+/// before.
+String _capitalizeStatus(TransactionStatus status) => switch (status) {
+  TransactionStatus.needsGas => 'Paused',
+  TransactionStatus.partialSuccess => 'Partial',
+  TransactionStatus.refunded => 'Refunded',
+  _ => status.name[0].toUpperCase() + status.name.substring(1),
+};
 
 /// Above this row width, the row is the WIDE transactions page: it gains the
 /// Status pill + a fixed-width amount column (sketch 030-A2). Below it — the
@@ -96,6 +102,14 @@ const double _narrowStatusMaxWidth = 76;
   // Slate, not red: a cancelled transaction is not a failure, and
   // `surfaceMenu` is a real step up from the 156-A panel behind it.
   TransactionStatus.cancelled => (fg: gw.textSecondary, wash: gw.surfaceMenu),
+  // Amber, not red: the money is somewhere real and the user can still act on
+  // it. Placeholder tones until these three states get their own treatment.
+  TransactionStatus.needsGas || TransactionStatus.partialSuccess => (
+    fg: gw.statusWarningText,
+    wash: gw.statusWarning.withValues(alpha: 0.16),
+  ),
+  // A refund landed back where it started, so it reads like a cancellation.
+  TransactionStatus.refunded => (fg: gw.textSecondary, wash: gw.surfaceMenu),
 };
 
 /// The Status pill: label + dot in the status colour on a low-alpha wash of it,
