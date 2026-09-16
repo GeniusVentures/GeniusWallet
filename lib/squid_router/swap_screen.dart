@@ -11,20 +11,20 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/squid_router/held_tokens.dart';
-import 'package:genius_wallet/squid_router/models/squid_balance.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/squid_client.dart';
 import 'package:genius_wallet/squid_router/squid_swap_provider.dart';
-import 'package:genius_wallet/squid_router/squid_token_service.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
+import 'package:genius_wallet/squid_router/swap_allowance.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_preselection.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
+import 'package:genius_wallet/swap/swap_provider.dart';
 import 'package:genius_wallet/swap/swap_quote.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -41,10 +41,8 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 /// inline, twice, and both copies also excluded THIS side's own token - so the
 /// token you had just chosen vanished from its own picker and the `selectedToken`
 /// the drawer is handed could never match a row.
-List<SquidTokenInfo> tokensForSide(
-  List<SquidTokenInfo> all,
-  SquidTokenInfo? otherSide,
-) => all.where((t) => !t.sameAs(otherSide)).toList();
+List<SwapToken> tokensForSide(List<SwapToken> all, SwapToken? otherSide) =>
+    all.where((t) => !t.sameAs(otherSide)).toList();
 
 class SwapScreen extends StatefulWidget {
   const SwapScreen({
@@ -52,7 +50,12 @@ class SwapScreen extends StatefulWidget {
     this.preselectSymbol,
     this.preselectChainId,
     this.swapAvailable = squidConfigured,
+    this.provider = swapProvider,
   });
+
+  /// Where the catalogue and the quote come from. A parameter so a test can
+  /// drive the screen without a network or a credential.
+  final SwapProvider provider;
 
   /// Whether this build can reach Squid at all. False means no integrator ID,
   /// so the screen refuses up front rather than rendering a 401 as a route
@@ -73,8 +76,8 @@ class SwapScreen extends StatefulWidget {
   /// of "swap this coin", chosen by what the wallet can actually do.
   ///
   /// Null-safe by design: an unmatched symbol seats nothing rather than
-  /// guessing. The catalogue is `mockTokens` today (13 entries), so plenty of
-  /// real coins — GNUS among them — have no match at all.
+  /// guessing. The catalogue is the selected chain's only, so a coin held
+  /// elsewhere has no match at all.
   final String? preselectSymbol;
 
   /// Narrows the match when the same symbol exists on several chains, which is
@@ -86,9 +89,9 @@ class SwapScreen extends StatefulWidget {
 }
 
 class _SwapScreenState extends State<SwapScreen> {
-  List<SquidTokenInfo> tokens = [];
-  SquidTokenInfo? fromToken;
-  SquidTokenInfo? toToken;
+  List<SwapToken> tokens = [];
+  SwapToken? fromToken;
+  SwapToken? toToken;
   bool isLoading = true;
   String fromAmount = '';
   String toAmount = '';
@@ -105,7 +108,7 @@ class _SwapScreenState extends State<SwapScreen> {
 
   /// The selected pay token's balance as a number, or null when unknown.
   /// Never accuse the user of an insufficient balance on missing data.
-  double? get fromBalanceAmount => fromToken?.balance?.amountAsDouble;
+  double? get fromBalanceAmount => fromToken?.amountAsDouble;
 
   @override
   void initState() {
@@ -142,7 +145,7 @@ class _SwapScreenState extends State<SwapScreen> {
     final result = resolvePreselection(
       tokens: tokens,
       symbol: widget.preselectSymbol,
-      chainId: widget.preselectChainId,
+      chainId: widget.preselectChainId?.toString(),
     );
     if (result == null) {
       return;
@@ -159,45 +162,91 @@ class _SwapScreenState extends State<SwapScreen> {
   }
 
   Future<void> _loadTokens() async {
+    final cubit = context.read<WalletDetailsCubit>();
+    final walletState = cubit.state;
+    final chainId = walletState.selectedNetwork?.chainId;
+
+    if (chainId == null) {
+      setState(() {
+        tokens = [];
+        isLoading = false;
+      });
+      return;
+    }
+
     try {
-      final walletState = context.read<WalletDetailsCubit>().state;
-      final walletAddress = walletState.selectedWallet?.address;
-      final chainId = walletState.selectedNetwork?.chainId;
-
-      final result = await SquidTokenService.fetchTokens();
-      final balances = await SquidTokenService.fetchBalances(
-        chainIds: ["$chainId"],
-        walletAddress: walletAddress!,
+      final catalogue = await widget.provider.tokens('$chainId');
+      final withBalances = await _withBalances(
+        catalogue,
+        walletState,
+        cubit.geniusApi,
       );
-
-      // Merge balances into tokens
-      for (final token in result) {
-        final matchingBalance = balances.cast<SquidBalance?>().firstWhere(
-          (b) =>
-              b!.symbol.toLowerCase() == token.symbol.toLowerCase() &&
-              b.chainId.toLowerCase() ==
-                  token.chainId.toString().toLowerCase() &&
-              b.address.toLowerCase() == token.address.toLowerCase(),
-          orElse: () => null,
-        );
-        token.balance = matchingBalance;
+      if (!mounted) {
+        return;
       }
 
       setState(() {
-        tokens = result;
+        tokens = withBalances;
         isLoading = false;
       });
       _applyPreselection();
     } catch (e) {
-      setState(() => isLoading = false);
-      if (mounted) {
-        showToast(
-          context,
-          'Failed to load tokens. Check your connection and try again.',
-          type: ToastType.error,
-        );
+      if (!mounted) {
+        return;
       }
+      setState(() => isLoading = false);
+      showToast(
+        context,
+        'Failed to load tokens. Check your connection and try again.',
+        type: ToastType.error,
+      );
     }
+  }
+
+  /// Reads a balance only for the tokens this wallet already holds, decided
+  /// from `coins`. A busy chain lists hundreds of tokens, and one RPC call per
+  /// catalogue entry would be that many round trips on every page load.
+  Future<List<SwapToken>> _withBalances(
+    List<SwapToken> catalogue,
+    WalletDetailsState wallet,
+    GeniusApi api,
+  ) async {
+    final address = wallet.selectedWallet?.address;
+    final rpcUrl = wallet.selectedNetwork?.rpcUrl;
+    final held = <String>{
+      for (final coin in wallet.coins)
+        if (coin.address != null) coin.address!.toLowerCase(),
+    };
+
+    final result = <SwapToken>[];
+    for (final token in catalogue) {
+      // The native coin has no contract to call. Its figure is the one the
+      // rest of the app already displays, so this adds no RPC path for it.
+      if (isNativeToken(token.address)) {
+        result.add(
+          token.withBalance(
+            toBaseUnits(wallet.selectedWalletBalance ?? '', token.decimals),
+          ),
+        );
+        continue;
+      }
+      if (address == null ||
+          rpcUrl == null ||
+          !held.contains(token.address.toLowerCase())) {
+        result.add(token);
+        continue;
+      }
+      result.add(
+        token.withBalance(
+          await api.rawBalanceOf(
+            address: address,
+            contractAddress: token.address,
+            rpcUrl: rpcUrl,
+          ),
+        ),
+      );
+    }
+    return result;
   }
 
   void _flipTokens() {
@@ -251,10 +300,10 @@ class _SwapScreenState extends State<SwapScreen> {
     }
 
     return SwapQuoteRequest(
-      fromChainId: fromToken!.chainId.toString(),
+      fromChainId: fromToken!.chainId,
       fromToken: fromToken!.address,
       fromAmount: fromAmountUnits,
-      toChainId: toToken!.chainId.toString(),
+      toChainId: toToken!.chainId,
       toToken: toToken!.address,
       fromAddress: address,
       toAddress: address,
@@ -355,11 +404,11 @@ class _SwapScreenState extends State<SwapScreen> {
         transactionStatus: TransactionStatus.completed,
         type: TransactionType.swap,
         toAmount: toAmount,
-        toIconUrl: toToken?.logoURI,
+        toIconUrl: toToken?.logoUri,
         fromSymbol: fromToken?.symbol,
         toSymbol: toToken?.symbol,
         fromAmount: fromAmount,
-        fromIconUrl: fromToken?.logoURI,
+        fromIconUrl: fromToken?.logoUri,
       );
 
       showToast(

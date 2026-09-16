@@ -32,6 +32,11 @@ const _nativeAddresses = {
   '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
 };
 
+/// Whether [tokenAddress] is the chain's native coin rather than a contract.
+/// It has no `balanceOf` and no `approve` — both callers need the same answer.
+bool isNativeToken(String tokenAddress) =>
+    _nativeAddresses.contains(tokenAddress.trim().toLowerCase());
+
 /// Decides whether [tokenAddress] needs an approval before [amount] can move.
 ///
 /// [allowance] and [amount] are both RAW base units — the unit a route's
@@ -41,7 +46,7 @@ ApprovalDecision decideApproval({
   required BigInt allowance,
   required BigInt amount,
 }) {
-  if (_nativeAddresses.contains(tokenAddress.trim().toLowerCase())) {
+  if (isNativeToken(tokenAddress)) {
     return const ApprovalNotRequired._();
   }
   if (allowance >= amount) {

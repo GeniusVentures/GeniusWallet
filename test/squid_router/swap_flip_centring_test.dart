@@ -30,12 +30,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
+import 'package:genius_wallet/swap/swap_provider.dart';
+import 'package:genius_wallet/swap/swap_quote.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -50,19 +54,60 @@ class _UnusedApi implements GeniusApi {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
+/// The catalogue, with no network and no credential. The screen reaches Squid
+/// through [SwapProvider] and nothing else, so this is the whole seam.
+class _FakeSwapProvider implements SwapProvider {
+  const _FakeSwapProvider();
+
+  @override
+  Future<List<SwapToken>> tokens(String chainId) async => const [
+    // The native sentinel: the screen takes this one's balance from
+    // `selectedWalletBalance` rather than from an RPC read.
+    SwapToken(
+      chainId: '1',
+      address: '0x0000000000000000000000000000000000000000',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+    ),
+    SwapToken(
+      chainId: '1',
+      address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      name: 'Dai Stablecoin',
+      symbol: 'DAI',
+      decimals: 18,
+    ),
+  ];
+
+  @override
+  Future<SwapQuote> quote(SwapQuoteRequest request) =>
+      throw UnimplementedError('no route is fetched in these cases');
+}
+
 /// Seeds `WalletDetailsCubit.state` directly after construction, the pattern
 /// `test/dashboard/compute_panel_wiring_test.dart` established.
 ///
-/// `selectedNetwork` is deliberately left null: `fetchBalances` ignores its
-/// `chainIds` argument entirely and returns `mockSquidBalances` regardless, so
-/// seeding a network would add a fixture the screen does not read.
+/// The network and the wallet balance are both load-bearing now: the screen
+/// filters the catalogue by chain id, and the native coin's balance is the
+/// figure the rest of the app already displays. `coins` stays empty, so no
+/// ERC-20 balance is read and no RPC is attempted.
 class _SeededWalletDetailsCubit extends WalletDetailsCubit {
   _SeededWalletDetailsCubit({
     required super.geniusApi,
     required super.networkTokensProvider,
     required Wallet selectedWallet,
   }) {
-    emit(state.copyWith(selectedWallet: selectedWallet));
+    emit(
+      state.copyWith(
+        selectedWallet: selectedWallet,
+        selectedNetwork: const Network(
+          name: 'Ethereum',
+          symbol: 'ETH',
+          chainId: 1,
+        ),
+        selectedWalletBalance: '1',
+      ),
+    );
   }
 }
 
@@ -123,7 +168,10 @@ double _controlCentreY(WidgetTester tester) =>
 void main() {
   testWidgets('A: at rest the control is centred on the seam', (tester) async {
     _sizeSurface(tester);
-    await _mount(tester, const SwapScreen(swapAvailable: true));
+    await _mount(
+      tester,
+      const SwapScreen(swapAvailable: true, provider: _FakeSwapProvider()),
+    );
 
     expect(find.byType(SwapField), findsNWidgets(2));
     expect(
@@ -139,14 +187,15 @@ void main() {
   testWidgets('B: with a pay token seated and an amount typed, the control is '
       'still centred on the seam', (tester) async {
     _sizeSurface(tester);
-    // ETH on chainId 1 holds 1 ETH in `mockSquidBalances`, and
-    // `resolvePreselection` seats a HELD token on the pay side.
+    // The seeded wallet holds 1 ETH on chainId 1, and `resolvePreselection`
+    // seats a HELD token on the pay side.
     await _mount(
       tester,
       const SwapScreen(
         swapAvailable: true,
         preselectSymbol: 'ETH',
         preselectChainId: 1,
+        provider: _FakeSwapProvider(),
       ),
     );
 
@@ -202,6 +251,7 @@ void main() {
         swapAvailable: true,
         preselectSymbol: 'ETH',
         preselectChainId: 1,
+        provider: _FakeSwapProvider(),
       ),
     );
     await tester.enterText(find.byType(TextField).first, '1.5');

@@ -3,8 +3,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
-import 'package:genius_wallet/squid_router/models/squid_balance.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -26,14 +25,14 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 ///   rounded gradient tint plus a gradient check — no accent bar, no
 ///   full-bleed square fill.
 class TokenSelectorDrawer extends StatefulWidget {
-  final List<SquidTokenInfo> tokens;
-  final ValueChanged<SquidTokenInfo> onTokenSelected;
+  final List<SwapToken> tokens;
+  final ValueChanged<SwapToken> onTokenSelected;
   final String title;
 
   /// The token currently chosen for this side of the swap, if any. Optional so
   /// the existing call shape stays valid; without it the list simply renders
   /// with nothing selected, which is what it did before.
-  final SquidTokenInfo? selectedToken;
+  final SwapToken? selectedToken;
 
   /// Shown when [tokens] arrives EMPTY — i.e. the caller had nothing to offer,
   /// not the search that found nothing.
@@ -58,10 +57,10 @@ class TokenSelectorDrawer extends StatefulWidget {
 
   static void show({
     required BuildContext context,
-    required List<SquidTokenInfo> tokens,
-    required ValueChanged<SquidTokenInfo> onTokenSelected,
+    required List<SwapToken> tokens,
+    required ValueChanged<SwapToken> onTokenSelected,
     String title = 'Select Token',
-    SquidTokenInfo? selectedToken,
+    SwapToken? selectedToken,
     String? emptyTitle,
     String? emptyMessage,
   }) {
@@ -94,7 +93,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
 
   String _query = '';
 
-  bool _isSelected(SquidTokenInfo token) => token.sameAs(widget.selectedToken);
+  bool _isSelected(SwapToken token) => token.sameAs(widget.selectedToken);
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +203,7 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                   // class around it.
                   itemBuilder: (context, index) {
                     final token = filtered[index];
-                    final balance = token.balance;
+                    final logoUri = token.logoUri;
                     return GWSelectRow(
                       selected: _isSelected(token),
                       onTap: () {
@@ -212,42 +211,50 @@ class _TokenSelectorDrawerState extends State<TokenSelectorDrawer> {
                         widget.onTokenSelected(token);
                       },
                       leading: ClipOval(
-                        child: Image.network(
-                          token.logoURI,
-                          width: 36,
-                          height: 36,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, progress) =>
-                              progress == null
-                              ? child
-                              : Container(
-                                  width: 36,
-                                  height: 36,
-                                  color: gw.surfaceMenu,
-                                ),
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
+                        // The catalogue does not promise a logo. The neutral
+                        // disc the two loading branches already use holds the
+                        // 36x36 slot, so a missing one costs no layout.
+                        child: logoUri == null
+                            ? ColoredBox(
+                                color: gw.surfaceMenu,
+                                child: const SizedBox(width: 36, height: 36),
+                              )
+                            : Image.network(
+                                logoUri,
                                 width: 36,
                                 height: 36,
-                                color: gw.surfaceMenu,
-                                alignment: Alignment.center,
-                                child: Icon(
-                                  Icons.broken_image,
-                                  color: gw.textSecondary,
-                                  size: 16,
-                                ),
+                                fit: BoxFit.cover,
+                                loadingBuilder: (context, child, progress) =>
+                                    progress == null
+                                    ? child
+                                    : Container(
+                                        width: 36,
+                                        height: 36,
+                                        color: gw.surfaceMenu,
+                                      ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      color: gw.surfaceMenu,
+                                      alignment: Alignment.center,
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: gw.textSecondary,
+                                        size: 16,
+                                      ),
+                                    ),
                               ),
-                        ),
                       ),
                       title: token.name,
                       subtitle: token.symbol,
                       // A balance the wallet does not hold is ABSENT, not "0"
                       // - the same rule the transaction rows follow for a
                       // missing fiat line.
-                      trailing: balance == null
+                      trailing: token.rawBalance == null
                           ? null
                           : Text(
-                              balance.displayBalance,
+                              token.displayBalance,
                               style: GeniusWalletTypography.numericBody
                                   .copyWith(color: gw.textPrimary),
                             ),

@@ -11,20 +11,16 @@
 //
 // So the first test below is the regression, and it is the one that matters.
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 
-SquidTokenInfo _token(String symbol, String address, {int chainId = 1}) =>
-    SquidTokenInfo(
+SwapToken _token(String symbol, String address, {String chainId = '1'}) =>
+    SwapToken(
       chainId: chainId,
       address: address,
       name: symbol,
       symbol: symbol,
       decimals: 18,
-      crosschain: true,
-      commonKey: symbol,
-      logoURI: '',
-      coingeckoId: symbol,
     );
 
 void main() {
@@ -54,8 +50,8 @@ void main() {
     test('address alone is not identity - the list is cross-chain', () {
       // The same address on two chains is two different tokens. Dropping the
       // chainId half would hide a token from a chain the user never touched.
-      final onEthereum = _token('USDC', '0xSAME', chainId: 1);
-      final onPolygon = _token('USDC', '0xSAME', chainId: 137);
+      final onEthereum = _token('USDC', '0xSAME', chainId: '1');
+      final onPolygon = _token('USDC', '0xSAME', chainId: '137');
       expect(onEthereum.sameAs(onPolygon), isFalse);
       expect(tokensForSide([onEthereum, onPolygon], onPolygon), [onEthereum]);
     });
