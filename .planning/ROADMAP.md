@@ -1431,7 +1431,7 @@ plans and executed in parallel
 > - [x] 26-05-PLAN.md — the swap orchestrator: route, approval, send, status polling; no-hash-no-side-effects is structural (wave 4)
 > - [x] 26-06-PLAN.md — delete the fabricated transaction and wire `_submitSwap` to the outcome; first real swap (wave 5)
 > - [x] 26-07-PLAN.md — a distinct message per failure, and no stored row on any of them (wave 6)
-> - [ ] 26-08-PLAN.md — the three money-moved-but-not-as-asked states made legible and filterable (wave 7)
+> - [x] 26-08-PLAN.md — the three money-moved-but-not-as-asked states made legible and filterable (wave 7)
 >
 > **Two facts in the v2.0 phase details below are already stale**, because they were written
 > against the pre-branch tree: `squid_token_service.dart` no longer exists (deleted in 26-04, its
