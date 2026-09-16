@@ -43,7 +43,9 @@ class Web3 {
           { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "type": "function" },
           { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "type": "function" },
           { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
-          { "constant": true, "inputs": [], "name": "symbol", "outputs": [{ "name": "", "type": "string" }], "type": "function" }
+          { "constant": true, "inputs": [], "name": "symbol", "outputs": [{ "name": "", "type": "string" }], "type": "function" },
+          { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }, { "name": "_spender", "type": "address" }], "name": "allowance", "outputs": [{ "name": "remaining", "type": "uint256" }], "type": "function" },
+          { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "success", "type": "bool" }], "type": "function" }
         ]''', '');
 
   Future<Map<String, dynamic>> fetchTokenDetailsMulticall({
@@ -241,6 +243,74 @@ class Web3 {
     } catch (e) {
       await client.dispose();
       return 0;
+    }
+  }
+
+  /// The raw base-unit allowance [spender] holds over [owner]'s tokens.
+  ///
+  /// Raw, not scaled: a route's spend amount arrives in the same unit, and
+  /// comparing it against a decimals-divided double is off by 10^decimals.
+  Future<BigInt> allowance({
+    required String owner,
+    required String spender,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    final contract = DeployedContract(
+      abi,
+      EthereumAddress.fromHex(contractAddress),
+    );
+
+    try {
+      final result = await client.call(
+        contract: contract,
+        function: contract.function('allowance'),
+        params: [
+          EthereumAddress.fromHex(owner),
+          EthereumAddress.fromHex(spender),
+        ],
+      );
+
+      return BigInt.parse(result.first.toString());
+    } catch (e) {
+      // A failed read reports no allowance, never a phantom one: the worst it
+      // can cost is one redundant approval, and it can never skip a needed one.
+      return BigInt.zero;
+    } finally {
+      await client.dispose();
+    }
+  }
+
+  /// [address]'s token balance as the exact integer the contract returned.
+  ///
+  /// [balanceOf] divides by the decimals and hands back a double, which cannot
+  /// carry dust or a long fraction without rounding it.
+  Future<BigInt> rawBalanceOf({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    final contract = DeployedContract(
+      abi,
+      EthereumAddress.fromHex(contractAddress),
+    );
+
+    try {
+      final result = await client.call(
+        contract: contract,
+        function: contract.function('balanceOf'),
+        params: [EthereumAddress.fromHex(address)],
+      );
+
+      return BigInt.parse(result.first.toString());
+    } catch (e) {
+      return BigInt.zero;
+    } finally {
+      await client.dispose();
     }
   }
 
