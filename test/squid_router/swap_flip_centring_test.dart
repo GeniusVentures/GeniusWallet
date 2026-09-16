@@ -37,12 +37,12 @@ import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
-import 'package:genius_wallet/swap/swap_provider.dart';
-import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+
+import '../swap/fake_swap_provider.dart';
 
 /// `WalletDetailsCubit` takes a `GeniusApi` this screen never touches. The only
 /// wallet state `SwapScreen` reads is `selectedWallet?.address` (force-unwrapped
@@ -56,7 +56,7 @@ class _UnusedApi implements GeniusApi {
 
 /// The catalogue, with no network and no credential. The screen reaches Squid
 /// through [SwapProvider] and nothing else, so this is the whole seam.
-class _FakeSwapProvider implements SwapProvider {
+class _FakeSwapProvider extends FakeSwapProvider {
   const _FakeSwapProvider();
 
   @override
@@ -78,10 +78,6 @@ class _FakeSwapProvider implements SwapProvider {
       decimals: 18,
     ),
   ];
-
-  @override
-  Future<SwapQuote> quote(SwapQuoteRequest request) =>
-      throw UnimplementedError('no route is fetched in these cases');
 }
 
 /// Seeds `WalletDetailsCubit.state` directly after construction, the pattern

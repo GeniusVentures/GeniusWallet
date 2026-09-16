@@ -37,12 +37,12 @@ class _Steps {
     this.statuses = const [SwapStatus.success],
   });
 
-  final Object? routeError;
+  final Error? routeError;
   final BigInt? allowance;
   final bool approveResult;
-  final Object? approveError;
+  final Error? approveError;
   final String? sendResult;
-  final Object? sendError;
+  final Error? sendError;
   final List<SwapStatus> statuses;
 
   final List<BigInt> approvals = [];

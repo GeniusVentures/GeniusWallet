@@ -16,11 +16,11 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
-import 'package:genius_wallet/swap/swap_provider.dart';
-import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+
+import '../swap/fake_swap_provider.dart';
 
 const _native = '0x0000000000000000000000000000000000000000';
 const _dai = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
@@ -47,7 +47,7 @@ class _StubApi implements GeniusApi {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
-class _CatalogueProvider implements SwapProvider {
+class _CatalogueProvider extends FakeSwapProvider {
   const _CatalogueProvider();
 
   @override
@@ -74,10 +74,6 @@ class _CatalogueProvider implements SwapProvider {
       decimals: 6,
     ),
   ];
-
-  @override
-  Future<SwapQuote> quote(SwapQuoteRequest request) =>
-      throw UnimplementedError('no route is fetched in these cases');
 }
 
 const _wallet = Wallet(

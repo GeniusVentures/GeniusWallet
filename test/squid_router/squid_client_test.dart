@@ -10,12 +10,11 @@ import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/squid_router/squid_client.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
-import 'package:genius_wallet/swap/swap_provider.dart';
-import 'package:genius_wallet/swap/swap_quote.dart';
-import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:squidrouter/squidrouter.dart';
+
+import '../swap/fake_swap_provider.dart';
 
 Map<String, dynamic> _wire(RouteRequest request) =>
     standardSerializers.serializeWith(RouteRequest.serializer, request)
@@ -30,15 +29,8 @@ class _UnusedApi implements GeniusApi {
 
 /// Answers the catalogue with nothing, so the fetch is ENTERED and finishes
 /// without a network. The cases below read the first frame, not the list.
-class _EmptyCatalogueProvider implements SwapProvider {
+class _EmptyCatalogueProvider extends FakeSwapProvider {
   const _EmptyCatalogueProvider();
-
-  @override
-  Future<List<SwapToken>> tokens(String chainId) async => const [];
-
-  @override
-  Future<SwapQuote> quote(SwapQuoteRequest request) =>
-      throw UnimplementedError('no route is fetched in these cases');
 }
 
 /// A network is seeded because the screen filters the catalogue by chain id

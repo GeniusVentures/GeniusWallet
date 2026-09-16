@@ -4,6 +4,7 @@ import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/swap/swap_provider.dart';
 import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/swap/swap_token.dart';
+import 'package:genius_wallet/swap/swap_transaction.dart';
 import 'package:squidrouter/squidrouter.dart';
 
 /// The Squid adapter — the only file that knows Squid's wire types exist.
@@ -23,6 +24,48 @@ class SquidSwapProvider implements SwapProvider {
     }
 
     return squidQuote(route);
+  }
+
+  @override
+  Future<SwapTransaction> buildTransaction(SwapQuoteRequest request) async {
+    // Raw dio for the same reason the catalogue uses it: the generated model
+    // resolves transactionRequest through a oneOf that collapses the object
+    // into a ListJsonObject, so the signable half is unreachable through it.
+    final response = await squidDio().post<Object>(
+      '/v2/route',
+      options: Options(extra: kSquidAuthExtra),
+      data: {..._routeBody(request), 'quoteOnly': false},
+    );
+
+    final body = response.data;
+    if (body is! Map<String, dynamic>) {
+      throw StateError('Squid answered with no route');
+    }
+
+    return squidTransaction(
+      body,
+      from: request.fromAddress,
+      requestId: response.headers.value('x-request-id'),
+    );
+  }
+
+  @override
+  Future<SwapStatus> status(SwapTransaction transaction, String hash) async {
+    final response = await squidDio().get<Object>(
+      '/v2/status',
+      queryParameters: {'quoteId': transaction.quoteId, 'transactionId': hash},
+      options: Options(
+        extra: kSquidAuthExtra,
+        headers: {
+          if (transaction.requestId != null) 'requestId': transaction.requestId,
+        },
+      ),
+    );
+
+    final body = response.data;
+    return swapStatusFrom(
+      body is Map ? body['squidTransactionStatus']?.toString() : null,
+    );
   }
 
   @override
@@ -152,3 +195,85 @@ SwapQuote squidQuote(RouteResponseData route) {
 /// crash on a screen the user is mid-swap on.
 double _sumUsd(Iterable<String> amounts) =>
     amounts.fold(0.0, (sum, usd) => sum + (double.tryParse(usd) ?? 0.0));
+
+/// The route request as Squid's wire body. Shared by the quote and the
+/// executable fetch, so the two can never describe different swaps.
+Map<String, dynamic> _routeBody(SwapQuoteRequest request) => {
+  'fromChain': request.fromChainId,
+  'fromToken': request.fromToken,
+  'fromAmount': request.fromAmount.toString(),
+  'toChain': request.toChainId,
+  'toToken': request.toToken,
+  'fromAddress': request.fromAddress,
+  'toAddress': request.toAddress,
+  'slippage': request.slippage,
+};
+
+/// Squid's executable route unwrapped into ours, once. Public so the recorded
+/// fixture can prove it with no network and no credential.
+SwapTransaction squidTransaction(
+  Map<String, dynamic> body, {
+  required String from,
+  required String? requestId,
+}) {
+  final route = body['route'];
+  if (route is! Map) {
+    throw StateError('Squid answered with no route');
+  }
+
+  final wire = route['transactionRequest'];
+  final target = wire is Map ? wire['target'] : null;
+  final data = wire is Map ? wire['data'] : null;
+  if (wire is! Map || target == null || data == null) {
+    throw StateError('Squid answered with nothing signable');
+  }
+  if (wire['type'] != 'ON_CHAIN_EXECUTION') {
+    throw StateError('Unsupported route type: ${wire['type']}');
+  }
+
+  return SwapTransaction(
+    quoteId: route['quoteId']?.toString() ?? '',
+    requestId: requestId ?? wire['requestId']?.toString(),
+    spender: target.toString(),
+    request: {
+      'from': from,
+      'to': target.toString(),
+      'data': data.toString(),
+      'value': _hex(wire['value']),
+      // `gas`, not `gasLimit`: the signer reads `tx['gas'] ?? tx['gasLimit']`.
+      'gas': _hex(wire['gasLimit']),
+      'maxFeePerGas': _hex(wire['maxFeePerGas']),
+      'maxPriorityFeePerGas': _hex(wire['maxPriorityFeePerGas']),
+    },
+  );
+}
+
+/// Squid sends these as DECIMAL strings and the signer parses them as hex.
+/// Passing them straight through reads a gasLimit of 969344 as 9,868,100.
+String _hex(Object? value) {
+  final text = value?.toString().trim() ?? '';
+  if (text.isEmpty) {
+    return '0x0';
+  }
+  if (text.startsWith('0x') || text.startsWith('0X')) {
+    return text;
+  }
+  final parsed = BigInt.tryParse(text);
+  if (parsed == null) {
+    throw StateError('Squid sent an unreadable number: $text');
+  }
+  return '0x${parsed.toRadixString(16)}';
+}
+
+/// Squid's status vocabulary mapped onto ours. An unrecognised value is NOT
+/// an answer — polling keeps going rather than resolving on a word we do not
+/// know.
+SwapStatus swapStatusFrom(String? reported) => switch (reported) {
+  'success' => SwapStatus.success,
+  'partial_success' => SwapStatus.partialSuccess,
+  'needs_gas' => SwapStatus.needsGas,
+  'ongoing' => SwapStatus.ongoing,
+  'refunded' => SwapStatus.refunded,
+  'failed_on_destination' => SwapStatus.failedOnDestination,
+  _ => SwapStatus.notFound,
+};
