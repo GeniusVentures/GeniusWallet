@@ -2,6 +2,7 @@
 created: 2026-07-27T08:30:00.000Z
 title: Swap "You Pay" token picker should list only tokens the wallet holds, with an empty-state
 area: ui
+resolves_phase: 27
 files:
   - lib/squid_router/swap_screen.dart:82
   - lib/squid_router/swap_screen.dart:616

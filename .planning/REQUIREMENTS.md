@@ -150,19 +150,44 @@ folded into that count, the same treatment WIRE-01/02 already get (see Coverage)
 - [x] **ORG-04**: One colour source of truth — semantic tokens via `context.gw`, primitives genuinely private (a compile error to reach from outside `lib/theme/`, not a convention), both appearance modes correct and WCAG AA — Phase 23, plans 01-04
 - [ ] **ORG-05**: Duplicated UI collapsed onto shared `StatelessWidget`s at 3+ call sites — Phase 23, plan 05. **PARTIAL, not complete**: one extraction shipped (`GWHoverable`, 13 hover-plumbing sites, zero repaints); four other candidates (`GWTimeframeSegment`, `GWCopyRow`, `GWAppBar`, the `GWScreen` sweep) were refused or deferred on measured grounds, each re-verified at execution time rather than inherited from planning. See `23-05-EXTRACTION-AUDIT.md` for every candidate's verdict and evidence — a row claiming this complete would be the unearned PASS this project has a standing rule against.
 
-## v2 Requirements
+## v2 Requirements — Milestone v2.0: Squid Router integration
 
-Deferred to future milestones.
+**Defined:** 2026-09-16. Committed scope of the current milestone. Provenance and full context:
+`.planning/notes/2026-09-16-swap-architecture-archaeology.md` — the `/swap` tab is a polished
+shell over mocks (`squid_token_service.dart` returns hardcoded data; `_submitSwap()` is a `TODO`
+that records a fake `completed` transaction with `hash: ""`); the finished `squidrouter/`
+submodule client (2025-05) was never wired; live swap execution today is dApp-driven via
+Reown/WalletConnect.
 
-### App
+### Swap Integration (SWP)
+
+- [x] **SWP-01**: Swap tab lists tokens/chains from the live Squid catalogue (via the `squidrouter/` client), replacing hardcoded mocks
+- [x] **SWP-02**: Swap tab shows the user's live token balances across chains (fetched, not mocked)
+- [x] **SWP-03**: A valid amount returns a live route quote (receive estimate, fees, route) honoring the D-09 error contract — error → `—` + red notice + Retry, never a stale quote
+- [x] **SWP-04**: The user's slippage setting feeds the live route request
+- [ ] **SWP-05**: Submitting a swap broadcasts the routed transaction through the wallet's send path and shows the real outcome
+- [ ] **SWP-06**: Transactions are recorded honestly — persisted only from the actual result, never a fabricated `completed` with `hash: ""`
+- [x] **SWP-07**: The integratorId loads from configuration, never a hardcoded literal (`test-api` must not ship)
+- [x] **SWP-08**: Quote polling respects Squid's free-tier rate limits (**1000ms** debounce — 500ms was the planned figure and trips the measured 1 RPS dev ceiling; the catalogue is cached, not refetched per picker open)
+
+### Integrator Fee (FEE)
+
+- [ ] **FEE-01**: Swaps routed through Squid carry the ~3% integrator fee via the integratorId configuration
+- [ ] **FEE-02**: The fee is visible in route details before confirmation — never silently deducted
+
+### dApp Signing Honesty (DAP)
+
+- [ ] **DAP-01**: Reown approval flow decodes ERC-20 `transfer`/`approve` calldata and shows the decoded action in the drawer
+- [ ] **DAP-02**: Known-router swap calls decode to "swapping X → Y" in the approval drawer
+- [ ] **DAP-03**: Undecodable calldata is labeled an unknown-contract call with a visible warning, never presented as a plain send
+
+### Beyond v2.0 (formerly "v2 Requirements", deferred)
 
 - **APP-01**: Broader feature roadmap (new chains, staking, etc.) — scoped in a later milestone
 - **APP-02**: ~~Establish a working automated test harness~~ — **LARGELY OBSOLETE (corrected
   2026-07-23):** `flutter test` already works (234 pass / 1 fail; the fail is the commented-out
-  `local_wallet_storage_test.dart`). The premise that it "does not compile" was false. What genuinely
-  remains under APP-02 is narrower: uncomment/repair `local_wallet_storage_test.dart` and grow
-  widget-level coverage. (The `!_dirty` bug still can't be reproduced under `pumpWidget` — it mounts
-  during a frame while `runApp` does not — so that class of bug still needs a walk, not the harness.)
+  `local_wallet_storage_test.dart`). What genuinely remains: uncomment/repair
+  `local_wallet_storage_test.dart` and grow widget-level coverage.
 
 ## Out of Scope
 
@@ -174,13 +199,41 @@ Deferred to future milestones.
 | Landing the design in one step | 128 of the design's 172 files collide with develop's; one step means reconciling all of them with nothing verifiable in between |
 | Re-architecting develop's structure | The port keeps develop's structure/logic and applies the skin on top |
 | Porting the redesign's `hive` (classic) usage | develop uses `hive_ce`; develop's data layer wins |
-| New feature milestones | Deferred until the port lands |
+| New feature milestones | Deferred until the port lands — **superseded 2026-09-16:** v2.0 (Squid Router integration) authorized alongside the redesign tail; staking and other new chains remain deferred |
+| GNUS on a third-party router (Squid/Symbiosis) (v2.0) | BD-driven on both — Squid wants a "market maker loan" + direct contact (old ITS path deprecated), Symbiosis wants "additional review". Not self-serve, not engineering. The native burn→mint bridge (`lib/dashboard/bridge/`) remains GNUS's cross-chain answer |
+| Symbiosis Finance integration (v2.0) | Named once as a contingency (squidrouter submodule commit `ee95bf6`, 2025-05-26), never built. Decision 2026-09-16: not pursued — the finished Squid client + free API is the cheaper real path |
+| Modifying the `squidrouter/` submodule (v2.0) | Auto-generated API client (AGENTS.md: "Files under `/banxa` and `/squidrouter` are auto-generated. Do not change them."). Consume as-is; regenerate upstream if the API drifts |
 
 ## Traceability
 
+### Milestone v2.0 — Squid Router integration (phases 26+; mapping filled by roadmap creation)
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SWAP-01 | Phase 26 — Swap that actually swaps | Pending (blocked on Squid integrator ID) |
+| SWP-01 | Phase 26 — delivered by 26-04 (live `/v2/sdk-info` catalogue) | Delivered on branch |
+| SWP-02 | Phase 27 — delivered by 26-04 (chain balances, holdings only) | Delivered on branch |
+| SWP-03 | Phase 27 — delivered by 26-03 (live `/v2/route`, D-09 contract intact) | Delivered on branch |
+| SWP-04 | Phase 27 — delivered by 26-03 (slippage on the live request) | Delivered on branch |
+| SWP-05 | Phase 28 — 26-05 built the orchestrator; 26-06 wires it to submit | In progress |
+| SWP-06 | Phase 28 — `sideEffectsFor` makes it structural; 26-06 deletes the fake record | In progress |
+| SWP-07 | Phase 26 — delivered by 26-01 (`--dart-define`, empty default refuses) | Delivered on branch |
+| SWP-08 | Phase 27 — delivered by 26-03/26-04 (1000ms debounce, cached catalogue) | Delivered on branch |
+| FEE-01 | Phase 29 — Integrator fee | Pending |
+| FEE-02 | Phase 29 — Integrator fee | Pending |
+| DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
+| DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
+| DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
+
+**Coverage (v2.0):** 13 total; **13/13 mapped to phases 26-30 ✓** — every v2.0 requirement maps
+to exactly one phase; no orphans, no duplicates. Roadmap: `.planning/ROADMAP.md` →
+`# Milestone v2.0: Squid Router integration` (appended after the v1.0 roadmap, which stands
+unchanged; phase 30 is independent of 26-29 and may run in parallel).
+
+### Milestone v1.0 — redesign port
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| SWAP-01 | Phase 26 — Swap that actually swaps | In progress — the umbrella for SWP-01..06 and SWP-08; the integrator ID arrived 2026-09-16 and is no longer a blocker |
 | GSD-01 | Pre-roadmap (GSD adoption) | ✓ Complete (PR #207, `12fd40d`) |
 | BLD-01 | Pre-roadmap (GSD adoption) | ✓ Complete (`4395da7`) |
 | DS-01 | Phase 2 — Design tokens & verification loop | Complete |
@@ -238,4 +291,4 @@ Deferred to future milestones.
 - Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — Phase 22: 3 complete (ORG-01 closed on developer judgement with CI still unexecuted, ORG-02, ORG-03); Phase 23: 1 complete (ORG-04) and 1 PARTIAL (ORG-05, four extractions refused/deferred).
 
 ---
-*Last updated: 2026-07-30 — ORG-01..05 traceability added (Phase 23 closeout); the previous 2026-07-23 entry's coverage counts + GAP-04 reconciliation + test-harness correction stand unchanged*
+*Last updated: 2026-09-16 — merged into `phase-26-swap-wiring`; SWP-01..04, 07, 08 delivered on branch and unwalked. v2.0 roadmap created: SWP-01..08, FEE-01..02, DAP-01..03 mapped to phases 26-30 (13/13, no orphans); previous v1.0 traceability stands unchanged below*
