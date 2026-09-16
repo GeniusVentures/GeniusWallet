@@ -1186,6 +1186,29 @@ class GeniusApi {
     return ApiResponse.success("${gasPriceInGwei?.toStringAsFixed(2)} Gwei");
   }
 
+  /// Grants [spender] an allowance of exactly [amount] raw base units over the
+  /// token at [contractAddress], signed by the wallet at [address].
+  Future<ApiResponse<String>> approve({
+    required String contractAddress,
+    required String rpcUrl,
+    required String address,
+    required String spender,
+    required BigInt amount,
+    required int chainId,
+  }) async {
+    final wallet = await _secureStorage.getWallet(address);
+    final web3 = Web3(geniusApi: this);
+
+    return web3.approve(
+      contractAddress: contractAddress,
+      rpcUrl: rpcUrl,
+      wallet: wallet,
+      spender: spender,
+      amount: amount,
+      chainId: chainId,
+    );
+  }
+
   Future<ApiResponse<String>> signAndSendTransaction({
     required Map<String, dynamic> tx,
     required String rpcUrl,

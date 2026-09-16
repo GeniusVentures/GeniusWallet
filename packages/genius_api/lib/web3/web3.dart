@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/src/genius_api.dart';
+import 'package:genius_api/test/dev_overrides.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/web3/api_response.dart';
@@ -537,6 +538,60 @@ class Web3 {
     }
 
     return ApiResponse.error('Failed to bridge: unknown');
+  }
+
+  /// Grants [spender] an allowance of exactly [amount] raw base units.
+  ///
+  /// The amount is passed through untouched — the caller decides it, and the
+  /// only caller can produce nothing but the amount being spent.
+  Future<ApiResponse<String>> approve({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet? wallet,
+    required String spender,
+    required BigInt amount,
+    required int chainId,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    try {
+      final contract = DeployedContract(
+        abi,
+        EthereumAddress.fromHex(contractAddress),
+      );
+      final spenderAddress = EthereumAddress.fromHex(spender);
+
+      // Resolved as late as possible, and the same way the dApp signing path
+      // resolves it, so an approval and the spend it enables share an owner.
+      final privateKey = getDevPrivateKey() ?? getPrivateKeyStr(wallet);
+
+      if (privateKey.isEmpty) {
+        return ApiResponse.error('No signing key found for this wallet');
+      }
+
+      final credentials = EthPrivateKey.fromHex(privateKey);
+
+      final transaction = Transaction.callContract(
+        contract: contract,
+        function: contract.function('approve'),
+        parameters: [spenderAddress, amount],
+        from: credentials.address,
+      );
+
+      final txHash = await client.sendTransaction(
+        credentials,
+        transaction,
+        chainId: chainId,
+      );
+
+      return ApiResponse.success(txHash);
+    } catch (e) {
+      // Returned, not built and dropped: a rejected approval has to be able to
+      // say why, and there is no generic trailing error to fall through to.
+      return ApiResponse.error(e.toString());
+    } finally {
+      await client.dispose();
+    }
   }
 
   Future<ApiResponse<EtherAmount?>> getBrigeOutGasCost({
