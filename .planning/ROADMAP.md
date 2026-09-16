@@ -1457,7 +1457,7 @@ A dependency chain plus one independent subsystem:
 
 | Order | Phase | Why here |
 |-------|-------|----------|
-| 26 | Client foundation & catalogue | Nothing live exists before a configured client does. The integratorId must come from configuration (SWP-07) before any request is real, and the catalogue (SWP-01) is the one live datum verifiable with no user funds. |
+| 26 | Client foundation & catalogue | Nothing live exists before a configured client does. The integrator ID must come from configuration (SWAP-01 criterion 1) before any request is real, and the catalogue (criterion 2) is the one live datum verifiable with no user funds. |
 | 27 | Live quotes | Balances, route and slippage are one quoting pipeline behind the 500ms debounce; D-09 and the rate limit are properties of that pipeline, so they land with it. Still verifiable without moving money. |
 | 28 | Real execution | Only now does money move. Submission rides the quoting pipeline plus the wallet's existing send path; honest recording is meaningless until there is a real outcome to record. |
 | 29 | Integrator fee | The fee is configured on the integratorId and shows in route details, but can only be *verified* against really-executed routes — after 28. |
@@ -1507,21 +1507,14 @@ money (Phase 28) and legs needing real funds or the live catalogue get a debug-b
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SWP-01 | Phase 26 — Squid client foundation & live catalogue | Pending |
-| SWP-02 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
-| SWP-03 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
-| SWP-04 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
-| SWP-05 | Phase 28 — Real swap execution & honest recording | Pending |
-| SWP-06 | Phase 28 — Real swap execution & honest recording | Pending |
-| SWP-07 | Phase 26 — Squid client foundation & live catalogue | Pending |
-| SWP-08 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
+| SWAP-01 | Phases 26, 27, 28 — one end-to-end requirement; criteria 1-6 delivered on branch, 7-8 open | In progress |
 | FEE-01 | Phase 29 — Integrator fee | Pending |
 | FEE-02 | Phase 29 — Integrator fee | Pending |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 
-**Coverage:** 13/13 v2.0 requirements mapped to exactly one phase — no orphans, no duplicates.
+**Coverage:** 6/6 v2.0 requirements mapped — no orphans, no duplicates. `SWAP-01` spans phases 26-28 by design: it is one end-to-end promise, and the drafted `SWP-01..08` that split it were retired into its criteria on 2026-09-16.
 
 ## Phases (v2.0)
 
@@ -1537,7 +1530,7 @@ money (Phase 28) and legs needing real funds or the live catalogue get a debug-b
 
 **Goal**: The app owns a configured, initialized Squid client, and the `/swap` tab's token/chain pickers list the live catalogue instead of hardcoded mocks
 **Depends on**: Nothing within v2.0 (first v2.0 phase — configuration plus `lib/squid_router/squid_token_service.dart`)
-**Requirements**: SWP-01, SWP-07
+**Requirements**: SWAP-01 (criteria 1-2)
 **Success Criteria** (what must be TRUE):
 
   1. The integratorId (and API key, if the client requires one) load from configuration at runtime — no hardcoded literal ships: a grep over `lib/` finds no integratorId string constant and `test-api` appears nowhere outside the `squidrouter/` submodule (config loading unit-tested against a stub source)
@@ -1553,7 +1546,7 @@ money (Phase 28) and legs needing real funds or the live catalogue get a debug-b
 
 **Goal**: A valid amount on `/swap` produces a live quote — the user's real balances across chains, a real route with fees, their slippage setting honored — with the D-09 error contract intact and Squid's free-tier rate limits respected
 **Depends on**: Phase 26
-**Requirements**: SWP-02, SWP-03, SWP-04, SWP-08
+**Requirements**: SWAP-01 (criteria 3-6)
 **Success Criteria** (what must be TRUE):
 
   1. The balances rendered in the token selector drawers and beside the MAX affordance are the user's live balances across chains fetched through the Squid client — the `mockSquidBalances` constant is deleted (service-seam test; app-walk with a funded wallet)
@@ -1569,7 +1562,7 @@ money (Phase 28) and legs needing real funds or the live catalogue get a debug-b
 
 **Goal**: Submitting a swap actually swaps — the routed transaction broadcasts through the wallet's send path, the user sees the real outcome, and history records only what really happened
 **Depends on**: Phase 27
-**Requirements**: SWP-05, SWP-06
+**Requirements**: SWAP-01 (criteria 7-8)
 **Success Criteria** (what must be TRUE):
 
   1. `_submitSwap()` executes the fetched route through the wallet's existing send path and shows the actual outcome — success receipt or real failure state; the `// TODO: invoke Squid API` is gone

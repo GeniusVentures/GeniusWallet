@@ -50,16 +50,15 @@ verified by running the flow.
 - [ ] **SCR-05**: Banxa (buy, KYC, checkout, order history/details) wears the redesign and keeps develop's rework — including the real KYC redirect URL
 - [ ] **SCR-06**: dApp connectivity (Reown/WalletConnect) wears the redesign and keeps develop's idempotent init guard — an arch-based skip kills WalletConnect on all x64 desktop
 
-### Functional wiring (SWAP)
+### Functional wiring (SWAP) — moved to v2.0
 
-Coined 2026-09-16. The SCR requirements above are all "wears the redesign" — they say nothing
-about whether the surface *works*. A code sweep found `swap_screen.dart` fabricating a success
-receipt for a swap that never called Squid, which no existing requirement forbids. Tracked outside
-the 24 v1 count, like ORG.
+`SWAP-01` was coined here on 2026-09-16, before milestone v2.0 existed, because the SCR
+requirements above are all "wears the redesign" and say nothing about whether the surface *works*
+— a code sweep found `swap_screen.dart` fabricating a success receipt for a swap that never called
+Squid, which no existing requirement forbade.
 
-- [ ] **SWAP-01**: A swap moves real funds or reports why it could not. No success toast, receipt
-  or stored transaction is produced unless a transaction hash came back, and quote, rate, price
-  impact and fees come from the live route rather than a constant.
+It is **defined once, in the v2.0 section** (`### Swap Integration (SWAP)`), where the swap scope
+now belongs, and is counted there rather than in the 24 v1 set.
 
 ### Design Gaps (GAP)
 
@@ -159,16 +158,37 @@ that records a fake `completed` transaction with `hash: ""`); the finished `squi
 submodule client (2025-05) was never wired; live swap execution today is dApp-driven via
 Reown/WalletConnect.
 
-### Swap Integration (SWP)
+### Swap Integration (SWAP)
 
-- [x] **SWP-01**: Swap tab lists tokens/chains from the live Squid catalogue (via the `squidrouter/` client), replacing hardcoded mocks
-- [x] **SWP-02**: Swap tab shows the user's live token balances across chains (fetched, not mocked)
-- [x] **SWP-03**: A valid amount returns a live route quote (receive estimate, fees, route) honoring the D-09 error contract — error → `—` + red notice + Retry, never a stale quote
-- [x] **SWP-04**: The user's slippage setting feeds the live route request
-- [ ] **SWP-05**: Submitting a swap broadcasts the routed transaction through the wallet's send path and shows the real outcome
-- [ ] **SWP-06**: Transactions are recorded honestly — persisted only from the actual result, never a fabricated `completed` with `hash: ""`
-- [x] **SWP-07**: The integratorId loads from configuration, never a hardcoded literal (`test-api` must not ship)
-- [x] **SWP-08**: Quote polling respects Squid's free-tier rate limits (**1000ms** debounce — 500ms was the planned figure and trips the measured 1 RPS dev ceiling; the catalogue is cached, not refetched per picker open)
+> **ID reconciliation, 2026-09-16.** This milestone was drafted with eight ids `SWP-01..08` while
+> branch `phase-26-swap-wiring` was already executing the same scope under **`SWAP-01`**, which is
+> the id every plan file and every commit on that branch cites. `SWAP-01` is the one that survives;
+> the eight are folded into its criteria below so no scope is lost. FEE and DAP were never
+> duplicated and are untouched.
+
+- [ ] **SWAP-01**: A swap moves real funds or reports why it could not. No success toast, receipt
+  or stored transaction is produced unless a transaction hash came back, and quote, rate, price
+  impact and fees come from the live route rather than a constant.
+
+  Criteria, absorbed from the drafted `SWP-01..08`:
+
+  1. [x] *(was SWP-07)* The integrator ID loads from configuration, never a literal — `test-api`
+     must not ship. An unconfigured build reports swap unavailable rather than failing at runtime.
+  2. [x] *(was SWP-01)* Both pickers list the live Squid catalogue for the selected chain, not a
+     hardcoded list.
+  3. [x] *(was SWP-02)* Balances are real: read from chain for the wallet's own holdings, and from
+     the wallet's own figure for the chain's native coin. The pay side offers only what is held.
+  4. [x] *(was SWP-03)* A valid amount returns a live route quote — receive estimate, rate, price
+     impact, fees — honouring the D-09 error contract: error → `—` + red notice + Retry, never a
+     stale quote.
+  5. [x] *(was SWP-04)* The user's slippage setting feeds the live route request.
+  6. [x] *(was SWP-08)* Quote fetching respects the free tier: **1000ms** debounce — 500ms was the
+     drafted figure and trips the measured 1 RPS dev ceiling — and the catalogue is cached rather
+     than refetched per picker open.
+  7. [ ] *(was SWP-05)* Submitting re-fetches an executable route and broadcasts it through the
+     wallet's send path, showing the real outcome.
+  8. [ ] *(was SWP-06)* Transactions are recorded only from the actual result — never a fabricated
+     `completed` with `hash: ""`.
 
 ### Integrator Fee (FEE)
 
@@ -210,22 +230,17 @@ Reown/WalletConnect.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SWP-01 | Phase 26 — delivered by 26-04 (live `/v2/sdk-info` catalogue) | Delivered on branch |
-| SWP-02 | Phase 27 — delivered by 26-04 (chain balances, holdings only) | Delivered on branch |
-| SWP-03 | Phase 27 — delivered by 26-03 (live `/v2/route`, D-09 contract intact) | Delivered on branch |
-| SWP-04 | Phase 27 — delivered by 26-03 (slippage on the live request) | Delivered on branch |
-| SWP-05 | Phase 28 — 26-05 built the orchestrator; 26-06 wires it to submit | In progress |
-| SWP-06 | Phase 28 — `sideEffectsFor` makes it structural; 26-06 deletes the fake record | In progress |
-| SWP-07 | Phase 26 — delivered by 26-01 (`--dart-define`, empty default refuses) | Delivered on branch |
-| SWP-08 | Phase 27 — delivered by 26-03/26-04 (1000ms debounce, cached catalogue) | Delivered on branch |
+| SWAP-01 | Phases 26, 27, 28 — one requirement across all three (criteria 1-6 delivered by 26-01/03/04; 7-8 open, owned by 26-06) | In progress — 6/8 criteria delivered on branch, unwalked |
 | FEE-01 | Phase 29 — Integrator fee | Pending |
 | FEE-02 | Phase 29 — Integrator fee | Pending |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 
-**Coverage (v2.0):** 13 total; **13/13 mapped to phases 26-30 ✓** — every v2.0 requirement maps
-to exactly one phase; no orphans, no duplicates. Roadmap: `.planning/ROADMAP.md` →
+**Coverage (v2.0):** 6 total; **6/6 mapped to phases 26-30 ✓** — no orphans, no duplicates.
+`SWAP-01` deliberately spans phases 26-28 rather than one: it is a single end-to-end promise, and
+the drafted `SWP-01..08` that split it were retired on 2026-09-16 (see the reconciliation note
+above). FEE and DAP map one-to-one as before. Roadmap: `.planning/ROADMAP.md` →
 `# Milestone v2.0: Squid Router integration` (appended after the v1.0 roadmap, which stands
 unchanged; phase 30 is independent of 26-29 and may run in parallel).
 
@@ -233,7 +248,6 @@ unchanged; phase 30 is independent of 26-29 and may run in parallel).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SWAP-01 | Phase 26 — Swap that actually swaps | In progress — the umbrella for SWP-01..06 and SWP-08; the integrator ID arrived 2026-09-16 and is no longer a blocker |
 | GSD-01 | Pre-roadmap (GSD adoption) | ✓ Complete (PR #207, `12fd40d`) |
 | BLD-01 | Pre-roadmap (GSD adoption) | ✓ Complete (`4395da7`) |
 | DS-01 | Phase 2 — Design tokens & verification loop | Complete |
@@ -287,8 +301,8 @@ unchanged; phase 30 is independent of 26-29 and may run in parallel).
 - Mapped to phases: **24/24 ✓** — every v1 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases (official track): 11 — **5 complete (1, 2, 4, 5, 6)**, Phase 3 executed/walk-gated, 7-11 remaining. The redesign track (Phases 12-17) is tracked separately in ROADMAP.md.
 - Note: WIRE-01/WIRE-02 are tracked as guard requirements outside the 24 v1 count by design (they are "do-not-port" guards, not deliverables).
-- Note: SWAP-01 is tracked outside the 24 v1 count, coined 2026-09-16 — the v1 set only ever asked whether a surface *wore* the redesign, never whether it worked. Phase 26 owns it.
+- Note: SWAP-01 moved to milestone v2.0 on 2026-09-16 and is counted there, not in the 24 v1 set — the v1 set only ever asked whether a surface *wore* the redesign, never whether it worked.
 - Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — Phase 22: 3 complete (ORG-01 closed on developer judgement with CI still unexecuted, ORG-02, ORG-03); Phase 23: 1 complete (ORG-04) and 1 PARTIAL (ORG-05, four extractions refused/deferred).
 
 ---
-*Last updated: 2026-09-16 — merged into `phase-26-swap-wiring`; SWP-01..04, 07, 08 delivered on branch and unwalked. v2.0 roadmap created: SWP-01..08, FEE-01..02, DAP-01..03 mapped to phases 26-30 (13/13, no orphans); previous v1.0 traceability stands unchanged below*
+*Last updated: 2026-09-16 — merged into `phase-26-swap-wiring`. The drafted SWP-01..08 were retired into SWAP-01, the id the branch's plans and commits already cite; v2.0 is now SWAP-01, FEE-01..02, DAP-01..03 mapped to phases 26-30 (6/6, no orphans). Previous v1.0 traceability stands unchanged below*
