@@ -33,10 +33,13 @@ void main() {
       }
     });
 
-    test('a leading decimal point parses, since the amount field allows it', () {
-      expect(toBaseUnits('.5', 6), BigInt.from(500000));
-      expect(toBaseUnits('2.', 6), BigInt.from(2000000));
-    });
+    test(
+      'a leading decimal point parses, since the amount field allows it',
+      () {
+        expect(toBaseUnits('.5', 6), BigInt.from(500000));
+        expect(toBaseUnits('2.', 6), BigInt.from(2000000));
+      },
+    );
 
     test('a hostile decimals value returns null rather than throwing', () {
       // Decimals come from Squid, which is outside our trust boundary.
