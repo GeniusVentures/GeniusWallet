@@ -100,7 +100,7 @@ void main() {
       final steps = _Steps(routeError: StateError('price impact'));
       final outcome = await steps.run();
 
-      expect(outcome, isA<SwapRouteFailed>());
+      expect(outcome, isA<SwapRouteUnavailable>());
       expect(steps.sends, isEmpty);
       expect(steps.approvals, isEmpty);
       expect(steps.allowanceReads, 0);
@@ -151,6 +151,15 @@ void main() {
 
       expect(outcome, isA<SwapApprovalFailed>());
       expect(steps.sends, isEmpty);
+    });
+
+    test('an unreadable allowance is its own failure, not an approval one', () {
+      // Whether an approval was even needed is unknown, so the two cannot
+      // share a message. 26-07 gives each its own.
+      expect(
+        const SwapAllowanceUnreadable(null),
+        isNot(isA<SwapApprovalFailed>()),
+      );
     });
   });
 
@@ -271,7 +280,9 @@ void main() {
   group('THE GUARD: no hash, no side effects', () {
     test('every outcome without a hash produces none of the three', () {
       for (final outcome in <SwapOutcome>[
-        const SwapRouteFailed(null),
+        const SwapRouteUnavailable(null),
+        const SwapRouteUnsignable(null),
+        const SwapAllowanceUnreadable(null),
         const SwapApprovalFailed(null),
         const SwapSendFailed(null),
       ]) {

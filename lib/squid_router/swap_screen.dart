@@ -19,6 +19,7 @@ import 'package:genius_wallet/squid_router/swap_allowance.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
 import 'package:genius_wallet/squid_router/swap_execution.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
+import 'package:genius_wallet/squid_router/swap_messages.dart';
 import 'package:genius_wallet/squid_router/swap_preselection.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
@@ -113,6 +114,11 @@ class _SwapScreenState extends State<SwapScreen> {
   bool isFetchingRoute = false;
   bool routeError = false;
   bool isSubmitting = false;
+
+  /// Set when a SUBMIT failed, so the shared error notice names which way it
+  /// failed instead of repeating the route-fetch copy. Null means the notice
+  /// is speaking for a failed quote, which is what it shipped for.
+  String? submitFailure;
 
   /// The selected pay token's balance as a number, or null when unknown.
   /// Never accuse the user of an insufficient balance on missing data.
@@ -332,6 +338,7 @@ class _SwapScreenState extends State<SwapScreen> {
     setState(() {
       isFetchingRoute = true;
       routeError = false;
+      submitFailure = null;
     });
 
     try {
@@ -464,6 +471,7 @@ class _SwapScreenState extends State<SwapScreen> {
   }) async {
     final effects = sideEffectsFor(outcome);
     if (!effects.storeRow) {
+      _reportFailure(outcome);
       return;
     }
 
@@ -503,18 +511,44 @@ class _SwapScreenState extends State<SwapScreen> {
       return;
     }
     if (effects.showToast) {
+      // The row is stored and the receipt opens either way — the funds moved.
+      // What is SAID depends on how it settled; claiming success for a
+      // partial or paused swap is the lie this phase removes.
+      final unresolved = swapFailureMessage(outcome);
       showToast(
         context,
-        'Swapped $fromAmount ${fromToken?.symbol ?? ""} for '
-        '${toToken?.symbol ?? ""}.',
-        title: 'Swap Submitted',
-        type: ToastType.success,
+        unresolved ??
+            'Swapped $fromAmount ${fromToken?.symbol ?? ""} for '
+                '${toToken?.symbol ?? ""}.',
+        title: unresolved == null ? 'Swap Submitted' : 'Swap Sent',
+        type: unresolved == null ? ToastType.success : ToastType.warning,
       );
     }
     if (effects.showReceipt) {
       showTransactionDetails(context, resolved);
     }
     transactionsCubit.addTransaction(resolved);
+  }
+
+  /// Says which way the swap failed, reusing the two error affordances this
+  /// screen already has: the toast and the inline notice.
+  ///
+  /// The quote is cleared with it — a stale figure beside a failure message
+  /// is a number the user might still act on.
+  void _reportFailure(SwapOutcome outcome) {
+    final message = swapFailureMessage(outcome);
+    if (message == null) {
+      return;
+    }
+
+    setState(() {
+      submitFailure = message;
+      routeError = true;
+      fetchedQuote = null;
+      toAmount = '';
+      toAmountController.clear();
+    });
+    showToast(context, message, type: ToastType.error);
   }
 
   /// D-09 / finding 22's inline notice — background `statusError` @ ~12%
@@ -545,7 +579,9 @@ class _SwapScreenState extends State<SwapScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Couldn't fetch a route.",
+                  submitFailure == null
+                      ? "Couldn't fetch a route."
+                      : 'The swap did not go through.',
                   style: GeniusWalletTypography.labelMd.copyWith(
                     color: gw.statusError,
                     fontWeight: FontWeight.w600,
@@ -553,8 +589,9 @@ class _SwapScreenState extends State<SwapScreen> {
                 ),
                 const SizedBox(height: GeniusWalletConsts.space2),
                 Text(
-                  'Check your connection and try again — the quote above is '
-                  'not current.',
+                  submitFailure ??
+                      'Check your connection and try again — the quote above '
+                          'is not current.',
                   style: GeniusWalletTypography.labelMd.copyWith(
                     color: gw.statusError,
                   ),

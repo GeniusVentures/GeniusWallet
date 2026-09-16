@@ -17,7 +17,10 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/swap_execution.dart';
+import 'package:genius_wallet/squid_router/swap_field.dart';
+import 'package:genius_wallet/squid_router/swap_messages.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/swap/swap_token.dart';
@@ -208,7 +211,7 @@ void main() {
       final storage = _RecordingStorage();
       await _mountReady(
         tester,
-        execute: _answering(const SwapRouteFailed(null)),
+        execute: _answering(const SwapRouteUnavailable(null)),
         storage: storage,
       );
 
@@ -222,7 +225,7 @@ void main() {
 
   group('an outcome with no hash', () {
     for (final outcome in <SwapOutcome>[
-      const SwapRouteFailed(null),
+      const SwapRouteUnavailable(null),
       const SwapApprovalFailed(null),
       const SwapSendFailed(null),
     ]) {
@@ -254,6 +257,53 @@ void main() {
       await _submit(tester);
 
       expect(find.text('Submitting swap…'), findsNothing);
+    });
+
+    // One mount per case: Flutter reuses the State object across a repeated
+    // pumpWidget, so a loop inside one case would find the tokens already
+    // seated and tap nothing.
+    for (final outcome in <SwapOutcome>[
+      const SwapRouteUnavailable(null),
+      const SwapAllowanceUnreadable(null),
+      const SwapSendFailed(null),
+    ]) {
+      testWidgets('${outcome.runtimeType} names itself on screen', (
+        tester,
+      ) async {
+        // Not just "a message appeared" — the message BELONGING to that
+        // branch. A shared fallback would pass a weaker assertion.
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(outcome),
+          storage: storage,
+        );
+        await _submit(tester);
+
+        expect(find.text(swapFailureMessage(outcome)!), findsWidgets);
+      });
+    }
+
+    testWidgets('a failure clears the quote it failed on', (tester) async {
+      // A stale figure beside a failure message is a number the user might
+      // still act on.
+      final storage = _RecordingStorage();
+      await _mountReady(
+        tester,
+        execute: _answering(const SwapSendFailed(null)),
+        storage: storage,
+      );
+      expect(
+        find.byType(RouteDetailsCard),
+        findsOneWidget,
+        reason: 'the fixture never had a quote to clear',
+      );
+
+      await _submit(tester);
+
+      expect(find.byType(RouteDetailsCard), findsNothing);
+      final receive = tester.widget<SwapField>(find.byType(SwapField).at(1));
+      expect(receive.controller.text, isEmpty);
     });
   });
 

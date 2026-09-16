@@ -11,15 +11,31 @@ sealed class SwapOutcome {
   const SwapOutcome();
 }
 
-/// The executable route never arrived. Nothing was approved and nothing sent.
-final class SwapRouteFailed extends SwapOutcome {
-  const SwapRouteFailed(this.error);
+/// No route came back for this pair and amount. A price impact above the
+/// aggregator's guardrail lands here too, and so does a thin-liquidity pair.
+final class SwapRouteUnavailable extends SwapOutcome {
+  const SwapRouteUnavailable(this.error);
 
   final Object? error;
 }
 
-/// The allowance could not be read, or the approval failed or was rejected.
-/// The send was not attempted.
+/// A route came back carrying nothing this wallet can sign. A provider
+/// problem, not a user one.
+final class SwapRouteUnsignable extends SwapOutcome {
+  const SwapRouteUnsignable(this.error);
+
+  final Object? error;
+}
+
+/// The token's current allowance could not be read, so whether an approval
+/// was needed is unknown. Nothing was approved and nothing sent.
+final class SwapAllowanceUnreadable extends SwapOutcome {
+  const SwapAllowanceUnreadable(this.error);
+
+  final Object? error;
+}
+
+/// The approval failed or was rejected. The send was not attempted.
 final class SwapApprovalFailed extends SwapOutcome {
   const SwapApprovalFailed(this.error);
 
@@ -81,7 +97,9 @@ SwapSideEffects sideEffectsFor(SwapOutcome outcome) => switch (outcome) {
     showReceipt: true,
     storeRow: true,
   ),
-  SwapRouteFailed() => _none,
+  SwapRouteUnavailable() => _none,
+  SwapRouteUnsignable() => _none,
+  SwapAllowanceUnreadable() => _none,
   SwapApprovalFailed() => _none,
   SwapSendFailed() => _none,
 };
@@ -149,30 +167,42 @@ Future<SwapOutcome> executeSwap({
   final SwapTransaction route;
   try {
     route = await fetchRoute();
+  } on SwapRouteException catch (error) {
+    // The adapter knows which it was; reading an error string to find out
+    // would break the moment a message is reworded.
+    return switch (error.failure) {
+      SwapRouteFailure.unavailable => SwapRouteUnavailable(error),
+      SwapRouteFailure.unsignable => SwapRouteUnsignable(error),
+    };
   } catch (error) {
-    return SwapRouteFailed(error);
+    return SwapRouteUnavailable(error);
   }
 
+  final BigInt allowance;
   try {
     // The native coin has no contract to approve, so its allowance is never
     // read — a call that would fail anyway.
-    final allowance = isNativeToken(tokenAddress)
+    allowance = isNativeToken(tokenAddress)
         ? BigInt.zero
         : await readAllowance(route.spender);
-    final decision = decideApproval(
-      tokenAddress: tokenAddress,
-      allowance: allowance,
-      amount: amount,
-    );
+  } catch (error) {
+    return SwapAllowanceUnreadable(error);
+  }
 
-    if (decision is ApproveExactAmount) {
+  final decision = decideApproval(
+    tokenAddress: tokenAddress,
+    allowance: allowance,
+    amount: amount,
+  );
+  if (decision is ApproveExactAmount) {
+    try {
       final granted = await approve(route.spender, decision.amount);
       if (!granted) {
         return const SwapApprovalFailed(null);
       }
+    } catch (error) {
+      return SwapApprovalFailed(error);
     }
-  } catch (error) {
-    return SwapApprovalFailed(error);
   }
 
   final String? hash;

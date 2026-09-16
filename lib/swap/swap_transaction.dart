@@ -38,3 +38,26 @@ enum SwapStatus {
   failedOnDestination,
   refunded,
 }
+
+/// Why an executable route could not be produced. The adapter knows which it
+/// was, so nothing downstream has to read an error string to find out.
+enum SwapRouteFailure {
+  /// No route at all for this pair and amount.
+  unavailable,
+
+  /// A route came back carrying nothing this wallet can sign.
+  unsignable,
+}
+
+class SwapRouteException implements Exception {
+  const SwapRouteException(this.failure, [this.detail]);
+
+  final SwapRouteFailure failure;
+
+  /// For logs only. It can carry a node URL or an address, so it must never
+  /// reach the screen.
+  final String? detail;
+
+  @override
+  String toString() => 'SwapRouteException(${failure.name})';
+}

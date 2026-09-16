@@ -111,22 +111,28 @@ void main() {
     });
   });
 
-  group('what is refused', () {
-    test('a body with no route', () {
-      expect(
-        () => squidTransaction(const {}, from: _wallet, requestId: null),
-        throwsStateError,
-      );
+  group('what is refused, and as which failure', () {
+    // The KIND matters, not just the throw: 26-07 gives "no route for this
+    // pair" and "the route is unsignable" different copy, and it reads the
+    // kind off this exception rather than off an error string.
+    SwapRouteFailure failureOf(Map<String, dynamic> body) {
+      try {
+        squidTransaction(body, from: _wallet, requestId: null);
+      } on SwapRouteException catch (e) {
+        return e.failure;
+      }
+      fail('nothing was thrown');
+    }
+
+    test('a body with no route is unavailable, not unsignable', () {
+      expect(failureOf(const {}), SwapRouteFailure.unavailable);
     });
 
     test('a quoteOnly body, whose transactionRequest is empty', () {
       final body = _body();
       _route(body)['transactionRequest'] = <String, dynamic>{};
 
-      expect(
-        () => squidTransaction(body, from: _wallet, requestId: null),
-        throwsStateError,
-      );
+      expect(failureOf(body), SwapRouteFailure.unsignable);
     });
 
     test('a route type this wallet cannot sign', () {
@@ -134,10 +140,19 @@ void main() {
       final body = _body();
       _wire(body)['type'] = 'CHAINFLIP_DEPOSIT_ADDRESS';
 
-      expect(
-        () => squidTransaction(body, from: _wallet, requestId: null),
-        throwsStateError,
-      );
+      expect(failureOf(body), SwapRouteFailure.unsignable);
+    });
+
+    test('the thrown exception carries no node detail into its toString', () {
+      // Its `detail` is for logs; a screen that printed it would leak a URL.
+      final body = _body();
+      _wire(body)['type'] = 'CHAINFLIP_DEPOSIT_ADDRESS';
+
+      try {
+        squidTransaction(body, from: _wallet, requestId: null);
+      } on SwapRouteException catch (e) {
+        expect(e.toString(), 'SwapRouteException(unsignable)');
+      }
     });
   });
 

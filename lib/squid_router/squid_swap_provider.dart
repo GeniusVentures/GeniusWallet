@@ -39,7 +39,7 @@ class SquidSwapProvider implements SwapProvider {
 
     final body = response.data;
     if (body is! Map<String, dynamic>) {
-      throw StateError('Squid answered with no route');
+      throw const SwapRouteException(SwapRouteFailure.unavailable);
     }
 
     return squidTransaction(
@@ -218,17 +218,20 @@ SwapTransaction squidTransaction(
 }) {
   final route = body['route'];
   if (route is! Map) {
-    throw StateError('Squid answered with no route');
+    throw const SwapRouteException(SwapRouteFailure.unavailable);
   }
 
   final wire = route['transactionRequest'];
   final target = wire is Map ? wire['target'] : null;
   final data = wire is Map ? wire['data'] : null;
   if (wire is! Map || target == null || data == null) {
-    throw StateError('Squid answered with nothing signable');
+    throw const SwapRouteException(SwapRouteFailure.unsignable);
   }
   if (wire['type'] != 'ON_CHAIN_EXECUTION') {
-    throw StateError('Unsupported route type: ${wire['type']}');
+    throw SwapRouteException(
+      SwapRouteFailure.unsignable,
+      'route type ${wire['type']}',
+    );
   }
 
   return SwapTransaction(
@@ -260,7 +263,7 @@ String _hex(Object? value) {
   }
   final parsed = BigInt.tryParse(text);
   if (parsed == null) {
-    throw StateError('Squid sent an unreadable number: $text');
+    throw SwapRouteException(SwapRouteFailure.unsignable, 'number $text');
   }
   return '0x${parsed.toRadixString(16)}';
 }
