@@ -1,19 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-current_phase: 25
-current_phase_name: "Dashboard section caps & one scroll — SHIPPED on develop"
-status: idle
-stopped_at: "No active phase. Everything below is merged into `develop` (tip fa74006d), not sitting on a feature branch. Quick task 260806-hfe (transactions at phone width) shipped as PR #224 and quick task 260807-bxs (Markets hero, real timeframe tabs, cards) as PR #226 — an earlier note here claiming 260806-hfe was 'NOT pushed, no PR' was wrong. Phases 24 (mobile nav shell) and 25 (dashboard section caps + Assets page) also shipped, executed by Jakub outside GSD: their completion is measured from merged code, NOT from GSD artifacts — phase 24 has no SUMMARY and its PLAN still reads status: in-progress; 25-01 has no SUMMARY and the BRIEF still reads ready-to-plan. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs)."
-last_updated: "2026-08-08T00:00:00.000Z"
-last_activity: 2026-08-08
+milestone: v2.0
+milestone_name: Squid Router integration
+status: planning
+stopped_at: "v1.0 closeout state (2026-08-08): everything tracked was merged into `develop` (tip fa74006d). Quick task 260806-hfe (transactions at phone width) shipped as PR #224 and quick task 260807-bxs (Markets hero, real timeframe tabs, cards) as PR #226 — an earlier note here claiming 260806-hfe was 'NOT pushed, no PR' was wrong. Phases 24 (mobile nav shell) and 25 (dashboard section caps + Assets page) also shipped, executed by Jakub outside GSD: their completion is measured from merged code, NOT from GSD artifacts — phase 24 has no SUMMARY and its PLAN still reads status: in-progress; 25-01 has no SUMMARY and the BRIEF still reads ready-to-plan. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs)."
+last_updated: "2026-09-16T18:10:43.602Z"
+last_activity: 2026-09-16
 progress:
-  total_phases: 25
-  completed_phases: 23
-  total_plans: 110
-  completed_plans: 109
-  percent: 92
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -27,7 +25,16 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 ## Current Position
 
-**As of 2026-08-08 — read this first; everything under it is history.**
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-09-16 — Milestone v2.0 started
+
+---
+
+### v1.0 closeout state (kept as history)
+
+**As of 2026-08-08 — v1.0 status at the v2.0 milestone switch; everything under it is earlier history.**
 
 All tracked work is merged into `develop` (tip `fa74006d`). The `ui-redesign-port` branch still
 exists locally but its remote was pruned — it is no longer where work lands. Phases 24 and 25
@@ -630,6 +637,7 @@ Open decisions:
   the tightened `DashboardScrollContainer` padding do reach all seven page-header screens and all
   11 card call sites, so the *frames* of the remaining mobile screens are already done — only their
   content is outstanding.
+
 - Phase 18 added 2026-07-24: Web tab chrome — in-app browser address bar + tab strip. Sketched this
   session: **035** (address bar, winner **B · Merged toolbar**), **036** (tabs, winner **A · Permanent
   tab strip**), consolidated in **037** (winner **B · 035-B + 036-A**). Targets

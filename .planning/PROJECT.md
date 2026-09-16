@@ -8,6 +8,23 @@ GeniusWallet is a Flutter/Dart self-custody crypto wallet targeting Windows, mob
 
 Users can safely custody their keys and reliably perform core wallet actions (create/import wallet, view balances, send/receive, swap, buy) — correctness and key safety come before everything else.
 
+## Current Milestone: v2.0 Squid Router integration
+
+**Goal:** Make swapping real — the `/swap` tab executes live Squid Router quotes for major tokens with honest recording and a ~3% integrator fee, and the dApp path shows what it's signing.
+
+**Target features:**
+- Live Squid integration — `SquidTokenService` calls the finished `squidrouter/` submodule client (tokens, balances, route); integratorId via config, never a hardcoded literal
+- Real submission — `_submitSwap()` broadcasts the routed transaction and records the actual outcome; the fake `completed`-with-`hash: ""` transaction is deleted
+- Slippage wired — the settings drawer's slippage value feeds the live route request
+- Catalogue-driven pickers — token/chain pickers list what the live catalogue returns, replacing hardcoded mocks
+- Honest dApp signing — Reown approval drawers decode swap calldata ("swapping X → Y"), ending blind signing
+- Integrator fee — the wallet takes ~3% on swaps routed through Squid (configured on the integratorId; visible in route details)
+
+**Provenance:** decided in the 2026-09-16 explore session — see
+`.planning/notes/2026-09-16-swap-architecture-archaeology.md` for the full timeline (Reown is
+what shipped as the swap execution path; the Squid client was finished 2025-05 but never wired;
+Symbiosis named once, never built) and the go-forward decision.
+
 ## Requirements
 
 ### Validated
@@ -17,7 +34,7 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 - ✓ Wallet onboarding: create new wallet, import existing, recovery-phrase backup/verify, PIN/keystore — existing (`lib/onboarding`)
 - ✓ Dashboard: balances, holdings, transactions, markets, news — existing (`lib/dashboard`, `lib/wallets`)
 - ✓ Fiat on-ramp via Banxa buy flow + order history/details — existing (`lib/banxa`, `lib/screens`)
-- ✓ Cross-chain swaps via Squid Router — existing (`lib/squid_router`)
+- ✓ Cross-chain swap UI via Squid Router — existing (`lib/squid_router`) — **corrected 2026-09-16: UI only; the service is mocked** (`squid_token_service.dart` returns hardcoded data, submit is a `TODO`). Live swap execution today is dApp-driven via Reown/WalletConnect. v2.0 wires the real Squid client
 - ✓ dApp connectivity via Reown/WalletConnect — existing (`lib/reown`)
 - ✓ SGNUS / GeniusSDK integration over FFI (init status, processing, connection stream) — existing (`packages/genius_api`)
 - ✓ Token info + market data (CoinGecko), charts — existing (`lib/tokens`, `lib/tokeninfo`, `lib/chart`)
@@ -26,15 +43,24 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 
 ### Active
 
-<!-- Current near-term scope: incremental redesign port onto develop. -->
+<!-- v1.0 (redesign port) residue — still worked alongside v2.0, tracked in ROADMAP/todos. -->
 
 - [x] Adopt GSD workflow for the project — shipped on `develop` via PR #207 (`12fd40d`)
-- [ ] Port the redesign onto `develop` incrementally, layer by layer (branch `ui-redesign-port`): design tokens → `gw_*` primitives → nav shell → one screen area per phase, each independently verifiable and landable
-- [ ] Re-skin the surfaces develop gained after the designer forked (Settings, SDK account manager, Banxa rework, select-wallet-type) — no mockup exists for these, so they wear the design language in place, structure unchanged
+- [x] Port the redesign onto `develop` incrementally, layer by layer (branch `ui-redesign-port`) — 21/23 official phases complete 2026-08-06; residue = phase 14 gaps (14-08 unwired), the mobile pass tail, deferred light-mode walks
+- [x] Re-skin the surfaces develop gained after the designer forked (Settings, SDK account manager, Banxa rework, select-wallet-type) — done as part of the port above
+
+<!-- v2.0 (current milestone) scope — see "Current Milestone" section above. -->
+
+- [ ] Wire `SquidTokenService` to the real `squidrouter/` client: live tokens, balances, route quotes
+- [ ] Execute real swaps: broadcast the routed transaction, record the actual outcome honestly
+- [ ] Wire slippage settings into the live route request
+- [ ] Drive token/chain pickers from the live Squid catalogue
+- [ ] Decode dApp swap calldata in the Reown approval flow (end blind signing)
+- [ ] Collect ~3% integrator fee on swaps routed through Squid, visible in route details
 
 ### Out of Scope
 
-- Broad new-feature milestones (staking, new chains, etc.) — deferred until the redesign port lands
+- ~~Broad new-feature milestones (staking, new chains, etc.) — deferred until the redesign port lands~~ — superseded 2026-09-16: v2.0 (Squid Router integration) was authorized to proceed alongside the redesign tail; staking and other new chains remain deferred
 - Re-architecting develop's structure — the port keeps develop's structure/logic and applies the redesign skin on top
 - Landing the design in one step — 128 of its 172 files collide with develop's; see Key Decisions
 - The designer's `WIRE-N` demo stubs and his branch-only features — see REQUIREMENTS.md (WIRE-01, WIRE-02)
@@ -69,6 +95,7 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 | Isolate GSD `.planning/` on `chore/adopt-gsd` (own PR, off develop) | Keeps the redesign PR focused; `.planning/` is project infra for the whole team | — Pending |
 | Interactive mode (not YOLO) | GSD config is committed to the shared repo, so a conservative, approval-gated mode is safer for team-shared automation | — Pending |
 | Close a phase with recorded overrides rather than a cosmetic patch (Phase 5, 2026-07-21) | The dashboard Bitcoin Chart card's zoom/pan row overflowed by 34px because the card has no vertical room at the app's ordinary window size — a genuine layout defect, not a component bug (the same widget is fine on token detail's taller slot). A considered stopgap (hiding the row below a height threshold) would have cleared the overflow while leaving only a 6.5px chart hairline — "a non-overflowing broken card, not a fixed one." The user inspected the app directly, rejected the stopgap, and authorized closing the phase with this and two related unwalked items (Release-exe comparison, transactions/news pull-to-refresh) recorded as explicit, reasoned overrides in 05-VERIFICATION.md instead. Establishes the pattern: an honest, recorded gap beats a cosmetically-clean but substantively-unfixed patch | ✓ Applied — see `05-VERIFICATION.md` `overrides:` |
+| **v2.0 swap architecture: major tokens via Squid in-app; GNUS stays on the native burn→mint bridge; Reown stays as general dApp connectivity; ~3% integrator fee** (2026-09-16) | Established in the explore session: the finished-but-unwired Squid client (submodule, 2025-05) + free API is the cheapest real path for listed tokens. GNUS-on-a-router is BD-driven on both Squid (market-maker loan) and Symbiosis ("additional review") — a business workstream, not engineering, so the native bridge remains GNUS's cross-chain answer. Symbiosis was named once (squidrouter commit `ee95bf6`) and never built — not pursued. The `/swap` tab's fake success (mock quote, `TODO` submit, fake `completed` tx) is a user-facing lie and the milestone's driving defect | — Pending |
 
 ## Evolution
 
@@ -88,4 +115,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-21 after Phase 5 (Dashboard) closure*
+*Last updated: 2026-09-16 after milestone v2.0 (Squid Router integration) started*
