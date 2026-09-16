@@ -185,10 +185,12 @@ Reown/WalletConnect.
   6. [x] *(was SWP-08)* Quote fetching respects the free tier: **1000ms** debounce — 500ms was the
      drafted figure and trips the measured 1 RPS dev ceiling — and the catalogue is cached rather
      than refetched per picker open.
-  7. [ ] *(was SWP-05)* Submitting re-fetches an executable route and broadcasts it through the
-     wallet's send path, showing the real outcome.
-  8. [ ] *(was SWP-06)* Transactions are recorded only from the actual result — never a fabricated
-     `completed` with `hash: ""`.
+  7. [x] *(was SWP-05)* Submitting re-fetches an executable route and broadcasts it through the
+     wallet's send path, showing the real outcome. **Code complete, never walked** — no swap has
+     executed on a funded wallet yet.
+  8. [x] *(was SWP-06)* Transactions are recorded only from the actual result — never a fabricated
+     `completed` with `hash: ""`. The fabricated record is deleted; every side effect sits behind
+     `sideEffectsFor`.
 
 ### Integrator Fee (FEE)
 
@@ -230,7 +232,7 @@ Reown/WalletConnect.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SWAP-01 | Phases 26, 27, 28 — one requirement across all three (criteria 1-6 delivered by 26-01/03/04; 7-8 open, owned by 26-06) | In progress — 6/8 criteria delivered on branch, unwalked |
+| SWAP-01 | Phases 26, 27, 28 — one requirement across all three (26-01..26-07) | 8/8 criteria delivered on branch — **unwalked**, no swap has executed on a funded wallet |
 | FEE-01 | Phase 29 — Integrator fee | Pending |
 | FEE-02 | Phase 29 — Integrator fee | Pending |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |

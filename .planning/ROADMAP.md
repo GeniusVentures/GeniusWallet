@@ -1420,15 +1420,17 @@ plans and executed in parallel
 > `.planning/phases/26-swap-that-actually-swaps/`, and its plans deliver **v2.0 phases 26, 27 and
 > 28**. Phases 29 and 30 are untouched by it and remain genuinely unstarted.
 >
-> Plans landed on the branch (commits `4d102d28`..`09669d8b`, not pushed, no PR):
+> Plans landed on the branch (commits `4d102d28`..`27677fcb`, not pushed, no PR). Every box below
+> is code-and-tests complete; **none has been walked on a funded wallet**, so no swap has yet
+> executed end to end:
 >
 > - [x] 26-01-PLAN.md — wire the `squidrouter` submodule; integrator ID via `--dart-define`; an unconfigured build reports swap unavailable (wave 1)
 > - [x] 26-02-PLAN.md — ERC-20 `allowance`, `approve` and `rawBalanceOf` on Web3, plus the exact-amount approval rule (wave 1)
 > - [x] 26-03-PLAN.md — live `quoteOnly` `/v2/route`; base-unit conversion; the route card reads the real estimate (wave 2)
 > - [x] 26-04-PLAN.md — live token catalogue and real balances; `SwapToken` replaces `lib/squid_router/models/` (wave 3)
 > - [x] 26-05-PLAN.md — the swap orchestrator: route, approval, send, status polling; no-hash-no-side-effects is structural (wave 4)
-> - [ ] 26-06-PLAN.md — delete the fabricated transaction and wire `_submitSwap` to the outcome; first real swap (wave 5)
-> - [ ] 26-07-PLAN.md — a distinct message per failure, and no stored row on any of them (wave 6)
+> - [x] 26-06-PLAN.md — delete the fabricated transaction and wire `_submitSwap` to the outcome; first real swap (wave 5)
+> - [x] 26-07-PLAN.md — a distinct message per failure, and no stored row on any of them (wave 6)
 > - [ ] 26-08-PLAN.md — the three money-moved-but-not-as-asked states made legible and filterable (wave 7)
 >
 > **Two facts in the v2.0 phase details below are already stale**, because they were written
@@ -1612,6 +1614,6 @@ parallel with them.
 |-------|----------------|--------|-----------|
 | 26. Squid client foundation & live catalogue | 2/2 | Delivered by 26-01, 26-04 | 2026-09-16 |
 | 27. Live quotes (balances, route, slippage, rate limits) | 2/2 | Delivered by 26-03, 26-04 | 2026-09-16 |
-| 28. Real swap execution & honest recording | 2/4 | In progress — 26-02, 26-05 landed; 26-06 wires the screen, 26-07 the errors | - |
+| 28. Real swap execution & honest recording | 4/4 | Delivered by 26-02, 26-05, 26-06, 26-07 — **unwalked** | 2026-09-16 |
 | 29. Integrator fee | 0/TBD | Not started | - |
 | 30. dApp calldata decoding (end blind signing) | 0/TBD | Not started | - |

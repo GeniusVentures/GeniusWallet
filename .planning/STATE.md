@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
 current_phase: 26
-current_phase_name: "Swap that actually swaps — delivers v2.0 phases 26-28; 5 of 8 plans landed"
+current_phase_name: "Swap that actually swaps — delivers v2.0 phases 26-28; 7 of 8 plans landed, none walked"
 status: in_progress
-stopped_at: "Branch `phase-26-swap-wiring`, not pushed, no PR. Merged `origin/develop` (2cd0b996) on 2026-09-16, which brought milestone v2.0 (phases 26-30) and the swap architecture archaeology note. The branch's own phase 26 predates that milestone and is the same work, so it is folded into v2.0: plans 26-01..26-05 have landed and deliver v2.0 phases 26 and 27 in full plus half of 28. What is real now: the integrator ID loads from `squid.local.json`, the catalogue and every balance come from the network or the chain, the quote is a live `/v2/route` answer, and `swap_execution.dart` runs route -> allowance -> exact-amount approval -> send -> status poll behind an outcome type where only a hash-bearing shape may produce a toast, a receipt or a stored row. **The original bug is still reachable**: `swap_screen.dart` `_submitSwap` still fabricates a completed Transaction with an empty hash — 26-06 deletes it and wires the orchestrator in. Three spec drifts were found live and worked around in the adapter (sdk-info, transactionRequest and status all bypass the generated deserializer); Squid sends gas and fee fields as DECIMAL strings while the signer parses hex. Outstanding: the GUI walk on a funded wallet has never been run, and two of the three v2.0 phases marked delivered are unverified by a human."
+stopped_at: "Branch `phase-26-swap-wiring`, not pushed, no PR. Merged `origin/develop` (2cd0b996) on 2026-09-16, bringing milestone v2.0 (phases 26-30); the branch's own phase 26 predates it and is the same work, so it is folded in and the drafted SWP-01..08 were retired into SWAP-01. Plans 26-01..26-07 have landed: the integrator ID loads from `squid.local.json`, the catalogue and every balance come from the network or the chain, the quote is a live `/v2/route` answer, `swap_execution.dart` runs route -> allowance -> exact-amount approval -> send -> status poll, `_submitSwap` is a thin adapter over it, and each of the six failure shapes carries its own message. **The fabricated `completed` transaction with `hash: \"\"` is DELETED** — every toast, receipt and Hive write now sits behind `sideEffectsFor`, asserted at the screen as well as at the pure layer. Four spec drifts were found live and worked around in the adapter: sdk-info, transactionRequest and status all bypass the generated deserializer, and Squid sends gas and fee fields as DECIMAL strings while the signer parses hex. **NOT DONE: no swap has ever executed.** Both remaining human-checks need a funded or dusted throwaway wallet on Base mainnet 8453 — 26-06 (one real swap, hash on the explorer) and 26-07 (underfunded gas names the send failure, stores no row). 26-08 belongs to a second agent on this branch and is in flight; its three failing transaction-display tests are not from this work."
 last_updated: "2026-09-16T00:00:00.000Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 5
-  percent: 40
+  completed_plans: 7
+  percent: 60
 ---
 
 # Project State
