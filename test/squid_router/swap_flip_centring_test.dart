@@ -99,6 +99,8 @@ void _sizeSurface(WidgetTester tester) {
 /// pumps. NOT `pumpAndSettle`: `Loading()` may animate forever, and
 /// `pumpAndSettle` would hang the suite rather than fail it.
 Future<void> _mount(WidgetTester tester, Widget screen) async {
+  // Every caller passes `swapAvailable: true`: without an integrator ID the
+  // screen skips the token fetch by design, and there is no form to measure.
   await tester.pumpWidget(_host(screen));
   await tester.pump();
   await tester.pump();
@@ -121,7 +123,7 @@ double _controlCentreY(WidgetTester tester) =>
 void main() {
   testWidgets('A: at rest the control is centred on the seam', (tester) async {
     _sizeSurface(tester);
-    await _mount(tester, const SwapScreen());
+    await _mount(tester, const SwapScreen(swapAvailable: true));
 
     expect(find.byType(SwapField), findsNWidgets(2));
     expect(
@@ -141,7 +143,11 @@ void main() {
     // `resolvePreselection` seats a HELD token on the pay side.
     await _mount(
       tester,
-      const SwapScreen(preselectSymbol: 'ETH', preselectChainId: 1),
+      const SwapScreen(
+        swapAvailable: true,
+        preselectSymbol: 'ETH',
+        preselectChainId: 1,
+      ),
     );
 
     // `.first` is the You Pay card's amount field - the two cards are built in
@@ -192,7 +198,11 @@ void main() {
     _sizeSurface(tester);
     await _mount(
       tester,
-      const SwapScreen(preselectSymbol: 'ETH', preselectChainId: 1),
+      const SwapScreen(
+        swapAvailable: true,
+        preselectSymbol: 'ETH',
+        preselectChainId: 1,
+      ),
     );
     await tester.enterText(find.byType(TextField).first, '1.5');
     await tester.pump();

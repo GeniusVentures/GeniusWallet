@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/squid_router/squid_client.dart';
@@ -15,7 +16,6 @@ import 'package:squidrouter/squidrouter.dart';
 Map<String, dynamic> _wire(RouteRequest request) =>
     standardSerializers.serializeWith(RouteRequest.serializer, request)
         as Map<String, dynamic>;
-
 
 /// `WalletDetailsCubit` needs a `GeniusApi` this screen never touches, so the
 /// stand-in throws loudly rather than returning a silent null.
@@ -131,6 +131,9 @@ void main() {
 
       expect(find.byType(Loading), findsNothing);
       expect(find.text('Swap unavailable'), findsOneWidget);
+      // The tappable rung is a GWButton. Its absence is what "disabled" means
+      // here — there is nothing to press, not merely a null callback.
+      expect(find.byType(GWButton), findsNothing);
     });
 
     testWidgets('an available build does reach for tokens', (tester) async {

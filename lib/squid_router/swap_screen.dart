@@ -16,6 +16,7 @@ import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
 import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
+import 'package:genius_wallet/squid_router/squid_client.dart';
 import 'package:genius_wallet/squid_router/squid_token_service.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
@@ -46,7 +47,17 @@ List<SquidTokenInfo> tokensForSide(
 ) => all.where((t) => !t.sameAs(otherSide)).toList();
 
 class SwapScreen extends StatefulWidget {
-  const SwapScreen({super.key, this.preselectSymbol, this.preselectChainId});
+  const SwapScreen({
+    super.key,
+    this.preselectSymbol,
+    this.preselectChainId,
+    this.swapAvailable = squidConfigured,
+  });
+
+  /// Whether this build can reach Squid at all. False means no integrator ID,
+  /// so the screen refuses up front rather than rendering a 401 as a route
+  /// error. A parameter so a test can drive both sides without a build define.
+  final bool swapAvailable;
 
   /// Seat this token when the screen opens, if the catalogue has it.
   ///
@@ -99,7 +110,13 @@ class _SwapScreenState extends State<SwapScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTokens();
+    if (widget.swapAvailable) {
+      _loadTokens();
+    } else {
+      // Nothing will clear this gate otherwise, and an unreachable swap would
+      // sit on a spinner forever instead of saying so.
+      isLoading = false;
+    }
   }
 
   @override
@@ -436,10 +453,17 @@ class _SwapScreenState extends State<SwapScreen> {
       routeError: routeError,
       isSubmitting: isSubmitting,
     );
-    final label = swapCtaLabel(state, symbol: fromToken?.symbol);
+    // The availability gate sits ABOVE the ladder, not inside it: a build that
+    // cannot reach Squid has no rung to be on, and the ladder stays the single
+    // source of truth for every state that can actually be reached.
+    final unavailable = !widget.swapAvailable;
+    final label = unavailable
+        ? 'Swap unavailable'
+        : swapCtaLabel(state, symbol: fromToken?.symbol);
     final enabled = swapCtaEnabled(state);
 
-    if (state == SwapCtaState.ready || state == SwapCtaState.routeError) {
+    if (!unavailable &&
+        (state == SwapCtaState.ready || state == SwapCtaState.routeError)) {
       return Padding(
         // Vertical only: EdgeInsets.all inset the CTA 16px inside the amount
         // cards, so the button's edge disagreed with every card above it.
@@ -460,7 +484,8 @@ class _SwapScreenState extends State<SwapScreen> {
       );
     }
 
-    final isInsufficient = state == SwapCtaState.insufficientBalance;
+    final isInsufficient =
+        !unavailable && state == SwapCtaState.insufficientBalance;
     final background = isInsufficient
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
@@ -483,7 +508,7 @@ class _SwapScreenState extends State<SwapScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (state == SwapCtaState.submitting) ...[
+                if (!unavailable && state == SwapCtaState.submitting) ...[
                   SizedBox(
                     width: 18,
                     height: 18,
