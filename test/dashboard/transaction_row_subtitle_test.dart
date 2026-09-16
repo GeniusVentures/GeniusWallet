@@ -534,56 +534,91 @@ void main() {
     // delivering what it promised - stop and re-read the `process` arm of
     // `txRowContent` rather than widening this list.
     const leadCutAllowlist = <String>{
+      // Re-measured after TransactionStatus gained needsGas, partialSuccess
+      // and refunded: their tails are 59.3, 66.7 and 44.0px, so each narrows
+      // the box differently and every type had to be remeasured rather than
+      // assumed. Derived from the table this group prints, not hand-written.
       // `Minted` 48.5 + 12.3 = 60.8. Clears the 69.2 a failed row leaves,
       // misses 54.1 and 41.7. The pending case is the 6.7px shortfall this file
       // already documents in the pending-mint test above, and it is still open.
-      'mint/sent/pending',
-      'mint/received/pending',
       'mint/sent/cancelled',
+      'mint/sent/needsGas',
+      'mint/sent/pending',
+      'mint/sent/refunded',
       'mint/received/cancelled',
+      'mint/received/needsGas',
+      'mint/received/pending',
+      'mint/received/refunded',
       // `Locked` 50.8 + 12.3 = 63.1. Same shape: clears 69.2, misses 54.1
       // and 41.7.
-      'escrow/sent/pending',
-      'escrow/received/pending',
       'escrow/sent/cancelled',
+      'escrow/sent/needsGas',
+      'escrow/sent/pending',
+      'escrow/sent/refunded',
       'escrow/received/cancelled',
+      'escrow/received/needsGas',
+      'escrow/received/pending',
+      'escrow/received/refunded',
       // `Released` 64.1 + 12.3 = 76.4, which misses all three narrowed boxes.
-      'escrowRelease/sent/pending',
-      'escrowRelease/received/pending',
-      'escrowRelease/sent/failed',
-      'escrowRelease/received/failed',
       'escrowRelease/sent/cancelled',
+      'escrowRelease/sent/failed',
+      'escrowRelease/sent/needsGas',
+      'escrowRelease/sent/partialSuccess',
+      'escrowRelease/sent/pending',
+      'escrowRelease/sent/refunded',
       'escrowRelease/received/cancelled',
+      'escrowRelease/received/failed',
+      'escrowRelease/received/needsGas',
+      'escrowRelease/received/partialSuccess',
+      'escrowRelease/received/pending',
+      'escrowRelease/received/refunded',
       // `Card purchase` 102.4 + 12.3 = 114.7. The longest lead the row can
       // draw, and the only one that is the ENTIRE paragraph - `purchase` has no
       // qualifier, so there is nothing in front of the verb to give way first.
-      'purchase/sent/pending',
-      'purchase/received/pending',
-      'purchase/sent/failed',
-      'purchase/received/failed',
       'purchase/sent/cancelled',
+      'purchase/sent/failed',
+      'purchase/sent/needsGas',
+      'purchase/sent/partialSuccess',
+      'purchase/sent/pending',
+      'purchase/sent/refunded',
       'purchase/received/cancelled',
+      'purchase/received/failed',
+      'purchase/received/needsGas',
+      'purchase/received/partialSuccess',
+      'purchase/received/pending',
+      'purchase/received/refunded',
       // `Swapped` 65.1 + 12.3 = 77.4, missing all three.
-      'swap/sent/pending',
-      'swap/received/pending',
-      'swap/sent/failed',
-      'swap/received/failed',
       'swap/sent/cancelled',
+      'swap/sent/failed',
+      'swap/sent/needsGas',
+      'swap/sent/partialSuccess',
+      'swap/sent/pending',
+      'swap/sent/refunded',
       'swap/received/cancelled',
+      'swap/received/failed',
+      'swap/received/needsGas',
+      'swap/received/partialSuccess',
+      'swap/received/pending',
+      'swap/received/refunded',
       // `Sent` 31.9 + 12.3 = 44.2 against the 41.7 a cancelled row leaves - it
-      // misses by 2.5px, and clears every other status comfortably. The
-      // shortest verb on the row and the only near miss in this list.
+      // misses by 2.5px. `Received` 64.3 + 12.3 = 76.6 misses far more, which is
+      // why a receive clips at six statuses where a send clips at one.
       'transfer/sent/cancelled',
-      'null/sent/cancelled',
-      // `Received` 64.3 + 12.3 = 76.6, missing all three. A receive and a send
-      // are the same row with different verbs, and only one of them survives -
-      // which is worth knowing before anyone calls this line settled.
-      'transfer/received/pending',
-      'null/received/pending',
-      'transfer/received/failed',
-      'null/received/failed',
       'transfer/received/cancelled',
+      'transfer/received/failed',
+      'transfer/received/needsGas',
+      'transfer/received/partialSuccess',
+      'transfer/received/pending',
+      'transfer/received/refunded',
+      // The untyped row draws the same verbs as `transfer`, so it clips in the
+      // same places.
+      'null/sent/cancelled',
       'null/received/cancelled',
+      'null/received/failed',
+      'null/received/needsGas',
+      'null/received/partialSuccess',
+      'null/received/pending',
+      'null/received/refunded',
     };
 
     // Filled by the matrix test, printed once by `tearDownAll`. The executor

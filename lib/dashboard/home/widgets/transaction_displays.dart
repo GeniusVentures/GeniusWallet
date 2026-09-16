@@ -19,15 +19,6 @@ import 'package:intl/intl.dart';
 
 final _dateFormat = DateFormat("MMMM d, y 'at' h:mm a");
 
-/// Must agree with the row's own status word; these two surfaces have drifted
-/// before.
-String _capitalizeStatus(TransactionStatus status) => switch (status) {
-  TransactionStatus.needsGas => 'Paused',
-  TransactionStatus.partialSuccess => 'Partial',
-  TransactionStatus.refunded => 'Refunded',
-  _ => status.name[0].toUpperCase() + status.name.substring(1),
-};
-
 /// Above this row width, the row is the WIDE transactions page: it gains the
 /// Status pill + a fixed-width amount column (sketch 030-A2). Below it — the
 /// dashboard panel — the row stays the compact two-part item and the status
@@ -162,7 +153,7 @@ Widget _statusPill(TransactionStatus status, GWColors gw, {String? label}) {
         ),
         const SizedBox(width: 5),
         Text(
-          label ?? _capitalizeStatus(status),
+          label ?? statusWordFor(status),
           maxLines: 1,
           softWrap: false,
           style: GeniusWalletTypography.labelMd.copyWith(
@@ -951,7 +942,7 @@ void showTransactionDetails(
   add(
     txRows,
     'Status',
-    content.statusLabel ?? _capitalizeStatus(status),
+    content.statusLabel ?? statusWordFor(status),
     valueColor: txStatusColors(status, gw).fg,
   );
   // 154-A: "the exact number belongs on a receipt". `exactAmount` is non-null
