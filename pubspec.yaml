@@ -53,6 +53,10 @@ dependencies:
   rxdart: ^0.27.7
   squidrouter:
     path: squidrouter
+  # Already in the binary as squidrouter's own HTTP client. Declared
+  # because the Squid adapter now reads one endpoint through it
+  # directly; the generated deserializer for that one is broken.
+  dio: 5.11.1
 
 dev_dependencies:
   flutter_test:

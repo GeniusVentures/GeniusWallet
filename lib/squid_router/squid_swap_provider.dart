@@ -1,7 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:genius_wallet/squid_router/squid_client.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/swap/swap_provider.dart';
 import 'package:genius_wallet/swap/swap_quote.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:squidrouter/squidrouter.dart';
 
 /// The Squid adapter — the only file that knows Squid's wire types exist.
@@ -22,7 +24,78 @@ class SquidSwapProvider implements SwapProvider {
 
     return squidQuote(route);
   }
+
+  @override
+  Future<List<SwapToken>> tokens(String chainId) async {
+    final catalogue = await _catalogue();
+    return catalogue.where((token) => token.chainId == chainId).toList();
+  }
 }
+
+/// One call answers every chain and the tier allows one request a second, so
+/// the catalogue is read once a session rather than once per picker open.
+Future<List<SwapToken>>? _pendingCatalogue;
+
+Future<List<SwapToken>> _catalogue() async {
+  final pending = _pendingCatalogue ??= _fetchCatalogue();
+  try {
+    return await pending;
+  } catch (_) {
+    // A failure must not be cached, or every later open inherits it.
+    _pendingCatalogue = null;
+    rethrow;
+  }
+}
+
+/// `/v2/sdk-info` read off the generated transport but NOT through
+/// `getSDKInfo()`: the live response carries a null `enableBoostByDefault`,
+/// which the generated model rejects as non-nullable and takes the token list
+/// down with it. Only `tokens` is read here, through the generated serializer.
+Future<List<SwapToken>> _fetchCatalogue() async {
+  final response = await squidDio().get<Object>(
+    '/v2/sdk-info',
+    options: Options(extra: kSquidAuthExtra),
+  );
+
+  final body = response.data;
+  final entries = body is Map ? body['tokens'] : null;
+  if (entries is! List) {
+    throw StateError('Squid answered with no catalogue');
+  }
+
+  final tokens = <SwapToken>[];
+  for (final entry in entries) {
+    final token = _deserialize(entry);
+    // A token we cannot parse or cannot size is a token we cannot offer. It
+    // is dropped rather than shown, and it can never reach an amount.
+    if (token == null ||
+        token.disabled == true ||
+        !isPlausibleDecimals(token.decimals)) {
+      continue;
+    }
+    tokens.add(_swapToken(token));
+  }
+  return tokens;
+}
+
+Token? _deserialize(Object? entry) {
+  try {
+    return standardSerializers.deserializeWith(Token.serializer, entry);
+  } catch (_) {
+    return null;
+  }
+}
+
+/// `decimals` is a `num` on the wire and a chain id is a `String`. Converting
+/// once here is what keeps every comparison site downstream from doing it.
+SwapToken _swapToken(Token token) => SwapToken(
+  chainId: token.chainId,
+  address: token.address,
+  name: token.name,
+  symbol: token.symbol,
+  decimals: token.decimals.toInt(),
+  logoUri: token.logoURI,
+);
 
 /// The wiring point. A different aggregator replaces this line and nothing
 /// else outside its own adapter.
