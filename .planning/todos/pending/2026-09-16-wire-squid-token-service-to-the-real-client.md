@@ -3,11 +3,17 @@ created: 2026-09-16T00:00:00.000Z
 title: Wire SquidTokenService to the real squidrouter submodule client
 area: swap
 priority: high
+resolves_phase: 26
 files:
   - lib/squid_router/squid_token_service.dart
   - lib/squid_router/swap_screen.dart
   - squidrouter/examples/squid_client_example.dart
 ---
+
+> **Roadmap split (2026-09-16, v2.0):** this todo is implemented across three phases —
+> 26 (client init + catalogue), 27 (route/balances/slippage), 28 (real submit + honest
+> recording). Tagged `resolves_phase: 26` as the entry point so phase-26 planning surfaces
+> it; see ROADMAP.md `# Milestone v2.0`.
 
 ## Problem
 

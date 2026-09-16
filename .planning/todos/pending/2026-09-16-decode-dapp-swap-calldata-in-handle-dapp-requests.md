@@ -3,6 +3,7 @@ created: 2026-09-16T00:00:00.000Z
 title: Decode dApp swap calldata in handle_dapp_requests (kill blind signing)
 area: reown
 priority: high
+resolves_phase: 30
 files:
   - lib/reown/handle_dapp_requests.dart
   - lib/reown/send_transaction_details.dart
