@@ -4,10 +4,10 @@ milestone: v2.0
 milestone_name: Squid Router integration
 status: planning
 stopped_at: "v1.0 closeout state (2026-08-08): everything tracked was merged into `develop` (tip fa74006d). Quick task 260806-hfe (transactions at phone width) shipped as PR #224 and quick task 260807-bxs (Markets hero, real timeframe tabs, cards) as PR #226 — an earlier note here claiming 260806-hfe was 'NOT pushed, no PR' was wrong. Phases 24 (mobile nav shell) and 25 (dashboard section caps + Assets page) also shipped, executed by Jakub outside GSD: their completion is measured from merged code, NOT from GSD artifacts — phase 24 has no SUMMARY and its PLAN still reads status: in-progress; 25-01 has no SUMMARY and the BRIEF still reads ready-to-plan. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs)."
-last_updated: "2026-09-16T18:10:43.602Z"
+last_updated: "2026-09-16T18:21:14.000Z"
 last_activity: 2026-09-16
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 23 — design-system-consolidation-theme-tokens-shared-components
+**Current focus:** Phase 26 — squid-client-foundation-live-catalogue (milestone v2.0: Squid Router integration)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 26 — Squid client foundation & live catalogue (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-09-16 — Milestone v2.0 started
+Status: v2.0 roadmap created (phases 26-30; 13/13 requirements mapped) — ready for `/gsd:plan-phase 26`
+Last activity: 2026-09-16 — Milestone v2.0 roadmap created
+
+### v2.0 Phase Tracking
+
+| Phase | Name | Status |
+|-------|------|--------|
+| 26 | Squid client foundation & live catalogue | Not started |
+| 27 | Live quotes (balances, route, slippage, rate limits) | Not started |
+| 28 | Real swap execution & honest recording | Not started |
+| 29 | Integrator fee | Not started |
+| 30 | dApp calldata decoding (end blind signing) | Not started |
+
+(v1.0 residue still executes alongside v2.0 — see the v1.0 Progress table in ROADMAP.md: phase 14
+has an unexecuted plan 14-08, and the mobile-pass tail plus deferred light-mode walks remain
+outstanding. None of it is re-mapped by v2.0.)
 
 ---
 
@@ -231,6 +245,7 @@ Progress: [████████████████████] 36/36 p
 
 Full log in PROJECT.md Key Decisions. Recent:
 
+- **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWP-01..08, FEE-01..02, DAP-01..03 (13/13 mapped, no orphans); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
 - **Port the design incrementally, layer by layer** (2026-07-16) — 128 of the design's 172 files collide with develop (74%); one step means reconciling all of them with nothing verifiable in between
 - Sequence by dependency, not subject: tokens → `gw_*` primitives → nav shell → screen areas. Each phase lands on a layer that already exists and has been reviewed
 - GAP treatment split: GAP-01 (inventory + decision) rides in Phase 3 because "extend the design language" is a design-system question that must be answered before screens land; GAP-02..06 ride in the phase that owns their surface
@@ -631,6 +646,11 @@ Open decisions:
 
 ### Roadmap Evolution
 
+- **Milestone v2.0 roadmap added 2026-09-16:** phases 26-30 (Squid Router integration) appended
+  to ROADMAP.md below the live v1.0 roadmap — Squid client foundation & live catalogue (26), live
+  quotes: balances/route/slippage/rate limits (27), real swap execution & honest recording (28),
+  integrator fee (29), dApp calldata decoding (30 — independent of 26-29, may run in parallel).
+  v1.0 content unchanged; the v2.0 traceability table in REQUIREMENTS.md filled (13/13).
 - **No phase added 2026-08-06.** The mobile pass on `/transactions` ran as **quick task
   260806-hfe**, not a phase: no new roadmap surface, and it extends Phases 12+15 at sub-768 only
   rather than becoming a second owner. Its shared frame helpers (`pageTitleGap`, `pageGutter`) and

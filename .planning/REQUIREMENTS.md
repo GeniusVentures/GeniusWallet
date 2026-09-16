@@ -199,21 +199,24 @@ Reown/WalletConnect.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SWP-01 | TBD | Pending |
-| SWP-02 | TBD | Pending |
-| SWP-03 | TBD | Pending |
-| SWP-04 | TBD | Pending |
-| SWP-05 | TBD | Pending |
-| SWP-06 | TBD | Pending |
-| SWP-07 | TBD | Pending |
-| SWP-08 | TBD | Pending |
-| FEE-01 | TBD | Pending |
-| FEE-02 | TBD | Pending |
-| DAP-01 | TBD | Pending |
-| DAP-02 | TBD | Pending |
-| DAP-03 | TBD | Pending |
+| SWP-01 | Phase 26 — Squid client foundation & live catalogue | Pending |
+| SWP-02 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
+| SWP-03 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
+| SWP-04 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
+| SWP-05 | Phase 28 — Real swap execution & honest recording | Pending |
+| SWP-06 | Phase 28 — Real swap execution & honest recording | Pending |
+| SWP-07 | Phase 26 — Squid client foundation & live catalogue | Pending |
+| SWP-08 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
+| FEE-01 | Phase 29 — Integrator fee | Pending |
+| FEE-02 | Phase 29 — Integrator fee | Pending |
+| DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
+| DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
+| DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 
-**Coverage (v2.0):** 13 total; mapping pending roadmap creation.
+**Coverage (v2.0):** 13 total; **13/13 mapped to phases 26-30 ✓** — every v2.0 requirement maps
+to exactly one phase; no orphans, no duplicates. Roadmap: `.planning/ROADMAP.md` →
+`# Milestone v2.0: Squid Router integration` (appended after the v1.0 roadmap, which stands
+unchanged; phase 30 is independent of 26-29 and may run in parallel).
 
 ### Milestone v1.0 — redesign port
 
@@ -275,4 +278,4 @@ Reown/WalletConnect.
 - Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — Phase 22: 3 complete (ORG-01 closed on developer judgement with CI still unexecuted, ORG-02, ORG-03); Phase 23: 1 complete (ORG-04) and 1 PARTIAL (ORG-05, four extractions refused/deferred).
 
 ---
-*Last updated: 2026-09-16 — v2.0 (Squid Router integration) requirements defined: SWP-01..08, FEE-01..02, DAP-01..03; previous v1.0 traceability stands unchanged below*
+*Last updated: 2026-09-16 — v2.0 roadmap created: SWP-01..08, FEE-01..02, DAP-01..03 mapped to phases 26-30 (13/13, no orphans); previous v1.0 traceability stands unchanged below*
