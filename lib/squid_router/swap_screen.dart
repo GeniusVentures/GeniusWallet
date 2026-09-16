@@ -12,11 +12,10 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/squid_router/held_tokens.dart';
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
-import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
-import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/squid_client.dart';
+import 'package:genius_wallet/squid_router/squid_swap_provider.dart';
 import 'package:genius_wallet/squid_router/squid_token_service.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
@@ -25,6 +24,7 @@ import 'package:genius_wallet/squid_router/swap_preselection.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
+import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -95,7 +95,7 @@ class _SwapScreenState extends State<SwapScreen> {
   Timer? _debounce;
   final TextEditingController fromAmountController = TextEditingController();
   final TextEditingController toAmountController = TextEditingController();
-  SquidRouteResponse? fetchedRoute;
+  SwapQuote? fetchedQuote;
   double slippage = 0.5; // Default slippage
 
   // D-09 / criterion 2: the CTA ladder's own state (swap_cta_state.dart).
@@ -226,27 +226,38 @@ class _SwapScreenState extends State<SwapScreen> {
       fromAmount.isNotEmpty &&
       double.tryParse(fromAmount) != null;
 
-  SquidSwapParams? get swapParams {
+  /// The quote request, in the aggregator-neutral shape. Null whenever the
+  /// form cannot describe a swap yet.
+  SwapQuoteRequest? get quoteRequest {
     if (!canSwap) {
       return null;
     }
 
-    final walletState = context.read<WalletDetailsCubit>().state;
-    final fromAddress = walletState.selectedWallet?.address;
-    final toAddress = walletState.selectedWallet?.address;
+    final address = context
+        .read<WalletDetailsCubit>()
+        .state
+        .selectedWallet
+        ?.address;
 
-    if (fromAddress == null || toAddress == null) {
+    if (address == null) {
       return null;
     }
 
-    return SquidSwapParams(
-      fromChain: fromToken!.chainId,
+    // Base units, not the typed string: '1.5' sent as-is is 1.5 wei.
+    final fromAmountUnits = toBaseUnits(fromAmount, fromToken!.decimals);
+
+    if (fromAmountUnits == null) {
+      return null;
+    }
+
+    return SwapQuoteRequest(
+      fromChainId: fromToken!.chainId.toString(),
       fromToken: fromToken!.address,
-      fromAmount: fromAmount,
-      toChain: toToken!.chainId,
+      fromAmount: fromAmountUnits,
+      toChainId: toToken!.chainId.toString(),
       toToken: toToken!.address,
-      fromAddress: fromAddress,
-      toAddress: toAddress,
+      fromAddress: address,
+      toAddress: address,
       slippage: slippage,
     );
   }
@@ -256,8 +267,8 @@ class _SwapScreenState extends State<SwapScreen> {
       return;
     }
 
-    final params = swapParams;
-    if (params == null) {
+    final request = quoteRequest;
+    if (request == null) {
       return;
     }
 
@@ -267,15 +278,11 @@ class _SwapScreenState extends State<SwapScreen> {
     });
 
     try {
-      final route = await SquidTokenService.getRoute(params);
-      final formatted = formatTokenAmount(
-        BigInt.parse(route.toAmount),
-        toToken!.decimals,
-      );
+      final quote = await swapProvider.quote(request);
       setState(() {
-        toAmount = formatted;
-        toAmountController.text = formatted;
-        fetchedRoute = route;
+        toAmount = quote.toAmountDisplay;
+        toAmountController.text = quote.toAmountDisplay;
+        fetchedQuote = quote;
         isFetchingRoute = false;
       });
     } catch (e) {
@@ -286,7 +293,7 @@ class _SwapScreenState extends State<SwapScreen> {
       // supplementary toast, not the mechanism.
       setState(() {
         routeError = true;
-        fetchedRoute = null;
+        fetchedQuote = null;
         toAmount = '';
         toAmountController.clear();
         isFetchingRoute = false;
@@ -301,29 +308,28 @@ class _SwapScreenState extends State<SwapScreen> {
     }
   }
 
+  /// One second, because the quote endpoint is rate limited to one request a
+  /// second and answers an overrun with an error the user would read as a
+  /// broken swap. Shorten this only alongside a higher tier.
   void _debouncedFetchRoute() {
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
     }
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    _debounce = Timer(const Duration(milliseconds: 1000), () {
       _fetchRoute();
     });
   }
 
-  /// The READY rung's submit action — byte-identical to develop's inline
-  /// closure (D-01/D-02: the TODO markers stay, nothing here invokes Squid
-  /// or upgrades the copy's claims), only now wrapped with the `isSubmitting`
-  /// flag around the real await so the CTA can show its "Submitting swap…"
-  /// rung for exactly as long as this genuinely takes.
+  /// The READY rung's submit action. Nothing here invokes Squid yet — the
+  /// `isSubmitting` flag wraps the await so the CTA shows its submitting rung
+  /// for exactly as long as this genuinely takes.
   Future<void> _submitSwap() async {
-    final params = swapParams;
-    if (params == null) {
+    if (quoteRequest == null) {
       return;
     }
 
     setState(() => isSubmitting = true);
     try {
-      debugPrint('Swapping with params: ${params.toJson()}');
       // TODO: invoke Squid API
 
       final walletState = context.read<WalletDetailsCubit>().state;
@@ -358,7 +364,7 @@ class _SwapScreenState extends State<SwapScreen> {
 
       showToast(
         context,
-        'Swapping ${params.fromAmount} ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
+        'Swapping $fromAmount ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
         title: 'Swap Submitted',
         type: ToastType.success,
       );
@@ -449,7 +455,7 @@ class _SwapScreenState extends State<SwapScreen> {
       fromAmount: fromAmount,
       fromBalance: fromBalanceAmount,
       isFetchingRoute: isFetchingRoute,
-      hasRoute: fetchedRoute != null,
+      hasRoute: fetchedQuote != null,
       routeError: routeError,
       isSubmitting: isSubmitting,
     );
@@ -552,7 +558,7 @@ class _SwapScreenState extends State<SwapScreen> {
             toAmount = '';
             fromAmountController.clear();
             toAmountController.clear();
-            fetchedRoute = null;
+            fetchedQuote = null;
             isLoading = true;
           });
 
@@ -782,13 +788,13 @@ class _SwapScreenState extends State<SwapScreen> {
                                 ),
                                 // D-09: the route card never shows figures derived
                                 // from a route that just failed.
-                                if (fetchedRoute != null && !routeError)
+                                if (fetchedQuote != null && !routeError)
                                   RouteDetailsCard(
-                                    route: fetchedRoute!,
+                                    quote: fetchedQuote!,
                                     fromAmount: fromAmountController.text,
                                     toAmount: toAmountController.text,
-                                    fromToken: fromToken,
-                                    toToken: toToken,
+                                    fromSymbol: fromToken?.symbol,
+                                    toSymbol: toToken?.symbol,
                                     slippage: slippage.toString(),
                                   ),
                                 if (routeError) _buildRouteErrorNotice(gw),

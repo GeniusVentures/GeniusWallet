@@ -42,7 +42,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// `WalletDetailsCubit` takes a `GeniusApi` this screen never touches. The only
 /// wallet state `SwapScreen` reads is `selectedWallet?.address` (force-unwrapped
-/// in `_loadTokens`) and, inside the submit handler alone, `swapParams`. The
+/// in `_loadTokens`) and, inside the submit handler alone, `quoteRequest`. The
 /// same four-line stand-in the coin-page and transactions-frame tests use: it
 /// satisfies the type and throws loudly rather than returning a silent null.
 class _UnusedApi implements GeniusApi {

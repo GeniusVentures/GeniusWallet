@@ -1,8 +1,4 @@
 import 'package:genius_wallet/squid_router/models/squid_balance.dart';
-import 'package:genius_wallet/squid_router/models/squid_fee_cost.dart';
-import 'package:genius_wallet/squid_router/models/squid_gas_cost.dart';
-import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
-import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
 import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 
 class SquidTokenService {
@@ -53,96 +49,12 @@ class SquidTokenService {
     // }
   }
 
-  static Future<SquidRouteResponse> getRoute(SquidSwapParams params) async {
-    return mockSquidRoute;
-    // final uri = Uri.parse('$baseUrl/route').replace(
-    //   queryParameters: {
-    //     'fromChain': params.fromChain,
-    //     'fromToken': params.fromToken,
-    //     'fromAmount': params.fromAmount,
-    //     'toChain': params.toChain,
-    //     'toToken': params.toToken,
-    //     'fromAddress': params.fromAddress,
-    //     'toAddress': params.toAddress,
-    //     'slippage': '1', // optional, set as needed
-    //     'enableUniversalRouter': 'true',
-    //   },
-    // );
-
-    // final response = await http.get(uri);
-
-    // if (response.statusCode != 200) {
-    //   throw Exception('Failed to fetch route: ${response.body}');
-    // }
-
-    // final Map<String, dynamic> data = json.decode(response.body);
-    // return SquidRouteResponse.fromJson(data);
-  }
-
   // TODO: Add chains, update main chains dropdown to also use this.. remove the chains hardcoded in assets/networks.json
   //   const getChains = async () => {
   //     const result = await axios.get('https://testnet.api.squidrouter.com/v1/chains');
   //     return result.data;
   //   }
 }
-
-final mockSquidRoute = SquidRouteResponse(
-  routeId: 'mock-route-123',
-  fromChain: 'ethereum',
-  toChain: 'ethereum',
-  fromToken: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-  toToken: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-  fromAmount: '1000000000000000000',
-  toAmount: '995000',
-  exchangeRate: '993.72',
-  aggregatePriceImpact: '0.51',
-  route: [/* ... as before ... */],
-  gasCosts: [
-    SquidGasCost(
-      type: 'executeCall',
-      token: SquidTokenInfo(
-        commonKey: 'eth',
-        crosschain: false,
-        chainId: 1,
-        address: '0x0000000000000000000000000000000000000000',
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18,
-        logoURI:
-            'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
-        coingeckoId: 'ethereum',
-      ),
-      amount: '12439757116840000',
-      amountUSD: '15.0604',
-      gasPrice: '10117084325',
-      maxFeePerGas: '21447857098',
-      maxPriorityFeePerGas: '1500000000',
-      estimate: '580000',
-      limit: '667000',
-    ),
-  ],
-  feeCosts: [
-    SquidFeeCost(
-      name: 'Gas Receiver Fee',
-      description: 'Estimated Gas Receiver fee',
-      percentage: '0',
-      token: SquidTokenInfo(
-        commonKey: 'eth',
-        crosschain: false,
-        chainId: 1,
-        address: '0x0000000000000000000000000000000000000000',
-        name: 'Ethereum',
-        symbol: 'ETH',
-        decimals: 18,
-        logoURI:
-            'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
-        coingeckoId: 'ethereum',
-      ),
-      amount: '503509582401222',
-      amountUSD: '0.3048',
-    ),
-  ],
-);
 
 final List<SquidBalance> mockSquidBalances = [
   SquidBalance(
