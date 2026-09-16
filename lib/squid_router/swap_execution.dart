@@ -109,6 +109,23 @@ bool isTerminal(SwapStatus status) => switch (status) {
   SwapStatus.failedOnDestination => true,
 };
 
+/// The orchestrator's shape, so a screen can take it as a parameter and a
+/// case can drive every outcome without a network, a key or a wallet.
+typedef SwapExecutor =
+    Future<SwapOutcome> Function({
+      required String tokenAddress,
+      required BigInt amount,
+      required Future<SwapTransaction> Function() fetchRoute,
+      required Future<BigInt> Function(String spender) readAllowance,
+      required Future<bool> Function(String spender, BigInt amount) approve,
+      required Future<String?> Function(Map<String, String> request) send,
+      required Future<SwapStatus> Function(SwapTransaction route, String hash)
+      readStatus,
+      required Future<void> Function(Duration delay) wait,
+      int pollAttempts,
+      Duration pollInterval,
+    });
+
 /// Runs a swap end to end: executable route, approval if the allowance is
 /// short, send, then poll until the status is real.
 ///

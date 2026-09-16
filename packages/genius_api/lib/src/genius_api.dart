@@ -1186,6 +1186,20 @@ class GeniusApi {
     return ApiResponse.success("${gasPriceInGwei?.toStringAsFixed(2)} Gwei");
   }
 
+  /// How much of [contractAddress] the [spender] may already move on [owner]'s
+  /// behalf, in raw base units. A read — no wallet, no signature.
+  Future<BigInt> allowance({
+    required String owner,
+    required String spender,
+    required String contractAddress,
+    required String rpcUrl,
+  }) => Web3(geniusApi: this).allowance(
+    owner: owner,
+    spender: spender,
+    contractAddress: contractAddress,
+    rpcUrl: rpcUrl,
+  );
+
   /// [address]'s balance of the token at [contractAddress], as the exact
   /// integer the contract returned. A read — no wallet, no signature.
   Future<BigInt> rawBalanceOf({

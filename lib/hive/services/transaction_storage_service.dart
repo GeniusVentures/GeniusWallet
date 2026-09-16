@@ -17,6 +17,8 @@ import 'package:hive_ce/hive.dart';
 // await txService.clearWallet('0x123...');
 
 class TransactionStorageService {
+  const TransactionStorageService();
+
   Future<Box<Transaction>> _getWalletBox(String walletAddress) async {
     final boxName = 'transactions_$walletAddress';
     if (!Hive.isBoxOpen(boxName)) {

@@ -17,6 +17,7 @@ import 'package:genius_wallet/squid_router/squid_swap_provider.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/squid_router/swap_allowance.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
+import 'package:genius_wallet/squid_router/swap_execution.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_preselection.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
@@ -51,7 +52,14 @@ class SwapScreen extends StatefulWidget {
     this.preselectChainId,
     this.swapAvailable = squidConfigured,
     this.provider = swapProvider,
+    this.execute = executeSwap,
+    this.storage = const TransactionStorageService(),
   });
+
+  /// The swap orchestrator and the transaction store, injected so the cases
+  /// can drive every outcome with no network, no key and no wallet.
+  final SwapExecutor execute;
+  final TransactionStorageService storage;
 
   /// Where the catalogue and the quote come from. A parameter so a test can
   /// drive the screen without a network or a credential.
@@ -327,7 +335,7 @@ class _SwapScreenState extends State<SwapScreen> {
     });
 
     try {
-      final quote = await swapProvider.quote(request);
+      final quote = await widget.provider.quote(request);
       setState(() {
         toAmount = quote.toAmountDisplay;
         toAmountController.text = quote.toAmountDisplay;
@@ -369,72 +377,144 @@ class _SwapScreenState extends State<SwapScreen> {
     });
   }
 
-  /// The READY rung's submit action. Nothing here invokes Squid yet — the
-  /// `isSubmitting` flag wraps the await so the CTA shows its submitting rung
-  /// for exactly as long as this genuinely takes.
+  /// The READY rung's submit action — a thin adapter over the orchestrator.
+  ///
+  /// It reads [sideEffectsFor] and acts on it. It must never re-derive that
+  /// decision: a screen that decides for itself whether a swap succeeded is
+  /// the bug this phase exists to remove.
   Future<void> _submitSwap() async {
-    if (quoteRequest == null) {
+    final request = quoteRequest;
+    final walletState = context.read<WalletDetailsCubit>().state;
+    final address = walletState.selectedWallet?.address;
+    final network = walletState.selectedNetwork;
+    final rpcUrl = network?.rpcUrl;
+    final chainId = network?.chainId;
+
+    if (request == null ||
+        address == null ||
+        rpcUrl == null ||
+        chainId == null) {
       return;
     }
 
+    final api = context.read<WalletDetailsCubit>().geniusApi;
+    final transactionsCubit = context.read<TransactionsCubit>();
+    final payToken = fromToken!;
+
     setState(() => isSubmitting = true);
     try {
-      // TODO: invoke Squid API
-
-      final walletState = context.read<WalletDetailsCubit>().state;
-      final walletAddress = walletState.selectedWallet?.address;
-      final walletNetwork = walletState.selectedNetwork?.symbol;
-      final transactionsCubit = context.read<TransactionsCubit>();
-
-      // TODO: record transaction...
-      // IF SUCCESSS ...
-      final transaction = Transaction(
-        hash: "",
-        fromAddress: walletAddress!,
-        recipients: [
-          TransferRecipients(toAddr: walletAddress, amount: toAmount),
-        ],
-        timeStamp: DateTime.now(),
-        transactionDirection: TransactionDirection.received,
-        // Blank, not fromAmount: nothing executed (D-01), so no network fee
-        // exists to report. The receipt's blank-fee guard (D-20) omits the
-        // row rather than printing what the user pays under "Network Fee".
-        fees: '',
-        coinSymbol: walletNetwork!,
-        transactionStatus: TransactionStatus.completed,
-        type: TransactionType.swap,
-        toAmount: toAmount,
-        toIconUrl: toToken?.logoUri,
-        fromSymbol: fromToken?.symbol,
-        toSymbol: toToken?.symbol,
-        fromAmount: fromAmount,
-        fromIconUrl: fromToken?.logoUri,
+      final outcome = await widget.execute(
+        tokenAddress: payToken.address,
+        amount: request.fromAmount,
+        fetchRoute: () => widget.provider.buildTransaction(request),
+        readAllowance: (spender) => api.allowance(
+          owner: address,
+          spender: spender,
+          contractAddress: payToken.address,
+          rpcUrl: rpcUrl,
+        ),
+        approve: (spender, amount) async {
+          final response = await api.approve(
+            contractAddress: payToken.address,
+            rpcUrl: rpcUrl,
+            address: address,
+            spender: spender,
+            amount: amount,
+            chainId: chainId,
+          );
+          return response.isSuccess;
+        },
+        send: (tx) async {
+          final response = await api.signAndSendTransaction(
+            tx: tx,
+            rpcUrl: rpcUrl,
+            address: address,
+            sourceChainId: chainId,
+          );
+          return response.data;
+        },
+        readStatus: widget.provider.status,
+        wait: Future<void>.delayed,
       );
 
-      showToast(
-        context,
-        'Swapping $fromAmount ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
-        title: 'Swap Submitted',
-        type: ToastType.success,
-      );
-
-      // D-03/D-04: the shared 031-B receipt replaces the superseded
-      // SwapSuccessDrawer, alongside the toast above — never instead of it.
-      if (mounted) {
-        showTransactionDetails(context, transaction);
+      if (!mounted) {
+        return;
       }
-      transactionsCubit.addTransaction(transaction);
-
-      // save to hive
-      await TransactionStorageService().addTransaction(
-        walletAddress,
-        transaction,
+      await _applyOutcome(
+        outcome,
+        walletAddress: address,
+        networkSymbol: network?.symbol ?? '',
+        transactionsCubit: transactionsCubit,
       );
     } finally {
       if (mounted) {
         setState(() => isSubmitting = false);
       }
     }
+  }
+
+  /// Does exactly what [sideEffectsFor] permits, and nothing on any outcome
+  /// that carries no hash. 26-07 owns what the user is told instead; until
+  /// then the shipped route-error path is what speaks.
+  Future<void> _applyOutcome(
+    SwapOutcome outcome, {
+    required String walletAddress,
+    required String networkSymbol,
+    required TransactionsCubit transactionsCubit,
+  }) async {
+    final effects = sideEffectsFor(outcome);
+    if (!effects.storeRow) {
+      return;
+    }
+
+    // Only a hash-bearing outcome gets here, and only one shape carries one.
+    final broadcast = outcome as SwapBroadcast;
+
+    Transaction rowWith(TransactionStatus status) => Transaction(
+      hash: broadcast.hash,
+      fromAddress: walletAddress,
+      recipients: [TransferRecipients(toAddr: walletAddress, amount: toAmount)],
+      timeStamp: DateTime.now(),
+      transactionDirection: TransactionDirection.received,
+      // Something executed now, so a real network fee exists to report.
+      fees: fetchedQuote?.gasUsd.toStringAsFixed(2) ?? '',
+      coinSymbol: networkSymbol,
+      transactionStatus: status,
+      type: TransactionType.swap,
+      toAmount: toAmount,
+      toIconUrl: toToken?.logoUri,
+      fromSymbol: fromToken?.symbol,
+      toSymbol: toToken?.symbol,
+      fromAmount: fromAmount,
+      fromIconUrl: fromToken?.logoUri,
+    );
+
+    // Written BEFORE the resolved status, keyed by the real hash: a crash
+    // between broadcast and resolution must leave an accurate pending row
+    // rather than no record of funds that already moved.
+    await widget.storage.addTransaction(
+      walletAddress,
+      rowWith(TransactionStatus.pending),
+    );
+    final resolved = rowWith(broadcast.status);
+    await widget.storage.addTransaction(walletAddress, resolved);
+
+    if (!mounted) {
+      return;
+    }
+    if (effects.showToast) {
+      showToast(
+        context,
+        'Swapped $fromAmount ${fromToken?.symbol ?? ""} for '
+        '${toToken?.symbol ?? ""}.',
+        title: 'Swap Submitted',
+        type: ToastType.success,
+      );
+    }
+    if (effects.showReceipt) {
+      showTransactionDetails(context, resolved);
+    }
+    transactionsCubit.addTransaction(resolved);
   }
 
   /// D-09 / finding 22's inline notice — background `statusError` @ ~12%
