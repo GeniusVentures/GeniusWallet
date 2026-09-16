@@ -35,6 +35,7 @@ class _Steps {
     this.sendResult = _hash,
     this.sendError,
     this.statuses = const [SwapStatus.success],
+    this.recoveryUrl,
   });
 
   final Error? routeError;
@@ -44,6 +45,7 @@ class _Steps {
   final String? sendResult;
   final Error? sendError;
   final List<SwapStatus> statuses;
+  final String? recoveryUrl;
 
   final List<BigInt> approvals = [];
   final List<Map<String, String>> sends = [];
@@ -87,7 +89,7 @@ class _Steps {
             // yet, which reaches this callback as a throw.
             throw StateError('404 No transaction found');
           }
-          return answer;
+          return SwapSettlement(status: answer, recoveryUrl: recoveryUrl);
         },
         pollAttempts: attempts,
         wait: (_) async => waits++,
@@ -240,6 +242,30 @@ void main() {
       );
       await settled.run();
       expect(settled.waits, 0, reason: 'a first-read success must not sleep');
+    });
+  });
+
+  group('the recovery link', () {
+    test('a settled swap carries the link the status call returned', () async {
+      const url = 'https://axelarscan.io/gmp/0xabc';
+      final steps = _Steps(
+        allowance: _amount,
+        statuses: const [SwapStatus.needsGas],
+        recoveryUrl: url,
+      );
+      final outcome = await steps.run();
+
+      expect((outcome as SwapBroadcast).recoveryUrl, url);
+    });
+
+    test('no link sent means no link carried, never a composed one', () async {
+      final steps = _Steps(
+        allowance: _amount,
+        statuses: const [SwapStatus.needsGas],
+      );
+      final outcome = await steps.run();
+
+      expect((outcome as SwapBroadcast).recoveryUrl, isNull);
     });
   });
 

@@ -22,5 +22,5 @@ abstract interface class SwapProvider {
 
   /// What the aggregator says happened to [hash]. Throws when it cannot say
   /// yet — an unindexed transaction is a 404, not an answer.
-  Future<SwapStatus> status(SwapTransaction transaction, String hash);
+  Future<SwapSettlement> status(SwapTransaction transaction, String hash);
 }

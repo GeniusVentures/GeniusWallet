@@ -50,7 +50,10 @@ class SquidSwapProvider implements SwapProvider {
   }
 
   @override
-  Future<SwapStatus> status(SwapTransaction transaction, String hash) async {
+  Future<SwapSettlement> status(
+    SwapTransaction transaction,
+    String hash,
+  ) async {
     final response = await squidDio().get<Object>(
       '/v2/status',
       queryParameters: {'quoteId': transaction.quoteId, 'transactionId': hash},
@@ -63,8 +66,15 @@ class SquidSwapProvider implements SwapProvider {
     );
 
     final body = response.data;
-    return swapStatusFrom(
-      body is Map ? body['squidTransactionStatus']?.toString() : null,
+    if (body is! Map) {
+      return const SwapSettlement(status: SwapStatus.notFound);
+    }
+
+    return SwapSettlement(
+      status: swapStatusFrom(body['squidTransactionStatus']?.toString()),
+      // Squid's own page for this transfer — where a paused one is resumed.
+      // Absent is absent; nothing is built from the hash to stand in for it.
+      recoveryUrl: body['axelarTransactionUrl']?.toString(),
     );
   }
 

@@ -394,6 +394,41 @@ String statusWordFor(TransactionStatus status) => switch (status) {
   _ => status.name[0].toUpperCase() + status.name.substring(1),
 };
 
+/// What a receipt says about a swap that moved money but not where it was
+/// asked to go, or null when there is nothing to explain.
+///
+/// Keyed by status and living here, beside the row's own words — the failure
+/// copy for swaps that were never stored is a different table, and mixing them
+/// would print swap-attempt wording on a bridge or Banxa row.
+String? recoveryNoteFor(TransactionStatus status) => switch (status) {
+  TransactionStatus.needsGas =>
+    'This transfer is paused on the destination chain. Your funds are held, '
+        'not lost — adding gas there resumes it.',
+  TransactionStatus.partialSuccess =>
+    'This swap finished with a different token than the one requested. The '
+        'funds are in your wallet; nothing further is needed.',
+  TransactionStatus.refunded =>
+    'This swap could not complete, so the funds were returned to your wallet.',
+  TransactionStatus.pending ||
+  TransactionStatus.completed ||
+  TransactionStatus.failed ||
+  TransactionStatus.cancelled => null,
+};
+
+/// The stored recovery link, but only when it is one this app will open.
+/// Absent, unparseable or non-https answers null, and the receipt then shows
+/// the sentence with NO button rather than a control that goes nowhere.
+String? openableRecoveryUrl(String? stored) {
+  if (stored == null || stored.isEmpty) {
+    return null;
+  }
+  final uri = Uri.tryParse(stored);
+  if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
+    return null;
+  }
+  return stored;
+}
+
 /// Never returns an empty string — an address can be blank on a malformed
 /// record and a blank subtitle would collapse the row's second line.
 String _addressLine(String address) {

@@ -24,6 +24,6 @@ abstract class FakeSwapProvider implements SwapProvider {
       throw UnimplementedError('this case does not execute a swap');
 
   @override
-  Future<SwapStatus> status(SwapTransaction transaction, String hash) =>
+  Future<SwapSettlement> status(SwapTransaction transaction, String hash) =>
       throw UnimplementedError('this case does not poll a status');
 }

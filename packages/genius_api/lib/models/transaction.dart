@@ -149,6 +149,12 @@ class Transaction {
   @HiveField(16)
   final String? toSymbol;
 
+  /// The aggregator's own page for a transfer that stalled, as the API sent
+  /// it. Appended at 17 so a row written by an older build still reads; null
+  /// there, which is the same as "no action offered".
+  @HiveField(17)
+  final String? recoveryUrl;
+
   Transaction({
     required this.hash,
     required this.fromAddress,
@@ -167,5 +173,6 @@ class Transaction {
     this.exchangeRate,
     this.fromSymbol,
     this.toSymbol,
+    this.recoveryUrl,
   });
 }

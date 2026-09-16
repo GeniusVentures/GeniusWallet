@@ -56,9 +56,14 @@ final class SwapBroadcast extends SwapOutcome {
     required this.hash,
     required this.status,
     required this.transaction,
+    this.recoveryUrl,
   });
 
   final String hash;
+
+  /// The aggregator's own page for this transfer, when it sent one. A paused
+  /// swap is resumed there; every other state simply has nothing to offer.
+  final String? recoveryUrl;
 
   /// What the aggregator actually reported, or pending when polling ran out.
   /// Never a status assumed at submit time.
@@ -137,7 +142,10 @@ typedef SwapExecutor =
       required Future<BigInt> Function(String spender) readAllowance,
       required Future<bool> Function(String spender, BigInt amount) approve,
       required Future<String?> Function(Map<String, String> request) send,
-      required Future<SwapStatus> Function(SwapTransaction route, String hash)
+      required Future<SwapSettlement> Function(
+        SwapTransaction route,
+        String hash,
+      )
       readStatus,
       required Future<void> Function(Duration delay) wait,
       int pollAttempts,
@@ -156,7 +164,7 @@ Future<SwapOutcome> executeSwap({
   required Future<BigInt> Function(String spender) readAllowance,
   required Future<bool> Function(String spender, BigInt amount) approve,
   required Future<String?> Function(Map<String, String> request) send,
-  required Future<SwapStatus> Function(SwapTransaction route, String hash)
+  required Future<SwapSettlement> Function(SwapTransaction route, String hash)
   readStatus,
   required Future<void> Function(Duration delay) wait,
   int pollAttempts = 20,
@@ -215,50 +223,51 @@ Future<SwapOutcome> executeSwap({
     return const SwapSendFailed(null);
   }
 
+  final settled = await _poll(
+    route: route,
+    hash: hash,
+    readStatus: readStatus,
+    wait: wait,
+    attempts: pollAttempts,
+    interval: pollInterval,
+  );
+
   return SwapBroadcast(
     hash: hash,
-    status: walletStatusFor(
-      await _poll(
-        route: route,
-        hash: hash,
-        readStatus: readStatus,
-        wait: wait,
-        attempts: pollAttempts,
-        interval: pollInterval,
-      ),
-    ),
+    status: walletStatusFor(settled.status),
     transaction: route,
+    recoveryUrl: settled.recoveryUrl,
   );
 }
 
 /// Polls until the status resolves or the attempts run out. A read that
 /// throws — which is how the live 404 for an unindexed transaction arrives —
 /// is another "not yet", never a reason to discard the hash.
-Future<SwapStatus> _poll({
+Future<SwapSettlement> _poll({
   required SwapTransaction route,
   required String hash,
-  required Future<SwapStatus> Function(SwapTransaction route, String hash)
+  required Future<SwapSettlement> Function(SwapTransaction route, String hash)
   readStatus,
   required Future<void> Function(Duration delay) wait,
   required int attempts,
   required Duration interval,
 }) async {
-  var status = SwapStatus.ongoing;
+  var settled = const SwapSettlement(status: SwapStatus.ongoing);
 
   for (var attempt = 0; attempt < attempts; attempt++) {
     if (attempt > 0) {
       await wait(interval);
     }
     try {
-      status = await readStatus(route, hash);
+      settled = await readStatus(route, hash);
     } catch (_) {
-      status = SwapStatus.notFound;
+      settled = const SwapSettlement(status: SwapStatus.notFound);
     }
-    if (isTerminal(status)) {
-      return status;
+    if (isTerminal(settled.status)) {
+      return settled;
     }
   }
 
   // Unresolved is unresolved. `walletStatusFor` reads this as pending.
-  return status;
+  return settled;
 }

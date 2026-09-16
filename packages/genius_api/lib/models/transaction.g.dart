@@ -71,13 +71,14 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       exchangeRate: fields[14] as String?,
       fromSymbol: fields[15] as String?,
       toSymbol: fields[16] as String?,
+      recoveryUrl: fields[17] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Transaction obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(18)
       ..writeByte(0)
       ..write(obj.hash)
       ..writeByte(1)
@@ -111,7 +112,9 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       ..writeByte(15)
       ..write(obj.fromSymbol)
       ..writeByte(16)
-      ..write(obj.toSymbol);
+      ..write(obj.toSymbol)
+      ..writeByte(17)
+      ..write(obj.recoveryUrl);
   }
 
   @override

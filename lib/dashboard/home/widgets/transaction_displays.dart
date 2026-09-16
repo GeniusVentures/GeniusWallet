@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/effects/gw_hover_row.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
@@ -1056,6 +1057,24 @@ void showTransactionDetails(
         // colour rides on the icon badge, this pill and the Status row.
         Center(child: _statusPill(status, gw, label: content.statusLabel)),
         const SizedBox(height: GeniusWalletConsts.space12),
+
+        // Money moved, but not where it was asked to go. The sentence says
+        // where it is; the button appears ONLY when the aggregator sent a page
+        // that can act on it, so a control is never shown that goes nowhere.
+        if (recoveryNoteFor(status) case final note?) ...[
+          GWWarningNote(note),
+          if (openableRecoveryUrl(tx.recoveryUrl) case final url?) ...[
+            const SizedBox(height: GeniusWalletConsts.space4),
+            GWButton(
+              variant: GWButtonVariant.secondary,
+              size: GWButtonSize.md,
+              expand: true,
+              label: 'Open recovery page',
+              onPressed: () => launchWebSite(context, url),
+            ),
+          ],
+          const SizedBox(height: GeniusWalletConsts.space12),
+        ],
 
         // A kicker over a ruled well, which is 154-A's grouping restored
         // (Jakub, 2026-07-28: that grid is missing and he wanted it back). The

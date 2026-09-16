@@ -495,6 +495,9 @@ class _SwapScreenState extends State<SwapScreen> {
       toSymbol: toToken?.symbol,
       fromAmount: fromAmount,
       fromIconUrl: fromToken?.logoUri,
+      // Persisted, because the session that makes a paused swap is the one
+      // session the user is NOT in when they come back to resume it.
+      recoveryUrl: broadcast.recoveryUrl,
     );
 
     // Written BEFORE the resolved status, keyed by the real hash: a crash

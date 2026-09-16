@@ -24,6 +24,16 @@ class SwapTransaction {
   final Map<String, String> request;
 }
 
+/// How a broadcast swap settled, with the aggregator's own page for it when
+/// one was sent. The URL is CAPTURED, never composed: a guessed link on a
+/// paused transfer sends the user somewhere that cannot resume it.
+class SwapSettlement {
+  const SwapSettlement({required this.status, this.recoveryUrl});
+
+  final SwapStatus status;
+  final String? recoveryUrl;
+}
+
 /// What an aggregator reports about a broadcast swap. Ours, not a provider's
 /// enum — the adapter maps its vocabulary onto these.
 enum SwapStatus {
