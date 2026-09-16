@@ -155,6 +155,14 @@ void main() {
     testWidgets('the pill and the Status row take one colour -- $status', (
       tester,
     ) async {
+      // Tall enough that the whole sheet builds. The states that explain
+      // themselves carry a sentence above the detail grid, and at the default
+      // 600px the Status row fell below the built viewport — which looks
+      // exactly like a dropped consumer.
+      tester.view.physicalSize = const Size(1200, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
       await tester.pumpWidget(_app(_tx(status: status)));
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();

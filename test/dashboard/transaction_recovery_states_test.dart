@@ -97,6 +97,20 @@ void main() {
   });
 
   group('what each state says', () {
+    test('every status is either explained or deliberately silent', () {
+      // Iterating the enum, not a written-out list: the next value added
+      // cannot quietly skip this and print its own name at a user.
+      for (final status in TransactionStatus.values) {
+        final note = recoveryNoteFor(status, requestedSymbol: 'USDC');
+        if (note != null) {
+          expect(note, isNotEmpty, reason: '$status');
+          expect(note, isNot(contains(status.name)), reason: '$status');
+        }
+        // Every status must have a word for the row, whatever it says.
+        expect(statusWordFor(status), isNotEmpty, reason: '$status');
+      }
+    });
+
     test('the three moved-money states explain themselves', () {
       for (final status in [
         TransactionStatus.needsGas,
@@ -216,16 +230,40 @@ void main() {
       expect(_recoveryButton, findsNothing);
     });
 
-    testWidgets('a refunded swap explains itself but offers no action', (
+    testWidgets('a refunded swap explains itself in plain text, not amber', (
       tester,
     ) async {
-      // There is nothing to resume — the money is already back.
+      // An amber warning box that says "nothing is required" argues with
+      // itself, so the refund gets secondary text and no button — there is
+      // nothing to resume, the money is already on its way back.
       await _openReceipt(
         tester,
         _tx(status: TransactionStatus.refunded, recoveryUrl: _axelar),
       );
 
+      expect(find.byType(GWWarningNote), findsNothing);
+      expect(
+        find.text(recoveryNoteFor(TransactionStatus.refunded)!),
+        findsOneWidget,
+      );
+      expect(_recoveryButton, findsNothing);
+    });
+
+    testWidgets('a partial swap names the token asked for and no other', (
+      tester,
+    ) async {
+      await _openReceipt(tester, _tx(status: TransactionStatus.partialSuccess));
+
+      final note = recoveryNoteFor(
+        TransactionStatus.partialSuccess,
+        requestedSymbol: 'USDC',
+      )!;
+      expect(note, contains('USDC'));
+      // The status response carries no symbol for what actually ARRIVED, so
+      // naming one would be an invention.
+      expect(note, isNot(contains('GNUS')));
       expect(find.byType(GWWarningNote), findsOneWidget);
+      expect(_recoveryButton, findsNothing);
     });
   });
 }

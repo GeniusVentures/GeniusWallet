@@ -1061,16 +1061,28 @@ void showTransactionDetails(
         // Money moved, but not where it was asked to go. The sentence says
         // where it is; the button appears ONLY when the aggregator sent a page
         // that can act on it, so a control is never shown that goes nowhere.
-        if (recoveryNoteFor(status) case final note?) ...[
-          GWWarningNote(note),
-          if (openableRecoveryUrl(tx.recoveryUrl) case final url?) ...[
+        if (recoveryNoteFor(status, requestedSymbol: tx.toSymbol)
+            case final note?) ...[
+          if (recoveryNoteIsWarning(status))
+            GWWarningNote(note)
+          else
+            Text(
+              note,
+              textAlign: TextAlign.center,
+              style: GeniusWalletTypography.bodyMd.copyWith(
+                color: gw.textSecondary,
+              ),
+            ),
+          if (offersRecoveryAction(status) &&
+              openableRecoveryUrl(tx.recoveryUrl) != null) ...[
             const SizedBox(height: GeniusWalletConsts.space4),
             GWButton(
               variant: GWButtonVariant.secondary,
               size: GWButtonSize.md,
               expand: true,
               label: 'Open recovery page',
-              onPressed: () => launchWebSite(context, url),
+              onPressed: () =>
+                  launchWebSite(context, openableRecoveryUrl(tx.recoveryUrl)!),
             ),
           ],
           const SizedBox(height: GeniusWalletConsts.space12),
