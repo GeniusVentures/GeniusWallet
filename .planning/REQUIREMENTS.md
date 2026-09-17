@@ -186,8 +186,9 @@ Reown/WalletConnect.
      drafted figure and trips the measured 1 RPS dev ceiling — and the catalogue is cached rather
      than refetched per picker open.
   7. [x] *(was SWP-05)* Submitting re-fetches an executable route and broadcasts it through the
-     wallet's send path, showing the real outcome. **Code complete, never walked** — no swap has
-     executed on a funded wallet yet.
+     wallet's send path, showing the real outcome. **Walked 2026-09-17** — a real swap executed
+     on Base mainnet (hash in `26-06-SUMMARY.md`), and an underfunded send named itself and
+     stored nothing (`26-07-SUMMARY.md`).
   8. [x] *(was SWP-06)* Transactions are recorded only from the actual result — never a fabricated
      `completed` with `hash: ""`. The fabricated record is deleted; every side effect sits behind
      `sideEffectsFor`.
@@ -232,7 +233,7 @@ Reown/WalletConnect.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SWAP-01 | Phases 26, 27, 28 — one requirement across all three (26-01..26-07) | 8/8 criteria delivered on branch — **unwalked**, no swap has executed on a funded wallet |
+| SWAP-01 | Phase 26 — one requirement, eight plans (26-01..26-08); the former 27 and 28 were the same work | **Complete** — 8/8 criteria delivered and walked on Base mainnet 2026-09-17; a real swap executed, 26-VERIFICATION.md passed 33/33 |
 | FEE-01 | Phase 29 — Integrator fee | Pending |
 | FEE-02 | Phase 29 — Integrator fee | Pending |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |

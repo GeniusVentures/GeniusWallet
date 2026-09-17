@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
 current_phase: 26
-current_phase_name: "Swap that actually swaps — delivers v2.0 phases 26-28; all 8 plans landed, none walked; suite green"
+current_phase_name: "Swap that actually swaps — COMPLETE 2026-09-17: 8/8 plans walked on Base mainnet, verification passed 33/33; the former v2.0 phases 27-28 are absorbed into it"
 status: in_progress
 stopped_at: "SESSION CLOSED 2026-09-16 — day summary in `.planning/handoffs/HANDOFF-session-260916-swap-execution.md`. Branch `phase-26-swap-wiring`, not pushed, no PR. Merged `origin/develop` (2cd0b996) on 2026-09-16, bringing milestone v2.0 (phases 26-30); the branch's own phase 26 predates it and is the same work, so it is folded in and the drafted SWP-01..08 were retired into SWAP-01. Plans 26-01..26-07 have landed: the integrator ID loads from `squid.local.json`, the catalogue and every balance come from the network or the chain, the quote is a live `/v2/route` answer, `swap_execution.dart` runs route -> allowance -> exact-amount approval -> send -> status poll, `_submitSwap` is a thin adapter over it, and each of the six failure shapes carries its own message. **The fabricated `completed` transaction with `hash: \"\"` is DELETED** — every toast, receipt and Hive write now sits behind `sideEffectsFor`, asserted at the screen as well as at the pure layer. Four spec drifts were found live and worked around in the adapter: sdk-info, transactionRequest and status all bypass the generated deserializer, and Squid sends gas and fee fields as DECIMAL strings while the signer parses hex. **NOT DONE: no swap has ever executed.** Both remaining human-checks need a funded or dusted throwaway wallet on Base mainnet 8453 — 26-06 (one real swap, hash on the explorer) and 26-07 (underfunded gas names the send failure, stores no row). **Branch ownership: single executor.** A second code-committing agent shared this branch's git index on 2026-09-16 (its one commit, 09669d8b, is labelled feat(26-05) but implements 26-08's scope). It went dormant at 16:56 leaving three red tests; those are now closed in 26a48c18 and the suite is green at 1328 pass / 5 skip / 0 fail. Two agents on one index cost a misdiagnosis here — a file changed between two reads — so this branch takes ONE committing agent until it merges. 26-08 is now complete too: the status call captures Squid's own recovery link (never composed), it persists at Hive field 17, and the three moved-money states each explain themselves and are findable through the existing failed filter."
 last_updated: "2026-09-16T21:30:00.000Z"
@@ -23,22 +23,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 26 — squid-client-foundation-live-catalogue (milestone v2.0: Squid Router integration)
+**Current focus:** Phase 26 complete (2026-09-17). Next: Phase 29 — Integrator fee (milestone v2.0: Squid Router integration). Phase 30 is independent and may run in parallel.
 
 ## Current Position
 
-Phase: 26 — Squid client foundation & live catalogue (not started)
-Plan: —
-Status: v2.0 roadmap created (phases 26-30; 13/13 requirements mapped) — ready for `/gsd:plan-phase 26`
-Last activity: 2026-09-16 — Milestone v2.0 roadmap created
+Phase: 26 — Swap that actually swaps (COMPLETE 2026-09-17; verification passed 33/33)
+Plan: 8/8 landed and walked
+Status: v2.0 phases 27-28 collapsed into 26 (same work, three numbers). Next is Phase 29 — ready for `/gsd-plan-phase 29`
+Last activity: 2026-09-17 — Phase 26 walked on Base mainnet, six walk-found defects fixed, roadmap reconciled
 
 ### v2.0 Phase Tracking
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 26 | Squid client foundation & live catalogue | Not started |
-| 27 | Live quotes (balances, route, slippage, rate limits) | Not started |
-| 28 | Real swap execution & honest recording | Not started |
+| 26 | Swap that actually swaps (absorbs former 27, 28) | Complete 2026-09-17 |
 | 29 | Integrator fee | Not started |
 | 30 | dApp calldata decoding (end blind signing) | Not started |
 
