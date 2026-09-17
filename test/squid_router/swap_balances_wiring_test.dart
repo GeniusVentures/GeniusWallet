@@ -91,6 +91,7 @@ class _SeededCubit extends WalletDetailsCubit {
   _SeededCubit({
     required super.geniusApi,
     required super.networkTokensProvider,
+    List<Coin>? coins,
   }) {
     emit(
       state.copyWith(
@@ -101,14 +102,28 @@ class _SeededCubit extends WalletDetailsCubit {
           chainId: 1,
           rpcUrl: 'https://rpc.invalid',
         ),
-        selectedWalletBalance: '1.5',
-        coins: const [Coin(symbol: 'DAI', address: _dai, balance: 1.23)],
+        // A FIAT total, in dollars, across every coin — what the coins screen
+        // writes here. Deliberately unlike the native quantity below: reading
+        // this as an ETH amount is the bug these cases exist to catch.
+        selectedWalletBalance: '999.99',
+        coins:
+            coins ??
+            const [
+              // The native coin carries no contract address. Its `balance` is
+              // the quantity, and it is the only honest source for one.
+              Coin(symbol: 'ETH', balance: 1.5),
+              Coin(symbol: 'DAI', address: _dai, balance: 1.23),
+            ],
       ),
     );
   }
 }
 
-Future<List<SwapField>> _mount(WidgetTester tester, _StubApi api) async {
+Future<List<SwapField>> _mount(
+  WidgetTester tester,
+  _StubApi api, {
+  List<Coin>? coins,
+}) async {
   tester.view.physicalSize = const Size(1200, 1600);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
@@ -118,6 +133,7 @@ Future<List<SwapField>> _mount(WidgetTester tester, _StubApi api) async {
       create: (_) => _SeededCubit(
         geniusApi: api,
         networkTokensProvider: NetworkTokensProvider(),
+        coins: coins,
       ),
       child: MaterialApp(
         theme: ThemeData(extensions: [GWColors.dark()]),
@@ -154,7 +170,7 @@ void main() {
     expect(fields.last.tokens.map((t) => t.symbol), ['ETH', 'DAI', 'USDC']);
   });
 
-  testWidgets('the native coin takes the figure the app already shows', (
+  testWidgets('the native coin takes its own quantity, not a fiat total', (
     tester,
   ) async {
     final api = _StubApi();
@@ -163,6 +179,20 @@ void main() {
     final eth = fields.last.tokens.firstWhere((t) => t.symbol == 'ETH');
     // 1.5 ETH, converted with the token's own decimals. No RPC path for it.
     expect(eth.rawBalance, BigInt.parse('1500000000000000000'));
+    // NOT 999.99 — `selectedWalletBalance` is dollars across every coin, and
+    // spending it as ETH would offer a swap the wallet cannot cover.
+    expect(eth.rawBalance, isNot(BigInt.parse('999990000000000000000')));
+    expect(api.reads, isNot(contains(_native)));
+  });
+
+  testWidgets('a native coin absent from holdings is not spendable', (
+    tester,
+  ) async {
+    final api = _StubApi();
+    final fields = await _mount(tester, api, coins: const []);
+
+    // Nothing was read and nothing is known, so the pay side may not offer it.
+    expect(fields.first.tokens.map((t) => t.symbol), isNot(contains('ETH')));
     expect(api.reads, isNot(contains(_native)));
   });
 

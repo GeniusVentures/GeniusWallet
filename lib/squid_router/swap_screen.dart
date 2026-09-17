@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
@@ -45,6 +46,36 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 /// the drawer is handed could never match a row.
 List<SwapToken> tokensForSide(List<SwapToken> all, SwapToken? otherSide) =>
     all.where((t) => !t.sameAs(otherSide)).toList();
+
+/// The native coin's spendable quantity in raw base units, or null when the
+/// holdings carry no native entry.
+///
+/// Read from the holding's own `balance`, never from `selectedWalletBalance`:
+/// that field is a FIAT total across every coin, and spending it here would
+/// offer a swap many times larger than the wallet can cover.
+///
+/// The native coin is the holding with no contract address — the same
+/// discriminator the ERC-20 branch uses to decide what it may read.
+///
+/// ponytail: `Coin.balance` is a double, so a holding needing more than ~17
+/// significant digits is already rounded before it reaches this line. Accepted
+/// because it is the same figure the rest of the app displays; the upgrade path
+/// is a string or BigInt balance on `Coin`. `toStringAsFixed` is what keeps a
+/// dust balance out of exponent notation, which `toBaseUnits` rejects.
+BigInt? nativeCoinBaseUnits(List<Coin> coins, int decimals) {
+  if (decimals < 0) {
+    return null;
+  }
+  for (final coin in coins) {
+    if (coin.address == null && coin.balance != null) {
+      return toBaseUnits(
+        coin.balance!.toStringAsFixed(decimals.clamp(0, 20).toInt()),
+        decimals,
+      );
+    }
+  }
+  return null;
+}
 
 class SwapScreen extends StatefulWidget {
   const SwapScreen({
@@ -234,14 +265,11 @@ class _SwapScreenState extends State<SwapScreen> {
 
     final result = <SwapToken>[];
     for (final token in catalogue) {
-      // The native coin has no contract to call. Its figure is the one the
-      // rest of the app already displays, so this adds no RPC path for it.
+      // The native coin has no contract to call, so its quantity comes from
+      // the holdings list rather than an RPC read.
       if (isNativeToken(token.address)) {
-        result.add(
-          token.withBalance(
-            toBaseUnits(wallet.selectedWalletBalance ?? '', token.decimals),
-          ),
-        );
+        final raw = nativeCoinBaseUnits(wallet.coins, token.decimals);
+        result.add(raw == null ? token : token.withBalance(raw));
         continue;
       }
       if (address == null ||

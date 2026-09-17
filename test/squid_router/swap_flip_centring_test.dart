@@ -30,6 +30,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -61,8 +62,8 @@ class _FakeSwapProvider extends FakeSwapProvider {
 
   @override
   Future<List<SwapToken>> tokens(String chainId) async => const [
-    // The native sentinel: the screen takes this one's balance from
-    // `selectedWalletBalance` rather than from an RPC read.
+    // The native sentinel: the screen takes this one's balance from the
+    // holdings list rather than from an RPC read.
     SwapToken(
       chainId: '1',
       address: '0x0000000000000000000000000000000000000000',
@@ -102,6 +103,9 @@ class _SeededWalletDetailsCubit extends WalletDetailsCubit {
           chainId: 1,
         ),
         selectedWalletBalance: '1',
+        // The native holding is what makes ETH spendable on the pay side;
+        // `selectedWalletBalance` is a fiat total and cannot stand in for it.
+        coins: const [Coin(symbol: 'ETH', balance: 1)],
       ),
     );
   }
