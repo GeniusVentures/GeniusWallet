@@ -101,7 +101,13 @@ class SwapField extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
+                // Expanded, not Flexible: the two branches below have very
+                // different intrinsic widths — a TextField fills the row, the
+                // placeholder is one character — and a Flexible sizes to the
+                // child, so the token selector slid ~976px left the moment a
+                // route error cleared the amount. The slot owns the width; what
+                // is drawn inside it does not get a say.
+                Expanded(
                   child: (emptyPlaceholder != null && controller.text.isEmpty)
                       ? Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
