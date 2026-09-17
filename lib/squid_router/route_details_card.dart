@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -33,7 +34,7 @@ class RouteDetailsCard extends StatelessWidget {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
     final pricing = '$fromAmount $fromSymbol ~ $toAmount $toSymbol';
-    final priceImpact = '${quote.priceImpact}%';
+    final priceImpact = '${formatPercent(quote.priceImpact)}%';
     // Gas is part of what a swap costs, so the row sums both. Fees alone
     // understated it, and on a same-chain route there are no fees at all.
     final fees = '\$${quote.totalCostUsd.toStringAsFixed(2)}';

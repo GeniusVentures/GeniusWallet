@@ -5,6 +5,7 @@ import 'package:genius_wallet/squid_router/squid_util.dart';
 /// A 10^18 error here is the whole balance, so every case is asserted.
 
 void main() {
+  _percentCases();
   group('toBaseUnits', () {
     test('a fractional amount scales by the token decimals', () {
       expect(toBaseUnits('1.5', 18), BigInt.parse('1500000000000000000'));
@@ -57,6 +58,38 @@ void main() {
         final formatted = formatTokenAmount(BigInt.parse(raw), decimals);
         expect(toBaseUnits(formatted, decimals), BigInt.parse(raw));
       }
+    });
+  });
+}
+
+// Squid sends a percentage as its own string, at whatever precision it likes.
+// The row printed it verbatim, so a real impact read as `-0.0234567%`.
+void _percentCases() {
+  group('formatPercent', () {
+    test('trims to two decimals and drops trailing zeros', () {
+      expect(formatPercent('-0.3908'), '-0.39');
+      expect(formatPercent('2467.848'), '2467.85');
+      expect(formatPercent('1.50'), '1.5');
+      expect(formatPercent('1.00'), '1');
+    });
+
+    test('a true zero says zero', () {
+      expect(formatPercent('0.0'), '0');
+      expect(formatPercent('0'), '0');
+    });
+
+    test('too small to show is not the same as none', () {
+      // Rounding these to `0` would claim the route has no impact when it
+      // has one. Sign is irrelevant at this magnitude; presence is not.
+      expect(formatPercent('0.001'), '~0');
+      expect(formatPercent('-0.004'), '~0');
+    });
+
+    test('an unreadable value is passed through, never invented', () {
+      expect(formatPercent('n/a'), 'n/a');
+      expect(formatPercent(''), '');
+      // toStringAsFixed throws on a non-finite double; the raw string wins.
+      expect(formatPercent('Infinity'), 'Infinity');
     });
   });
 }
