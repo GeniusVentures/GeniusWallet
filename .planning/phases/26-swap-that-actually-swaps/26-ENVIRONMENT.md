@@ -22,6 +22,14 @@ Shared by every plan in this phase. Referenced from each `<context>` block.
 Plans 01–05 need no funds. Plan 06 spends real funds; plan 07 needs dust. Use **Base mainnet, chainId 8453** and a throwaway wallet holding a few dollars — Squid is mainnet-only and never had a
 testnet. Never a wallet that holds anything.
 
+## Dev tools
+
+The dev bubble is gated on `kShowDevTools`, a `bool.fromEnvironment('GW_DEV_TOOLS')` that defaults
+to **false** — a plain debug build has no bubble, and every mock call site compiles out. Plan 08's
+walk needs it. It is a `const`, so a hot restart cannot reach it; rebuild with the define set.
+`squid.local.json` now carries `GW_DEV_TOOLS` alongside the integrator ID (the file is gitignored
+via `*.local.json`), so `--dart-define-from-file=squid.local.json` is enough.
+
 ## Credential
 
 `--dart-define=GW_SQUID_INTEGRATOR_ID=<id>`. Plans 01, 02 and 05 do not need it. Plans 03, 04, 06 and 07 need it for

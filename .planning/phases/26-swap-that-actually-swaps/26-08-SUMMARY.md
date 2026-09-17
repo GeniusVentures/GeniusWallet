@@ -3,7 +3,7 @@ phase: 26
 plan: 08
 subsystem: swap
 tags: [recovery-states, hive-migration, copy, filters]
-status: complete-pending-walk
+status: complete
 requires: [26-06, 26-07]
 provides: [recovery-url-persisted, recovery-copy, moved-money-states-findable]
 affects: [lib/dashboard, lib/dev, lib/squid_router, lib/swap, packages/genius_api]
@@ -71,11 +71,16 @@ Real output, this machine, this branch:
   most are the pattern matching `GWColors.`. **This diff adds no colour at all** — verified against
   the diff itself.
 
-## Open for the human
+## Walked 2026-09-17 — PASSED
 
-The plan's `<human-check>`: with dev mocks on, open each of the three rows in **both appearance
-modes** — the sentence reads as English, the pill's word is not clipped, the paused row's button
-opens the stored link, the other two offer none. Three dev fixtures exist for exactly this walk.
+The plan's `<human-check>`, run on Windows debug against the three dev fixtures, in **both**
+appearance modes. All four behaviours confirmed by the human: each sentence reads as English,
+`Refunded` is not clipped, the paused row's button opens the stored link, and neither the partial
+nor the refunded row offers one. Refunded's plain-secondary treatment holds its contrast in light
+mode, the pairing this repo has historically broken.
+
+The bubble needs `GW_DEV_TOOLS=true` — a `const bool.fromEnvironment` that defaults false, so a
+plain debug build has no dev tools at all. Now in `squid.local.json` and in `26-ENVIRONMENT.md`.
 
 ## Self-Check: PASSED
 

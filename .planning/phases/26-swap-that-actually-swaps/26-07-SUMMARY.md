@@ -3,7 +3,7 @@ phase: 26
 plan: 07
 subsystem: swap
 tags: [squid, error-states, copy, disclosure]
-status: complete-pending-walk
+status: complete
 requires: [26-06]
 provides: [distinct-failure-messages, typed-route-failure]
 affects: [lib/squid_router, lib/swap]
@@ -64,12 +64,37 @@ Real output, this machine, this branch:
 - `flutter test --no-pub` → 1325 pass / 5 skip / **3 fail** — all three are the other agent's
   in-flight `26-08` work, unchanged and untouched by this plan
 
-## Open for the human
+## Walked 2026-09-17 — PASSED
 
-The plan's `<human-check>`: underfund gas on a throwaway **Base mainnet (8453)** wallet and submit —
-the message should name the send failure, the list should gain no row, and the form should stay
-usable. Needs dust and a key, so it is yours. The unavailable-build case is already covered
-headlessly by `squid_client_test.dart`.
+**Base mainnet 8453**, with the 0.000016 ETH left over from 26-06's swap — genuinely underfunded,
+not simulated. Swapping that dust to USDC:
+
+- **The message named the send**, verbatim: "The swap did not go through." / "The swap could not
+  be sent. Check that you have enough to cover gas, then try again." That copy belongs to
+  `SwapSendFailed` and to no other outcome, so the shape is identified by the words alone. The
+  heading is the `submitFailure != null` branch, which only `_reportFailure` sets — so this came
+  from the submit, not from a failed quote.
+- **No row was written.** The run's log contains no receipt and no `transactionHash` at all: the
+  send never broadcast, so nothing could be stored under a real hash. `storeRow` is false for
+  this shape by construction.
+- **The form stayed usable** — amount and tokens seated, CTA back on its enabled retry rung.
+
+Native was deliberate. A native swap skips allowance and approval entirely
+(`swap_execution.dart`), so `SwapSendFailed` is the only failure reachable on that path; an
+ERC-20 would have tripped `SwapApprovalFailed` first and walked the wrong sentence.
+
+## What this walk settled, and what it did not
+
+**MAX does not reserve gas.** This dust balance was MAX'd and the send failed for gas — so the
+app offers the entire balance and lets the send fail. That is the honest behaviour for a failure
+message, but it means a user CAN empty their native balance and be unable to move what they
+received.
+
+It does **not** explain 26-06: that swap spent 0.004983074278833122 ETH and left ~0.0000169,
+which is where this dust came from. If MAX takes everything, something else trimmed that amount
+— Squid, or a balance that was never the round 0.005 it appeared to be. **Still unresolved, and
+still not worth guessing at**; it is the difference between "the user chose to spend it all" and
+"the app quietly held some back".
 
 ## Self-Check: PASSED
 

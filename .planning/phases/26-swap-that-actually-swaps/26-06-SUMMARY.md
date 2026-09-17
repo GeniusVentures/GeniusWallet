@@ -3,7 +3,7 @@ phase: 26
 plan: 06
 subsystem: swap
 tags: [squid, execution, honest-recording, hive]
-status: complete-pending-walk
+status: complete
 requires: [26-05]
 provides: [real-submit, honest-transaction-record]
 affects: [lib/squid_router, lib/hive, packages/genius_api]
@@ -63,14 +63,31 @@ Real output, this machine, this branch:
   `TransactionStatus` work by the other agent on this branch (`transaction_receipt_copy_test.dart`
   ×2, `transaction_row_subtitle_test.dart`), none touch swap code
 
-## Open for the human — THIS PLAN IS NOT DONE
+## Walked 2026-09-17 — PASSED. A real swap executed.
 
-The plan's `<human-check>` has not been run and cannot be by me: **one real swap on Base mainnet
-(chainId 8453, not the dead 84531 "Base - Sepolia") with a throwaway wallet.** It needs funds and a
-key. Until it runs, no swap has ever actually executed through this code path — the orchestrator and
-the screen are proven against stubs and the live read-only endpoints only.
+**Base mainnet, chainId 8453.** The first swap ever to run through this code path.
 
-Record the hash here when it is done. `status:` above stays `complete-pending-walk` until then.
+```
+hash      0xc74e959425605f69b0782ef5822dfaaa2ad9d9fc416fa01f9b426da9135b27f7
+block     51436394           status true
+paid      0.004983074278833122 ETH      received  12.290107 USDC
+quoted    12.338322 USDC                deviation -0.391%, inside the 0.5% floor (12.2766)
+gas       0.00000107 ETH — Squid's "$0.00" estimate was honest, not a rounding defect
+```
+
+Amounts decoded from the receipt's own logs: the WETH `Deposit` for the pay side, the USDC
+`Transfer` to the wallet for the receive side. The quote is met within slippage, which is the
+plan's third assertion.
+
+Three defects had to be fixed before this walk could run at all; they are recorded in
+`26-FINDINGS.md`, not here, because none of them belongs to this plan.
+
+**One thing this walk did NOT prove, and 26-07 still needs.** MAX was pressed on the full
+balance, yet the route spent 0.004983074278833122 ETH and ~0.0000169 ETH remained to pay gas —
+so the send succeeded where it was expected to fail. Whether that headroom comes from Squid
+trimming a native `fromAmount` or from the app's own MAX is **not established**, and it should
+not be guessed at: it decides whether a user can ever strand themselves without gas. 26-07's
+underfunded-send walk is still open and is the thing that answers it.
 
 ## Self-Check: PASSED
 
