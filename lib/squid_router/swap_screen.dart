@@ -489,8 +489,8 @@ class _SwapScreenState extends State<SwapScreen> {
   }
 
   /// Does exactly what [sideEffectsFor] permits, and nothing on any outcome
-  /// that carries no hash. 26-07 owns what the user is told instead; until
-  /// then the shipped route-error path is what speaks.
+  /// that carries no hash. What the user is TOLD is `swapFailureMessage`'s
+  /// job; this method only decides what may happen.
   Future<void> _applyOutcome(
     SwapOutcome outcome, {
     required String walletAddress,
@@ -697,7 +697,7 @@ class _SwapScreenState extends State<SwapScreen> {
           expand: true,
           label: label,
           // ROUTE-ERROR RUNG: retry fetches directly — a user tapping Retry
-          // should not wait out the 500ms debounce.
+          // should not wait out the quote debounce.
           onPressed: !enabled
               ? null
               : state == SwapCtaState.routeError

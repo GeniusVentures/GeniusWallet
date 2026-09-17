@@ -204,10 +204,10 @@ void main() {
     // (`routeError` is false), so both render a real `TextField`.
     await tester.enterText(find.byType(TextField).first, '1.5');
     await tester.pump();
-    // Past the 500ms `_debouncedFetchRoute` window, so the test does not end on
+    // Past the 1000ms `_debouncedFetchRoute` window, so the test does not end on
     // a pending timer. `_fetchRoute` returns early anyway (`canSwap` is false
     // with no receive token), so nothing below the cards changes.
-    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 1100));
 
     final pay = tester.getRect(find.byType(SwapField).at(0));
     final receive = tester.getRect(find.byType(SwapField).at(1));
@@ -270,9 +270,9 @@ void main() {
     final beforeFirst = tester.getRect(find.byType(TokenFlipButton));
     await tester.tapAt(beforeFirst.topCenter + const Offset(0, 2));
     await tester.pump();
-    // Past the 400ms `AnimatedRotation` and the 500ms route debounce the flip
+    // Past the 400ms `AnimatedRotation` and the 1000ms route debounce the flip
     // kicks off, so neither is left pending.
-    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 1100));
 
     expect(
       symbolOn(0),
