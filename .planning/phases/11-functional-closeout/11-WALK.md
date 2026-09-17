@@ -23,7 +23,7 @@ decision, not a walk.
 
 | # | Feature | What the code does | Decision needed |
 |---|---|---|---|
-| 0.1 | **Swap** | `swap_screen.dart:301` never calls Squid. Fabricates a `completed` transaction, shows a **success** toast, writes it to Hive. Service layer returns `mockTokens` / `mockSquidRoute` (fixed rate 993.72). | Wire it, or make it visibly unavailable. Shipping a green receipt for a swap that never happened is the worst state. |
+| 0.1 | **Swap** | ~~Fabricated a `completed` transaction with a green receipt.~~ **Resolved by Phase 26 (2026-09-17):** live Squid v2 quotes and execution; a real swap ran on Base mainnet and an underfunded one failed honestly. Walk it as a normal row now (4.8), not a Section 0 item. | Decided: wired. |
 | 0.2 | **Send** | `wallet_information.dart:181` — `onPressed: null`, "No send flow yet". | Build it, or accept a wallet that cannot send. |
 | 0.3 | **dApp connect** | `reown_walletkit` is missing from `windows/flutter/generated_plugins.cmake`. Init throws; the button still renders enabled and tells the user to restart, which never helps. | Register the plugin, or hide the button on Windows. |
 | 0.4 | **Banxa KYC + checkout** | Both webviews special-case only `Platform.isLinux`, then build a `webview_flutter` controller that has no Windows implementation. | Route Windows to the system browser (the "Open in Browser" path already exists). |
@@ -99,6 +99,7 @@ The rows that matter most. Use small amounts on a real network.
 | 4.5 | Submit job — top-up | Trigger the gas/bridge top-up | Runs, or fails loudly |
 | 4.6 | Submit job — run | Submit | Progresses through the real steps and completes |
 | 4.7 | Job failure | Force one | Surfaces an error and the "Get help" path works |
+| 4.8 | Swap | ETH → USDC on Base 8453, small amount | Live quote; hash resolves on basescan; stored row matches the chain; an underfunded send says so and stores nothing (both walked 2026-09-17 — see `26-06`/`26-07-SUMMARY.md`) |
 
 ## Section 5 — Buy (Banxa)
 

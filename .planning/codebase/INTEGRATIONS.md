@@ -19,11 +19,10 @@
 
 **Cross-Chain Swaps:**
 - Squid Router - Cross-chain token swap aggregator
-  - Mainnet: `https://api.squidrouter.com/v1`
-  - Testnet: `https://testnet.api.squidrouter.com/v1`
-  - SDK/Client: Custom HTTP integration via `http` package
-  - Auth: No auth required (public API)
-  - Implementation: `lib/squid_router/squid_token_service.dart`
+  - Endpoint: `https://v2.api.squidrouter.com` (v2; Squid is mainnet-only, there is no testnet)
+  - SDK/Client: the generated `squidrouter/` submodule (DO NOT modify) — its dio transport is reused; `/v2/sdk-info`, `/v2/route` and `/v2/status` are read raw because the generated models have drifted from the live API (five measured places)
+  - Auth: `x-integrator-id` header from `GW_SQUID_INTEGRATOR_ID`, supplied via `--dart-define-from-file=squid.local.json`; an unconfigured build reports swap unavailable
+  - Implementation: `lib/squid_router/squid_swap_provider.dart` behind the `SwapProvider` seam (`lib/swap/`); orchestration in `swap_execution.dart` *(updated 2026-09-17 after Phase 26; the rest of this map is the 2026-07-15 snapshot)*
   - Features:
     - Token listing across chains
     - Balance checking

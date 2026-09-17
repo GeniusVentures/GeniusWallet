@@ -152,11 +152,11 @@ folded into that count, the same treatment WIRE-01/02 already get (see Coverage)
 ## v2 Requirements — Milestone v2.0: Squid Router integration
 
 **Defined:** 2026-09-16. Committed scope of the current milestone. Provenance and full context:
-`.planning/notes/2026-09-16-swap-architecture-archaeology.md` — the `/swap` tab is a polished
-shell over mocks (`squid_token_service.dart` returns hardcoded data; `_submitSwap()` is a `TODO`
-that records a fake `completed` transaction with `hash: ""`); the finished `squidrouter/`
-submodule client (2025-05) was never wired; live swap execution today is dApp-driven via
-Reown/WalletConnect.
+`.planning/notes/2026-09-16-swap-architecture-archaeology.md` — when drafted, the `/swap` tab was
+a polished shell over mocks (a `squid_token_service.dart` returned hardcoded data; `_submitSwap()`
+was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and the finished
+`squidrouter/` submodule client (2025-05) was unwired. **Phase 26 delivered SWAP-01 in full on
+2026-09-17.** Live swap execution via the dApp path (Reown/WalletConnect) still blind-signs — DAP.
 
 ### Swap Integration (SWAP)
 

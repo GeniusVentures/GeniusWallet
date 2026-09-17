@@ -13,9 +13,9 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 **Goal:** Make swapping real — the `/swap` tab executes live Squid Router quotes for major tokens with honest recording and a ~3% integrator fee, and the dApp path shows what it's signing.
 
 **Target features:**
-- Live Squid integration — `SquidTokenService` calls the finished `squidrouter/` submodule client (tokens, balances, route); integratorId via config, never a hardcoded literal
-- Real submission — `_submitSwap()` broadcasts the routed transaction and records the actual outcome; the fake `completed`-with-`hash: ""` transaction is deleted
-- Slippage wired — the settings drawer's slippage value feeds the live route request
+- Live Squid integration — **delivered (Phase 26, 2026-09-17)**: `SquidSwapProvider` behind the `SwapProvider` seam reads the live catalogue, balances and route; integratorId via `--dart-define-from-file`, never a literal
+- Real submission — **delivered (Phase 26)**: `executeSwap` broadcasts the routed transaction and records the actual outcome behind a sealed `SwapOutcome`; the fake `completed`-with-`hash: ""` transaction is deleted and grep-gated. First real swap executed on Base mainnet 2026-09-17
+- Slippage wired — **delivered (Phase 26)**: the settings drawer's slippage value feeds the live route request
 - Catalogue-driven pickers — token/chain pickers list what the live catalogue returns, replacing hardcoded mocks
 - Honest dApp signing — Reown approval drawers decode swap calldata ("swapping X → Y"), ending blind signing
 - Integrator fee — the wallet takes ~3% on swaps routed through Squid (configured on the integratorId; visible in route details)
@@ -34,7 +34,7 @@ Symbiosis named once, never built) and the go-forward decision.
 - ✓ Wallet onboarding: create new wallet, import existing, recovery-phrase backup/verify, PIN/keystore — existing (`lib/onboarding`)
 - ✓ Dashboard: balances, holdings, transactions, markets, news — existing (`lib/dashboard`, `lib/wallets`)
 - ✓ Fiat on-ramp via Banxa buy flow + order history/details — existing (`lib/banxa`, `lib/screens`)
-- ✓ Cross-chain swap UI via Squid Router — existing (`lib/squid_router`) — **corrected 2026-09-16: UI only; the service is mocked** (`squid_token_service.dart` returns hardcoded data, submit is a `TODO`). Live swap execution today is dApp-driven via Reown/WalletConnect. v2.0 wires the real Squid client
+- ✓ Cross-chain swap via Squid Router — `lib/squid_router` — **real since Phase 26 (2026-09-17)**: live catalogue, balances, quotes and execution against Squid v2; a swap executed on Base mainnet. (Corrected 2026-09-16 to "UI only, service mocked"; that correction is itself now history.)
 - ✓ dApp connectivity via Reown/WalletConnect — existing (`lib/reown`)
 - ✓ SGNUS / GeniusSDK integration over FFI (init status, processing, connection stream) — existing (`packages/genius_api`)
 - ✓ Token info + market data (CoinGecko), charts — existing (`lib/tokens`, `lib/tokeninfo`, `lib/chart`)
@@ -51,10 +51,10 @@ Symbiosis named once, never built) and the go-forward decision.
 
 <!-- v2.0 (current milestone) scope — see "Current Milestone" section above. -->
 
-- [ ] Wire `SquidTokenService` to the real `squidrouter/` client: live tokens, balances, route quotes
-- [ ] Execute real swaps: broadcast the routed transaction, record the actual outcome honestly
-- [ ] Wire slippage settings into the live route request
-- [ ] Drive token/chain pickers from the live Squid catalogue
+- [x] Wire the swap to the real `squidrouter/` client: live tokens, balances, route quotes (Phase 26; `SquidTokenService` itself was deleted — the seam is `SwapProvider`)
+- [x] Execute real swaps: broadcast the routed transaction, record the actual outcome honestly (Phase 26, walked 2026-09-17)
+- [x] Wire slippage settings into the live route request (Phase 26)
+- [x] Drive token/chain pickers from the live Squid catalogue (Phase 26)
 - [ ] Decode dApp swap calldata in the Reown approval flow (end blind signing)
 - [ ] Collect ~3% integrator fee on swaps routed through Squid, visible in route details
 

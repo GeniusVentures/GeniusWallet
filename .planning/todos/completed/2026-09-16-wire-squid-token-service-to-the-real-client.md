@@ -9,6 +9,7 @@ files:
   - lib/squid_router/swap_screen.dart
   - squidrouter/examples/squid_client_example.dart
 ---
+> **Resolved 2026-09-17 by Phase 26.** The service this todo names was deleted rather than wired; the seam is `SwapProvider` → `SquidSwapProvider`, and every plan below landed and was walked on Base mainnet. `26-VERIFICATION.md` passed 33/33.
 
 > **Roadmap split (2026-09-16, v2.0):** this todo is implemented across three phases —
 > 26 (client init + catalogue), 27 (route/balances/slippage), 28 (real submit + honest

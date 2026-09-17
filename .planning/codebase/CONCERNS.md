@@ -23,7 +23,7 @@
 ### Incomplete Chain/Network Configuration
 
 **Issue:** Hardcoded chain references instead of dynamic discovery
-- Files: `lib/squid_router/squid_token_service.dart` (line 85 TODO)
+- Files: `assets/json/networks/networks.json` (the Squid side now reads its catalogue live — `squid_token_service.dart` was deleted in Phase 26)
 - Impact: Manual updates required when networks change; hardcoded asset list in `assets/networks.json`
 - Fix approach: Implement dynamic chain/network discovery from API
 - Severity: MEDIUM - Operational burden
@@ -53,8 +53,7 @@
 
 **Issue:** 11+ TODO comments scattered in code without issue tracking or priority
 - Files:
-  - `lib/squid_router/squid_token_service.dart:85` - Add chains dynamically
-  - `lib/squid_router/swap_screen.dart:353,365` - Invoke Squid API, record transaction
+  - ~~`lib/squid_router/squid_token_service.dart:85`~~ and ~~`swap_screen.dart` "Invoke Squid API"~~ — resolved by Phase 26 (2026-09-17); the file is deleted and the swap is live
   - `lib/reown/handle_dapp_requests.dart:138,141,163,164` - Parse tx data, confirm network, show pending tx, record coin symbol
   - `lib/submit_job/cubit/submit_job_cubit.dart:142,189` - Unhardcode bridge address
   - `lib/onboarding/existing_wallet/bloc/existing_wallet_event.dart:15` - Refactor into object
