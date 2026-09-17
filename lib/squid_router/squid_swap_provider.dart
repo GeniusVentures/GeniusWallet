@@ -14,16 +14,22 @@ class SquidSwapProvider implements SwapProvider {
 
   @override
   Future<SwapQuote> quote(SwapQuoteRequest request) async {
-    final response = await squidApi().getRoute(
-      routeRequest: _routeRequest(request),
+    // Raw dio, for its own reason: a same-chain NATIVE swap wraps before it
+    // swaps, and the generated model rejects the whole response over
+    // `WrapDetails` fields the live API no longer sends — none of which the
+    // quote reads. `quoteOnly` keeps the answer unsignable, as before.
+    final response = await squidDio().post<Object>(
+      '/v2/route',
+      options: Options(extra: kSquidAuthExtra),
+      data: {..._routeBody(request), 'quoteOnly': true},
     );
-    final route = response.data;
 
-    if (route == null) {
-      throw StateError('Squid answered with no route');
+    final body = response.data;
+    if (body is! Map<String, dynamic>) {
+      throw const SwapRouteException(SwapRouteFailure.unavailable);
     }
 
-    return squidQuote(route);
+    return squidQuoteFromJson(body);
   }
 
   @override
@@ -154,21 +160,6 @@ SwapToken _swapToken(Token token) => SwapToken(
 /// else outside its own adapter.
 const SwapProvider swapProvider = SquidSwapProvider();
 
-/// `quoteOnly` is what keeps the quote path harmless: Squid answers with an
-/// empty transactionRequest, so no signable call ever reaches the screen.
-RouteRequest _routeRequest(SwapQuoteRequest request) => RouteRequest(
-  (b) => b
-    ..fromChain = request.fromChainId
-    ..fromToken = request.fromToken
-    ..fromAmount = request.fromAmount.toString()
-    ..toChain = request.toChainId
-    ..toToken = request.toToken
-    ..fromAddress = request.fromAddress
-    ..toAddress = request.toAddress
-    ..slippage = request.slippage
-    ..quoteOnly = true,
-);
-
 /// Squid's estimate mapped into our own type, once. Public so the recorded
 /// fixtures can prove the mapping with no network and no credential.
 SwapQuote squidQuote(RouteResponseData route) {
@@ -201,10 +192,82 @@ SwapQuote squidQuote(RouteResponseData route) {
   );
 }
 
+/// The same estimate, mapped from the RAW body instead of the generated
+/// model. Public so the recorded fixtures can prove it with no network and no
+/// credential.
+///
+/// This exists because the generated `WrapDetails` requires `wrapper`,
+/// `coinAddresses` and `calls`, and the live API sends none of them at the top
+/// level — so any route with a `wrap` action is rejected whole. Nothing here
+/// reads `actions`, which is what makes the bypass safe rather than merely
+/// convenient.
+SwapQuote squidQuoteFromJson(Map<String, dynamic> body) {
+  final route = body['route'];
+  if (route is! Map) {
+    throw const SwapRouteException(SwapRouteFailure.unavailable);
+  }
+  final estimate = route['estimate'];
+  if (estimate is! Map) {
+    throw const SwapRouteException(SwapRouteFailure.unavailable);
+  }
+
+  // An amount that will be SPENT may not be guessed at. A missing or
+  // unparseable one is no route at all, never a zero the screen would show as
+  // a real quote.
+  BigInt amount(String key) {
+    final parsed = BigInt.tryParse(estimate[key]?.toString() ?? '');
+    if (parsed == null) {
+      throw SwapRouteException(SwapRouteFailure.unavailable, 'no $key');
+    }
+    return parsed;
+  }
+
+  int decimalsOf(String side) {
+    final token = estimate[side];
+    final value = token is Map ? token['decimals'] : null;
+    if (value is! num) {
+      throw SwapRouteException(SwapRouteFailure.unavailable, '$side decimals');
+    }
+    return value.toInt();
+  }
+
+  final fromAmount = amount('fromAmount');
+  final toAmount = amount('toAmount');
+
+  return SwapQuote(
+    id: route['quoteId']?.toString() ?? '',
+    exchangeRate: estimate['exchangeRate']?.toString() ?? '',
+    priceImpact: estimate['aggregatePriceImpact']?.toString() ?? '',
+    fromAmount: fromAmount,
+    toAmount: toAmount,
+    toAmountMin: amount('toAmountMin'),
+    fromAmountDisplay: formatTokenAmount(fromAmount, decimalsOf('fromToken')),
+    toAmountDisplay: formatTokenAmount(toAmount, decimalsOf('toToken')),
+    feesUsd: _sumUsdRaw(estimate['feeCosts']),
+    gasUsd: _sumUsdRaw(estimate['gasCosts']),
+    // Absent means "no estimate", which reads as instant rather than as an
+    // error: the duration is informational and never gates a swap.
+    estimatedDuration: Duration(
+      seconds: (estimate['estimatedRouteDuration'] as num? ?? 0).round(),
+    ),
+  );
+}
+
 /// A cost Squid sends as an unparseable string is worth nothing here, not a
 /// crash on a screen the user is mid-swap on.
 double _sumUsd(Iterable<String> amounts) =>
     amounts.fold(0.0, (sum, usd) => sum + (double.tryParse(usd) ?? 0.0));
+
+/// [_sumUsd] over a raw `feeCosts`/`gasCosts` list. Same rule: a cost that
+/// cannot be read is worth nothing, and an absent list is not a failure — a
+/// same-chain swap genuinely has no bridge fee.
+double _sumUsdRaw(Object? costs) => costs is! List
+    ? 0.0
+    : _sumUsd(
+        costs.map(
+          (cost) => cost is Map ? (cost['amountUsd']?.toString() ?? '') : '',
+        ),
+      );
 
 /// The route request as Squid's wire body. Shared by the quote and the
 /// executable fetch, so the two can never describe different swaps.
