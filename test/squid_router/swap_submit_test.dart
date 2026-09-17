@@ -307,6 +307,36 @@ void main() {
     });
   });
 
+  group('after the funds move', () {
+    testWidgets('the form clears, so a spent quote cannot be sent twice', (
+      tester,
+    ) async {
+      final storage = _RecordingStorage();
+      await _mountReady(
+        tester,
+        execute: _answering(
+          SwapBroadcast(
+            hash: _hash,
+            status: TransactionStatus.completed,
+            transaction: _route(),
+          ),
+        ),
+        storage: storage,
+      );
+      await _submit(tester);
+
+      // The failure path already clears the quote because "a stale figure is
+      // a number the user might still act on". A SUCCEEDED swap is the same
+      // hazard and worse: the balance has changed, and the quote id has been
+      // spent. Leaving them seated returns the CTA to its ready rung.
+      final fields = tester.widgetList<SwapField>(find.byType(SwapField));
+      for (final field in fields) {
+        expect(field.controller.text, isEmpty, reason: field.label);
+      }
+      expect(find.byType(RouteDetailsCard), findsNothing);
+    });
+  });
+
   group('a broadcast swap', () {
     testWidgets('writes pending first, then the resolved status, one key', (
       tester,

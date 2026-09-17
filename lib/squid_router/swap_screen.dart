@@ -559,6 +559,26 @@ class _SwapScreenState extends State<SwapScreen> {
       showTransactionDetails(context, resolved);
     }
     transactionsCubit.addTransaction(resolved);
+
+    // The funds have moved, so every number on screen now describes a swap
+    // that is finished: the amounts are spent, the balance behind them has
+    // changed, and the router has consumed this quote id. `_reportFailure`
+    // clears the same fields after a FAILED swap because "a stale figure is a
+    // number the user might still act on" — after a successful one that is
+    // truer, since the CTA would otherwise sit on its ready rung and a second
+    // tap would submit against a quote that cannot be filled again.
+    //
+    // The two tokens stay seated. Swapping the same pair again is the likely
+    // next action, and re-picking them is the part that is tedious.
+    setState(() {
+      fromAmount = '';
+      toAmount = '';
+      fromAmountController.clear();
+      toAmountController.clear();
+      fetchedQuote = null;
+      submitFailure = null;
+      routeError = false;
+    });
   }
 
   /// Says which way the swap failed, reusing the two error affordances this
