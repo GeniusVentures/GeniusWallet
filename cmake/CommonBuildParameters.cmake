@@ -113,8 +113,26 @@ endif()
 find_package(Vulkan)
 
 if(NOT TARGET Vulkan::Vulkan)
-    if(NOT DEFINED $ENV{VULKAN_SDK})
+    # DEFINED takes the variable NAME. Written as $ENV{...} the value is
+    # expanded first, so this asked whether a variable named after the SDK
+    # path existed -- never true, and the set below always ran.
+    if(NOT DEFINED ENV{VULKAN_SDK})
         set(ENV{VULKAN_SDK} "${THIRDPARTY_BUILD_DIR}/Vulkan-Loader")
+    endif()
+
+    # The published thirdparty package splits Vulkan in two: Vulkan-Loader
+    # carries bin/ and lib/, Vulkan-Headers carries the headers. A tree built
+    # from source ALSO leaves headers in Vulkan-Loader/include, so VULKAN_SDK
+    # alone resolves on a developer machine and finds no headers on a clean
+    # checkout -- CMake then fails with "missing: Vulkan_INCLUDE_DIR" having
+    # located the .lib. Name both halves, the way the Apple branch above
+    # does, and only where they are actually present.
+    if(NOT Vulkan_INCLUDE_DIR AND EXISTS "${THIRDPARTY_BUILD_DIR}/Vulkan-Headers/include")
+        set(Vulkan_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/Vulkan-Headers/include")
+    endif()
+
+    if(NOT Vulkan_LIBRARY AND EXISTS "${THIRDPARTY_BUILD_DIR}/Vulkan-Loader/lib/vulkan-1.lib")
+        set(Vulkan_LIBRARY "${THIRDPARTY_BUILD_DIR}/Vulkan-Loader/lib/vulkan-1.lib")
     endif()
 
     find_package(Vulkan REQUIRED)
