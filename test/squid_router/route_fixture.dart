@@ -24,3 +24,23 @@ RouteResponseData loadRouteFixture(String name) =>
       RouteResponseData.serializer,
       jsonDecode(rawRouteFixture(name)) as Map<String, dynamic>,
     )!;
+
+/// The smallest body the raw mapper accepts, carrying the caller's own fee
+/// list. No recorded route has two fee entries, so multi-entry and
+/// unrecognised-name coverage has to come from here, not a fabricated file.
+Map<String, dynamic> syntheticRouteWithFees(List<Object?> feeCosts) => {
+  'route': {
+    'quoteId': 'synthetic',
+    'estimate': {
+      'fromAmount': '1000000000000000000',
+      'toAmount': '1000000',
+      'toAmountMin': '990000',
+      'fromToken': {'decimals': 18},
+      'toToken': {'decimals': 6},
+      'feeCosts': feeCosts,
+      'gasCosts': [
+        {'amountUsd': '0.01'},
+      ],
+    },
+  },
+};
