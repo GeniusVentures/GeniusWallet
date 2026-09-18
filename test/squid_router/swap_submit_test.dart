@@ -6,6 +6,8 @@
 // cases assert what the screen DID: what it stored, what it toasted, what it
 // opened. Driven through a stubbed orchestrator, so no network, no key and no
 // real Hive box are involved (real Hive I/O inside testWidgets hangs here).
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -180,6 +182,27 @@ Future<void> _mountReady(
 }
 
 /// An orchestrator that runs nothing and answers [outcome].
+/// Reaches [onBroadcast] like the real executor, but only once [gate] frees
+/// it — so a test can dispose the screen first and still assert the write.
+SwapExecutor _announcingAfter(Future<void> gate, SwapOutcome outcome) =>
+    ({
+      required tokenAddress,
+      required amount,
+      required fetchRoute,
+      required readAllowance,
+      required approve,
+      required send,
+      required readStatus,
+      required wait,
+      onBroadcast,
+      pollAttempts = 20,
+      pollInterval = const Duration(seconds: 3),
+    }) async {
+      await gate;
+      await onBroadcast?.call(_hash);
+      return outcome;
+    };
+
 SwapExecutor _answering(SwapOutcome outcome) =>
     ({
       required tokenAddress,
@@ -367,6 +390,43 @@ void main() {
       // One key, so the second write resolves the first rather than adding a
       // second row. The fabricated record used to key every swap on ''.
       expect(storage.writes.map((t) => t.hash).toSet(), {_hash});
+    });
+
+    testWidgets('records the broadcast even after the screen is gone', (
+      tester,
+    ) async {
+      // Leaving the screen between send and settle must not be what decides
+      // whether a transfer that already moved funds is recorded at all. The
+      // write is storage, not UI, so it does not answer to `mounted`.
+      final storage = _RecordingStorage();
+      final gate = Completer<void>();
+      await _mountReady(
+        tester,
+        execute: _announcingAfter(
+          gate.future,
+          SwapBroadcast(
+            hash: _hash,
+            status: TransactionStatus.completed,
+            transaction: _route(),
+          ),
+        ),
+        storage: storage,
+      );
+      // Tapped WITHOUT settling: the executor is gated open on purpose, so
+      // anything waiting for the tree to go quiet would wait for this swap.
+      await tester.tap(_cta);
+      await tester.pump();
+
+      // The screen goes away while the swap is still in flight.
+      await tester.pumpWidget(const SizedBox.shrink());
+      gate.complete();
+      // Plain pumps, not pumpAndSettle: the disposed tree schedules no frames
+      // to settle, and all this needs is the continuation to run.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(storage.writes.map((t) => t.hash), contains(_hash));
+      expect(storage.writes.first.transactionStatus, TransactionStatus.pending);
     });
 
     testWidgets('stores no fee rather than a dollar one, and the swap type', (
