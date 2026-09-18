@@ -186,6 +186,7 @@ SwapQuote squidQuote(RouteResponseData route) {
     ),
     feesUsd: _sumUsd(estimate.feeCosts.map((fee) => fee.amountUsd)),
     gasUsd: _sumUsd(estimate.gasCosts.map((gas) => gas.amountUsd)),
+    feeLines: _feeLines(estimate.feeCosts),
     estimatedDuration: Duration(
       seconds: estimate.estimatedRouteDuration.round(),
     ),
@@ -245,6 +246,7 @@ SwapQuote squidQuoteFromJson(Map<String, dynamic> body) {
     toAmountDisplay: formatTokenAmount(toAmount, decimalsOf('toToken')),
     feesUsd: _sumUsdRaw(estimate['feeCosts']),
     gasUsd: _sumUsdRaw(estimate['gasCosts']),
+    feeLines: _feeLinesRaw(estimate['feeCosts']),
     // Absent means "no estimate", which reads as instant rather than as an
     // error: the duration is informational and never gates a swap.
     estimatedDuration: Duration(
@@ -268,6 +270,36 @@ double _sumUsdRaw(Object? costs) => costs is! List
           (cost) => cost is Map ? (cost['amountUsd']?.toString() ?? '') : '',
         ),
       );
+
+/// One fee entry, kept apart from every other cost. The label comes from
+/// Squid's own serializer, never the bare enum accessor — that accessor
+/// yields the generated Dart constant, not the human name.
+FeeLine _feeLine(String name, String amountUsd) =>
+    FeeLine(name: name, amountUsd: double.tryParse(amountUsd) ?? 0.0);
+
+/// [_feeLine] over the typed `feeCosts` collection.
+List<FeeLine> _feeLines(Iterable<FeeCost> costs) => [
+  for (final cost in costs)
+    _feeLine(
+      standardSerializers.serializeWith(FeeType.serializer, cost.name)
+          as String,
+      cost.amountUsd,
+    ),
+];
+
+/// [_feeLine] over a raw `feeCosts` list. Same tolerance as [_sumUsdRaw]: a
+/// non-List collection is no fees, and a non-Map element is skipped rather
+/// than thrown on.
+List<FeeLine> _feeLinesRaw(Object? costs) => costs is! List
+    ? const []
+    : [
+        for (final cost in costs)
+          if (cost is Map)
+            _feeLine(
+              cost['name']?.toString() ?? '',
+              cost['amountUsd']?.toString() ?? '',
+            ),
+      ];
 
 /// The route request as Squid's wire body. Shared by the quote and the
 /// executable fetch, so the two can never describe different swaps.
