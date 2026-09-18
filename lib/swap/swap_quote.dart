@@ -45,7 +45,6 @@ class SwapQuote {
     required this.toAmountMin,
     required this.fromAmountDisplay,
     required this.toAmountDisplay,
-    required this.feesUsd,
     required this.gasUsd,
     required this.estimatedDuration,
     this.feeLines = const [],
@@ -64,7 +63,6 @@ class SwapQuote {
   final BigInt toAmountMin;
   final String fromAmountDisplay;
   final String toAmountDisplay;
-  final double feesUsd;
   final double gasUsd;
   final Duration estimatedDuration;
 
@@ -72,8 +70,4 @@ class SwapQuote {
   /// one figure. Empty on a same-chain route — that is the normal case, not
   /// a missing one.
   final List<FeeLine> feeLines;
-
-  /// What the swap costs. Gas is part of that, so a screen showing fees
-  /// alone would understate it.
-  double get totalCostUsd => feesUsd + gasUsd;
 }

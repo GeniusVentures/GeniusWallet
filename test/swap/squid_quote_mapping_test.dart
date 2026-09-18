@@ -32,19 +32,19 @@ void main() {
   test('a same-chain swap costs gas and nothing else', () {
     final quote = squidQuote(loadRouteFixture(sameChainRoute));
 
-    expect(quote.feesUsd, 0.0);
+    expect(quote.feeLines, isEmpty);
     expect(quote.gasUsd, closeTo(0.01, 1e-9));
-    expect(quote.totalCostUsd, closeTo(0.01, 1e-9));
   });
 
-  test('a cross-chain swap adds the bridge fee to gas', () {
+  test('a cross-chain swap keeps its bridge fee apart from gas', () {
     final quote = squidQuote(loadRouteFixture(crossChainRoute));
 
-    // The whole point of summing both: fees alone would report $0.48 and gas
-    // alone $0.02, and each understates what leaves the wallet.
-    expect(quote.feesUsd, closeTo(0.48, 1e-9));
+    // Two unlike costs, two figures. Added together they would read $0.50 and
+    // the user could no longer tell the network's charge from the bridge's.
+    expect(quote.feeLines, hasLength(1));
+    expect(quote.feeLines.single.name, 'Gas receiver fee');
+    expect(quote.feeLines.single.amountUsd, closeTo(0.48, 1e-9));
     expect(quote.gasUsd, closeTo(0.02, 1e-9));
-    expect(quote.totalCostUsd, closeTo(0.50, 1e-9));
   });
 
   test('two real quotes do not map to the same figures', () {
@@ -55,7 +55,7 @@ void main() {
     // the numbers actually track the response.
     expect(same.priceImpact, isNot(cross.priceImpact));
     expect(same.exchangeRate, isNot(cross.exchangeRate));
-    expect(same.totalCostUsd, isNot(cross.totalCostUsd));
+    expect(same.gasUsd, isNot(cross.gasUsd));
   });
 
   test('three fee entries map to three lines, in order', () {
