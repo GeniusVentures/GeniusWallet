@@ -71,13 +71,14 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       exchangeRate: fields[14] as String?,
       fromSymbol: fields[15] as String?,
       toSymbol: fields[16] as String?,
+      recoveryUrl: fields[17] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Transaction obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(18)
       ..writeByte(0)
       ..write(obj.hash)
       ..writeByte(1)
@@ -111,7 +112,9 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       ..writeByte(15)
       ..write(obj.fromSymbol)
       ..writeByte(16)
-      ..write(obj.toSymbol);
+      ..write(obj.toSymbol)
+      ..writeByte(17)
+      ..write(obj.recoveryUrl);
   }
 
   @override
@@ -177,6 +180,12 @@ class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
         return TransactionStatus.completed;
       case 3:
         return TransactionStatus.failed;
+      case 4:
+        return TransactionStatus.needsGas;
+      case 5:
+        return TransactionStatus.partialSuccess;
+      case 6:
+        return TransactionStatus.refunded;
       default:
         return TransactionStatus.pending;
     }
@@ -193,6 +202,12 @@ class TransactionStatusAdapter extends TypeAdapter<TransactionStatus> {
         writer.writeByte(2);
       case TransactionStatus.failed:
         writer.writeByte(3);
+      case TransactionStatus.needsGas:
+        writer.writeByte(4);
+      case TransactionStatus.partialSuccess:
+        writer.writeByte(5);
+      case TransactionStatus.refunded:
+        writer.writeByte(6);
     }
   }
 

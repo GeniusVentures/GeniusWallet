@@ -6,7 +6,8 @@
 
 This milestone lands the `ui-redesign-3.514` design on `develop` **incrementally, layer by layer**,
 on branch `ui-redesign-port` (`branching_strategy: none` — phases land on the current branch, not
-per-phase branches). Phase 1 (Adopt GSD) shipped on `develop` via PR #207.
+per-phase branches). The `.planning/` GSD setup itself shipped on `develop` via PR #207 (`12fd40d`) before the
+numbered phases below began.
 
 ### Why this order
 
@@ -98,7 +99,6 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [x] **Phase 1: Adopt GSD** - Establish and commit `.planning/` infrastructure (shipped, PR #207)
 - [x] **Phase 2: Design tokens & verification loop** - Redesign token vocabulary lands invisibly; debug-build loop and dev-gating established (completed 2026-07-16)
 - [ ] **Phase 3: gw_* component library** - The 82 additive primitives + design gallery + gap treatment decided
 - [x] **Phase 4: Navigation shell & chrome** - Shell, header chrome, Settings and SDK account manager wear the redesign (7/7 plans; 04-VERIFICATION.md = passed 6/6, 2026-07-18)
@@ -108,7 +108,7 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - [x] **Phase 8: Swap & bridge** - Squid Router and GNUS bridge (completed 2026-07-27)
 - [x] **Phase 9: Banxa** - Buy, KYC, checkout, order history/details (completed 2026-07-27)
 - [ ] **Phase 10: dApp connectivity** - Reown/WalletConnect
-- [ ] **Phase 11: Port closeout** - Full-app walk; all 37 findings signed off (now also signs off the redesign-track surfaces 12/13/14/15/16/17 + the shadow-name baseline)
+- [ ] **Phase 11: Functional closeout** - Every reachable feature works or is honestly unavailable (walk script: `11-WALK.md`)
 
 ### Surface ownership map (2026-07-23 — one surface, one owning phase; no overlap)
 
@@ -137,28 +137,10 @@ redesign-track phase supersedes a Phase 5 first pass, Phase 5's version is histo
 
 ## Phase Details
 
-### Phase 1: Adopt GSD
-
-**Goal**: A committed, usable GSD setup on `develop`
-**Depends on**: Nothing (first phase)
-**Requirements**: GSD-01, BLD-01
-**Success Criteria** (what must be TRUE):
-
-  1. `.planning/` contains PROJECT.md, config.json, codebase map, REQUIREMENTS.md, ROADMAP.md, STATE.md — ✓
-  2. The setup is merged into `develop` — ✓ PR #207 (`12fd40d`)
-  3. A Windows debug build links and runs — ✓ `4395da7` (cherry-picked to develop)
-
-**Plans**: 1/1 complete
-**Status**: ✓ COMPLETE
-
-Plans:
-
-- [x] 01-01: Finalize and commit `.planning/` scaffolding
-
 ### Phase 2: Design tokens & verification loop
 
 **Goal**: The redesign's visual vocabulary is on develop and every later phase can be checked by running the app
-**Depends on**: Phase 1
+**Depends on**: Nothing (first phase)
 **Requirements**: DS-01, BLD-02, BLD-03
 **Success Criteria** (what must be TRUE):
 
@@ -449,26 +431,27 @@ includes the KYC redirect, which D-02 defers. See `09-OUTSTANDING.md` (written b
 **UI hint**: yes
 **Findings**: 3, 20.
 
-### Phase 11: Port closeout
+### Phase 11: Functional closeout
 
-**Goal**: The redesign is confirmed landed and non-regressive across the whole app
-**Depends on**: Phases 5, 6, 7, 8, 9, 10 — **and the redesign track 12, 13, 14, 15, 16, 17**
+**Goal**: Every feature a user can reach either works, or is honestly unavailable
+**Depends on**: Phases 5-10, 12-17
 
-> **EXPANDED SCOPE (2026-07-23).** Beyond the original 37 findings, closeout now also signs off the
-> redesign-track surfaces that landed in parallel: **Transactions (12/15), Boot (13), Compute (14),
-> Markets (16), News (17)** — including the **outstanding walks for 16/17** and the **incomplete
-> 13-04/13-05** — and must **resolve the shadow-name baseline** (`verify_additive_boundary.sh` is red on
-> `_TimeframeSegment`/`_SplashState` added by 16/boot). No surface may still wear develop's old skin, old
-> OR new track.
+> **REFRAMED 2026-09-16.** This phase used to ask "did the redesign land without regressing?".
+> That question is answered. The open question is whether the app *does* anything: a code sweep
+> on 2026-09-16 found Swap fabricates a success receipt without calling Squid, Send is a disabled
+> stub, dApp connect cannot initialize on Windows, and both Banxa webviews have no Windows
+> implementation. The walk script is `11-WALK.md`.
 
 **Requirements**: BEH-01
 **Success Criteria** (what must be TRUE):
 
-  1. Every one of the 37 findings in `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` is confirmed non-regressed by running the app, each with a recorded observation — or consciously accepted with a written reason
-  2. A single walk from cold start through onboarding, dashboard, token, swap, Banxa and dApp connect completes with no runtime exception and no screen still wearing develop's old skin
-  3. Windows debug and release builds both succeed and `flutter analyze` reports 0 errors
+  1. Every row in `11-WALK.md` is marked works, or accepted in writing with a reason
+  2. No screen reports success for something that did not happen
+  3. A single walk from cold start through onboarding, dashboard, bridge and a compute job
+     completes with no runtime exception
+  4. Windows debug and release both build and `flutter analyze` reports 0 errors
 
-**Plans**: TBD
+**Plans**: TBD — written from the findings the walk produces
 
 ## Progress
 
@@ -1429,17 +1412,47 @@ plans and executed in parallel
 > section re-maps or reopens a v1.0 requirement. From here, v2.0 owns `lib/squid_router/` service
 > behavior and the Reown approval-path honesty work.
 
+> **Reconciled 2026-09-16 (merge of `origin/develop` into `phase-26-swap-wiring`).** This branch
+> had already coined and executed a phase 26, "Swap that actually swaps", against a requirement
+> `SWAP-01` — written before milestone v2.0 existed. It is the SAME work, so it is folded in here
+> rather than left in the v1.0 list where its number would collide. Its phase directory is
+> `.planning/phases/26-swap-that-actually-swaps/`, and its plans deliver **v2.0 phases 26, 27 and
+> 28**. Phases 29 and 30 are untouched by it and remain genuinely unstarted.
+>
+> Plans landed on the branch (commits `4d102d28`..`27677fcb`, not pushed, no PR). Every box below
+> is code-and-tests complete, and **all eight were walked on Base mainnet 8453 on 2026-09-17** —
+> a real swap executed (hash in `26-06-SUMMARY.md`), an underfunded send named itself and stored
+> nothing, and the three recovery states were checked in both appearances. Six defects the walks
+> surfaced are in `26-FINDINGS.md`; `26-VERIFICATION.md` passed 33/33. **Phases 27 and 28 below
+> are collapsed into 26** — this note is the record of why the numbering skips from 26 to 29.
+>
+> - [x] 26-01-PLAN.md — wire the `squidrouter` submodule; integrator ID via `--dart-define`; an unconfigured build reports swap unavailable (wave 1)
+> - [x] 26-02-PLAN.md — ERC-20 `allowance`, `approve` and `rawBalanceOf` on Web3, plus the exact-amount approval rule (wave 1)
+> - [x] 26-03-PLAN.md — live `quoteOnly` `/v2/route`; base-unit conversion; the route card reads the real estimate (wave 2)
+> - [x] 26-04-PLAN.md — live token catalogue and real balances; `SwapToken` replaces `lib/squid_router/models/` (wave 3)
+> - [x] 26-05-PLAN.md — the swap orchestrator: route, approval, send, status polling; no-hash-no-side-effects is structural (wave 4)
+> - [x] 26-06-PLAN.md — delete the fabricated transaction and wire `_submitSwap` to the outcome; first real swap (wave 5)
+> - [x] 26-07-PLAN.md — a distinct message per failure, and no stored row on any of them (wave 6)
+> - [x] 26-08-PLAN.md — the three money-moved-but-not-as-asked states made legible and filterable (wave 7)
+>
+> Three facts the original v2.0 details assumed are settled differently on the branch:
+> `squid_token_service.dart` no longer exists (deleted in 26-04, the catalogue lives behind
+> `SwapProvider`); the quote debounce is **1000ms, not 500ms** (the measured free-tier ceiling is
+> 1 RPS and 500ms trips it); and the integratorId loads from `--dart-define-from-file=squid.local.json`.
+
+
 ## Overview (v2.0)
 
 **Goal:** Make swapping real — the `/swap` tab executes live Squid Router quotes for major tokens
 with honest recording and a ~3% integrator fee, and the dApp path shows what it's signing.
 
 **Provenance:** the 2026-09-16 explore session —
-`.planning/notes/2026-09-16-swap-architecture-archaeology.md`. The `/swap` tab is a polished
-Phase-8 skin over mocks (`squid_token_service.dart` returns hardcoded data; `_submitSwap()` is a
-`TODO` that records a fake `completed` transaction with `hash: ""`), while the finished Squid v2
-Dart client (2025-05) sits unwired in the `squidrouter/` submodule. Live swap execution today is
-dApp-driven via Reown/WalletConnect — and it blind-signs.
+`.planning/notes/2026-09-16-swap-architecture-archaeology.md`. When the milestone was drafted the
+`/swap` tab was a polished Phase-8 skin over mocks (a `squid_token_service.dart` returned hardcoded
+data; `_submitSwap()` was a `TODO` that recorded a fake `completed` transaction with `hash: ""`),
+while the finished Squid v2 Dart client (2025-05) sat unwired in the `squidrouter/` submodule.
+**Phase 26 replaced all of that on 2026-09-16/17** — see its section below. Live swap execution via
+the dApp path (Reown/WalletConnect) still blind-signs; that is Phase 30.
 
 ### Why this order
 
@@ -1447,35 +1460,43 @@ A dependency chain plus one independent subsystem:
 
 | Order | Phase | Why here |
 |-------|-------|----------|
-| 26 | Client foundation & catalogue | Nothing live exists before a configured client does. The integratorId must come from configuration (SWP-07) before any request is real, and the catalogue (SWP-01) is the one live datum verifiable with no user funds. |
-| 27 | Live quotes | Balances, route and slippage are one quoting pipeline behind the 500ms debounce; D-09 and the rate limit are properties of that pipeline, so they land with it. Still verifiable without moving money. |
-| 28 | Real execution | Only now does money move. Submission rides the quoting pipeline plus the wallet's existing send path; honest recording is meaningless until there is a real outcome to record. |
-| 29 | Integrator fee | The fee is configured on the integratorId and shows in route details, but can only be *verified* against really-executed routes — after 28. |
+| 26 | Swap that actually swaps | Client, catalogue, live quotes and real execution are one end-to-end promise (SWAP-01) and were built as one phase of eight plans: nothing live exists before a configured client, quoting is one pipeline behind a 1000ms debounce, and honest recording is meaningless until money actually moves. Originally drafted as three phases (26-28); collapsed once the work had shipped. |
+| 29 | Integrator fee | The fee is configured on the integratorId and shows in route details, but can only be *verified* against really-executed routes — after 26. |
 | 30 | Reown calldata decoding | Independent subsystem (`lib/reown/`); touches no Squid code. Numeric order places it last, but it may execute in parallel with 26-29. |
 
-### Grounding facts (verified in the codebase 2026-09-16)
+### Grounding facts (re-verified in the codebase 2026-09-17, after Phase 26)
 
-- The swap tab is `lib/squid_router/swap_screen.dart` (route `/swap`);
-  `lib/squid_router/squid_token_service.dart` returns hardcoded mocks for
-  fetchTokens/fetchBalances/getRoute with the real HTTP calls commented out; `_submitSwap()`
-  carries `// TODO: invoke Squid API` and records a fake `TransactionStatus.completed` with
-  `hash: ""`.
-- The finished client is the `squidrouter/` git submodule — **auto-generated, DO NOT modify**
-  (AGENTS.md). `squidrouter/examples/squid_client_example.dart` shows the integration shape:
-  `Squid(config: SquidConfig(integratorId:…, apiKey:…))` → `init()` → tokens/chains → balances →
-  route.
-- integratorId: only the placeholder `test-api` exists in-repo; the team likely holds a real one
-  (Jakub, 2026-09-16) — **confirm where it lives**; it must load from configuration, never a
-  literal. Squid free tier: 1 RPS dev / 10 RPS prod; the tab debounces quote fetches at 500ms.
-- The D-09 route-error contract (error → `—` + red "not current" notice + Retry; never a
-  silently stale quote) already ships (08-03) and must survive the mock→real switch.
-- Slippage UI exists (`lib/squid_router/swap_settings_drawer.dart`) but feeds only the mock.
+- The swap tab is `lib/squid_router/swap_screen.dart` (route `/swap`). Everything it needs from
+  Squid arrives through one seam, `SwapProvider` (`lib/swap/swap_provider.dart`), whose only
+  implementation is `SquidSwapProvider` (`lib/squid_router/squid_swap_provider.dart`). The
+  orchestrator is `executeSwap` in `swap_execution.dart`: route → allowance → exact-amount
+  approval → send → status poll, behind a sealed `SwapOutcome` where only a hash-bearing shape
+  may cause a side effect. There is no `squid_token_service.dart`, no `lib/squid_router/models/`,
+  and no fabricated transaction; `grep -rn 'hash: ""' lib/` and `grep -rn 993.72 lib/` are gates.
+- The `squidrouter/` git submodule is **auto-generated, DO NOT modify** (AGENTS.md). Its spec has
+  drifted from the live API in **five** measured places, so the adapter reads `/v2/sdk-info`,
+  `/v2/route` (quote AND executable) and `/v2/status` **raw off the generated client's own dio**
+  — base path, timeouts and the integrator-ID interceptor reused, only the deserialization
+  bypassed. Squid also sends `value`, `gasLimit` and both fee fields as DECIMAL strings while the
+  signer parses hex; the adapter converts. Every drift is recorded where it was found
+  (`26-05-SUMMARY.md`, `26-FINDINGS.md`, the 2026-09-16 handoff).
+- integratorId: loads from `--dart-define-from-file=squid.local.json` (gitignored via
+  `*.local.json`) into `kSquidIntegratorId`; an unconfigured build reports swap unavailable rather
+  than sending 401s. Squid free tier: 1 RPS dev / 10 RPS prod; the tab debounces quote fetches at
+  **1000ms** (500ms was measured to trip the dev ceiling) and reads the catalogue once a session.
+- The D-09 route-error contract (error → `—` + red "not current" notice + Retry; never a silently
+  stale quote) survived the mock→real switch, and a completed swap now clears its spent quote too.
+- Slippage (`swap_settings_drawer.dart`) feeds the live route request.
+- Fee plumbing for Phase 29: the route's `estimate.feeCosts[]` and `estimate.gasCosts[]` are read
+  by `squidQuoteFromJson` into `SwapQuote.feesUsd` / `gasUsd`, which `RouteDetailsCard` sums into
+  its Fees row. There is no `squid_fee_cost.dart`. Each `feeCosts[]` entry carries `name`,
+  `description`, `amount`, `amountUsd` and a `token` (recorded fixture: `"Gas receiver fee"`);
+  how Squid labels the integrator's own fee is **not yet observed** — the first Phase 29 task is
+  to fetch a route on the real integratorId and record it, not to assume a field.
 - Reown dApp path: `lib/reown/handle_dapp_requests.dart` (blind-signs; calldata TODO at `:44-46`),
   drawers `approve_transaction_drawer.dart` / `send_transaction_details.dart`. There is no
   built-in calldata decoder in `reown_walletkit` — manual ABI decoding, small testable pure-Dart
   logic.
-- Fee plumbing: the generated client carries `Integrator`/`IntegratorFee` models; route responses
-  carry fee costs (`lib/squid_router/models/squid_fee_cost.dart`).
 
 ### Out of scope (v2.0)
 
@@ -1491,94 +1512,55 @@ A dependency chain plus one independent subsystem:
 `flutter test` works (~754 passing at planning time, including `RouteDetailsCard` figure tests,
 `swap_cta_state_test.dart`, `bridge_cta_state_test.dart`) and is the gate wherever behavior can
 be asserted; `flutter analyze` 0/0 is a gate, never evidence (BLD-02, standing). Legs that move
-money (Phase 28) and legs needing real funds or the live catalogue get a debug-build human walk.
+money (Phase 26) and legs needing real funds or the live catalogue get a debug-build human walk.
 
 ## Traceability (v2.0)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SWP-01 | Phase 26 — Squid client foundation & live catalogue | Pending |
-| SWP-02 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
-| SWP-03 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
-| SWP-04 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
-| SWP-05 | Phase 28 — Real swap execution & honest recording | Pending |
-| SWP-06 | Phase 28 — Real swap execution & honest recording | Pending |
-| SWP-07 | Phase 26 — Squid client foundation & live catalogue | Pending |
-| SWP-08 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
+| SWAP-01 | Phase 26 — one end-to-end requirement; all 8 criteria delivered and walked on Base mainnet 2026-09-17 | Complete |
 | FEE-01 | Phase 29 — Integrator fee | Pending |
 | FEE-02 | Phase 29 — Integrator fee | Pending |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 
-**Coverage:** 13/13 v2.0 requirements mapped to exactly one phase — no orphans, no duplicates.
+**Coverage:** 6/6 v2.0 requirements mapped — no orphans, no duplicates. `SWAP-01` is one end-to-end promise owned by Phase 26 alone (the former 27 and 28 were the same work under three numbers); the drafted `SWP-01..08` that split it were retired into its criteria on 2026-09-16.
 
 ## Phases (v2.0)
 
-- [ ] **Phase 26: Squid client foundation & live catalogue** - integratorId from config, the real `squidrouter/` client behind `SquidTokenService`, and pickers listing the live catalogue
-- [ ] **Phase 27: Live quotes (balances, route, slippage, rate limits)** - live balances and route quotes with the D-09 error contract intact, slippage wired into the live request, free-tier rate limits respected
-- [ ] **Phase 28: Real swap execution & honest recording** - submit broadcasts the routed transaction through the wallet's send path; the fake `completed`/`hash: ""` record is deleted
+- [x] **Phase 26: Swap that actually swaps** - Replace the mocked Squid layer with the real v2 API; no success shown for a swap that did not happen (completed 2026-09-17 — 8/8 plans, every one walked on Base mainnet; 26-VERIFICATION.md passed 33/33. Absorbs the former phases 27 and 28.)
 - [ ] **Phase 29: Integrator fee** - the ~3% fee via the integratorId, visible in route details before confirmation
 - [ ] **Phase 30: dApp calldata decoding (end blind signing)** - Reown approval drawers decode ERC-20 and known-router calldata; undecodable calls labeled with a visible warning
 
 ## Phase Details (v2.0)
 
-### Phase 26: Squid client foundation & live catalogue
+### Phase 26: Swap that actually swaps
 
-**Goal**: The app owns a configured, initialized Squid client, and the `/swap` tab's token/chain pickers list the live catalogue instead of hardcoded mocks
-**Depends on**: Nothing within v2.0 (first v2.0 phase — configuration plus `lib/squid_router/squid_token_service.dart`)
-**Requirements**: SWP-01, SWP-07
-**Success Criteria** (what must be TRUE):
+**Goal**: Replace the mocked Squid layer with the real v2 API; no success shown for a swap that did not happen
+**Depends on**: Nothing within v2.0
+**Requirements**: SWAP-01 (all eight criteria)
+**Success Criteria** (what must be TRUE) — all five VERIFIED 2026-09-17, `26-VERIFICATION.md`:
 
-  1. The integratorId (and API key, if the client requires one) load from configuration at runtime — no hardcoded literal ships: a grep over `lib/` finds no integratorId string constant and `test-api` appears nowhere outside the `squidrouter/` submodule (config loading unit-tested against a stub source)
-  2. `SquidTokenService` initializes the real `squidrouter/` client (`Squid(config: SquidConfig(...))` → `init()`) and fetches tokens/chains through it — the `mockTokens` and mock-chain constants are deleted from the service (service-seam test with a faked client)
-  3. The token and chain selector drawers on `/swap` list what the live catalogue returns — real major tokens (ETH/USDC/POL/…), not the mock set; GNUS stays absent and that is accepted (app-walk observation)
-  4. A failed client init or catalogue fetch shows an honest error state with retry on the swap screen — never a silent fallback to mock data (test injecting a fetch failure at the service seam)
+  1. A swap on a real network moves real funds, and the receipt's hash resolves on the explorer — walked: `0xc74e959425605f69b0782ef5822dfaaa2ad9d9fc416fa01f9b426da9135b27f7`, Base 8453, 12.290107 USDC against a 12.338322 quote, inside slippage
+  2. No success toast, receipt or stored transaction unless a hash came back — every side effect sits behind `sideEffectsFor`, exhaustive over a sealed outcome type; `grep 'hash: ""' lib/` is empty
+  3. A failed or rejected swap leaves no row in Hive and tells the user what happened — six distinct messages, no default arm; walked with an underfunded send
+  4. Quote, rate, price impact and fees come from the live route, not a constant — `/v2/route` read raw; `grep 993.72 lib/` is empty
+  5. `SquidTokenService` contains no `mock*` return and no commented-out HTTP — the file is deleted; the catalogue lives behind `SwapProvider`
 
-**Plans**: TBD
-**UI hint**: yes
-**Constraint**: do not modify the `squidrouter/` submodule (AGENTS.md — auto-generated). Planning must first confirm where the real integratorId lives (the team holds one; only `test-api` is in-repo).
-
-### Phase 27: Live quotes (balances, route, slippage, rate limits)
-
-**Goal**: A valid amount on `/swap` produces a live quote — the user's real balances across chains, a real route with fees, their slippage setting honored — with the D-09 error contract intact and Squid's free-tier rate limits respected
-**Depends on**: Phase 26
-**Requirements**: SWP-02, SWP-03, SWP-04, SWP-08
-**Success Criteria** (what must be TRUE):
-
-  1. The balances rendered in the token selector drawers and beside the MAX affordance are the user's live balances across chains fetched through the Squid client — the `mockSquidBalances` constant is deleted (service-seam test; app-walk with a funded wallet)
-  2. Entering a valid amount fetches a live route and the route details card renders from the real response — receive estimate, fees, route — with the existing `RouteDetailsCard` figure tests carried to the live contract (updated to the new source, not deleted)
-  3. The D-09 contract survives the mock→real switch: a route error blanks the receive figure to `—`, shows the red "not current" notice with Retry, and never leaves a stale quote on screen (widget test injecting a route failure; `swap_cta_state_test.dart` stays green)
-  4. The slippage value from the swap settings drawer feeds the live route request — changing slippage changes the outgoing request and the returned quote (unit test asserting the parameter reaches the route call; app-walk observation)
-  5. Quote fetching respects Squid's free-tier limits (1 RPS dev / 10 RPS prod): the 500ms debounce plus a rate strategy keeps request cadence under the limit while the user types — proven with a fake-clock test that counts requests, not by inspection
-
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 28: Real swap execution & honest recording
-
-**Goal**: Submitting a swap actually swaps — the routed transaction broadcasts through the wallet's send path, the user sees the real outcome, and history records only what really happened
-**Depends on**: Phase 27
-**Requirements**: SWP-05, SWP-06
-**Success Criteria** (what must be TRUE):
-
-  1. `_submitSwap()` executes the fetched route through the wallet's existing send path and shows the actual outcome — success receipt or real failure state; the `// TODO: invoke Squid API` is gone
-  2. The fabricated-success path is deleted: no code under `lib/squid_router/` constructs a `TransactionStatus.completed` with `hash: ""` — a standing grep gate plus a test proving a failed or unsubmitted swap persists a failure or nothing, never a completion
-  3. A successful swap persists a `swap` transaction from the actual result — real hash, real amounts — and it opens the standard receipt drawer from transaction history
-  4. End-to-end human walk (BLD-02): a real swap on a debug build — quote → confirm → broadcast → outcome → history — console clean; the value/testnet choice is decided and recorded in the plan before execution
-
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 26-01 … 26-08, all complete and walked. Directory `.planning/phases/26-swap-that-actually-swaps/`.
+**Absorbs the former Phase 27** (live quotes, balances, slippage, rate limits — 26-03, 26-04) **and Phase 28** (real execution and honest recording — 26-05 … 26-08). They were three numbers for one end-to-end promise; keeping them as separate unstarted phases would have had the tooling asking to plan work that has already shipped. The numbering skips from 26 to 29 on purpose.
+**Constraint**: do not modify the `squidrouter/` submodule (AGENTS.md — auto-generated). Five live drifts from its spec are worked around in the adapter, each recorded where it was found.
 
 ### Phase 29: Integrator fee
 
 **Goal**: Swaps routed through Squid carry the ~3% integrator fee configured on the integratorId, and the user sees the fee in route details before confirming — never silently netted
-**Depends on**: Phase 28 (the fee is only verifiable against really-executed routes)
+**Depends on**: Phase 26 (the fee is only verifiable against really-executed routes)
 **Requirements**: FEE-01, FEE-02
 **Success Criteria** (what must be TRUE):
 
   1. The live route response for the wallet's integratorId carries the ~3% integrator fee among its fee costs, and the app consumes it as-is — the generated client's `Integrator`/`IntegratorFee` models and the route's fee-cost list; the integratorId's fee configuration confirmed with the team (BD-side setting, not app code)
-  2. Route details on `/swap` show the integrator fee as its own visible line before the user confirms — rendered from the route's fee costs (`models/squid_fee_cost.dart`) and readable in both appearances (widget test plus app-walk)
+  2. Route details on `/swap` show the integrator fee as its own visible line before the user confirms — rendered from the route's raw `estimate.feeCosts[]` the way `squidQuoteFromJson` already reads them, and readable in both appearances (widget test plus app-walk)
   3. The fee line and the receive estimate agree — what the route card shows is what the user gets; the fee is never silently deducted from the estimate with no mention (both derive from the same route response; testable)
 
 **Plans**: TBD
@@ -1602,13 +1584,12 @@ money (Phase 28) and legs needing real funds or the live catalogue get a debug-b
 
 ## Progress (v2.0)
 
-**Execution Order:** 26 → 27 → 28 → 29 → 30. Phase 30 is independent of 26-29 and may run in
-parallel with them.
+**Execution Order:** 26 (complete) → 29 → 30. Phase 30 is independent of 26 and 29 and may run in
+parallel with them. 27 and 28 were absorbed into 26 — see the reconciliation note at the top of
+this milestone.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 26. Squid client foundation & live catalogue | 0/TBD | Not started | - |
-| 27. Live quotes (balances, route, slippage, rate limits) | 0/TBD | Not started | - |
-| 28. Real swap execution & honest recording | 0/TBD | Not started | - |
+| 26. Swap that actually swaps | 8/8 | Complete — every plan walked on Base mainnet; 26-VERIFICATION.md passed 33/33 | 2026-09-17 |
 | 29. Integrator fee | 0/TBD | Not started | - |
 | 30. dApp calldata decoding (end blind signing) | 0/TBD | Not started | - |

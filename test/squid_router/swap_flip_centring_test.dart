@@ -30,19 +30,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
+import '../swap/fake_swap_provider.dart';
+
 /// `WalletDetailsCubit` takes a `GeniusApi` this screen never touches. The only
 /// wallet state `SwapScreen` reads is `selectedWallet?.address` (force-unwrapped
-/// in `_loadTokens`) and, inside the submit handler alone, `swapParams`. The
+/// in `_loadTokens`) and, inside the submit handler alone, `quoteRequest`. The
 /// same four-line stand-in the coin-page and transactions-frame tests use: it
 /// satisfies the type and throws loudly rather than returning a silent null.
 class _UnusedApi implements GeniusApi {
@@ -50,19 +55,59 @@ class _UnusedApi implements GeniusApi {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
+/// The catalogue, with no network and no credential. The screen reaches Squid
+/// through [SwapProvider] and nothing else, so this is the whole seam.
+class _FakeSwapProvider extends FakeSwapProvider {
+  const _FakeSwapProvider();
+
+  @override
+  Future<List<SwapToken>> tokens(String chainId) async => const [
+    // The native sentinel: the screen takes this one's balance from the
+    // holdings list rather than from an RPC read.
+    SwapToken(
+      chainId: '1',
+      address: '0x0000000000000000000000000000000000000000',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+    ),
+    SwapToken(
+      chainId: '1',
+      address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      name: 'Dai Stablecoin',
+      symbol: 'DAI',
+      decimals: 18,
+    ),
+  ];
+}
+
 /// Seeds `WalletDetailsCubit.state` directly after construction, the pattern
 /// `test/dashboard/compute_panel_wiring_test.dart` established.
 ///
-/// `selectedNetwork` is deliberately left null: `fetchBalances` ignores its
-/// `chainIds` argument entirely and returns `mockSquidBalances` regardless, so
-/// seeding a network would add a fixture the screen does not read.
+/// The network and the wallet balance are both load-bearing now: the screen
+/// filters the catalogue by chain id, and the native coin's balance is the
+/// figure the rest of the app already displays. `coins` stays empty, so no
+/// ERC-20 balance is read and no RPC is attempted.
 class _SeededWalletDetailsCubit extends WalletDetailsCubit {
   _SeededWalletDetailsCubit({
     required super.geniusApi,
     required super.networkTokensProvider,
     required Wallet selectedWallet,
   }) {
-    emit(state.copyWith(selectedWallet: selectedWallet));
+    emit(
+      state.copyWith(
+        selectedWallet: selectedWallet,
+        selectedNetwork: const Network(
+          name: 'Ethereum',
+          symbol: 'ETH',
+          chainId: 1,
+        ),
+        selectedWalletBalance: '1',
+        // The native holding is what makes ETH spendable on the pay side;
+        // `selectedWalletBalance` is a fiat total and cannot stand in for it.
+        coins: const [Coin(symbol: 'ETH', balance: 1)],
+      ),
+    );
   }
 }
 
@@ -99,6 +144,8 @@ void _sizeSurface(WidgetTester tester) {
 /// pumps. NOT `pumpAndSettle`: `Loading()` may animate forever, and
 /// `pumpAndSettle` would hang the suite rather than fail it.
 Future<void> _mount(WidgetTester tester, Widget screen) async {
+  // Every caller passes `swapAvailable: true`: without an integrator ID the
+  // screen skips the token fetch by design, and there is no form to measure.
   await tester.pumpWidget(_host(screen));
   await tester.pump();
   await tester.pump();
@@ -121,7 +168,10 @@ double _controlCentreY(WidgetTester tester) =>
 void main() {
   testWidgets('A: at rest the control is centred on the seam', (tester) async {
     _sizeSurface(tester);
-    await _mount(tester, const SwapScreen());
+    await _mount(
+      tester,
+      const SwapScreen(swapAvailable: true, provider: _FakeSwapProvider()),
+    );
 
     expect(find.byType(SwapField), findsNWidgets(2));
     expect(
@@ -137,11 +187,16 @@ void main() {
   testWidgets('B: with a pay token seated and an amount typed, the control is '
       'still centred on the seam', (tester) async {
     _sizeSurface(tester);
-    // ETH on chainId 1 holds 1 ETH in `mockSquidBalances`, and
-    // `resolvePreselection` seats a HELD token on the pay side.
+    // The seeded wallet holds 1 ETH on chainId 1, and `resolvePreselection`
+    // seats a HELD token on the pay side.
     await _mount(
       tester,
-      const SwapScreen(preselectSymbol: 'ETH', preselectChainId: 1),
+      const SwapScreen(
+        swapAvailable: true,
+        preselectSymbol: 'ETH',
+        preselectChainId: 1,
+        provider: _FakeSwapProvider(),
+      ),
     );
 
     // `.first` is the You Pay card's amount field - the two cards are built in
@@ -149,10 +204,10 @@ void main() {
     // (`routeError` is false), so both render a real `TextField`.
     await tester.enterText(find.byType(TextField).first, '1.5');
     await tester.pump();
-    // Past the 500ms `_debouncedFetchRoute` window, so the test does not end on
+    // Past the 1000ms `_debouncedFetchRoute` window, so the test does not end on
     // a pending timer. `_fetchRoute` returns early anyway (`canSwap` is false
     // with no receive token), so nothing below the cards changes.
-    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 1100));
 
     final pay = tester.getRect(find.byType(SwapField).at(0));
     final receive = tester.getRect(find.byType(SwapField).at(1));
@@ -192,7 +247,12 @@ void main() {
     _sizeSurface(tester);
     await _mount(
       tester,
-      const SwapScreen(preselectSymbol: 'ETH', preselectChainId: 1),
+      const SwapScreen(
+        swapAvailable: true,
+        preselectSymbol: 'ETH',
+        preselectChainId: 1,
+        provider: _FakeSwapProvider(),
+      ),
     );
     await tester.enterText(find.byType(TextField).first, '1.5');
     await tester.pump();
@@ -210,9 +270,9 @@ void main() {
     final beforeFirst = tester.getRect(find.byType(TokenFlipButton));
     await tester.tapAt(beforeFirst.topCenter + const Offset(0, 2));
     await tester.pump();
-    // Past the 400ms `AnimatedRotation` and the 500ms route debounce the flip
+    // Past the 400ms `AnimatedRotation` and the 1000ms route debounce the flip
     // kicks off, so neither is left pending.
-    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 1100));
 
     expect(
       symbolOn(0),

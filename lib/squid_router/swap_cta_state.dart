@@ -63,6 +63,13 @@ SwapCtaState resolveSwapCtaState({
     return SwapCtaState.findingRoute;
   }
 
+  // The route is what makes the figures on screen real, so there is nothing
+  // to submit without one -- including the debounce gap, where no fetch is in
+  // flight yet and the last quote has already been dropped.
+  if (!hasRoute) {
+    return SwapCtaState.findingRoute;
+  }
+
   return SwapCtaState.ready;
 }
 

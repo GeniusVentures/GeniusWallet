@@ -89,6 +89,28 @@ own guidance: *"Views shouldn't contain any business logic."*
 that is intentional), and `flutter test`. Quote real output; never claim a baseline you didn't run.
 Note the Flutter SDK is not on `PATH` by default in this repo's environment.
 
+## Writing for humans, not for the archive
+
+Code comments say WHY, in words a developer who never saw the plan understands. The reader six
+months from now has no access to the planning context, and would not want it if they did.
+
+- **Doc comment: 3 lines max.** If the constraint genuinely needs more, it belongs in a design
+  doc, not above a class.
+- **Never cite plan, phase, sketch, spec or UAT numbers in source.** No `14-UI-SPEC.md §3.1`, no
+  "plan 08's `wallet_overview.dart`". Those identifiers rot the moment a phase is renumbered and
+  mean nothing to someone reading the file.
+- **Do not name test files in source comments.** The test finds the code; the code does not
+  announce the test.
+- **Keep the constraint, drop its history.** "This widget reads no bloc — every value arrives as
+  a parameter, so it can be pumped without a provider harness" is worth three lines. Which plan
+  decided that, and what tooling was declined twice on the way, is not.
+
+This rule outranks a GSD plan's own "comment it with…" directives. When a plan asks for prose a
+source file should not carry, write the code without it.
+
+**GSD artifacts have budgets too.** `PLAN.md` ≤ 150 lines, `SUMMARY.md` ≤ 40. A plan is a work
+order, not a narrative — if it cannot fit, it is two plans.
+
 ## Working in parallel sessions
 
 Two or more Claude sessions may run against this repo at once. On 2026-07-22 two sessions collided

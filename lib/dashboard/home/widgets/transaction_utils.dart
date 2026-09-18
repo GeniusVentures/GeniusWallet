@@ -290,7 +290,7 @@ class TxRowContent {
   /// 113px line, which is the defect 179-C exists to remove.
   String? get statusTail => status == TransactionStatus.completed
       ? null
-      : (statusLabel ?? _statusLabel(status));
+      : (statusLabel ?? statusWordFor(status));
 
   /// Already signed and clamped, and never empty — every type produces a real
   /// number, including a job (its fee) and a failed row (the amount it
@@ -385,8 +385,69 @@ String _actionFor(TransactionType? type, bool isSent) {
   }
 }
 
-String _statusLabel(TransactionStatus status) =>
-    status.name[0].toUpperCase() + status.name.substring(1);
+/// The narrow row pins this into a 76px box, so every word must fit there.
+/// The full sentence belongs on the receipt, not here.
+String statusWordFor(TransactionStatus status) => switch (status) {
+  TransactionStatus.needsGas => 'Paused',
+  TransactionStatus.partialSuccess => 'Partial',
+  TransactionStatus.refunded => 'Refunded',
+  _ => status.name[0].toUpperCase() + status.name.substring(1),
+};
+
+/// What a receipt says about a swap that moved money but not where it was
+/// asked to go, or null when there is nothing to explain.
+///
+/// Keyed by status and living here, beside the row's own words — the failure
+/// copy for swaps that were never stored is a different table, and mixing them
+/// would print swap-attempt wording on a bridge or Banxa row.
+String? recoveryNoteFor(TransactionStatus status, {String? requestedSymbol}) =>
+    switch (status) {
+      TransactionStatus.needsGas =>
+        'This transfer is paused on the destination chain. Your funds are '
+            'held, not lost — adding gas there resumes it.',
+      // Names the token ASKED for and no other. The status response carries
+      // no symbol for what actually arrived, so naming one would be exactly
+      // the kind of invention this phase exists to delete.
+      TransactionStatus.partialSuccess =>
+        'This swap stopped before it could deliver '
+            '${requestedSymbol ?? 'the token you asked for'}. Your funds are '
+            'safe — check your balances to see what is held.',
+      TransactionStatus.refunded =>
+        'This swap did not go through. The funds return to the sending '
+            'address on their own, usually within about ten minutes, and '
+            'nothing is required.',
+      TransactionStatus.pending ||
+      TransactionStatus.completed ||
+      TransactionStatus.failed ||
+      TransactionStatus.cancelled => null,
+    };
+
+/// Whether a state's sentence belongs in the amber note or in plain secondary
+/// text. An amber warning box that says "nothing is required" argues with
+/// itself, so the refund does not get one.
+bool recoveryNoteIsWarning(TransactionStatus status) =>
+    status == TransactionStatus.needsGas ||
+    status == TransactionStatus.partialSuccess;
+
+/// Whether anything can still be DONE about this state. Only the paused
+/// transfer can: a partial swap has already delivered and a refund is already
+/// on its way back, so a button on either would go somewhere that cannot act.
+bool offersRecoveryAction(TransactionStatus status) =>
+    status == TransactionStatus.needsGas;
+
+/// The stored recovery link, but only when it is one this app will open.
+/// Absent, unparseable or non-https answers null, and the receipt then shows
+/// the sentence with NO button rather than a control that goes nowhere.
+String? openableRecoveryUrl(String? stored) {
+  if (stored == null || stored.isEmpty) {
+    return null;
+  }
+  final uri = Uri.tryParse(stored);
+  if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
+    return null;
+  }
+  return stored;
+}
 
 /// Never returns an empty string — an address can be blank on a malformed
 /// record and a blank subtitle would collapse the row's second line.
@@ -403,9 +464,13 @@ TxRowContent txRowContent(
   final type = tx.type;
   final status = tx.transactionStatus;
   final isSent = tx.transactionDirection == TransactionDirection.sent;
+  // `refunded` joins these two: the money came back, so `Not charged` is the
+  // honest value line and the failed glyph is the honest badge. `needsGas`
+  // and `partialSuccess` do NOT — funds moved and are still out there.
   final isDead =
       status == TransactionStatus.failed ||
-      status == TransactionStatus.cancelled;
+      status == TransactionStatus.cancelled ||
+      status == TransactionStatus.refunded;
 
   // BADGE — status wins over type, because a pending or failed transaction is
   // first of all pending or failed.
@@ -557,7 +622,7 @@ TxRowContent txRowContent(
   // Appended LAST so the wide page can show the context alone and carry the
   // status in its own pill.
   if (status != TransactionStatus.completed) {
-    subtitle = '$subtitle $_middot ${_statusLabel(status)}';
+    subtitle = '$subtitle $_middot ${statusWordFor(status)}';
   }
 
   // AMOUNT + TONE + VALUE LINE.

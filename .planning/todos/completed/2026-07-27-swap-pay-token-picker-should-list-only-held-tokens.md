@@ -10,6 +10,7 @@ files:
   - lib/squid_router/token_selector_drawer.dart:314
   - lib/squid_router/squid_token_service.dart:12
 ---
+> **Resolved 2026-09-17 by Phase 26 (plan 26-04).** `lib/squid_router/held_tokens.dart` filters the pay side to spendable holdings, with the empty state this asked for; the receive side keeps the full catalogue by decision. Line numbers below are from the pre-branch tree.
 
 ## Problem
 

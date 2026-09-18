@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/effects/gw_hover_row.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
@@ -18,9 +19,6 @@ import 'package:genius_wallet/web/web_utils.dart';
 import 'package:intl/intl.dart';
 
 final _dateFormat = DateFormat("MMMM d, y 'at' h:mm a");
-
-String _capitalizeStatus(TransactionStatus status) =>
-    status.name[0].toUpperCase() + status.name.substring(1);
 
 /// Above this row width, the row is the WIDE transactions page: it gains the
 /// Status pill + a fixed-width amount column (sketch 030-A2). Below it — the
@@ -96,6 +94,14 @@ const double _narrowStatusMaxWidth = 76;
   // Slate, not red: a cancelled transaction is not a failure, and
   // `surfaceMenu` is a real step up from the 156-A panel behind it.
   TransactionStatus.cancelled => (fg: gw.textSecondary, wash: gw.surfaceMenu),
+  // Amber, not red: the money is somewhere real and the user can still act on
+  // it. Placeholder tones until these three states get their own treatment.
+  TransactionStatus.needsGas || TransactionStatus.partialSuccess => (
+    fg: gw.statusWarningText,
+    wash: gw.statusWarning.withValues(alpha: 0.16),
+  ),
+  // A refund landed back where it started, so it reads like a cancellation.
+  TransactionStatus.refunded => (fg: gw.textSecondary, wash: gw.surfaceMenu),
 };
 
 /// The Status pill: label + dot in the status colour on a low-alpha wash of it,
@@ -148,7 +154,7 @@ Widget _statusPill(TransactionStatus status, GWColors gw, {String? label}) {
         ),
         const SizedBox(width: 5),
         Text(
-          label ?? _capitalizeStatus(status),
+          label ?? statusWordFor(status),
           maxLines: 1,
           softWrap: false,
           style: GeniusWalletTypography.labelMd.copyWith(
@@ -937,7 +943,7 @@ void showTransactionDetails(
   add(
     txRows,
     'Status',
-    content.statusLabel ?? _capitalizeStatus(status),
+    content.statusLabel ?? statusWordFor(status),
     valueColor: txStatusColors(status, gw).fg,
   );
   // 154-A: "the exact number belongs on a receipt". `exactAmount` is non-null
@@ -1051,6 +1057,36 @@ void showTransactionDetails(
         // colour rides on the icon badge, this pill and the Status row.
         Center(child: _statusPill(status, gw, label: content.statusLabel)),
         const SizedBox(height: GeniusWalletConsts.space12),
+
+        // Money moved, but not where it was asked to go. The sentence says
+        // where it is; the button appears ONLY when the aggregator sent a page
+        // that can act on it, so a control is never shown that goes nowhere.
+        if (recoveryNoteFor(status, requestedSymbol: tx.toSymbol)
+            case final note?) ...[
+          if (recoveryNoteIsWarning(status))
+            GWWarningNote(note)
+          else
+            Text(
+              note,
+              textAlign: TextAlign.center,
+              style: GeniusWalletTypography.bodyMd.copyWith(
+                color: gw.textSecondary,
+              ),
+            ),
+          if (offersRecoveryAction(status) &&
+              openableRecoveryUrl(tx.recoveryUrl) != null) ...[
+            const SizedBox(height: GeniusWalletConsts.space4),
+            GWButton(
+              variant: GWButtonVariant.secondary,
+              size: GWButtonSize.md,
+              expand: true,
+              label: 'Open recovery page',
+              onPressed: () =>
+                  launchWebSite(context, openableRecoveryUrl(tx.recoveryUrl)!),
+            ),
+          ],
+          const SizedBox(height: GeniusWalletConsts.space12),
+        ],
 
         // A kicker over a ruled well, which is 154-A's grouping restored
         // (Jakub, 2026-07-28: that grid is missing and he wanted it back). The

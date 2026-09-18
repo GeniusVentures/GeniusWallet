@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genius_wallet/squid_router/models/squid_balance.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/token_selector_drawer.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// The empty state Braian asked for alongside the pay-side holdings filter
@@ -16,25 +15,13 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// These cases pin the distinction between the two empties, because they are
 /// easy to collapse back into one during a refactor.
 
-SquidTokenInfo _token(String symbol, {String? balance}) => SquidTokenInfo(
-  chainId: 1,
+SwapToken _token(String symbol, {String? balance}) => SwapToken(
+  chainId: '1',
   address: '0x${symbol.toLowerCase()}',
   name: symbol,
   symbol: symbol,
   decimals: 18,
-  crosschain: true,
-  commonKey: symbol,
-  logoURI: '',
-  coingeckoId: symbol.toLowerCase(),
-  balance: balance == null
-      ? null
-      : SquidBalance(
-          balance: balance,
-          symbol: symbol,
-          address: '0x${symbol.toLowerCase()}',
-          decimals: 18,
-          chainId: '1',
-        ),
+  rawBalance: balance == null ? null : BigInt.parse(balance),
 );
 
 Widget _host(Widget child, {GWColors? gw}) => MaterialApp(

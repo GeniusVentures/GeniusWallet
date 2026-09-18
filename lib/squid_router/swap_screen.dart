@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
@@ -11,19 +12,22 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/squid_router/held_tokens.dart';
-import 'package:genius_wallet/squid_router/models/squid_balance.dart';
-import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
-import 'package:genius_wallet/squid_router/models/squid_swap_params.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
-import 'package:genius_wallet/squid_router/squid_token_service.dart';
+import 'package:genius_wallet/squid_router/squid_client.dart';
+import 'package:genius_wallet/squid_router/squid_swap_provider.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
+import 'package:genius_wallet/squid_router/swap_allowance.dart';
 import 'package:genius_wallet/squid_router/swap_cta_state.dart';
+import 'package:genius_wallet/squid_router/swap_execution.dart';
 import 'package:genius_wallet/squid_router/swap_field.dart';
+import 'package:genius_wallet/squid_router/swap_messages.dart';
 import 'package:genius_wallet/squid_router/swap_preselection.dart';
 import 'package:genius_wallet/squid_router/swap_seam.dart';
 import 'package:genius_wallet/squid_router/swap_settings_drawer.dart';
 import 'package:genius_wallet/squid_router/token_flip_button.dart';
+import 'package:genius_wallet/swap/swap_provider.dart';
+import 'package:genius_wallet/swap/swap_quote.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
@@ -40,13 +44,63 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 /// inline, twice, and both copies also excluded THIS side's own token - so the
 /// token you had just chosen vanished from its own picker and the `selectedToken`
 /// the drawer is handed could never match a row.
-List<SquidTokenInfo> tokensForSide(
-  List<SquidTokenInfo> all,
-  SquidTokenInfo? otherSide,
-) => all.where((t) => !t.sameAs(otherSide)).toList();
+List<SwapToken> tokensForSide(List<SwapToken> all, SwapToken? otherSide) =>
+    all.where((t) => !t.sameAs(otherSide)).toList();
+
+/// The native coin's spendable quantity in raw base units, or null when the
+/// holdings carry no native entry.
+///
+/// Read from the holding's own `balance`, never from `selectedWalletBalance`:
+/// that field is a FIAT total across every coin, and spending it here would
+/// offer a swap many times larger than the wallet can cover.
+///
+/// The native coin is the holding with no contract address — the same
+/// discriminator the ERC-20 branch uses to decide what it may read.
+///
+/// ponytail: `Coin.balance` is a double, so a holding needing more than ~17
+/// significant digits is already rounded before it reaches this line. Accepted
+/// because it is the same figure the rest of the app displays; the upgrade path
+/// is a string or BigInt balance on `Coin`. `toStringAsFixed` is what keeps a
+/// dust balance out of exponent notation, which `toBaseUnits` rejects.
+BigInt? nativeCoinBaseUnits(List<Coin> coins, int decimals) {
+  if (decimals < 0) {
+    return null;
+  }
+  for (final coin in coins) {
+    if (coin.address == null && coin.balance != null) {
+      return toBaseUnits(
+        coin.balance!.toStringAsFixed(decimals.clamp(0, 20).toInt()),
+        decimals,
+      );
+    }
+  }
+  return null;
+}
 
 class SwapScreen extends StatefulWidget {
-  const SwapScreen({super.key, this.preselectSymbol, this.preselectChainId});
+  const SwapScreen({
+    super.key,
+    this.preselectSymbol,
+    this.preselectChainId,
+    this.swapAvailable = squidConfigured,
+    this.provider = swapProvider,
+    this.execute = executeSwap,
+    this.storage = const TransactionStorageService(),
+  });
+
+  /// The swap orchestrator and the transaction store, injected so the cases
+  /// can drive every outcome with no network, no key and no wallet.
+  final SwapExecutor execute;
+  final TransactionStorageService storage;
+
+  /// Where the catalogue and the quote come from. A parameter so a test can
+  /// drive the screen without a network or a credential.
+  final SwapProvider provider;
+
+  /// Whether this build can reach Squid at all. False means no integrator ID,
+  /// so the screen refuses up front rather than rendering a 401 as a route
+  /// error. A parameter so a test can drive both sides without a build define.
+  final bool swapAvailable;
 
   /// Seat this token when the screen opens, if the catalogue has it.
   ///
@@ -62,8 +116,8 @@ class SwapScreen extends StatefulWidget {
   /// of "swap this coin", chosen by what the wallet can actually do.
   ///
   /// Null-safe by design: an unmatched symbol seats nothing rather than
-  /// guessing. The catalogue is `mockTokens` today (13 entries), so plenty of
-  /// real coins — GNUS among them — have no match at all.
+  /// guessing. The catalogue is the selected chain's only, so a coin held
+  /// elsewhere has no match at all.
   final String? preselectSymbol;
 
   /// Narrows the match when the same symbol exists on several chains, which is
@@ -75,16 +129,21 @@ class SwapScreen extends StatefulWidget {
 }
 
 class _SwapScreenState extends State<SwapScreen> {
-  List<SquidTokenInfo> tokens = [];
-  SquidTokenInfo? fromToken;
-  SquidTokenInfo? toToken;
+  List<SwapToken> tokens = [];
+  SwapToken? fromToken;
+  SwapToken? toToken;
   bool isLoading = true;
   String fromAmount = '';
   String toAmount = '';
   Timer? _debounce;
   final TextEditingController fromAmountController = TextEditingController();
   final TextEditingController toAmountController = TextEditingController();
-  SquidRouteResponse? fetchedRoute;
+  SwapQuote? fetchedQuote;
+
+  /// Bumped whenever the form changes. A quote answers the generation it was
+  /// asked under, and the provider call cannot be cancelled, so a slow reply
+  /// for an edited-away request has to be dropped on arrival instead.
+  int _quoteGeneration = 0;
   double slippage = 0.5; // Default slippage
 
   // D-09 / criterion 2: the CTA ladder's own state (swap_cta_state.dart).
@@ -92,14 +151,25 @@ class _SwapScreenState extends State<SwapScreen> {
   bool routeError = false;
   bool isSubmitting = false;
 
+  /// Set when a SUBMIT failed, so the shared error notice names which way it
+  /// failed instead of repeating the route-fetch copy. Null means the notice
+  /// is speaking for a failed quote, which is what it shipped for.
+  String? submitFailure;
+
   /// The selected pay token's balance as a number, or null when unknown.
   /// Never accuse the user of an insufficient balance on missing data.
-  double? get fromBalanceAmount => fromToken?.balance?.amountAsDouble;
+  double? get fromBalanceAmount => fromToken?.amountAsDouble;
 
   @override
   void initState() {
     super.initState();
-    _loadTokens();
+    if (widget.swapAvailable) {
+      _loadTokens();
+    } else {
+      // Nothing will clear this gate otherwise, and an unreachable swap would
+      // sit on a spinner forever instead of saying so.
+      isLoading = false;
+    }
   }
 
   @override
@@ -125,7 +195,7 @@ class _SwapScreenState extends State<SwapScreen> {
     final result = resolvePreselection(
       tokens: tokens,
       symbol: widget.preselectSymbol,
-      chainId: widget.preselectChainId,
+      chainId: widget.preselectChainId?.toString(),
     );
     if (result == null) {
       return;
@@ -142,45 +212,88 @@ class _SwapScreenState extends State<SwapScreen> {
   }
 
   Future<void> _loadTokens() async {
+    final cubit = context.read<WalletDetailsCubit>();
+    final walletState = cubit.state;
+    final chainId = walletState.selectedNetwork?.chainId;
+
+    if (chainId == null) {
+      setState(() {
+        tokens = [];
+        isLoading = false;
+      });
+      return;
+    }
+
     try {
-      final walletState = context.read<WalletDetailsCubit>().state;
-      final walletAddress = walletState.selectedWallet?.address;
-      final chainId = walletState.selectedNetwork?.chainId;
-
-      final result = await SquidTokenService.fetchTokens();
-      final balances = await SquidTokenService.fetchBalances(
-        chainIds: ["$chainId"],
-        walletAddress: walletAddress!,
+      final catalogue = await widget.provider.tokens('$chainId');
+      final withBalances = await _withBalances(
+        catalogue,
+        walletState,
+        cubit.geniusApi,
       );
-
-      // Merge balances into tokens
-      for (final token in result) {
-        final matchingBalance = balances.cast<SquidBalance?>().firstWhere(
-          (b) =>
-              b!.symbol.toLowerCase() == token.symbol.toLowerCase() &&
-              b.chainId.toLowerCase() ==
-                  token.chainId.toString().toLowerCase() &&
-              b.address.toLowerCase() == token.address.toLowerCase(),
-          orElse: () => null,
-        );
-        token.balance = matchingBalance;
+      if (!mounted) {
+        return;
       }
 
       setState(() {
-        tokens = result;
+        tokens = withBalances;
         isLoading = false;
       });
       _applyPreselection();
     } catch (e) {
-      setState(() => isLoading = false);
-      if (mounted) {
-        showToast(
-          context,
-          'Failed to load tokens. Check your connection and try again.',
-          type: ToastType.error,
-        );
+      if (!mounted) {
+        return;
       }
+      setState(() => isLoading = false);
+      showToast(
+        context,
+        'Failed to load tokens. Check your connection and try again.',
+        type: ToastType.error,
+      );
     }
+  }
+
+  /// Reads a balance only for the tokens this wallet already holds, decided
+  /// from `coins`. A busy chain lists hundreds of tokens, and one RPC call per
+  /// catalogue entry would be that many round trips on every page load.
+  Future<List<SwapToken>> _withBalances(
+    List<SwapToken> catalogue,
+    WalletDetailsState wallet,
+    GeniusApi api,
+  ) async {
+    final address = wallet.selectedWallet?.address;
+    final rpcUrl = wallet.selectedNetwork?.rpcUrl;
+    final held = <String>{
+      for (final coin in wallet.coins)
+        if (coin.address != null) coin.address!.toLowerCase(),
+    };
+
+    final result = <SwapToken>[];
+    for (final token in catalogue) {
+      // The native coin has no contract to call, so its quantity comes from
+      // the holdings list rather than an RPC read.
+      if (isNativeToken(token.address)) {
+        final raw = nativeCoinBaseUnits(wallet.coins, token.decimals);
+        result.add(raw == null ? token : token.withBalance(raw));
+        continue;
+      }
+      if (address == null ||
+          rpcUrl == null ||
+          !held.contains(token.address.toLowerCase())) {
+        result.add(token);
+        continue;
+      }
+      result.add(
+        token.withBalance(
+          await api.rawBalanceOf(
+            address: address,
+            contractAddress: token.address,
+            rpcUrl: rpcUrl,
+          ),
+        ),
+      );
+    }
+    return result;
   }
 
   void _flipTokens() {
@@ -209,27 +322,38 @@ class _SwapScreenState extends State<SwapScreen> {
       fromAmount.isNotEmpty &&
       double.tryParse(fromAmount) != null;
 
-  SquidSwapParams? get swapParams {
+  /// The quote request, in the aggregator-neutral shape. Null whenever the
+  /// form cannot describe a swap yet.
+  SwapQuoteRequest? get quoteRequest {
     if (!canSwap) {
       return null;
     }
 
-    final walletState = context.read<WalletDetailsCubit>().state;
-    final fromAddress = walletState.selectedWallet?.address;
-    final toAddress = walletState.selectedWallet?.address;
+    final address = context
+        .read<WalletDetailsCubit>()
+        .state
+        .selectedWallet
+        ?.address;
 
-    if (fromAddress == null || toAddress == null) {
+    if (address == null) {
       return null;
     }
 
-    return SquidSwapParams(
-      fromChain: fromToken!.chainId,
+    // Base units, not the typed string: '1.5' sent as-is is 1.5 wei.
+    final fromAmountUnits = toBaseUnits(fromAmount, fromToken!.decimals);
+
+    if (fromAmountUnits == null) {
+      return null;
+    }
+
+    return SwapQuoteRequest(
+      fromChainId: fromToken!.chainId,
       fromToken: fromToken!.address,
-      fromAmount: fromAmount,
-      toChain: toToken!.chainId,
+      fromAmount: fromAmountUnits,
+      toChainId: toToken!.chainId,
       toToken: toToken!.address,
-      fromAddress: fromAddress,
-      toAddress: toAddress,
+      fromAddress: address,
+      toAddress: address,
       slippage: slippage,
     );
   }
@@ -239,26 +363,28 @@ class _SwapScreenState extends State<SwapScreen> {
       return;
     }
 
-    final params = swapParams;
-    if (params == null) {
+    final request = quoteRequest;
+    if (request == null) {
       return;
     }
 
     setState(() {
       isFetchingRoute = true;
       routeError = false;
+      submitFailure = null;
     });
 
+    final generation = ++_quoteGeneration;
+
     try {
-      final route = await SquidTokenService.getRoute(params);
-      final formatted = formatTokenAmount(
-        BigInt.parse(route.toAmount),
-        toToken!.decimals,
-      );
+      final quote = await widget.provider.quote(request);
+      if (!mounted || generation != _quoteGeneration) {
+        return;
+      }
       setState(() {
-        toAmount = formatted;
-        toAmountController.text = formatted;
-        fetchedRoute = route;
+        toAmount = quote.toAmountDisplay;
+        toAmountController.text = quote.toAmountDisplay;
+        fetchedQuote = quote;
         isFetchingRoute = false;
       });
     } catch (e) {
@@ -267,9 +393,12 @@ class _SwapScreenState extends State<SwapScreen> {
       // shows the em-dash placeholder), hide the route card and surface a
       // red inline notice with an enabled Retry CTA. The snackbar stays as a
       // supplementary toast, not the mechanism.
+      if (!mounted || generation != _quoteGeneration) {
+        return;
+      }
       setState(() {
         routeError = true;
-        fetchedRoute = null;
+        fetchedQuote = null;
         toAmount = '';
         toAmountController.clear();
         isFetchingRoute = false;
@@ -284,85 +413,234 @@ class _SwapScreenState extends State<SwapScreen> {
     }
   }
 
+  /// One second, because the quote endpoint is rate limited to one request a
+  /// second and answers an overrun with an error the user would read as a
+  /// broken swap. Shorten this only alongside a higher tier.
   void _debouncedFetchRoute() {
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
     }
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    // Drop the old quote NOW, not when the new one lands. For the whole
+    // debounce the figures on screen belong to the previous request, and a
+    // quote left in place keeps the CTA submittable against them. Bumping the
+    // generation also disowns any reply still in flight for the old form.
+    _quoteGeneration++;
+    if (fetchedQuote != null) {
+      setState(() => fetchedQuote = null);
+    }
+    _debounce = Timer(const Duration(milliseconds: 1000), () {
       _fetchRoute();
     });
   }
 
-  /// The READY rung's submit action — byte-identical to develop's inline
-  /// closure (D-01/D-02: the TODO markers stay, nothing here invokes Squid
-  /// or upgrades the copy's claims), only now wrapped with the `isSubmitting`
-  /// flag around the real await so the CTA can show its "Submitting swap…"
-  /// rung for exactly as long as this genuinely takes.
+  /// The READY rung's submit action — a thin adapter over the orchestrator.
+  /// It reads [sideEffectsFor] and never re-derives that decision: a screen
+  /// judging its own swap successful is how a false receipt gets shown.
   Future<void> _submitSwap() async {
-    final params = swapParams;
-    if (params == null) {
+    final request = quoteRequest;
+    final walletState = context.read<WalletDetailsCubit>().state;
+    final address = walletState.selectedWallet?.address;
+    final network = walletState.selectedNetwork;
+    final rpcUrl = network?.rpcUrl;
+    final chainId = network?.chainId;
+
+    if (request == null ||
+        address == null ||
+        rpcUrl == null ||
+        chainId == null) {
       return;
     }
 
+    final api = context.read<WalletDetailsCubit>().geniusApi;
+    final transactionsCubit = context.read<TransactionsCubit>();
+    final networkSymbol = network?.symbol ?? '';
+
+    // Frozen here, before the first await. Approval and settling can run for a
+    // minute with the pickers and the amount field still live, and every row
+    // this swap writes has to describe the trade that was actually submitted.
+    final submitted = _SubmittedSwap(
+      fromAmount: fromAmount,
+      toAmount: toAmount,
+      fromSymbol: fromToken?.symbol,
+      toSymbol: toToken?.symbol,
+      fromIconUrl: fromToken?.logoUri,
+      toIconUrl: toToken?.logoUri,
+    );
+    final payToken = fromToken!;
+
     setState(() => isSubmitting = true);
     try {
-      debugPrint('Swapping with params: ${params.toJson()}');
-      // TODO: invoke Squid API
-
-      final walletState = context.read<WalletDetailsCubit>().state;
-      final walletAddress = walletState.selectedWallet?.address;
-      final walletNetwork = walletState.selectedNetwork?.symbol;
-      final transactionsCubit = context.read<TransactionsCubit>();
-
-      // TODO: record transaction...
-      // IF SUCCESSS ...
-      final transaction = Transaction(
-        hash: "",
-        fromAddress: walletAddress!,
-        recipients: [
-          TransferRecipients(toAddr: walletAddress, amount: toAmount),
-        ],
-        timeStamp: DateTime.now(),
-        transactionDirection: TransactionDirection.received,
-        // Blank, not fromAmount: nothing executed (D-01), so no network fee
-        // exists to report. The receipt's blank-fee guard (D-20) omits the
-        // row rather than printing what the user pays under "Network Fee".
-        fees: '',
-        coinSymbol: walletNetwork!,
-        transactionStatus: TransactionStatus.completed,
-        type: TransactionType.swap,
-        toAmount: toAmount,
-        toIconUrl: toToken?.logoURI,
-        fromSymbol: fromToken?.symbol,
-        toSymbol: toToken?.symbol,
-        fromAmount: fromAmount,
-        fromIconUrl: fromToken?.logoURI,
+      final outcome = await widget.execute(
+        tokenAddress: payToken.address,
+        amount: request.fromAmount,
+        fetchRoute: () => widget.provider.buildTransaction(request),
+        readAllowance: (spender) => api.allowance(
+          owner: address,
+          spender: spender,
+          contractAddress: payToken.address,
+          rpcUrl: rpcUrl,
+        ),
+        approve: (spender, amount) async {
+          final response = await api.approve(
+            contractAddress: payToken.address,
+            rpcUrl: rpcUrl,
+            address: address,
+            spender: spender,
+            amount: amount,
+            chainId: chainId,
+          );
+          return response.isSuccess;
+        },
+        send: (tx) async {
+          final response = await api.signAndSendTransaction(
+            tx: tx,
+            rpcUrl: rpcUrl,
+            address: address,
+            sourceChainId: chainId,
+          );
+          return response.data;
+        },
+        readStatus: widget.provider.status,
+        wait: Future<void>.delayed,
+        onBroadcast: (hash) async {
+          // Deliberately NOT guarded on mounted. Storage is an injected
+          // dependency, not context, and the funds have already left: leaving
+          // the screen between send and settle must not be what decides
+          // whether the transfer is recorded at all.
+          await widget.storage.addTransaction(
+            address,
+            _swapRow(
+              hash: hash,
+              status: TransactionStatus.pending,
+              walletAddress: address,
+              networkSymbol: networkSymbol,
+              submitted: submitted,
+            ),
+          );
+        },
       );
 
-      showToast(
-        context,
-        'Swapping ${params.fromAmount} ${fromToken?.symbol ?? ""} for ${toToken?.symbol ?? ""}.',
-        title: 'Swap Submitted',
-        type: ToastType.success,
-      );
-
-      // D-03/D-04: the shared 031-B receipt replaces the superseded
-      // SwapSuccessDrawer, alongside the toast above — never instead of it.
-      if (mounted) {
-        showTransactionDetails(context, transaction);
-      }
-      transactionsCubit.addTransaction(transaction);
-
-      // save to hive
-      await TransactionStorageService().addTransaction(
-        walletAddress,
-        transaction,
+      // No mounted check here on purpose. The outcome's storage writes have
+      // to land whether or not the user is still looking: nothing else ever
+      // re-polls a stored swap, so a row left pending here stays pending for
+      // good. _applyOutcome gates its own UI on mounted.
+      await _applyOutcome(
+        outcome,
+        walletAddress: address,
+        networkSymbol: networkSymbol,
+        transactionsCubit: transactionsCubit,
+        submitted: submitted,
       );
     } finally {
       if (mounted) {
         setState(() => isSubmitting = false);
       }
     }
+  }
+
+  /// Does exactly what [sideEffectsFor] permits, and nothing on any outcome
+  /// that carries no hash. What the user is TOLD is `swapFailureMessage`'s
+  /// job; this method only decides what may happen.
+  Future<void> _applyOutcome(
+    SwapOutcome outcome, {
+    required String walletAddress,
+    required String networkSymbol,
+    required TransactionsCubit transactionsCubit,
+    required _SubmittedSwap submitted,
+  }) async {
+    final effects = sideEffectsFor(outcome);
+    if (!effects.storeRow) {
+      // Nothing to store, and reporting is a setState.
+      if (mounted) {
+        _reportFailure(outcome);
+      }
+      return;
+    }
+
+    // Only a hash-bearing outcome gets here, and only one shape carries one.
+    final broadcast = outcome as SwapBroadcast;
+
+    Transaction rowWith(TransactionStatus status) => _swapRow(
+      hash: broadcast.hash,
+      status: status,
+      walletAddress: walletAddress,
+      networkSymbol: networkSymbol,
+      submitted: submitted,
+      recoveryUrl: broadcast.recoveryUrl,
+    );
+
+    // Written BEFORE the resolved status, keyed by the real hash: a crash
+    // between broadcast and resolution must leave an accurate pending row
+    // rather than no record of funds that already moved.
+    await widget.storage.addTransaction(
+      walletAddress,
+      rowWith(TransactionStatus.pending),
+    );
+    final resolved = rowWith(broadcast.status);
+    await widget.storage.addTransaction(walletAddress, resolved);
+
+    if (!mounted) {
+      return;
+    }
+    if (effects.showToast) {
+      // The row is stored and the receipt opens either way — the funds moved.
+      // What is SAID depends on how it settled; claiming success for a
+      // partial or paused swap is the lie this phase removes.
+      final unresolved = swapFailureMessage(outcome);
+      showToast(
+        context,
+        unresolved ??
+            'Swapped $fromAmount ${fromToken?.symbol ?? ""} for '
+                '${toToken?.symbol ?? ""}.',
+        title: unresolved == null ? 'Swap Submitted' : 'Swap Sent',
+        type: unresolved == null ? ToastType.success : ToastType.warning,
+      );
+    }
+    if (effects.showReceipt) {
+      showTransactionDetails(context, resolved);
+    }
+    transactionsCubit.addTransaction(resolved);
+
+    // The funds have moved, so every number on screen now describes a swap
+    // that is finished: the amounts are spent, the balance behind them has
+    // changed, and the router has consumed this quote id. `_reportFailure`
+    // clears the same fields after a FAILED swap because "a stale figure is a
+    // number the user might still act on" — after a successful one that is
+    // truer, since the CTA would otherwise sit on its ready rung and a second
+    // tap would submit against a quote that cannot be filled again.
+    //
+    // The two tokens stay seated. Swapping the same pair again is the likely
+    // next action, and re-picking them is the part that is tedious.
+    setState(() {
+      fromAmount = '';
+      toAmount = '';
+      fromAmountController.clear();
+      toAmountController.clear();
+      fetchedQuote = null;
+      submitFailure = null;
+      routeError = false;
+    });
+  }
+
+  /// Says which way the swap failed, reusing the two error affordances this
+  /// screen already has: the toast and the inline notice.
+  ///
+  /// The quote is cleared with it — a stale figure beside a failure message
+  /// is a number the user might still act on.
+  void _reportFailure(SwapOutcome outcome) {
+    final message = swapFailureMessage(outcome);
+    if (message == null) {
+      return;
+    }
+
+    setState(() {
+      submitFailure = message;
+      routeError = true;
+      fetchedQuote = null;
+      toAmount = '';
+      toAmountController.clear();
+    });
+    showToast(context, message, type: ToastType.error);
   }
 
   /// D-09 / finding 22's inline notice — background `statusError` @ ~12%
@@ -393,7 +671,9 @@ class _SwapScreenState extends State<SwapScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Couldn't fetch a route.",
+                  submitFailure == null
+                      ? "Couldn't fetch a route."
+                      : 'The swap did not go through.',
                   style: GeniusWalletTypography.labelMd.copyWith(
                     color: gw.statusError,
                     fontWeight: FontWeight.w600,
@@ -401,8 +681,9 @@ class _SwapScreenState extends State<SwapScreen> {
                 ),
                 const SizedBox(height: GeniusWalletConsts.space2),
                 Text(
-                  'Check your connection and try again — the quote above is '
-                  'not current.',
+                  submitFailure ??
+                      'Check your connection and try again — the quote above '
+                          'is not current.',
                   style: GeniusWalletTypography.labelMd.copyWith(
                     color: gw.statusError,
                   ),
@@ -432,14 +713,21 @@ class _SwapScreenState extends State<SwapScreen> {
       fromAmount: fromAmount,
       fromBalance: fromBalanceAmount,
       isFetchingRoute: isFetchingRoute,
-      hasRoute: fetchedRoute != null,
+      hasRoute: fetchedQuote != null,
       routeError: routeError,
       isSubmitting: isSubmitting,
     );
-    final label = swapCtaLabel(state, symbol: fromToken?.symbol);
+    // The availability gate sits ABOVE the ladder, not inside it: a build that
+    // cannot reach Squid has no rung to be on, and the ladder stays the single
+    // source of truth for every state that can actually be reached.
+    final unavailable = !widget.swapAvailable;
+    final label = unavailable
+        ? 'Swap unavailable'
+        : swapCtaLabel(state, symbol: fromToken?.symbol);
     final enabled = swapCtaEnabled(state);
 
-    if (state == SwapCtaState.ready || state == SwapCtaState.routeError) {
+    if (!unavailable &&
+        (state == SwapCtaState.ready || state == SwapCtaState.routeError)) {
       return Padding(
         // Vertical only: EdgeInsets.all inset the CTA 16px inside the amount
         // cards, so the button's edge disagreed with every card above it.
@@ -450,7 +738,7 @@ class _SwapScreenState extends State<SwapScreen> {
           expand: true,
           label: label,
           // ROUTE-ERROR RUNG: retry fetches directly — a user tapping Retry
-          // should not wait out the 500ms debounce.
+          // should not wait out the quote debounce.
           onPressed: !enabled
               ? null
               : state == SwapCtaState.routeError
@@ -460,7 +748,8 @@ class _SwapScreenState extends State<SwapScreen> {
       );
     }
 
-    final isInsufficient = state == SwapCtaState.insufficientBalance;
+    final isInsufficient =
+        !unavailable && state == SwapCtaState.insufficientBalance;
     final background = isInsufficient
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
@@ -483,7 +772,7 @@ class _SwapScreenState extends State<SwapScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (state == SwapCtaState.submitting) ...[
+                if (!unavailable && state == SwapCtaState.submitting) ...[
                   SizedBox(
                     width: 18,
                     height: 18,
@@ -527,7 +816,7 @@ class _SwapScreenState extends State<SwapScreen> {
             toAmount = '';
             fromAmountController.clear();
             toAmountController.clear();
-            fetchedRoute = null;
+            fetchedQuote = null;
             isLoading = true;
           });
 
@@ -757,13 +1046,13 @@ class _SwapScreenState extends State<SwapScreen> {
                                 ),
                                 // D-09: the route card never shows figures derived
                                 // from a route that just failed.
-                                if (fetchedRoute != null && !routeError)
+                                if (fetchedQuote != null && !routeError)
                                   RouteDetailsCard(
-                                    route: fetchedRoute!,
+                                    quote: fetchedQuote!,
                                     fromAmount: fromAmountController.text,
                                     toAmount: toAmountController.text,
-                                    fromToken: fromToken,
-                                    toToken: toToken,
+                                    fromSymbol: fromToken?.symbol,
+                                    toSymbol: toToken?.symbol,
                                     slippage: slippage.toString(),
                                   ),
                                 if (routeError) _buildRouteErrorNotice(gw),
@@ -797,3 +1086,63 @@ class _SwapScreenState extends State<SwapScreen> {
     );
   }
 }
+
+/// What the user actually submitted, frozen at the tap.
+///
+/// The pickers and the amount field stay live through approval and settling,
+/// so a row built from them afterwards can describe a different trade than the
+/// one on chain.
+class _SubmittedSwap {
+  const _SubmittedSwap({
+    required this.fromAmount,
+    required this.toAmount,
+    required this.fromSymbol,
+    required this.toSymbol,
+    required this.fromIconUrl,
+    required this.toIconUrl,
+  });
+
+  final String fromAmount;
+  final String toAmount;
+  final String? fromSymbol;
+  final String? toSymbol;
+  final String? fromIconUrl;
+  final String? toIconUrl;
+}
+
+/// One swap row: the submitted trade plus whatever the chain has said so far.
+///
+/// Top level on purpose — it takes a snapshot and holds no screen, so it
+/// cannot read a field that has moved on since the swap was sent.
+Transaction _swapRow({
+  required String hash,
+  required TransactionStatus status,
+  required String walletAddress,
+  required String networkSymbol,
+  required _SubmittedSwap submitted,
+  String? recoveryUrl,
+}) => Transaction(
+  hash: hash,
+  fromAddress: walletAddress,
+  recipients: [
+    TransferRecipients(toAddr: walletAddress, amount: submitted.toAmount),
+  ],
+  timeStamp: DateTime.now(),
+  transactionDirection: TransactionDirection.received,
+  // Squid reports gas in USD and this field renders as a native-coin amount,
+  // so a dollar figure here prints as "0.42 ETH". Blank until a native number
+  // exists -- the receipt already skips a blank fee row.
+  fees: '',
+  coinSymbol: networkSymbol,
+  transactionStatus: status,
+  type: TransactionType.swap,
+  toAmount: submitted.toAmount,
+  toIconUrl: submitted.toIconUrl,
+  fromSymbol: submitted.fromSymbol,
+  toSymbol: submitted.toSymbol,
+  fromAmount: submitted.fromAmount,
+  fromIconUrl: submitted.fromIconUrl,
+  // Persisted, because the session that makes a paused swap is the one session
+  // the user is NOT in when they come back to resume it.
+  recoveryUrl: recoveryUrl,
+);

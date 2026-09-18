@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/src/genius_api.dart';
+import 'package:genius_api/test/dev_overrides.dart';
 import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key_wallet.dart';
 import 'package:genius_api/web3/api_response.dart';
@@ -43,7 +44,9 @@ class Web3 {
           { "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "type": "function" },
           { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "name": "", "type": "uint8" }], "type": "function" },
           { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }], "name": "balanceOf", "outputs": [{ "name": "balance", "type": "uint256" }], "type": "function" },
-          { "constant": true, "inputs": [], "name": "symbol", "outputs": [{ "name": "", "type": "string" }], "type": "function" }
+          { "constant": true, "inputs": [], "name": "symbol", "outputs": [{ "name": "", "type": "string" }], "type": "function" },
+          { "constant": true, "inputs": [{ "name": "_owner", "type": "address" }, { "name": "_spender", "type": "address" }], "name": "allowance", "outputs": [{ "name": "remaining", "type": "uint256" }], "type": "function" },
+          { "constant": false, "inputs": [{ "name": "_spender", "type": "address" }, { "name": "_value", "type": "uint256" }], "name": "approve", "outputs": [{ "name": "success", "type": "bool" }], "type": "function" }
         ]''', '');
 
   Future<Map<String, dynamic>> fetchTokenDetailsMulticall({
@@ -241,6 +244,74 @@ class Web3 {
     } catch (e) {
       await client.dispose();
       return 0;
+    }
+  }
+
+  /// The raw base-unit allowance [spender] holds over [owner]'s tokens.
+  ///
+  /// Raw, not scaled: a route's spend amount arrives in the same unit, and
+  /// comparing it against a decimals-divided double is off by 10^decimals.
+  Future<BigInt> allowance({
+    required String owner,
+    required String spender,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    final contract = DeployedContract(
+      abi,
+      EthereumAddress.fromHex(contractAddress),
+    );
+
+    try {
+      final result = await client.call(
+        contract: contract,
+        function: contract.function('allowance'),
+        params: [
+          EthereumAddress.fromHex(owner),
+          EthereumAddress.fromHex(spender),
+        ],
+      );
+
+      return BigInt.parse(result.first.toString());
+    } catch (e) {
+      // A failed read reports no allowance, never a phantom one: the worst it
+      // can cost is one redundant approval, and it can never skip a needed one.
+      return BigInt.zero;
+    } finally {
+      await client.dispose();
+    }
+  }
+
+  /// [address]'s token balance as the exact integer the contract returned.
+  ///
+  /// [balanceOf] divides by the decimals and hands back a double, which cannot
+  /// carry dust or a long fraction without rounding it.
+  Future<BigInt> rawBalanceOf({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    final contract = DeployedContract(
+      abi,
+      EthereumAddress.fromHex(contractAddress),
+    );
+
+    try {
+      final result = await client.call(
+        contract: contract,
+        function: contract.function('balanceOf'),
+        params: [EthereumAddress.fromHex(address)],
+      );
+
+      return BigInt.parse(result.first.toString());
+    } catch (e) {
+      return BigInt.zero;
+    } finally {
+      await client.dispose();
     }
   }
 
@@ -469,6 +540,60 @@ class Web3 {
     return ApiResponse.error('Failed to bridge: unknown');
   }
 
+  /// Grants [spender] an allowance of exactly [amount] raw base units.
+  ///
+  /// The amount is passed through untouched — the caller decides it, and the
+  /// only caller can produce nothing but the amount being spent.
+  Future<ApiResponse<String>> approve({
+    required String contractAddress,
+    required String rpcUrl,
+    required StoredKeyWallet? wallet,
+    required String spender,
+    required BigInt amount,
+    required int chainId,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+
+    try {
+      final contract = DeployedContract(
+        abi,
+        EthereumAddress.fromHex(contractAddress),
+      );
+      final spenderAddress = EthereumAddress.fromHex(spender);
+
+      // Resolved as late as possible, and the same way the dApp signing path
+      // resolves it, so an approval and the spend it enables share an owner.
+      final privateKey = getDevPrivateKey() ?? getPrivateKeyStr(wallet);
+
+      if (privateKey.isEmpty) {
+        return ApiResponse.error('No signing key found for this wallet');
+      }
+
+      final credentials = EthPrivateKey.fromHex(privateKey);
+
+      final transaction = Transaction.callContract(
+        contract: contract,
+        function: contract.function('approve'),
+        parameters: [spenderAddress, amount],
+        from: credentials.address,
+      );
+
+      final txHash = await client.sendTransaction(
+        credentials,
+        transaction,
+        chainId: chainId,
+      );
+
+      return ApiResponse.success(txHash);
+    } catch (e) {
+      // Returned, not built and dropped: a rejected approval has to be able to
+      // say why, and there is no generic trailing error to fall through to.
+      return ApiResponse.error(e.toString());
+    } finally {
+      await client.dispose();
+    }
+  }
+
   Future<ApiResponse<EtherAmount?>> getBrigeOutGasCost({
     required String contractAddress,
     required String rpcUrl,
@@ -587,9 +712,16 @@ class Web3 {
         chainId: chainId,
       );
 
-      final receipt = await client.getTransactionReceipt(txHash);
-
-      debugPrint("📦 Receipt for $txHash: $receipt");
+      // Diagnostic only, and deliberately outside the send's failure path.
+      // The transaction is already on the network by this point, so a failed
+      // receipt read must not turn a real broadcast into a reported failure
+      // and invite the caller to send it twice.
+      try {
+        final receipt = await client.getTransactionReceipt(txHash);
+        debugPrint("📦 Receipt for $txHash: $receipt");
+      } catch (e) {
+        debugPrint("📦 Receipt read failed for $txHash (already sent): $e");
+      }
 
       return ApiResponse.success(txHash);
     } catch (e) {

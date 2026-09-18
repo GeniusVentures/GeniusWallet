@@ -11,7 +11,7 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
   }
 
   Future<void> loadInitial(String walletAddress) async {
-    final txs = await TransactionStorageService().getTransactions(
+    final txs = await const TransactionStorageService().getTransactions(
       walletAddress,
     );
     _transactions.addAll(txs);

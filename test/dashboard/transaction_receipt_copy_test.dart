@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 const _toAddress = '0x5555666677778888999900001111222233334444';
@@ -154,11 +155,23 @@ void main() {
     testWidgets('the pill and the Status row take one colour -- $status', (
       tester,
     ) async {
+      // Tall enough that the whole sheet builds. The states that explain
+      // themselves carry a sentence above the detail grid, and at the default
+      // 600px the Status row fell below the built viewport — which looks
+      // exactly like a dropped consumer.
+      tester.view.physicalSize = const Size(1200, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
       await tester.pumpWidget(_app(_tx(status: status)));
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
 
-      final label = status.name[0].toUpperCase() + status.name.substring(1);
+      // The app's own word, not one derived from the enum name: three
+      // statuses carry real copy ("Paused", "Partial") that the name does not
+      // spell, and deriving it here would assert against a string the user
+      // never sees.
+      final label = statusWordFor(status);
       final texts = tester.widgetList<Text>(find.text(label)).toList();
       // Exactly two: the pill under the amount and the Status row's value. If
       // this ever finds one, a consumer was dropped rather than recoloured.

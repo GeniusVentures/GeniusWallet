@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/squid_router/held_tokens.dart';
-import 'package:genius_wallet/squid_router/models/squid_balance.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 
 /// The pay-side holdings filter decided by Braian at the 08-07 walk:
 /// "a user can't simply swap a BNB he does not have."
@@ -9,30 +8,18 @@ import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 /// The asymmetry is the point — these cases pin what the PAY side drops. The
 /// receive side never calls this, and a test asserting it does would be
 /// asserting the opposite of the decision.
-SquidTokenInfo _token({
+SwapToken _token({
   required String symbol,
   String? balance,
   int decimals = 18,
-  int chainId = 1,
-}) => SquidTokenInfo(
+  String chainId = '1',
+}) => SwapToken(
   chainId: chainId,
   address: '0x${symbol.toLowerCase()}',
   name: symbol,
   symbol: symbol,
   decimals: decimals,
-  crosschain: true,
-  commonKey: symbol,
-  logoURI: '',
-  coingeckoId: symbol.toLowerCase(),
-  balance: balance == null
-      ? null
-      : SquidBalance(
-          balance: balance,
-          symbol: symbol,
-          address: '0x${symbol.toLowerCase()}',
-          decimals: decimals,
-          chainId: '$chainId',
-        ),
+  rawBalance: balance == null ? null : BigInt.parse(balance),
 );
 
 void main() {
@@ -74,13 +61,10 @@ void main() {
       }
     });
 
-    test('a malformed balance is rejected rather than thrown on', () {
-      // amountAsDouble would bang-unwrap tryParse and take the picker down.
-      expect(
-        hasSpendableBalance(_token(symbol: 'BAD', balance: 'not-a-number')),
-        isFalse,
-      );
-      expect(hasSpendableBalance(_token(symbol: 'BAD', balance: '')), isFalse);
+    test('a balance that never arrived is not spendable', () {
+      // The old string-typed balance could also be UNPARSEABLE, and the filter
+      // had to reject that by hand. A nullable BigInt leaves only two states.
+      expect(hasSpendableBalance(_token(symbol: 'BAD')), isFalse);
     });
   });
 
@@ -107,12 +91,12 @@ void main() {
 
     test('the same token on two chains is judged per chain', () {
       final tokens = [
-        _token(symbol: 'USDC', chainId: 1, balance: '1000000', decimals: 6),
-        _token(symbol: 'USDC', chainId: 137, decimals: 6),
+        _token(symbol: 'USDC', chainId: '1', balance: '1000000', decimals: 6),
+        _token(symbol: 'USDC', chainId: '137', decimals: 6),
       ];
       final held = heldTokens(tokens);
       expect(held, hasLength(1));
-      expect(held.single.chainId, 1);
+      expect(held.single.chainId, '1');
     });
   });
 }
