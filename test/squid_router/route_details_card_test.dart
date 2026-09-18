@@ -51,6 +51,19 @@ Future<void> _pumpCard(
 /// Constructing `GWColors.light()` alone is not enough: its surface fields
 /// read this same global, so a light instance built while the global stays
 /// dark hands back dark values under a light-sounding name.
+/// Resizes the test window, because flutter_test defaults to 800x600 and a
+/// `SizedBox` asking for less is simply clamped back up to it.
+///
+/// Both lines are required. `setSurfaceSize` does not move what
+/// `MediaQuery.sizeOf` reports here, and the default device pixel ratio is 3,
+/// so a physical size set without pinning it lands nowhere near the logical
+/// width the breakpoint reads. Measured, not assumed.
+void _resize(WidgetTester tester, Size size) {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+}
+
 GWColors _gwFor(GWAppearanceMode mode) {
   GWAppearance.instance.value = mode;
   addTearDown(() => GWAppearance.instance.value = GWAppearanceMode.dark);
@@ -148,13 +161,31 @@ void main() {
     expect(find.text('\$0.01'), findsOneWidget);
   });
 
+  testWidgets('the rate keeps every digit on a desktop frame', (tester) async {
+    _resize(tester, const Size(1400, 900));
+
+    await _pumpCard(tester, crossChainRoute);
+
+    expect(find.text('1 GNUS ~ 0.757304 USDC'), findsOneWidget);
+  });
+
+  testWidgets('the rate is cut to four decimals on a phone frame', (
+    tester,
+  ) async {
+    // Shortening the rate is what stops it wrapping to two lines here. It is
+    // display only — the figure that moves is BigInt and is never read back
+    // off this string.
+    _resize(tester, const Size(360, 800));
+
+    await _pumpCard(tester, crossChainRoute);
+
+    expect(find.text('1 GNUS ~ 0.7573 USDC'), findsOneWidget);
+    expect(find.text('1 GNUS ~ 0.757304 USDC'), findsNothing);
+  });
+
   testWidgets('every row fits at phone width', (tester) async {
-    // A SizedBox alone would be clamped to the default test surface, so the
-    // window itself has to shrink. 360 is the narrowest frame the app keeps a
-    // gutter at. The rate string is the widest value rendered, so if anything
-    // runs off the row it is this.
-    await tester.binding.setSurfaceSize(const Size(360, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    // 360 is the narrowest frame the app keeps a gutter at.
+    _resize(tester, const Size(360, 800));
 
     await _pumpCard(tester, crossChainRoute);
 
