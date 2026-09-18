@@ -15,6 +15,8 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher_platform_interface/link.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 const _hash = '0xfeedfacefeedfacefeedfacefeedfacefeedface';
 const _axelar = 'https://axelarscan.io/gmp/$_hash';
@@ -35,13 +37,46 @@ Transaction _tx({required TransactionStatus status, String? recoveryUrl}) =>
       recoveryUrl: recoveryUrl,
     );
 
-/// Captures the URL the app actually navigates to. `launchWebSite` pushes
-/// `/web` carrying it, so a route here is the only way to prove the button
-/// opens the STORED string rather than one built from the hash.
+/// Captures the URL the app actually opens, on whichever path this platform
+/// takes.
+///
+/// `launchWebSite` opens an in-app webview by pushing `/web`, EXCEPT on Linux,
+/// where it hands the URL to the system browser and returns without routing.
+/// CI runs on Linux, so a check that only watched `/web` would assert nothing
+/// in the one place it runs automatically — which is how this went unnoticed:
+/// the quality job never reached the test step until the submodule checkout
+/// was fixed.
 String? launchedUrl;
+
+/// Records what the Linux path hands to the platform. Assigned to
+/// [UrlLauncherPlatform.instance] so `canLaunchUrl`/`launchUrl` reach it
+/// instead of a real browser.
+class _RecordingLauncher extends UrlLauncherPlatform {
+  @override
+  final LinkDelegate? linkDelegate = null;
+
+  @override
+  Future<bool> canLaunch(String url) async => true;
+
+  @override
+  Future<bool> launch(
+    String url, {
+    required bool useSafariVC,
+    required bool useWebView,
+    required bool enableJavaScript,
+    required bool enableDomStorage,
+    required bool universalLinksOnly,
+    required Map<String, String> headers,
+    String? webOnlyWindowName,
+  }) async {
+    launchedUrl = url;
+    return true;
+  }
+}
 
 Widget _app(Transaction tx) {
   launchedUrl = null;
+  UrlLauncherPlatform.instance = _RecordingLauncher();
   return MaterialApp.router(
     theme: ThemeData(extensions: [GWColors.dark()]),
     routerConfig: GoRouter(
