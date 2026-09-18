@@ -120,6 +120,25 @@ if(NOT TARGET Vulkan::Vulkan)
     find_package(Vulkan REQUIRED)
 endif()
 
+# vk-bootstrap and shaderc -- SGProcessingManager's exported SGProcessors and
+# SGShaderCompiler targets interface-link both, so they must exist before
+# find_package(SGProcessingManager) further down. Mirrors SuperGenius's
+# build/CommonBuildParameters.cmake.
+set(vk-bootstrap_DIR "${THIRDPARTY_BUILD_DIR}/vk-bootstrap/lib/cmake/vk-bootstrap")
+find_package(vk-bootstrap CONFIG REQUIRED)
+
+# shaderc installs no CMake package config (upstream provides none), so the
+# target is hand-written, same as in SuperGenius. libshaderc_combined
+# statically bundles glslang and SPIRV-Tools; their headers resolve through
+# the shared include dir.
+if(NOT TARGET shaderc::shaderc)
+    add_library(shaderc::shaderc STATIC IMPORTED GLOBAL)
+    set_target_properties(shaderc::shaderc PROPERTIES
+        IMPORTED_LOCATION "${THIRDPARTY_BUILD_DIR}/shaderc/lib/${CMAKE_STATIC_LIBRARY_PREFIX}shaderc_combined${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        INTERFACE_INCLUDE_DIRECTORIES "${THIRDPARTY_BUILD_DIR}/shaderc/include"
+    )
+endif()
+
 # MNN
 set(MNN_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/MNN/include")
 set(MNN_DIR "${THIRDPARTY_BUILD_DIR}/MNN/lib/cmake/MNN")
