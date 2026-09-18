@@ -174,28 +174,34 @@ was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and t
 
   1. [x] *(was SWP-07)* The integrator ID loads from configuration, never a literal — `test-api`
      must not ship. An unconfigured build reports swap unavailable rather than failing at runtime.
+
   2. [x] *(was SWP-01)* Both pickers list the live Squid catalogue for the selected chain, not a
      hardcoded list.
+
   3. [x] *(was SWP-02)* Balances are real: read from chain for the wallet's own holdings, and from
      the wallet's own figure for the chain's native coin. The pay side offers only what is held.
+
   4. [x] *(was SWP-03)* A valid amount returns a live route quote — receive estimate, rate, price
      impact, fees — honouring the D-09 error contract: error → `—` + red notice + Retry, never a
      stale quote.
+
   5. [x] *(was SWP-04)* The user's slippage setting feeds the live route request.
   6. [x] *(was SWP-08)* Quote fetching respects the free tier: **1000ms** debounce — 500ms was the
      drafted figure and trips the measured 1 RPS dev ceiling — and the catalogue is cached rather
      than refetched per picker open.
+
   7. [x] *(was SWP-05)* Submitting re-fetches an executable route and broadcasts it through the
      wallet's send path, showing the real outcome. **Walked 2026-09-17** — a real swap executed
      on Base mainnet (hash in `26-06-SUMMARY.md`), and an underfunded send named itself and
      stored nothing (`26-07-SUMMARY.md`).
+
   8. [x] *(was SWP-06)* Transactions are recorded only from the actual result — never a fabricated
      `completed` with `hash: ""`. The fabricated record is deleted; every side effect sits behind
      `sideEffectsFor`.
 
 ### Fee Transparency (FEE)
 
-- [ ] **FEE-02**: Route details name every fee the route charges, separate from chain gas, before
+- [x] **FEE-02**: Route details name every fee the route charges, separate from chain gas, before
   confirmation — nothing merged into one figure, nothing silently deducted
 
 > **FEE-01 was deferred to the backlog on 2026-09-18** (see "Beyond v2.0"). It was never app work:
@@ -217,6 +223,7 @@ was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and t
   response exposes an `"Integrator fee"` entry or aggregates ours with Squid's into `"Service
   fee"`; and whether `estimate.toAmount` is already net of the fee. **Nothing ships in the app when
   it lands** — FEE-02's renderer is generic by construction.
+
 - **APP-01**: Broader feature roadmap (new chains, staking, etc.) — scoped in a later milestone
 - **APP-02**: ~~Establish a working automated test harness~~ — **LARGELY OBSOLETE (corrected
   2026-07-23):** `flutter test` already works (234 pass / 1 fail; the fail is the commented-out
@@ -246,7 +253,7 @@ was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and t
 |-------------|-------|--------|
 | SWAP-01 | Phase 26 — one requirement, eight plans (26-01..26-08); the former 27 and 28 were the same work | **Complete** — 8/8 criteria delivered and walked on Base mainnet 2026-09-17; a real swap executed, 26-VERIFICATION.md passed 33/33 |
 | FEE-01 | **Deferred to backlog 2026-09-18** — business item; only Squid can enable it | Deferred |
-| FEE-02 | Phase 29 — Fee transparency | Pending |
+| FEE-02 | Phase 29 — Fee transparency | Complete |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |

@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
-current_phase: 29
-current_phase_name: "Swap that actually swaps — COMPLETE 2026-09-17: 8/8 plans walked on Base mainnet, verification passed 33/33; the former v2.0 phases 27-28 are absorbed into it"
+current_phase: 30
+current_phase_name: "dApp calldata decoding (end blind signing) — not started; phase 29 (Fee transparency) COMPLETE 2026-09-18: 4/4 plans, FEE-02 closed"
 status: in_progress
-stopped_at: Completed 29-03-PLAN.md
-last_updated: "2026-09-18T16:17:51.401Z"
+stopped_at: Completed 29-04-PLAN.md — phase 29 fully executed 4/4
+last_updated: "2026-09-18T16:29:13.969Z"
 last_activity: 2026-09-18
-last_activity_desc: 29-03 executed and verified — generic mapping coverage
+last_activity_desc: 29-04 executed and verified — rendering coverage, FEE-02 closed
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 12
-  completed_plans: 11
-  percent: 33
+  completed_plans: 12
+  percent: 67
 ---
 
 # Project State
@@ -24,31 +24,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 29 — Fee transparency, 3/4 plans landed (29-03, 2026-09-18). Next: 29-04
-(phase close — case-insensitive matching, empty-case tests, FEE-02 closes). Phase 30 is
-independent and may run in parallel.
+**Current focus:** Phase 29 — Fee transparency COMPLETE (4/4 plans, 2026-09-18), FEE-02 closed.
+Next: Phase 30 — dApp calldata decoding (end blind signing).
 
 ## Current Position
 
-Phase: 29 — Fee transparency (executing; plan 03/4 landed 2026-09-18)
-Plan: 3/4 — 29-01 done (`7e2253ad`); 29-02 done (`803717c4`); 29-03 done (`562d6a7d`);
-29-04 not started
-Status: 29-03 proved the mapping layer generic. The typed/raw parity case in
-`route_wrap_drift_test.dart` now compares fee names and amounts, confirmed to catch a regression
-to the bare `.name` accessor. `syntheticRouteWithFees` (`route_fixture.dart`) supplies an inline,
-non-fixture body carrying multiple fee entries — no live route we can fetch has two — proving
-three ordered entries (incl. an unrecognised name, `Wormhole relayer fee`) map correctly, and that
-a non-list collection, a non-map entry, and an unreadable amount all degrade instead of throwing.
-No fixture file added. FEE-02 stays unchecked — plan 04 still closes it (D-05 case-insensitive
-matching, D-06 empty-case tests).
-Last activity: 2026-09-18 — 29-03 executed and verified
+Phase: 29 — Fee transparency (COMPLETE 4/4, 2026-09-18)
+Plan: 4/4 — 29-01 done (`7e2253ad`); 29-02 done (`803717c4`); 29-03 done (`562d6a7d`);
+29-04 done (`f44e773d`/`12cd2472`)
+Status: 29-04 closed the phase. `route_details_card_test.dart` gained the empty same-chain case
+(no fee row, no `$0.00` line — the normal case, not an edge case), a distinctness check that the
+route fee and gas never merge into one string, a synthetic three-entry render (each fee its own
+row), and a both-appearance case that flips the global `GWAppearance` flag before building
+`GWColors` — the mechanism this repo has broken before, where a light instance built under a dark
+global silently reads dark values. FEE-02 now checked in REQUIREMENTS.md. Full `flutter test`:
+1374 passed, 5 skipped, 0 failed. Manual-only item carried to UAT: fee rows at phone width.
+Last activity: 2026-09-18 — 29-04 executed and verified
 
 ### v2.0 Phase Tracking
 
 | Phase | Name | Status |
 |-------|------|--------|
 | 26 | Swap that actually swaps (absorbs former 27, 28) | Complete 2026-09-17 |
-| 29 | Fee transparency | In progress — 1/4 plans (29-01) |
+| 29 | Fee transparency | Complete 2026-09-18 (4/4 plans; FEE-02 closed) |
 | 30 | dApp calldata decoding (end blind signing) | Not started |
 
 (v1.0 residue still executes alongside v2.0 — see the v1.0 Progress table in ROADMAP.md: phase 14
@@ -248,7 +246,7 @@ Last activity: 2026-08-07 - quick task 260807-bxs (Markets page: hero shrink at 
 Previous: 2026-07-31 - eleven quick tasks (`260731-elz` through `260731-ope`) and two sketches (169 Buy GNUS orders header, 170 balance unit toggle). Full suite 930 -> 968, `flutter analyze` clean, both shell gates 0. All uncommitted, awaiting Jakub's walk and PR. Queued next: the Buy GNUS form restructure (`.planning/todos/pending/2026-07-31-buy-gnus-form-restructure.md`), which has three open forks needing his answer before it can be built.
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
-Progress: [████████████████████] 36/36 plans ([██████████] 99%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
+Progress: [████████████████████] 36/36 plans ([██████████] 100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
 
 ## Accumulated Context
 
@@ -379,6 +377,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 29-01: FeeType.name yields the Dart constant; wire label only reachable via standardSerializers.serializeWith(FeeType.serializer, ...) — proven by running assertion
 - [Phase ?]: 29-02 checkpoint: dropped the merged cost row entirely (option-a); no Total cost row added
 - [Phase ?]: 29-03: typed/raw fee-line parity is a permanent guard; multi-entry, unrecognised-name, and malformed-cost mapping proven via an inline synthetic body (no fabricated fixture); FEE-02 still closes at plan 04
+- [Phase ?]: FEE-02 closed at plan 04 per the precedent set in 29-01/29-02/29-03; the both-appearance case flips the global GWAppearance flag rather than constructing GWColors.light() alone.
 
 ### Pending Todos
 
@@ -527,8 +526,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-09-18T16:17:51.379Z
-Stopped at: Completed 29-03-PLAN.md
+Last session: 2026-09-18T16:29:13.277Z
+Stopped at: Completed 29-04-PLAN.md — phase 29 fully executed 4/4
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -660,6 +659,7 @@ Open decisions:
 | Phase 29 P01 | 12min | 1 tasks | 1 files |
 | Phase 29 P02 | 25min | 2 tasks | 4 files |
 | Phase 29 P03 | 20min | 2 tasks | 3 files |
+| Phase 29 P04 | 25min | 2 tasks | 1 files |
 
 ### Roadmap Evolution
 
