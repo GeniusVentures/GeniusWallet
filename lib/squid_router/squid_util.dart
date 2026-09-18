@@ -56,3 +56,33 @@ String formatPercent(String raw) {
   }
   return rounded.toString().replaceFirst(RegExp(r'\.0$'), '');
 }
+
+/// An amount for display, cut to at most [max] decimal places.
+///
+/// String in, string out and no double anywhere: these amounts carry up to 18
+/// significant digits and a double cannot hold them. Truncates rather than
+/// rounds, for the reason [toBaseUnits] does — a rate rounded up claims a
+/// better price than the route quoted.
+///
+/// Two values are left whole rather than cut. Anything that is not a plain
+/// decimal passes through untouched instead of becoming an invented number,
+/// and so does a value whose surviving digits are all zero, because rendering
+/// a real amount as `0` would claim the route returns nothing.
+String capDecimals(String raw, int max) {
+  if (max < 0) {
+    return raw;
+  }
+  final match = RegExp(r'^(\d+)\.(\d+)$').firstMatch(raw.trim());
+  if (match == null) {
+    return raw;
+  }
+  final fraction = match.group(2)!;
+  if (fraction.length <= max) {
+    return raw;
+  }
+  final cut = fraction.substring(0, max).replaceFirst(RegExp(r'0+$'), '');
+  if (cut.isEmpty) {
+    return raw;
+  }
+  return '${match.group(1)}.$cut';
+}

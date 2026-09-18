@@ -4,6 +4,7 @@ import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 
 class RouteDetailsCard extends StatelessWidget {
   final SwapQuote quote;
@@ -33,7 +34,13 @@ class RouteDetailsCard extends StatelessWidget {
     // this subtree to rebuild on a live appearance toggle (04-04 discipline).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
-    final pricing = '$fromAmount $fromSymbol ~ $toAmount $toSymbol';
+    // A phone frame cannot hold a full-precision pair. Display only: the
+    // amounts that actually move are BigInt and are never read back off this
+    // string, so shortening it cannot reach the transaction.
+    final showFull = GeniusBreakpoints.useDesktopLayout(context);
+    final payShown = showFull ? fromAmount : capDecimals(fromAmount, 4);
+    final getShown = showFull ? toAmount : capDecimals(toAmount, 4);
+    final pricing = '$payShown $fromSymbol ~ $getShown $toSymbol';
     final priceImpact = '${formatPercent(quote.priceImpact)}%';
 
     return Container(
