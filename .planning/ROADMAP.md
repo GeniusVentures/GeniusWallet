@@ -1488,11 +1488,13 @@ A dependency chain plus one independent subsystem:
   stale quote) survived the mock→real switch, and a completed swap now clears its spent quote too.
 - Slippage (`swap_settings_drawer.dart`) feeds the live route request.
 - Fee plumbing for Phase 29: the route's `estimate.feeCosts[]` and `estimate.gasCosts[]` are read
-  by `squidQuoteFromJson` into `SwapQuote.feesUsd` / `gasUsd`, which `RouteDetailsCard` sums into
-  its Fees row. There is no `squid_fee_cost.dart`. Each `feeCosts[]` entry carries `name`,
-  `description`, `amount`, `amountUsd` and a `token` (recorded fixture: `"Gas receiver fee"`);
-  how Squid labels the integrator's own fee is **not yet observed** — the first Phase 29 task is
-  to fetch a route on the real integratorId and record it, not to assume a field.
+  by `squidQuoteFromJson` into a single `SwapQuote.feesUsd` / `gasUsd` pair, which
+  `RouteDetailsCard` sums again into one Fees row — so each entry's `name` is discarded at the
+  adapter and two unlike costs display as one number. There is no `squid_fee_cost.dart`. Each
+  `feeCosts[]` entry carries `name`, `description`, `amount`, `amountUsd` and a `token`.
+  `FeeType` admits exactly eight names; `"Integrator fee"` and `"Service fee"` are both legal, and
+  Squid's docs say integrator and platform fees may be **aggregated into `"Service fee"`** — so
+  match names case-insensitively and render what arrives, never look up a fixed label.
 - Reown dApp path: `lib/reown/handle_dapp_requests.dart` (blind-signs; calldata TODO at `:44-46`),
   drawers `approve_transaction_drawer.dart` / `send_transaction_details.dart`. There is no
   built-in calldata decoder in `reown_walletkit` — manual ABI decoding, small testable pure-Dart
@@ -1506,6 +1508,8 @@ A dependency chain plus one independent subsystem:
 - Symbiosis Finance — named once (submodule commit `ee95bf6`), never built; not pursued
 - Modifying the `squidrouter/` submodule — consume as-is; regenerate upstream if the API drifts
 - Swap analytics beyond honest transaction records
+- Enabling the Squid integrator fee — a server-side setting only Squid can apply to our integrator
+  ID (`RouteRequest` carries no fee parameter). BD/business, tracked as FEE-01 in the backlog
 
 ### Verification reality (v2.0)
 
@@ -1519,18 +1523,19 @@ money (Phase 26) and legs needing real funds or the live catalogue get a debug-b
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SWAP-01 | Phase 26 — one end-to-end requirement; all 8 criteria delivered and walked on Base mainnet 2026-09-17 | Complete |
-| FEE-01 | Phase 29 — Integrator fee | Pending |
-| FEE-02 | Phase 29 — Integrator fee | Pending |
+| FEE-01 | **Deferred to backlog 2026-09-18** — business item; only Squid can enable it, server-side on the integrator ID | Deferred |
+| FEE-02 | Phase 29 — Fee transparency | Pending |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 
-**Coverage:** 6/6 v2.0 requirements mapped — no orphans, no duplicates. `SWAP-01` is one end-to-end promise owned by Phase 26 alone (the former 27 and 28 were the same work under three numbers); the drafted `SWP-01..08` that split it were retired into its criteria on 2026-09-16.
+**Coverage:** 5/5 active v2.0 requirements mapped — no orphans, no duplicates. FEE-01 was deferred
+to the backlog on 2026-09-18 as a business item (see Out of scope). `SWAP-01` is one end-to-end promise owned by Phase 26 alone (the former 27 and 28 were the same work under three numbers); the drafted `SWP-01..08` that split it were retired into its criteria on 2026-09-16.
 
 ## Phases (v2.0)
 
 - [x] **Phase 26: Swap that actually swaps** - Replace the mocked Squid layer with the real v2 API; no success shown for a swap that did not happen (completed 2026-09-17 — 8/8 plans, every one walked on Base mainnet; 26-VERIFICATION.md passed 33/33. Absorbs the former phases 27 and 28.)
-- [ ] **Phase 29: Integrator fee** - the ~3% fee via the integratorId, visible in route details before confirmation
+- [ ] **Phase 29: Fee transparency** - every fee the route charges, named and separate from chain gas, before the user confirms
 - [ ] **Phase 30: dApp calldata decoding (end blind signing)** - Reown approval drawers decode ERC-20 and known-router calldata; undecodable calls labeled with a visible warning
 
 ## Phase Details (v2.0)
@@ -1552,19 +1557,27 @@ money (Phase 26) and legs needing real funds or the live catalogue get a debug-b
 **Absorbs the former Phase 27** (live quotes, balances, slippage, rate limits — 26-03, 26-04) **and Phase 28** (real execution and honest recording — 26-05 … 26-08). They were three numbers for one end-to-end promise; keeping them as separate unstarted phases would have had the tooling asking to plan work that has already shipped. The numbering skips from 26 to 29 on purpose.
 **Constraint**: do not modify the `squidrouter/` submodule (AGENTS.md — auto-generated). Five live drifts from its spec are worked around in the adapter, each recorded where it was found.
 
-### Phase 29: Integrator fee
+### Phase 29: Fee transparency
 
-**Goal**: Swaps routed through Squid carry the ~3% integrator fee configured on the integratorId, and the user sees the fee in route details before confirming — never silently netted
-**Depends on**: Phase 26 (the fee is only verifiable against really-executed routes)
-**Requirements**: FEE-01, FEE-02
+**Goal**: Route details name every fee the route charges and keep them separate from chain gas, so the user sees what they are paying before confirming — nothing merged, nothing silently deducted
+**Depends on**: Phase 26 (fees are only real against live routes)
+**Requirements**: FEE-02
 **Success Criteria** (what must be TRUE):
 
-  1. The live route response for the wallet's integratorId carries the ~3% integrator fee among its fee costs, and the app consumes it as-is — the generated client's `Integrator`/`IntegratorFee` models and the route's fee-cost list; the integratorId's fee configuration confirmed with the team (BD-side setting, not app code)
-  2. Route details on `/swap` show the integrator fee as its own visible line before the user confirms — rendered from the route's raw `estimate.feeCosts[]` the way `squidQuoteFromJson` already reads them, and readable in both appearances (widget test plus app-walk)
-  3. The fee line and the receive estimate agree — what the route card shows is what the user gets; the fee is never silently deducted from the estimate with no mention (both derive from the same route response; testable)
+  1. Every entry in the live route's `estimate.feeCosts[]` renders as its own named line with its own amount — the card no longer collapses them. Today a cross-chain route shows Axelar's `"Gas receiver fee"` and chain gas as a single `$0.92` (measured 2026-09-18: $0.91 + $0.01)
+  2. Route fees and chain gas are visibly distinct — a user can tell what the network charged from what a service charged; readable in both appearances (widget test plus app-walk)
+  3. A route carrying no fee costs reads correctly, with no placeholder and no `$0.00` line — this is the **normal** same-chain swap, which returns `feeCosts: []` (measured 2026-09-18)
+  4. Nothing subtracts a fee from `toAmount` anywhere — the receive figure and the fee lines both come straight from the same route response, so the display cannot disagree with what Squid returns (grep-able and testable; it is also what makes netted-vs-on-top a non-question)
+  5. No hard-coded fee label and no hard-coded percentage — names are matched case-insensitively and rendered as given, so a renamed or unrecognised fee still appears
 
 **Plans**: TBD
 **UI hint**: yes
+
+**Re-scoped 2026-09-18.** Was "Integrator fee — the ~3% via the integratorId". FEE-01 moved to the
+backlog as a business item: Squid sets the integrator fee server-side on the integrator ID, the
+`/v2/route` request accepts no fee parameter, and live probes on **both** of our integrator IDs
+(`supergenius-*`, `gnus.ai-wallet-*`) show none configured — proven by output amount, not just by
+a missing field. Criterion 5 is what makes Squid's eventual switch a no-op in the app.
 
 ### Phase 30: dApp calldata decoding (end blind signing)
 

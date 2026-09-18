@@ -193,10 +193,14 @@ was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and t
      `completed` with `hash: ""`. The fabricated record is deleted; every side effect sits behind
      `sideEffectsFor`.
 
-### Integrator Fee (FEE)
+### Fee Transparency (FEE)
 
-- [ ] **FEE-01**: Swaps routed through Squid carry the ~3% integrator fee via the integratorId configuration
-- [ ] **FEE-02**: The fee is visible in route details before confirmation — never silently deducted
+- [ ] **FEE-02**: Route details name every fee the route charges, separate from chain gas, before
+  confirmation — nothing merged into one figure, nothing silently deducted
+
+> **FEE-01 was deferred to the backlog on 2026-09-18** (see "Beyond v2.0"). It was never app work:
+> Squid configures the integrator fee server-side against the integrator ID, and `RouteRequest`
+> carries no fee parameter at all.
 
 ### dApp Signing Honesty (DAP)
 
@@ -206,6 +210,13 @@ was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and t
 
 ### Beyond v2.0 (formerly "v2 Requirements", deferred)
 
+- **FEE-01** *(deferred 2026-09-18 — business, not engineering)*: Squid enables an integrator fee on
+  the `supergenius-*` integrator ID. Squid's docs are explicit — *"To implement fees please contact
+  the Squid team"* — and fees are split 50/50. Three answers are owed before this can be planned:
+  whether the v1 "1% soft limit per tx" still caps us below the ~3% wanted; whether the route
+  response exposes an `"Integrator fee"` entry or aggregates ours with Squid's into `"Service
+  fee"`; and whether `estimate.toAmount` is already net of the fee. **Nothing ships in the app when
+  it lands** — FEE-02's renderer is generic by construction.
 - **APP-01**: Broader feature roadmap (new chains, staking, etc.) — scoped in a later milestone
 - **APP-02**: ~~Establish a working automated test harness~~ — **LARGELY OBSOLETE (corrected
   2026-07-23):** `flutter test` already works (234 pass / 1 fail; the fail is the commented-out
@@ -234,13 +245,14 @@ was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and t
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SWAP-01 | Phase 26 — one requirement, eight plans (26-01..26-08); the former 27 and 28 were the same work | **Complete** — 8/8 criteria delivered and walked on Base mainnet 2026-09-17; a real swap executed, 26-VERIFICATION.md passed 33/33 |
-| FEE-01 | Phase 29 — Integrator fee | Pending |
-| FEE-02 | Phase 29 — Integrator fee | Pending |
+| FEE-01 | **Deferred to backlog 2026-09-18** — business item; only Squid can enable it | Deferred |
+| FEE-02 | Phase 29 — Fee transparency | Pending |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 
-**Coverage (v2.0):** 6 total; **6/6 mapped to phases 26-30 ✓** — no orphans, no duplicates.
+**Coverage (v2.0):** 6 total; **5/5 active mapped to phases 26-30 ✓** — no orphans, no duplicates.
+FEE-01 deferred to the backlog 2026-09-18 (business item, not engineering).
 `SWAP-01` deliberately spans phases 26-28 rather than one: it is a single end-to-end promise, and
 the drafted `SWP-01..08` that split it were retired on 2026-09-16 (see the reconciliation note
 above). FEE and DAP map one-to-one as before. Roadmap: `.planning/ROADMAP.md` →
