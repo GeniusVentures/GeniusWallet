@@ -228,7 +228,16 @@ Future<SwapOutcome> executeSwap({
   // The hash is real, so the transfer is on the network. Say so before the
   // poll: settling can take a minute, and nothing should have to survive that
   // window to learn that money moved.
-  await onBroadcast?.call(hash);
+  //
+  // Best effort, deliberately. A failed announcement is a failed RECORD, not
+  // a failed swap: the funds have moved either way, the outcome below writes
+  // the row again, and throwing here would drop the poll, the resolved row and
+  // everything the screen does with them over a bookkeeping error.
+  try {
+    await onBroadcast?.call(hash);
+  } catch (_) {
+    // Swallowed on purpose; see above.
+  }
 
   final settled = await _poll(
     route: route,

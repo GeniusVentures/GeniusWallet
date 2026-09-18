@@ -425,8 +425,13 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      expect(storage.writes.map((t) => t.hash), contains(_hash));
-      expect(storage.writes.first.transactionStatus, TransactionStatus.pending);
+      final statuses = storage.writes.map((t) => t.transactionStatus).toList();
+      expect(storage.writes.map((t) => t.hash).toSet(), {_hash});
+      // Pending the moment the hash existed, resolved once it settled -- and
+      // resolved is the one that matters: nothing else ever re-polls a stored
+      // swap, so a row left pending here would say so forever.
+      expect(statuses.first, TransactionStatus.pending);
+      expect(statuses.last, TransactionStatus.completed);
     });
 
     testWidgets('stores no fee rather than a dollar one, and the swap type', (

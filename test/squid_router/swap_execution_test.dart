@@ -383,6 +383,31 @@ void main() {
       expect(order.skip(2), everyElement('status'));
     });
 
+    test('a failing announcement does not fail the swap', () async {
+      // The transfer is on chain the moment send returns. A bookkeeping error
+      // in the hook cannot be allowed to drop the poll and the outcome with it.
+      var statusReads = 0;
+
+      final outcome = await executeSwap(
+        tokenAddress: _token,
+        amount: _amount,
+        fetchRoute: () async => _route(),
+        readAllowance: (spender) async => _amount,
+        approve: (spender, amount) async => true,
+        send: (request) async => _hash,
+        readStatus: (route, hash) async {
+          statusReads++;
+          return const SwapSettlement(status: SwapStatus.success);
+        },
+        wait: (delay) async {},
+        onBroadcast: (hash) async => throw StateError('storage is down'),
+      );
+
+      expect(outcome, isA<SwapBroadcast>());
+      expect((outcome as SwapBroadcast).hash, _hash);
+      expect(statusReads, greaterThan(0));
+    });
+
     test('never for a send that produced no hash', () async {
       // No hash means nothing reached the network, so a row written here would
       // be a record of something that did not happen.

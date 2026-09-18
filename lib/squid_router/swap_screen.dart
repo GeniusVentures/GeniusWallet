@@ -520,9 +520,10 @@ class _SwapScreenState extends State<SwapScreen> {
         },
       );
 
-      if (!mounted) {
-        return;
-      }
+      // No mounted check here on purpose. The outcome's storage writes have
+      // to land whether or not the user is still looking: nothing else ever
+      // re-polls a stored swap, so a row left pending here stays pending for
+      // good. _applyOutcome gates its own UI on mounted.
       await _applyOutcome(
         outcome,
         walletAddress: address,
@@ -549,7 +550,10 @@ class _SwapScreenState extends State<SwapScreen> {
   }) async {
     final effects = sideEffectsFor(outcome);
     if (!effects.storeRow) {
-      _reportFailure(outcome);
+      // Nothing to store, and reporting is a setState.
+      if (mounted) {
+        _reportFailure(outcome);
+      }
       return;
     }
 
