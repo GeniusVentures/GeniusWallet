@@ -352,4 +352,57 @@ void main() {
       },
     );
   });
+
+  group('the broadcast is announced', () {
+    test('before settling begins, not after it finishes', () async {
+      // Settling polls for up to a minute. Whatever records the transfer has
+      // to hear the hash first: a crash inside that window would otherwise
+      // leave no trace at all of funds that have already left the wallet.
+      final order = <String>[];
+
+      await executeSwap(
+        tokenAddress: _token,
+        amount: _amount,
+        fetchRoute: () async => _route(),
+        readAllowance: (spender) async => _amount,
+        approve: (spender, amount) async => true,
+        send: (request) async {
+          order.add('send');
+          return _hash;
+        },
+        readStatus: (route, hash) async {
+          order.add('status');
+          return const SwapSettlement(status: SwapStatus.success);
+        },
+        wait: (delay) async {},
+        onBroadcast: (hash) async => order.add('broadcast:$hash'),
+      );
+
+      expect(order.first, 'send');
+      expect(order[1], 'broadcast:$_hash');
+      expect(order.skip(2), everyElement('status'));
+    });
+
+    test('never for a send that produced no hash', () async {
+      // No hash means nothing reached the network, so a row written here would
+      // be a record of something that did not happen.
+      var announced = false;
+
+      final outcome = await executeSwap(
+        tokenAddress: _token,
+        amount: _amount,
+        fetchRoute: () async => _route(),
+        readAllowance: (spender) async => _amount,
+        approve: (spender, amount) async => true,
+        send: (request) async => null,
+        readStatus: (route, hash) async =>
+            const SwapSettlement(status: SwapStatus.success),
+        wait: (delay) async {},
+        onBroadcast: (hash) async => announced = true,
+      );
+
+      expect(announced, isFalse);
+      expect(outcome, isA<SwapSendFailed>());
+    });
+  });
 }

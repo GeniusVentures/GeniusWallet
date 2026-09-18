@@ -407,16 +407,20 @@ class _SwapScreenState extends State<SwapScreen> {
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
     }
+    // Drop the old quote NOW, not when the new one lands. For the whole
+    // debounce the figures on screen belong to the previous request, and a
+    // quote left in place keeps the CTA submittable against them.
+    if (fetchedQuote != null) {
+      setState(() => fetchedQuote = null);
+    }
     _debounce = Timer(const Duration(milliseconds: 1000), () {
       _fetchRoute();
     });
   }
 
   /// The READY rung's submit action — a thin adapter over the orchestrator.
-  ///
-  /// It reads [sideEffectsFor] and acts on it. It must never re-derive that
-  /// decision: a screen that decides for itself whether a swap succeeded is
-  /// the bug this phase exists to remove.
+  /// It reads [sideEffectsFor] and never re-derives that decision: a screen
+  /// judging its own swap successful is how a false receipt gets shown.
   Future<void> _submitSwap() async {
     final request = quoteRequest;
     final walletState = context.read<WalletDetailsCubit>().state;
@@ -470,6 +474,24 @@ class _SwapScreenState extends State<SwapScreen> {
         },
         readStatus: widget.provider.status,
         wait: Future<void>.delayed,
+        onBroadcast: (hash) async {
+          if (!mounted) {
+            return;
+          }
+          // Settling polls for up to a minute. The row goes in HERE, while the
+          // only thing known is that a real hash came back, so a crash in that
+          // window leaves an accurate pending row instead of no trace of funds
+          // that already left.
+          await widget.storage.addTransaction(
+            address,
+            _swapRow(
+              hash: hash,
+              status: TransactionStatus.pending,
+              walletAddress: address,
+              networkSymbol: network?.symbol ?? '',
+            ),
+          );
+        },
       );
 
       if (!mounted) {
@@ -487,6 +509,39 @@ class _SwapScreenState extends State<SwapScreen> {
       }
     }
   }
+
+  /// One swap row, from screen state plus whatever the chain has said so far.
+  /// Built once when the hash arrives and again when the status settles, so
+  /// both describe the same transfer under the same key.
+  Transaction _swapRow({
+    required String hash,
+    required TransactionStatus status,
+    required String walletAddress,
+    required String networkSymbol,
+    String? recoveryUrl,
+  }) => Transaction(
+    hash: hash,
+    fromAddress: walletAddress,
+    recipients: [TransferRecipients(toAddr: walletAddress, amount: toAmount)],
+    timeStamp: DateTime.now(),
+    transactionDirection: TransactionDirection.received,
+    // Squid reports gas in USD and this field renders as a native-coin
+    // amount, so a dollar figure here prints as "0.42 ETH". Blank until a
+    // native number exists -- the receipt already skips a blank fee row.
+    fees: '',
+    coinSymbol: networkSymbol,
+    transactionStatus: status,
+    type: TransactionType.swap,
+    toAmount: toAmount,
+    toIconUrl: toToken?.logoUri,
+    fromSymbol: fromToken?.symbol,
+    toSymbol: toToken?.symbol,
+    fromAmount: fromAmount,
+    fromIconUrl: fromToken?.logoUri,
+    // Persisted, because the session that makes a paused swap is the one
+    // session the user is NOT in when they come back to resume it.
+    recoveryUrl: recoveryUrl,
+  );
 
   /// Does exactly what [sideEffectsFor] permits, and nothing on any outcome
   /// that carries no hash. What the user is TOLD is `swapFailureMessage`'s
@@ -506,25 +561,11 @@ class _SwapScreenState extends State<SwapScreen> {
     // Only a hash-bearing outcome gets here, and only one shape carries one.
     final broadcast = outcome as SwapBroadcast;
 
-    Transaction rowWith(TransactionStatus status) => Transaction(
+    Transaction rowWith(TransactionStatus status) => _swapRow(
       hash: broadcast.hash,
-      fromAddress: walletAddress,
-      recipients: [TransferRecipients(toAddr: walletAddress, amount: toAmount)],
-      timeStamp: DateTime.now(),
-      transactionDirection: TransactionDirection.received,
-      // Something executed now, so a real network fee exists to report.
-      fees: fetchedQuote?.gasUsd.toStringAsFixed(2) ?? '',
-      coinSymbol: networkSymbol,
-      transactionStatus: status,
-      type: TransactionType.swap,
-      toAmount: toAmount,
-      toIconUrl: toToken?.logoUri,
-      fromSymbol: fromToken?.symbol,
-      toSymbol: toToken?.symbol,
-      fromAmount: fromAmount,
-      fromIconUrl: fromToken?.logoUri,
-      // Persisted, because the session that makes a paused swap is the one
-      // session the user is NOT in when they come back to resume it.
+      status: status,
+      walletAddress: walletAddress,
+      networkSymbol: networkSymbol,
       recoveryUrl: broadcast.recoveryUrl,
     );
 

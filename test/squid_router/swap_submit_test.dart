@@ -190,6 +190,7 @@ SwapExecutor _answering(SwapOutcome outcome) =>
       required send,
       required readStatus,
       required wait,
+      onBroadcast,
       pollAttempts = 20,
       pollInterval = const Duration(seconds: 3),
     }) async => outcome;
@@ -368,7 +369,9 @@ void main() {
       expect(storage.writes.map((t) => t.hash).toSet(), {_hash});
     });
 
-    testWidgets('carries the real fee, and the swap type', (tester) async {
+    testWidgets('stores no fee rather than a dollar one, and the swap type', (
+      tester,
+    ) async {
       final storage = _RecordingStorage();
       await _mountReady(
         tester,
@@ -385,9 +388,11 @@ void main() {
 
       final row = storage.writes.last;
       expect(row.type, TransactionType.swap);
-      // Something executed, so a gas figure exists and belongs on the row.
-      expect(row.fees, isNotEmpty);
-      expect(row.fees, isNot('0.00'));
+      // The aggregator reports gas in USD while this field renders as a
+      // native-coin amount, so a dollar value here would print as '0.42 ETH'.
+      // Storing nothing is the honest answer until a native figure exists;
+      // the receipt skips a blank fee row rather than showing a bare symbol.
+      expect(row.fees, isEmpty);
     });
 
     testWidgets('a non-success status is still recorded, not hidden', (

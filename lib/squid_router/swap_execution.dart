@@ -148,6 +148,7 @@ typedef SwapExecutor =
       )
       readStatus,
       required Future<void> Function(Duration delay) wait,
+      Future<void> Function(String hash)? onBroadcast,
       int pollAttempts,
       Duration pollInterval,
     });
@@ -167,6 +168,7 @@ Future<SwapOutcome> executeSwap({
   required Future<SwapSettlement> Function(SwapTransaction route, String hash)
   readStatus,
   required Future<void> Function(Duration delay) wait,
+  Future<void> Function(String hash)? onBroadcast,
   int pollAttempts = 20,
   Duration pollInterval = const Duration(seconds: 3),
 }) async {
@@ -222,6 +224,11 @@ Future<SwapOutcome> executeSwap({
   if (hash == null || hash.isEmpty) {
     return const SwapSendFailed(null);
   }
+
+  // The hash is real, so the transfer is on the network. Say so before the
+  // poll: settling can take a minute, and nothing should have to survive that
+  // window to learn that money moved.
+  await onBroadcast?.call(hash);
 
   final settled = await _poll(
     route: route,

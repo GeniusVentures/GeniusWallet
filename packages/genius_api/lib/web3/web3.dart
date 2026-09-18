@@ -712,9 +712,16 @@ class Web3 {
         chainId: chainId,
       );
 
-      final receipt = await client.getTransactionReceipt(txHash);
-
-      debugPrint("📦 Receipt for $txHash: $receipt");
+      // Diagnostic only, and deliberately outside the send's failure path.
+      // The transaction is already on the network by this point, so a failed
+      // receipt read must not turn a real broadcast into a reported failure
+      // and invite the caller to send it twice.
+      try {
+        final receipt = await client.getTransactionReceipt(txHash);
+        debugPrint("📦 Receipt for $txHash: $receipt");
+      } catch (e) {
+        debugPrint("📦 Receipt read failed for $txHash (already sent): $e");
+      }
 
       return ApiResponse.success(txHash);
     } catch (e) {
