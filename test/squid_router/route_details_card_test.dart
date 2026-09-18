@@ -31,13 +31,14 @@ Future<void> _pumpCard(WidgetTester tester, String fixture) async {
 }
 
 void main() {
-  testWidgets('the four rows survive', (tester) async {
+  testWidgets('the same-chain rows survive with no fee row', (tester) async {
     await _pumpCard(tester, sameChainRoute);
 
     expect(find.text('Pricing'), findsOneWidget);
     expect(find.text('Slippage'), findsOneWidget);
     expect(find.text('Price Impact'), findsOneWidget);
-    expect(find.text('Fees'), findsOneWidget);
+    expect(find.text('Network gas'), findsOneWidget);
+    expect(find.text('Fees'), findsNothing);
   });
 
   testWidgets('every figure is read off the quote', (tester) async {
@@ -51,12 +52,20 @@ void main() {
     expect(find.text('\$0.01'), findsOneWidget);
   });
 
-  testWidgets('a second real quote renders different figures', (tester) async {
+  testWidgets('a second real quote renders itemized fee and gas', (
+    tester,
+  ) async {
     await _pumpCard(tester, crossChainRoute);
 
-    // Bridge fee plus gas. Nothing on this card traces to a literal.
+    // The route's own fee and chain gas each keep their own row and figure —
+    // nothing here is a sum, and no literal label is hard-coded.
     expect(find.text('2.93%'), findsOneWidget);
-    expect(find.text('\$0.50'), findsOneWidget);
+    expect(find.text('Gas receiver fee'), findsOneWidget);
+    expect(find.text('\$0.48'), findsOneWidget);
+    expect(find.text('Network gas'), findsOneWidget);
+    expect(find.text('\$0.02'), findsOneWidget);
+    expect(find.text('Fees'), findsNothing);
+    expect(find.text('\$0.50'), findsNothing);
     expect(find.text('0.03%'), findsNothing);
   });
 }

@@ -35,9 +35,6 @@ class RouteDetailsCard extends StatelessWidget {
 
     final pricing = '$fromAmount $fromSymbol ~ $toAmount $toSymbol';
     final priceImpact = '${formatPercent(quote.priceImpact)}%';
-    // Gas is part of what a swap costs, so the row sums both. Fees alone
-    // understated it, and on a same-chain route there are no fees at all.
-    final fees = '\$${quote.totalCostUsd.toStringAsFixed(2)}';
 
     return Container(
       // Vertical only. A horizontal margin here inset this card 16px inside
@@ -53,28 +50,53 @@ class RouteDetailsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _row(gw, "Pricing", pricing, showDivider: true),
-          _row(gw, "Slippage", slippage, showDivider: true),
-          _row(
-            gw,
-            "Price Impact",
-            priceImpact,
+          _DetailRow(label: "Pricing", value: pricing, showDivider: true),
+          _DetailRow(label: "Slippage", value: slippage, showDivider: true),
+          _DetailRow(
+            label: "Price Impact",
+            value: priceImpact,
             showDivider: true,
             valueColor: gw.statusSuccess,
           ),
-          _row(gw, "Fees", fees),
+          // Each fee the route charges is its own row, named the way the
+          // route named it — never summed into one figure. Empty on a
+          // same-chain route, which is the normal case, not an omission.
+          for (final fee in quote.feeLines)
+            _DetailRow(
+              label: fee.name,
+              value: '\$${fee.amountUsd.toStringAsFixed(2)}',
+              showDivider: true,
+            ),
+          _DetailRow(
+            label: "Network gas",
+            value: '\$${quote.gasUsd.toStringAsFixed(2)}',
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _row(
-    GWColors gw,
-    String label,
-    String value, {
-    bool showDivider = false,
-    Color? valueColor,
-  }) {
+/// One label/value fact row with an optional trailing divider. A widget, not
+/// a helper method, so it can be pumped and inspected on its own.
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.showDivider = false,
+    this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final bool showDivider;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    // Fail-soft read, same as the card's own: forces this row to rebuild on
+    // a live appearance toggle rather than freezing a colour from build time.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
