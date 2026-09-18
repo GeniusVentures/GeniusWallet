@@ -3,22 +3,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/squid_swap_provider.dart';
 import 'package:genius_wallet/swap/swap_quote.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
+import '../theme/theme_contrast_test.dart' show contrastRatio;
 import 'route_fixture.dart';
 
 /// The card is driven by recorded real responses, end to end: JSON to adapter
 /// to pixels. Its previous golden values were frozen from a constant rate the
 /// app could not produce, so nothing here asserts a figure twice.
 
-Widget _host(Widget child) => MaterialApp(
-  theme: ThemeData(extensions: [GWColors.dark()]),
+Widget _host(Widget child, {GWColors? colors}) => MaterialApp(
+  theme: ThemeData(extensions: [colors ?? GWColors.dark()]),
   home: Scaffold(body: child),
 );
 
 /// Pumps an already-built quote directly, so a synthetic body can be
 /// exercised without a recorded fixture. [_pumpCard] delegates here.
-Future<void> _pumpQuote(WidgetTester tester, SwapQuote quote) async {
+Future<void> _pumpQuote(
+  WidgetTester tester,
+  SwapQuote quote, {
+  GWColors? colors,
+}) async {
   await tester.pumpWidget(
     _host(
       RouteDetailsCard(
@@ -29,12 +35,27 @@ Future<void> _pumpQuote(WidgetTester tester, SwapQuote quote) async {
         toSymbol: 'USDC',
         slippage: '0.5',
       ),
+      colors: colors,
     ),
   );
 }
 
-Future<void> _pumpCard(WidgetTester tester, String fixture) =>
-    _pumpQuote(tester, squidQuote(loadRouteFixture(fixture)));
+Future<void> _pumpCard(
+  WidgetTester tester,
+  String fixture, {
+  GWColors? colors,
+}) => _pumpQuote(tester, squidQuote(loadRouteFixture(fixture)), colors: colors);
+
+/// Sets the GLOBAL appearance to [mode] and returns the matching [GWColors],
+/// restoring dark on teardown so no later file inherits a flipped flag.
+/// Constructing `GWColors.light()` alone is not enough: its surface fields
+/// read this same global, so a light instance built while the global stays
+/// dark hands back dark values under a light-sounding name.
+GWColors _gwFor(GWAppearanceMode mode) {
+  GWAppearance.instance.value = mode;
+  addTearDown(() => GWAppearance.instance.value = GWAppearanceMode.dark);
+  return mode == GWAppearanceMode.light ? GWColors.light() : GWColors.dark();
+}
 
 void main() {
   testWidgets('the same-chain rows survive with no fee row', (tester) async {
@@ -106,9 +127,7 @@ void main() {
     },
   );
 
-  testWidgets('three fee entries each render as their own row', (
-    tester,
-  ) async {
+  testWidgets('three fee entries each render as their own row', (tester) async {
     final quote = squidQuoteFromJson(
       syntheticRouteWithFees([
         {'name': 'Gas receiver fee', 'amountUsd': '0.91'},
@@ -127,5 +146,39 @@ void main() {
     expect(find.text('\$0.05'), findsOneWidget);
     expect(find.text('Network gas'), findsOneWidget);
     expect(find.text('\$0.01'), findsOneWidget);
+  });
+
+  testWidgets('fee and gas rows stay legible in both appearances', (
+    tester,
+  ) async {
+    for (final mode in GWAppearanceMode.values) {
+      final gw = _gwFor(mode);
+
+      if (mode == GWAppearanceMode.light) {
+        // Proves the flip actually took: a light instance built while the
+        // global stayed dark would still read as dark here.
+        expect(
+          gw.surfaceElevated.computeLuminance(),
+          greaterThan(0.5),
+          reason:
+              'GWColors.light() read dark values -- the global did not flip',
+        );
+      }
+
+      await _pumpCard(tester, crossChainRoute, colors: gw);
+
+      expect(find.text('Gas receiver fee'), findsOneWidget);
+      expect(find.text('Network gas'), findsOneWidget);
+      expect(
+        contrastRatio(gw.textSecondary, gw.surfaceElevated),
+        greaterThanOrEqualTo(4.5),
+        reason: 'label text vs card surface -- $mode',
+      );
+      expect(
+        contrastRatio(gw.textPrimary, gw.surfaceElevated),
+        greaterThanOrEqualTo(4.5),
+        reason: 'value text vs card surface -- $mode',
+      );
+    }
   });
 }
