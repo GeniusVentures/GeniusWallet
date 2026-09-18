@@ -82,6 +82,18 @@ void main() {
         viaModel.estimatedDuration,
         reason: name,
       );
+      // FeeLine has identity equality, so the lists themselves would never
+      // match — compare what a user would actually see instead.
+      expect(
+        viaRaw.feeLines.map((line) => line.name).toList(),
+        viaModel.feeLines.map((line) => line.name).toList(),
+        reason: name,
+      );
+      expect(
+        viaRaw.feeLines.map((line) => line.amountUsd).toList(),
+        viaModel.feeLines.map((line) => line.amountUsd).toList(),
+        reason: name,
+      );
     }
   });
 
