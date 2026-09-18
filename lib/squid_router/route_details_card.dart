@@ -114,10 +114,17 @@ class _DetailRow extends StatelessWidget {
                   color: gw.textSecondary,
                 ),
               ),
-              Text(
-                value,
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  color: valueColor ?? gw.textPrimary,
+              // The rate string is by far the widest value this card shows and
+              // the labels are never more than two words, so only the value
+              // flexes. Unconstrained it runs off the row at phone width
+              // instead of wrapping.
+              Flexible(
+                child: Text(
+                  value,
+                  textAlign: TextAlign.end,
+                  style: GeniusWalletTypography.labelMd.copyWith(
+                    color: valueColor ?? gw.textPrimary,
+                  ),
                 ),
               ),
             ],

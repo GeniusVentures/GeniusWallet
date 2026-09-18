@@ -148,6 +148,24 @@ void main() {
     expect(find.text('\$0.01'), findsOneWidget);
   });
 
+  testWidgets('every row fits at phone width', (tester) async {
+    // A SizedBox alone would be clamped to the default test surface, so the
+    // window itself has to shrink. 360 is the narrowest frame the app keeps a
+    // gutter at. The rate string is the widest value rendered, so if anything
+    // runs off the row it is this.
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await _pumpCard(tester, crossChainRoute);
+
+    // An overflowing Row reports through the error channel rather than
+    // failing a finder, so a row that renders every label can still be broken.
+    expect(tester.takeException(), isNull);
+    expect(find.text('Gas receiver fee'), findsOneWidget);
+    expect(find.text('Network gas'), findsOneWidget);
+    expect(find.text('\$0.48'), findsOneWidget);
+  });
+
   testWidgets('fee and gas rows stay legible in both appearances', (
     tester,
   ) async {
