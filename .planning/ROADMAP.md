@@ -1570,11 +1570,12 @@ to the backlog on 2026-09-18 as a business item (see Out of scope). `SWAP-01` is
   4. Nothing subtracts a fee from `toAmount` anywhere — the receive figure and the fee lines both come straight from the same route response, so the display cannot disagree with what Squid returns (grep-able and testable; it is also what makes netted-vs-on-top a non-question)
   5. No hard-coded fee label and no hard-coded percentage — names are matched case-insensitively and rendered as given, so a renamed or unrecognised fee still appears
 
-**Plans**: 4 plans
-- [ ] 29-01-PLAN.md — wave 0: pin how the generated enum exposes a fee name
-- [ ] 29-02-PLAN.md — tracer: one route fee reaches the screen with its own name (blocking D-04 decision first)
-- [ ] 29-03-PLAN.md — generic mapping: two-path parity, multi-entry, unknown name, malformed cost
-- [ ] 29-04-PLAN.md — rendering: the empty case, fee-vs-gas distinctness, both appearances
+**Plans**: 4 plans — strictly sequential, one wave each (every plan shares files with its predecessor)
+
+- [ ] **Wave 1** — 29-01-PLAN.md — pin how the generated enum exposes a fee name
+- [ ] **Wave 2** *(blocked on Wave 1)* — 29-02-PLAN.md — tracer: one route fee reaches the screen with its own name (blocking D-04 decision first)
+- [ ] **Wave 3** *(blocked on Wave 2)* — 29-03-PLAN.md — generic mapping: two-path parity, multi-entry, unknown name, malformed cost
+- [ ] **Wave 4** *(blocked on Wave 3)* — 29-04-PLAN.md — rendering: the empty case, fee-vs-gas distinctness, both appearances
 **UI hint**: yes
 
 **Re-scoped 2026-09-18.** Was "Integrator fee — the ~3% via the integratorId". FEE-01 moved to the
