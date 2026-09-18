@@ -91,7 +91,9 @@ void main() {
 
   test('a fee collection that is not a list yields no lines, not a crash', () {
     final body = syntheticRouteWithFees(const []);
-    body['route']['estimate']['feeCosts'] = 'not a list';
+    final route = body['route'] as Map<String, dynamic>;
+    final estimate = route['estimate'] as Map<String, dynamic>;
+    estimate['feeCosts'] = 'not a list';
 
     expect(squidQuoteFromJson(body).feeLines, isEmpty);
   });
