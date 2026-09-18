@@ -1529,7 +1529,7 @@ money (Phase 26) and legs needing real funds or the live catalogue get a debug-b
 |-------------|-------|--------|
 | SWAP-01 | Phase 26 — one end-to-end requirement; all 8 criteria delivered and walked on Base mainnet 2026-09-17 | Complete |
 | FEE-01 | **Deferred to backlog 2026-09-18** — business item; only Squid can enable it, server-side on the integrator ID | Deferred |
-| FEE-02 | Phase 29 — Fee transparency | Pending |
+| FEE-02 | Phase 29 — Fee transparency | Complete |
 | DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
 | DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
@@ -1540,7 +1540,7 @@ to the backlog on 2026-09-18 as a business item (see Out of scope). `SWAP-01` is
 ## Phases (v2.0)
 
 - [x] **Phase 26: Swap that actually swaps** - Replace the mocked Squid layer with the real v2 API; no success shown for a swap that did not happen (completed 2026-09-17 — 8/8 plans, every one walked on Base mainnet; 26-VERIFICATION.md passed 33/33. Absorbs the former phases 27 and 28.)
-- [ ] **Phase 29: Fee transparency** - every fee the route charges, named and separate from chain gas, before the user confirms
+- [x] **Phase 29: Fee transparency** - every fee the route charges, named and separate from chain gas, before the user confirms (completed 2026-09-18 — 4/4 plans; FEE-02 closed)
 - [ ] **Phase 30: dApp calldata decoding (end blind signing)** - Reown approval drawers decode ERC-20 and known-router calldata; undecodable calls labeled with a visible warning
 
 ## Phase Details (v2.0)
@@ -1575,17 +1575,17 @@ to the backlog on 2026-09-18 as a business item (see Out of scope). `SWAP-01` is
   4. Nothing subtracts a fee from `toAmount` anywhere — the receive figure and the fee lines both come straight from the same route response, so the display cannot disagree with what Squid returns (grep-able and testable; it is also what makes netted-vs-on-top a non-question)
   5. No hard-coded fee label and no hard-coded percentage — names are matched case-insensitively and rendered as given, so a renamed or unrecognised fee still appears
 
-**Plans**: 3/4 plans executed — strictly sequential, one wave each (every plan shares files with its predecessor)
+**Plans**: 4/4 plans executed — strictly sequential, one wave each (every plan shares files with its predecessor)
 
 - [x] 29-01-PLAN.md
 - [x] 29-02-PLAN.md
 - [x] 29-03-PLAN.md
-- [ ] 29-04-PLAN.md
+- [x] 29-04-PLAN.md
 
-- [ ] **Wave 1** — 29-01-PLAN.md — pin how the generated enum exposes a fee name
-- [ ] **Wave 2** *(blocked on Wave 1)* — 29-02-PLAN.md — tracer: one route fee reaches the screen with its own name (blocking D-04 decision first)
-- [ ] **Wave 3** *(blocked on Wave 2)* — 29-03-PLAN.md — generic mapping: two-path parity, multi-entry, unknown name, malformed cost
-- [ ] **Wave 4** *(blocked on Wave 3)* — 29-04-PLAN.md — rendering: the empty case, fee-vs-gas distinctness, both appearances
+- [x] **Wave 1** — 29-01-PLAN.md — pin how the generated enum exposes a fee name
+- [x] **Wave 2** *(blocked on Wave 1)* — 29-02-PLAN.md — tracer: one route fee reaches the screen with its own name (blocking D-04 decision first)
+- [x] **Wave 3** *(blocked on Wave 2)* — 29-03-PLAN.md — generic mapping: two-path parity, multi-entry, unknown name, malformed cost
+- [x] **Wave 4** *(blocked on Wave 3)* — 29-04-PLAN.md — rendering: the empty case, fee-vs-gas distinctness, both appearances
 
 **UI hint**: yes
 
