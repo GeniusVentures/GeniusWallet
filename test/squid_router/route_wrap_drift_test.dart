@@ -56,7 +56,7 @@ void main() {
   test('a same-chain wrap costs gas and no bridge fee', () {
     final quote = squidQuoteFromJson(_body(wrapRoute));
 
-    expect(quote.feesUsd, 0.0);
+    expect(quote.feeLines, isEmpty);
     // Squid's own figure: Base gas really is under a cent here. Pinned exactly
     // so a mapper that silently read nothing could not pass as "cheap".
     expect(quote.gasUsd, 0.0);
@@ -75,7 +75,6 @@ void main() {
       expect(viaRaw.toAmount, viaModel.toAmount, reason: name);
       expect(viaRaw.toAmountMin, viaModel.toAmountMin, reason: name);
       expect(viaRaw.toAmountDisplay, viaModel.toAmountDisplay, reason: name);
-      expect(viaRaw.feesUsd, viaModel.feesUsd, reason: name);
       expect(viaRaw.gasUsd, viaModel.gasUsd, reason: name);
       expect(
         viaRaw.estimatedDuration,
@@ -95,6 +94,29 @@ void main() {
         reason: name,
       );
     }
+  });
+
+  test('an unknown fee name stops the generated model, not the raw mapper', () {
+    // The generated fee-name enum admits eight values and its deserializer
+    // throws on anything else, so a route naming a fee nobody has seen before
+    // cannot reach the typed mapper at all — the whole response is rejected.
+    // The raw path carries the name through verbatim. That asymmetry is why
+    // the screen reads the raw one, and it is pinned here so a later switch to
+    // the typed path cannot make an unknown fee crash a swap unnoticed.
+    final body = _body(crossChainRoute);
+    final route = body['route'] as Map<String, dynamic>;
+    final estimate = route['estimate'] as Map<String, dynamic>;
+    final fee = (estimate['feeCosts'] as List).first as Map<String, dynamic>;
+    fee['name'] = 'Newly invented fee';
+
+    expect(
+      () => standardSerializers.deserializeWith(
+        RouteResponseData.serializer,
+        body,
+      ),
+      throwsA(isA<Object>()),
+    );
+    expect(squidQuoteFromJson(body).feeLines.single.name, 'Newly invented fee');
   });
 
   test('a body with no route is a route failure, not a crash', () {
