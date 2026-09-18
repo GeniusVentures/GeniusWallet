@@ -184,7 +184,6 @@ SwapQuote squidQuote(RouteResponseData route) {
       toAmount,
       estimate.toToken.decimals.toInt(),
     ),
-    feesUsd: _sumUsd(estimate.feeCosts.map((fee) => fee.amountUsd)),
     gasUsd: _sumUsd(estimate.gasCosts.map((gas) => gas.amountUsd)),
     feeLines: _feeLines(estimate.feeCosts),
     estimatedDuration: Duration(
@@ -244,7 +243,6 @@ SwapQuote squidQuoteFromJson(Map<String, dynamic> body) {
     toAmountMin: amount('toAmountMin'),
     fromAmountDisplay: formatTokenAmount(fromAmount, decimalsOf('fromToken')),
     toAmountDisplay: formatTokenAmount(toAmount, decimalsOf('toToken')),
-    feesUsd: _sumUsdRaw(estimate['feeCosts']),
     gasUsd: _sumUsdRaw(estimate['gasCosts']),
     feeLines: _feeLinesRaw(estimate['feeCosts']),
     // Absent means "no estimate", which reads as instant rather than as an
