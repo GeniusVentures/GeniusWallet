@@ -449,6 +449,7 @@ includes the KYC redirect, which D-02 defers. See `09-OUTSTANDING.md` (written b
   2. No screen reports success for something that did not happen
   3. A single walk from cold start through onboarding, dashboard, bridge and a compute job
      completes with no runtime exception
+
   4. Windows debug and release both build and `flutter analyze` reports 0 errors
 
 **Plans**: TBD — written from the findings the walk produces
@@ -1402,7 +1403,6 @@ plans and executed in parallel
 > both plans' code is merged. `deferred-items.md` is unresolved, so milestone close will prompt
 > `[R]/[A]/[C]` on it under GSD 1.10.0.
 
-
 ---
 
 # Milestone v2.0: Squid Router integration
@@ -1440,7 +1440,6 @@ plans and executed in parallel
 > `SwapProvider`); the quote debounce is **1000ms, not 500ms** (the measured free-tier ceiling is
 > 1 RPS and 500ms trips it); and the integratorId loads from `--dart-define-from-file=squid.local.json`.
 
-
 ## Overview (v2.0)
 
 **Goal:** Make swapping real — the `/swap` tab executes live Squid Router quotes for major tokens
@@ -1473,6 +1472,7 @@ A dependency chain plus one independent subsystem:
   approval → send → status poll, behind a sealed `SwapOutcome` where only a hash-bearing shape
   may cause a side effect. There is no `squid_token_service.dart`, no `lib/squid_router/models/`,
   and no fabricated transaction; `grep -rn 'hash: ""' lib/` and `grep -rn 993.72 lib/` are gates.
+
 - The `squidrouter/` git submodule is **auto-generated, DO NOT modify** (AGENTS.md). Its spec has
   drifted from the live API in **five** measured places, so the adapter reads `/v2/sdk-info`,
   `/v2/route` (quote AND executable) and `/v2/status` **raw off the generated client's own dio**
@@ -1480,12 +1480,15 @@ A dependency chain plus one independent subsystem:
   bypassed. Squid also sends `value`, `gasLimit` and both fee fields as DECIMAL strings while the
   signer parses hex; the adapter converts. Every drift is recorded where it was found
   (`26-05-SUMMARY.md`, `26-FINDINGS.md`, the 2026-09-16 handoff).
+
 - integratorId: loads from `--dart-define-from-file=squid.local.json` (gitignored via
   `*.local.json`) into `kSquidIntegratorId`; an unconfigured build reports swap unavailable rather
   than sending 401s. Squid free tier: 1 RPS dev / 10 RPS prod; the tab debounces quote fetches at
   **1000ms** (500ms was measured to trip the dev ceiling) and reads the catalogue once a session.
+
 - The D-09 route-error contract (error → `—` + red "not current" notice + Retry; never a silently
   stale quote) survived the mock→real switch, and a completed swap now clears its spent quote too.
+
 - Slippage (`swap_settings_drawer.dart`) feeds the live route request.
 - Fee plumbing for Phase 29: the route's `estimate.feeCosts[]` and `estimate.gasCosts[]` are read
   by `squidQuoteFromJson` into a single `SwapQuote.feesUsd` / `gasUsd` pair, which
@@ -1495,6 +1498,7 @@ A dependency chain plus one independent subsystem:
   `FeeType` admits exactly eight names; `"Integrator fee"` and `"Service fee"` are both legal, and
   Squid's docs say integrator and platform fees may be **aggregated into `"Service fee"`** — so
   match names case-insensitively and render what arrives, never look up a fixed label.
+
 - Reown dApp path: `lib/reown/handle_dapp_requests.dart` (blind-signs; calldata TODO at `:44-46`),
   drawers `approve_transaction_drawer.dart` / `send_transaction_details.dart`. There is no
   built-in calldata decoder in `reown_walletkit` — manual ABI decoding, small testable pure-Dart
@@ -1505,6 +1509,7 @@ A dependency chain plus one independent subsystem:
 - GNUS on any third-party router — the native burn→mint bridge (`lib/dashboard/bridge/`) remains
   GNUS's cross-chain answer (BD-driven on both Squid and Symbiosis; a business workstream, not
   engineering)
+
 - Symbiosis Finance — named once (submodule commit `ee95bf6`), never built; not pursued
 - Modifying the `squidrouter/` submodule — consume as-is; regenerate upstream if the API drifts
 - Swap analytics beyond honest transaction records
@@ -1570,12 +1575,18 @@ to the backlog on 2026-09-18 as a business item (see Out of scope). `SWAP-01` is
   4. Nothing subtracts a fee from `toAmount` anywhere — the receive figure and the fee lines both come straight from the same route response, so the display cannot disagree with what Squid returns (grep-able and testable; it is also what makes netted-vs-on-top a non-question)
   5. No hard-coded fee label and no hard-coded percentage — names are matched case-insensitively and rendered as given, so a renamed or unrecognised fee still appears
 
-**Plans**: 4 plans — strictly sequential, one wave each (every plan shares files with its predecessor)
+**Plans**: 1/4 plans executed — strictly sequential, one wave each (every plan shares files with its predecessor)
+
+- [x] 29-01-PLAN.md
+- [ ] 29-02-PLAN.md
+- [ ] 29-03-PLAN.md
+- [ ] 29-04-PLAN.md
 
 - [ ] **Wave 1** — 29-01-PLAN.md — pin how the generated enum exposes a fee name
 - [ ] **Wave 2** *(blocked on Wave 1)* — 29-02-PLAN.md — tracer: one route fee reaches the screen with its own name (blocking D-04 decision first)
 - [ ] **Wave 3** *(blocked on Wave 2)* — 29-03-PLAN.md — generic mapping: two-path parity, multi-entry, unknown name, malformed cost
 - [ ] **Wave 4** *(blocked on Wave 3)* — 29-04-PLAN.md — rendering: the empty case, fee-vs-gas distinctness, both appearances
+
 **UI hint**: yes
 
 **Re-scoped 2026-09-18.** Was "Integrator fee — the ~3% via the integratorId". FEE-01 moved to the

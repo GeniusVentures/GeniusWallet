@@ -5,15 +5,15 @@ milestone_name: Squid Router integration
 current_phase: 26
 current_phase_name: "Swap that actually swaps — COMPLETE 2026-09-17: 8/8 plans walked on Base mainnet, verification passed 33/33; the former v2.0 phases 27-28 are absorbed into it"
 status: in_progress
-stopped_at: "SESSION CLOSED 2026-09-16 — day summary in `.planning/handoffs/HANDOFF-session-260916-swap-execution.md`. Branch `phase-26-swap-wiring`, not pushed, no PR. Merged `origin/develop` (2cd0b996) on 2026-09-16, bringing milestone v2.0 (phases 26-30); the branch's own phase 26 predates it and is the same work, so it is folded in and the drafted SWP-01..08 were retired into SWAP-01. Plans 26-01..26-07 have landed: the integrator ID loads from `squid.local.json`, the catalogue and every balance come from the network or the chain, the quote is a live `/v2/route` answer, `swap_execution.dart` runs route -> allowance -> exact-amount approval -> send -> status poll, `_submitSwap` is a thin adapter over it, and each of the six failure shapes carries its own message. **The fabricated `completed` transaction with `hash: \"\"` is DELETED** — every toast, receipt and Hive write now sits behind `sideEffectsFor`, asserted at the screen as well as at the pure layer. Four spec drifts were found live and worked around in the adapter: sdk-info, transactionRequest and status all bypass the generated deserializer, and Squid sends gas and fee fields as DECIMAL strings while the signer parses hex. **NOT DONE: no swap has ever executed.** Both remaining human-checks need a funded or dusted throwaway wallet on Base mainnet 8453 — 26-06 (one real swap, hash on the explorer) and 26-07 (underfunded gas names the send failure, stores no row). **Branch ownership: single executor.** A second code-committing agent shared this branch's git index on 2026-09-16 (its one commit, 09669d8b, is labelled feat(26-05) but implements 26-08's scope). It went dormant at 16:56 leaving three red tests; those are now closed in 26a48c18 and the suite is green at 1328 pass / 5 skip / 0 fail. Two agents on one index cost a misdiagnosis here — a file changed between two reads — so this branch takes ONE committing agent until it merges. 26-08 is now complete too: the status call captures Squid's own recovery link (never composed), it persists at Hive field 17, and the three moved-money states each explain themselves and are findable through the existing failed filter."
-last_updated: "2026-09-18T15:22:19.288Z"
+stopped_at: Completed 29-01-PLAN.md
+last_updated: "2026-09-18T15:52:04.894Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 26 walked on Base mainnet, six walk-found defects fixed, roadmap reconciled
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 12
-  completed_plans: 8
+  completed_plans: 9
   percent: 33
 ---
 
@@ -24,21 +24,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 26 complete (2026-09-17). Next: Phase 29 — Integrator fee (milestone v2.0: Squid Router integration). Phase 30 is independent and may run in parallel.
+**Current focus:** Phase 29 — Fee transparency, 1/4 plans landed (29-01, 2026-09-18). Next: 29-02
+(typed adapter). Phase 30 is independent and may run in parallel.
 
 ## Current Position
 
-Phase: 26 — Swap that actually swaps (COMPLETE 2026-09-17; verification passed 33/33)
-Plan: 8/8 landed and walked
-Status: v2.0 phases 27-28 collapsed into 26 (same work, three numbers). Next is Phase 29 — ready for `/gsd-plan-phase 29`
-Last activity: 2026-09-17 — Phase 26 walked on Base mainnet, six walk-found defects fixed, roadmap reconciled
+Phase: 29 — Fee transparency (executing; plan 01/4 landed 2026-09-18)
+Plan: 1/4 — 29-01 done (`7e2253ad`); 29-02..29-04 not started
+Status: 29-01 settled the one open unknown before any mapper is written: `FeeType.<X>.name` yields
+the Dart constant (e.g. `GAS_RECEIVER_FEE`), never the wire label; the label only reaches the app
+through `standardSerializers.serializeWith(FeeType.serializer, ...)`. Proven by a running assertion
+in `test/squid_router/route_wrap_drift_test.dart` (7/7 passing), not inferred from generated source.
+Plan 02 (typed adapter) is unblocked.
+Last activity: 2026-09-18 — 29-01 executed and verified
 
 ### v2.0 Phase Tracking
 
 | Phase | Name | Status |
 |-------|------|--------|
 | 26 | Swap that actually swaps (absorbs former 27, 28) | Complete 2026-09-17 |
-| 29 | Integrator fee | Not started |
+| 29 | Fee transparency | In progress — 1/4 plans (29-01) |
 | 30 | dApp calldata decoding (end blind signing) | Not started |
 
 (v1.0 residue still executes alongside v2.0 — see the v1.0 Progress table in ROADMAP.md: phase 14
@@ -238,7 +243,7 @@ Last activity: 2026-08-07 - quick task 260807-bxs (Markets page: hero shrink at 
 Previous: 2026-07-31 - eleven quick tasks (`260731-elz` through `260731-ope`) and two sketches (169 Buy GNUS orders header, 170 balance unit toggle). Full suite 930 -> 968, `flutter analyze` clean, both shell gates 0. All uncommitted, awaiting Jakub's walk and PR. Queued next: the Buy GNUS form restructure (`.planning/todos/pending/2026-07-31-buy-gnus-form-restructure.md`), which has three open forks needing his answer before it can be built.
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
-Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
+Progress: [████████████████████] 36/36 plans ([██████████] 96%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
 
 ## Accumulated Context
 
@@ -366,6 +371,7 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 21-06: hand-written census diffed against a live lib/ tree-walk (not a glob-as-census) proves the drawer body-padding invariant complete across all 17 files/18 call sites
 - [Phase ?]: 21-06: legacy BottomDrawer shell deleted after grep-verifying zero live callers beyond the one dev-gallery demo
 - [Phase ?]: 21-06: handle_banxa_drawer.dart's showCheckoutOptionsSheet stays a raw showModalBottomSheet, not ResponsiveDrawer.show -- adopting the shell would silently change its desktop presentation to a centred dialog, a Rule-4 architectural change outside this re-skin-only phase's fence
+- [Phase ?]: 29-01: FeeType.name yields the Dart constant; wire label only reachable via standardSerializers.serializeWith(FeeType.serializer, ...) — proven by running assertion
 
 ### Pending Todos
 
@@ -514,8 +520,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T16:58:17.006Z
-Stopped at: Completed 21-06-PLAN.md (phase 21 closed, 6/6 plans)
+Last session: 2026-09-18T15:52:04.872Z
+Stopped at: Completed 29-01-PLAN.md
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -644,6 +650,7 @@ Open decisions:
 | Phase 21 P04 | 25min | 3 tasks | 4 files |
 | Phase 21 P05 | 45min | 2 tasks | 3 files |
 | Phase 21 P06 | 35min | 2 tasks | 3 files |
+| Phase 29 P01 | 12min | 1 tasks | 1 files |
 
 ### Roadmap Evolution
 
