@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/squid_swap_provider.dart';
+import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 import 'route_fixture.dart';
@@ -15,11 +16,13 @@ Widget _host(Widget child) => MaterialApp(
   home: Scaffold(body: child),
 );
 
-Future<void> _pumpCard(WidgetTester tester, String fixture) async {
+/// Pumps an already-built quote directly, so a synthetic body can be
+/// exercised without a recorded fixture. [_pumpCard] delegates here.
+Future<void> _pumpQuote(WidgetTester tester, SwapQuote quote) async {
   await tester.pumpWidget(
     _host(
       RouteDetailsCard(
-        quote: squidQuote(loadRouteFixture(fixture)),
+        quote: quote,
         fromAmount: '1',
         toAmount: '0.757304',
         fromSymbol: 'GNUS',
@@ -29,6 +32,9 @@ Future<void> _pumpCard(WidgetTester tester, String fixture) async {
     ),
   );
 }
+
+Future<void> _pumpCard(WidgetTester tester, String fixture) =>
+    _pumpQuote(tester, squidQuote(loadRouteFixture(fixture)));
 
 void main() {
   testWidgets('the same-chain rows survive with no fee row', (tester) async {
@@ -67,5 +73,59 @@ void main() {
     expect(find.text('Fees'), findsNothing);
     expect(find.text('\$0.50'), findsNothing);
     expect(find.text('0.03%'), findsNothing);
+  });
+
+  testWidgets('a same-chain route renders no fee row -- the normal case', (
+    tester,
+  ) async {
+    await _pumpCard(tester, sameChainRoute);
+
+    // Checked on the word, not one label, so a future placeholder row can't
+    // slip past under a name this test never anticipated.
+    expect(find.textContaining('fee'), findsNothing);
+    expect(find.text('\$0.00'), findsNothing);
+    expect(find.text('Network gas'), findsOneWidget);
+    expect(find.text('\$0.01'), findsOneWidget);
+  });
+
+  testWidgets(
+    'the route fee and the gas cost stay separately findable, never merged',
+    (tester) async {
+      await _pumpCard(tester, crossChainRoute);
+
+      expect(find.text('Gas receiver fee'), findsOneWidget);
+      expect(find.text('Network gas'), findsOneWidget);
+      expect(find.text('\$0.48'), findsOneWidget);
+      expect(find.text('\$0.02'), findsOneWidget);
+
+      final mergedStrings = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((widget) => widget.data ?? '')
+          .where((text) => text.contains('0.48') && text.contains('0.02'));
+      expect(mergedStrings, isEmpty);
+    },
+  );
+
+  testWidgets('three fee entries each render as their own row', (
+    tester,
+  ) async {
+    final quote = squidQuoteFromJson(
+      syntheticRouteWithFees([
+        {'name': 'Gas receiver fee', 'amountUsd': '0.91'},
+        {'name': 'Boost fee', 'amountUsd': '0.10'},
+        {'name': 'Wormhole relayer fee', 'amountUsd': '0.05'},
+      ]),
+    );
+
+    await _pumpQuote(tester, quote);
+
+    expect(find.text('Gas receiver fee'), findsOneWidget);
+    expect(find.text('\$0.91'), findsOneWidget);
+    expect(find.text('Boost fee'), findsOneWidget);
+    expect(find.text('\$0.10'), findsOneWidget);
+    expect(find.text('Wormhole relayer fee'), findsOneWidget);
+    expect(find.text('\$0.05'), findsOneWidget);
+    expect(find.text('Network gas'), findsOneWidget);
+    expect(find.text('\$0.01'), findsOneWidget);
   });
 }
