@@ -91,4 +91,18 @@ void main() {
       throwsA(isA<SwapRouteException>()),
     );
   });
+
+  test('the generated fee enum hides the wire name behind its serializer', () {
+    // Reading the accessor directly would put a screaming-case identifier in
+    // front of a user; the human label only exists on the other side of the
+    // serializer.
+    expect(FeeType.GAS_RECEIVER_FEE.name, 'GAS_RECEIVER_FEE');
+    expect(
+      standardSerializers.serializeWith(
+        FeeType.serializer,
+        FeeType.GAS_RECEIVER_FEE,
+      ),
+      'Gas receiver fee',
+    );
+  });
 }
