@@ -152,31 +152,37 @@ _Depth: deep_
 Both warnings were acted on. Each was accurate in substance and overstated in scope; the
 corrections are recorded here because the narrower version is the one worth remembering.
 
-### WR-01 — resolved by 
+### WR-01 — resolved by `02d86bfd`
+
 Accurate: nothing pinned the typed path's rejection of an unrecognised fee name, and production
 is unaffected only because it reads the raw path.
 
-Overstated: the existing comparison does not claim universal parity — it is named *"the raw mapper
-agrees with the generated one where both can read"* and its comment scopes itself to fixtures the
-model can parse. It was honest about its limits.
+Overstated: the existing comparison does not claim universal parity — it is named *"the raw
+mapper agrees with the generated one where both can read"* and its comment scopes itself to
+fixtures the model can parse. It was honest about its limits.
 
-Fix: a case in  renames a fee in a real fixture body and asserts the
-generated deserializer rejects the whole response while  carries the name
-through verbatim. The asymmetry is now recorded rather than incidental, so a later switch to the
-typed path cannot turn an unknown fee into a crashed swap unnoticed.
+Fix: a case in `route_wrap_drift_test.dart` renames a fee in a real fixture body and asserts
+the generated deserializer rejects the whole response, while `squidQuoteFromJson` carries the
+name through verbatim. The asymmetry is now recorded rather than incidental, so a later switch
+to the typed path cannot turn an unknown fee into a crashed swap unnoticed.
 
-### WR-02 — resolved by 
-Accurate:  and  lost their only consumer when the merged row was dropped.
+### WR-02 — resolved by `cf2b9608`
 
-Overstated: ,  and  are **not** dead. renders the gas row from  and  writes it to the stored transaction;
-both helpers compute it. Deleting them as a group would have broken the gas row.
+Accurate: `feesUsd` and `totalCostUsd` lost their only consumer when the merged row was
+dropped.
 
-Fix:  and  removed from  and both adapter call sites. The
-stronger reason to delete than dead-code hygiene:  **is** the merged figure this
-phase exists to stop showing, so leaving it in place made reinstating that row a one-line change.
+Overstated: `gasUsd`, `_sumUsd` and `_sumUsdRaw` are **not** dead.
+`route_details_card.dart` renders the gas row from `gasUsd` and `swap_screen.dart` writes it
+to the stored transaction record; both helpers compute it. Deleting the five as one group would
+have broken the gas row.
 
-Three mapping tests asserted the summing itself — one opened *"The whole point of summing both"* —
-and now assert the fee line and gas figure separately.
+Fix: `feesUsd` and `totalCostUsd` removed from `SwapQuote` and from both adapter call
+sites. The reason to delete rather than leave them is stronger than dead-code hygiene:
+`totalCostUsd` **is** `feesUsd + gasUsd` — the merged figure this phase exists to stop
+showing — so leaving it on the quote made reinstating that row a one-line change.
 
-**After both:** 1375 passing / 5 skipped / 0 failed,  clean, both shell gates
-exit 0, and  is empty.
+Three mapping tests asserted the summing itself, one of them opening *"The whole point of
+summing both"*. They now assert the fee line and the gas figure separately.
+
+**After both fixes:** 1375 passing / 5 skipped / 0 failed, `flutter analyze` clean, both shell
+gates exit 0, and a repo-wide grep for either removed member returns nothing.
