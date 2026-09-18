@@ -1575,10 +1575,10 @@ to the backlog on 2026-09-18 as a business item (see Out of scope). `SWAP-01` is
   4. Nothing subtracts a fee from `toAmount` anywhere — the receive figure and the fee lines both come straight from the same route response, so the display cannot disagree with what Squid returns (grep-able and testable; it is also what makes netted-vs-on-top a non-question)
   5. No hard-coded fee label and no hard-coded percentage — names are matched case-insensitively and rendered as given, so a renamed or unrecognised fee still appears
 
-**Plans**: 1/4 plans executed — strictly sequential, one wave each (every plan shares files with its predecessor)
+**Plans**: 2/4 plans executed — strictly sequential, one wave each (every plan shares files with its predecessor)
 
 - [x] 29-01-PLAN.md
-- [ ] 29-02-PLAN.md
+- [x] 29-02-PLAN.md
 - [ ] 29-03-PLAN.md
 - [ ] 29-04-PLAN.md
 
