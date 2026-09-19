@@ -136,9 +136,8 @@ SessionRequestEvent _request(String method, dynamic params, {int id = 1}) =>
       TransportType.relay,
     );
 
-/// See `account_drawer_show_test.dart` for why this is `implements` plus
-/// `noSuchMethod`: a real `GeniusApi` dlopens the native framework and takes
-/// the test host with it.
+/// `implements` plus `noSuchMethod` rather than a real instance: constructing
+/// a `GeniusApi` dlopens the native framework and takes the test host with it.
 class _FakeGeniusApi implements GeniusApi {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
