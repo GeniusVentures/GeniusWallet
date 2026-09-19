@@ -137,9 +137,9 @@ Widget _bodyFor(
   );
 }
 
-// -- The recorded Squid route, trimmed. Its provenance is written down in
-// `calldata_decoder_test.dart`, which asserts the byte-level facts; this file
-// only asks what a user ends up reading.
+// -- The recorded Squid route, trimmed. Its provenance and its byte-level
+// facts are pinned where the decoder itself is; this file only asks what a
+// user ends up reading.
 final _squidFixture =
     jsonDecode(
           File(
