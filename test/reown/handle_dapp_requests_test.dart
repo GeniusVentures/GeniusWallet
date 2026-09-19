@@ -54,6 +54,15 @@ const _base = Network(
   rpcUrl: 'https://base.invalid',
 );
 
+/// A chain whose coin is not ether, which is the only way a hard-coded `ETH`
+/// shows up as wrong rather than accidentally right.
+const _polygon = Network(
+  name: 'Polygon',
+  symbol: 'matic',
+  chainId: 137,
+  rpcUrl: 'https://polygon.invalid',
+);
+
 const _tokenContract = '0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB';
 const _usdc = Coin(symbol: 'USDC', address: _tokenContract, decimals: '6');
 
@@ -372,6 +381,25 @@ void main() {
       expect(harness.answer.error?.code, 5000);
       await _finish(tester, harness);
     });
+
+    testWidgets(
+      'a plain send names the chain own coin, on the screen and in the record',
+      (tester) async {
+        // The drawer and the stored receipt read the unit from two different
+        // places once. On a chain whose coin is not ether they disagreed:
+        // the screen said ETH while history said POL.
+        final harness = await _start(tester, network: _polygon);
+        harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+        await tester.pumpAndSettle();
+
+        expect(_onScreen(tester, '0.0100000000 MATIC'), isTrue);
+        expect(_onScreen(tester, 'ETH'), isFalse);
+
+        await tester.tap(find.text('Reject'));
+        await tester.pumpAndSettle();
+        await _finish(tester, harness);
+      },
+    );
 
     testWidgets(
       'an unreadable transaction shows the wallet network, not the dApp chain',
