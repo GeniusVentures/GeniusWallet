@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
 current_phase: 30
-current_phase_name: "dApp calldata decoding (end blind signing) - planned, not executed"
+current_phase_name: "dApp calldata decoding (end blind signing) - 1/4 plans executed"
 status: in_progress
-stopped_at: "Phase 30 (dApp calldata decoding) PLANNED on 2026-09-19 on branch `phase-30-calldata-decoding`, cut from origin/develop so it stays clear of the swap stack. CONTEXT (D-01..D-11), RESEARCH, PATTERNS and four plans are committed; plan-checker returned PASS. Branch baseline measured on the untouched tree: 1216 pass / 3 skip / 0 fail, analyze clean. That number is LOWER than the swap stack's 1392 because develop carries neither phase 26 nor 29 -- do not read it as a regression. Phases 26 and 29 are open as PRs #233 (ready, green, unmerged) and #234 (draft, stacked on #233, gets no CI until it retargets develop). Phase 30 is not executed: `/gsd-execute-phase 30` is the next step."
-last_updated: "2026-09-19T00:00:00.000Z"
+stopped_at: "Phase 30 plan 01 (tracer) EXECUTED on branch phase-30-calldata-decoding: an ERC-20 transfer for a coin the wallet holds now decodes to the real recipient + token symbol on the approval drawer, and a test proves the signed map is byte-identical. 1245 pass / 3 skip / 0 fail (branch baseline 1216), analyze 0 issues exit 0, brace/raw-colour/format gates clean, pubspec untouched. Plans 30-02..30-04 not started. NOTE: 30-01 deliberately did NOT amend test/reown/approve_drawer_contract_test.dart -- that file is reserved for a later plan."
+last_updated: "2026-09-19T17:10:00.000Z"
 last_activity: 2026-09-19
 progress:
   total_phases: 5
@@ -515,8 +515,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T16:58:17.006Z
-Stopped at: Completed 21-06-PLAN.md (phase 21 closed, 6/6 plans)
+Last session: 2026-09-19T17:10:00.000Z
+Stopped at: Phase 30 plan 01 (tracer) EXECUTED on branch `phase-30-calldata-decoding`: an ERC-20 `transfer` for a coin the wallet holds now decodes to the real recipient + token symbol on the approval drawer, and a test proves the signed map is byte-identical. 1245 pass / 3 skip / 0 fail (branch baseline 1216), analyze 0 issues exit 0, brace/raw-colour/format gates clean, pubspec untouched. Plans 30-02..30-04 not started. NOTE: 30-01 deliberately did NOT amend test/reown/approve_drawer_contract_test.dart -- that file is reserved for a later plan.
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph

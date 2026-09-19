@@ -11,8 +11,7 @@ actuals: { tokens: 42000, tasks: 3, commits: 4 }
 
 # Phase 30 Plan 01: one ERC-20 transfer, decoded end to end
 
-A dApp's ERC-20 `transfer` of a coin the wallet holds now names the real
-recipient and that coin's symbol, not the contract and not ETH.
+An ERC-20 `transfer` of a known coin now names its real recipient and token.
 
 ## Baseline vs. after (measured)
 
@@ -35,6 +34,7 @@ checks `lib test`. Pubspec untouched.
   (outside the plan's file list): importing `package:wallet` here raised
   `depend_on_referenced_packages`; re-exporting from its owner avoids both a
   pubspec change and a lint suppression.
-- Three guards beyond the plan, all landing on `unknownCall`: a blank symbol,
-  decimals outside 0-36, an unreadable `value`.
+- Extra `unknownCall` guards: blank symbol, decimals outside 0-36, bad `value`.
 - Hive still records `coinSymbol = "ETH"`; more in `deferred-items.md`.
+
+## Self-Check: PASSED
