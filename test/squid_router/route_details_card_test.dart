@@ -161,6 +161,40 @@ void main() {
     expect(find.text('\$0.01'), findsOneWidget);
   });
 
+  testWidgets('each fee row reads as one label-and-value node', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await _pumpCard(tester, crossChainRoute);
+
+    // Unmerged, the label and the amount are two sibling nodes and a screen
+    // reader pairs them by position alone.
+    final node = tester.getSemantics(find.text('Gas receiver fee'));
+    expect(node.label, contains('Gas receiver fee'));
+    expect(node.label, contains('\$0.48'));
+
+    semantics.dispose();
+  });
+
+  testWidgets('a long fee name crowds neither side at phone width', (
+    tester,
+  ) async {
+    _resize(tester, const Size(360, 800));
+
+    // The route names its own fees, so no label length is guaranteed -- this
+    // card's job is to render one it has never seen.
+    await _pumpQuote(
+      tester,
+      squidQuoteFromJson(
+        syntheticRouteWithFees([
+          {'name': 'Axelar interchain gas service fee', 'amountUsd': '123.45'},
+        ]),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Axelar interchain gas service fee'), findsOneWidget);
+    expect(find.text('\$123.45'), findsOneWidget);
+  });
+
   testWidgets('the rate keeps every digit on a desktop frame', (tester) async {
     _resize(tester, const Size(1400, 900));
 
