@@ -16,6 +16,14 @@ const _kStandingApproval =
     'An approval stands until it is revoked -- the spender does not have to '
     'ask again.';
 
+const _kAlsoMovesNative =
+    'This call moves native currency as well as a token, so both figures are '
+    'below.';
+
+const _kUnverifiedToken =
+    'GeniusWallet cannot identify this token, so the figure below is in the '
+    "contract's smallest units, not a token amount.";
+
 const _kCheckTheAddresses = 'Check the addresses below before approving.';
 
 /// What the drawer calls this transaction. Only the kinds the send body
@@ -23,6 +31,11 @@ const _kCheckTheAddresses = 'Check the addresses below before approving.';
 String dappCallHeadline(DappCallSummary summary) {
   if (summary.kind == DappCallKind.tokenApprove) {
     return 'Approve spending';
+  }
+  if (summary.kind == DappCallKind.unverifiedToken) {
+    return summary.spender != null
+        ? 'Token approval (unverified)'
+        : 'Token transfer (unverified)';
   }
   return 'Contract call';
 }
@@ -32,16 +45,23 @@ String dappCallHeadline(DappCallSummary summary) {
 /// the words on screen is a thing a test can hold.
 String dappCallWarning(DappCallSummary summary) => <String>[
   if (summary.isUnlimitedAllowance) _kUnlimitedAllowance,
-  if (summary.kind == DappCallKind.tokenApprove) _kStandingApproval,
+  if (summary.nativeAmount != null) _kAlsoMovesNative,
+  if (summary.kind == DappCallKind.unverifiedToken) _kUnverifiedToken,
+  if (summary.spender != null) _kStandingApproval,
   _kCheckTheAddresses,
 ].join(' ');
 
 /// The rows for [summary], in reading order. Addresses are copyable so the
-/// full value reaches the clipboard; [networkName] comes from the wallet, not
-/// from the transaction.
-List<DappCallRow> dappCallRows(DappCallSummary summary, {String? networkName}) {
+/// full value reaches the clipboard; [networkName] and [nativeSymbol] come
+/// from the wallet, not from the transaction.
+List<DappCallRow> dappCallRows(
+  DappCallSummary summary, {
+  String? networkName,
+  String? nativeSymbol,
+}) {
   final figure = summary.allowance ?? summary.amount;
   final symbol = summary.symbol;
+  final native = summary.nativeAmount;
   return <DappCallRow>[
     if (summary.spender != null)
       DappCallRow(label: 'Spender', value: summary.spender!, copyable: true),
@@ -61,6 +81,13 @@ List<DappCallRow> dappCallRows(DappCallSummary summary, {String? networkName}) {
       DappCallRow(
         label: symbol == null ? 'Amount (smallest units)' : 'Amount',
         value: symbol == null ? figure : '$figure $symbol',
+      ),
+    if (native != null)
+      DappCallRow(
+        label: 'Also sending',
+        value: nativeSymbol == null || nativeSymbol.isEmpty
+            ? native
+            : '$native $nativeSymbol',
       ),
     if (networkName != null && networkName.isNotEmpty)
       DappCallRow(label: 'Network', value: networkName),

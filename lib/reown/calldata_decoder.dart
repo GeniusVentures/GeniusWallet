@@ -4,6 +4,7 @@ import 'package:genius_api/models/coin.dart';
 // EthereumAddress comes from here rather than from `wallet` directly: that
 // package is genius_api's dependency, not this one's.
 import 'package:genius_api/web3/web3.dart';
+import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -40,7 +41,16 @@ class DecodedAddressAmount {
 final BigInt kUnlimitedApprovalThreshold = BigInt.two.pow(255);
 
 /// What a pending dApp transaction can honestly be said to do.
-enum DappCallKind { nativeSend, tokenTransfer, tokenApprove, unknownCall }
+enum DappCallKind {
+  nativeSend,
+  tokenTransfer,
+  tokenApprove,
+
+  /// A token call the wallet cannot put a unit on, or one that also moves
+  /// native currency. Its figures are raw base units.
+  unverifiedToken,
+  unknownCall,
+}
 
 /// A display-ready reading of one transaction. A null field is one the drawer
 /// has no right to state.
@@ -57,6 +67,7 @@ class DappCallSummary {
     this.spender,
     this.allowance,
     this.tokenContract,
+    this.nativeAmount,
     this.isUnlimitedAllowance = false,
   });
 
@@ -70,6 +81,9 @@ class DappCallSummary {
   /// The contract the call is addressed to, exactly as the transaction spells
   /// it.
   final String? tokenContract;
+
+  /// Native currency moving alongside the token call, when any does.
+  final String? nativeAmount;
 
   /// The allowance is at or above [kUnlimitedApprovalThreshold].
   final bool isUnlimitedAllowance;
@@ -117,20 +131,21 @@ DecodedAddressAmount? tryDecodeErc20Transfer(String? data) =>
 DecodedAddressAmount? tryDecodeErc20Approve(String? data) =>
     _tryDecodeAddressAmount(data, kErc20ApproveSelector);
 
-/// True only when the transaction provably moves no native currency. An
-/// unreadable value is not a zero value.
-bool _movesNoNativeValue(Object? value) {
+/// The native currency this transaction moves, or null when the value cannot
+/// be read at all -- an unreadable value is not a zero value, and there is no
+/// honest figure to put beside the token one.
+BigInt? _nativeValue(Object? value) {
   if (value == null) {
-    return true;
+    return BigInt.zero;
   }
   if (value is! String || !value.startsWith('0x')) {
-    return false;
+    return null;
   }
   final digits = value.substring(2);
   if (digits.isEmpty) {
-    return true;
+    return BigInt.zero;
   }
-  return BigInt.tryParse(digits, radix: 16) == BigInt.zero;
+  return BigInt.tryParse(digits, radix: 16);
 }
 
 /// Reads [tx] without writing to it. The same map instance is handed to the
@@ -148,16 +163,16 @@ DappCallSummary summarizeTransaction(
   }
   final isApprove = transfer == null;
 
-  // Both a token and native currency would leave the wallet, and the send
-  // rows can only state one figure.
-  if (!_movesNoNativeValue(tx['value'])) {
-    return const DappCallSummary(DappCallKind.unknownCall);
-  }
-
   final contract = tx['to'];
   if (contract is! String) {
     return const DappCallSummary(DappCallKind.unknownCall);
   }
+
+  final native = _nativeValue(tx['value']);
+  if (native == null) {
+    return const DappCallSummary(DappCallKind.unknownCall);
+  }
+
   // A lowercased local copy; Dart strings are immutable, so the map keeps its
   // own value untouched.
   final target = contract.toLowerCase();
@@ -169,24 +184,37 @@ DappCallSummary summarizeTransaction(
       break;
     }
   }
-  if (token == null) {
-    return const DappCallSummary(DappCallKind.unknownCall);
-  }
 
   // Never fall back to eighteen. A wrong decimals guess renders a confident
-  // wrong amount, which is worse than admitting the token is unreadable.
-  final decimals = int.tryParse(token.decimals ?? '');
-  if (decimals == null || decimals < 0 || decimals > _maximumTokenDecimals) {
-    return const DappCallSummary(DappCallKind.unknownCall);
-  }
-
-  // An amount with no unit beside it is a number a user cannot act on.
-  final symbol = token.symbol?.trim() ?? '';
-  if (symbol.isEmpty) {
-    return const DappCallSummary(DappCallKind.unknownCall);
-  }
-
+  // wrong amount, which is worse than admitting the token is unreadable. An
+  // amount with no unit beside it is likewise a number nobody can act on.
+  final decimals = int.tryParse(token?.decimals ?? '');
+  final symbol = token?.symbol?.trim() ?? '';
   final counterparty = decoded.counterparty.eip55With0x;
+  final movesNative = native != BigInt.zero;
+
+  // Base units and no unit is the honest form for a token this wallet cannot
+  // vouch for -- and a call that also moves native currency keeps both
+  // figures, because neither may be summarised away.
+  if (decimals == null ||
+      decimals < 0 ||
+      decimals > _maximumTokenDecimals ||
+      symbol.isEmpty ||
+      movesNative) {
+    final raw = decoded.amount.toString();
+    return DappCallSummary(
+      DappCallKind.unverifiedToken,
+      recipient: isApprove ? null : counterparty,
+      spender: isApprove ? counterparty : null,
+      amount: isApprove ? null : raw,
+      allowance: isApprove ? raw : null,
+      tokenContract: contract,
+      nativeAmount: movesNative ? formatEth(native.toString()) : null,
+      isUnlimitedAllowance:
+          isApprove && decoded.amount >= kUnlimitedApprovalThreshold,
+    );
+  }
+
   if (isApprove) {
     return DappCallSummary(
       DappCallKind.tokenApprove,

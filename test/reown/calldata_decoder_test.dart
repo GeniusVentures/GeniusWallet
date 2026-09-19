@@ -196,15 +196,21 @@ void main() {
     });
 
     test(
-      'the same transfer for a coin the wallet does not hold is unknown',
+      'the same transfer for a coin the wallet does not hold is unverified',
       () {
         final summary = summarizeTransaction(
           _tx(data: _transferCalldata),
           coins: const [Coin(symbol: 'ETH', address: '0xdead', decimals: '18')],
         );
-        expect(summary.kind, DappCallKind.unknownCall);
+        expect(summary.kind, DappCallKind.unverifiedToken);
+        expect(summary.recipient, _recipient);
+        // Raw base units and no unit at all: the only two things still true
+        // once the token cannot be identified.
+        expect(summary.amount, '1500000');
         expect(summary.symbol, isNull);
-        expect(summary.amount, isNull);
+        // The contract is what the user has to check, so it travels with the
+        // summary rather than being looked up again downstream.
+        expect(summary.tokenContract, _tokenContract.toLowerCase());
       },
     );
 
@@ -214,8 +220,20 @@ void main() {
           _tx(data: _transferCalldata),
           coins: const [],
         ).kind,
-        DappCallKind.unknownCall,
+        DappCallKind.unverifiedToken,
       );
+    });
+
+    test('an unknown token approve is unverified and still an approve', () {
+      final summary = summarizeTransaction(
+        _tx(data: _approveCalldata),
+        coins: const [],
+      );
+      expect(summary.kind, DappCallKind.unverifiedToken);
+      expect(summary.spender, _recipient);
+      expect(summary.allowance, '1500000');
+      expect(summary.recipient, isNull);
+      expect(summary.amount, isNull);
     });
 
     test('a transfer with no to address resolves to nothing', () {
@@ -227,57 +245,71 @@ void main() {
       );
     });
 
-    group('UNRESOLVED decimals are never assumed to be 18', () {
+    test('a value that cannot be read at all is not a zero value', () {
+      // Nothing honest can be said about how much native currency moves, so
+      // there is no second figure to put beside the token one.
+      expect(
+        summarizeTransaction(
+          _tx(data: _transferCalldata, value: 'not-hex'),
+          coins: const [_sixDecimalCoin],
+        ).kind,
+        DappCallKind.unknownCall,
+      );
+    });
+
+    group('UNRESOLVED decimals are never assumed to be eighteen', () {
       // A wrong decimals guess renders a confident wrong number. Eighteen is
       // the commonest value and therefore the most tempting default; each of
       // these cases would show "0.0000000000015 USDC" for 1.5 USDC if it were
-      // used.
-      test('null decimals', () {
+      // used. This group is what fails if a convenience default is ever
+      // added.
+      void expectRawBaseUnits(Coin coin) {
         final summary = summarizeTransaction(
           _tx(data: _transferCalldata),
-          coins: const [Coin(symbol: 'USDC', address: _tokenContract)],
+          coins: [coin],
         );
-        expect(summary.kind, DappCallKind.unknownCall);
+        expect(summary.kind, DappCallKind.unverifiedToken);
+        expect(summary.amount, '1500000');
+        expect(
+          summary.amount,
+          isNot(contains('.')),
+          reason: 'base units carry no decimal point',
+        );
+        expect(summary.symbol, isNull);
+      }
+
+      test('null decimals', () {
+        expectRawBaseUnits(const Coin(symbol: 'USDC', address: _tokenContract));
+      });
+
+      test('empty decimals', () {
+        expectRawBaseUnits(
+          const Coin(symbol: 'USDC', address: _tokenContract, decimals: ''),
+        );
       });
 
       test('unparseable decimals', () {
-        final summary = summarizeTransaction(
-          _tx(data: _transferCalldata),
-          coins: const [
-            Coin(symbol: 'USDC', address: _tokenContract, decimals: 'six'),
-          ],
+        expectRawBaseUnits(
+          const Coin(symbol: 'USDC', address: _tokenContract, decimals: 'abc'),
         );
-        expect(summary.kind, DappCallKind.unknownCall);
       });
 
       test('a negative decimals string', () {
-        final summary = summarizeTransaction(
-          _tx(data: _transferCalldata),
-          coins: const [
-            Coin(symbol: 'USDC', address: _tokenContract, decimals: '-6'),
-          ],
+        expectRawBaseUnits(
+          const Coin(symbol: 'USDC', address: _tokenContract, decimals: '-6'),
         );
-        expect(summary.kind, DappCallKind.unknownCall);
       });
 
       test('an absurd decimals string', () {
-        final summary = summarizeTransaction(
-          _tx(data: _transferCalldata),
-          coins: const [
-            Coin(symbol: 'USDC', address: _tokenContract, decimals: '999'),
-          ],
+        expectRawBaseUnits(
+          const Coin(symbol: 'USDC', address: _tokenContract, decimals: '999'),
         );
-        expect(summary.kind, DappCallKind.unknownCall);
       });
 
-      test('a blank symbol leaves the amount without a unit, so unknown', () {
-        final summary = summarizeTransaction(
-          _tx(data: _transferCalldata),
-          coins: const [
-            Coin(symbol: '  ', address: _tokenContract, decimals: '6'),
-          ],
+      test('a blank symbol leaves the amount without a unit', () {
+        expectRawBaseUnits(
+          const Coin(symbol: '  ', address: _tokenContract, decimals: '6'),
         );
-        expect(summary.kind, DappCallKind.unknownCall);
       });
     });
 
@@ -354,14 +386,39 @@ void main() {
       });
     });
 
-    test('a transfer that ALSO moves native value is unknown', () {
+    group('a token call that ALSO moves native value shows both figures', () {
       // Two amounts move but the send rows can only state one. Claiming just
       // the token half would understate what leaves the wallet.
-      final summary = summarizeTransaction(
-        _tx(data: _transferCalldata, value: '0x2386f26fc10000'),
-        coins: const [_sixDecimalCoin],
-      );
-      expect(summary.kind, DappCallKind.unknownCall);
+      test('a transfer carries the token figure and the native one', () {
+        final summary = summarizeTransaction(
+          _tx(data: _transferCalldata, value: '0x2386f26fc10000'),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(summary.kind, DappCallKind.unverifiedToken);
+        expect(summary.amount, '1500000');
+        expect(summary.nativeAmount, contains('0.01'));
+      });
+
+      test('an approve does too, and stays an approve', () {
+        final summary = summarizeTransaction(
+          _tx(data: _approveCalldata, value: '0x2386f26fc10000'),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(summary.kind, DappCallKind.unverifiedToken);
+        expect(summary.spender, _recipient);
+        expect(summary.allowance, '1500000');
+        expect(summary.nativeAmount, contains('0.01'));
+      });
+
+      test('a zero value leaves no native figure to show', () {
+        expect(
+          summarizeTransaction(
+            _tx(data: _transferCalldata),
+            coins: const [_sixDecimalCoin],
+          ).nativeAmount,
+          isNull,
+        );
+      });
     });
 
     group('NATIVE SEND - anything unreadable keeps todays behaviour', () {
