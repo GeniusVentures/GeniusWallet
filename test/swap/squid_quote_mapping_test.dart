@@ -32,19 +32,19 @@ void main() {
   test('a same-chain swap costs gas and nothing else', () {
     final quote = squidQuote(loadRouteFixture(sameChainRoute));
 
-    expect(quote.feesUsd, 0.0);
+    expect(quote.feeLines, isEmpty);
     expect(quote.gasUsd, closeTo(0.01, 1e-9));
-    expect(quote.totalCostUsd, closeTo(0.01, 1e-9));
   });
 
-  test('a cross-chain swap adds the bridge fee to gas', () {
+  test('a cross-chain swap keeps its bridge fee apart from gas', () {
     final quote = squidQuote(loadRouteFixture(crossChainRoute));
 
-    // The whole point of summing both: fees alone would report $0.48 and gas
-    // alone $0.02, and each understates what leaves the wallet.
-    expect(quote.feesUsd, closeTo(0.48, 1e-9));
+    // Two unlike costs, two figures. Added together they would read $0.50 and
+    // the user could no longer tell the network's charge from the bridge's.
+    expect(quote.feeLines, hasLength(1));
+    expect(quote.feeLines.single.name, 'Gas receiver fee');
+    expect(quote.feeLines.single.amountUsd, closeTo(0.48, 1e-9));
     expect(quote.gasUsd, closeTo(0.02, 1e-9));
-    expect(quote.totalCostUsd, closeTo(0.50, 1e-9));
   });
 
   test('two real quotes do not map to the same figures', () {
@@ -55,6 +55,69 @@ void main() {
     // the numbers actually track the response.
     expect(same.priceImpact, isNot(cross.priceImpact));
     expect(same.exchangeRate, isNot(cross.exchangeRate));
-    expect(same.totalCostUsd, isNot(cross.totalCostUsd));
+    expect(same.gasUsd, isNot(cross.gasUsd));
+  });
+
+  test('three fee entries map to three lines, in order', () {
+    final quote = squidQuoteFromJson(
+      syntheticRouteWithFees([
+        {'name': 'Gas receiver fee', 'amountUsd': '0.91'},
+        {'name': 'Boost fee', 'amountUsd': '0.10'},
+        {'name': 'Wormhole relayer fee', 'amountUsd': '0.05'},
+      ]),
+    );
+
+    expect(quote.feeLines.map((line) => line.name).toList(), [
+      'Gas receiver fee',
+      'Boost fee',
+      'Wormhole relayer fee',
+    ]);
+    expect(quote.feeLines.map((line) => line.amountUsd).toList(), [
+      0.91,
+      0.10,
+      0.05,
+    ]);
+  });
+
+  test('a fee name the wire schema does not list still renders verbatim', () {
+    final quote = squidQuoteFromJson(
+      syntheticRouteWithFees([
+        {'name': 'Wormhole relayer fee', 'amountUsd': '0.05'},
+      ]),
+    );
+
+    expect(quote.feeLines.single.name, 'Wormhole relayer fee');
+  });
+
+  test('a fee collection that is not a list yields no lines, not a crash', () {
+    final body = syntheticRouteWithFees(const []);
+    final route = body['route'] as Map<String, dynamic>;
+    final estimate = route['estimate'] as Map<String, dynamic>;
+    estimate['feeCosts'] = 'not a list';
+
+    expect(squidQuoteFromJson(body).feeLines, isEmpty);
+  });
+
+  test('an entry that is not a map is skipped', () {
+    final quote = squidQuoteFromJson(
+      syntheticRouteWithFees([
+        {'name': 'Gas receiver fee', 'amountUsd': '0.91'},
+        'not a map',
+      ]),
+    );
+
+    expect(quote.feeLines.length, 1);
+    expect(quote.feeLines.single.name, 'Gas receiver fee');
+  });
+
+  test('an unreadable amount still yields its named line, at zero', () {
+    final quote = squidQuoteFromJson(
+      syntheticRouteWithFees([
+        {'name': 'Gas receiver fee', 'amountUsd': 'not-a-number'},
+      ]),
+    );
+
+    expect(quote.feeLines.single.name, 'Gas receiver fee');
+    expect(quote.feeLines.single.amountUsd, 0.0);
   });
 }

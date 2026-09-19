@@ -92,4 +92,48 @@ void _percentCases() {
       expect(formatPercent('Infinity'), 'Infinity');
     });
   });
+
+  group('capDecimals', () {
+    test('a long fraction is cut, not rounded', () {
+      // Rounding up would advertise a better rate than the route quoted.
+      expect(capDecimals('0.757304', 4), '0.7573');
+      expect(capDecimals('0.75739', 4), '0.7573');
+    });
+
+    test('a short value is left exactly as it came', () {
+      expect(capDecimals('1', 4), '1');
+      expect(capDecimals('0.75', 4), '0.75');
+      expect(capDecimals('0.7573', 4), '0.7573');
+    });
+
+    test('trailing zeros the cut exposes are dropped', () {
+      expect(capDecimals('0.750000123', 4), '0.75');
+    });
+
+    test('a value too small to survive the cut is left whole', () {
+      // Cutting these to four places leaves only zeros, and rendering a real
+      // amount as 0 would say the route returns nothing.
+      expect(capDecimals('0.00001', 4), '0.00001');
+      expect(capDecimals('0.000000000000000001', 4), '0.000000000000000001');
+    });
+
+    test('digits are counted from the first significant one', () {
+      // Cutting at the fourth decimal PLACE renders 0.0001 and halves the
+      // amount, so every value in [0.0001, 0.0002) reads as the same number.
+      expect(capDecimals('0.00019999', 4), '0.0001999');
+      expect(capDecimals('0.000123456', 4), '0.0001234');
+    });
+
+    test('an unreadable value is passed through, never invented', () {
+      expect(capDecimals('n/a', 4), 'n/a');
+      expect(capDecimals('', 4), '');
+      expect(capDecimals('1e-9', 4), '1e-9');
+      expect(capDecimals('0.757304', -1), '0.757304');
+    });
+
+    test('no double is involved, so 18 digits survive intact', () {
+      // A double cannot hold this; a formatter that parsed one would round it.
+      expect(capDecimals('123456789.123456789012345678', 4), '123456789.1234');
+    });
+  });
 }
