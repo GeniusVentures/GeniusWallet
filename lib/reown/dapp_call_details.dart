@@ -109,13 +109,9 @@ class DappCallRow {
   final bool copyable;
 }
 
-/// Drawer body for a transaction that is NOT a plain send: it says what could
-/// be read of the calldata and warns about what could not. Every string
-/// arrives already decoded and formatted -- no arithmetic happens here.
-///
-/// There is no amount hero and no "You send" row on purpose. Those assert that
-/// a figure leaves the wallet, which is false of an approval and unknowable of
-/// a token this wallet cannot identify.
+/// Drawer body for a call that is not a plain send. It carries no amount hero
+/// and no "You send" row: those assert a figure leaves the wallet, which an
+/// approval does not do and an unidentifiable token cannot promise.
 class DappCallDetails extends StatelessWidget {
   const DappCallDetails({
     super.key,
