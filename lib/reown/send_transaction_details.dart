@@ -49,6 +49,12 @@ class SendTransactionDetails extends StatelessWidget {
   final String priorityFee;
   final String? receiveTokenSymbol;
 
+  /// The unit of [amount]. Separate from [feeSymbol] because gas is paid in
+  /// the chain's native currency no matter what is being sent -- one shared
+  /// symbol would label a gas figure with a token's name.
+  final String amountSymbol;
+  final String feeSymbol;
+
   const SendTransactionDetails({
     super.key,
     required this.fromAddress,
@@ -58,6 +64,8 @@ class SendTransactionDetails extends StatelessWidget {
     required this.maxFeePerGas,
     required this.priorityFee,
     this.receiveTokenSymbol,
+    this.amountSymbol = 'ETH',
+    this.feeSymbol = 'ETH',
   });
 
   @override
@@ -66,8 +74,8 @@ class SendTransactionDetails extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // The amount hero: borderless, centred, and NEUTRAL (D-03) -- no
-        // status colour, no accent, ever. Only the hand-typed fontSize:
+        // The amount hero: borderless, centred, and NEUTRAL -- no status
+        // colour, no accent, ever. Only the hand-typed fontSize:
         // 28/FontWeight.bold pair is replaced here; the amount itself was
         // already borderless.
         Text(
@@ -93,18 +101,27 @@ class SendTransactionDetails extends StatelessWidget {
               GWCopyRow(label: 'From', value: fromAddress),
             if (toAddress.isNotEmpty) GWCopyRow(label: 'To', value: toAddress),
             if (amount.isNotEmpty)
-              _PlainDetailRow(label: 'You send', value: '$amount ETH'),
+              _PlainDetailRow(
+                label: 'You send',
+                value: '$amount $amountSymbol',
+              ),
             if (receiveTokenSymbol != null && receiveTokenSymbol!.isNotEmpty)
               _PlainDetailRow(label: 'You receive', value: receiveTokenSymbol!),
             if (totalGasFee.isNotEmpty)
-              _PlainDetailRow(label: 'Gas Fee', value: '$totalGasFee ETH'),
+              _PlainDetailRow(
+                label: 'Gas Fee',
+                value: '$totalGasFee $feeSymbol',
+              ),
             if (maxFeePerGas.isNotEmpty)
               _PlainDetailRow(
                 label: 'Max Fee Per Gas',
-                value: '$maxFeePerGas ETH',
+                value: '$maxFeePerGas $feeSymbol',
               ),
             if (priorityFee.isNotEmpty)
-              _PlainDetailRow(label: 'Priority Fee', value: '$priorityFee ETH'),
+              _PlainDetailRow(
+                label: 'Priority Fee',
+                value: '$priorityFee $feeSymbol',
+              ),
           ],
         ),
       ],

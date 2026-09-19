@@ -7,6 +7,7 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
+import 'package:genius_wallet/reown/calldata_decoder.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
 import 'package:genius_wallet/reown/utilities.dart';
@@ -44,10 +45,6 @@ void Function() handleDappRequests({
       final dappName = dappMetadata?.name ?? 'Unknown DApp';
       final dappUrl = dappMetadata?.url ?? '';
 
-      // todo parse the data to get token swap information
-      // no built in help.. might need to build manually :(
-      //final data = (tx['data']);
-
       Widget content;
 
       if (method == 'eth_sendTransaction') {
@@ -65,10 +62,21 @@ void Function() handleDappRequests({
         final maxFeePerGasEth = formatEth(maxFeePerGas.toString());
         final priorityFeeEth = formatEth(maxPriorityFee.toString());
 
+        // Read-only: `tx` is the same map handed to the signer below, so the
+        // bytes the user approves stay exactly as the dApp sent them.
+        final summary = summarizeTransaction(
+          tx,
+          coins: walletDetailsCubit.state.coins,
+        );
+        final isTokenTransfer = summary.kind == DappCallKind.tokenTransfer;
+
         content = SendTransactionDetails(
           fromAddress: from,
-          toAddress: to,
-          amount: amountEth,
+          // For a token transfer `tx['to']` is the contract, not the person
+          // being paid -- the recipient only exists inside the calldata.
+          toAddress: isTokenTransfer ? summary.recipient! : to,
+          amount: isTokenTransfer ? summary.amount! : amountEth,
+          amountSymbol: isTokenTransfer ? summary.symbol! : 'ETH',
           totalGasFee: totalFeeEth,
           priorityFee: priorityFeeEth,
           maxFeePerGas: maxFeePerGasEth,

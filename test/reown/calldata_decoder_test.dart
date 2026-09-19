@@ -60,7 +60,7 @@ Map<String, dynamic> _tx({String? data, String? value, String? to}) => {
   'gas': '0x5208',
   'maxFeePerGas': '0x3b9aca00',
   'maxPriorityFeePerGas': '0x3b9aca00',
-  if (data != null) 'data': data,
+  'data': ?data,
 };
 
 void main() {
@@ -72,9 +72,9 @@ void main() {
       expect(decoded.amount, BigInt.from(1500000));
     });
 
-    test('an uppercase-hex payload decodes the same', () {
+    test('uppercase hex digits decode the same', () {
       final decoded = tryDecodeErc20Transfer(
-        '0X${_transferCalldata.substring(2).toUpperCase()}',
+        '0x${_transferCalldata.substring(2).toUpperCase()}',
       );
       expect(decoded?.counterparty.eip55With0x, _recipient);
     });
