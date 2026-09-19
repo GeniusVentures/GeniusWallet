@@ -231,6 +231,10 @@ void Function() handleDappRequests({
       // Everything else: a signature this wallet has no renderer for, or a
       // method it does not handle at all. Both are shown, neither is
       // honoured, and the copy says so before any button is pressed.
+      //
+      // ponytail: declining every signature is the ceiling of having no
+      // typed-data renderer. The upgrade is to render EIP-712 payloads and
+      // honour an approval for the ones that render.
       final isSignature = kind == DappRequestKind.unreadableSignature;
       await ApproveTransactionDrawer.show(
         context: navigatorKey.currentContext!,
