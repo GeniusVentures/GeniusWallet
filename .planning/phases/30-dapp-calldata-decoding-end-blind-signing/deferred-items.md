@@ -37,3 +37,23 @@ stray blank lines to unrelated v2.0 bullet lists.
 
 Both files were restored from `702b39be` and edited by hand instead. Until this
 is fixed, edit STATE.md and ROADMAP.md directly rather than through those verbs.
+
+## `getExplorerUrl` is keyed on the coin symbol, not the chain
+
+Found by 30-03 while threading the decoded symbol into the Hive record.
+
+`lib/dashboard/home/widgets/transaction_utils.dart:11` maps a coin symbol to
+an explorer base URL. Two consequences, one pre-existing and one new:
+
+- Pre-existing: a Reown send on Base recorded `ETH` and therefore linked to
+  etherscan.io, which is the wrong chain.
+- New as of 30-03: a decoded token send records `USDC` (or the contract
+  address for an unverified token), which is not in the map, so
+  `getExplorerUrl` returns `''` and the receipt drawer shows no explorer link
+  at all. No link beats a wrong-chain link, so this was accepted, not worked
+  around. A plain send now records the selected network symbol, so Base
+  linking is correct for the first time.
+
+The fix is to key the explorer off `chainId`, which both the receipt drawer
+and the history row already have access to via the selected network. Out of
+scope here: it touches every transaction display, not the signing path.
