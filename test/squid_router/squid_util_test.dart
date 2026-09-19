@@ -117,6 +117,13 @@ void _percentCases() {
       expect(capDecimals('0.000000000000000001', 4), '0.000000000000000001');
     });
 
+    test('digits are counted from the first significant one', () {
+      // Cutting at the fourth decimal PLACE renders 0.0001 and halves the
+      // amount, so every value in [0.0001, 0.0002) reads as the same number.
+      expect(capDecimals('0.00019999', 4), '0.0001999');
+      expect(capDecimals('0.000123456', 4), '0.0001234');
+    });
+
     test('an unreadable value is passed through, never invented', () {
       expect(capDecimals('n/a', 4), 'n/a');
       expect(capDecimals('', 4), '');
