@@ -20,3 +20,20 @@ already editing that block.
 Consequence: plan 30-01's Task 2 verification greps all of `lib/reown/` for
 these patterns and expects no match. That gate cannot pass on this branch until
 the list above is cleared; 30-01's own three files are clean.
+
+## `gsd-tools query state.*` corrupts STATE.md on this repo
+
+Observed 2026-09-19 while closing 30-01. Running `state.update-progress` then
+`state.record-session` (gsd-core at `~/.claude`) rewrote STATE.md and:
+
+- reset `current_phase: 30` to `26`
+- invented `last_activity_desc: Milestone v2.0 roadmap created`
+- mangled a progress bar into `36/36 plans ([██████████] 95%)`
+- inserted blank lines into unrelated prose and converted the whole file CRLF→LF
+  (a 1436-line diff for a 12-line intent)
+
+`roadmap.update-plan-progress 30` got the plan checkboxes right but also added
+stray blank lines to unrelated v2.0 bullet lists.
+
+Both files were restored from `702b39be` and edited by hand instead. Until this
+is fixed, edit STATE.md and ROADMAP.md directly rather than through those verbs.

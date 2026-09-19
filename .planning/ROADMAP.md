@@ -1607,10 +1607,10 @@ a missing field. Criterion 5 is what makes Squid's eventual switch a no-op in th
   3. Undecodable calldata renders an explicit unknown-contract-call warning — never presented as a plain send (widget test with a garbage/unknown-selector payload)
   4. Decoding is display-only: the transaction payload signed is byte-identical to before — the Phase 21 behavioral-identity contract test for the two signing drawers stays green (decode may not alter what is signed)
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
-- [ ] 30-01-PLAN.md — tracer: one ERC-20 transfer decoded end to end, plus the measured branch baseline
+- [x] 30-01-PLAN.md — tracer: one ERC-20 transfer decoded end to end, plus the measured branch baseline
 - [ ] 30-02-PLAN.md — approve, unlimited allowance, and the token this wallet cannot vouch for
 - [ ] 30-03-PLAN.md — unknown calls, the two sign methods that currently hang the caller, and an honest receipt
 - [ ] 30-04-PLAN.md — Squid input-side decode, the router allow-list, and the phase gate
