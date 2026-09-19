@@ -2,10 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
-status: planning
-stopped_at: "v1.0 closeout state (2026-08-08): everything tracked was merged into `develop` (tip fa74006d). Quick task 260806-hfe (transactions at phone width) shipped as PR #224 and quick task 260807-bxs (Markets hero, real timeframe tabs, cards) as PR #226 — an earlier note here claiming 260806-hfe was 'NOT pushed, no PR' was wrong. Phases 24 (mobile nav shell) and 25 (dashboard section caps + Assets page) also shipped, executed by Jakub outside GSD: their completion is measured from merged code, NOT from GSD artifacts — phase 24 has no SUMMARY and its PLAN still reads status: in-progress; 25-01 has no SUMMARY and the BRIEF still reads ready-to-plan. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs)."
-last_updated: "2026-09-16T18:21:14.000Z"
-last_activity: 2026-09-16
+current_phase: 30
+current_phase_name: "dApp calldata decoding (end blind signing) - planned, not executed"
+status: in_progress
+stopped_at: "Phase 30 (dApp calldata decoding) PLANNED on 2026-09-19 on branch `phase-30-calldata-decoding`, cut from origin/develop so it stays clear of the swap stack. CONTEXT (D-01..D-11), RESEARCH, PATTERNS and four plans are committed; plan-checker returned PASS. Branch baseline measured on the untouched tree: 1216 pass / 3 skip / 0 fail, analyze clean. That number is LOWER than the swap stack's 1392 because develop carries neither phase 26 nor 29 -- do not read it as a regression. Phases 26 and 29 are open as PRs #233 (ready, green, unmerged) and #234 (draft, stacked on #233, gets no CI until it retargets develop). Phase 30 is not executed: `/gsd-execute-phase 30` is the next step."
+last_updated: "2026-09-19T00:00:00.000Z"
+last_activity: 2026-09-19
 progress:
   total_phases: 5
   completed_phases: 0
