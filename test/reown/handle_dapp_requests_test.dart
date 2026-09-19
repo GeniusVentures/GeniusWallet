@@ -13,6 +13,9 @@
 //
 // The rule both bugs broke is the one this file exists to hold: every request
 // that reaches the handler leaves it with exactly one answer.
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
@@ -85,6 +88,34 @@ Map<String, dynamic> _tx({String? data, String value = '0x2386f26fc10000'}) =>
       'maxPriorityFeePerGas': '0x3b9aca00',
       'data': ?data,
     };
+
+// The recorded Squid route, trimmed. Its byte-level facts are asserted in
+// `calldata_decoder_test.dart`; what this file asks is whether the selected
+// network ever reaches the decoder at all.
+final _squidRequest =
+    (jsonDecode(
+              File(
+                'test/reown/fixtures/squid_route_transaction_request.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, dynamic>)['transactionRequest']
+        as Map<String, dynamic>;
+
+const _gnus = Coin(
+  symbol: 'GNUS',
+  address: '0x614577036f0a024dbc1c88ba616b394dd65d105a',
+  decimals: '18',
+);
+
+Map<String, dynamic> _swapTx() => <String, dynamic>{
+  'from': '0x0000000000000000000000000000000000000001',
+  'to': _squidRequest['target'] as String,
+  'value': '0x0',
+  'gas': '0xec9c0',
+  'maxFeePerGas': '0xa7d8c0',
+  'maxPriorityFeePerGas': '0xf4240',
+  'data': _squidRequest['data'] as String,
+};
 
 SessionRequestEvent _request(String method, dynamic params, {int id = 1}) =>
     SessionRequestEvent(
@@ -365,6 +396,49 @@ void main() {
         await _finish(tester, harness);
       },
     );
+
+    testWidgets('the selected chain is what makes a router a router', (
+      tester,
+    ) async {
+      // The one link between the wallet's own network and the allow-list. Cut
+      // it and every swap silently becomes an unknown contract call.
+      final harness = await _start(
+        tester,
+        network: _base,
+        coins: const [_gnus],
+      );
+      harness.walletKit.send(_request('eth_sendTransaction', [_swapTx()]));
+      await tester.pumpAndSettle();
+
+      expect(_onScreen(tester, 'Swapping 1 GNUS via Squid'), isTrue);
+      expect(_onScreen(tester, 'cannot read'), isTrue);
+      // The destination of that route is USDC, and its address is in the
+      // payload. Nothing on screen may name it.
+      expect(_onScreen(tester, 'USDC'), isFalse);
+
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.error?.code, 5000);
+      await _finish(tester, harness);
+    });
+
+    testWidgets('with no network selected the same swap cannot be read', (
+      tester,
+    ) async {
+      final harness = await _start(tester, coins: const [_gnus]);
+      harness.walletKit.send(_request('eth_sendTransaction', [_swapTx()]));
+      await tester.pumpAndSettle();
+
+      expect(_onScreen(tester, 'Unknown contract call'), isTrue);
+      expect(_onScreen(tester, 'Squid'), isFalse);
+
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.error?.code, 5000);
+      await _finish(tester, harness);
+    });
 
     testWidgets(
       'an approval the wallet cannot act on is a failure, not a rejection',

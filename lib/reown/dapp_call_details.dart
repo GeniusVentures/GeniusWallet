@@ -26,6 +26,11 @@ const _kUnverifiedToken =
 
 const _kCheckTheAddresses = 'Check the addresses below before approving.';
 
+const _kDestinationUnreadable =
+    'GeniusWallet can read what is being sent into this swap, but it cannot '
+    'read which token you receive or how much of it -- neither is in the '
+    'transaction. Check them on the dApp before approving.';
+
 /// Public for the same reason [kUnreadableRequestWarning] is: this screen is
 /// assembled straight from the request, with no summary to read it from.
 const kUnreadableSignatureWarning =
@@ -50,7 +55,21 @@ String dappCallHeadline(DappCallSummary summary) {
         ? 'Token approval (unverified)'
         : 'Token transfer (unverified)';
   }
-  return 'Unknown contract call';
+  final router = summary.routerName;
+  if (summary.kind == DappCallKind.routerSwap) {
+    final amount = summary.amount;
+    final symbol = summary.symbol;
+    // The input side is the only side that was read, so it is the only side
+    // the headline may name. An unreadable input token leaves the figure to
+    // the rows, where it can be labelled as base units.
+    if (router == null || amount == null || symbol == null) {
+      return 'Swap via ${router ?? 'a router'}';
+    }
+    return 'Swapping $amount $symbol via $router';
+  }
+  // Naming a listed router is not a claim about the call: the warning below
+  // still says this one could not be read.
+  return router == null ? 'Unknown contract call' : 'Unknown call to $router';
 }
 
 /// The caution above the rows, assembled from the sentences this particular
@@ -58,13 +77,17 @@ String dappCallHeadline(DappCallSummary summary) {
 /// the words on screen is a thing a test can hold.
 String dappCallWarning(DappCallSummary summary) {
   final isUnknown = summary.kind == DappCallKind.unknownCall;
+  final isSwap = summary.kind == DappCallKind.routerSwap;
   return <String>[
     if (summary.isUnlimitedAllowance) _kUnlimitedAllowance,
     if (isUnknown) kUnreadableRequestWarning,
+    if (isSwap) _kDestinationUnreadable,
     // An unreadable call has no token half for the native figure to be "as
     // well as", so that sentence would name a reading nobody made.
     if (!isUnknown && summary.nativeAmount != null) _kAlsoMovesNative,
-    if (summary.kind == DappCallKind.unverifiedToken) _kUnverifiedToken,
+    if (summary.kind == DappCallKind.unverifiedToken ||
+        (isSwap && summary.symbol == null))
+      _kUnverifiedToken,
     if (summary.spender != null) _kStandingApproval,
     _kCheckTheAddresses,
   ].join(' ');
@@ -82,6 +105,35 @@ List<DappCallRow> dappCallRows(
   final symbol = summary.symbol;
   final native = summary.nativeAmount;
   final isUnknown = summary.kind == DappCallKind.unknownCall;
+  // A swap names the router it goes through and the token it spends, which
+  // are two different addresses. Every other kind has only one, so this is
+  // its own short list rather than a third label variant below.
+  if (summary.kind == DappCallKind.routerSwap) {
+    return <DappCallRow>[
+      if (summary.tokenContract != null)
+        DappCallRow(
+          label: 'Router',
+          value: summary.tokenContract!,
+          copyable: true,
+        ),
+      if (summary.tokenIn != null)
+        DappCallRow(label: 'Token in', value: summary.tokenIn!, copyable: true),
+      if (figure != null)
+        DappCallRow(
+          label: symbol == null ? 'Amount in (smallest units)' : 'Amount in',
+          value: symbol == null ? figure : '$figure $symbol',
+        ),
+      if (native != null)
+        DappCallRow(
+          label: 'Also sending',
+          value: nativeSymbol == null || nativeSymbol.isEmpty
+              ? native
+              : '$native $nativeSymbol',
+        ),
+      if (networkName != null && networkName.isNotEmpty)
+        DappCallRow(label: 'Network', value: networkName),
+    ];
+  }
   return <DappCallRow>[
     if (summary.spender != null)
       DappCallRow(label: 'Spender', value: summary.spender!, copyable: true),
@@ -94,8 +146,11 @@ List<DappCallRow> dappCallRows(
     if (summary.tokenContract != null)
       DappCallRow(
         // Nothing identified it as a token, so naming it one would be the
-        // reading this call did not get.
-        label: isUnknown ? 'Contract' : 'Token',
+        // reading this call did not get. A listed address is still named for
+        // what it is, which is all the allow-list ever claims.
+        label: isUnknown
+            ? (summary.routerName == null ? 'Contract' : 'Router')
+            : 'Token',
         value: summary.tokenContract!,
         copyable: true,
       ),
@@ -199,12 +254,19 @@ class _PlainDetailRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: GeniusWalletTypography.bodySm.copyWith(
-              color: gw.textPrimary70,
+          // Flexible on BOTH sides: a long label beside a long value is how
+          // this row overflowed, and a clipped word beats a striped bar.
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textPrimary70,
+              ),
             ),
           ),
+          const SizedBox(width: GeniusWalletConsts.space3),
           Flexible(
             child: Text(
               value,
