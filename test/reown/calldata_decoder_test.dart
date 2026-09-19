@@ -19,6 +19,9 @@
 // same `Map` instance is handed to the signer by reference, so a byte written
 // during decode is a byte the user did not agree to.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/web3/web3.dart';
@@ -84,6 +87,29 @@ Map<String, dynamic> _tx({String? data, String? value, String? to}) => {
   'maxPriorityFeePerGas': '0x3b9aca00',
   'data': ?data,
 };
+
+// -- The recorded Squid route.
+//
+// Captured from this repo's own live-API fixture, which lives on another
+// branch and is read with:
+//   git show refs/heads/phase-29-integrator-fee:test/squid_router/fixtures/route_response_executable.json
+// Trimmed to the fields asserted below and read from disk rather than pasted,
+// because 2.3 KB of calldata transcribed by hand proves nothing.
+//
+// Squid states `transactionRequest.value` as a decimal string; a dApp hands
+// the wallet the hex form an `eth_sendTransaction` actually carries, which is
+// what the transactions built here use.
+const _squidFixturePath =
+    'test/reown/fixtures/squid_route_transaction_request.json';
+
+Map<String, dynamic> _squidFixture() =>
+    jsonDecode(File(_squidFixturePath).readAsStringSync())
+        as Map<String, dynamic>;
+
+// The destination of that recorded route. Its address IS inside the payload,
+// nested at a route-dependent position -- finding it there would be a guess a
+// hostile payload could seed, so nothing this wallet shows may contain it.
+const _recordedDestinationToken = '833589fcd6edb6e08f4c7c32d4f71b54bda02913';
 
 void main() {
   group('tryDecodeErc20Transfer - reading the two arguments', () {
@@ -608,6 +634,310 @@ void main() {
       summarizeTransaction(tx, coins: const [_sixDecimalCoin]);
 
       expect(tx, equals(before));
+    });
+  });
+  group('a recorded Squid route, read on its input side only', () {
+    final fixture = _squidFixture();
+    final request = fixture['transactionRequest'] as Map<String, dynamic>;
+    final estimate = fixture['estimate'] as Map<String, dynamic>;
+    final fromToken = estimate['fromToken'] as Map<String, dynamic>;
+
+    final swapData = request['data'] as String;
+    final router = request['target'] as String;
+    final tokenIn = fromToken['address'] as String;
+    final amountIn = BigInt.parse(estimate['fromAmount'] as String);
+    final gnus = Coin(
+      symbol: fromToken['symbol'] as String,
+      address: tokenIn,
+      decimals: (fromToken['decimals'] as int).toString(),
+    );
+
+    /// The selector and its first two words, and nothing else: 68 bytes.
+    final twoWordsOnly = swapData.substring(0, 2 + 8 + 128);
+
+    /// One byte short of two whole words, so reading them would run off the
+    /// end of the payload.
+    final sixtySevenBytes = swapData.substring(0, 2 + 67 * 2);
+
+    Map<String, dynamic> swapTx({String? data, String? to, String? value}) =>
+        <String, dynamic>{
+          'from': '0x0000000000000000000000000000000000000001',
+          'to': to ?? router,
+          'value': value ?? '0x0',
+          'data': data ?? swapData,
+        };
+
+    test('the fixture is the payload that was recorded', () {
+      expect(hexToBytes(swapData).length, 2324);
+      expect(swapData.substring(0, 10), kSquidSwapSelector);
+      expect(hexToBytes(sixtySevenBytes).length, 67);
+    });
+
+    group('tryDecodeSwapInput - word 0 and word 1, and no further', () {
+      test('the two words are the token in and the amount in', () {
+        final decoded = tryDecodeSwapInput(swapData);
+        expect(decoded, isNotNull);
+        expect(decoded!.counterparty.eip55With0x.toLowerCase(), tokenIn);
+        expect(decoded.amount, amountIn);
+      });
+
+      test('truncating to exactly those two words changes nothing', () {
+        // Which is the proof that nothing past them was ever consulted.
+        final decoded = tryDecodeSwapInput(twoWordsOnly);
+        expect(decoded!.counterparty.eip55With0x.toLowerCase(), tokenIn);
+        expect(decoded.amount, amountIn);
+      });
+
+      group('REJECTED - nothing is read at offsets a payload did not earn', () {
+        test('the same 2.3 KB under a different selector', () {
+          expect(
+            tryDecodeSwapInput('0xdeadbeef${swapData.substring(10)}'),
+            isNull,
+          );
+        });
+
+        test('the right selector on 67 bytes -- one short of two words', () {
+          expect(tryDecodeSwapInput(sixtySevenBytes), isNull);
+        });
+
+        test('the selector on its own', () {
+          expect(tryDecodeSwapInput(kSquidSwapSelector), isNull);
+        });
+
+        test('null, empty, and non-hex', () {
+          expect(tryDecodeSwapInput(null), isNull);
+          expect(tryDecodeSwapInput(''), isNull);
+          expect(tryDecodeSwapInput('0xzzzz'), isNull);
+        });
+
+        test('an ERC-20 transfer is not a swap', () {
+          expect(tryDecodeSwapInput(_transferCalldata), isNull);
+        });
+
+        test('a swap is not an ERC-20 transfer or approve either', () {
+          expect(tryDecodeErc20Transfer(swapData), isNull);
+          expect(tryDecodeErc20Approve(swapData), isNull);
+        });
+      });
+    });
+
+    group('the allow-list is a claim, so it ships one chain', () {
+      test('the recorded target on Base is named', () {
+        expect(knownRouterName(8453, router), 'Squid');
+      });
+
+      test('the case the transaction happens to use is not part of it', () {
+        expect(knownRouterName(8453, router.toLowerCase()), 'Squid');
+        expect(knownRouterName(8453, router.toUpperCase()), 'Squid');
+      });
+
+      test('the same address on any other chain is not named', () {
+        // Only 8453 is evidenced by the recorded response. An entry for
+        // another chain would be a claim with nothing behind it.
+        expect(knownRouterName(1, router), isNull);
+        expect(knownRouterName(137, router), isNull);
+        expect(knownRouterName(42161, router), isNull);
+      });
+
+      test('a null chain or a null address names nothing', () {
+        expect(knownRouterName(null, router), isNull);
+        expect(knownRouterName(8453, null), isNull);
+        expect(knownRouterName(null, null), isNull);
+      });
+
+      test('some other contract on Base is not a router', () {
+        expect(knownRouterName(8453, _tokenContract), isNull);
+      });
+
+      test('exactly one chain, carrying exactly one router', () {
+        expect(kKnownRouters.keys.toList(), [8453]);
+        expect(kKnownRouters[8453]!.length, 1);
+      });
+
+      test('every listed address is lowercased, so the lookup can match', () {
+        for (final byChain in kKnownRouters.values) {
+          for (final address in byChain.keys) {
+            expect(address, address.toLowerCase());
+          }
+        }
+      });
+    });
+
+    group('summarizeTransaction - what a swap may be said to do', () {
+      test('a known router and a known token name what goes in', () {
+        final summary = summarizeTransaction(
+          swapTx(),
+          coins: [gnus],
+          chainId: 8453,
+        );
+        expect(summary.kind, DappCallKind.routerSwap);
+        expect(summary.routerName, 'Squid');
+        expect(summary.tokenContract, router);
+        expect(summary.tokenIn!.toLowerCase(), tokenIn);
+        expect(summary.symbol, 'GNUS');
+        // The repo's own formatter trims trailing zeros, so one whole token
+        // at eighteen decimals renders as "1", not "1.0".
+        expect(summary.amount, '1');
+      });
+
+      test('the destination is nowhere in what it claims', () {
+        final summary = summarizeTransaction(
+          swapTx(),
+          coins: [gnus],
+          chainId: 8453,
+        );
+        expect(summary.recipient, isNull);
+        expect(summary.spender, isNull);
+        expect(summary.allowance, isNull);
+        expect(summary.symbol, isNot('USDC'));
+        for (final field in <String?>[
+          summary.symbol,
+          summary.amount,
+          summary.tokenIn,
+          summary.tokenContract,
+          summary.routerName,
+        ]) {
+          expect(
+            field?.toLowerCase() ?? '',
+            isNot(contains(_recordedDestinationToken)),
+            reason: 'the destination token was found by scanning the payload',
+          );
+        }
+      });
+
+      test('an input token the wallet cannot name stays in base units', () {
+        final summary = summarizeTransaction(
+          swapTx(),
+          coins: const [],
+          chainId: 8453,
+        );
+        expect(summary.kind, DappCallKind.routerSwap);
+        expect(summary.symbol, isNull);
+        expect(summary.amount, amountIn.toString());
+        expect(
+          summary.amount,
+          isNot(contains('.')),
+          reason: 'base units carry no decimal point',
+        );
+      });
+
+      test('the same payload to the same address off Base is unreadable', () {
+        final summary = summarizeTransaction(
+          swapTx(),
+          coins: [gnus],
+          chainId: 1,
+        );
+        expect(summary.kind, DappCallKind.unknownCall);
+        expect(summary.routerName, isNull);
+        expect(summary.selector, kSquidSwapSelector);
+        expect(summary.amount, isNull);
+      });
+
+      test('no chain selected reads nothing either', () {
+        expect(
+          summarizeTransaction(swapTx(), coins: [gnus]).kind,
+          DappCallKind.unknownCall,
+        );
+      });
+
+      test('a known router carrying a selector nobody knows is unreadable', () {
+        final summary = summarizeTransaction(
+          swapTx(data: _unknownSelectorCalldata),
+          coins: [gnus],
+          chainId: 8453,
+        );
+        expect(summary.kind, DappCallKind.unknownCall);
+        // Still named: the user is not told an allow-listed router is an
+        // unknown contract. Nothing about the call itself is claimed.
+        expect(summary.routerName, 'Squid');
+        expect(summary.selector, '0xdeadbeef');
+        expect(summary.amount, isNull);
+        expect(summary.symbol, isNull);
+        expect(summary.tokenIn, isNull);
+      });
+
+      test('a known router carrying a truncated swap is unreadable too', () {
+        final summary = summarizeTransaction(
+          swapTx(data: sixtySevenBytes),
+          coins: [gnus],
+          chainId: 8453,
+        );
+        expect(summary.kind, DappCallKind.unknownCall);
+        expect(summary.routerName, 'Squid');
+        expect(summary.selector, kSquidSwapSelector);
+        expect(summary.tokenIn, isNull);
+      });
+
+      test('a value that cannot be read is not a readable swap', () {
+        expect(
+          summarizeTransaction(
+            swapTx(value: 'not-hex'),
+            coins: [gnus],
+            chainId: 8453,
+          ).kind,
+          DappCallKind.unknownCall,
+        );
+      });
+
+      test('a swap that also moves native value keeps that figure', () {
+        final summary = summarizeTransaction(
+          swapTx(value: '0x2386f26fc10000'),
+          coins: [gnus],
+          chainId: 8453,
+        );
+        expect(summary.kind, DappCallKind.routerSwap);
+        expect(summary.nativeAmount, contains('0.01'));
+      });
+
+      test('a plain send to a known router is still a plain send', () {
+        expect(
+          summarizeTransaction(
+            swapTx(data: '0x'),
+            coins: [gnus],
+            chainId: 8453,
+          ).kind,
+          DappCallKind.nativeSend,
+        );
+      });
+
+      test('an ERC-20 approve of the router is still an approve', () {
+        // The transaction that precedes a swap, and it must not be swallowed
+        // by the router branch.
+        final summary = summarizeTransaction(
+          swapTx(data: _approveCalldata, to: _tokenContract),
+          coins: const [_sixDecimalCoin],
+          chainId: 8453,
+        );
+        expect(summary.kind, DappCallKind.tokenApprove);
+        expect(summary.spender, _recipient);
+      });
+
+      test('the swap is filed under the token it spends', () {
+        expect(
+          receiptSymbol(
+            summarizeTransaction(swapTx(), coins: [gnus], chainId: 8453),
+            nativeSymbol: 'ETH',
+          ),
+          'GNUS',
+        );
+      });
+
+      test('an unnameable input token is filed under its address', () {
+        expect(
+          receiptSymbol(
+            summarizeTransaction(swapTx(), coins: const [], chainId: 8453),
+            nativeSymbol: 'ETH',
+          ).toLowerCase(),
+          tokenIn,
+        );
+      });
+
+      test('the recorded route leaves the signed map untouched', () {
+        final tx = swapTx();
+        final before = Map<String, dynamic>.of(tx);
+        summarizeTransaction(tx, coins: [gnus], chainId: 8453);
+        expect(tx, equals(before));
+      });
     });
   });
 }
