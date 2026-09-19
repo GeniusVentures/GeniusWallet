@@ -3,9 +3,69 @@ import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/data/gw_copy_row.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/reown/calldata_decoder.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
+
+const _kUnlimitedAllowance =
+    'This approves an unlimited amount: the spender could move this token out '
+    'of your wallet at any time, until you revoke it.';
+
+const _kStandingApproval =
+    'An approval stands until it is revoked -- the spender does not have to '
+    'ask again.';
+
+const _kCheckTheAddresses = 'Check the addresses below before approving.';
+
+/// What the drawer calls this transaction. Only the kinds the send body
+/// refuses reach here.
+String dappCallHeadline(DappCallSummary summary) {
+  if (summary.kind == DappCallKind.tokenApprove) {
+    return 'Approve spending';
+  }
+  return 'Contract call';
+}
+
+/// The caution above the rows, assembled from the sentences this particular
+/// call earns. Kept out of the widget so the link from decoded calldata to
+/// the words on screen is a thing a test can hold.
+String dappCallWarning(DappCallSummary summary) => <String>[
+  if (summary.isUnlimitedAllowance) _kUnlimitedAllowance,
+  if (summary.kind == DappCallKind.tokenApprove) _kStandingApproval,
+  _kCheckTheAddresses,
+].join(' ');
+
+/// The rows for [summary], in reading order. Addresses are copyable so the
+/// full value reaches the clipboard; [networkName] comes from the wallet, not
+/// from the transaction.
+List<DappCallRow> dappCallRows(DappCallSummary summary, {String? networkName}) {
+  final figure = summary.allowance ?? summary.amount;
+  final symbol = summary.symbol;
+  return <DappCallRow>[
+    if (summary.spender != null)
+      DappCallRow(label: 'Spender', value: summary.spender!, copyable: true),
+    if (summary.recipient != null)
+      DappCallRow(
+        label: 'Recipient',
+        value: summary.recipient!,
+        copyable: true,
+      ),
+    if (summary.tokenContract != null)
+      DappCallRow(
+        label: 'Token',
+        value: summary.tokenContract!,
+        copyable: true,
+      ),
+    if (figure != null)
+      DappCallRow(
+        label: symbol == null ? 'Amount (smallest units)' : 'Amount',
+        value: symbol == null ? figure : '$figure $symbol',
+      ),
+    if (networkName != null && networkName.isNotEmpty)
+      DappCallRow(label: 'Network', value: networkName),
+  ];
+}
 
 /// One line of [DappCallDetails]. Mark [copyable] for a value the user needs
 /// whole -- an address -- so the full string reaches the clipboard even though
