@@ -156,8 +156,12 @@ void Function() handleDappRequests({
           return;
         }
 
-        // TODO: We should parse this out of the transaction data
-        const coinSymbol = "ETH";
+        // Read off the same summary the drawer was built from, so the
+        // record and the screen that authorised it cannot disagree.
+        final coinSymbol = receiptSymbol(
+          summary,
+          nativeSymbol: (network?.symbol ?? 'ETH').toUpperCase(),
+        );
 
         // TODO: CONFIRM NETWORK ON SWAP MATCHES NETWORK SELECTED IN WALLET
 
@@ -193,7 +197,6 @@ void Function() handleDappRequests({
         debugPrint('✅ Success on Swap!: ${result.data}');
 
         // TODO: we should show a pending transaction until it completes
-        // TODO: we should record the coin symbol instead of hard coding.
         final txModel = model.Transaction(
           hash: txHash ?? "",
           fromAddress: walletAddress,

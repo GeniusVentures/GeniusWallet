@@ -15,8 +15,12 @@
 // that reaches the handler leaves it with exactly one answer.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -24,7 +28,8 @@ import 'package:genius_wallet/reown/calldata_decoder.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
+// web3dart comes through reown wholesale and brings its own Wallet with it.
+import 'package:reown_walletkit/reown_walletkit.dart' hide Wallet;
 
 const _signMethods = [
   'personal_sign',
@@ -46,6 +51,24 @@ const _base = Network(
   rpcUrl: 'https://base.invalid',
 );
 
+const _tokenContract = '0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB';
+const _usdc = Coin(symbol: 'USDC', address: _tokenContract, decimals: '6');
+
+const _wallet = Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: 'Wallet A',
+  currencySymbol: 'ETH',
+  walletType: WalletType.privateKey,
+  balance: 0,
+  address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+);
+
+/// transfer(address,uint256) of 1500000 base units -- 1.5 at six decimals.
+const _transferCalldata =
+    '0xa9059cbb'
+    '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
+    '000000000000000000000000000000000000000000000000000000000016e360';
+
 /// A well-formed call to a function this wallet has no ABI for.
 const _unreadableCalldata =
     '0xdeadbeef'
@@ -55,7 +78,7 @@ const _unreadableCalldata =
 Map<String, dynamic> _tx({String? data, String value = '0x2386f26fc10000'}) =>
     <String, dynamic>{
       'from': '0x0000000000000000000000000000000000000001',
-      'to': '0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB',
+      'to': _tokenContract,
       'value': value,
       'gas': '0x5208',
       'maxFeePerGas': '0x3b9aca00',
@@ -77,6 +100,21 @@ SessionRequestEvent _request(String method, dynamic params, {int id = 1}) =>
 /// `noSuchMethod`: a real `GeniusApi` dlopens the native framework and takes
 /// the test host with it.
 class _FakeGeniusApi implements GeniusApi {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Signs nothing and reports success, so the branch that writes the record
+/// can be walked without a signer or a key.
+class _SigningGeniusApi implements GeniusApi {
+  @override
+  Future<ApiResponse<String>> signAndSendTransaction({
+    required Map<String, dynamic> tx,
+    required String rpcUrl,
+    required String address,
+    required int sourceChainId,
+  }) async => ApiResponse.success('0xabc123');
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -109,10 +147,11 @@ class _FakeWalletKit implements ReownWalletKit {
 }
 
 class _Harness {
-  _Harness(this.walletKit, this.cubit, this.dispose);
+  _Harness(this.walletKit, this.cubit, this.transactions, this.dispose);
 
   final _FakeWalletKit walletKit;
   final WalletDetailsCubit cubit;
+  final TransactionsCubit transactions;
   final void Function() dispose;
 
   JsonRpcResponse get answer => walletKit.responses.single;
@@ -120,7 +159,13 @@ class _Harness {
 
 /// Pumps a host carrying the app's real `navigatorKey`, which is the only
 /// context the handler has to open a drawer with.
-Future<_Harness> _start(WidgetTester tester, {Network? network}) async {
+Future<_Harness> _start(
+  WidgetTester tester, {
+  Network? network,
+  List<Coin> coins = const [],
+  Wallet? wallet,
+  GeniusApi? api,
+}) async {
   await tester.pumpWidget(
     MaterialApp(
       navigatorKey: navigatorKey,
@@ -129,18 +174,23 @@ Future<_Harness> _start(WidgetTester tester, {Network? network}) async {
     ),
   );
   final cubit = WalletDetailsCubit(
-    initialState: WalletDetailsState(selectedNetwork: network),
+    initialState: WalletDetailsState(
+      selectedNetwork: network,
+      coins: coins,
+      selectedWallet: wallet,
+    ),
     geniusApi: _FakeGeniusApi(),
     networkTokensProvider: NetworkTokensProvider(),
   );
   final walletKit = _FakeWalletKit();
+  final transactions = TransactionsCubit();
   final dispose = handleDappRequests(
     walletKit: walletKit,
-    geniusApi: _FakeGeniusApi(),
+    geniusApi: api ?? _FakeGeniusApi(),
     walletDetailsCubit: cubit,
-    transactionsCubit: TransactionsCubit(),
+    transactionsCubit: transactions,
   );
-  return _Harness(walletKit, cubit, dispose);
+  return _Harness(walletKit, cubit, transactions, dispose);
 }
 
 Future<void> _finish(WidgetTester tester, _Harness harness) async {
@@ -332,5 +382,76 @@ void main() {
         await _finish(tester, harness);
       },
     );
+  });
+
+  group('the receipt agrees with the screen that authorised it', () {
+    // No native value: a token call that ALSO moves native currency is its
+    // own kind, and would answer a different question than this group asks.
+    DappCallSummary summaryOf(String? data, {List<Coin> coins = const []}) =>
+        summarizeTransaction(
+          _tx(data: data, value: '0x0'),
+          coins: coins,
+        );
+
+    test('a decoded token send is filed under its token', () {
+      expect(
+        receiptSymbol(
+          summaryOf(_transferCalldata, coins: const [_usdc]),
+          nativeSymbol: 'ETH',
+        ),
+        'USDC',
+      );
+    });
+
+    test('a plain send keeps the unit of the chain it is on', () {
+      expect(receiptSymbol(summaryOf(null), nativeSymbol: 'ETH'), 'ETH');
+    });
+
+    test('a token the wallet cannot name is filed under its contract', () {
+      // Not ETH, which it demonstrably is not, and not an invented ticker.
+      // The address is the only true thing there is to write down.
+      expect(
+        receiptSymbol(summaryOf(_transferCalldata), nativeSymbol: 'ETH'),
+        _tokenContract,
+      );
+    });
+
+    test('an unreadable call is filed under the chain unit it moved', () {
+      expect(
+        receiptSymbol(summaryOf(_unreadableCalldata), nativeSymbol: 'ETH'),
+        'ETH',
+      );
+    });
+
+    testWidgets('the record written after an approval carries that symbol', (
+      tester,
+    ) async {
+      // The whole point of threading it: history used to say ETH for a token
+      // it never moved, contradicting the drawer that authorised it.
+      //
+      // The Hive write that follows throws here -- no box is open in a widget
+      // test -- and the handler swallows it, which is why the assertion is on
+      // the cubit the same model was streamed to a line earlier.
+      final harness = await _start(
+        tester,
+        network: _base,
+        coins: const [_usdc],
+        wallet: _wallet,
+        api: _SigningGeniusApi(),
+      );
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [
+          _tx(data: _transferCalldata, value: '0x0'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.result, '0xabc123');
+      expect(harness.transactions.state.single.coinSymbol, 'USDC');
+      await _finish(tester, harness);
+    });
   });
 }
