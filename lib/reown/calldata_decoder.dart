@@ -205,6 +205,22 @@ BigInt? _nativeValue(Object? value) {
   return BigInt.tryParse(digits, radix: 16);
 }
 
+/// The unit to file a transaction under. A token call is filed under its
+/// token: by symbol where the wallet knows one, and by contract address where
+/// it does not, because an invented ticker outlives the drawer that showed it.
+String receiptSymbol(DappCallSummary summary, {required String nativeSymbol}) {
+  switch (summary.kind) {
+    case DappCallKind.tokenTransfer:
+    case DappCallKind.tokenApprove:
+      return summary.symbol ?? nativeSymbol;
+    case DappCallKind.unverifiedToken:
+      return summary.tokenContract ?? nativeSymbol;
+    case DappCallKind.nativeSend:
+    case DappCallKind.unknownCall:
+      return nativeSymbol;
+  }
+}
+
 /// True only for the calldata of a plain send: absent, or `0x` with nothing
 /// behind it. Every other payload is a contract call, readable or not.
 bool _isPlainSend(Object? data) {
