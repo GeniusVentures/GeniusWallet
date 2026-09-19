@@ -166,9 +166,9 @@ Reown/WalletConnect.
 
 ### dApp Signing Honesty (DAP)
 
-- [ ] **DAP-01**: Reown approval flow decodes ERC-20 `transfer`/`approve` calldata and shows the decoded action in the drawer
-- [ ] **DAP-02**: Known-router swap calls decode to "swapping X → Y" in the approval drawer
-- [ ] **DAP-03**: Undecodable calldata is labeled an unknown-contract call with a visible warning, never presented as a plain send
+- [x] **DAP-01**: Reown approval flow decodes ERC-20 `transfer`/`approve` calldata and shows the decoded action in the drawer
+- [ ] **DAP-02**: Known-router swap calls decode to "swapping X → Y" in the approval drawer — PARTIAL: the input side ("Swapping 1 GNUS via Squid") ships and the drawer states that the destination cannot be read; "→ Y" is not met because Squid's calldata does not carry the destination token or amount at any fixed offset
+- [x] **DAP-03**: Undecodable calldata is labeled an unknown-contract call with a visible warning, never presented as a plain send
 
 ### Beyond v2.0 (formerly "v2 Requirements", deferred)
 
@@ -209,9 +209,9 @@ Reown/WalletConnect.
 | SWP-08 | Phase 27 — Live quotes (balances, route, slippage, rate limits) | Pending |
 | FEE-01 | Phase 29 — Integrator fee | Pending |
 | FEE-02 | Phase 29 — Integrator fee | Pending |
-| DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
-| DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
-| DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
+| DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Complete |
+| DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Partial — input side only |
+| DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Complete |
 
 **Coverage (v2.0):** 13 total; **13/13 mapped to phases 26-30 ✓** — every v2.0 requirement maps
 to exactly one phase; no orphans, no duplicates. Roadmap: `.planning/ROADMAP.md` →
