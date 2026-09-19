@@ -1596,9 +1596,16 @@ money (Phase 28) and legs needing real funds or the live catalogue get a debug-b
   3. Undecodable calldata renders an explicit unknown-contract-call warning — never presented as a plain send (widget test with a garbage/unknown-selector payload)
   4. Decoding is display-only: the transaction payload signed is byte-identical to before — the Phase 21 behavioral-identity contract test for the two signing drawers stays green (decode may not alter what is signed)
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 30-01-PLAN.md — tracer: one ERC-20 transfer decoded end to end, plus the measured branch baseline
+- [ ] 30-02-PLAN.md — approve, unlimited allowance, and the token this wallet cannot vouch for
+- [ ] 30-03-PLAN.md — unknown calls, the two sign methods that currently hang the caller, and an honest receipt
+- [ ] 30-04-PLAN.md — Squid input-side decode, the router allow-list, and the phase gate
+
 **UI hint**: yes
-**Security note**: signing-path UI — plans touching the two approve drawers carry a threat model, per the standing Phase 21 gate.
+**Security note**: signing-path UI — plans touching the two approve drawers carry a threat model, per the standing Phase 21 gate. Every plan in this phase carries one.
 
 ## Progress (v2.0)
 
@@ -1611,4 +1618,4 @@ parallel with them.
 | 27. Live quotes (balances, route, slippage, rate limits) | 0/TBD | Not started | - |
 | 28. Real swap execution & honest recording | 0/TBD | Not started | - |
 | 29. Integrator fee | 0/TBD | Not started | - |
-| 30. dApp calldata decoding (end blind signing) | 0/TBD | Not started | - |
+| 30. dApp calldata decoding (end blind signing) | 0/4 | Planned | - |
