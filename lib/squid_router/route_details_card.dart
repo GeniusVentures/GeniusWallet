@@ -112,29 +112,35 @@ class _DetailRow extends StatelessWidget {
             horizontal: GeniusWalletConsts.space10,
             vertical: GeniusWalletConsts.space6,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  color: gw.textSecondary,
-                ),
-              ),
-              // The rate string is by far the widest value this card shows and
-              // the labels are never more than two words, so only the value
-              // flexes. Unconstrained it runs off the row at phone width
-              // instead of wrapping.
-              Flexible(
-                child: Text(
-                  value,
-                  textAlign: TextAlign.end,
-                  style: GeniusWalletTypography.labelMd.copyWith(
-                    color: valueColor ?? gw.textPrimary,
+          // One node per row, so a screen reader reads "Boost fee, $0.10"
+          // rather than two strings whose pairing is only positional.
+          child: MergeSemantics(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Both children flex. A fee label is whatever the route
+                // called it, so neither side's width is known here, and an
+                // unflexed label would starve the value of the space it
+                // needs to stay on one line.
+                Flexible(
+                  child: Text(
+                    label,
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      color: gw.textSecondary,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                Flexible(
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.end,
+                    style: GeniusWalletTypography.labelMd.copyWith(
+                      color: valueColor ?? gw.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         if (showDivider)
