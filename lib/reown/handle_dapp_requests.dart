@@ -71,15 +71,19 @@ void Function() handleDappRequests({
         );
         final isTokenTransfer = summary.kind == DappCallKind.tokenTransfer;
 
-        if (summary.kind == DappCallKind.tokenApprove) {
-          // An approve moves nothing, so it never reaches the send body --
-          // that body's hero asserts an amount leaves the wallet.
+        // The send body asserts that one figure, in one unit, leaves the
+        // wallet. That sentence is false of an approve and unknowable of a
+        // token this wallet cannot identify, so neither reaches it.
+        if (summary.kind == DappCallKind.tokenApprove ||
+            summary.kind == DappCallKind.unverifiedToken) {
+          final network = walletDetailsCubit.state.selectedNetwork;
           content = DappCallDetails(
             headline: dappCallHeadline(summary),
             warning: dappCallWarning(summary),
             rows: dappCallRows(
               summary,
-              networkName: walletDetailsCubit.state.selectedNetwork?.name,
+              networkName: network?.name,
+              nativeSymbol: network?.symbol,
             ),
           );
         } else {

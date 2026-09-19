@@ -98,12 +98,19 @@ String _approveCalldata(String allowanceWord) =>
     '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
     '$allowanceWord';
 
-Map<String, dynamic> _tx(String data) => <String, dynamic>{
-  'from': '0x0000000000000000000000000000000000000001',
-  'to': _knownToken,
-  'value': '0x0',
-  'data': data,
-};
+Map<String, dynamic> _tx(String data, {String value = '0x0'}) =>
+    <String, dynamic>{
+      'from': '0x0000000000000000000000000000000000000001',
+      'to': _knownToken,
+      'value': value,
+      'data': data,
+    };
+
+/// A transfer of 1500000 base units to the EIP-55 vector address.
+const _transferCalldata =
+    '0xa9059cbb'
+    '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
+    '000000000000000000000000000000000000000000000000000000000016e360';
 
 /// The drawer body `handle_dapp_requests` builds for [tx], assembled from the
 /// same three functions it calls.
@@ -112,7 +119,7 @@ Widget _bodyFor(Map<String, dynamic> tx, {List<Coin> coins = const []}) {
   return DappCallDetails(
     headline: dappCallHeadline(summary),
     warning: dappCallWarning(summary),
-    rows: dappCallRows(summary, networkName: 'Base'),
+    rows: dappCallRows(summary, networkName: 'Base', nativeSymbol: 'ETH'),
   );
 }
 
@@ -300,6 +307,65 @@ void main() {
       await tester.pump();
 
       expect(copied, ['0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed']);
+
+      await _closeDrawer(tester);
+    });
+  });
+
+  group('a token this wallet cannot vouch for', () {
+    testWidgets('the amount is a bare integer, never a guessed decimal', (
+      tester,
+    ) async {
+      // No coins, so nothing resolves the contract. 1500000 base units at the
+      // tempting eighteen-decimal default would render as 0.0000000000015.
+      await _openDrawer(tester, _bodyFor(_tx(_transferCalldata)));
+
+      expect(_onScreen(tester, 'Token transfer (unverified)'), isTrue);
+      expect(find.textContaining('1500000'), findsOneWidget);
+      expect(find.textContaining('0.0000000000015'), findsNothing);
+      expect(find.textContaining('USDC'), findsNothing);
+
+      // A decimal point anywhere in the figure would mean a decimals value was
+      // assumed. It is also what would trip the send drawer's numeric allow-set.
+      final figures = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data ?? '')
+          .where((t) => t.contains('1500000'));
+      for (final figure in figures) {
+        expect(figure, isNot(contains('.')));
+      }
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('the full contract address is there and copies whole', (
+      tester,
+    ) async {
+      await _openDrawer(tester, _bodyFor(_tx(_transferCalldata)));
+
+      await tester.tap(find.text('Token'));
+      await tester.pump();
+
+      expect(copied, [_knownToken]);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('a token call that also moves native value shows BOTH', (
+      tester,
+    ) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(
+          _tx(_transferCalldata, value: '0x2386f26fc10000'),
+          coins: const [_knownCoin],
+        ),
+      );
+
+      // The token figure, in base units...
+      expect(find.textContaining('1500000'), findsOneWidget);
+      // ...and the native figure beside it, neither summarised away.
+      expect(find.textContaining('0.0100000000 ETH'), findsOneWidget);
 
       await _closeDrawer(tester);
     });
