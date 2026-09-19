@@ -2,10 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
-status: planning
-stopped_at: "v1.0 closeout state (2026-08-08): everything tracked was merged into `develop` (tip fa74006d). Quick task 260806-hfe (transactions at phone width) shipped as PR #224 and quick task 260807-bxs (Markets hero, real timeframe tabs, cards) as PR #226 — an earlier note here claiming 260806-hfe was 'NOT pushed, no PR' was wrong. Phases 24 (mobile nav shell) and 25 (dashboard section caps + Assets page) also shipped, executed by Jakub outside GSD: their completion is measured from merged code, NOT from GSD artifacts — phase 24 has no SUMMARY and its PLAN still reads status: in-progress; 25-01 has no SUMMARY and the BRIEF still reads ready-to-plan. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs)."
-last_updated: "2026-09-16T18:21:14.000Z"
-last_activity: 2026-09-16
+current_phase: 30
+current_phase_name: "dApp calldata decoding (end blind signing) - 4/4 plans executed"
+status: in_progress
+stopped_at: "Phase 30 COMPLETE (4/4) on branch phase-30-calldata-decoding. Plan 30-04 added the Squid router allow-list and the input-side swap decode: kKnownRouters is const and holds ONE chain (Base 8453) and one address, because that pair is the only one a recorded live response evidences -- the chain-1 entry was dropped for lack of proof. tryDecodeSwapInput reuses the ERC-20 selector-then-tuple core, so the same 68-byte guard stops a fixed-offset read on a payload that did not earn it; a mutated selector, a 67-byte payload, an off-Base chain and an unrecognised selector on a listed router all fall to unknownCall (the router still named). The drawer says "Swapping 1 GNUS via Squid" and states plainly that the destination token and amount are not in the transaction and must be checked on the dApp. Nothing scans the blob for a token address. DAP-02 is recorded PARTIAL, not met: Squid's calldata carries fromToken/fromAmount at fixed offsets but toToken only nested at a route-dependent position and toAmount not at all. 1341 pass / 3 skip / 0 fail (30-03 baseline 1302, +39 = exactly the cases this plan added), analyze "No issues found!" exit 0, dart format lib test 0 changed exit 0, brace + raw-colour gates exit 0, drawer census 32/32 green with no new entry needed, git diff develop --stat -- pubspec.yaml pubspec.lock empty. Next: human walk of the two drawers on a real WalletConnect session, then verification."
+last_updated: "2026-09-19T22:40:00.000Z"
+last_activity: 2026-09-19
 progress:
   total_phases: 5
   completed_phases: 0
@@ -513,8 +515,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-07-30T16:58:17.006Z
-Stopped at: Completed 21-06-PLAN.md (phase 21 closed, 6/6 plans)
+Last session: 2026-09-19T22:40:00.000Z
+Stopped at: Phase 30 COMPLETE (4/4) on branch phase-30-calldata-decoding. Plan 30-04 added the Squid router allow-list and the input-side swap decode: kKnownRouters is const and holds ONE chain (Base 8453) and one address, because that pair is the only one a recorded live response evidences -- the chain-1 entry was dropped for lack of proof. tryDecodeSwapInput reuses the ERC-20 selector-then-tuple core, so the same 68-byte guard stops a fixed-offset read on a payload that did not earn it; a mutated selector, a 67-byte payload, an off-Base chain and an unrecognised selector on a listed router all fall to unknownCall (the router still named). The drawer says "Swapping 1 GNUS via Squid" and states plainly that the destination token and amount are not in the transaction and must be checked on the dApp. Nothing scans the blob for a token address. DAP-02 is recorded PARTIAL, not met: Squid's calldata carries fromToken/fromAmount at fixed offsets but toToken only nested at a route-dependent position and toAmount not at all. 1341 pass / 3 skip / 0 fail (30-03 baseline 1302, +39 = exactly the cases this plan added), analyze "No issues found!" exit 0, dart format lib test 0 changed exit 0, brace + raw-colour gates exit 0, drawer census 32/32 green with no new entry needed, git diff develop --stat -- pubspec.yaml pubspec.lock empty. Next: human walk of the two drawers on a real WalletConnect session, then verification.
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
