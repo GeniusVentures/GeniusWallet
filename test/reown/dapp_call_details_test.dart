@@ -14,6 +14,9 @@
 // the way the drawer's own contract test does: this widget only ever ships
 // inside that drawer, and a check that pumps it bare would not notice it
 // breaking there.
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -121,13 +124,74 @@ const _transferCalldata =
 
 /// The drawer body `handle_dapp_requests` builds for [tx], assembled from the
 /// same three functions it calls.
-Widget _bodyFor(Map<String, dynamic> tx, {List<Coin> coins = const []}) {
-  final summary = summarizeTransaction(tx, coins: coins);
+Widget _bodyFor(
+  Map<String, dynamic> tx, {
+  List<Coin> coins = const [],
+  int? chainId,
+}) {
+  final summary = summarizeTransaction(tx, coins: coins, chainId: chainId);
   return DappCallDetails(
     headline: dappCallHeadline(summary),
     warning: dappCallWarning(summary),
     rows: dappCallRows(summary, networkName: 'Base', nativeSymbol: 'ETH'),
   );
+}
+
+// -- The recorded Squid route, trimmed. Its provenance is written down in
+// `calldata_decoder_test.dart`, which asserts the byte-level facts; this file
+// only asks what a user ends up reading.
+final _squidFixture =
+    jsonDecode(
+          File(
+            'test/reown/fixtures/squid_route_transaction_request.json',
+          ).readAsStringSync(),
+        )
+        as Map<String, dynamic>;
+
+final _swapRequest =
+    _squidFixture['transactionRequest'] as Map<String, dynamic>;
+final _swapEstimate = _squidFixture['estimate'] as Map<String, dynamic>;
+final _swapFromToken = _swapEstimate['fromToken'] as Map<String, dynamic>;
+
+final _swapData = _swapRequest['data'] as String;
+final _swapRouter = _swapRequest['target'] as String;
+final _swapTokenIn = _swapFromToken['address'] as String;
+final _swapAmountIn = _swapEstimate['fromAmount'] as String;
+final _gnus = Coin(
+  symbol: _swapFromToken['symbol'] as String,
+  address: _swapTokenIn,
+  decimals: (_swapFromToken['decimals'] as int).toString(),
+);
+
+/// The token that route actually buys. Its address is inside the payload, so
+/// naming it on screen would mean the wallet went looking for it.
+const _destinationSymbol = 'USDC';
+const _destinationToken = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+
+Map<String, dynamic> _swapTx({String? data}) => <String, dynamic>{
+  'from': '0x0000000000000000000000000000000000000001',
+  'to': _swapRouter,
+  'value': '0x0',
+  'data': data ?? _swapData,
+};
+
+/// The assertion every swap case shares: nothing on screen names what comes
+/// back out, and nothing is shaped like an "X to Y" summary that implies it.
+void _expectNoDestinationNamed(WidgetTester tester) {
+  final onScreen = tester
+      .widgetList<Text>(find.byType(Text))
+      .map((t) => t.data ?? '')
+      .toList();
+  for (final text in onScreen) {
+    expect(text, isNot(contains(_destinationSymbol)));
+    expect(text.toLowerCase(), isNot(contains(_destinationToken.substring(2))));
+    expect(text, isNot(contains('→')));
+    expect(text, isNot(contains('->')));
+  }
+  expect(find.textContaining('You receive'), findsNothing);
+  expect(find.textContaining('Token out'), findsNothing);
+  expect(find.textContaining('Amount out'), findsNothing);
+  expect(find.textContaining('You send'), findsNothing);
 }
 
 void main() {
@@ -428,6 +492,133 @@ void main() {
       await tester.pump();
 
       expect(copied, [_knownToken]);
+
+      await _closeDrawer(tester);
+    });
+  });
+  group('a swap through a router the wallet will name', () {
+    testWidgets('it says what goes in, and by whose router', (tester) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(_swapTx(), coins: [_gnus], chainId: 8453),
+      );
+
+      // One whole token at eighteen decimals; the repo's formatter trims the
+      // trailing zeros, so the figure reads "1".
+      expect(_onScreen(tester, 'Swapping 1 GNUS via Squid'), isTrue);
+      expect(_onScreen(tester, 'Router'), isTrue);
+      expect(_onScreen(tester, 'Token in'), isTrue);
+      expect(_onScreen(tester, 'Amount in'), isTrue);
+      expect(_onScreen(tester, '1 GNUS'), isTrue);
+      expect(_onScreen(tester, 'Base'), isTrue);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('it admits the destination cannot be read', (tester) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(_swapTx(), coins: [_gnus], chainId: 8453),
+      );
+
+      expect(_onScreen(tester, 'cannot read'), isTrue);
+      expect(_onScreen(tester, 'check them on the dApp'), isTrue);
+      _expectNoDestinationNamed(tester);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('the router and the input token both copy whole', (
+      tester,
+    ) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(_swapTx(), coins: [_gnus], chainId: 8453),
+      );
+
+      await tester.tap(find.text('Router'));
+      await tester.pump();
+      await tester.tap(find.text('Token in'));
+      await tester.pump();
+
+      expect(copied, [_swapRouter, _swapTokenIn]);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('an input token the wallet cannot name stays in base units', (
+      tester,
+    ) async {
+      await _openDrawer(tester, _bodyFor(_swapTx(), chainId: 8453));
+
+      expect(_onScreen(tester, 'Swap via Squid'), isTrue);
+      expect(_onScreen(tester, 'smallest units'), isTrue);
+      expect(_onScreen(tester, _swapAmountIn), isTrue);
+      expect(_onScreen(tester, 'GNUS'), isFalse);
+      // The destination note does not go away just because the input side
+      // got less readable.
+      expect(_onScreen(tester, 'cannot read'), isTrue);
+      _expectNoDestinationNamed(tester);
+
+      final figures = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data ?? '')
+          .where((t) => t.contains(_swapAmountIn));
+      for (final figure in figures) {
+        expect(figure, isNot(contains('.')));
+      }
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('a selector the wallet does not know reads as unreadable', (
+      tester,
+    ) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(
+          _swapTx(data: _unreadableCalldata),
+          coins: [_gnus],
+          chainId: 8453,
+        ),
+      );
+
+      // Named as the router it is, rather than as a bare unknown contract --
+      // and still not claimed to be a swap.
+      expect(_onScreen(tester, 'Unknown call to Squid'), isTrue);
+      expect(_onScreen(tester, 'could not read'), isTrue);
+      expect(_onScreen(tester, 'Router'), isTrue);
+      expect(_onScreen(tester, 'Swapping'), isFalse);
+      expect(_onScreen(tester, 'Token in'), isFalse);
+      expect(_onScreen(tester, 'Amount in'), isFalse);
+      _expectNoDestinationNamed(tester);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('the same payload off Base is an unknown contract call', (
+      tester,
+    ) async {
+      await _openDrawer(tester, _bodyFor(_swapTx(), coins: [_gnus]));
+
+      expect(_onScreen(tester, 'Unknown contract call'), isTrue);
+      expect(_onScreen(tester, 'Squid'), isFalse);
+      expect(_onScreen(tester, 'Swapping'), isFalse);
+      _expectNoDestinationNamed(tester);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('a swap renders in the light appearance too', (tester) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(_swapTx(), coins: [_gnus], chainId: 8453),
+        colors: GWColors.light(),
+      );
+
+      expect(_onScreen(tester, 'Swapping 1 GNUS via Squid'), isTrue);
+      expect(_onScreen(tester, 'cannot read'), isTrue);
+      expect(tester.takeException(), isNull);
 
       await _closeDrawer(tester);
     });
