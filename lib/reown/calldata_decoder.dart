@@ -52,12 +52,9 @@ enum DappCallKind {
   unknownCall,
 }
 
-/// A display-ready reading of one transaction. A null field is one the drawer
-/// has no right to state.
-///
-/// [recipient]/[amount] describe a transfer and [spender]/[allowance] an
-/// approve; they are never both set, which is what keeps an approval out of
-/// the send body.
+/// A display-ready reading of one transaction; a null field is one the drawer
+/// has no right to state. [recipient]/[amount] describe a transfer and
+/// [spender]/[allowance] an approve, and are never both set.
 class DappCallSummary {
   const DappCallSummary(
     this.kind, {
