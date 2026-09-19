@@ -67,6 +67,11 @@ void Function() handleDappRequests({
           : null;
       final network = walletDetailsCubit.state.selectedNetwork;
       final networkName = network?.name ?? '';
+      // Gas and a plain send are both denominated in the chain's own coin, so
+      // the drawer and the stored receipt must read it from one place. Two
+      // sources drifted once already: the screen said ETH on Polygon while the
+      // record said POL.
+      final nativeUnit = (network?.symbol ?? 'ETH').toUpperCase();
 
       // The method decides what shape the parameters arrive in, so it is read
       // first. Casting first is what threw on every signing request.
@@ -111,7 +116,8 @@ void Function() handleDappRequests({
             // being paid -- the recipient only exists inside the calldata.
             toAddress: isTokenTransfer ? summary.recipient! : to,
             amount: isTokenTransfer ? summary.amount! : amountEth,
-            amountSymbol: isTokenTransfer ? summary.symbol! : 'ETH',
+            amountSymbol: isTokenTransfer ? summary.symbol! : nativeUnit,
+            feeSymbol: nativeUnit,
             totalGasFee: totalFeeEth,
             priorityFee: priorityFeeEth,
             maxFeePerGas: maxFeePerGasEth,
@@ -161,10 +167,7 @@ void Function() handleDappRequests({
 
         // Read off the same summary the drawer was built from, so the
         // record and the screen that authorised it cannot disagree.
-        final coinSymbol = receiptSymbol(
-          summary,
-          nativeSymbol: (network?.symbol ?? 'ETH').toUpperCase(),
-        );
+        final coinSymbol = receiptSymbol(summary, nativeSymbol: nativeUnit);
 
         // TODO: CONFIRM NETWORK ON SWAP MATCHES NETWORK SELECTED IN WALLET
 
