@@ -18,6 +18,29 @@ import 'package:web3dart/web3dart.dart';
 const kErc20TransferSelector = '0xa9059cbb';
 const kErc20ApproveSelector = '0x095ea7b3';
 
+/// The entry point Squid's router is called through. Taken from a response
+/// recorded off the live API, which is also the only evidence behind the one
+/// allow-list entry below.
+const kSquidSwapSelector = '0x58181a80';
+
+/// Routers this wallet will name on screen, by chain and then by lowercased
+/// address. An entry here is a claim the user reads as vetting, so only a
+/// pair proven by a recorded response from that router is listed.
+const Map<int, Map<String, String>> kKnownRouters = {
+  8453: {'0xce16f69375520ab01377ce7b88f5ba8c48f8d666': 'Squid'},
+};
+
+/// The name for [to] on [chainId], or null when that exact pair is not
+/// listed. `const` by construction: fetching this at runtime would put a
+/// network round trip on the signing path.
+String? knownRouterName(int? chainId, String? to) {
+  if (chainId == null || to == null) {
+    return null;
+  }
+  // A lowercased local copy; the caller's own string is never rewritten.
+  return kKnownRouters[chainId]?[to.toLowerCase()];
+}
+
 /// A selector plus the two 32-byte words `transfer` and `approve` both take.
 const _minimumCalldataBytes = 68;
 
@@ -25,14 +48,16 @@ const _minimumCalldataBytes = 68;
 /// rather than very small.
 const _maximumTokenDecimals = 36;
 
-/// The two arguments `transfer` and `approve` share.
+/// The two arguments `transfer` and `approve` share, and the two leading
+/// words a router swap happens to carry in the same shape.
 class DecodedAddressAmount {
   const DecodedAddressAmount({
     required this.counterparty,
     required this.amount,
   });
 
-  /// The recipient of a transfer, or the spender of an approve.
+  /// The recipient of a transfer, the spender of an approve, or the token
+  /// going into a swap.
   final EthereumAddress counterparty;
 
   /// Raw base units, meaningless until paired with the token's own decimals.
@@ -102,6 +127,10 @@ enum DappCallKind {
   tokenTransfer,
   tokenApprove,
 
+  /// A swap through an allow-listed router, read on its input side. What
+  /// comes back out is not in the transaction and is never guessed at.
+  routerSwap,
+
   /// A token call the wallet cannot put a unit on, or one that also moves
   /// native currency. Its figures are raw base units.
   unverifiedToken,
@@ -120,6 +149,8 @@ class DappCallSummary {
     this.spender,
     this.allowance,
     this.tokenContract,
+    this.tokenIn,
+    this.routerName,
     this.nativeAmount,
     this.selector,
     this.isUnlimitedAllowance = false,
@@ -135,6 +166,14 @@ class DappCallSummary {
   /// The contract the call is addressed to, exactly as the transaction spells
   /// it.
   final String? tokenContract;
+
+  /// The token a swap spends, which lives in the calldata rather than in the
+  /// `to` field. Never the token a swap returns -- that is not readable here.
+  final String? tokenIn;
+
+  /// The allow-listed name of the contract, when it has one. It names the
+  /// contract only; it is not a statement that the call itself is safe.
+  final String? routerName;
 
   /// Native currency moving alongside the token call, when any does.
   final String? nativeAmount;
@@ -188,6 +227,12 @@ DecodedAddressAmount? tryDecodeErc20Transfer(String? data) =>
 DecodedAddressAmount? tryDecodeErc20Approve(String? data) =>
     _tryDecodeAddressAmount(data, kErc20ApproveSelector);
 
+/// The token and amount going INTO a router swap. Only the two leading words
+/// are read, and only behind the selector gate above: on any other payload
+/// those offsets hold something else entirely, so null is the honest answer.
+DecodedAddressAmount? tryDecodeSwapInput(String? data) =>
+    _tryDecodeAddressAmount(data, kSquidSwapSelector);
+
 /// The native currency this transaction moves, or null when the value cannot
 /// be read at all -- an unreadable value is not a zero value, and there is no
 /// honest figure to put beside the token one.
@@ -215,6 +260,10 @@ String receiptSymbol(DappCallSummary summary, {required String nativeSymbol}) {
       return summary.symbol ?? nativeSymbol;
     case DappCallKind.unverifiedToken:
       return summary.tokenContract ?? nativeSymbol;
+    // A swap is filed under what it spends: the destination is not readable,
+    // so there is nothing else true to write down.
+    case DappCallKind.routerSwap:
+      return summary.symbol ?? summary.tokenIn ?? nativeSymbol;
     case DappCallKind.nativeSend:
     case DappCallKind.unknownCall:
       return nativeSymbol;
@@ -254,13 +303,51 @@ String? _selectorOf(String? data) {
 /// Everything still sayable about a call that could not be read: the contract
 /// it is addressed to, the native value it carries, and the selector. No
 /// counterparty and no amount, because none was read.
-DappCallSummary _unknownCall(String? contract, String? data, BigInt? native) =>
-    DappCallSummary(
-      DappCallKind.unknownCall,
-      tokenContract: contract,
-      nativeAmount: native == null ? null : formatEth(native.toString()),
-      selector: _selectorOf(data),
-    );
+DappCallSummary _unknownCall(
+  String? contract,
+  String? data,
+  BigInt? native,
+  String? routerName,
+) => DappCallSummary(
+  DappCallKind.unknownCall,
+  tokenContract: contract,
+  routerName: routerName,
+  nativeAmount: native == null ? null : formatEth(native.toString()),
+  selector: _selectorOf(data),
+);
+
+/// A token the wallet holds AND can put a unit on. Absent means the figure
+/// stays in base units -- eighteen decimals is never assumed for it.
+class _ResolvedToken {
+  const _ResolvedToken(this.symbol, this.decimals);
+
+  final String symbol;
+  final int decimals;
+}
+
+/// The wallet's own reading of [address], or null when it has none it can
+/// vouch for. A wrong decimals guess renders a confident wrong amount, and an
+/// amount with no unit beside it is a number nobody can act on.
+_ResolvedToken? _resolveToken(List<Coin> coins, String address) {
+  // A lowercased local copy; Dart strings are immutable, so any map the
+  // address came out of keeps its own value untouched.
+  final target = address.toLowerCase();
+  for (final coin in coins) {
+    if (coin.address?.toLowerCase() != target) {
+      continue;
+    }
+    final decimals = int.tryParse(coin.decimals ?? '');
+    final symbol = coin.symbol?.trim() ?? '';
+    if (decimals == null ||
+        decimals < 0 ||
+        decimals > _maximumTokenDecimals ||
+        symbol.isEmpty) {
+      return null;
+    }
+    return _ResolvedToken(symbol, decimals);
+  }
+  return null;
+}
 
 /// Reads [tx] without writing to it. The same map instance is handed to the
 /// signer by reference, so a byte written here is a byte the user never saw
@@ -268,11 +355,13 @@ DappCallSummary _unknownCall(String? contract, String? data, BigInt? native) =>
 DappCallSummary summarizeTransaction(
   Map<String, dynamic> tx, {
   required List<Coin> coins,
+  int? chainId,
 }) {
   final rawData = tx['data'];
   final data = rawData is String ? rawData : null;
   final contract = tx['to'] is String ? tx['to'] as String : null;
   final native = _nativeValue(tx['value']);
+  final routerName = knownRouterName(chainId, contract);
 
   final transfer = tryDecodeErc20Transfer(data);
   final decoded = transfer ?? tryDecodeErc20Approve(data);
@@ -283,42 +372,42 @@ DappCallSummary summarizeTransaction(
     if (_isPlainSend(rawData)) {
       return const DappCallSummary(DappCallKind.nativeSend);
     }
-    return _unknownCall(contract, data, native);
+    // Only a listed router earns a look at those fixed offsets, and only
+    // behind the selector gate. An unrecognised selector on a listed router
+    // falls through here too: a confident mislabel of a swap is worse than
+    // saying the call cannot be read.
+    final swap = routerName == null ? null : tryDecodeSwapInput(data);
+    if (swap == null || native == null) {
+      return _unknownCall(contract, data, native, routerName);
+    }
+    final tokenIn = swap.counterparty.eip55With0x;
+    final inputToken = _resolveToken(coins, tokenIn);
+    return DappCallSummary(
+      DappCallKind.routerSwap,
+      routerName: routerName,
+      tokenContract: contract,
+      tokenIn: tokenIn,
+      amount: inputToken == null
+          ? swap.amount.toString()
+          : formatTokenAmount(swap.amount, inputToken.decimals),
+      symbol: inputToken?.symbol,
+      nativeAmount: native == BigInt.zero ? null : formatEth(native.toString()),
+    );
   }
   final isApprove = transfer == null;
 
   if (contract == null || native == null) {
-    return _unknownCall(contract, data, native);
+    return _unknownCall(contract, data, native, routerName);
   }
 
-  // A lowercased local copy; Dart strings are immutable, so the map keeps its
-  // own value untouched.
-  final target = contract.toLowerCase();
-
-  Coin? token;
-  for (final coin in coins) {
-    if (coin.address?.toLowerCase() == target) {
-      token = coin;
-      break;
-    }
-  }
-
-  // Never fall back to eighteen. A wrong decimals guess renders a confident
-  // wrong amount, which is worse than admitting the token is unreadable. An
-  // amount with no unit beside it is likewise a number nobody can act on.
-  final decimals = int.tryParse(token?.decimals ?? '');
-  final symbol = token?.symbol?.trim() ?? '';
+  final token = _resolveToken(coins, contract);
   final counterparty = decoded.counterparty.eip55With0x;
   final movesNative = native != BigInt.zero;
 
   // Base units and no unit is the honest form for a token this wallet cannot
   // vouch for -- and a call that also moves native currency keeps both
   // figures, because neither may be summarised away.
-  if (decimals == null ||
-      decimals < 0 ||
-      decimals > _maximumTokenDecimals ||
-      symbol.isEmpty ||
-      movesNative) {
+  if (token == null || movesNative) {
     final raw = decoded.amount.toString();
     return DappCallSummary(
       DappCallKind.unverifiedToken,
@@ -337,8 +426,8 @@ DappCallSummary summarizeTransaction(
     return DappCallSummary(
       DappCallKind.tokenApprove,
       spender: counterparty,
-      allowance: formatTokenAmount(decoded.amount, decimals),
-      symbol: symbol,
+      allowance: formatTokenAmount(decoded.amount, token.decimals),
+      symbol: token.symbol,
       tokenContract: contract,
       isUnlimitedAllowance: decoded.amount >= kUnlimitedApprovalThreshold,
     );
@@ -347,8 +436,8 @@ DappCallSummary summarizeTransaction(
   return DappCallSummary(
     DappCallKind.tokenTransfer,
     recipient: counterparty,
-    amount: formatTokenAmount(decoded.amount, decimals),
-    symbol: symbol,
+    amount: formatTokenAmount(decoded.amount, token.decimals),
+    symbol: token.symbol,
     tokenContract: contract,
   );
 }
