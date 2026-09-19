@@ -522,7 +522,7 @@ void main() {
       );
 
       expect(_onScreen(tester, 'cannot read'), isTrue);
-      expect(_onScreen(tester, 'check them on the dApp'), isTrue);
+      expect(_onScreen(tester, 'Check them on the dApp'), isTrue);
       _expectNoDestinationNamed(tester);
 
       await _closeDrawer(tester);
@@ -531,6 +531,16 @@ void main() {
     testWidgets('the router and the input token both copy whole', (
       tester,
     ) async {
+      // A swap body is the tallest this drawer carries: headline, a
+      // three-sentence caution and four rows. At the default 600pt test
+      // surface the last rows sit under the drawer's own footer, where a tap
+      // lands on the footer instead -- which is a fact about the viewport,
+      // not about the rows.
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await _openDrawer(
         tester,
         _bodyFor(_swapTx(), coins: [_gnus], chainId: 8453),
@@ -541,7 +551,11 @@ void main() {
       await tester.tap(find.text('Token in'));
       await tester.pump();
 
-      expect(copied, [_swapRouter, _swapTokenIn]);
+      // The router exactly as the transaction spells it; the input token in
+      // the checksummed form the decoder produces from the calldata.
+      expect(copied.length, 2);
+      expect(copied[0], _swapRouter);
+      expect(copied[1].toLowerCase(), _swapTokenIn);
 
       await _closeDrawer(tester);
     });

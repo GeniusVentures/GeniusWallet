@@ -93,6 +93,9 @@ void Function() handleDappRequests({
         final summary = summarizeTransaction(
           tx,
           coins: walletDetailsCubit.state.coins,
+          // The chain decides whether `to` is a router this wallet will name:
+          // the same address is a different contract on a different chain.
+          chainId: network?.chainId,
         );
         final isTokenTransfer = summary.kind == DappCallKind.tokenTransfer;
 
