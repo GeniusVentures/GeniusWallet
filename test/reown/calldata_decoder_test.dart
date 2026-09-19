@@ -287,4 +287,67 @@ void main() {
       });
     });
   });
+
+  group('the map that gets signed comes back untouched', () {
+    // This is the only assertion in this file that is not about what is
+    // displayed. The same `Map` instance travels on to the signer, which
+    // re-reads `data`, `to` and `value` out of it -- so a key written, removed
+    // or normalised during decoding is a difference between what was shown and
+    // what was signed. Reading needs a lowercased `to` to match the coin list;
+    // that has to happen on a copy.
+    //
+    // `to` is deliberately mixed case here. Lowercased in place, every
+    // displayed value would still be right and only this test would notice.
+    Map<String, dynamic> signableTx() => <String, dynamic>{
+      'from': '0x00000000000000000000000000000000000000A1',
+      'to': _tokenContract,
+      'value': '0x0',
+      'gas': '0x5208',
+      'maxFeePerGas': '0x3B9ACA00',
+      'maxPriorityFeePerGas': '0x3B9ACA00',
+      'data': _transferCalldata,
+    };
+
+    test('a mixed-case contract address still resolves its coin', () {
+      // Without this, the test below could pass by never reaching the code
+      // that lowercases anything.
+      final summary = summarizeTransaction(
+        signableTx(),
+        coins: const [_sixDecimalCoin],
+      );
+      expect(summary.kind, DappCallKind.tokenTransfer);
+      expect(summary.symbol, 'USDC');
+    });
+
+    test('every key and value survives a decode unchanged', () {
+      final tx = signableTx();
+      final before = Map<String, dynamic>.of(tx);
+
+      summarizeTransaction(tx, coins: const [_sixDecimalCoin]);
+
+      expect(
+        tx.keys.toList(),
+        before.keys.toList(),
+        reason: 'decoding must neither add nor remove a key',
+      );
+      for (final key in before.keys) {
+        expect(
+          tx[key],
+          before[key],
+          reason: '"$key" was rewritten during decoding',
+        );
+      }
+      expect(tx, equals(before));
+    });
+
+    test('an undecodable transaction is left alone too', () {
+      final tx = signableTx();
+      tx['data'] = 'not-hex-at-all';
+      final before = Map<String, dynamic>.of(tx);
+
+      summarizeTransaction(tx, coins: const [_sixDecimalCoin]);
+
+      expect(tx, equals(before));
+    });
+  });
 }
