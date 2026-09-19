@@ -56,6 +56,30 @@ Requirements: DAP-01, DAP-02, DAP-03.
   partial guess. Confidently mislabelling a swap is worse than saying the call
   cannot be read.
 
+- **D-11:** Squid's router does not expose a readable `swap(tokenIn, tokenOut, amount)`.
+  Verified against this repo's own recorded live response
+  (`test/squid_router/fixtures/route_response_executable.json` on the phase-26
+  branch): target `0xce16F69375520ab01377ce7B88f5BA8C48F8D666`, selector
+  `0x58181a80`, 2.3 KB of calldata. At fixed offsets, arg0 is **exactly**
+  `fromToken.address` and arg1 is **exactly** `fromAmount`. `toToken.address`
+  appears only nested at a route-dependent position, and `toAmount` does not
+  appear at all.
+
+  So this phase decodes the **input side only** — "Swapping 1.0 GNUS via Squid" —
+  and explicitly tells the user the destination token cannot be read from the
+  transaction and should be checked on Squid before approving. Finding the
+  destination by scanning the blob for a known token address is a heuristic a
+  hostile payload can seed, and a signing screen is the wrong place for one.
+
+  **Known deviation:** this does not satisfy DAP-02's literal "swapping X → Y".
+  It is the most that can be read with certainty. Record it in the phase
+  verification rather than claiming the criterion is met.
+
+  **UNVERIFIED:** the offsets above come from ONE fixture — a same-chain Base
+  swap. Cross-chain, native-token and multi-hop routes may differ, and may use a
+  different selector. The decoder must treat a non-matching selector or a short
+  payload as unreadable rather than reading garbage from those offsets.
+
 ### Scope of the two broken sign methods
 
 - **D-07:** Fix the `params[0]` cast that runs before the method check, so
