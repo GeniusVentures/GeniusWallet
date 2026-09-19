@@ -106,6 +106,13 @@ Map<String, dynamic> _tx(String data, {String value = '0x0'}) =>
       'data': data,
     };
 
+/// A well-formed call to a function this wallet has no ABI for -- what a
+/// router or an NFT marketplace actually sends, not malformed input.
+const _unreadableCalldata =
+    '0xdeadbeef'
+    '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
+    '000000000000000000000000000000000000000000000000000000000016e360';
+
 /// A transfer of 1500000 base units to the EIP-55 vector address.
 const _transferCalldata =
     '0xa9059cbb'
@@ -366,6 +373,61 @@ void main() {
       expect(find.textContaining('1500000'), findsOneWidget);
       // ...and the native figure beside it, neither summarised away.
       expect(find.textContaining('0.0100000000 ETH'), findsOneWidget);
+
+      await _closeDrawer(tester);
+    });
+  });
+
+  group('a call this wallet could not read at all', () {
+    testWidgets('it says so, and states only what it actually read', (
+      tester,
+    ) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(
+          _tx(_unreadableCalldata, value: '0x2386f26fc10000'),
+          coins: const [_knownCoin],
+        ),
+      );
+
+      expect(_onScreen(tester, 'Unknown contract call'), isTrue);
+      expect(_onScreen(tester, 'could not read'), isTrue);
+      expect(_onScreen(tester, 'Contract'), isTrue);
+      expect(_onScreen(tester, '0xdeadbeef'), isTrue);
+      expect(_onScreen(tester, '0.0100000000 ETH'), isTrue);
+      expect(_onScreen(tester, 'Base'), isTrue);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('it is never dressed up as a send', (tester) async {
+      // The failure this whole surface exists to prevent: an unreadable
+      // payload presented as one figure leaving the wallet.
+      await _openDrawer(
+        tester,
+        _bodyFor(_tx(_unreadableCalldata), coins: const [_knownCoin]),
+      );
+
+      expect(find.textContaining('You send'), findsNothing);
+      expect(find.textContaining('You receive'), findsNothing);
+      expect(find.textContaining('Gas Fee'), findsNothing);
+      // The token the contract address happens to match is not what this
+      // call was read to move -- nothing was read.
+      expect(find.textContaining('USDC'), findsNothing);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('the contract address copies whole', (tester) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(_tx(_unreadableCalldata), coins: const [_knownCoin]),
+      );
+
+      await tester.tap(find.text('Contract'));
+      await tester.pump();
+
+      expect(copied, [_knownToken]);
 
       await _closeDrawer(tester);
     });

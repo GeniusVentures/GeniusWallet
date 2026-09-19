@@ -12,7 +12,6 @@ import 'package:genius_wallet/reown/dapp_call_details.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
 import 'package:genius_wallet/reown/utilities.dart';
-import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
@@ -72,21 +71,10 @@ void Function() handleDappRequests({
         final isTokenTransfer = summary.kind == DappCallKind.tokenTransfer;
 
         // The send body asserts that one figure, in one unit, leaves the
-        // wallet. That sentence is false of an approve and unknowable of a
-        // token this wallet cannot identify, so neither reaches it.
-        if (summary.kind == DappCallKind.tokenApprove ||
-            summary.kind == DappCallKind.unverifiedToken) {
-          final network = walletDetailsCubit.state.selectedNetwork;
-          content = DappCallDetails(
-            headline: dappCallHeadline(summary),
-            warning: dappCallWarning(summary),
-            rows: dappCallRows(
-              summary,
-              networkName: network?.name,
-              nativeSymbol: network?.symbol,
-            ),
-          );
-        } else {
+        // wallet. Only these two kinds were read well enough for that
+        // sentence to be true; everything else has to say what it could not
+        // read instead.
+        if (summary.kind == DappCallKind.nativeSend || isTokenTransfer) {
           content = SendTransactionDetails(
             fromAddress: from,
             // For a token transfer `tx['to']` is the contract, not the person
@@ -98,44 +86,32 @@ void Function() handleDappRequests({
             priorityFee: priorityFeeEth,
             maxFeePerGas: maxFeePerGasEth,
           );
+        } else {
+          final network = walletDetailsCubit.state.selectedNetwork;
+          content = DappCallDetails(
+            headline: dappCallHeadline(summary),
+            warning: dappCallWarning(summary),
+            rows: dappCallRows(
+              summary,
+              networkName: network?.name,
+              nativeSymbol: network?.symbol,
+            ),
+          );
         }
       } else {
-        // No BuildContext of our own (this is a session-event handler, not
-        // a widget) -- navigatorKey.currentContext is already how this
-        // function reaches ApproveTransactionDrawer.show below, so it is
-        // also the right (and only) source for a live GWColors read here.
-        final gw = navigatorKey.currentContext!.gw;
-        content = SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (dappUrl.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    dappUrl,
-                    style: TextStyle(color: gw.textSecondary, fontSize: 12),
-                  ),
-                ),
-              Text("Method: $method", style: TextStyle(color: gw.textPrimary)),
-              const SizedBox(height: 12),
-              Text("Params:", style: TextStyle(color: gw.textSecondary)),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: gw.deepBlueCardColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                // deepBlueCardColor is a FIXED dark fill -- see
-                // send_transaction_details.dart's identical card.
-                child: Text(
-                  event.params.toString(),
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ),
-            ],
-          ),
+        // A method with no decoder behind it. Printing its raw parameters is
+        // not a description of anything: the user cannot act on a debug dump,
+        // and reading one as reassurance is worse than reading nothing.
+        final network = walletDetailsCubit.state.selectedNetwork;
+        final networkName = network?.name ?? '';
+        content = DappCallDetails(
+          headline: 'Unknown request',
+          warning: kUnreadableRequestWarning,
+          rows: [
+            DappCallRow(label: 'Method', value: method),
+            if (networkName.isNotEmpty)
+              DappCallRow(label: 'Network', value: networkName),
+          ],
         );
       }
 

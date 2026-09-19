@@ -44,6 +44,13 @@ const _approveCalldata =
     '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
     '000000000000000000000000000000000000000000000000000000000016e360';
 
+// A well-formed call to a function this wallet has no ABI for: the shape a
+// real router or NFT marketplace sends, not malformed input.
+const _unknownSelectorCalldata =
+    '0xdeadbeef'
+    '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
+    '000000000000000000000000000000000000000000000000000000000016e360';
+
 /// The same approve with `arg1` set to the allowance word named in the suffix.
 String _approveOf(String allowanceWord) =>
     '0x095ea7b3'
@@ -421,7 +428,7 @@ void main() {
       });
     });
 
-    group('NATIVE SEND - anything unreadable keeps todays behaviour', () {
+    group('NATIVE SEND - only a transaction carrying no calldata at all', () {
       test('no data key at all', () {
         expect(
           summarizeTransaction(_tx(), coins: const [_sixDecimalCoin]).kind,
@@ -438,6 +445,20 @@ void main() {
           DappCallKind.nativeSend,
         );
       });
+    });
+
+    group('UNKNOWN CALL - calldata that is present but unreadable', () {
+      // The whole point of this group. A payload the wallet cannot decode is
+      // certainly not a plain send of the native value: the calldata is what
+      // the contract will act on, and none of it is shown by a send body.
+      test('a selector this wallet does not know', () {
+        final summary = summarizeTransaction(
+          _tx(data: _unknownSelectorCalldata),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(summary.kind, DappCallKind.unknownCall);
+        expect(summary.selector, '0xdeadbeef');
+      });
 
       test('garbage calldata', () {
         expect(
@@ -445,7 +466,7 @@ void main() {
             _tx(data: 'not-hex-at-all'),
             coins: const [_sixDecimalCoin],
           ).kind,
-          DappCallKind.nativeSend,
+          DappCallKind.unknownCall,
         );
       });
 
@@ -454,8 +475,75 @@ void main() {
         tx['data'] = 42;
         expect(
           summarizeTransaction(tx, coins: const [_sixDecimalCoin]).kind,
-          DappCallKind.nativeSend,
+          DappCallKind.unknownCall,
         );
+      });
+
+      test('calldata too short to hold a selector names no method', () {
+        final summary = summarizeTransaction(
+          _tx(data: '0xabcd'),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(summary.kind, DappCallKind.unknownCall);
+        expect(summary.selector, isNull);
+      });
+
+      test('a known selector on too short a payload is still unreadable', () {
+        // Four bytes of `transfer` and nothing to transfer. Reading the
+        // arguments out of this would read past the end of the payload.
+        final summary = summarizeTransaction(
+          _tx(data: kErc20TransferSelector),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(summary.kind, DappCallKind.unknownCall);
+        expect(summary.selector, kErc20TransferSelector);
+      });
+
+      test('what it can still state: the contract and the native value', () {
+        final summary = summarizeTransaction(
+          _tx(data: _unknownSelectorCalldata, value: '0x2386f26fc10000'),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(summary.tokenContract, _tokenContract.toLowerCase());
+        expect(summary.nativeAmount, contains('0.01'));
+        // Nothing about a counterparty or an amount was read, so nothing
+        // about one may be claimed.
+        expect(summary.recipient, isNull);
+        expect(summary.spender, isNull);
+        expect(summary.amount, isNull);
+        expect(summary.symbol, isNull);
+      });
+
+      test('a zero value still has a value to state', () {
+        // Unlike a token call, where a missing native figure means "no native
+        // moves", an unreadable call has only this one figure to offer.
+        expect(
+          summarizeTransaction(
+            _tx(data: _unknownSelectorCalldata),
+            coins: const [_sixDecimalCoin],
+          ).nativeAmount,
+          isNotNull,
+        );
+      });
+
+      test('no payload length or encoding makes it throw', () {
+        for (final data in <String>[
+          '0x',
+          '0x0',
+          '0xa',
+          'zz',
+          '0x${'f' * 4096}',
+          _unknownSelectorCalldata,
+        ]) {
+          expect(
+            () => summarizeTransaction(
+              _tx(data: data),
+              coins: const [_sixDecimalCoin],
+            ),
+            returnsNormally,
+            reason: 'summarising "$data" must not throw',
+          );
+        }
       });
     });
   });
