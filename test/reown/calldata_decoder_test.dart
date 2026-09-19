@@ -44,6 +44,21 @@ const _approveCalldata =
     '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
     '000000000000000000000000000000000000000000000000000000000016e360';
 
+/// The same approve with `arg1` set to the allowance word named in the suffix.
+String _approveOf(String allowanceWord) =>
+    '0x095ea7b3'
+    '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
+    '$allowanceWord';
+
+// 2^256 - 1, the sentinel every "infinite approval" in the wild actually
+// sends.
+final _maxUintApprove = _approveOf('f' * 64);
+
+// Exactly 2^255, and one below it: the two sides of the single comparison
+// that decides whether the drawer shouts.
+final _thresholdApprove = _approveOf('8${'0' * 63}');
+final _belowThresholdApprove = _approveOf('7${'f' * 63}');
+
 const _sixDecimalCoin = Coin(
   symbol: 'USDC',
   // Deliberately mixed case, and NOT the case the transaction carries -- the
@@ -111,6 +126,43 @@ void main() {
 
       test('odd-length hex', () {
         expect(tryDecodeErc20Transfer('0xa9059cbbf'), isNull);
+      });
+    });
+  });
+
+  group('tryDecodeErc20Approve - reading the two arguments', () {
+    test('a real approve yields its spender and its raw allowance', () {
+      final decoded = tryDecodeErc20Approve(_approveCalldata);
+      expect(decoded, isNotNull);
+      expect(decoded!.counterparty.eip55With0x, _recipient);
+      expect(decoded.amount, BigInt.from(1500000));
+    });
+
+    test('the max-uint256 sentinel decodes rather than overflowing', () {
+      final decoded = tryDecodeErc20Approve(_maxUintApprove);
+      expect(decoded?.amount, BigInt.two.pow(256) - BigInt.one);
+    });
+
+    group('REJECTED - every malformed shape returns null, never throws', () {
+      test('a transfer is not an approve', () {
+        expect(tryDecodeErc20Approve(_transferCalldata), isNull);
+      });
+
+      test('null data', () {
+        expect(tryDecodeErc20Approve(null), isNull);
+      });
+
+      test('the right selector but one byte short of two full words', () {
+        expect(
+          tryDecodeErc20Approve(
+            _approveCalldata.substring(0, _approveCalldata.length - 2),
+          ),
+          isNull,
+        );
+      });
+
+      test('non-hex characters', () {
+        expect(tryDecodeErc20Approve('0xzzzz'), isNull);
       });
     });
   });
@@ -229,6 +281,79 @@ void main() {
       });
     });
 
+    group('an approve is its own thing -- nothing moves', () {
+      test('an approve of a coin the wallet knows names its spender', () {
+        final summary = summarizeTransaction(
+          _tx(data: _approveCalldata),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(summary.kind, DappCallKind.tokenApprove);
+        expect(summary.spender, _recipient);
+        expect(summary.allowance, '1.5');
+        expect(summary.symbol, 'USDC');
+        expect(summary.tokenContract, _tokenContract.toLowerCase());
+      });
+
+      test('an approve is never described as a transfer', () {
+        // The send body reads `recipient`/`amount`. Leaving them null is what
+        // structurally stops an approval being rendered as money leaving.
+        final summary = summarizeTransaction(
+          _tx(data: _approveCalldata),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(summary.recipient, isNull);
+        expect(summary.amount, isNull);
+      });
+
+      group('UNLIMITED - one comparison at 2^255', () {
+        test('the max-uint256 sentinel is flagged', () {
+          expect(
+            summarizeTransaction(
+              _tx(data: _maxUintApprove),
+              coins: const [_sixDecimalCoin],
+            ).isUnlimitedAllowance,
+            isTrue,
+          );
+        });
+
+        test('exactly 2^255 is flagged -- the comparison is inclusive', () {
+          expect(
+            summarizeTransaction(
+              _tx(data: _thresholdApprove),
+              coins: const [_sixDecimalCoin],
+            ).isUnlimitedAllowance,
+            isTrue,
+          );
+        });
+
+        test('one wei below the threshold is not', () {
+          expect(
+            summarizeTransaction(
+              _tx(data: _belowThresholdApprove),
+              coins: const [_sixDecimalCoin],
+            ).isUnlimitedAllowance,
+            isFalse,
+          );
+        });
+
+        test('an ordinary allowance is not', () {
+          expect(
+            summarizeTransaction(
+              _tx(data: _approveCalldata),
+              coins: const [_sixDecimalCoin],
+            ).isUnlimitedAllowance,
+            isFalse,
+          );
+        });
+
+        test('the threshold constant is 2^255, not 2^256 - 1', () {
+          // Pinned because the tempting value is the sentinel itself, which
+          // would miss every off-by-a-little variant dApp SDKs emit.
+          expect(kUnlimitedApprovalThreshold, BigInt.two.pow(255));
+        });
+      });
+    });
+
     test('a transfer that ALSO moves native value is unknown', () {
       // Two amounts move but the send rows can only state one. Claiming just
       // the token half would understate what leaves the wallet.
@@ -251,16 +376,6 @@ void main() {
         expect(
           summarizeTransaction(
             _tx(data: '0x'),
-            coins: const [_sixDecimalCoin],
-          ).kind,
-          DappCallKind.nativeSend,
-        );
-      });
-
-      test('an approve is not a transfer, and gets no surface yet', () {
-        expect(
-          summarizeTransaction(
-            _tx(data: _approveCalldata),
             coins: const [_sixDecimalCoin],
           ).kind,
           DappCallKind.nativeSend,

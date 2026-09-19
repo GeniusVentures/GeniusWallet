@@ -8,6 +8,7 @@ import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
 import 'package:genius_wallet/reown/calldata_decoder.dart';
+import 'package:genius_wallet/reown/dapp_call_details.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/swap_result_drawer.dart';
 import 'package:genius_wallet/reown/utilities.dart';
@@ -70,17 +71,30 @@ void Function() handleDappRequests({
         );
         final isTokenTransfer = summary.kind == DappCallKind.tokenTransfer;
 
-        content = SendTransactionDetails(
-          fromAddress: from,
-          // For a token transfer `tx['to']` is the contract, not the person
-          // being paid -- the recipient only exists inside the calldata.
-          toAddress: isTokenTransfer ? summary.recipient! : to,
-          amount: isTokenTransfer ? summary.amount! : amountEth,
-          amountSymbol: isTokenTransfer ? summary.symbol! : 'ETH',
-          totalGasFee: totalFeeEth,
-          priorityFee: priorityFeeEth,
-          maxFeePerGas: maxFeePerGasEth,
-        );
+        if (summary.kind == DappCallKind.tokenApprove) {
+          // An approve moves nothing, so it never reaches the send body --
+          // that body's hero asserts an amount leaves the wallet.
+          content = DappCallDetails(
+            headline: dappCallHeadline(summary),
+            warning: dappCallWarning(summary),
+            rows: dappCallRows(
+              summary,
+              networkName: walletDetailsCubit.state.selectedNetwork?.name,
+            ),
+          );
+        } else {
+          content = SendTransactionDetails(
+            fromAddress: from,
+            // For a token transfer `tx['to']` is the contract, not the person
+            // being paid -- the recipient only exists inside the calldata.
+            toAddress: isTokenTransfer ? summary.recipient! : to,
+            amount: isTokenTransfer ? summary.amount! : amountEth,
+            amountSymbol: isTokenTransfer ? summary.symbol! : 'ETH',
+            totalGasFee: totalFeeEth,
+            priorityFee: priorityFeeEth,
+            maxFeePerGas: maxFeePerGasEth,
+          );
+        }
       } else {
         // No BuildContext of our own (this is a session-event handler, not
         // a widget) -- navigatorKey.currentContext is already how this

@@ -34,18 +34,45 @@ class DecodedAddressAmount {
   final BigInt amount;
 }
 
+/// Half of 2^256. It catches the max-uint256 sentinel exactly and the
+/// off-by-a-little variants dApp SDKs emit, and sits far above any real token
+/// supply -- so no `totalSupply()` call is needed to decide.
+final BigInt kUnlimitedApprovalThreshold = BigInt.two.pow(255);
+
 /// What a pending dApp transaction can honestly be said to do.
-enum DappCallKind { nativeSend, tokenTransfer, unknownCall }
+enum DappCallKind { nativeSend, tokenTransfer, tokenApprove, unknownCall }
 
 /// A display-ready reading of one transaction. A null field is one the drawer
 /// has no right to state.
+///
+/// [recipient]/[amount] describe a transfer and [spender]/[allowance] an
+/// approve; they are never both set, which is what keeps an approval out of
+/// the send body.
 class DappCallSummary {
-  const DappCallSummary(this.kind, {this.recipient, this.amount, this.symbol});
+  const DappCallSummary(
+    this.kind, {
+    this.recipient,
+    this.amount,
+    this.symbol,
+    this.spender,
+    this.allowance,
+    this.tokenContract,
+    this.isUnlimitedAllowance = false,
+  });
 
   final DappCallKind kind;
   final String? recipient;
   final String? amount;
   final String? symbol;
+  final String? spender;
+  final String? allowance;
+
+  /// The contract the call is addressed to, exactly as the transaction spells
+  /// it.
+  final String? tokenContract;
+
+  /// The allowance is at or above [kUnlimitedApprovalThreshold].
+  final bool isUnlimitedAllowance;
 }
 
 /// Returns null on anything that is not exactly this call: unreadable hex,
@@ -87,6 +114,9 @@ DecodedAddressAmount? _tryDecodeAddressAmount(
 DecodedAddressAmount? tryDecodeErc20Transfer(String? data) =>
     _tryDecodeAddressAmount(data, kErc20TransferSelector);
 
+DecodedAddressAmount? tryDecodeErc20Approve(String? data) =>
+    _tryDecodeAddressAmount(data, kErc20ApproveSelector);
+
 /// True only when the transaction provably moves no native currency. An
 /// unreadable value is not a zero value.
 bool _movesNoNativeValue(Object? value) {
@@ -110,11 +140,13 @@ DappCallSummary summarizeTransaction(
   Map<String, dynamic> tx, {
   required List<Coin> coins,
 }) {
-  final data = tx['data'];
-  final decoded = tryDecodeErc20Transfer(data is String ? data : null);
+  final data = tx['data'] is String ? tx['data'] as String : null;
+  final transfer = tryDecodeErc20Transfer(data);
+  final decoded = transfer ?? tryDecodeErc20Approve(data);
   if (decoded == null) {
     return const DappCallSummary(DappCallKind.nativeSend);
   }
+  final isApprove = transfer == null;
 
   // Both a token and native currency would leave the wallet, and the send
   // rows can only state one figure.
@@ -154,10 +186,23 @@ DappCallSummary summarizeTransaction(
     return const DappCallSummary(DappCallKind.unknownCall);
   }
 
+  final counterparty = decoded.counterparty.eip55With0x;
+  if (isApprove) {
+    return DappCallSummary(
+      DappCallKind.tokenApprove,
+      spender: counterparty,
+      allowance: formatTokenAmount(decoded.amount, decimals),
+      symbol: symbol,
+      tokenContract: contract,
+      isUnlimitedAllowance: decoded.amount >= kUnlimitedApprovalThreshold,
+    );
+  }
+
   return DappCallSummary(
     DappCallKind.tokenTransfer,
-    recipient: decoded.counterparty.eip55With0x,
+    recipient: counterparty,
     amount: formatTokenAmount(decoded.amount, decimals),
     symbol: symbol,
+    tokenContract: contract,
   );
 }

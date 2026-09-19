@@ -17,8 +17,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/reown/approve_transaction_drawer.dart';
+import 'package:genius_wallet/reown/calldata_decoder.dart';
 import 'package:genius_wallet/reown/dapp_call_details.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -84,6 +86,35 @@ Future<void> _closeDrawer(WidgetTester tester) async {
 bool _onScreen(WidgetTester tester, String value) => tester
     .widgetList<Text>(find.byType(Text))
     .any((t) => (t.data ?? '').contains(value));
+
+// -- Real calldata, so what these cases pump is what a dApp would actually
+// send. The drawer body is built from the summary the decoder returns, which
+// is the only way a test can prove the threshold reaches the screen.
+const _knownToken = '0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB';
+const _knownCoin = Coin(symbol: 'USDC', address: _knownToken, decimals: '6');
+
+String _approveCalldata(String allowanceWord) =>
+    '0x095ea7b3'
+    '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
+    '$allowanceWord';
+
+Map<String, dynamic> _tx(String data) => <String, dynamic>{
+  'from': '0x0000000000000000000000000000000000000001',
+  'to': _knownToken,
+  'value': '0x0',
+  'data': data,
+};
+
+/// The drawer body `handle_dapp_requests` builds for [tx], assembled from the
+/// same three functions it calls.
+Widget _bodyFor(Map<String, dynamic> tx, {List<Coin> coins = const []}) {
+  final summary = summarizeTransaction(tx, coins: coins);
+  return DappCallDetails(
+    headline: dappCallHeadline(summary),
+    warning: dappCallWarning(summary),
+    rows: dappCallRows(summary, networkName: 'Base'),
+  );
+}
 
 void main() {
   late List<String> copied;
@@ -209,6 +240,66 @@ void main() {
       expect(_onScreen(tester, _headline), isTrue);
       expect(_onScreen(tester, _warning), isTrue);
       expect(tester.takeException(), isNull);
+
+      await _closeDrawer(tester);
+    });
+  });
+
+  group('an approve, as the drawer actually assembles it', () {
+    testWidgets('a max-uint256 allowance says so in words', (tester) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(_tx(_approveCalldata('f' * 64)), coins: const [_knownCoin]),
+      );
+
+      expect(_onScreen(tester, 'Approve spending'), isTrue);
+      expect(
+        _onScreen(tester, 'unlimited'),
+        isTrue,
+        reason: 'an allowance at the sentinel must be named as unlimited',
+      );
+      // Nothing moves on an approve, so nothing may read as a send.
+      expect(find.textContaining('You send'), findsNothing);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('an ordinary allowance gets the ordinary caution', (
+      tester,
+    ) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(
+          _tx(_approveCalldata('${'0' * 58}16e360')),
+          coins: const [_knownCoin],
+        ),
+      );
+
+      expect(_onScreen(tester, 'Approve spending'), isTrue);
+      expect(
+        _onScreen(tester, 'unlimited'),
+        isFalse,
+        reason: 'a 1.5 USDC allowance must not be called unlimited',
+      );
+      expect(_onScreen(tester, '1.5 USDC'), isTrue);
+      expect(find.textContaining('You send'), findsNothing);
+
+      await _closeDrawer(tester);
+    });
+
+    testWidgets('the spender is on screen and copies whole', (tester) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(
+          _tx(_approveCalldata('${'0' * 58}16e360')),
+          coins: const [_knownCoin],
+        ),
+      );
+
+      await tester.tap(find.text('Spender'));
+      await tester.pump();
+
+      expect(copied, ['0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed']);
 
       await _closeDrawer(tester);
     });
