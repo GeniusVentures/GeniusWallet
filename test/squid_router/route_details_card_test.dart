@@ -195,6 +195,24 @@ void main() {
     expect(find.text('\$123.45'), findsOneWidget);
   });
 
+  testWidgets('a fee that arrives with no name still says what it is', (
+    tester,
+  ) async {
+    await _pumpQuote(
+      tester,
+      squidQuoteFromJson(
+        syntheticRouteWithFees([
+          {'amountUsd': '1.42'},
+        ]),
+      ),
+    );
+
+    // A row reading only "$1.42" is an unnamed charge -- the exact thing
+    // this card exists to prevent.
+    expect(find.text('Route fee'), findsOneWidget);
+    expect(find.text('\$1.42'), findsOneWidget);
+  });
+
   testWidgets('the rate keeps every digit on a desktop frame', (tester) async {
     _resize(tester, const Size(1400, 900));
 
