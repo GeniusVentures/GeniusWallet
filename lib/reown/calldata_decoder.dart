@@ -65,6 +65,7 @@ class DappCallSummary {
     this.allowance,
     this.tokenContract,
     this.nativeAmount,
+    this.selector,
     this.isUnlimitedAllowance = false,
   });
 
@@ -81,6 +82,9 @@ class DappCallSummary {
 
   /// Native currency moving alongside the token call, when any does.
   final String? nativeAmount;
+
+  /// The four bytes naming the function of a call that could not be read.
+  final String? selector;
 
   /// The allowance is at or above [kUnlimitedApprovalThreshold].
   final bool isUnlimitedAllowance;
@@ -145,6 +149,47 @@ BigInt? _nativeValue(Object? value) {
   return BigInt.tryParse(digits, radix: 16);
 }
 
+/// True only for the calldata of a plain send: absent, or `0x` with nothing
+/// behind it. Every other payload is a contract call, readable or not.
+bool _isPlainSend(Object? data) {
+  if (data == null) {
+    return true;
+  }
+  if (data is! String) {
+    return false;
+  }
+  final trimmed = data.trim();
+  return trimmed.isEmpty || trimmed.toLowerCase() == '0x';
+}
+
+/// The four bytes naming the function, or null when the payload is not hex or
+/// is too short to carry one.
+String? _selectorOf(String? data) {
+  if (data == null) {
+    return null;
+  }
+  try {
+    final bytes = hexToBytes(data);
+    if (bytes.length < 4) {
+      return null;
+    }
+    return bytesToHex(bytes.sublist(0, 4), include0x: true);
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Everything still sayable about a call that could not be read: the contract
+/// it is addressed to, the native value it carries, and the selector. No
+/// counterparty and no amount, because none was read.
+DappCallSummary _unknownCall(String? contract, String? data, BigInt? native) =>
+    DappCallSummary(
+      DappCallKind.unknownCall,
+      tokenContract: contract,
+      nativeAmount: native == null ? null : formatEth(native.toString()),
+      selector: _selectorOf(data),
+    );
+
 /// Reads [tx] without writing to it. The same map instance is handed to the
 /// signer by reference, so a byte written here is a byte the user never saw
 /// and never agreed to.
@@ -152,22 +197,26 @@ DappCallSummary summarizeTransaction(
   Map<String, dynamic> tx, {
   required List<Coin> coins,
 }) {
-  final data = tx['data'] is String ? tx['data'] as String : null;
+  final rawData = tx['data'];
+  final data = rawData is String ? rawData : null;
+  final contract = tx['to'] is String ? tx['to'] as String : null;
+  final native = _nativeValue(tx['value']);
+
   final transfer = tryDecodeErc20Transfer(data);
   final decoded = transfer ?? tryDecodeErc20Approve(data);
   if (decoded == null) {
-    return const DappCallSummary(DappCallKind.nativeSend);
+    // Calldata nobody could read is not a plain send. Saying so would put the
+    // one sentence this transaction is certainly not on the last screen
+    // before a signature.
+    if (_isPlainSend(rawData)) {
+      return const DappCallSummary(DappCallKind.nativeSend);
+    }
+    return _unknownCall(contract, data, native);
   }
   final isApprove = transfer == null;
 
-  final contract = tx['to'];
-  if (contract is! String) {
-    return const DappCallSummary(DappCallKind.unknownCall);
-  }
-
-  final native = _nativeValue(tx['value']);
-  if (native == null) {
-    return const DappCallSummary(DappCallKind.unknownCall);
+  if (contract == null || native == null) {
+    return _unknownCall(contract, data, native);
   }
 
   // A lowercased local copy; Dart strings are immutable, so the map keeps its

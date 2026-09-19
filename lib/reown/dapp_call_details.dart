@@ -26,6 +26,12 @@ const _kUnverifiedToken =
 
 const _kCheckTheAddresses = 'Check the addresses below before approving.';
 
+/// Public because a request that never reaches a decoder -- an unhandled
+/// method -- needs the same caution as calldata that would not decode.
+const kUnreadableRequestWarning =
+    'GeniusWallet could not read what this request does. Approving it may '
+    'move funds in ways this screen does not show.';
+
 /// What the drawer calls this transaction. Only the kinds the send body
 /// refuses reach here.
 String dappCallHeadline(DappCallSummary summary) {
@@ -37,19 +43,25 @@ String dappCallHeadline(DappCallSummary summary) {
         ? 'Token approval (unverified)'
         : 'Token transfer (unverified)';
   }
-  return 'Contract call';
+  return 'Unknown contract call';
 }
 
 /// The caution above the rows, assembled from the sentences this particular
 /// call earns. Kept out of the widget so the link from decoded calldata to
 /// the words on screen is a thing a test can hold.
-String dappCallWarning(DappCallSummary summary) => <String>[
-  if (summary.isUnlimitedAllowance) _kUnlimitedAllowance,
-  if (summary.nativeAmount != null) _kAlsoMovesNative,
-  if (summary.kind == DappCallKind.unverifiedToken) _kUnverifiedToken,
-  if (summary.spender != null) _kStandingApproval,
-  _kCheckTheAddresses,
-].join(' ');
+String dappCallWarning(DappCallSummary summary) {
+  final isUnknown = summary.kind == DappCallKind.unknownCall;
+  return <String>[
+    if (summary.isUnlimitedAllowance) _kUnlimitedAllowance,
+    if (isUnknown) kUnreadableRequestWarning,
+    // An unreadable call has no token half for the native figure to be "as
+    // well as", so that sentence would name a reading nobody made.
+    if (!isUnknown && summary.nativeAmount != null) _kAlsoMovesNative,
+    if (summary.kind == DappCallKind.unverifiedToken) _kUnverifiedToken,
+    if (summary.spender != null) _kStandingApproval,
+    _kCheckTheAddresses,
+  ].join(' ');
+}
 
 /// The rows for [summary], in reading order. Addresses are copyable so the
 /// full value reaches the clipboard; [networkName] and [nativeSymbol] come
@@ -62,6 +74,7 @@ List<DappCallRow> dappCallRows(
   final figure = summary.allowance ?? summary.amount;
   final symbol = summary.symbol;
   final native = summary.nativeAmount;
+  final isUnknown = summary.kind == DappCallKind.unknownCall;
   return <DappCallRow>[
     if (summary.spender != null)
       DappCallRow(label: 'Spender', value: summary.spender!, copyable: true),
@@ -73,7 +86,9 @@ List<DappCallRow> dappCallRows(
       ),
     if (summary.tokenContract != null)
       DappCallRow(
-        label: 'Token',
+        // Nothing identified it as a token, so naming it one would be the
+        // reading this call did not get.
+        label: isUnknown ? 'Contract' : 'Token',
         value: summary.tokenContract!,
         copyable: true,
       ),
@@ -84,11 +99,13 @@ List<DappCallRow> dappCallRows(
       ),
     if (native != null)
       DappCallRow(
-        label: 'Also sending',
+        label: isUnknown ? 'Value' : 'Also sending',
         value: nativeSymbol == null || nativeSymbol.isEmpty
             ? native
             : '$native $nativeSymbol',
       ),
+    if (summary.selector != null)
+      DappCallRow(label: 'Method', value: summary.selector!),
     if (networkName != null && networkName.isNotEmpty)
       DappCallRow(label: 'Network', value: networkName),
   ];
