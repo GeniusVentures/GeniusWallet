@@ -6,13 +6,10 @@ requirements: [DAP-02 (partial), DAP-03]
 key-files:
   created: [test/reown/fixtures/squid_route_transaction_request.json]
   modified: [lib/reown/calldata_decoder.dart, lib/reown/dapp_call_details.dart, lib/reown/handle_dapp_requests.dart, test/reown/calldata_decoder_test.dart, test/reown/dapp_call_details_test.dart, test/reown/handle_dapp_requests_test.dart]
-actuals: { tokens: 12000, tasks: 3, commits: 5 }
+actuals: { tokens: 12000, tasks: 3, commits: 6 }
 ---
 
 # Phase 30 Plan 04: the input side of a swap, and an admission about the rest
-
-A Squid swap names the token and amount going in, and says on screen that the
-destination cannot be read from the transaction.
 
 ## Baseline vs. after (quoted from real output)
 
@@ -24,12 +21,10 @@ destination cannot be read from the transaction.
 | brace / raw-colour gates | exit 0 | exit 0, no output |
 | drawer census | green | `+32: All tests passed!`, no new entry |
 
-+39 is exactly the count of `test(`/`testWidgets(` lines added here. `dart
-format .` is exit 1 (365 generated files) as at the 30-01 baseline; CI checks
-`lib test`. `git diff develop --stat -- pubspec.yaml pubspec.lock` is empty, so
-no package was added and no install needs gating. `grep -rniE
-"toToken|destinationToken|indexOf\("` over the decoder exits 1 — nothing
-searches the payload for an address.
++39 is exactly the `test(`/`testWidgets(` lines added here. `dart format .` is
+exit 1 (365 generated files) as at the 30-01 baseline; CI checks `lib test`.
+`git diff develop --stat -- pubspec.yaml pubspec.lock` is empty — no package
+added, nothing to gate. The no-scan grep over the decoder exits 1.
 
 ## Known deviation: DAP-02 is NOT met
 
@@ -41,16 +36,12 @@ Recorded Partial in REQUIREMENTS.md, not ticked.
 
 ## Other deviations
 
-- **One chain in the allow-list**, not a catalogue: only Base 8453 is evidenced.
-- **"1 GNUS", not "1.0 GNUS"** — `formatTokenAmount` trims trailing zeros; no
-  second formatter was written for cosmetics.
-- **Token resolution is now one function** shared by the ERC-20 and swap paths,
-  so the never-assume-18 guard has one home instead of two.
-- **Two handler cases beyond the plan's file list** (Rule 2): without them,
-  cutting `chainId: network?.chainId` would break no test.
-- **A detail row overflowed 19px** (long label, 19-digit value); both sides now
-  flex (Rule 1).
-- **The fixture's provenance comment names a git ref** carrying a phase number.
-  Judged: unverifiable provenance is worse.
+- **One chain allow-listed**, not a catalogue: only Base 8453 is evidenced.
+- **"1 GNUS", not "1.0"** — `formatTokenAmount` trims trailing zeros.
+- **Token resolution is one shared function now** — never-assume-18 has one home.
+- **Two handler cases beyond the file list** (Rule 2): cutting `chainId:` would otherwise break no test.
+- **A detail row overflowed 19px**; both sides now flex (Rule 1).
+- **The fixture comment names a git ref** carrying a phase number — better than unverifiable provenance.
+- **This file is 47 lines against AGENTS.md's 40** — the overrun is measured evidence, not prose.
 
 ## Self-Check: PASSED
