@@ -36,18 +36,44 @@ void Function() handleDappRequests({
 
     pendingRequestIds.add(requestId);
 
+    final String method = event.method;
+    final String topic = event.topic;
+
+    // Exactly one answer per request, and never none. A caller left without
+    // one waits for a reply that is not coming.
+    var answered = false;
+    Future<void> respond({String? result, JsonRpcError? error}) async {
+      if (answered) {
+        return;
+      }
+      answered = true;
+      await walletKit.respondSessionRequest(
+        topic: topic,
+        response: JsonRpcResponse(
+          id: requestId,
+          jsonrpc: '2.0',
+          result: result,
+          error: error,
+        ),
+      );
+    }
+
     try {
-      final Map<String, dynamic> tx =
-          (event.params as List<dynamic>)[0] as Map<String, dynamic>;
-      final String method = event.method;
-      final String topic = event.topic;
       final dappMetadata = walletKit.getActiveSessions()[topic]?.peer.metadata;
       final dappName = dappMetadata?.name ?? 'Unknown DApp';
       final dappUrl = dappMetadata?.url ?? '';
+      final iconUrl = dappMetadata?.icons.isNotEmpty == true
+          ? dappMetadata?.icons[0]
+          : null;
+      final network = walletDetailsCubit.state.selectedNetwork;
+      final networkName = network?.name ?? '';
 
-      Widget content;
+      // The method decides what shape the parameters arrive in, so it is read
+      // first. Casting first is what threw on every signing request.
+      final kind = classifyDappRequest(method, event.params);
 
-      if (method == 'eth_sendTransaction') {
+      if (kind == DappRequestKind.transaction) {
+        final tx = transactionParam(event.params)!;
         final from = tx['from'] ?? 'Unknown';
         final to = tx['to'] ?? 'Unknown';
         final amountWei = parseHexToBigInt(tx['value']);
@@ -74,6 +100,7 @@ void Function() handleDappRequests({
         // wallet. Only these two kinds were read well enough for that
         // sentence to be true; everything else has to say what it could not
         // read instead.
+        final Widget content;
         if (summary.kind == DappCallKind.nativeSend || isTokenTransfer) {
           content = SendTransactionDetails(
             fromAddress: from,
@@ -87,7 +114,6 @@ void Function() handleDappRequests({
             maxFeePerGas: maxFeePerGasEth,
           );
         } else {
-          final network = walletDetailsCubit.state.selectedNetwork;
           content = DappCallDetails(
             headline: dappCallHeadline(summary),
             warning: dappCallWarning(summary),
@@ -98,53 +124,37 @@ void Function() handleDappRequests({
             ),
           );
         }
-      } else {
-        // A method with no decoder behind it. Printing its raw parameters is
-        // not a description of anything: the user cannot act on a debug dump,
-        // and reading one as reassurance is worse than reading nothing.
-        final network = walletDetailsCubit.state.selectedNetwork;
-        final networkName = network?.name ?? '';
-        content = DappCallDetails(
-          headline: 'Unknown request',
-          warning: kUnreadableRequestWarning,
-          rows: [
-            DappCallRow(label: 'Method', value: method),
-            if (networkName.isNotEmpty)
-              DappCallRow(label: 'Network', value: networkName),
-          ],
+
+        final shouldApprove = await ApproveTransactionDrawer.show(
+          context: navigatorKey.currentContext!,
+          content: content,
+          dappName: dappName,
+          dappUrl: dappUrl,
+          iconUrl: iconUrl,
         );
-      }
 
-      final shouldApprove = await ApproveTransactionDrawer.show(
-        context: navigatorKey.currentContext!,
-        content: content,
-        dappName: dappName,
-        dappUrl: dappUrl,
-        iconUrl: dappMetadata?.icons.isNotEmpty == true
-            ? dappMetadata?.icons[0]
-            : null,
-      );
-
-      if (shouldApprove == true) {
-        final chainId = walletDetailsCubit.state.selectedNetwork?.chainId;
-        final rpcUrl = walletDetailsCubit.state.selectedNetwork?.rpcUrl;
-        final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
-
-        if (chainId == null || rpcUrl == null || walletAddress == null) {
-          debugPrint('❌ Chain ID, RPC URL, or wallet address is null.');
-          pendingRequestIds.remove(requestId);
+        if (shouldApprove != true) {
+          await respond(error: userRejectedError());
+          debugPrint('❌ Request rejected.');
           return;
         }
 
-        final to = tx['to'] ?? 'Unknown';
-        final amountWei = parseHexToBigInt(tx['value']);
+        final chainId = network?.chainId;
+        final rpcUrl = network?.rpcUrl;
+        final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
 
-        final gasLimit = parseHexToBigInt(tx['gas']);
-        final maxFeePerGas = parseHexToBigInt(tx['maxFeePerGas']);
-
-        final totalFeeWei = gasLimit * maxFeePerGas;
-        final amountEth = formatEth(amountWei.toString());
-        final totalFeeEth = formatEth(totalFeeWei.toString());
+        if (chainId == null || rpcUrl == null || walletAddress == null) {
+          // The user approved something the wallet then could not act on.
+          // That is a failure on this side rather than a rejection, and it
+          // used to be answered with silence.
+          await respond(
+            error: JsonRpcError.serverError(
+              'No network, RPC URL or wallet is selected.',
+            ),
+          );
+          debugPrint('❌ Chain ID, RPC URL, or wallet address is null.');
+          return;
+        }
 
         // TODO: We should parse this out of the transaction data
         const coinSymbol = "ETH";
@@ -158,61 +168,12 @@ void Function() handleDappRequests({
           address: walletAddress,
         );
 
-        if (result.isSuccess) {
-          final txHash = result.data;
-
-          await walletKit.respondSessionRequest(
-            topic: topic,
-            response: JsonRpcResponse(
-              id: requestId,
-              jsonrpc: '2.0',
-              result: txHash,
-            ),
-          );
-          debugPrint('✅ Success on Swap!: ${result.data}');
-
-          // TODO: we should show a pending transaction until it completes
-          // TODO: we should record the coin symbol instead of hard coding.
-          final txModel = model.Transaction(
-            hash: txHash ?? "",
-            fromAddress: walletAddress,
-            recipients: [TransferRecipients(toAddr: to, amount: amountEth)],
-            timeStamp: DateTime.now(),
-            transactionDirection: TransactionDirection.sent,
-            fees: totalFeeEth,
-            coinSymbol: coinSymbol,
-            transactionStatus: TransactionStatus.completed,
-            type: TransactionType.transfer,
-          );
-
-          unawaited(
-            SwapResultDrawer.show(
-              context: navigatorKey.currentContext!,
-              isSuccess: true,
-              txHash: txHash ?? "",
-              coinSymbol: coinSymbol,
-            ),
-          );
-
-          pendingRequestIds.remove(requestId);
-
-          // stream to ui
-          transactionsCubit.addTransaction(txModel);
-          // save to hive
-          await TransactionStorageService().addTransaction(
-            walletAddress,
-            txModel,
-          );
-        } else {
-          await walletKit.respondSessionRequest(
-            topic: topic,
-            response: JsonRpcResponse(
-              id: requestId,
-              jsonrpc: '2.0',
-              error: JsonRpcError(
-                code: Errors.USER_REJECTED.toInt(),
-                message: result.errorMessage ?? 'Signing failed',
-              ),
+        if (!result.isSuccess) {
+          // A signature that failed is not a user who said no, and a dApp
+          // that cannot tell them apart retries the wrong one.
+          await respond(
+            error: JsonRpcError.serverError(
+              result.errorMessage ?? 'Signing failed',
             ),
           );
           unawaited(
@@ -223,26 +184,84 @@ void Function() handleDappRequests({
               coinSymbol: coinSymbol,
             ),
           );
-          pendingRequestIds.remove(requestId);
           debugPrint('❌ Failed to Swap: ${result.errorMessage}');
+          return;
         }
-      } else {
-        await walletKit.respondSessionRequest(
-          topic: topic,
-          response: JsonRpcResponse(
-            id: requestId,
-            jsonrpc: '2.0',
-            error: JsonRpcError(
-              code: Errors.USER_REJECTED.toInt(),
-              message: 'User rejected the request.',
-            ),
+
+        final txHash = result.data;
+        await respond(result: txHash);
+        debugPrint('✅ Success on Swap!: ${result.data}');
+
+        // TODO: we should show a pending transaction until it completes
+        // TODO: we should record the coin symbol instead of hard coding.
+        final txModel = model.Transaction(
+          hash: txHash ?? "",
+          fromAddress: walletAddress,
+          recipients: [TransferRecipients(toAddr: to, amount: amountEth)],
+          timeStamp: DateTime.now(),
+          transactionDirection: TransactionDirection.sent,
+          fees: totalFeeEth,
+          coinSymbol: coinSymbol,
+          transactionStatus: TransactionStatus.completed,
+          type: TransactionType.transfer,
+        );
+
+        unawaited(
+          SwapResultDrawer.show(
+            context: navigatorKey.currentContext!,
+            isSuccess: true,
+            txHash: txHash ?? "",
+            coinSymbol: coinSymbol,
           ),
         );
-        pendingRequestIds.remove(requestId);
-        debugPrint('❌ Request rejected.');
+
+        // stream to ui
+        transactionsCubit.addTransaction(txModel);
+        // save to hive
+        await TransactionStorageService().addTransaction(
+          walletAddress,
+          txModel,
+        );
+        return;
       }
+
+      // Everything else: a signature this wallet has no renderer for, or a
+      // method it does not handle at all. Both are shown, neither is
+      // honoured, and the copy says so before any button is pressed.
+      final isSignature = kind == DappRequestKind.unreadableSignature;
+      await ApproveTransactionDrawer.show(
+        context: navigatorKey.currentContext!,
+        content: DappCallDetails(
+          headline: isSignature
+              ? 'Signature request: $method'
+              : 'Unknown request',
+          warning: isSignature
+              ? kUnreadableSignatureWarning
+              : kUnreadableRequestWarning,
+          rows: [
+            if (!isSignature) DappCallRow(label: 'Method', value: method),
+            if (networkName.isNotEmpty)
+              DappCallRow(label: 'Network', value: networkName),
+          ],
+        ),
+        dappName: dappName,
+        dappUrl: dappUrl,
+        iconUrl: iconUrl,
+      );
+      await respond(error: userRejectedError());
+      debugPrint('❌ Declined, nothing here can be read: $method');
     } catch (e) {
       debugPrint('❌ Session request handling failed: $e');
+      try {
+        // A fixed sentence rather than the exception: the caller needs an
+        // answer, not this wallet's internals.
+        await respond(
+          error: JsonRpcError.serverError('The wallet could not handle this.'),
+        );
+      } catch (answerFailed) {
+        debugPrint('❌ Could not answer request $requestId: $answerFailed');
+      }
+    } finally {
       pendingRequestIds.remove(requestId);
     }
   }

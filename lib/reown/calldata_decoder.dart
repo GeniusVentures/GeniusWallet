@@ -6,6 +6,10 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
+// Narrowed with `show`: reown re-exports web3dart wholesale, and a bare
+// import would make this file look like it read its ABI types from a
+// WalletConnect package.
+import 'package:reown_walletkit/reown_walletkit.dart' show Errors, JsonRpcError;
 import 'package:web3dart/web3dart.dart';
 
 /// `transfer(address,uint256)` and `approve(address,uint256)`. Typed by hand
@@ -39,6 +43,58 @@ class DecodedAddressAmount {
 /// off-by-a-little variants dApp SDKs emit, and sits far above any real token
 /// supply -- so no `totalSupply()` call is needed to decide.
 final BigInt kUnlimitedApprovalThreshold = BigInt.two.pow(255);
+
+/// The signing methods a dApp may send. None of them carries a transaction
+/// object, and this wallet has no renderer for what they do carry.
+const _kSignatureMethods = {
+  'personal_sign',
+  'eth_signTypedData',
+  'eth_signTypedData_v4',
+};
+
+/// What kind of request arrived, decided before anything is cast.
+enum DappRequestKind {
+  /// Carries a transaction object this wallet can summarise.
+  transaction,
+
+  /// A signature over a payload this wallet cannot yet display.
+  unreadableSignature,
+
+  /// Nothing here knows how to answer this one.
+  unsupportedMethod,
+}
+
+/// The transaction object a request carries, or null for every other shape.
+/// Returns the caller's own map, never a copy: the signer re-reads this same
+/// instance, so a copy would be one more place the bytes could drift.
+Map<String, dynamic>? transactionParam(dynamic params) {
+  if (params is! List || params.isEmpty) {
+    return null;
+  }
+  final first = params.first;
+  return first is Map<String, dynamic> ? first : null;
+}
+
+/// Reads the method and the SHAPE of the first parameter without casting
+/// either. A signing method carries a String where `eth_sendTransaction`
+/// carries a map, and casting before checking is what left callers hanging.
+DappRequestKind classifyDappRequest(String method, dynamic params) {
+  if (_kSignatureMethods.contains(method)) {
+    return DappRequestKind.unreadableSignature;
+  }
+  if (method == 'eth_sendTransaction' && transactionParam(params) != null) {
+    return DappRequestKind.transaction;
+  }
+  return DappRequestKind.unsupportedMethod;
+}
+
+/// The error a rejection must carry. `Errors.USER_REJECTED` is the lookup
+/// key, not the code; read as a number it is null, and the serializer then
+/// drops the field, leaving a rejection nobody can act on.
+JsonRpcError userRejectedError() {
+  final rejected = Errors.getSdkError(Errors.USER_REJECTED);
+  return JsonRpcError(code: rejected.code, message: rejected.message);
+}
 
 /// What a pending dApp transaction can honestly be said to do.
 enum DappCallKind {

@@ -26,6 +26,13 @@ const _kUnverifiedToken =
 
 const _kCheckTheAddresses = 'Check the addresses below before approving.';
 
+/// Public for the same reason [kUnreadableRequestWarning] is: this screen is
+/// assembled straight from the request, with no summary to read it from.
+const kUnreadableSignatureWarning =
+    'GeniusWallet cannot yet show what this request would sign, so it will '
+    'not sign it. This request is declined either way -- nothing on this '
+    'screen approves anything.';
+
 /// Public because a request that never reaches a decoder -- an unhandled
 /// method -- needs the same caution as calldata that would not decode.
 const kUnreadableRequestWarning =
