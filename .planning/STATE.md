@@ -3,18 +3,17 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
 current_phase: 30
-current_phase_name: "dApp calldata decoding (end blind signing) — not started; phase 29 (Fee transparency) COMPLETE 2026-09-18: 4/4 plans, FEE-02 closed"
+current_phase_name: "dApp calldata decoding (end blind signing) - planned, not executed"
 status: in_progress
-stopped_at: Completed 29-04-PLAN.md — phase 29 fully executed 4/4
-last_updated: "2026-09-18T16:29:13.969Z"
-last_activity: 2026-09-18
-last_activity_desc: 29-04 executed and verified — rendering coverage, FEE-02 closed
+stopped_at: "Phase 30 (dApp calldata decoding) PLANNED on 2026-09-19 on branch `phase-30-calldata-decoding`, cut from origin/develop so it stays clear of the swap stack. CONTEXT (D-01..D-11), RESEARCH, PATTERNS and four plans are committed; plan-checker returned PASS. Branch baseline measured on the untouched tree: 1216 pass / 3 skip / 0 fail, analyze clean. That number is LOWER than the swap stack's 1392 because develop carries neither phase 26 nor 29 -- do not read it as a regression. Phases 26 and 29 are open as PRs #233 (ready, green, unmerged) and #234 (draft, stacked on #233, gets no CI until it retargets develop). Phase 30 is not executed: `/gsd-execute-phase 30` is the next step."
+last_updated: "2026-09-19T00:00:00.000Z"
+last_activity: 2026-09-19
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
-  percent: 67
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -24,29 +23,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 29 — Fee transparency COMPLETE (4/4 plans, 2026-09-18), FEE-02 closed.
-Next: Phase 30 — dApp calldata decoding (end blind signing).
+**Current focus:** Phase 26 — squid-client-foundation-live-catalogue (milestone v2.0: Squid Router integration)
 
 ## Current Position
 
-Phase: 29 — Fee transparency (COMPLETE 4/4, 2026-09-18)
-Plan: 4/4 — 29-01 done (`7e2253ad`); 29-02 done (`803717c4`); 29-03 done (`562d6a7d`);
-29-04 done (`f44e773d`/`12cd2472`)
-Status: 29-04 closed the phase. `route_details_card_test.dart` gained the empty same-chain case
-(no fee row, no `$0.00` line — the normal case, not an edge case), a distinctness check that the
-route fee and gas never merge into one string, a synthetic three-entry render (each fee its own
-row), and a both-appearance case that flips the global `GWAppearance` flag before building
-`GWColors` — the mechanism this repo has broken before, where a light instance built under a dark
-global silently reads dark values. FEE-02 now checked in REQUIREMENTS.md. Full `flutter test`:
-1374 passed, 5 skipped, 0 failed. Manual-only item carried to UAT: fee rows at phone width.
-Last activity: 2026-09-18 — 29-04 executed and verified
+Phase: 26 — Squid client foundation & live catalogue (not started)
+Plan: —
+Status: v2.0 roadmap created (phases 26-30; 13/13 requirements mapped) — ready for `/gsd:plan-phase 26`
+Last activity: 2026-09-16 — Milestone v2.0 roadmap created
 
 ### v2.0 Phase Tracking
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 26 | Swap that actually swaps (absorbs former 27, 28) | Complete 2026-09-17 |
-| 29 | Fee transparency | Complete 2026-09-18 (4/4 plans; FEE-02 closed) |
+| 26 | Squid client foundation & live catalogue | Not started |
+| 27 | Live quotes (balances, route, slippage, rate limits) | Not started |
+| 28 | Real swap execution & honest recording | Not started |
+| 29 | Integrator fee | Not started |
 | 30 | dApp calldata decoding (end blind signing) | Not started |
 
 (v1.0 residue still executes alongside v2.0 — see the v1.0 Progress table in ROADMAP.md: phase 14
@@ -61,7 +54,7 @@ outstanding. None of it is re-mapped by v2.0.)
 
 All tracked work is merged into `develop` (tip `fa74006d`). The `ui-redesign-port` branch still
 exists locally but its remote was pruned — it is no longer where work lands. Phases 24 and 25
-shipped; phases 10 and 11 never started; phase 14 is the one phase still genuinely open (14-08
+shipped; phases 1, 10, 11 never started; phase 14 is the one phase still genuinely open (14-08
 unwired). Latest merges: PR #224 (transactions at phone width) and PR #226 (Markets hero,
 timeframe tabs, cards).
 
@@ -73,7 +66,7 @@ The narrative below predates 2026-08-06 and describes the dual-track period. It 
 record of how the tracks ran, not as a statement of where things stand.
 
 > **DUAL-TRACK (both live on branch `ui-redesign-port`).** This project runs two parallel tracks.
-> The frontmatter counters above track only the **official GSD roadmap (Phases 2-11)**.
+> The frontmatter counters above track only the **official GSD roadmap (Phases 1-11)**.
 > - **Official track:** Phase 06 (Onboarding) — **COMPLETE 6/6 (closed 2026-07-23).** Phase 07
 >   (Token screens) EXECUTING, 07-03 human walk still blocking (see below). **Phase 08 (Swap &
 >   bridge) execution started in parallel 2026-07-25: 08-01 (swap component family re-skin, 3/3
@@ -246,7 +239,7 @@ Last activity: 2026-08-07 - quick task 260807-bxs (Markets page: hero shrink at 
 Previous: 2026-07-31 - eleven quick tasks (`260731-elz` through `260731-ope`) and two sketches (169 Buy GNUS orders header, 170 balance unit toggle). Full suite 930 -> 968, `flutter analyze` clean, both shell gates 0. All uncommitted, awaiting Jakub's walk and PR. Queued next: the Buy GNUS form restructure (`.planning/todos/pending/2026-07-31-buy-gnus-form-restructure.md`), which has three open forks needing his answer before it can be built.
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
-Progress: [████████████████████] 36/36 plans ([██████████] 100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
+Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
 
 ## Accumulated Context
 
@@ -254,7 +247,7 @@ Progress: [████████████████████] 36/36 p
 
 Full log in PROJECT.md Key Decisions. Recent:
 
-- **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWAP-01, FEE-01..02, DAP-01..03 (6/6 mapped, no orphans — the drafted SWP-01..08 were retired into SWAP-01's criteria on 2026-09-16, that being the id the branch's plans and commits already cite); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
+- **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWP-01..08, FEE-01..02, DAP-01..03 (13/13 mapped, no orphans); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
 - **Port the design incrementally, layer by layer** (2026-07-16) — 128 of the design's 172 files collide with develop (74%); one step means reconciling all of them with nothing verifiable in between
 - Sequence by dependency, not subject: tokens → `gw_*` primitives → nav shell → screen areas. Each phase lands on a layer that already exists and has been reviewed
 - GAP treatment split: GAP-01 (inventory + decision) rides in Phase 3 because "extend the design language" is a design-system question that must be answered before screens land; GAP-02..06 ride in the phase that owns their surface
@@ -374,10 +367,6 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 21-06: hand-written census diffed against a live lib/ tree-walk (not a glob-as-census) proves the drawer body-padding invariant complete across all 17 files/18 call sites
 - [Phase ?]: 21-06: legacy BottomDrawer shell deleted after grep-verifying zero live callers beyond the one dev-gallery demo
 - [Phase ?]: 21-06: handle_banxa_drawer.dart's showCheckoutOptionsSheet stays a raw showModalBottomSheet, not ResponsiveDrawer.show -- adopting the shell would silently change its desktop presentation to a centred dialog, a Rule-4 architectural change outside this re-skin-only phase's fence
-- [Phase ?]: 29-01: FeeType.name yields the Dart constant; wire label only reachable via standardSerializers.serializeWith(FeeType.serializer, ...) — proven by running assertion
-- [Phase ?]: 29-02 checkpoint: dropped the merged cost row entirely (option-a); no Total cost row added
-- [Phase ?]: 29-03: typed/raw fee-line parity is a permanent guard; multi-entry, unrecognised-name, and malformed-cost mapping proven via an inline synthetic body (no fabricated fixture); FEE-02 still closes at plan 04
-- [Phase ?]: FEE-02 closed at plan 04 per the precedent set in 29-01/29-02/29-03; the both-appearance case flips the global GWAppearance flag rather than constructing GWColors.light() alone.
 
 ### Pending Todos
 
@@ -526,8 +515,8 @@ the redesign track added many test files since the original 14-test snapshot). *
 
 ## Session Continuity
 
-Last session: 2026-09-18T16:29:13.277Z
-Stopped at: Completed 29-04-PLAN.md — phase 29 fully executed 4/4
+Last session: 2026-07-30T16:58:17.006Z
+Stopped at: Completed 21-06-PLAN.md (phase 21 closed, 6/6 plans)
 UNCOMMITTED). Next in the walk queue: **15-06** (Transactions tab walk), then 16 + 17 walks,
 then Phase 13 code (13-03 walk, 13-04, 13-05). App running single clean instance. Light deferred.
 Current official-track resume point: **Phase 06 is 5/6 — 06-06 (closeout) is next.** The paragraph
@@ -656,10 +645,6 @@ Open decisions:
 | Phase 21 P04 | 25min | 3 tasks | 4 files |
 | Phase 21 P05 | 45min | 2 tasks | 3 files |
 | Phase 21 P06 | 35min | 2 tasks | 3 files |
-| Phase 29 P01 | 12min | 1 tasks | 1 files |
-| Phase 29 P02 | 25min | 2 tasks | 4 files |
-| Phase 29 P03 | 20min | 2 tasks | 3 files |
-| Phase 29 P04 | 25min | 2 tasks | 1 files |
 
 ### Roadmap Evolution
 
@@ -668,7 +653,6 @@ Open decisions:
   quotes: balances/route/slippage/rate limits (27), real swap execution & honest recording (28),
   integrator fee (29), dApp calldata decoding (30 — independent of 26-29, may run in parallel).
   v1.0 content unchanged; the v2.0 traceability table in REQUIREMENTS.md filled (13/13).
-
 - **No phase added 2026-08-06.** The mobile pass on `/transactions` ran as **quick task
   260806-hfe**, not a phase: no new roadmap surface, and it extends Phases 12+15 at sub-768 only
   rather than becoming a second owner. Its shared frame helpers (`pageTitleGap`, `pageGutter`) and
