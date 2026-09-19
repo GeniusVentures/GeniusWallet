@@ -57,17 +57,9 @@ String formatPercent(String raw) {
   return rounded.toString().replaceFirst(RegExp(r'\.0$'), '');
 }
 
-/// An amount for display, cut to at most [max] decimal places.
-///
-/// String in, string out and no double anywhere: these amounts carry up to 18
-/// significant digits and a double cannot hold them. Truncates rather than
-/// rounds, for the reason [toBaseUnits] does — a rate rounded up claims a
-/// better price than the route quoted.
-///
-/// Two values are left whole rather than cut. Anything that is not a plain
-/// decimal passes through untouched instead of becoming an invented number,
-/// and so does a value whose surviving digits are all zero, because rendering
-/// a real amount as `0` would claim the route returns nothing.
+/// An amount for display, cut to [max] digits counted from the first
+/// significant one. String in, string out: these carry up to 18 digits and a
+/// double cannot hold them. Truncates, so it never claims a better price.
 String capDecimals(String raw, int max) {
   if (max < 0) {
     return raw;
@@ -80,7 +72,17 @@ String capDecimals(String raw, int max) {
   if (fraction.length <= max) {
     return raw;
   }
-  final cut = fraction.substring(0, max).replaceFirst(RegExp(r'0+$'), '');
+  // Count from the first significant digit, not from the point. Cutting
+  // 0.00019999 at the fourth decimal place renders 0.0001 and understates
+  // the amount by half — on a token worth $100k that is a $10 misread.
+  final lead =
+      fraction.length - fraction.replaceFirst(RegExp(r'^0+'), '').length;
+  final keep = lead + max;
+  final cut = fraction
+      .substring(0, keep > fraction.length ? fraction.length : keep)
+      .replaceFirst(RegExp(r'0+$'), '');
+  // An all-zero remainder means the value really is zero to this precision;
+  // rendering it as `0` would claim the route returns nothing.
   if (cut.isEmpty) {
     return raw;
   }
