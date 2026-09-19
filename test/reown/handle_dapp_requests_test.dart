@@ -89,9 +89,9 @@ Map<String, dynamic> _tx({String? data, String value = '0x2386f26fc10000'}) =>
       'data': ?data,
     };
 
-// The recorded Squid route, trimmed. Its byte-level facts are asserted in
-// `calldata_decoder_test.dart`; what this file asks is whether the selected
-// network ever reaches the decoder at all.
+// The recorded Squid route, trimmed. Its byte-level facts are asserted where
+// the decoder itself is; what this file asks is whether the selected network
+// ever reaches that decoder at all.
 final _squidRequest =
     (jsonDecode(
               File(
