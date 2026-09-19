@@ -269,11 +269,18 @@ double _sumUsdRaw(Object? costs) => costs is! List
         ),
       );
 
-/// One fee entry, kept apart from every other cost. The label comes from
-/// Squid's own serializer, never the bare enum accessor — that accessor
-/// yields the generated Dart constant, not the human name.
-FeeLine _feeLine(String name, String amountUsd) =>
-    FeeLine(name: name, amountUsd: double.tryParse(amountUsd) ?? 0.0);
+/// One fee entry, kept apart from every other cost. A charge with no name
+/// still gets one: a bare dollar row on this card is the exact thing the
+/// card exists to prevent.
+///
+/// ponytail: an unparseable amount reads as `$0.00`, which the user cannot
+/// tell from a genuine free fee — Squid does send `"0.00"`. Ceiling of a
+/// non-nullable double; lift it by making [FeeLine.amountUsd] nullable and
+/// rendering an unknown as `—`.
+FeeLine _feeLine(String name, String amountUsd) => FeeLine(
+  name: name.trim().isEmpty ? 'Route fee' : name,
+  amountUsd: double.tryParse(amountUsd) ?? 0.0,
+);
 
 /// [_feeLine] over the typed `feeCosts` collection.
 List<FeeLine> _feeLines(Iterable<FeeCost> costs) => [
