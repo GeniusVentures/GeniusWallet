@@ -42,19 +42,21 @@ void Function() handleDappRequests({
     // Exactly one answer per request, and never none. A caller left without
     // one waits for a reply that is not coming.
     var answered = false;
+    // The answer that was attempted, kept so a retry after a dropped relay
+    // says the same thing: a rejection resent as a server error would tell
+    // the dApp the wallet failed when the user said no.
+    JsonRpcResponse? attempted;
     Future<void> respond({String? result, JsonRpcError? error}) async {
       if (answered) {
         return;
       }
-      await walletKit.respondSessionRequest(
-        topic: topic,
-        response: JsonRpcResponse(
-          id: requestId,
-          jsonrpc: '2.0',
-          result: result,
-          error: error,
-        ),
+      attempted ??= JsonRpcResponse(
+        id: requestId,
+        jsonrpc: '2.0',
+        result: result,
+        error: error,
       );
+      await walletKit.respondSessionRequest(topic: topic, response: attempted!);
       // Only once the relay took it: a throw above, on a dropped connection,
       // must leave the catch below free to try again.
       answered = true;
@@ -139,6 +141,7 @@ void Function() handleDappRequests({
             warning: dappCallWarning(summary),
             rows: dappCallRows(
               summary,
+              from: from,
               networkName: network?.name,
               nativeSymbol: nativeUnit,
               // The dApp chose these and the signer uses them as sent, so a

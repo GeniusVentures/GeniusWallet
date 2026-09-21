@@ -428,7 +428,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(harness.walletKit.responses, hasLength(1));
-      expect(harness.answer.error, isNotNull);
+      // The retry says what the user said, not that the wallet failed.
+      expect(harness.answer.error?.code, 5000);
       await _finish(tester, harness);
     });
 
@@ -517,6 +518,8 @@ void main() {
       expect(_onScreen(tester, 'Approve spending'), isTrue);
       expect(_onScreen(tester, 'Gas Fee'), isTrue);
       expect(_onScreen(tester, 'Max Fee Per Gas'), isTrue);
+      // The account the approval is from, same as the send body shows it.
+      expect(_onScreen(tester, 'From'), isTrue);
 
       await tester.tap(find.text('Reject'));
       await tester.pumpAndSettle();

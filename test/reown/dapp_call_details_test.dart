@@ -489,6 +489,20 @@ void main() {
       }
     });
 
+    test('the account the call is from leads every kind', () {
+      for (final data in [
+        _approveCalldata('${'0' * 58}16e360'),
+        _unreadableCalldata,
+      ]) {
+        final rows = dappCallRows(
+          summarizeTransaction(_tx(data), coins: const [_knownCoin]),
+          from: '0x0000000000000000000000000000000000000001',
+        );
+        expect(rows.first.label, 'From');
+        expect(rows.first.copyable, isTrue);
+      }
+    });
+
     test('absent figures add no rows', () {
       final rows = dappCallRows(
         summarizeTransaction(_tx(_unreadableCalldata), coins: const []),

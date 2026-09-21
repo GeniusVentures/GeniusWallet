@@ -110,10 +110,11 @@ String dappCallWarning(DappCallSummary summary) {
 }
 
 /// The rows for [summary], in reading order; addresses are copyable so the
-/// full value reaches the clipboard. [networkName] and [nativeSymbol] come from
-/// the wallet, the gas figures from the transaction, labelled in [nativeSymbol].
+/// full value reaches the clipboard. [from] and the gas figures come from the
+/// transaction, [networkName] and [nativeSymbol] from the wallet.
 List<DappCallRow> dappCallRows(
   DappCallSummary summary, {
+  String? from,
   String? networkName,
   String? nativeSymbol,
   String? gasFee,
@@ -127,6 +128,12 @@ List<DappCallRow> dappCallRows(
   String inNative(String amount) => nativeSymbol == null || nativeSymbol.isEmpty
       ? amount
       : '$amount $nativeSymbol';
+  // First on every kind: the account the call is made from is the one thing
+  // a user can check against the wallet they have selected.
+  final fromRows = <DappCallRow>[
+    if (from != null && from.isNotEmpty)
+      DappCallRow(label: 'From', value: from, copyable: true),
+  ];
   final gasRows = <DappCallRow>[
     if (gasFee != null) DappCallRow(label: 'Gas Fee', value: inNative(gasFee)),
     if (maxFeePerGas != null)
@@ -139,6 +146,7 @@ List<DappCallRow> dappCallRows(
   // its own short list rather than a third label variant below.
   if (summary.kind == DappCallKind.routerSwap) {
     return <DappCallRow>[
+      ...fromRows,
       if (summary.tokenContract != null)
         DappCallRow(
           label: 'Router',
@@ -160,6 +168,7 @@ List<DappCallRow> dappCallRows(
     ];
   }
   return <DappCallRow>[
+    ...fromRows,
     if (summary.spender != null)
       DappCallRow(label: 'Spender', value: summary.spender!, copyable: true),
     if (summary.recipient != null)
