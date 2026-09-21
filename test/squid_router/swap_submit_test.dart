@@ -187,6 +187,7 @@ SwapExecutor _announcingAfter(Future<void> gate, SwapOutcome outcome) =>
     ({
       required tokenAddress,
       required amount,
+      required quotedFees,
       required fetchRoute,
       required readAllowance,
       required approve,
@@ -206,6 +207,7 @@ SwapExecutor _answering(SwapOutcome outcome) =>
     ({
       required tokenAddress,
       required amount,
+      required quotedFees,
       required fetchRoute,
       required readAllowance,
       required approve,

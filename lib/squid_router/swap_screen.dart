@@ -473,6 +473,9 @@ class _SwapScreenState extends State<SwapScreen> {
       final outcome = await widget.execute(
         tokenAddress: payToken.address,
         amount: request.fromAmount,
+        // What the route card showed. A quote that never arrived showed no
+        // fees, and a route that then charges some is stopped like any other.
+        quotedFees: fetchedQuote?.feeLines ?? const [],
         fetchRoute: () => widget.provider.buildTransaction(request),
         readAllowance: (spender) => api.allowance(
           owner: address,

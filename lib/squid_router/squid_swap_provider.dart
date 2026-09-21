@@ -343,10 +343,12 @@ SwapTransaction squidTransaction(
     );
   }
 
+  final estimate = route['estimate'];
   return SwapTransaction(
     quoteId: route['quoteId']?.toString() ?? '',
     requestId: requestId ?? wire['requestId']?.toString(),
     spender: target.toString(),
+    feeLines: _feeLinesRaw(estimate is Map ? estimate['feeCosts'] : null),
     request: {
       'from': from,
       'to': target.toString(),

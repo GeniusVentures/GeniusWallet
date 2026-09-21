@@ -1,3 +1,5 @@
+import 'package:genius_wallet/swap/swap_quote.dart';
+
 /// A route the wallet can actually sign, plus the handles needed to follow it
 /// up. Aggregator-neutral: the adapter has already unwrapped the wire shape.
 class SwapTransaction {
@@ -6,7 +8,12 @@ class SwapTransaction {
     required this.requestId,
     required this.spender,
     required this.request,
+    this.feeLines = const [],
   });
+
+  /// The fees THIS route charges, which is not necessarily what the quote
+  /// showed: the executable route is a second answer from the aggregator.
+  final List<FeeLine> feeLines;
 
   /// The aggregator's handle for the route being executed.
   final String quoteId;

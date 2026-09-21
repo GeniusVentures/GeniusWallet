@@ -1,5 +1,6 @@
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/squid_router/swap_allowance.dart';
+import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/swap/swap_transaction.dart';
 
 /// What a swap attempt turned out to be. **Exactly one shape carries a hash.**
@@ -47,6 +48,15 @@ final class SwapSendFailed extends SwapOutcome {
   const SwapSendFailed(this.error);
 
   final Object? error;
+}
+
+/// The executable route charges fees the quote on screen did not show. Nothing
+/// was approved or sent: the user has not agreed to these.
+final class SwapFeesChanged extends SwapOutcome {
+  const SwapFeesChanged({required this.quoted, required this.actual});
+
+  final List<FeeLine> quoted;
+  final List<FeeLine> actual;
 }
 
 /// Funds moved. The only shape carrying a hash, and the only one that may
@@ -107,7 +117,34 @@ SwapSideEffects sideEffectsFor(SwapOutcome outcome) => switch (outcome) {
   SwapAllowanceUnreadable() => _none,
   SwapApprovalFailed() => _none,
   SwapSendFailed() => _none,
+  SwapFeesChanged() => _none,
 };
+
+/// Fee lines an aggregator quotes in dollars drift by cents between two calls
+/// seconds apart as gas moves, so equality is the wrong test. A fee line the
+/// user was not shown, or a total that grew past this share, is a different
+/// deal from the one on screen.
+///
+/// ponytail: a flat share is a naive threshold -- a $0.01 fee doubling passes
+/// on the absolute floor, a $50 fee up $6 fails. The upgrade is a per-line
+/// tolerance that knows which fees are gas-linked.
+const kFeeDriftTolerance = 0.10;
+
+bool feesDrifted(List<FeeLine> quoted, List<FeeLine> actual) {
+  final quotedNames = quoted.map((fee) => fee.name).toList()..sort();
+  final actualNames = actual.map((fee) => fee.name).toList()..sort();
+  if (quotedNames.length != actualNames.length) {
+    return true;
+  }
+  for (var i = 0; i < quotedNames.length; i++) {
+    if (quotedNames[i] != actualNames[i]) {
+      return true;
+    }
+  }
+  final quotedTotal = quoted.fold(0.0, (sum, fee) => sum + fee.amountUsd);
+  final actualTotal = actual.fold(0.0, (sum, fee) => sum + fee.amountUsd);
+  return actualTotal > quotedTotal * (1 + kFeeDriftTolerance) + 0.01;
+}
 
 /// The wallet's own reading of an aggregator status. `pending` means the swap
 /// has no answer yet — it is never used to stand in for one.
@@ -138,6 +175,7 @@ typedef SwapExecutor =
     Future<SwapOutcome> Function({
       required String tokenAddress,
       required BigInt amount,
+      required List<FeeLine> quotedFees,
       required Future<SwapTransaction> Function() fetchRoute,
       required Future<BigInt> Function(String spender) readAllowance,
       required Future<bool> Function(String spender, BigInt amount) approve,
@@ -157,10 +195,12 @@ typedef SwapExecutor =
 /// short, send, then poll until the status is real.
 ///
 /// Every dependency is injected, so this holds no client, no key and no
-/// context. [amount] and the allowance are RAW base units.
+/// context. [amount] and the allowance are RAW base units. [quotedFees] is
+/// what the screen showed; a route that charges otherwise is not executed.
 Future<SwapOutcome> executeSwap({
   required String tokenAddress,
   required BigInt amount,
+  required List<FeeLine> quotedFees,
   required Future<SwapTransaction> Function() fetchRoute,
   required Future<BigInt> Function(String spender) readAllowance,
   required Future<bool> Function(String spender, BigInt amount) approve,
@@ -186,6 +226,11 @@ Future<SwapOutcome> executeSwap({
     };
   } catch (error) {
     return SwapRouteUnavailable(error);
+  }
+  // Checked before the allowance is even read: an approval is a side effect
+  // too, and none may follow a route the user has not seen the price of.
+  if (feesDrifted(quotedFees, route.feeLines)) {
+    return SwapFeesChanged(quoted: quotedFees, actual: route.feeLines);
   }
 
   final BigInt allowance;
