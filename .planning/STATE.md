@@ -8,12 +8,13 @@ status: in_progress
 stopped_at: "Phase 30 COMPLETE (4/4) on branch phase-30-calldata-decoding. Plan 30-04 added the Squid router allow-list and the input-side swap decode: kKnownRouters is const and holds ONE chain (Base 8453) and one address, because that pair is the only one a recorded live response evidences -- the chain-1 entry was dropped for lack of proof. tryDecodeSwapInput reuses the ERC-20 selector-then-tuple core, so the same 68-byte guard stops a fixed-offset read on a payload that did not earn it; a mutated selector, a 67-byte payload, an off-Base chain and an unrecognised selector on a listed router all fall to unknownCall (the router still named). The drawer says "Swapping 1 GNUS via Squid" and states plainly that the destination token and amount are not in the transaction and must be checked on the dApp. Nothing scans the blob for a token address. DAP-02 is recorded PARTIAL, not met: Squid's calldata carries fromToken/fromAmount at fixed offsets but toToken only nested at a route-dependent position and toAmount not at all. 1341 pass / 3 skip / 0 fail (30-03 baseline 1302, +39 = exactly the cases this plan added), analyze "No issues found!" exit 0, dart format lib test 0 changed exit 0, brace + raw-colour gates exit 0, drawer census 32/32 green with no new entry needed, git diff develop --stat -- pubspec.yaml pubspec.lock empty. Next: human walk of the two drawers on a real WalletConnect session, then verification."
 last_updated: "2026-09-19T22:40:00.000Z"
 last_activity: 2026-09-19
+last_activity_desc: Phase 30 executed and verified on phase-30-calldata-decoding (PR #235); DAP-02 partial by design
 progress:
-  total_phases: 5
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
-  percent: 60
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 12
+  completed_plans: 12
+  percent: 67
 ---
 
 # Project State
@@ -23,21 +24,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 30 complete (2026-09-19) on `phase-30-calldata-decoding`, draft PR #235. Phase 26 merged to develop 2026-09-21 (PR #233). Phase 29 is draft PR #234 → develop.
+**Current focus:** Phase 30 complete (2026-09-19) on `phase-30-calldata-decoding`, draft PR #235. Phases 26 (PR #233) and 29 (PR #234) merged to develop 2026-09-21; #235 is the last v2.0 PR.
 
 ## Current Position
 
-Phase: 26 — Swap that actually swaps (COMPLETE 2026-09-17; verification passed 33/33)
-Plan: 8/8 landed and walked
-Status: v2.0 phases 27-28 collapsed into 26 (same work, three numbers). Next is Phase 29 — ready for `/gsd-plan-phase 29`
-Last activity: 2026-09-17 — Phase 26 walked on Base mainnet, six walk-found defects fixed, roadmap reconciled
+Phase: 29 — Fee transparency (COMPLETE 4/4, 2026-09-18)
+Plan: 4/4 — 29-01 done (`7e2253ad`); 29-02 done (`803717c4`); 29-03 done (`562d6a7d`);
+29-04 done (`f44e773d`/`12cd2472`)
+Status: 29-04 closed the phase. `route_details_card_test.dart` gained the empty same-chain case
+(no fee row, no `$0.00` line — the normal case, not an edge case), a distinctness check that the
+route fee and gas never merge into one string, a synthetic three-entry render (each fee its own
+row), and a both-appearance case that flips the global `GWAppearance` flag before building
+`GWColors` — the mechanism this repo has broken before, where a light instance built under a dark
+global silently reads dark values. FEE-02 now checked in REQUIREMENTS.md. Full `flutter test`:
+1374 passed, 5 skipped, 0 failed. Manual-only item carried to UAT: fee rows at phone width.
+Last activity: 2026-09-18 — 29-04 executed and verified
 
 ### v2.0 Phase Tracking
 
 | Phase | Name | Status |
 |-------|------|--------|
 | 26 | Swap that actually swaps (absorbs former 27, 28) | Complete 2026-09-17 |
-| 29 | Integrator fee | Not started |
+| 29 | Fee transparency | Complete 2026-09-18 (4/4 plans; FEE-02 closed) |
 | 30 | dApp calldata decoding (end blind signing) | Complete 2026-09-19 (4/4; DAP-02 partial by design) |
 
 (v1.0 residue still executes alongside v2.0 — see the v1.0 Progress table in ROADMAP.md: phase 14
@@ -237,7 +245,7 @@ Last activity: 2026-08-07 - quick task 260807-bxs (Markets page: hero shrink at 
 Previous: 2026-07-31 - eleven quick tasks (`260731-elz` through `260731-ope`) and two sketches (169 Buy GNUS orders header, 170 balance unit toggle). Full suite 930 -> 968, `flutter analyze` clean, both shell gates 0. All uncommitted, awaiting Jakub's walk and PR. Queued next: the Buy GNUS form restructure (`.planning/todos/pending/2026-07-31-buy-gnus-form-restructure.md`), which has three open forks needing his answer before it can be built.
 gate; one walk-driven Rule-1 gutter fix landed; transitioned to 06-02
 
-Progress: [████████████████████] 36/36 plans (100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
+Progress: [████████████████████] 36/36 plans ([██████████] 100%) — official track, phases 2-6 (Phase 06 closed 2026-07-23)
 
 ## Accumulated Context
 
@@ -365,6 +373,10 @@ Full log in PROJECT.md Key Decisions. Recent:
 - [Phase ?]: 21-06: hand-written census diffed against a live lib/ tree-walk (not a glob-as-census) proves the drawer body-padding invariant complete across all 17 files/18 call sites
 - [Phase ?]: 21-06: legacy BottomDrawer shell deleted after grep-verifying zero live callers beyond the one dev-gallery demo
 - [Phase ?]: 21-06: handle_banxa_drawer.dart's showCheckoutOptionsSheet stays a raw showModalBottomSheet, not ResponsiveDrawer.show -- adopting the shell would silently change its desktop presentation to a centred dialog, a Rule-4 architectural change outside this re-skin-only phase's fence
+- [Phase ?]: 29-01: FeeType.name yields the Dart constant; wire label only reachable via standardSerializers.serializeWith(FeeType.serializer, ...) — proven by running assertion
+- [Phase ?]: 29-02 checkpoint: dropped the merged cost row entirely (option-a); no Total cost row added
+- [Phase ?]: 29-03: typed/raw fee-line parity is a permanent guard; multi-entry, unrecognised-name, and malformed-cost mapping proven via an inline synthetic body (no fabricated fixture); FEE-02 still closes at plan 04
+- [Phase ?]: FEE-02 closed at plan 04 per the precedent set in 29-01/29-02/29-03; the both-appearance case flips the global GWAppearance flag rather than constructing GWColors.light() alone.
 
 ### Pending Todos
 
@@ -643,6 +655,10 @@ Open decisions:
 | Phase 21 P04 | 25min | 3 tasks | 4 files |
 | Phase 21 P05 | 45min | 2 tasks | 3 files |
 | Phase 21 P06 | 35min | 2 tasks | 3 files |
+| Phase 29 P01 | 12min | 1 tasks | 1 files |
+| Phase 29 P02 | 25min | 2 tasks | 4 files |
+| Phase 29 P03 | 20min | 2 tasks | 3 files |
+| Phase 29 P04 | 25min | 2 tasks | 1 files |
 
 ### Roadmap Evolution
 
@@ -651,6 +667,7 @@ Open decisions:
   quotes: balances/route/slippage/rate limits (27), real swap execution & honest recording (28),
   integrator fee (29), dApp calldata decoding (30 — independent of 26-29, may run in parallel).
   v1.0 content unchanged; the v2.0 traceability table in REQUIREMENTS.md filled (13/13).
+
 - **No phase added 2026-08-06.** The mobile pass on `/transactions` ran as **quick task
   260806-hfe**, not a phase: no new roadmap surface, and it extends Phases 12+15 at sub-768 only
   rather than becoming a second owner. Its shared frame helpers (`pageTitleGap`, `pageGutter`) and
