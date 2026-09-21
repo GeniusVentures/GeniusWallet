@@ -120,4 +120,15 @@ void main() {
     expect(quote.feeLines.single.name, 'Gas receiver fee');
     expect(quote.feeLines.single.amountUsd, 0.0);
   });
+
+  test('a non-finite amount is malformed, not a price', () {
+    for (final raw in ['NaN', 'Infinity', '-Infinity', '1e999']) {
+      final quote = squidQuoteFromJson(
+        syntheticRouteWithFees([
+          {'name': 'Gas receiver fee', 'amountUsd': raw},
+        ]),
+      );
+      expect(quote.feeLines.single.amountUsd, 0.0, reason: raw);
+    }
+  });
 }

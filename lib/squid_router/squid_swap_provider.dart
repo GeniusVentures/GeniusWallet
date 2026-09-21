@@ -272,10 +272,14 @@ double _sumUsdRaw(Object? costs) => costs is! List
 /// One fee entry; a nameless charge is titled so no bare dollar row appears.
 /// ponytail: an unparseable amount reads as `$0.00`, same as a genuine free
 /// fee. Lift by making [FeeLine.amountUsd] nullable and rendering `—`.
-FeeLine _feeLine(String name, String amountUsd) => FeeLine(
-  name: name.trim().isEmpty ? 'Route fee' : name,
-  amountUsd: double.tryParse(amountUsd) ?? 0.0,
-);
+FeeLine _feeLine(String name, String amountUsd) {
+  // tryParse accepts "NaN" and "Infinity", neither of which is a price.
+  final parsed = double.tryParse(amountUsd);
+  return FeeLine(
+    name: name.trim().isEmpty ? 'Route fee' : name,
+    amountUsd: parsed != null && parsed.isFinite ? parsed : 0.0,
+  );
+}
 
 /// [_feeLine] over the typed `feeCosts` collection.
 List<FeeLine> _feeLines(Iterable<FeeCost> costs) => [
