@@ -66,21 +66,10 @@ status: complete
 ## Task Commits
 1. Task 1: Typed/raw fee-line parity — `bd35725e` (test)
 2. Task 2: Synthetic multi-fee mapping — `b947a5e0` (test)
-3. Fix: analyzer flagged `avoid_dynamic_calls` in the non-list case — `562d6a7d` (fix)
+3. Fix: `avoid_dynamic_calls` on chained dynamic indexing in the non-list case; cast `route` and `estimate` to `Map<String, dynamic>` — `562d6a7d` (fix)
 
 ## Verification
 `flutter test test/squid_router/route_wrap_drift_test.dart test/swap/squid_quote_mapping_test.dart`: 17/17 passing. Full `flutter test`: 1370 passed, 5 skipped, 0 failed (baseline 1365 + 5 new). `flutter analyze`: No issues found. `check_brace_style.sh` and `check_raw_colors.sh`: both exit 0. `ls test/squid_router/fixtures/ | wc -l`: 4, unchanged.
-
-## Deviations from Plan
-
-### Auto-fixed Issues
-
-**1. [Rule 1 - Bug] Analyzer flagged dynamic calls in a test case**
-- **Found during:** Task 2 verification (`flutter analyze`)
-- **Issue:** Chained dynamic indexing (`body['route']['estimate']['feeCosts'] = ...`) tripped `avoid_dynamic_calls`
-- **Fix:** Cast `route` and `estimate` to `Map<String, dynamic>` before mutating
-- **Files modified:** test/swap/squid_quote_mapping_test.dart
-- **Committed in:** `562d6a7d`
 
 ## Next Phase Readiness
 Plan 04 can rely on the parity guard and the synthetic-body helper for its own render tests (e.g. D-05 case-insensitive matching, D-06 empty-case). FEE-02 closes there. No blockers.
