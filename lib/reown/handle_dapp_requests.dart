@@ -46,7 +46,6 @@ void Function() handleDappRequests({
       if (answered) {
         return;
       }
-      answered = true;
       await walletKit.respondSessionRequest(
         topic: topic,
         response: JsonRpcResponse(
@@ -56,6 +55,9 @@ void Function() handleDappRequests({
           error: error,
         ),
       );
+      // Only once the relay took it: a throw above, on a dropped connection,
+      // must leave the catch below free to try again.
+      answered = true;
     }
 
     try {
@@ -212,7 +214,15 @@ void Function() handleDappRequests({
         }
 
         final txHash = result.data;
-        await respond(result: txHash);
+        try {
+          await respond(result: txHash);
+        } catch (answerFailed) {
+          // The hash is on the network whether or not the dApp heard it, so
+          // an error reply now would be a lie and the record below is owed
+          // either way. Closed here so the catch at the end cannot send one.
+          answered = true;
+          debugPrint('❌ Could not answer request $requestId: $answerFailed');
+        }
         debugPrint('✅ Success on Swap!: ${result.data}');
 
         // TODO: we should show a pending transaction until it completes

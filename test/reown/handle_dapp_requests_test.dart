@@ -186,6 +186,9 @@ class _SigningGeniusApi implements GeniusApi {
 /// `SessionData` graph has to be built to ask a question about responses.
 class _FakeWalletKit implements ReownWalletKit {
   final List<JsonRpcResponse> responses = <JsonRpcResponse>[];
+
+  /// How many answers the relay drops before it starts taking them.
+  int failAnswers = 0;
   final Event<SessionRequestEvent> _sessionRequest =
       Event<SessionRequestEvent>();
 
@@ -200,6 +203,10 @@ class _FakeWalletKit implements ReownWalletKit {
     required String topic,
     required JsonRpcResponse response,
   }) async {
+    if (failAnswers > 0) {
+      failAnswers--;
+      throw StateError('relay disconnected');
+    }
     responses.add(response);
   }
 
@@ -406,6 +413,45 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(harness.answer.error?.code, 5000);
+      await _finish(tester, harness);
+    });
+
+    testWidgets('an answer the relay dropped is tried again', (tester) async {
+      // Marking the request answered before the relay took the answer left
+      // the retry in the catch block a no-op, and the dApp with nothing.
+      final harness = await _start(tester, network: _base);
+      harness.walletKit.failAnswers = 1;
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+
+      expect(harness.walletKit.responses, hasLength(1));
+      expect(harness.answer.error, isNotNull);
+      await _finish(tester, harness);
+    });
+
+    testWidgets('a broadcast the dApp did not hear is still recorded', (
+      tester,
+    ) async {
+      // The hash is on the network either way: no error reply, and the row
+      // is written.
+      final harness = await _start(
+        tester,
+        network: _base,
+        wallet: _wallet,
+        api: _SigningGeniusApi(),
+      );
+      harness.walletKit.failAnswers = 1;
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.walletKit.responses, isEmpty);
+      expect(harness.transactions.state.single.hash, '0xabc123');
       await _finish(tester, harness);
     });
 
