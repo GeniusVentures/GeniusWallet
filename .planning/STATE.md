@@ -10,10 +10,10 @@ last_updated: "2026-09-19T22:40:00.000Z"
 last_activity: 2026-09-19
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
+  percent: 60
 ---
 
 # Project State
@@ -23,24 +23,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 26 — squid-client-foundation-live-catalogue (milestone v2.0: Squid Router integration)
+**Current focus:** Phase 30 complete (2026-09-19) on `phase-30-calldata-decoding`, draft PR #235. Phase 26 merged to develop 2026-09-21 (PR #233). Phase 29 is draft PR #234 → develop.
 
 ## Current Position
 
-Phase: 26 — Squid client foundation & live catalogue (not started)
-Plan: —
-Status: v2.0 roadmap created (phases 26-30; 13/13 requirements mapped) — ready for `/gsd:plan-phase 26`
-Last activity: 2026-09-16 — Milestone v2.0 roadmap created
+Phase: 26 — Swap that actually swaps (COMPLETE 2026-09-17; verification passed 33/33)
+Plan: 8/8 landed and walked
+Status: v2.0 phases 27-28 collapsed into 26 (same work, three numbers). Next is Phase 29 — ready for `/gsd-plan-phase 29`
+Last activity: 2026-09-17 — Phase 26 walked on Base mainnet, six walk-found defects fixed, roadmap reconciled
 
 ### v2.0 Phase Tracking
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 26 | Squid client foundation & live catalogue | Not started |
-| 27 | Live quotes (balances, route, slippage, rate limits) | Not started |
-| 28 | Real swap execution & honest recording | Not started |
+| 26 | Swap that actually swaps (absorbs former 27, 28) | Complete 2026-09-17 |
 | 29 | Integrator fee | Not started |
-| 30 | dApp calldata decoding (end blind signing) | Not started |
+| 30 | dApp calldata decoding (end blind signing) | Complete 2026-09-19 (4/4; DAP-02 partial by design) |
 
 (v1.0 residue still executes alongside v2.0 — see the v1.0 Progress table in ROADMAP.md: phase 14
 has an unexecuted plan 14-08, and the mobile-pass tail plus deferred light-mode walks remain
@@ -54,7 +52,7 @@ outstanding. None of it is re-mapped by v2.0.)
 
 All tracked work is merged into `develop` (tip `fa74006d`). The `ui-redesign-port` branch still
 exists locally but its remote was pruned — it is no longer where work lands. Phases 24 and 25
-shipped; phases 1, 10, 11 never started; phase 14 is the one phase still genuinely open (14-08
+shipped; phases 10 and 11 never started; phase 14 is the one phase still genuinely open (14-08
 unwired). Latest merges: PR #224 (transactions at phone width) and PR #226 (Markets hero,
 timeframe tabs, cards).
 
@@ -66,7 +64,7 @@ The narrative below predates 2026-08-06 and describes the dual-track period. It 
 record of how the tracks ran, not as a statement of where things stand.
 
 > **DUAL-TRACK (both live on branch `ui-redesign-port`).** This project runs two parallel tracks.
-> The frontmatter counters above track only the **official GSD roadmap (Phases 1-11)**.
+> The frontmatter counters above track only the **official GSD roadmap (Phases 2-11)**.
 > - **Official track:** Phase 06 (Onboarding) — **COMPLETE 6/6 (closed 2026-07-23).** Phase 07
 >   (Token screens) EXECUTING, 07-03 human walk still blocking (see below). **Phase 08 (Swap &
 >   bridge) execution started in parallel 2026-07-25: 08-01 (swap component family re-skin, 3/3
@@ -247,7 +245,7 @@ Progress: [████████████████████] 36/36 p
 
 Full log in PROJECT.md Key Decisions. Recent:
 
-- **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWP-01..08, FEE-01..02, DAP-01..03 (13/13 mapped, no orphans); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
+- **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWAP-01, FEE-01..02, DAP-01..03 (6/6 mapped, no orphans — the drafted SWP-01..08 were retired into SWAP-01's criteria on 2026-09-16, that being the id the branch's plans and commits already cite); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
 - **Port the design incrementally, layer by layer** (2026-07-16) — 128 of the design's 172 files collide with develop (74%); one step means reconciling all of them with nothing verifiable in between
 - Sequence by dependency, not subject: tokens → `gw_*` primitives → nav shell → screen areas. Each phase lands on a layer that already exists and has been reviewed
 - GAP treatment split: GAP-01 (inventory + decision) rides in Phase 3 because "extend the design language" is a design-system question that must be answered before screens land; GAP-02..06 ride in the phase that owns their surface
