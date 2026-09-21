@@ -430,20 +430,24 @@ DappCallSummary summarizeTransaction(
       ? null
       : formatEth(native.toString());
 
+  // ERC-721 approve(address,uint256) shares the ERC-20 selector, and the
+  // second word is then a token ID, not an allowance. Only a contract this
+  // wallet knows as a fungible token earns that reading; any other approve
+  // is a call that could not be read, warned about as such.
+  if (token == null && isApprove) {
+    return _unknownCall(contract, data, native, routerName);
+  }
+
   // Base units and no unit is the honest form for a token this wallet cannot
-  // vouch for.
+  // vouch for. Only a transfer reaches here: its selector has no ERC-721
+  // twin, so the second word is an amount.
   if (token == null) {
-    final raw = decoded.amount.toString();
     return DappCallSummary(
       DappCallKind.unverifiedToken,
-      recipient: isApprove ? null : counterparty,
-      spender: isApprove ? counterparty : null,
-      amount: isApprove ? null : raw,
-      allowance: isApprove ? raw : null,
+      recipient: counterparty,
+      amount: decoded.amount.toString(),
       tokenContract: contract,
       nativeAmount: nativeAmount,
-      isUnlimitedAllowance:
-          isApprove && decoded.amount >= kUnlimitedApprovalThreshold,
     );
   }
 

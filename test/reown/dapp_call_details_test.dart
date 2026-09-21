@@ -443,6 +443,19 @@ void main() {
     });
   });
 
+  group('an approve that also carries native value', () {
+    test('says an allowance changes, not that a token moves', () {
+      final warning = dappCallWarning(
+        summarizeTransaction(
+          _tx(_approveCalldata('${'0' * 58}16e360'), value: '0x2386f26fc10000'),
+          coins: const [_knownCoin],
+        ),
+      );
+      expect(warning, contains('changing an allowance'));
+      expect(warning, isNot(contains('as well as a token')));
+    });
+  });
+
   group('a zero-allowance approve is shown as a revocation', () {
     testWidgets('it says revoke, and drops the standing-approval caution', (
       tester,

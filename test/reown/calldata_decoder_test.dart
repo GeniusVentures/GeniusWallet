@@ -263,16 +263,18 @@ void main() {
       );
     });
 
-    test('an unknown token approve is unverified and still an approve', () {
+    test('an approve to a contract the wallet cannot name is unreadable', () {
+      // ERC-721 approve(address,uint256) has the same selector, and then the
+      // second word is a token ID. Calling it an allowance would be a guess.
       final summary = summarizeTransaction(
         _tx(data: _approveCalldata),
         coins: const [],
       );
-      expect(summary.kind, DappCallKind.unverifiedToken);
-      expect(summary.spender, _recipient);
-      expect(summary.allowance, '1500000');
-      expect(summary.recipient, isNull);
-      expect(summary.amount, isNull);
+      expect(summary.kind, DappCallKind.unknownCall);
+      expect(summary.spender, isNull);
+      expect(summary.allowance, isNull);
+      expect(summary.isUnlimitedAllowance, isFalse);
+      expect(summary.selector, kErc20ApproveSelector);
     });
 
     test('a transfer with no to address resolves to nothing', () {
@@ -462,12 +464,14 @@ void main() {
         expect(known.isRevocation, isTrue);
         expect(known.isUnlimitedAllowance, isFalse);
 
+        // To a contract the wallet cannot name it is not a revocation
+        // either: it could be an NFT approve of token ID 0.
         final unknown = summarizeTransaction(
           _tx(data: _revokeCalldata, value: '0x0'),
           coins: const [],
         );
-        expect(unknown.kind, DappCallKind.unverifiedToken);
-        expect(unknown.isRevocation, isTrue);
+        expect(unknown.kind, DappCallKind.unknownCall);
+        expect(unknown.isRevocation, isFalse);
 
         // A live allowance is not one, however small.
         expect(

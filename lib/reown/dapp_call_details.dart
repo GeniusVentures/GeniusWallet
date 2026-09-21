@@ -24,6 +24,10 @@ const _kAlsoMovesNative =
     'This call moves native currency as well as a token, so both figures are '
     'below.';
 
+const _kAlsoMovesNativeApprove =
+    'This call moves native currency as well as changing an allowance, so '
+    'both figures are below.';
+
 const _kUnverifiedToken =
     'GeniusWallet cannot identify this token, so the figure below is in the '
     "contract's smallest units, not a token amount.";
@@ -63,12 +67,7 @@ String dappCallHeadline(DappCallSummary summary) {
     return 'Token transfer';
   }
   if (summary.kind == DappCallKind.unverifiedToken) {
-    if (summary.isRevocation) {
-      return 'Revoke approval (unverified)';
-    }
-    return summary.spender != null
-        ? 'Token approval (unverified)'
-        : 'Token transfer (unverified)';
+    return 'Token transfer (unverified)';
   }
   final router = summary.routerName;
   if (summary.kind == DappCallKind.routerSwap) {
@@ -99,7 +98,8 @@ String dappCallWarning(DappCallSummary summary) {
     if (isSwap) _kDestinationUnreadable,
     // An unreadable call has no token half for the native figure to be "as
     // well as", so that sentence would name a reading nobody made.
-    if (!isUnknown && summary.nativeAmount != null) _kAlsoMovesNative,
+    if (!isUnknown && summary.nativeAmount != null)
+      summary.spender != null ? _kAlsoMovesNativeApprove : _kAlsoMovesNative,
     if (summary.kind == DappCallKind.unverifiedToken ||
         (isSwap && summary.symbol == null))
       _kUnverifiedToken,
