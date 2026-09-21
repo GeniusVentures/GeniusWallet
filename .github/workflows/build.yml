@@ -689,6 +689,19 @@ jobs:
           # them) and other hosts use their own toolchains.
           if [ "${{ matrix.target }}" = "Linux" ]; then
             CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_COMPILER=$(which clang) -DCMAKE_CXX_COMPILER=$(which clang++)"
+
+            # Clang 21 (AlmaLinux 8 image) deprecates the pre-C++23
+            # 'operator "" _name' spacing used by the nlohmann json.hpp
+            # vendored inside flutter_secure_storage_linux (and possibly other
+            # pub plugins). The plugin template builds with -Wall -Werror, so
+            # the warning fails the build; older Debian clang never emitted
+            # it. The linux/CMakeLists.txt CMAKE_ARGUMENTS parser splits on
+            # spaces and matches -DVAR=VALUE with the LAST '=', so the
+            # suppression must be a single flag with no spaces or '=' inside
+            # the value; an explicit -Wno-<diag> outranks a later -Wall in
+            # both clang and gcc, making it ordering-proof against the
+            # plugin's trailing -Wall -Werror.
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS=-Wno-deprecated-literal-operator -DCMAKE_CXX_FLAGS=-Wno-deprecated-literal-operator"
           fi
 
           # Add verbose output for debugging
