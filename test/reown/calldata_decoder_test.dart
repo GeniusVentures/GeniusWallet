@@ -48,6 +48,12 @@ const _approveCalldata =
     '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
     '000000000000000000000000000000000000000000000000000000000016e360';
 
+// approve(_recipient, 0): the allowance is being taken away, not granted.
+const _revokeCalldata =
+    '0x095ea7b3'
+    '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
+    '0000000000000000000000000000000000000000000000000000000000000000';
+
 // A well-formed call to a function this wallet has no ABI for: the shape a
 // real router or NFT marketplace sends, not malformed input.
 const _unknownSelectorCalldata =
@@ -445,6 +451,33 @@ void main() {
         expect(summary.allowance, '1.5');
         expect(summary.symbol, _sixDecimalCoin.symbol);
         expect(summary.nativeAmount, contains('0.01'));
+      });
+
+      test('a zero allowance is a revocation, known token or not', () {
+        final known = summarizeTransaction(
+          _tx(data: _revokeCalldata, value: '0x0'),
+          coins: const [_sixDecimalCoin],
+        );
+        expect(known.kind, DappCallKind.tokenApprove);
+        expect(known.allowance, '0');
+        expect(known.isRevocation, isTrue);
+        expect(known.isUnlimitedAllowance, isFalse);
+
+        final unknown = summarizeTransaction(
+          _tx(data: _revokeCalldata, value: '0x0'),
+          coins: const [],
+        );
+        expect(unknown.kind, DappCallKind.unverifiedToken);
+        expect(unknown.isRevocation, isTrue);
+
+        // A live allowance is not one, however small.
+        expect(
+          summarizeTransaction(
+            _tx(data: _approveCalldata, value: '0x0'),
+            coins: const [_sixDecimalCoin],
+          ).isRevocation,
+          isFalse,
+        );
       });
 
       test('an unknown token with native value keeps both, in base units', () {

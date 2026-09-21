@@ -70,8 +70,10 @@ void Function() handleDappRequests({
       // Gas and a plain send are both denominated in the chain's own coin, so
       // the drawer and the stored receipt must read it from one place. Two
       // sources drifted once already: the screen said ETH on Polygon while the
-      // record said POL.
-      final nativeUnit = (network?.symbol ?? 'ETH').toUpperCase();
+      // record said POL. That coin is `nativeSymbol` where a chain has one:
+      // Base's key is "base" but its gas is paid in ETH.
+      final nativeUnit = (network?.nativeSymbol ?? network?.symbol ?? 'ETH')
+          .toUpperCase();
 
       // The method decides what shape the parameters arrive in, so it is read
       // first. Casting first is what threw on every signing request.
@@ -97,7 +99,12 @@ void Function() handleDappRequests({
         // bytes the user approves stay exactly as the dApp sent them.
         final summary = summarizeTransaction(
           tx,
-          coins: walletDetailsCubit.state.coins,
+          // Tokens are matched by address, and the same address is a
+          // different contract on another chain. The cubit swaps the network
+          // before its coin list catches up, so the list is scoped here.
+          coins: walletDetailsCubit.state.coins
+              .where((coin) => coin.networkSymbol == network?.symbol)
+              .toList(),
           // The chain decides whether `to` is a router this wallet will name:
           // the same address is a different contract on a different chain.
           chainId: network?.chainId,
@@ -130,7 +137,12 @@ void Function() handleDappRequests({
             rows: dappCallRows(
               summary,
               networkName: network?.name,
-              nativeSymbol: network?.symbol,
+              nativeSymbol: nativeUnit,
+              // The dApp chose these and the signer uses them as sent, so a
+              // call the wallet cannot read still shows what it will cost.
+              gasFee: totalFeeEth,
+              maxFeePerGas: maxFeePerGasEth,
+              priorityFee: priorityFeeEth,
             ),
           );
         }

@@ -47,9 +47,12 @@ const _signParams = [
   '0x0000000000000000000000000000000000000001',
 ];
 
+/// Shaped like the production entry: the chain's key is not the coin gas is
+/// paid in, which is the only way `symbol` shows up as the wrong field.
 const _base = Network(
   name: 'Base',
-  symbol: 'eth',
+  symbol: 'base',
+  nativeSymbol: 'eth',
   chainId: 8453,
   rpcUrl: 'https://base.invalid',
 );
@@ -64,7 +67,21 @@ const _polygon = Network(
 );
 
 const _tokenContract = '0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB';
-const _usdc = Coin(symbol: 'USDC', address: _tokenContract, decimals: '6');
+const _usdc = Coin(
+  symbol: 'USDC',
+  address: _tokenContract,
+  decimals: '6',
+  networkSymbol: 'base',
+);
+
+/// The same address as [_usdc], held on another chain. It must not vouch for
+/// a call signed on Base.
+const _usdcElsewhere = Coin(
+  symbol: 'USDC',
+  address: _tokenContract,
+  decimals: '6',
+  networkSymbol: 'matic',
+);
 
 const _wallet = Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -78,6 +95,12 @@ const _wallet = Wallet(
 /// transfer(address,uint256) of 1500000 base units -- 1.5 at six decimals.
 const _transferCalldata =
     '0xa9059cbb'
+    '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
+    '000000000000000000000000000000000000000000000000000000000016e360';
+
+// approve(address,uint256) for the same spender and amount.
+const _approveCalldata =
+    '0x095ea7b3'
     '0000000000000000000000005aaeb6053f3e94c9b9a09f33669435e7ef1beaed'
     '000000000000000000000000000000000000000000000000000000000016e360';
 
@@ -114,6 +137,7 @@ const _gnus = Coin(
   symbol: 'GNUS',
   address: '0x614577036f0a024dbc1c88ba616b394dd65d105a',
   decimals: '18',
+  networkSymbol: 'base',
 );
 
 Map<String, dynamic> _swapTx() => <String, dynamic>{
@@ -385,6 +409,74 @@ void main() {
       await _finish(tester, harness);
     });
 
+    testWidgets('gas is paid in the native coin, not the chain key', (
+      tester,
+    ) async {
+      // Base's key is "base"; its gas is ETH. Reading `symbol` labelled a
+      // plain send and its fee as BASE.
+      final harness = await _start(tester, network: _base);
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+
+      expect(_onScreen(tester, '0.0100000000 ETH'), isTrue);
+      expect(_onScreen(tester, 'BASE'), isFalse);
+
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+      await _finish(tester, harness);
+    });
+
+    testWidgets('a coin held on another chain cannot vouch for a token', (
+      tester,
+    ) async {
+      // Same address, different chain: the cubit swaps the network before
+      // its coin list catches up, so the old list must not resolve it.
+      final harness = await _start(
+        tester,
+        network: _base,
+        coins: const [_usdcElsewhere],
+      );
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [
+          _tx(data: _transferCalldata, value: '0x0'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_onScreen(tester, 'unverified'), isTrue);
+      expect(_onScreen(tester, 'USDC'), isFalse);
+
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+      await _finish(tester, harness);
+    });
+
+    testWidgets('a call the send body refuses still shows its gas', (
+      tester,
+    ) async {
+      // The dApp picked the gas fields and the signer uses them as sent, so
+      // an approval must show what it costs, not only what it permits.
+      final harness = await _start(
+        tester,
+        network: _base,
+        coins: const [_usdc],
+      );
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [
+          _tx(data: _approveCalldata, value: '0x0'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_onScreen(tester, 'Approve spending'), isTrue);
+      expect(_onScreen(tester, 'Gas Fee'), isTrue);
+      expect(_onScreen(tester, 'Max Fee Per Gas'), isTrue);
+
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+      await _finish(tester, harness);
+    });
+
     testWidgets(
       'a plain send names the chain own coin, on the screen and in the record',
       (tester) async {
@@ -418,7 +510,7 @@ void main() {
 
         expect(_onScreen(tester, 'Unknown contract call'), isTrue);
         expect(_onScreen(tester, 'Base'), isTrue);
-        expect(_onScreen(tester, '0.0100000000 eth'), isTrue);
+        expect(_onScreen(tester, '0.0100000000 ETH'), isTrue);
 
         await tester.tap(find.text('Reject'));
         await tester.pumpAndSettle();

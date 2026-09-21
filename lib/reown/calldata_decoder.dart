@@ -183,6 +183,10 @@ class DappCallSummary {
 
   /// The allowance is at or above [kUnlimitedApprovalThreshold].
   final bool isUnlimitedAllowance;
+
+  /// An approve that sets the allowance to nothing: it takes a permission
+  /// away rather than granting one, and the copy must say which.
+  bool get isRevocation => spender != null && allowance == '0';
 }
 
 /// Returns null on anything that is not exactly this call: unreadable hex,

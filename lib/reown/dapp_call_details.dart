@@ -16,6 +16,10 @@ const _kStandingApproval =
     'An approval stands until it is revoked -- the spender does not have to '
     'ask again.';
 
+const _kRevocation =
+    'This sets the allowance to zero: the spender will no longer be able to '
+    'move this token from your wallet.';
+
 const _kAlsoMovesNative =
     'This call moves native currency as well as a token, so both figures are '
     'below.';
@@ -53,12 +57,15 @@ const kUnhandledMethodWarning =
 /// refuses reach here.
 String dappCallHeadline(DappCallSummary summary) {
   if (summary.kind == DappCallKind.tokenApprove) {
-    return 'Approve spending';
+    return summary.isRevocation ? 'Revoke spending' : 'Approve spending';
   }
   if (summary.kind == DappCallKind.tokenTransfer) {
     return 'Token transfer';
   }
   if (summary.kind == DappCallKind.unverifiedToken) {
+    if (summary.isRevocation) {
+      return 'Revoke approval (unverified)';
+    }
     return summary.spender != null
         ? 'Token approval (unverified)'
         : 'Token transfer (unverified)';
@@ -96,23 +103,38 @@ String dappCallWarning(DappCallSummary summary) {
     if (summary.kind == DappCallKind.unverifiedToken ||
         (isSwap && summary.symbol == null))
       _kUnverifiedToken,
-    if (summary.spender != null) _kStandingApproval,
+    if (summary.isRevocation) _kRevocation,
+    if (summary.spender != null && !summary.isRevocation) _kStandingApproval,
     _kCheckTheAddresses,
   ].join(' ');
 }
 
 /// The rows for [summary], in reading order. Addresses are copyable so the
 /// full value reaches the clipboard; [networkName] and [nativeSymbol] come
-/// from the wallet, not from the transaction.
+/// from the wallet, not from the transaction. The three gas figures come from
+/// the transaction and are labelled in [nativeSymbol], the coin gas is paid in.
 List<DappCallRow> dappCallRows(
   DappCallSummary summary, {
   String? networkName,
   String? nativeSymbol,
+  String? gasFee,
+  String? maxFeePerGas,
+  String? priorityFee,
 }) {
   final figure = summary.allowance ?? summary.amount;
   final symbol = summary.symbol;
   final native = summary.nativeAmount;
   final isUnknown = summary.kind == DappCallKind.unknownCall;
+  String inNative(String amount) => nativeSymbol == null || nativeSymbol.isEmpty
+      ? amount
+      : '$amount $nativeSymbol';
+  final gasRows = <DappCallRow>[
+    if (gasFee != null) DappCallRow(label: 'Gas Fee', value: inNative(gasFee)),
+    if (maxFeePerGas != null)
+      DappCallRow(label: 'Max Fee Per Gas', value: inNative(maxFeePerGas)),
+    if (priorityFee != null)
+      DappCallRow(label: 'Priority Fee', value: inNative(priorityFee)),
+  ];
   // A swap names the router it goes through and the token it spends, which
   // are two different addresses. Every other kind has only one, so this is
   // its own short list rather than a third label variant below.
@@ -132,12 +154,8 @@ List<DappCallRow> dappCallRows(
           value: symbol == null ? figure : '$figure $symbol',
         ),
       if (native != null)
-        DappCallRow(
-          label: 'Also sending',
-          value: nativeSymbol == null || nativeSymbol.isEmpty
-              ? native
-              : '$native $nativeSymbol',
-        ),
+        DappCallRow(label: 'Also sending', value: inNative(native)),
+      ...gasRows,
       if (networkName != null && networkName.isNotEmpty)
         DappCallRow(label: 'Network', value: networkName),
     ];
@@ -170,10 +188,9 @@ List<DappCallRow> dappCallRows(
     if (native != null)
       DappCallRow(
         label: isUnknown ? 'Value' : 'Also sending',
-        value: nativeSymbol == null || nativeSymbol.isEmpty
-            ? native
-            : '$native $nativeSymbol',
+        value: inNative(native),
       ),
+    ...gasRows,
     if (summary.selector != null)
       DappCallRow(label: 'Method', value: summary.selector!),
     if (networkName != null && networkName.isNotEmpty)

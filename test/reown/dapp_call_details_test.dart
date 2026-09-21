@@ -443,6 +443,60 @@ void main() {
     });
   });
 
+  group('a zero-allowance approve is shown as a revocation', () {
+    testWidgets('it says revoke, and drops the standing-approval caution', (
+      tester,
+    ) async {
+      await _openDrawer(
+        tester,
+        _bodyFor(_tx(_approveCalldata('0' * 64)), coins: const [_knownCoin]),
+      );
+
+      expect(_onScreen(tester, 'Revoke spending'), isTrue);
+      expect(_onScreen(tester, 'Approve spending'), isFalse);
+      expect(_onScreen(tester, 'sets the allowance to zero'), isTrue);
+      expect(_onScreen(tester, 'stands until it is revoked'), isFalse);
+
+      await _closeDrawer(tester);
+    });
+  });
+
+  group('gas is shown for every kind the send body refuses', () {
+    test('the three gas rows carry the native unit', () {
+      final rows = dappCallRows(
+        summarizeTransaction(
+          _tx(_approveCalldata('${'0' * 58}16e360')),
+          coins: const [_knownCoin],
+        ),
+        nativeSymbol: 'ETH',
+        gasFee: '0.0003',
+        maxFeePerGas: '0.00000002',
+        priorityFee: '0.000000001',
+      );
+      final byLabel = {for (final r in rows) r.label: r.value};
+      expect(byLabel['Gas Fee'], '0.0003 ETH');
+      expect(byLabel['Max Fee Per Gas'], '0.00000002 ETH');
+      expect(byLabel['Priority Fee'], '0.000000001 ETH');
+    });
+
+    test('and for a swap, and a call that could not be read', () {
+      for (final data in [_unreadableCalldata]) {
+        final rows = dappCallRows(
+          summarizeTransaction(_tx(data), coins: const [_knownCoin]),
+          gasFee: '0.0003',
+        );
+        expect(rows.map((r) => r.label), contains('Gas Fee'));
+      }
+    });
+
+    test('absent figures add no rows', () {
+      final rows = dappCallRows(
+        summarizeTransaction(_tx(_unreadableCalldata), coins: const []),
+      );
+      expect(rows.map((r) => r.label), isNot(contains('Gas Fee')));
+    });
+  });
+
   group('a call this wallet could not read at all', () {
     testWidgets('it says so, and states only what it actually read', (
       tester,
