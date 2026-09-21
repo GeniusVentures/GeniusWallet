@@ -57,3 +57,18 @@ an explorer base URL. Two consequences, one pre-existing and one new:
 The fix is to key the explorer off `chainId`, which both the receipt drawer
 and the history row already have access to via the selected network. Out of
 scope here: it touches every transaction display, not the signing path.
+
+## A token receipt has one unit, and history reads three things off it
+
+Codex on PR #235 (P1): `Transaction.coinSymbol` is the only unit the model
+carries, and history renders the amount, the Network Fee and the Network row
+from it. A decoded token transfer is now filed under its token (`USDC`), so
+the ETH gas and the network read as USDC, and the row still stores the token
+contract as the recipient with the native value (usually 0) as the amount.
+Filing it under the chain coin instead would hide the token entirely, which is
+what develop did before this phase with a hardcoded `ETH`.
+
+Neither is right; the model needs an asset unit distinct from the chain coin
+(a new Hive field, plus the history amount row reading it). That is a schema
+change across every transaction display, not a signing-path fix, so it is
+deferred with the explorer-link item above, which wants the same split.
