@@ -199,7 +199,10 @@ void Function() handleDappRequests({
         final rpcUrl = network?.rpcUrl;
         final walletAddress = walletDetailsCubit.state.selectedWallet?.address;
 
-        if (chainId == null || rpcUrl == null || walletAddress == null) {
+        if (chainId == null ||
+            rpcUrl == null ||
+            rpcUrl.isEmpty ||
+            walletAddress == null) {
           // The user approved something the wallet then could not act on.
           // That is a failure on this side rather than a rejection, and it
           // used to be answered with silence.

@@ -24,6 +24,11 @@ const _kAlsoMovesNative =
     'This call moves native currency as well as a token, so both figures are '
     'below.';
 
+const _kNativeSwapValueDisagrees =
+    'The amount this swap says it spends and the value attached to the call '
+    'disagree, so both figures are below. Check them on the dApp before '
+    'approving.';
+
 const _kAlsoMovesNativeApprove =
     'This call moves native currency as well as changing an allowance, so '
     'both figures are below.';
@@ -100,6 +105,9 @@ String dappCallHeadline(DappCallSummary summary) {
 String dappCallWarning(DappCallSummary summary) {
   final isUnknown = summary.kind == DappCallKind.unknownCall;
   final isSwap = summary.kind == DappCallKind.routerSwap;
+  // A swap spending the chain's own coin has no token-in address, and both
+  // of its figures are native: "as well as a token" would be untrue.
+  final isNativeSwap = isSwap && summary.tokenIn == null;
   return <String>[
     if (summary.isUnlimitedAllowance) _kUnlimitedAllowance,
     if (isUnknown) kUnreadableRequestWarning,
@@ -107,7 +115,11 @@ String dappCallWarning(DappCallSummary summary) {
     // An unreadable call has no token half for the native figure to be "as
     // well as", so that sentence would name a reading nobody made.
     if (!isUnknown && summary.nativeAmount != null)
-      summary.spender != null ? _kAlsoMovesNativeApprove : _kAlsoMovesNative,
+      isNativeSwap
+          ? _kNativeSwapValueDisagrees
+          : summary.spender != null
+          ? _kAlsoMovesNativeApprove
+          : _kAlsoMovesNative,
     if (summary.kind == DappCallKind.unverifiedToken ||
         (isSwap && summary.symbol == null))
       _kUnverifiedToken,

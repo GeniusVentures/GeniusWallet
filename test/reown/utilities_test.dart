@@ -19,6 +19,7 @@
 // changing it a deliberate act rather than an accident.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 
 void main() {
@@ -115,6 +116,18 @@ void main() {
       expect(eip155ChainId('eip155'), isNull);
       expect(eip155ChainId('eip155:base'), isNull);
       expect(eip155ChainId(''), isNull);
+    });
+  });
+
+  group('canSignOn', () {
+    test('needs a chain id and an RPC', () {
+      expect(
+        canSignOn(const Network(chainId: 8453, rpcUrl: 'https://x')),
+        isTrue,
+      );
+      expect(canSignOn(const Network(chainId: 8453, rpcUrl: '')), isFalse);
+      expect(canSignOn(const Network(chainId: 8453)), isFalse);
+      expect(canSignOn(const Network(rpcUrl: 'https://x')), isFalse);
     });
   });
 

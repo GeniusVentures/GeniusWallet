@@ -27,6 +27,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/reown/calldata_decoder.dart';
+import 'package:genius_wallet/reown/dapp_call_details.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -961,6 +962,10 @@ void main() {
         );
         expect(summary.symbol, 'ETH');
         expect(summary.nativeAmount, contains('0.01'));
+        // Both figures are native, so the caution must not call one a token.
+        final warning = dappCallWarning(summary);
+        expect(warning, contains('disagree'));
+        expect(warning, isNot(contains('as well as a token')));
       });
 
       test('a swap that also moves native value keeps that figure', () {

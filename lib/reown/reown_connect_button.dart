@@ -150,13 +150,14 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       if (!mounted) {
         return;
       }
-      // Read before the drawer awaits: every chain in the catalogue, not just
-      // mainnet, because a session approved for one chain can never carry a
-      // request for another.
+      // Read before the drawer awaits: every chain the wallet can sign on,
+      // not just mainnet, because a session approved for one chain can never
+      // carry a request for another. A catalogue entry with no RPC is one
+      // the wallet cannot act on, so it is not claimed.
       final chainIds = Provider.of<NetworkProvider>(
         context,
         listen: false,
-      ).networks.map((network) => network.chainId).nonNulls.toList();
+      ).networks.where(canSignOn).map((network) => network.chainId!).toList();
 
       setState(() {});
 

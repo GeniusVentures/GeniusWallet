@@ -1,3 +1,4 @@
+import 'package:genius_api/models/network.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
 /// The chain a CAIP-2 id names (`eip155:8453` -> 8453), or null for anything
@@ -9,6 +10,12 @@ int? eip155ChainId(String caip2) {
   }
   return int.tryParse(parts[1]);
 }
+
+/// Whether the wallet can act on a dApp request for [network]: it has a chain
+/// id to match the request against and an RPC to send the result through.
+/// The catalogue carries entries with neither.
+bool canSignOn(Network network) =>
+    network.chainId != null && (network.rpcUrl ?? '').isNotEmpty;
 
 /// The `eip155` namespace to approve a session with: every chain this wallet
 /// carries, and the same account on each. A session approved for one chain
