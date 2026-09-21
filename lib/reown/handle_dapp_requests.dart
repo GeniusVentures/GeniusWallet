@@ -110,6 +110,7 @@ void Function() handleDappRequests({
           // The chain decides whether `to` is a router this wallet will name:
           // the same address is a different contract on a different chain.
           chainId: network?.chainId,
+          nativeSymbol: nativeUnit,
         );
         final isTokenTransfer = summary.kind == DappCallKind.tokenTransfer;
 

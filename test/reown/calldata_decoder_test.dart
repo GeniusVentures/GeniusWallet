@@ -27,6 +27,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/reown/calldata_decoder.dart';
+import 'package:genius_wallet/reown/utilities.dart';
 import 'package:web3dart/web3dart.dart';
 
 // From EIP-55's own published test vectors, so the expected checksummed form
@@ -922,6 +923,40 @@ void main() {
           ).kind,
           DappCallKind.unknownCall,
         );
+      });
+
+      // Squid names the chain's coin with a sentinel address in word 0 and
+      // carries the same amount in `value`. One spend, not two assets.
+      test('a swap spending the native coin is one native figure', () {
+        const sentinel =
+            '000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+        final nativeIn = swapData.replaceRange(10, 74, sentinel);
+        final summary = summarizeTransaction(
+          swapTx(data: nativeIn, value: '0x${amountIn.toRadixString(16)}'),
+          coins: [gnus],
+          chainId: 8453,
+          nativeSymbol: 'ETH',
+        );
+        expect(summary.kind, DappCallKind.routerSwap);
+        expect(summary.symbol, 'ETH');
+        expect(summary.amount, formatEth(amountIn.toString()));
+        expect(summary.tokenIn, isNull);
+        expect(summary.nativeAmount, isNull);
+        expect(receiptSymbol(summary, nativeSymbol: 'ETH'), 'ETH');
+      });
+
+      test('a native input whose value disagrees keeps both figures', () {
+        const sentinel =
+            '000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+        final nativeIn = swapData.replaceRange(10, 74, sentinel);
+        final summary = summarizeTransaction(
+          swapTx(data: nativeIn, value: '0x2386f26fc10000'),
+          coins: [gnus],
+          chainId: 8453,
+          nativeSymbol: 'ETH',
+        );
+        expect(summary.symbol, 'ETH');
+        expect(summary.nativeAmount, contains('0.01'));
       });
 
       test('a swap that also moves native value keeps that figure', () {

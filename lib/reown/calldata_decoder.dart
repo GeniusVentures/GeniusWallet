@@ -6,6 +6,7 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart';
+import 'package:genius_wallet/squid_router/swap_allowance.dart';
 // Narrowed with `show`: reown re-exports web3dart wholesale, and a bare
 // import would make this file look like it read its ABI types from a
 // WalletConnect package.
@@ -360,6 +361,7 @@ DappCallSummary summarizeTransaction(
   Map<String, dynamic> tx, {
   required List<Coin> coins,
   int? chainId,
+  String? nativeSymbol,
 }) {
   final rawData = tx['data'];
   final data = rawData is String ? rawData : null;
@@ -385,6 +387,22 @@ DappCallSummary summarizeTransaction(
       return _unknownCall(contract, data, native, routerName);
     }
     final tokenIn = swap.counterparty.eip55With0x;
+    // A swap that spends the chain's own coin names it with the 0xEeee…
+    // sentinel and carries the same amount in `value`. That is one spend,
+    // not a token plus native currency, and the sentinel is not an address
+    // anyone should be shown. If the two figures disagree, both stay.
+    if (isNativeToken(tokenIn) && nativeSymbol != null) {
+      return DappCallSummary(
+        DappCallKind.routerSwap,
+        routerName: routerName,
+        tokenContract: contract,
+        amount: formatEth(swap.amount.toString()),
+        symbol: nativeSymbol,
+        nativeAmount: native == swap.amount || native == BigInt.zero
+            ? null
+            : formatEth(native.toString()),
+      );
+    }
     final inputToken = _resolveToken(coins, tokenIn);
     return DappCallSummary(
       DappCallKind.routerSwap,
