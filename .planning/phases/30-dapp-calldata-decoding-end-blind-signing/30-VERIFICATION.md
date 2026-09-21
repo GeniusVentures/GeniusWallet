@@ -211,9 +211,31 @@ ERC-20 transfers and approves decode and reach the drawer with the right token, 
 
 The one gap is DAP-02's "→ Y", and the honest reading is that the phase chose a smaller true statement over a larger guessed one on a signing screen — then wrote the shortfall into the requirement, both traceability tables, the summary and the state file rather than ticking it. That is the behaviour this project's no-unearned-PASS rule is meant to produce, and it is why this report records `gaps_found` rather than manufacturing a pass: the criterion as written is not met, and only a human can accept that.
 
-Not yet earned at all: the live walk. Until a debug build with a real WalletConnect session approves one transfer and one swap in both appearances, the last link between "the tests say this renders" and "a user sees this" is unmeasured.
+Not yet earned at the time of writing: the live walk. See the addendum below.
 
 ---
 
 _Verified: 2026-09-19 — gates re-run by the verifier, not inherited_
 _Verifier: Claude (gsd-verifier)_
+
+---
+
+## Addendum — 2026-09-21, after review
+
+**Live walk: done.** Braian ran a debug build against a real WalletConnect session
+on 2026-09-21 and approved one ERC-20 transfer and one Squid swap, in both
+appearances. Both drawers read as the first `human_verification` item expects.
+The second item (a non-ETH chain) is superseded: W-1 was closed by `693de0ed` the
+same afternoon this report was written, and handler tests now pin MATIC on
+Polygon and ETH (not BASE) on Base.
+
+**Three Codex review rounds on PR #235** (12 threads) changed the shipped
+behaviour after this report: gas rows on every drawer kind, `nativeSymbol`
+before `symbol`, the coin list scoped to the selected network, zero-allowance
+approves named as revocations, a resolved token kept beside its native value,
+unhandled methods declined in their own copy, and a request answered only once
+the relay took the answer. One thread stays open by decision: the history
+receipt's single `coinSymbol` cannot express a token transfer, recorded in
+`deferred-items.md`. Suite on the merge-ready tip: 1539 pass / 5 skip / 0 fail.
+
+The score above stands at 3/4: DAP-02 is still partial, by the same evidence.
