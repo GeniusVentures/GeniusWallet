@@ -57,10 +57,10 @@ String formatPercent(String raw) {
   return rounded.toString().replaceFirst(RegExp(r'\.0$'), '');
 }
 
-/// An amount for display, cut to [max] digits counted from the first
-/// significant one. String in, string out: these carry up to 18 digits and a
-/// double cannot hold them. Truncates, so it never claims a better price.
-String capDecimals(String raw, int max) {
+/// An amount for display, cut to [max] digits from the first significant one.
+/// String in, string out: 18-digit values do not fit a double. Truncates, so a
+/// receive never reads high; [roundUp] for a pay amount, so it never reads low.
+String capDecimals(String raw, int max, {bool roundUp = false}) {
   if (max < 0) {
     return raw;
   }
@@ -77,14 +77,21 @@ String capDecimals(String raw, int max) {
   // the amount by half — on a token worth $100k that is a $10 misread.
   final lead =
       fraction.length - fraction.replaceFirst(RegExp(r'^0+'), '').length;
-  final keep = lead + max;
-  final cut = fraction
-      .substring(0, keep > fraction.length ? fraction.length : keep)
-      .replaceFirst(RegExp(r'0+$'), '');
-  // An all-zero remainder means the value really is zero to this precision;
-  // rendering it as `0` would claim the route returns nothing.
-  if (cut.isEmpty) {
-    return raw;
+  final keep = lead + max > fraction.length ? fraction.length : lead + max;
+  var whole = match.group(1)!;
+  var kept = fraction.substring(0, keep);
+  if (roundUp && fraction.substring(keep).contains(RegExp('[1-9]'))) {
+    // Bump the last kept digit as one integer so a carry can run into the
+    // whole part: 0.99999 at four digits is 1, not 0.9999 and not 0.10000.
+    final bumped = (BigInt.parse(whole + kept) + BigInt.one).toString().padLeft(
+      keep + 1,
+      '0',
+    );
+    whole = bumped.substring(0, bumped.length - keep);
+    kept = bumped.substring(bumped.length - keep);
   }
-  return '${match.group(1)}.$cut';
+  final cut = kept.replaceFirst(RegExp(r'0+$'), '');
+  // The first significant digit always survives the cut, so an empty
+  // remainder means the fraction was all zeros: the value is a whole number.
+  return cut.isEmpty ? whole : '$whole.$cut';
 }

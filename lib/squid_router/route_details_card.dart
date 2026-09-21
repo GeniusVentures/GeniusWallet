@@ -36,9 +36,12 @@ class RouteDetailsCard extends StatelessWidget {
 
     // A phone frame cannot hold a full-precision pair. Display only: the
     // amounts that actually move are BigInt and are never read back off this
-    // string, so shortening it cannot reach the transaction.
+    // string, so shortening it cannot reach the transaction. The pay side
+    // rounds up and the receive side down, so neither flatters the price.
     final showFull = GeniusBreakpoints.useDesktopLayout(context);
-    final payShown = showFull ? fromAmount : capDecimals(fromAmount, 4);
+    final payShown = showFull
+        ? fromAmount
+        : capDecimals(fromAmount, 4, roundUp: true);
     final getShown = showFull ? toAmount : capDecimals(toAmount, 4);
     final pricing = '$payShown $fromSymbol ~ $getShown $toSymbol';
     final priceImpact = '${formatPercent(quote.priceImpact)}%';

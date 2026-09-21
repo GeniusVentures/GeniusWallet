@@ -131,6 +131,21 @@ void _percentCases() {
       expect(capDecimals('0.757304', -1), '0.757304');
     });
 
+    test('an all-zero fraction collapses to the whole number', () {
+      expect(capDecimals('1.000000000000000000', 4), '1');
+      expect(capDecimals('0.000000000000000000', 4), '0');
+    });
+
+    test('a pay amount rounds up, so the row never understates it', () {
+      expect(capDecimals('1.23459', 4, roundUp: true), '1.2346');
+      expect(capDecimals('0.750000123', 4, roundUp: true), '0.7501');
+      expect(capDecimals('0.99999', 4, roundUp: true), '1');
+      expect(capDecimals('0.00019999', 4, roundUp: true), '0.0002');
+      // Nothing was discarded, so there is nothing to round.
+      expect(capDecimals('1.23450000', 4, roundUp: true), '1.2345');
+      expect(capDecimals('1.2345', 4, roundUp: true), '1.2345');
+    });
+
     test('no double is involved, so 18 digits survive intact', () {
       // A double cannot hold this; a formatter that parsed one would round it.
       expect(capDecimals('123456789.123456789012345678', 4), '123456789.1234');
