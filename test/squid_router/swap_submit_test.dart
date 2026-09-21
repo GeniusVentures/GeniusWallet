@@ -89,7 +89,6 @@ class _Provider extends FakeSwapProvider {
     toAmountMin: BigInt.parse('2490000000000000000000'),
     fromAmountDisplay: '1',
     toAmountDisplay: '2500',
-    feesUsd: 0,
     gasUsd: 0.42,
     estimatedDuration: const Duration(seconds: 20),
   );
@@ -188,6 +187,7 @@ SwapExecutor _announcingAfter(Future<void> gate, SwapOutcome outcome) =>
     ({
       required tokenAddress,
       required amount,
+      required quotedFees,
       required fetchRoute,
       required readAllowance,
       required approve,
@@ -207,6 +207,7 @@ SwapExecutor _answering(SwapOutcome outcome) =>
     ({
       required tokenAddress,
       required amount,
+      required quotedFees,
       required fetchRoute,
       required readAllowance,
       required approve,

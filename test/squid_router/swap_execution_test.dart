@@ -8,6 +8,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/squid_router/swap_execution.dart';
+import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/swap/swap_transaction.dart';
 
 const _token = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
@@ -17,12 +18,21 @@ const _hash = '0xabc123';
 
 final _amount = BigInt.from(1500000000000000000);
 
-SwapTransaction _route() => const SwapTransaction(
+SwapTransaction _route({List<FeeLine> fees = const []}) => SwapTransaction(
   quoteId: 'q1',
   requestId: 'r1',
   spender: _spender,
-  request: {'from': '0x1', 'to': _spender, 'value': '0x0', 'data': '0xdead'},
+  request: const {
+    'from': '0x1',
+    'to': _spender,
+    'value': '0x0',
+    'data': '0xdead',
+  },
+  feeLines: fees,
 );
+
+const _gasFee = FeeLine(name: 'Gas receiver fee', amountUsd: 0.50);
+const _bridgeFee = FeeLine(name: 'Bridge fee', amountUsd: 1.20);
 
 /// Records what the orchestrator actually did, so a test can assert on the
 /// calls that were NOT made — which is most of what matters here.
@@ -36,7 +46,12 @@ class _Steps {
     this.sendError,
     this.statuses = const [SwapStatus.success],
     this.recoveryUrl,
+    this.quotedFees = const [],
+    this.routeFees = const [],
   });
+
+  final List<FeeLine> quotedFees;
+  final List<FeeLine> routeFees;
 
   final Error? routeError;
   final BigInt? allowance;
@@ -57,11 +72,12 @@ class _Steps {
       executeSwap(
         tokenAddress: tokenAddress,
         amount: _amount,
+        quotedFees: quotedFees,
         fetchRoute: () async {
           if (routeError != null) {
             throw routeError!;
           }
-          return _route();
+          return _route(fees: routeFees);
         },
         readAllowance: (spender) async {
           allowanceReads++;
@@ -106,6 +122,72 @@ void main() {
       expect(steps.sends, isEmpty);
       expect(steps.approvals, isEmpty);
       expect(steps.allowanceReads, 0);
+    });
+  });
+
+  group('the fees', () {
+    // The quote and the executable route are two answers from the
+    // aggregator. Whatever the second one charges that the first did not
+    // show, the user has not agreed to.
+    test('a fee line the quote did not show stops before anything', () async {
+      final steps = _Steps(
+        quotedFees: const [_gasFee],
+        routeFees: const [_gasFee, _bridgeFee],
+      );
+      final outcome = await steps.run();
+      expect(outcome, isA<SwapFeesChanged>());
+      expect(steps.allowanceReads, 0);
+      expect(steps.approvals, isEmpty);
+      expect(steps.sends, isEmpty);
+    });
+
+    test('a fee that grew past the tolerance stops too', () async {
+      final steps = _Steps(
+        quotedFees: const [_gasFee],
+        routeFees: const [FeeLine(name: 'Gas receiver fee', amountUsd: 0.80)],
+      );
+      expect(await steps.run(), isA<SwapFeesChanged>());
+      expect(steps.sends, isEmpty);
+    });
+
+    test('the cents gas moves between two calls do not', () async {
+      final steps = _Steps(
+        quotedFees: const [_gasFee],
+        routeFees: const [FeeLine(name: 'Gas receiver fee', amountUsd: 0.53)],
+      );
+      expect(await steps.run(), isA<SwapBroadcast>());
+    });
+
+    test('the same fees in another order are the same fees', () {
+      expect(
+        feesDrifted(const [_gasFee, _bridgeFee], const [_bridgeFee, _gasFee]),
+        isFalse,
+      );
+    });
+
+    test('a fee dropped or renamed is a different deal as well', () {
+      expect(feesDrifted(const [_gasFee, _bridgeFee], const [_gasFee]), isTrue);
+      expect(
+        feesDrifted(
+          const [_gasFee],
+          const [FeeLine(name: 'Relayer fee', amountUsd: 0.50)],
+        ),
+        isTrue,
+      );
+    });
+
+    test('a cheaper route is not a drift', () {
+      expect(
+        feesDrifted(
+          const [_bridgeFee],
+          const [FeeLine(name: 'Bridge fee', amountUsd: 0.10)],
+        ),
+        isFalse,
+      );
+    });
+
+    test('no fees quoted and none charged is the common case', () async {
+      expect(await _Steps().run(), isA<SwapBroadcast>());
     });
   });
 
@@ -311,6 +393,7 @@ void main() {
         const SwapAllowanceUnreadable(null),
         const SwapApprovalFailed(null),
         const SwapSendFailed(null),
+        const SwapFeesChanged(quoted: [], actual: []),
       ]) {
         final effects = sideEffectsFor(outcome);
         expect(effects.showToast, isFalse, reason: '$outcome toasted');
@@ -363,6 +446,7 @@ void main() {
       await executeSwap(
         tokenAddress: _token,
         amount: _amount,
+        quotedFees: const [],
         fetchRoute: () async => _route(),
         readAllowance: (spender) async => _amount,
         approve: (spender, amount) async => true,
@@ -391,6 +475,7 @@ void main() {
       final outcome = await executeSwap(
         tokenAddress: _token,
         amount: _amount,
+        quotedFees: const [],
         fetchRoute: () async => _route(),
         readAllowance: (spender) async => _amount,
         approve: (spender, amount) async => true,
@@ -416,6 +501,7 @@ void main() {
       final outcome = await executeSwap(
         tokenAddress: _token,
         amount: _amount,
+        quotedFees: const [],
         fetchRoute: () async => _route(),
         readAllowance: (spender) async => _amount,
         approve: (spender, amount) async => true,

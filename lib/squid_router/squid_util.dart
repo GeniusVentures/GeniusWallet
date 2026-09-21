@@ -56,3 +56,42 @@ String formatPercent(String raw) {
   }
   return rounded.toString().replaceFirst(RegExp(r'\.0$'), '');
 }
+
+/// An amount for display, cut to [max] digits from the first significant one.
+/// String in, string out: 18-digit values do not fit a double. Truncates, so a
+/// receive never reads high; [roundUp] for a pay amount, so it never reads low.
+String capDecimals(String raw, int max, {bool roundUp = false}) {
+  if (max < 0) {
+    return raw;
+  }
+  final match = RegExp(r'^(\d+)\.(\d+)$').firstMatch(raw.trim());
+  if (match == null) {
+    return raw;
+  }
+  final fraction = match.group(2)!;
+  if (fraction.length <= max) {
+    return raw;
+  }
+  // Count from the first significant digit, not from the point. Cutting
+  // 0.00019999 at the fourth decimal place renders 0.0001 and understates
+  // the amount by half — on a token worth $100k that is a $10 misread.
+  final lead =
+      fraction.length - fraction.replaceFirst(RegExp(r'^0+'), '').length;
+  final keep = lead + max > fraction.length ? fraction.length : lead + max;
+  var whole = match.group(1)!;
+  var kept = fraction.substring(0, keep);
+  if (roundUp && fraction.substring(keep).contains(RegExp('[1-9]'))) {
+    // Bump the last kept digit as one integer so a carry can run into the
+    // whole part: 0.99999 at four digits is 1, not 0.9999 and not 0.10000.
+    final bumped = (BigInt.parse(whole + kept) + BigInt.one).toString().padLeft(
+      keep + 1,
+      '0',
+    );
+    whole = bumped.substring(0, bumped.length - keep);
+    kept = bumped.substring(bumped.length - keep);
+  }
+  final cut = kept.replaceFirst(RegExp(r'0+$'), '');
+  // The first significant digit always survives the cut, so an empty
+  // remainder means the fraction was all zeros: the value is a whole number.
+  return cut.isEmpty ? whole : '$whole.$cut';
+}

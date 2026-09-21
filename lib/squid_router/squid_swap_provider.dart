@@ -184,8 +184,8 @@ SwapQuote squidQuote(RouteResponseData route) {
       toAmount,
       estimate.toToken.decimals.toInt(),
     ),
-    feesUsd: _sumUsd(estimate.feeCosts.map((fee) => fee.amountUsd)),
     gasUsd: _sumUsd(estimate.gasCosts.map((gas) => gas.amountUsd)),
+    feeLines: _feeLines(estimate.feeCosts),
     estimatedDuration: Duration(
       seconds: estimate.estimatedRouteDuration.round(),
     ),
@@ -243,8 +243,8 @@ SwapQuote squidQuoteFromJson(Map<String, dynamic> body) {
     toAmountMin: amount('toAmountMin'),
     fromAmountDisplay: formatTokenAmount(fromAmount, decimalsOf('fromToken')),
     toAmountDisplay: formatTokenAmount(toAmount, decimalsOf('toToken')),
-    feesUsd: _sumUsdRaw(estimate['feeCosts']),
     gasUsd: _sumUsdRaw(estimate['gasCosts']),
+    feeLines: _feeLinesRaw(estimate['feeCosts']),
     // Absent means "no estimate", which reads as instant rather than as an
     // error: the duration is informational and never gates a swap.
     estimatedDuration: Duration(
@@ -268,6 +268,42 @@ double _sumUsdRaw(Object? costs) => costs is! List
           (cost) => cost is Map ? (cost['amountUsd']?.toString() ?? '') : '',
         ),
       );
+
+/// One fee entry; a nameless charge is titled so no bare dollar row appears.
+/// ponytail: an unparseable amount reads as `$0.00`, same as a genuine free
+/// fee. Lift by making [FeeLine.amountUsd] nullable and rendering `—`.
+FeeLine _feeLine(String name, String amountUsd) {
+  // tryParse accepts "NaN" and "Infinity", neither of which is a price.
+  final parsed = double.tryParse(amountUsd);
+  return FeeLine(
+    name: name.trim().isEmpty ? 'Route fee' : name,
+    amountUsd: parsed != null && parsed.isFinite ? parsed : 0.0,
+  );
+}
+
+/// [_feeLine] over the typed `feeCosts` collection.
+List<FeeLine> _feeLines(Iterable<FeeCost> costs) => [
+  for (final cost in costs)
+    _feeLine(
+      standardSerializers.serializeWith(FeeType.serializer, cost.name)
+          as String,
+      cost.amountUsd,
+    ),
+];
+
+/// [_feeLine] over a raw `feeCosts` list. Same tolerance as [_sumUsdRaw]: a
+/// non-List collection is no fees, and a non-Map element is skipped rather
+/// than thrown on.
+List<FeeLine> _feeLinesRaw(Object? costs) => costs is! List
+    ? const []
+    : [
+        for (final cost in costs)
+          if (cost is Map)
+            _feeLine(
+              cost['name']?.toString() ?? '',
+              cost['amountUsd']?.toString() ?? '',
+            ),
+      ];
 
 /// The route request as Squid's wire body. Shared by the quote and the
 /// executable fetch, so the two can never describe different swaps.
@@ -307,10 +343,12 @@ SwapTransaction squidTransaction(
     );
   }
 
+  final estimate = route['estimate'];
   return SwapTransaction(
     quoteId: route['quoteId']?.toString() ?? '',
     requestId: requestId ?? wire['requestId']?.toString(),
     spender: target.toString(),
+    feeLines: _feeLinesRaw(estimate is Map ? estimate['feeCosts'] : null),
     request: {
       'from': from,
       'to': target.toString(),

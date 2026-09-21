@@ -39,6 +39,7 @@ final _failures = <SwapOutcome>[
   const SwapAllowanceUnreadable(_leaky),
   const SwapApprovalFailed(_leaky),
   const SwapSendFailed(_leaky),
+  const SwapFeesChanged(quoted: [], actual: []),
 ];
 
 /// The statuses a broadcast swap can settle into that are not a plain success.

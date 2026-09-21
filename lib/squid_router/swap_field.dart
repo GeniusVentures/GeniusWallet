@@ -10,6 +10,7 @@ import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
+import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/formatters.dart';
 
 class SwapField extends StatelessWidget {
@@ -54,8 +55,11 @@ class SwapField extends StatelessWidget {
     // this subtree to rebuild on a live appearance toggle (04-04 discipline).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
+    // 38 is sized for a desktop window. Once the frame is phone width the
+    // amount shares its row with the token selector and MAX, and a long
+    // amount is the first thing squeezed.
     final heroStyle = GeniusWalletTypography.numericDisplay.copyWith(
-      fontSize: 38,
+      fontSize: GeniusBreakpoints.useDesktopLayout(context) ? 38 : 30,
       height: 1.0,
     );
 
