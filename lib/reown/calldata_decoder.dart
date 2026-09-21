@@ -398,7 +398,9 @@ DappCallSummary summarizeTransaction(
     // A swap that spends the chain's own coin names it with the 0xEeee…
     // sentinel and carries the same amount in `value`. That is one spend,
     // not a token plus native currency, and the sentinel is not an address
-    // anyone should be shown. If the two figures disagree, both stay.
+    // anyone should be shown. If the two figures disagree, both stay -- a
+    // zero value against a non-zero amount included, since that call cannot
+    // fund the swap it describes.
     if (isNativeToken(tokenIn) && nativeSymbol != null) {
       return DappCallSummary(
         DappCallKind.routerSwap,
@@ -406,7 +408,7 @@ DappCallSummary summarizeTransaction(
         tokenContract: contract,
         amount: formatEth(swap.amount.toString()),
         symbol: nativeSymbol,
-        nativeAmount: native == swap.amount || native == BigInt.zero
+        nativeAmount: native == swap.amount
             ? null
             : formatEth(native.toString()),
       );

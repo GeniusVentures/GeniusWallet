@@ -180,8 +180,13 @@ List<DappCallRow> dappCallRows(
           label: symbol == null ? 'Amount in (smallest units)' : 'Amount in',
           value: symbol == null ? figure : '$figure $symbol',
         ),
+      // For a native-input swap the second figure is the call's own value,
+      // shown because it disagrees with the amount -- not an extra send.
       if (native != null)
-        DappCallRow(label: 'Also sending', value: inNative(native)),
+        DappCallRow(
+          label: summary.tokenIn == null ? 'Value attached' : 'Also sending',
+          value: inNative(native),
+        ),
       ...gasRows,
       if (networkName != null && networkName.isNotEmpty)
         DappCallRow(label: 'Network', value: networkName),

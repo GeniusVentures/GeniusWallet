@@ -968,6 +968,29 @@ void main() {
         expect(warning, isNot(contains('as well as a token')));
       });
 
+      test('a native input with no value attached is a mismatch too', () {
+        const sentinel =
+            '000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+        final nativeIn = swapData.replaceRange(10, 74, sentinel);
+        final summary = summarizeTransaction(
+          swapTx(data: nativeIn, value: '0x0'),
+          coins: [gnus],
+          chainId: 8453,
+          nativeSymbol: 'ETH',
+        );
+        expect(summary.symbol, 'ETH');
+        expect(summary.nativeAmount, isNotNull);
+        expect(
+          BigInt.parse(summary.nativeAmount!.replaceAll('.', '')),
+          BigInt.zero,
+        );
+        expect(dappCallWarning(summary), contains('disagree'));
+        expect(
+          dappCallRows(summary, nativeSymbol: 'ETH').map((r) => r.label),
+          contains('Value attached'),
+        );
+      });
+
       test('a swap that also moves native value keeps that figure', () {
         final summary = summarizeTransaction(
           swapTx(value: '0x2386f26fc10000'),
