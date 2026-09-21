@@ -38,17 +38,25 @@ const kUnreadableSignatureWarning =
     'not sign it. This request is declined either way -- nothing on this '
     'screen approves anything.';
 
-/// Public because a request that never reaches a decoder -- an unhandled
-/// method -- needs the same caution as calldata that would not decode.
 const kUnreadableRequestWarning =
     'GeniusWallet could not read what this request does. Approving it may '
     'move funds in ways this screen does not show.';
+
+/// A method with no handler is declined whichever button is pressed, so the
+/// copy must not imply that approving does anything.
+const kUnhandledMethodWarning =
+    'GeniusWallet does not handle this kind of request, so it will not act '
+    'on it. This request is declined either way -- nothing on this screen '
+    'approves anything.';
 
 /// What the drawer calls this transaction. Only the kinds the send body
 /// refuses reach here.
 String dappCallHeadline(DappCallSummary summary) {
   if (summary.kind == DappCallKind.tokenApprove) {
     return 'Approve spending';
+  }
+  if (summary.kind == DappCallKind.tokenTransfer) {
+    return 'Token transfer';
   }
   if (summary.kind == DappCallKind.unverifiedToken) {
     return summary.spender != null

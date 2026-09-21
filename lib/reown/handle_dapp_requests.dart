@@ -106,10 +106,11 @@ void Function() handleDappRequests({
 
         // The send body asserts that one figure, in one unit, leaves the
         // wallet. Only these two kinds were read well enough for that
-        // sentence to be true; everything else has to say what it could not
-        // read instead.
+        // sentence to be true -- and a token transfer that also carries
+        // native value moves two figures, so it takes the rows instead.
         final Widget content;
-        if (summary.kind == DappCallKind.nativeSend || isTokenTransfer) {
+        if (summary.kind == DappCallKind.nativeSend ||
+            (isTokenTransfer && summary.nativeAmount == null)) {
           content = SendTransactionDetails(
             fromAddress: from,
             // For a token transfer `tx['to']` is the contract, not the person
@@ -250,7 +251,7 @@ void Function() handleDappRequests({
               : 'Unknown request',
           warning: isSignature
               ? kUnreadableSignatureWarning
-              : kUnreadableRequestWarning,
+              : kUnhandledMethodWarning,
           rows: [
             if (!isSignature) DappCallRow(label: 'Method', value: method),
             if (networkName.isNotEmpty)

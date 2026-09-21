@@ -10,8 +10,9 @@
 //   - a real `transfer(address,uint256)` stops resolving to its true recipient
 //     and amount,
 //   - the hardcoded selector drifts from the one the ABI actually derives,
-//   - an unknown token, an unreadable `decimals`, or a transfer that ALSO
-//     moves native value starts being presented as a confident token send,
+//   - an unknown token or an unreadable `decimals` starts being presented as
+//     a confident token send, or a call that ALSO moves native value drops
+//     either figure,
 //   - malformed calldata throws instead of falling back to today's path,
 //   - or decoding starts writing into the map that gets signed.
 //
@@ -420,15 +421,17 @@ void main() {
     });
 
     group('a token call that ALSO moves native value shows both figures', () {
-      // Two amounts move but the send rows can only state one. Claiming just
-      // the token half would understate what leaves the wallet.
+      // Two amounts move. The native one is kept beside the token one, and a
+      // token the wallet resolved stays resolved: the extra value is not a
+      // reason to forget its symbol and decimals.
       test('a transfer carries the token figure and the native one', () {
         final summary = summarizeTransaction(
           _tx(data: _transferCalldata, value: '0x2386f26fc10000'),
           coins: const [_sixDecimalCoin],
         );
-        expect(summary.kind, DappCallKind.unverifiedToken);
-        expect(summary.amount, '1500000');
+        expect(summary.kind, DappCallKind.tokenTransfer);
+        expect(summary.amount, '1.5');
+        expect(summary.symbol, _sixDecimalCoin.symbol);
         expect(summary.nativeAmount, contains('0.01'));
       });
 
@@ -437,9 +440,20 @@ void main() {
           _tx(data: _approveCalldata, value: '0x2386f26fc10000'),
           coins: const [_sixDecimalCoin],
         );
-        expect(summary.kind, DappCallKind.unverifiedToken);
+        expect(summary.kind, DappCallKind.tokenApprove);
         expect(summary.spender, _recipient);
-        expect(summary.allowance, '1500000');
+        expect(summary.allowance, '1.5');
+        expect(summary.symbol, _sixDecimalCoin.symbol);
+        expect(summary.nativeAmount, contains('0.01'));
+      });
+
+      test('an unknown token with native value keeps both, in base units', () {
+        final summary = summarizeTransaction(
+          _tx(data: _transferCalldata, value: '0x2386f26fc10000'),
+          coins: const [],
+        );
+        expect(summary.kind, DappCallKind.unverifiedToken);
+        expect(summary.amount, '1500000');
         expect(summary.nativeAmount, contains('0.01'));
       });
 

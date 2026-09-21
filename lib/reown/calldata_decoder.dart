@@ -402,12 +402,15 @@ DappCallSummary summarizeTransaction(
 
   final token = _resolveToken(coins, contract);
   final counterparty = decoded.counterparty.eip55With0x;
-  final movesNative = native != BigInt.zero;
+  // A call that also moves native currency keeps that figure alongside the
+  // token one, whatever else is known: neither may be summarised away.
+  final nativeAmount = native == BigInt.zero
+      ? null
+      : formatEth(native.toString());
 
   // Base units and no unit is the honest form for a token this wallet cannot
-  // vouch for -- and a call that also moves native currency keeps both
-  // figures, because neither may be summarised away.
-  if (token == null || movesNative) {
+  // vouch for.
+  if (token == null) {
     final raw = decoded.amount.toString();
     return DappCallSummary(
       DappCallKind.unverifiedToken,
@@ -416,7 +419,7 @@ DappCallSummary summarizeTransaction(
       amount: isApprove ? null : raw,
       allowance: isApprove ? raw : null,
       tokenContract: contract,
-      nativeAmount: movesNative ? formatEth(native.toString()) : null,
+      nativeAmount: nativeAmount,
       isUnlimitedAllowance:
           isApprove && decoded.amount >= kUnlimitedApprovalThreshold,
     );
@@ -429,6 +432,7 @@ DappCallSummary summarizeTransaction(
       allowance: formatTokenAmount(decoded.amount, token.decimals),
       symbol: token.symbol,
       tokenContract: contract,
+      nativeAmount: nativeAmount,
       isUnlimitedAllowance: decoded.amount >= kUnlimitedApprovalThreshold,
     );
   }
@@ -439,5 +443,6 @@ DappCallSummary summarizeTransaction(
     amount: formatTokenAmount(decoded.amount, token.decimals),
     symbol: token.symbol,
     tokenContract: contract,
+    nativeAmount: nativeAmount,
   );
 }

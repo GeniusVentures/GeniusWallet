@@ -433,8 +433,9 @@ void main() {
         ),
       );
 
-      // The token figure, in base units...
-      expect(find.textContaining('1500000'), findsOneWidget);
+      // The token figure, in the token's own unit since it was resolved...
+      expect(_onScreen(tester, 'Token transfer'), isTrue);
+      expect(find.textContaining('1.5 ${_knownCoin.symbol}'), findsOneWidget);
       // ...and the native figure beside it, neither summarised away.
       expect(find.textContaining('0.0100000000 ETH'), findsOneWidget);
 

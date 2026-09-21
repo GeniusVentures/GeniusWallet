@@ -373,6 +373,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(_onScreen(tester, 'eth_chainId'), isTrue);
+      // Every answer below is a rejection, so the copy must not suggest that
+      // approving would do anything.
+      expect(_onScreen(tester, 'declined either way'), isTrue);
+      expect(_onScreen(tester, 'Approving'), isFalse);
 
       await tester.tap(find.text('Reject'));
       await tester.pumpAndSettle();
