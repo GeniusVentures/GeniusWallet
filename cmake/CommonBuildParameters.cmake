@@ -113,11 +113,48 @@ endif()
 find_package(Vulkan)
 
 if(NOT TARGET Vulkan::Vulkan)
-    if(NOT DEFINED $ENV{VULKAN_SDK})
+    # DEFINED takes the variable NAME. Written as $ENV{...} the value is
+    # expanded first, so this asked whether a variable named after the SDK
+    # path existed -- never true, and the set below always ran.
+    if(NOT DEFINED ENV{VULKAN_SDK})
         set(ENV{VULKAN_SDK} "${THIRDPARTY_BUILD_DIR}/Vulkan-Loader")
     endif()
 
+    # The published thirdparty package splits Vulkan in two: Vulkan-Loader
+    # carries bin/ and lib/, Vulkan-Headers carries the headers. A tree built
+    # from source ALSO leaves headers in Vulkan-Loader/include, so VULKAN_SDK
+    # alone resolves on a developer machine and finds no headers on a clean
+    # checkout -- CMake then fails with "missing: Vulkan_INCLUDE_DIR" having
+    # located the .lib. Name both halves, the way the Apple branch above
+    # does, and only where they are actually present.
+    if(NOT Vulkan_INCLUDE_DIR AND EXISTS "${THIRDPARTY_BUILD_DIR}/Vulkan-Headers/include")
+        set(Vulkan_INCLUDE_DIR "${THIRDPARTY_BUILD_DIR}/Vulkan-Headers/include")
+    endif()
+
+    if(NOT Vulkan_LIBRARY AND EXISTS "${THIRDPARTY_BUILD_DIR}/Vulkan-Loader/lib/vulkan-1.lib")
+        set(Vulkan_LIBRARY "${THIRDPARTY_BUILD_DIR}/Vulkan-Loader/lib/vulkan-1.lib")
+    endif()
+
     find_package(Vulkan REQUIRED)
+endif()
+
+# vk-bootstrap and shaderc -- SGProcessingManager's exported SGProcessors and
+# SGShaderCompiler targets interface-link both, so they must exist before
+# find_package(SGProcessingManager) further down. Mirrors SuperGenius's
+# build/CommonBuildParameters.cmake.
+set(vk-bootstrap_DIR "${THIRDPARTY_BUILD_DIR}/vk-bootstrap/lib/cmake/vk-bootstrap")
+find_package(vk-bootstrap CONFIG REQUIRED)
+
+# shaderc installs no CMake package config (upstream provides none), so the
+# target is hand-written, same as in SuperGenius. libshaderc_combined
+# statically bundles glslang and SPIRV-Tools; their headers resolve through
+# the shared include dir.
+if(NOT TARGET shaderc::shaderc)
+    add_library(shaderc::shaderc STATIC IMPORTED GLOBAL)
+    set_target_properties(shaderc::shaderc PROPERTIES
+        IMPORTED_LOCATION "${THIRDPARTY_BUILD_DIR}/shaderc/lib/${CMAKE_STATIC_LIBRARY_PREFIX}shaderc_combined${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        INTERFACE_INCLUDE_DIRECTORIES "${THIRDPARTY_BUILD_DIR}/shaderc/include"
+    )
 endif()
 
 # MNN

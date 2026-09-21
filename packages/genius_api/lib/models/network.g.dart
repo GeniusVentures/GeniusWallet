@@ -9,6 +9,7 @@ part of 'network.dart';
 _Network _$NetworkFromJson(Map<String, dynamic> json) => _Network(
   name: json['name'] as String?,
   symbol: json['symbol'] as String?,
+  nativeSymbol: json['nativeSymbol'] as String?,
   chainId: (json['chainId'] as num?)?.toInt(),
   coinGeckoId: json['coinGeckoId'] as String?,
   rpcUrl: json['rpcUrl'] as String?,
@@ -19,6 +20,7 @@ _Network _$NetworkFromJson(Map<String, dynamic> json) => _Network(
 Map<String, dynamic> _$NetworkToJson(_Network instance) => <String, dynamic>{
   'name': instance.name,
   'symbol': instance.symbol,
+  'nativeSymbol': instance.nativeSymbol,
   'chainId': instance.chainId,
   'coinGeckoId': instance.coinGeckoId,
   'rpcUrl': instance.rpcUrl,

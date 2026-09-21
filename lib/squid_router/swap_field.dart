@@ -3,9 +3,8 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
-import 'package:genius_wallet/squid_router/models/squid_balance.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/token_selector_drawer.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -17,10 +16,10 @@ class SwapField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
-  final SquidTokenInfo? selectedToken;
+  final SwapToken? selectedToken;
   final bool isSelectingFrom;
-  final List<SquidTokenInfo> tokens;
-  final void Function(SquidTokenInfo token) onTokenSelected;
+  final List<SwapToken> tokens;
+  final void Function(SwapToken token) onTokenSelected;
 
   /// When non-null AND [controller] is empty, the amount slot renders this
   /// string in the 38px hero style (coloured `gw.textPrimary38`) INSTEAD of
@@ -60,7 +59,7 @@ class SwapField extends StatelessWidget {
       height: 1.0,
     );
 
-    final showMax = isSelectingFrom && selectedToken?.balance != null;
+    final showMax = isSelectingFrom && selectedToken?.rawBalance != null;
 
     final double? usdValue = selectedToken != null
         ? fiatValue(
@@ -102,7 +101,13 @@ class SwapField extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
+                // Expanded, not Flexible: the two branches below have very
+                // different intrinsic widths — a TextField fills the row, the
+                // placeholder is one character — and a Flexible sizes to the
+                // child, so the token selector slid ~976px left the moment a
+                // route error cleared the amount. The slot owns the width; what
+                // is drawn inside it does not get a say.
+                Expanded(
                   child: (emptyPlaceholder != null && controller.text.isEmpty)
                       ? Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -219,41 +224,54 @@ class SwapField extends StatelessWidget {
                             children: [
                               if (selectedToken != null)
                                 ClipOval(
-                                  child: Image.network(
-                                    selectedToken!.logoURI,
-                                    width: 32,
-                                    height: 32,
-                                    fit: BoxFit.cover,
-                                    // The slot is already 32x32, so nothing moves
-                                    // when the bytes land — but until they do it
-                                    // is a hole beside the symbol. A neutral disc
-                                    // holds the shape, reusing the error branch's
-                                    // idea of "no logo" rather than inventing a
-                                    // second one.
-                                    loadingBuilder: (context, child, progress) {
-                                      if (progress == null) {
-                                        return child;
-                                      }
-                                      return Container(
-                                        width: 32,
-                                        height: 32,
-                                        color: gw.surfaceMenu,
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        width: 32,
-                                        height: 32,
-                                        color: gw.surfaceMenu,
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          Icons.broken_image,
-                                          color: gw.textSecondary,
-                                          size: 16,
+                                  // The catalogue does not promise a logo. The
+                                  // slot is 32x32 either way, so nothing in the
+                                  // pill moves when one is missing.
+                                  child: selectedToken!.logoUri == null
+                                      ? ColoredBox(
+                                          color: gw.surfaceMenu,
+                                          child: const SizedBox(
+                                            width: 32,
+                                            height: 32,
+                                          ),
+                                        )
+                                      : Image.network(
+                                          selectedToken!.logoUri!,
+                                          width: 32,
+                                          height: 32,
+                                          fit: BoxFit.cover,
+                                          // The slot is already 32x32, so nothing moves
+                                          // when the bytes land — but until they do it
+                                          // is a hole beside the symbol. A neutral disc
+                                          // holds the shape, reusing the error branch's
+                                          // idea of "no logo" rather than inventing a
+                                          // second one.
+                                          loadingBuilder:
+                                              (context, child, progress) {
+                                                if (progress == null) {
+                                                  return child;
+                                                }
+                                                return Container(
+                                                  width: 32,
+                                                  height: 32,
+                                                  color: gw.surfaceMenu,
+                                                );
+                                              },
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                                return Container(
+                                                  width: 32,
+                                                  height: 32,
+                                                  color: gw.surfaceMenu,
+                                                  alignment: Alignment.center,
+                                                  child: Icon(
+                                                    Icons.broken_image,
+                                                    color: gw.textSecondary,
+                                                    size: 16,
+                                                  ),
+                                                );
+                                              },
                                         ),
-                                      );
-                                    },
-                                  ),
                                 ),
                               const SizedBox(width: 8),
                               Text(
@@ -287,8 +305,8 @@ class SwapField extends StatelessWidget {
                             // row as `0.010000000000000221`. The MAX tap below
                             // deliberately keeps the exact string, which is the
                             // split `displayBalance`'s own doc describes.
-                            selectedToken?.balance != null
-                                ? "${selectedToken!.balance!.displayBalance} ${selectedToken!.balance!.symbol}"
+                            selectedToken?.rawBalance != null
+                                ? "${selectedToken!.displayBalance} ${selectedToken!.symbol}"
                                 : "",
                             style: GeniusWalletTypography.labelMd.copyWith(
                               color: gw.textSecondary,
@@ -300,7 +318,7 @@ class SwapField extends StatelessWidget {
                               builder: (hovered) => InkWell(
                                 onTap: () {
                                   final formatted =
-                                      selectedToken!.balance!.formattedBalance;
+                                      selectedToken!.formattedBalance;
                                   controller.text = formatted;
                                   onChanged(controller.text);
                                 },

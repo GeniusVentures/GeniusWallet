@@ -42,6 +42,65 @@ class DevMockTransactions {
 
     return [
       // --- Today -----------------------------------------------------------
+      // 0a. Paused swap WITH the aggregator's recovery link — the only state
+      //     that offers a button.
+      Transaction(
+        hash: '0xdevmockpaused',
+        fromAddress: '0xFromMockedSwap',
+        recipients: [
+          TransferRecipients(toAddr: '0xToMockedSwap', amount: '120.0'),
+        ],
+        timeStamp: minutesAgo(3),
+        transactionDirection: TransactionDirection.received,
+        fees: '0.41',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.needsGas,
+        isSGNUS: isSgnus,
+        type: TransactionType.swap,
+        fromSymbol: 'GNUS',
+        toSymbol: 'USDC',
+        fromAmount: '150',
+        toAmount: '120',
+        recoveryUrl: 'https://axelarscan.io/gmp/0xdevmockpaused',
+      ),
+      // 0b. Partial swap — funds safe, wrong asset, nothing to press.
+      Transaction(
+        hash: '0xdevmockpartial',
+        fromAddress: '0xFromMockedSwap',
+        recipients: [
+          TransferRecipients(toAddr: '0xToMockedSwap', amount: '120.0'),
+        ],
+        timeStamp: minutesAgo(5),
+        transactionDirection: TransactionDirection.received,
+        fees: '0.38',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.partialSuccess,
+        isSGNUS: isSgnus,
+        type: TransactionType.swap,
+        fromSymbol: 'GNUS',
+        toSymbol: 'USDC',
+        fromAmount: '150',
+        toAmount: '120',
+      ),
+      // 0c. Refunded swap — reads as a dead row and takes `Not charged`.
+      Transaction(
+        hash: '0xdevmockrefunded',
+        fromAddress: '0xFromMockedSwap',
+        recipients: [
+          TransferRecipients(toAddr: '0xToMockedSwap', amount: '120.0'),
+        ],
+        timeStamp: minutesAgo(8),
+        transactionDirection: TransactionDirection.received,
+        fees: '0.12',
+        coinSymbol: 'ETH',
+        transactionStatus: TransactionStatus.refunded,
+        isSGNUS: isSgnus,
+        type: TransactionType.swap,
+        fromSymbol: 'GNUS',
+        toSymbol: 'USDC',
+        fromAmount: '150',
+        toAmount: '120',
+      ),
       // 1. Normal Sent row.
       Transaction(
         hash: '0xdevmock01',

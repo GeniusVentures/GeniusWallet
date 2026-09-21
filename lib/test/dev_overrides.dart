@@ -71,7 +71,7 @@ void addFakeWalletTransactions() {
   }
 
   debugPrint('\x1B[37m** Adding fake Wallet transactions\x1B[0m');
-  TransactionStorageService().addTransaction(
+  const TransactionStorageService().addTransaction(
     '0x6084a30B8CFe3fd27b0672b8fE740B9a8541403e',
     getFakeTransaction(false),
   );

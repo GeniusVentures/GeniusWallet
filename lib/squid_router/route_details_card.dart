@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:genius_wallet/squid_router/models/squid_route_response.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
+import 'package:genius_wallet/squid_router/squid_util.dart';
+import 'package:genius_wallet/swap/swap_quote.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 class RouteDetailsCard extends StatelessWidget {
-  final SquidRouteResponse route;
+  final SwapQuote quote;
   final String fromAmount;
   final String toAmount;
-  final SquidTokenInfo? fromToken;
-  final SquidTokenInfo? toToken;
+
+  /// Symbols rather than token objects: the card renders two words, and
+  /// taking the whole model would tie this widget to whatever shape the
+  /// token catalogue happens to have.
+  final String? fromSymbol;
+  final String? toSymbol;
   final String slippage;
 
   const RouteDetailsCard({
     super.key,
-    required this.route,
+    required this.quote,
     required this.fromAmount,
     required this.toAmount,
-    required this.fromToken,
-    required this.toToken,
+    required this.fromSymbol,
+    required this.toSymbol,
     required this.slippage,
   });
 
@@ -29,14 +33,11 @@ class RouteDetailsCard extends StatelessWidget {
     // this subtree to rebuild on a live appearance toggle (04-04 discipline).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
-    final pricing =
-        '$fromAmount ${fromToken?.symbol} ~ $toAmount ${toToken?.symbol}';
-    final priceImpact = '${route.aggregatePriceImpact}%';
-    final totalFeesUsd = route.feeCosts.fold<double>(
-      0.0,
-      (sum, fee) => sum + double.tryParse(fee.amountUSD)!,
-    );
-    final fees = '\$${totalFeesUsd.toStringAsFixed(2)}';
+    final pricing = '$fromAmount $fromSymbol ~ $toAmount $toSymbol';
+    final priceImpact = '${formatPercent(quote.priceImpact)}%';
+    // Gas is part of what a swap costs, so the row sums both. Fees alone
+    // understated it, and on a same-chain route there are no fees at all.
+    final fees = '\$${quote.totalCostUsd.toStringAsFixed(2)}';
 
     return Container(
       // Vertical only. A horizontal margin here inset this card 16px inside

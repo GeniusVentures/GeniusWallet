@@ -384,7 +384,7 @@ class BridgeScreenState extends State<BridgeScreen> {
   // Task 3 (a): the "You Pay" card -- swap_field.dart's vocabulary
   // (surfaceElevated, radiusLg, borderSubtle hairline, labelMd label, 38px
   // numericDisplay hero, surfaceMenu pill) built inline (SwapField is
-  // SquidTokenInfo-typed; bridge's pay side is a fixed Coin, not tappable --
+  // SwapToken-typed; bridge's pay side is a fixed Coin, not tappable --
   // bridge is GNUS-only, D-12). The TextField's onChanged is develop's
   // 300ms-debounced body VERBATIM: same balance precheck returning before
   // any API call, same _isApiCallInProgress guard, same six

@@ -1,61 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
-import 'package:genius_wallet/squid_router/squid_token_service.dart';
+import 'package:genius_wallet/squid_router/squid_swap_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
-/// Criterion 1's automated half (08-CONTEXT D-18b / D-08): a re-skin must not
-/// disturb the route/fee/slippage figures `RouteDetailsCard` prints. The card
-/// is always fed `mockSquidRoute` — `SquidTokenService.getRoute()` returns
-/// that hardcoded constant regardless of input (D-18b) — so this test asserts
-/// against the REAL constant the app uses, not a local copy, and never
-/// asserts that the quote varies by token pair or amount.
+import 'route_fixture.dart';
 
-SquidTokenInfo _token(String symbol) => SquidTokenInfo(
-  chainId: 1,
-  address: '0x0000000000000000000000000000000000000000',
-  name: symbol,
-  symbol: symbol,
-  decimals: 18,
-  crosschain: false,
-  commonKey: symbol.toLowerCase(),
-  logoURI: 'https://example.com/$symbol.png',
-  coingeckoId: symbol.toLowerCase(),
-);
+/// The card is driven by recorded real responses, end to end: JSON to adapter
+/// to pixels. Its previous golden values were frozen from a constant rate the
+/// app could not produce, so nothing here asserts a figure twice.
 
-Widget _host(Widget child, {GWColors? gw}) => MaterialApp(
-  theme: ThemeData(extensions: [gw ?? GWColors.dark()]),
+Widget _host(Widget child) => MaterialApp(
+  theme: ThemeData(extensions: [GWColors.dark()]),
   home: Scaffold(body: child),
 );
 
-void main() {
-  testWidgets('RouteDetailsCard prints the real mockSquidRoute figures', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _host(
-        RouteDetailsCard(
-          route: mockSquidRoute,
-          fromAmount: '1',
-          toAmount: '0.995',
-          fromToken: _token('ETH'),
-          toToken: _token('USDT'),
-          slippage: '0.5',
-        ),
+Future<void> _pumpCard(WidgetTester tester, String fixture) async {
+  await tester.pumpWidget(
+    _host(
+      RouteDetailsCard(
+        quote: squidQuote(loadRouteFixture(fixture)),
+        fromAmount: '1',
+        toAmount: '0.757304',
+        fromSymbol: 'GNUS',
+        toSymbol: 'USDC',
+        slippage: '0.5',
       ),
-    );
+    ),
+  );
+}
 
-    // Row labels.
+void main() {
+  testWidgets('the four rows survive', (tester) async {
+    await _pumpCard(tester, sameChainRoute);
+
     expect(find.text('Pricing'), findsOneWidget);
     expect(find.text('Slippage'), findsOneWidget);
     expect(find.text('Price Impact'), findsOneWidget);
     expect(find.text('Fees'), findsOneWidget);
+  });
 
-    // The four derived strings — golden values frozen from develop.
-    expect(find.text('1 ETH ~ 0.995 USDT'), findsOneWidget);
+  testWidgets('every figure is read off the quote', (tester) async {
+    await _pumpCard(tester, sameChainRoute);
+
+    expect(find.text('1 GNUS ~ 0.757304 USDC'), findsOneWidget);
     expect(find.text('0.5'), findsOneWidget);
-    expect(find.text('0.51%'), findsOneWidget);
-    expect(find.text('\$0.30'), findsOneWidget);
+    expect(find.text('0.03%'), findsOneWidget);
+    // Gas only on a same-chain route — and the row still shows it, where
+    // summing fees alone would have printed $0.00.
+    expect(find.text('\$0.01'), findsOneWidget);
+  });
+
+  testWidgets('a second real quote renders different figures', (tester) async {
+    await _pumpCard(tester, crossChainRoute);
+
+    // Bridge fee plus gas. Nothing on this card traces to a literal.
+    expect(find.text('2.93%'), findsOneWidget);
+    expect(find.text('\$0.50'), findsOneWidget);
+    expect(find.text('0.03%'), findsNothing);
   });
 }

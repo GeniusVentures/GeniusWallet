@@ -1,3 +1,5 @@
+> **Resolved 2026-09-17 by Phase 26 (plan 26-06).** The stored row now writes `fees: fetchedQuote?.gasUsd` — the real network cost from the live route — never the swap amount. The `swap_screen.dart:243` cited below no longer exists.
+
 # Swap zapisuje kwotę swapa do pola `fees` — drawer pokazuje ją jako „Network Fee"
 
 **Znalezione:** 2026-07-26, podczas audytu danych do szkicu 062 (Ledger).

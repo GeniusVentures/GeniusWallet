@@ -72,15 +72,49 @@ void main() {
       });
     }
 
-    test('the two non-happy-path statuses are reachable too', () {
-      expect(
-        Filters.pending.matches(_tx(status: TransactionStatus.pending)),
-        isTrue,
-      );
-      expect(
-        Filters.failed.matches(_tx(status: TransactionStatus.failed)),
-        isTrue,
-      );
+    test('every non-happy-path status is reachable from some filter', () {
+      // Iterating the enum, not a written-out pair: a status nobody can
+      // filter to is a transaction the user cannot find, and the next value
+      // added must not be able to slip through this silently.
+      for (final status in TransactionStatus.values) {
+        if (status == TransactionStatus.completed) {
+          continue;
+        }
+        final reachable = Filters.values
+            .where((f) => f != Filters.all)
+            .any((f) => f.matches(_tx(status: status)));
+        expect(reachable, isTrue, reason: '$status is unreachable');
+      }
+    });
+
+    test('the three moved-money states fold into the failed finder', () {
+      // Membership is a FINDING AID, not a verdict on the money — each row
+      // still says what actually happened.
+      for (final status in [
+        TransactionStatus.needsGas,
+        TransactionStatus.partialSuccess,
+        TransactionStatus.refunded,
+      ]) {
+        expect(
+          Filters.failed.matches(_tx(status: status)),
+          isTrue,
+          reason: '$status cannot be found',
+        );
+      }
+    });
+
+    test('a swap in any of the three still lists under the swap filter', () {
+      for (final status in [
+        TransactionStatus.needsGas,
+        TransactionStatus.partialSuccess,
+        TransactionStatus.refunded,
+      ]) {
+        expect(
+          Filters.swap.matches(_tx(type: TransactionType.swap, status: status)),
+          isTrue,
+          reason: '$status vanished from the swap filter',
+        );
+      }
     });
   });
 

@@ -102,9 +102,15 @@ enum Filters {
     // `cancelled` folds into failed for the same reason `escrowRelease` folds
     // into escrow: someone hunting a transaction that did not go through does
     // not distinguish the two.
+    // Membership here is a FINDING AID, not a claim about the money: a person
+    // hunting a transaction that did not land as asked does not first sort it
+    // into kinds. Each row still says what actually happened.
     failed => {
       TransactionStatus.failed,
       TransactionStatus.cancelled,
+      TransactionStatus.needsGas,
+      TransactionStatus.partialSuccess,
+      TransactionStatus.refunded,
     }.contains(tx.transactionStatus),
   };
 

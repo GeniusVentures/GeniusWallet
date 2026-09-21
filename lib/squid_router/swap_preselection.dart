@@ -1,5 +1,5 @@
 import 'package:genius_wallet/squid_router/held_tokens.dart';
-import 'package:genius_wallet/squid_router/models/squid_token_info.dart';
+import 'package:genius_wallet/swap/swap_token.dart';
 
 /// Which side of the swap a preselected coin lands on.
 ///
@@ -10,7 +10,7 @@ enum PreselectSide { pay, receive }
 class Preselection {
   const Preselection(this.token, this.side);
 
-  final SquidTokenInfo token;
+  final SwapToken token;
   final PreselectSide side;
 }
 
@@ -29,18 +29,18 @@ class Preselection {
 /// Both are honest readings of "swap this coin"; which one applies is decided
 /// by what the wallet can actually do rather than guessed.
 ///
-/// **Why it can return null.** The catalogue is `mockTokens` today (13
-/// entries), so many real coins — GNUS among them — have no match. Seating a
-/// neighbouring token would be worse than an empty form, because the user has
-/// to notice the wrong one before they can correct it.
+/// **Why it can return null.** The catalogue is the selected chain's only, so
+/// a coin held elsewhere has no match. Seating a neighbouring token would be
+/// worse than an empty form, because the user has to notice the wrong one
+/// before they can correct it.
 ///
 /// [chainId] is a *preference*, not a filter: the same symbol legitimately
 /// exists on several chains (ETH on 1, 137 and 80001), so it disambiguates
 /// when it can and is ignored when it matches nothing.
 Preselection? resolvePreselection({
-  required List<SquidTokenInfo> tokens,
+  required List<SwapToken> tokens,
   required String? symbol,
-  int? chainId,
+  String? chainId,
 }) {
   final wanted = symbol?.trim();
   if (wanted == null || wanted.isEmpty) {
@@ -54,7 +54,7 @@ Preselection? resolvePreselection({
     return null;
   }
 
-  SquidTokenInfo? pick;
+  SwapToken? pick;
 
   // 1. The requested chain, when the catalogue has it.
   if (chainId != null) {

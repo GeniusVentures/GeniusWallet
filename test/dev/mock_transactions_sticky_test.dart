@@ -52,11 +52,16 @@ void main() {
     type: TransactionType.transfer,
   );
 
+  // Read from the fixture list itself, never written out: three rows were
+  // added for the swap recovery states and a hand-copied count made three
+  // unrelated cases red instead of saying so.
+  final fixtureCount = DevMockTransactions.instance.batch(isSgnus: true).length;
+
   // Raw emitted list, not pre-collapsed into a Set<String> - counting on a
   // set of hashes would hide the very duplication case 5 checks for, since
-  // 22 identity-distinct `Transaction`s with only 11 unique hash values
-  // still map down to a Set<String> of length 11 either way. Callers assert
-  // on `.length` against this list for counts, and on
+  // 22 identity-distinct `Transaction`s with only `fixtureCount` unique hash
+  // values still map down to a Set<String> of that size either way. Callers
+  // assert on `.length` against this list for counts, and on
   // `.map((tx) => tx.hash).toSet()` only for hash membership - never on
   // list order, which is not the render order (see file header).
   Future<List<Transaction>> emittedOf(SGNUSTransactionsController c) async {
@@ -77,9 +82,9 @@ void main() {
       final hashes = emitted.map((tx) => tx.hash).toSet();
       expect(
         emitted.length,
-        11,
+        fixtureCount,
         reason:
-            'all 11 fixtures should still be emitted after an empty SDK '
+            'all fixtures should still be emitted after an empty SDK '
             'refresh; got: $hashes',
       );
     },
@@ -97,9 +102,9 @@ void main() {
     final hashes = emitted.map((tx) => tx.hash).toSet();
     expect(
       emitted.length,
-      12,
+      fixtureCount + 1,
       reason:
-          '11 fixtures plus the real transaction should both be emitted; '
+          'every fixture plus the real transaction should be emitted; '
           'got: $hashes',
     );
     expect(hashes.contains('0xreal01'), isTrue);
@@ -139,7 +144,7 @@ void main() {
     },
   );
 
-  test('two presses of the button do not duplicate: 11 rows, not 22 '
+  test('two presses of the button do not duplicate: no duplicates by hash '
       '(FAILS today)', () async {
     for (final tx in DevMockTransactions.instance.batch(isSgnus: true)) {
       controller.addTransaction(tx);
@@ -152,9 +157,9 @@ void main() {
     final hashes = emitted.map((tx) => tx.hash).toSet();
     expect(
       emitted.length,
-      11,
+      fixtureCount,
       reason:
-          'a second press should replace the 11 fixtures by hash, not '
+          'a second press should replace the fixtures by hash, not '
           'append a second identity-distinct copy; got '
           '${emitted.length} entries, ${hashes.length} unique hashes: '
           '$hashes',

@@ -159,7 +159,10 @@ Future<Coin?> _fetchNativeToken(
     return Coin(
       balance: balance,
       name: network.name,
-      symbol: network.symbol?.toUpperCase(),
+      // The coin you spend, which is not always the chain's own name — and
+      // this is the key the market-data map is read back by, so a chain key
+      // here prices the holding at $0.
+      symbol: (network.nativeSymbol ?? network.symbol)?.toUpperCase(),
       networkSymbol: network.symbol,
       iconPath: network.iconPath,
       coinGeckoId: network.coinGeckoId,

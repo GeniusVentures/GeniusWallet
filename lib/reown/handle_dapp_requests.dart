@@ -197,7 +197,7 @@ void Function() handleDappRequests({
           // stream to ui
           transactionsCubit.addTransaction(txModel);
           // save to hive
-          await TransactionStorageService().addTransaction(
+          await const TransactionStorageService().addTransaction(
             walletAddress,
             txModel,
           );

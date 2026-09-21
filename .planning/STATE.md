@@ -2,16 +2,18 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
-status: planning
-stopped_at: "v1.0 closeout state (2026-08-08): everything tracked was merged into `develop` (tip fa74006d). Quick task 260806-hfe (transactions at phone width) shipped as PR #224 and quick task 260807-bxs (Markets hero, real timeframe tabs, cards) as PR #226 — an earlier note here claiming 260806-hfe was 'NOT pushed, no PR' was wrong. Phases 24 (mobile nav shell) and 25 (dashboard section caps + Assets page) also shipped, executed by Jakub outside GSD: their completion is measured from merged code, NOT from GSD artifacts — phase 24 has no SUMMARY and its PLAN still reads status: in-progress; 25-01 has no SUMMARY and the BRIEF still reads ready-to-plan. Only genuinely open phase is 14 (gaps_found: the compute panel is built and tested but rendered nowhere; 14-08 is the one plan between it and users). Phase 18's dead-code gap was CLOSED on 2026-07-25 by cccd20c, which deleted the orphaned webTabCanClose() after 18-VERIFICATION.md ratified reset-on-close as an override — its VERIFICATION body still reads gaps_found and is stale. 1, 10, 11 never started (original port track, no phase dirs)."
-last_updated: "2026-09-16T18:21:14.000Z"
+current_phase: 26
+current_phase_name: "Swap that actually swaps — COMPLETE 2026-09-17: 8/8 plans walked on Base mainnet, verification passed 33/33; the former v2.0 phases 27-28 are absorbed into it"
+status: in_progress
+stopped_at: "SESSION CLOSED 2026-09-16 — day summary in `.planning/handoffs/HANDOFF-session-260916-swap-execution.md`. Branch `phase-26-swap-wiring`, not pushed, no PR. Merged `origin/develop` (2cd0b996) on 2026-09-16, bringing milestone v2.0 (phases 26-30); the branch's own phase 26 predates it and is the same work, so it is folded in and the drafted SWP-01..08 were retired into SWAP-01. Plans 26-01..26-07 have landed: the integrator ID loads from `squid.local.json`, the catalogue and every balance come from the network or the chain, the quote is a live `/v2/route` answer, `swap_execution.dart` runs route -> allowance -> exact-amount approval -> send -> status poll, `_submitSwap` is a thin adapter over it, and each of the six failure shapes carries its own message. **The fabricated `completed` transaction with `hash: \"\"` is DELETED** — every toast, receipt and Hive write now sits behind `sideEffectsFor`, asserted at the screen as well as at the pure layer. Four spec drifts were found live and worked around in the adapter: sdk-info, transactionRequest and status all bypass the generated deserializer, and Squid sends gas and fee fields as DECIMAL strings while the signer parses hex. **NOT DONE: no swap has ever executed.** Both remaining human-checks need a funded or dusted throwaway wallet on Base mainnet 8453 — 26-06 (one real swap, hash on the explorer) and 26-07 (underfunded gas names the send failure, stores no row). **Branch ownership: single executor.** A second code-committing agent shared this branch's git index on 2026-09-16 (its one commit, 09669d8b, is labelled feat(26-05) but implements 26-08's scope). It went dormant at 16:56 leaving three red tests; those are now closed in 26a48c18 and the suite is green at 1328 pass / 5 skip / 0 fail. Two agents on one index cost a misdiagnosis here — a file changed between two reads — so this branch takes ONE committing agent until it merges. 26-08 is now complete too: the status call captures Squid's own recovery link (never composed), it persists at Hive field 17, and the three moved-money states each explain themselves and are findable through the existing failed filter."
+last_updated: "2026-09-16T21:30:00.000Z"
 last_activity: 2026-09-16
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
+  percent: 60
 ---
 
 # Project State
@@ -21,22 +23,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 26 — squid-client-foundation-live-catalogue (milestone v2.0: Squid Router integration)
+**Current focus:** Phase 26 complete (2026-09-17). Next: Phase 29 — Integrator fee (milestone v2.0: Squid Router integration). Phase 30 is independent and may run in parallel.
 
 ## Current Position
 
-Phase: 26 — Squid client foundation & live catalogue (not started)
-Plan: —
-Status: v2.0 roadmap created (phases 26-30; 13/13 requirements mapped) — ready for `/gsd:plan-phase 26`
-Last activity: 2026-09-16 — Milestone v2.0 roadmap created
+Phase: 26 — Swap that actually swaps (COMPLETE 2026-09-17; verification passed 33/33)
+Plan: 8/8 landed and walked
+Status: v2.0 phases 27-28 collapsed into 26 (same work, three numbers). Next is Phase 29 — ready for `/gsd-plan-phase 29`
+Last activity: 2026-09-17 — Phase 26 walked on Base mainnet, six walk-found defects fixed, roadmap reconciled
 
 ### v2.0 Phase Tracking
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 26 | Squid client foundation & live catalogue | Not started |
-| 27 | Live quotes (balances, route, slippage, rate limits) | Not started |
-| 28 | Real swap execution & honest recording | Not started |
+| 26 | Swap that actually swaps (absorbs former 27, 28) | Complete 2026-09-17 |
 | 29 | Integrator fee | Not started |
 | 30 | dApp calldata decoding (end blind signing) | Not started |
 
@@ -52,7 +52,7 @@ outstanding. None of it is re-mapped by v2.0.)
 
 All tracked work is merged into `develop` (tip `fa74006d`). The `ui-redesign-port` branch still
 exists locally but its remote was pruned — it is no longer where work lands. Phases 24 and 25
-shipped; phases 1, 10, 11 never started; phase 14 is the one phase still genuinely open (14-08
+shipped; phases 10 and 11 never started; phase 14 is the one phase still genuinely open (14-08
 unwired). Latest merges: PR #224 (transactions at phone width) and PR #226 (Markets hero,
 timeframe tabs, cards).
 
@@ -64,7 +64,7 @@ The narrative below predates 2026-08-06 and describes the dual-track period. It 
 record of how the tracks ran, not as a statement of where things stand.
 
 > **DUAL-TRACK (both live on branch `ui-redesign-port`).** This project runs two parallel tracks.
-> The frontmatter counters above track only the **official GSD roadmap (Phases 1-11)**.
+> The frontmatter counters above track only the **official GSD roadmap (Phases 2-11)**.
 > - **Official track:** Phase 06 (Onboarding) — **COMPLETE 6/6 (closed 2026-07-23).** Phase 07
 >   (Token screens) EXECUTING, 07-03 human walk still blocking (see below). **Phase 08 (Swap &
 >   bridge) execution started in parallel 2026-07-25: 08-01 (swap component family re-skin, 3/3
@@ -245,7 +245,7 @@ Progress: [████████████████████] 36/36 p
 
 Full log in PROJECT.md Key Decisions. Recent:
 
-- **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWP-01..08, FEE-01..02, DAP-01..03 (13/13 mapped, no orphans); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
+- **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWAP-01, FEE-01..02, DAP-01..03 (6/6 mapped, no orphans — the drafted SWP-01..08 were retired into SWAP-01's criteria on 2026-09-16, that being the id the branch's plans and commits already cite); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
 - **Port the design incrementally, layer by layer** (2026-07-16) — 128 of the design's 172 files collide with develop (74%); one step means reconciling all of them with nothing verifiable in between
 - Sequence by dependency, not subject: tokens → `gw_*` primitives → nav shell → screen areas. Each phase lands on a layer that already exists and has been reviewed
 - GAP treatment split: GAP-01 (inventory + decision) rides in Phase 3 because "extend the design language" is a design-system question that must be answered before screens land; GAP-02..06 ride in the phase that owns their surface

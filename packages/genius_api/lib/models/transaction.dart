@@ -10,6 +10,8 @@ enum TransactionDirection {
   received,
 }
 
+/// Indices 0-3 are stored on disk and must never be renumbered. New states are
+/// appended, so a transaction written by an older build still deserializes.
 @HiveType(typeId: 5)
 enum TransactionStatus {
   @HiveField(0)
@@ -20,6 +22,20 @@ enum TransactionStatus {
   completed,
   @HiveField(3)
   failed,
+
+  /// Execution paused mid-route for want of gas on the destination chain. The
+  /// funds are held, not lost, and adding gas resumes them.
+  @HiveField(4)
+  needsGas,
+
+  /// The route's last step reverted, so a different token arrived than was
+  /// asked for. Nothing is lost; it is the wrong asset.
+  @HiveField(5)
+  partialSuccess,
+
+  /// The route could not complete and the funds were returned to the sender.
+  @HiveField(6)
+  refunded,
 }
 
 @HiveType(typeId: 6)
@@ -133,6 +149,12 @@ class Transaction {
   @HiveField(16)
   final String? toSymbol;
 
+  /// The aggregator's own page for a transfer that stalled, as the API sent
+  /// it. Appended at 17 so a row written by an older build still reads; null
+  /// there, which is the same as "no action offered".
+  @HiveField(17)
+  final String? recoveryUrl;
+
   Transaction({
     required this.hash,
     required this.fromAddress,
@@ -151,5 +173,6 @@ class Transaction {
     this.exchangeRate,
     this.fromSymbol,
     this.toSymbol,
+    this.recoveryUrl,
   });
 }
