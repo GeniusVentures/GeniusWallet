@@ -103,4 +103,31 @@ void main() {
       expect(formatEth((gasLimit * maxFeePerGas).toString()), '0.0000210000');
     });
   });
+
+  group('eip155ChainId', () {
+    test('reads the chain out of a CAIP-2 id', () {
+      expect(eip155ChainId('eip155:8453'), 8453);
+      expect(eip155ChainId('eip155:1'), 1);
+    });
+
+    test('anything else is not a chain this wallet can act on', () {
+      expect(eip155ChainId('solana:mainnet'), isNull);
+      expect(eip155ChainId('eip155'), isNull);
+      expect(eip155ChainId('eip155:base'), isNull);
+      expect(eip155ChainId(''), isNull);
+    });
+  });
+
+  group('eip155Namespace', () {
+    test('names every chain, and the account on each', () {
+      final ns = eip155Namespace(
+        chainIds: const [1, 8453],
+        address: '0xabc',
+        methods: const ['eth_sendTransaction'],
+      );
+      expect(ns.chains, ['eip155:1', 'eip155:8453']);
+      expect(ns.accounts, ['eip155:1:0xabc', 'eip155:8453:0xabc']);
+      expect(ns.methods, ['eth_sendTransaction']);
+    });
+  });
 }

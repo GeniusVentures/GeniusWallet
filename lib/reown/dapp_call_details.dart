@@ -50,6 +50,14 @@ const kUnreadableRequestWarning =
     'GeniusWallet could not read what this request does. Approving it may '
     'move funds in ways this screen does not show.';
 
+/// A request for a chain other than the selected one. Every address and
+/// every figure below would be read against the wrong network.
+String wrongChainWarning(int requested, String selectedName) =>
+    'This request is for chain $requested, but '
+    '${selectedName.isEmpty ? 'another network' : selectedName} is selected. '
+    'Switch the wallet to that network and ask the dApp again. This request '
+    'is declined either way -- nothing on this screen approves anything.';
+
 /// A method with no handler is declined whichever button is pressed, so the
 /// copy must not imply that approving does anything.
 const kUnhandledMethodWarning =

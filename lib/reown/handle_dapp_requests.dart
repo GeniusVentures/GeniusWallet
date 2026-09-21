@@ -79,6 +79,34 @@ void Function() handleDappRequests({
       final nativeUnit = (network?.nativeSymbol ?? network?.symbol ?? 'ETH')
           .toUpperCase();
 
+      // The request names its chain and the signer signs on the selected one.
+      // Those must agree before anything is decoded: the router allow-list,
+      // the token list and the RPC below are all the selected network's.
+      final requestedChain = eip155ChainId(event.chainId);
+      final selectedChain = network?.chainId;
+      if (requestedChain != null &&
+          selectedChain != null &&
+          requestedChain != selectedChain) {
+        await ApproveTransactionDrawer.show(
+          context: navigatorKey.currentContext!,
+          content: DappCallDetails(
+            headline: 'Request for another network',
+            warning: wrongChainWarning(requestedChain, networkName),
+            rows: [
+              DappCallRow(label: 'Requested chain', value: '$requestedChain'),
+              if (networkName.isNotEmpty)
+                DappCallRow(label: 'Selected network', value: networkName),
+            ],
+          ),
+          dappName: dappName,
+          dappUrl: dappUrl,
+          iconUrl: iconUrl,
+        );
+        await respond(error: unsupportedChainError());
+        debugPrint('❌ Declined, request is for chain $requestedChain');
+        return;
+      }
+
       // The method decides what shape the parameters arrive in, so it is read
       // first. Casting first is what threw on every signing request.
       final kind = classifyDappRequest(method, event.params);
@@ -218,14 +246,18 @@ void Function() handleDappRequests({
         }
 
         final txHash = result.data;
-        try {
-          await respond(result: txHash);
-        } catch (answerFailed) {
-          // The hash is on the network whether or not the dApp heard it, so
-          // an error reply now would be a lie and the record below is owed
-          // either way. Closed here so the catch at the end cannot send one.
-          answered = true;
-          debugPrint('❌ Could not answer request $requestId: $answerFailed');
+        // The hash is on the network whether or not the dApp heard it: a
+        // dropped answer is tried once more, and `attempted` holds the hash
+        // so nothing later can turn it into an error reply. The record below
+        // is owed either way.
+        for (var attempt = 1; attempt <= 2 && !answered; attempt++) {
+          try {
+            await respond(result: txHash);
+          } catch (answerFailed) {
+            debugPrint(
+              '❌ Answer $attempt for request $requestId failed: $answerFailed',
+            );
+          }
         }
         debugPrint('✅ Success on Swap!: ${result.data}');
 

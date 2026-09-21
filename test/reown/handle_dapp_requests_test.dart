@@ -150,15 +150,19 @@ Map<String, dynamic> _swapTx() => <String, dynamic>{
   'data': _squidRequest['data'] as String,
 };
 
-SessionRequestEvent _request(String method, dynamic params, {int id = 1}) =>
-    SessionRequestEvent(
-      id,
-      'topic-1',
-      method,
-      'eip155:8453',
-      params,
-      TransportType.relay,
-    );
+SessionRequestEvent _request(
+  String method,
+  dynamic params, {
+  int id = 1,
+  String chain = 'eip155:8453',
+}) => SessionRequestEvent(
+  id,
+  'topic-1',
+  method,
+  chain,
+  params,
+  TransportType.relay,
+);
 
 /// `implements` plus `noSuchMethod` rather than a real instance: constructing
 /// a `GeniusApi` dlopens the native framework and takes the test host with it.
@@ -416,6 +420,56 @@ void main() {
       await _finish(tester, harness);
     });
 
+    testWidgets('a request for another chain is declined before decoding', (
+      tester,
+    ) async {
+      // The decoder and the signer both use the selected network, so a
+      // mainnet request while Base is selected would be read against Base's
+      // router list and signed on Base.
+      final harness = await _start(
+        tester,
+        network: _base,
+        coins: const [_usdc],
+      );
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [
+          _tx(data: _transferCalldata, value: '0x0'),
+        ], chain: 'eip155:1'),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_onScreen(tester, 'Request for another network'), isTrue);
+      expect(_onScreen(tester, 'declined either way'), isTrue);
+      expect(_onScreen(tester, 'USDC'), isFalse);
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.error?.code, 5100);
+      await _finish(tester, harness);
+    });
+
+    testWidgets('a broadcast answer the relay dropped is tried once more', (
+      tester,
+    ) async {
+      final harness = await _start(
+        tester,
+        network: _base,
+        wallet: _wallet,
+        api: _SigningGeniusApi(),
+      );
+      harness.walletKit.failAnswers = 1;
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.result, '0xabc123');
+      expect(harness.transactions.state.single.hash, '0xabc123');
+      await _finish(tester, harness);
+    });
+
     testWidgets('an answer the relay dropped is tried again', (tester) async {
       // Marking the request answered before the relay took the answer left
       // the retry in the catch block a no-op, and the dApp with nothing.
@@ -437,14 +491,15 @@ void main() {
       tester,
     ) async {
       // The hash is on the network either way: no error reply, and the row
-      // is written.
+      // is written, even when every attempt fails (two here, and the one
+      // the recovery path makes when the Hive write throws under test).
       final harness = await _start(
         tester,
         network: _base,
         wallet: _wallet,
         api: _SigningGeniusApi(),
       );
-      harness.walletKit.failAnswers = 1;
+      harness.walletKit.failAnswers = 3;
       harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
       await tester.pumpAndSettle();
 
@@ -533,7 +588,9 @@ void main() {
         // places once. On a chain whose coin is not ether they disagreed:
         // the screen said ETH while history said POL.
         final harness = await _start(tester, network: _polygon);
-        harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+        harness.walletKit.send(
+          _request('eth_sendTransaction', [_tx()], chain: 'eip155:137'),
+        );
         await tester.pumpAndSettle();
 
         expect(_onScreen(tester, '0.0100000000 MATIC'), isTrue);

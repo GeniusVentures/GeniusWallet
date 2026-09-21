@@ -122,6 +122,14 @@ JsonRpcError userRejectedError() {
   return JsonRpcError(code: rejected.code, message: rejected.message);
 }
 
+/// The answer to a request for a chain other than the one selected. Neither
+/// the decoder nor the signer reads the request's chain, so acting on it
+/// would describe one network's contract and sign on another.
+JsonRpcError unsupportedChainError() {
+  final unsupported = Errors.getSdkError(Errors.UNSUPPORTED_CHAINS);
+  return JsonRpcError(code: unsupported.code, message: unsupported.message);
+}
+
 /// What a pending dApp transaction can honestly be said to do.
 enum DappCallKind {
   nativeSend,
