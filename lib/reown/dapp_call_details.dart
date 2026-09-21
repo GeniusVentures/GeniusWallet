@@ -109,10 +109,9 @@ String dappCallWarning(DappCallSummary summary) {
   ].join(' ');
 }
 
-/// The rows for [summary], in reading order. Addresses are copyable so the
-/// full value reaches the clipboard; [networkName] and [nativeSymbol] come
-/// from the wallet, not from the transaction. The three gas figures come from
-/// the transaction and are labelled in [nativeSymbol], the coin gas is paid in.
+/// The rows for [summary], in reading order; addresses are copyable so the
+/// full value reaches the clipboard. [networkName] and [nativeSymbol] come from
+/// the wallet, the gas figures from the transaction, labelled in [nativeSymbol].
 List<DappCallRow> dappCallRows(
   DappCallSummary summary, {
   String? networkName,

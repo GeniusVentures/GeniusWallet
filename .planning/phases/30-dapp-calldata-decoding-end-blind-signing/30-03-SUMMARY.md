@@ -16,15 +16,10 @@ written afterwards names what was actually approved.
 
 ## Baseline vs. after (measured)
 
-| Check | Baseline (30-02) | After |
-|---|---|---|
-| `flutter test` | +1275 ~3, exit 0 | +1302 ~3, exit 0 |
-| `flutter analyze` | No issues found, exit 0 | No issues found, exit 0 |
-| format / brace / raw-colour / seed / key-log gates | exit 0 | exit 0 |
-
-`grep` for `event.params.toString()`, `USER_REJECTED.toInt()` and
-`coinSymbol = "ETH"` each exits 1. The rejection code is asserted as the
-literal 5000; `int.tryParse(Errors.USER_REJECTED)` is pinned null.
+`flutter test` +1275 ~3 → +1302 ~3, exit 0. analyze, format, brace, raw-colour,
+seed and key-log gates: exit 0 before and after. `grep` for
+`event.params.toString()`, `USER_REJECTED.toInt()` and `coinSymbol = "ETH"` each
+exits 1; the rejection code is asserted as the literal 5000.
 
 ## Deviations
 
@@ -37,7 +32,5 @@ literal 5000; `int.tryParse(Errors.USER_REJECTED)` is pinned null.
   is keyed on coin symbol, so a token send loses its (wrong-chain) link.
 - **Two silences beyond the plan were answered** (Rule 2): an approval with no
   network selected, and the catch-all itself.
-- **A stray `git stash -u` + `git checkout <sha> -- .` was run by mistake and
-  fully recovered**; the older, unrelated stash was not touched.
 
 ## Self-Check: PASSED

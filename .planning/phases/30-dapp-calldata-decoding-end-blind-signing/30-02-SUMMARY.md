@@ -16,16 +16,9 @@ read and admits what it could not.
 
 ## Baseline vs. after (measured)
 
-| Check | Baseline (30-01) | After |
-|---|---|---|
-| `flutter test` | +1245 ~3, exit 0 | +1275 ~3, exit 0 |
-| `flutter analyze` | No issues found, exit 0 | No issues found, exit 0 |
-| `dart format lib test` | 0 changed, exit 0 | 0 changed, exit 0 |
-| brace + raw-colour gates | exit 0 | exit 0 |
-| drawer census | green | green, no entry needed |
-
-`grep 18 lib/reown/calldata_decoder.dart` → exit 1: the literal does not appear
-in the file at all, so no decimals path can fall back to it.
+`flutter test` +1245 ~3 → +1275 ~3, exit 0. analyze, format, brace, raw-colour
+and drawer census: exit 0 before and after. `grep 18 lib/reown/calldata_decoder.dart`
+→ exit 1: the literal is absent, so no decimals path can fall back to it.
 
 ## Deviations
 
@@ -37,9 +30,8 @@ in the file at all, so no decimals path can fall back to it.
 - **The unlimited flag is set for unverified approves too**, not just resolved
   ones. An unlimited approve of a token the wallet cannot name is the same
   drain vector.
-- **The contract-test amendment 30-01 skipped is done here** (Case 7, its own
-  fixture, its own allow-set): 90 insertions, 0 deletions. Case 6 and the six
-  outcome cases are byte-for-byte untouched.
+- **The contract-test amendment 30-01 skipped is done here** (Case 7): 90
+  insertions, 0 deletions; every existing case is byte-for-byte untouched.
 - **Warning copy is not exercised through the real handler** — the
   `flag → sentence` selection is covered, the cubit wiring is plan 03's.
 

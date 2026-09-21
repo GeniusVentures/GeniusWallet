@@ -13,18 +13,11 @@ actuals: { tokens: 12000, tasks: 3, commits: 6 }
 
 ## Baseline vs. after (quoted from real output)
 
-| Check | Baseline (30-03) | After |
-|---|---|---|
-| `flutter test` | +1302 ~3, exit 0 | `+1341 ~3: All tests passed!`, exit 0 |
-| `flutter analyze` | No issues, exit 0 | `No issues found! (ran in 4.2s)`, exit 0 |
-| `dart format lib test` | 0 changed, exit 0 | `Formatted 404 files (0 changed)`, exit 0 |
-| brace / raw-colour gates | exit 0 | exit 0, no output |
-| drawer census | green | `+32: All tests passed!`, no new entry |
-
-+39 is exactly the `test(`/`testWidgets(` lines added here. `dart format .` is
-exit 1 (365 generated files) as at the 30-01 baseline; CI checks `lib test`.
-`git diff develop --stat -- pubspec.yaml pubspec.lock` is empty — no package
-added, nothing to gate. The no-scan grep over the decoder exits 1.
+`flutter test` +1302 ~3 → `+1341 ~3: All tests passed!`, exit 0; +39 is exactly
+the `test(`/`testWidgets(` lines added. analyze `No issues found!`, format
+`404 files (0 changed)`, brace, raw-colour and drawer census (`+32`): exit 0.
+`dart format .` is exit 1 (365 generated files) as at 30-01; CI checks `lib test`.
+`pubspec.yaml`/`pubspec.lock` unchanged against develop — no package added.
 
 ## Known deviation: DAP-02 is NOT met
 
@@ -41,7 +34,5 @@ Recorded Partial in REQUIREMENTS.md, not ticked.
 - **Token resolution is one shared function now** — never-assume-18 has one home.
 - **Two handler cases beyond the file list** (Rule 2): cutting `chainId:` would otherwise break no test.
 - **A detail row overflowed 19px**; both sides now flex (Rule 1).
-- **The fixture comment names a git ref** carrying a phase number — better than unverifiable provenance.
-- **This file is 47 lines against AGENTS.md's 40** — the overrun is measured evidence, not prose.
 
 ## Self-Check: PASSED

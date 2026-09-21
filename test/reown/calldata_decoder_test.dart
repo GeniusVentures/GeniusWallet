@@ -97,11 +97,9 @@ Map<String, dynamic> _tx({String? data, String? value, String? to}) => {
 
 // -- The recorded Squid route.
 //
-// Captured from this repo's own live-API fixture, which lives on another
-// branch and is read with:
-//   git show refs/heads/phase-29-integrator-fee:test/squid_router/fixtures/route_response_executable.json
-// Trimmed to the fields asserted below and read from disk rather than pasted,
-// because 2.3 KB of calldata transcribed by hand proves nothing.
+// A real executable route as Squid's API returned it to this wallet, trimmed
+// to the fields asserted below and read from disk rather than pasted, because
+// 2.3 KB of calldata transcribed by hand proves nothing.
 //
 // Squid states `transactionRequest.value` as a decimal string; a dApp hands
 // the wallet the hex form an `eth_sendTransaction` actually carries, which is
