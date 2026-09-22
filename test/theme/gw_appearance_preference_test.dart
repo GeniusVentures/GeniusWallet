@@ -1,7 +1,6 @@
-// Harness discipline copied from `account_drawer_network_section_test.dart` /
-// `account_drawer_show_test.dart`: `Hive.openBox(name, bytes: Uint8List(0))`
-// selects hive_ce's in-memory `StorageBackendMemory`, so box writes are
-// ordinary Futures with no real disk I/O to hang a test.
+// `Hive.openBox(name, bytes: Uint8List(0))` selects hive_ce's in-memory
+// `StorageBackendMemory`, so box writes are ordinary Futures with no real
+// disk I/O to hang a test.
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';

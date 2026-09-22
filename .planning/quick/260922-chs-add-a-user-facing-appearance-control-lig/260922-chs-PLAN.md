@@ -41,9 +41,8 @@ callback.** `PlatformDispatcher.onPlatformBrightnessChanged` is a single slot th
 `MediaQuery.platformBrightnessOf` app-wide. `WidgetsBinding.instance.addObserver` is additive.
 
 Rejected: `MaterialApp.themeMode: ThemeMode.system` + `darkTheme:`. The static-getter path
-(`GeniusWalletColors`, `GWDecorations`, `GWGradient`, `GWElevation`) reads the singleton globally,
-so it must be re-resolved on an OS flip regardless — the observer is not avoidable, and two live
-`ThemeData`s would desync the statics.
+(`GeniusWalletColors`, `GWDecorations`, `GWGradient`, `GWElevation`) reads the singleton globally, so
+it needs re-resolving on an OS flip anyway, and two live `ThemeData`s would desync the statics.
 
 **Reuse, not a sixth segmented control.** The control is `GWSelect<GWAppearancePreference>`, already
 used three rows down this same screen. It is a `DropdownButtonFormField`: focus-traversable,
@@ -148,5 +147,4 @@ needs the dev Gallery.
 
 ## Out of scope
 
-Promoting a shared `GWSegmentedControl`, migrating the remaining deferred GWColors readers, and
-retiring the dev sun/moon toggles. No push, no PR, no merge.
+A shared `GWSegmentedControl`, the deferred GWColors readers, the dev sun/moon toggles.

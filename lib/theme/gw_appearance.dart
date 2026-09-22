@@ -85,7 +85,6 @@ class GWAppearance extends ValueNotifier<GWAppearanceMode>
       return;
     }
     _preference = pref;
-    await Hive.box(preferencesBoxName).put(appearanceModeKey, pref.name);
     final resolved = _resolve();
     if (value == resolved) {
       // The resolved mode didn't change (e.g. light -> system on a light
@@ -94,6 +93,10 @@ class GWAppearance extends ValueNotifier<GWAppearanceMode>
     } else {
       value = resolved;
     }
+    // Repaint first, persist second. A write that throws then costs only the
+    // next launch: asking again would be a no-op, since the guard above has
+    // already taken this preference.
+    await Hive.box(preferencesBoxName).put(appearanceModeKey, pref.name);
   }
 
   Future<void> setMode(GWAppearanceMode mode) async {
