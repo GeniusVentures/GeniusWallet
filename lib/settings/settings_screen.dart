@@ -13,6 +13,7 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -175,6 +176,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: GeniusWalletConsts.space12,
         children: [
+          _buildSectionCard(
+            title: 'Appearance',
+            icon: Icons.brightness_6,
+            status: null,
+            loading: false,
+            action: null,
+            child: const _AppearanceControl(),
+          ),
           _buildLogSection(),
           _buildNetworkSection(),
           _buildCrdtSection(),
@@ -305,7 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required IconData icon,
     required String? status,
     required bool loading,
-    required Widget action,
+    required Widget? action,
     required Widget child,
   }) {
     // Fail-soft read: registers the InheritedWidget dependency that forces
@@ -363,7 +372,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-          Align(alignment: Alignment.centerRight, child: action),
+          if (action != null)
+            Align(alignment: Alignment.centerRight, child: action),
         ],
       ),
     );
@@ -420,6 +430,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         );
       }).toList(),
+    );
+  }
+}
+
+/// Light / Dark / Follow system. Listens to [GWAppearance.instance] so a
+/// dev-tools flip elsewhere on screen keeps this control's own value in sync.
+class _AppearanceControl extends StatelessWidget {
+  const _AppearanceControl();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<GWAppearanceMode>(
+      valueListenable: GWAppearance.instance,
+      builder: (context, _, _) {
+        return GWSelect<GWAppearancePreference>(
+          label: 'Appearance',
+          value: GWAppearance.instance.preference,
+          items: const [
+            GWSelectItem(
+              value: GWAppearancePreference.system,
+              label: 'Follow system',
+            ),
+            GWSelectItem(value: GWAppearancePreference.light, label: 'Light'),
+            GWSelectItem(value: GWAppearancePreference.dark, label: 'Dark'),
+          ],
+          onChanged: (pref) {
+            if (pref != null) {
+              GWAppearance.instance.setPreference(pref);
+            }
+          },
+        );
+      },
     );
   }
 }
