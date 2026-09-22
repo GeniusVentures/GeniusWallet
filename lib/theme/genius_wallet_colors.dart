@@ -215,15 +215,19 @@ class GeniusWalletColors {
   ///
   /// 36 is not a round number chosen for looks -- it is the first step that
   /// clears 3:1, and sketch 067's contrast table arrives at the same value
-  /// independently. Light mode takes ink at 46% for the same reason: the light
-  /// panel is pure white, and 3:1 on white lands at ~#919397.
+  /// independently. Light mode takes ink at 48% for the same reason, but
+  /// against all four light surfaces rather than white alone: 46% was
+  /// derived against white only and measured 3.03 / 2.92 / 2.84 on
+  /// menu / base / sunken, missing 3:1 on every one of them. 48% is the
+  /// first 2-point step that clears 3:1 everywhere (3.29 / 3.21 / 3.09 / 3.00
+  /// on elevated / menu / base / sunken).
   ///
   /// ponytail: this is the CONTROL edge, not a general "strong hairline".
   /// Decorative separators stay on [_borderSubtle] -- a rule that carries no
   /// information has no 1.4.11 threshold to meet, and painting every hairline
-  /// at 36% would make the app a wireframe.
+  /// at 36%/48% would make the app a wireframe.
   static Color get _borderControl => _isLight
-      ? const Color.fromRGBO(16, 19, 26, 0.46)
+      ? const Color.fromRGBO(16, 19, 26, 0.48)
       : const Color.fromRGBO(255, 255, 255, 0.36);
   static const Color _borderBrand = _brandPrimary;
 
