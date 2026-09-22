@@ -55,3 +55,19 @@ candidate to fold into the 04-05 Settings re-skin (`settings_screen.dart`), or a
 small dedicated task. Must honor the three states (light, dark, system) and the
 WCAG rule ([[wcag-contrast-rule]]). Note: this also removes the current walk
 limitation where the shell's live-flip can only be exercised via the dev Gallery.
+
+## Closed 2026-09-22 (quick 260922-chs)
+
+`settings_screen.dart` now carries an Appearance card, first in the Column, with a
+`GWSelect<GWAppearancePreference>` offering Follow system / Light / Dark. The fix
+splits what the user asked for from what is painted: `GWAppearancePreference` is new
+and three-valued; `GWAppearanceMode` stays the two-valued *resolved* mode that
+`isLight`/`getThemeData()`/`main.dart`'s `ValueListenableBuilder` already read, so
+none of them needed to change. `system` resolves against
+`WidgetsBinding.instance.platformDispatcher.platformBrightness`, re-resolved live via
+a `WidgetsBindingObserver.didChangePlatformBrightness` override — an OS flip re-skins
+the app with no relaunch while `system` is selected.
+
+The verification blocker this escalated to is lifted: its recipe (stay on the
+surface under test, flip, confirm it re-skins in place) now runs from `/settings` on
+any build — no dev Gallery detour required.
