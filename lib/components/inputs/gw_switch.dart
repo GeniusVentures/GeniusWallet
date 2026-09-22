@@ -33,13 +33,35 @@ class GWSwitch extends StatelessWidget {
     final toggle = Switch.adaptive(
       value: value,
       onChanged: disabled ? null : onChanged,
-      activeThumbColor: context.gw.brandPrimaryStrong,
-      activeTrackColor: context.gw.brandPrimaryStrong.withAlpha(140),
-      inactiveThumbColor: gw.textPrimary,
-      inactiveTrackColor: gw.surfaceMenu,
-      trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
-        (states) => gw.borderSubtle,
-      ),
+      // Stateful resolvers, not the legacy active*/inactive* shorthands:
+      // Flutter's Switch resolves those without consulting
+      // WidgetState.disabled, so a disabled switch used to paint exactly
+      // like an off one. The disabled branch must come first so it wins
+      // over the selected/unselected branches below.
+      thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return gw.textSecondary;
+        }
+        if (states.contains(WidgetState.selected)) {
+          return context.gw.brandPrimaryStrong;
+        }
+        return gw.textPrimary;
+      }),
+      trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return gw.surfaceMenu;
+        }
+        if (states.contains(WidgetState.selected)) {
+          return context.gw.brandPrimaryStrong.withAlpha(140);
+        }
+        return gw.surfaceMenu;
+      }),
+      trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return gw.borderControl;
+        }
+        return gw.borderSubtle;
+      }),
       // Keep Flutter's padded 48px min tap target (was shrinkWrap → ~30-40px).
     );
 
@@ -67,9 +89,7 @@ class GWSwitch extends StatelessWidget {
                     Text(
                       label!,
                       style: GeniusWalletTypography.bodyMd.copyWith(
-                        color: disabled
-                            ? context.gw.textTertiary
-                            : gw.textPrimary,
+                        color: disabled ? gw.textSecondary : gw.textPrimary,
                       ),
                     ),
                   if (description != null) ...[

@@ -40,7 +40,7 @@ class GWCheckbox extends StatelessWidget {
       tristate: tristate,
       onChanged: disabled ? null : onChanged,
       side: BorderSide(
-        color: disabled ? gw.borderSubtle : context.gw.brandPrimaryStrong,
+        color: disabled ? gw.borderControl : context.gw.brandPrimaryStrong,
         width: 1.5,
       ),
       shape: RoundedRectangleBorder(
@@ -48,7 +48,7 @@ class GWCheckbox extends StatelessWidget {
       ),
       fillColor: WidgetStateProperty.resolveWith<Color?>((states) {
         if (states.contains(WidgetState.disabled)) {
-          return gw.borderSubtle;
+          return gw.borderControl;
         }
         if (states.contains(WidgetState.selected)) {
           return context.gw.brandPrimaryStrong;
@@ -70,7 +70,7 @@ class GWCheckbox extends StatelessWidget {
           Text(
             label!,
             style: GeniusWalletTypography.bodyMd.copyWith(
-              color: disabled ? context.gw.textTertiary : gw.textPrimary,
+              color: disabled ? gw.textSecondary : gw.textPrimary,
             ),
           ),
         if (description != null) ...[
