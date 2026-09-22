@@ -60,3 +60,15 @@ explains why light-mode success/error are excluded.
 Part 8 asserts dark mode for all three tones and light mode for warning only. The
 exclusion is documented in-test with the measured numbers, so it is visible rather
 than silently missing. Neither function had **any** test before 2026-07-29.
+
+## Closed 2026-09-22 (quick 260922-deo)
+
+Added `statusSuccessText` (`#065F46`) and `statusErrorText` (`#991B1B`) to
+`GWColors`, mirroring `statusWarningText` exactly: light gets the literal,
+dark keeps the existing fill value, the wash stays on `statusSuccess`/
+`statusError`. Repointed both `fg:` slots in `orderStatusPaint()` and
+`txStatusColors()`. Measured light-mode label-on-wash: success 6.39 / 5.75 /
+4.94, error 6.72 / 6.03 / 5.17 (elevated / menu / base) — all clear the
+4.5:1 floor, up from 3.77 / 3.39 / 2.91 and 3.89 / 3.49 / 2.99. Part 8 now
+asserts all three tones in both modes through one loop; the warning-only
+light-mode exclusion note is deleted.
