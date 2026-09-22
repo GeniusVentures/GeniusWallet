@@ -39,6 +39,21 @@ const _txFixture = SendTransactionDetails(
   receiveTokenSymbol: 'USDC',
 );
 
+// The same body once the calldata has been read: the recipient comes out of
+// the calldata rather than `tx['to']`, the amount is a token amount, and the
+// unit is the token's. Its own fixture rather than a parameter on the one
+// above -- Case 6 pins that one field by field, and a decoded amount is not
+// one of the four values it was given.
+const _decodedTxFixture = SendTransactionDetails(
+  fromAddress: '0xFrom0009',
+  toAddress: '0xRecip001',
+  amount: '42.7500',
+  totalGasFee: '0.0031',
+  maxFeePerGas: '0.0042',
+  priorityFee: '0.0013',
+  amountSymbol: 'USDC',
+);
+
 const _dappName = 'Uniswap';
 const _dappUrl = 'https://app.uniswap.org';
 const _brokenIconUrl = 'https://icons.example.invalid/broken.png';
@@ -478,6 +493,81 @@ void main() {
                   '($knownNumbers)',
             );
           }
+        }
+
+        await _dismissViaDesktopBarrier(tester);
+      },
+    );
+
+    testWidgets(
+      'Case 7: a decoded token send holds the same line -- no fiat, and '
+      'every decimal number is one of ITS four fields',
+      (tester) async {
+        await _openDrawer(
+          tester,
+          (context) => ApproveTransactionDrawer.show(
+            context: context,
+            content: _decodedTxFixture,
+            dappName: _dappName,
+            dappUrl: _dappUrl,
+          ),
+        );
+
+        final allText = tester
+            .widgetList<Text>(find.byType(Text))
+            .map((t) => t.data ?? '')
+            .toList();
+
+        for (final text in allText) {
+          expect(
+            text.contains(r'$'),
+            isFalse,
+            reason: 'Unexpected fiat figure in "$text"',
+          );
+        }
+
+        final knownNumbers = <String>{
+          _decodedTxFixture.amount,
+          _decodedTxFixture.totalGasFee,
+          _decodedTxFixture.maxFeePerGas,
+          _decodedTxFixture.priorityFee,
+        };
+        final numberPattern = RegExp(r'\d+\.\d+');
+        for (final text in allText) {
+          for (final match in numberPattern.allMatches(text)) {
+            expect(
+              knownNumbers.contains(match.group(0)),
+              isTrue,
+              reason:
+                  'Unexpected numeric value "${match.group(0)}" in "$text" '
+                  '-- not one of the four fields this drawer was given '
+                  '($knownNumbers)',
+            );
+          }
+        }
+
+        // The decoded unit reaches the screen...
+        expect(find.textContaining('USDC'), findsOneWidget);
+        expect(
+          allText,
+          contains(
+            '${_decodedTxFixture.amount} ${_decodedTxFixture.amountSymbol}',
+          ),
+        );
+
+        // ...and the row stating what leaves the wallet does not still say
+        // ETH. The gas rows below it legitimately do: gas is paid in the
+        // chain's own currency whatever is being sent.
+        final sendRows = allText
+            .where((t) => t.startsWith('${_decodedTxFixture.amount} '))
+            .toList();
+        expect(sendRows, isNotEmpty);
+        for (final row in sendRows) {
+          expect(
+            row.contains('ETH'),
+            isFalse,
+            reason: '"$row" labels a USDC amount with the native unit',
+          );
         }
 
         await _dismissViaDesktopBarrier(tester);

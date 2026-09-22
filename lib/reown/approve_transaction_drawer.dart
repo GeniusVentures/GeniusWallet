@@ -63,9 +63,9 @@ class ApproveTransactionDrawer {
               const SizedBox(height: GeniusWalletConsts.space4),
               Container(height: 1, color: gw.borderSubtle),
               const SizedBox(height: GeniusWalletConsts.space6),
-              // `content` is caller-supplied (`handle_dapp_requests.dart:116`)
-              // and must keep rendering whatever it is handed, including the
-              // debug-dump branch -- this drawer does not know or care which.
+              // `content` is caller-supplied and must keep rendering whatever
+              // it is handed -- this drawer does not know or care which body
+              // it was given.
               Flexible(fit: FlexFit.loose, child: content),
             ],
           ),

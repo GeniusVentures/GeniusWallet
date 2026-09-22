@@ -210,9 +210,9 @@ was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and t
 
 ### dApp Signing Honesty (DAP)
 
-- [ ] **DAP-01**: Reown approval flow decodes ERC-20 `transfer`/`approve` calldata and shows the decoded action in the drawer
-- [ ] **DAP-02**: Known-router swap calls decode to "swapping X → Y" in the approval drawer
-- [ ] **DAP-03**: Undecodable calldata is labeled an unknown-contract call with a visible warning, never presented as a plain send
+- [x] **DAP-01**: Reown approval flow decodes ERC-20 `transfer`/`approve` calldata and shows the decoded action in the drawer
+- [ ] **DAP-02**: Known-router swap calls decode to "swapping X → Y" in the approval drawer — PARTIAL: the input side ("Swapping 1 GNUS via Squid") ships and the drawer states that the destination cannot be read; "→ Y" is not met because Squid's calldata does not carry the destination token or amount at any fixed offset
+- [x] **DAP-03**: Undecodable calldata is labeled an unknown-contract call with a visible warning, never presented as a plain send
 
 ### Beyond v2.0 (formerly "v2 Requirements", deferred)
 
@@ -254,9 +254,9 @@ was a `TODO` that recorded a fake `completed` transaction with `hash: ""`) and t
 | SWAP-01 | Phase 26 — one requirement, eight plans (26-01..26-08); the former 27 and 28 were the same work | **Complete** — 8/8 criteria delivered and walked on Base mainnet 2026-09-17; a real swap executed, 26-VERIFICATION.md passed 33/33 |
 | FEE-01 | **Deferred to backlog 2026-09-18** — business item; only Squid can enable it | Deferred |
 | FEE-02 | Phase 29 — Fee transparency | Complete |
-| DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
-| DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
-| DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
+| DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Complete |
+| DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Partial — input side only |
+| DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Complete |
 
 **Coverage (v2.0):** 6 total; **5/5 active mapped to phases 26-30 ✓** — no orphans, no duplicates.
 FEE-01 deferred to the backlog 2026-09-18 (business item, not engineering).

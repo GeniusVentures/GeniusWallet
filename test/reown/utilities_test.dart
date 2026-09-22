@@ -19,6 +19,7 @@
 // changing it a deliberate act rather than an accident.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 
 void main() {
@@ -101,6 +102,45 @@ void main() {
       expect(gasLimit, BigInt.from(21000));
       expect(maxFeePerGas, BigInt.from(1000000000));
       expect(formatEth((gasLimit * maxFeePerGas).toString()), '0.0000210000');
+    });
+  });
+
+  group('eip155ChainId', () {
+    test('reads the chain out of a CAIP-2 id', () {
+      expect(eip155ChainId('eip155:8453'), 8453);
+      expect(eip155ChainId('eip155:1'), 1);
+    });
+
+    test('anything else is not a chain this wallet can act on', () {
+      expect(eip155ChainId('solana:mainnet'), isNull);
+      expect(eip155ChainId('eip155'), isNull);
+      expect(eip155ChainId('eip155:base'), isNull);
+      expect(eip155ChainId(''), isNull);
+    });
+  });
+
+  group('canSignOn', () {
+    test('needs a chain id and an RPC', () {
+      expect(
+        canSignOn(const Network(chainId: 8453, rpcUrl: 'https://x')),
+        isTrue,
+      );
+      expect(canSignOn(const Network(chainId: 8453, rpcUrl: '')), isFalse);
+      expect(canSignOn(const Network(chainId: 8453)), isFalse);
+      expect(canSignOn(const Network(rpcUrl: 'https://x')), isFalse);
+    });
+  });
+
+  group('eip155Namespace', () {
+    test('names every chain, and the account on each', () {
+      final ns = eip155Namespace(
+        chainIds: const [1, 8453],
+        address: '0xabc',
+        methods: const ['eth_sendTransaction'],
+      );
+      expect(ns.chains, ['eip155:1', 'eip155:8453']);
+      expect(ns.accounts, ['eip155:1:0xabc', 'eip155:8453:0xabc']);
+      expect(ns.methods, ['eth_sendTransaction']);
     });
   });
 }

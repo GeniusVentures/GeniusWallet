@@ -7,9 +7,11 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/navigation/router.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
+import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -17,6 +19,7 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
@@ -147,6 +150,14 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       if (!mounted) {
         return;
       }
+      // Read before the drawer awaits: every chain the wallet can sign on,
+      // not just mainnet, because a session approved for one chain can never
+      // carry a request for another. A catalogue entry with no RPC is one
+      // the wallet cannot act on, so it is not claimed.
+      final chainIds = Provider.of<NetworkProvider>(
+        context,
+        listen: false,
+      ).networks.where(canSignOn).map((network) => network.chainId!).toList();
 
       setState(() {});
 
@@ -181,11 +192,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         await walletKit.approveSession(
           id: event.id,
           namespaces: {
-            'eip155': Namespace(
-              chains: ['eip155:1'],
+            'eip155': eip155Namespace(
+              chainIds: chainIds.isEmpty ? const [1] : chainIds,
+              address: widget.walletAddress,
               methods: supportedMethods,
-              events: ['chainChanged', 'accountsChanged'],
-              accounts: ['eip155:1:${widget.walletAddress}'],
             ),
           },
         );

@@ -1530,9 +1530,9 @@ money (Phase 26) and legs needing real funds or the live catalogue get a debug-b
 | SWAP-01 | Phase 26 — one end-to-end requirement; all 8 criteria delivered and walked on Base mainnet 2026-09-17 | Complete |
 | FEE-01 | **Deferred to backlog 2026-09-18** — business item; only Squid can enable it, server-side on the integrator ID | Deferred |
 | FEE-02 | Phase 29 — Fee transparency | Complete |
-| DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
-| DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
-| DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Pending |
+| DAP-01 | Phase 30 — dApp calldata decoding (end blind signing) | Complete |
+| DAP-02 | Phase 30 — dApp calldata decoding (end blind signing) | Partial — input side only; the destination is not in the transaction |
+| DAP-03 | Phase 30 — dApp calldata decoding (end blind signing) | Complete |
 
 **Coverage:** 5/5 active v2.0 requirements mapped — no orphans, no duplicates. FEE-01 was deferred
 to the backlog on 2026-09-18 as a business item (see Out of scope). `SWAP-01` is one end-to-end promise owned by Phase 26 alone (the former 27 and 28 were the same work under three numbers); the drafted `SWP-01..08` that split it were retired into its criteria on 2026-09-16.
@@ -1607,9 +1607,16 @@ a missing field. Criterion 5 is what makes Squid's eventual switch a no-op in th
   3. Undecodable calldata renders an explicit unknown-contract-call warning — never presented as a plain send (widget test with a garbage/unknown-selector payload)
   4. Decoding is display-only: the transaction payload signed is byte-identical to before — the Phase 21 behavioral-identity contract test for the two signing drawers stays green (decode may not alter what is signed)
 
-**Plans**: TBD
+**Plans**: 4/4 plans executed
+
+Plans:
+- [x] 30-01-PLAN.md — tracer: one ERC-20 transfer decoded end to end, plus the measured branch baseline
+- [x] 30-02-PLAN.md — approve, unlimited allowance, and the token this wallet cannot vouch for
+- [x] 30-03-PLAN.md — unknown calls, the two sign methods that currently hang the caller, and an honest receipt
+- [x] 30-04-PLAN.md — Squid input-side decode, the router allow-list, and the phase gate
+
 **UI hint**: yes
-**Security note**: signing-path UI — plans touching the two approve drawers carry a threat model, per the standing Phase 21 gate.
+**Security note**: signing-path UI — plans touching the two approve drawers carry a threat model, per the standing Phase 21 gate. Every plan in this phase carries one.
 
 ## Progress (v2.0)
 
@@ -1621,4 +1628,4 @@ this milestone.
 |-------|----------------|--------|-----------|
 | 26. Swap that actually swaps | 8/8 | Complete — every plan walked on Base mainnet; 26-VERIFICATION.md passed 33/33 | 2026-09-17 |
 | 29. Integrator fee | 0/TBD | Not started | - |
-| 30. dApp calldata decoding (end blind signing) | 0/TBD | Not started | - |
+| 30. dApp calldata decoding (end blind signing) | 3/4 | In progress | - |
