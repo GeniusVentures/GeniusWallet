@@ -19,6 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/models/token.dart';
 import 'package:genius_api/types/wallet_type.dart';
@@ -91,17 +92,36 @@ class _FakeFilePickerPlatform extends FilePickerPlatform {
   }) async => resultBuilder?.call();
 }
 
-/// Seeds [GnusCubit.state.tokenInfo] synchronously, bypassing the real
-/// (asset-backed) `fetchGnusInfo()` call `SubmitJobCubit._initialize()` fires
-/// on construction.
+/// Seeds [GnusCubit.state.tokenInfo] and overrides both fetch methods,
+/// bypassing the real (asset-backed) `fetchGnusInfo()`/`fetchGnusBalance()`
+/// calls `SubmitJobCubit._initialize()` fires on construction.
+///
+/// The override is load-bearing, not tidiness: `_network` below carries no
+/// `tokensPath`, so the real path hits `rootBundle.loadString("")` and fails
+/// asynchronously, well after the seeded state below is built - a real,
+/// unfaked async gap `pumpAndSettle` cannot reliably outrace, which is what
+/// made `job_flow_test.dart:737` order-dependent under seed 2469443488
+/// (passing only when an earlier test happened to still be settling that
+/// same race). Answering synchronously from the seed removes the race
+/// instead of out-timing it. Same pattern as `submit_job_errors_test.dart`'s
+/// `_SeededGnusCubit`.
 class _SeededGnusCubit extends GnusCubit {
   _SeededGnusCubit(
     super.coinService,
     super.walletDetailsCubit,
     Token tokenInfo,
-  ) {
+    double balance,
+  ) : _balance = balance {
     emit(state.copyWith(tokenInfo: tokenInfo));
   }
+
+  final double _balance;
+
+  @override
+  Future<Token?> fetchGnusInfo() async => state.tokenInfo;
+
+  @override
+  Future<Coin?> fetchGnusBalance() async => Coin(balance: _balance);
 }
 
 /// Seeds `jobCost`/`gnusBalance`/`uploadedJson` directly, bypassing
@@ -177,7 +197,12 @@ _Harness _build({
     geniusApi: geniusApi,
     networkTokensProvider: NetworkTokensProvider(),
   );
-  final gnusCubit = _SeededGnusCubit(CoinService(), walletDetailsCubit, _token);
+  final gnusCubit = _SeededGnusCubit(
+    CoinService(),
+    walletDetailsCubit,
+    _token,
+    seedGnusBalance,
+  );
   final cubit = _SeededSubmitJobCubit(
     walletDetailsCubit: walletDetailsCubit,
     gnusCubit: gnusCubit,
