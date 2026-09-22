@@ -7,33 +7,31 @@ files:
   - lib/components/inputs/gw_switch.dart
 ---
 
+## Partially closed 2026-09-22 (quick 260922-deo)
+
+Both defects below are fixed and hold in **both** appearances, not dark only:
+`GWCheckbox`'s disabled side/fill and `GWSwitch`'s disabled thumb/track/outline
+now read `borderControl`/`textSecondary` instead of `borderSubtle`
+(1.27–1.43:1, effectively invisible). `borderControl`'s light-mode alpha also
+moved 46%→48% so it clears 3:1 on every light surface, not just white.
+Measured: disabled edge vs surface 3.09–3.29:1 light / 3.23–3.33:1 dark,
+disabled switch thumb vs track 5.61:1 light / 5.39:1 dark, disabled thumb vs
+the enabled-off thumb 2.95:1 light / 3.23:1 dark — distinct, not merely
+visible. Guarded by `test/theme/disabled_control_contrast_test.dart`. The
+UI-SPEC ask below is the only part still open.
+
 ## Problem
 
-Confirmed live in the 04-02 D-02 gallery re-walk (2026-07-18), BOTH in dark mode:
-
-- **Disabled `GWCheckbox` is invisible** — the disabled fill uses `borderSubtle`
-  (white @ ~12% alpha), which vanishes against the dark surface. (Root-caused
-  during the 04-02 plan-check: `gw_checkbox.dart:39-50`.)
-- **Disabled `GWSwitch` is styled identically to switch-OFF** — no visual
-  distinction between "disabled" and "off", so the disabled affordance is lost.
-
-Both are pre-existing Phase-3 component gaps and are WCAG-contrast / disabled-
-affordance failures. The 04-02 ThemeExtension migration was value-preserving, so
-it deliberately did NOT change these (correctly routed here to gap closure rather
-than silently "fixed" by a color-value change).
-
-These are 2 of the 3 dark-only findings the re-walk recorded (the third is
-[[appscreenview-blank-in-dark]] — see that todo).
+The WCAG contrast rule the fix above relied on (see the `wcag-contrast-rule`
+auto-memory) is not yet baked into the UI-SPEC design contract, so a future
+component can still ship a disabled state without that floor being asked for
+up front.
 
 ## Solution
 
-TBD — gap closure. Give disabled checkbox/switch a distinct, visible treatment in
-dark mode (e.g. a disabled fill/border with enough contrast against the dark
-surface, and a switch disabled-state visibly different from off). Must satisfy the
-project WCAG contrast rule (see the `wcag-contrast-rule` auto-memory): text/UI
-components ≥ 3:1, disabled states visibly distinct from enabled/off, verified in
-BOTH modes. Also bake the WCAG contrast rule into the UI-SPEC design contract so
-future components apply it up front.
+Bake the WCAG contrast rule into the UI-SPEC design contract: disabled-vs-
+surface and disabled-vs-enabled-state pairings must clear 3:1, verified in
+both appearances, before a component ships.
 
 Related session finding (minor, deferred per user): `GWIcon.svg` renders
 always-white — tint it at the usage sites where it appears, not centrally.
