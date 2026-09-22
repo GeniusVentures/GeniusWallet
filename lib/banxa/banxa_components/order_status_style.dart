@@ -39,7 +39,10 @@ OrderStatusTone orderStatusTone(String status) {
   switch (tone) {
     case OrderStatusTone.success:
       return (
-        fg: gw.statusSuccess,
+        // Foreground is statusSuccessText, NOT statusSuccess: the latter is
+        // fill-tuned and reads under 3:1 as label text on its own light-mode
+        // wash. The wash stays statusSuccess -- it IS a fill.
+        fg: gw.statusSuccessText,
         bg: gw.statusSuccess.withValues(alpha: 0.14),
       );
     case OrderStatusTone.warning:
@@ -52,7 +55,12 @@ OrderStatusTone orderStatusTone(String status) {
         bg: gw.statusWarning.withValues(alpha: 0.16),
       );
     case OrderStatusTone.error:
-      return (fg: gw.statusError, bg: gw.statusError.withValues(alpha: 0.14));
+      // Foreground is statusErrorText, NOT statusError -- same fill-vs-label
+      // split as the success arm above.
+      return (
+        fg: gw.statusErrorText,
+        bg: gw.statusError.withValues(alpha: 0.14),
+      );
     case OrderStatusTone.neutral:
       return (fg: gw.textSecondary, bg: gw.surfaceMenu);
   }

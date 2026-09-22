@@ -101,6 +101,8 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.statusWarningText,
     required this.textMutedOnSunken,
     required this.statusInfo,
+    required this.statusSuccessText,
+    required this.statusErrorText,
     required this.brandGreen,
     required this.brandGreenStrong,
     required this.brandGreenMuted,
@@ -262,6 +264,16 @@ class GWColors extends ThemeExtension<GWColors> {
 
   final Color statusInfo;
 
+  /// The AA-safe FOREGROUND partner to [statusSuccess] -- for a success pill
+  /// label or icon, never for a fill. [statusSuccess] is fill-tuned and
+  /// unreadable as label text on its own translucent wash in light mode.
+  final Color statusSuccessText;
+
+  /// The AA-safe FOREGROUND partner to [statusError] -- for an error pill
+  /// label or icon, never for a fill. [statusError] is fill-tuned and
+  /// unreadable as label text on its own translucent wash in light mode.
+  final Color statusErrorText;
+
   // Backwards-compatibility aliases -- see genius_wallet_colors.dart's own
   // "Backwards-compatibility aliases" block: gw_loading_state.dart and the
   // loading/loading.dart shadow file reference brandGreen*, ported verbatim
@@ -352,6 +364,8 @@ class GWColors extends ThemeExtension<GWColors> {
       statusWarningText: const Color(0xFF92400E),
       textMutedOnSunken: const Color(0xFF4A5060),
       statusInfo: GeniusWalletColors._statusInfo,
+      statusSuccessText: const Color(0xFF065F46),
+      statusErrorText: const Color(0xFF991B1B),
       brandGreen: GeniusWalletColors._brandGreen,
       brandGreenStrong: GeniusWalletColors._brandGreenStrong,
       brandGreenMuted: GeniusWalletColors._brandGreenMuted,
@@ -516,6 +530,10 @@ class GWColors extends ThemeExtension<GWColors> {
       statusWarningText: GeniusWalletColors._statusWarning,
       textMutedOnSunken: GeniusWalletColors._textSecondary,
       statusInfo: GeniusWalletColors._statusInfo,
+      // No private _statusSuccess constant exists (23-04 deleted it as
+      // dead); this literal must match statusSuccess's own dark value above.
+      statusSuccessText: const Color(0xFF0AD89C),
+      statusErrorText: GeniusWalletColors._statusError,
       brandGreen: GeniusWalletColors._brandGreen,
       brandGreenStrong: GeniusWalletColors._brandGreenStrong,
       brandGreenMuted: GeniusWalletColors._brandGreenMuted,
@@ -675,6 +693,8 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? statusWarningText,
     Color? textMutedOnSunken,
     Color? statusInfo,
+    Color? statusSuccessText,
+    Color? statusErrorText,
     Color? brandGreen,
     Color? brandGreenStrong,
     Color? brandGreenMuted,
@@ -744,6 +764,8 @@ class GWColors extends ThemeExtension<GWColors> {
       statusWarningText: statusWarningText ?? this.statusWarningText,
       textMutedOnSunken: textMutedOnSunken ?? this.textMutedOnSunken,
       statusInfo: statusInfo ?? this.statusInfo,
+      statusSuccessText: statusSuccessText ?? this.statusSuccessText,
+      statusErrorText: statusErrorText ?? this.statusErrorText,
       brandGreen: brandGreen ?? this.brandGreen,
       brandGreenStrong: brandGreenStrong ?? this.brandGreenStrong,
       brandGreenMuted: brandGreenMuted ?? this.brandGreenMuted,
