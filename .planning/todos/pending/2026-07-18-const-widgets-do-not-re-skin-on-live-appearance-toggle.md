@@ -77,3 +77,6 @@ their internal card/dialog/drawer chrome won't flip live until migrated in place
 Assign these three to plan 04-04 (which re-skins the drawer + delete dialog
 surfaces): widen 04-04's scope to migrate them, OR handle as an explicit
 follow-up before Phase 4 closes. Decide at 04-04 execution.
+
+**Note (2026-09-22, quick 260922-chs):** `/settings` now has a real Appearance
+control, so this todo's own live-flip recipe no longer needs the dev Gallery detour.
