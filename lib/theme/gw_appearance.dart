@@ -11,7 +11,8 @@ enum GWAppearancePreference { system, light, dark }
 /// App-wide appearance: dark = black canvas, light = white canvas. Read via
 /// `GeniusWalletColors`/`GWDecorations`; set from the Settings screen's
 /// Appearance control, which resolves `system` against OS brightness.
-class GWAppearance extends ValueNotifier<GWAppearanceMode> {
+class GWAppearance extends ValueNotifier<GWAppearanceMode>
+    with WidgetsBindingObserver {
   GWAppearance._() : super(GWAppearanceMode.dark);
 
   static final GWAppearance instance = GWAppearance._();
@@ -19,6 +20,7 @@ class GWAppearance extends ValueNotifier<GWAppearanceMode> {
   static bool get isLight => instance.value == GWAppearanceMode.light;
 
   GWAppearancePreference _preference = GWAppearancePreference.system;
+  bool _observing = false;
 
   GWAppearancePreference get preference => _preference;
 
@@ -54,6 +56,28 @@ class GWAppearance extends ValueNotifier<GWAppearanceMode> {
       _preference = GWAppearancePreference.system;
     }
     value = _resolve();
+    if (!_observing) {
+      WidgetsBinding.instance.addObserver(this);
+      _observing = true;
+    }
+  }
+
+  /// Re-resolves on an OS brightness flip, but only while following it.
+  @override
+  void didChangePlatformBrightness() {
+    if (_preference != GWAppearancePreference.system) {
+      return;
+    }
+    value = _resolve();
+  }
+
+  @override
+  void dispose() {
+    if (_observing) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observing = false;
+    }
+    super.dispose();
   }
 
   Future<void> setPreference(GWAppearancePreference pref) async {
