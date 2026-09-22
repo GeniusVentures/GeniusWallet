@@ -75,8 +75,11 @@ const double _narrowStatusMaxWidth = 76;
   TransactionStatus status,
   GWColors gw,
 ) => switch (status) {
+  // Foreground is statusSuccessText, NOT statusSuccess: the latter is
+  // fill-tuned and reads under 3:1 as label text on its own light-mode wash.
+  // The wash stays statusSuccess: it IS a fill.
   TransactionStatus.completed => (
-    fg: gw.statusSuccess,
+    fg: gw.statusSuccessText,
     wash: gw.statusSuccess.withValues(alpha: 0.14),
   ),
   // Foreground is statusWarningText, NOT statusWarning: the latter is
@@ -87,8 +90,10 @@ const double _narrowStatusMaxWidth = 76;
     fg: gw.statusWarningText,
     wash: gw.statusWarning.withValues(alpha: 0.16),
   ),
+  // Foreground is statusErrorText, NOT statusError -- same fill-vs-label
+  // split as the completed case above.
   TransactionStatus.failed => (
-    fg: gw.statusError,
+    fg: gw.statusErrorText,
     wash: gw.statusError.withValues(alpha: 0.14),
   ),
   // Slate, not red: a cancelled transaction is not a failure, and
@@ -108,26 +113,11 @@ const double _narrowStatusMaxWidth = 76;
 /// reusing the badge palette so pill and badge never disagree on what "failed"
 /// looks like. Used by the wide transactions row AND by the receipt hero.
 ///
-/// All four tones come from [txStatusColors]: completed/failed use the
-/// appearance-aware `gw.*` colours, cancelled uses `textSecondary`, and
-/// pending uses `statusWarningText`.
-///
-/// The pending case USED to read the mode-invariant `statusWarning` fill and
-/// measured 1.59:1 as a label on the light wash — this comment previously
-/// deferred that "to the light pass". It was fixed on 2026-07-29 instead: the
-/// upgrade path it predicted (a darker light-mode amber behind its own token)
-/// is exactly what `statusWarningText` is — #92400E, landing at 6.56 / 5.93 /
-/// 5.15 on surfaceElevated / surfaceMenu / surfaceBase.
-///
-/// ponytail: completed and failed still do NOT clear AA as labels in light
-/// mode — measured 3.77 / 3.39 / 2.91 and 3.89 / 3.49 / 2.99 against a 4.5:1
-/// floor (13px w600 is below WCAG's 18.66px large-text threshold). Their
-/// light values are already AA-divergent and still miss, because the wash is a
-/// translucent tint of the same hue. Ceiling: only the pending tone is proven
-/// in light mode. Upgrade path: `statusSuccessText`/`statusErrorText`
-/// mirroring `statusWarningText`, then extend Part 8 of
-/// `test/theme/theme_contrast_test.dart` to all three tones in both modes. See
-/// `.planning/todos/pending/2026-07-29-status-pill-success-error-fail-aa-in-light-mode.md`.
+/// All four tones come from [txStatusColors]: completed uses
+/// `statusSuccessText`, failed uses `statusErrorText`, cancelled/refunded use
+/// `textSecondary`, and pending (plus the needsGas/partialSuccess
+/// placeholders) uses `statusWarningText` -- each is the AA-safe foreground
+/// partner to its wash colour, never the fill itself.
 ///
 /// [label] overrides the text only - never the paint, which stays the four-tone
 /// ladder above. Null keeps today's behaviour (the enum's own name); a caller
