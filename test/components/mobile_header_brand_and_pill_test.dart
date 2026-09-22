@@ -108,6 +108,21 @@ Future<WalletDetailsCubit> _pumpHeader(
     ),
   );
   await tester.pumpAndSettle();
+
+  // An `Image.asset` with only a `height` measures 0 wide until its bytes are
+  // decoded, so the first pump in a randomized order can catch the mark
+  // mid-decode. `runAsync` drives the real `instantiateImageCodec`, which fake
+  // async cannot; `pumpAndSettle` alone does not wait for it either.
+  await tester.runAsync(
+    () => precacheImage(
+      const AssetImage(
+        'assets/images/geniusappbarlogo.png',
+        package: 'genius_wallet',
+      ),
+      tester.element(find.byType(BrandLockup)),
+    ),
+  );
+  await tester.pump();
   return cubit;
 }
 
