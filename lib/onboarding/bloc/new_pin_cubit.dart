@@ -19,7 +19,8 @@ class NewPinCubit extends Cubit<NewPinState> {
   /// Compared [currentPin] with [state.pinToConfirm] and
   /// saves the pins if they match.
   ///
-  /// Emits a [PinConfirmStatus.failed] status otherwise.
+  /// Emits [PinConfirmStatus.failed] otherwise, then returns to awaiting so a
+  /// repeated mismatch is a fresh state change listeners still hear.
   Future<void> pinConfirmSubmitted(String currentPin) async {
     if (currentPin == state.pinToConfirm) {
       emit(
@@ -37,6 +38,9 @@ class NewPinCubit extends Cubit<NewPinState> {
       }
     } else {
       emit(state.copyWith(pinConfirmStatus: PinConfirmStatus.failed));
+      emit(
+        state.copyWith(pinConfirmStatus: PinConfirmStatus.awaitingVerification),
+      );
     }
   }
 }

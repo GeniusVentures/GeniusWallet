@@ -55,10 +55,6 @@ class NewWalletBloc extends Bloc<NewWalletEvent, NewWalletState> {
       emit(state.copyWith(currentStep: NewWalletStep.copyPhrase));
     });
 
-    on<PinConfirmFailed>((event, emit) {
-      emit(state.copyWith(currentStep: NewWalletStep.createPin));
-    });
-
     on<GoBack>(_onGoBack);
   }
 

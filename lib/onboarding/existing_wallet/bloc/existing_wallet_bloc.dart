@@ -28,11 +28,6 @@ class ExistingWalletBloc
       emit(state.copyWith(currentStep: ImportWalletStep.confirmPin));
     });
 
-    /// On [PinCheckFailed], send user back a screen and reset pin state
-    on<PinConfirmFailed>((event, emit) {
-      emit(state.copyWith(currentStep: ImportWalletStep.createPin));
-    });
-
     on<PinConfirmPassed>((event, emit) {
       emit(state.copyWith(currentStep: ImportWalletStep.importWallet));
     });
