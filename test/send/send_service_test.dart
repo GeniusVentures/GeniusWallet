@@ -19,26 +19,32 @@ SendFee _fee({
 
 void main() {
   group('buildSendTx', () {
-    test('map shape: to/value/gas/maxFeePerGas/maxPriorityFeePerGas, no data', () {
-      final tx = buildSendTx(
-        from: '0xfrom',
-        recipient: '0xrecipient',
-        amount: BigInt.from(500000000000000000), // 0.5 in wei
-        fee: _fee(
-          maxFeePerGas: BigInt.from(30000000000),
-          maxPriorityFeePerGas: BigInt.from(1500000000),
-          gasLimit: BigInt.from(21000),
-        ),
-      );
+    test(
+      'map shape: to/value/gas/maxFeePerGas/maxPriorityFeePerGas, no data',
+      () {
+        final tx = buildSendTx(
+          from: '0xfrom',
+          recipient: '0xrecipient',
+          amount: BigInt.from(500000000000000000), // 0.5 in wei
+          fee: _fee(
+            maxFeePerGas: BigInt.from(30000000000),
+            maxPriorityFeePerGas: BigInt.from(1500000000),
+            gasLimit: BigInt.from(21000),
+          ),
+        );
 
-      expect(tx['from'], '0xfrom');
-      expect(tx['to'], '0xrecipient');
-      expect(tx['value'], '0x${BigInt.from(500000000000000000).toRadixString(16)}');
-      expect(tx['gas'], '0x5208'); // 21000
-      expect(tx['maxFeePerGas'], '0x6fc23ac00');
-      expect(tx['maxPriorityFeePerGas'], '0x59682f00');
-      expect(tx.containsKey('data'), isFalse);
-    });
+        expect(tx['from'], '0xfrom');
+        expect(tx['to'], '0xrecipient');
+        expect(
+          tx['value'],
+          '0x${BigInt.from(500000000000000000).toRadixString(16)}',
+        );
+        expect(tx['gas'], '0x5208'); // 21000
+        expect(tx['maxFeePerGas'], '0x6fc23ac00');
+        expect(tx['maxPriorityFeePerGas'], '0x59682f00');
+        expect(tx.containsKey('data'), isFalse);
+      },
+    );
   });
 
   group('chooseFeePerGas', () {
