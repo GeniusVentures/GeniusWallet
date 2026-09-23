@@ -43,11 +43,18 @@ TransactionReceipt _completedReceipt() => TransactionReceipt.fromMap({
 });
 
 class _RecordingStorage implements TransactionStorageService {
+  _RecordingStorage({this.failWrites = false});
+
+  final bool failWrites;
   final List<Transaction> writes = [];
 
   @override
-  Future<void> addTransaction(String walletAddress, Transaction tx) async =>
-      writes.add(tx);
+  Future<void> addTransaction(String walletAddress, Transaction tx) async {
+    if (failWrites) {
+      throw StateError('disk full');
+    }
+    writes.add(tx);
+  }
 
   @override
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
@@ -60,6 +67,7 @@ class _ConfigurableApi implements GeniusApi {
     BigInt? balance,
     this.estimateError,
     this.signResponse,
+    this.signError,
     List<TransactionReceipt?>? receiptSequence,
     List<SendFee>? feeSequence,
     BigInt? tokenBalance,
@@ -72,6 +80,7 @@ class _ConfigurableApi implements GeniusApi {
   final BigInt tokenBalance;
   Exception? estimateError;
   ApiResponse<String>? signResponse;
+  Exception? signError;
   final List<TransactionReceipt?> _receiptSequence;
   int _receiptCalls = 0;
   final List<SendFee> _feeSequence;
@@ -122,6 +131,9 @@ class _ConfigurableApi implements GeniusApi {
   }) async {
     signCalls++;
     signedTxs.add(tx);
+    if (signError != null) {
+      throw signError!;
+    }
     return signResponse ?? ApiResponse.success(_hash);
   }
 
@@ -254,6 +266,46 @@ void main() {
       expect(cubit.state.amount, '0.5');
       expect(storage.writes, isEmpty);
     });
+
+    test('a thrown sign call frees the form and says so', () async {
+      final api = _ConfigurableApi(signError: Exception('keychain locked'));
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+      await cubit.review();
+
+      final result = await cubit.submit();
+
+      expect(result, isNull);
+      expect(cubit.state.busy, isFalse);
+      expect(cubit.state.error, isNotNull);
+    });
+
+    test(
+      'a failed history write after broadcast still records the send',
+      () async {
+        final api = _ConfigurableApi();
+        final transactionsCubit = TransactionsCubit();
+        final cubit = _cubit(
+          api: api,
+          transactions: transactionsCubit,
+          storage: _RecordingStorage(failWrites: true),
+        );
+        cubit.setRecipient(_recipient);
+        cubit.setAmount('0.5');
+        await cubit.review();
+
+        final result = await cubit.submit();
+
+        expect(result, isNotNull);
+        expect(transactionsCubit.state.single.hash, _hash);
+        expect(cubit.state.busy, isFalse);
+      },
+    );
 
     test('cancelReview then submit signs nothing', () async {
       final api = _ConfigurableApi();

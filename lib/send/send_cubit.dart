@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
@@ -501,12 +502,18 @@ class SendCubit extends Cubit<SendState> {
     final rpcUrl = network.rpcUrl ?? '';
     emit(state.copyWith(busy: true, clearError: true));
 
-    final result = await api.signAndSendTransaction(
-      tx: review.tx,
-      rpcUrl: rpcUrl,
-      address: walletAddress,
-      sourceChainId: network.chainId ?? 0,
-    );
+    ApiResponse<String> result;
+    try {
+      result = await api.signAndSendTransaction(
+        tx: review.tx,
+        rpcUrl: rpcUrl,
+        address: walletAddress,
+        sourceChainId: network.chainId ?? 0,
+      );
+    } catch (_) {
+      // A keychain read can throw before anything is signed.
+      result = ApiResponse.error('The signature failed.');
+    }
 
     final hash = result.data;
     if (!result.isSuccess || hash == null || hash.isEmpty) {
@@ -538,11 +545,9 @@ class SendCubit extends Cubit<SendState> {
 
     // Written before the resolved status, keyed by the real hash: a crash
     // between broadcast and settlement must leave an accurate pending row
-    // rather than no record of funds that already moved.
-    await storage.addTransaction(
-      walletAddress,
-      rowWith(TransactionStatus.pending),
-    );
+    // rather than no record of funds that already moved. Funds have moved
+    // by now, so a failed write never skips the steps after it.
+    await _write(rowWith(TransactionStatus.pending));
 
     final receipt = await pollReceipt(
       hash: hash,
@@ -550,7 +555,7 @@ class SendCubit extends Cubit<SendState> {
       wait: wait,
     );
     final resolved = rowWith(settledStatus(receipt), receipt: receipt);
-    await storage.addTransaction(walletAddress, resolved);
+    await _write(resolved);
     transactions.addTransaction(resolved);
 
     if (isClosed) {
@@ -566,5 +571,14 @@ class SendCubit extends Cubit<SendState> {
       ),
     );
     return resolved;
+  }
+
+  Future<void> _write(Transaction row) async {
+    try {
+      await storage.addTransaction(walletAddress, row);
+    } catch (_) {
+      // The live history still gets the row; one lost disk write must not
+      // strand the steps after it.
+    }
   }
 }
