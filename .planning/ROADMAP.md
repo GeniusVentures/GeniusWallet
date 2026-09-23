@@ -1410,7 +1410,7 @@ the wallet can sign on, see the fee before approving, and find the send in histo
 the right asset and the right chain. Decisions are in the phase's `31-CONTEXT.md`.
 **Requirements**: SEND-01, SEND-02, SEND-03, SEND-04, SEND-05, SEND-06, SEND-07
 **Depends on:** Phase 30
-**Plans:** 1/5 plans executed (sequential waves 1-5)
+**Plans:** 2/5 plans executed (sequential waves 1-5)
 
 Plans:
 **Wave 1**
@@ -1419,7 +1419,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 31-02-PLAN.md — native send end to end: /send, SendCubit, EIP-1559 fee with legacy fallback, review drawer, pending then resolved row
+- [x] 31-02-PLAN.md — native send end to end: /send, SendCubit, EIP-1559 fee with legacy fallback, review drawer, pending then resolved row
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
