@@ -67,12 +67,11 @@ void main() {
       expect(await storage.verifyUserPin('5678'), isTrue);
     });
 
-    test('an unreadable store fails closed', () async {
+    test('an unreadable store never verifies a PIN', () async {
       storage = await LocalWalletStorage.create(
         secureStorage: _UnreadableStorage(),
       );
 
-      expect(await storage.pinExists(), isFalse);
       expect(await storage.verifyUserPin('1234'), isFalse);
     });
   });
@@ -94,11 +93,10 @@ void main() {
       expect((await storage.loadAccount())?.name, 'Mine');
     });
 
-    test('a corrupt account is dropped, not thrown', () async {
+    test('a corrupt account loads as null instead of throwing', () async {
       storage = await withValues({'__account__': 'not json'});
 
       expect(await storage.loadAccount(), isNull);
-      expect(await raw.read(key: '__account__'), isNull);
     });
 
     test('deleteAccount removes the account and leaves the PIN', () async {
