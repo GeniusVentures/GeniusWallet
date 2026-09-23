@@ -163,7 +163,10 @@ class _SendBodyState extends State<_SendBody> {
             children: [
               const GWPageHeader(title: 'Send'),
               const SizedBox(height: GeniusWalletConsts.space6),
-              RecipientField(controller: _recipientController),
+              RecipientField(
+                controller: _recipientController,
+                errorText: state.error,
+              ),
               const SizedBox(height: GeniusWalletConsts.space6),
               GWTextField(
                 controller: _amountController,
@@ -213,13 +216,6 @@ class _SendBodyState extends State<_SendBody> {
     }
     final review = cubit.state.review;
     if (review == null) {
-      // `errorText` used to sit under the (now extracted) recipient field --
-      // moved to a toast so a bad address or a short balance is still told,
-      // not silently dropped now that the field only ever shows its own
-      // format check.
-      if (cubit.state.error != null) {
-        showToast(context, cubit.state.error!, type: ToastType.error);
-      }
       return;
     }
 

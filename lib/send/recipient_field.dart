@@ -13,9 +13,13 @@ import 'package:genius_wallet/utils/wallet_utils.dart';
 /// [SendCubit] directly -- owns no state beyond the controller it is given,
 /// which the screen keeps in step with [SendState.recipient].
 class RecipientField extends StatelessWidget {
-  const RecipientField({super.key, this.controller});
+  const RecipientField({super.key, this.controller, this.errorText});
 
   final TextEditingController? controller;
+
+  /// A cubit-level error (e.g. from a failed review), shown when the field's
+  /// own format check below has nothing to say about the current text.
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +27,9 @@ class RecipientField extends StatelessWidget {
     final state = cubit.state;
     final trimmed = state.recipient.trim();
     final invalid = trimmed.isNotEmpty && !isEvmAddress(trimmed);
+    final fieldError = invalid
+        ? 'Enter a 0x address of 40 hex characters.'
+        : errorText;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,9 +39,7 @@ class RecipientField extends StatelessWidget {
           controller: controller,
           label: 'To',
           hint: '0x...',
-          errorText: invalid
-              ? 'Enter a 0x address of 40 hex characters.'
-              : null,
+          errorText: fieldError,
           onChanged: cubit.setRecipient,
           suffix: GWButton(
             label: 'Paste',
