@@ -63,6 +63,9 @@ class _RecordingStorage implements TransactionStorageService {
 /// Answers every send read with a fixed, positive fee and balance, and
 /// settles the receipt on the first poll — no real RPC, no wait.
 class _FakeApi implements GeniusApi {
+  _FakeApi({this.receiptStatus = '0x1'});
+
+  final String receiptStatus;
   Map<String, dynamic>? signedTx;
 
   @override
@@ -114,7 +117,7 @@ class _FakeApi implements GeniusApi {
     'cumulativeGasUsed': '0x5208',
     'gasUsed': '0x5208',
     'effectiveGasPrice': '30000000000',
-    'status': '0x1',
+    'status': receiptStatus,
   });
 
   @override
@@ -429,6 +432,28 @@ void main() {
       expect(find.text('Token'), findsOneWidget);
     },
   );
+
+  testWidgets('a send the chain reverted is reported as failed, not sent', (
+    tester,
+  ) async {
+    await _mount(
+      tester,
+      _FakeApi(receiptStatus: '0x0'),
+      _RecordingStorage(),
+      TransactionsCubit(),
+    );
+    await tester.enterText(find.byType(TextField).at(0), _recipient);
+    await tester.enterText(find.byType(TextField).at(1), '0.5');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(GWButton, 'Review'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(GWButton, 'Send'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Send failed'), findsOneWidget);
+    expect(find.textContaining('Sent to'), findsNothing);
+  });
 
   testWidgets('tapping MAX puts the cubit-computed amount into the field', (
     tester,
