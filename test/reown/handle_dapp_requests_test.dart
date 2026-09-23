@@ -763,5 +763,61 @@ void main() {
       );
       await _finish(tester, harness);
     });
+
+    testWidgets('an unverified token amount is recorded as base units', (
+      tester,
+    ) async {
+      final harness = await _start(
+        tester,
+        network: _base,
+        wallet: _wallet,
+        api: _SigningGeniusApi(),
+      );
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [
+          _tx(data: _transferCalldata, value: '0x0'),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      final recorded = harness.transactions.state.single;
+      expect(recorded.recipients.single.amount, '1500000 base units');
+      await _finish(tester, harness);
+    });
+
+    testWidgets('a token call that also moved native value records both', (
+      tester,
+    ) async {
+      final harness = await _start(
+        tester,
+        network: _base,
+        coins: const [_usdc],
+        wallet: _wallet,
+        api: _SigningGeniusApi(),
+      );
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [_tx(data: _transferCalldata)]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      final recipients = harness.transactions.state.single.recipients;
+      expect(recipients, hasLength(2));
+      expect(recipients.first.amount, '1.5');
+      expect(recipients.last.toAddr, _tokenContract);
+      expect(
+        recipients.last.amount,
+        summarizeTransaction(
+          _tx(data: _transferCalldata),
+          coins: const [_usdc],
+        ).nativeAmount,
+      );
+      await _finish(tester, harness);
+    });
   });
 }

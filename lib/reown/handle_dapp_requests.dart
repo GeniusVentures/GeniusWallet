@@ -274,9 +274,16 @@ void Function() handleDappRequests({
         final recipientAddress = decodesRecipient
             ? (summary.recipient ?? to)
             : to;
-        final recipientAmount = decodesRecipient
-            ? (summary.amount ?? amountEth)
-            : amountEth;
+        // An unverified token's amount is raw base units -- no decimals are
+        // known to scale it -- so it is labelled as such, never read as whole
+        // tokens.
+        final decoded = summary.amount;
+        final recipientAmount = !decodesRecipient || decoded == null
+            ? amountEth
+            : summary.kind == DappCallKind.unverifiedToken
+            ? '$decoded base units'
+            : decoded;
+        final nativeAlongside = decodesRecipient ? summary.nativeAmount : null;
 
         // TODO: we should show a pending transaction until it completes
         final txModel = model.Transaction(
@@ -287,6 +294,10 @@ void Function() handleDappRequests({
               toAddr: recipientAddress,
               amount: recipientAmount,
             ),
+            // Native value the same call paid the contract, kept rather than
+            // dropped from history.
+            if (nativeAlongside != null)
+              TransferRecipients(toAddr: to, amount: nativeAlongside),
           ],
           timeStamp: DateTime.now(),
           transactionDirection: TransactionDirection.sent,
