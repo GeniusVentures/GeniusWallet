@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/transaction.dart' as model;
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/navigation/router.dart';
@@ -228,14 +229,17 @@ void Function() handleDappRequests({
           address: walletAddress,
         );
 
-        if (!result.isSuccess) {
-          // A signature that failed is not a user who said no, and a dApp
-          // that cannot tell them apart retries the wrong one.
-          await respond(
-            error: JsonRpcError.serverError(
-              result.errorMessage ?? 'Signing failed',
-            ),
-          );
+        // A signature that failed is not a user who said no, and a dApp that
+        // cannot tell them apart retries the wrong one.
+        final failure = JsonRpcError.serverError(
+          result.errorMessage ?? 'Signing failed',
+        );
+        // A hash on a failure is a broadcast the node never answered. It may
+        // be on the network, so it is recorded as pending for the next launch
+        // to settle; the dApp is still told it failed.
+        final maybeSent = !result.isSuccess && result.data != null;
+        if (!result.isSuccess && !maybeSent) {
+          await respond(error: failure);
           unawaited(
             SwapResultDrawer.show(
               context: navigatorKey.currentContext!,
@@ -249,20 +253,22 @@ void Function() handleDappRequests({
         }
 
         final txHash = result.data;
-        // The hash is on the network whether or not the dApp heard it: a
-        // dropped answer is tried once more, and `attempted` holds the hash
-        // so nothing later can turn it into an error reply. The record below
-        // is owed either way.
+        // The hash may be on the network whether or not the dApp heard it: a
+        // dropped answer is tried once more, and `attempted` holds the first
+        // answer so nothing later can change it. The record below is owed
+        // either way.
         for (var attempt = 1; attempt <= 2 && !answered; attempt++) {
           try {
-            await respond(result: txHash);
+            await (maybeSent
+                ? respond(error: failure)
+                : respond(result: txHash));
           } catch (answerFailed) {
             debugPrint(
               '❌ Answer $attempt for request $requestId failed: $answerFailed',
             );
           }
         }
-        debugPrint('✅ Success on Swap!: ${result.data}');
+        debugPrint('✅ Sent (confirmed: ${!maybeSent}): ${result.data}');
 
         // A token call's recipient and amount live in the calldata, not in
         // `tx['to']`/`amountEth` -- those still name the contract and the
@@ -303,20 +309,32 @@ void Function() handleDappRequests({
           transactionDirection: TransactionDirection.sent,
           fees: totalFeeEth,
           coinSymbol: nativeUnit,
-          transactionStatus: TransactionStatus.completed,
+          transactionStatus: maybeSent
+              ? TransactionStatus.pending
+              : TransactionStatus.completed,
           type: TransactionType.transfer,
           assetSymbol: coinSymbol,
           chainId: chainId,
         );
 
-        unawaited(
-          SwapResultDrawer.show(
-            context: navigatorKey.currentContext!,
-            isSuccess: true,
-            txHash: txHash ?? "",
-            coinSymbol: coinSymbol,
-          ),
-        );
+        if (maybeSent) {
+          showToast(
+            navigatorKey.currentContext!,
+            "The network didn't confirm it received this transaction. It's "
+            'in your history as pending -- check there before trying again.',
+            title: 'Transaction not confirmed',
+            type: ToastType.warning,
+          );
+        } else {
+          unawaited(
+            SwapResultDrawer.show(
+              context: navigatorKey.currentContext!,
+              isSuccess: true,
+              txHash: txHash ?? "",
+              coinSymbol: coinSymbol,
+            ),
+          );
+        }
 
         // stream to ui
         transactionsCubit.addTransaction(txModel);
