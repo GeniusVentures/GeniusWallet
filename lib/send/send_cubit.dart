@@ -489,7 +489,22 @@ class SendCubit extends Cubit<SendState> {
       decimals = parsed;
     }
 
-    final rawAmount = toBaseUnits(state.amount.trim(), decimals);
+    final typed = state.amount.trim();
+    final rawAmount = toBaseUnits(typed, decimals);
+    // toBaseUnits drops digits below the smallest unit, so a non-zero one
+    // there would send less than was typed.
+    if (rawAmount != null &&
+        RegExp('\\.\\d{$decimals}\\d*[1-9]').hasMatch(typed)) {
+      final symbol = (coin.symbol ?? '').toUpperCase();
+      final places = decimals == 1 ? 'place' : 'places';
+      emit(
+        state.copyWith(
+          amountError: '$symbol supports up to $decimals decimal $places.',
+          clearReview: true,
+        ),
+      );
+      return;
+    }
     if (rawAmount == null || rawAmount <= BigInt.zero) {
       emit(
         state.copyWith(

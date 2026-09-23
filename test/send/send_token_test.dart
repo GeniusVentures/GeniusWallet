@@ -320,5 +320,29 @@ void main() {
       expect(cubit.state.review, isNull);
       expect(api.signCalls, 0);
     });
+
+    test('an amount finer than the token allows is refused, not cut', () async {
+      final api = _ConfigurableApi();
+      final cubit = _cubit(api: api);
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('1.0000009');
+
+      await cubit.review();
+
+      expect(cubit.state.amountError, 'USDC supports up to 6 decimal places.');
+      expect(cubit.state.review, isNull);
+    });
+
+    test('zeros past the token precision are harmless', () async {
+      final api = _ConfigurableApi();
+      final cubit = _cubit(api: api);
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('1.500000000');
+
+      await cubit.review();
+
+      expect(cubit.state.amountError, isNull);
+      expect(cubit.state.review?.rawAmount, BigInt.from(1500000));
+    });
   });
 }
