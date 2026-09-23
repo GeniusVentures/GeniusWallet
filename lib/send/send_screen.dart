@@ -14,6 +14,7 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/utilities.dart';
+import 'package:genius_wallet/send/recipient_field.dart';
 import 'package:genius_wallet/send/send_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
@@ -110,13 +111,16 @@ class _SendBody extends StatefulWidget {
 }
 
 class _SendBodyState extends State<_SendBody> {
-  // Kept in step with `state.amount` in build -- the field's own text has
-  // to change when MAX fills it, not just when the user types.
+  // Kept in step with `state.amount`/`state.recipient` in build -- MAX and a
+  // paste/scan change the cubit's value without the user typing into either
+  // field directly.
   final _amountController = TextEditingController();
+  final _recipientController = TextEditingController();
 
   @override
   void dispose() {
     _amountController.dispose();
+    _recipientController.dispose();
     super.dispose();
   }
 
@@ -140,6 +144,12 @@ class _SendBodyState extends State<_SendBody> {
         selection: TextSelection.collapsed(offset: state.amount.length),
       );
     }
+    if (_recipientController.text != state.recipient) {
+      _recipientController.value = _recipientController.value.copyWith(
+        text: state.recipient,
+        selection: TextSelection.collapsed(offset: state.recipient.length),
+      );
+    }
 
     final coinSymbol = (coin.symbol ?? '').toUpperCase();
 
@@ -153,12 +163,7 @@ class _SendBodyState extends State<_SendBody> {
             children: [
               const GWPageHeader(title: 'Send'),
               const SizedBox(height: GeniusWalletConsts.space6),
-              GWTextField(
-                label: 'Recipient',
-                hint: '0x...',
-                errorText: state.error,
-                onChanged: cubit.setRecipient,
-              ),
+              RecipientField(controller: _recipientController),
               const SizedBox(height: GeniusWalletConsts.space6),
               GWTextField(
                 controller: _amountController,
@@ -208,6 +213,13 @@ class _SendBodyState extends State<_SendBody> {
     }
     final review = cubit.state.review;
     if (review == null) {
+      // `errorText` used to sit under the (now extracted) recipient field --
+      // moved to a toast so a bad address or a short balance is still told,
+      // not silently dropped now that the field only ever shows its own
+      // format check.
+      if (cubit.state.error != null) {
+        showToast(context, cubit.state.error!, type: ToastType.error);
+      }
       return;
     }
 
