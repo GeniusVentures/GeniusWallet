@@ -28,7 +28,7 @@ class SendFee {
 typedef FeePerGas = ({BigInt maxFeePerGas, BigInt maxPriorityFeePerGas});
 
 /// Neither the EIP-1559 fee market nor a legacy gas price could be read. A
-/// send must never reach the signer with a zero fee (T-31-06), so this
+/// send must never reach the signer with a zero fee, so this
 /// blocks the review step instead of letting a `0x0` field through.
 class SendFeeUnavailable implements Exception {
   const SendFeeUnavailable([
