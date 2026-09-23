@@ -118,6 +118,10 @@ class _ConfigurableApi implements GeniusApi {
     if (estimateError != null) {
       throw estimateError!;
     }
+    // A geth-family node refuses to estimate a value beyond the balance.
+    if (value != null && value > balance) {
+      throw Exception('insufficient funds for gas * price + value');
+    }
     // A later call reads past the end of a shorter sequence by repeating its
     // last entry -- the same convention the receipt sequence above uses, so
     // a "grown fee" test only has to name the two fees that matter.
