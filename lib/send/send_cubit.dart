@@ -195,6 +195,97 @@ class SendCubit extends Cubit<SendState> {
     state.copyWith(coin: coin, amount: '', clearError: true, clearReview: true),
   );
 
+  /// Fills the amount field with the most this coin can actually send: the
+  /// exact raw token balance for a token, or the native balance minus the
+  /// maximum network fee for the chain's own coin -- never below zero. The
+  /// review step re-estimates regardless, so a fee that grows between MAX
+  /// and Review still refuses rather than signing an underfunded send.
+  Future<void> useMax() async {
+    final coin = state.coin;
+    if (coin == null || state.busy) {
+      return;
+    }
+    final rpcUrl = network.rpcUrl ?? '';
+    final tokenContract = coin.address;
+    emit(state.copyWith(busy: true, clearError: true, clearReview: true));
+    try {
+      if (tokenContract != null) {
+        final decimals = int.tryParse(coin.decimals ?? '');
+        if (decimals == null || decimals < 0 || decimals > _maxTokenDecimals) {
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                busy: false,
+                error: "This token's decimals are unknown.",
+              ),
+            );
+          }
+          return;
+        }
+        final balance = await api.rawBalanceOf(
+          address: walletAddress,
+          contractAddress: tokenContract,
+          rpcUrl: rpcUrl,
+        );
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              busy: false,
+              amount: formatTokenAmount(balance, decimals),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Priced to the typed recipient when it is one, else to the wallet's
+      // own address -- a bare `/send` with no recipient yet still gets a
+      // real gas-limit estimate rather than a guess.
+      final recipient = state.recipient.trim();
+      final feeRecipient = isEvmAddress(recipient) ? recipient : walletAddress;
+      final fee = await api.estimateSendFee(
+        rpcUrl: rpcUrl,
+        sender: walletAddress,
+        recipient: feeRecipient,
+      );
+      final balance = await api.nativeBalance(
+        address: walletAddress,
+        rpcUrl: rpcUrl,
+      );
+      final spendable = maxNativeSendable(balance: balance, fee: fee);
+      if (spendable <= BigInt.zero) {
+        final gasSymbol = (network.nativeSymbol ?? network.symbol ?? '')
+            .toUpperCase();
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              busy: false,
+              error: "Not enough $gasSymbol to cover the network fee.",
+            ),
+          );
+        }
+        return;
+      }
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            busy: false,
+            amount: formatTokenAmount(spendable, _nativeDecimals),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            busy: false,
+            error: "Couldn't estimate the network fee.",
+          ),
+        );
+      }
+    }
+  }
+
   /// Validates, prices and builds the send, landing it on [SendState.review]
   /// for the confirm drawer. Refuses -- with a reason, never a silent no-op
   /// -- on a bad address, an unparsable amount, an unreadable fee, or a

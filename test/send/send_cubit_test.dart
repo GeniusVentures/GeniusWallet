@@ -61,17 +61,31 @@ class _ConfigurableApi implements GeniusApi {
     this.estimateError,
     this.signResponse,
     List<TransactionReceipt?>? receiptSequence,
+    List<SendFee>? feeSequence,
+    BigInt? tokenBalance,
   }) : balance = balance ?? BigInt.parse('10000000000000000000'),
-       _receiptSequence = receiptSequence ?? [_completedReceipt()];
+       tokenBalance = tokenBalance ?? BigInt.zero,
+       _receiptSequence = receiptSequence ?? [_completedReceipt()],
+       _feeSequence = feeSequence ?? [_fee()];
 
   final BigInt balance;
+  final BigInt tokenBalance;
   Exception? estimateError;
   ApiResponse<String>? signResponse;
   final List<TransactionReceipt?> _receiptSequence;
   int _receiptCalls = 0;
+  final List<SendFee> _feeSequence;
+  int _feeCalls = 0;
 
   int signCalls = 0;
   final List<Map<String, dynamic>> signedTxs = [];
+
+  @override
+  Future<BigInt> rawBalanceOf({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async => tokenBalance;
 
   @override
   Future<BigInt> nativeBalance({
@@ -89,7 +103,14 @@ class _ConfigurableApi implements GeniusApi {
     if (estimateError != null) {
       throw estimateError!;
     }
-    return _fee();
+    // A later call reads past the end of a shorter sequence by repeating its
+    // last entry -- the same convention the receipt sequence above uses, so
+    // a "grown fee" test only has to name the two fees that matter.
+    final index = _feeCalls < _feeSequence.length
+        ? _feeCalls
+        : _feeSequence.length - 1;
+    _feeCalls++;
+    return _feeSequence[index];
   }
 
   @override
@@ -276,6 +297,67 @@ void main() {
       expect(storage.writes[1].transactionStatus, TransactionStatus.completed);
       expect(transactionsCubit.state.length, 1);
     });
+  });
+
+  group('useMax', () {
+    test('native MAX equals the balance minus maxCost, to the wei', () async {
+      final api = _ConfigurableApi();
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+
+      await cubit.useMax();
+
+      expect(cubit.state.amount, '9.99937');
+      expect(cubit.state.error, isNull);
+    });
+
+    test(
+      'a balance that cannot cover the fee sets the message, never negative',
+      () async {
+        final api = _ConfigurableApi(balance: BigInt.from(629999999999999));
+        final cubit = _cubit(
+          api: api,
+          transactions: TransactionsCubit(),
+          storage: _RecordingStorage(),
+        );
+
+        await cubit.useMax();
+
+        expect(cubit.state.error, contains('MATIC'));
+        expect(cubit.state.amount, '');
+      },
+    );
+
+    test(
+      'a fee that grows between MAX and review refuses rather than signing',
+      () async {
+        final small = _fee();
+        final grown = SendFee(
+          maxFeePerGas: small.maxFeePerGas * BigInt.from(1000),
+          maxPriorityFeePerGas: small.maxPriorityFeePerGas,
+          gasLimit: small.gasLimit,
+        );
+        final api = _ConfigurableApi(feeSequence: [small, grown]);
+        final cubit = _cubit(
+          api: api,
+          transactions: TransactionsCubit(),
+          storage: _RecordingStorage(),
+        );
+        cubit.setRecipient(_recipient);
+
+        await cubit.useMax();
+        expect(cubit.state.amount, isNotEmpty);
+
+        await cubit.review();
+
+        expect(cubit.state.error, contains('MATIC'));
+        expect(cubit.state.review, isNull);
+        expect(api.signCalls, 0);
+      },
+    );
   });
 
   group('selectCoin', () {

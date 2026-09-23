@@ -146,6 +146,38 @@ void main() {
     });
   });
 
+  group('maxNativeSendable', () {
+    test('balance above maxCost returns the difference', () {
+      final fee = _fee(
+        maxFeePerGas: BigInt.from(100),
+        gasLimit: BigInt.from(21000),
+      );
+      expect(
+        maxNativeSendable(balance: BigInt.from(3000000), fee: fee),
+        BigInt.from(3000000) - fee.maxCost,
+      );
+    });
+
+    test('balance equal to maxCost returns zero', () {
+      final fee = _fee(
+        maxFeePerGas: BigInt.from(100),
+        gasLimit: BigInt.from(21000),
+      );
+      expect(maxNativeSendable(balance: fee.maxCost, fee: fee), BigInt.zero);
+    });
+
+    test('balance below maxCost returns zero, never negative', () {
+      final fee = _fee(
+        maxFeePerGas: BigInt.from(100),
+        gasLimit: BigInt.from(21000),
+      );
+      expect(
+        maxNativeSendable(balance: fee.maxCost - BigInt.one, fee: fee),
+        BigInt.zero,
+      );
+    });
+  });
+
   group('pollReceipt', () {
     test('settles on the receipt it reads', () async {
       final waits = <Duration>[];

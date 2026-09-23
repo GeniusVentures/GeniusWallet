@@ -249,6 +249,16 @@ void main() {
       expect(cubit.state.review, isNull);
     });
 
+    test('token MAX is the raw balance, dust digit included', () async {
+      final api = _ConfigurableApi(tokenBalance: BigInt.from(12345678));
+      final cubit = _cubit(api: api);
+
+      await cubit.useMax();
+
+      expect(cubit.state.amount, '12.345678');
+      expect(cubit.state.error, isNull);
+    });
+
     test('unknown decimals refuses before any RPC read', () async {
       final api = _ConfigurableApi();
       final cubit = _cubit(

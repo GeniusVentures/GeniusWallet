@@ -222,6 +222,21 @@ void main() {
     },
   );
 
+  testWidgets('tapping MAX puts the cubit-computed amount into the field', (
+    tester,
+  ) async {
+    final api = _FakeApi();
+    final storage = _RecordingStorage();
+    final transactionsCubit = TransactionsCubit();
+    await _mount(tester, api, storage, transactionsCubit);
+
+    await tester.tap(find.widgetWithText(GWButton, 'MAX'));
+    await tester.pumpAndSettle();
+
+    // 10 MATIC (the seeded native balance) minus the fake fee's maxCost.
+    expect(find.text('9.99937'), findsOneWidget);
+  });
+
   testWidgets(
     'a bare /send offers the held coins; picking one seats the form',
     (tester) async {

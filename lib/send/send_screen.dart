@@ -102,8 +102,23 @@ Coin? _seatedCoin(
   return null;
 }
 
-class _SendBody extends StatelessWidget {
+class _SendBody extends StatefulWidget {
   const _SendBody();
+
+  @override
+  State<_SendBody> createState() => _SendBodyState();
+}
+
+class _SendBodyState extends State<_SendBody> {
+  // Kept in step with `state.amount` in build -- the field's own text has
+  // to change when MAX fills it, not just when the user types.
+  final _amountController = TextEditingController();
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +131,13 @@ class _SendBody extends StatelessWidget {
       // offer the picker rather than a dead end.
       return Scaffold(
         body: SafeArea(child: CoinsScreen(onCoinSelected: cubit.selectCoin)),
+      );
+    }
+
+    if (_amountController.text != state.amount) {
+      _amountController.value = _amountController.value.copyWith(
+        text: state.amount,
+        selection: TextSelection.collapsed(offset: state.amount.length),
       );
     }
 
@@ -139,12 +161,25 @@ class _SendBody extends StatelessWidget {
               ),
               const SizedBox(height: GeniusWalletConsts.space6),
               GWTextField(
+                controller: _amountController,
                 label: 'Amount',
                 hint: '0.0',
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                suffix: Text(coinSymbol),
+                suffix: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(coinSymbol),
+                    const SizedBox(width: GeniusWalletConsts.space4),
+                    GWButton(
+                      label: 'MAX',
+                      variant: GWButtonVariant.ghost,
+                      size: GWButtonSize.sm,
+                      onPressed: state.busy ? null : cubit.useMax,
+                    ),
+                  ],
+                ),
                 onChanged: cubit.setAmount,
               ),
               const SizedBox(height: GeniusWalletConsts.space8),
