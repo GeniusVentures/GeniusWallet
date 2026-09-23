@@ -107,4 +107,19 @@ void main() {
     );
   });
 
+  testWidgets('typing the retry hides the error until the next mismatch', (
+    tester,
+  ) async {
+    await pumpConfirm(tester);
+
+    await submit(tester, '9999');
+    tester.element(find.byType(PinScreen)).read<PinCubit>().add('1');
+    await tester.pump();
+
+    expect(find.text('Incorrect PIN'), findsNothing);
+
+    await submit(tester, '888');
+
+    expect(find.text('Incorrect PIN'), findsOneWidget);
+  });
 }
