@@ -692,7 +692,9 @@ class SendCubit extends Cubit<SendState> {
     );
     final resolved = rowWith(settledStatus(receipt), receipt: receipt);
     await _write(resolved);
-    transactions.addTransaction(resolved);
+    // By hash: a wallet reload during the poll may already show the pending
+    // row, and a second instance would list this send twice.
+    transactions.replaceTransaction(resolved);
 
     if (isClosed) {
       return resolved;

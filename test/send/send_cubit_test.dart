@@ -639,4 +639,33 @@ void main() {
       expect(cubit.state.review, isNull);
     });
   });
+
+  test(
+    'a history reload during the poll leaves one row for the send',
+    () async {
+      final transactions = TransactionsCubit();
+      final storage = _RecordingStorage();
+      final api = _ConfigurableApi(
+        receiptSequence: [null, _completedReceipt()],
+      );
+      final cubit = _cubit(
+        api: api,
+        transactions: transactions,
+        storage: storage,
+        // What a wallet reload does while the poll waits: stored rows come
+        // back into the live history, the pending one included.
+        wait: (d) async =>
+            transactions.addTransactions(List.of(storage.writes)),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+      await cubit.review();
+
+      await cubit.submit();
+
+      final rows = transactions.state.where((t) => t.hash == _hash).toList();
+      expect(rows, hasLength(1));
+      expect(rows.single.transactionStatus, TransactionStatus.completed);
+    },
+  );
 }
