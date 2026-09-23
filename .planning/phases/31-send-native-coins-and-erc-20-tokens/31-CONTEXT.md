@@ -17,6 +17,9 @@ Decided with Braian on 2026-09-23. Nothing called Send exists at any layer today
   mislabelled whichever symbol it is filed under. Plan 1 adds the asset-vs-chain split as a new Hive
   field, keeps old rows readable, and makes the explorer link and fee row use the chain. This also
   closes the receipt-unit item phase 30 deferred.
+  **Amended 2026-09-23 (Braian, at planning):** two nullable fields, not one — `assetSymbol` (@18) and
+  `chainId` (@19). `coinSymbol` stays the gas coin. One field cannot name the chain: Base, Ethereum and
+  Sepolia all pay gas in ETH, so the explorer needs the chain id.
 
 ## Proposed plans
 
