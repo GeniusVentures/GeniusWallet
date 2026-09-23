@@ -65,11 +65,22 @@ class _RecordingStorage implements TransactionStorageService {
 /// Answers every send read with a fixed, positive fee and balance, and
 /// settles the receipt on the first poll — no real RPC, no wait.
 class _FakeApi implements GeniusApi {
-  _FakeApi({this.receiptStatus = '0x1', this.feeFails = false});
+  _FakeApi({
+    this.receiptStatus = '0x1',
+    this.feeFails = false,
+    this.recipientIsContract = false,
+  });
 
   final String receiptStatus;
   final bool feeFails;
+  final bool recipientIsContract;
   Map<String, dynamic>? signedTx;
+
+  @override
+  Future<bool> hasCode({
+    required String address,
+    required String rpcUrl,
+  }) async => recipientIsContract;
 
   @override
   Future<BigInt> readTokenBalance({
@@ -174,8 +185,9 @@ Future<void> _mount(
   _RecordingStorage storage,
   TransactionsCubit transactionsCubit, {
   String symbol = 'matic',
+  Size size = const Size(1200, 1800),
 }) async {
-  tester.view.physicalSize = const Size(1200, 1800);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
@@ -522,6 +534,38 @@ void main() {
 
     expect(find.text('Send failed'), findsOneWidget);
     expect(find.textContaining('Sent to'), findsNothing);
+  });
+
+  testWidgets('Review stays reachable on a short screen with large text and '
+      'the keyboard up', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await _mount(
+      tester,
+      // An unreadable fee keeps the review drawer shut: its note appearing
+      // is the proof the tap reached Review.
+      _FakeApi(recipientIsContract: true, feeFails: true),
+      _RecordingStorage(),
+      TransactionsCubit(),
+      size: const Size(320, 480),
+    );
+    tester.view.viewInsets = const FakeViewPadding(bottom: 200);
+
+    await tester.enterText(find.byType(TextField).at(0), _recipient);
+    await tester.enterText(find.byType(TextField).at(1), '0.5');
+    await tester.pump();
+    expect(find.byType(GWWarningNote), findsOneWidget);
+
+    final review = find.widgetWithText(GWButton, 'Review');
+    await tester.ensureVisible(review);
+    await tester.pumpAndSettle();
+    await tester.tap(review);
+    await tester.pumpAndSettle();
+
+    expect(find.text("Couldn't estimate the network fee."), findsOneWidget);
+    await tester.ensureVisible(review);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(review).bottom, lessThanOrEqualTo(280));
   });
 
   testWidgets('tapping MAX puts the cubit-computed amount into the field', (
