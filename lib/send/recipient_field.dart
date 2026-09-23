@@ -16,13 +16,34 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 /// disabled or crashing on tap.
 bool get defaultCanScanQr => !(Platform.isWindows || Platform.isLinux);
 
-/// The first `0x` address found in [raw], or null. A scanned EIP-681
-/// payment link (`ethereum:0xABC...@137?value=...`) carries an amount and a
-/// chain too, but those are never read -- the form's own chain and typed
-/// amount decide, matching what a pasted or typed address already goes
-/// through.
-String? addressFromScan(String raw) =>
-    RegExp(r'0x[0-9a-fA-F]{40}').firstMatch(raw)?.group(0);
+/// The payee in a scanned bare address or EIP-681 link, else null. A token
+/// link's target is the token contract, so its payee is `?address=`; the
+/// link's chain and amount are never read -- the form's own decide.
+String? addressFromScan(String raw) {
+  final s = raw.trim();
+  if (isEvmAddress(s)) {
+    return s;
+  }
+  final uri = Uri.tryParse(s);
+  if (uri == null || uri.scheme != 'ethereum') {
+    return null;
+  }
+  final match = RegExp(
+    r'^(?:pay-)?(0x[0-9a-fA-F]{40})(?:@\d+)?(?:/(\w+))?$',
+  ).firstMatch(uri.path);
+  if (match == null) {
+    return null;
+  }
+  final function = match.group(2);
+  if (function == null) {
+    return match.group(1);
+  }
+  if (function != 'transfer') {
+    return null;
+  }
+  final payee = uri.queryParameters['address'];
+  return payee != null && isEvmAddress(payee) ? payee : null;
+}
 
 /// The `/send` recipient input: paste, a self-send warning, a contract
 /// warning, and (where the platform supports it) a QR scan. Reads
