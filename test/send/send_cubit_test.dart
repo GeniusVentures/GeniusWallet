@@ -547,6 +547,74 @@ void main() {
     );
   });
 
+  group('settlePendingSends', () {
+    Transaction row({
+      required String hash,
+      TransactionStatus status = TransactionStatus.pending,
+      int? chainId = 80002,
+    }) => Transaction(
+      hash: hash,
+      fromAddress: _walletAddress,
+      recipients: [TransferRecipients(toAddr: _recipient, amount: '0.5')],
+      timeStamp: DateTime(2026, 9, 1),
+      transactionDirection: TransactionDirection.sent,
+      fees: '0.00063',
+      coinSymbol: 'MATIC',
+      transactionStatus: status,
+      type: TransactionType.transfer,
+      assetSymbol: 'MATIC',
+      chainId: chainId,
+    );
+
+    test('a pending send that has since mined is rewritten settled', () async {
+      final storage = _RecordingStorage();
+      final pending = row(hash: _hash);
+      final transactionsCubit = TransactionsCubit(initial: [pending]);
+
+      await settlePendingSends(
+        walletAddress: _walletAddress,
+        rows: [pending],
+        networks: const [_amoy],
+        api: _ConfigurableApi(),
+        storage: storage,
+        transactions: transactionsCubit,
+      );
+
+      final settled = storage.writes.single;
+      expect(settled.hash, _hash);
+      expect(settled.transactionStatus, TransactionStatus.completed);
+      expect(settled.fees, '0.00063');
+      expect(settled.assetSymbol, 'MATIC');
+      expect(
+        transactionsCubit.state.single.transactionStatus,
+        TransactionStatus.completed,
+      );
+    });
+
+    test(
+      'settled rows, unmined sends and chainless rows are left alone',
+      () async {
+        final storage = _RecordingStorage();
+        final api = _ConfigurableApi(receiptSequence: [null]);
+
+        await settlePendingSends(
+          walletAddress: _walletAddress,
+          rows: [
+            row(hash: '0x01', status: TransactionStatus.completed),
+            row(hash: '0x02'),
+            row(hash: '0x03', chainId: null),
+          ],
+          networks: const [_amoy],
+          api: api,
+          storage: storage,
+          transactions: TransactionsCubit(),
+        );
+
+        expect(storage.writes, isEmpty);
+      },
+    );
+  });
+
   group('selectCoin', () {
     test('clears the amount and any review', () async {
       final api = _ConfigurableApi();

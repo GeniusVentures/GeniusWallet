@@ -991,7 +991,15 @@ void showTransactionDetails(
   // `exchangeRate`. Do not "restore" this for a value that composes to a bare
   // coin symbol; that IS the defect this guard closes.
   if (tx.fees.trim().isNotEmpty) {
-    add(netRows, 'Network Fee', '${formatTxAmount(tx.fees)} ${tx.coinSymbol}');
+    // A send still pending carries the fee it could cost, not what it did.
+    final isMax =
+        tx.transactionStatus == TransactionStatus.pending &&
+        tx.type == TransactionType.transfer;
+    add(
+      netRows,
+      isMax ? 'Max Network Fee' : 'Network Fee',
+      '${formatTxAmount(tx.fees)} ${tx.coinSymbol}',
+    );
   }
   // Network extras are INSERTED here, above the hash: the hash is the group's
   // terminal identifier and the explorer footer's subject. With the default
