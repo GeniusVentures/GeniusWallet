@@ -26,6 +26,7 @@ import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -34,6 +35,7 @@ import 'package:flutter/services.dart'
     show MethodChannel, PlatformException, rootBundle;
 import 'package:rxdart/rxdart.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:web3dart/web3dart.dart' show TransactionReceipt;
 
 /// Extension that mirrors [Utf8Pointer.toDartString] on [ffi.Pointer<Utf8>]
 /// for inline [ffi.Array]<[ffi.Char]> fields in FFI structs.
@@ -1234,6 +1236,36 @@ class GeniusApi {
       chainId: chainId,
     );
   }
+
+  /// [address]'s balance of the chain's native coin, in wei. A read — no
+  /// wallet, no signature.
+  Future<BigInt> nativeBalance({
+    required String address,
+    required String rpcUrl,
+  }) =>
+      Web3(geniusApi: this).readNativeBalance(address: address, rpcUrl: rpcUrl);
+
+  /// A priced EIP-1559 send from [sender] to [recipient] -- the fee to show
+  /// before approval, not the signed transaction itself. Throws
+  /// [SendFeeUnavailable] when no fee could be read.
+  Future<SendFee> estimateSendFee({
+    required String rpcUrl,
+    required String sender,
+    required String recipient,
+    Uint8List? data,
+  }) => Web3(geniusApi: this).readSendFee(
+    rpcUrl: rpcUrl,
+    sender: sender,
+    recipient: recipient,
+    data: data,
+  );
+
+  /// [hash]'s on-chain receipt, or null while it is still unconfirmed. A
+  /// read — no wallet, no signature.
+  Future<TransactionReceipt?> transactionReceipt({
+    required String hash,
+    required String rpcUrl,
+  }) => Web3(geniusApi: this).readReceipt(hash: hash, rpcUrl: rpcUrl);
 
   Future<ApiResponse<String>> signAndSendTransaction({
     required Map<String, dynamic> tx,
