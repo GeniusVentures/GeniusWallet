@@ -89,17 +89,19 @@ class PinScreen extends StatelessWidget {
               BlocBuilder<PinCubit, PinState>(
                 builder: (context, state) {
                   if (state.displayIncorrectPin) {
-                    return Text(
-                      'Incorrect PIN',
-                      // gw.statusError, NOT GeniusWalletColors.statusError.
-                      // The static is ONE mode-invariant #FF4D4D; on a
-                      // near-white light surface that is ~3.4:1, an AA fail.
-                      // The appearance-aware extension carries the two values
-                      // UI-SPEC §4.9 actually quotes (#D92D2D light 4.81:1 /
-                      // #FF4D4D dark 5.90:1). §4.9's literal instruction to use
-                      // the static contradicts its own ratios.
-                      style: GeniusWalletTypography.bodyMd.copyWith(
-                        color: gw.statusError,
+                    // A live region: the mismatch no longer changes screens,
+                    // so without it a screen reader would say nothing.
+                    return Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        'Incorrect PIN',
+                        // gw.statusError, NOT GeniusWalletColors.statusError:
+                        // the static is one mode-invariant #FF4D4D, ~3.4:1 on
+                        // a light surface (an AA fail). The extension passes
+                        // AA in both modes.
+                        style: GeniusWalletTypography.bodyMd.copyWith(
+                          color: gw.statusError,
+                        ),
                       ),
                     );
                   }

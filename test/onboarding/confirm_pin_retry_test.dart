@@ -93,4 +93,18 @@ void main() {
     expect(api.stored, ['1234']);
     expect(passed, 1);
   });
+
+  testWidgets('the mismatch is a live region, so a screen reader hears it', (
+    tester,
+  ) async {
+    await pumpConfirm(tester);
+
+    await submit(tester, '9999');
+
+    expect(
+      tester.getSemantics(find.text('Incorrect PIN')),
+      isSemantics(label: 'Incorrect PIN', isLiveRegion: true),
+    );
+  });
+
 }
