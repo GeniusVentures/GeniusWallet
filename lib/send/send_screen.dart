@@ -222,6 +222,10 @@ class _SendBodyState extends State<_SendBody> {
     final gasSymbol = (cubit.network.nativeSymbol ?? cubit.network.symbol ?? '')
         .toUpperCase();
     final assetSymbol = (cubit.state.coin?.symbol ?? gasSymbol).toUpperCase();
+    // The drawer opens on the root navigator, but this page sits inside the
+    // shell's nested one -- a plain `Navigator.of(context)` would pop /send
+    // and leave the drawer open.
+    final rootNav = Navigator.of(context, rootNavigator: true);
 
     final shouldSend = await ResponsiveDrawer.show<bool>(
       context: context,
@@ -243,7 +247,7 @@ class _SendBodyState extends State<_SendBody> {
               label: 'Cancel',
               variant: GWButtonVariant.gradientOutline,
               expand: true,
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => rootNav.pop(false),
             ),
           ),
           const SizedBox(width: GeniusWalletConsts.space6),
@@ -252,7 +256,7 @@ class _SendBodyState extends State<_SendBody> {
               label: 'Send',
               variant: GWButtonVariant.gradient,
               expand: true,
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => rootNav.pop(true),
             ),
           ),
         ],
@@ -260,6 +264,10 @@ class _SendBodyState extends State<_SendBody> {
     );
 
     if (shouldSend != true) {
+      // Leaving /send while the drawer was open closed the cubit with it.
+      if (!context.mounted) {
+        return;
+      }
       cubit.cancelReview();
       return;
     }

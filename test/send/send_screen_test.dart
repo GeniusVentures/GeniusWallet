@@ -1,6 +1,7 @@
 // The tracer: form -> fee -> review -> sign -> pending -> completed, on a
 // stubbed GeniusApi so no RPC, key or real Hive box is involved (real Hive
 // I/O inside testWidgets hangs here, same reasoning as swap_submit_test.dart).
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ import 'package:genius_wallet/send/recipient_field.dart';
 import 'package:genius_wallet/send/send_screen.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:go_router/go_router.dart';
 import 'package:web3dart/web3dart.dart' show TransactionReceipt;
 
 const _hash = '0xfeedfacefeedfacefeedfacefeedfacefeedface';
@@ -174,7 +176,139 @@ Future<void> _mount(
   await tester.pump();
 }
 
+/// Mounts `/send` the way the app does: inside a `ShellRoute`, whose nested
+/// navigator sits under the root one the review drawer opens on.
+Future<GoRouter> _mountInShell(
+  WidgetTester tester,
+  _FakeApi api,
+  _RecordingStorage storage,
+  TransactionsCubit transactionsCubit,
+) async {
+  tester.view.physicalSize = const Size(1200, 1800);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+
+  final router = GoRouter(
+    initialLocation: '/dashboard',
+    routes: [
+      ShellRoute(
+        builder: (context, state, child) => Scaffold(body: child),
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (_, _) => const Text('dashboard'),
+          ),
+          GoRoute(
+            path: '/send',
+            builder: (_, _) => SendScreen(
+              preselectSymbol: 'matic',
+              preselectChainId: 80002,
+              storage: storage,
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
+
+  await tester.pumpWidget(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<WalletDetailsCubit>(
+          create: (_) => _SeededCubit(
+            geniusApi: api,
+            networkTokensProvider: NetworkTokensProvider(),
+          ),
+        ),
+        BlocProvider<TransactionsCubit>.value(value: transactionsCubit),
+      ],
+      child: MaterialApp.router(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        routerConfig: router,
+      ),
+    ),
+  );
+  unawaited(router.push('/send'));
+  await tester.pumpAndSettle();
+  return router;
+}
+
+Future<void> _openReview(WidgetTester tester) async {
+  await tester.enterText(find.byType(TextField).at(0), _recipient);
+  await tester.enterText(find.byType(TextField).at(1), '0.5');
+  await tester.pump();
+  await tester.tap(find.widgetWithText(GWButton, 'Review'));
+  await tester.pumpAndSettle();
+}
+
 void main() {
+  group('inside the app shell', () {
+    testWidgets('Send in the review drawer signs and keeps the page', (
+      tester,
+    ) async {
+      final api = _FakeApi();
+      await _mountInShell(
+        tester,
+        api,
+        _RecordingStorage(),
+        TransactionsCubit(),
+      );
+      await _openReview(tester);
+      expect(find.text('Gas Fee'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(GWButton, 'Send'));
+      await tester.pumpAndSettle();
+
+      expect(api.signedTx, isNotNull);
+      expect(find.byType(SendScreen), findsOneWidget);
+    });
+
+    testWidgets('Cancel closes only the drawer', (tester) async {
+      final api = _FakeApi();
+      await _mountInShell(
+        tester,
+        api,
+        _RecordingStorage(),
+        TransactionsCubit(),
+      );
+      await _openReview(tester);
+
+      await tester.tap(find.widgetWithText(GWButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Gas Fee'), findsNothing);
+      expect(find.byType(SendScreen), findsOneWidget);
+      expect(api.signedTx, isNull);
+    });
+
+    testWidgets('leaving /send under an open drawer, then dismissing it, '
+        'touches no closed cubit', (tester) async {
+      final api = _FakeApi();
+      await _mountInShell(
+        tester,
+        api,
+        _RecordingStorage(),
+        TransactionsCubit(),
+      );
+      await _openReview(tester);
+
+      // Pops /send off the shell's navigator, beneath the drawer.
+      Navigator.of(tester.element(find.byType(SendScreen))).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(SendScreen), findsNothing);
+
+      Navigator.of(
+        tester.element(find.text('Gas Fee')),
+        rootNavigator: true,
+      ).pop();
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(api.signedTx, isNull);
+    });
+  });
+
   testWidgets(
     'send 0.5 MATIC on Amoy: form, fee, review, sign, pending, completed',
     (tester) async {
