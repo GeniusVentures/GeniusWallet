@@ -1403,6 +1403,19 @@ plans and executed in parallel
 > both plans' code is merged. `deferred-items.md` is unresolved, so milestone close will prompt
 > `[R]/[A]/[C]` on it under GSD 1.10.0.
 
+### Phase 31: Send native coins and ERC-20 tokens
+
+**Goal:** A user can send a chain's native coin or an ERC-20 token to an address on any EVM chain
+the wallet can sign on, see the fee before approving, and find the send in history labelled with
+the right asset and the right chain. Decisions are in the phase's `31-CONTEXT.md`.
+**Requirements**: TBD
+**Depends on:** Phase 30
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 31 to break down)
+
 ---
 
 # Milestone v2.0: Squid Router integration
@@ -1610,6 +1623,7 @@ a missing field. Criterion 5 is what makes Squid's eventual switch a no-op in th
 **Plans**: 4/4 plans executed
 
 Plans:
+
 - [x] 30-01-PLAN.md — tracer: one ERC-20 transfer decoded end to end, plus the measured branch baseline
 - [x] 30-02-PLAN.md — approve, unlimited allowance, and the token this wallet cannot vouch for
 - [x] 30-03-PLAN.md — unknown calls, the two sign methods that currently hang the caller, and an honest receipt

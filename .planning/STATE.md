@@ -662,6 +662,7 @@ Open decisions:
 
 ### Roadmap Evolution
 
+- **Phase 31 added 2026-09-23:** Send native coins and ERC-20 tokens (EVM only; SGNUS later).
 - **Milestone v2.0 roadmap added 2026-09-16:** phases 26-30 (Squid Router integration) appended
   to ROADMAP.md below the live v1.0 roadmap — Squid client foundation & live catalogue (26), live
   quotes: balances/route/slippage/rate limits (27), real swap execution & honest recording (28),
