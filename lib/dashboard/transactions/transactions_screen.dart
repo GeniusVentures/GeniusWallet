@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
@@ -21,6 +22,7 @@ class TransactionsScreen extends StatelessWidget {
       child: RefreshIndicator(
         onRefresh: () async {
           context.read<WalletDetailsCubit>().getCoins();
+          context.read<AppBloc>().add(SettlePendingSends());
         },
         child: BlocBuilder<WalletDetailsCubit, WalletDetailsState>(
           builder: (context, walletState) {
