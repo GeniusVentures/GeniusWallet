@@ -186,6 +186,20 @@ class _SigningGeniusApi implements GeniusApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Signs and broadcasts, and the node never answers: a hash with no success.
+class _UnansweredGeniusApi implements GeniusApi {
+  @override
+  Future<ApiResponse<String>> signAndSendTransaction({
+    required Map<String, dynamic> tx,
+    required String rpcUrl,
+    required String address,
+    required int sourceChainId,
+  }) async => ApiResponse.unconfirmed('0xabc123', 'connection closed');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// Records what the wallet answered. Sessions are deliberately empty so no
 /// `SessionData` graph has to be built to ask a question about responses.
 class _FakeWalletKit implements ReownWalletKit {
@@ -508,6 +522,30 @@ void main() {
 
       expect(harness.walletKit.responses, isEmpty);
       expect(harness.transactions.state.single.hash, '0xabc123');
+      await _finish(tester, harness);
+    });
+
+    testWidgets('a broadcast the node never answered is kept as pending', (
+      tester,
+    ) async {
+      final harness = await _start(
+        tester,
+        network: _base,
+        wallet: _wallet,
+        api: _UnansweredGeniusApi(),
+      );
+      harness.walletKit.send(_request('eth_sendTransaction', [_tx()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Approve'));
+      await tester.pumpAndSettle();
+
+      expect(harness.answer.error, isNotNull);
+      final recorded = harness.transactions.state.single;
+      expect(recorded.hash, '0xabc123');
+      expect(recorded.transactionStatus, TransactionStatus.pending);
+      expect(_onScreen(tester, 'Swap Success'), isFalse);
+      expect(_onScreen(tester, 'check there before trying again'), isTrue);
       await _finish(tester, harness);
     });
 
