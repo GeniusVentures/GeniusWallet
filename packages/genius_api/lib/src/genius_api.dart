@@ -1267,6 +1267,11 @@ class GeniusApi {
     required String rpcUrl,
   }) => Web3(geniusApi: this).readReceipt(hash: hash, rpcUrl: rpcUrl);
 
+  /// Whether [address] carries contract code on-chain. A read — no wallet,
+  /// no signature.
+  Future<bool> hasCode({required String address, required String rpcUrl}) =>
+      Web3(geniusApi: this).readHasCode(address: address, rpcUrl: rpcUrl);
+
   Future<ApiResponse<String>> signAndSendTransaction({
     required Map<String, dynamic> tx,
     required String rpcUrl,

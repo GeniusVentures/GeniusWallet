@@ -269,4 +269,20 @@ extension SendReads on Web3 {
       await client.dispose();
     }
   }
+
+  /// Whether [address] carries contract code on-chain -- `eth_getCode`
+  /// returns empty bytes for a plain wallet (EOA), anything else for a
+  /// contract.
+  Future<bool> readHasCode({
+    required String address,
+    required String rpcUrl,
+  }) async {
+    final client = Web3Client(rpcUrl, Client());
+    try {
+      final code = await client.getCode(EthereumAddress.fromHex(address));
+      return code.isNotEmpty;
+    } finally {
+      await client.dispose();
+    }
+  }
 }

@@ -54,6 +54,12 @@ class RecipientField extends StatelessWidget {
             'This is your own address. Sending here moves nothing and still '
             'costs a fee.',
           ),
+        ] else if (state.contractRecipient) ...[
+          const SizedBox(height: GeniusWalletConsts.space4),
+          const GWWarningNote(
+            'This address is a contract. Coins or tokens sent to a contract '
+            'that cannot handle them are usually lost for good.',
+          ),
         ],
       ],
     );
