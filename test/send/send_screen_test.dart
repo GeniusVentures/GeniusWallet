@@ -334,6 +334,28 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(api.signedTx, isNull);
     });
+
+    testWidgets('leaving /send under an open drawer, then tapping Send, '
+        'signs nothing and touches no closed cubit', (tester) async {
+      final api = _FakeApi();
+      await _mountInShell(
+        tester,
+        api,
+        _RecordingStorage(),
+        TransactionsCubit(),
+      );
+      await _openReview(tester);
+
+      Navigator.of(tester.element(find.byType(SendScreen))).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(SendScreen), findsNothing);
+
+      await tester.tap(find.widgetWithText(GWButton, 'Send'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(api.signedTx, isNull);
+    });
   });
 
   testWidgets(

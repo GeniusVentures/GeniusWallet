@@ -273,11 +273,12 @@ class _SendBodyState extends State<_SendBody> {
       ),
     );
 
+    // Leaving /send while the drawer was open closed the cubit with it, and
+    // either answer would then emit on a closed cubit.
+    if (!context.mounted || cubit.isClosed) {
+      return;
+    }
     if (shouldSend != true) {
-      // Leaving /send while the drawer was open closed the cubit with it.
-      if (!context.mounted) {
-        return;
-      }
       cubit.cancelReview();
       return;
     }
