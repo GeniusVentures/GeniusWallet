@@ -18,6 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -25,6 +27,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:go_router/go_router.dart';
 
 /// `WalletDetailsCubit` takes a `GeniusApi` this screen never touches in the
 /// no-data path - the only call is `getCoins()` behind the More drawer, which
@@ -55,6 +58,63 @@ Widget _host() => BlocProvider(
     ),
   ),
 );
+
+const _amoy = Network(
+  name: 'Polygon Amoy',
+  symbol: 'matic',
+  chainId: 80002,
+  rpcUrl: 'https://rpc.invalid',
+);
+
+const _usdcCoin = Coin(symbol: 'USDC', balance: 10);
+
+/// A wallet on a signable testnet, USDC seated as the page's selected coin --
+/// the state that puts the Send button on screen.
+class _SeededCubit extends WalletDetailsCubit {
+  _SeededCubit({
+    required super.geniusApi,
+    required super.networkTokensProvider,
+  }) {
+    emit(
+      state.copyWith(
+        selectedNetwork: _amoy,
+        selectedCoin: _usdcCoin,
+        coins: const [_usdcCoin],
+        coinsStatus: WalletStatus.successful,
+      ),
+    );
+  }
+}
+
+/// Same page, routed: `/send` records the extra its Send button pushes so the
+/// test can assert what actually crossed the boundary rather than trusting
+/// the call was made.
+Widget _routedHost(WalletDetailsCubit cubit, Map<String, dynamic> captured) {
+  final router = GoRouter(
+    initialLocation: '/token-info',
+    routes: [
+      GoRoute(
+        path: '/token-info',
+        builder: (context, state) => TokenInfoScreen(
+          walletDetailsCubit: cubit,
+          args: const TokenInfoArgs(),
+          isGnusWalletConnected: false,
+        ),
+      ),
+      GoRoute(
+        path: '/send',
+        builder: (context, state) {
+          captured.addAll(state.extra as Map<String, dynamic>);
+          return const Scaffold(body: Text('send placeholder'));
+        },
+      ),
+    ],
+  );
+  return MaterialApp.router(
+    theme: ThemeData(extensions: [GWColors.dark()]),
+    routerConfig: router,
+  );
+}
 
 void main() {
   group('coinChartHeight - the 480 literal must not come back', () {
@@ -128,7 +188,39 @@ void main() {
     expect(find.byType(CoinInfoCard), findsOneWidget);
   });
 
-  testWidgets('074-C2: no Send, and no Bridge on a coin that cannot bridge', (
+  testWidgets(
+    '074-C2: no Send without a signable network, and no Bridge on a coin '
+    'that cannot bridge',
+    (tester) async {
+      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(_host());
+      await tester.pump();
+
+      // Send is absent because no coin, wallet or signable network is
+      // selected here -- `canSignOn` refuses a `null` network. This is the
+      // check that fails if someone drops the guard and shows Send always.
+      //
+      // A `find.byTooltip` finder would pass vacuously now that no action
+      // carries a tooltip at all (sketch 165, change 3) - the wrong reason to
+      // be green - so this asserts against the label directly.
+      expect(find.widgetWithText(GWButton, 'Send'), findsNothing);
+
+      // Swap is wired and works from every route.
+      expect(find.widgetWithText(GWButton, 'Swap'), findsOneWidget);
+
+      // Bridge is ABSENT, not greyed: no coin is selected here, so
+      // `isGnusBridgeEnabled`'s symbol check is false regardless of
+      // `isGnusWalletConnected` - the action does not apply rather than being
+      // unavailable.
+      expect(find.widgetWithText(GWButton, 'Bridge'), findsNothing);
+    },
+  );
+
+  testWidgets('Send opens /send with the coin seated on a signable network', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
@@ -136,26 +228,21 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(_host());
+    final cubit = _SeededCubit(
+      geniusApi: _UnusedApi(),
+      networkTokensProvider: NetworkTokensProvider(),
+    );
+    final captured = <String, dynamic>{};
+
+    await tester.pumpWidget(_routedHost(cubit, captured));
     await tester.pump();
 
-    // Send has no screen and no route - `GeniusApi.transferTokens` has zero
-    // callers - so it must not appear at all, including as a disabled box.
-    // This is the check that fails if someone "restores" the missing tile.
-    //
-    // A `find.byTooltip` finder would pass vacuously now that no action
-    // carries a tooltip at all (sketch 165, change 3) - the wrong reason to
-    // be green - so this asserts against the label directly.
-    expect(find.widgetWithText(GWButton, 'Send'), findsNothing);
+    expect(find.widgetWithText(GWButton, 'Send'), findsOneWidget);
 
-    // Swap is wired and works from every route.
-    expect(find.widgetWithText(GWButton, 'Swap'), findsOneWidget);
+    await tester.tap(find.widgetWithText(GWButton, 'Send'));
+    await tester.pumpAndSettle();
 
-    // Bridge is ABSENT, not greyed: no coin is selected here, so
-    // `isGnusBridgeEnabled`'s symbol check is false regardless of
-    // `isGnusWalletConnected` - the action does not apply rather than being
-    // unavailable.
-    expect(find.widgetWithText(GWButton, 'Bridge'), findsNothing);
+    expect(captured, {'symbol': 'USDC', 'chainId': 80002});
   });
 
   testWidgets('the Receive drawer never says "Receive null"', (tester) async {
