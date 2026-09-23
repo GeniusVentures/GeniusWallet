@@ -23,7 +23,7 @@ import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
-import 'package:genius_wallet/reown/utilities.dart' show canSignOn;
+import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -778,7 +778,7 @@ class _CoinActionRow extends StatelessWidget {
             },
           ),
         ),
-        if (selectedNetwork != null && canSignOn(selectedNetwork!))
+        if (canSendFrom(selectedWallet, selectedNetwork))
           GWButton(
             variant: GWButtonVariant.gradientOutline,
             size: GWButtonSize.sm,

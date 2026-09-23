@@ -1,5 +1,7 @@
 import 'package:genius_api/models/network.dart';
-import 'package:reown_walletkit/reown_walletkit.dart';
+import 'package:genius_api/models/wallet.dart';
+import 'package:genius_api/types/wallet_type.dart';
+import 'package:reown_walletkit/reown_walletkit.dart' hide Wallet;
 
 /// The chain a CAIP-2 id names (`eip155:8453` -> 8453), or null for anything
 /// that is not an EVM chain id this wallet could act on.
@@ -16,6 +18,15 @@ int? eip155ChainId(String caip2) {
 /// The catalogue carries entries with neither.
 bool canSignOn(Network network) =>
     network.chainId != null && (network.rpcUrl ?? '').isNotEmpty;
+
+/// Whether [wallet] can sign a send on [network]. A tracked wallet holds only
+/// an address, and a Super Genius account's key lives in the SDK, not here.
+bool canSendFrom(Wallet? wallet, Network? network) =>
+    wallet != null &&
+    wallet.walletType != WalletType.tracking &&
+    wallet.walletType != WalletType.sgnus &&
+    network != null &&
+    canSignOn(network);
 
 /// The `eip155` namespace to approve a session with: every chain this wallet
 /// carries, and the same account on each. A session approved for one chain

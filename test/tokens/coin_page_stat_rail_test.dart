@@ -17,9 +17,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -68,15 +70,26 @@ const _amoy = Network(
 
 const _usdcCoin = Coin(symbol: 'USDC', balance: 10);
 
+Wallet _walletOf(WalletType type) => Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: 'Test Wallet',
+  currencySymbol: 'MATIC',
+  walletType: type,
+  balance: 0,
+  address: '0x1234567890123456789012345678901234567890',
+);
+
 /// A wallet on a signable testnet, USDC seated as the page's selected coin --
 /// the state that puts the Send button on screen.
 class _SeededCubit extends WalletDetailsCubit {
   _SeededCubit({
     required super.geniusApi,
     required super.networkTokensProvider,
+    WalletType walletType = WalletType.mnemonic,
   }) {
     emit(
       state.copyWith(
+        selectedWallet: _walletOf(walletType),
         selectedNetwork: _amoy,
         selectedCoin: _usdcCoin,
         coins: const [_usdcCoin],
@@ -201,7 +214,7 @@ void main() {
       await tester.pump();
 
       // Send is absent because no coin, wallet or signable network is
-      // selected here -- `canSignOn` refuses a `null` network. This is the
+      // selected here -- `canSendFrom` refuses a `null` network. This is the
       // check that fails if someone drops the guard and shows Send always.
       //
       // A `find.byTooltip` finder would pass vacuously now that no action
@@ -243,6 +256,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(captured, {'symbol': 'USDC', 'chainId': 80002});
+  });
+
+  testWidgets('a watch-only or SDK wallet is offered no Send', (tester) async {
+    tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final type in [WalletType.tracking, WalletType.sgnus]) {
+      final cubit = _SeededCubit(
+        geniusApi: _UnusedApi(),
+        networkTokensProvider: NetworkTokensProvider(),
+        walletType: type,
+      );
+
+      await tester.pumpWidget(_routedHost(cubit, {}));
+      await tester.pump();
+
+      expect(
+        find.widgetWithText(GWButton, 'Send'),
+        findsNothing,
+        reason: '$type',
+      );
+    }
   });
 
   testWidgets('the Receive drawer never says "Receive null"', (tester) async {
