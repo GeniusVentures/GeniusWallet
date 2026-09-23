@@ -14,6 +14,9 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
+import 'package:genius_wallet/components/coins/view/coins_screen.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -119,11 +122,22 @@ class _SeededCubit extends WalletDetailsCubit {
         selectedWallet: _wallet,
         selectedNetwork: _amoy,
         coins: const [_maticCoin],
+        coinsStatus: WalletStatus.successful,
         selectedWalletBalance: '10',
       ),
     );
   }
+
+  /// Test-only: swaps the network without `selectNetwork`'s `getCoins()`
+  /// refetch -- this fixture's `_FakeApi` answers nothing for that call,
+  /// and the behaviour under test here is `SendScreen`'s own key-based
+  /// rebuild, not the wallet cubit's coin refresh.
+  void debugSelectNetwork(Network network) =>
+      emit(state.copyWith(selectedNetwork: network));
 }
+
+/// An unsignable chain: no chain id and no RPC, so `canSignOn` refuses it.
+const _unsignableNetwork = Network(name: 'No RPC', symbol: 'none');
 
 Future<void> _mount(
   WidgetTester tester,
@@ -207,4 +221,155 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'a bare /send offers the held coins; picking one seats the form',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<WalletDetailsCubit>(
+              create: (_) => _SeededCubit(
+                geniusApi: _FakeApi(),
+                networkTokensProvider: NetworkTokensProvider(),
+              ),
+            ),
+            BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(extensions: [GWColors.dark()]),
+            home: const SendScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CoinsScreen), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+
+      await tester.tap(find.byType(CoinCardRow).first);
+      await tester.pump();
+
+      expect(find.byType(CoinsScreen), findsNothing);
+      expect(find.byType(TextField), findsWidgets);
+    },
+  );
+
+  testWidgets('no wallet renders a GWEmptyState and no form', (tester) async {
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<WalletDetailsCubit>(
+            create: (_) => WalletDetailsCubit(
+              initialState: const WalletDetailsState(
+                selectedNetwork: _amoy,
+                coins: [_maticCoin],
+              ),
+              geniusApi: _FakeApi(),
+              networkTokensProvider: NetworkTokensProvider(),
+            ),
+          ),
+          BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
+        ],
+        child: MaterialApp(
+          theme: ThemeData(extensions: [GWColors.dark()]),
+          home: const SendScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(GWEmptyState), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    expect(find.byType(CoinsScreen), findsNothing);
+  });
+
+  testWidgets(
+    'a network that fails canSignOn renders a GWEmptyState and no form',
+    (tester) async {
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<WalletDetailsCubit>(
+              create: (_) => WalletDetailsCubit(
+                initialState: const WalletDetailsState(
+                  selectedWallet: _wallet,
+                  selectedNetwork: _unsignableNetwork,
+                  coins: [_maticCoin],
+                ),
+                geniusApi: _FakeApi(),
+                networkTokensProvider: NetworkTokensProvider(),
+              ),
+            ),
+            BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(extensions: [GWColors.dark()]),
+            home: const SendScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(GWEmptyState), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+    },
+  );
+
+  testWidgets('switching the selected network rebuilds a fresh form', (
+    tester,
+  ) async {
+    final api = _FakeApi();
+    final storage = _RecordingStorage();
+    final transactionsCubit = TransactionsCubit();
+    late _SeededCubit walletCubit;
+
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<WalletDetailsCubit>(
+            create: (_) {
+              walletCubit = _SeededCubit(
+                geniusApi: api,
+                networkTokensProvider: NetworkTokensProvider(),
+              );
+              return walletCubit;
+            },
+          ),
+          BlocProvider<TransactionsCubit>.value(value: transactionsCubit),
+        ],
+        child: MaterialApp(
+          theme: ThemeData(extensions: [GWColors.dark()]),
+          // No preselectChainId: the same 'matic' symbol resolves on any
+          // chain here, so the fresh-form assertion below is about the
+          // cubit instance, not a coin that stopped matching.
+          home: SendScreen(preselectSymbol: 'matic', storage: storage),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField).at(0), _recipient);
+    await tester.pump();
+    expect(find.text(_recipient), findsOneWidget);
+
+    walletCubit.debugSelectNetwork(
+      const Network(
+        name: 'Ethereum',
+        symbol: 'eth',
+        chainId: 1,
+        rpcUrl: 'https://rpc.invalid',
+      ),
+    );
+    await tester.pump();
+
+    // The wallet+chainId key changed, so a fresh SendCubit was built --
+    // the typed recipient from the old one is gone, not carried over.
+    expect(find.text(_recipient), findsNothing);
+    expect(find.byType(TextField), findsWidgets);
+  });
 }

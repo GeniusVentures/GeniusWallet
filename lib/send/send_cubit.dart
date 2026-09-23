@@ -167,6 +167,13 @@ class SendCubit extends Cubit<SendState> {
 
   void cancelReview() => emit(state.copyWith(clearReview: true));
 
+  /// Seats [coin] from the picker a bare `/send` opens with. Clears the
+  /// amount and any review -- both were priced for whichever coin, if any,
+  /// was seated before.
+  void selectCoin(Coin coin) => emit(
+    state.copyWith(coin: coin, amount: '', clearError: true, clearReview: true),
+  );
+
   /// Validates, prices and builds the send, landing it on [SendState.review]
   /// for the confirm drawer. Refuses -- with a reason, never a silent no-op
   /// -- on a bad address, an unparsable amount, an unreadable fee, or a
