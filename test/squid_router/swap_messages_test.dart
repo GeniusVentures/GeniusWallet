@@ -39,6 +39,7 @@ final _failures = <SwapOutcome>[
   const SwapAllowanceUnreadable(_leaky),
   const SwapApprovalFailed(_leaky),
   const SwapSendFailed(_leaky),
+  const SwapSendUnconfirmed(_leaky),
   const SwapFeesChanged(quoted: [], actual: []),
 ];
 
@@ -144,6 +145,12 @@ void main() {
         expect(message.toLowerCase(), isNot(contains('nothing was')));
         expect(message.toLowerCase(), isNot(contains('nothing left')));
       }
+    });
+
+    test('an unanswered broadcast says it may have been sent', () {
+      final message = swapFailureMessage(const SwapSendUnconfirmed(null))!;
+      expect(message, contains('may or may not have been sent'));
+      expect(message.toLowerCase(), isNot(contains('nothing was')));
     });
   });
 }

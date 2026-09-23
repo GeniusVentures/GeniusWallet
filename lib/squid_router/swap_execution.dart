@@ -50,6 +50,20 @@ final class SwapSendFailed extends SwapOutcome {
   final Object? error;
 }
 
+/// The broadcast got no answer, so the swap may be on the network or may not.
+/// No row is written: nothing re-polls a stored swap, so one for a transaction
+/// the node never took would sit pending for good.
+final class SwapSendUnconfirmed extends SwapOutcome {
+  const SwapSendUnconfirmed(this.error);
+
+  final Object? error;
+}
+
+/// What a [executeSwap] `send` throws when its broadcast got no answer.
+class SwapBroadcastUnanswered implements Exception {
+  const SwapBroadcastUnanswered();
+}
+
 /// The executable route charges fees the quote on screen did not show. Nothing
 /// was approved or sent: the user has not agreed to these.
 final class SwapFeesChanged extends SwapOutcome {
@@ -117,6 +131,7 @@ SwapSideEffects sideEffectsFor(SwapOutcome outcome) => switch (outcome) {
   SwapAllowanceUnreadable() => _none,
   SwapApprovalFailed() => _none,
   SwapSendFailed() => _none,
+  SwapSendUnconfirmed() => _none,
   SwapFeesChanged() => _none,
 };
 
@@ -263,6 +278,8 @@ Future<SwapOutcome> executeSwap({
   final String? hash;
   try {
     hash = await send(route.request);
+  } on SwapBroadcastUnanswered catch (error) {
+    return SwapSendUnconfirmed(error);
   } catch (error) {
     return SwapSendFailed(error);
   }

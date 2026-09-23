@@ -393,6 +393,7 @@ void main() {
         const SwapAllowanceUnreadable(null),
         const SwapApprovalFailed(null),
         const SwapSendFailed(null),
+        const SwapSendUnconfirmed(null),
         const SwapFeesChanged(quoted: [], actual: []),
       ]) {
         final effects = sideEffectsFor(outcome);
@@ -514,6 +515,33 @@ void main() {
 
       expect(announced, isFalse);
       expect(outcome, isA<SwapSendFailed>());
+    });
+
+    test('never for a broadcast the node did not answer', () async {
+      // It may be on chain or may not. Nothing re-polls a stored swap, so a
+      // row for one the node never took would sit pending for good.
+      var announced = false;
+      var statusReads = 0;
+
+      final outcome = await executeSwap(
+        tokenAddress: _token,
+        amount: _amount,
+        quotedFees: const [],
+        fetchRoute: () async => _route(),
+        readAllowance: (spender) async => _amount,
+        approve: (spender, amount) async => true,
+        send: (request) async => throw const SwapBroadcastUnanswered(),
+        readStatus: (route, hash) async {
+          statusReads++;
+          return const SwapSettlement(status: SwapStatus.success);
+        },
+        wait: (delay) async {},
+        onBroadcast: (hash) async => announced = true,
+      );
+
+      expect(outcome, isA<SwapSendUnconfirmed>());
+      expect(announced, isFalse);
+      expect(statusReads, 0);
     });
   });
 }
