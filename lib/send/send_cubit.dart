@@ -203,9 +203,13 @@ Future<void> settlePendingSends({
   required TransactionStorageService storage,
   required TransactionsCubit transactions,
 }) async {
+  final wallet = walletAddress.toLowerCase();
   for (final row in rows) {
     final chainId = row.chainId;
-    if (row.transactionStatus != TransactionStatus.pending ||
+    // The live history can still hold the previous wallet's rows after a
+    // switch; settling one here would write it into this wallet's box.
+    if (row.fromAddress.toLowerCase() != wallet ||
+        row.transactionStatus != TransactionStatus.pending ||
         row.type != TransactionType.transfer ||
         chainId == null ||
         row.hash.isEmpty) {

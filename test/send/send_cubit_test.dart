@@ -556,9 +556,10 @@ void main() {
       required String hash,
       TransactionStatus status = TransactionStatus.pending,
       int? chainId = 80002,
+      String from = _walletAddress,
     }) => Transaction(
       hash: hash,
-      fromAddress: _walletAddress,
+      fromAddress: from,
       recipients: [TransferRecipients(toAddr: _recipient, amount: '0.5')],
       timeStamp: DateTime(2026, 9, 1),
       transactionDirection: TransactionDirection.sent,
@@ -617,6 +618,52 @@ void main() {
         expect(storage.writes, isEmpty);
       },
     );
+
+    test(
+      "another wallet's pending send is never settled into this one",
+      () async {
+        final storage = _RecordingStorage();
+        final other = row(
+          hash: _hash,
+          from: '0x9999999999999999999999999999999999999999',
+        );
+        final transactionsCubit = TransactionsCubit(initial: [other]);
+
+        await settlePendingSends(
+          walletAddress: _walletAddress,
+          rows: [other],
+          networks: const [_amoy],
+          api: _ConfigurableApi(),
+          storage: storage,
+          transactions: transactionsCubit,
+        );
+
+        expect(storage.writes, isEmpty);
+        expect(
+          transactionsCubit.state.single.transactionStatus,
+          TransactionStatus.pending,
+        );
+      },
+    );
+
+    test('the sender matches regardless of address case', () async {
+      final storage = _RecordingStorage();
+      final pending = row(hash: _hash, from: _walletAddress.toUpperCase());
+
+      await settlePendingSends(
+        walletAddress: _walletAddress.toLowerCase(),
+        rows: [pending],
+        networks: const [_amoy],
+        api: _ConfigurableApi(),
+        storage: storage,
+        transactions: TransactionsCubit(initial: [pending]),
+      );
+
+      expect(
+        storage.writes.single.transactionStatus,
+        TransactionStatus.completed,
+      );
+    });
   });
 
   group('selectCoin', () {
