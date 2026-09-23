@@ -66,3 +66,12 @@ Two things here are **correct and deliberate** - do not "tidy" them:
 
 - `.planning/sketches/159-receive-drawer/README.md` - findings 3 and 4, plus the two drifts from 034-A2
   (the chunked address and the missing body padding), which are design picks rather than defects
+
+## Closed 2026-09-23
+
+- **Defect 1 fixed** once in the shared `CryptoAddressQR` (all five callers pass through it): the network
+  name is trimmed; when blank, the chip label is omitted and the warning reads
+  "Only send assets on the selected network to this address."
+- **Defect 2 was already fixed** before this pass: `embeddedImage` is `null` when there is no icon.
+- Pinned by `test/components/crypto_address_qr_blank_network_test.dart` (blank and whitespace names,
+  a named network, and the null embedded image).
