@@ -515,8 +515,18 @@ class SendCubit extends Cubit<SendState> {
 
     emit(state.copyWith(busy: true, clearError: true, clearReview: true));
     try {
-      // Before the gas estimate: a transfer beyond the balance reverts in
+      // Balances before the gas estimate: a transfer beyond the balance fails
       // estimateGas, which would otherwise surface as a fee error.
+      final nativeBalance = await api.nativeBalance(
+        address: walletAddress,
+        rpcUrl: rpcUrl,
+      );
+      if (tokenContract == null && rawAmount > nativeBalance) {
+        settle(
+          amountError: "Not enough $gasSymbol to cover the amount and the fee.",
+        );
+        return;
+      }
       if (tokenContract != null) {
         final tokenBalance = await api.rawBalanceOf(
           address: walletAddress,
@@ -549,26 +559,16 @@ class SendCubit extends Cubit<SendState> {
       );
 
       if (tokenContract == null) {
-        final balance = await api.nativeBalance(
-          address: walletAddress,
-          rpcUrl: rpcUrl,
-        );
-        if (rawAmount + fee.maxCost > balance) {
+        if (rawAmount + fee.maxCost > nativeBalance) {
           settle(
             amountError:
                 "Not enough $gasSymbol to cover the amount and the fee.",
           );
           return;
         }
-      } else {
-        final nativeBalance = await api.nativeBalance(
-          address: walletAddress,
-          rpcUrl: rpcUrl,
-        );
-        if (fee.maxCost > nativeBalance) {
-          settle(error: "Not enough $gasSymbol for the network fee.");
-          return;
-        }
+      } else if (fee.maxCost > nativeBalance) {
+        settle(error: "Not enough $gasSymbol for the network fee.");
+        return;
       }
 
       final tx = buildSendTx(
