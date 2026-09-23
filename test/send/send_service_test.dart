@@ -79,7 +79,7 @@ void main() {
           maxFeePerGas: BigInt.from(200),
           maxPriorityFeePerGas: BigInt.from(20),
         ),
-        gasPrice: () async => fail('legacy fallback must not run'),
+        gasPrice: () async => BigInt.from(150),
       );
 
       expect(fee.maxFeePerGas, BigInt.from(200));
@@ -117,12 +117,43 @@ void main() {
           maxFeePerGas: BigInt.from(100),
           maxPriorityFeePerGas: BigInt.from(150),
         ),
-        gasPrice: () async => fail('legacy fallback must not run'),
+        gasPrice: () async => BigInt.from(1000),
       );
 
       expect(fee.maxFeePerGas, BigInt.from(100));
       expect(fee.maxPriorityFeePerGas, BigInt.from(100));
     });
+
+    test(
+      'an outlier tip above the legacy quote signs at the legacy price',
+      () async {
+        final fee = await chooseFeePerGas(
+          eip1559: () async => (
+            maxFeePerGas: BigInt.from(9000),
+            maxPriorityFeePerGas: BigInt.from(5000),
+          ),
+          gasPrice: () async => BigInt.from(120),
+        );
+
+        expect(fee.maxFeePerGas, BigInt.from(120));
+        expect(fee.maxPriorityFeePerGas, BigInt.from(120));
+      },
+    );
+
+    test(
+      'an unreadable legacy price leaves the market answer standing',
+      () async {
+        final fee = await chooseFeePerGas(
+          eip1559: () async => (
+            maxFeePerGas: BigInt.from(200),
+            maxPriorityFeePerGas: BigInt.from(20),
+          ),
+          gasPrice: () async => throw Exception('eth_gasPrice down'),
+        );
+
+        expect(fee.maxFeePerGas, BigInt.from(200));
+      },
+    );
 
     test('both the fee market and the legacy price failing throws '
         'SendFeeUnavailable', () async {

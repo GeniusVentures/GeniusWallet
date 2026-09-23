@@ -42,13 +42,14 @@ class SendFeeUnavailable implements Exception {
   String toString() => message;
 }
 
-/// Picks the fee to sign with: the EIP-1559 market answer when it is usable,
-/// a legacy gas price (used for both fields) when it is not. A chain whose
+/// Picks the fee to sign with: the EIP-1559 market answer when it is usable
+/// and sane, else a legacy gas price (used for both fields). A chain whose
 /// RPC gives neither cannot be sent on -- see [SendFeeUnavailable].
 Future<FeePerGas> chooseFeePerGas({
   required Future<FeePerGas> Function() eip1559,
   required Future<BigInt> Function() gasPrice,
 }) async {
+  FeePerGas? market;
   try {
     final fee = await eip1559();
     if (fee.maxFeePerGas > BigInt.zero) {
@@ -58,21 +59,34 @@ Future<FeePerGas> chooseFeePerGas({
       final priority = fee.maxPriorityFeePerGas > fee.maxFeePerGas
           ? fee.maxFeePerGas
           : fee.maxPriorityFeePerGas;
-      return (maxFeePerGas: fee.maxFeePerGas, maxPriorityFeePerGas: priority);
+      market = (maxFeePerGas: fee.maxFeePerGas, maxPriorityFeePerGas: priority);
     }
   } catch (_) {
     // Falls through to the legacy read below.
   }
 
+  BigInt? legacy;
   try {
-    final legacy = await gasPrice();
-    if (legacy > BigInt.zero) {
-      return (maxFeePerGas: legacy, maxPriorityFeePerGas: legacy);
+    final price = await gasPrice();
+    if (price > BigInt.zero) {
+      legacy = price;
     }
   } catch (_) {
-    // Both sources are unusable; SendFeeUnavailable below is the answer.
+    // Unusable; the market answer, if any, stands unchecked.
   }
 
+  // The market read takes the highest tip seen over recent blocks, so one
+  // outlier block can set it, and a tip is paid in full. A tip above the
+  // node's whole legacy quote is that outlier: sign at the legacy price.
+  // ponytail: the ceiling is the node's own eth_gasPrice; sourcing the tip
+  // from eth_maxPriorityFeePerGas would remove the outlier at its source.
+  if (market != null &&
+      (legacy == null || market.maxPriorityFeePerGas <= legacy)) {
+    return market;
+  }
+  if (legacy != null) {
+    return (maxFeePerGas: legacy, maxPriorityFeePerGas: legacy);
+  }
   throw const SendFeeUnavailable();
 }
 
@@ -228,8 +242,9 @@ extension SendReads on Web3 {
 
       final chosen = await chooseFeePerGas(
         eip1559: () async {
-          // The 50th-percentile entry: not the most eager quote and not the
-          // most conservative, no buffer added on top.
+          // The 50th-percentile entry. The package takes the highest such
+          // tip over the last 10 blocks and a 1.5x max fee on top of it,
+          // which is why chooseFeePerGas caps the answer.
           final fees = await client.getGasInEIP1559();
           final median = fees[1];
           return (
