@@ -82,6 +82,7 @@ Future<SendCubit> _pump(
   WidgetTester tester, {
   String? errorText,
   GeniusApi? api,
+  bool? canScan,
 }) async {
   final cubit = SendCubit(
     api: api ?? _FakeApi(),
@@ -98,7 +99,9 @@ Future<SendCubit> _pump(
       value: cubit,
       child: MaterialApp(
         theme: ThemeData(extensions: [GWColors.dark()]),
-        home: Scaffold(body: RecipientField(errorText: errorText)),
+        home: Scaffold(
+          body: RecipientField(errorText: errorText, canScan: canScan),
+        ),
       ),
     ),
   );
@@ -236,5 +239,42 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(api.hasCodeCalls, isEmpty);
+  });
+
+  group('addressFromScan', () {
+    test('a bare address round-trips', () {
+      expect(addressFromScan(_otherAddress), _otherAddress);
+    });
+
+    test('an EIP-681 payment link yields only the address', () {
+      expect(
+        addressFromScan('ethereum:$_otherAddress@137?value=1e18'),
+        _otherAddress,
+      );
+    });
+
+    test('upper-case hex still matches', () {
+      const upper = '0xABCDEF0123456789ABCDEF0123456789ABCDEF01';
+      expect(addressFromScan(upper), upper);
+    });
+
+    test('garbage with no address yields null', () {
+      expect(addressFromScan('not a QR payload'), isNull);
+    });
+  });
+
+  group('canScan gating', () {
+    testWidgets('false shows no Scan button', (tester) async {
+      await _pump(tester, canScan: false);
+
+      expect(find.widgetWithText(GWButton, 'Scan'), findsNothing);
+    });
+
+    testWidgets('true shows a Scan button (never tapped: no camera in '
+        'tests)', (tester) async {
+      await _pump(tester, canScan: true);
+
+      expect(find.widgetWithText(GWButton, 'Scan'), findsOneWidget);
+    });
   });
 }

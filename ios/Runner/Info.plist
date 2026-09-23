@@ -49,6 +49,8 @@
 	<false/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires access to your photo library to upload photos.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>GeniusWallet uses the camera to scan a recipient's QR code.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
