@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
 current_phase: 31
-current_phase_name: "Send native coins and ERC-20 tokens - 5/5 executed, awaiting testnet walk"
-status: human_needed
-stopped_at: "Phase 31 executed 5/5 on plan/send; two code-review rounds (4 critical incl. a signer regression caught in round 2, 21 warnings) all fixed; 1731 pass / 5 skip, analyze + gates clean. Verification human_needed (18/20): native + ERC-20 testnet walk in 31-UAT.md. Nothing pushed."
+current_phase_name: "Send native coins and ERC-20 tokens - complete, walked on Sepolia"
+status: complete
+stopped_at: "Phase 31 COMPLETE on plan/send (not pushed, no PR): 5/5 plans, two review rounds all fixed, verification passed 20/20 incl. a live native + ERC-20 walk on Ethereum Sepolia. 1731 pass / 5 skip. Sepolia RPC moved to publicnode (2eebacb9). Next: open the PR for Send."
 last_updated: "2026-09-23T16:10:00.000Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 31 (Send) researched and planned on plan/send; 5 plans, checker passed
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 17
   completed_plans: 17
   percent: 100
