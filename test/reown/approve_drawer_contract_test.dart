@@ -258,6 +258,64 @@ void main() {
     });
   });
 
+  testWidgets('a dApp send fits a short screen with large text, and Approve '
+      'in its footer still answers true', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 480));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final outcome = await _openDrawer(
+      tester,
+      (context) => ApproveTransactionDrawer.show(
+        context: context,
+        content: const SendTransactionDetails(
+          fromAddress: '0x1111222233334444555566667777888899990000',
+          toAddress: '0x1234567890123456789012345678901234567890',
+          amount: '1.234567890123456789',
+          totalGasFee: '0.000630000000000000',
+          maxFeePerGas: '0.000000030000000000',
+          priorityFee: '0.000000001500000000',
+          networkName: 'Polygon Amoy',
+          amountSymbol: 'MATIC',
+          feeSymbol: 'MATIC',
+        ),
+        dappName: _dappName,
+        dappUrl: _dappUrl,
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    final priority = find.text('Priority Fee');
+    await tester.ensureVisible(priority);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(priority).bottom, lessThanOrEqualTo(480));
+
+    final approve = find.text('Approve');
+    expect(tester.getRect(approve).bottom, lessThanOrEqualTo(480));
+    await tester.tap(approve);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(outcome.value, isTrue);
+  });
+
+  testWidgets('where a detail row fits, its value keeps to the right edge', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        home: const Scaffold(body: SingleChildScrollView(child: _txFixture)),
+      ),
+    );
+
+    final label = tester.getRect(find.text('Gas Fee'));
+    final value = tester.getRect(find.text('0.0010 ETH'));
+    expect(value.top, lessThan(label.bottom));
+    expect(value.right, greaterThan(700));
+  });
+
   group('ApproveDappConnectionDrawer -- desktop panel', () {
     testWidgets(
       'Case 4a: tapping Allow completes the future with true, and the '

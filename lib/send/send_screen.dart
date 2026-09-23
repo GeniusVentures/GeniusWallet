@@ -259,17 +259,21 @@ class _SendBodyState extends State<_SendBody> {
     final shouldSend = await ResponsiveDrawer.show<bool>(
       context: context,
       title: 'Review send',
-      child: SendTransactionDetails(
-        fromAddress: cubit.walletAddress,
-        toAddress: review.recipient,
-        amount: formatTokenAmount(review.rawAmount, review.decimals),
-        amountSymbol: assetSymbol,
-        feeSymbol: gasSymbol,
-        networkName: cubit.network.name,
-        tokenContract: cubit.state.coin?.address,
-        totalGasFee: formatTokenAmount(review.fee.maxCost, 18),
-        maxFeePerGas: formatTokenAmount(review.fee.maxFeePerGas, 18),
-        priorityFee: formatTokenAmount(review.fee.maxPriorityFeePerGas, 18),
+      // Large text on a short phone outgrows the sheet; the footer's Send
+      // stays pinned while the details scroll.
+      child: SingleChildScrollView(
+        child: SendTransactionDetails(
+          fromAddress: cubit.walletAddress,
+          toAddress: review.recipient,
+          amount: formatTokenAmount(review.rawAmount, review.decimals),
+          amountSymbol: assetSymbol,
+          feeSymbol: gasSymbol,
+          networkName: cubit.network.name,
+          tokenContract: cubit.state.coin?.address,
+          totalGasFee: formatTokenAmount(review.fee.maxCost, 18),
+          maxFeePerGas: formatTokenAmount(review.fee.maxFeePerGas, 18),
+          priorityFee: formatTokenAmount(review.fee.maxPriorityFeePerGas, 18),
+        ),
       ),
       footer: Row(
         children: [
