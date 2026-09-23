@@ -158,7 +158,9 @@ class _SendBodyState extends State<_SendBody> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        // A short phone with the keyboard up or large text has no room for
+        // every warning; scrolling keeps each input and Review reachable.
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
