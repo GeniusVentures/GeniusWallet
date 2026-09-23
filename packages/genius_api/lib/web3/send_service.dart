@@ -131,6 +131,14 @@ Map<String, dynamic> buildSendTx({
   };
 }
 
+/// The most native currency [balance] can send once [fee]'s max cost is set
+/// aside, clamped at zero -- MAX never offers to spend more than the balance
+/// actually covers.
+BigInt maxNativeSendable({required BigInt balance, required SendFee fee}) {
+  final spendable = balance - fee.maxCost;
+  return spendable > BigInt.zero ? spendable : BigInt.zero;
+}
+
 /// Reads a broadcast transaction's receipt. A throw means "not yet indexed",
 /// the same convention [pollReceipt] and `swap_execution.dart`'s poll share.
 typedef ReceiptReader = Future<TransactionReceipt?> Function(String hash);
