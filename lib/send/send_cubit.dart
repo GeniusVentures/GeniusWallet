@@ -386,6 +386,23 @@ class SendCubit extends Cubit<SendState> {
     final rpcUrl = network.rpcUrl ?? '';
     final gasSymbol = (network.nativeSymbol ?? network.symbol ?? '')
         .toUpperCase();
+    final recipientText = state.recipient;
+    final amountText = state.amount;
+    // An edit while the reads were in flight already cleared the review, and
+    // what they found is about values no longer on the form -- drop it.
+    void settle({String? error, SendReview? review}) {
+      if (isClosed) {
+        return;
+      }
+      final edited =
+          state.recipient != recipientText || state.amount != amountText;
+      emit(
+        edited
+            ? state.copyWith(busy: false)
+            : state.copyWith(busy: false, error: error, review: review),
+      );
+    }
+
     emit(state.copyWith(busy: true, clearError: true, clearReview: true));
     try {
       final data = tokenContract == null
@@ -408,14 +425,9 @@ class SendCubit extends Cubit<SendState> {
           rpcUrl: rpcUrl,
         );
         if (rawAmount + fee.maxCost > balance) {
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                busy: false,
-                error: "Not enough $gasSymbol to cover the amount and the fee.",
-              ),
-            );
-          }
+          settle(
+            error: "Not enough $gasSymbol to cover the amount and the fee.",
+          );
           return;
         }
       } else {
@@ -426,14 +438,7 @@ class SendCubit extends Cubit<SendState> {
         );
         if (rawAmount > tokenBalance) {
           final symbol = (coin.symbol ?? '').toUpperCase();
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                busy: false,
-                error: "Your $symbol balance doesn't cover this amount.",
-              ),
-            );
-          }
+          settle(error: "Your $symbol balance doesn't cover this amount.");
           return;
         }
         final nativeBalance = await api.nativeBalance(
@@ -441,14 +446,7 @@ class SendCubit extends Cubit<SendState> {
           rpcUrl: rpcUrl,
         );
         if (fee.maxCost > nativeBalance) {
-          if (!isClosed) {
-            emit(
-              state.copyWith(
-                busy: false,
-                error: "Not enough $gasSymbol for the network fee.",
-              ),
-            );
-          }
+          settle(error: "Not enough $gasSymbol for the network fee.");
           return;
         }
       }
@@ -466,39 +464,22 @@ class SendCubit extends Cubit<SendState> {
         amount: rawAmount,
         tokenContract: tokenContract,
       )) {
-        if (!isClosed) {
-          emit(
-            state.copyWith(busy: false, error: "Couldn't build this transfer."),
-          );
-        }
+        settle(error: "Couldn't build this transfer.");
         return;
       }
-      if (isClosed) {
-        return;
-      }
-      emit(
-        state.copyWith(
-          busy: false,
-          review: SendReview(
-            tx: tx,
-            fee: fee,
-            rawAmount: rawAmount,
-            decimals: decimals,
-            recipient: recipient,
-          ),
+      settle(
+        review: SendReview(
+          tx: tx,
+          fee: fee,
+          rawAmount: rawAmount,
+          decimals: decimals,
+          recipient: recipient,
         ),
       );
     } catch (_) {
       // Covers both a thrown estimate/balance read and SendFeeUnavailable --
       // neither leaves anything specific enough to say beyond this.
-      if (!isClosed) {
-        emit(
-          state.copyWith(
-            busy: false,
-            error: "Couldn't estimate the network fee.",
-          ),
-        );
-      }
+      settle(error: "Couldn't estimate the network fee.");
     }
   }
 
