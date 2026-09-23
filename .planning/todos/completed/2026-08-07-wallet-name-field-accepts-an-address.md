@@ -40,3 +40,17 @@ reject or warn on input matching an address shape, or fall back to a generated n
 ## Where to fix
 
 `lib/onboarding/existing_wallet/view/import_security_screen.dart` - the field, not the header.
+
+## Closed 2026-09-23
+
+Fixed by rejecting, not by falling back to a generated name: a silent rename
+would hide the mistake, an inline error lets the user correct it. One shared
+validator, `walletNameError` in `lib/utils/wallet_utils.dart`, now guards both
+places a name is typed - the import field and the account drawer's Rename
+dialog. It reuses `isEvmAddress` (moved there from `sdk_account_manager.dart`).
+SDK wallets are still named by `app_bloc.dart` and never reach this path; the
+header's width cap is untouched.
+
+Test: `test/onboarding/wallet_name_rejects_address_test.dart` - the validator
+cases, plus the import screen refusing an address (no import attempted) and
+still accepting an ordinary name.
