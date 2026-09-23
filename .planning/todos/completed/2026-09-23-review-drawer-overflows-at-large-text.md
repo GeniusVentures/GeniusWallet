@@ -18,3 +18,13 @@ Send review and every dApp approval, so a user with large text may not reach App
 
 Make the drawer body scroll and let the detail rows wrap (label above value when narrow). Needs a
 widget test at 320x480 / textScaler 2.0 for both the Send review and a dApp request.
+
+## Closed 2026-09-23
+
+Fixed in `ee1b4ab7`. The Send review body scrolls under its pinned footer (the dApp approval
+already scrolled), and a plain detail row wraps its value under its label once the two no longer
+fit side by side. Tests at 320x480 / textScaler 2.0 assert no overflow and a reachable, tappable
+footer action for both drawers: `test/send/send_screen_test.dart` ("the review drawer fits a
+short screen with large text…") and `test/reown/approve_drawer_contract_test.dart` ("a dApp send
+fits a short screen with large text…"), plus a normal-size check that a fitting value still sits
+at the row's right edge.
