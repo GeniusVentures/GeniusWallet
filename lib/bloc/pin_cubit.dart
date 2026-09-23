@@ -73,11 +73,23 @@ class PinCubit extends Cubit<PinState> {
     }
   }
 
+  /// Typing hides "Incorrect PIN", so the next mismatch re-adds it and a
+  /// screen reader announces it again.
   void desktopOnChanged(String value) {
     if (value.length >= pinMaxLength) {
-      emit(state.copyWith(pinFullness: PinFullness.completed));
+      emit(
+        state.copyWith(
+          pinFullness: PinFullness.completed,
+          displayIncorrectPin: false,
+        ),
+      );
     } else {
-      emit(state.copyWith(pinFullness: PinFullness.inProgress));
+      emit(
+        state.copyWith(
+          pinFullness: PinFullness.inProgress,
+          displayIncorrectPin: false,
+        ),
+      );
     }
   }
 
