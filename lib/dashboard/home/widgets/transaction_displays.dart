@@ -968,6 +968,18 @@ void showTransactionDetails(
     // not called here any more — it would have truncated the value before the
     // clipboard ever saw it.
     addCopy(txRows, isSent ? 'To' : 'From', counterparty);
+    // A token call that also paid the contract native value records it as a
+    // second recipient. That money left too, so it is shown, not buried.
+    // SDK transfers list UTXO outputs, a different shape, so they are skipped.
+    if (isSent && tx.isSGNUS != true) {
+      for (final extra in tx.recipients.skip(1)) {
+        add(
+          txRows,
+          'Also sent',
+          '${formatTxAmount(extra.amount)} ${tx.coinSymbol}',
+        );
+      }
+    }
   }
 
   // Caller-supplied extras, APPENDED after the base rows. Empty by default,

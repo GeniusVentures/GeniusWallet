@@ -16,10 +16,13 @@ Transaction _tx({
   String fromAmount = '1.5',
   String toAmount = '2400.75',
   String hash = '0xabcdef0123456789abcdef0123456789abcdef0123456789',
+  List<TransferRecipients> recipients = const [],
+  bool? isSGNUS,
 }) => Transaction(
   hash: hash,
   fromAddress: '0x1111222233334444555566667777888899990000',
-  recipients: const [],
+  recipients: recipients,
+  isSGNUS: isSGNUS,
   timeStamp: DateTime(2026, 7, 20, 18, 42),
   transactionDirection: TransactionDirection.sent,
   fees: fees,
@@ -93,4 +96,51 @@ void main() {
       expect(find.text('Network Fee'), findsNothing);
     },
   );
+
+  final tokenCallWithValue = [
+    TransferRecipients(
+      toAddr: '0x2222333344445555666677778888999900001111',
+      amount: '100',
+    ),
+    TransferRecipients(
+      toAddr: '0x3333444455556666777788889999000011112222',
+      amount: '0.25',
+    ),
+  ];
+
+  testWidgets('native value sent alongside a token call is shown', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        _tx(
+          fees: '0.0042',
+          type: TransactionType.transfer,
+          recipients: tokenCallWithValue,
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Also sent'), findsOneWidget);
+    expect(find.text('0.25 ETH'), findsOneWidget);
+  });
+
+  testWidgets('an SDK transfer does not list its extra outputs', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        _tx(
+          fees: '0',
+          type: TransactionType.transfer,
+          recipients: tokenCallWithValue,
+          isSGNUS: true,
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Also sent'), findsNothing);
+  });
 }
