@@ -403,26 +403,30 @@ void main() {
     },
   );
 
-  testWidgets('the drawer shows a 6-decimal token in its own units', (
-    tester,
-  ) async {
-    await _mount(
-      tester,
-      _FakeApi(),
-      _RecordingStorage(),
-      TransactionsCubit(),
-      symbol: 'usdc',
-    );
+  testWidgets(
+    'the drawer shows a 6-decimal token in its own units, chain and contract',
+    (tester) async {
+      await _mount(
+        tester,
+        _FakeApi(),
+        _RecordingStorage(),
+        TransactionsCubit(),
+        symbol: 'usdc',
+      );
 
-    await tester.enterText(find.byType(TextField).at(0), _recipient);
-    await tester.enterText(find.byType(TextField).at(1), '100');
-    await tester.pump();
-    await tester.tap(find.widgetWithText(GWButton, 'Review'));
-    await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).at(0), _recipient);
+      await tester.enterText(find.byType(TextField).at(1), '100');
+      await tester.pump();
+      await tester.tap(find.widgetWithText(GWButton, 'Review'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('100 USDC'), findsOneWidget);
-    expect(find.text('0.00063 MATIC'), findsOneWidget);
-  });
+      expect(find.text('100 USDC'), findsOneWidget);
+      expect(find.text('0.00063 MATIC'), findsOneWidget);
+      // The chain and the contract, since the same symbol lives on many.
+      expect(find.text('Polygon Amoy'), findsOneWidget);
+      expect(find.text('Token'), findsOneWidget);
+    },
+  );
 
   testWidgets('tapping MAX puts the cubit-computed amount into the field', (
     tester,

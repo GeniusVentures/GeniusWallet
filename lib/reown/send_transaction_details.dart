@@ -7,39 +7,9 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
-/// 033-B1's confirm body: a borderless amount hero, a static caution, and one
-/// merged Details card -- replacing today's five separate boxes (a bordered
-/// From box, a bordered To box, the amount hero, an "Estimated changes"
-/// caption, and a fixed-dark fee card). No field is renamed, retyped or
-/// reordered here -- this is a re-skin, not a data change. T-21-11's
-/// mitigation still holds: this file performs no arithmetic, parsing or unit
-/// conversion of its own. Every value arrives already formatted from
-/// `handle_dapp_requests.dart`.
-///
-/// **Decision: the "sending-to" line is folded into the Details grid, not a
-/// floating borderless row above it.** The task text offered a choice --
-/// float `To` alone between the amount and the card, or wrap it in the same
-/// [GWDetailGrid] as everything below. Floating it alone reads as an
-/// accidental leftover of the five-box layout this file replaces (a single
-/// borderless line sitting between two other elements, doing nothing else on
-/// its own). Folded in, `From` and `To` sit together at the top of the one
-/// Details card -- both via [GWCopyRow] so the FULL address always reaches the
-/// clipboard even though the row shows a truncated form for eyeball-verify.
-///
-/// **`GWWarningNote` was not forked and was not given a borderless flag.**
-/// 033-B1 asks for the caution to be a tint with no border;
-/// `gw_warning_note.dart` has a hard-coded `Border.all(...)` and no such mode.
-/// This file would be that component's fourth consumer, which is the point at
-/// which AGENTS.md's Rule of Three would normally justify extracting a shared
-/// variant -- except the shape a fourth consumer needs here is not a new
-/// component, it is the SAME component with one boolean toggled, and
-/// AGENTS.md's own Rule of Three text names that exact case as the one NOT to
-/// extract ("if the shared version needs a boolean flag ... don't extract
-/// it"). The caution keeps its existing half-alpha border rather than forking
-/// or flagging it. Upgrade path, if a borderless mode is ever genuinely
-/// needed app-wide: a second NAMED constructor on `GWWarningNote` (not a
-/// bool), added the next time a real caller needs it, with its own contrast
-/// measurement in both modes the way the current border already has one.
+/// The confirm body for a transfer: an amount hero, a caution, and one
+/// Details card. It performs no arithmetic, parsing or unit conversion --
+/// every value arrives already formatted from its caller.
 class SendTransactionDetails extends StatelessWidget {
   final String fromAddress;
   final String toAddress;
@@ -55,6 +25,11 @@ class SendTransactionDetails extends StatelessWidget {
   final String amountSymbol;
   final String feeSymbol;
 
+  /// Named because the same token and address exist on many chains, and a
+  /// send on the wrong one is a common permanent loss.
+  final String? networkName;
+  final String? tokenContract;
+
   const SendTransactionDetails({
     super.key,
     required this.fromAddress,
@@ -66,6 +41,8 @@ class SendTransactionDetails extends StatelessWidget {
     this.receiveTokenSymbol,
     this.amountSymbol = 'ETH',
     this.feeSymbol = 'ETH',
+    this.networkName,
+    this.tokenContract,
   });
 
   @override
@@ -100,6 +77,10 @@ class SendTransactionDetails extends StatelessWidget {
             if (fromAddress.isNotEmpty)
               GWCopyRow(label: 'From', value: fromAddress),
             if (toAddress.isNotEmpty) GWCopyRow(label: 'To', value: toAddress),
+            if (networkName != null && networkName!.isNotEmpty)
+              _PlainDetailRow(label: 'Network', value: networkName!),
+            if (tokenContract != null && tokenContract!.isNotEmpty)
+              GWCopyRow(label: 'Token', value: tokenContract!),
             if (amount.isNotEmpty)
               _PlainDetailRow(
                 label: 'You send',
