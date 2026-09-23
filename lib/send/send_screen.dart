@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/models/transaction.dart' show TransactionStatus;
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
@@ -279,15 +280,32 @@ class _SendBodyState extends State<_SendBody> {
     if (!context.mounted) {
       return;
     }
-    if (recorded != null) {
-      showToast(
-        context,
-        'Sent to ${WalletUtils.getAddressForDisplay(review.recipient)}.',
-        title: 'Send submitted',
-      );
-      showTransactionDetails(context, recorded);
-    } else if (cubit.state.error != null) {
-      showToast(context, cubit.state.error!, type: ToastType.error);
+    if (recorded == null) {
+      if (cubit.state.error != null) {
+        showToast(context, cubit.state.error!, type: ToastType.error);
+      }
+      return;
     }
+    final to = WalletUtils.getAddressForDisplay(review.recipient);
+    switch (recorded.transactionStatus) {
+      case TransactionStatus.failed:
+        showToast(
+          context,
+          'The network rejected the send to $to. Only the fee was spent.',
+          title: 'Send failed',
+          type: ToastType.error,
+        );
+      case TransactionStatus.pending:
+        showToast(
+          context,
+          cubit.state.error ??
+              'Sent to $to. Still confirming -- your history will update.',
+          title: 'Send submitted',
+          type: ToastType.warning,
+        );
+      default:
+        showToast(context, 'Sent to $to.', title: 'Send complete');
+    }
+    showTransactionDetails(context, recorded);
   }
 }
