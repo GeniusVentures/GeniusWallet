@@ -242,7 +242,7 @@ void main() {
 
         await cubit.review();
 
-        expect(cubit.state.error, contains('USDC'));
+        expect(cubit.state.amountError, contains('USDC'));
         expect(cubit.state.review, isNull);
       },
     );

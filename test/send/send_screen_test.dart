@@ -18,6 +18,8 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/coins/view/coin_card_row.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -63,9 +65,10 @@ class _RecordingStorage implements TransactionStorageService {
 /// Answers every send read with a fixed, positive fee and balance, and
 /// settles the receipt on the first poll — no real RPC, no wait.
 class _FakeApi implements GeniusApi {
-  _FakeApi({this.receiptStatus = '0x1'});
+  _FakeApi({this.receiptStatus = '0x1', this.feeFails = false});
 
   final String receiptStatus;
+  final bool feeFails;
   Map<String, dynamic>? signedTx;
 
   @override
@@ -89,11 +92,16 @@ class _FakeApi implements GeniusApi {
     Uint8List? data,
     BigInt? value,
     int? chainId,
-  }) async => SendFee(
-    maxFeePerGas: BigInt.from(30000000000),
-    maxPriorityFeePerGas: BigInt.from(1500000000),
-    gasLimit: BigInt.from(21000),
-  );
+  }) async {
+    if (feeFails) {
+      throw const SendFeeUnavailable();
+    }
+    return SendFee(
+      maxFeePerGas: BigInt.from(30000000000),
+      maxPriorityFeePerGas: BigInt.from(1500000000),
+      gasLimit: BigInt.from(21000),
+    );
+  }
 
   @override
   Future<ApiResponse<String>> signAndSendTransaction({
@@ -377,7 +385,7 @@ void main() {
   );
 
   testWidgets(
-    'a failed review keeps its error under the recipient field, not a toast',
+    'a failed review keeps its error under the amount field, not a toast',
     (tester) async {
       final api = _FakeApi();
       final storage = _RecordingStorage();
@@ -385,8 +393,7 @@ void main() {
       await _mount(tester, api, storage, transactionsCubit);
 
       // A valid recipient with an amount the seeded 10 MATIC balance can't
-      // cover -- the field's own format check has nothing to say, so the
-      // cubit's review error must be what fills its errorText.
+      // cover: the error is about the amount, so it belongs under Amount.
       await tester.enterText(find.byType(TextField).at(0), _recipient);
       await tester.enterText(find.byType(TextField).at(1), '999');
       await tester.pump();
@@ -394,14 +401,22 @@ void main() {
       await tester.tap(find.widgetWithText(GWButton, 'Review'));
       await tester.pumpAndSettle();
 
+      const message = 'Not enough MATIC to cover the amount and the fee.';
+      expect(
+        find.descendant(
+          of: find.byWidgetPredicate(
+            (w) => w is GWTextField && w.label == 'Amount',
+          ),
+          matching: find.text(message),
+        ),
+        findsOneWidget,
+      );
       expect(
         find.descendant(
           of: find.byType(RecipientField),
-          matching: find.text(
-            'Not enough MATIC to cover the amount and the fee.',
-          ),
+          matching: find.text(message),
         ),
-        findsOneWidget,
+        findsNothing,
       );
       // The drawer never opened -- review refused before a review was built.
       expect(find.text('Gas Fee'), findsNothing);
@@ -432,6 +447,38 @@ void main() {
       expect(find.text('Token'), findsOneWidget);
     },
   );
+
+  testWidgets('a fee that cannot be read is said above Review, not under To', (
+    tester,
+  ) async {
+    await _mount(
+      tester,
+      _FakeApi(feeFails: true),
+      _RecordingStorage(),
+      TransactionsCubit(),
+    );
+    await tester.enterText(find.byType(TextField).at(0), _recipient);
+    await tester.enterText(find.byType(TextField).at(1), '0.5');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(GWButton, 'Review'));
+    await tester.pumpAndSettle();
+
+    const message = "Couldn't estimate the network fee.";
+    expect(
+      find.descendant(
+        of: find.byType(GWWarningNote),
+        matching: find.text(message),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(RecipientField),
+        matching: find.text(message),
+      ),
+      findsNothing,
+    );
+  });
 
   testWidgets('a send the chain reverted is reported as failed, not sent', (
     tester,

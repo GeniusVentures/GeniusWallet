@@ -248,7 +248,7 @@ void main() {
         await cubit.review();
 
         expect(cubit.state.review, isNull, reason: bad);
-        expect(cubit.state.error, isNotNull, reason: bad);
+        expect(cubit.state.recipientError, isNotNull, reason: bad);
       }
     });
 
@@ -281,7 +281,7 @@ void main() {
 
       await cubit.review();
 
-      expect(cubit.state.error, contains('MATIC'));
+      expect(cubit.state.amountError, contains('MATIC'));
       expect(cubit.state.review, isNull);
     });
   });
@@ -513,7 +513,7 @@ void main() {
 
         await cubit.useMax();
 
-        expect(cubit.state.error, contains('MATIC'));
+        expect(cubit.state.amountError, contains('MATIC'));
         expect(cubit.state.amount, '');
       },
     );
@@ -540,7 +540,7 @@ void main() {
 
         await cubit.review();
 
-        expect(cubit.state.error, contains('MATIC'));
+        expect(cubit.state.amountError, contains('MATIC'));
         expect(cubit.state.review, isNull);
         expect(api.signCalls, 0);
       },
