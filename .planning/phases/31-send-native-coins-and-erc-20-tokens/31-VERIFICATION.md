@@ -1,9 +1,9 @@
 ---
 phase: 31-send-native-coins-and-erc-20-tokens
 verified: 2026-09-23T21:25:08Z
-status: human_needed
-score: 18/20 must-haves verified
-behavior_unverified: 2
+status: passed
+score: 20/20 must-haves verified (2 by the live walk in 31-UAT.md)
+behavior_unverified: 0
 overrides_applied: 0
 behavior_unverified_items:
   - truth: "On a signable chain a user types an address and an amount of the native coin, sees the EIP-1559 fee before approving, approves, and the coin moves"
@@ -172,3 +172,10 @@ The only gap is the one this phase's own artifacts (`31-VALIDATION.md`, `31-05-S
 
 _Verified: 2026-09-23T21:25:08Z_
 _Verifier: Claude (gsd-verifier)_
+
+## Human verification (2026-09-23)
+
+Both live checks passed on Ethereum Sepolia (11155111), walked by Braian on a Windows debug build of
+`plan/send` — native send and ERC-20 send with both warnings. See `31-UAT.md`. The walk first needed
+Sepolia's RPC moved off a host that no longer resolves (`2eebacb9`); Base Sepolia's rejected access
+token is filed as a todo.
