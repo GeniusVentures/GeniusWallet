@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:hive_ce/hive.dart';
 
 /// A token transfer: gas paid in ETH, the token that actually moved is USDC.
 Transaction _tokenTx({int? chainId = 8453, String? assetSymbol = 'USDC'}) =>
@@ -97,4 +100,136 @@ void main() {
       expect(find.text('0.0042 USDC'), findsNothing);
     });
   });
+
+  // Real Hive I/O, so plain `test()` — `testWidgets` hangs on it. Proves a
+  // row an older build wrote (18 fields, none of them the new two) still
+  // deserializes once the current adapter is registered.
+  group('a legacy 18-field row survives the new adapter', () {
+    late Directory dir;
+
+    setUp(() async {
+      dir = await Directory.systemTemp.createTemp('gw_legacy_transaction_box');
+      Hive.init(dir.path);
+      if (!Hive.isAdapterRegistered(4)) {
+        Hive.registerAdapter(TransactionDirectionAdapter());
+      }
+      if (!Hive.isAdapterRegistered(5)) {
+        Hive.registerAdapter(TransactionStatusAdapter());
+      }
+      if (!Hive.isAdapterRegistered(6)) {
+        Hive.registerAdapter(TransactionTypeAdapter());
+      }
+      if (!Hive.isAdapterRegistered(7)) {
+        Hive.registerAdapter(TransferRecipientsAdapter());
+      }
+    });
+
+    tearDown(() async {
+      await Hive.close();
+      await dir.delete(recursive: true);
+    });
+
+    test('old fields survive, both new fields read as null', () async {
+      final legacy = _tokenTx(chainId: null, assetSymbol: null);
+
+      Hive.registerAdapter(_LegacyTransactionAdapter(), override: true);
+      var box = await Hive.openBox<Transaction>('legacy_transactions');
+      await box.put('row', legacy);
+      await box.close();
+
+      Hive.registerAdapter(TransactionAdapter(), override: true);
+      box = await Hive.openBox<Transaction>('legacy_transactions');
+      final read = box.get('row')!;
+
+      expect(read.hash, legacy.hash);
+      expect(read.fromAddress, legacy.fromAddress);
+      expect(read.coinSymbol, legacy.coinSymbol);
+      expect(read.fees, legacy.fees);
+      expect(read.transactionStatus, legacy.transactionStatus);
+      expect(read.transactionDirection, legacy.transactionDirection);
+      expect(read.recipients.single.toAddr, legacy.recipients.single.toAddr);
+      expect(read.recipients.single.amount, legacy.recipients.single.amount);
+      expect(read.assetSymbol, isNull);
+      expect(read.chainId, isNull);
+    });
+  });
+}
+
+/// The adapter this repo shipped before this phase: exactly 18 fields (0-17),
+/// no knowledge of `assetSymbol`/`chainId`. Kept here, not imported, because
+/// the real adapter has already moved on to 20 — this is what "an older
+/// build wrote" means, pinned as code rather than as a claim.
+class _LegacyTransactionAdapter extends TypeAdapter<Transaction> {
+  @override
+  final typeId = 8;
+
+  @override
+  Transaction read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return Transaction(
+      hash: fields[0] as String,
+      fromAddress: fields[1] as String,
+      recipients: (fields[2] as List).cast<TransferRecipients>(),
+      timeStamp: fields[3] as DateTime,
+      transactionDirection: fields[4] as TransactionDirection,
+      fees: fields[5] as String,
+      coinSymbol: fields[6] as String,
+      transactionStatus: fields[7] as TransactionStatus,
+      isSGNUS: fields[8] as bool?,
+      type: fields[9] as TransactionType?,
+      fromIconUrl: fields[10] as String?,
+      fromAmount: fields[11] as String?,
+      toIconUrl: fields[12] as String?,
+      toAmount: fields[13] as String?,
+      exchangeRate: fields[14] as String?,
+      fromSymbol: fields[15] as String?,
+      toSymbol: fields[16] as String?,
+      recoveryUrl: fields[17] as String?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, Transaction obj) {
+    writer
+      ..writeByte(18)
+      ..writeByte(0)
+      ..write(obj.hash)
+      ..writeByte(1)
+      ..write(obj.fromAddress)
+      ..writeByte(2)
+      ..write(obj.recipients)
+      ..writeByte(3)
+      ..write(obj.timeStamp)
+      ..writeByte(4)
+      ..write(obj.transactionDirection)
+      ..writeByte(5)
+      ..write(obj.fees)
+      ..writeByte(6)
+      ..write(obj.coinSymbol)
+      ..writeByte(7)
+      ..write(obj.transactionStatus)
+      ..writeByte(8)
+      ..write(obj.isSGNUS)
+      ..writeByte(9)
+      ..write(obj.type)
+      ..writeByte(10)
+      ..write(obj.fromIconUrl)
+      ..writeByte(11)
+      ..write(obj.fromAmount)
+      ..writeByte(12)
+      ..write(obj.toIconUrl)
+      ..writeByte(13)
+      ..write(obj.toAmount)
+      ..writeByte(14)
+      ..write(obj.exchangeRate)
+      ..writeByte(15)
+      ..write(obj.fromSymbol)
+      ..writeByte(16)
+      ..write(obj.toSymbol)
+      ..writeByte(17)
+      ..write(obj.recoveryUrl);
+  }
 }

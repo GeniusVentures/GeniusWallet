@@ -264,17 +264,38 @@ void Function() handleDappRequests({
         }
         debugPrint('✅ Success on Swap!: ${result.data}');
 
+        // A token call's recipient and amount live in the calldata, not in
+        // `tx['to']`/`amountEth` -- those still name the contract and the
+        // (usually zero) native value. Only a decoded transfer has a real
+        // pair to file under.
+        final decodesRecipient =
+            summary.kind == DappCallKind.tokenTransfer ||
+            summary.kind == DappCallKind.unverifiedToken;
+        final recipientAddress = decodesRecipient
+            ? (summary.recipient ?? to)
+            : to;
+        final recipientAmount = decodesRecipient
+            ? (summary.amount ?? amountEth)
+            : amountEth;
+
         // TODO: we should show a pending transaction until it completes
         final txModel = model.Transaction(
           hash: txHash ?? "",
           fromAddress: walletAddress,
-          recipients: [TransferRecipients(toAddr: to, amount: amountEth)],
+          recipients: [
+            TransferRecipients(
+              toAddr: recipientAddress,
+              amount: recipientAmount,
+            ),
+          ],
           timeStamp: DateTime.now(),
           transactionDirection: TransactionDirection.sent,
           fees: totalFeeEth,
-          coinSymbol: coinSymbol,
+          coinSymbol: nativeUnit,
           transactionStatus: TransactionStatus.completed,
           type: TransactionType.transfer,
+          assetSymbol: coinSymbol,
+          chainId: chainId,
         );
 
         unawaited(
