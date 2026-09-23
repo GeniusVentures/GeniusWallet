@@ -38,9 +38,8 @@ String getExplorerUrl(String coinSymbol, String txHash) {
 }
 
 /// Explorer base URLs keyed by chain id, not by a symbol several chains
-/// share. `84531` (Base Goerli) is deliberately absent — that chain is
-/// retired, and an old row naming it should show no link rather than a dead
-/// one.
+/// share. Retired Base Goerli (`84531`) is absent: an old row naming it shows
+/// no link rather than a dead one.
 const Map<int, String> kExplorerTxBase = {
   1: 'https://etherscan.io/tx/',
   11155111: 'https://sepolia.etherscan.io/tx/',
@@ -49,6 +48,7 @@ const Map<int, String> kExplorerTxBase = {
   56: 'https://bscscan.com/tx/',
   97: 'https://testnet.bscscan.com/tx/',
   8453: 'https://basescan.org/tx/',
+  84532: 'https://sepolia.basescan.org/tx/',
 };
 
 /// The explorer link for [tx]. Chain-keyed where a chain id is known — the

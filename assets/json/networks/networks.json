@@ -86,7 +86,7 @@
     "symbol": "base",
     "nativeSymbol": "eth",
     "coinGeckoId": "ethereum",
-    "chainId": 84531,
+    "chainId": 84532,
     "rpcUrl": "https://base-sepolia.core.chainstack.com/93f6135415539e11963fa6d83541454b",
     "iconPath": "assets/images/crypto/base-testnet.png",
     "tokensPath": "assets/json/tokens/base_test_net.json"

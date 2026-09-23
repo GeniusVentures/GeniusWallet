@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -64,8 +65,28 @@ void main() {
       );
     });
 
+    test('84532 links to Base Sepolia', () {
+      expect(
+        explorerUrlFor(_tokenTx(chainId: 84532)),
+        'https://sepolia.basescan.org/tx/${_tokenTx().hash}',
+      );
+    });
+
     test('84531 (retired Base Goerli) shows no link', () {
       expect(explorerUrlFor(_tokenTx(chainId: 84531)), '');
+    });
+
+    test('the catalogue signs Base Sepolia with its real chain id', () {
+      // The RPC is Base Sepolia's, which rejects anything signed for 84531.
+      final networks =
+          jsonDecode(
+                File('assets/json/networks/networks.json').readAsStringSync(),
+              )
+              as List<dynamic>;
+      final sepolia = networks.cast<Map<String, dynamic>>().singleWhere(
+        (n) => n['name'] == 'Base - Sepolia',
+      );
+      expect(sepolia['chainId'], 84532);
     });
 
     test('no chainId falls back to the symbol lookup', () {
