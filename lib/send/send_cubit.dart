@@ -7,6 +7,8 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/reown/calldata_decoder.dart'
+    show tryDecodeErc20Transfer;
 import 'package:genius_wallet/reown/utilities.dart' show parseHexToBigInt;
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
@@ -16,6 +18,10 @@ import 'package:web3dart/web3dart.dart' show TransactionReceipt;
 /// Used whenever [Coin.decimals] is absent -- which is always, for a coin
 /// with no contract address.
 const _nativeDecimals = 18;
+
+/// Decimals beyond this are not a real token's -- the same ceiling the dApp
+/// calldata decoder holds a token amount to.
+const _maxTokenDecimals = 36;
 
 /// Form state only -- **never a key**. [SendCubit.submit] hands the built
 /// transaction to [GeniusApi.signAndSendTransaction], which resolves and
@@ -80,22 +86,37 @@ class SendReview {
   final String recipient;
 }
 
-/// Whether [tx] really is the send it claims to be: the recipient it was
-/// built for, the amount it was built for, and no calldata riding along on
-/// what is supposed to be a plain native transfer.
+/// Whether [tx] really is the send it claims to be. With no [tokenContract]:
+/// the recipient it was built for, the amount it was built for, and no
+/// calldata riding along on what is supposed to be a plain native transfer.
+/// With one: `to` is the contract, no native value moves, and the calldata
+/// decodes back to exactly that recipient and amount -- the review's own
+/// proof that the built transaction says what the form said.
 bool builtTxMatches(
   Map<String, dynamic> tx, {
   required String recipient,
   required BigInt amount,
+  String? tokenContract,
 }) {
   final to = tx['to'] as String?;
   final value = tx['value'] as String?;
   if (to == null || value == null) {
     return false;
   }
-  return to.toLowerCase() == recipient.toLowerCase() &&
-      parseHexToBigInt(value) == amount &&
-      !tx.containsKey('data');
+  if (tokenContract == null) {
+    return to.toLowerCase() == recipient.toLowerCase() &&
+        parseHexToBigInt(value) == amount &&
+        !tx.containsKey('data');
+  }
+  if (to.toLowerCase() != tokenContract.toLowerCase() ||
+      parseHexToBigInt(value) != BigInt.zero) {
+    return false;
+  }
+  final decoded = tryDecodeErc20Transfer(tx['data'] as String?);
+  return decoded != null &&
+      decoded.counterparty.eip55With0x.toLowerCase() ==
+          recipient.toLowerCase() &&
+      decoded.amount == amount;
 }
 
 /// The history row a send resolves to. [coin] is the asset that moved -- on
@@ -188,9 +209,25 @@ class SendCubit extends Cubit<SendState> {
       emit(state.copyWith(error: 'Enter a valid address.', clearReview: true));
       return;
     }
-    final decimals = coin.address == null
-        ? _nativeDecimals
-        : int.tryParse(coin.decimals ?? '') ?? _nativeDecimals;
+
+    final tokenContract = coin.address;
+    int decimals;
+    if (tokenContract == null) {
+      decimals = _nativeDecimals;
+    } else {
+      final parsed = int.tryParse(coin.decimals ?? '');
+      if (parsed == null || parsed < 0 || parsed > _maxTokenDecimals) {
+        emit(
+          state.copyWith(
+            error: "This token's decimals are unknown.",
+            clearReview: true,
+          ),
+        );
+        return;
+      }
+      decimals = parsed;
+    }
+
     final rawAmount = toBaseUnits(state.amount.trim(), decimals);
     if (rawAmount == null || rawAmount <= BigInt.zero) {
       emit(
@@ -200,36 +237,95 @@ class SendCubit extends Cubit<SendState> {
     }
 
     final rpcUrl = network.rpcUrl ?? '';
+    final gasSymbol = (network.nativeSymbol ?? network.symbol ?? '')
+        .toUpperCase();
     emit(state.copyWith(busy: true, clearError: true, clearReview: true));
     try {
+      final data = tokenContract == null
+          ? null
+          : erc20TransferCalldata(
+              tokenContract: tokenContract,
+              recipient: recipient,
+              amount: rawAmount,
+            );
       final fee = await api.estimateSendFee(
         rpcUrl: rpcUrl,
         sender: walletAddress,
-        recipient: recipient,
+        recipient: tokenContract ?? recipient,
+        data: data,
       );
-      final balance = await api.nativeBalance(
-        address: walletAddress,
-        rpcUrl: rpcUrl,
-      );
-      if (rawAmount + fee.maxCost > balance) {
-        final gasSymbol = (network.nativeSymbol ?? network.symbol ?? '')
-            .toUpperCase();
-        if (!isClosed) {
-          emit(
-            state.copyWith(
-              busy: false,
-              error: "Not enough $gasSymbol to cover the amount and the fee.",
-            ),
-          );
+
+      if (tokenContract == null) {
+        final balance = await api.nativeBalance(
+          address: walletAddress,
+          rpcUrl: rpcUrl,
+        );
+        if (rawAmount + fee.maxCost > balance) {
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                busy: false,
+                error: "Not enough $gasSymbol to cover the amount and the fee.",
+              ),
+            );
+          }
+          return;
         }
-        return;
+      } else {
+        final tokenBalance = await api.rawBalanceOf(
+          address: walletAddress,
+          contractAddress: tokenContract,
+          rpcUrl: rpcUrl,
+        );
+        if (rawAmount > tokenBalance) {
+          final symbol = (coin.symbol ?? '').toUpperCase();
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                busy: false,
+                error: "Your $symbol balance doesn't cover this amount.",
+              ),
+            );
+          }
+          return;
+        }
+        final nativeBalance = await api.nativeBalance(
+          address: walletAddress,
+          rpcUrl: rpcUrl,
+        );
+        if (fee.maxCost > nativeBalance) {
+          if (!isClosed) {
+            emit(
+              state.copyWith(
+                busy: false,
+                error: "Not enough $gasSymbol for the network fee.",
+              ),
+            );
+          }
+          return;
+        }
       }
+
       final tx = buildSendTx(
         from: walletAddress,
         recipient: recipient,
         amount: rawAmount,
         fee: fee,
+        tokenContract: tokenContract,
       );
+      if (!builtTxMatches(
+        tx,
+        recipient: recipient,
+        amount: rawAmount,
+        tokenContract: tokenContract,
+      )) {
+        if (!isClosed) {
+          emit(
+            state.copyWith(busy: false, error: "Couldn't build this transfer."),
+          );
+        }
+        return;
+      }
       if (isClosed) {
         return;
       }
