@@ -13,7 +13,7 @@
     "symbol": "eth",
     "coinGeckoId": "ethereum",
     "chainId": 11155111,
-    "rpcUrl": "https://nd-964-217-560.p2pify.com/8c17a356234963100895499dc535c9f4",
+    "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
     "iconPath": "assets/images/crypto/eth-testnet.png",
     "tokensPath": "assets/json/tokens/eth_test_net.json"
   },
