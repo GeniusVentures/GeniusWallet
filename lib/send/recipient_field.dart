@@ -66,10 +66,14 @@ class RecipientField extends StatelessWidget {
     final cubit = context.watch<SendCubit>();
     final state = cubit.state;
     final trimmed = state.recipient.trim();
-    final invalid = trimmed.isNotEmpty && !isEvmAddress(trimmed);
-    final fieldError = invalid
-        ? 'Enter a 0x address of 40 hex characters.'
-        : errorText;
+    // Lowercase always passes the checksum, so this tells a casing typo apart
+    // from a malformed address.
+    final fieldError = trimmed.isEmpty || isEvmAddress(trimmed)
+        ? errorText
+        : isEvmAddress(trimmed.toLowerCase())
+        ? "This address's capitals don't match its checksum. Check it for a "
+              'typo.'
+        : 'Enter a 0x address of 40 hex characters.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

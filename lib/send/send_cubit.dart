@@ -357,6 +357,15 @@ class SendCubit extends Cubit<SendState> {
       emit(state.copyWith(error: 'Enter a valid address.', clearReview: true));
       return;
     }
+    if (RegExp(r'^0x0{40}$').hasMatch(recipient)) {
+      emit(
+        state.copyWith(
+          error: 'This is the zero address. Anything sent to it is lost.',
+          clearReview: true,
+        ),
+      );
+      return;
+    }
 
     final tokenContract = coin.address;
     int decimals;
