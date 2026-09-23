@@ -294,7 +294,7 @@ extension SendReads on Web3 {
         },
       );
 
-      final gasLimit = await client
+      final estimate = await client
           .estimateGas(
             sender: senderAddress,
             to: recipientAddress,
@@ -302,6 +302,14 @@ extension SendReads on Web3 {
             value: value == null ? null : EtherAmount.inWei(value),
           )
           .timeout(rpcReadTimeout);
+      // A plain transfer costs 21000 whatever happens before it is mined.
+      // Anything above that runs contract code whose storage writes can grow
+      // by then, and running out of gas still charges the fee.
+      // ponytail: a fixed 20% margin, not a simulation of each contract; a
+      // call whose cost swings further than that can still run out.
+      final gasLimit = estimate > BigInt.from(21000)
+          ? (estimate * BigInt.from(120) + BigInt.from(99)) ~/ BigInt.from(100)
+          : estimate;
 
       // A failed read here throws rather than defaulting to zero: an
       // underpriced balance check is a broadcast the txpool then refuses.

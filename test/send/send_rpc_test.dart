@@ -156,13 +156,16 @@ void main() {
       expect(estimated?['value'], '0x3e8');
     });
 
-    Future<String> serveBase(List<String> calls) => _serve((method, params) {
+    Future<String> serveBase(
+      List<String> calls, {
+      String estimate = '0x5208',
+    }) => _serve((method, params) {
       calls.add(method);
       if (method == 'eth_gasPrice') {
         return {'result': '0x3b9aca00'};
       }
       if (method == 'eth_estimateGas') {
-        return {'result': '0x5208'};
+        return {'result': estimate};
       }
       if (method == 'eth_call') {
         final to = (params.first as Map<String, dynamic>)['to'] as String;
@@ -205,6 +208,36 @@ void main() {
 
       expect(fee.l1Fee, BigInt.zero);
       expect(calls, isNot(contains('eth_call')));
+    });
+
+    test(
+      'a plain transfer signs the exact 21000 it was estimated at',
+      () async {
+        final rpcUrl = await serveBase([]);
+
+        final fee = await Web3().readSendFee(
+          rpcUrl: rpcUrl,
+          sender: _from,
+          recipient: _from,
+          chainId: 137,
+        );
+
+        expect(fee.gasLimit, BigInt.from(21000));
+      },
+    );
+
+    test('a contract call signs with headroom over its estimate', () async {
+      final rpcUrl = await serveBase([], estimate: '0xc350'); // 50,000
+
+      final fee = await Web3().readSendFee(
+        rpcUrl: rpcUrl,
+        sender: _from,
+        recipient: _from,
+        chainId: 137,
+      );
+
+      expect(fee.gasLimit, BigInt.from(60000));
+      expect(fee.maxCost, BigInt.from(1000000000) * BigInt.from(60000));
     });
   });
 
