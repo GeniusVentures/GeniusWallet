@@ -119,9 +119,9 @@ bool builtTxMatches(
       decoded.amount == amount;
 }
 
-/// The history row a send resolves to. [coin] is the asset that moved -- on
-/// this plan always the coin with no contract address, so [assetSymbol] and
-/// [coinSymbol] name the same currency, in whichever casing each side holds.
+/// The history row a send resolves to. [coin] is the asset that moved, so it
+/// names `assetSymbol`; `coinSymbol` is always the gas coin, because the fee
+/// is paid in it whether the send moved a token or the native coin.
 Transaction sendRow({
   required String hash,
   required TransactionStatus status,
