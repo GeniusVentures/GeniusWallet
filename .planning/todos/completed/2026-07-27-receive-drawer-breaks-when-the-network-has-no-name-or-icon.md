@@ -72,6 +72,10 @@ Two things here are **correct and deliberate** - do not "tidy" them:
 - **Defect 1 fixed** once in the shared `CryptoAddressQR` (all five callers pass through it): the network
   name is trimmed; when blank, the chip label is omitted and the warning reads
   "Only send assets on the selected network to this address."
-- **Defect 2 was already fixed** before this pass: `embeddedImage` is `null` when there is no icon.
+- **Defect 2 is fixed for an empty path too, not only null.** The null case was already fixed before this
+  pass, but callers also pass `''` (`token_info_screen.dart` forwards `selectedCoin?.iconPath`; the dev mock
+  holdings carry `iconPath: ''`). A blank path is now treated exactly like a missing one, for both the
+  chip avatar and the QR's embedded logo. With neither an icon nor a name, the chip row and its gap are
+  not rendered at all.
 - Pinned by `test/components/crypto_address_qr_blank_network_test.dart` (blank and whitespace names,
-  a named network, and the null embedded image).
+  a named network, a null icon and an empty-string icon).
