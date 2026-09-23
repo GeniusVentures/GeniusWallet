@@ -1,6 +1,6 @@
 /// A 42-character `0x`-prefixed hex address. Deliberately not a checksum test:
-/// the SDK does that, and rejecting a valid lowercase address because it is not
-/// EIP-55 cased would be worse than the no-validation this replaces.
+/// the SDK does that, and a valid lowercase address must not be rejected for
+/// lacking EIP-55 casing.
 bool isEvmAddress(String raw) {
   final v = raw.trim();
   return RegExp(r'^0x[0-9a-fA-F]{40}$').hasMatch(v);
@@ -16,7 +16,9 @@ String? walletNameError(String? value) {
   if (name.isEmpty) {
     return 'Please enter a wallet name';
   }
-  if (isEvmAddress(name)) {
+  // Lowercased so a `0X` prefix is caught too; `isEvmAddress` stays strict
+  // because the payout field forwards what it accepts to the SDK verbatim.
+  if (isEvmAddress(name.toLowerCase())) {
     return walletNameIsAddressMessage;
   }
   return null;

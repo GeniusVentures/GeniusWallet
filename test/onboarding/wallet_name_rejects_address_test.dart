@@ -59,6 +59,7 @@ void main() {
       expect(walletNameError('   '), isNotNull);
       expect(walletNameError(_address), isNotNull);
       expect(walletNameError(' ${_address.toLowerCase()} '), isNotNull);
+      expect(walletNameError('0X${_address.substring(2)}'), isNotNull);
     });
 
     test('accepts ordinary names, including ones that start with 0x', () {
@@ -78,6 +79,12 @@ void main() {
     final api = await _submitName(tester, 'Savings');
 
     expect(find.text(walletNameIsAddressMessage), findsNothing);
+    expect(api.importedNames, ['Savings']);
+  });
+
+  testWidgets('import stores the name trimmed', (tester) async {
+    final api = await _submitName(tester, '  Savings  ');
+
     expect(api.importedNames, ['Savings']);
   });
 }
