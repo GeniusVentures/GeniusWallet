@@ -61,6 +61,9 @@ const _census = <String, _Inset>{
   'lib/banxa/banxa_components/buy_success_drawer.dart': _Inset.shellInset,
   'lib/banxa/banxa_components/buy_cancelled_drawer.dart': _Inset.shellInset,
   'lib/components/coins/view/coins_screen.dart': _Inset.shellInset,
+  // Phase 31's send confirm drawer, same call shape as swap's approve
+  // drawer -- no bodyPadding, so shellInset.
+  'lib/send/send_screen.dart': _Inset.shellInset,
   // The /assets page's Receive drawer (phase 25-02). Same call shape as the
   // coins_screen.dart entry directly above: no bodyPadding, so shellInset.
   'lib/dashboard/assets/assets_screen.dart': _Inset.shellInset,

@@ -31,6 +31,7 @@ import 'package:genius_wallet/onboarding/routes/wallet_routes.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
 import 'package:genius_wallet/screens/order_details_page.dart';
 import 'package:genius_wallet/screens/splash.dart';
+import 'package:genius_wallet/send/send_screen.dart';
 import 'package:genius_wallet/services/coins_service.dart';
 import 'package:genius_wallet/settings/settings_screen.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
@@ -259,6 +260,20 @@ final geniusWalletRouter = GoRouter(
                 ? state.extra as Map<String, dynamic>
                 : const <String, dynamic>{};
             return SwapScreen(
+              preselectSymbol: extra['symbol'] as String?,
+              preselectChainId: extra['chainId'] as int?,
+            );
+          },
+        ),
+        GoRoute(
+          path: '/send',
+          builder: (context, state) {
+            // Same `extra` shape as `/swap` above (D-03): an optional coin to
+            // seat, sent by a coin page's Send button.
+            final extra = state.extra is Map<String, dynamic>
+                ? state.extra as Map<String, dynamic>
+                : const <String, dynamic>{};
+            return SendScreen(
               preselectSymbol: extra['symbol'] as String?,
               preselectChainId: extra['chainId'] as int?,
             );
