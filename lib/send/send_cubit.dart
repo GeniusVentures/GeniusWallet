@@ -415,6 +415,21 @@ class SendCubit extends Cubit<SendState> {
 
     emit(state.copyWith(busy: true, clearError: true, clearReview: true));
     try {
+      // Before the gas estimate: a transfer beyond the balance reverts in
+      // estimateGas, which would otherwise surface as a fee error.
+      if (tokenContract != null) {
+        final tokenBalance = await api.rawBalanceOf(
+          address: walletAddress,
+          contractAddress: tokenContract,
+          rpcUrl: rpcUrl,
+        );
+        if (rawAmount > tokenBalance) {
+          final symbol = (coin.symbol ?? '').toUpperCase();
+          settle(error: "Your $symbol balance doesn't cover this amount.");
+          return;
+        }
+      }
+
       final data = tokenContract == null
           ? null
           : erc20TransferCalldata(
@@ -441,16 +456,6 @@ class SendCubit extends Cubit<SendState> {
           return;
         }
       } else {
-        final tokenBalance = await api.rawBalanceOf(
-          address: walletAddress,
-          contractAddress: tokenContract,
-          rpcUrl: rpcUrl,
-        );
-        if (rawAmount > tokenBalance) {
-          final symbol = (coin.symbol ?? '').toUpperCase();
-          settle(error: "Your $symbol balance doesn't cover this amount.");
-          return;
-        }
         final nativeBalance = await api.nativeBalance(
           address: walletAddress,
           rpcUrl: rpcUrl,

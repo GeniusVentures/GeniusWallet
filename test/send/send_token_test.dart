@@ -1,4 +1,4 @@
-// The ERC-20 half of D-01: a built `transfer` call decodes back to exactly
+// The ERC-20 send: a built `transfer` call decodes back to exactly
 // what the form asked for -- the app's own dApp decoder is the self-check --
 // and a token send runs review-to-resolved on a fake API, gated on the
 // native (gas) balance rather than the token balance for the fee.
@@ -90,13 +90,22 @@ class _ConfigurableApi implements GeniusApi {
     required String rpcUrl,
   }) async => nativeBalanceAmount;
 
+  /// Reverts like a real `estimateGas` does on a transfer beyond balance.
   @override
   Future<SendFee> estimateSendFee({
     required String rpcUrl,
     required String sender,
     required String recipient,
     Uint8List? data,
-  }) async => _fee();
+  }) async {
+    final transfer = tryDecodeErc20Transfer(
+      data == null ? null : bytesToHex(data, include0x: true),
+    );
+    if (transfer != null && transfer.amount > tokenBalance) {
+      throw Exception('execution reverted: transfer amount exceeds balance');
+    }
+    return _fee();
+  }
 
   @override
   Future<ApiResponse<String>> signAndSendTransaction({
