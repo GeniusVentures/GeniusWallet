@@ -31,6 +31,8 @@ class SendState {
     this.coin,
     this.recipient = '',
     this.amount = '',
+    this.selfSend = false,
+    this.contractRecipient = false,
     this.busy = false,
     this.error,
     this.review,
@@ -40,6 +42,14 @@ class SendState {
   final Coin? coin;
   final String recipient;
   final String amount;
+
+  /// Whether the typed/pasted/scanned recipient is the wallet's own address.
+  final bool selfSend;
+
+  /// Whether `eth_getCode` found bytecode at the recipient. Only ever set for
+  /// a valid, non-self recipient; a stale answer never applies (see
+  /// [SendCubit.setRecipient]).
+  final bool contractRecipient;
   final bool busy;
   final String? error;
   final SendReview? review;
@@ -53,6 +63,8 @@ class SendState {
     Coin? coin,
     String? recipient,
     String? amount,
+    bool? selfSend,
+    bool? contractRecipient,
     bool? busy,
     String? error,
     SendReview? review,
@@ -63,6 +75,8 @@ class SendState {
     coin: coin ?? this.coin,
     recipient: recipient ?? this.recipient,
     amount: amount ?? this.amount,
+    selfSend: selfSend ?? this.selfSend,
+    contractRecipient: contractRecipient ?? this.contractRecipient,
     busy: busy ?? this.busy,
     error: clearError ? null : (error ?? this.error),
     review: clearReview ? null : (review ?? this.review),
@@ -179,9 +193,22 @@ class SendCubit extends Cubit<SendState> {
   final TransactionStorageService storage;
   final Future<void> Function(Duration delay) wait;
 
-  void setRecipient(String value) => emit(
-    state.copyWith(recipient: value, clearError: true, clearReview: true),
-  );
+  /// [selfSend] is set here, ignoring case, so the field's own warning is
+  /// never a frame behind what was just typed or pasted.
+  void setRecipient(String value) {
+    final trimmed = value.trim();
+    final self =
+        isEvmAddress(trimmed) &&
+        trimmed.toLowerCase() == walletAddress.toLowerCase();
+    emit(
+      state.copyWith(
+        recipient: value,
+        selfSend: self,
+        clearError: true,
+        clearReview: true,
+      ),
+    );
+  }
 
   void setAmount(String value) =>
       emit(state.copyWith(amount: value, clearError: true, clearReview: true));
