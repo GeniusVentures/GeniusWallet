@@ -21,6 +21,7 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/reown/utilities.dart' show parseHexToBigInt;
+import 'package:genius_wallet/send/recipient_field.dart';
 import 'package:genius_wallet/send/send_screen.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -219,6 +220,38 @@ void main() {
         transactionsCubit.state.first.transactionStatus,
         TransactionStatus.completed,
       );
+    },
+  );
+
+  testWidgets(
+    'a failed review keeps its error under the recipient field, not a toast',
+    (tester) async {
+      final api = _FakeApi();
+      final storage = _RecordingStorage();
+      final transactionsCubit = TransactionsCubit();
+      await _mount(tester, api, storage, transactionsCubit);
+
+      // A valid recipient with an amount the seeded 10 MATIC balance can't
+      // cover -- the field's own format check has nothing to say, so the
+      // cubit's review error must be what fills its errorText.
+      await tester.enterText(find.byType(TextField).at(0), _recipient);
+      await tester.enterText(find.byType(TextField).at(1), '999');
+      await tester.pump();
+
+      await tester.tap(find.widgetWithText(GWButton, 'Review'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(RecipientField),
+          matching: find.text(
+            'Not enough MATIC to cover the amount and the fee.',
+          ),
+        ),
+        findsOneWidget,
+      );
+      // The drawer never opened -- review refused before a review was built.
+      expect(find.text('Gas Fee'), findsNothing);
     },
   );
 

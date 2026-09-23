@@ -44,7 +44,7 @@ class _FakeApi implements GeniusApi {
 
 String? _clipboardText;
 
-Future<SendCubit> _pump(WidgetTester tester) async {
+Future<SendCubit> _pump(WidgetTester tester, {String? errorText}) async {
   final cubit = SendCubit(
     api: _FakeApi(),
     walletAddress: _walletAddress,
@@ -60,7 +60,7 @@ Future<SendCubit> _pump(WidgetTester tester) async {
       value: cubit,
       child: MaterialApp(
         theme: ThemeData(extensions: [GWColors.dark()]),
-        home: const Scaffold(body: RecipientField()),
+        home: Scaffold(body: RecipientField(errorText: errorText)),
       ),
     ),
   );
@@ -108,5 +108,29 @@ void main() {
 
     expect(cubit.state.recipient, _otherAddress);
     expect(find.textContaining('This is your own address'), findsNothing);
+  });
+
+  testWidgets(
+    'a passed-in errorText shows under the field when the format check has '
+    'nothing to say',
+    (tester) async {
+      await _pump(tester, errorText: 'Enter an amount to send.');
+
+      expect(find.text('Enter an amount to send.'), findsOneWidget);
+    },
+  );
+
+  testWidgets("the field's own format error wins over a passed-in errorText", (
+    tester,
+  ) async {
+    final cubit = await _pump(tester, errorText: 'Enter an amount to send.');
+    cubit.setRecipient('not-an-address');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Enter a 0x address of 40 hex characters.'),
+      findsOneWidget,
+    );
+    expect(find.text('Enter an amount to send.'), findsNothing);
   });
 }
