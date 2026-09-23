@@ -88,6 +88,7 @@ class _ConfigurableApi implements GeniusApi {
 
   int signCalls = 0;
   final List<Map<String, dynamic>> signedTxs = [];
+  final List<BigInt?> feeValues = [];
 
   @override
   Future<BigInt> rawBalanceOf({
@@ -108,7 +109,9 @@ class _ConfigurableApi implements GeniusApi {
     required String sender,
     required String recipient,
     Uint8List? data,
+    BigInt? value,
   }) async {
+    feeValues.add(value);
     if (estimateError != null) {
       throw estimateError!;
     }
@@ -244,6 +247,21 @@ void main() {
         expect(cubit.state.review, isNull, reason: bad);
         expect(cubit.state.error, isNotNull, reason: bad);
       }
+    });
+
+    test('a native send is priced with its value attached', () async {
+      final api = _ConfigurableApi();
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+
+      await cubit.review();
+
+      expect(api.feeValues.single, BigInt.parse('500000000000000000'));
     });
 
     test('amount plus fee above balance names the gas coin', () async {

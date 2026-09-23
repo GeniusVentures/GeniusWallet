@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:web3dart/web3dart.dart' show bytesToHex, hexToBytes, keccak256;
 
@@ -48,6 +49,33 @@ Map<String, dynamic> _tx() => {
 };
 
 void main() {
+  group('readSendFee', () {
+    test('a native send is simulated with its value attached', () async {
+      Map<String, dynamic>? estimated;
+      final rpcUrl = await _serve((method, params) {
+        if (method == 'eth_gasPrice') {
+          return {'result': '0x3b9aca00'};
+        }
+        if (method == 'eth_estimateGas') {
+          estimated = params.first as Map<String, dynamic>;
+          return {'result': '0x5208'};
+        }
+        return {
+          'error': {'code': -32601, 'message': 'unexpected $method'},
+        };
+      });
+
+      await Web3().readSendFee(
+        rpcUrl: rpcUrl,
+        sender: _from,
+        recipient: _from,
+        value: BigInt.from(1000),
+      );
+
+      expect(estimated?['value'], '0x3e8');
+    });
+  });
+
   group('signAndSendTransaction', () {
     test('a broadcast the node never answers hands back its hash', () async {
       String? broadcast;
