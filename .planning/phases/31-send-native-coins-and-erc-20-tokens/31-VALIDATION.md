@@ -18,9 +18,9 @@ created: 2026-09-23
 
 | Property | Value |
 |----------|-------|
-| **Framework** | `flutter_test` (app) + Dart `test` ^1.24.1 (declared in `packages/genius_api`, no `test/` dir yet) |
+| **Framework** | `flutter_test` (app only). `packages/genius_api` declares no `test` dependency and imports Flutter, and CI runs only the root suite, so its send code is tested from the app's `test/send/` |
 | **Config file** | none — `pubspec.yaml` only |
-| **Quick run command** | `flutter test test/send/ test/tokens/coin_page_stat_rail_test.dart` · `dart test` inside `packages/genius_api/` |
+| **Quick run command** | `flutter test test/send/ test/tokens/coin_page_stat_rail_test.dart test/dashboard/` |
 | **Full suite command** | `flutter test` (develop baseline 1590 pass / 5 skip on 2026-09-23) |
 | **Estimated runtime** | ~35 seconds (full app suite) |
 
@@ -29,7 +29,7 @@ created: 2026-09-23
 ## Sampling Rate
 
 - **After every task commit:** the quick-run command for the files touched
-- **After every plan wave:** `flutter test` + `dart test` in `packages/genius_api`
+- **After every plan wave:** `flutter test`, plus `flutter analyze` at the root and in `packages/genius_api`
 - **Before `/gsd-verify-work`:** full suite green, `flutter analyze` clean, all `tool/*.sh` gates pass
 - **Max feedback latency:** 40 seconds
 
@@ -41,13 +41,13 @@ Filled by the planner per task. Requirement → test map from research:
 
 | Requirement | Behaviour proven | Test type | Command | Exists |
 |-------------|------------------|-----------|---------|--------|
-| SEND-01 | Old 18-field `Transaction` rows still read; asset field drives amount/title/icon; `coinSymbol` still drives network, fee and explorer | unit | `dart test` (genius_api) + `flutter test test/dashboard/` | ❌ W0 |
-| SEND-02 | Native send: fee estimate before confirm; MAX = balance − max fee; legacy fallback when EIP-1559 throws | unit | `dart test test/send_service_test.dart` (genius_api) | ❌ W0 |
-| SEND-03 | ERC-20 `transfer` calldata decodes back to the form's recipient and amount | unit | app-level test (the decoder lives in `lib/reown/`, not importable from genius_api) | ❌ W0 |
-| SEND-04 | Poll resolves pending → completed/failed; exhausted poll leaves the row pending without throwing; the cubit gets one row, not two | unit | `dart test` (genius_api) + app cubit test | ❌ W0 |
-| SEND-05 | Address validation, self-send and contract warnings, QR button absent on Windows/Linux | widget | `flutter test test/send/` | ❌ W0 |
-| SEND-06 | `/send` reads `extra` symbol/chainId; dashboard entry opens a coin picker | widget | `flutter test test/send/` | ❌ W0 |
-| SEND-07 | Confirm shows the built values via `SendTransactionDetails`; pending row then resolved outcome; coin-page test asserts the Send CTA | widget | `flutter test test/tokens/coin_page_stat_rail_test.dart` | ✅ edit |
+| SEND-01 | Old 18-field rows still read; asset drives title/amount/icon; gas coin drives the fee row; chainId drives the explorer | unit + widget | `flutter test test/dashboard/transaction_asset_chain_test.dart test/reown/handle_dapp_requests_test.dart` (31-01) | ❌ W0 |
+| SEND-02 | Native send: fee before confirm; legacy fallback; MAX = balance − max fee | unit + widget | `flutter test test/send/send_service_test.dart test/send/send_screen_test.dart test/send/send_cubit_test.dart` (31-02, 31-03) | ❌ W0 |
+| SEND-03 | ERC-20 `transfer` decodes back to the form's recipient and amount | unit | `flutter test test/send/send_token_test.dart` (31-03) | ❌ W0 |
+| SEND-04 | Poll resolves pending → completed/failed; exhaustion leaves pending; the cubit gets one row, not two | unit + widget | `flutter test test/send/send_service_test.dart test/send/send_screen_test.dart` (31-02) | ❌ W0 |
+| SEND-05 | Validation, paste, self-send and contract warnings, QR absent on Windows/Linux, MAX | widget | `flutter test test/send/recipient_field_test.dart test/send/send_cubit_test.dart` (31-03, 31-04) | ❌ W0 |
+| SEND-06 | `/send` seats the extra's coin; dashboard entry opens the picker | widget | `flutter test test/send/send_screen_test.dart test/dashboard/dashboard_send_entry_test.dart` (31-02, 31-05) | ❌ W0 |
+| SEND-07 | Review shows the built values via `SendTransactionDetails`; pending then resolved row; coin-page test asserts the CTA | widget | `flutter test test/send/send_screen_test.dart test/tokens/coin_page_stat_rail_test.dart` (31-02, 31-05) | ✅ edit |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -55,8 +55,8 @@ Filled by the planner per task. Requirement → test map from research:
 
 ## Wave 0 Requirements
 
-- [ ] `packages/genius_api/test/` — the package has no test directory; the first plan that adds package code creates it
-- [ ] `test/send/` — new app-level directory for the form, route and confirm tests
+- [ ] `test/send/` — new app-level directory, created by 31-02's tracer; it also covers the genius_api send code
+- [ ] `test/dashboard/transaction_asset_chain_test.dart` — created by 31-01's tracer
 
 ---
 

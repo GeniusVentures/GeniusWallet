@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
-current_phase: 30
-current_phase_name: "dApp calldata decoding (end blind signing) - 4/4 plans executed"
-status: in_progress
-stopped_at: "Phase 30 COMPLETE (4/4) on branch phase-30-calldata-decoding. Plan 30-04 added the Squid router allow-list and the input-side swap decode: kKnownRouters is const and holds ONE chain (Base 8453) and one address, because that pair is the only one a recorded live response evidences -- the chain-1 entry was dropped for lack of proof. tryDecodeSwapInput reuses the ERC-20 selector-then-tuple core, so the same 68-byte guard stops a fixed-offset read on a payload that did not earn it; a mutated selector, a 67-byte payload, an off-Base chain and an unrecognised selector on a listed router all fall to unknownCall (the router still named). The drawer says "Swapping 1 GNUS via Squid" and states plainly that the destination token and amount are not in the transaction and must be checked on the dApp. Nothing scans the blob for a token address. DAP-02 is recorded PARTIAL, not met: Squid's calldata carries fromToken/fromAmount at fixed offsets but toToken only nested at a route-dependent position and toAmount not at all. 1341 pass / 3 skip / 0 fail (30-03 baseline 1302, +39 = exactly the cases this plan added), analyze "No issues found!" exit 0, dart format lib test 0 changed exit 0, brace + raw-colour gates exit 0, drawer census 32/32 green with no new entry needed, git diff develop --stat -- pubspec.yaml pubspec.lock empty. Next: human walk of the two drawers on a real WalletConnect session, then verification."
-last_updated: "2026-09-19T22:40:00.000Z"
-last_activity: 2026-09-19
-last_activity_desc: Phase 30 executed and verified on phase-30-calldata-decoding (PR #235); DAP-02 partial by design
+current_phase: 31
+current_phase_name: "Send native coins and ERC-20 tokens - planned, 5 plans, not executed"
+status: ready_to_execute
+stopped_at: "Phase 31 planned 2026-09-23 on branch plan/send: 5 sequential plans (31-01..05) covering SEND-01..07, plan-checker passed with one warning (31-02 task 1 is dense). 31-01 opens with a one-way checkpoint: two new Transaction fields (assetSymbol@18, chainId@19) vs D-05's one. v2.0 PRs #233-#235 and #236-#243 are all merged to develop (baseline 1590 pass / 5 skip). Next: /gsd-execute-phase 31."
+last_updated: "2026-09-23T16:10:00.000Z"
+last_activity: 2026-09-23
+last_activity_desc: Phase 31 (Send) researched and planned on plan/send; 5 plans, checker passed
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 12
+  total_phases: 4
+  completed_phases: 3
+  total_plans: 17
   completed_plans: 12
-  percent: 67
+  percent: 71
 ---
 
 # Project State
@@ -24,7 +24,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 30 complete (2026-09-19) on `phase-30-calldata-decoding`, draft PR #235. Phases 26 (PR #233) and 29 (PR #234) merged to develop 2026-09-21; #235 is the last v2.0 PR.
+**Current focus:** Phase 31 (Send) planned 2026-09-23 on `plan/send`, 5 plans, ready to execute. Phases 26, 29 and 30 are merged (PRs #233-#235); develop baseline 1590 pass / 5 skip.
 
 ## Current Position
 
