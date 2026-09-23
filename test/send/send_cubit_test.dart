@@ -307,6 +307,53 @@ void main() {
       },
     );
 
+    test('an unanswered broadcast is tracked by its hash, not reported as '
+        'unsent', () async {
+      final api = _ConfigurableApi(
+        signResponse: ApiResponse.unconfirmed(_hash, 'connection reset'),
+        receiptSequence: [null],
+      );
+      final storage = _RecordingStorage();
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: storage,
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+      await cubit.review();
+
+      final result = await cubit.submit();
+
+      expect(result?.hash, _hash);
+      expect(result?.transactionStatus, TransactionStatus.pending);
+      expect(storage.writes.map((w) => w.hash), everyElement(_hash));
+      expect(cubit.state.amount, '');
+      expect(cubit.state.error, contains('pending'));
+    });
+
+    test(
+      'an unanswered broadcast that later mines resolves normally',
+      () async {
+        final api = _ConfigurableApi(
+          signResponse: ApiResponse.unconfirmed(_hash, 'connection reset'),
+        );
+        final cubit = _cubit(
+          api: api,
+          transactions: TransactionsCubit(),
+          storage: _RecordingStorage(),
+        );
+        cubit.setRecipient(_recipient);
+        cubit.setAmount('0.5');
+        await cubit.review();
+
+        final result = await cubit.submit();
+
+        expect(result?.transactionStatus, TransactionStatus.completed);
+        expect(cubit.state.error, isNull);
+      },
+    );
+
     test('cancelReview then submit signs nothing', () async {
       final api = _ConfigurableApi();
       final cubit = _cubit(

@@ -11,6 +11,7 @@ import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_api/web3/utilities.dart';
 import 'package:http/http.dart';
 import 'package:wallet/wallet.dart' hide PrivateKey;
+import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart';
 import 'package:flutter/material.dart';
 
@@ -712,11 +713,25 @@ class Web3 {
       }
 
       final credentials = EthPrivateKey.fromHex(privateKey);
-      final txHash = await client.sendTransaction(
+      final signed = await client.signTransaction(
         credentials,
         transaction,
         chainId: chainId,
       );
+      final String txHash;
+      try {
+        txHash = await client.sendRawTransaction(signed);
+      } on RPCError catch (e) {
+        return ApiResponse.error("Sign/Send failed: $e");
+      } catch (e) {
+        // The node never answered, so it may have taken the transaction
+        // anyway. Its hash is known before broadcast: handing it back lets
+        // the caller track it instead of inviting a second, duplicate send.
+        return ApiResponse.unconfirmed(
+          bytesToHex(keccak256(signed), include0x: true),
+          "Sign/Send failed: $e",
+        );
+      }
 
       // Diagnostic only, and deliberately outside the send's failure path.
       // The transaction is already on the network by this point, so a failed
