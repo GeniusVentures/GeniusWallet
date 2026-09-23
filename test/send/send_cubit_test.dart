@@ -168,18 +168,46 @@ SendCubit _cubit({
   required TransactionsCubit transactions,
   required _RecordingStorage storage,
   Future<void> Function(Duration)? wait,
+  Network? coinsLoadedFor = _amoy,
 }) => SendCubit(
   api: api,
   walletAddress: _walletAddress,
   network: _amoy,
   transactions: transactions,
   storage: storage,
+  coinsLoadedFor: () => coinsLoadedFor,
   initialCoin: _maticCoin,
   wait: wait ?? (d) async {},
 );
 
 void main() {
   group('review', () {
+    test(
+      'a coin list still loaded for another network builds nothing',
+      () async {
+        final api = _ConfigurableApi();
+        final cubit = _cubit(
+          api: api,
+          transactions: TransactionsCubit(),
+          storage: _RecordingStorage(),
+          coinsLoadedFor: const Network(
+            name: 'Ethereum',
+            symbol: 'eth',
+            chainId: 1,
+            rpcUrl: 'https://rpc.invalid',
+          ),
+        );
+        cubit.setRecipient(_recipient);
+        cubit.setAmount('0.5');
+
+        await cubit.review();
+
+        expect(cubit.state.review, isNull);
+        expect(cubit.state.error, contains('still loading'));
+        expect(api.feeValues, isEmpty);
+      },
+    );
+
     test('a thrown estimate shows "Couldn\'t estimate the network fee." and '
         'opens no review', () async {
       final api = _ConfigurableApi(estimateError: Exception('rpc down'));

@@ -276,6 +276,7 @@ class SendCubit extends Cubit<SendState> {
     required this.network,
     required this.transactions,
     required this.storage,
+    required this.coinsLoadedFor,
     this.wait = Future<void>.delayed,
     Coin? initialCoin,
   }) : super(SendState(coin: initialCoin));
@@ -285,6 +286,10 @@ class SendCubit extends Cubit<SendState> {
   final Network network;
   final TransactionsCubit transactions;
   final TransactionStorageService storage;
+
+  /// The network the wallet's coin list, where every seated coin comes from,
+  /// is loaded for right now. Read at review, not at creation.
+  final Network? Function() coinsLoadedFor;
   final Future<void> Function(Duration delay) wait;
 
   /// [selfSend] is set here, ignoring case, so the field's own warning is
@@ -448,6 +453,15 @@ class SendCubit extends Cubit<SendState> {
   Future<void> review() async {
     final coin = state.coin;
     if (coin == null || state.busy) {
+      return;
+    }
+    if (coinsLoadedFor() != network) {
+      emit(
+        state.copyWith(
+          error: 'Your coins on ${network.name} are still loading.',
+          clearReview: true,
+        ),
+      );
       return;
     }
     final recipient = state.recipient.trim();

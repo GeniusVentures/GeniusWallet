@@ -44,6 +44,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       state.copyWith(
         coinsStatus: WalletStatus.successful,
         coins: coins,
+        coinsNetwork: state.selectedNetwork,
         selectedWalletBalance: balance,
       ),
     );
@@ -280,6 +281,9 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
           state.copyWith(
             coinsStatus: WalletStatus.successful,
             coins: coinList,
+            // The network this read started for, not the one selected now:
+            // a switch during the await must not claim this list as its own.
+            coinsNetwork: selectedNetwork,
             // update selected coin to updated values after retrieval
             selectedCoin: state.selectedCoin != null
                 ? coinList.firstWhere(

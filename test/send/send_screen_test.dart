@@ -25,6 +25,7 @@ import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/reown/utilities.dart' show parseHexToBigInt;
 import 'package:genius_wallet/send/recipient_field.dart';
+import 'package:genius_wallet/send/send_cubit.dart';
 import 'package:genius_wallet/send/send_screen.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -162,6 +163,7 @@ class _SeededCubit extends WalletDetailsCubit {
         selectedWallet: _wallet,
         selectedNetwork: _amoy,
         coins: const [_maticCoin, _usdcCoin],
+        coinsNetwork: _amoy,
         coinsStatus: WalletStatus.successful,
         selectedWalletBalance: '10',
       ),
@@ -169,12 +171,75 @@ class _SeededCubit extends WalletDetailsCubit {
   }
 
   /// Test-only: swaps the network without `selectNetwork`'s `getCoins()`
-  /// refetch -- this fixture's `_FakeApi` answers nothing for that call,
-  /// and the behaviour under test here is `SendScreen`'s own key-based
-  /// rebuild, not the wallet cubit's coin refresh.
+  /// refetch -- this fixture's `_FakeApi` answers nothing for that call.
+  /// The previous network's coins stay on state, as they do until the
+  /// real refetch lands.
   void debugSelectNetwork(Network network) =>
       emit(state.copyWith(selectedNetwork: network));
+
+  /// Test-only: what a finished `getCoins()` for [network] leaves on state.
+  void debugCoinsLoaded(Network network, List<Coin> coins) => emit(
+    state.copyWith(
+      coins: coins,
+      coinsNetwork: network,
+      coinsStatus: WalletStatus.successful,
+    ),
+  );
 }
+
+const _ethereum = Network(
+  name: 'Ethereum',
+  symbol: 'eth',
+  chainId: 1,
+  rpcUrl: 'https://rpc.invalid',
+);
+
+/// Shares Ethereum's `eth` chain key, so a network symbol alone can't tell
+/// a mainnet coin from a Sepolia one.
+const _sepolia = Network(
+  name: 'Ethereum Sepolia',
+  symbol: 'eth',
+  chainId: 11155111,
+  rpcUrl: 'https://rpc.invalid',
+);
+
+const _mainnetUsdc = Coin(
+  symbol: 'usdc',
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  decimals: '6',
+  networkSymbol: 'eth',
+  balance: 500,
+);
+
+/// Mounts `/send` over [walletCubit] as it stands -- the tests below put it
+/// mid-switch first.
+Future<void> _mountOver(
+  WidgetTester tester,
+  _SeededCubit walletCubit, {
+  String? symbol,
+}) async {
+  tester.view.physicalSize = const Size(1200, 1800);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.reset);
+
+  await tester.pumpWidget(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<WalletDetailsCubit>.value(value: walletCubit),
+        BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
+      ],
+      child: MaterialApp(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        home: SendScreen(preselectSymbol: symbol),
+      ),
+    ),
+  );
+  await tester.pump();
+}
+
+final _sendCubitProvider = find.byWidgetPredicate(
+  (w) => w is BlocProvider<SendCubit>,
+);
 
 /// An unsignable chain: no chain id and no RPC, so `canSignOn` refuses it.
 const _unsignableNetwork = Network(name: 'No RPC', symbol: 'none');
@@ -756,19 +821,89 @@ void main() {
     await tester.pump();
     expect(find.text(_recipient), findsOneWidget);
 
-    walletCubit.debugSelectNetwork(
-      const Network(
-        name: 'Ethereum',
-        symbol: 'eth',
-        chainId: 1,
-        rpcUrl: 'https://rpc.invalid',
-      ),
-    );
+    walletCubit.debugSelectNetwork(_ethereum);
+    walletCubit.debugCoinsLoaded(_ethereum, const [
+      Coin(symbol: 'matic', address: '0xMATIC', decimals: '18', balance: 1),
+    ]);
     await tester.pump();
 
     // The wallet+chainId key changed, so a fresh SendCubit was built --
     // the typed recipient from the old one is gone, not carried over.
     expect(find.text(_recipient), findsNothing);
     expect(find.byType(TextField), findsWidgets);
+  });
+
+  group('coins from the network you just left', () {
+    testWidgets('Polygon to Ethereum: a MATIC preselect seats nothing', (
+      tester,
+    ) async {
+      final walletCubit = _SeededCubit(
+        geniusApi: _FakeApi(),
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      addTearDown(walletCubit.close);
+      walletCubit.debugSelectNetwork(_ethereum);
+
+      await _mountOver(tester, walletCubit, symbol: 'matic');
+
+      expect(_sendCubitProvider, findsNothing);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.byType(CoinsScreen), findsNothing);
+      expect(find.textContaining('Ethereum'), findsOneWidget);
+    });
+
+    testWidgets('a bare /send offers no picker over the old list', (
+      tester,
+    ) async {
+      final walletCubit = _SeededCubit(
+        geniusApi: _FakeApi(),
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      addTearDown(walletCubit.close);
+      walletCubit.debugSelectNetwork(_ethereum);
+
+      await _mountOver(tester, walletCubit);
+
+      expect(_sendCubitProvider, findsNothing);
+      expect(find.byType(CoinsScreen), findsNothing);
+    });
+
+    testWidgets('Ethereum to Sepolia: a mainnet token preselect seats '
+        'nothing', (tester) async {
+      final walletCubit = _SeededCubit(
+        geniusApi: _FakeApi(),
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      addTearDown(walletCubit.close);
+      walletCubit.debugSelectNetwork(_ethereum);
+      walletCubit.debugCoinsLoaded(_ethereum, const [_mainnetUsdc]);
+      walletCubit.debugSelectNetwork(_sepolia);
+
+      await _mountOver(tester, walletCubit, symbol: 'usdc');
+
+      expect(_sendCubitProvider, findsNothing);
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    testWidgets("once the new network's coins load, the preselect seats", (
+      tester,
+    ) async {
+      final walletCubit = _SeededCubit(
+        geniusApi: _FakeApi(),
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      addTearDown(walletCubit.close);
+      walletCubit.debugSelectNetwork(_ethereum);
+      await _mountOver(tester, walletCubit, symbol: 'eth');
+      expect(find.byType(TextField), findsNothing);
+
+      walletCubit.debugCoinsLoaded(_ethereum, const [
+        Coin(symbol: 'eth', networkSymbol: 'eth', balance: 1),
+      ]);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TextField), findsWidgets);
+      expect(find.text('ETH'), findsOneWidget);
+    });
   });
 }

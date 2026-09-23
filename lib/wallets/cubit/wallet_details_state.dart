@@ -14,6 +14,11 @@ class WalletDetailsState {
   final List<Wallet> wallets;
   final double gasFees;
   final List<Coin> coins;
+
+  /// The network [coins] was loaded for. A network switch lands before the
+  /// new list does, so until this equals [selectedNetwork] the list on state
+  /// belongs to another chain.
+  final Network? coinsNetwork;
   final String? selectedWalletBalance;
 
   const WalletDetailsState({
@@ -26,6 +31,7 @@ class WalletDetailsState {
     this.wallets = const [],
     this.coinsStatus = WalletStatus.initial,
     this.coins = const [],
+    this.coinsNetwork,
     this.transactions = const [],
     this.fetchTransactionsStatus = WalletStatus.initial,
     this.initStatus = WalletStatus.initial,
@@ -45,6 +51,7 @@ class WalletDetailsState {
     List<Wallet>? wallets,
     double? gasFees,
     List<Coin>? coins,
+    Network? coinsNetwork,
     List<Transaction>? transactions,
     String? selectedWalletBalance,
     WalletStatus? initStatus,
@@ -60,6 +67,7 @@ class WalletDetailsState {
       selectedNetwork: selectedNetwork ?? this.selectedNetwork,
       coinsStatus: coinsStatus ?? this.coinsStatus,
       coins: coins ?? this.coins,
+      coinsNetwork: coinsNetwork ?? this.coinsNetwork,
       transactions: transactions ?? this.transactions,
       fetchTransactionsStatus:
           fetchTransactionsStatus ?? this.fetchTransactionsStatus,

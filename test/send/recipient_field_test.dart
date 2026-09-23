@@ -90,6 +90,7 @@ Future<SendCubit> _pump(
     network: _amoy,
     transactions: TransactionsCubit(),
     storage: _NoopStorage(),
+    coinsLoadedFor: () => _amoy,
     initialCoin: _maticCoin,
   );
   addTearDown(cubit.close);
