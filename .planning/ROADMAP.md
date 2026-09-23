@@ -1408,13 +1408,30 @@ plans and executed in parallel
 **Goal:** A user can send a chain's native coin or an ERC-20 token to an address on any EVM chain
 the wallet can sign on, see the fee before approving, and find the send in history labelled with
 the right asset and the right chain. Decisions are in the phase's `31-CONTEXT.md`.
-**Requirements**: TBD
+**Requirements**: SEND-01, SEND-02, SEND-03, SEND-04, SEND-05, SEND-06, SEND-07
 **Depends on:** Phase 30
-**Plans:** 0 plans
+**Plans:** 5 plans (sequential waves 1-5)
 
 Plans:
+**Wave 1**
 
-- [ ] TBD (run /gsd-plan-phase 31 to break down)
+- [ ] 31-01-PLAN.md — history model: asset vs chain as two Hive fields, chain-keyed explorer, old rows still read (gated by a one-way decision checkpoint)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 31-02-PLAN.md — native send end to end: /send, SendCubit, EIP-1559 fee with legacy fallback, review drawer, pending then resolved row
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 31-03-PLAN.md — ERC-20 send with a calldata self-check against the app decoder, gas-coin check, MAX for both kinds
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 31-04-PLAN.md — recipient safety: paste, QR scan (hidden on Windows/Linux), self-send and contract-code warnings
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 31-05-PLAN.md — entry points: coin-page Send CTA and dashboard Send with the picker; coin-page test corrected; testnet walk
 
 ---
 
