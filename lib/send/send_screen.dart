@@ -237,6 +237,8 @@ class _SendBodyState extends State<_SendBody> {
         amount: formatTokenAmount(review.rawAmount, review.decimals),
         amountSymbol: assetSymbol,
         feeSymbol: gasSymbol,
+        networkName: cubit.network.name,
+        tokenContract: cubit.state.coin?.address,
         totalGasFee: formatTokenAmount(review.fee.maxCost, 18),
         maxFeePerGas: formatTokenAmount(review.fee.maxFeePerGas, 18),
         priorityFee: formatTokenAmount(review.fee.maxPriorityFeePerGas, 18),
