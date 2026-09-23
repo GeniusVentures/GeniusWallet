@@ -511,6 +511,44 @@ void main() {
     expect(find.byType(CoinsScreen), findsNothing);
   });
 
+  testWidgets('a watch-only wallet renders a GWEmptyState and no form', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<WalletDetailsCubit>(
+            create: (_) => WalletDetailsCubit(
+              initialState: const WalletDetailsState(
+                selectedWallet: Wallet(
+                  coinType: TWCoinType.TWCoinTypeEthereum,
+                  walletName: 'Watched',
+                  currencySymbol: 'MATIC',
+                  walletType: WalletType.tracking,
+                  balance: 0,
+                  address: _walletAddress,
+                ),
+                selectedNetwork: _amoy,
+                coins: [_maticCoin],
+              ),
+              geniusApi: _FakeApi(),
+              networkTokensProvider: NetworkTokensProvider(),
+            ),
+          ),
+          BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
+        ],
+        child: MaterialApp(
+          theme: ThemeData(extensions: [GWColors.dark()]),
+          home: const SendScreen(preselectSymbol: 'matic'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(GWEmptyState), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+  });
+
   testWidgets(
     'a network that fails canSignOn renders a GWEmptyState and no form',
     (tester) async {

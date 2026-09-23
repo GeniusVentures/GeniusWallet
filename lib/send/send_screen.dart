@@ -41,7 +41,7 @@ class SendScreen extends StatelessWidget {
     final wallet = walletState.selectedWallet;
     final network = walletState.selectedNetwork;
 
-    if (wallet == null || network == null || !canSignOn(network)) {
+    if (wallet == null || network == null || !canSendFrom(wallet, network)) {
       return const Scaffold(
         body: SafeArea(
           child: GWEmptyState(

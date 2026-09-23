@@ -4,9 +4,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genius_api/genius_api.dart' show GeniusApi;
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
+import 'package:genius_api/genius_api.dart' show GeniusApi, Wallet;
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -32,19 +34,32 @@ const _amoy = Network(
 /// `canSignOn` refuses this one: no `rpcUrl`.
 const _noRpc = Network(name: 'No RPC', symbol: 'eth', chainId: 1);
 
+Wallet _walletOf(WalletType type) => Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: 'Test Wallet',
+  currencySymbol: 'MATIC',
+  walletType: type,
+  balance: 0,
+  address: '0x1234567890123456789012345678901234567890',
+);
+
 Coin _coin(String symbol, {required double balance}) =>
     Coin(name: symbol, symbol: symbol, iconPath: '', balance: balance);
 
-WalletDetailsCubit _cubit({required List<Coin> coins, Network? network}) =>
-    WalletDetailsCubit(
-      initialState: WalletDetailsState(
-        coins: coins,
-        coinsStatus: WalletStatus.successful,
-        selectedNetwork: network,
-      ),
-      geniusApi: _UnusedApi(),
-      networkTokensProvider: NetworkTokensProvider(),
-    );
+WalletDetailsCubit _cubit({
+  required List<Coin> coins,
+  Network? network,
+  WalletType walletType = WalletType.mnemonic,
+}) => WalletDetailsCubit(
+  initialState: WalletDetailsState(
+    selectedWallet: _walletOf(walletType),
+    coins: coins,
+    coinsStatus: WalletStatus.successful,
+    selectedNetwork: network,
+  ),
+  geniusApi: _UnusedApi(),
+  networkTokensProvider: NetworkTokensProvider(),
+);
 
 /// The dashboard panel, routed: `/send` records whether it was reached and
 /// with what extra, so a tap can be proven rather than assumed.
@@ -99,6 +114,25 @@ void main() {
     await tester.pump();
 
     expect(find.widgetWithText(GWButton, 'Send'), findsNothing);
+  });
+
+  testWidgets('a watch-only or SDK wallet shows no Send', (tester) async {
+    for (final type in [WalletType.tracking, WalletType.sgnus]) {
+      final cubit = _cubit(
+        coins: [_coin('USDC', balance: 10)],
+        network: _amoy,
+        walletType: type,
+      );
+
+      await tester.pumpWidget(_routedHost(cubit, []));
+      await tester.pump();
+
+      expect(
+        find.widgetWithText(GWButton, 'Send'),
+        findsNothing,
+        reason: '$type',
+      );
+    }
   });
 
   testWidgets('all-zero balances show no Send', (tester) async {
