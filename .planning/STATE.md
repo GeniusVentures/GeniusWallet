@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Squid Router integration
 current_phase: 31
-current_phase_name: "Send native coins and ERC-20 tokens - executing, 4/5 plans done"
-status: in_progress
-stopped_at: "Phase 31 executing on plan/send: 31-01..04 done (history split, native send, ERC-20 send + MAX + pre-sign self-check, recipient safety: paste, QR gated off Windows/Linux, self-send and contract warnings, inline review errors); 1672 pass / 5 skip. Next: 31-05 entry points + testnet walk."
+current_phase_name: "Send native coins and ERC-20 tokens - 5/5 executed, awaiting testnet walk"
+status: human_needed
+stopped_at: "Phase 31 executed 5/5 on plan/send; two code-review rounds (4 critical incl. a signer regression caught in round 2, 21 warnings) all fixed; 1731 pass / 5 skip, analyze + gates clean. Verification human_needed (18/20): native + ERC-20 testnet walk in 31-UAT.md. Nothing pushed."
 last_updated: "2026-09-23T16:10:00.000Z"
 last_activity: 2026-09-23
 last_activity_desc: Phase 31 (Send) researched and planned on plan/send; 5 plans, checker passed
@@ -13,8 +13,8 @@ progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 17
-  completed_plans: 16
-  percent: 94
+  completed_plans: 17
+  percent: 100
 ---
 
 # Project State
