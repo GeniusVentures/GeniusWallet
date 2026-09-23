@@ -1254,12 +1254,14 @@ class GeniusApi {
     required String recipient,
     Uint8List? data,
     BigInt? value,
+    int? chainId,
   }) => Web3(geniusApi: this).readSendFee(
     rpcUrl: rpcUrl,
     sender: sender,
     recipient: recipient,
     data: data,
     value: value,
+    chainId: chainId,
   );
 
   /// [hash]'s on-chain receipt, or null while it is still unconfirmed. A

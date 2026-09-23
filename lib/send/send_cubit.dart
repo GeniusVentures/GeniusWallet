@@ -304,6 +304,7 @@ class SendCubit extends Cubit<SendState> {
         rpcUrl: rpcUrl,
         sender: walletAddress,
         recipient: feeRecipient,
+        chainId: network.chainId,
       );
       final balance = await api.nativeBalance(
         address: walletAddress,
@@ -443,6 +444,7 @@ class SendCubit extends Cubit<SendState> {
         recipient: tokenContract ?? recipient,
         data: data,
         value: tokenContract == null ? rawAmount : null,
+        chainId: network.chainId,
       );
 
       if (tokenContract == null) {

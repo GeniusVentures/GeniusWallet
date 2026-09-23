@@ -10,19 +10,41 @@ import 'web3.dart';
 /// A priced EIP-1559 send: everything the signer needs, nothing it has to
 /// default on its own.
 class SendFee {
-  const SendFee({
+  SendFee({
     required this.maxFeePerGas,
     required this.maxPriorityFeePerGas,
     required this.gasLimit,
-  });
+    BigInt? l1Fee,
+  }) : l1Fee = l1Fee ?? BigInt.zero;
 
   final BigInt maxFeePerGas;
   final BigInt maxPriorityFeePerGas;
   final BigInt gasLimit;
 
-  /// The most this send can cost, in native wei: `maxFeePerGas * gasLimit`.
-  BigInt get maxCost => maxFeePerGas * gasLimit;
+  /// An OP-Stack chain's L1 data fee, charged on top of gas; zero elsewhere.
+  final BigInt l1Fee;
+
+  /// The most this send can cost, in native wei.
+  BigInt get maxCost => maxFeePerGas * gasLimit + l1Fee;
 }
+
+/// OP-Stack chains: the sender also pays an L1 data fee, which the txpool
+/// checks the balance against along with gas.
+const kOpStackChainIds = {10, 8453, 84532, 11155420};
+
+final _gasPriceOracle = DeployedContract(
+  ContractAbi.fromJson(
+    '[{"type":"function","name":"getL1FeeUpperBound","stateMutability":"view",'
+        '"inputs":[{"name":"_unsignedTxSize","type":"uint256"}],'
+        '"outputs":[{"name":"","type":"uint256"}]}]',
+    'GasPriceOracle',
+  ),
+  EthereumAddress.fromHex('0x420000000000000000000000000000000000000F'),
+);
+
+/// The largest an unsigned EIP-1559 transaction carrying [dataLength] bytes
+/// of calldata serialises to: every other field at its widest RLP form.
+int unsignedTxSizeBound(int dataLength) => 155 + dataLength;
 
 /// One fee read's two market fields -- what [buildSendTx] and the signer
 /// actually consume, whichever source produced them.
@@ -226,14 +248,15 @@ extension SendReads on Web3 {
   }
 
   /// A priced send from [sender] to [recipient]: [chooseFeePerGas] for the
-  /// market fee, `estimateGas` for the limit, simulated with [value] so a
-  /// recipient that refuses native coin fails here rather than on-chain.
+  /// market fee, `estimateGas` (with [value]) for the limit, and on an
+  /// OP-Stack [chainId] the L1 data fee's upper bound.
   Future<SendFee> readSendFee({
     required String rpcUrl,
     required String sender,
     required String recipient,
     Uint8List? data,
     BigInt? value,
+    int? chainId,
   }) async {
     final client = Web3Client(rpcUrl, Client());
     try {
@@ -265,10 +288,24 @@ extension SendReads on Web3 {
         value: value == null ? null : EtherAmount.inWei(value),
       );
 
+      // A failed read here throws rather than defaulting to zero: an
+      // underpriced balance check is a broadcast the txpool then refuses.
+      BigInt? l1Fee;
+      if (kOpStackChainIds.contains(chainId)) {
+        final size = unsignedTxSizeBound(data?.length ?? 0);
+        final answer = await client.call(
+          contract: _gasPriceOracle,
+          function: _gasPriceOracle.function('getL1FeeUpperBound'),
+          params: [BigInt.from(size)],
+        );
+        l1Fee = answer.first as BigInt;
+      }
+
       return SendFee(
         maxFeePerGas: chosen.maxFeePerGas,
         maxPriorityFeePerGas: chosen.maxPriorityFeePerGas,
         gasLimit: gasLimit,
+        l1Fee: l1Fee,
       );
     } finally {
       await client.dispose();

@@ -89,6 +89,7 @@ class _ConfigurableApi implements GeniusApi {
   int signCalls = 0;
   final List<Map<String, dynamic>> signedTxs = [];
   final List<BigInt?> feeValues = [];
+  final List<int?> feeChainIds = [];
 
   @override
   Future<BigInt> rawBalanceOf({
@@ -110,8 +111,10 @@ class _ConfigurableApi implements GeniusApi {
     required String recipient,
     Uint8List? data,
     BigInt? value,
+    int? chainId,
   }) async {
     feeValues.add(value);
+    feeChainIds.add(chainId);
     if (estimateError != null) {
       throw estimateError!;
     }
@@ -262,6 +265,8 @@ void main() {
       await cubit.review();
 
       expect(api.feeValues.single, BigInt.parse('500000000000000000'));
+      // The chain id is what decides whether an L1 data fee is read.
+      expect(api.feeChainIds.single, 80002);
     });
 
     test('amount plus fee above balance names the gas coin', () async {
@@ -472,6 +477,28 @@ void main() {
 
       expect(cubit.state.amount, '9.99937');
       expect(cubit.state.error, isNull);
+    });
+
+    test('native MAX also leaves room for an L1 data fee', () async {
+      final api = _ConfigurableApi(
+        feeSequence: [
+          SendFee(
+            maxFeePerGas: BigInt.from(30000000000),
+            maxPriorityFeePerGas: BigInt.from(1500000000),
+            gasLimit: BigInt.from(21000),
+            l1Fee: BigInt.parse('100000000000000'), // 0.0001
+          ),
+        ],
+      );
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+
+      await cubit.useMax();
+
+      expect(cubit.state.amount, '9.99927');
     });
 
     test(
