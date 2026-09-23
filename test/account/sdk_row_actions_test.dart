@@ -108,5 +108,13 @@ void main() {
         isFalse,
       );
     });
+
+    test('refuses mixed case whose EIP-55 checksum does not match', () {
+      // One letter's case flipped from the valid checksummed form above.
+      expect(
+        isEvmAddress('0x71c7656EC7ab88b098defB751B7401B5f6d8976F'),
+        isFalse,
+      );
+    });
   });
 }

@@ -225,6 +225,27 @@ void main() {
       },
     );
 
+    test('a checksum typo or the zero address never reaches review', () async {
+      final api = _ConfigurableApi();
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+      cubit.setAmount('0.5');
+
+      for (final bad in [
+        '0x71c7656EC7ab88b098defB751B7401B5f6d8976F',
+        '0x0000000000000000000000000000000000000000',
+      ]) {
+        cubit.setRecipient(bad);
+        await cubit.review();
+
+        expect(cubit.state.review, isNull, reason: bad);
+        expect(cubit.state.error, isNotNull, reason: bad);
+      }
+    });
+
     test('amount plus fee above balance names the gas coin', () async {
       final api = _ConfigurableApi(balance: BigInt.zero);
       final cubit = _cubit(
