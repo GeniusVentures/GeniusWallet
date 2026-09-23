@@ -98,6 +98,7 @@ class _ConfigurableApi implements GeniusApi {
     required String recipient,
     Uint8List? data,
     BigInt? value,
+    int? chainId,
   }) async {
     final transfer = tryDecodeErc20Transfer(
       data == null ? null : bytesToHex(data, include0x: true),

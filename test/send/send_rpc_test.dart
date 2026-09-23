@@ -74,6 +74,57 @@ void main() {
 
       expect(estimated?['value'], '0x3e8');
     });
+
+    Future<String> serveBase(List<String> calls) => _serve((method, params) {
+      calls.add(method);
+      if (method == 'eth_gasPrice') {
+        return {'result': '0x3b9aca00'};
+      }
+      if (method == 'eth_estimateGas') {
+        return {'result': '0x5208'};
+      }
+      if (method == 'eth_call') {
+        final to = (params.first as Map<String, dynamic>)['to'] as String;
+        if (to.toLowerCase() == '0x420000000000000000000000000000000000000f') {
+          return {'result': '0x${'0' * 58}0f4240'}; // 1,000,000 wei
+        }
+      }
+      return {
+        'error': {'code': -32601, 'message': 'unexpected $method'},
+      };
+    });
+
+    test('an OP-Stack chain adds the L1 data fee to the max cost', () async {
+      final rpcUrl = await serveBase([]);
+
+      final fee = await Web3().readSendFee(
+        rpcUrl: rpcUrl,
+        sender: _from,
+        recipient: _from,
+        chainId: 8453,
+      );
+
+      expect(fee.l1Fee, BigInt.from(1000000));
+      expect(
+        fee.maxCost,
+        BigInt.from(1000000000) * BigInt.from(21000) + BigInt.from(1000000),
+      );
+    });
+
+    test('any other chain reads no L1 fee', () async {
+      final calls = <String>[];
+      final rpcUrl = await serveBase(calls);
+
+      final fee = await Web3().readSendFee(
+        rpcUrl: rpcUrl,
+        sender: _from,
+        recipient: _from,
+        chainId: 137,
+      );
+
+      expect(fee.l1Fee, BigInt.zero);
+      expect(calls, isNot(contains('eth_call')));
+    });
   });
 
   group('signAndSendTransaction', () {

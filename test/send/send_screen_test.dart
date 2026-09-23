@@ -85,6 +85,7 @@ class _FakeApi implements GeniusApi {
     required String recipient,
     Uint8List? data,
     BigInt? value,
+    int? chainId,
   }) async => SendFee(
     maxFeePerGas: BigInt.from(30000000000),
     maxPriorityFeePerGas: BigInt.from(1500000000),
