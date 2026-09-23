@@ -530,8 +530,8 @@ class GWColors extends ThemeExtension<GWColors> {
       statusWarningText: GeniusWalletColors._statusWarning,
       textMutedOnSunken: GeniusWalletColors._textSecondary,
       statusInfo: GeniusWalletColors._statusInfo,
-      // No private _statusSuccess constant exists (23-04 deleted it as
-      // dead); this literal must match statusSuccess's own dark value above.
+      // No private _statusSuccess constant exists; this literal must match
+      // statusSuccess's own dark value above.
       statusSuccessText: const Color(0xFF0AD89C),
       statusErrorText: GeniusWalletColors._statusError,
       brandGreen: GeniusWalletColors._brandGreen,
