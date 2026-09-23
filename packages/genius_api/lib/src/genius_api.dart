@@ -1214,6 +1214,18 @@ class GeniusApi {
     rpcUrl: rpcUrl,
   );
 
+  /// [rawBalanceOf], except a failed read throws rather than reading as zero:
+  /// a send must not mistake "unknown" for "none".
+  Future<BigInt> readTokenBalance({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) => Web3(geniusApi: this).readTokenBalance(
+    address: address,
+    contractAddress: contractAddress,
+    rpcUrl: rpcUrl,
+  );
+
   /// Grants [spender] an allowance of exactly [amount] raw base units over the
   /// token at [contractAddress], signed by the wallet at [address].
   Future<ApiResponse<String>> approve({

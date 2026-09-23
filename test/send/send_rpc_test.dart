@@ -104,6 +104,19 @@ void main() {
       );
     });
 
+    test('fails the token balance read a send relies on', () async {
+      final rpcUrl = await _serveNothing();
+
+      await expectLater(
+        Web3().readTokenBalance(
+          address: _from,
+          contractAddress: _from,
+          rpcUrl: rpcUrl,
+        ),
+        throwsA(isA<TimeoutException>()),
+      );
+    });
+
     test('ends a token balance read', () async {
       final rpcUrl = await _serveNothing();
 

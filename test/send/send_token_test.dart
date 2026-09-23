@@ -67,22 +67,39 @@ class _RecordingStorage implements TransactionStorageService {
 /// A token send's reads: a fixed fee, a token balance and a native balance
 /// each independently configurable, one poll settling at once.
 class _ConfigurableApi implements GeniusApi {
-  _ConfigurableApi({BigInt? tokenBalance, BigInt? nativeBalanceAmount})
-    : tokenBalance = tokenBalance ?? BigInt.parse('10000000'), // 10 USDC
-      nativeBalanceAmount =
-          nativeBalanceAmount ?? BigInt.parse('10000000000000000000');
+  _ConfigurableApi({
+    BigInt? tokenBalance,
+    BigInt? nativeBalanceAmount,
+    this.tokenBalanceFails = false,
+  }) : tokenBalance = tokenBalance ?? BigInt.parse('10000000'), // 10 USDC
+       nativeBalanceAmount =
+           nativeBalanceAmount ?? BigInt.parse('10000000000000000000');
 
   final BigInt tokenBalance;
   final BigInt nativeBalanceAmount;
+  final bool tokenBalanceFails;
   int signCalls = 0;
   Map<String, dynamic>? signedTx;
 
+  @override
+  Future<BigInt> readTokenBalance({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
+    if (tokenBalanceFails) {
+      throw Exception('rate limited');
+    }
+    return tokenBalance;
+  }
+
+  /// The real one reads a failed call as zero.
   @override
   Future<BigInt> rawBalanceOf({
     required String address,
     required String contractAddress,
     required String rpcUrl,
-  }) async => tokenBalance;
+  }) async => tokenBalanceFails ? BigInt.zero : tokenBalance;
 
   @override
   Future<BigInt> nativeBalance({
@@ -246,6 +263,24 @@ void main() {
         expect(cubit.state.review, isNull);
       },
     );
+
+    test('an unreadable token balance says so, not that it is short', () async {
+      final api = _ConfigurableApi(tokenBalanceFails: true);
+      final cubit = _cubit(api: api);
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('5');
+
+      await cubit.review();
+
+      expect(cubit.state.amountError, isNull);
+      expect(cubit.state.error, "Couldn't read your USDC balance.");
+      expect(cubit.state.review, isNull);
+
+      await cubit.useMax();
+
+      expect(cubit.state.amount, '5');
+      expect(cubit.state.error, "Couldn't read your USDC balance.");
+    });
 
     test('a native balance short of the fee refuses naming the gas coin, even '
         'with plenty of the token', () async {

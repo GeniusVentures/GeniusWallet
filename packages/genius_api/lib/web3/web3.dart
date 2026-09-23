@@ -297,10 +297,8 @@ class Web3 {
   }
 
   /// [address]'s token balance as the exact integer the contract returned.
-  ///
-  /// [balanceOf] divides by the decimals and hands back a double, which cannot
-  /// carry dust or a long fraction without rounding it.
-  Future<BigInt> rawBalanceOf({
+  /// Throws when it cannot be read.
+  Future<BigInt> readTokenBalance({
     required String address,
     required String contractAddress,
     required String rpcUrl,
@@ -322,10 +320,28 @@ class Web3 {
           .timeout(rpcReadTimeout);
 
       return BigInt.parse(result.first.toString());
-    } catch (e) {
-      return BigInt.zero;
     } finally {
       await client.dispose();
+    }
+  }
+
+  /// [readTokenBalance], with a failed read as zero.
+  ///
+  /// [balanceOf] divides by the decimals and hands back a double, which cannot
+  /// carry dust or a long fraction without rounding it.
+  Future<BigInt> rawBalanceOf({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async {
+    try {
+      return await readTokenBalance(
+        address: address,
+        contractAddress: contractAddress,
+        rpcUrl: rpcUrl,
+      );
+    } catch (e) {
+      return BigInt.zero;
     }
   }
 

@@ -364,11 +364,19 @@ class SendCubit extends Cubit<SendState> {
           }
           return;
         }
-        final balance = await api.rawBalanceOf(
-          address: walletAddress,
-          contractAddress: tokenContract,
-          rpcUrl: rpcUrl,
-        );
+        final BigInt balance;
+        try {
+          balance = await api.readTokenBalance(
+            address: walletAddress,
+            contractAddress: tokenContract,
+            rpcUrl: rpcUrl,
+          );
+        } catch (_) {
+          if (!isClosed) {
+            emit(state.copyWith(busy: false, error: _unreadBalance(coin)));
+          }
+          return;
+        }
         if (!isClosed) {
           emit(
             state.copyWith(
@@ -528,11 +536,17 @@ class SendCubit extends Cubit<SendState> {
         return;
       }
       if (tokenContract != null) {
-        final tokenBalance = await api.rawBalanceOf(
-          address: walletAddress,
-          contractAddress: tokenContract,
-          rpcUrl: rpcUrl,
-        );
+        final BigInt tokenBalance;
+        try {
+          tokenBalance = await api.readTokenBalance(
+            address: walletAddress,
+            contractAddress: tokenContract,
+            rpcUrl: rpcUrl,
+          );
+        } catch (_) {
+          settle(error: _unreadBalance(coin));
+          return;
+        }
         if (rawAmount > tokenBalance) {
           final symbol = (coin.symbol ?? '').toUpperCase();
           settle(
@@ -700,6 +714,9 @@ class SendCubit extends Cubit<SendState> {
     );
     return resolved;
   }
+
+  String _unreadBalance(Coin coin) =>
+      "Couldn't read your ${(coin.symbol ?? '').toUpperCase()} balance.";
 
   Future<void> _write(Transaction row) async {
     try {
