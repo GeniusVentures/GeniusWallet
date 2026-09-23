@@ -268,7 +268,7 @@ final geniusWalletRouter = GoRouter(
         GoRoute(
           path: '/send',
           builder: (context, state) {
-            // Same `extra` shape as `/swap` above (D-03): an optional coin to
+            // Same `extra` shape as `/swap` above: an optional coin to
             // seat, sent by a coin page's Send button.
             final extra = state.extra is Map<String, dynamic>
                 ? state.extra as Map<String, dynamic>
