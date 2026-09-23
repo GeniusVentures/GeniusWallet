@@ -88,3 +88,20 @@ in the project, on the highest-consequence code path in a crypto wallet.
 
 Related: `.planning/STATE.md` Blockers (the corrected harness claim),
 `.planning/phases/06-onboarding/06-05-PLAN.md` (the live PIN defect).
+
+## Closed 2026-09-23
+
+The file had been deleted outright on 2026-07-28 (d0e036d6), so it was rewritten against today's
+`LocalWalletStorage` rather than uncommented. No mockito codegen: the tests use
+`FlutterSecureStorage.setMockInitialValues`, the plugin's own in-memory platform, plus one `Fake`
+whose reads throw. `flutter_secure_storage` is now a direct dev dependency (already locked).
+
+`test/local_wallet_storage_test.dart`, 11 tests:
+- PIN: stored PIN verifies and a wrong/empty one does not; no PIN stored verifies nothing, not even
+  empty; empty stored PIN counts as no PIN; changing the PIN retires the old one; an unreadable
+  store fails closed.
+- account: init creates the default account; init keeps an existing one; corrupt account is dropped;
+  deleteAccount removes the account and leaves the PIN.
+- watched wallets: saved under a lowercased address key; rename/delete match case-insensitively.
+
+Full suite 1566 pass / 5 skip / 0 fail (develop was 1555).
