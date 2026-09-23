@@ -1,5 +1,6 @@
 // The send path against a real JSON-RPC endpoint on localhost: what reaches
 // the caller when the node answers badly, or not at all.
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -39,6 +40,14 @@ Future<String> _serve(
   return 'http://127.0.0.1:${server.port}';
 }
 
+/// Accepts every call and never answers it -- a stalled RPC.
+Future<String> _serveNothing() async {
+  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+  addTearDown(() => server.close(force: true));
+  server.listen((_) {});
+  return 'http://127.0.0.1:${server.port}';
+}
+
 Map<String, dynamic> _tx() => {
   'from': _from,
   'to': _from,
@@ -49,6 +58,50 @@ Map<String, dynamic> _tx() => {
 };
 
 void main() {
+  group('a stalled RPC', () {
+    setUp(() => rpcReadTimeout = const Duration(milliseconds: 200));
+    tearDown(() => rpcReadTimeout = const Duration(seconds: 15));
+
+    test('fails a balance read instead of waiting forever', () async {
+      final rpcUrl = await _serveNothing();
+
+      await expectLater(
+        Web3().readNativeBalance(address: _from, rpcUrl: rpcUrl),
+        throwsA(isA<TimeoutException>()),
+      );
+    });
+
+    test('fails a fee read with SendFeeUnavailable', () async {
+      final rpcUrl = await _serveNothing();
+
+      await expectLater(
+        Web3().readSendFee(rpcUrl: rpcUrl, sender: _from, recipient: _from),
+        throwsA(isA<SendFeeUnavailable>()),
+      );
+    });
+
+    test('fails a receipt read, which a poll counts as "not yet"', () async {
+      final rpcUrl = await _serveNothing();
+
+      await expectLater(
+        Web3().readReceipt(hash: '0x${'ab' * 32}', rpcUrl: rpcUrl),
+        throwsA(isA<TimeoutException>()),
+      );
+    });
+
+    test('ends a token balance read', () async {
+      final rpcUrl = await _serveNothing();
+
+      final balance = await Web3().rawBalanceOf(
+        address: _from,
+        contractAddress: _from,
+        rpcUrl: rpcUrl,
+      );
+
+      expect(balance, BigInt.zero);
+    });
+  });
+
   group('readSendFee', () {
     test('a native send is simulated with its value attached', () async {
       Map<String, dynamic>? estimated;

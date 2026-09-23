@@ -20,6 +20,11 @@ import 'package:flutter/material.dart';
 /// hands the type on rather than making every caller depend on `wallet`.
 export 'package:wallet/wallet.dart' show EthereumAddress;
 
+/// How long a single chain read may take before it counts as failed -- a
+/// stalled RPC must not leave a form waiting on it forever. Variable only so
+/// a test can shorten it.
+Duration rpcReadTimeout = const Duration(seconds: 15);
+
 class Web3 {
   final GeniusApi? geniusApi;
 
@@ -308,11 +313,13 @@ class Web3 {
     );
 
     try {
-      final result = await client.call(
-        contract: contract,
-        function: contract.function('balanceOf'),
-        params: [EthereumAddress.fromHex(address)],
-      );
+      final result = await client
+          .call(
+            contract: contract,
+            function: contract.function('balanceOf'),
+            params: [EthereumAddress.fromHex(address)],
+          )
+          .timeout(rpcReadTimeout);
 
       return BigInt.parse(result.first.toString());
     } catch (e) {
