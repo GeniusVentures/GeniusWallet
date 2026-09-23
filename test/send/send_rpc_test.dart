@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:web3dart/web3dart.dart' show bytesToHex, hexToBytes, keccak256;
@@ -12,7 +13,8 @@ import 'package:web3dart/web3dart.dart' show bytesToHex, hexToBytes, keccak256;
 const _from = '0x1234567890123456789012345678901234567890';
 
 /// Serves [reply]'s answer for each call; a null answer closes the
-/// connection without a response, the way a dropped link looks.
+/// connection without a response, the way a dropped link looks. [_stall]
+/// never answers, and [_html] answers the way a rate limiter's page does.
 Future<String> _serve(
   Map<String, dynamic>? Function(String method, List<dynamic> params) reply,
 ) async {
@@ -31,6 +33,16 @@ Future<String> _serve(
       socket.destroy();
       return;
     }
+    if (identical(answer, _stall)) {
+      return;
+    }
+    if (identical(answer, _html)) {
+      request.response.statusCode = 502;
+      request.response.headers.contentType = ContentType.html;
+      request.response.write('<html><body>502 Bad Gateway</body></html>');
+      await request.response.close();
+      return;
+    }
     request.response.headers.contentType = ContentType.json;
     request.response.write(
       jsonEncode({'jsonrpc': '2.0', 'id': body['id'], ...answer}),
@@ -39,6 +51,9 @@ Future<String> _serve(
   });
   return 'http://127.0.0.1:${server.port}';
 }
+
+const Map<String, dynamic> _stall = {};
+const Map<String, dynamic> _html = {'html': true};
 
 /// Accepts every call and never answers it -- a stalled RPC.
 Future<String> _serveNothing() async {
@@ -268,6 +283,90 @@ void main() {
 
       expect(result.isSuccess, isFalse);
       expect(result.data, isNull);
+    });
+
+    group('against a stalled or garbled node', () {
+      setUp(() => rpcReadTimeout = const Duration(milliseconds: 200));
+      tearDown(() => rpcReadTimeout = const Duration(seconds: 15));
+
+      Future<ApiResponse<String>> send(String rpcUrl) =>
+          Web3().signAndSendTransaction(
+            tx: _tx(),
+            rpcUrl: rpcUrl,
+            privateKey: '11' * 32,
+            chainId: 80002,
+          );
+
+      test('a stalled nonce read fails, with nothing broadcast', () async {
+        final rpcUrl = await _serveNothing();
+
+        final result = await send(rpcUrl);
+
+        expect(result.isSuccess, isFalse);
+        expect(result.data, isNull);
+      });
+
+      test('a stalled broadcast hands back its hash', () async {
+        String? broadcast;
+        final rpcUrl = await _serve((method, params) {
+          if (method == 'eth_getTransactionCount') {
+            return {'result': '0x0'};
+          }
+          if (method == 'eth_sendRawTransaction') {
+            broadcast = params.first as String;
+            return _stall;
+          }
+          return {
+            'error': {'code': -32601, 'message': 'unexpected $method'},
+          };
+        });
+
+        final result = await send(rpcUrl);
+
+        expect(result.isSuccess, isFalse);
+        expect(
+          result.data,
+          bytesToHex(keccak256(hexToBytes(broadcast!)), include0x: true),
+        );
+      });
+
+      test('an HTML error page is a refusal, not a maybe', () async {
+        final rpcUrl = await _serve((method, params) {
+          if (method == 'eth_getTransactionCount') {
+            return {'result': '0x0'};
+          }
+          return _html;
+        });
+
+        final result = await send(rpcUrl);
+
+        expect(result.isSuccess, isFalse);
+        expect(result.data, isNull);
+      });
+
+      test(
+        'a stalled receipt read after an accepted send still returns',
+        () async {
+          final rpcUrl = await _serve((method, params) {
+            if (method == 'eth_getTransactionCount') {
+              return {'result': '0x0'};
+            }
+            if (method == 'eth_sendRawTransaction') {
+              return {
+                'result': bytesToHex(
+                  keccak256(hexToBytes(params.first as String)),
+                  include0x: true,
+                ),
+              };
+            }
+            return _stall;
+          });
+
+          final result = await send(rpcUrl);
+
+          expect(result.isSuccess, isTrue);
+        },
+      );
     });
   });
 }

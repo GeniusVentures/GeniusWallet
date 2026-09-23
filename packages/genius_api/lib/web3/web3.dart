@@ -720,11 +720,10 @@ class Web3 {
       }
 
       final credentials = EthPrivateKey.fromHex(privateKey);
-      var signed = await client.signTransaction(
-        credentials,
-        transaction,
-        chainId: chainId,
-      );
+      // A stall here is on the nonce read, before anything is broadcast.
+      var signed = await client
+          .signTransaction(credentials, transaction, chainId: chainId)
+          .timeout(rpcReadTimeout);
       // web3dart before 3.0.3 leaves the 0x02 type byte to sendTransaction,
       // so its signed EIP-1559 body is a bare RLP list (first byte >= 0xc0).
       if (transaction.isEIP1559 && signed.first >= 0xc0) {
@@ -732,8 +731,14 @@ class Web3 {
       }
       final String txHash;
       try {
-        txHash = await client.sendRawTransaction(signed);
+        txHash = await client
+            .sendRawTransaction(signed)
+            .timeout(rpcReadTimeout);
       } on RPCError catch (e) {
+        return ApiResponse.error("Sign/Send failed: $e");
+      } on FormatException catch (e) {
+        // The node answered, just not in JSON -- a rate limiter's HTML page,
+        // say. It did not take the transaction.
         return ApiResponse.error("Sign/Send failed: $e");
       } catch (e) {
         // The node never answered, so it may have taken the transaction
@@ -750,7 +755,9 @@ class Web3 {
       // receipt read must not turn a real broadcast into a reported failure
       // and invite the caller to send it twice.
       try {
-        final receipt = await client.getTransactionReceipt(txHash);
+        final receipt = await client
+            .getTransactionReceipt(txHash)
+            .timeout(rpcReadTimeout);
         debugPrint("📦 Receipt for $txHash: $receipt");
       } catch (e) {
         debugPrint("📦 Receipt read failed for $txHash (already sent): $e");
