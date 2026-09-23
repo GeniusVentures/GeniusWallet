@@ -240,7 +240,9 @@ extension SendReads on Web3 {
   }) async {
     final client = Web3Client(rpcUrl, Client());
     try {
-      final balance = await client.getBalance(EthereumAddress.fromHex(address));
+      final balance = await client
+          .getBalance(EthereumAddress.fromHex(address))
+          .timeout(rpcReadTimeout);
       return balance.getInWei;
     } finally {
       await client.dispose();
@@ -268,7 +270,7 @@ extension SendReads on Web3 {
           // The 50th-percentile entry. The package takes the highest such
           // tip over the last 10 blocks and a 1.5x max fee on top of it,
           // which is why chooseFeePerGas caps the answer.
-          final fees = await client.getGasInEIP1559();
+          final fees = await client.getGasInEIP1559().timeout(rpcReadTimeout);
           final median = fees[1];
           return (
             maxFeePerGas: median.maxFeePerGas,
@@ -276,28 +278,32 @@ extension SendReads on Web3 {
           );
         },
         gasPrice: () async {
-          final price = await client.getGasPrice();
+          final price = await client.getGasPrice().timeout(rpcReadTimeout);
           return price.getInWei;
         },
       );
 
-      final gasLimit = await client.estimateGas(
-        sender: senderAddress,
-        to: recipientAddress,
-        data: data,
-        value: value == null ? null : EtherAmount.inWei(value),
-      );
+      final gasLimit = await client
+          .estimateGas(
+            sender: senderAddress,
+            to: recipientAddress,
+            data: data,
+            value: value == null ? null : EtherAmount.inWei(value),
+          )
+          .timeout(rpcReadTimeout);
 
       // A failed read here throws rather than defaulting to zero: an
       // underpriced balance check is a broadcast the txpool then refuses.
       BigInt? l1Fee;
       if (kOpStackChainIds.contains(chainId)) {
         final size = unsignedTxSizeBound(data?.length ?? 0);
-        final answer = await client.call(
-          contract: _gasPriceOracle,
-          function: _gasPriceOracle.function('getL1FeeUpperBound'),
-          params: [BigInt.from(size)],
-        );
+        final answer = await client
+            .call(
+              contract: _gasPriceOracle,
+              function: _gasPriceOracle.function('getL1FeeUpperBound'),
+              params: [BigInt.from(size)],
+            )
+            .timeout(rpcReadTimeout);
         l1Fee = answer.first as BigInt;
       }
 
@@ -319,7 +325,7 @@ extension SendReads on Web3 {
   }) async {
     final client = Web3Client(rpcUrl, Client());
     try {
-      return await client.getTransactionReceipt(hash);
+      return await client.getTransactionReceipt(hash).timeout(rpcReadTimeout);
     } finally {
       await client.dispose();
     }
@@ -334,7 +340,9 @@ extension SendReads on Web3 {
   }) async {
     final client = Web3Client(rpcUrl, Client());
     try {
-      final code = await client.getCode(EthereumAddress.fromHex(address));
+      final code = await client
+          .getCode(EthereumAddress.fromHex(address))
+          .timeout(rpcReadTimeout);
       return code.isNotEmpty;
     } finally {
       await client.dispose();
