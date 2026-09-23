@@ -601,6 +601,45 @@ void main() {
     expect(find.textContaining('Sent to'), findsNothing);
   });
 
+  testWidgets('the review drawer fits a short screen with large text, and '
+      'Send in its footer still signs', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final api = _FakeApi();
+    await _mount(
+      tester,
+      api,
+      _RecordingStorage(),
+      TransactionsCubit(),
+      symbol: 'usdc',
+      size: const Size(320, 480),
+    );
+
+    await tester.enterText(find.byType(TextField).at(0), _recipient);
+    await tester.enterText(find.byType(TextField).at(1), '100');
+    await tester.pump();
+    final review = find.widgetWithText(GWButton, 'Review');
+    await tester.ensureVisible(review);
+    await tester.pumpAndSettle();
+    await tester.tap(review);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    // The last detail row is scrolled to, not cut off.
+    final priority = find.text('Priority Fee');
+    await tester.ensureVisible(priority);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(priority).bottom, lessThanOrEqualTo(480));
+
+    final send = find.widgetWithText(GWButton, 'Send');
+    expect(tester.getRect(send).bottom, lessThanOrEqualTo(480));
+    await tester.tap(send);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(api.signedTx, isNotNull);
+  });
+
   testWidgets('Review stays reachable on a short screen with large text and '
       'the keyboard up', (tester) async {
     tester.platformDispatcher.textScaleFactorTestValue = 2.0;

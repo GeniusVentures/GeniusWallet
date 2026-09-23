@@ -125,27 +125,33 @@ class _PlainDetailRow extends StatelessWidget {
     final gw = context.gw;
     return Padding(
       padding: kGWDetailRowPadding,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: GeniusWalletTypography.bodySm.copyWith(
-              color: gw.textPrimary70,
+      // Side by side when both fit; otherwise the value drops under its
+      // label and wraps in full -- a figure about to be signed is never cut.
+      // Full width, or a Wrap shrinks to its content and spaceBetween no
+      // longer pushes the value to the right edge.
+      child: SizedBox(
+        width: double.infinity,
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: GeniusWalletConsts.space3,
+          runSpacing: GeniusWalletConsts.space2,
+          children: [
+            Text(
+              label,
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textPrimary70,
+              ),
             ),
-          ),
-          Flexible(
-            child: Text(
+            Text(
               value,
               textAlign: TextAlign.right,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GeniusWalletTypography.bodyMd.copyWith(
                 color: gw.textPrimary,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
