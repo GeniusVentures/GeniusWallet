@@ -182,13 +182,13 @@ jobs:
             flutter-platform: linux
             abi: x86_64
             build-type: Release
-            container: ghcr.io/geniusventures/debian-bullseye:latest
+            container: ghcr.io/geniusventures/almalinux-8:latest
           - target: Linux
             runner_key: linux_arm
             flutter-platform: linux
             abi: aarch64
             build-type: Release
-            container: ghcr.io/geniusventures/debian-bullseye:latest
+            container: ghcr.io/geniusventures/almalinux-8:latest
           - target: Windows
             runner_key: windows
             flutter-platform: windows
@@ -280,40 +280,52 @@ jobs:
         env:
           TAR_OPTIONS: --no-same-owner
         run: |
-          sudo apt update
-
           sudo update-alternatives --install /usr/bin/cc cc $(which clang) 100
           sudo update-alternatives --install /usr/bin/c++ c++ $(which clang++) 100
           sudo update-alternatives --set cc $(which clang)
           sudo update-alternatives --set c++ $(which clang++)
 
-          # Linux desktop builds run in the Debian bullseye container.
-          # Keep package origin consistent there to avoid mixed base/backports versions.
-          if [ "${{ matrix.target }}" = "Linux" ]; then
-            sudo apt install -y -t bullseye-backports \
-              ninja-build \
-              libvulkan-dev \
-              libzstd-dev \
-              libsecret-1-dev \
-              lld
-
-            sudo apt install -y -t bullseye-backports \
-              libgtk-3-dev \
-              jq
-
-            CLANG_BIN_DIR="$(dirname "$(readlink -f "$(which clang)")")"
-            LLD_PATH="$(command -v ld.lld || true)"
-            if [ -n "$LLD_PATH" ] && [ ! -x "$CLANG_BIN_DIR/ld.lld" ]; then
-              sudo ln -sf "$LLD_PATH" "$CLANG_BIN_DIR/ld.lld"
+          # Linux desktop builds run in the AlmaLinux 8 CI image (glibc 2.28
+          # floor, replacing the EOL Debian Bullseye container). The image
+          # ships clang, ninja, Vulkan headers, gtk3-devel, libsecret-devel,
+          # libzstd, jq, and mold as the default ld — so the containerized
+          # Linux jobs need nothing beyond a guarded safety-net install.
+          # Ubuntu runners (used by the Android builds, which run without a
+          # container) still need apt; containerized-path lld symlink only
+          # exists on apt hosts (the Alma image already provides mold).
+          if command -v dnf >/dev/null 2>&1; then
+            if ! rpm -q ninja-build vulkan-loader-devel libsecret-devel libzstd-devel gtk3-devel jq >/dev/null 2>&1; then
+              sudo dnf install -y ninja-build vulkan-loader-devel libsecret-devel libzstd-devel gtk3-devel jq
             fi
           else
-            # Android/Linux-host jobs are not containerized and should use host repos.
-            sudo apt install -y \
-              ninja-build \
-              libvulkan-dev \
-              libzstd-dev \
-              libsecret-1-dev \
-              jq
+            sudo apt update
+
+            if [ "${{ matrix.target }}" = "Linux" ]; then
+              sudo apt install -y -t bullseye-backports \
+                ninja-build \
+                libvulkan-dev \
+                libzstd-dev \
+                libsecret-1-dev \
+                lld
+
+              sudo apt install -y -t bullseye-backports \
+                libgtk-3-dev \
+                jq
+
+              CLANG_BIN_DIR="$(dirname "$(readlink -f "$(which clang)")")"
+              LLD_PATH="$(command -v ld.lld || true)"
+              if [ -n "$LLD_PATH" ] && [ ! -x "$CLANG_BIN_DIR/ld.lld" ]; then
+                sudo ln -sf "$LLD_PATH" "$CLANG_BIN_DIR/ld.lld"
+              fi
+            else
+              # Android/Linux-host jobs are not containerized and should use host repos.
+              sudo apt install -y \
+                ninja-build \
+                libvulkan-dev \
+                libzstd-dev \
+                libsecret-1-dev \
+                jq
+            fi
           fi
 
           if [ "${{ runner.environment }}" = "self-hosted" ] && [ -z "${{ matrix.container }}" ] && [ -n "${RUNNER_TOOL_CACHE:-}" ]; then
@@ -663,6 +675,33 @@ jobs:
           fi
           if ${{github.event_name == 'workflow_dispatch'}} && [ "${GITHUB_EVENT_INPUTS_THIRDPARTY_BRANCH}" ]; then
             CMAKE_ARGS="$CMAKE_ARGS -DGENIUS_THIRDPARTY_BRANCH=${GITHUB_EVENT_INPUTS_THIRDPARTY_BRANCH}"
+          fi
+
+          # Pin clang explicitly for native Linux builds rather than relying on
+          # the /usr/bin/cc and /usr/bin/c++ update-alternatives symlinks: on
+          # AlmaLinux 8 /usr/bin/c++ is a real file owned by gcc-c++ (not an
+          # alternatives symlink like Debian's), so the update-alternatives
+          # takeover fails silently and CMake falls back to g++ 8.5, which
+          # cannot compile the SuperGenius/GeniusSDK sources this build
+          # compiles from source (same failure as SuperGenius run 35377550250).
+          # Scoped to the containerized desktop targets only: Android keeps
+          # the NDK toolchain-file compilers (an explicit -D would override
+          # them) and other hosts use their own toolchains.
+          if [ "${{ matrix.target }}" = "Linux" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_COMPILER=$(which clang) -DCMAKE_CXX_COMPILER=$(which clang++)"
+
+            # Clang 21 (AlmaLinux 8 image) deprecates the pre-C++23
+            # 'operator "" _name' spacing used by the nlohmann json.hpp
+            # vendored inside flutter_secure_storage_linux (and possibly other
+            # pub plugins). The plugin template builds with -Wall -Werror, so
+            # the warning fails the build; older Debian clang never emitted
+            # it. The linux/CMakeLists.txt CMAKE_ARGUMENTS parser splits on
+            # spaces and matches -DVAR=VALUE with the LAST '=', so the
+            # suppression must be a single flag with no spaces or '=' inside
+            # the value; an explicit -Wno-<diag> outranks a later -Wall in
+            # both clang and gcc, making it ordering-proof against the
+            # plugin's trailing -Wall -Werror.
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS=-Wno-deprecated-literal-operator -DCMAKE_CXX_FLAGS=-Wno-deprecated-literal-operator"
           fi
 
           # Add verbose output for debugging
