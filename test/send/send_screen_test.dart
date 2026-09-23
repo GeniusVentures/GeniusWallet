@@ -72,7 +72,7 @@ class _FakeApi implements GeniusApi {
   Map<String, dynamic>? signedTx;
 
   @override
-  Future<BigInt> rawBalanceOf({
+  Future<BigInt> readTokenBalance({
     required String address,
     required String contractAddress,
     required String rpcUrl,

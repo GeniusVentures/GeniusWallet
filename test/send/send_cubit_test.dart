@@ -92,7 +92,7 @@ class _ConfigurableApi implements GeniusApi {
   final List<int?> feeChainIds = [];
 
   @override
-  Future<BigInt> rawBalanceOf({
+  Future<BigInt> readTokenBalance({
     required String address,
     required String contractAddress,
     required String rpcUrl,
