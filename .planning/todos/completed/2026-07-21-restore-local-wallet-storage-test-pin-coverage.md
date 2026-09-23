@@ -99,8 +99,9 @@ whose reads throw. `flutter_secure_storage` is now a direct dev dependency (alre
 `test/local_wallet_storage_test.dart`, 11 tests:
 - PIN: stored PIN verifies and a wrong/empty one does not; no PIN stored verifies nothing, not even
   empty; empty stored PIN counts as no PIN; changing the PIN retires the old one; an unreadable
-  store fails closed.
-- account: init creates the default account; init keeps an existing one; corrupt account is dropped;
+  store never verifies a PIN. (`pinExists()` answers false on a read error, which is a bug, not a
+  safe default: see `pending/2026-09-23-pinexists-read-error-is-treated-as-no-pin.md`.)
+- account: init creates the default account; init keeps an existing one; corrupt account loads as null instead of throwing;
   deleteAccount removes the account and leaves the PIN.
 - watched wallets: saved under a lowercased address key; rename/delete match case-insensitively.
 
