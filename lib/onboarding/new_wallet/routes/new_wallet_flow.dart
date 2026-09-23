@@ -75,8 +75,6 @@ class NewWalletFlow extends StatelessWidget {
         return BlocProvider.value(
           value: newPinCubit,
           child: ConfirmAndSavePinScreen(
-            onFailed: () =>
-                context.read<NewWalletBloc>().add(PinConfirmFailed()),
             onPassed: () =>
                 context.read<NewWalletBloc>().add(PinConfirmPassed()),
           ),

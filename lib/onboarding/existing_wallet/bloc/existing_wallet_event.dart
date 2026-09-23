@@ -40,8 +40,6 @@ class PinCreated extends ExistingWalletEvent {
 
 class PinConfirmPassed extends ExistingWalletEvent {}
 
-class PinConfirmFailed extends ExistingWalletEvent {}
-
 class LegalAccepted extends ExistingWalletEvent {
   final bool userExists;
 
