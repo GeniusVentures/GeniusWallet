@@ -229,7 +229,8 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                                 context.read<ExistingWalletBloc>().add(
                                   WalletSecurityEntered(
                                     coinType: widget.coinType,
-                                    walletName: walletNameController.text,
+                                    walletName: walletNameController.text
+                                        .trim(),
                                     walletType: widget.walletType,
                                     securityType: getSecurityTypeFromTab(
                                       selectedEntry.key,
