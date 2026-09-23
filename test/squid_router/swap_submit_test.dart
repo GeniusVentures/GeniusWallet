@@ -15,6 +15,7 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
@@ -99,6 +100,18 @@ class _UnusedApi implements GeniusApi {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
+/// Signs, broadcasts, and hears nothing back: the hash is known, the
+/// outcome is not.
+class _UnansweredApi extends _UnusedApi {
+  @override
+  Future<ApiResponse<String>> signAndSendTransaction({
+    required Map<String, dynamic> tx,
+    required String rpcUrl,
+    required String address,
+    required int sourceChainId,
+  }) async => ApiResponse.unconfirmed(_hash, 'connection closed');
+}
+
 const _wallet = Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
   walletName: 'Swap Wallet',
@@ -135,6 +148,7 @@ Future<void> _mountReady(
   WidgetTester tester, {
   required SwapExecutor execute,
   required TransactionStorageService storage,
+  GeniusApi? api,
 }) async {
   tester.view.physicalSize = const Size(1200, 1800);
   tester.view.devicePixelRatio = 1.0;
@@ -145,7 +159,7 @@ Future<void> _mountReady(
       providers: [
         BlocProvider<WalletDetailsCubit>(
           create: (_) => _SeededCubit(
-            geniusApi: _UnusedApi(),
+            geniusApi: api ?? _UnusedApi(),
             networkTokensProvider: NetworkTokensProvider(),
           ),
         ),
@@ -202,6 +216,36 @@ SwapExecutor _announcingAfter(Future<void> gate, SwapOutcome outcome) =>
       await onBroadcast?.call(_hash);
       return outcome;
     };
+
+/// The real orchestrator around the screen's own `send`, with the route
+/// and the status stubbed, so what the signer answers is what is judged.
+SwapExecutor _sendingThroughScreen() =>
+    ({
+      required tokenAddress,
+      required amount,
+      required quotedFees,
+      required fetchRoute,
+      required readAllowance,
+      required approve,
+      required send,
+      required readStatus,
+      required wait,
+      onBroadcast,
+      pollAttempts = 20,
+      pollInterval = const Duration(seconds: 3),
+    }) => executeSwap(
+      tokenAddress: tokenAddress,
+      amount: amount,
+      quotedFees: const [],
+      fetchRoute: () async => _route(),
+      readAllowance: readAllowance,
+      approve: approve,
+      send: send,
+      readStatus: (route, hash) async =>
+          const SwapSettlement(status: SwapStatus.success),
+      wait: (delay) async {},
+      onBroadcast: onBroadcast,
+    );
 
 SwapExecutor _answering(SwapOutcome outcome) =>
     ({
@@ -271,6 +315,26 @@ void main() {
         expect(find.textContaining('0xfeedface'), findsNothing);
       });
     }
+
+    testWidgets('an unanswered broadcast is not taken for a sent swap', (
+      tester,
+    ) async {
+      final storage = _RecordingStorage();
+      await _mountReady(
+        tester,
+        execute: _sendingThroughScreen(),
+        storage: storage,
+        api: _UnansweredApi(),
+      );
+      await _submit(tester);
+
+      expect(storage.writes, isEmpty, reason: 'recorded an unknown send');
+      expect(find.text('Swap Submitted'), findsNothing);
+      expect(
+        find.text(swapFailureMessage(const SwapSendUnconfirmed(null))!),
+        findsWidgets,
+      );
+    });
 
     testWidgets('the CTA leaves its submitting rung', (tester) async {
       final storage = _RecordingStorage();

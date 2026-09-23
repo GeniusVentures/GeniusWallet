@@ -501,7 +501,14 @@ class _SwapScreenState extends State<SwapScreen> {
             address: address,
             sourceChainId: chainId,
           );
-          return response.data;
+          if (response.isSuccess) {
+            return response.data;
+          }
+          // A hash on a failure is a broadcast the node never answered.
+          if (response.data != null) {
+            throw const SwapBroadcastUnanswered();
+          }
+          return null;
         },
         readStatus: widget.provider.status,
         wait: Future<void>.delayed,
@@ -676,7 +683,7 @@ class _SwapScreenState extends State<SwapScreen> {
                 Text(
                   submitFailure == null
                       ? "Couldn't fetch a route."
-                      : 'The swap did not go through.',
+                      : 'The swap did not complete.',
                   style: GeniusWalletTypography.labelMd.copyWith(
                     color: gw.statusError,
                     fontWeight: FontWeight.w600,

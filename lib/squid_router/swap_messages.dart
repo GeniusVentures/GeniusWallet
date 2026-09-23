@@ -23,6 +23,9 @@ String? swapFailureMessage(SwapOutcome outcome) => switch (outcome) {
   SwapSendFailed() =>
     'The swap could not be sent. Check that you have enough to cover gas, '
         'then try again.',
+  SwapSendUnconfirmed() =>
+    'The network did not answer, so the swap may or may not have been sent. '
+        'Check your balance and transactions before you try again.',
   SwapFeesChanged() =>
     "The route's fees changed since this quote was shown, so nothing was "
         'sent. Refresh the quote to see the current fees.',
