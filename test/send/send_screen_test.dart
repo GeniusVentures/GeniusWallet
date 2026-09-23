@@ -41,6 +41,12 @@ const _amoy = Network(
 );
 
 const _maticCoin = Coin(symbol: 'matic', balance: 10);
+const _usdcCoin = Coin(
+  symbol: 'usdc',
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  decimals: '6',
+  balance: 500,
+);
 
 /// Records every write instead of touching Hive.
 class _RecordingStorage implements TransactionStorageService {
@@ -58,6 +64,13 @@ class _RecordingStorage implements TransactionStorageService {
 /// settles the receipt on the first poll — no real RPC, no wait.
 class _FakeApi implements GeniusApi {
   Map<String, dynamic>? signedTx;
+
+  @override
+  Future<BigInt> rawBalanceOf({
+    required String address,
+    required String contractAddress,
+    required String rpcUrl,
+  }) async => BigInt.parse('500000000'); // 500 USDC
 
   @override
   Future<BigInt> nativeBalance({
@@ -124,7 +137,7 @@ class _SeededCubit extends WalletDetailsCubit {
       state.copyWith(
         selectedWallet: _wallet,
         selectedNetwork: _amoy,
-        coins: const [_maticCoin],
+        coins: const [_maticCoin, _usdcCoin],
         coinsStatus: WalletStatus.successful,
         selectedWalletBalance: '10',
       ),
@@ -146,8 +159,9 @@ Future<void> _mount(
   WidgetTester tester,
   _FakeApi api,
   _RecordingStorage storage,
-  TransactionsCubit transactionsCubit,
-) async {
+  TransactionsCubit transactionsCubit, {
+  String symbol = 'matic',
+}) async {
   tester.view.physicalSize = const Size(1200, 1800);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
@@ -166,7 +180,7 @@ Future<void> _mount(
       child: MaterialApp(
         theme: ThemeData(extensions: [GWColors.dark()]),
         home: SendScreen(
-          preselectSymbol: 'matic',
+          preselectSymbol: symbol,
           preselectChainId: 80002,
           storage: storage,
         ),
@@ -388,6 +402,27 @@ void main() {
       expect(find.text('Gas Fee'), findsNothing);
     },
   );
+
+  testWidgets('the drawer shows a 6-decimal token in its own units', (
+    tester,
+  ) async {
+    await _mount(
+      tester,
+      _FakeApi(),
+      _RecordingStorage(),
+      TransactionsCubit(),
+      symbol: 'usdc',
+    );
+
+    await tester.enterText(find.byType(TextField).at(0), _recipient);
+    await tester.enterText(find.byType(TextField).at(1), '100');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(GWButton, 'Review'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('100 USDC'), findsOneWidget);
+    expect(find.text('0.00063 MATIC'), findsOneWidget);
+  });
 
   testWidgets('tapping MAX puts the cubit-computed amount into the field', (
     tester,

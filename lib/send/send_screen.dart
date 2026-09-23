@@ -16,6 +16,7 @@ import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/send/recipient_field.dart';
 import 'package:genius_wallet/send/send_cubit.dart';
+import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -233,12 +234,12 @@ class _SendBodyState extends State<_SendBody> {
       child: SendTransactionDetails(
         fromAddress: cubit.walletAddress,
         toAddress: review.recipient,
-        amount: formatEth(review.rawAmount.toString()),
+        amount: formatTokenAmount(review.rawAmount, review.decimals),
         amountSymbol: assetSymbol,
         feeSymbol: gasSymbol,
-        totalGasFee: formatEth(review.fee.maxCost.toString()),
-        maxFeePerGas: formatEth(review.fee.maxFeePerGas.toString()),
-        priorityFee: formatEth(review.fee.maxPriorityFeePerGas.toString()),
+        totalGasFee: formatTokenAmount(review.fee.maxCost, 18),
+        maxFeePerGas: formatTokenAmount(review.fee.maxFeePerGas, 18),
+        priorityFee: formatTokenAmount(review.fee.maxPriorityFeePerGas, 18),
       ),
       footer: Row(
         children: [
