@@ -58,6 +58,10 @@ The fix is to key the explorer off `chainId`, which both the receipt drawer
 and the history row already have access to via the selected network. Out of
 scope here: it touches every transaction display, not the signing path.
 
+**Closed** by phase 31 plan 1: `explorerUrlFor` keys the link off
+`Transaction.chainId`, falling back to the old symbol map for a row that has
+none.
+
 ## A token receipt has one unit, and history reads three things off it
 
 Codex on PR #235 (P1): `Transaction.coinSymbol` is the only unit the model
@@ -72,3 +76,8 @@ Neither is right; the model needs an asset unit distinct from the chain coin
 (a new Hive field, plus the history amount row reading it). That is a schema
 change across every transaction display, not a signing-path fix, so it is
 deferred with the explorer-link item above, which wants the same split.
+
+**Closed** by phase 31 plan 1: `Transaction.assetSymbol`/`chainId` split the
+asset from the chain; the dApp record now stores `coinSymbol` as the gas coin
+and `assetSymbol` as the decoded token, with the real recipient/amount pair
+instead of the contract and the native value.

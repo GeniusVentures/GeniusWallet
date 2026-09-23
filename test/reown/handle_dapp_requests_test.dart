@@ -753,7 +753,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(harness.answer.result, '0xabc123');
-      expect(harness.transactions.state.single.coinSymbol, 'USDC');
+      final recorded = harness.transactions.state.single;
+      expect(recorded.assetSymbol, 'USDC');
+      expect(recorded.coinSymbol, 'ETH');
+      expect(recorded.chainId, 8453);
+      expect(
+        recorded.recipients.single.toAddr,
+        summaryOf(_transferCalldata, coins: const [_usdc]).recipient,
+      );
       await _finish(tester, harness);
     });
   });
