@@ -19,7 +19,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-/// The `/send` route target (D-03): a keyboard form, not a drawer -- typing
+/// The `/send` route target: a keyboard form, not a drawer -- typing
 /// an address and an amount in a bottom sheet is cramped on a phone.
 class SendScreen extends StatelessWidget {
   const SendScreen({
@@ -112,7 +112,7 @@ class _SendBody extends StatelessWidget {
     final coin = state.coin;
 
     if (coin == null) {
-      // A bare `/send` (the dashboard entry point, D-02) carries no coin --
+      // A bare `/send` (the dashboard entry point) carries no coin --
       // offer the picker rather than a dead end.
       return Scaffold(
         body: SafeArea(child: CoinsScreen(onCoinSelected: cubit.selectCoin)),
