@@ -14,6 +14,7 @@
 // in `sdkRowActions` and are pinned here across all four combinations.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 
 void main() {
   group('sdkRowActions', () {

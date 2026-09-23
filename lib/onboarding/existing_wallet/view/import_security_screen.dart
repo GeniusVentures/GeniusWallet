@@ -14,6 +14,7 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 
 class ImportSecurityScreen extends StatefulWidget {
   final String walletType;
@@ -128,12 +129,7 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                               label: 'Name',
                               hint: 'Enter wallet name',
                               controller: walletNameController,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a wallet name';
-                                }
-                                return null;
-                              },
+                              validator: walletNameError,
                             ),
                             // Walk-driven (06-04 Task 4). The plan says leave
                             // the TabBar alone, and this is a deliberate Rule-1
