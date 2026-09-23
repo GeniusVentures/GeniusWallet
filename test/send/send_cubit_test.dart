@@ -668,4 +668,28 @@ void main() {
       expect(rows.single.transactionStatus, TransactionStatus.completed);
     },
   );
+
+  test('the send is in history as pending while the poll waits', () async {
+    final transactions = TransactionsCubit();
+    List<Transaction>? duringPoll;
+    final cubit = _cubit(
+      api: _ConfigurableApi(receiptSequence: [null, _completedReceipt()]),
+      transactions: transactions,
+      storage: _RecordingStorage(),
+      wait: (d) async => duringPoll ??= transactions.state
+          .where((t) => t.hash == _hash)
+          .toList(),
+    );
+    cubit.setRecipient(_recipient);
+    cubit.setAmount('0.5');
+    await cubit.review();
+
+    await cubit.submit();
+
+    expect(duringPoll, hasLength(1));
+    expect(duringPoll!.single.transactionStatus, TransactionStatus.pending);
+    final rows = transactions.state.where((t) => t.hash == _hash).toList();
+    expect(rows, hasLength(1));
+    expect(rows.single.transactionStatus, TransactionStatus.completed);
+  });
 }

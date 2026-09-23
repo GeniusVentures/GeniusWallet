@@ -682,8 +682,12 @@ class SendCubit extends Cubit<SendState> {
     // Written before the resolved status, keyed by the real hash: a crash
     // between broadcast and settlement must leave an accurate pending row
     // rather than no record of funds that already moved. Funds have moved
-    // by now, so a failed write never skips the steps after it.
-    await _write(rowWith(TransactionStatus.pending));
+    // by now, so a failed write never skips the steps after it. History
+    // renders the live list, not the disk, so the row goes there too: a send
+    // missing from history for the whole poll invites sending it again.
+    final pending = rowWith(TransactionStatus.pending);
+    await _write(pending);
+    transactions.replaceTransaction(pending);
 
     final receipt = await pollReceipt(
       hash: hash,
@@ -692,8 +696,8 @@ class SendCubit extends Cubit<SendState> {
     );
     final resolved = rowWith(settledStatus(receipt), receipt: receipt);
     await _write(resolved);
-    // By hash: a wallet reload during the poll may already show the pending
-    // row, and a second instance would list this send twice.
+    // By hash: the pending row above, and any copy a wallet reload during the
+    // poll brought back, would otherwise list this send twice.
     transactions.replaceTransaction(resolved);
 
     if (isClosed) {
