@@ -18,10 +18,8 @@ status-pill labels and disabled checkbox/switch contrast in light mode.
 2. `borderControl`'s light alpha moved 46%→48% (clears 3:1 on all four light
    surfaces, not just white). `GWCheckbox`/`GWSwitch` disabled chrome now reads
    `borderControl`/`textSecondary` instead of `borderSubtle`/`textTertiary`.
-   `GWSwitch` gained stateful `thumbColor`/`trackColor` resolvers (disabled
-   branch first) since the legacy shorthands never checked disabled. Measured:
-   edge-vs-surface 3.09-3.29 light/3.23-3.33 dark, thumb-vs-track 5.61/5.39,
-   disabled-thumb-vs-off-thumb 2.95/3.23.
+   `GWSwitch` gained stateful colour resolvers, disabled branch first. Measured:
+   edge 3.09-3.33, thumb-vs-track 5.39+, disabled-vs-off thumb 2.95+.
 3. Closed the status-pill todo (moved to `completed/`). Partially closed the
    disabled-state todo — UI-SPEC contrast-rule ask still open. Filed two new
    todos: `statusSuccess`/`statusError` as plain text fails AA (~40 sites), and
@@ -29,20 +27,13 @@ status-pill labels and disabled checkbox/switch contrast in light mode.
 
 ## Commits
 
-- `6d235e49` fix(colours): add statusSuccessText/statusErrorText for AA pill labels
-- `1ac4675c` fix(colours): visible, distinct disabled states for checkbox and switch
-- `ede25e02` docs(todos): close the status-pill AA todo, partially close disabled-state todo
+`197d6ada` pill-label tokens · `a90e3a0f` disabled checkbox/switch · `ea536d6e` todos.
 
 ## Verification
 
-`dart format --set-exit-if-changed lib test`: 0 changed. `flutter analyze`: No
-issues found! (exit 0). `flutter test`: 1562 passed / 5 skipped / 0 failed (was
-1550/5/0, +12 new). `check_brace_style.sh` / `check_raw_colors.sh`: both pass.
-`git ls-files --eol`: only the two pre-existing documented CRLF files.
+Format 0 changed; analyze clean; `flutter test` 1562/5/0 (+12; review later
+removed 2, so 1565/5/0 on develop's newer base). Brace and raw-colour gates pass.
 
 ## Deviations
 
-None — plan executed as written; all measured ratios matched or exceeded the
-plan's predicted numbers, except the checkmark-vs-disabled-fill dark-mode upper
-bound (predicted up to 6.21:1, measured up to 5.91:1) — still far above the 3:1
-floor, so the assertion threshold was unaffected.
+None. Every measured ratio met the plan's prediction or cleared its floor.
