@@ -1410,7 +1410,7 @@ the wallet can sign on, see the fee before approving, and find the send in histo
 the right asset and the right chain. Decisions are in the phase's `31-CONTEXT.md`.
 **Requirements**: SEND-01, SEND-02, SEND-03, SEND-04, SEND-05, SEND-06, SEND-07
 **Depends on:** Phase 30
-**Plans:** 3/5 plans executed (sequential waves 1-5)
+**Plans:** 4/5 plans executed (sequential waves 1-5)
 
 Plans:
 **Wave 1**
@@ -1427,7 +1427,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 31-04-PLAN.md — recipient safety: paste, QR scan (hidden on Windows/Linux), self-send and contract-code warnings
+- [x] 31-04-PLAN.md — recipient safety: paste, QR scan (hidden on Windows/Linux), self-send and contract-code warnings
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
