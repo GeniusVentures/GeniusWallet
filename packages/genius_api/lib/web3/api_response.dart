@@ -14,4 +14,14 @@ class ApiResponse<T> {
   factory ApiResponse.error(String errorMessage) {
     return ApiResponse._(errorMessage: errorMessage, isSuccess: false);
   }
+
+  /// A failure that still carries [data]: a signed transaction whose
+  /// broadcast got no answer, so it may be on the network under that hash.
+  factory ApiResponse.unconfirmed(T data, String errorMessage) {
+    return ApiResponse._(
+      data: data,
+      errorMessage: errorMessage,
+      isSuccess: false,
+    );
+  }
 }

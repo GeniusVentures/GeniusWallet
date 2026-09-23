@@ -515,8 +515,11 @@ class SendCubit extends Cubit<SendState> {
       result = ApiResponse.error('The signature failed.');
     }
 
+    // A hash without success is a broadcast the node never confirmed
+    // hearing: it is tracked like any send, so the user checks history
+    // rather than sending the same amount twice.
     final hash = result.data;
-    if (!result.isSuccess || hash == null || hash.isEmpty) {
+    if (hash == null || hash.isEmpty) {
       if (!isClosed) {
         emit(
           state.copyWith(
@@ -561,12 +564,18 @@ class SendCubit extends Cubit<SendState> {
     if (isClosed) {
       return resolved;
     }
+    final unconfirmed = !result.isSuccess && receipt == null;
     emit(
       state.copyWith(
         busy: false,
         recorded: resolved,
         recipient: '',
         amount: '',
+        error: unconfirmed
+            ? "The network didn't confirm it received this send. It's in "
+                  'your history as pending -- check there before sending '
+                  'again.'
+            : null,
         clearReview: true,
       ),
     );
