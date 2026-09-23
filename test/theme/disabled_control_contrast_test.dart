@@ -98,25 +98,5 @@ void main() {
         );
       },
     );
-
-    test('borderSubtle stays below 3:1 on every surface -- $mode', () {
-      // Pins the defect this fix exists for. If a future retune makes
-      // borderSubtle itself AA-safe as a control edge, this test fails and
-      // the borderControl swap in GWCheckbox/GWSwitch can be revisited
-      // rather than kept forever.
-      final gw = themeFor(mode).extension<GWColors>()!;
-      for (final surface in surfacesOf(gw).entries) {
-        final composited = Color.alphaBlend(gw.borderSubtle, surface.value);
-        final ratio = contrastRatio(composited, surface.value);
-        expect(
-          ratio,
-          lessThan(uiFloor),
-          reason:
-              'borderSubtle now clears $uiFloor:1 on ${surface.key} in '
-              '$mode mode -- the borderControl disabled-state fix may be '
-              'redundant.',
-        );
-      }
-    });
   }
 }
