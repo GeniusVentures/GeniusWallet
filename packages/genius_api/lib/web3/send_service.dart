@@ -75,21 +75,61 @@ Future<FeePerGas> chooseFeePerGas({
   throw const SendFeeUnavailable();
 }
 
-/// The native-send transaction map `signAndSendTransaction` reads: no `data`
-/// key, so the signer's own `Uint8List(0)` default applies.
+/// `transfer(recipient, amount)` calldata against [Web3.abi]'s existing
+/// ERC-20 entry -- the same encoding [buildSendTx]'s token branch signs and
+/// `readSendFee` prices.
+Uint8List erc20TransferCalldata({
+  required String tokenContract,
+  required String recipient,
+  required BigInt amount,
+}) {
+  final contract = DeployedContract(
+    Web3.abi,
+    EthereumAddress.fromHex(tokenContract),
+  );
+  return contract.function('transfer').encodeCall([
+    EthereumAddress.fromHex(recipient),
+    amount,
+  ]);
+}
+
+/// The transaction map `signAndSendTransaction` reads. With no
+/// [tokenContract] this is a plain native transfer: no `data` key, so the
+/// signer's own `Uint8List(0)` default applies. With one, `to` is the token
+/// contract, no native value moves, and `data` is the `transfer` call --
+/// the recipient and amount live in the calldata, not in `to`/`value`.
 Map<String, dynamic> buildSendTx({
   required String from,
   required String recipient,
   required BigInt amount,
   required SendFee fee,
-}) => {
-  'from': from,
-  'to': recipient,
-  'value': '0x${amount.toRadixString(16)}',
-  'gas': '0x${fee.gasLimit.toRadixString(16)}',
-  'maxFeePerGas': '0x${fee.maxFeePerGas.toRadixString(16)}',
-  'maxPriorityFeePerGas': '0x${fee.maxPriorityFeePerGas.toRadixString(16)}',
-};
+  String? tokenContract,
+}) {
+  final priced = {
+    'from': from,
+    'gas': '0x${fee.gasLimit.toRadixString(16)}',
+    'maxFeePerGas': '0x${fee.maxFeePerGas.toRadixString(16)}',
+    'maxPriorityFeePerGas': '0x${fee.maxPriorityFeePerGas.toRadixString(16)}',
+  };
+  if (tokenContract == null) {
+    return {
+      ...priced,
+      'to': recipient,
+      'value': '0x${amount.toRadixString(16)}',
+    };
+  }
+  final data = erc20TransferCalldata(
+    tokenContract: tokenContract,
+    recipient: recipient,
+    amount: amount,
+  );
+  return {
+    ...priced,
+    'to': tokenContract,
+    'value': '0x0',
+    'data': bytesToHex(data, include0x: true),
+  };
+}
 
 /// Reads a broadcast transaction's receipt. A throw means "not yet indexed",
 /// the same convention [pollReceipt] and `swap_execution.dart`'s poll share.
