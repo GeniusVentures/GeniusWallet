@@ -18,6 +18,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:go_router/go_router.dart';
@@ -146,21 +147,32 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     Navigator.of(context).pop();
 
     final controller = TextEditingController(text: wallet.walletName);
+    final formKey = GlobalKey<FormState>();
+    void submit() {
+      if (formKey.currentState!.validate()) {
+        navigator.pop(controller.text.trim());
+      }
+    }
+
     final newName = await GWDialog.show<String>(
       context: navigator.context,
       title: 'Rename Wallet',
-      content: GWTextField(
-        controller: controller,
-        label: 'Wallet name',
-        autofocus: true,
-        onFieldSubmitted: (value) => navigator.pop(value.trim()),
+      content: Form(
+        key: formKey,
+        child: GWTextField(
+          controller: controller,
+          label: 'Wallet name',
+          autofocus: true,
+          validator: walletNameError,
+          onFieldSubmitted: (_) => submit(),
+        ),
       ),
       actions: [
         GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop()),
         GWDialogAction(
           label: 'Rename',
           variant: GWButtonVariant.primary,
-          onPressed: () => navigator.pop(controller.text.trim()),
+          onPressed: submit,
         ),
       ],
     );

@@ -613,14 +613,6 @@ class SDKAccountManagerButton extends StatelessWidget {
   delete: !isSelected,
 );
 
-/// A 42-character `0x`-prefixed hex address. Deliberately not a checksum test:
-/// the SDK does that, and rejecting a valid lowercase address because it is not
-/// EIP-55 cased would be worse than the no-validation this replaces.
-bool isEvmAddress(String raw) {
-  final v = raw.trim();
-  return RegExp(r'^0x[0-9a-fA-F]{40}$').hasMatch(v);
-}
-
 /// The merged add-account body: pick the import method, then paste.
 ///
 /// The method switch is built to `CONVENTIONS.md`'s **Control track** recipe
