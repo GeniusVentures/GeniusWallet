@@ -56,6 +56,10 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
     // Callers fall back to '' for a network with no name; an empty name must
     // not become an invisible chip or the sentence "Only send -network assets".
     final network = widget.network.trim();
+    // A coin without an asset arrives as '' as often as null; `AssetImage('')`
+    // throws "Unable to load asset" on every build, so blank means no icon.
+    final iconPath = widget.iconPath?.trim() ?? '';
+    final hasIcon = iconPath.isNotEmpty;
 
     // The amber this file worked out -- statusWarning is a FILL token and
     // measures ~1.6:1 on white -- now lives in `GWWarningNote`, along with the
@@ -65,29 +69,32 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Network chip — ABOVE the QR (034-A2), borderless (avatar + text).
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (widget.iconPath != null) ...[
-              CircleAvatar(
-                radius: 10,
-                // §4.4 always-light chip: the coin logo needs a fixed light
-                // backing regardless of appearance (NOT an appearance token).
-                backgroundColor: Colors.white,
-                backgroundImage: AssetImage(widget.iconPath!),
-              ),
-              const SizedBox(width: GeniusWalletConsts.space4),
-            ],
-            if (network.isNotEmpty)
-              Text(
-                network,
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  color: gw.textSecondary,
+        // With neither an icon nor a name it would be an empty row plus a gap.
+        if (hasIcon || network.isNotEmpty) ...[
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (hasIcon) ...[
+                CircleAvatar(
+                  radius: 10,
+                  // §4.4 always-light chip: the coin logo needs a fixed light
+                  // backing regardless of appearance (NOT an appearance token).
+                  backgroundColor: Colors.white,
+                  backgroundImage: AssetImage(iconPath),
                 ),
-              ),
-          ],
-        ),
-        const SizedBox(height: GeniusWalletConsts.space12),
+                const SizedBox(width: GeniusWalletConsts.space4),
+              ],
+              if (network.isNotEmpty)
+                Text(
+                  network,
+                  style: GeniusWalletTypography.labelMd.copyWith(
+                    color: gw.textSecondary,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: GeniusWalletConsts.space12),
+        ],
         // QR — an EXPLICIT contained size (~60% of the prior ~304px
         // full-bleed fill), self-contained so it no longer depends on the
         // caller's wrapping SizedBox to shrink it (gap 3).
@@ -100,14 +107,8 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
           // scannable by a phone camera over the dark drawer. NEVER an
           // appearance token.
           backgroundColor: Colors.white,
-          // `AssetImage("")` when there is no icon - which is every coin
-          // without an asset, and every drawer opened from Markets - throws
-          // *"Unable to load asset"* into the log on every build. `null` is
-          // the API's own way to say "no embedded logo"; the empty string was
-          // a `??` reaching for a non-nullable type that did not need one.
-          embeddedImage: widget.iconPath == null
-              ? null
-              : AssetImage(widget.iconPath!),
+          // `null` is the API's own way to say "no embedded logo".
+          embeddedImage: hasIcon ? AssetImage(iconPath) : null,
           embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(36, 36)),
         ),
         const SizedBox(height: GeniusWalletConsts.space12),

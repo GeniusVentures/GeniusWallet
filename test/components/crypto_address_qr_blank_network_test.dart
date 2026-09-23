@@ -9,13 +9,17 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 const _address = '0x1234567890abcdef1234567890abcdef12345678';
 
-Widget _host(String network) => MaterialApp(
+Widget _host(String network, {String? iconPath}) => MaterialApp(
   theme: ThemeData(extensions: [GWColors.light()]),
   home: Scaffold(
     body: Center(
       child: SizedBox(
         width: 380,
-        child: CryptoAddressQR(address: _address, network: network),
+        child: CryptoAddressQR(
+          address: _address,
+          network: network,
+          iconPath: iconPath,
+        ),
       ),
     ),
   ),
@@ -60,6 +64,15 @@ void main() {
 
     final qr = tester.widget<QrImageView>(find.byType(QrImageView));
     expect(qr.embeddedImage, isNull);
+  });
+
+  testWidgets('an empty icon path is treated as no icon', (tester) async {
+    await tester.pumpWidget(_host('Ethereum', iconPath: ''));
+    await tester.pumpAndSettle();
+
+    final qr = tester.widget<QrImageView>(find.byType(QrImageView));
+    expect(qr.embeddedImage, isNull);
+    expect(find.byType(CircleAvatar), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }
