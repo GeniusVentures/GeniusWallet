@@ -1005,7 +1005,7 @@ void showTransactionDetails(
     tx.hash,
   );
 
-  final explorerUrl = getExplorerUrl(tx.coinSymbol, tx.hash);
+  final explorerUrl = explorerUrlFor(tx);
 
   ResponsiveDrawer.show(
     context: context,

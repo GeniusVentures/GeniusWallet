@@ -155,6 +155,18 @@ class Transaction {
   @HiveField(17)
   final String? recoveryUrl;
 
+  /// What actually moved, when it differs from [coinSymbol] — the chain's gas
+  /// coin. Null on every row an older build wrote and on a native send, where
+  /// the two are the same thing.
+  @HiveField(18)
+  final String? assetSymbol;
+
+  /// The chain this transaction is on, keyed for the explorer link. Null on a
+  /// row an older build wrote; [coinSymbol] alone cannot stand in for it
+  /// because more than one chain pays gas in the same coin.
+  @HiveField(19)
+  final int? chainId;
+
   Transaction({
     required this.hash,
     required this.fromAddress,
@@ -174,5 +186,12 @@ class Transaction {
     this.fromSymbol,
     this.toSymbol,
     this.recoveryUrl,
+    this.assetSymbol,
+    this.chainId,
   });
+
+  /// The unit a token-aware row should title/amount/icon itself with — the
+  /// asset that moved, falling back to the chain's gas coin for a native
+  /// send or a row written before this field existed.
+  String get assetUnit => assetSymbol ?? coinSymbol;
 }

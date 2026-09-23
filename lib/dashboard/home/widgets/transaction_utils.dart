@@ -37,6 +37,36 @@ String getExplorerUrl(String coinSymbol, String txHash) {
   return '$baseUrl$txHash';
 }
 
+/// Explorer base URLs keyed by chain id, not by a symbol several chains
+/// share. `84531` (Base Goerli) is deliberately absent — that chain is
+/// retired, and an old row naming it should show no link rather than a dead
+/// one.
+const Map<int, String> kExplorerTxBase = {
+  1: 'https://etherscan.io/tx/',
+  11155111: 'https://sepolia.etherscan.io/tx/',
+  137: 'https://polygonscan.com/tx/',
+  80002: 'https://amoy.polygonscan.com/tx/',
+  56: 'https://bscscan.com/tx/',
+  97: 'https://testnet.bscscan.com/tx/',
+  8453: 'https://basescan.org/tx/',
+};
+
+/// The explorer link for [tx]. Chain-keyed where a chain id is known — the
+/// only way to tell Base's ETH from Ethereum's own — falling back to the
+/// symbol lookup above for a row written before [Transaction.chainId]
+/// existed.
+String explorerUrlFor(Transaction tx) {
+  final chainId = tx.chainId;
+  if (chainId == null) {
+    return getExplorerUrl(tx.coinSymbol, tx.hash);
+  }
+  final baseUrl = kExplorerTxBase[chainId];
+  if (baseUrl == null || tx.hash.isEmpty) {
+    return '';
+  }
+  return '$baseUrl${tx.hash}';
+}
+
 String formatAmount(String amountStr) {
   final amount = double.tryParse(amountStr);
   if (amount == null) {
@@ -490,7 +520,7 @@ TxRowContent txRowContent(
       tx.toSymbol != null) {
     title = '${tx.fromSymbol} $_arrow ${tx.toSymbol}';
   } else {
-    title = tx.coinSymbol;
+    title = tx.assetUnit;
   }
 
   // SUBTITLE - one line of real context, never a repeated relative time, and
@@ -681,10 +711,10 @@ TxRowContent txRowContent(
     final rawAmount = tx.recipients.isEmpty ? '0' : tx.recipients.first.amount;
     amount =
         '${outgoing ? _minus : '+'} '
-        '${formatTxAmount(rawAmount)} ${tx.coinSymbol}';
+        '${formatTxAmount(rawAmount)} ${tx.assetUnit}';
     tone = outgoing ? TxAmountTone.outgoing : TxAmountTone.incoming;
     exactAmount = exactTxAmount(rawAmount);
-    valueLine = _fiatLine(rawAmount, tx.coinSymbol, prices);
+    valueLine = _fiatLine(rawAmount, tx.assetUnit, prices);
   }
 
   // DEAD-STATUS OVERRIDE — failed or cancelled. The amount the type computed
@@ -725,7 +755,7 @@ TxRowContent txRowContent(
           sanitizeCoinAsset(tx.fromSymbol ?? tx.coinSymbol),
           sanitizeCoinAsset(tx.toSymbol ?? tx.coinSymbol),
         ]
-      : [sanitizeCoinAsset(tx.coinSymbol)];
+      : [sanitizeCoinAsset(tx.assetUnit)];
 
   return TxRowContent(
     badge: badge,
