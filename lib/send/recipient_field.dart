@@ -55,8 +55,8 @@ class RecipientField extends StatelessWidget {
 
   final TextEditingController? controller;
 
-  /// A cubit-level error (e.g. from a failed review), shown when the field's
-  /// own format check below has nothing to say about the current text.
+  /// The recipient's error from a failed review, shown when the field's own
+  /// format check below has nothing to say about the current text.
   final String? errorText;
 
   final bool canScan;

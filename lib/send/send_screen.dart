@@ -7,6 +7,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -167,13 +168,14 @@ class _SendBodyState extends State<_SendBody> {
               const SizedBox(height: GeniusWalletConsts.space6),
               RecipientField(
                 controller: _recipientController,
-                errorText: state.error,
+                errorText: state.recipientError,
               ),
               const SizedBox(height: GeniusWalletConsts.space6),
               GWTextField(
                 controller: _amountController,
                 label: 'Amount',
                 hint: '0.0',
+                errorText: state.amountError,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -192,6 +194,10 @@ class _SendBodyState extends State<_SendBody> {
                 ),
                 onChanged: cubit.setAmount,
               ),
+              if (state.error != null) ...[
+                const SizedBox(height: GeniusWalletConsts.space6),
+                Semantics(liveRegion: true, child: GWWarningNote(state.error!)),
+              ],
               const SizedBox(height: GeniusWalletConsts.space8),
               GWButton(
                 label: 'Review',

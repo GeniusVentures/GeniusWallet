@@ -36,6 +36,8 @@ class SendState {
     this.selfSend = false,
     this.contractRecipient = false,
     this.busy = false,
+    this.recipientError,
+    this.amountError,
     this.error,
     this.review,
     this.recorded,
@@ -53,6 +55,11 @@ class SendState {
   /// [SendCubit.setRecipient]).
   final bool contractRecipient;
   final bool busy;
+
+  /// Each error sits under the input it is about; [error] is the rest --
+  /// the fee, the build, the signature -- shown above Review.
+  final String? recipientError;
+  final String? amountError;
   final String? error;
   final SendReview? review;
 
@@ -68,6 +75,8 @@ class SendState {
     bool? selfSend,
     bool? contractRecipient,
     bool? busy,
+    String? recipientError,
+    String? amountError,
     String? error,
     SendReview? review,
     Transaction? recorded,
@@ -80,6 +89,8 @@ class SendState {
     selfSend: selfSend ?? this.selfSend,
     contractRecipient: contractRecipient ?? this.contractRecipient,
     busy: busy ?? this.busy,
+    recipientError: clearError ? null : (recipientError ?? this.recipientError),
+    amountError: clearError ? null : (amountError ?? this.amountError),
     error: clearError ? null : (error ?? this.error),
     review: clearReview ? null : (review ?? this.review),
     recorded: recorded ?? this.recorded,
@@ -392,7 +403,7 @@ class SendCubit extends Cubit<SendState> {
           emit(
             state.copyWith(
               busy: false,
-              error: "Not enough $gasSymbol to cover the network fee.",
+              amountError: "Not enough $gasSymbol to cover the network fee.",
             ),
           );
         }
@@ -429,13 +440,19 @@ class SendCubit extends Cubit<SendState> {
     }
     final recipient = state.recipient.trim();
     if (!isEvmAddress(recipient)) {
-      emit(state.copyWith(error: 'Enter a valid address.', clearReview: true));
+      emit(
+        state.copyWith(
+          recipientError: 'Enter a valid address.',
+          clearReview: true,
+        ),
+      );
       return;
     }
     if (RegExp(r'^0x0{40}$').hasMatch(recipient)) {
       emit(
         state.copyWith(
-          error: 'This is the zero address. Anything sent to it is lost.',
+          recipientError:
+              'This is the zero address. Anything sent to it is lost.',
           clearReview: true,
         ),
       );
@@ -463,7 +480,10 @@ class SendCubit extends Cubit<SendState> {
     final rawAmount = toBaseUnits(state.amount.trim(), decimals);
     if (rawAmount == null || rawAmount <= BigInt.zero) {
       emit(
-        state.copyWith(error: 'Enter an amount to send.', clearReview: true),
+        state.copyWith(
+          amountError: 'Enter an amount to send.',
+          clearReview: true,
+        ),
       );
       return;
     }
@@ -475,7 +495,7 @@ class SendCubit extends Cubit<SendState> {
     final amountText = state.amount;
     // An edit while the reads were in flight already cleared the review, and
     // what they found is about values no longer on the form -- drop it.
-    void settle({String? error, SendReview? review}) {
+    void settle({String? error, String? amountError, SendReview? review}) {
       if (isClosed) {
         return;
       }
@@ -484,7 +504,12 @@ class SendCubit extends Cubit<SendState> {
       emit(
         edited
             ? state.copyWith(busy: false)
-            : state.copyWith(busy: false, error: error, review: review),
+            : state.copyWith(
+                busy: false,
+                error: error,
+                amountError: amountError,
+                review: review,
+              ),
       );
     }
 
@@ -500,7 +525,9 @@ class SendCubit extends Cubit<SendState> {
         );
         if (rawAmount > tokenBalance) {
           final symbol = (coin.symbol ?? '').toUpperCase();
-          settle(error: "Your $symbol balance doesn't cover this amount.");
+          settle(
+            amountError: "Your $symbol balance doesn't cover this amount.",
+          );
           return;
         }
       }
@@ -528,7 +555,8 @@ class SendCubit extends Cubit<SendState> {
         );
         if (rawAmount + fee.maxCost > balance) {
           settle(
-            error: "Not enough $gasSymbol to cover the amount and the fee.",
+            amountError:
+                "Not enough $gasSymbol to cover the amount and the fee.",
           );
           return;
         }
