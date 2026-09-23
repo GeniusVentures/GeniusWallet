@@ -219,15 +219,26 @@ TransactionStatus settledStatus(TransactionReceipt? receipt) {
       : TransactionStatus.completed;
 }
 
-/// What the send actually cost, in native wei -- `null` until both the gas
-/// used and the price paid are on the receipt.
+/// A receipt that keeps what web3dart's parser drops: an OP-Stack chain's
+/// L1 data fee, which the sender pays on top of gas.
+class SendReceipt extends TransactionReceipt {
+  SendReceipt.fromMap(super.map)
+    : l1Fee = map['l1Fee'] is String ? hexToInt(map['l1Fee'] as String) : null,
+      super.fromMap();
+
+  final BigInt? l1Fee;
+}
+
+/// What the send actually cost, in native wei, L1 data fee included --
+/// `null` until both the gas used and the price paid are on the receipt.
 BigInt? feePaid(TransactionReceipt? receipt) {
   final gasUsed = receipt?.gasUsed;
   final price = receipt?.effectiveGasPrice;
   if (gasUsed == null || price == null) {
     return null;
   }
-  return gasUsed * price.getInWei;
+  final l1Fee = receipt is SendReceipt ? receipt.l1Fee : null;
+  return gasUsed * price.getInWei + (l1Fee ?? BigInt.zero);
 }
 
 /// The three chain reads a send needs, each owning and disposing its own
@@ -325,7 +336,12 @@ extension SendReads on Web3 {
   }) async {
     final client = Web3Client(rpcUrl, Client());
     try {
-      return await client.getTransactionReceipt(hash).timeout(rpcReadTimeout);
+      final map = await client
+          .makeRPCCall<Map<String, dynamic>?>('eth_getTransactionReceipt', [
+            hash,
+          ])
+          .timeout(rpcReadTimeout);
+      return map == null ? null : SendReceipt.fromMap(map);
     } finally {
       await client.dispose();
     }

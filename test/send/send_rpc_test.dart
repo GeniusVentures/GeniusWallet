@@ -208,6 +208,46 @@ void main() {
     });
   });
 
+  group('readReceipt', () {
+    Future<BigInt?> paidWith(Map<String, dynamic> extra) async {
+      final rpcUrl = await _serve((method, params) {
+        if (method == 'eth_getTransactionReceipt') {
+          return {
+            'result': {
+              'transactionHash': '0x${'ab' * 32}',
+              'transactionIndex': '0x0',
+              'blockHash': '0x${'cd' * 32}',
+              'blockNumber': '0x10',
+              'cumulativeGasUsed': '0x5208',
+              'gasUsed': '0x5208',
+              'effectiveGasPrice': '0x3b9aca00',
+              'status': '0x1',
+              'logs': <dynamic>[],
+              ...extra,
+            },
+          };
+        }
+        return {
+          'error': {'code': -32601, 'message': 'unexpected $method'},
+        };
+      });
+      return feePaid(
+        await Web3().readReceipt(hash: '0x${'ab' * 32}', rpcUrl: rpcUrl),
+      );
+    }
+
+    test('an OP-Stack receipt adds its L1 data charge to the fee', () async {
+      expect(
+        await paidWith({'l1Fee': '0xf4240'}),
+        BigInt.from(21000) * BigInt.from(1000000000) + BigInt.from(1000000),
+      );
+    });
+
+    test('a receipt with no L1 charge is gas alone', () async {
+      expect(await paidWith({}), BigInt.from(21000) * BigInt.from(1000000000));
+    });
+  });
+
   group('signAndSendTransaction', () {
     test('a broadcast the node never answers hands back its hash', () async {
       String? broadcast;
