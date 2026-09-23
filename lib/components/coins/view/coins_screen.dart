@@ -18,6 +18,7 @@ import 'package:genius_wallet/dashboard/assets/assets_sort.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
+import 'package:genius_wallet/reown/utilities.dart' show canSignOn;
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -509,6 +510,26 @@ class CoinsScreenState extends State<CoinsScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                // Dashboard Send entry point, keyed off HOLDINGS, not
+                // `total` -- a testnet coin carries no CoinGecko price, so
+                // `total` reads zero even on a funded wallet. Opens the
+                // picker (`/send` with no extra), never a preselected coin.
+                if (isDashboard &&
+                    state.coins.any((coin) => (coin.balance ?? 0) > 0) &&
+                    state.selectedNetwork != null &&
+                    canSignOn(state.selectedNetwork!))
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: GeniusWalletConsts.space8,
+                    ),
+                    child: GWButton(
+                      variant: GWButtonVariant.gradientOutline,
+                      size: GWButtonSize.sm,
+                      label: 'Send',
+                      expand: true,
+                      onPressed: () => context.push('/send'),
                     ),
                   ),
               ],
