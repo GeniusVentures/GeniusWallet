@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,19 +9,36 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/send/send_cubit.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+/// Whether this platform has a `mobile_scanner` camera backend -- it has
+/// none on Windows or Linux, so the Scan button is hidden rather than shown
+/// disabled or crashing on tap.
+bool get defaultCanScanQr => !(Platform.isWindows || Platform.isLinux);
+
+/// The first `0x` address found in [raw], or null. A scanned EIP-681
+/// payment link (`ethereum:0xABC...@137?value=...`) carries an amount and a
+/// chain too, but those are never read -- the form's own chain and typed
+/// amount decide, matching what a pasted or typed address already goes
+/// through.
+String? addressFromScan(String raw) =>
+    RegExp(r'0x[0-9a-fA-F]{40}').firstMatch(raw)?.group(0);
 
 /// The `/send` recipient input: paste, a self-send warning, a contract
 /// warning, and (where the platform supports it) a QR scan. Reads
 /// [SendCubit] directly -- owns no state beyond the controller it is given,
 /// which the screen keeps in step with [SendState.recipient].
 class RecipientField extends StatelessWidget {
-  const RecipientField({super.key, this.controller, this.errorText});
+  RecipientField({super.key, this.controller, this.errorText, bool? canScan})
+    : canScan = canScan ?? defaultCanScanQr;
 
   final TextEditingController? controller;
 
   /// A cubit-level error (e.g. from a failed review), shown when the field's
   /// own format check below has nothing to say about the current text.
   final String? errorText;
+
+  final bool canScan;
 
   @override
   Widget build(BuildContext context) {
@@ -41,11 +60,25 @@ class RecipientField extends StatelessWidget {
           hint: '0x...',
           errorText: fieldError,
           onChanged: cubit.setRecipient,
-          suffix: GWButton(
-            label: 'Paste',
-            variant: GWButtonVariant.ghost,
-            size: GWButtonSize.sm,
-            onPressed: () => _paste(cubit),
+          suffix: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GWButton(
+                label: 'Paste',
+                variant: GWButtonVariant.ghost,
+                size: GWButtonSize.sm,
+                onPressed: () => _paste(cubit),
+              ),
+              if (canScan) ...[
+                const SizedBox(width: GeniusWalletConsts.space4),
+                GWButton(
+                  label: 'Scan',
+                  variant: GWButtonVariant.ghost,
+                  size: GWButtonSize.sm,
+                  onPressed: () => _scan(context, cubit),
+                ),
+              ],
+            ],
           ),
         ),
         if (state.selfSend) ...[
@@ -71,5 +104,42 @@ class RecipientField extends StatelessWidget {
     if (text != null && text.isNotEmpty) {
       cubit.setRecipient(text);
     }
+  }
+
+  Future<void> _scan(BuildContext context, SendCubit cubit) async {
+    final raw = await Navigator.of(
+      context,
+    ).push<String>(MaterialPageRoute(builder: (_) => const _ScanPage()));
+    final address = raw == null ? null : addressFromScan(raw);
+    if (address != null) {
+      cubit.setRecipient(address);
+    }
+  }
+}
+
+/// A full-screen camera view that pops with the first detection's raw value.
+/// `onDetect` keeps firing while the camera is open, so every callback
+/// checks the route is still current before popping -- otherwise a second
+/// detection racing the first's pop animation would try to pop twice.
+class _ScanPage extends StatelessWidget {
+  const _ScanPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Scan a QR code')),
+      body: MobileScanner(
+        onDetect: (capture) {
+          if (!(ModalRoute.of(context)?.isCurrent ?? false)) {
+            return;
+          }
+          final barcodes = capture.barcodes;
+          final raw = barcodes.isEmpty ? null : barcodes.first.rawValue;
+          if (raw != null) {
+            Navigator.of(context).pop(raw);
+          }
+        },
+      ),
+    );
   }
 }

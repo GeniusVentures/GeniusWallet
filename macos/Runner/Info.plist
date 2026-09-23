@@ -30,6 +30,8 @@
 	<string>NSApplication</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.business</string>
+	<key>NSCameraUsageDescription</key>
+	<string>GeniusWallet uses the camera to scan a recipient's QR code.</string>
 	<key>CFBundleURLTypes</key>
     <array>
     <dict>
