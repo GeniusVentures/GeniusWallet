@@ -720,11 +720,16 @@ class Web3 {
       }
 
       final credentials = EthPrivateKey.fromHex(privateKey);
-      final signed = await client.signTransaction(
+      var signed = await client.signTransaction(
         credentials,
         transaction,
         chainId: chainId,
       );
+      // web3dart before 3.0.3 leaves the 0x02 type byte to sendTransaction,
+      // so its signed EIP-1559 body is a bare RLP list (first byte >= 0xc0).
+      if (transaction.isEIP1559 && signed.first >= 0xc0) {
+        signed = prependTransactionType(0x02, signed);
+      }
       final String txHash;
       try {
         txHash = await client.sendRawTransaction(signed);

@@ -204,7 +204,45 @@ void main() {
       );
 
       expect(result.isSuccess, isFalse);
-      expect(broadcast, isNotNull);
+      expect(broadcast, startsWith('0x02'));
+      expect(
+        result.data,
+        bytesToHex(keccak256(hexToBytes(broadcast!)), include0x: true),
+      );
+    });
+
+    test('an accepted broadcast is a typed EIP-1559 envelope', () async {
+      String? broadcast;
+      final rpcUrl = await _serve((method, params) {
+        if (method == 'eth_getTransactionCount') {
+          return {'result': '0x0'};
+        }
+        if (method == 'eth_sendRawTransaction') {
+          broadcast = params.first as String;
+          return {
+            'result': bytesToHex(
+              keccak256(hexToBytes(broadcast!)),
+              include0x: true,
+            ),
+          };
+        }
+        if (method == 'eth_getTransactionReceipt') {
+          return {'result': null};
+        }
+        return {
+          'error': {'code': -32601, 'message': 'unexpected $method'},
+        };
+      });
+
+      final result = await Web3().signAndSendTransaction(
+        tx: _tx(),
+        rpcUrl: rpcUrl,
+        privateKey: '11' * 32,
+        chainId: 80002,
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(broadcast, startsWith('0x02'));
       expect(
         result.data,
         bytesToHex(keccak256(hexToBytes(broadcast!)), include0x: true),
