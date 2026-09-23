@@ -12,6 +12,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 Transaction _tx({
   required String fees,
   TransactionType? type,
+  TransactionStatus status = TransactionStatus.completed,
   String fromAmount = '1.5',
   String toAmount = '2400.75',
   String hash = '0xabcdef0123456789abcdef0123456789abcdef0123456789',
@@ -23,7 +24,7 @@ Transaction _tx({
   transactionDirection: TransactionDirection.sent,
   fees: fees,
   coinSymbol: 'ETH',
-  transactionStatus: TransactionStatus.completed,
+  transactionStatus: status,
   type: type,
   fromAmount: fromAmount,
   toAmount: toAmount,
@@ -53,6 +54,22 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
     expect(find.text('Network Fee'), findsOneWidget);
+  });
+
+  testWidgets('a pending send labels its fee as the maximum', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        _tx(
+          fees: '0.0042',
+          type: TransactionType.transfer,
+          status: TransactionStatus.pending,
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(find.text('Max Network Fee'), findsOneWidget);
+    expect(find.text('Network Fee'), findsNothing);
   });
 
   testWidgets('blank fee omits the Network Fee row entirely', (tester) async {

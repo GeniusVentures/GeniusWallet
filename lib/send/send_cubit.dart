@@ -10,7 +10,8 @@ import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.da
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/reown/calldata_decoder.dart'
     show tryDecodeErc20Transfer;
-import 'package:genius_wallet/reown/utilities.dart' show parseHexToBigInt;
+import 'package:genius_wallet/reown/utilities.dart'
+    show canSignOn, parseHexToBigInt;
 import 'package:genius_wallet/squid_router/squid_util.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:web3dart/web3dart.dart' show TransactionReceipt;
@@ -178,6 +179,79 @@ Transaction sendRow({
     assetSymbol: assetSymbol,
     chainId: network.chainId,
   );
+}
+
+/// Reads each pending send in [rows] once more and writes back the settled
+/// row by hash. A poll that ran out, or an app closed mid-poll, would
+/// otherwise leave the row pending, with its max fee, for good.
+Future<void> settlePendingSends({
+  required String walletAddress,
+  required List<Transaction> rows,
+  required List<Network> networks,
+  required GeniusApi api,
+  required TransactionStorageService storage,
+  required TransactionsCubit transactions,
+}) async {
+  for (final row in rows) {
+    final chainId = row.chainId;
+    if (row.transactionStatus != TransactionStatus.pending ||
+        row.type != TransactionType.transfer ||
+        chainId == null ||
+        row.hash.isEmpty) {
+      continue;
+    }
+    String? rpcUrl;
+    for (final network in networks) {
+      if (network.chainId == chainId && canSignOn(network)) {
+        rpcUrl = network.rpcUrl;
+        break;
+      }
+    }
+    if (rpcUrl == null) {
+      continue;
+    }
+    // ponytail: a transaction the network dropped never gets a receipt, so
+    // its row stays pending; a nonce check against the account would settle
+    // it as never sent.
+    TransactionReceipt? receipt;
+    try {
+      receipt = await api.transactionReceipt(hash: row.hash, rpcUrl: rpcUrl);
+    } catch (_) {
+      continue;
+    }
+    if (receipt == null) {
+      continue;
+    }
+    final paid = feePaid(receipt);
+    final settled = Transaction(
+      hash: row.hash,
+      fromAddress: row.fromAddress,
+      recipients: row.recipients,
+      timeStamp: row.timeStamp,
+      transactionDirection: row.transactionDirection,
+      fees: paid == null ? row.fees : formatTokenAmount(paid, _nativeDecimals),
+      coinSymbol: row.coinSymbol,
+      transactionStatus: settledStatus(receipt),
+      isSGNUS: row.isSGNUS,
+      type: row.type,
+      fromIconUrl: row.fromIconUrl,
+      fromAmount: row.fromAmount,
+      toIconUrl: row.toIconUrl,
+      toAmount: row.toAmount,
+      exchangeRate: row.exchangeRate,
+      fromSymbol: row.fromSymbol,
+      toSymbol: row.toSymbol,
+      recoveryUrl: row.recoveryUrl,
+      assetSymbol: row.assetSymbol,
+      chainId: row.chainId,
+    );
+    try {
+      await storage.addTransaction(walletAddress, settled);
+    } catch (_) {
+      // The live history below still shows it settled; the next load retries.
+    }
+    transactions.replaceTransaction(settled);
+  }
 }
 
 class SendCubit extends Cubit<SendState> {

@@ -23,6 +23,13 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
     emit(_sorted());
   }
 
+  /// Swaps the row sharing [tx]'s hash for [tx] -- a pending row settling.
+  void replaceTransaction(Transaction tx) {
+    _transactions.removeWhere((t) => t.hash == tx.hash);
+    _transactions.add(tx);
+    emit(_sorted());
+  }
+
   void addTransactions(List<Transaction> txs) {
     _transactions.addAll(txs);
     emit(_sorted());

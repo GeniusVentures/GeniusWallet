@@ -22,7 +22,9 @@ import 'package:genius_wallet/dev/dev_fault_injector.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_mock_sgnus.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
+import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
+import 'package:genius_wallet/send/send_cubit.dart' show settlePendingSends;
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce/hive.dart';
 
@@ -126,6 +128,16 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     );
 
     await transactionsCubit.loadInitial(selectedWallet.address);
+    unawaited(
+      settlePendingSends(
+        walletAddress: selectedWallet.address,
+        rows: transactionsCubit.state,
+        networks: networks,
+        api: api,
+        storage: const TransactionStorageService(),
+        transactions: transactionsCubit,
+      ),
+    );
     await walletDetailsCubit.loadInitial(
       selectedWallet: selectedWallet,
       selectedNetwork: selectedNetwork,
