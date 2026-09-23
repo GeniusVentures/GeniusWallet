@@ -194,20 +194,45 @@ class SendCubit extends Cubit<SendState> {
   final Future<void> Function(Duration delay) wait;
 
   /// [selfSend] is set here, ignoring case, so the field's own warning is
-  /// never a frame behind what was just typed or pasted.
+  /// never a frame behind what was just typed or pasted. A valid, non-self
+  /// recipient also starts a contract-code check; the wallet's own address
+  /// is never queried, and any further edit clears the flag before that
+  /// check can land.
   void setRecipient(String value) {
     final trimmed = value.trim();
-    final self =
-        isEvmAddress(trimmed) &&
-        trimmed.toLowerCase() == walletAddress.toLowerCase();
+    final valid = isEvmAddress(trimmed);
+    final self = valid && trimmed.toLowerCase() == walletAddress.toLowerCase();
     emit(
       state.copyWith(
         recipient: value,
         selfSend: self,
+        contractRecipient: false,
         clearError: true,
         clearReview: true,
       ),
     );
+    if (valid && !self) {
+      unawaited(_checkContract(trimmed));
+    }
+  }
+
+  /// Reads `eth_getCode` for [recipient] and applies the answer only if the
+  /// recipient hasn't changed since -- a throw or a stale return both leave
+  /// [SendState.contractRecipient] false, never a guess.
+  Future<void> _checkContract(String recipient) async {
+    var hasCode = false;
+    try {
+      hasCode = await api.hasCode(
+        address: recipient,
+        rpcUrl: network.rpcUrl ?? '',
+      );
+    } catch (_) {
+      hasCode = false;
+    }
+    if (isClosed || state.recipient.trim() != recipient) {
+      return;
+    }
+    emit(state.copyWith(contractRecipient: hasCode));
   }
 
   void setAmount(String value) =>
