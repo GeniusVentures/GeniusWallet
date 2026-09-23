@@ -191,6 +191,28 @@ void main() {
       expect(cubit.state.review, isNull);
     });
 
+    test(
+      'an edit while review reads are in flight drops the stale review',
+      () async {
+        final api = _ConfigurableApi();
+        final cubit = _cubit(
+          api: api,
+          transactions: TransactionsCubit(),
+          storage: _RecordingStorage(),
+        );
+        cubit.setRecipient(_recipient);
+        cubit.setAmount('0.5');
+
+        final pending = cubit.review();
+        cubit.setAmount('0.6');
+        await pending;
+
+        expect(cubit.state.review, isNull);
+        expect(cubit.state.busy, isFalse);
+        expect(cubit.state.amount, '0.6');
+      },
+    );
+
     test('amount plus fee above balance names the gas coin', () async {
       final api = _ConfigurableApi(balance: BigInt.zero);
       final cubit = _cubit(
