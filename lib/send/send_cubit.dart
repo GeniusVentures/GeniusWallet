@@ -91,12 +91,16 @@ class SendReview {
     required this.tx,
     required this.fee,
     required this.rawAmount,
+    required this.decimals,
     required this.recipient,
   });
 
   final Map<String, dynamic> tx;
   final SendFee fee;
   final BigInt rawAmount;
+
+  /// The seated coin's decimals, so the drawer shows exactly what is signed.
+  final int decimals;
   final String recipient;
 }
 
@@ -479,6 +483,7 @@ class SendCubit extends Cubit<SendState> {
             tx: tx,
             fee: fee,
             rawAmount: rawAmount,
+            decimals: decimals,
             recipient: recipient,
           ),
         ),
