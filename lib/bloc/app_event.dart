@@ -72,6 +72,10 @@ class DeleteSDKAccount extends AppEvent {
 
 class RefreshSDKAccounts extends AppEvent {}
 
+/// Re-reads the receipt of every send the history still shows as pending --
+/// the startup read finds nothing for a send that had not mined yet.
+class SettlePendingSends extends AppEvent {}
+
 class SetSDKPayoutAddress extends AppEvent {
   final String publicAddress;
 

@@ -66,6 +66,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<DeleteSDKAccount>(_onDeleteSDKAccount);
     on<RefreshSDKAccounts>(_onRefreshSDKAccounts);
     on<SetSDKPayoutAddress>(_onSetSDKPayoutAddress);
+    on<SettlePendingSends>(_onSettlePendingSends);
 
     // Starts as soon as `api` is available, mirroring
     // `sgnus_connection_widget.dart:30-35`'s `didChangeDependencies` start
@@ -152,6 +153,24 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         selectedSDKAccount: sdkState.$1,
         sdkAccounts: sdkState.$2,
       ),
+    );
+  }
+
+  Future<void> _onSettlePendingSends(
+    SettlePendingSends event,
+    Emitter<AppState> emit,
+  ) async {
+    final address = walletDetailsCubit.state.selectedWallet?.address;
+    if (address == null) {
+      return;
+    }
+    await settlePendingSends(
+      walletAddress: address,
+      rows: transactionsCubit.state,
+      networks: networkProvider.networks,
+      api: api,
+      storage: const TransactionStorageService(),
+      transactions: transactionsCubit,
     );
   }
 
