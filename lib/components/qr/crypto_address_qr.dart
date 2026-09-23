@@ -53,6 +53,9 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final groups = _addressGroups(widget.address);
+    // Callers fall back to '' for a network with no name; an empty name must
+    // not become an invisible chip or the sentence "Only send -network assets".
+    final network = widget.network.trim();
 
     // The amber this file worked out -- statusWarning is a FILL token and
     // measures ~1.6:1 on white -- now lives in `GWWarningNote`, along with the
@@ -75,12 +78,13 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
               ),
               const SizedBox(width: GeniusWalletConsts.space4),
             ],
-            Text(
-              widget.network,
-              style: GeniusWalletTypography.labelMd.copyWith(
-                color: gw.textSecondary,
+            if (network.isNotEmpty)
+              Text(
+                network,
+                style: GeniusWalletTypography.labelMd.copyWith(
+                  color: gw.textSecondary,
+                ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: GeniusWalletConsts.space12),
@@ -174,7 +178,9 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
         // its values verbatim so nothing here moves a pixel. The light-mode
         // amber worked out in this file is the reason the component exists.
         GWWarningNote(
-          "Only send ${widget.network}-network assets to this address.",
+          network.isEmpty
+              ? "Only send assets on the selected network to this address."
+              : "Only send $network-network assets to this address.",
         ),
       ],
     );
