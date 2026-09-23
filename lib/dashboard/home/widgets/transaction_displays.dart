@@ -11,12 +11,14 @@ import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_badge.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/web/web_utils.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 final _dateFormat = DateFormat("MMMM d, y 'at' h:mm a");
 
@@ -996,7 +998,19 @@ void showTransactionDetails(
 
   addExtras(txRows, extraTransactionRows);
 
-  add(netRows, 'Network', tx.coinSymbol);
+  // Named by chain id where the row has one: Base and Ethereum both pay gas
+  // in ETH, so the gas coin alone cannot tell them apart. Only a host that
+  // never mounted the app's providers lacks the catalogue.
+  NetworkProvider? catalogue;
+  try {
+    catalogue = Provider.of<NetworkProvider>(context, listen: false);
+  } on ProviderNotFoundException {
+    catalogue = null;
+  }
+  final chainId = tx.chainId;
+  final network = chainId == null ? null : catalogue?.getNetworkById(chainId);
+  final networkName = network?.chainId == chainId ? network?.name : null;
+  add(netRows, 'Network', networkName ?? tx.coinSymbol);
   // Where the fee lives now that it is off the resting row. A blank `fees`
   // means "no fee is known" (e.g. the D-01 unwired swap path) - skip the row
   // entirely, exactly as the Rate row above already skips a blank

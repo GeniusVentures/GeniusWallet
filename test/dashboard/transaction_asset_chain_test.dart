@@ -6,8 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:provider/provider.dart';
 
 /// A token transfer: gas paid in ETH, the token that actually moved is USDC.
 Transaction _tokenTx({int? chainId = 8453, String? assetSymbol = 'USDC'}) =>
@@ -109,6 +111,34 @@ void main() {
         ),
       ),
     );
+
+    Future<void> openWithCatalogue(WidgetTester tester, Transaction tx) async {
+      final catalogue = NetworkProvider();
+      await tester.runAsync(catalogue.loadNetworks);
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(value: catalogue, child: host(tx)),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a Base send names Base as its network, not its gas coin', (
+      tester,
+    ) async {
+      await openWithCatalogue(tester, _tokenTx(chainId: 8453));
+
+      expect(find.text('Base'), findsOneWidget);
+      expect(find.text('ETH'), findsNothing);
+      expect(find.text('0.0042 ETH'), findsOneWidget);
+    });
+
+    testWidgets('a row with no chain id still names its gas coin', (
+      tester,
+    ) async {
+      await openWithCatalogue(tester, _tokenTx(chainId: null));
+
+      expect(find.text('ETH'), findsOneWidget);
+    });
 
     testWidgets('Network Fee names the gas coin; no fee line names the asset', (
       tester,
