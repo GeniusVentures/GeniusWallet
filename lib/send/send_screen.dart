@@ -55,7 +55,25 @@ class SendScreen extends StatelessWidget {
       );
     }
 
-    final api = context.read<WalletDetailsCubit>().geniusApi;
+    // A network switch lands before that network's coins do. Seating from
+    // the list still on state would sign on this chain under a coin, or a
+    // contract address, from the chain just left.
+    if (walletState.coinsNetwork != network) {
+      final failed = walletState.coinsStatus == WalletStatus.error;
+      return Scaffold(
+        body: SafeArea(
+          child: GWEmptyState(
+            icon: Icons.hourglass_empty,
+            title: failed ? "Couldn't load your coins" : 'Loading your coins',
+            message: failed
+                ? "Your coins on ${network.name} didn't load."
+                : 'Your coins on ${network.name} are still loading.',
+          ),
+        ),
+      );
+    }
+
+    final walletCubit = context.read<WalletDetailsCubit>();
     final transactions = context.read<TransactionsCubit>();
     final coin = _seatedCoin(
       walletState.coins,
@@ -70,11 +88,12 @@ class SendScreen extends StatelessWidget {
     return BlocProvider<SendCubit>(
       key: ValueKey('${wallet.address}-${network.chainId}'),
       create: (_) => SendCubit(
-        api: api,
+        api: walletCubit.geniusApi,
         walletAddress: wallet.address,
         network: network,
         transactions: transactions,
         storage: storage,
+        coinsLoadedFor: () => walletCubit.state.coinsNetwork,
         initialCoin: coin,
       ),
       child: const _SendBody(),

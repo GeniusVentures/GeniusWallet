@@ -158,6 +158,7 @@ SendCubit _cubit({
   network: _amoy,
   transactions: TransactionsCubit(),
   storage: storage ?? _RecordingStorage(),
+  coinsLoadedFor: () => _amoy,
   initialCoin: coin,
   wait: (d) async {},
 );
