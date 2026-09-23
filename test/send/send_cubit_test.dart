@@ -1,0 +1,301 @@
+// SendCubit in isolation: no widget, no RPC, no real Hive box -- a
+// configurable fake GeniusApi drives every case.
+import 'dart:typed_data';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/models/network.dart';
+import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_api/web3/send_service.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/send/send_cubit.dart';
+import 'package:web3dart/web3dart.dart' show TransactionReceipt;
+
+const _hash = '0xfeedfacefeedfacefeedfacefeedfacefeedface';
+const _walletAddress = '0xSENDSENDSENDSENDSENDSENDSENDSENDSENDSEND';
+const _recipient = '0x1234567890123456789012345678901234567890';
+
+const _amoy = Network(
+  name: 'Polygon Amoy',
+  symbol: 'matic',
+  chainId: 80002,
+  rpcUrl: 'https://rpc.invalid',
+);
+
+const _maticCoin = Coin(symbol: 'matic', balance: 10);
+
+SendFee _fee() => SendFee(
+  maxFeePerGas: BigInt.from(30000000000),
+  maxPriorityFeePerGas: BigInt.from(1500000000),
+  gasLimit: BigInt.from(21000),
+);
+
+TransactionReceipt _completedReceipt() => TransactionReceipt.fromMap({
+  'transactionHash': _hash,
+  'transactionIndex': '0x0',
+  'blockHash': _hash,
+  'cumulativeGasUsed': '0x5208',
+  'gasUsed': '0x5208',
+  'effectiveGasPrice': '30000000000',
+  'status': '0x1',
+});
+
+class _RecordingStorage implements TransactionStorageService {
+  final List<Transaction> writes = [];
+
+  @override
+  Future<void> addTransaction(String walletAddress, Transaction tx) async =>
+      writes.add(tx);
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
+
+/// Every response is configurable per test; every call is counted so a test
+/// can assert "signs once" without inspecting cubit internals.
+class _ConfigurableApi implements GeniusApi {
+  _ConfigurableApi({
+    BigInt? balance,
+    this.estimateError,
+    this.signResponse,
+    List<TransactionReceipt?>? receiptSequence,
+  }) : balance = balance ?? BigInt.parse('10000000000000000000'),
+       _receiptSequence = receiptSequence ?? [_completedReceipt()];
+
+  final BigInt balance;
+  Exception? estimateError;
+  ApiResponse<String>? signResponse;
+  final List<TransactionReceipt?> _receiptSequence;
+  int _receiptCalls = 0;
+
+  int signCalls = 0;
+  final List<Map<String, dynamic>> signedTxs = [];
+
+  @override
+  Future<BigInt> nativeBalance({
+    required String address,
+    required String rpcUrl,
+  }) async => balance;
+
+  @override
+  Future<SendFee> estimateSendFee({
+    required String rpcUrl,
+    required String sender,
+    required String recipient,
+    Uint8List? data,
+  }) async {
+    if (estimateError != null) {
+      throw estimateError!;
+    }
+    return _fee();
+  }
+
+  @override
+  Future<ApiResponse<String>> signAndSendTransaction({
+    required Map<String, dynamic> tx,
+    required String rpcUrl,
+    required String address,
+    required int sourceChainId,
+  }) async {
+    signCalls++;
+    signedTxs.add(tx);
+    return signResponse ?? ApiResponse.success(_hash);
+  }
+
+  @override
+  Future<TransactionReceipt?> transactionReceipt({
+    required String hash,
+    required String rpcUrl,
+  }) async {
+    final index = _receiptCalls < _receiptSequence.length
+        ? _receiptCalls
+        : _receiptSequence.length - 1;
+    _receiptCalls++;
+    return _receiptSequence[index];
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
+
+SendCubit _cubit({
+  required _ConfigurableApi api,
+  required TransactionsCubit transactions,
+  required _RecordingStorage storage,
+  Future<void> Function(Duration)? wait,
+}) => SendCubit(
+  api: api,
+  walletAddress: _walletAddress,
+  network: _amoy,
+  transactions: transactions,
+  storage: storage,
+  initialCoin: _maticCoin,
+  wait: wait ?? (d) async {},
+);
+
+void main() {
+  group('review', () {
+    test('a thrown estimate shows "Couldn\'t estimate the network fee." and '
+        'opens no review', () async {
+      final api = _ConfigurableApi(estimateError: Exception('rpc down'));
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+
+      await cubit.review();
+
+      expect(cubit.state.error, "Couldn't estimate the network fee.");
+      expect(cubit.state.review, isNull);
+    });
+
+    test('a thrown SendFeeUnavailable shows the same message', () async {
+      final api = _ConfigurableApi(estimateError: const SendFeeUnavailable());
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+
+      await cubit.review();
+
+      expect(cubit.state.error, "Couldn't estimate the network fee.");
+      expect(cubit.state.review, isNull);
+    });
+
+    test('amount plus fee above balance names the gas coin', () async {
+      final api = _ConfigurableApi(balance: BigInt.zero);
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+
+      await cubit.review();
+
+      expect(cubit.state.error, contains('MATIC'));
+      expect(cubit.state.review, isNull);
+    });
+  });
+
+  group('submit', () {
+    test('a failed signature writes nothing, keeps the form and shows the '
+        'returned reason', () async {
+      final api = _ConfigurableApi(
+        signResponse: ApiResponse.error('User rejected'),
+      );
+      final storage = _RecordingStorage();
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: storage,
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+      await cubit.review();
+
+      final result = await cubit.submit();
+
+      expect(result, isNull);
+      expect(cubit.state.error, 'User rejected');
+      expect(cubit.state.recipient, _recipient);
+      expect(cubit.state.amount, '0.5');
+      expect(storage.writes, isEmpty);
+    });
+
+    test('cancelReview then submit signs nothing', () async {
+      final api = _ConfigurableApi();
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+      await cubit.review();
+      cubit.cancelReview();
+
+      final result = await cubit.submit();
+
+      expect(result, isNull);
+      expect(api.signCalls, 0);
+    });
+
+    test('two overlapping submits sign once', () async {
+      final api = _ConfigurableApi();
+      final storage = _RecordingStorage();
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: storage,
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+      await cubit.review();
+
+      final first = cubit.submit();
+      final second = cubit.submit();
+      await Future.wait([first, second]);
+
+      expect(api.signCalls, 1);
+    });
+
+    test('closing the cubit mid-poll still produces both writes and the '
+        'single TransactionsCubit add', () async {
+      final api = _ConfigurableApi(
+        receiptSequence: [null, _completedReceipt()],
+      );
+      final storage = _RecordingStorage();
+      final transactionsCubit = TransactionsCubit();
+      late SendCubit cubit;
+      cubit = _cubit(
+        api: api,
+        transactions: transactionsCubit,
+        storage: storage,
+        // The poll's own wait -- closes the cubit exactly once, between
+        // the first (null) read and the second (settled) one.
+        wait: (d) async => cubit.close(),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+      await cubit.review();
+
+      await cubit.submit();
+
+      expect(storage.writes.length, 2);
+      expect(storage.writes[0].transactionStatus, TransactionStatus.pending);
+      expect(storage.writes[1].transactionStatus, TransactionStatus.completed);
+      expect(transactionsCubit.state.length, 1);
+    });
+  });
+
+  group('selectCoin', () {
+    test('clears the amount and any review', () async {
+      final api = _ConfigurableApi();
+      final cubit = _cubit(
+        api: api,
+        transactions: TransactionsCubit(),
+        storage: _RecordingStorage(),
+      );
+      cubit.setRecipient(_recipient);
+      cubit.setAmount('0.5');
+      await cubit.review();
+      expect(cubit.state.review, isNotNull);
+
+      cubit.selectCoin(const Coin(symbol: 'usdc', address: '0xtoken'));
+
+      expect(cubit.state.coin?.symbol, 'usdc');
+      expect(cubit.state.amount, '');
+      expect(cubit.state.review, isNull);
+    });
+  });
+}

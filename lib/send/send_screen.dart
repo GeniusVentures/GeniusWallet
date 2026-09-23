@@ -4,6 +4,7 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/coins/view/coins_screen.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
@@ -111,13 +112,10 @@ class _SendBody extends StatelessWidget {
     final coin = state.coin;
 
     if (coin == null) {
-      return const Scaffold(
-        body: SafeArea(
-          child: GWEmptyState(
-            icon: Icons.inbox_outlined,
-            title: 'No coin selected',
-          ),
-        ),
+      // A bare `/send` (the dashboard entry point, D-02) carries no coin --
+      // offer the picker rather than a dead end.
+      return Scaffold(
+        body: SafeArea(child: CoinsScreen(onCoinSelected: cubit.selectCoin)),
       );
     }
 
