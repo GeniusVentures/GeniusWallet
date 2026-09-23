@@ -442,6 +442,7 @@ class SendCubit extends Cubit<SendState> {
         sender: walletAddress,
         recipient: tokenContract ?? recipient,
         data: data,
+        value: tokenContract == null ? rawAmount : null,
       );
 
       if (tokenContract == null) {

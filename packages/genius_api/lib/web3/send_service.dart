@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:genius_api/models/transaction.dart' show TransactionStatus;
 import 'package:http/http.dart';
+import 'package:wallet/wallet.dart' show EtherAmount;
 import 'package:web3dart/web3dart.dart';
 
 import 'web3.dart';
@@ -211,13 +212,14 @@ extension SendReads on Web3 {
   }
 
   /// A priced send from [sender] to [recipient]: [chooseFeePerGas] for the
-  /// market fee, `estimateGas` for the limit. Throws [SendFeeUnavailable]
-  /// when no fee could be read.
+  /// market fee, `estimateGas` for the limit, simulated with [value] so a
+  /// recipient that refuses native coin fails here rather than on-chain.
   Future<SendFee> readSendFee({
     required String rpcUrl,
     required String sender,
     required String recipient,
     Uint8List? data,
+    BigInt? value,
   }) async {
     final client = Web3Client(rpcUrl, Client());
     try {
@@ -245,6 +247,7 @@ extension SendReads on Web3 {
         sender: senderAddress,
         to: recipientAddress,
         data: data,
+        value: value == null ? null : EtherAmount.inWei(value),
       );
 
       return SendFee(
