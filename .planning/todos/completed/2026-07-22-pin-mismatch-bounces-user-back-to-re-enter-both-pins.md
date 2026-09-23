@@ -39,3 +39,16 @@ one-liner, which is why it belongs in its own scoped work.
 
 Worth pairing with a decision on whether repeated mismatches should be rate-limited at all; nothing
 currently counts them.
+
+## Closed 2026-09-23
+
+Fixed in `fix(onboarding): a PIN mismatch retries the confirm step instead of restarting`.
+`ConfirmAndSavePinScreen` now handles the mismatch itself: it clears only the confirmation entry
+and shows "Incorrect PIN" on the confirm step, for both the new-wallet and import flows.
+`NewPinCubit` keeps the first PIN and goes back to `awaitingVerification` after `failed`, so a
+second mismatch still reaches the screen. `PinConfirmFailed` (both blocs), the `onFailed`
+callback and `CreatePinScreen`'s failure listener were deleted as dead.
+
+Tests: `test/onboarding/confirm_pin_retry_test.dart` (stays on confirm + clears only that entry;
+a repeated mismatch is caught, then the right PIN saves). Rate-limiting repeated mismatches was
+not added: this is PIN creation, the user is choosing the value, so there is nothing to guess.
