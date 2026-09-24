@@ -190,6 +190,22 @@ void main() {
       expect(swapCtaLabel(state), 'Submitting swap…');
     });
 
+    test('an over-precise amount outranks a stale route error', () {
+      final state = resolveSwapCtaState(
+        hasBothTokens: true,
+        fromAmount: '1.0000009',
+        fromBalance: 10,
+        isFetchingRoute: false,
+        hasRoute: false,
+        routeError: true,
+        isSubmitting: false,
+        tooPrecise: true,
+      );
+      expect(state, SwapCtaState.tooPrecise);
+      expect(swapCtaEnabled(state), isFalse);
+      expect(swapCtaLabel(state, decimals: 6), 'Max 6 decimal places');
+    });
+
     test('submitting outranks routeError', () {
       final state = resolveSwapCtaState(
         hasBothTokens: true,

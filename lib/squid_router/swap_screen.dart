@@ -156,13 +156,13 @@ class _SwapScreenState extends State<SwapScreen> {
   /// is speaking for a failed quote, which is what it shipped for.
   String? submitFailure;
 
-  /// The selected pay token's balance as a number, or null when unknown.
-  /// Never accuse the user of an insufficient balance on missing data.
   /// Non-null when the typed amount has digits the pay token cannot hold.
   String? get _precisionError => fromToken == null
       ? null
       : precisionError(fromAmount, fromToken!.symbol, fromToken!.decimals);
 
+  /// The selected pay token's balance as a number, or null when unknown.
+  /// Never accuse the user of an insufficient balance on missing data.
   double? get fromBalanceAmount => fromToken?.amountAsDouble;
 
   @override
@@ -370,6 +370,13 @@ class _SwapScreenState extends State<SwapScreen> {
 
     final request = quoteRequest;
     if (request == null) {
+      // The input, not the network, is now why no route is fetched.
+      if (routeError) {
+        setState(() {
+          routeError = false;
+          submitFailure = null;
+        });
+      }
       return;
     }
 
@@ -739,9 +746,11 @@ class _SwapScreenState extends State<SwapScreen> {
     final unavailable = !widget.swapAvailable;
     final label = unavailable
         ? 'Swap unavailable'
-        : state == SwapCtaState.tooPrecise
-        ? _precisionError!
-        : swapCtaLabel(state, symbol: fromToken?.symbol);
+        : swapCtaLabel(
+            state,
+            symbol: fromToken?.symbol,
+            decimals: fromToken?.decimals,
+          );
     final enabled = swapCtaEnabled(state);
 
     if (!unavailable &&
@@ -803,10 +812,14 @@ class _SwapScreenState extends State<SwapScreen> {
                   ),
                   const SizedBox(width: GeniusWalletConsts.space4),
                 ],
-                Text(
-                  label,
-                  style: GeniusWalletTypography.titleLg.copyWith(
-                    color: foreground,
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GeniusWalletTypography.titleLg.copyWith(
+                      color: foreground,
+                    ),
                   ),
                 ),
               ],

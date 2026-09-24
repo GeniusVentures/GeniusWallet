@@ -86,7 +86,7 @@ SwapCtaState resolveSwapCtaState({
 ///
 /// [symbol] is interpolated only for [SwapCtaState.insufficientBalance];
 /// falls back to the symbol-less string when null or empty.
-String swapCtaLabel(SwapCtaState state, {String? symbol}) {
+String swapCtaLabel(SwapCtaState state, {String? symbol, int? decimals}) {
   switch (state) {
     case SwapCtaState.enterAmount:
       return 'Enter an amount';
@@ -98,7 +98,9 @@ String swapCtaLabel(SwapCtaState state, {String? symbol}) {
     case SwapCtaState.findingRoute:
       return 'Finding best route…';
     case SwapCtaState.tooPrecise:
-      return 'Too many decimal places';
+      return decimals == null
+          ? 'Too many decimal places'
+          : 'Max $decimals decimal places';
     case SwapCtaState.ready:
       return 'Swap';
     case SwapCtaState.submitting:
