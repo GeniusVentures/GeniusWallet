@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
@@ -47,3 +49,9 @@ Future<void> initHive() async {
     Hive.openBox(preferencesBoxName),
   ]);
 }
+
+/// True when [e] means another running copy of the app holds a box's `.lock`
+/// file. hive_ce locks `<box>.lock` non-blockingly on open, so a second process
+/// fails with a FileSystemException on that path (open, write or lock).
+bool isHiveLockHeld(FileSystemException e) =>
+    e.path?.endsWith('.lock') ?? false;
