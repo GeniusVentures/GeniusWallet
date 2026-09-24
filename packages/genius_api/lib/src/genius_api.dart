@@ -22,6 +22,8 @@ import 'package:genius_api/test/dev_overrides.dart';
 import 'package:genius_api/tw/any_address.dart';
 import 'package:genius_api/tw/coin_util.dart';
 import 'package:genius_api/tw/hd_wallet.dart';
+import 'package:genius_api/tw/mnemonic_impl.dart';
+import 'package:genius_api/tw/private_key.dart';
 import 'package:genius_api/tw/stored_key.dart';
 import 'package:genius_api/types/security_type.dart';
 import 'package:genius_api/types/wallet_type.dart';
@@ -993,6 +995,27 @@ class GeniusApi {
     final result = await receivePort.first as int;
     receivePort.close();
     return _mapNodeReturnValue(result);
+  }
+
+  /// Whether [mnemonic] is a valid BIP-39 phrase, by Trust Wallet core's rule.
+  bool isValidMnemonic(String mnemonic) => MnemonicImpl.isValid(mnemonic);
+
+  /// Whether [privateKeyHex] is a valid secp256k1 private key. Anything that is
+  /// not exactly 32 hex bytes is rejected before key bytes reach native code.
+  bool isValidPrivateKey(String privateKeyHex) {
+    final List<int> bytes;
+    try {
+      bytes = hex.decode(privateKeyHex);
+    } on FormatException {
+      return false;
+    }
+    if (bytes.length != PrivateKey.privateKeySize) {
+      return false;
+    }
+    final data = Uint8List.fromList(bytes);
+    final valid = PrivateKey.isValid(data, TWCurve.TWCurveSECP256k1);
+    data.fillRange(0, data.length, 0);
+    return valid;
   }
 
   /// Adds a new Genius account to the SDK using a mnemonic recovery phrase.

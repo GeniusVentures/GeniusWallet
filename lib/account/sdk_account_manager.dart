@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
@@ -473,58 +474,43 @@ class SDKAccountManagerButton extends StatelessWidget {
   /// presentation wrapper around the SAME `TextEditingController` -- it never
   /// reads or logs the value; the value flows straight from
   /// `controller.text.trim()` into the bloc event.
+  ///
+  /// Success is reported only once the SDK's account list actually grows.
   Future<void> _showAddAccountDialog(BuildContext context) async {
-    final controller = TextEditingController();
-    // Owned here, so the footer action can read the switch the body owns --
-    // the same pattern Swap Settings uses to keep its Apply honest about a
-    // form it is a sibling of, not a parent.
-    final usePhrase = ValueNotifier<bool>(true);
     final bloc = context.read<AppBloc>();
-    final navigator = Navigator.of(context, rootNavigator: true);
+    final result = await showDialog<({bool phrase, String value})>(
+      context: context,
+      barrierColor: context.gw.surfaceOverlay,
+      builder: (_) => _AddAccountDialog(api: bloc.api),
+    );
 
-    final result =
-        await GWDialog.show<({bool phrase, String value})>(
-          context: context,
-          title: 'Add account',
-          content: _AddAccountForm(
-            controller: controller,
-            usePhrase: usePhrase,
-          ),
-          actions: [
-            GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop()),
-            GWDialogAction(
-              label: 'Add account',
-              variant: GWButtonVariant.primary,
-              onPressed: () => navigator.pop((
-                phrase: usePhrase.value,
-                value: controller.text.trim(),
-              )),
-            ),
-          ],
-        ).whenComplete(() {
-          controller.dispose();
-          usePhrase.dispose();
-        });
-
-    if (result == null || result.value.isEmpty || !context.mounted) {
+    if (result == null) {
       return;
     }
 
+    // The handler emits only when the SDK returns OK, so -- as with delete --
+    // the observable truth is whether the account list grew. Subscribed before
+    // dispatching, so the emission cannot slip past.
+    final before = bloc.state.sdkAccounts.length;
+    final grew = bloc.stream
+        .map((s) => s.sdkAccounts.length > before)
+        .firstWhere((added) => added)
+        .timeout(const Duration(seconds: 3), onTimeout: () => false);
     bloc.add(
       result.phrase
           ? AddSDKAccountWithMnemonic(result.value)
           : AddSDKAccountWithPrivateKey(result.value),
     );
-    // Refresh after a short delay to let the SDK process the addition.
-    await Future.delayed(const Duration(milliseconds: 500));
+    final added = await grew;
+
     if (!context.mounted) {
       return;
     }
-    bloc.add(RefreshSDKAccounts());
     showToast(
       context,
-      'Account added successfully',
-      duration: const Duration(seconds: 1),
+      added ? 'Account added' : 'The SDK did not add that account.',
+      type: added ? ToastType.success : ToastType.error,
+      duration: Duration(seconds: added ? 1 : 3),
     );
   }
 
@@ -613,7 +599,7 @@ class SDKAccountManagerButton extends StatelessWidget {
   delete: !isSelected,
 );
 
-/// The merged add-account body: pick the import method, then paste.
+/// The merged add-account dialog: pick the import method, then paste.
 ///
 /// The method switch is built to `CONVENTIONS.md`'s **Control track** recipe
 /// (`surfaceSunken` fill, `borderSubtle` hairline, `radiusPill`, 3px track
@@ -622,24 +608,54 @@ class SDKAccountManagerButton extends StatelessWidget {
 /// (`_TimeframeSegment` twice, the transactions filter track, `_PresetChip`,
 /// and now this). A todo is filed; building `GWSegmentedControl` for one
 /// consumer would fail the promotion test 065 and 068 both used.
-class _AddAccountForm extends StatefulWidget {
-  const _AddAccountForm({required this.controller, required this.usePhrase});
+class _AddAccountDialog extends StatefulWidget {
+  const _AddAccountDialog({required this.api});
 
-  final TextEditingController controller;
-  final ValueNotifier<bool> usePhrase;
+  final GeniusApi api;
 
   @override
-  State<_AddAccountForm> createState() => _AddAccountFormState();
+  State<_AddAccountDialog> createState() => _AddAccountDialogState();
 }
 
-class _AddAccountFormState extends State<_AddAccountForm> {
+// Owns the controller, so it is disposed when the route is gone rather than
+// when `showDialog` returns -- the exit animation still rebuilds the field.
+class _AddAccountDialogState extends State<_AddAccountDialog> {
+  final _controller = TextEditingController();
+  bool _phrase = true;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final phrase = _phrase;
+    final value = _controller.text.trim();
+    // The repository's own validators, so Add cannot hand the SDK a secret
+    // it would refuse anyway.
+    final valid = phrase
+        ? widget.api.isValidMnemonic(value)
+        : widget.api.isValidPrivateKey(value);
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: widget.usePhrase,
-      builder: (context, phrase, _) => Column(
+    return GWDialog(
+      title: 'Add account',
+      actions: [
+        GWDialogAction(
+          label: 'Cancel',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        GWDialogAction(
+          label: 'Add account',
+          variant: GWButtonVariant.primary,
+          onPressed: valid
+              ? () => Navigator.of(context).pop((phrase: phrase, value: value))
+              : null,
+        ),
+      ],
+      content: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -669,7 +685,8 @@ class _AddAccountFormState extends State<_AddAccountForm> {
             const SizedBox(height: GeniusWalletConsts.space6),
           ],
           GWTextField(
-            controller: widget.controller,
+            controller: _controller,
+            onChanged: (_) => setState(() {}),
             label: phrase ? 'Recovery phrase' : 'Private key',
             hint: phrase
                 ? 'Paste 12 or 24 words, separated by spaces'
@@ -714,8 +731,8 @@ class _AddAccountFormState extends State<_AddAccountForm> {
                 // Switching method clears the field: a mnemonic left in the
                 // box while the label says "Private key" is the kind of thing
                 // that gets pasted into the wrong import.
-                widget.controller.clear();
-                widget.usePhrase.value = value;
+                _controller.clear();
+                setState(() => _phrase = value);
               },
         child: Container(
           height: 36,

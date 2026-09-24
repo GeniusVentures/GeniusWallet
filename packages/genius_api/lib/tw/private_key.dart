@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
+import 'package:ffi/ffi.dart';
 import 'package:genius_api/extensions/extensions.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/ffi_bridge_prebuilt.dart';
@@ -12,14 +13,20 @@ class PrivateKey {
 
   late Pointer<Void> nativehandle;
 
+  /// Both native copies of [data] are wiped and freed before returning: this
+  /// runs on key material, and it used to leak both on every call.
   static bool isValid(Uint8List data, TWCurve curve) {
-    return ffiBridgePrebuilt.twLib.TWPrivateKeyIsValid(
-      ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
-        data.toPointerUint8(),
-        data.length,
-      ),
-      curve,
+    final blob = data.toPointerUint8();
+    final twData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
+      blob,
+      data.length,
     );
+    final valid = ffiBridgePrebuilt.twLib.TWPrivateKeyIsValid(twData, curve);
+    ffiBridgePrebuilt.twLib.TWDataReset(twData);
+    ffiBridgePrebuilt.twLib.TWDataDelete(twData);
+    blob.asTypedList(data.length).fillRange(0, data.length, 0);
+    calloc.free(blob);
+    return valid;
   }
 
   PrivateKey.pointer(Pointer<Void> pointer) {
