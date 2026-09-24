@@ -28,11 +28,16 @@ enum SwapCtaState {
   routeError,
 }
 
+/// True when [amount] has a non-zero digit past [decimals]: `toBaseUnits`
+/// would drop it and swap less than was typed. Trailing zeros lose nothing.
+bool exceedsPrecision(String amount, int decimals) =>
+    RegExp('\\.\\d{$decimals}\\d*[1-9]').hasMatch(amount);
+
 /// Resolves the swap CTA's state from the screen's raw inputs.
 ///
 /// Precedence, top to bottom (D-09 / UI-SPEC CTA ladder):
 /// `submitting` → `enterAmount` (no tokens / no parseable amount) →
-/// `routeError` → `insufficientBalance` → `findingRoute` → `ready`.
+/// `tooPrecise` → `routeError` → `insufficientBalance` → `findingRoute` → `ready`.
 SwapCtaState resolveSwapCtaState({
   required bool hasBothTokens,
   required String fromAmount,

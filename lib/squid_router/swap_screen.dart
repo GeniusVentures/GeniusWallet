@@ -156,10 +156,9 @@ class _SwapScreenState extends State<SwapScreen> {
   /// is speaking for a failed quote, which is what it shipped for.
   String? submitFailure;
 
-  /// Non-null when the typed amount has digits the pay token cannot hold.
-  String? get _precisionError => fromToken == null
-      ? null
-      : precisionError(fromAmount, fromToken!.symbol, fromToken!.decimals);
+  /// True when the typed amount has digits the pay token cannot hold.
+  bool get _tooPrecise =>
+      fromToken != null && exceedsPrecision(fromAmount, fromToken!.decimals);
 
   /// The selected pay token's balance as a number, or null when unknown.
   /// Never accuse the user of an insufficient balance on missing data.
@@ -347,7 +346,7 @@ class _SwapScreenState extends State<SwapScreen> {
     // Base units, not the typed string: '1.5' sent as-is is 1.5 wei.
     final fromAmountUnits = toBaseUnits(fromAmount, fromToken!.decimals);
 
-    if (fromAmountUnits == null || _precisionError != null) {
+    if (fromAmountUnits == null || _tooPrecise) {
       return null;
     }
 
@@ -738,7 +737,7 @@ class _SwapScreenState extends State<SwapScreen> {
       hasRoute: fetchedQuote != null,
       routeError: routeError,
       isSubmitting: isSubmitting,
-      tooPrecise: _precisionError != null,
+      tooPrecise: _tooPrecise,
     );
     // The availability gate sits ABOVE the ladder, not inside it: a build that
     // cannot reach Squid has no rung to be on, and the ladder stays the single

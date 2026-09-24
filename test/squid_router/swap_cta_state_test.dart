@@ -246,6 +246,13 @@ void main() {
     });
   });
 
+  test('exceedsPrecision refuses only digits toBaseUnits would drop', () {
+    expect(exceedsPrecision('1.0000009', 6), isTrue);
+    expect(exceedsPrecision('1.000000000', 6), isFalse);
+    expect(exceedsPrecision('1.123456', 6), isFalse);
+    expect(exceedsPrecision('1.5', 0), isTrue);
+  });
+
   group('swapCtaEnabled — exhaustive', () {
     test('only ready and routeError are enabled', () {
       final enabledStates = SwapCtaState.values.where(swapCtaEnabled).toSet();
