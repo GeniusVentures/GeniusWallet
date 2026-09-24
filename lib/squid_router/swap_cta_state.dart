@@ -8,6 +8,9 @@ enum SwapCtaState {
   /// No tokens selected, or the amount is empty/unparseable.
   enterAmount,
 
+  /// The amount has more fractional digits than the pay token can hold.
+  tooPrecise,
+
   /// A valid amount exceeds the selected pay token's known balance.
   insufficientBalance,
 
@@ -38,6 +41,7 @@ SwapCtaState resolveSwapCtaState({
   required bool hasRoute,
   required bool routeError,
   required bool isSubmitting,
+  bool tooPrecise = false,
 }) {
   // Submitting outranks everything — the closure is mid-flight.
   if (isSubmitting) {
@@ -47,6 +51,11 @@ SwapCtaState resolveSwapCtaState({
   final parsedAmount = double.tryParse(fromAmount);
   if (!hasBothTokens || fromAmount.isEmpty || parsedAmount == null) {
     return SwapCtaState.enterAmount;
+  }
+
+  // Swapping less than was typed, silently, is worse than refusing.
+  if (tooPrecise) {
+    return SwapCtaState.tooPrecise;
   }
 
   // The field is in error, not the button — surfaces as an enabled Retry.
@@ -88,6 +97,8 @@ String swapCtaLabel(SwapCtaState state, {String? symbol}) {
           : 'Insufficient balance';
     case SwapCtaState.findingRoute:
       return 'Finding best route…';
+    case SwapCtaState.tooPrecise:
+      return 'Too many decimal places';
     case SwapCtaState.ready:
       return 'Swap';
     case SwapCtaState.submitting:
