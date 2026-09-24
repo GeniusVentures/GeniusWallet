@@ -37,6 +37,11 @@ Future<void> initHive() async {
     ..registerAdapter(TransferRecipientsAdapter())
     ..registerAdapter(TransactionAdapter());
 
+  // One box first, alone, elects a single winner when two copies start at
+  // once: the loser fails here holding nothing, instead of each copy taking
+  // some of the concurrent locks below and both reporting "already running".
+  await Hive.openBox(preferencesBoxName);
+
   await Future.wait([
     Hive.openBox(coinGeckoCacheBox),
     Hive.openBox<CoinGeckoMarketData>(marketDataBox),
@@ -46,7 +51,6 @@ Future<void> initHive() async {
     Hive.openBox<String>(coinTelegraphTimestampBox),
     Hive.openBox(walletBoxName),
     Hive.openBox(networkBoxName),
-    Hive.openBox(preferencesBoxName),
   ]);
 }
 

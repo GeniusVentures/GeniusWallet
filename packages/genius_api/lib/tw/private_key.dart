@@ -13,20 +13,22 @@ class PrivateKey {
 
   late Pointer<Void> nativehandle;
 
-  /// Both native copies of [data] are wiped and freed before returning: this
-  /// runs on key material, and it used to leak both on every call.
+  /// Both native copies of [data] are wiped and freed before returning, even
+  /// when a native call throws: this runs on key material.
   static bool isValid(Uint8List data, TWCurve curve) {
     final blob = data.toPointerUint8();
-    final twData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
-      blob,
-      data.length,
-    );
-    final valid = ffiBridgePrebuilt.twLib.TWPrivateKeyIsValid(twData, curve);
-    ffiBridgePrebuilt.twLib.TWDataReset(twData);
-    ffiBridgePrebuilt.twLib.TWDataDelete(twData);
-    blob.asTypedList(data.length).fillRange(0, data.length, 0);
-    calloc.free(blob);
-    return valid;
+    Pointer<Void>? twData;
+    try {
+      twData = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(blob, data.length);
+      return ffiBridgePrebuilt.twLib.TWPrivateKeyIsValid(twData, curve);
+    } finally {
+      if (twData != null) {
+        ffiBridgePrebuilt.twLib.TWDataReset(twData);
+        ffiBridgePrebuilt.twLib.TWDataDelete(twData);
+      }
+      blob.asTypedList(data.length).fillRange(0, data.length, 0);
+      calloc.free(blob);
+    }
   }
 
   PrivateKey.pointer(Pointer<Void> pointer) {
