@@ -117,12 +117,9 @@ class SendReview {
   final String recipient;
 }
 
-/// Whether [tx] really is the send it claims to be. With no [tokenContract]:
-/// the recipient it was built for, the amount it was built for, and no
-/// calldata riding along on what is supposed to be a plain native transfer.
-/// With one: `to` is the contract, no native value moves, and the calldata
-/// decodes back to exactly that recipient and amount -- the review's own
-/// proof that the built transaction says what the form said.
+/// Whether [tx] says what the form said. Native: that recipient and amount,
+/// and no calldata. With [tokenContract]: `to` is the contract, no native
+/// value moves, and the calldata decodes back to that recipient and amount.
 bool builtTxMatches(
   Map<String, dynamic> tx, {
   required String recipient,
@@ -292,11 +289,9 @@ class SendCubit extends Cubit<SendState> {
   final Network? Function() coinsLoadedFor;
   final Future<void> Function(Duration delay) wait;
 
-  /// [selfSend] is set here, ignoring case, so the field's own warning is
-  /// never a frame behind what was just typed or pasted. A valid, non-self
-  /// recipient also starts a contract-code check; the wallet's own address
-  /// is never queried, and any further edit clears the flag before that
-  /// check can land.
+  /// Sets [selfSend] here so its warning is never a frame behind the input. A
+  /// valid, non-self recipient starts a contract-code check; any further edit
+  /// clears the flag before a stale check can land.
   void setRecipient(String value) {
     final trimmed = value.trim();
     final valid = isEvmAddress(trimmed);
@@ -346,11 +341,9 @@ class SendCubit extends Cubit<SendState> {
     state.copyWith(coin: coin, amount: '', clearError: true, clearReview: true),
   );
 
-  /// Fills the amount field with the most this coin can actually send: the
-  /// exact raw token balance for a token, or the native balance minus the
-  /// maximum network fee for the chain's own coin -- never below zero. The
-  /// review step re-estimates regardless, so a fee that grows between MAX
-  /// and Review still refuses rather than signing an underfunded send.
+  /// Fills in the most this coin can send: the raw token balance, or the
+  /// native balance minus the max fee, never below zero. Review re-estimates,
+  /// so a fee that grows after MAX still refuses an underfunded send.
   Future<void> useMax() async {
     final coin = state.coin;
     if (coin == null || state.busy) {
@@ -446,10 +439,9 @@ class SendCubit extends Cubit<SendState> {
     }
   }
 
-  /// Validates, prices and builds the send, landing it on [SendState.review]
-  /// for the confirm drawer. Refuses -- with a reason, never a silent no-op
-  /// -- on a bad address, an unparsable amount, an unreadable fee, or a
-  /// balance short of the amount plus the max fee.
+  /// Validates, prices and builds the send onto [SendState.review]. Refuses
+  /// with a reason, never silently, on a bad address or amount, an unreadable
+  /// fee, or a balance short of the amount plus the max fee.
   Future<void> review() async {
     final coin = state.coin;
     if (coin == null || state.busy) {
@@ -650,14 +642,9 @@ class SendCubit extends Cubit<SendState> {
     }
   }
 
-  /// Signs [SendState.review], writes a pending row, polls to a terminal
-  /// receipt, then overwrites the same row resolved. The write order is
-  /// crash-safe: a pending row lands before the poll even starts, so a
-  /// broadcast that outlives the app session is never unrecorded.
-  ///
-  /// Returns the resolved row on success, null on any failure -- the
-  /// caller's signal, never [SendState.recorded] on its own, which a later
-  /// failed submit would otherwise leave looking like a fresh success.
+  /// Signs [SendState.review] and writes a pending row before polling, so a
+  /// broadcast that outlives the app is never unrecorded. Returns the resolved
+  /// row, or null on failure -- a stale [SendState.recorded] is not a success.
   Future<Transaction?> submit() async {
     final review = state.review;
     final coin = state.coin;

@@ -245,10 +245,9 @@ class _SendBodyState extends State<_SendBody> {
     );
   }
 
-  /// Reviews, opens the confirm drawer on success, and acts on the drawer's
-  /// answer -- Cancel drops the built transaction, Send signs it. What the
-  /// user is told and shown comes straight off [SendCubit.submit]'s own
-  /// return, never off stale cubit state a later call could have replaced.
+  /// Reviews, then acts on the confirm drawer: Cancel drops the built
+  /// transaction, Send signs it. The outcome shown comes from
+  /// [SendCubit.submit]'s return, never cubit state a later call replaced.
   Future<void> _review(BuildContext context, SendCubit cubit) async {
     await cubit.review();
     if (!context.mounted) {
