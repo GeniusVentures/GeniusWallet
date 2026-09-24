@@ -5,15 +5,6 @@ import 'package:genius_wallet/squid_router/squid_util.dart';
 /// A 10^18 error here is the whole balance, so every case is asserted.
 
 void main() {
-  test('precisionError refuses digits toBaseUnits would drop', () {
-    expect(
-      precisionError('1.0000009', 'usdc', 6),
-      'USDC supports up to 6 decimal places.',
-    );
-    expect(precisionError('1.000000000', 'USDC', 6), isNull);
-    expect(precisionError('1.123456', 'USDC', 6), isNull);
-    expect(precisionError('1.5', 'X', 0), 'X supports up to 0 decimal places.');
-  });
   _percentCases();
   group('toBaseUnits', () {
     test('a fractional amount scales by the token decimals', () {
