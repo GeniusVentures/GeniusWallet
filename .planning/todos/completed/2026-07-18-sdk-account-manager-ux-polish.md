@@ -33,3 +33,13 @@ TBD — small UX pass on `sdk_account_manager.dart`:
   account list / SDK data is loading, replaced by the rows once ready.
 Keep tokens/WCAG intact ([[wcag-contrast-rule]]). Relates to the other drawer/row
 UX polish todos ([[account-row-ux-polish]], [[drawer-dialog-padding-spacing-polish]]).
+
+## Resolution (2026-09-24)
+
+1. Add is disabled until `GeniusApi.isValidMnemonic` / `isValidPrivateKey`
+   (Trust Wallet core) accept the input; success is toasted only when the SDK
+   account list actually grows, otherwise "The SDK did not add that account."
+   The payout dialog already validated live; the rename dialog was left as is.
+2. No loading state built: the drawer has no async load. It renders
+   `AppState.sdkAccounts` synchronously and its entry button is hidden while
+   that list is empty. The only delay was a fixed 500 ms wait after Add, now gone.
