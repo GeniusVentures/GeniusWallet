@@ -13,20 +13,11 @@ class PasteField extends StatelessWidget {
   final String subtitle;
   final TextEditingController controller;
 
-  /// DECLARED BUT DELIBERATELY UNREAD — see 06-04 §1.
-  ///
-  /// The address tab passes `height: 150` and it has never had any effect.
-  /// Wiring it into the container below would be a layout change smuggled in
-  /// under a re-skin. Left inert on purpose; 06-06 files a todo to either wire
-  /// it or remove it.
-  final double height;
-
   const PasteField({
     super.key,
     this.additionalWidget,
     this.subtitle = '',
     this.hintText = '',
-    this.height = 200,
     required this.controller,
   });
 
