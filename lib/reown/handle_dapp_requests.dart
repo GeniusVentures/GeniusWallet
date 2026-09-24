@@ -246,6 +246,7 @@ void Function() handleDappRequests({
               isSuccess: false,
               txHash: "",
               coinSymbol: coinSymbol,
+              chainId: chainId,
             ),
           );
           debugPrint('❌ Failed to Swap: ${result.errorMessage}');
@@ -332,6 +333,7 @@ void Function() handleDappRequests({
               isSuccess: true,
               txHash: txHash ?? "",
               coinSymbol: coinSymbol,
+              chainId: chainId,
             ),
           );
         }
