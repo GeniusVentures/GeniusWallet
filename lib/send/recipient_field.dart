@@ -45,9 +45,8 @@ String? addressFromScan(String raw) {
   return payee != null && isEvmAddress(payee) ? payee : null;
 }
 
-/// The `/send` recipient input: paste, a self-send warning, a contract
-/// warning, and (where the platform supports it) a QR scan. Reads
-/// [SendCubit] directly -- owns no state beyond the controller it is given,
+/// The `/send` recipient input: paste, self-send and contract warnings, and a
+/// QR scan where supported. Owns no state beyond the controller it is given,
 /// which the screen keeps in step with [SendState.recipient].
 class RecipientField extends StatelessWidget {
   RecipientField({super.key, this.controller, this.errorText, bool? canScan})
@@ -143,9 +142,8 @@ class RecipientField extends StatelessWidget {
 }
 
 /// A full-screen camera view that pops with the first detection's raw value.
-/// `onDetect` keeps firing while the camera is open, so every callback
-/// checks the route is still current before popping -- otherwise a second
-/// detection racing the first's pop animation would try to pop twice.
+/// `onDetect` keeps firing while the camera is open, so each callback checks
+/// the route is still current -- a second detection would otherwise pop twice.
 class _ScanPage extends StatelessWidget {
   const _ScanPage();
 

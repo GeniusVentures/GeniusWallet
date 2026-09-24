@@ -130,11 +130,9 @@ Uint8List erc20TransferCalldata({
   ]);
 }
 
-/// The transaction map `signAndSendTransaction` reads. With no
-/// [tokenContract] this is a plain native transfer: no `data` key, so the
-/// signer's own `Uint8List(0)` default applies. With one, `to` is the token
-/// contract, no native value moves, and `data` is the `transfer` call --
-/// the recipient and amount live in the calldata, not in `to`/`value`.
+/// The map `signAndSendTransaction` reads. Native: no `data` key, so the
+/// signer's empty default applies. With [tokenContract]: `to` is the contract,
+/// no value moves, and the recipient and amount live in the `transfer` data.
 Map<String, dynamic> buildSendTx({
   required String from,
   required String recipient,
@@ -180,10 +178,9 @@ BigInt maxNativeSendable({required BigInt balance, required SendFee fee}) {
 /// the same convention [pollReceipt] and `swap_execution.dart`'s poll share.
 typedef ReceiptReader = Future<TransactionReceipt?> Function(String hash);
 
-/// Polls [hash] until a receipt exists or [attempts] run out. A `null` read
-/// or a thrown read is "not yet" and is never terminal on its own; any
-/// non-null receipt is (a status-false receipt is a settled failure, not a
-/// reason to keep polling). Exhaustion leaves the row pending, not lost.
+/// Polls [hash] until a receipt exists or [attempts] run out. A null or
+/// thrown read means "not yet"; any receipt, even a failed one, is terminal.
+/// Exhaustion leaves the row pending, not lost.
 Future<TransactionReceipt?> pollReceipt({
   required String hash,
   required ReceiptReader read,

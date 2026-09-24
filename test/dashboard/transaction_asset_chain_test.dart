@@ -206,10 +206,9 @@ void main() {
   });
 }
 
-/// The adapter this repo shipped before this phase: exactly 18 fields (0-17),
-/// no knowledge of `assetSymbol`/`chainId`. Kept here, not imported, because
-/// the real adapter has already moved on to 20 — this is what "an older
-/// build wrote" means, pinned as code rather than as a claim.
+/// The older 18-field adapter (0-17), with no `assetSymbol`/`chainId`. Kept
+/// here, not imported, because the real one has moved on -- this pins what an
+/// older build wrote as code rather than as a claim.
 class _LegacyTransactionAdapter extends TypeAdapter<Transaction> {
   @override
   final typeId = 8;

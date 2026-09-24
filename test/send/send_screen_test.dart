@@ -170,10 +170,9 @@ class _SeededCubit extends WalletDetailsCubit {
     );
   }
 
-  /// Test-only: swaps the network without `selectNetwork`'s `getCoins()`
-  /// refetch -- this fixture's `_FakeApi` answers nothing for that call.
-  /// The previous network's coins stay on state, as they do until the
-  /// real refetch lands.
+  /// Swaps the network without `selectNetwork`'s `getCoins()` refetch, which
+  /// this fixture's `_FakeApi` can't answer. The previous network's coins stay
+  /// on state, as they do until the real refetch lands.
   void debugSelectNetwork(Network network) =>
       emit(state.copyWith(selectedNetwork: network));
 

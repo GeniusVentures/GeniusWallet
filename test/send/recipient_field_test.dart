@@ -38,10 +38,9 @@ class _NoopStorage implements TransactionStorageService {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
-/// Every `hasCode` call is recorded, so a test can prove the wallet's own
-/// address was never queried. [gate] holds every answer back until
-/// [release], so a test can change the recipient mid-flight and prove the
-/// stale one is ignored.
+/// Records every `hasCode` call, proving the wallet's own address is never
+/// queried. [gate] holds answers until [release], so a test can change the
+/// recipient mid-flight and prove the stale answer is ignored.
 class _FakeApi implements GeniusApi {
   final Map<String, bool> _answers = {};
   final Set<String> _throwsFor = {};

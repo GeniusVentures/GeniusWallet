@@ -325,10 +325,8 @@ class Web3 {
     }
   }
 
-  /// [readTokenBalance], with a failed read as zero.
-  ///
-  /// [balanceOf] divides by the decimals and hands back a double, which cannot
-  /// carry dust or a long fraction without rounding it.
+  /// [readTokenBalance], with a failed read as zero. Unlike [balanceOf]'s
+  /// double, the raw integer keeps dust and long fractions unrounded.
   Future<BigInt> rawBalanceOf({
     required String address,
     required String contractAddress,

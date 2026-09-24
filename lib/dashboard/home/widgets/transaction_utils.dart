@@ -51,10 +51,9 @@ const Map<int, String> kExplorerTxBase = {
   84532: 'https://sepolia.basescan.org/tx/',
 };
 
-/// The explorer link for [tx]. Chain-keyed where a chain id is known — the
-/// only way to tell Base's ETH from Ethereum's own — falling back to the
-/// symbol lookup above for a row written before [Transaction.chainId]
-/// existed.
+/// The explorer link for [tx], keyed on its chain id -- the only way to tell
+/// Base's ETH from Ethereum's own. Rows written before [Transaction.chainId]
+/// existed fall back to the symbol lookup above.
 String explorerUrlFor(Transaction tx) {
   final chainId = tx.chainId;
   if (chainId == null) {
