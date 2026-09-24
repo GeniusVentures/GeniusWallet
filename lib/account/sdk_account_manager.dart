@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
-import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/account/add_account_secret_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
@@ -478,11 +478,12 @@ class SDKAccountManagerButton extends StatelessWidget {
   /// Success is reported only once the SDK's account list actually grows.
   Future<void> _showAddAccountDialog(BuildContext context) async {
     final bloc = context.read<AppBloc>();
+    final validity = AddAccountSecretCubit(bloc.api);
     final result = await showDialog<({bool phrase, String value})>(
       context: context,
       barrierColor: context.gw.surfaceOverlay,
-      builder: (_) => _AddAccountDialog(api: bloc.api),
-    );
+      builder: (_) => _AddAccountDialog(validity: validity),
+    ).whenComplete(validity.close);
 
     if (result == null) {
       return;
@@ -609,9 +610,9 @@ class SDKAccountManagerButton extends StatelessWidget {
 /// and now this). A todo is filed; building `GWSegmentedControl` for one
 /// consumer would fail the promotion test 065 and 068 both used.
 class _AddAccountDialog extends StatefulWidget {
-  const _AddAccountDialog({required this.api});
+  const _AddAccountDialog({required this.validity});
 
-  final GeniusApi api;
+  final AddAccountSecretCubit validity;
 
   @override
   State<_AddAccountDialog> createState() => _AddAccountDialogState();
@@ -633,88 +634,90 @@ class _AddAccountDialogState extends State<_AddAccountDialog> {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final phrase = _phrase;
-    final value = _controller.text.trim();
-    // The repository's own validators, so Add cannot hand the SDK a secret
-    // it would refuse anyway.
-    final valid = phrase
-        ? widget.api.isValidMnemonic(value)
-        : widget.api.isValidPrivateKey(value);
 
-    return GWDialog(
-      title: 'Add account',
-      actions: [
-        GWDialogAction(
-          label: 'Cancel',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        GWDialogAction(
-          label: 'Add account',
-          variant: GWButtonVariant.primary,
-          onPressed: valid
-              ? () => Navigator.of(context).pop((phrase: phrase, value: value))
-              : null,
-        ),
-      ],
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              color: gw.surfaceSunken,
-              border: Border.all(color: gw.borderSubtle),
-              borderRadius: BorderRadius.circular(
-                GeniusWalletConsts.radiusPill,
-              ),
-            ),
-            child: Row(
-              children: [
-                _modeChip('Recovery phrase', selected: phrase, value: true),
-                const SizedBox(width: 2),
-                _modeChip('Private key', selected: !phrase, value: false),
-              ],
-            ),
+    return BlocBuilder<AddAccountSecretCubit, bool>(
+      bloc: widget.validity,
+      builder: (context, valid) => GWDialog(
+        title: 'Add account',
+        actions: [
+          GWDialogAction(
+            label: 'Cancel',
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          const SizedBox(height: GeniusWalletConsts.space6),
-          if (phrase) ...[
-            const GWWarningNote(
-              'Anyone with this phrase controls the account. Only paste one '
-              'you own.',
-            ),
-            const SizedBox(height: GeniusWalletConsts.space6),
-          ],
-          GWTextField(
-            controller: _controller,
-            onChanged: (_) => setState(() {}),
-            label: phrase ? 'Recovery phrase' : 'Private key',
-            hint: phrase
-                ? 'Paste 12 or 24 words, separated by spaces'
-                : 'Paste the Ethereum private key (hex)',
-            maxLines: phrase ? 4 : 1,
-            // The brand gradient on focus, not the flat `brandPrimaryStrong`
-            // stroke `focusedBorder` draws -- "no flat blue as the accent" is
-            // the app's rule and this is the state it matters most in.
-            focusRing: true,
-            // Recessed on the dialog's own `surfaceElevated`, the same call the
-            // drawer fields took: at `surfaceElevated` the field would be
-            // painted its own background's colour.
-            fill: gw.surfaceSunken,
-            // IME hardening (06-04 §3.6) -- do not remove.
-            // `enableIMEPersonalizedLearning` is the one that maps to
-            // Android's IME_FLAG_NO_PERSONALIZED_LEARNING; the other three do
-            // not close the keyboard learning-store leak on their own. It was
-            // duplicated across the two dialogs this replaces; now it is one
-            // place, which is most of why merging them was worth doing.
-            autocorrect: false,
-            enableSuggestions: false,
-            enableIMEPersonalizedLearning: false,
-            textCapitalization: TextCapitalization.none,
+          GWDialogAction(
+            label: 'Add account',
+            variant: GWButtonVariant.primary,
+            onPressed: valid
+                ? () => Navigator.of(
+                    context,
+                  ).pop((phrase: phrase, value: _controller.text.trim()))
+                : null,
           ),
         ],
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: gw.surfaceSunken,
+                border: Border.all(color: gw.borderSubtle),
+                borderRadius: BorderRadius.circular(
+                  GeniusWalletConsts.radiusPill,
+                ),
+              ),
+              child: Row(
+                children: [
+                  _modeChip('Recovery phrase', selected: phrase, value: true),
+                  const SizedBox(width: 2),
+                  _modeChip('Private key', selected: !phrase, value: false),
+                ],
+              ),
+            ),
+            const SizedBox(height: GeniusWalletConsts.space6),
+            if (phrase) ...[
+              const GWWarningNote(
+                'Anyone with this phrase controls the account. Only paste one '
+                'you own.',
+              ),
+              const SizedBox(height: GeniusWalletConsts.space6),
+            ],
+            GWTextField(
+              controller: _controller,
+              onChanged: (_) => _recheck(),
+              label: phrase ? 'Recovery phrase' : 'Private key',
+              hint: phrase
+                  ? 'Paste 12 or 24 words, separated by spaces'
+                  : 'Paste the Ethereum private key (hex)',
+              maxLines: phrase ? 4 : 1,
+              // The brand gradient on focus, not the flat `brandPrimaryStrong`
+              // stroke `focusedBorder` draws -- "no flat blue as the accent" is
+              // the app's rule and this is the state it matters most in.
+              focusRing: true,
+              // Recessed on the dialog's own `surfaceElevated`, the same call the
+              // drawer fields took: at `surfaceElevated` the field would be
+              // painted its own background's colour.
+              fill: gw.surfaceSunken,
+              // IME hardening (06-04 §3.6) -- do not remove.
+              // `enableIMEPersonalizedLearning` is the one that maps to
+              // Android's IME_FLAG_NO_PERSONALIZED_LEARNING; the other three do
+              // not close the keyboard learning-store leak on their own. It was
+              // duplicated across the two dialogs this replaces; now it is one
+              // place, which is most of why merging them was worth doing.
+              autocorrect: false,
+              enableSuggestions: false,
+              enableIMEPersonalizedLearning: false,
+              textCapitalization: TextCapitalization.none,
+            ),
+          ],
+        ),
       ),
     );
   }
+
+  void _recheck() =>
+      widget.validity.check(phrase: _phrase, value: _controller.text.trim());
 
   Widget _modeChip(
     String label, {
@@ -733,6 +736,7 @@ class _AddAccountDialogState extends State<_AddAccountDialog> {
                 // that gets pasted into the wrong import.
                 _controller.clear();
                 setState(() => _phrase = value);
+                _recheck();
               },
         child: Container(
           height: 36,

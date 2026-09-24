@@ -1009,13 +1009,14 @@ class GeniusApi {
     } on FormatException {
       return false;
     }
-    if (bytes.length != PrivateKey.privateKeySize) {
-      return false;
-    }
     final data = Uint8List.fromList(bytes);
-    final valid = PrivateKey.isValid(data, TWCurve.TWCurveSECP256k1);
-    data.fillRange(0, data.length, 0);
-    return valid;
+    try {
+      return bytes.length == PrivateKey.privateKeySize &&
+          PrivateKey.isValid(data, TWCurve.TWCurveSECP256k1);
+    } finally {
+      bytes.fillRange(0, bytes.length, 0);
+      data.fillRange(0, data.length, 0);
+    }
   }
 
   /// Adds a new Genius account to the SDK using a mnemonic recovery phrase.
