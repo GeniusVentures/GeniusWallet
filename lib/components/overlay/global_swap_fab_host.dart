@@ -42,7 +42,6 @@ class GlobalSwapFabHost extends StatefulWidget {
   static const Set<String> _hiddenPaths = {
     '/',
     '/landing_screen',
-    '/backup_phrase',
     '/recovery_phrase',
     '/verify_recovery_phrase',
     '/legal',
