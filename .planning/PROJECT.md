@@ -8,7 +8,18 @@ GeniusWallet is a Flutter/Dart self-custody crypto wallet targeting Windows, mob
 
 Users can safely custody their keys and reliably perform core wallet actions (create/import wallet, view balances, send/receive, swap, buy) — correctness and key safety come before everything else.
 
-## Current Milestone: v2.0 Squid Router integration
+## Current State
+
+**v2.0 Squid Router integration shipped 2026-09-24** (phases 26, 29, 30, 31; PRs #233-#235, #244): real Squid swaps on the `/swap` tab, every route fee named before confirming, dApp calldata decoded instead of blind-signed, and Send for native coins and ERC-20 tokens. DAP-02 ships the input side only; FEE-01 waits on Squid (business). Archive: `milestones/v2.0-ROADMAP.md`. v1.0 (redesign port) is still executing: phase 11 closeout and phase 14's last plan are open.
+
+## Next Milestone Goals
+
+Not yet defined — start with `/gsd-new-milestone`.
+
+<details>
+<summary>v2.0 milestone brief (archived)</summary>
+
+### Milestone: v2.0 Squid Router integration
 
 **Goal:** Make swapping real — the `/swap` tab executes live Squid Router quotes for major tokens with honest recording and a ~3% integrator fee, and the dApp path shows what it's signing.
 
@@ -24,6 +35,8 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 `.planning/notes/2026-09-16-swap-architecture-archaeology.md` for the full timeline (Reown is
 what shipped as the swap execution path; the Squid client was finished 2025-05 but never wired;
 Symbiosis named once, never built) and the go-forward decision.
+
+</details>
 
 ## Requirements
 
