@@ -14,7 +14,7 @@ const _from = '0x1234567890123456789012345678901234567890';
 
 /// Serves [reply]'s answer for each call; a null answer closes the
 /// connection without a response, the way a dropped link looks. [_stall]
-/// never answers, and [_html] answers the way a rate limiter's page does.
+/// never answers, and [_html] answers the way a gateway's error page does.
 Future<String> _serve(
   Map<String, dynamic>? Function(String method, List<dynamic> params) reply,
 ) async {
@@ -416,19 +416,29 @@ void main() {
         );
       });
 
-      test('an HTML error page is a refusal, not a maybe', () async {
-        final rpcUrl = await _serve((method, params) {
-          if (method == 'eth_getTransactionCount') {
-            return {'result': '0x0'};
-          }
-          return _html;
-        });
+      test(
+        'an HTML error page after the broadcast is a maybe, with its hash',
+        () async {
+          String? sent;
+          final rpcUrl = await _serve((method, params) {
+            if (method == 'eth_getTransactionCount') {
+              return {'result': '0x0'};
+            }
+            if (method == 'eth_sendRawTransaction') {
+              sent = params.first as String;
+            }
+            return _html;
+          });
 
-        final result = await send(rpcUrl);
+          final result = await send(rpcUrl);
 
-        expect(result.isSuccess, isFalse);
-        expect(result.data, isNull);
-      });
+          expect(result.isSuccess, isFalse);
+          expect(
+            result.data,
+            bytesToHex(keccak256(hexToBytes(sent!)), include0x: true),
+          );
+        },
+      );
 
       test(
         'a stalled receipt read after an accepted send still returns',

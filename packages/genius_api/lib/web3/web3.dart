@@ -749,15 +749,12 @@ class Web3 {
             .sendRawTransaction(signed)
             .timeout(rpcReadTimeout);
       } on RPCError catch (e) {
-        return ApiResponse.error("Sign/Send failed: $e");
-      } on FormatException catch (e) {
-        // The node answered, just not in JSON -- a rate limiter's HTML page,
-        // say. It did not take the transaction.
+        // Only a JSON-RPC error proves the node refused the transaction.
         return ApiResponse.error("Sign/Send failed: $e");
       } catch (e) {
-        // The node never answered, so it may have taken the transaction
-        // anyway. Its hash is known before broadcast: handing it back lets
-        // the caller track it instead of inviting a second, duplicate send.
+        // No answer, or one that isn't JSON (a gateway's 502 page after it
+        // forwarded the call): the transaction may be on the network. Its hash
+        // is known, so hand it back to be tracked instead of sent twice.
         return ApiResponse.unconfirmed(
           bytesToHex(keccak256(signed), include0x: true),
           "Sign/Send failed: $e",
