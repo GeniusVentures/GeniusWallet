@@ -133,11 +133,11 @@ void Function() handleDappRequests({
         final summary = summarizeTransaction(
           tx,
           // Tokens are matched by address, and the same address is a
-          // different contract on another chain. The cubit swaps the network
-          // before its coin list catches up, so the list is scoped here.
-          coins: walletDetailsCubit.state.coins
-              .where((coin) => coin.networkSymbol == network?.symbol)
-              .toList(),
+          // different contract on another chain. The list is used only once
+          // it was loaded for this network: symbols repeat (Ethereum, Sepolia).
+          coins: walletDetailsCubit.state.coinsNetwork == network
+              ? walletDetailsCubit.state.coins
+              : const [],
           // The chain decides whether `to` is a router this wallet will name:
           // the same address is a different contract on a different chain.
           chainId: network?.chainId,

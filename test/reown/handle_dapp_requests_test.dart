@@ -251,6 +251,7 @@ Future<_Harness> _start(
   WidgetTester tester, {
   Network? network,
   List<Coin> coins = const [],
+  Network? coinsNetwork,
   Wallet? wallet,
   GeniusApi? api,
 }) async {
@@ -265,6 +266,7 @@ Future<_Harness> _start(
     initialState: WalletDetailsState(
       selectedNetwork: network,
       coins: coins,
+      coinsNetwork: coinsNetwork ?? network,
       selectedWallet: wallet,
     ),
     geniusApi: _FakeGeniusApi(),
@@ -575,11 +577,51 @@ void main() {
         tester,
         network: _base,
         coins: const [_usdcElsewhere],
+        coinsNetwork: _polygon,
       );
       harness.walletKit.send(
         _request('eth_sendTransaction', [
           _tx(data: _transferCalldata, value: '0x0'),
         ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_onScreen(tester, 'unverified'), isTrue);
+      expect(_onScreen(tester, 'USDC'), isFalse);
+
+      await tester.tap(find.text('Reject'));
+      await tester.pumpAndSettle();
+      await _finish(tester, harness);
+    });
+
+    testWidgets('a list loaded for a chain sharing the symbol cannot vouch', (
+      tester,
+    ) async {
+      // Ethereum and Sepolia are both `eth`, so the symbol cannot tell whose
+      // list is on state; only the network it was loaded for can.
+      const mainnet = Network(name: 'Ethereum', symbol: 'eth', chainId: 1);
+      const sepolia = Network(
+        name: 'Sepolia',
+        symbol: 'eth',
+        chainId: 11155111,
+      );
+      final harness = await _start(
+        tester,
+        network: sepolia,
+        coins: const [
+          Coin(
+            symbol: 'USDC',
+            address: _tokenContract,
+            decimals: '6',
+            networkSymbol: 'eth',
+          ),
+        ],
+        coinsNetwork: mainnet,
+      );
+      harness.walletKit.send(
+        _request('eth_sendTransaction', [
+          _tx(data: _transferCalldata, value: '0x0'),
+        ], chain: 'eip155:11155111'),
       );
       await tester.pumpAndSettle();
 
