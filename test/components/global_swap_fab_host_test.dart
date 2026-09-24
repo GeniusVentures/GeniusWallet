@@ -42,6 +42,7 @@ Widget _app(GoRouter router, {double width = 1400}) => MaterialApp.router(
 
 GoRouter _router() => GoRouter(
   initialLocation: '/dashboard',
+  observers: [GlobalSwapFabHost.popupRoutes],
   routes: [
     GoRoute(
       path: '/dashboard',
@@ -228,6 +229,42 @@ void main() {
       findsOneWidget,
       reason: 'returning to a visible path must reshow the FAB',
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the FAB hides while a dialog or bottom sheet is open', (
+    tester,
+  ) async {
+    // The host paints above the Navigator, so a drawer and its scrim would
+    // otherwise sit underneath a live FAB.
+    final router = _router();
+    await tester.pumpWidget(_app(router));
+    await tester.pump();
+    final page = tester.element(find.text('dashboard placeholder'));
+    expect(find.byType(GWSwapFab), findsOneWidget);
+
+    unawaited(showDialog<void>(context: page, builder: (_) => const Text('d')));
+    await tester.pumpAndSettle();
+    expect(find.byType(GWSwapFab), findsNothing);
+
+    Navigator.of(page).pop();
+    await tester.pumpAndSettle();
+    expect(find.byType(GWSwapFab), findsOneWidget);
+
+    // A route removed without a pop must not leave the FAB hidden forever.
+    unawaited(
+      showModalBottomSheet<void>(
+        context: page,
+        builder: (_) => const Text('s'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(GWSwapFab), findsNothing);
+
+    final sheet = ModalRoute.of(tester.element(find.text('s')))!;
+    Navigator.of(page).removeRoute(sheet);
+    await tester.pumpAndSettle();
+    expect(find.byType(GWSwapFab), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
