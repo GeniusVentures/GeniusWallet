@@ -48,3 +48,16 @@ TBD. Options, cheapest first:
 3. Worth a line in the run instructions either way: a black window on startup is far more
    likely a stale second instance than a rendering bug. This generalisation is already
    recorded in `05-01-SUMMARY.md`.
+
+## Resolution
+
+Option 1. hive_ce 2.19.3 takes a non-blocking `RandomAccessFile.lock()` on `<box>.lock`
+when a box opens, so a second process gets a `FileSystemException` whose path ends in
+`.lock`. It surfaced from `initHive()` inside Sentry's `appRunner`, so `runApp` never
+ran. `main.dart` now catches exactly that (`isHiveLockHeld` in `lib/hive/init.dart`) and
+runs `AlreadyRunningApp`, which says so and offers Quit. Other errors still rethrow.
+
+Login item: nothing in this repo installs one. No `SMAppService`, `SMLoginItemSetEnabled`,
+LaunchAgent plist or launch-at-startup plugin exists in `lib/`, `macos/`, `packages/` or
+the registered macOS plugins. The likeliest cause is macOS "Reopen windows when logging
+back in" relaunching an app left open at logout, which is a user setting, not app code.

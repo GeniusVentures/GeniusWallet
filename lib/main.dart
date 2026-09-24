@@ -104,7 +104,16 @@ Future<void> main() async {
       };
     },
     appRunner: () async {
-      await initHive();
+      try {
+        await initHive();
+      } on FileSystemException catch (e) {
+        if (!isHiveLockHeld(e)) {
+          rethrow;
+        }
+        debugPrint('Hive lock held by another instance: $e');
+        runApp(const AlreadyRunningApp());
+        return;
+      }
 
       final secureStorage = await LocalWalletStorage.create();
       await secureStorage.init();
@@ -162,6 +171,60 @@ Future<void> main() async {
       DeepLinkService().startListening(navigatorKey);
     },
   );
+}
+
+/// Shown instead of the app when another instance holds the storage lock;
+/// without it the second window stays black with no explanation.
+class AlreadyRunningApp extends StatelessWidget {
+  const AlreadyRunningApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Genius Wallet',
+      theme: getThemeData(),
+      home: const _AlreadyRunningScreen(),
+    );
+  }
+}
+
+class _AlreadyRunningScreen extends StatelessWidget {
+  const _AlreadyRunningScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: context.gw.surfaceBase,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(GeniusWalletConsts.space12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Genius Wallet is already running',
+                textAlign: TextAlign.center,
+                style: GeniusWalletTypography.titleLg.copyWith(
+                  color: context.gw.textPrimary,
+                ),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space8),
+              Text(
+                'Switch to the open window, or quit it before starting another.',
+                textAlign: TextAlign.center,
+                style: GeniusWalletTypography.bodyMd.copyWith(
+                  color: context.gw.textSecondary,
+                ),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space12),
+              GWButton(label: 'Quit', onPressed: () => exit(0)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyWindowListener extends WindowListener {
