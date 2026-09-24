@@ -199,7 +199,6 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                                         tabControllers['keystore']!['pasteField']!,
                                   ),
                                   PasteField(
-                                    height: 150,
                                     hintText: 'Wallet Address',
                                     controller:
                                         tabControllers['address']!['pasteField']!,
