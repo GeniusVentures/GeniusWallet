@@ -34,6 +34,9 @@ Future<void> showCheckoutOptionsSheet(
   final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
   return showModalBottomSheet(
     context: context,
+    // The root navigator, like every drawer: the global swap FAB hides only
+    // for popups it can observe there.
+    useRootNavigator: true,
     showDragHandle: true,
     // Material's default modal-sheet surface derives from `ColorScheme.
     // surface` via a computed tonal container, not literally `gw.
