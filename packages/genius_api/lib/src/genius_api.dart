@@ -1006,6 +1006,10 @@ class GeniusApi {
     final digits = privateKeyHex.startsWith(RegExp('0[xX]'))
         ? privateKeyHex.substring(2)
         : privateKeyHex;
+    // Checked before decoding: a huge paste is refused without being copied.
+    if (digits.length != PrivateKey.privateKeySize * 2) {
+      return false;
+    }
     final List<int> bytes;
     try {
       bytes = hex.decode(digits);
