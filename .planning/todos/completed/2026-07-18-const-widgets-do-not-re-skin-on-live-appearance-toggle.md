@@ -80,3 +80,7 @@ follow-up before Phase 4 closes. Decide at 04-04 execution.
 
 **Note (2026-09-22, quick 260922-chs):** `/settings` now has a real Appearance
 control, so this todo's own live-flip recipe no longer needs the dev Gallery detour.
+
+## Closed 2026-09-24
+
+The `GeniusWalletColors` statics are gone (phase 23-04, 1d9f6190, 87cc4254), but context-free `GWAppearance.isLight` reads remain in decorations, typography, elevation and gradient. Refiled with exact sites as `2026-09-24-context-free-appearance-reads-can-go-stale-on-a-const-subtree.md`.

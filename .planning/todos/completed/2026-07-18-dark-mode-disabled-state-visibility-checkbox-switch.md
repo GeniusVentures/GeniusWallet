@@ -35,3 +35,7 @@ both appearances, before a component ships.
 
 Related session finding (minor, deferred per user): `GWIcon.svg` renders
 always-white — tint it at the usage sites where it appears, not centrally.
+
+## Closed 2026-09-24
+
+Code fixed in 27184403 (PR #239) and guarded in both modes by `test/theme/disabled_control_contrast_test.dart`. The one open item, writing the rule into the UI-SPEC contract, is refiled as `2026-09-24-disabled-contrast-floor-belongs-in-the-ui-spec-contract.md`.

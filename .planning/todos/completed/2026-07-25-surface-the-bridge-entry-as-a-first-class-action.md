@@ -40,3 +40,7 @@ Open questions a decision needs to answer:
 
 **Do not action this without a product decision** — it is not a bug and the current behavior is
 intentional.
+
+## Closed 2026-09-24
+
+Decided in code by 055fff46: Bridge is a direct button in the token page's action row (`lib/tokens/token_info_screen.dart`), absent for non-GNUS tokens and disabled at zero balance. MetaMask merges bridge into Swap; a swap/bridge merge would be a new item, not this one.

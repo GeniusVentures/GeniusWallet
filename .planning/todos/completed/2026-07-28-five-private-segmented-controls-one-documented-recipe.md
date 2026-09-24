@@ -65,3 +65,7 @@ migration is not a drawer task.
 
 Still open: `_FilterChip` (`transactions_slim_view.dart`), `_PresetChip`
 (`swap_settings_drawer.dart`), `_modeChip` (`sdk_account_manager.dart`).
+
+## Closed 2026-09-24
+
+The recipe became `GWControlTrack` (8c172866, five users) and both timeframe copies became `GWTimeframeSegment` (PR #221). The remaining chips are genuinely different controls. One hand-rolled track remains; refiled as `2026-09-24-add-account-method-switch-hand-rolls-gwcontroltrack.md`.

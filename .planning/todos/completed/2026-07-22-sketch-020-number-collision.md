@@ -34,3 +34,7 @@ directory out from under it mid-flight is worse than the collision.
 The Phase 14 ROADMAP entry already routes around this: the `/network` re-skin sketch is recorded as
 **023**, which would collide with the suggested fix above. Whichever lands second takes 024.
 Resolve the numbering before creating either.
+
+## Closed 2026-09-24
+
+Won't fix by renumbering: the manifest tells same-numbered sketches apart by slug (8f001f63) and AGENTS.md now reserves number ranges per session. The proposed rename target (023) is itself taken.

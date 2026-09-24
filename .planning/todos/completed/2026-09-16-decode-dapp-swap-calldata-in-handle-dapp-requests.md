@@ -44,3 +44,7 @@ Decode swap calldata well enough to describe the transaction in human terms in
 
 Note: there is no built-in decoder in `reown_walletkit` (per the original TODO's complaint),
 so this is manual ABI decoding — small, testable pure-Dart logic.
+
+## Closed 2026-09-24
+
+Shipped in phase 30, PR #235 (merge 3afe7578), extended in b44c9e99: ERC-20 transfer/approve and the Squid router input side decode; anything else is labelled an unknown call with a visible warning. DAP-02's destination side was accepted as a partial at v2.0 close. `transferFrom` is not decoded but falls to the warned unknown-call path, so nothing is blind-signed.
