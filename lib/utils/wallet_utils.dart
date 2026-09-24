@@ -38,10 +38,14 @@ class WalletUtils {
   }
 
   /// Zero reads "0 minions", never "0.0"; anything else keeps at most three
-  /// decimals with trailing zeros trimmed.
-  static String formatMinions(double value) =>
-      '${NumberFormat('#,##0.###').format(value)} '
-      '${value == 1 ? 'minion' : 'minions'}';
+  /// decimals, and a balance too small for that reads "<0.001", never "0".
+  static String formatMinions(double value) {
+    if (value > 0 && value < 0.001) {
+      return '<0.001 minions';
+    }
+    return '${NumberFormat('#,##0.###').format(value)} '
+        '${value == 1 ? 'minion' : 'minions'}';
+  }
 
   static String truncateToDecimals(String input, [int decimalPlaces = 5]) {
     final int decimalIndex = input.indexOf('.');
