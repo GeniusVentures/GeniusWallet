@@ -1,4 +1,5 @@
 import 'package:genius_api/web3/web3.dart' show EthereumAddress;
+import 'package:intl/intl.dart';
 
 /// A 42-character `0x`-prefixed hex address. Mixed case must match its EIP-55
 /// checksum, which catches the usual one-character copy typo; all-lower or
@@ -35,6 +36,12 @@ class WalletUtils {
 
     return address;
   }
+
+  /// Zero reads "0 minions", never "0.0"; anything else keeps at most three
+  /// decimals with trailing zeros trimmed.
+  static String formatMinions(double value) =>
+      '${NumberFormat('#,##0.###').format(value)} '
+      '${value == 1 ? 'minion' : 'minions'}';
 
   static String truncateToDecimals(String input, [int decimalPlaces = 5]) {
     final int decimalIndex = input.indexOf('.');

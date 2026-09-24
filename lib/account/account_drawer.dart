@@ -323,7 +323,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       onTap: () => Navigator.of(context).pop(wallet),
       leading: AccountAvatar(wallet: wallet, isSelected: isSelected, size: 36),
       title: wallet.walletName,
-      subtitle: wallet.address.isEmpty ? null : wallet.address,
+      subtitle: wallet.address.isEmpty
+          ? null
+          : WalletUtils.getAddressForDisplay(wallet.address),
       subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
         fontFamily: GeniusWalletTypography.monoFamily,
         color: gw.textSecondary,
@@ -384,7 +386,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             ),
           ] else
             Text(
-              '${wallet.balance} ${wallet.balance == 1 ? "minion" : "minions"}',
+              WalletUtils.formatMinions(wallet.balance),
               style: GeniusWalletTypography.labelMd.copyWith(
                 color: gw.textSecondary,
                 fontStyle: FontStyle.italic,
