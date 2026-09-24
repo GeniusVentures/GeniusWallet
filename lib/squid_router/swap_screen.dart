@@ -812,13 +812,16 @@ class _SwapScreenState extends State<SwapScreen> {
                   ),
                   const SizedBox(width: GeniusWalletConsts.space4),
                 ],
+                // Shrinks rather than truncates: a refusal must stay readable
+                // whole in the fixed-height button at large text scales.
                 Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GeniusWalletTypography.titleLg.copyWith(
-                      color: foreground,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      style: GeniusWalletTypography.titleLg.copyWith(
+                        color: foreground,
+                      ),
                     ),
                   ),
                 ),
