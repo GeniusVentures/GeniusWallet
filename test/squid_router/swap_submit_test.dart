@@ -17,6 +17,7 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -121,20 +122,23 @@ const _wallet = Wallet(
   address: '0xSWAPSWAPSWAPSWAPSWAPSWAPSWAPSWAPSWAPSWAP',
 );
 
+const _ethereum = Network(
+  name: 'Ethereum',
+  symbol: 'ETH',
+  chainId: 1,
+  rpcUrl: 'https://rpc.invalid',
+);
+
 class _SeededCubit extends WalletDetailsCubit {
   _SeededCubit({
     required super.geniusApi,
     required super.networkTokensProvider,
+    required Network network,
   }) {
     emit(
       state.copyWith(
         selectedWallet: _wallet,
-        selectedNetwork: const Network(
-          name: 'Ethereum',
-          symbol: 'ETH',
-          chainId: 1,
-          rpcUrl: 'https://rpc.invalid',
-        ),
+        selectedNetwork: network,
         selectedWalletBalance: '5',
       ),
     );
@@ -149,6 +153,7 @@ Future<void> _mountReady(
   required SwapExecutor execute,
   required TransactionStorageService storage,
   GeniusApi? api,
+  Network network = _ethereum,
 }) async {
   tester.view.physicalSize = const Size(1200, 1800);
   tester.view.devicePixelRatio = 1.0;
@@ -161,6 +166,7 @@ Future<void> _mountReady(
           create: (_) => _SeededCubit(
             geniusApi: api ?? _UnusedApi(),
             networkTokensProvider: NetworkTokensProvider(),
+            network: network,
           ),
         ),
         BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
@@ -523,6 +529,36 @@ void main() {
       // Storing nothing is the honest answer until a native figure exists;
       // the receipt skips a blank fee row rather than showing a bare symbol.
       expect(row.fees, isEmpty);
+    });
+
+    testWidgets('a Base swap links to basescan, not etherscan', (tester) async {
+      // Base and Ethereum both pay gas in ETH, so the symbol alone cannot
+      // pick the explorer; the row has to carry the chain it was sent on.
+      final storage = _RecordingStorage();
+      await _mountReady(
+        tester,
+        execute: _answering(
+          SwapBroadcast(
+            hash: _hash,
+            status: TransactionStatus.completed,
+            transaction: _route(),
+          ),
+        ),
+        storage: storage,
+        network: const Network(
+          name: 'Base',
+          symbol: 'ETH',
+          chainId: 8453,
+          rpcUrl: 'https://rpc.invalid',
+        ),
+      );
+      await _submit(tester);
+
+      expect(storage.writes, hasLength(2));
+      for (final row in storage.writes) {
+        expect(row.chainId, 8453);
+        expect(explorerUrlFor(row), 'https://basescan.org/tx/$_hash');
+      }
     });
 
     testWidgets('a non-success status is still recorded, not hidden', (

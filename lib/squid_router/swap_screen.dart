@@ -536,6 +536,7 @@ class _SwapScreenState extends State<SwapScreen> {
               status: TransactionStatus.pending,
               walletAddress: address,
               networkSymbol: networkSymbol,
+              chainId: chainId,
               submitted: submitted,
             ),
           );
@@ -550,6 +551,7 @@ class _SwapScreenState extends State<SwapScreen> {
         outcome,
         walletAddress: address,
         networkSymbol: networkSymbol,
+        chainId: chainId,
         transactionsCubit: transactionsCubit,
         submitted: submitted,
       );
@@ -567,6 +569,7 @@ class _SwapScreenState extends State<SwapScreen> {
     SwapOutcome outcome, {
     required String walletAddress,
     required String networkSymbol,
+    required int chainId,
     required TransactionsCubit transactionsCubit,
     required _SubmittedSwap submitted,
   }) async {
@@ -587,6 +590,7 @@ class _SwapScreenState extends State<SwapScreen> {
       status: status,
       walletAddress: walletAddress,
       networkSymbol: networkSymbol,
+      chainId: chainId,
       submitted: submitted,
       recoveryUrl: broadcast.recoveryUrl,
     );
@@ -1155,6 +1159,7 @@ Transaction _swapRow({
   required TransactionStatus status,
   required String walletAddress,
   required String networkSymbol,
+  required int chainId,
   required _SubmittedSwap submitted,
   String? recoveryUrl,
 }) => Transaction(
@@ -1172,6 +1177,7 @@ Transaction _swapRow({
   coinSymbol: networkSymbol,
   transactionStatus: status,
   type: TransactionType.swap,
+  chainId: chainId,
   toAmount: submitted.toAmount,
   toIconUrl: submitted.toIconUrl,
   fromSymbol: submitted.fromSymbol,
