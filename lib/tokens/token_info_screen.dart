@@ -331,6 +331,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                         horizontal: GeniusBreakpoints.pageGutter(context),
                       ),
                       child: _CoinActionRow(
+                        walletCoin: widget.args.walletCoin,
                         selectedCoin: selectedCoin,
                         selectedWallet: selectedWallet,
                         selectedNetwork: selectedNetwork,
@@ -719,6 +720,7 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 /// would repeat it to a screen reader - both read twice for no reason.
 class _CoinActionRow extends StatelessWidget {
   const _CoinActionRow({
+    required this.walletCoin,
     required this.selectedCoin,
     required this.selectedWallet,
     required this.selectedNetwork,
@@ -727,6 +729,7 @@ class _CoinActionRow extends StatelessWidget {
     required this.marketData,
   });
 
+  final Coin? walletCoin;
   final Coin? selectedCoin;
   final Wallet? selectedWallet;
   final Network? selectedNetwork;
@@ -785,12 +788,15 @@ class _CoinActionRow extends StatelessWidget {
             label: 'Send',
             leading: const Icon(Icons.send),
             // Same symbol-then-fallback and push-not-go reasoning as Swap,
-            // just above.
+            // just above. The contract comes from this page's own coin, never
+            // `selectedCoin`: two tokens can share a ticker, and null seats
+            // only a native coin.
             onPressed: () => GoRouter.of(context).push(
               '/send',
               extra: <String, dynamic>{
                 'symbol': marketData?.symbol ?? selectedCoin?.symbol,
                 'chainId': selectedNetwork?.chainId,
+                'address': walletCoin?.address,
               },
             ),
           ),

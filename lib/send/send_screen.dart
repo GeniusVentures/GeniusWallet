@@ -29,11 +29,15 @@ class SendScreen extends StatelessWidget {
   const SendScreen({
     super.key,
     this.preselectSymbol,
+    this.preselectAddress,
     this.preselectChainId,
     this.storage = const TransactionStorageService(),
   });
 
   final String? preselectSymbol;
+
+  /// The token contract to seat; null means the native coin.
+  final String? preselectAddress;
   final int? preselectChainId;
   final TransactionStorageService storage;
 
@@ -78,6 +82,7 @@ class SendScreen extends StatelessWidget {
     final coin = _seatedCoin(
       walletState.coins,
       preselectSymbol,
+      preselectAddress,
       preselectChainId,
       network,
     );
@@ -101,24 +106,30 @@ class SendScreen extends StatelessWidget {
   }
 }
 
-/// The held coin [preselectSymbol] names, seated only when [preselectChainId]
-/// is unset or matches [network] -- a mismatched chain id is never guessed
-/// into the wrong coin.
+/// The held coin at [preselectAddress], or the native coin named
+/// [preselectSymbol] when there is no address. Tickers are not unique, so an
+/// unmatched address or chain id seats nothing rather than a namesake.
 Coin? _seatedCoin(
   List<Coin> coins,
   String? preselectSymbol,
+  String? preselectAddress,
   int? preselectChainId,
   Network network,
 ) {
-  if (preselectSymbol == null) {
+  if (preselectSymbol == null && preselectAddress == null) {
     return null;
   }
   if (preselectChainId != null && preselectChainId != network.chainId) {
     return null;
   }
   for (final candidate in coins) {
-    if ((candidate.symbol ?? '').toLowerCase() ==
-        preselectSymbol.toLowerCase()) {
+    if (preselectAddress != null) {
+      if (candidate.address?.toLowerCase() == preselectAddress.toLowerCase()) {
+        return candidate;
+      }
+    } else if (candidate.address == null &&
+        (candidate.symbol ?? '').toLowerCase() ==
+            preselectSymbol!.toLowerCase()) {
       return candidate;
     }
   }
