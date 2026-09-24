@@ -35,6 +35,7 @@ class SwapResultDrawer {
     required bool isSuccess,
     required String txHash,
     required String coinSymbol,
+    int? chainId,
   }) async {
     final gw = context.gw;
     final status = isSuccess
@@ -46,7 +47,7 @@ class SwapResultDrawer {
     final icon = isSuccess ? Icons.check_circle : Icons.error;
     final message = isSuccess ? 'Swap Success' : 'Swap Failed';
     final explorerUrl = (txHash.isNotEmpty)
-        ? getExplorerUrl(coinSymbol, txHash)
+        ? explorerTxUrl(chainId, coinSymbol, txHash)
         : '';
 
     await ResponsiveDrawer.show(

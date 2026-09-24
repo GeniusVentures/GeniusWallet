@@ -74,6 +74,13 @@ void main() {
       );
     });
 
+    test('a bare hash with Base ETH still links to basescan', () {
+      expect(
+        explorerTxUrl(8453, 'ETH', '0xabc'),
+        'https://basescan.org/tx/0xabc',
+      );
+    });
+
     test('84531 (retired Base Goerli) shows no link', () {
       expect(explorerUrlFor(_tokenTx(chainId: 84531)), '');
     });

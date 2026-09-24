@@ -54,16 +54,19 @@ const Map<int, String> kExplorerTxBase = {
 /// The explorer link for [tx], keyed on its chain id -- the only way to tell
 /// Base's ETH from Ethereum's own. Rows written before [Transaction.chainId]
 /// existed fall back to the symbol lookup above.
-String explorerUrlFor(Transaction tx) {
-  final chainId = tx.chainId;
+String explorerUrlFor(Transaction tx) =>
+    explorerTxUrl(tx.chainId, tx.coinSymbol, tx.hash);
+
+/// [explorerUrlFor] for a hash that has no [Transaction] row yet.
+String explorerTxUrl(int? chainId, String coinSymbol, String hash) {
   if (chainId == null) {
-    return getExplorerUrl(tx.coinSymbol, tx.hash);
+    return getExplorerUrl(coinSymbol, hash);
   }
   final baseUrl = kExplorerTxBase[chainId];
-  if (baseUrl == null || tx.hash.isEmpty) {
+  if (baseUrl == null || hash.isEmpty) {
     return '';
   }
-  return '$baseUrl${tx.hash}';
+  return '$baseUrl$hash';
 }
 
 String formatAmount(String amountStr) {
