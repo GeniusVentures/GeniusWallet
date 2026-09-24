@@ -59,3 +59,7 @@ Agreed with Braian on 2026-07-27 and deferred at end of session — **nothing ha
 - A separate follow-up phase is already recommended there for the finding-1 KYC-redirect blocker
   (a behaviour fix, fenced out by D-02). That is a different piece of work from this one, though
   they touch the same feature area and could reasonably share a phase.
+
+## Closed 2026-09-24
+
+The buy form was rebuilt and its orders rail moved onto `TransactionRow` in 8c172866. The standalone orders page is untouched; refiled as `2026-09-24-banxa-orders-page-needs-the-buy-screen-grammar.md`.

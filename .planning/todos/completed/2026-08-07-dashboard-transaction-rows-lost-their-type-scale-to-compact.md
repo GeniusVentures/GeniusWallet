@@ -93,3 +93,7 @@ widget and are unaffected.
   is the touch-target win and must stay green.
 - `test/dashboard/transactions_page_frame_test.dart` came from develop with this
   work and is the thing most likely to redden.
+
+## Closed 2026-09-24
+
+Fixed in 110f4f90: `compact` no longer shrinks the type scale (title titleMd 16, subtitle bodySm, amount 16); only padding and the dropped time column remain.

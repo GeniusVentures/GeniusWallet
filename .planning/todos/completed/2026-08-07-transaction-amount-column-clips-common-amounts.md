@@ -58,3 +58,7 @@ Whatever is chosen needs a real-font width test in the shape of
 `test/dashboard/transaction_row_subtitle_test.dart`, because the existing
 `transaction_row_test.dart` runs under the harness's one-em-per-character fallback font
 and cannot see a clip of this kind at all.
+
+## Closed 2026-09-24
+
+Fixed on phones by d5993c58 (time column dropped; the amount column now fits every amount measured here). The desktop dashboard panel still clips; refiled as `2026-09-24-amounts-clip-on-the-desktop-dashboard-transactions-panel.md`.
