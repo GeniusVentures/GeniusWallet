@@ -20,6 +20,16 @@ BigInt? toBaseUnits(String amount, int decimals) {
   return BigInt.parse('0$whole$scaled');
 }
 
+/// The refusal for an amount [toBaseUnits] would truncate, or null when every
+/// typed digit fits. Trailing zeros past [decimals] lose nothing, so they pass.
+String? precisionError(String amount, String? symbol, int decimals) {
+  if (!RegExp('\\.\\d{$decimals}\\d*[1-9]').hasMatch(amount.trim())) {
+    return null;
+  }
+  final places = decimals == 1 ? 'place' : 'places';
+  return '${(symbol ?? '').toUpperCase()} supports up to $decimals decimal $places.';
+}
+
 String formatTokenAmount(BigInt raw, int decimals) {
   final divisor = BigInt.from(10).pow(decimals);
   final integerPart = raw ~/ divisor;

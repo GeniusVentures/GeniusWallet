@@ -158,6 +158,11 @@ class _SwapScreenState extends State<SwapScreen> {
 
   /// The selected pay token's balance as a number, or null when unknown.
   /// Never accuse the user of an insufficient balance on missing data.
+  /// Non-null when the typed amount has digits the pay token cannot hold.
+  String? get _precisionError => fromToken == null
+      ? null
+      : precisionError(fromAmount, fromToken!.symbol, fromToken!.decimals);
+
   double? get fromBalanceAmount => fromToken?.amountAsDouble;
 
   @override
@@ -342,7 +347,7 @@ class _SwapScreenState extends State<SwapScreen> {
     // Base units, not the typed string: '1.5' sent as-is is 1.5 wei.
     final fromAmountUnits = toBaseUnits(fromAmount, fromToken!.decimals);
 
-    if (fromAmountUnits == null) {
+    if (fromAmountUnits == null || _precisionError != null) {
       return null;
     }
 
@@ -726,6 +731,7 @@ class _SwapScreenState extends State<SwapScreen> {
       hasRoute: fetchedQuote != null,
       routeError: routeError,
       isSubmitting: isSubmitting,
+      tooPrecise: _precisionError != null,
     );
     // The availability gate sits ABOVE the ladder, not inside it: a build that
     // cannot reach Squid has no rung to be on, and the ladder stays the single
@@ -733,6 +739,8 @@ class _SwapScreenState extends State<SwapScreen> {
     final unavailable = !widget.swapAvailable;
     final label = unavailable
         ? 'Swap unavailable'
+        : state == SwapCtaState.tooPrecise
+        ? _precisionError!
         : swapCtaLabel(state, symbol: fromToken?.symbol);
     final enabled = swapCtaEnabled(state);
 
@@ -758,12 +766,14 @@ class _SwapScreenState extends State<SwapScreen> {
       );
     }
 
-    final isInsufficient =
-        !unavailable && state == SwapCtaState.insufficientBalance;
-    final background = isInsufficient
+    final isRefused =
+        !unavailable &&
+        (state == SwapCtaState.insufficientBalance ||
+            state == SwapCtaState.tooPrecise);
+    final background = isRefused
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
-    final foreground = isInsufficient ? gw.statusError : gw.textPrimary38;
+    final foreground = isRefused ? gw.statusError : gw.textPrimary38;
 
     return Padding(
       // Same edge as the gradient rung above — the two must not disagree, or
