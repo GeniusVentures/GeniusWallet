@@ -31,6 +31,10 @@ class GlobalSwapFabHost extends StatefulWidget {
   final GoRouter router;
   final Widget child;
 
+  /// Register on the root navigator: this host paints above the Navigator,
+  /// so without it the FAB floats over every dialog and drawer scrim.
+  static final popupRoutes = PopupRouteObserver();
+
   /// Auth / onboarding / splash surfaces where the global swap action must
   /// not appear. Exact path match. Also hides on `/swap` (redundant there)
   /// and on `/token-info`, which grew its own live Swap button in Phase 8 —
@@ -79,6 +83,7 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
     // including back-pops, so the FAB reliably reappears after returning from
     // a hidden route (the provider doesn't always notify on pop).
     widget.router.routerDelegate.addListener(_onRouteChanged);
+    GlobalSwapFabHost.popupRoutes.addListener(_onRouteChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() => _ready = true);
@@ -89,6 +94,7 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
   @override
   void dispose() {
     widget.router.routerDelegate.removeListener(_onRouteChanged);
+    GlobalSwapFabHost.popupRoutes.removeListener(_onRouteChanged);
     super.dispose();
   }
 
@@ -157,7 +163,9 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
         !GeniusBreakpoints.useDesktopOverlay(context) ||
         GeniusBreakpoints.isMobileApp();
     final hidden =
-        usesMobileShell || GlobalSwapFabHost._hiddenPaths.contains(path);
+        usesMobileShell ||
+        GlobalSwapFabHost.popupRoutes.anyOpen ||
+        GlobalSwapFabHost._hiddenPaths.contains(path);
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
 
     return Stack(
@@ -166,12 +174,43 @@ class _GlobalSwapFabHostState extends State<GlobalSwapFabHost> {
         if (!hidden)
           Positioned(
             right: GeniusWalletConsts.space10,
-            // Clears the 60px bottom nav (+ safe-area) on the main shell;
-            // floats thumb-reachable above the edge on pushed screens.
-            bottom: 80 + bottomInset,
+            // Desktop only, which has no bottom bar: same gutter as the right.
+            bottom: GeniusWalletConsts.space10 + bottomInset,
             child: GWSwapFab(onPressed: () => widget.router.push('/swap')),
           ),
       ],
     );
   }
+}
+
+/// Tracks the popup routes (dialogs, bottom sheets, menus) open on the
+/// navigator it observes. Removal without a pop still clears the entry.
+class PopupRouteObserver extends NavigatorObserver with ChangeNotifier {
+  final Set<Route<dynamic>> _open = {};
+
+  bool get anyOpen => _open.isNotEmpty;
+
+  void _update({Route<dynamic>? removed, Route<dynamic>? added}) {
+    final wasOpen = anyOpen;
+    _open.remove(removed);
+    if (added is PopupRoute) {
+      _open.add(added);
+    }
+    if (anyOpen != wasOpen) {
+      notifyListeners();
+    }
+  }
+
+  @override
+  void didPush(Route route, Route? previousRoute) => _update(added: route);
+
+  @override
+  void didPop(Route route, Route? previousRoute) => _update(removed: route);
+
+  @override
+  void didRemove(Route route, Route? previousRoute) => _update(removed: route);
+
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) =>
+      _update(removed: oldRoute, added: newRoute);
 }

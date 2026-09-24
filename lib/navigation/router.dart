@@ -12,6 +12,7 @@ import 'package:genius_wallet/banxa/banxa_payment.dart';
 import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/components/toast/toast_navigator_observer.dart';
@@ -50,7 +51,10 @@ final toastManager = ToastManager.instance;
 
 final geniusWalletRouter = GoRouter(
   navigatorKey: navigatorKey,
-  observers: [ToastNavigatorObserver(toastManager)],
+  observers: [
+    ToastNavigatorObserver(toastManager),
+    GlobalSwapFabHost.popupRoutes,
+  ],
   redirect: (context, state) {
     final appBloc = context.read<AppBloc>();
 
