@@ -51,7 +51,12 @@ Future<void> initHive() async {
 }
 
 /// True when [e] means another running copy of the app holds a box's `.lock`
-/// file. hive_ce locks `<box>.lock` non-blockingly on open, so a second process
-/// fails with a FileSystemException on that path (open, write or lock).
+/// file: a `.lock` path failing with a lock-conflict code, so a read-only or
+/// full disk still surfaces as its real error.
 bool isHiveLockHeld(FileSystemException e) =>
-    e.path?.endsWith('.lock') ?? false;
+    (e.path?.endsWith('.lock') ?? false) &&
+    _lockConflictCodes.contains(e.osError?.errorCode);
+
+// Windows ERROR_SHARING_VIOLATION / ERROR_LOCK_VIOLATION (33 measured on a
+// second instance), Linux EAGAIN, macOS EAGAIN.
+const _lockConflictCodes = {32, 33, 11, 35};

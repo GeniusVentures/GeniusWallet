@@ -1000,12 +1000,15 @@ class GeniusApi {
   /// Whether [mnemonic] is a valid BIP-39 phrase, by Trust Wallet core's rule.
   bool isValidMnemonic(String mnemonic) => MnemonicImpl.isValid(mnemonic);
 
-  /// Whether [privateKeyHex] is a valid secp256k1 private key. Anything that is
-  /// not exactly 32 hex bytes is rejected before key bytes reach native code.
+  /// Whether [privateKeyHex] is a valid secp256k1 private key, `0x` optional as
+  /// the SDK accepts it. Anything not 32 hex bytes never reaches native code.
   bool isValidPrivateKey(String privateKeyHex) {
+    final digits = privateKeyHex.startsWith(RegExp('0[xX]'))
+        ? privateKeyHex.substring(2)
+        : privateKeyHex;
     final List<int> bytes;
     try {
-      bytes = hex.decode(privateKeyHex);
+      bytes = hex.decode(digits);
     } on FormatException {
       return false;
     }
