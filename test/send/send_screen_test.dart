@@ -217,6 +217,7 @@ Future<void> _mountOver(
   WidgetTester tester,
   _SeededCubit walletCubit, {
   String? symbol,
+  String? address,
 }) async {
   tester.view.physicalSize = const Size(1200, 1800);
   tester.view.devicePixelRatio = 1.0;
@@ -230,7 +231,7 @@ Future<void> _mountOver(
       ],
       child: MaterialApp(
         theme: ThemeData(extensions: [GWColors.dark()]),
-        home: SendScreen(preselectSymbol: symbol),
+        home: SendScreen(preselectSymbol: symbol, preselectAddress: address),
       ),
     ),
   );
@@ -250,6 +251,8 @@ Future<void> _mount(
   _RecordingStorage storage,
   TransactionsCubit transactionsCubit, {
   String symbol = 'matic',
+  String? address,
+  List<Coin>? coins,
   Size size = const Size(1200, 1800),
 }) async {
   tester.view.physicalSize = size;
@@ -260,10 +263,16 @@ Future<void> _mount(
     MultiBlocProvider(
       providers: [
         BlocProvider<WalletDetailsCubit>(
-          create: (_) => _SeededCubit(
-            geniusApi: api,
-            networkTokensProvider: NetworkTokensProvider(),
-          ),
+          create: (_) {
+            final cubit = _SeededCubit(
+              geniusApi: api,
+              networkTokensProvider: NetworkTokensProvider(),
+            );
+            if (coins != null) {
+              cubit.debugCoinsLoaded(_amoy, coins);
+            }
+            return cubit;
+          },
         ),
         BlocProvider<TransactionsCubit>.value(value: transactionsCubit),
       ],
@@ -271,6 +280,7 @@ Future<void> _mount(
         theme: ThemeData(extensions: [GWColors.dark()]),
         home: SendScreen(
           preselectSymbol: symbol,
+          preselectAddress: address,
           preselectChainId: 80002,
           storage: storage,
         ),
@@ -531,6 +541,7 @@ void main() {
         _RecordingStorage(),
         TransactionsCubit(),
         symbol: 'usdc',
+        address: _usdcCoin.address,
       );
 
       await tester.enterText(find.byType(TextField).at(0), _recipient);
@@ -612,6 +623,7 @@ void main() {
       _RecordingStorage(),
       TransactionsCubit(),
       symbol: 'usdc',
+      address: _usdcCoin.address,
       size: const Size(320, 480),
     );
 
@@ -862,7 +874,8 @@ void main() {
 
     walletCubit.debugSelectNetwork(_ethereum);
     walletCubit.debugCoinsLoaded(_ethereum, const [
-      Coin(symbol: 'matic', address: '0xMATIC', decimals: '18', balance: 1),
+      // No address: a symbol-only preselect seats only a native coin.
+      Coin(symbol: 'matic', decimals: '18', balance: 1),
     ]);
     await tester.pump();
 
@@ -918,7 +931,12 @@ void main() {
       walletCubit.debugCoinsLoaded(_ethereum, const [_mainnetUsdc]);
       walletCubit.debugSelectNetwork(_sepolia);
 
-      await _mountOver(tester, walletCubit, symbol: 'usdc');
+      await _mountOver(
+        tester,
+        walletCubit,
+        symbol: 'usdc',
+        address: _mainnetUsdc.address,
+      );
 
       expect(_sendCubitProvider, findsNothing);
       expect(find.byType(TextField), findsNothing);
@@ -943,6 +961,89 @@ void main() {
 
       expect(find.byType(TextField), findsWidgets);
       expect(find.text('ETH'), findsOneWidget);
+    });
+  });
+
+  group('a token page seats that exact token', () {
+    // Two contracts on one chain can share a ticker; only the address says
+    // which one the user was looking at.
+    const bridgedUsdc = Coin(
+      symbol: 'usdc',
+      address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+      decimals: '6',
+      balance: 500,
+    );
+    const coins = [_maticCoin, _usdcCoin, bridgedUsdc];
+
+    testWidgets('the second of two same-ticker tokens signs to its own '
+        'contract', (tester) async {
+      final api = _FakeApi();
+      await _mount(
+        tester,
+        api,
+        _RecordingStorage(),
+        TransactionsCubit(),
+        symbol: 'usdc',
+        address: bridgedUsdc.address!.toLowerCase(),
+        coins: coins,
+      );
+
+      await tester.enterText(find.byType(TextField).at(0), _recipient);
+      await tester.enterText(find.byType(TextField).at(1), '100');
+      await tester.pump();
+      await tester.tap(find.widgetWithText(GWButton, 'Review'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(GWButton, 'Send'));
+      await tester.pumpAndSettle();
+
+      final tx = api.signedTx;
+      expect(tx, isNotNull);
+      expect(
+        (tx!['to'] as String).toLowerCase(),
+        bridgedUsdc.address!.toLowerCase(),
+      );
+    });
+
+    testWidgets('an address the wallet does not hold seats nothing', (
+      tester,
+    ) async {
+      await _mount(
+        tester,
+        _FakeApi(),
+        _RecordingStorage(),
+        TransactionsCubit(),
+        symbol: 'usdc',
+        address: '0x000000000000000000000000000000000000dEaD',
+        coins: coins,
+      );
+
+      expect(find.byType(CoinsScreen), findsOneWidget);
+    });
+
+    testWidgets('no address seats only the native coin, never a token', (
+      tester,
+    ) async {
+      await _mount(
+        tester,
+        _FakeApi(),
+        _RecordingStorage(),
+        TransactionsCubit(),
+        symbol: 'usdc',
+        coins: coins,
+      );
+      expect(find.byType(CoinsScreen), findsOneWidget);
+    });
+
+    testWidgets('the native coin still seats with no address', (tester) async {
+      await _mount(
+        tester,
+        _FakeApi(),
+        _RecordingStorage(),
+        TransactionsCubit(),
+        coins: coins,
+      );
+      expect(find.byType(CoinsScreen), findsNothing);
+      expect(find.text('MATIC'), findsWidgets);
     });
   });
 }

@@ -68,7 +68,11 @@ const _amoy = Network(
   rpcUrl: 'https://rpc.invalid',
 );
 
-const _usdcCoin = Coin(symbol: 'USDC', balance: 10);
+const _usdcCoin = Coin(
+  symbol: 'USDC',
+  address: '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582',
+  balance: 10,
+);
 
 Wallet _walletOf(WalletType type) => Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -102,7 +106,11 @@ class _SeededCubit extends WalletDetailsCubit {
 /// Same page, routed: `/send` records the extra its Send button pushes so the
 /// test can assert what actually crossed the boundary rather than trusting
 /// the call was made.
-Widget _routedHost(WalletDetailsCubit cubit, Map<String, dynamic> captured) {
+Widget _routedHost(
+  WalletDetailsCubit cubit,
+  Map<String, dynamic> captured, {
+  TokenInfoArgs args = const TokenInfoArgs(),
+}) {
   final router = GoRouter(
     initialLocation: '/token-info',
     routes: [
@@ -110,7 +118,7 @@ Widget _routedHost(WalletDetailsCubit cubit, Map<String, dynamic> captured) {
         path: '/token-info',
         builder: (context, state) => TokenInfoScreen(
           walletDetailsCubit: cubit,
-          args: const TokenInfoArgs(),
+          args: args,
           isGnusWalletConnected: false,
         ),
       ),
@@ -247,7 +255,17 @@ void main() {
     );
     final captured = <String, dynamic>{};
 
-    await tester.pumpWidget(_routedHost(cubit, captured));
+    await tester.pumpWidget(
+      _routedHost(
+        cubit,
+        captured,
+        args: const TokenInfoArgs(
+          walletCoin: _usdcCoin,
+          network: 'Polygon Amoy',
+          originLabel: 'ASSETS',
+        ),
+      ),
+    );
     await tester.pump();
 
     expect(find.widgetWithText(GWButton, 'Send'), findsOneWidget);
@@ -255,7 +273,12 @@ void main() {
     await tester.tap(find.widgetWithText(GWButton, 'Send'));
     await tester.pumpAndSettle();
 
-    expect(captured, {'symbol': 'USDC', 'chainId': 80002});
+    // The contract, not just the ticker: two tokens on a chain can share one.
+    expect(captured, {
+      'symbol': 'USDC',
+      'chainId': 80002,
+      'address': _usdcCoin.address,
+    });
   });
 
   testWidgets('a watch-only or SDK wallet is offered no Send', (tester) async {

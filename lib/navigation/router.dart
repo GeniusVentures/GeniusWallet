@@ -268,13 +268,14 @@ final geniusWalletRouter = GoRouter(
         GoRoute(
           path: '/send',
           builder: (context, state) {
-            // Same `extra` shape as `/swap` above: an optional coin to
-            // seat, sent by a coin page's Send button.
+            // Same `extra` shape as `/swap` above, plus the token's contract
+            // `address`: a ticker alone can name two tokens on one chain.
             final extra = state.extra is Map<String, dynamic>
                 ? state.extra as Map<String, dynamic>
                 : const <String, dynamic>{};
             return SendScreen(
               preselectSymbol: extra['symbol'] as String?,
+              preselectAddress: extra['address'] as String?,
               preselectChainId: extra['chainId'] as int?,
             );
           },
