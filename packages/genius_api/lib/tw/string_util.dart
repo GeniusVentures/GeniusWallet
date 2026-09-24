@@ -5,11 +5,18 @@ import 'package:genius_api/ffi_bridge_prebuilt.dart';
 class StringUtil {
   static FFIBridgePrebuilt ffiBridgePrebuilt = FFIBridgePrebuilt();
 
-  /// It must be deleted at the end.
+  /// It must be deleted at the end. The UTF-8 staging copy is wiped and freed
+  /// here, since Trust Wallet copies it: callers pass seed phrases through.
   static Pointer<Utf8> toTWString(String value) {
-    return ffiBridgePrebuilt.twLib
-        .TWStringCreateWithUTF8Bytes(value.toNativeUtf8().cast())
-        .cast();
+    final utf8 = value.toNativeUtf8();
+    try {
+      return ffiBridgePrebuilt.twLib
+          .TWStringCreateWithUTF8Bytes(utf8.cast())
+          .cast();
+    } finally {
+      utf8.cast<Uint8>().asTypedList(utf8.length).fillRange(0, utf8.length, 0);
+      malloc.free(utf8);
+    }
   }
 
   static int size(Pointer<Utf8> string) {
