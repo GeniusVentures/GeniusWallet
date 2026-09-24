@@ -62,14 +62,15 @@ Symbiosis named once, never built) and the go-forward decision.
 - [x] Port the redesign onto `develop` incrementally, layer by layer (branch `ui-redesign-port`) — 21/23 official phases complete 2026-08-06; residue = phase 14 gaps (14-08 unwired), the mobile pass tail, deferred light-mode walks
 - [x] Re-skin the surfaces develop gained after the designer forked (Settings, SDK account manager, Banxa rework, select-wallet-type) — done as part of the port above
 
-<!-- v2.0 (current milestone) scope — see "Current Milestone" section above. -->
+<!-- v2.0 scope — shipped 2026-09-24, see "Current State" above. -->
 
 - [x] Wire the swap to the real `squidrouter/` client: live tokens, balances, route quotes (Phase 26; `SquidTokenService` itself was deleted — the seam is `SwapProvider`)
 - [x] Execute real swaps: broadcast the routed transaction, record the actual outcome honestly (Phase 26, walked 2026-09-17)
 - [x] Wire slippage settings into the live route request (Phase 26)
 - [x] Drive token/chain pickers from the live Squid catalogue (Phase 26)
-- [ ] Decode dApp swap calldata in the Reown approval flow (end blind signing)
-- [ ] Collect ~3% integrator fee on swaps routed through Squid, visible in route details
+- [x] Decode dApp swap calldata in the Reown approval flow (end blind signing) — Phase 30; DAP-02 accepted as a partial: the input side shows, the destination is not in the calldata
+- ~~Collect ~3% integrator fee on swaps routed through Squid~~ — deferred 2026-09-18 (FEE-01): a business item Squid configures server-side; route details already name every fee (FEE-02)
+- [x] Send native coins and ERC-20 tokens — Phase 31, walked on Sepolia 2026-09-23
 
 ### Out of Scope
 

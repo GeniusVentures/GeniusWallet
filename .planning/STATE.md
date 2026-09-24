@@ -24,21 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 31 (Send) planned 2026-09-23 on `plan/send`, 5 plans, ready to execute. Phases 26, 29 and 30 are merged (PRs #233-#235); develop baseline 1590 pass / 5 skip.
+**Current focus:** v2.0 shipped and archived 2026-09-24 (`milestones/v2.0-ROADMAP.md`). Next is
+either a new milestone (`/gsd-new-milestone`) or the v1.0 residue below.
 
 ## Current Position
 
-Phase: 29 — Fee transparency (COMPLETE 4/4, 2026-09-18)
-Plan: 4/4 — 29-01 done (`7e2253ad`); 29-02 done (`803717c4`); 29-03 done (`562d6a7d`);
-29-04 done (`f44e773d`/`12cd2472`)
-Status: 29-04 closed the phase. `route_details_card_test.dart` gained the empty same-chain case
-(no fee row, no `$0.00` line — the normal case, not an edge case), a distinctness check that the
-route fee and gas never merge into one string, a synthetic three-entry render (each fee its own
-row), and a both-appearance case that flips the global `GWAppearance` flag before building
-`GWColors` — the mechanism this repo has broken before, where a light instance built under a dark
-global silently reads dark values. FEE-02 now checked in REQUIREMENTS.md. Full `flutter test`:
-1374 passed, 5 skipped, 0 failed. Manual-only item carried to UAT: fee rows at phone width.
-Last activity: 2026-09-18 — 29-04 executed and verified
+Milestone: v2.0 complete — phases 26, 29, 30, 31 merged (PRs #233-#235, #244); backlog fixes in #246.
+DAP-02 accepted as a partial; FEE-01 deferred (business). Open follow-up: swap history rows lack a
+chain id (pending todo). v1.0 is still executing: phase 11 closeout and phase 14's plan 14-08.
 
 ### v2.0 Phase Tracking
 
@@ -47,6 +40,7 @@ Last activity: 2026-09-18 — 29-04 executed and verified
 | 26 | Swap that actually swaps (absorbs former 27, 28) | Complete 2026-09-17 |
 | 29 | Fee transparency | Complete 2026-09-18 (4/4 plans; FEE-02 closed) |
 | 30 | dApp calldata decoding (end blind signing) | Complete 2026-09-19 (4/4; DAP-02 partial by design) |
+| 31 | Send native coins and ERC-20 tokens | Complete 2026-09-23 (5/5; verified 20/20, walked on Sepolia) |
 
 (v1.0 residue still executes alongside v2.0 — see the v1.0 Progress table in ROADMAP.md: phase 14
 has an unexecuted plan 14-08, and the mobile-pass tail plus deferred light-mode walks remain
