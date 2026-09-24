@@ -12,7 +12,6 @@ import 'package:genius_wallet/onboarding/existing_wallet/view/import_security_sc
 import 'package:genius_wallet/onboarding/existing_wallet/view/select_wallet_type_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/bloc/new_wallet_bloc.dart';
 import 'package:genius_wallet/onboarding/new_wallet/routes/new_wallet_flow.dart';
-import 'package:genius_wallet/onboarding/new_wallet/view/backup_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/recovery_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/new_wallet/view/verify_recovery_phrase_screen.dart';
 import 'package:genius_wallet/onboarding/view/wallet_creation_screen.dart';
@@ -31,12 +30,6 @@ class WalletRoutes {
               ? false
               : includeBackButton as bool,
         );
-      },
-    ),
-    GoRoute(
-      path: '/backup_phrase',
-      builder: (context, state) {
-        return const BackupPhraseScreen();
       },
     ),
     GoRoute(
