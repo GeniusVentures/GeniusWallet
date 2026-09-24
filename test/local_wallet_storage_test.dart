@@ -74,6 +74,14 @@ void main() {
 
       expect(await storage.verifyUserPin('1234'), isFalse);
     });
+
+    test('an unreadable store throws rather than reporting no PIN', () async {
+      storage = await LocalWalletStorage.create(
+        secureStorage: _UnreadableStorage(),
+      );
+
+      await expectLater(storage.pinExists(), throwsA(isA<PlatformException>()));
+    });
   });
 
   group('account', () {

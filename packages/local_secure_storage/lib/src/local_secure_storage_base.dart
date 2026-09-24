@@ -97,7 +97,7 @@ class LocalWalletStorage {
     } catch (e) {
       debugPrint('Issue with loading acount');
       debugPrint(e.toString());
-      _secureStorage.delete(key: _accountKeyPrefix);
+      await _secureStorage.delete(key: _accountKeyPrefix);
       return null;
     }
   }
@@ -226,13 +226,11 @@ class LocalWalletStorage {
     }
   }
 
+  /// Throws on a read failure: reporting "no PIN" would let onboarding
+  /// overwrite a real PIN the store merely could not read.
   Future<bool> pinExists() async {
-    try {
-      final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
-      return storedPin.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
+    final storedPin = await _secureStorage.read(key: _pinKey) ?? '';
+    return storedPin.isNotEmpty;
   }
 
   Future<void> deleteAllWallets() async {
