@@ -369,13 +369,14 @@ class _SwapScreenState extends State<SwapScreen> {
 
     final request = quoteRequest;
     if (request == null) {
-      // The input, not the network, is now why no route is fetched.
-      if (routeError) {
-        setState(() {
-          routeError = false;
-          submitFailure = null;
-        });
-      }
+      // The input, not the network, is now why no route is fetched, and the
+      // last quote's figures belong to a form that no longer exists.
+      setState(() {
+        routeError = false;
+        submitFailure = null;
+        toAmount = '';
+        toAmountController.clear();
+      });
       return;
     }
 
