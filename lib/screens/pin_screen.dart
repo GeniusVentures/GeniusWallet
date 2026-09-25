@@ -95,12 +95,12 @@ class PinScreen extends StatelessWidget {
                       liveRegion: true,
                       child: Text(
                         'Incorrect PIN',
-                        // gw.statusError, NOT GeniusWalletColors.statusError:
+                        // gw.statusErrorText, NOT GeniusWalletColors.statusError:
                         // the static is one mode-invariant #FF4D4D, ~3.4:1 on
-                        // a light surface (an AA fail). The extension passes
-                        // AA in both modes.
+                        // a light surface (an AA fail). The extension's text
+                        // partner clears AA in both modes.
                         style: GeniusWalletTypography.bodyMd.copyWith(
-                          color: gw.statusError,
+                          color: gw.statusErrorText,
                         ),
                       ),
                     );
