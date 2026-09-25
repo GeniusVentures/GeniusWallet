@@ -252,6 +252,9 @@ class _MarketCard extends StatelessWidget {
     final data = row.data;
     final up = data.priceChangePercentage24h >= 0;
     final changeColor = up ? gw.statusSuccess : gw.statusError;
+    // AA-safe partner for the pill label only -- the wash stays on the raw
+    // token.
+    final changeTextColor = up ? gw.statusSuccessText : gw.statusErrorText;
 
     // Semantics + GWCard(onTap:...) mirrors the hero card's own pattern:
     // GWCard's InkWell already gives focus and Enter/Space activation
@@ -329,7 +332,7 @@ class _MarketCard extends StatelessWidget {
                       child: Text(
                         '${up ? '+' : ''}${data.priceChangePercentage24h.toStringAsFixed(2)}%',
                         style: GeniusWalletTypography.labelMd.copyWith(
-                          color: changeColor,
+                          color: changeTextColor,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
