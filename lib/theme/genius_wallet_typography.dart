@@ -25,6 +25,11 @@ class GeniusWalletTypography {
   /// complete `TextStyle` clears the Rule of Three across all eight sites.
   static const String monoFamily = 'JetBrainsMono';
 
+  /// The bundled sans family every style in this class renders in. Named so
+  /// `theme.dart`'s `ThemeData.fontFamily` can apply the SAME family to
+  /// Material's own unmapped defaults, rather than a second literal drifting.
+  static const String sansFamily = 'Inter';
+
   static const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
 
   /// Slightly tightened tracking for display/headline sizes — matches the
@@ -56,7 +61,7 @@ class GeniusWalletTypography {
     double? letterSpacing,
     List<FontFeature>? fontFeatures,
   }) => TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: sansFamily,
     fontSize: fontSize,
     height: height,
     fontWeight: fontWeight,
@@ -147,6 +152,10 @@ class GeniusWalletTypography {
     fontFeatures: _tabular,
   );
 
+  // displaySmall, headlineSmall, titleSmall, labelLarge and labelSmall stay
+  // unmapped on purpose: audited 2026-09-25, no live consumer reads them
+  // directly, and ThemeData.fontFamily already gives them Inter at
+  // Material's own sizes (see getThemeData()).
   static TextTheme toMaterialTextTheme() => TextTheme(
     displayLarge: displayLg,
     displayMedium: displayMd,
