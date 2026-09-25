@@ -1,0 +1,69 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/components/inputs/gw_switch.dart';
+import 'package:genius_wallet/theme/gw_appearance.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+
+// Reuse the single existing WCAG ratio helper -- do not add a second
+// implementation. Mirrors disabled_control_contrast_test.dart's import.
+import 'theme_contrast_test.dart' show contrastRatio, themeFor;
+
+/// The enabled outline's owed check: 3:1 against BOTH the ON track (a
+/// translucent brand wash, so its rendered colour depends on the backdrop
+/// it sits on) and the OFF track (opaque), in both appearance modes. Each
+/// track is composited over its backdrop first, then the outline is
+/// composited on top of THAT -- a two-stage blend, because
+/// `computeLuminance()` ignores alpha and a bare hex read would be
+/// meaningless for either layer.
+void main() {
+  const uiFloor = 3.0;
+
+  Map<String, Color> surfacesOf(GWColors gw) => {
+    'surfaceBase': gw.surfaceBase,
+    'surfaceElevated': gw.surfaceElevated,
+    'surfaceMenu': gw.surfaceMenu,
+    'surfaceSunken': gw.surfaceSunken,
+  };
+
+  for (final mode in GWAppearanceMode.values) {
+    testWidgets('enabled switch outline clears 3:1 on both tracks -- $mode', (
+      tester,
+    ) async {
+      final theme = themeFor(mode);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Material(child: GWSwitch(value: true, onChanged: (_) {})),
+        ),
+      );
+
+      final gw = theme.extension<GWColors>()!;
+      final switchWidget = tester.widget<Switch>(find.byType(Switch));
+      final trackColor = switchWidget.trackColor!;
+      final outlineColor = switchWidget.trackOutlineColor!;
+
+      for (final states in <Set<WidgetState>>[
+        {WidgetState.selected},
+        <WidgetState>{},
+      ]) {
+        final trackName = states.contains(WidgetState.selected) ? 'ON' : 'OFF';
+        final track = trackColor.resolve(states)!;
+        final outline = outlineColor.resolve(states)!;
+        for (final surface in surfacesOf(gw).entries) {
+          final trackComposite = Color.alphaBlend(track, surface.value);
+          final composited = Color.alphaBlend(outline, trackComposite);
+          final ratio = contrastRatio(composited, trackComposite);
+          expect(
+            ratio,
+            greaterThanOrEqualTo(uiFloor),
+            reason:
+                'enabled outline $outline on the $trackName track $track '
+                'composited over ${surface.key} is '
+                '${ratio.toStringAsFixed(2)}:1 in $mode mode, under the '
+                '$uiFloor:1 non-text floor.',
+          );
+        }
+      }
+    });
+  }
+}

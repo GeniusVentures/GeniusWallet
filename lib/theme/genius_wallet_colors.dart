@@ -229,6 +229,13 @@ class GeniusWalletColors {
   static Color get _borderControl => _isLight
       ? const Color.fromRGBO(16, 19, 26, 0.48)
       : const Color.fromRGBO(255, 255, 255, 0.36);
+
+  /// The ON-track edge for a control filled by a translucent brand wash --
+  /// [_borderControl] doesn't clear 3:1 there. Light ink 52% clears 3.03:1;
+  /// dark white 58% clears 3.10:1; both measured against the ON track.
+  static Color get _borderControlOnBrand => _isLight
+      ? const Color.fromRGBO(16, 19, 26, 0.52)
+      : const Color.fromRGBO(255, 255, 255, 0.58);
   static const Color _borderBrand = _brandPrimary;
 
   // Status
