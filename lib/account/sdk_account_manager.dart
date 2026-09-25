@@ -289,7 +289,7 @@ class SDKAccountManagerButton extends StatelessWidget {
     // trash glyph, which is exactly how it looked on the walk.
     final fg = !enabled
         ? gw.textSecondary.withValues(alpha: 0.5)
-        : (danger ? gw.statusError : gw.textPrimary);
+        : (danger ? gw.statusErrorText : gw.textPrimary);
     return MenuItemButton(
       leadingIcon: GWIcon.material(icon, color: fg),
       style: MenuItemButton.styleFrom(

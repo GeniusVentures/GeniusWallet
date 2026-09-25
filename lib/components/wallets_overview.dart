@@ -87,7 +87,7 @@ class WalletsOverviewState extends State<WalletsOverview> {
                           child: Text(
                             'No funds available',
                             style: TextStyle(
-                              color: context.gw.statusError,
+                              color: context.gw.statusErrorText,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),

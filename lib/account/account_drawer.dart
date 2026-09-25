@@ -456,12 +456,12 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                     leadingIcon: Icon(
                       Icons.delete_outline,
                       size: 20,
-                      color: gw.statusError,
+                      color: gw.statusErrorText,
                     ),
                     onPressed: () => _confirmDeleteWallet(context, wallet),
                     child: Text(
                       'Delete',
-                      style: TextStyle(color: gw.statusError),
+                      style: TextStyle(color: gw.statusErrorText),
                     ),
                   ),
               ],
