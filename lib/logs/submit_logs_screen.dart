@@ -527,7 +527,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
       statusText =
           'Start the SDK first - feedback needs it running to attach logs and send.';
     } else {
-      statusColor = _statusIsError ? gw.statusError : gw.textSecondary;
+      statusColor = _statusIsError ? gw.statusErrorText : gw.textSecondary;
       statusText = _statusMessage;
     }
 
@@ -792,7 +792,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
         gw,
         'SDK',
         sdkReady ? 'Running' : 'Stopped',
-        valueColor: sdkReady ? gw.statusSuccess : null,
+        valueColor: sdkReady ? gw.statusSuccessText : null,
       ),
     );
     rows.add(_railRow(gw, 'Platform', Platform.operatingSystem));

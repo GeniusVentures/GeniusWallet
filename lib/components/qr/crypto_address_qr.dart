@@ -153,7 +153,7 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
                   // glyph); resting → the sketch 152 `.copy` SVG, same tint
                   // as before.
                   _copied
-                      ? Icon(Icons.check, size: 16, color: gw.statusSuccess)
+                      ? Icon(Icons.check, size: 16, color: gw.statusSuccessText)
                       : SketchIcon(
                           SketchIcons.copy,
                           size: 16,
@@ -163,7 +163,7 @@ class _CryptoAddressQRState extends State<CryptoAddressQR> {
                   Text(
                     _copied ? "Copied" : "Copy",
                     style: GeniusWalletTypography.labelMd.copyWith(
-                      color: _copied ? gw.statusSuccess : gw.textSecondary,
+                      color: _copied ? gw.statusSuccessText : gw.textSecondary,
                     ),
                   ),
                 ],
