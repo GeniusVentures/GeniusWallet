@@ -315,7 +315,7 @@ class _SlippageStatusRow extends StatelessWidget {
     // message for the comfortable band; it confirms instead, so this needs a
     // neutral colour.
     final color = switch (state.level) {
-      SlippageLevel.error => gw.statusError,
+      SlippageLevel.error => gw.statusErrorText,
       SlippageLevel.ok => gw.textSecondary, // 5.97:1 on the 156-A panel
       SlippageLevel.warning => throw StateError(
         'warning is handled by GWWarningNote at the call site',

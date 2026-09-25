@@ -690,7 +690,7 @@ class _SwapScreenState extends State<SwapScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.error_outline, color: gw.statusError, size: 18),
+          Icon(Icons.error_outline, color: gw.statusErrorText, size: 18),
           const SizedBox(width: GeniusWalletConsts.space4),
           Expanded(
             child: Column(
@@ -701,7 +701,7 @@ class _SwapScreenState extends State<SwapScreen> {
                       ? "Couldn't fetch a route."
                       : 'The swap did not complete.',
                   style: GeniusWalletTypography.labelMd.copyWith(
-                    color: gw.statusError,
+                    color: gw.statusErrorText,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -711,7 +711,7 @@ class _SwapScreenState extends State<SwapScreen> {
                       'Check your connection and try again — the quote above '
                           'is not current.',
                   style: GeniusWalletTypography.labelMd.copyWith(
-                    color: gw.statusError,
+                    color: gw.statusErrorText,
                   ),
                 ),
               ],
@@ -786,7 +786,7 @@ class _SwapScreenState extends State<SwapScreen> {
     final background = isRefused
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
-    final foreground = isRefused ? gw.statusError : gw.textPrimary38;
+    final foreground = isRefused ? gw.statusErrorText : gw.textPrimary38;
 
     return Padding(
       // Same edge as the gradient rung above — the two must not disagree, or

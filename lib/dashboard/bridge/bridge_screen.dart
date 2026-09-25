@@ -732,7 +732,7 @@ class BridgeScreenState extends State<BridgeScreen> {
     final background = isErrorTone
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
-    final foreground = isErrorTone ? gw.statusError : gw.textPrimary38;
+    final foreground = isErrorTone ? gw.statusErrorText : gw.textPrimary38;
 
     return SizedBox(
       width: double.infinity,
