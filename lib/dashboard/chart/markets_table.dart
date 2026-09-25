@@ -229,6 +229,9 @@ class _MarketsTableState extends State<MarketsTable> {
     final data = row.data;
     final up = data.priceChangePercentage24h >= 0;
     final changeColor = up ? gw.statusSuccess : gw.statusError;
+    // AA-safe partner for the pill label only -- the wash and the
+    // sparkline keep the raw token.
+    final changeTextColor = up ? gw.statusSuccessText : gw.statusErrorText;
 
     // Was a bare `InkWell` with no `borderRadius`, which is the whole of the
     // "market ma proste rogi" finding on 2026-07-30: Material clips a
@@ -322,7 +325,7 @@ class _MarketsTableState extends State<MarketsTable> {
                   child: Text(
                     '${up ? '+' : ''}${data.priceChangePercentage24h.toStringAsFixed(2)}%',
                     style: GeniusWalletTypography.labelMd.copyWith(
-                      color: changeColor,
+                      color: changeTextColor,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

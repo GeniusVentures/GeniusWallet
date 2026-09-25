@@ -236,6 +236,9 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
     final data = widget.data;
     final up = data.priceChangePercentage24h >= 0;
     final changeColor = up ? gw.statusSuccess : gw.statusError;
+    // AA-safe partner for the pill's label only -- the wash stays on the
+    // raw token.
+    final changeTextColor = up ? gw.statusSuccessText : gw.statusErrorText;
 
     // A local function, not a lifted `StatelessWidget`: it closes over `gw`,
     // `data`, `changeColor` and `up`, and hoisting it would mean threading
@@ -326,6 +329,7 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
             _ChangePill(
               percent: data.priceChangePercentage24h,
               color: changeColor,
+              textColor: changeTextColor,
             ),
             const SizedBox(width: GeniusWalletConsts.space6),
             Flexible(
@@ -579,7 +583,12 @@ class _MarketsHeroCardState extends State<MarketsHeroCard> {
 class _ChangePill extends StatelessWidget {
   final double percent;
   final Color color;
-  const _ChangePill({required this.percent, required this.color});
+  final Color textColor;
+  const _ChangePill({
+    required this.percent,
+    required this.color,
+    required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -592,7 +601,7 @@ class _ChangePill extends StatelessWidget {
       child: Text(
         '${percent >= 0 ? '+' : ''}${percent.toStringAsFixed(2)}%',
         style: GeniusWalletTypography.labelMd.copyWith(
-          color: color,
+          color: textColor,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -806,8 +815,8 @@ class _HeroChart extends StatelessWidget {
                         ? ((spot.y - first) / first) * 100
                         : 0;
                     final Color pctColor = pct >= 0
-                        ? gw.statusSuccess
-                        : gw.statusError;
+                        ? gw.statusSuccessText
+                        : gw.statusErrorText;
                     final int decimals = spot.y >= 1 ? 2 : 6;
                     return LineTooltipItem(
                       '${DateFormat('MMM d, h:mm a').format(timeAt(spot.x))}\n',

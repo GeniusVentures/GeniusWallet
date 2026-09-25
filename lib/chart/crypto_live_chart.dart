@@ -319,6 +319,11 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     // always-mint line here would have sat directly above red sparklines
     // reporting the same fact. One rule now covers every surface.
     final Color trendColor = isUptrend ? gw.statusSuccess : gw.statusError;
+    // AA-safe partner for the pill/header % label only -- the line, its
+    // gradient, the touched dot and the wash keep the raw token.
+    final Color trendTextColor = isUptrend
+        ? gw.statusSuccessText
+        : gw.statusErrorText;
 
     return MouseRegion(
       onExit: _onHoverExit,
@@ -442,7 +447,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: trendColor,
+                            color: trendTextColor,
                           ),
                         ),
                       ),
@@ -464,7 +469,8 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                   hasData: _hasData,
                   formattedPrice: _hasData ? formattedPrice : 'Loading...',
                   percentChange: _percentAt(_displayPrice),
-                  trendColor: trendColor,
+                  // _ChartHeaderRow's only use of this colour is its % Text.
+                  trendColor: trendTextColor,
                   timeLabel: _hoverTimeLabel,
                 ),
               if (widget.child != null) widget.child!,

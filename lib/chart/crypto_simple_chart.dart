@@ -54,6 +54,11 @@ class CryptoSparkLineChart extends StatelessWidget {
     final Color changeColor = priceChangePercent >= 0
         ? gw.statusSuccess
         : gw.statusError;
+    // AA-safe partner for the pill label only -- the wash and the sparkline
+    // line keep the raw fill-tuned token.
+    final Color changeTextColor = priceChangePercent >= 0
+        ? gw.statusSuccessText
+        : gw.statusErrorText;
     final tokenDecimalsToDisplay = currentPrice >= 1 ? 2 : 6;
 
     final formattedPrice = NumberFormat.currency(
@@ -216,7 +221,7 @@ class CryptoSparkLineChart extends StatelessWidget {
                   child: Text(
                     "${priceChangePercent >= 0 ? "+" : ""}${priceChangePercent.toStringAsFixed(2)}%",
                     style: GeniusWalletTypography.labelMd.copyWith(
-                      color: changeColor,
+                      color: changeTextColor,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
