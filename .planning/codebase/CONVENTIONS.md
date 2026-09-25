@@ -365,7 +365,7 @@ different design language on the same screen:
 
 | Part | Value |
 |------|-------|
-| Fill | `gw.surfaceSunken` |
+| Fill | `gw.surfaceWell` (soft menu grey in light, sunken in dark) |
 | Border | `Border.all(color: gw.borderSubtle)` (hairline) |
 | Radius | `GeniusWalletConsts.radiusPill` |
 | Track padding | `EdgeInsets.all(3)` |

@@ -920,6 +920,9 @@ class _AmountChip extends StatelessWidget {
           // Design-system hover = "lift chip" (sketch 008 variant D), the same
           // as every other interactive chip in the app.
           final bool lifted = hovered && !selected;
+          // Light's track is the soft menu grey, so a menu-grey selected
+          // chip would vanish: light selects a white chip with a hairline.
+          final isLight = Theme.of(context).brightness == Brightness.light;
           final Color textColor = selected
               ? gw.textPrimary
               : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
@@ -944,8 +947,19 @@ class _AmountChip extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: selected
-                        ? gw.surfaceMenu
-                        : (lifted ? gw.surfaceElevated : Colors.transparent),
+                        ? (isLight ? gw.surfaceElevated : gw.surfaceMenu)
+                        : lifted
+                        ? (isLight ? gw.textPrimary10 : gw.surfaceElevated)
+                        : Colors.transparent,
+                    // Always present in light so selecting never shifts the
+                    // label by the border's 1px.
+                    border: isLight
+                        ? Border.all(
+                            color: selected
+                                ? gw.borderSubtle
+                                : Colors.transparent,
+                          )
+                        : null,
                     borderRadius: BorderRadius.circular(
                       GeniusWalletConsts.radiusPill,
                     ),
@@ -1558,6 +1572,9 @@ class _OrderToneChip extends StatelessWidget {
           // interactive chrome, so this track behaves identically to the
           // other two under the same cursor.
           final bool lifted = hovered && !selected;
+          // Light's track is the soft menu grey, so a menu-grey selected
+          // chip would vanish: light selects a white chip with a hairline.
+          final isLight = Theme.of(context).brightness == Brightness.light;
           final Color textColor = selected
               ? gw.textPrimary
               : (lifted ? gw.textPrimary : gw.textMutedOnSunken);
@@ -1585,8 +1602,19 @@ class _OrderToneChip extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: selected
-                        ? gw.surfaceMenu
-                        : (lifted ? gw.surfaceElevated : Colors.transparent),
+                        ? (isLight ? gw.surfaceElevated : gw.surfaceMenu)
+                        : lifted
+                        ? (isLight ? gw.textPrimary10 : gw.surfaceElevated)
+                        : Colors.transparent,
+                    // Always present in light so selecting never shifts the
+                    // label by the border's 1px.
+                    border: isLight
+                        ? Border.all(
+                            color: selected
+                                ? gw.borderSubtle
+                                : Colors.transparent,
+                          )
+                        : null,
                     borderRadius: BorderRadius.circular(
                       GeniusWalletConsts.radiusPill,
                     ),

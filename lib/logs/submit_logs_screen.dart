@@ -941,7 +941,7 @@ class _SubmitLogsScreenState extends State<SubmitLogsScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(GeniusWalletConsts.space6),
           decoration: BoxDecoration(
-            color: gw.surfaceSunken,
+            color: gw.surfaceWell,
             borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusSm),
             border: Border.all(color: gw.borderSubtle),
           ),

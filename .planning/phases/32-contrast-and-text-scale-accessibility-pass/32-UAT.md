@@ -49,3 +49,5 @@ pending: 0
 None in scope. Checks 4-6 were walked after a restart (the power cut ended the first session). WalletKit fails to initialise on Windows (MissingPluginException on walletconnect_pay); that is a platform gap, not a colour issue.
 
 Found during the walk and fixed on this branch (re-walked, both modes): the light-mode Compute tiles read as a heavy grey block (now the soft menu grey), and a disabled gradient CTA looked like an enabled pastel one (now a flat ink tint with a muted label; loading keeps the faded gradient).
+
+Second round, also re-walked in both modes: a new `surfaceWell` token (soft menu grey in light, sunken in dark) now fills every recessed well on a card, bar or page (top-bar pill, control tracks, PIN and recovery cells, omnibox); wells inside drawers and sunken page backgrounds keep `surfaceSunken`. Banxa Buy's selected segment is a white chip with a hairline in light. Transactions draw a divider after every row but the last, day boundaries included.

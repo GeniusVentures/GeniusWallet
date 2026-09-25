@@ -201,7 +201,7 @@ Color _dotColorFor(ComputeDotRole role, GWColors gw) {
 }
 
 /// The sunken, non-elevated well both tiles share (`14-UI-SPEC.md §1.3`).
-/// `elevated: false` + `surfaceSunken` is deliberate - sketch 016 rejected a
+/// `elevated: false` + `surfaceWell` is deliberate - sketch 016 rejected a
 /// second elevation nested inside the dashboard's own elevated card, and
 /// `GWDetailGrid` already documents this exact recipe as the right
 /// treatment for a recessed group inside a card
@@ -214,11 +214,8 @@ class _ComputeCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    // Light's sunken grey read as a heavy block on the white dashboard card,
-    // so light takes the soft menu grey; dark keeps the recessed well.
-    final isLight = Theme.of(context).brightness == Brightness.light;
     return GWCard(
-      background: isLight ? gw.surfaceMenu : gw.surfaceSunken,
+      background: gw.surfaceWell,
       border: Border.all(color: gw.borderSubtle, width: 1),
       elevated: false,
       radius: GeniusWalletConsts.radiusMd,
@@ -751,7 +748,7 @@ class _ComputeProgressBar extends StatelessWidget {
           DecoratedBox(
             key: const ValueKey('computeBarTrack'),
             decoration: BoxDecoration(
-              color: gw.surfaceSunken,
+              color: gw.surfaceWell,
               borderRadius: BorderRadius.circular(height / 2),
               border: Border.all(color: gw.borderSubtle, width: 0.5),
             ),

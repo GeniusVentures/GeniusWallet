@@ -310,8 +310,8 @@ class _InputAndWordsState extends State<_InputAndWords> {
                       color: isEmpty
                           ? (isHighlighted
                                 ? context.gw.brandPrimaryStrong.withAlpha(26)
-                                : gw.surfaceSunken)
-                          : gw.surfaceSunken,
+                                : gw.surfaceWell)
+                          : gw.surfaceWell,
                     ),
                     // Left-aligned to match recovery_phrase_screen's grid
                     // (walk-driven): the numbered words read as a list, not as

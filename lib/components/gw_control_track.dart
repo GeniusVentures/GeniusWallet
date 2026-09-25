@@ -5,7 +5,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// The shared control-track CONTAINER (`.planning/codebase/CONVENTIONS.md`,
 /// "Control track"): a pill-shaped, recessed well holding a row of small
 /// chips - a segmented control or a filter bar. The recipe is fixed and
-/// documented there - `surfaceSunken` fill, a `borderSubtle` hairline,
+/// documented there - `surfaceWell` fill, a `borderSubtle` hairline,
 /// `radiusPill`, `EdgeInsets.all(3)` track padding, `SizedBox(width: 2)`
 /// between children - "partial adoption reads as a different design language
 /// on the same screen."
@@ -42,7 +42,7 @@ class GWControlTrack extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: gw.surfaceSunken,
+        color: gw.surfaceWell,
         border: Border.all(color: gw.borderSubtle),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
       ),

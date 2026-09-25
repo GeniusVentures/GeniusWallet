@@ -291,7 +291,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: context.gw.surfaceSunken,
+        color: context.gw.surfaceWell,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
         border: Border.all(
           color: editing ? context.gw.brandPrimary : context.gw.borderSubtle,
@@ -371,7 +371,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
               behavior: HitTestBehavior.opaque,
               onTap: () => _urlFocusNode.requestFocus(),
               child: Container(
-                color: context.gw.surfaceSunken,
+                color: context.gw.surfaceWell,
                 padding: const EdgeInsets.symmetric(
                   horizontal: GeniusWalletConsts.space2,
                 ),
