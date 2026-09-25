@@ -1422,7 +1422,7 @@ Plans:
 - [x] 32-01-PLAN.md — switch outline token (goal 1), Material text slots to Inter via ThemeData.fontFamily (goal 4), bar textScaler clamp at 221/180 (goal 3)
 - [x] 32-02-PLAN.md — goal 2 part 1: price-change labels on chart/market/token/asset surfaces, plus the partner-token contrast matrix test
 - [x] 32-03-PLAN.md — goal 2 part 2: account, wallet, PIN, receive, settings, logs and Banxa labels
-- [ ] 32-04-PLAN.md — goal 2 part 3: form errors, banners, swap/bridge/WalletConnect foregrounds, and the census test that locks the sweep
+- [x] 32-04-PLAN.md — goal 2 part 3: form errors, banners, swap/bridge/WalletConnect foregrounds, and the census test that locks the sweep
 
 ---
 
