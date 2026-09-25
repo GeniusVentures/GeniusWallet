@@ -378,7 +378,7 @@ class TransactionRow extends StatelessWidget {
             // deliberately does NOT print `Not charged` (see that file's own
             // doc), so it must stay quiet rather than turn alarmingly red.
             color: content.valueLine == 'Not charged'
-                ? gw.statusError
+                ? gw.statusErrorText
                 : gw.textSecondary,
           ),
         ),

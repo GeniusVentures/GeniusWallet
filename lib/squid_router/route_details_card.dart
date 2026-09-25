@@ -66,7 +66,7 @@ class RouteDetailsCard extends StatelessWidget {
             label: "Price Impact",
             value: priceImpact,
             showDivider: true,
-            valueColor: gw.statusSuccess,
+            valueColor: gw.statusSuccessText,
           ),
           // Each fee the route charges is its own row, named the way the
           // route named it — never summed into one figure. Empty on a
