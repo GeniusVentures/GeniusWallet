@@ -5,16 +5,12 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 // Reuse the single existing WCAG ratio helper -- do not add a second
-// implementation. Mirrors disabled_control_contrast_test.dart's import.
+// implementation.
 import 'theme_contrast_test.dart' show contrastRatio, themeFor;
 
-/// The enabled outline's owed check: 3:1 against BOTH the ON track (a
-/// translucent brand wash, so its rendered colour depends on the backdrop
-/// it sits on) and the OFF track (opaque), in both appearance modes. Each
-/// track is composited over its backdrop first, then the outline is
-/// composited on top of THAT -- a two-stage blend, because
-/// `computeLuminance()` ignores alpha and a bare hex read would be
-/// meaningless for either layer.
+/// The enabled outline clears 3:1 against the ON and OFF track, both modes.
+/// Two-stage blend: track over backdrop, then outline over that, because
+/// `computeLuminance()` ignores alpha.
 void main() {
   const uiFloor = 3.0;
 

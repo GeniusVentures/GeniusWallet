@@ -4,14 +4,12 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 // Reuse the single existing WCAG ratio helper -- do not add a second
-// implementation. Mirrors enabled_control_contrast_test.dart's import.
+// implementation.
 import 'theme_contrast_test.dart' show contrastRatio, themeFor;
 
-/// The backdrop matrix `statusSuccessText`/`statusErrorText` must clear
-/// 4.5:1 on: every plain surface a label can sit on directly, and every
-/// status-tinted wash a pill label sits on top of. A wash is translucent, so
-/// it is composited over its own backdrop first -- a bare hex read of the
-/// raw token would ignore alpha entirely.
+/// `statusSuccessText`/`statusErrorText` clear 4.5:1 on every plain surface
+/// and every status wash a pill label sits on. Washes are translucent, so
+/// each is composited over its backdrop first.
 void main() {
   const bodyTextFloor = 4.5;
   const washAlphas = [0.12, 0.14, 0.15, 0.20];
