@@ -53,6 +53,11 @@ class CoinCardRow extends StatelessWidget {
     // Up/down standardized on the status tokens (never cyan): positive =
     // success, negative = error. No longer balance-gated.
     final Color changeColor = pct >= 0 ? gw.statusSuccess : gw.statusError;
+    // AA-safe partner for the label only -- the pill wash below stays on
+    // the raw fill-tuned token.
+    final Color changeTextColor = pct >= 0
+        ? gw.statusSuccessText
+        : gw.statusErrorText;
 
     final String amountText = noBalance
         ? "0.0000 $symbol"
@@ -134,7 +139,7 @@ class CoinCardRow extends StatelessWidget {
                         child: Text(
                           '${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(2)}%',
                           style: GeniusWalletTypography.labelMd.copyWith(
-                            color: changeColor,
+                            color: changeTextColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
