@@ -91,20 +91,28 @@ class GWErrorBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, size: 18, color: context.gw.statusError),
+          Icon(
+            Icons.error_outline,
+            size: 18,
+            color: context.gw.statusErrorText,
+          ),
           const SizedBox(width: GeniusWalletConsts.space4),
           Expanded(
             child: Text(
               message,
               style: GeniusWalletTypography.bodySm.copyWith(
-                color: context.gw.statusError,
+                color: context.gw.statusErrorText,
               ),
             ),
           ),
           if (onDismiss != null)
             IconButton(
               tooltip: 'Close',
-              icon: Icon(Icons.close, size: 18, color: context.gw.statusError),
+              icon: Icon(
+                Icons.close,
+                size: 18,
+                color: context.gw.statusErrorText,
+              ),
               onPressed: onDismiss,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 24, minHeight: 24),

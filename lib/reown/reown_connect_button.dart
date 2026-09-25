@@ -544,7 +544,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
 
     if (isConnected) {
       icon = Icons.link_off;
-      stateColor = context.gw.statusError;
+      stateColor = context.gw.statusErrorText;
       text = 'Disconnect';
     } else if (_isConnecting) {
       icon = Icons.sync;
@@ -556,7 +556,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       text = 'Timed Out';
     } else if (_hasError) {
       icon = Icons.error_outline;
-      stateColor = context.gw.statusError;
+      stateColor = context.gw.statusErrorText;
       text = 'Retry Connect';
     } else {
       // Appearance-aware brand outline & text/icon so it clears AA in BOTH
