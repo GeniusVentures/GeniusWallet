@@ -33,11 +33,8 @@ claim was corrected in the same edit).
 
 ## Deviations
 
-None — plan executed exactly as written. The tracer task's `<verify>` was automated-only (no
-`<human-check>`), so no interim checkpoint was raised; task 2 and 3 proceeded directly per the
-plan's fully-autonomous (no `checkpoint:*` task) structure.
+None — plan executed exactly as written, with no checkpoint raised.
 
 ## Self-Check: PASSED
 
-Commits 7a489044, 2690d704, 35a829b8 verified present in `git log`; all nine modified files
-verified present on disk.
+Commits 7a489044, 2690d704, 35a829b8 and all nine modified files verified present.

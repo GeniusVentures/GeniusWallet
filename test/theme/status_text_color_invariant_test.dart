@@ -6,19 +6,14 @@
 // drifts from what was actually audited all fail this instead of shipping
 // silently.
 //
-// Modelled on `test/components/drawer_padding_invariant_test.dart`: a
-// hand-written census, a `dart:io` walk of `lib/`, no widget pumping.
+// A hand-written census and a `dart:io` walk of `lib/`, no widget pumping.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// One entry per file with at least one raw status-token read left after
-/// the status-text sweep. Written BY HAND from a measured scan -- NOT a
-/// glob. `count` is the exact number of raw
-/// `.statusSuccess`/`.statusError` reads the file should contain; `reason`
-/// names why each is allowed to stay raw (a wash/fill/border/dot/line only
-/// needs WCAG 1.4.11's 3:1 floor, not the 4.5:1 text floor the `*Text`
-/// partners exist for).
+/// Every file still reading a raw status token, written by hand from a
+/// measured scan. `count` is its exact number of raw reads; `reason` says
+/// why each may stay raw (a wash/fill/border/dot/line only needs 3:1).
 const _census = <String, ({int count, String reason})>{
   'lib/chart/crypto_simple_chart.dart': (count: 2, reason: 'sparkline + wash'),
   'lib/chart/crypto_live_chart.dart': (count: 2, reason: 'lines + wash'),
@@ -73,17 +68,14 @@ const _census = <String, ({int count, String reason})>{
 /// `Error` and the following `Text`).
 final _rawStatusPattern = RegExp(r'\.status(Success|Error)\b');
 
-/// Reads [path] and strips full-line comments, same approach
-/// `drawer_padding_invariant_test.dart`'s `_strippedSource` uses.
+/// Reads [path] with full-line comments stripped.
 String _strippedSource(String path) {
   final lines = File(path).readAsStringSync().split('\n');
   return lines.where((line) => !line.trim().startsWith('//')).join('\n');
 }
 
-/// Walks `lib/` (excluding `lib/theme/`, which defines the tokens) and
-/// returns a map of every file with at least one raw status-token read to
-/// its exact count. This is the one place this file walks the tree; the
-/// census itself stays hand-written.
+/// Walks `lib/` (minus `lib/theme/`, which defines the tokens) and maps
+/// every file with a raw status-token read to its exact count.
 Map<String, int> _discoverRawStatusReads() {
   final discovered = <String, int>{};
   for (final entity in Directory('lib').listSync(recursive: true)) {

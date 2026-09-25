@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 
 // Reuse the single existing themeFor helper -- do not add a second
-// implementation. Mirrors enabled_control_contrast_test.dart's import.
+// implementation.
 import 'theme_contrast_test.dart' show themeFor;
 
 /// Every slot of [TextTheme], by name, so a failure names the slot rather
