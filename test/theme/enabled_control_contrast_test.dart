@@ -62,4 +62,31 @@ void main() {
       }
     });
   }
+
+  // Switch.adaptive keeps the Material painter on Apple platforms, so the
+  // outline must still be stroked there, not just configured.
+  for (final platform in [TargetPlatform.iOS, TargetPlatform.macOS]) {
+    testWidgets('enabled outline is painted on ${platform.name}', (
+      tester,
+    ) async {
+      final theme = themeFor(
+        GWAppearanceMode.light,
+      ).copyWith(platform: platform);
+      final gw = theme.extension<GWColors>()!;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: Center(child: GWSwitch(value: false, onChanged: (_) {})),
+          ),
+        ),
+      );
+      expect(
+        tester.renderObject(find.byType(Switch)),
+        paints
+          ..rrect()
+          ..rrect(style: PaintingStyle.stroke, color: gw.borderControlOnBrand),
+      );
+    });
+  }
 }
