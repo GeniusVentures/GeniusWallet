@@ -214,8 +214,11 @@ class _ComputeCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    // Light's sunken grey read as a heavy block on the white dashboard card,
+    // so light takes the soft menu grey; dark keeps the recessed well.
+    final isLight = Theme.of(context).brightness == Brightness.light;
     return GWCard(
-      background: gw.surfaceSunken,
+      background: isLight ? gw.surfaceMenu : gw.surfaceSunken,
       border: Border.all(color: gw.borderSubtle, width: 1),
       elevated: false,
       radius: GeniusWalletConsts.radiusMd,

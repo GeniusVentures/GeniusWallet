@@ -215,17 +215,26 @@ class GWButton extends StatelessWidget {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final palette = _palette(gw);
     final disabled = onPressed == null || isLoading;
-    final hasGradient = palette.gradient != null;
+    // A faded gradient still read as an enabled pastel CTA, so a disabled
+    // gradient button goes flat: an ink tint that shows on any backdrop.
+    // Loading keeps the faded gradient so a submit in flight never looks off.
+    final flatDisabled =
+        onPressed == null && !isLoading && palette.gradient != null;
+    final hasGradient = palette.gradient != null && !flatDisabled;
     // 23-03: `.withAlpha(140)` REPLACES the alpha channel rather than
     // scaling it, so a transparent background (ghost, secondary,
     // gradientOutline) jumped from alpha 0 to alpha 140 -- an unintended
     // black wash on disabled outline/ghost buttons. Guard on the actual
     // value instead of enumerating variants one at a time (the `ghost`-only
     // guard this replaces had already missed `secondary`).
-    final bg = disabled && palette.background != Colors.transparent
+    final bg = flatDisabled
+        ? gw.textPrimary12
+        : disabled && palette.background != Colors.transparent
         ? palette.background.withAlpha(140)
         : palette.background;
-    final fg = disabled
+    final fg = flatDisabled
+        ? gw.textPrimary54
+        : disabled
         ? palette.foreground.withAlpha(140)
         : palette.foreground;
 

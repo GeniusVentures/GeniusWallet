@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/data/gw_status_dot.dart';
 import 'package:genius_wallet/dashboard/compute/compute_panel.dart';
 import 'package:genius_wallet/dashboard/compute/compute_state.dart';
@@ -99,15 +100,25 @@ void main() {
           await _pumpPanel(tester, mode, state);
           await tester.pump();
 
-          final gw = themeFor(mode).extension<GWColors>()!;
           final dot = tester.widget<GWStatusDot>(find.byType(GWStatusDot));
+          // The fill the tile actually paints, not a token guessed here.
+          final tileFill = tester
+              .widget<GWCard>(
+                find
+                    .ancestor(
+                      of: find.byType(GWStatusDot),
+                      matching: find.byType(GWCard),
+                    )
+                    .first,
+              )
+              .background!;
 
           expect(
-            contrastRatio(dot.color, gw.surfaceSunken),
+            contrastRatio(dot.color, tileFill),
             greaterThanOrEqualTo(3.0),
             reason:
                 '${state.name} dot colour ${dot.color} vs tile fill '
-                '${gw.surfaceSunken} in $mode mode',
+                '$tileFill in $mode mode',
           );
         });
       }
@@ -155,13 +166,9 @@ void main() {
   group(
     'The balance unit track segments clear 4.5:1 in both states, both modes',
     () {
-      // `260731-kc5-PLAN.md` Task 2: the track's fill is the SAME token as
-      // the tile it sits on (`gw.surfaceSunken` - see
-      // `_ComputeCardTile.background` above and `GWControlTrack`'s own
-      // `surfaceSunken` fill), so unlike every other track in the app, this
-      // one has no fill step of its own. The text colours are therefore
-      // carrying the whole selected/unselected distinction on their own,
-      // which is why this matters more than usual here.
+      // In dark mode the track's `surfaceSunken` fill is the SAME token as
+      // the tile it sits on, so it has no fill step of its own there. The
+      // text colours carry the whole selected/unselected distinction.
       for (final mode in GWAppearanceMode.values) {
         test('selected: textPrimary on surfaceMenu -- $mode', () {
           final gw = themeFor(mode).extension<GWColors>()!;
