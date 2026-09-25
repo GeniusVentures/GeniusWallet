@@ -304,14 +304,32 @@ void main() {
       // ceiling of 2.06x or better, so NO LABEL EVER TRUNCATES. The bar
       // overflows vertically first.
       //
-      // This is PRE-EXISTING: today's bar has identical geometry, and sketch
-      // 182 scheme S7 neither causes it nor worsens it. It is out of scope for
-      // a navigation change - fixing it means clamping textScaler on the bar
-      // or restyling the slot, which is a design decision - and is filed as
-      // `.planning/todos/pending/2026-08-07-mobile-bar-overflows-vertically-at-1.23x-dynamic-type.md`.
-      // This assertion exists so it cannot quietly get WORSE.
+      // The bar clamps textScaler at kMobileBarMaxTextScale, so this cannot
+      // get worse -- see the test below for the exact ceiling.
       expect(slack, moreOrLessEquals(3.15, epsilon: 0.01));
     });
+
+    test(
+      'the text-scale clamp sits exactly where the label eats the slack',
+      () {
+        // Same constants as the slack test above, scaled by the clamp's own
+        // ceiling -- zero slack remains at the ceiling by construction.
+        const double padding = 2 * GeniusWalletConsts.space4;
+        final double labelLine = 10 * GeniusWalletTypography.labelMd.height!;
+        final double total =
+            padding +
+            kMobileNavIconSize +
+            GeniusWalletConsts.space2 +
+            labelLine * kMobileBarMaxTextScale;
+        debugPrint(
+          'BAR CLAMP | ceiling=$kMobileBarMaxTextScale '
+          'scaledLabel=${labelLine * kMobileBarMaxTextScale} total=$total '
+          'bar=$kMobileBarHeight',
+        );
+        expect(total, moreOrLessEquals(kMobileBarHeight, epsilon: 1e-9));
+        expect(kMobileBarMaxTextScale, moreOrLessEquals(1.2278, epsilon: 1e-4));
+      },
+    );
   });
 }
 
