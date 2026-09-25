@@ -106,7 +106,9 @@ class AssetsTotalBand extends StatelessWidget {
             Text(
               '${dayChange >= 0 ? '+' : ''}${pctOfTotal.toStringAsFixed(2)}%',
               style: GeniusWalletTypography.labelMd.copyWith(
-                color: dayChange >= 0 ? gw.statusSuccess : gw.statusError,
+                color: dayChange >= 0
+                    ? gw.statusSuccessText
+                    : gw.statusErrorText,
               ),
             ),
           ],

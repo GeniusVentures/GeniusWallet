@@ -1272,6 +1272,9 @@ class _PriceBlock extends StatelessWidget {
     final pct = data.priceChangePercentage24h;
     final up = pct >= 0;
     final tone = up ? gw.statusSuccess : gw.statusError;
+    // AA-safe partner for the pill's icon + label only -- the wash stays on
+    // the raw token.
+    final toneText = up ? gw.statusSuccessText : gw.statusErrorText;
 
     // Sketch 168 E1: price and change sit on ONE line, side by side, not
     // stacked. Stacked they made this block ~60px tall, which was invisible
@@ -1307,12 +1310,12 @@ class _PriceBlock extends StatelessWidget {
                 Icon(
                   up ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                   size: 16,
-                  color: tone,
+                  color: toneText,
                 ),
                 Text(
                   formatPercent(pct),
                   style: GeniusWalletTypography.labelMd.copyWith(
-                    color: tone,
+                    color: toneText,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -1359,7 +1362,7 @@ class _StatRail extends StatelessWidget {
         value: formatPercent(pct),
         valueColor: pct == 0
             ? null
-            : (pct > 0 ? gw.statusSuccess : gw.statusError),
+            : (pct > 0 ? gw.statusSuccessText : gw.statusErrorText),
       ),
       GWStatTile(
         label: 'Volume 24h',
@@ -1374,7 +1377,7 @@ class _StatRail extends StatelessWidget {
         value: formatPercent(ath),
         valueColor: ath == 0
             ? null
-            : (ath > 0 ? gw.statusSuccess : gw.statusError),
+            : (ath > 0 ? gw.statusSuccessText : gw.statusErrorText),
       ),
     ];
 

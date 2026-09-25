@@ -654,12 +654,12 @@ class _MetaLine extends StatelessWidget {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     // Timestamp in green (sketch 031 · T2, colour C1): the COMPACT age
     // ("3h ago"), no clock glyph (Jakub's call — the green already reads as a
-    // timestamp). Green is `gw.statusSuccess` — AA on the card surface in both
-    // themes (#0AD89C dark / #07875F light).
+    // timestamp). Green is `gw.statusSuccessText` — AA on the card surface in
+    // both themes (#0AD89C dark / #065F46 light).
     return Text(
       article.relativeTimeShort,
       style: GeniusWalletTypography.bodySm.copyWith(
-        color: gw.statusSuccess,
+        color: gw.statusSuccessText,
         fontWeight: FontWeight.w600,
       ),
       maxLines: 1,
