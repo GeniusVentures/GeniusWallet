@@ -104,10 +104,9 @@ const kMobileNavIconSize = 23.0;
 /// scales. That is asserted rather than described.
 const double kMobileBarHeight = 60.0;
 
-/// The textScaler ceiling above which the bar's label line would eat past
-/// the 3.15px of slack `kMobileBarHeight` leaves at 1.0x and overflow the
-/// slot vertically. `17 / (10 * labelMd.height!)` -- see
-/// `mobile_nav_destinations_test.dart`'s own slack arithmetic.
+/// Text-scale ceiling for the bar: past it the label line eats the 3.15px of
+/// slack [kMobileBarHeight] leaves and the slot overflows vertically.
+/// Equals `17 / (10 * labelMd.height!)`.
 const double kMobileBarMaxTextScale = 221 / 180;
 
 /// Diameter of the Swap dock. Larger than the bar is tall, on purpose - it is

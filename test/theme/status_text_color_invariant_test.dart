@@ -1,4 +1,4 @@
-// Phase 32 gate (32-04): the census this whole contrast sweep locks behind.
+// The census the status-text contrast sweep locks behind.
 // Every remaining raw gw.statusSuccess/gw.statusError read in lib/ (outside
 // lib/theme/, which defines the tokens) must be a wash, fill, border, dot,
 // line or standalone icon -- never a foreground Text/Icon that carries the
@@ -13,8 +13,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// One entry per file with at least one raw status-token read left after
-/// this phase's sweep. Written BY HAND from a measured scan at the end of
-/// 32-04 -- NOT a glob. `count` is the exact number of raw
+/// the status-text sweep. Written BY HAND from a measured scan -- NOT a
+/// glob. `count` is the exact number of raw
 /// `.statusSuccess`/`.statusError` reads the file should contain; `reason`
 /// names why each is allowed to stay raw (a wash/fill/border/dot/line only
 /// needs WCAG 1.4.11's 3:1 floor, not the 4.5:1 text floor the `*Text`
@@ -104,7 +104,7 @@ Map<String, int> _discoverRawStatusReads() {
 }
 
 void main() {
-  group('Raw status-token census (32-04)', () {
+  group('Raw status-token census', () {
     test('every raw gw.statusSuccess/gw.statusError read in lib/ (except '
         'lib/theme/) is in the census -- a new one fails this instead of '
         'shipping an un-reasoned raw text read', () {
