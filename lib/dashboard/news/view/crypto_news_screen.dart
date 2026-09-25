@@ -682,11 +682,11 @@ class _NewsPhoto extends StatelessWidget {
       imageUrl: url ?? '',
       fit: BoxFit.cover,
       placeholder: (context, url) => ColoredBox(
-        color: gw.surfaceSunken,
+        color: gw.surfaceWell,
         child: const Center(child: Loading()),
       ),
       errorWidget: (context, url, error) => Container(
-        color: gw.surfaceSunken,
+        color: gw.surfaceWell,
         alignment: Alignment.center,
         child: Icon(Icons.broken_image_outlined, color: gw.textSecondary),
       ),

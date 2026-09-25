@@ -23,20 +23,22 @@ void main() {
   const bodyTextFloor = 4.5;
 
   for (final mode in GWAppearanceMode.values) {
+    // Tracks on cards paint surfaceWell; the ones inside drawers keep sunken.
     test(
-      'unselected control-track label clears AA on surfaceSunken -- $mode',
+      'unselected control-track label clears AA on both well fills -- $mode',
       () {
         final gw = themeFor(mode).extension<GWColors>()!;
-        final ratio = contrastRatio(gw.textMutedOnSunken, gw.surfaceSunken);
-
-        expect(
-          ratio,
-          greaterThanOrEqualTo(bodyTextFloor),
-          reason:
-              'textMutedOnSunken=${gw.textMutedOnSunken} on '
-              'surfaceSunken=${gw.surfaceSunken} is ${ratio.toStringAsFixed(2)}:1 '
-              'in $mode mode, under the $bodyTextFloor:1 body-text floor.',
-        );
+        for (final fill in [gw.surfaceWell, gw.surfaceSunken]) {
+          final ratio = contrastRatio(gw.textMutedOnSunken, fill);
+          expect(
+            ratio,
+            greaterThanOrEqualTo(bodyTextFloor),
+            reason:
+                'textMutedOnSunken=${gw.textMutedOnSunken} on $fill is '
+                '${ratio.toStringAsFixed(2)}:1 in $mode mode, under the '
+                '$bodyTextFloor:1 body-text floor.',
+          );
+        }
       },
     );
   }

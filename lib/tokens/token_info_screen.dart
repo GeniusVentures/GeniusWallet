@@ -971,7 +971,7 @@ class CoinConvertCardState extends State<CoinConvertCard> {
                 controller: _tokenAmountController,
                 label: "Token amount",
                 focusRing: true,
-                fill: gw.surfaceSunken,
+                fill: gw.surfaceWell,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),

@@ -25,7 +25,7 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
   return [
     // Control track (sketch 039-B "jeden tor", extended by 042 variant 2):
     // chain / SDK account / wallet / connection state share one recessed
-    // surfaceSunken track, the same recipe as `_TimeframeSegment` and
+    // surfaceWell track, the same recipe as `_TimeframeSegment` and
     // `_TransactionFilterBar` -- see CONVENTIONS.md -> Control track.
     //
     // Connect moved INSIDE the track and Buy GNUS left the bar entirely
@@ -45,7 +45,7 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
       // variant 3.
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: gw.surfaceSunken,
+        color: gw.surfaceWell,
         border: Border.all(color: gw.borderSubtle),
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
       ),

@@ -74,8 +74,8 @@ class PinScreen extends StatelessWidget {
                 // is 320px logical, leaving 72px spare. Accepted rather than
                 // shrinking the cells, so the PIN keeps one size everywhere.
                 theme: MaterialPinTheme(
-                  fillColor: gw.surfaceSunken,
-                  followingFillColor: gw.surfaceSunken,
+                  fillColor: gw.surfaceWell,
+                  followingFillColor: gw.surfaceWell,
                   borderColor: gw.borderSubtle,
                   followingBorderColor: gw.borderSubtle,
                   focusedBorderColor: context.gw.brandPrimaryStrong,

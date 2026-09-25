@@ -42,6 +42,7 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.surfaceElevated,
     required this.surfaceMenu,
     required this.surfaceSunken,
+    required this.surfaceWell,
     required this.surfaceOverlay,
     required this.textPrimary,
     required this.textPrimary80,
@@ -114,6 +115,10 @@ class GWColors extends ThemeExtension<GWColors> {
   final Color surfaceElevated;
   final Color surfaceMenu;
   final Color surfaceSunken;
+
+  /// A recessed well or track on a card, bar or page. Light is the soft
+  /// menu grey (sunken read as a heavy block there); dark equals sunken.
+  final Color surfaceWell;
   final Color surfaceOverlay;
 
   final Color textPrimary;
@@ -304,6 +309,7 @@ class GWColors extends ThemeExtension<GWColors> {
       surfaceElevated: GeniusWalletColors._surfaceElevated,
       surfaceMenu: GeniusWalletColors._surfaceMenu,
       surfaceSunken: GeniusWalletColors._surfaceSunken,
+      surfaceWell: GeniusWalletColors._surfaceWell,
       surfaceOverlay: GeniusWalletColors._surfaceOverlay,
       textPrimary: GeniusWalletColors._textPrimary,
       textPrimary80: GeniusWalletColors._textPrimary80,
@@ -387,6 +393,7 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.surfaceElevated == GeniusWalletColors._surfaceElevated &&
               instance.surfaceMenu == GeniusWalletColors._surfaceMenu &&
               instance.surfaceSunken == GeniusWalletColors._surfaceSunken &&
+              instance.surfaceWell == GeniusWalletColors._surfaceWell &&
               instance.surfaceOverlay == GeniusWalletColors._surfaceOverlay &&
               instance.textPrimary == GeniusWalletColors._textPrimary &&
               instance.textPrimary80 == GeniusWalletColors._textPrimary80 &&
@@ -478,6 +485,7 @@ class GWColors extends ThemeExtension<GWColors> {
       surfaceElevated: GeniusWalletColors._surfaceElevated,
       surfaceMenu: GeniusWalletColors._surfaceMenu,
       surfaceSunken: GeniusWalletColors._surfaceSunken,
+      surfaceWell: GeniusWalletColors._surfaceWell,
       surfaceOverlay: GeniusWalletColors._surfaceOverlay,
       textPrimary: GeniusWalletColors._textPrimary,
       textPrimary80: GeniusWalletColors._textPrimary80,
@@ -558,6 +566,7 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.surfaceElevated == GeniusWalletColors._surfaceElevated &&
               instance.surfaceMenu == GeniusWalletColors._surfaceMenu &&
               instance.surfaceSunken == GeniusWalletColors._surfaceSunken &&
+              instance.surfaceWell == GeniusWalletColors._surfaceWell &&
               instance.surfaceOverlay == GeniusWalletColors._surfaceOverlay &&
               instance.textPrimary == GeniusWalletColors._textPrimary &&
               instance.textPrimary80 == GeniusWalletColors._textPrimary80 &&
@@ -646,6 +655,7 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? surfaceElevated,
     Color? surfaceMenu,
     Color? surfaceSunken,
+    Color? surfaceWell,
     Color? surfaceOverlay,
     Color? textPrimary,
     Color? textPrimary80,
@@ -717,6 +727,7 @@ class GWColors extends ThemeExtension<GWColors> {
       surfaceElevated: surfaceElevated ?? this.surfaceElevated,
       surfaceMenu: surfaceMenu ?? this.surfaceMenu,
       surfaceSunken: surfaceSunken ?? this.surfaceSunken,
+      surfaceWell: surfaceWell ?? this.surfaceWell,
       surfaceOverlay: surfaceOverlay ?? this.surfaceOverlay,
       textPrimary: textPrimary ?? this.textPrimary,
       textPrimary80: textPrimary80 ?? this.textPrimary80,

@@ -145,6 +145,11 @@ class GeniusWalletColors {
   static Color get _surfaceSunken =>
       _isLight ? _surfaceSunkenLight : _surfaceSunkenDark;
 
+  /// Recessed well on a card, bar or page. Wells inside a `_surfaceMenu`
+  /// drawer keep `_surfaceSunken`, or they would vanish into it in light.
+  static Color get _surfaceWell =>
+      _isLight ? _surfaceMenuLight : _surfaceSunkenDark;
+
   static final Color _surfaceOverlay = const Color(
     0xFF000000,
   ).withAlpha(153); // 60%

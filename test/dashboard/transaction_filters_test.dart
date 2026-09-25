@@ -349,7 +349,7 @@ void main() {
       ),
     );
 
-    testWidgets('one row per day: three headers, no boundary dividers', (
+    testWidgets('one row per day: a divider at each day boundary', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -358,12 +358,9 @@ void main() {
 
       expect(find.text('TODAY'), findsOneWidget);
       expect(find.text('YESTERDAY'), findsOneWidget);
-      // Every day has exactly one row, so there is no WITHIN-day divider —
-      // and there is no header rule either: sketch 019 variant B removed it so
-      // this panel goes straight from GWSectionTitle to its list, exactly like
-      // Assets and Markets. Zero is the correct count; if this ever reads 1
-      // again, the header rule has been reintroduced.
-      expect(find.byType(Divider), findsNothing);
+      // A rule after every row but the last, day boundaries included, and
+      // still no header rule under GWSectionTitle: 3 rows, 2 dividers.
+      expect(find.byType(Divider), findsNWidgets(2));
       // No footer count any more — removed on the 023 walk, both the panel
       // footer and the rail summary. RED if a "N transactions" line returns.
       expect(find.textContaining(RegExp(r'\d+ transactions')), findsNothing);
@@ -404,20 +401,16 @@ void main() {
       );
     });
 
-    testWidgets('rows inside one day are separated, the day itself is not', (
-      tester,
-    ) async {
+    testWidgets('rows are separated within and across days', (tester) async {
       await tester.pumpWidget(
         host([_tx(at: dayAt(0)), _tx(at: dayAt(0)), _tx(at: dayAt(1))]),
       );
 
       expect(find.text('TODAY'), findsOneWidget);
       expect(find.text('YESTERDAY'), findsOneWidget);
-      // header rule + exactly ONE divider between the two Today rows. The
-      // Today→Yesterday boundary contributes none.
-      // One WITHIN-day divider (the two Today rows) and nothing else — no
-      // header rule, no divider at the day boundary.
-      expect(find.byType(Divider), findsOneWidget);
+      // One between the two Today rows, one at the Today→Yesterday boundary,
+      // none after the last row and no header rule.
+      expect(find.byType(Divider), findsNWidgets(2));
       expect(tester.takeException(), isNull);
     });
 

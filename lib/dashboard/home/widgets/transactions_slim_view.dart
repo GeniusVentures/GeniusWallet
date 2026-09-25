@@ -703,9 +703,10 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
             onTap: () => showTransactionDetails(context, tx),
           ),
         );
-        // No divider after a day's LAST row — the next day header is itself
-        // the separator there, and a rule as well would double it.
-        if (i != day.items.length - 1) {
+        // A rule after every row but the list's last, day boundaries
+        // included: most days hold one row, so a within-day-only rule
+        // left the list with no separators at all.
+        if (d != days.length - 1 || i != day.items.length - 1) {
           entries.add(Divider(height: 1, thickness: 1, color: gw.borderSubtle));
         }
       }

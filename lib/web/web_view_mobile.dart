@@ -586,7 +586,7 @@ class WebViewMobileState extends State<WebViewMobile> {
       // The outer field stays neutral on focus — only the inner text area lights
       // up (see _buildOmniboxCenter). Jakub: highlight the inner, not the bar.
       decoration: BoxDecoration(
-        color: context.gw.surfaceSunken,
+        color: context.gw.surfaceWell,
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusBase),
         border: Border.all(color: context.gw.borderSubtle, width: 1),
       ),
@@ -704,7 +704,7 @@ class WebViewMobileState extends State<WebViewMobile> {
                 behavior: HitTestBehavior.opaque,
                 onTap: () => _urlFocusNode.requestFocus(),
                 child: Container(
-                  color: context.gw.surfaceSunken,
+                  color: context.gw.surfaceWell,
                   padding: const EdgeInsets.symmetric(
                     horizontal: GeniusWalletConsts.space2,
                   ),
