@@ -104,6 +104,12 @@ const kMobileNavIconSize = 23.0;
 /// scales. That is asserted rather than described.
 const double kMobileBarHeight = 60.0;
 
+/// The textScaler ceiling above which the bar's label line would eat past
+/// the 3.15px of slack `kMobileBarHeight` leaves at 1.0x and overflow the
+/// slot vertically. `17 / (10 * labelMd.height!)` -- see
+/// `mobile_nav_destinations_test.dart`'s own slack arithmetic.
+const double kMobileBarMaxTextScale = 221 / 180;
+
 /// Diameter of the Swap dock. Larger than the bar is tall, on purpose - it is
 /// meant to read as a control sitting ON the bar, not a tab inside it.
 const double _kDockSize = 64.0;
@@ -179,62 +185,70 @@ class _MobileTabBar extends StatelessWidget {
         ? kMaxBottomSafeInset
         : rawInset;
 
-    return SizedBox(
-      // Every height here is stated. 24-07 was caused by exactly one box that
-      // left an axis free inside a slot Scaffold offers the whole screen to,
-      // and the failure was silent - no overflow, no exception, all tests
-      // green, app unusable.
-      height: _kDockOverhang + kMobileBarHeight + bottomInset,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: kMobileBarHeight + bottomInset,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: GWDecorations.surfaceSheen,
-                border: Border(
-                  top: BorderSide(color: gw.borderSubtle, width: 0.5),
+    // Mirrors AppBar's own title-scale clamp (app_bar.dart's
+    // _kMaxTitleTextScaleFactor, applied via this same helper) -- the
+    // label is the only term in the slot's vertical budget that scales, so
+    // clamping it here keeps the bar's fixed-height slot from overflowing.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: kMobileBarMaxTextScale,
+      child: SizedBox(
+        // Every height here is stated. 24-07 was caused by exactly one box
+        // that left an axis free inside a slot Scaffold offers the whole
+        // screen to, and the failure was silent - no overflow, no
+        // exception, all tests green, app unusable.
+        height: _kDockOverhang + kMobileBarHeight + bottomInset,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: kMobileBarHeight + bottomInset,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: GWDecorations.surfaceSheen,
+                  border: Border(
+                    top: BorderSide(color: gw.borderSubtle, width: 0.5),
+                  ),
+                ),
+                padding: EdgeInsets.only(bottom: bottomInset),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _MobileTabItem(
+                      dest: destinations[0],
+                      selected: selected == 0,
+                    ),
+                    _MobileTabItem(
+                      dest: destinations[1],
+                      selected: selected == 1,
+                    ),
+                    // The dock is NOT a child of this Row - it is painted
+                    // above, overlapping the bar's top edge. This reserves
+                    // its footprint so the four tabs sit either side rather
+                    // than beneath it.
+                    const SizedBox(width: kMobileDockSlotWidth),
+                    _MobileTabItem(
+                      dest: destinations[2],
+                      selected: selected == 2,
+                    ),
+                    _MobileTabItem(
+                      dest: destinations[3],
+                      selected: selected == 3,
+                    ),
+                  ],
                 ),
               ),
-              padding: EdgeInsets.only(bottom: bottomInset),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _MobileTabItem(
-                    dest: destinations[0],
-                    selected: selected == 0,
-                  ),
-                  _MobileTabItem(
-                    dest: destinations[1],
-                    selected: selected == 1,
-                  ),
-                  // The dock is NOT a child of this Row - it is painted above,
-                  // overlapping the bar's top edge. This reserves its footprint
-                  // so the four tabs sit either side rather than beneath it.
-                  const SizedBox(width: kMobileDockSlotWidth),
-                  _MobileTabItem(
-                    dest: destinations[2],
-                    selected: selected == 2,
-                  ),
-                  _MobileTabItem(
-                    dest: destinations[3],
-                    selected: selected == 3,
-                  ),
-                ],
-              ),
             ),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: _kDockSize,
-            child: Center(child: _MobileSwapDock(active: onSwap)),
-          ),
-        ],
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: _kDockSize,
+              child: Center(child: _MobileSwapDock(active: onSwap)),
+            ),
+          ],
+        ),
       ),
     );
   }
