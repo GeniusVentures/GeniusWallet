@@ -49,6 +49,22 @@ void main() {
 
       await pump(onPressed: () {});
       expect(_decoration(tester).gradient, isNotNull);
+
+      // The outline variant is recoloured by a srcIn mask, so its fill must
+      // stay transparent when disabled or the mask would paint it.
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: const Scaffold(
+            body: GWButton(
+              variant: GWButtonVariant.gradientOutline,
+              label: 'Go',
+              onPressed: null,
+            ),
+          ),
+        ),
+      );
+      expect(_decoration(tester).color, Colors.transparent);
     });
   }
 }
