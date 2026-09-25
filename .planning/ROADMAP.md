@@ -1415,12 +1415,12 @@ plans and executed in parallel
 Source todos: `2026-09-22-enabled-switch-*`, `2026-09-22-statussuccess-*`, `2026-08-07-mobile-bar-*`, `2026-07-28-five-material-text-slots-*`.
 **Requirements**: TBD
 **Depends on:** Phase 31
-**Plans:** 1/4 plans executed (wave 1: 01, 02, 03; wave 2: 04)
+**Plans:** 2/4 plans executed (wave 1: 01, 02, 03; wave 2: 04)
 
 Plans:
 
 - [x] 32-01-PLAN.md — switch outline token (goal 1), Material text slots to Inter via ThemeData.fontFamily (goal 4), bar textScaler clamp at 221/180 (goal 3)
-- [ ] 32-02-PLAN.md — goal 2 part 1: price-change labels on chart/market/token/asset surfaces, plus the partner-token contrast matrix test
+- [x] 32-02-PLAN.md — goal 2 part 1: price-change labels on chart/market/token/asset surfaces, plus the partner-token contrast matrix test
 - [ ] 32-03-PLAN.md — goal 2 part 2: account, wallet, PIN, receive, settings, logs and Banxa labels
 - [ ] 32-04-PLAN.md — goal 2 part 3: form errors, banners, swap/bridge/WalletConnect foregrounds, and the census test that locks the sweep
 
