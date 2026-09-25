@@ -60,7 +60,9 @@ class GWSwitch extends StatelessWidget {
         if (states.contains(WidgetState.disabled)) {
           return gw.borderControl;
         }
-        return gw.borderSubtle;
+        // Clears 3:1 vs both the ON track (a translucent brand wash) and
+        // the OFF track -- see borderControlOnBrand's own doc comment.
+        return gw.borderControlOnBrand;
       }),
       // Keep Flutter's padded 48px min tap target (was shrinkWrap → ~30-40px).
     );

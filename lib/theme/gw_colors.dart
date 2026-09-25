@@ -59,6 +59,7 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.borderSubtle,
     required this.borderStrong,
     required this.borderControl,
+    required this.borderControlOnBrand,
     // -- 23-01 additions below: full name parity with GeniusWalletColors --
     required this.lightGreenPrimary,
     required this.lightGreenSecondary,
@@ -144,6 +145,10 @@ class GWColors extends ThemeExtension<GWColors> {
   /// The 3:1 edge for a control whose fill cannot identify it -- see
   /// [GeniusWalletColors._borderControl] for the measurements.
   final Color borderControl;
+
+  /// The 3:1 edge for a control's ON track (a translucent brand wash) --
+  /// see [GeniusWalletColors._borderControlOnBrand] for the measurements.
+  final Color borderControlOnBrand;
 
   // ---------------------------------------------------------------------
   // 23-01 additions -- full name parity with GeniusWalletColors. Every
@@ -318,6 +323,7 @@ class GWColors extends ThemeExtension<GWColors> {
       borderSubtle: GeniusWalletColors._borderSubtle,
       borderStrong: GeniusWalletColors._borderStrong,
       borderControl: GeniusWalletColors._borderControl,
+      borderControlOnBrand: GeniusWalletColors._borderControlOnBrand,
       // 23-01 additions -- fixed tokens read the same const/getter in both
       // modes; appearance-aware ones (btnFilter, brandPrimaryOnSurface) read
       // through the legacy getter, which resolves for whichever mode is
@@ -395,6 +401,8 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.borderSubtle == GeniusWalletColors._borderSubtle &&
               instance.borderStrong == GeniusWalletColors._borderStrong &&
               instance.borderControl == GeniusWalletColors._borderControl &&
+              instance.borderControlOnBrand ==
+                  GeniusWalletColors._borderControlOnBrand &&
               instance.lightGreenPrimary ==
                   GeniusWalletColors._lightGreenPrimary &&
               instance.lightGreenSecondary ==
@@ -489,6 +497,7 @@ class GWColors extends ThemeExtension<GWColors> {
       borderSubtle: GeniusWalletColors._borderSubtle,
       borderStrong: GeniusWalletColors._borderStrong,
       borderControl: GeniusWalletColors._borderControl,
+      borderControlOnBrand: GeniusWalletColors._borderControlOnBrand,
       lightGreenPrimary: GeniusWalletColors._lightGreenPrimary,
       lightGreenSecondary: GeniusWalletColors._lightGreenSecondary,
       mutedGreen: GeniusWalletColors._mutedGreen,
@@ -563,6 +572,8 @@ class GWColors extends ThemeExtension<GWColors> {
               instance.borderSubtle == GeniusWalletColors._borderSubtle &&
               instance.borderStrong == GeniusWalletColors._borderStrong &&
               instance.borderControl == GeniusWalletColors._borderControl &&
+              instance.borderControlOnBrand ==
+                  GeniusWalletColors._borderControlOnBrand &&
               instance.lightGreenPrimary ==
                   GeniusWalletColors._lightGreenPrimary &&
               instance.lightGreenSecondary ==
@@ -652,6 +663,7 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? borderSubtle,
     Color? borderStrong,
     Color? borderControl,
+    Color? borderControlOnBrand,
     Color? lightGreenPrimary,
     Color? lightGreenSecondary,
     Color? mutedGreen,
@@ -722,6 +734,7 @@ class GWColors extends ThemeExtension<GWColors> {
       borderSubtle: borderSubtle ?? this.borderSubtle,
       borderStrong: borderStrong ?? this.borderStrong,
       borderControl: borderControl ?? this.borderControl,
+      borderControlOnBrand: borderControlOnBrand ?? this.borderControlOnBrand,
       lightGreenPrimary: lightGreenPrimary ?? this.lightGreenPrimary,
       lightGreenSecondary: lightGreenSecondary ?? this.lightGreenSecondary,
       mutedGreen: mutedGreen ?? this.mutedGreen,
