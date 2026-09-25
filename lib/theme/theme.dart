@@ -77,6 +77,10 @@ ThemeData getThemeData() {
     // leave consumers on their fail-soft `?? GWColors.dark()` default, which
     // is dark-only, silently rendering the app dark in light mode too.
     extensions: <ThemeExtension<dynamic>>[gw],
+    // Applies to Material's own defaults BEFORE textTheme merges over them,
+    // so the five slots toMaterialTextTheme() leaves unmapped still render
+    // in Inter (theme_data.dart's own merge order), at Material's own sizes.
+    fontFamily: GeniusWalletTypography.sansFamily,
     textTheme: GeniusWalletTypography.toMaterialTextTheme(),
     // Not const: the on-surface brand getter below is appearance-aware, not
     // a compile-time constant. Light was 1.96/1.74/1.48:1 on
