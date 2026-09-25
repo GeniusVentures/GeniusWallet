@@ -102,7 +102,7 @@ class GWSelect<T> extends StatelessWidget {
         disabledBorder: _border(context.gw.borderSubtle),
         errorText: errorText,
         errorStyle: GeniusWalletTypography.bodySm.copyWith(
-          color: context.gw.statusError,
+          color: context.gw.statusErrorText,
         ),
         helperText: errorText == null ? helper : null,
         helperStyle: GeniusWalletTypography.bodySm.copyWith(

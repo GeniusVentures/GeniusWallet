@@ -229,7 +229,7 @@ class GWTextField extends StatelessWidget {
                   : _border(gw.borderSubtle),
               errorText: errorText,
               errorStyle: GeniusWalletTypography.bodySm.copyWith(
-                color: context.gw.statusError,
+                color: context.gw.statusErrorText,
               ),
               helperText: errorText == null ? helper : null,
               helperStyle: GeniusWalletTypography.bodySm.copyWith(
