@@ -359,15 +359,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(
                 status,
                 // ✅/Error logic unchanged (§7 strings preserved verbatim);
-                // only the color mapping changes. statusSuccess/statusError
-                // are mode-invariant (stay on the static getter); the
+                // only the color mapping changes. statusSuccessText/statusErrorText
+                // diverge by appearance (they are the AA-safe text partners); the
                 // neutral state MUST come from the extension (gw) so it
                 // flips on a live toggle instead of rendering stale.
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: status.contains('✅')
-                      ? context.gw.statusSuccess
+                      ? context.gw.statusSuccessText
                       : status.contains('Error')
-                      ? context.gw.statusError
+                      ? context.gw.statusErrorText
                       : gw.textSecondary,
                 ),
               ),

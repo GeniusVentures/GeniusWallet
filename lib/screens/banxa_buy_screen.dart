@@ -644,7 +644,7 @@ class _BanxaBuyFormState extends State<BanxaBuyForm> {
                     child: Text(
                       "Couldn't load currencies.",
                       style: GeniusWalletTypography.bodySm.copyWith(
-                        color: gw.statusError,
+                        color: gw.statusErrorText,
                       ),
                     ),
                   ),
