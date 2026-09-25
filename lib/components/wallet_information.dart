@@ -89,7 +89,7 @@ class WalletInformationState extends State<WalletInformation> {
                   Text(
                     'No funds available',
                     style: GeniusWalletTypography.labelMd.copyWith(
-                      color: context.gw.statusError,
+                      color: context.gw.statusErrorText,
                     ),
                   ),
                 const SizedBox(height: 8),
@@ -245,7 +245,7 @@ class WalletInformationState extends State<WalletInformation> {
                                   },
                                 );
                               },
-                              color: context.gw.statusError,
+                              color: context.gw.statusErrorText,
                               icon: FontAwesomeIcons.trash.data,
                               label: "Delete Wallet",
                             ),
