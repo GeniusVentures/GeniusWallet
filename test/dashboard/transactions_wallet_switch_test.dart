@@ -149,4 +149,16 @@ void main() {
 
     expect(transactions.state, [live]);
   });
+
+  test('a failed read can be retried by showing the same wallet', () async {
+    final failed = transactions.showWallet(_a);
+    storage.reads[_a]!.completeError(StateError('disk'));
+    await expectLater(failed, throwsStateError);
+
+    final retry = transactions.showWallet(_a);
+    storage.reads[_a]!.complete([_tx(_a)]);
+    await retry;
+
+    expect(transactions.state.map((t) => t.fromAddress), [_a]);
+  });
 }
