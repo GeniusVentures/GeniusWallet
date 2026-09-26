@@ -688,8 +688,10 @@ class _ChartSectionHeader extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: GeniusWalletConsts.space4,
           children: [
-            const _CoinIdentity(),
+            // The name gives way (ellipsis) before the range tabs do.
+            const Flexible(child: _CoinIdentity()),
             GWTimeframeSegment(
               labels: [for (final r in kLiveChartRanges) r.label],
               initialIndex: rangeIndex,
@@ -715,26 +717,30 @@ class _CoinIdentity extends StatelessWidget {
       children: [
         Image.asset('assets/images/crypto/gnus.png', width: 30, height: 30),
         const SizedBox(width: GeniusWalletConsts.space3),
-        Text.rich(
-          // ONE line so "Genius AI" centers in the shared 44px header at the same
-          // baseline as Markets/Assets titles. A two-line name+ticker stack
-          // centred its whole block, pushing the name line visibly higher.
-          TextSpan(
-            style: GeniusWalletTypography.titleLg.copyWith(
-              color: gw.textPrimary,
-              letterSpacing: -0.2,
-              height: 1,
-            ),
-            children: [
-              const TextSpan(text: 'Genius AI'),
-              TextSpan(
-                text: '  ·  GNUS',
-                style: TextStyle(
-                  color: gw.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
+        Flexible(
+          child: Text.rich(
+            // ONE line so "Genius AI" centers in the shared 44px header at the same
+            // baseline as Markets/Assets titles. A two-line name+ticker stack
+            // centred its whole block, pushing the name line visibly higher.
+            TextSpan(
+              style: GeniusWalletTypography.titleLg.copyWith(
+                color: gw.textPrimary,
+                letterSpacing: -0.2,
+                height: 1,
               ),
-            ],
+              children: [
+                const TextSpan(text: 'Genius AI'),
+                TextSpan(
+                  text: '  ·  GNUS',
+                  style: TextStyle(
+                    color: gw.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
