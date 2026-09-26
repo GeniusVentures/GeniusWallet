@@ -21,6 +21,9 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
   /// The wallet whose read last succeeded; a failed read stays retryable.
   String? _loadedAddress;
 
+  /// Whether the newest load's read is still in flight.
+  bool _loading = false;
+
   /// Bumped by every load; only the newest load's read may land. An address
   /// check alone lets A's stale read through after an A -> B -> A switch.
   int _loadGeneration = 0;
@@ -37,7 +40,15 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
       }
       _walletAddress = walletAddress;
     }
-    final txs = await _storage.getTransactions(walletAddress);
+    _loading = true;
+    final List<Transaction> txs;
+    try {
+      txs = await _storage.getTransactions(walletAddress);
+    } finally {
+      if (generation == _loadGeneration) {
+        _loading = false;
+      }
+    }
     if (generation != _loadGeneration) {
       return;
     }
@@ -49,9 +60,10 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
     emit(_sorted());
   }
 
-  /// [loadInitial], skipped when [walletAddress] is already the one shown.
+  /// [loadInitial], skipped when [walletAddress] is already shown or loading.
   Future<void> showWallet(String walletAddress) async {
-    if (walletAddress == _walletAddress && walletAddress == _loadedAddress) {
+    if (walletAddress == _walletAddress &&
+        (_loading || walletAddress == _loadedAddress)) {
       return;
     }
     await loadInitial(walletAddress);

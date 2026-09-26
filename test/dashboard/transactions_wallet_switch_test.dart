@@ -42,10 +42,13 @@ Transaction _tx(String address) => Transaction(
 /// Each address's history resolves only when its completer is completed.
 class _GatedStorage implements TransactionStorageService {
   final reads = <String, Completer<List<Transaction>>>{};
+  var readCount = 0;
 
   @override
-  Future<List<Transaction>> getTransactions(String walletAddress) =>
-      (reads[walletAddress] = Completer<List<Transaction>>()).future;
+  Future<List<Transaction>> getTransactions(String walletAddress) {
+    readCount++;
+    return (reads[walletAddress] = Completer<List<Transaction>>()).future;
+  }
 
   @override
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
@@ -161,4 +164,30 @@ void main() {
 
     expect(transactions.state.map((t) => t.fromAddress), [_a]);
   });
+
+  test('picking the same wallet again retries its failed read', () async {
+    await walletDetails.selectWallet(_wallet(_a));
+    await pumpEventQueue();
+    storage.reads[_a]!.completeError(StateError('disk'));
+    await pumpEventQueue();
+
+    await walletDetails.selectWallet(_wallet(_a));
+    await pumpEventQueue();
+    storage.reads[_a]!.complete([_tx(_a)]);
+    await pumpEventQueue();
+
+    expect(transactions.state.map((t) => t.fromAddress), [_a]);
+  });
+
+  test(
+    'showing a wallet whose read is in flight does not read again',
+    () async {
+      final first = transactions.showWallet(_a);
+      final second = transactions.showWallet(_a);
+      storage.reads[_a]!.complete([_tx(_a)]);
+      await Future.wait([first, second]);
+
+      expect(storage.readCount, 1);
+    },
+  );
 }
