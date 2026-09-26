@@ -83,6 +83,9 @@ class AppState extends Equatable {
   /// All available SDK account addresses.
   final List<String> sdkAccounts;
 
+  /// The SDK account the app starts with; it cannot be deleted.
+  final String? linkedSDKAccount;
+
   /// The result of the last [SetSDKPayoutAddress] operation, or null if
   /// no operation has been performed yet.
   final GeniusNodeReturnValue? setPayoutAddressResult;
@@ -105,6 +108,7 @@ class AppState extends Equatable {
     this.initMessage,
     this.selectedSDKAccount,
     this.sdkAccounts = const [],
+    this.linkedSDKAccount,
     this.setPayoutAddressResult,
     this.accountStatus = AppStatus.initial,
   });
@@ -127,6 +131,7 @@ class AppState extends Equatable {
     String? initMessage,
     String? selectedSDKAccount,
     List<String>? sdkAccounts,
+    String? linkedSDKAccount,
     GeniusNodeReturnValue? setPayoutAddressResult,
     AppStatus? accountStatus,
   }) {
@@ -150,6 +155,7 @@ class AppState extends Equatable {
       initMessage: initMessage ?? this.initMessage,
       selectedSDKAccount: selectedSDKAccount ?? this.selectedSDKAccount,
       sdkAccounts: sdkAccounts ?? this.sdkAccounts,
+      linkedSDKAccount: linkedSDKAccount ?? this.linkedSDKAccount,
       setPayoutAddressResult:
           setPayoutAddressResult ?? this.setPayoutAddressResult,
       accountStatus: accountStatus ?? this.accountStatus,
@@ -176,6 +182,7 @@ class AppState extends Equatable {
     initMessage,
     selectedSDKAccount,
     sdkAccounts,
+    linkedSDKAccount,
     setPayoutAddressResult,
   ];
 }

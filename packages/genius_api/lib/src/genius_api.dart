@@ -1100,6 +1100,10 @@ class GeniusApi {
     return rawAddress.address.toDartString(GENIUS_SDK_ADDRESS_SIZE);
   }
 
+  /// The SDK account the node was started with. Every start imports its key
+  /// again, so a delete of this account would not survive a restart.
+  String? getStartAccountAddress() => _isSdkInitialized ? _address : null;
+
   String? getSelectedAccountMnemonic() {
     if (!_isSdkInitialized) {
       return null;

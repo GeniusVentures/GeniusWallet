@@ -81,7 +81,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     await api.initSDK();
-    emit(state.copyWith(sdkStatus: AppStatus.loaded));
+    emit(
+      state.copyWith(
+        sdkStatus: AppStatus.loaded,
+        linkedSDKAccount: api.getStartAccountAddress(),
+      ),
+    );
   }
 
   Future<void> _onLoadWallets(LoadWallets event, Emitter<AppState> emit) async {
@@ -731,6 +736,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     DeleteSDKAccount event,
     Emitter<AppState> emit,
   ) async {
+    // The next start imports this account's key again, so deleting it would
+    // silently bring it back.
+    final start = api.getStartAccountAddress();
+    if (start != null &&
+        start.toLowerCase() == event.publicAddress.toLowerCase()) {
+      return;
+    }
     final result = api.deleteAccount(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       final sdkState = _getSDKAccountState();
