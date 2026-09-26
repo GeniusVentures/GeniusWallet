@@ -7,7 +7,7 @@ import 'package:equatable/equatable.dart';
 // DiagnosticLevel/ValueChanged/ValueGetter/ValueSetter/VoidCallback from
 // foundation.dart — kDebugMode is not among them, so this explicit import is
 // required and will not trip unnecessary_import.
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, visibleForTesting;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
@@ -576,6 +576,15 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     api.streamSGNUSTransactions();
   }
 
+  /// The wallet selected after the current one is deleted: the user's own
+  /// wallets first, an SDK account only when none of those is left.
+  @visibleForTesting
+  static Wallet replacementWallet(List<Wallet> remaining) =>
+      remaining.firstWhere(
+        (w) => w.walletType != WalletType.sgnus,
+        orElse: () => remaining.first,
+      );
+
   FutureOr<void> _onDeleteWallet(
     DeleteWallet event,
     Emitter<AppState> emit,
@@ -592,10 +601,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     if (remaining.isNotEmpty &&
         selected != null &&
         selected.address.toLowerCase() == event.address.toLowerCase()) {
-      walletDetailsCubit.selectWallet(remaining.first);
-      await Hive.box(
-        walletBoxName,
-      ).put(selectedWalletKey, remaining.first.address);
+      final next = replacementWallet(remaining);
+      walletDetailsCubit.selectWallet(next);
+      await Hive.box(walletBoxName).put(selectedWalletKey, next.address);
     }
     final sdkState = _getSDKAccountState();
     emit(
