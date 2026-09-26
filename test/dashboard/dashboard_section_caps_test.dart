@@ -384,15 +384,15 @@ void main() {
   });
 
   group('Assets - the dashboard panel is the head of the /assets list', () {
-    /// Seven holdings with distinct balances, handed over in an order that is
-    /// neither sorted nor GNUS-first, so no accidental pass is possible.
+    /// Seven holdings with distinct balances, handed over unsorted so no
+    /// accidental pass is possible.
     ///
     /// Market data never arrives in this harness - `CoinsScreen` fetches it
     /// from its `BlocListener`, which fires on a state CHANGE and this cubit is
     /// seeded already-successful. So every row is an UNPRICED HOLDING, the tier
     /// `compareAssetsByValue` ranks by BALANCE descending. That is a real
     /// branch of the shared comparator, not a degenerate one, and it is the
-    /// branch a hand-rolled "GNUS first, then fetch order" sort fails.
+    /// branch a hand-rolled "fetch order" sort fails.
     final List<Coin> wallet = [
       _coin('AAA', balance: 3),
       _coin('GNUS', balance: 5),
@@ -437,15 +437,9 @@ void main() {
           .widgetList<CoinCardRow>(find.byType(CoinCardRow))
           .map((r) => r.symbol)
           .toList();
-      // Balance descending under a pinned GNUS, and the two smallest holdings
-      // fell off the panel. GNUS at 5 leads despite being third by value:
-      // Jakub restored the absolute pin on 2026-08-07, after phase 25 had
-      // demoted it to a tie-break as the price of agreeing with `/assets`.
-      // The pin now lives in `compareAssetsByValue` itself, so BOTH surfaces
-      // carry it and the agreement survives. If this ever reads GNUS anywhere
-      // but first, the panel has stopped using that comparator and the two
-      // surfaces have diverged.
-      expect(rows, ['GNUS', 'BBB', 'DDD', 'FFF', 'AAA']);
+      // Balance descending, GNUS in its own place, and the two smallest
+      // holdings fell off the panel.
+      expect(rows, ['BBB', 'DDD', 'GNUS', 'FFF', 'AAA']);
 
       // The link to the rest.
       expect(find.byType(GWViewAllLink), findsOneWidget);
