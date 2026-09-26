@@ -107,7 +107,7 @@ Reference material: worktree `C:\Users\User\Documents\Projects\GNUS-compare\Geni
 - [ ] **Phase 7: Token screens** - Token info, send, receive, address book, charts
 - [x] **Phase 8: Swap & bridge** - Squid Router and GNUS bridge (completed 2026-07-27)
 - [x] **Phase 9: Banxa** - Buy, KYC, checkout, order history/details (completed 2026-07-27)
-- [ ] **Phase 10: dApp connectivity** - Reown/WalletConnect
+- [x] **Phase 10: dApp connectivity** - Reown/WalletConnect (completed 2026-09-26: first desktop dApp pairing, walked on Windows x64)
 - [ ] **Phase 11: Functional closeout** - Every reachable feature works or is honestly unavailable (walk script: `11-WALK.md`)
 
 ### Surface ownership map (2026-07-23 — one surface, one owning phase; no overlap)
