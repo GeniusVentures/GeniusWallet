@@ -128,6 +128,25 @@ void main() {
     expect(a.backgroundColor, isNot(b.backgroundColor));
   });
 
+  testWidgets('watch-only keeps its monogram and adds an eye badge', (
+    tester,
+  ) async {
+    Wallet watched(String name) =>
+        _eth(name, _addrA).copyWith(walletType: WalletType.tracking);
+
+    await _pump(tester, watched('Cold storage'));
+    expect(find.text('CS'), findsOneWidget);
+    expect(find.byIcon(Icons.remove_red_eye_outlined), findsOneWidget);
+
+    await _pump(tester, watched('Trading'));
+    expect(find.text('TR'), findsOneWidget);
+
+    // No monogram to show: the eye stays the disc's glyph.
+    await _pump(tester, watched(_addrA));
+    expect(find.byType(Text), findsNothing);
+    expect(find.byIcon(Icons.remove_red_eye_outlined), findsOneWidget);
+  });
+
   testWidgets('an address-shaped name falls back to the currency icon', (
     tester,
   ) async {

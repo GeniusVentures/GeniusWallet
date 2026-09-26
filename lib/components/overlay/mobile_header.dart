@@ -520,14 +520,9 @@ class WalletIdentityAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final monogram = walletMonogram(wallet.walletName);
+    final watchOnly = wallet.walletType == WalletType.tracking;
     final Widget glyph;
-    if (wallet.walletType == WalletType.tracking) {
-      glyph = Icon(
-        Icons.remove_red_eye_outlined,
-        size: 20,
-        color: gw.textOnBrand,
-      );
-    } else if (monogram != null) {
+    if (monogram != null) {
       // Scales down rather than clipping when a wide pair like `WW` or a
       // three-character `S10` meets the disc.
       glyph = FittedBox(
@@ -542,6 +537,12 @@ class WalletIdentityAvatar extends StatelessWidget {
           ),
         ),
       );
+    } else if (watchOnly) {
+      glyph = Icon(
+        Icons.remove_red_eye_outlined,
+        size: 20,
+        color: gw.textOnBrand,
+      );
     } else {
       glyph = Image.asset(
         'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png',
@@ -554,8 +555,11 @@ class WalletIdentityAvatar extends StatelessWidget {
       backgroundColor: GWColors.walletIdentityFill(wallet.address),
       child: glyph,
     );
+    // Watch-only keeps its monogram, so two watched wallets sharing a fill
+    // still differ; the eye moves to a corner badge instead.
+    final eyeBadge = watchOnly && monogram != null;
 
-    if (networkIconPath == null) {
+    if (networkIconPath == null && !eyeBadge) {
       return disc;
     }
 
@@ -565,32 +569,59 @@ class WalletIdentityAvatar extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(child: disc),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              width: 16,
-              height: 16,
-              // A 2px stroke of the bar colour that separates the badge from
-              // both the disc and the bar at >= 3:1 (WCAG 1.4.11).
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: gw.surfaceElevated,
-                shape: BoxShape.circle,
-              ),
-              // Decorative: the chain is named in the pill's semantic label.
-              child: ClipOval(
-                child: Image.asset(
-                  networkIconPath!,
-                  fit: BoxFit.contain,
-                  excludeFromSemantics: true,
-                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          if (eyeBadge)
+            Positioned(
+              left: 0,
+              top: 0,
+              child: _DiscBadge(
+                child: Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 10,
+                  color: gw.textPrimary,
                 ),
               ),
             ),
-          ),
+          if (networkIconPath != null)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              // Decorative: the chain is named in the pill's semantic label.
+              child: _DiscBadge(
+                child: ClipOval(
+                  child: Image.asset(
+                    networkIconPath!,
+                    fit: BoxFit.contain,
+                    excludeFromSemantics: true,
+                    errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
+    );
+  }
+}
+
+/// A 16px corner badge on the identity disc. Its 2px ring of the bar colour
+/// separates it from both the disc and the bar at >= 3:1 (WCAG 1.4.11).
+class _DiscBadge extends StatelessWidget {
+  const _DiscBadge({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return Container(
+      width: 16,
+      height: 16,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: gw.surfaceElevated,
+        shape: BoxShape.circle,
+      ),
+      child: child,
     );
   }
 }
