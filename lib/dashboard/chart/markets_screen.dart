@@ -61,7 +61,7 @@ class _MarketsScreenState extends State<MarketsScreen> {
     // `TokenInfoArgs` replaces the old `coin` key, which the route never
     // actually read (Findings 1) - `coinGeckoId`/`symbol` are the two fields
     // anything downstream needs. `isGnusWalletConnected` is gone too: the
-    // route derives it now. `originLabel` takes its default, 'MARKETS'.
+    // route derives it now.
     context.push(
       '/token-info',
       extra: TokenInfoArgs(

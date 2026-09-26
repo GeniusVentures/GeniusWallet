@@ -11,7 +11,7 @@ import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 /// skips this type fails `test/tokens/coin_page_entry_parity_test.dart`
 /// instead of shipping a divergent page.
 ///
-/// Every field but [originLabel] is nullable, because what a caller knows
+/// Every field is nullable, because what a caller knows
 /// differs by where it opened this page from:
 ///
 ///  * Markets and the dashboard Markets panel always have [marketData]
@@ -31,7 +31,6 @@ class TokenInfoArgs {
     this.marketData,
     this.walletCoin,
     this.network,
-    this.originLabel = 'MARKETS',
   });
 
   /// The CoinGecko id - the only reliable token identity the app has. Null
@@ -57,9 +56,6 @@ class TokenInfoArgs {
   /// The wallet network name for [walletCoin]. Null exactly when
   /// [walletCoin] is.
   final String? network;
-
-  /// The back link's word - names the panel the caller actually came from.
-  final String originLabel;
 
   /// Returns [extra] unchanged when it is already a [TokenInfoArgs];
   /// reconstructs one from the legacy `Map<String, dynamic>` shape

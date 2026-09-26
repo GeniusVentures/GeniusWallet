@@ -16,7 +16,6 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_stat_tile.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
-import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/qr/crypto_address_qr.dart';
@@ -285,26 +284,15 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
           );
 
           return SingleChildScrollView(
-            // The Markets / News / Transactions frame: NO horizontal page
-            // padding - every block carries its own 12px gutter - so the coin
-            // title lands on the same x as "Markets" on the page you came from.
-            // It used to be `EdgeInsets.all(space10)` around a 1200-wide centred
-            // column, which put the title ~170px further in on a 1500px window.
-            // Top gap is the shared `GeniusBreakpoints.pageTitleGap` every
-            // content page uses. This page carried `space6`
-            // (12), so it sat 52px tighter under the nav bar than every tab it
-            // is reached from (Jakub, 2026-07-31).
-            //
-            // NOTE: the coin NAME still lands lower than those pages' titles,
-            // because `_BackToMarkets` occupies the first ~26px inside this
-            // padding and no other page has a back link. Aligning the name
-            // itself would mean shrinking this pad below the shared value,
-            // which trades one mismatch for another - left as the shared gap
-            // deliberately, not overlooked.
+            // The Transactions / Markets frame: gutter and top gap from
+            // `GeniusBreakpoints`, gutter OUTSIDE the xxl cap, and the title
+            // is the first thing under the gap - no back link - so the coin
+            // name lands exactly where "Transactions" does. The way back is
+            // the shell's nav bar and the system back gesture.
             padding: EdgeInsets.fromLTRB(
-              0,
+              GeniusBreakpoints.pageGutter(context),
               GeniusBreakpoints.pageTitleGap(context),
-              0,
+              GeniusBreakpoints.pageGutter(context),
               GeniusWalletConsts.space20,
             ),
             primary: true,
@@ -316,106 +304,82 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    GWBackLink(
-                      label: widget.args.originLabel,
-                      onTap: () => context.pop(),
-                    ),
                     _header(context, selectedCoin),
                     // sketch 165 Synthesis, change 3: the actions sit on their
                     // own row under the identity block, not on the title's
                     // line, and mount OUTSIDE the `marketData != null` guard -
                     // Receive needs no market price and must survive the
                     // no-data route.
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: GeniusBreakpoints.pageGutter(context),
-                      ),
-                      child: _CoinActionRow(
-                        walletCoin: widget.args.walletCoin,
-                        selectedCoin: selectedCoin,
-                        selectedWallet: selectedWallet,
-                        selectedNetwork: selectedNetwork,
-                        isGnusBridgeEnabled: isGnusBridgeEnabled,
-                        walletDetailsCubit: walletDetailsCubit,
-                        marketData: _marketData,
-                      ),
+                    _CoinActionRow(
+                      walletCoin: widget.args.walletCoin,
+                      selectedCoin: selectedCoin,
+                      selectedWallet: selectedWallet,
+                      selectedNetwork: selectedNetwork,
+                      isGnusBridgeEnabled: isGnusBridgeEnabled,
+                      walletDetailsCubit: walletDetailsCubit,
+                      marketData: _marketData,
                     ),
                     const SizedBox(height: GeniusWalletConsts.space8),
                     if (_marketData != null) ...[
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: GeniusBreakpoints.pageGutter(context),
-                        ),
-                        child: _StatRail(data: _marketData!),
-                      ),
+                      _StatRail(data: _marketData!),
                       const SizedBox(height: GeniusWalletConsts.space8),
                     ],
                     // 075-E2 moved the wallet actions up onto the title's line,
                     // so this is a plain label for the chart card again. It
                     // stops reserving the 44px an action row needed - which is
                     // the height E2 hands back.
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: GeniusBreakpoints.pageGutter(context),
-                      ),
-                      child: const GWKicker('Price'),
-                    ),
+                    const GWKicker('Price'),
                     const SizedBox(height: GeniusWalletConsts.space4),
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: GeniusBreakpoints.pageGutter(context),
-                      ),
-                      child: isWide && _marketData != null
-                          // >=1024: chart | Info+Convert side by side, and the
-                          // chart is EXACTLY as tall as the column beside it.
-                          //
-                          // Jakub 2026-07-28: *"ten graph jest znacznie
-                          // większy [...] ma być dostosowane do wysokości
-                          // łącznych sekcji INFO i CONVERT. Musi być IN LINE."*
-                          // The viewport-derived height this replaced fixed the
-                          // 480 literal's empty page but overshot in the other
-                          // direction - a chart taller than everything next to
-                          // it left the row ragged at the bottom.
-                          //
-                          // `IntrinsicHeight` asks each child how tall it wants
-                          // to be and gives the row the largest answer. The
-                          // side column answers honestly; the chart is wrapped
-                          // so it answers ZERO (see `_FillHeight`), which makes
-                          // Info+Convert the sole source of the row's height and
-                          // the chart stretch to meet it.
-                          ? IntrinsicHeight(
-                              child: Row(
-                                spacing: GeniusWalletConsts.space8,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(flex: 2, child: _chartCard(null)),
-                                  Expanded(
-                                    flex: 1,
-                                    child: _buildActionSection(_marketData),
-                                  ),
-                                ],
-                              ),
-                            )
-                          // <1024 (and the loading/failed/no-market-data
-                          // cases, which never take the wide branch above
-                          // since it requires _marketData != null): one
-                          // column.
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                    isWide && _marketData != null
+                        // >=1024: chart | Info+Convert side by side, and the
+                        // chart is EXACTLY as tall as the column beside it.
+                        //
+                        // Jakub 2026-07-28: *"ten graph jest znacznie
+                        // większy [...] ma być dostosowane do wysokości
+                        // łącznych sekcji INFO i CONVERT. Musi być IN LINE."*
+                        // The viewport-derived height this replaced fixed the
+                        // 480 literal's empty page but overshot in the other
+                        // direction - a chart taller than everything next to
+                        // it left the row ragged at the bottom.
+                        //
+                        // `IntrinsicHeight` asks each child how tall it wants
+                        // to be and gives the row the largest answer. The
+                        // side column answers honestly; the chart is wrapped
+                        // so it answers ZERO (see `_FillHeight`), which makes
+                        // Info+Convert the sole source of the row's height and
+                        // the chart stretch to meet it.
+                        ? IntrinsicHeight(
+                            child: Row(
                               spacing: GeniusWalletConsts.space8,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // The card under the line is the chart, a
-                                // loading spinner, a retryable error, or -
-                                // on the route that reaches this page from
-                                // the wallet's own Assets list for a token
-                                // the provider genuinely does not cover -
-                                // the empty state saying so. See
-                                // `_chartSlot`.
-                                _chartSlot(chartHeight),
-                                _buildActionSection(_marketData),
+                                Expanded(flex: 2, child: _chartCard(null)),
+                                Expanded(
+                                  flex: 1,
+                                  child: _buildActionSection(_marketData),
+                                ),
                               ],
                             ),
-                    ),
+                          )
+                        // <1024 (and the loading/failed/no-market-data
+                        // cases, which never take the wide branch above
+                        // since it requires _marketData != null): one
+                        // column.
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            spacing: GeniusWalletConsts.space8,
+                            children: [
+                              // The card under the line is the chart, a
+                              // loading spinner, a retryable error, or -
+                              // on the route that reaches this page from
+                              // the wallet's own Assets list for a token
+                              // the provider genuinely does not cover -
+                              // the empty state saying so. See
+                              // `_chartSlot`.
+                              _chartSlot(chartHeight),
+                              _buildActionSection(_marketData),
+                            ],
+                          ),
                   ],
                 ),
               ),
@@ -514,36 +478,31 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
     final String symbol = (_marketData?.symbol ?? selectedCoin?.symbol ?? '')
         .toUpperCase();
 
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: GeniusBreakpoints.pageGutter(context),
+    return GWPageHeader(
+      title: title,
+      subtitle: symbol.isEmpty ? null : symbol,
+      // Jakub 2026-07-28: *"Przed Genius AI powinna być ikona tokenu,
+      // zawsze."* `buildTokenIcon` is the helper Markets already uses for
+      // exactly this - it takes a URL or an asset path, and falls back to a
+      // placeholder circle when the image is missing or fails to load, so
+      // "zawsze" holds even for a coin with no artwork.
+      //
+      // CoinGecko's URL first, the wallet's own asset second: the market
+      // record is what names the coin in the title, so the glyph beside it
+      // should come from the same source.
+      leading: buildTokenIcon(
+        iconPath: (_marketData?.imageUrl.isNotEmpty ?? false)
+            ? _marketData!.imageUrl
+            : selectedCoin?.iconPath,
+        size: 40,
       ),
-      child: GWPageHeader(
-        title: title,
-        subtitle: symbol.isEmpty ? null : symbol,
-        // Jakub 2026-07-28: *"Przed Genius AI powinna być ikona tokenu,
-        // zawsze."* `buildTokenIcon` is the helper Markets already uses for
-        // exactly this - it takes a URL or an asset path, and falls back to a
-        // placeholder circle when the image is missing or fails to load, so
-        // "zawsze" holds even for a coin with no artwork.
-        //
-        // CoinGecko's URL first, the wallet's own asset second: the market
-        // record is what names the coin in the title, so the glyph beside it
-        // should come from the same source.
-        leading: buildTokenIcon(
-          iconPath: (_marketData?.imageUrl.isNotEmpty ?? false)
-              ? _marketData!.imageUrl
-              : selectedCoin?.iconPath,
-          size: 40,
-        ),
-        // Sketch 168 E1 (Jakub, 2026-07-31): the price is pulled up against
-        // the identity block and separated from it by a vertical hairline,
-        // instead of hanging off the far right edge.
-        trailingHugsTitle: true,
-        trailing: _marketData == null
-            ? null
-            : _IdentityPriceGroup(data: _marketData!),
-      ),
+      // Sketch 168 E1 (Jakub, 2026-07-31): the price is pulled up against
+      // the identity block and separated from it by a vertical hairline,
+      // instead of hanging off the far right edge.
+      trailingHugsTitle: true,
+      trailing: _marketData == null
+          ? null
+          : _IdentityPriceGroup(data: _marketData!),
     );
   }
 
