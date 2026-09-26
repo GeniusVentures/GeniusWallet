@@ -115,9 +115,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final mergedWallets = await _mergeSgnusWallet();
     final sdkState = _getSDKAccountState();
 
-    final walletBox = Hive.box(walletBoxName);
-    final selectedWalletAddress = walletBox.get(selectedWalletKey) as String?;
-
     final networkBox = Hive.box(networkBoxName);
     final chainId = networkBox.get(selectedNetworkKeyChainId) as int?;
     final rpcUrl = networkBox.get(selectedNetworkKeyRpcUrl) as String?;
@@ -129,9 +126,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       orElse: () => networks.first,
     );
 
-    final selectedWallet = mergedWallets.firstWhere(
-      (w) => w.address == selectedWalletAddress,
-      orElse: () => mergedWallets.first,
+    final selectedWallet = WalletDetailsCubit.restoreSelectedWallet(
+      mergedWallets,
     );
 
     await transactionsCubit.loadInitial(selectedWallet.address);
@@ -614,9 +610,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         selected != null &&
         selected.walletType != WalletType.sgnus &&
         selected.address.toLowerCase() == event.address.toLowerCase()) {
-      final next = replacementWallet(remaining);
-      walletDetailsCubit.selectWallet(next);
-      await Hive.box(walletBoxName).put(selectedWalletKey, next.address);
+      await walletDetailsCubit.selectWallet(replacementWallet(remaining));
     }
     final sdkState = _getSDKAccountState();
     emit(

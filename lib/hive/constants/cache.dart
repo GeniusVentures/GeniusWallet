@@ -12,6 +12,7 @@ const String cacheExpiryKey = 'coin_list_expiry';
 // wallet box
 const String walletBoxName = 'wallet';
 const String selectedWalletKey = 'selected_wallet_address';
+const String selectedWalletTypeKey = 'selected_wallet_type';
 
 // network
 const String networkBoxName = 'network';
