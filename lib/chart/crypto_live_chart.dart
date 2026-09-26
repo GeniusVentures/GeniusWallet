@@ -171,6 +171,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   late int _rangeIndex = widget.rangeIndex;
 
+  // Kept in the route's PageStorage so a responsive layout swap, which
+  // rebuilds this chart, does not reset the chosen range to the default.
+  String get _rangeStorageId => 'live-chart-range-${widget.coinGeckoCoinId}';
+
   // The visible X window: the selected range, ending at the newest point and
   // moving with each live tick. `chartYBounds`, `minX` and `maxX` read it.
   double? _viewMinX, _viewMaxX;
@@ -183,6 +187,12 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   @override
   void initState() {
     super.initState();
+    final stored = PageStorage.maybeOf(
+      context,
+    )?.readState(context, identifier: _rangeStorageId);
+    if (stored is int) {
+      _rangeIndex = stored;
+    }
     _fetchHistoricalData();
     _startLiveUpdates();
   }
@@ -204,6 +214,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   /// Drops the old series so the new range shows the skeleton, then its own
   /// series or the empty state — never the previous range under a new label.
   void _selectRange(int index) {
+    PageStorage.maybeOf(
+      context,
+    )?.writeState(context, index, identifier: _rangeStorageId);
     setState(() {
       _rangeIndex = index;
       _priceData = [];

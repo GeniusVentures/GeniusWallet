@@ -42,6 +42,14 @@ Widget _host(_FakeFetch fake, {bool ownHeader = true, int rangeIndex = 1}) =>
       ),
     );
 
+Widget _chart(_FakeFetch fake) => CryptoLiveChart(
+  coinGeckoCoinId: 'bitcoin',
+  tokenSymbol: 'btc',
+  priceHeight: 20,
+  showPriceHeader: false,
+  fetchHistory: fake.call,
+);
+
 int _plottedSpots(WidgetTester tester) => tester
     .widget<LineChart>(find.byType(LineChart))
     .data
@@ -131,6 +139,35 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.byType(LineChart), findsOneWidget);
+  });
+
+  testWidgets('a layout swap that rebuilds the chart keeps the chosen range', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final fake = _FakeFetch();
+    Widget host({required bool wide}) => MaterialApp(
+      theme: ThemeData(extensions: [GWColors.dark()]),
+      home: Scaffold(
+        // A different parent type per branch, as a responsive swap does.
+        body: wide
+            ? Row(children: [Expanded(child: _chart(fake))])
+            : Column(children: [Expanded(child: _chart(fake))]),
+      ),
+    );
+
+    await tester.pumpWidget(host(wide: false));
+    await tester.pump();
+    await tester.tap(find.text('1Y'));
+    await tester.pump();
+    await tester.pump();
+    expect(fake.days.last, 365);
+
+    await tester.pumpWidget(host(wide: true));
+    await tester.pump();
+    expect(fake.days.last, 365);
   });
 
   testWidgets('tapping a tab re-fetches and re-plots that range', (
