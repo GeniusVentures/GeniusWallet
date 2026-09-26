@@ -130,4 +130,14 @@ void main() {
       expect(transactions.state, [current]);
     },
   );
+
+  test('a live row that lands during a load beats the stored copy', () async {
+    final load = transactions.loadInitial(_a);
+    final live = _tx(_a);
+    transactions.replaceTransaction(_a, live);
+    storage.reads[_a]!.complete([_tx(_a)]);
+    await load;
+
+    expect(transactions.state, [live]);
+  });
 }
