@@ -584,10 +584,23 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _baseWallets = _baseWallets
         .where((w) => w.address != event.address)
         .toList();
+    final remaining = await _mergeSgnusWallet();
+    // The header reads the selected wallet from the cubit, so a deleted
+    // selection is replaced and persisted exactly as a drawer switch does.
+    // The drawer refuses to delete the last wallet, so one always remains.
+    final selected = walletDetailsCubit.state.selectedWallet;
+    if (remaining.isNotEmpty &&
+        selected != null &&
+        selected.address.toLowerCase() == event.address.toLowerCase()) {
+      walletDetailsCubit.selectWallet(remaining.first);
+      await Hive.box(
+        walletBoxName,
+      ).put(selectedWalletKey, remaining.first.address);
+    }
     final sdkState = _getSDKAccountState();
     emit(
       state.copyWith(
-        wallets: await _mergeSgnusWallet(),
+        wallets: remaining,
         selectedSDKAccount: sdkState.$1,
         sdkAccounts: sdkState.$2,
         linkedSDKAccount: api.getStartAccountAddress(),

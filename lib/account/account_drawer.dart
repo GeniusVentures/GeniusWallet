@@ -113,8 +113,8 @@ class AccountDrawer {
 }
 
 /// The drawer's body: the row list plus the two confirm flows reachable from
-/// each row's overflow menu. A `StatefulWidget` because both confirm flows
-/// call `setState` and check `mounted`.
+/// each row's overflow menu. A `StatefulWidget` because the rename flow calls
+/// `setState` and checks `mounted`.
 class _AccountDrawerBody extends StatefulWidget {
   const _AccountDrawerBody({this.networks = const [], this.currentNetwork});
 
@@ -131,9 +131,8 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   // Seeded once from WalletDetailsCubit.state.selectedWallet - the same
   // value `selectWallet` writes, so the highlight cannot desync from the
   // selection. Kept as a local mirror (not re-read from the cubit on every
-  // build) purely so the two confirm flows below can update it in place when
-  // a rename/delete touches the currently-selected wallet, exactly as the
-  // pre-extraction code did against its own local field.
+  // build) purely so the rename flow below can update it in place when a
+  // rename touches the currently-selected wallet.
   Wallet? _selectedWallet;
 
   Future<void> _confirmRenameWallet(BuildContext context, Wallet wallet) async {
@@ -236,20 +235,11 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       ],
     );
 
-    if (confirmed == true && mounted) {
+    // Not gated on `mounted`: the drawer was popped above, so by the time the
+    // user confirms this State is usually disposed and the delete would be
+    // lost. AppBloc selects the replacement wallet when this one was selected.
+    if (confirmed == true) {
       appBloc.add(DeleteWallet(wallet.address));
-
-      // If the deleted wallet was the selected one, select another.
-      if (wallet.address == _selectedWallet?.address) {
-        final remainingWallets = appBloc.state.wallets
-            .where((w) => w.address != wallet.address)
-            .toList();
-        setState(() {
-          _selectedWallet = remainingWallets.isNotEmpty
-              ? remainingWallets.first
-              : null;
-        });
-      }
     }
   }
 
