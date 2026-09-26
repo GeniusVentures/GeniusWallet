@@ -1,7 +1,7 @@
 # The desktop top bar overflows horizontally at large Windows text sizes
 
 **Filed:** 2026-09-25, during the phase 32 walk (Windows debug, Accessibility → Text size 150%+).
-**Status:** open.
+**Status:** fixed (the bar); the ~35 unattributed overflows below were not re-attributed.
 **Severity:** accessibility.
 
 ## What
@@ -20,3 +20,13 @@ Re-run at 150% with `debugPrintStack` / DevTools to attribute the other overflow
 per widget: clamp (as AppBar and the phone bar do) or flex/ellipsize. The desktop bar already
 hides labels below `GeniusBreakpoints.xxl`, and that threshold may also need to move with the
 text scale.
+
+## Resolution
+
+A clamp alone could not fix it: at the narrowest desktop window (1025) the bar already overflowed
+by 12px at 1x text once the SDK-account chip showed. So the bar now flexes. The control track is
+`Flexible`, and the SDK-account and wallet chips' address labels ellipsize (they already asked
+to, but never had a bounded width). Nav labels return at `xxl * textScale`, not `xxl`.
+`test/components/desktop_top_bar_text_scale_test.dart` pumps the whole bar in real Inter at 1025
+and 1536 wide, at 1x, 1.5x and 2x text, and fails on any overflow. The other overflows from the
+walk were never attributed and may lie outside the bar; re-walk at 150% to see whether any remain.

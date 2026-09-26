@@ -58,12 +58,17 @@ class SDKAccountManagerButton extends StatelessWidget {
               children: [
                 const GWIcon.material(Icons.settings_applications),
                 if (MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small)
-                  Text(
-                    selected != null
-                        ? WalletUtils.getAddressForDisplay(selected)
-                        : 'No account',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    overflow: TextOverflow.ellipsis,
+                  // Flexible: the desktop bar squeezes this label before it
+                  // lets the row overflow.
+                  Flexible(
+                    child: Text(
+                      selected != null
+                          ? WalletUtils.getAddressForDisplay(selected)
+                          : 'No account',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 const GWIcon.material(Icons.arrow_drop_down),
               ],

@@ -39,43 +39,48 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
     // a 2px phantom gap below the perceptual threshold. Ceiling: the track
     // never tightens that last 2px. Upgrade path: lift the accounts.isEmpty
     // read up to this function and build the children list conditionally.
-    Container(
-      // 6px horizontal (3 vertical) so the outer fields keep a hair more room
-      // from the track's own edge than they do from a divider -- sketch 042
-      // variant 3.
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(
-        color: gw.surfaceWell,
-        border: Border.all(color: gw.borderSubtle),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 2,
-        children: [
-          const NetworkDropdownSelector(),
-          _trackDivider(gw),
-          // The SDK chip and ITS divider appear together. SDKAccountManagerButton
-          // self-hides to SizedBox.shrink() when the account list is empty, and
-          // with a divider next to it that would leave a hairline floating
-          // against nothing. So the emptiness is read HERE instead -- the
-          // upgrade path the previous `ponytail:` note named, now required
-          // rather than optional. `watch` (not `read`): the divider has to
-          // disappear the moment the list empties.
-          if (context.watch<AppBloc>().state.sdkAccounts.isNotEmpty) ...[
-            const SDKAccountManagerButton(),
+    Flexible(
+      child: Container(
+        // 6px horizontal (3 vertical) so the outer fields keep a hair more room
+        // from the track's own edge than they do from a divider -- sketch 042
+        // variant 3.
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: gw.surfaceWell,
+          border: Border.all(color: gw.borderSubtle),
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 2,
+          children: [
+            const NetworkDropdownSelector(),
             _trackDivider(gw),
+            // The SDK chip and ITS divider appear together. SDKAccountManagerButton
+            // self-hides to SizedBox.shrink() when the account list is empty, and
+            // with a divider next to it that would leave a hairline floating
+            // against nothing. So the emptiness is read HERE instead -- the
+            // upgrade path the previous `ponytail:` note named, now required
+            // rather than optional. `watch` (not `read`): the divider has to
+            // disappear the moment the list empties.
+            //
+            // The two address chips are the bar's only elastic parts: they
+            // ellipsize so a narrow window or large text never overflows it.
+            if (context.watch<AppBloc>().state.sdkAccounts.isNotEmpty) ...[
+              const Flexible(child: SDKAccountManagerButton()),
+              _trackDivider(gw),
+            ],
+            const Flexible(child: AccountDropdownSelector()),
+            _trackDivider(gw),
+            ReownConnectButton(
+              walletAddress:
+                  walletDetailsCubit.state.selectedWallet?.address ?? '',
+              geniusApi: context.read<GeniusApi>(),
+              walletDetailsCubit: walletDetailsCubit,
+              transactionsCubit: context.read<TransactionsCubit>(),
+            ),
           ],
-          const AccountDropdownSelector(),
-          _trackDivider(gw),
-          ReownConnectButton(
-            walletAddress:
-                walletDetailsCubit.state.selectedWallet?.address ?? '',
-            geniusApi: context.read<GeniusApi>(),
-            walletDetailsCubit: walletDetailsCubit,
-            transactionsCubit: context.read<TransactionsCubit>(),
-          ),
-        ],
+        ),
       ),
     ),
   ];
@@ -412,7 +417,11 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final destinations = visibleDestinations;
     final selected = currentIndex(context, destinations);
-    final hideLabels = MediaQuery.sizeOf(context).width < GeniusBreakpoints.xxl;
+    // Labels fit from xxl at 1x text. Every width in the bar grows at most
+    // linearly with the text scale, so scaling the threshold keeps them fitting.
+    final hideLabels =
+        MediaQuery.sizeOf(context).width <
+        GeniusBreakpoints.xxl * MediaQuery.textScalerOf(context).scale(1);
 
     return ColoredBox(
       color: gw.surfaceElevated,
@@ -620,16 +629,19 @@ class _DesktopTopBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ],
               ),
-              Row(
-                spacing: GeniusWalletConsts.space6,
-                children: [
-                  // Buy GNUS removed from the bar 2026-07-26 (sketch 042):
-                  // it was the only element forcing a hierarchy on this side,
-                  // and without it the cluster can read as one instrument
-                  // rather than a row of buttons. `/buy` is still routed and
-                  // still reachable - this drops the shortcut, not the feature.
-                  ..._buildActionRowWidgets(context),
-                ],
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: GeniusWalletConsts.space6,
+                  children: [
+                    // Buy GNUS removed from the bar 2026-07-26 (sketch 042):
+                    // it was the only element forcing a hierarchy on this side,
+                    // and without it the cluster can read as one instrument
+                    // rather than a row of buttons. `/buy` is still routed and
+                    // still reachable - this drops the shortcut, not the feature.
+                    ..._buildActionRowWidgets(context),
+                  ],
+                ),
               ),
             ],
           ),

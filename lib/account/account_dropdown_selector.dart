@@ -93,14 +93,19 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   size: 25,
                 ),
                 if (MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small)
-                  Text(
-                    selectedWallet!.walletType == WalletType.sgnus
-                        ? 'Super Genius'
-                        : WalletUtils.getAddressForDisplay(
-                            selectedWallet!.address,
-                          ),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    overflow: TextOverflow.ellipsis,
+                  // Flexible: the desktop bar squeezes this label before it
+                  // lets the row overflow.
+                  Flexible(
+                    child: Text(
+                      selectedWallet!.walletType == WalletType.sgnus
+                          ? 'Super Genius'
+                          : WalletUtils.getAddressForDisplay(
+                              selectedWallet!.address,
+                            ),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 const Icon(Icons.arrow_drop_down),
               ],
