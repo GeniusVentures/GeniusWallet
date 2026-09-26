@@ -51,3 +51,7 @@ rather than riding along with a drawer fix.
 ## Related
 
 - `lib/theme/theme.dart` `menuButtonTheme` - the local fix, with the reasoning in place.
+
+## Closed 2026-09-26
+
+Fixed by Phase 32 (PR #248), commit c7d4d880: `fontFamily: Inter` on the ThemeData makes all five unmapped slots render Inter; they stay unmapped on purpose with a comment in genius_wallet_typography.dart:155-158. Guarded by `test/theme/material_text_slots_test.dart` (all 15 slots, both modes).

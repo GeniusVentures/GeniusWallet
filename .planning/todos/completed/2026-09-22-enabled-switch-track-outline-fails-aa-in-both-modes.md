@@ -22,3 +22,7 @@ enabled/unselected branch is untouched and still reads `borderSubtle`.
 Likely the same `borderControl` token the disabled branch now uses, but
 verify the contrast against both the ON (brand-tinted) and OFF track colours
 before committing to one value — the two tracks are visually different fills.
+
+## Closed 2026-09-26
+
+Fixed by Phase 32 (PR #248), commit 77f94737: the enabled track outline reads the new `borderControlOnBrand` token, guarded by `test/theme/enabled_control_contrast_test.dart` (3:1 on ON and OFF tracks, both modes) and e100e435 (outline painted on iOS/macOS). Residual note: an OFF switch on `surfaceSunken` in light mode is 2.73:1 against the canvas outside it; no switch sits on that surface today.
