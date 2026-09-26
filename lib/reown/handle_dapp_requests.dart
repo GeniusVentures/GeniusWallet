@@ -339,7 +339,7 @@ void Function() handleDappRequests({
         }
 
         // stream to ui
-        transactionsCubit.addTransaction(txModel);
+        transactionsCubit.replaceTransaction(walletAddress, txModel);
         // save to hive
         await const TransactionStorageService().addTransaction(
           walletAddress,

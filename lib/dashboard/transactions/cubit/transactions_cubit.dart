@@ -45,18 +45,20 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
     await loadInitial(walletAddress);
   }
 
-  void addTransaction(Transaction tx) {
-    _transactions.add(tx);
-    emit(_sorted());
-  }
-
-  /// Swaps the row sharing [tx]'s hash for [tx] -- a pending row settling.
-  void replaceTransaction(Transaction tx) {
+  /// Puts [tx] in place of any row sharing its hash, but only while
+  /// [walletAddress] -- the wallet the operation started from -- is shown.
+  /// Callers store the row for that wallet themselves, so none is lost.
+  void replaceTransaction(String walletAddress, Transaction tx) {
+    final shown = _walletAddress;
+    if (shown != null && shown.toLowerCase() != walletAddress.toLowerCase()) {
+      return;
+    }
     _transactions.removeWhere((t) => t.hash == tx.hash);
     _transactions.add(tx);
     emit(_sorted());
   }
 
+  /// Dev fixture rows for whatever is on screen; they are never stored.
   void addTransactions(List<Transaction> txs) {
     _transactions.addAll(txs);
     emit(_sorted());

@@ -625,7 +625,7 @@ class _SwapScreenState extends State<SwapScreen> {
     if (effects.showReceipt) {
       showTransactionDetails(context, resolved);
     }
-    transactionsCubit.addTransaction(resolved);
+    transactionsCubit.replaceTransaction(walletAddress, resolved);
 
     // The funds have moved, so every number on screen now describes a swap
     // that is finished: the amounts are spent, the balance behind them has

@@ -5,7 +5,6 @@ import 'package:genius_api/controllers/sgnus_transactions_controller.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
-import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 
 const walletPK = String.fromEnvironment('WALLET_PK', defaultValue: '');
@@ -54,15 +53,6 @@ void addFakeSGNUSTransactions(SGNUSTransactionsController txController) {
   txController.setTransactions(
     List.generate(20, (_) => getFakeTransaction(true)),
   );
-}
-
-void addFakeWalletCubitTransactions(TransactionsCubit cubit) {
-  if (!isWalletPKBypass()) {
-    return;
-  }
-
-  debugPrint('\x1B[37m** Adding fake Wallet transaction to cubit\x1B[0m');
-  cubit.addTransaction(getFakeTransaction(false));
 }
 
 void addFakeWalletTransactions() {

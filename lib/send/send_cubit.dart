@@ -262,7 +262,7 @@ Future<void> settlePendingSends({
     } catch (_) {
       // The live history below still shows it settled; the next load retries.
     }
-    transactions.replaceTransaction(settled);
+    transactions.replaceTransaction(walletAddress, settled);
   }
 }
 
@@ -707,7 +707,7 @@ class SendCubit extends Cubit<SendState> {
     // missing from history for the whole poll invites sending it again.
     final pending = rowWith(TransactionStatus.pending);
     await _write(pending);
-    transactions.replaceTransaction(pending);
+    transactions.replaceTransaction(walletAddress, pending);
 
     final receipt = await pollReceipt(
       hash: hash,
@@ -718,7 +718,7 @@ class SendCubit extends Cubit<SendState> {
     await _write(resolved);
     // By hash: the pending row above, and any copy a wallet reload during the
     // poll brought back, would otherwise list this send twice.
-    transactions.replaceTransaction(resolved);
+    transactions.replaceTransaction(walletAddress, resolved);
 
     if (isClosed) {
       return resolved;
