@@ -32,3 +32,7 @@ reuse per call site once this is picked up.
 Repoint each call site to an AA-safe token for its actual backdrop, verifying
 each pairing individually rather than a blanket find-and-replace — a much
 larger pass than a single quick task.
+
+## Closed 2026-09-26
+
+Fixed by Phase 32 (PR #248), commits 63cf3fbb..dc95f5c8: every text use moved to `statusSuccessText`/`statusErrorText`; the 43 remaining raw reads are washes, borders, icons and chart lines, pinned by `test/theme/status_text_color_invariant_test.dart`. Residual: `ColorScheme.error` is still #FF4D4D, so a raw Material `TextField.errorText` fails AA in light mode; the only such site is the WalletConnect URI field, which Phase 10 replaces with `GWTextField`.

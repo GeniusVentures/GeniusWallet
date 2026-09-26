@@ -65,3 +65,7 @@ TBD - two candidate remedies, neither chosen, because both are design calls:
 A third option - growing `kMobileBarHeight` - is not free: the bar's height feeds the dock
 overhang and the safe-area cap, and 24-07 was caused by exactly one box in this area leaving an
 axis unstated.
+
+## Closed 2026-09-26
+
+Fixed by Phase 32 (PR #248), commit 14cb7992: `_MobileTabBar` clamps text scale at `kMobileBarMaxTextScale = 221 / 180` (responsive_overlay.dart:110, 191-192), option 1 of this todo. UAT check 3 passed on device at 130%+. The clamp has zero margin (17.0px label in a 17.0px slot).
