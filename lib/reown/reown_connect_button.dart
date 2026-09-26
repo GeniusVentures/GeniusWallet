@@ -215,15 +215,18 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       await _initCompleter!.future;
       return;
     }
-    _initCompleter = Completer<void>();
+    final completer = Completer<void>();
+    _initCompleter = completer;
     try {
       await WalletKitInstance().initOnce();
       _isInitialized = true;
       debugPrint("✅ WalletKit initialized");
     } catch (e) {
       debugPrint("❌ WalletKit initialization failed: $e");
+      // Forget this attempt so the next Connect press retries init (D-04).
+      _initCompleter = null;
     } finally {
-      _initCompleter!.complete();
+      completer.complete();
     }
   }
 
@@ -242,12 +245,15 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
     await maybeInitWalletKit();
 
     if (!_isInitialized) {
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _isConnecting = false;
         _hasError = true;
       });
       debugPrint('❌ Connection failed: WalletKit not initialized');
-      if (mounted && context.mounted) {
+      if (context.mounted) {
         showToast(
           context,
           "WalletKit failed to initialize. Please restart the app.",
@@ -256,6 +262,10 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       }
       return;
     }
+
+    // Init may have just succeeded on this press after an earlier failure --
+    // attach the session listeners now (idempotent, no-op if already done).
+    _attachWalletKitListeners();
 
     try {
       final CreateResponse pairingInfo = await walletKit.core.pairing.create();

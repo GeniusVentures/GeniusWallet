@@ -72,6 +72,8 @@ class WalletKitInstance {
   @visibleForTesting
   WalletKitInstance.withInit(Future<void> Function() init) : _init = init;
 
+  /// Concurrent callers share one start, and a failed start is forgotten so
+  /// the next call retries.
   Future<void> initOnce() {
     final inFlight = _initFuture;
     if (inFlight != null) {
@@ -80,6 +82,11 @@ class WalletKitInstance {
 
     final future = (_init ?? walletKit.init)();
     _initFuture = future;
+    future.catchError((_) {
+      if (identical(_initFuture, future)) {
+        _initFuture = null;
+      }
+    }).ignore();
     return future;
   }
 }
