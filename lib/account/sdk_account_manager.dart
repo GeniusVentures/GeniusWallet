@@ -22,6 +22,7 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/secret_clipboard.dart';
+import 'package:genius_wallet/utils/secure_screen.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -363,32 +364,34 @@ class SDKAccountManagerButton extends StatelessWidget {
     await GWDialog.show<void>(
       context: navigator.context,
       title: 'Recovery phrase QR',
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const GWWarningNote(
-            'Anyone who photographs this code gets full control of the '
-            'account. Do not show it on a shared or recorded screen.',
-          ),
-          const SizedBox(height: GeniusWalletConsts.space6),
-          // Self-contained, exactly as `CryptoAddressQR` (sketch 034-A2) does
-          // it: the QR carries its own size and its own white backing. The old
-          // shape here was a `SizedBox(width: GeniusBreakpoints.small * 0.5)`
-          // around a white `Container` - a BREAKPOINT constant used as a pixel
-          // width, and a caller-supplied wrapper to shrink the code. That is
-          // the exact pattern `crypto_address_qr.dart` records having already
-          // fixed once ("no longer depends on the caller's wrapping SizedBox").
-          //
-          // `Colors.white` is deliberate and mode-invariant in both files: a
-          // camera needs a light quiet zone, so this is NEVER an appearance
-          // token.
-          QrImageView(
-            data: mnemonic,
-            version: QrVersions.auto,
-            size: 190,
-            backgroundColor: Colors.white,
-          ),
-        ],
+      content: SecureScreen(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const GWWarningNote(
+              'Anyone who photographs this code gets full control of the '
+              'account. Do not show it on a shared or recorded screen.',
+            ),
+            const SizedBox(height: GeniusWalletConsts.space6),
+            // Self-contained, exactly as `CryptoAddressQR` (sketch 034-A2) does
+            // it: the QR carries its own size and its own white backing. The old
+            // shape here was a `SizedBox(width: GeniusBreakpoints.small * 0.5)`
+            // around a white `Container` - a BREAKPOINT constant used as a pixel
+            // width, and a caller-supplied wrapper to shrink the code. That is
+            // the exact pattern `crypto_address_qr.dart` records having already
+            // fixed once ("no longer depends on the caller's wrapping SizedBox").
+            //
+            // `Colors.white` is deliberate and mode-invariant in both files: a
+            // camera needs a light quiet zone, so this is NEVER an appearance
+            // token.
+            QrImageView(
+              data: mnemonic,
+              version: QrVersions.auto,
+              size: 190,
+              backgroundColor: Colors.white,
+            ),
+          ],
+        ),
       ),
       actions: [
         GWDialogAction(label: 'Done', onPressed: () => navigator.pop()),

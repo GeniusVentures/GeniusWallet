@@ -11,6 +11,7 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/secret_clipboard.dart';
+import 'package:genius_wallet/utils/secure_screen.dart';
 
 class RecoveryPhraseScreen extends StatefulWidget {
   const RecoveryPhraseScreen({super.key});
@@ -43,64 +44,68 @@ class _RecoveryPhraseScreenState extends State<RecoveryPhraseScreen> {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isNarrow = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
     context.read<NewWalletBloc>().add(LoadRecoveryPhrase());
-    return Center(
-      // Walk-driven (06-03 Task 3): this screen shipped the systemic onboarding
-      // gutter bug — ConstrainedBox(maxWidth:) is inert once the viewport is
-      // narrower than it, so content ran edge-to-edge with zero inset. Same
-      // pattern and token as 06-01's fix (67e2821) and 06-02's two screens:
-      // Padding OUTSIDE the ConstrainedBox, so the gutter is additive and the
-      // wide-window centring is unchanged by construction.
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: GeniusWalletConsts.space8,
-        ),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: GeniusBreakpoints.small),
-          // Walk-driven (06-03 Task 3): develop shipped this screen with no
-          // scroll view, so once the grid went two-column on mobile the content
-          // overflowed the viewport vertically. The verify screen already has a
-          // SingleChildScrollView; this makes the pair consistent. Scrollbar is
-          // explicit so desktop users get a visible affordance.
-          child: Scrollbar(
-            controller: _scrollController,
-            child: SingleChildScrollView(
+    return SecureScreen(
+      child: Center(
+        // Walk-driven (06-03 Task 3): this screen shipped the systemic onboarding
+        // gutter bug — ConstrainedBox(maxWidth:) is inert once the viewport is
+        // narrower than it, so content ran edge-to-edge with zero inset. Same
+        // pattern and token as 06-01's fix (67e2821) and 06-02's two screens:
+        // Padding OUTSIDE the ConstrainedBox, so the gutter is additive and the
+        // wide-window centring is unchanged by construction.
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: GeniusWalletConsts.space8,
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: GeniusBreakpoints.small,
+            ),
+            // Walk-driven (06-03 Task 3): develop shipped this screen with no
+            // scroll view, so once the grid went two-column on mobile the content
+            // overflowed the viewport vertically. The verify screen already has a
+            // SingleChildScrollView; this makes the pair consistent. Scrollbar is
+            // explicit so desktop users get a visible affordance.
+            child: Scrollbar(
               controller: _scrollController,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 16.0,
-                children: [
-                  Text(
-                    "Your Recovery Phrase",
-                    style: GeniusWalletTypography.headlineLg.copyWith(
-                      color: gw.textPrimary,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 16.0,
+                  children: [
+                    Text(
+                      "Your Recovery Phrase",
+                      style: GeniusWalletTypography.headlineLg.copyWith(
+                        color: gw.textPrimary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    "Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.",
-                    style: GeniusWalletTypography.bodyMd.copyWith(
-                      color: gw.textSecondary,
+                    Text(
+                      "Write down this 12-word Secret Recovery Phrase and save it in a place that you trust and only you can access.",
+                      style: GeniusWalletTypography.bodyMd.copyWith(
+                        color: gw.textSecondary,
+                      ),
                     ),
-                  ),
-                  _buildWordsGridWithCopyAndToggle(),
-                  // Walk-driven: full-width CTA on mobile; the 300px cap is a
-                  // desktop affordance and looked stranded on a phone.
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: isNarrow ? double.infinity : 300,
+                    _buildWordsGridWithCopyAndToggle(),
+                    // Walk-driven: full-width CTA on mobile; the 300px cap is a
+                    // desktop affordance and looked stranded on a phone.
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isNarrow ? double.infinity : 300,
+                      ),
+                      child: GWButton(
+                        label: 'Continue',
+                        variant: GWButtonVariant.gradient,
+                        size: GWButtonSize.lg,
+                        expand: true,
+                        onPressed: () {
+                          context.read<NewWalletBloc>().add(
+                            RecoveryPhraseContinue(),
+                          );
+                        },
+                      ),
                     ),
-                    child: GWButton(
-                      label: 'Continue',
-                      variant: GWButtonVariant.gradient,
-                      size: GWButtonSize.lg,
-                      expand: true,
-                      onPressed: () {
-                        context.read<NewWalletBloc>().add(
-                          RecoveryPhraseContinue(),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

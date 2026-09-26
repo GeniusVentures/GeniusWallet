@@ -12,6 +12,7 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/secure_screen.dart';
 
 class VerifyRecoveryPhraseScreen extends StatefulWidget {
   const VerifyRecoveryPhraseScreen({super.key});
@@ -68,74 +69,76 @@ class _VerifyRecoveryPhraseScreenState
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final isNarrow = MediaQuery.sizeOf(context).width < GeniusBreakpoints.small;
-    return BlocListener<NewWalletBloc, NewWalletState>(
-      listener: (context, state) {
-        if (state.verificationStatus == VerificationStatus.failed) {
-          showToast(
-            context,
-            'Please try again.',
-            title: 'Verification failed',
-            type: ToastType.error,
-          );
-        }
-      },
-      child: Focus(
-        focusNode: _focusNode,
-        onKeyEvent: (node, event) {
-          if (event is KeyDownEvent &&
-              (event.logicalKey == LogicalKeyboardKey.enter ||
-                  event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
-            _triggerContinue();
-            return KeyEventResult.handled;
+    return SecureScreen(
+      child: BlocListener<NewWalletBloc, NewWalletState>(
+        listener: (context, state) {
+          if (state.verificationStatus == VerificationStatus.failed) {
+            showToast(
+              context,
+              'Please try again.',
+              title: 'Verification failed',
+              type: ToastType.error,
+            );
           }
-          return KeyEventResult.ignored;
         },
-        child: Center(
-          // Walk-driven (06-03 Task 3), same systemic gutter fix as
-          // recovery_phrase_screen and 06-01's 67e2821: Padding OUTSIDE the
-          // ConstrainedBox so the inset is additive and wide-window centring is
-          // unchanged by construction.
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: GeniusWalletConsts.space8,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: GeniusBreakpoints.small,
+        child: Focus(
+          focusNode: _focusNode,
+          onKeyEvent: (node, event) {
+            if (event is KeyDownEvent &&
+                (event.logicalKey == LogicalKeyboardKey.enter ||
+                    event.logicalKey == LogicalKeyboardKey.numpadEnter)) {
+              _triggerContinue();
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          },
+          child: Center(
+            // Walk-driven (06-03 Task 3), same systemic gutter fix as
+            // recovery_phrase_screen and 06-01's 67e2821: Padding OUTSIDE the
+            // ConstrainedBox so the inset is additive and wide-window centring is
+            // unchanged by construction.
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space8,
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 16.0,
-                  children: [
-                    Text(
-                      "Verify Your Recovery Phrase",
-                      style: GeniusWalletTypography.headlineLg.copyWith(
-                        color: gw.textPrimary,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: GeniusBreakpoints.small,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 16.0,
+                    children: [
+                      Text(
+                        "Verify Your Recovery Phrase",
+                        style: GeniusWalletTypography.headlineLg.copyWith(
+                          color: gw.textPrimary,
+                        ),
                       ),
-                    ),
-                    Text(
-                      "Tap the words to put them next to each other in the correct order",
-                      style: GeniusWalletTypography.bodyMd.copyWith(
-                        color: gw.textSecondary,
+                      Text(
+                        "Tap the words to put them next to each other in the correct order",
+                        style: GeniusWalletTypography.bodyMd.copyWith(
+                          color: gw.textSecondary,
+                        ),
                       ),
-                    ),
-                    _InputAndWords(key: _inputAndWordsKey),
-                    // Walk-driven: full-width CTA on mobile; the 300px cap is a
-                    // desktop affordance.
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: isNarrow ? double.infinity : 300,
+                      _InputAndWords(key: _inputAndWordsKey),
+                      // Walk-driven: full-width CTA on mobile; the 300px cap is a
+                      // desktop affordance.
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: isNarrow ? double.infinity : 300,
+                        ),
+                        child: GWButton(
+                          label: 'Continue',
+                          variant: GWButtonVariant.gradient,
+                          size: GWButtonSize.lg,
+                          expand: true,
+                          onPressed: _triggerContinue,
+                        ),
                       ),
-                      child: GWButton(
-                        label: 'Continue',
-                        variant: GWButtonVariant.gradient,
-                        size: GWButtonSize.lg,
-                        expand: true,
-                        onPressed: _triggerContinue,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

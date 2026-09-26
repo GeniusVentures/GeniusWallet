@@ -47,6 +47,17 @@ class MainActivity: FlutterActivity() {
 						}
 					}
 
+					// Blanks screenshots, recordings and the recents preview while a
+					// recovery phrase is on screen.
+					"setSecure" -> {
+						if (call.arguments == true) {
+							window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+						} else {
+							window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+						}
+						result.success(null)
+					}
+
 					else -> result.notImplemented()
 				}
 			}
