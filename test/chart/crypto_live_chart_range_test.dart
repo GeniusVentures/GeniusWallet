@@ -1,9 +1,12 @@
 // The 1H/1D/1W/1M/1Y segment must change the range the chart asks for and
 // plots — it shipped once as a chip that moved and changed nothing.
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/chart/crypto_live_chart.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// Records each requested day count and answers with 48 half-hourly points
@@ -48,6 +51,39 @@ int _plottedSpots(WidgetTester tester) => tester
     .length;
 
 void main() {
+  testWidgets('a range still loading shows the spinner, not a flat line', (
+    tester,
+  ) async {
+    final pending = Completer<Map<int, double>>();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        home: Scaffold(
+          body: SizedBox(
+            width: 800,
+            height: 400,
+            child: CryptoLiveChart(
+              coinGeckoCoinId: 'bitcoin',
+              tokenSymbol: 'btc',
+              priceHeight: 20,
+              showPriceHeader: false,
+              fetchHistory: (_, {days = 1}) => pending.future,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(Loading), findsOneWidget);
+    expect(find.byType(LineChart), findsNothing);
+
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    pending.complete({now - 60: 1.0, now: 2.0});
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(Loading), findsNothing);
+  });
+
   testWidgets('tapping a tab re-fetches and re-plots that range', (
     tester,
   ) async {
