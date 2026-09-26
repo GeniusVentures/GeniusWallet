@@ -77,6 +77,18 @@ class _RenameApi implements GeniusApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Holds every delete until [gate] opens, so two can be in flight at once.
+class _GatedDeleteApi extends _RenameApi {
+  final gate = Completer<void>();
+  final calls = <String>[];
+
+  @override
+  Future<void> deleteWallet(String address) async {
+    calls.add(address);
+    await gate.future;
+  }
+}
+
 class _SeededAppBloc extends AppBloc {
   _SeededAppBloc({
     required super.api,
@@ -469,6 +481,39 @@ void main() {
           appBloc.state.wallets.where((w) => w.address == _addrA),
           isEmpty,
         );
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    });
+
+    testWidgets('two deletes at once cannot remove both wallets', (
+      tester,
+    ) async {
+      final main = _eth('Main wallet', _addrA);
+      final api = _GatedDeleteApi();
+      final cubit = _CountingCubit(
+        initialState: WalletDetailsState(selectedWallet: main),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [main, _eth('Savings', _addrB)],
+      );
+      try {
+        appBloc
+          ..add(DeleteWallet(_addrA))
+          ..add(DeleteWallet(_addrB));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        api.gate.complete();
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        expect(api.calls, [_addrA]);
       } finally {
         await tester.runAsync(() => appBloc.close());
         await cubit.close();
