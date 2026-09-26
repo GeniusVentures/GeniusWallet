@@ -18,7 +18,6 @@ import 'package:genius_wallet/dashboard/assets/assets_sort.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_coin.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
-import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_decorations.dart';
@@ -292,7 +291,7 @@ class CoinsScreenState extends State<CoinsScreen> {
           return LayoutBuilder(
             builder: (context, constraints) {
               // Bounded (the desktop slot, the coin picker): only the rows
-              // scroll, so the Receive / Buy GNUS / Send actions stay in view.
+              // scroll, so the Receive / Buy GNUS actions stay in view.
               // Unbounded (the phone dashboard, inside the page scroll): hug.
               final bool hug = !constraints.maxHeight.isFinite;
               final rows = <Widget>[
@@ -332,9 +331,6 @@ class CoinsScreenState extends State<CoinsScreen> {
                       i < orderedCoins.length - 1)
                     Divider(height: 1, thickness: 1, color: gw.borderSubtle),
                 ],
-                // Value-empty footer: the truly-no-coins case is handled above
-                // by the state.coins.isEmpty -> GWEmptyState branch; this strip
-                // covers a wallet that HAS coins but holds no value (total==0).
               ];
               return Column(
                 mainAxisSize: hug ? MainAxisSize.min : MainAxisSize.max,
@@ -397,8 +393,6 @@ class CoinsScreenState extends State<CoinsScreen> {
                   // absorb - so this is documentation debt, recorded here, to be
                   // paid in a docs-only pass.
                   //
-                  // The value-empty footer's `if (isDashboard && total == 0)`
-                  // branch further down is untouched by all of this, and
                   // `state.coins.isEmpty` still returns a `GWEmptyState` above
                   // this header, so the band never renders against no data.
                   if (isDashboard) ...[
@@ -474,7 +468,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                         child: Column(children: rows),
                       ),
                     ),
-                  if (isDashboard && total == 0)
+                  if (isDashboard)
                     Padding(
                       // top space8 mirrors the header's bottom space8 so the gap
                       // above the CTAs matches the Assets→first-row gap.
@@ -509,25 +503,6 @@ class CoinsScreenState extends State<CoinsScreen> {
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                  // Dashboard Send entry point, keyed off HOLDINGS, not
-                  // `total` -- a testnet coin carries no CoinGecko price, so
-                  // `total` reads zero even on a funded wallet. Opens the
-                  // picker (`/send` with no extra), never a preselected coin.
-                  if (isDashboard &&
-                      state.coins.any((coin) => (coin.balance ?? 0) > 0) &&
-                      canSendFrom(state.selectedWallet, state.selectedNetwork))
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: GeniusWalletConsts.space8,
-                      ),
-                      child: GWButton(
-                        variant: GWButtonVariant.gradientOutline,
-                        size: GWButtonSize.sm,
-                        label: 'Send',
-                        expand: true,
-                        onPressed: () => context.push('/send'),
                       ),
                     ),
                 ],

@@ -1,6 +1,5 @@
-// The dashboard entry point: a Send button on the Assets panel that opens
-// the coin picker (`/send` with no extra), gated on holding SOMETHING on a
-// network the wallet can actually sign on.
+// The dashboard Assets panel offers Receive and Buy GNUS for every wallet,
+// funded or not; sending starts from a token's own page, not from here.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,9 +29,6 @@ const _amoy = Network(
   chainId: 80002,
   rpcUrl: 'https://rpc.invalid',
 );
-
-/// `canSignOn` refuses this one: no `rpcUrl`.
-const _noRpc = Network(name: 'No RPC', symbol: 'eth', chainId: 1);
 
 Wallet _walletOf(WalletType type) => Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -90,61 +86,35 @@ Widget _routedHost(WalletDetailsCubit cubit, List<Object?> pushed) {
 }
 
 void main() {
-  testWidgets('a funded, signable wallet shows Send and reaches /send bare', (
+  Future<void> pump(WidgetTester tester, WalletDetailsCubit cubit) async {
+    await tester.pumpWidget(_routedHost(cubit, []));
+    await tester.pump();
+  }
+
+  testWidgets('a funded wallet shows Receive and Buy GNUS, and no Send', (
     tester,
   ) async {
-    final cubit = _cubit(coins: [_coin('USDC', balance: 10)], network: _amoy);
-    final pushed = <Object?>[];
+    await pump(
+      tester,
+      _cubit(coins: [_coin('USDC', balance: 10)], network: _amoy),
+    );
 
-    await tester.pumpWidget(_routedHost(cubit, pushed));
-    await tester.pump();
-
-    expect(find.widgetWithText(GWButton, 'Send'), findsOneWidget);
-
-    await tester.tap(find.widgetWithText(GWButton, 'Send'));
-    await tester.pumpAndSettle();
-
-    expect(pushed, [null]);
-  });
-
-  testWidgets('a network with no rpcUrl shows no Send', (tester) async {
-    final cubit = _cubit(coins: [_coin('USDC', balance: 10)], network: _noRpc);
-
-    await tester.pumpWidget(_routedHost(cubit, []));
-    await tester.pump();
-
+    expect(find.widgetWithText(GWButton, 'Receive'), findsOneWidget);
+    expect(find.widgetWithText(GWButton, 'Buy GNUS'), findsOneWidget);
     expect(find.widgetWithText(GWButton, 'Send'), findsNothing);
   });
 
-  testWidgets('a watch-only or SDK wallet shows no Send', (tester) async {
-    for (final type in [WalletType.tracking, WalletType.sgnus]) {
-      final cubit = _cubit(
-        coins: [_coin('USDC', balance: 10)],
-        network: _amoy,
-        walletType: type,
-      );
+  testWidgets('an all-zero wallet shows Receive and Buy GNUS', (tester) async {
+    await pump(
+      tester,
+      _cubit(coins: [_coin('USDC', balance: 0)], network: _amoy),
+    );
 
-      await tester.pumpWidget(_routedHost(cubit, []));
-      await tester.pump();
-
-      expect(
-        find.widgetWithText(GWButton, 'Send'),
-        findsNothing,
-        reason: '$type',
-      );
-    }
+    expect(find.widgetWithText(GWButton, 'Receive'), findsOneWidget);
+    expect(find.widgetWithText(GWButton, 'Buy GNUS'), findsOneWidget);
   });
 
-  testWidgets('all-zero balances show no Send', (tester) async {
-    final cubit = _cubit(coins: [_coin('USDC', balance: 0)], network: _amoy);
-
-    await tester.pumpWidget(_routedHost(cubit, []));
-    await tester.pump();
-
-    expect(find.widgetWithText(GWButton, 'Send'), findsNothing);
-  });
-
-  testWidgets('the picker reuse (onCoinSelected set) never shows Send', (
+  testWidgets('the picker reuse (onCoinSelected set) shows no actions', (
     tester,
   ) async {
     final cubit = _cubit(coins: [_coin('USDC', balance: 10)], network: _amoy);
@@ -160,6 +130,7 @@ void main() {
     );
     await tester.pump();
 
+    expect(find.widgetWithText(GWButton, 'Receive'), findsNothing);
     expect(find.widgetWithText(GWButton, 'Send'), findsNothing);
   });
 }
