@@ -1,0 +1,41 @@
+// At the two-column width (the 1440 default window) the chart owns the whole
+// left column; halved with Markets it drew a flat line.
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
+
+Future<void> _pumpAt(WidgetTester tester, double width) async {
+  tester.view.physicalSize = Size(width, 900);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  // Only the layout is under test. The panels' blocs and API are not
+  // provided, so those panels build as error widgets; their errors are muted.
+  final original = FlutterError.onError;
+  FlutterError.onError = (_) {};
+  try {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        home: const Scaffold(body: ResponsiveDashboardView()),
+      ),
+    );
+  } finally {
+    FlutterError.onError = original;
+  }
+}
+
+void main() {
+  testWidgets('two columns: the chart shows, the Markets panel does not', (
+    tester,
+  ) async {
+    await _pumpAt(tester, 1440);
+
+    expect(find.byType(ChartDashboardView), findsOneWidget);
+    expect(find.byType(MarketsDashboardView), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+}
