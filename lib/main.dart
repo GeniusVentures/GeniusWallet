@@ -32,17 +32,16 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/web/windows_webview_shutdown.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:window_manager/window_manager.dart';
 
 // ignore: unused_element
 Future<void> _attachSdkLogsToHint(Hint hint) async {
-  final docsDir = await getApplicationDocumentsDirectory();
+  final dataDir = await appDataDirectory();
   final logFiles = [
-    File('${docsDir.path}${Platform.pathSeparator}sgnslog.log'),
-    File('${docsDir.path}${Platform.pathSeparator}sgnslog2.log'),
+    File('${dataDir.path}${Platform.pathSeparator}sgnslog.log'),
+    File('${dataDir.path}${Platform.pathSeparator}sgnslog2.log'),
   ];
 
   final attachedFileNames = hint.attachments.map((a) => a.filename).toSet();

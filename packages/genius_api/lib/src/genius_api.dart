@@ -31,7 +31,6 @@ import 'package:genius_api/web3/api_response.dart';
 import 'package:genius_api/web3/send_service.dart';
 import 'package:genius_api/web3/web3.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:genius_api/proto/SGTransaction.pb.dart';
 import 'package:flutter/services.dart'
     show MethodChannel, PlatformException, rootBundle;
@@ -381,7 +380,7 @@ class GeniusApi {
 
   Future<String> prepareConfigFiles() async {
     try {
-      final directory = await getApplicationDocumentsDirectory();
+      final directory = await appDataDirectory();
       debugPrint('Base path directory: ${directory.path}');
 
       final overridesDir = Directory('${directory.path}/$_overridesDirName');
