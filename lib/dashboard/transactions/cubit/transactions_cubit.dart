@@ -38,7 +38,10 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
     if (generation != _loadGeneration) {
       return;
     }
-    _transactions.addAll(txs);
+    // A row already shown came from replaceTransaction during the read, so
+    // it is newer than the stored copy; Transaction has identity equality.
+    final shown = _transactions.map((t) => t.hash).toSet();
+    _transactions.addAll(txs.where((t) => shown.add(t.hash)));
     emit(_sorted());
   }
 
