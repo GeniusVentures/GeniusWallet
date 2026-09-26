@@ -1,7 +1,7 @@
 ---
 phase: 24
 name: Mobile nav shell - center dock, wallet header, two-section accounts sheet
-status: in-progress
+status: complete
 started: 2026-08-06
 sketches: [171, 172, 173, 174]
 decisions_by: Jakub, 2026-08-06
