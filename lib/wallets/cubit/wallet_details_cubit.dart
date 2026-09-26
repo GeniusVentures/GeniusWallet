@@ -9,7 +9,9 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
+import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'wallet_details_state.dart';
 
@@ -149,9 +151,27 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     emit(state.copyWith(selectedCoin: coin));
   }
 
-  void selectWallet(Wallet wallet) {
+  /// Selects [wallet] and persists it for the next launch, with its type:
+  /// an SDK account made from a local wallet's key shares its address.
+  Future<void> selectWallet(Wallet wallet) async {
     emit(state.copyWith(selectedWallet: wallet));
     getCoins();
+    final box = Hive.box(walletBoxName);
+    await box.put(selectedWalletKey, wallet.address);
+    await box.put(selectedWalletTypeKey, wallet.walletType.name);
+  }
+
+  /// The wallet [selectWallet] last persisted, else the first one. With no
+  /// stored type (older installs) the user's own wallet wins over an SDK one.
+  static Wallet restoreSelectedWallet(List<Wallet> wallets) {
+    final box = Hive.box(walletBoxName);
+    final address = box.get(selectedWalletKey) as String?;
+    final type = box.get(selectedWalletTypeKey) as String?;
+    final matches = wallets.where((w) => w.address == address);
+    return matches.where((w) => w.walletType.name == type).firstOrNull ??
+        matches.where((w) => w.walletType != WalletType.sgnus).firstOrNull ??
+        matches.firstOrNull ??
+        wallets.first;
   }
 
   /// A rename is metadata only: it must not refetch holdings like a reselect.

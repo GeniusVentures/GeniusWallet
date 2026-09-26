@@ -11,7 +11,6 @@ import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
-import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -22,7 +21,6 @@ import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
 /// The account drawer, extracted from `AccountDropdownSelector`'s former
@@ -37,11 +35,9 @@ class AccountDrawer {
   /// Opens the drawer and returns the wallet the user selected, or `null` if
   /// they dismissed it without picking one.
   ///
-  /// The selection's real side effects - the [WalletDetailsCubit] update and
-  /// the Hive persistence write - happen HERE, inside the entry, rather than
-  /// at the call site. Every caller wants both; leaving either one at the
-  /// call site would mean a caller could forget it, and forgetting the Hive
-  /// write would silently stop wallet selection persisting across restarts.
+  /// The selection's side effect - [WalletDetailsCubit.selectWallet], which
+  /// also persists it across restarts - happens HERE, inside the entry, so no
+  /// caller can forget it.
   ///
   /// [includeNetwork] prepends a network field and retitles the sheet, which
   /// is what the phone header's single wallet pill opens: one surface
@@ -105,8 +101,7 @@ class AccountDrawer {
       return null;
     }
 
-    walletCubit.selectWallet(selected);
-    await Hive.box(walletBoxName).put(selectedWalletKey, selected.address);
+    await walletCubit.selectWallet(selected);
 
     return selected;
   }

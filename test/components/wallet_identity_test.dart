@@ -321,6 +321,7 @@ void main() {
         expect(api.deleted, _addrA);
         expect(cubit.state.selectedWallet?.address, _addrB);
         expect(box.get(selectedWalletKey), _addrB);
+        expect(box.get(selectedWalletTypeKey), WalletType.sgnus.name);
         expect(find.text('MW'), findsNothing);
       } finally {
         await tester.runAsync(() => appBloc.close());
@@ -440,6 +441,35 @@ void main() {
         await tester.runAsync(() => appBloc.close());
         await cubit.close();
       }
+    });
+
+    group('restoring the selection', () {
+      final local = _eth('Main wallet', _addrA);
+      final sdkSameKey = _eth(
+        'Super Genius Wallet',
+        _addrA,
+      ).copyWith(walletType: WalletType.sgnus);
+      // SDK accounts are listed first, as the SGNUS merge orders them.
+      final wallets = [sdkSameKey, local, _eth('Savings', _addrB)];
+
+      test('matches the stored type when an SDK account shares the '
+          'address', () async {
+        await box.put(selectedWalletKey, _addrA);
+        await box.put(selectedWalletTypeKey, WalletType.privateKey.name);
+        expect(WalletDetailsCubit.restoreSelectedWallet(wallets), local);
+
+        await box.put(selectedWalletTypeKey, WalletType.sgnus.name);
+        expect(WalletDetailsCubit.restoreSelectedWallet(wallets), sdkSameKey);
+      });
+
+      test('without a stored type, the local wallet wins', () async {
+        await box.put(selectedWalletKey, _addrA);
+        expect(WalletDetailsCubit.restoreSelectedWallet(wallets), local);
+      });
+
+      test('nothing stored restores the first wallet', () {
+        expect(WalletDetailsCubit.restoreSelectedWallet(wallets), sdkSameKey);
+      });
     });
 
     testWidgets('the last wallet cannot be deleted', (tester) async {
