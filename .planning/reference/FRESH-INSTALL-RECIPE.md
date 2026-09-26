@@ -8,6 +8,11 @@ Jakub on 2026-07-22** — do not propose it again. A documented, verified manual
 document is right — that todo was written from a painful live session and two of its four layers do
 not exist here.
 
+**Which folder?** An install whose `Documents` held `wallet.hive` or `secure_storage_id` at launch
+keeps using `Documents`. Any other Windows install keeps layers 1-2 in
+`%LOCALAPPDATA%\GeniusVentures\GeniusWallet`. So deleting those two Documents markers turns the next
+launch into a new install, and the recipe below clears both folders.
+
 ---
 
 ## ⛔ Do this first: do NOT touch Windows Credential Manager
@@ -27,8 +32,9 @@ Deletion is irreversible for layer 3. Check first — it is often unnecessary.
 
 ```powershell
 # The node-directory count is the signal that actually works. Use it.
-$n = @(Get-ChildItem "$env:USERPROFILE\Documents\SuperGNUSNode.Node.*" -EA SilentlyContinue).Count
-"node dirs         : $n   <- 0 = fresh, >=1 = a wallet exists"
+$n = @(Get-ChildItem "$env:USERPROFILE\Documents\SuperGNUSNode.Node.*",
+         "$env:LOCALAPPDATA\GeniusVentures\GeniusWallet\SuperGNUSNode.Node.*" -EA SilentlyContinue).Count
+"node dirs (both)  : $n   <- 0 = fresh, >=1 = a wallet exists"
 
 # Informational only. NEITHER of these is trustworthy on its own — a wallet
 # imported end-to-end left wallet.hive at 0 bytes (measured 2026-07-22).
@@ -80,8 +86,8 @@ Only layers 1–3 exist on Windows. Layer 4 is recorded in the old todo and **is
 
 | # | Location | Holds | Present 2026-07-22? |
 |---|---|---|---|
-| 1 | `%USERPROFILE%\Documents\*.hive` + `*.lock` | Hive boxes — `wallet`, `preferences`, `network`, caches, **and per-wallet `transactions_0x<address>.hive` boxes** | yes |
-| 2 | `%USERPROFILE%\Documents\SuperGNUSNode.Node.*` | native SuperGenius RocksDB node identity | **no — zero present** |
+| 1 | `%USERPROFILE%\Documents\*.hive` + `*.lock`, or the same in `%LOCALAPPDATA%\GeniusVentures\GeniusWallet` | Hive boxes — `wallet`, `preferences`, `network`, caches, **and per-wallet `transactions_0x<address>.hive` boxes** | yes |
+| 2 | `%USERPROFILE%\Documents\SuperGNUSNode.Node.*`, or the same in `%LOCALAPPDATA%\GeniusVentures\GeniusWallet` | native SuperGenius RocksDB node identity | **no — zero present** |
 | 3 | `%APPDATA%\com.example\genius_wallet\flutter_secure_storage.dat` | **seeds, private keys, PIN** — the one that matters | yes, 310 B |
 | 4 | ~~`shared_preferences.json`~~ | — | **DOES NOT EXIST.** The only copies on this box belong to unrelated "NoPing" software. Do not delete those. |
 
@@ -111,6 +117,14 @@ $targets = @(
   "$env:APPDATA\com.example\genius_wallet\flutter_secure_storage.dat"
   "$env:USERPROFILE\Documents\overrides"
   "$env:USERPROFILE\Documents\*_config.json"
+  # Exact names only: Documents also holds the user's own files.
+  "$env:USERPROFILE\Documents\secure_storage_id"
+  "$env:USERPROFILE\Documents\sgnslog.log"
+  "$env:USERPROFILE\Documents\sgnslog2.log"
+  "$env:USERPROFILE\Documents\my_tasks.json"
+  "$env:USERPROFILE\Documents\ipfs_cache"
+  # A new install's whole folder; never its GeniusVentures parent.
+  "$env:LOCALAPPDATA\GeniusVentures\GeniusWallet"
 )
 
 foreach ($t in $targets) {
