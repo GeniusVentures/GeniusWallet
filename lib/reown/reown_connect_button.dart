@@ -324,7 +324,9 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
         _isConnecting = false;
         _hasError = true;
       });
-      debugPrint('❌ Connection failed: $e');
+      // walletKit.pair and Uri.parse can quote the link in their exception,
+      // and the link carries a symKey -- log the type only.
+      debugPrint('❌ Connection failed: ${e.runtimeType}');
     }
   }
 
@@ -333,7 +335,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       await walletKit.pair(uri: uri);
       return true;
     } catch (e) {
-      debugPrint('❌ WalletKit pair failed: $e');
+      debugPrint('❌ WalletKit pair failed: ${e.runtimeType}');
       if (mounted) {
         setState(() {
           _isConnecting = false;
