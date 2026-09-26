@@ -2,6 +2,7 @@
 // left column; halved with Markets it drew a flat line.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -40,4 +41,30 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets(
+    'the chosen range survives crossing the three-column breakpoint',
+    (tester) async {
+      await _pumpAt(tester, 1440);
+      final original = FlutterError.onError;
+      FlutterError.onError = (_) {};
+      try {
+        await tester.tap(find.text('1Y'));
+        await tester.pump();
+        // Wider than the breakpoint: the layout swaps and rebuilds the card.
+        tester.view.physicalSize = const Size(1700, 900);
+        await tester.pump();
+      } finally {
+        FlutterError.onError = original;
+      }
+
+      expect(find.byType(MarketsDashboardView), findsOneWidget);
+      final segment = tester.widget<GWTimeframeSegment>(
+        find.byType(GWTimeframeSegment),
+      );
+      expect(segment.initialIndex, 4);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 }

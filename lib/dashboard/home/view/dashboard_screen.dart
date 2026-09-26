@@ -623,7 +623,28 @@ class ChartDashboardView extends StatefulWidget {
 }
 
 class _ChartDashboardViewState extends State<ChartDashboardView> {
+  // Kept in the route's PageStorage: crossing a dashboard breakpoint rebuilds
+  // this card, and a resize alone must not reset the chosen range.
+  static const _rangeStorageId = 'dashboard-chart-range';
   int _rangeIndex = 1;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final stored = PageStorage.maybeOf(
+      context,
+    )?.readState(context, identifier: _rangeStorageId);
+    if (stored is int) {
+      _rangeIndex = stored;
+    }
+  }
+
+  void _setRange(int index) {
+    PageStorage.maybeOf(
+      context,
+    )?.writeState(context, index, identifier: _rangeStorageId);
+    setState(() => _rangeIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -634,7 +655,7 @@ class _ChartDashboardViewState extends State<ChartDashboardView> {
         children: [
           _ChartSectionHeader(
             rangeIndex: _rangeIndex,
-            onRangeChanged: (i) => setState(() => _rangeIndex = i),
+            onRangeChanged: _setRange,
           ),
           Expanded(
             child: CryptoLiveChart(
