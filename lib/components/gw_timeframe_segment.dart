@@ -23,12 +23,9 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 /// **Uncontrolled, plus an optional callback — not fully controlled.** Tapping
 /// a tab always moves the selected chip locally; [onChanged], when supplied,
 /// additionally reports the tapped index so a consumer can react (re-fetch,
-/// re-window a series). The dashboard and coin-page chart header pass no
-/// callback, so they stay exactly as visual as before. The Markets hero
-/// (`markets_hero_card.dart`, quick 260807-bxs) is the first consumer that
-/// does, closing
-/// `.planning/todos/pending/2026-07-24-unify-timeframe-segment-component.md`
-/// with its own `24H/7D/30D/1Y` [labels] — the reason this stays uncontrolled
+/// re-window a series). Every current call site (the Markets hero with its
+/// own `24H/7D/30D/1Y` [labels], the dashboard and the coin-page chart header)
+/// passes one to re-fetch its chart — the reason this stays uncontrolled
 /// rather than gaining a required `selectedIndex` is that a failed fetch
 /// should leave the tapped tab selected and show the error in the chart box
 /// instead, which a controlled component would make the parent responsible
@@ -49,8 +46,7 @@ class GWTimeframeSegment extends StatefulWidget {
   final List<String> labels;
 
   /// Reports the tapped index, after the chip has already moved. Null (the
-  /// default) keeps a consumer purely visual — the dashboard and coin-page
-  /// call sites pass none, and this widget renders byte-identically for them.
+  /// default) keeps a consumer purely visual.
   final ValueChanged<int>? onChanged;
 
   @override

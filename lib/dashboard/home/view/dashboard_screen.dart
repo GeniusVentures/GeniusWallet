@@ -620,22 +620,35 @@ class _MarketsErrorScrollSafe extends StatelessWidget {
   }
 }
 
-class ChartDashboardView extends StatelessWidget {
+/// Owns the selected range because the timeframe segment lives in the header,
+/// outside the chart it drives.
+class ChartDashboardView extends StatefulWidget {
   const ChartDashboardView({super.key});
 
   @override
+  State<ChartDashboardView> createState() => _ChartDashboardViewState();
+}
+
+class _ChartDashboardViewState extends State<ChartDashboardView> {
+  int _rangeIndex = 1;
+
+  @override
   Widget build(BuildContext context) {
-    return const DashboardScrollContainer(
+    return DashboardScrollContainer(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ChartSectionHeader(),
+          _ChartSectionHeader(
+            rangeIndex: _rangeIndex,
+            onRangeChanged: (i) => setState(() => _rangeIndex = i),
+          ),
           Expanded(
             child: CryptoLiveChart(
               coinGeckoCoinId: 'bitcoin',
               tokenSymbol: 'btc',
               priceHeight: 28,
+              rangeIndex: _rangeIndex,
             ),
           ),
         ],
@@ -645,8 +658,8 @@ class ChartDashboardView extends StatelessWidget {
 }
 
 /// A→ header for the Bitcoin Chart card (sketch 006): coin identity on the
-/// left, a visual-only 1H·1D·1W·1M·1Y timeframe segment on the right, pushed
-/// apart on one row.
+/// left, the 1H·1D·1W·1M·1Y timeframe segment on the right, pushed apart on
+/// one row.
 ///
 /// Reproduces GWSectionTitle's TOP geometry exactly - the same `space4`
 /// horizontal inset, the same 2px top pad, the same 44px reserved min-height -
@@ -657,7 +670,13 @@ class ChartDashboardView extends StatelessWidget {
 /// else's 26 ON PURPOSE, which is why it is a local widget and not a
 /// `GWSectionTitle` call.
 class _ChartSectionHeader extends StatelessWidget {
-  const _ChartSectionHeader();
+  const _ChartSectionHeader({
+    required this.rangeIndex,
+    required this.onRangeChanged,
+  });
+
+  final int rangeIndex;
+  final ValueChanged<int> onRangeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -674,10 +693,17 @@ class _ChartSectionHeader extends StatelessWidget {
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 44),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: [_CoinIdentity(), GWTimeframeSegment()],
+          children: [
+            const _CoinIdentity(),
+            GWTimeframeSegment(
+              labels: [for (final r in kLiveChartRanges) r.label],
+              initialIndex: rangeIndex,
+              onChanged: onRangeChanged,
+            ),
+          ],
         ),
       ),
     );

@@ -8,6 +8,8 @@ import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/components/pulsing_skeleton.dart';
+import 'package:genius_wallet/dashboard/chart/markets_hero_card.dart'
+    show chooseAxisDateFormat;
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -48,7 +50,7 @@ double compactPriceFontSize({
 ///
 /// **It is computed over the points inside the CURRENT X view, and that is the
 /// whole fix.** It used to reduce over the entire series while the X window
-/// showed only the last 50 points (`_fetchHistoricalData` sets it that way), so
+/// showed only the last 50 points of a longer fetch, so
 /// the ruler was set by prices that were not on screen. On a coin sitting 98%
 /// below its all-time high, that turns the visible slice into a flat line
 /// pinned to the bottom of the card - Jakub, 2026-07-28: *"ten chart jest
@@ -99,6 +101,16 @@ double compactPriceFontSize({
   return (lowest - span * 0.08, highest + span * 0.08);
 }
 
+/// The 1H/1D/1W/1M/1Y tabs: the days asked of `fetchHistoricalPrices` and the
+/// window plotted. CoinGecko has no sub-day range, so 1H windows the 1D series.
+const List<({String label, int days, Duration window})> kLiveChartRanges = [
+  (label: '1H', days: 1, window: Duration(hours: 1)),
+  (label: '1D', days: 1, window: Duration(days: 1)),
+  (label: '1W', days: 7, window: Duration(days: 7)),
+  (label: '1M', days: 30, window: Duration(days: 30)),
+  (label: '1Y', days: 365, window: Duration(days: 365)),
+];
+
 class CryptoLiveChart extends StatefulWidget {
   final String coinGeckoCoinId;
   final String tokenSymbol;
@@ -117,6 +129,16 @@ class CryptoLiveChart extends StatefulWidget {
   /// existing caller renders byte-for-behavior identically.
   final bool showPriceHeader;
 
+  /// Index into [kLiveChartRanges] for a host that owns the timeframe segment
+  /// (the dashboard). The chart-owned header drives the range itself.
+  final int rangeIndex;
+
+  /// Seam over `fetchHistoricalPrices`, which opens a Hive box — real Hive I/O
+  /// hangs inside `testWidgets`.
+  @visibleForTesting
+  final Future<Map<int, double>> Function(String coinId, {int days})
+  fetchHistory;
+
   const CryptoLiveChart({
     super.key,
     required this.coinGeckoCoinId,
@@ -124,6 +146,8 @@ class CryptoLiveChart extends StatefulWidget {
     this.priceHeight = 48,
     this.child,
     this.showPriceHeader = true,
+    this.rangeIndex = 1,
+    this.fetchHistory = fetchHistoricalPrices,
   });
 
   @override
@@ -145,10 +169,10 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   // skeleton forever.
   bool _loadAttempted = false;
 
-  // The visible X window. No zoom/pan controls drive this anymore (the four
-  // buttons were replaced by the timeframe segment, 078-S1) — it still
-  // initialises to "the last 50 points" and moves with each live tick, which
-  // is what `chartYBounds`, `minX` and `maxX` read.
+  late int _rangeIndex = widget.rangeIndex;
+
+  // The visible X window: the selected range, ending at the newest point and
+  // moving with each live tick. `chartYBounds`, `minX` and `maxX` read it.
   double? _viewMinX, _viewMaxX;
 
   bool get _hasData => _priceData.isNotEmpty;
@@ -164,36 +188,64 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   @override
+  void didUpdateWidget(CryptoLiveChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.rangeIndex != oldWidget.rangeIndex) {
+      _selectRange(widget.rangeIndex);
+    }
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
   }
 
+  /// Drops the old series so the new range shows the skeleton, then its own
+  /// series or the empty state — never the previous range under a new label.
+  void _selectRange(int index) {
+    setState(() {
+      _rangeIndex = index;
+      _priceData = [];
+      _loadAttempted = false;
+      _isHovering = false;
+      _hoveredPrice = null;
+      _hoveredX = null;
+    });
+    _fetchHistoricalData();
+  }
+
+  // Trims the series to the selected range's window, ending at its newest
+  // point, and measures the % change from the window's first point.
+  void _applyWindow() {
+    final double start =
+        _priceData.last.x - kLiveChartRanges[_rangeIndex].window.inSeconds;
+    _priceData.removeWhere((s) => s.x < start);
+    _oldestPrice = _priceData.first.y;
+    _latestPrice = _priceData.last.y;
+    _viewMinX = _priceData.first.x;
+    _viewMaxX = _priceData.last.x;
+  }
+
   Future<void> _fetchHistoricalData() async {
+    final int requested = _rangeIndex;
     try {
-      final historicalPrices = await fetchHistoricalPrices(
+      final historicalPrices = await widget.fetchHistory(
         widget.coinGeckoCoinId,
+        days: kLiveChartRanges[requested].days,
       );
 
+      // A later tab tap owns the chart now; this answer is for a stale range.
+      if (!mounted || requested != _rangeIndex) {
+        return;
+      }
       if (historicalPrices.isNotEmpty) {
-        final historicalData = historicalPrices.entries
-            .map((entry) => FlSpot(entry.key.toDouble(), entry.value))
-            .toList();
-
-        if (!mounted) {
-          return;
-        }
+        final keys = historicalPrices.keys.toList()..sort();
         setState(() {
-          _priceData = historicalData;
-          _latestPrice = _priceData.last.y;
-          _oldestPrice = _priceData.first.y;
-
-          // Set initial zoom window (show last 50 points)
-          final totalPoints = _priceData.length;
-          _viewMinX = totalPoints > 50
-              ? _priceData[totalPoints - 50].x
-              : _priceData.first.x;
-          _viewMaxX = _priceData.last.x;
+          _priceData = [
+            for (final k in keys) FlSpot(k.toDouble(), historicalPrices[k]!),
+          ];
+          _applyWindow();
         });
       }
     } catch (_) {
@@ -203,7 +255,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       // this code path, but the rule holds regardless: never log a caught
       // network error into anything that could later carry wallet data.
     } finally {
-      if (mounted) {
+      if (mounted && requested == _rangeIndex) {
         setState(() {
           _loadAttempted = true;
         });
@@ -226,24 +278,15 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
   }
 
   void _addNewPricePoint(double newPrice) {
-    if (!mounted) {
+    // An empty series is a range still loading or one that failed; a lone
+    // live tick must not replace its skeleton or empty state.
+    if (!mounted || _priceData.isEmpty) {
       return;
     }
     setState(() {
       final newTime = DateTime.now().millisecondsSinceEpoch / 1000.0;
-      _priceData.add(FlSpot(newTime.toDouble(), newPrice));
-      _latestPrice = newPrice;
-
-      // Keep the latest 50 points for display
-      if (_priceData.length > 50) {
-        _priceData.removeAt(0);
-      }
-      // Move view window with new points (keep last 50 in view)
-      final totalPoints = _priceData.length;
-      _viewMinX = totalPoints > 50
-          ? _priceData[totalPoints - 50].x
-          : _priceData.first.x;
-      _viewMaxX = _priceData.last.x;
+      _priceData.add(FlSpot(newTime, newPrice));
+      _applyWindow();
     });
   }
 
@@ -262,7 +305,9 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
 
   String _formatTime(int timestamp) {
     final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    return DateFormat('h:mm a').format(dateTime);
+    return chooseAxisDateFormat(
+      kLiveChartRanges[_rangeIndex].window,
+    ).format(dateTime);
   }
 
   /// The hovered sample's time, or `Latest` when nothing is hovered — the
@@ -472,6 +517,8 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                   // _ChartHeaderRow's only use of this colour is its % Text.
                   trendColor: trendTextColor,
                   timeLabel: _hoverTimeLabel,
+                  rangeIndex: _rangeIndex,
+                  onRangeChanged: _selectRange,
                 ),
               if (widget.child != null) widget.child!,
               if (_hasData)
@@ -561,6 +608,8 @@ class _ChartHeaderRow extends StatelessWidget {
     required this.percentChange,
     required this.trendColor,
     required this.timeLabel,
+    required this.rangeIndex,
+    required this.onRangeChanged,
   });
 
   final bool hasData;
@@ -568,6 +617,8 @@ class _ChartHeaderRow extends StatelessWidget {
   final double percentChange;
   final Color trendColor;
   final String timeLabel;
+  final int rangeIndex;
+  final ValueChanged<int> onRangeChanged;
 
   // Below this card width, the five-tab timeframe segment and a six-figure
   // price cannot both fit alongside every readout field, so the hovered
@@ -641,7 +692,11 @@ class _ChartHeaderRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: GeniusWalletConsts.space4),
-            const GWTimeframeSegment(),
+            GWTimeframeSegment(
+              labels: [for (final r in kLiveChartRanges) r.label],
+              initialIndex: rangeIndex,
+              onChanged: onRangeChanged,
+            ),
           ],
         );
       },
