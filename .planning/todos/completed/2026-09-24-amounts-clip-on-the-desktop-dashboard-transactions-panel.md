@@ -12,3 +12,13 @@ On desktop the dashboard panel (about 376px) keeps the 44px time column, leaving
 ## Fix direction
 
 Drop the time column when the row (not the window) is narrow, put the fiat value on one line, or abbreviate large magnitudes. Ship with a real-font width test shaped like `transaction_row_subtitle_test.dart`. Reserving a fixed 96px for the amount stays rejected.
+
+## Resolution
+
+The narrow row split the name block and the amount 1:1, so the amount got a fixed half whatever it
+needed. The amount now keeps its natural width and the name block takes the rest, down to a floor
+of the status-tail cap plus its gutter, so the subtitle gives way first. The time column stays.
+`test/dashboard/transaction_row_amount_width_test.dart` checks that `+ 476.18 USDC`,
+`- 1.25 WSTETH`, `+ 1,476.18 USDC` and `+ 12,345.67 USDC` draw whole at 376px in real Inter. The
+subtitle ledger's lead-cut allowlist shrank (mint, escrow and most transfer cells no longer cut).
+Swaps still cut `Swapped` on every status with a tail, now more deeply, because their amount is wide.
