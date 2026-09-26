@@ -5,6 +5,7 @@
 // the drawer this one follows in the connect flow.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/reown/pair_dapp_drawer.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -62,6 +63,19 @@ void main() {
         expect(find.byType(TextField), findsOneWidget);
         expect(find.text('Connect'), findsOneWidget);
         expect(find.byType(QrImageView), findsNothing);
+
+        // The link is opaque and case-sensitive: a capitalised `Wc:` would
+        // fail the scheme check, and the keyboard must not learn it.
+        final field = tester.widget<TextField>(find.byType(TextField));
+        expect(field.textCapitalization, TextCapitalization.none);
+        expect(field.autocorrect, isFalse);
+        expect(field.enableSuggestions, isFalse);
+        expect(field.enableIMEPersonalizedLearning, isFalse);
+        // The ring carries the control-strength edge the drawer fill cannot.
+        expect(
+          tester.widget<GWTextField>(find.byType(GWTextField)).focusRing,
+          isTrue,
+        );
 
         await tester.tap(find.text('Cancel'));
         await tester.pumpAndSettle();

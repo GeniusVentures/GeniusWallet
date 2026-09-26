@@ -4,6 +4,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 /// The QR / paste-a-link surface for starting a WalletConnect pairing --
@@ -117,10 +118,22 @@ class _PasteView extends StatelessWidget {
     return ValueListenableBuilder<String?>(
       valueListenable: fieldError,
       builder: (context, errorText, _) {
+        final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
         return GWTextField(
           controller: controller,
           hint: 'wc:…',
           errorText: errorText,
+          // A drawer field: the lighter fill on the panel, and the ring's
+          // control-strength edge, since the fill alone cannot mark the input.
+          fill: gw.surfaceMenu,
+          focusRing: true,
+          // An opaque, case-sensitive link: a capitalised `Wc:` fails the
+          // scheme check, and the keyboard must not learn or suggest it.
+          keyboardType: TextInputType.url,
+          textCapitalization: TextCapitalization.none,
+          autocorrect: false,
+          enableSuggestions: false,
+          enableIMEPersonalizedLearning: false,
           suffix: GWButton.icon(
             icon: const Icon(Icons.paste),
             tooltip: 'Paste from clipboard',
