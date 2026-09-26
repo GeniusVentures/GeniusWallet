@@ -4,18 +4,45 @@ import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 
 class TransactionsCubit extends Cubit<List<Transaction>> {
   final Set<Transaction> _transactions = {};
+  final TransactionStorageService _storage;
 
-  TransactionsCubit({List<Transaction> initial = const []}) : super(initial) {
+  TransactionsCubit({
+    List<Transaction> initial = const [],
+    TransactionStorageService storage = const TransactionStorageService(),
+  }) : _storage = storage,
+       super(initial) {
     _transactions.addAll(initial);
     emit(_sorted());
   }
 
+  /// The wallet whose history this cubit holds, or is loading.
+  String? _walletAddress;
+
+  /// Loads [walletAddress]'s stored history. Switching wallets drops the old
+  /// rows at once, and a read that a newer switch superseded is discarded.
   Future<void> loadInitial(String walletAddress) async {
-    final txs = await const TransactionStorageService().getTransactions(
-      walletAddress,
-    );
+    if (walletAddress != _walletAddress) {
+      // The first load merges, as rows can arrive before any wallet is known.
+      if (_walletAddress != null) {
+        _transactions.clear();
+        emit([]);
+      }
+      _walletAddress = walletAddress;
+    }
+    final txs = await _storage.getTransactions(walletAddress);
+    if (walletAddress != _walletAddress) {
+      return;
+    }
     _transactions.addAll(txs);
     emit(_sorted());
+  }
+
+  /// [loadInitial], skipped when [walletAddress] is already the one shown.
+  Future<void> showWallet(String walletAddress) async {
+    if (walletAddress == _walletAddress) {
+      return;
+    }
+    await loadInitial(walletAddress);
   }
 
   void addTransaction(Transaction tx) {
