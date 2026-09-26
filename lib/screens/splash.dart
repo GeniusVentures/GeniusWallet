@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/effects/gw_mesh_background.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
+import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
 import 'package:genius_wallet/screens/boot_sequence.dart';
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -122,7 +123,7 @@ class _SplashState extends State<Splash> {
     final walletDetailsCubit = context.read<WalletDetailsCubit>();
     final Future<void> work = Future.wait<dynamic>([
       getDashboardMarketCoins(),
-      fetchHistoricalPrices('bitcoin'),
+      fetchHistoricalPrices(kNativeMarketCoinId),
       Future.sync(() => walletDetailsCubit.getCoins()),
     ]);
 

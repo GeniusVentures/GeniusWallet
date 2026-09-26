@@ -17,6 +17,7 @@ import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/components/wallet_overview.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets.dart';
 import 'package:genius_wallet/dashboard/chart/dashboard_markets_util.dart';
+import 'package:genius_wallet/dashboard/chart/markets_sort.dart';
 import 'package:genius_wallet/dashboard/transactions/sgnus_transactions_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/view/transactions_stream.dart';
 import 'package:genius_wallet/dev/dev_fault_injector.dart';
@@ -43,7 +44,7 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 ///
 /// **Raised 300 -> 340 on 2026-07-31 (Jakub).** The Compute panel's title was
 /// a `GWKicker` (18px line box, no padding of its own) while Assets, Markets,
-/// Transactions and the Bitcoin chart all use `GWSectionTitle`, which reserves
+/// Transactions and the price chart all use `GWSectionTitle`, which reserves
 /// a 44px header and then charged a `space8` bottom gap on top of it. That
 /// left Balance starting ~38px higher than the first Assets coin: 2+44+16
 /// there against 18+6 here. Adopting the shared title cost those 38px, and the
@@ -637,8 +638,8 @@ class _ChartDashboardViewState extends State<ChartDashboardView> {
           ),
           Expanded(
             child: CryptoLiveChart(
-              coinGeckoCoinId: 'bitcoin',
-              tokenSymbol: 'btc',
+              coinGeckoCoinId: kNativeMarketCoinId,
+              tokenSymbol: 'gnus',
               priceHeight: 28,
               rangeIndex: _rangeIndex,
             ),
@@ -649,9 +650,8 @@ class _ChartDashboardViewState extends State<ChartDashboardView> {
   }
 }
 
-/// A→ header for the Bitcoin Chart card (sketch 006): coin identity on the
-/// left, the 1H·1D·1W·1M·1Y timeframe segment on the right, pushed apart on
-/// one row.
+/// Header for the GNUS chart card: coin identity on the left, the
+/// 1H·1D·1W·1M·1Y timeframe segment on the right, pushed apart on one row.
 ///
 /// Reproduces GWSectionTitle's TOP geometry exactly - the same `space4`
 /// horizontal inset, the same 2px top pad, the same 44px reserved min-height -
@@ -678,7 +678,7 @@ class _ChartSectionHeader extends StatelessWidget {
         2,
         GeniusWalletConsts.space4,
         // ~3x the space8 the shared component derives for zero-inset content
-        // (per request): pushes the price/% down away from the Bitcoin·BTC +
+        // (per request): pushes the price/% down away from the Genius AI·GNUS +
         // timeframe row and shrinks the chart, which was taking too much
         // height. Chart-only override of the section rhythm.
         GeniusWalletConsts.space24,
@@ -702,17 +702,10 @@ class _ChartSectionHeader extends StatelessWidget {
   }
 }
 
-/// ₿ coin avatar + "Bitcoin" (bold) + "BTC" ticker — mirrors sketch 006's
-/// IDENT block. Hardcoded to bitcoin, matching the card below it.
+/// GNUS coin avatar + "Genius AI" (bold) + "GNUS" ticker, matching the chart
+/// below it.
 class _CoinIdentity extends StatelessWidget {
   const _CoinIdentity();
-
-  // ponytail: the ₿-on-#F7931A coin avatar is the recognizable Bitcoin brand
-  // LOGO mark -- WCAG's logo exemption applies, so its glyph/fill contrast
-  // does not gate AA; it stays the canonical white-₿-on-orange. Ceiling:
-  // hardcoded to bitcoin. Upgrade path: a coin-agnostic avatar when this card
-  // stops being hardcoded to coinGeckoCoinId: 'bitcoin'.
-  static const Color _bitcoinOrange = Color(0xFFF7931A);
 
   @override
   Widget build(BuildContext context) {
@@ -720,27 +713,10 @@ class _CoinIdentity extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 30,
-          height: 30,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            color: _bitcoinOrange,
-            shape: BoxShape.circle,
-          ),
-          child: const Text(
-            '₿',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              height: 1,
-            ),
-          ),
-        ),
+        Image.asset('assets/images/crypto/gnus.png', width: 30, height: 30),
         const SizedBox(width: GeniusWalletConsts.space3),
         Text.rich(
-          // ONE line so "Bitcoin" centers in the shared 44px header at the same
+          // ONE line so "Genius AI" centers in the shared 44px header at the same
           // baseline as Markets/Assets titles. A two-line name+ticker stack
           // centred its whole block, pushing the name line visibly higher.
           TextSpan(
@@ -750,9 +726,9 @@ class _CoinIdentity extends StatelessWidget {
               height: 1,
             ),
             children: [
-              const TextSpan(text: 'Bitcoin'),
+              const TextSpan(text: 'Genius AI'),
               TextSpan(
-                text: '  ·  BTC',
+                text: '  ·  GNUS',
                 style: TextStyle(
                   color: gw.textSecondary,
                   fontWeight: FontWeight.w500,

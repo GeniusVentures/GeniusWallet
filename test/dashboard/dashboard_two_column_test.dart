@@ -28,13 +28,15 @@ Future<void> _pumpAt(WidgetTester tester, double width) async {
 }
 
 void main() {
-  testWidgets('two columns: the chart shows, the Markets panel does not', (
+  testWidgets('two columns: the GNUS chart shows, the Markets panel does not', (
     tester,
   ) async {
     await _pumpAt(tester, 1440);
 
     expect(find.byType(ChartDashboardView), findsOneWidget);
     expect(find.byType(MarketsDashboardView), findsNothing);
+    // The dashboard chart is the native token's, not Bitcoin's.
+    expect(find.textContaining('Genius AI'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
