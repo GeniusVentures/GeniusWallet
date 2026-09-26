@@ -18,6 +18,9 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
   /// The wallet whose history this cubit holds, or is loading.
   String? _walletAddress;
 
+  /// The wallet whose read last succeeded; a failed read stays retryable.
+  String? _loadedAddress;
+
   /// Bumped by every load; only the newest load's read may land. An address
   /// check alone lets A's stale read through after an A -> B -> A switch.
   int _loadGeneration = 0;
@@ -42,12 +45,13 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
     // it is newer than the stored copy; Transaction has identity equality.
     final shown = _transactions.map((t) => t.hash).toSet();
     _transactions.addAll(txs.where((t) => shown.add(t.hash)));
+    _loadedAddress = walletAddress;
     emit(_sorted());
   }
 
   /// [loadInitial], skipped when [walletAddress] is already the one shown.
   Future<void> showWallet(String walletAddress) async {
-    if (walletAddress == _walletAddress) {
+    if (walletAddress == _walletAddress && walletAddress == _loadedAddress) {
       return;
     }
     await loadInitial(walletAddress);
