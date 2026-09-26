@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 // kDebugMode is required for the dev-only fault-injector gate below.
 // package:flutter/rendering.dart (imported next) re-exports only
@@ -57,7 +58,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
     on<RetryProcessingStatus>(_onRetryProcessingStatus);
     on<InitializationStatusTicked>(_onInitializationStatusTicked);
-    on<DeleteWallet>(_onDeleteWallet);
+    // One at a time: concurrent deletes would each pass the last-wallet guard.
+    on<DeleteWallet>(_onDeleteWallet, transformer: sequential());
     on<RenameWallet>(_onRenameWallet);
     on<SgnusConnectionChanged>(_onSgnusConnectionChanged);
     on<SelectSDKAccount>(_onSelectSDKAccount);
