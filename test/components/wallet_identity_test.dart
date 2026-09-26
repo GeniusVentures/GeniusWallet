@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
-import 'package:genius_wallet/account/account_drawer.dart';
+import 'package:genius_wallet/components/overlay/mobile_header.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
@@ -25,12 +25,7 @@ Future<CircleAvatar> _pump(WidgetTester tester, Wallet wallet) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: themeFor(GWAppearanceMode.dark),
-      home: AccountAvatar(
-        wallet: wallet,
-        isSelected: true,
-        size: 32,
-        showIdentity: true,
-      ),
+      home: WalletIdentityAvatar(wallet: wallet),
     ),
   );
   return tester.widget<CircleAvatar>(find.byType(CircleAvatar));
