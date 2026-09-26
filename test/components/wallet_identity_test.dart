@@ -358,6 +358,38 @@ void main() {
       }
     });
 
+    testWidgets('deleting a local wallet keeps a selected SDK account that '
+        'shares its address', (tester) async {
+      final local = _eth('Main wallet', _addrA);
+      final other = _eth('Savings', _addrB);
+      final sdkSameKey = _eth(
+        'Super Genius Wallet',
+        _addrA,
+      ).copyWith(walletType: WalletType.sgnus);
+      final api = _RenameApi(sgnusAccounts: [_addrA]);
+      final cubit = _CountingCubit(
+        initialState: WalletDetailsState(selectedWallet: sdkSameKey),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [sdkSameKey, local, other],
+      );
+      try {
+        appBloc.add(DeleteWallet(_addrA));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        expect(api.deleted, _addrA);
+        expect(cubit.state.selectedWallet, sdkSameKey);
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    });
+
     testWidgets('the last wallet cannot be deleted', (tester) async {
       final main = _eth('Main wallet', _addrA);
       final api = _RenameApi();

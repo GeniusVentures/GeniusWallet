@@ -608,8 +608,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     // selection is replaced and persisted exactly as a drawer switch does.
     // The guard above keeps at least one of the user's own wallets.
     final selected = walletDetailsCubit.state.selectedWallet;
+    // Only a local wallet can be deleted here, and an SDK account made from
+    // the same key shares its address, so the type is part of the match.
     if (remaining.isNotEmpty &&
         selected != null &&
+        selected.walletType != WalletType.sgnus &&
         selected.address.toLowerCase() == event.address.toLowerCase()) {
       final next = replacementWallet(remaining);
       walletDetailsCubit.selectWallet(next);
