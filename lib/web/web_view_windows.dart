@@ -90,13 +90,18 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       // Released first: a throwing clipboard call below must not leave every
       // later copied link ignored.
       _isClipboardPairing = false;
-      // Clear on both outcomes: on success it stops a repeat connection, and
-      // on failure it drops the symKey-bearing link so the poller does not
-      // re-toast on the same text every 2 seconds.
+      // Drop the symKey-bearing link on both outcomes so the poller does not
+      // re-pair or re-toast it, but only if it is still what was copied: the
+      // user may have copied something else while pairing was in flight.
       try {
-        await Clipboard.setData(const ClipboardData(text: ''));
+        final current = await Clipboard.getData(Clipboard.kTextPlain);
+        if (current?.text == text) {
+          await Clipboard.setData(const ClipboardData(text: ''));
+        } else {
+          _lastHandledWalletConnectUri = text;
+        }
       } catch (_) {
-        // Could not clear it, so remember it instead of re-pairing it.
+        // Could not check or clear it, so remember it instead of re-pairing.
         _lastHandledWalletConnectUri = text;
       }
     }
