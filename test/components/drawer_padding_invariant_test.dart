@@ -74,8 +74,7 @@ const _census = <String, _Inset>{
   // nothing else -- measured, not assumed (21-05/21-06).
   'lib/squid_router/swap_settings_drawer.dart': _Inset.shellInset,
   'lib/submit_job/view/job_drawer.dart': _Inset.shellInset,
-  // Phase 10-03: the pairing drawer replacing the old AlertDialog. No
-  // bodyPadding argument, so shellInset.
+  // The WalletConnect pairing drawer passes no bodyPadding, so shellInset.
   'lib/reown/pair_dapp_drawer.dart': _Inset.shellInset,
 };
 
