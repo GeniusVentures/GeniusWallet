@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 
@@ -850,4 +853,26 @@ class GWColors extends ThemeExtension<GWColors> {
   /// a behaviour change ("nothing here may repaint") outside this plan's
   /// reachability-and-naming scope.
   static const Color fixedTextSecondary = GeniusWalletColors._textSecondary;
+
+  /// Mode-invariant disc fills that tell wallets apart, picked by address.
+  /// Every fill carries [textOnBrand] at >= 4.5:1 and stands >= 3:1 off both
+  /// the light and the dark [surfaceElevated], so no per-mode variant exists.
+  static const List<Color> walletIdentityFills = [
+    Color(0xFF0B93C4), // cyan
+    Color(0xFF1E9E6A), // green
+    Color(0xFFB8860B), // gold
+    Color(0xFFD0663A), // orange
+    Color(0xFFE0556E), // rose
+    Color(0xFFC45BA8), // magenta
+    Color(0xFF9A6BDD), // violet
+    Color(0xFF5B8DEF), // blue
+  ];
+
+  /// The [walletIdentityFills] entry for [address], via SHA-256 so a lookalike
+  /// that copies a real address's ends still gets an independent fill.
+  /// ponytail: 8 fills, so 1 in 8 wallets share a colour; the monogram helps.
+  static Color walletIdentityFill(String address) {
+    final digest = sha256.convert(utf8.encode(address.toLowerCase()));
+    return walletIdentityFills[digest.bytes.first % walletIdentityFills.length];
+  }
 }

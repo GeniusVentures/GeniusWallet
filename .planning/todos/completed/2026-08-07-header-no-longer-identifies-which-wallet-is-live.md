@@ -1,5 +1,6 @@
 ---
 created: 2026-08-07T13:56:00.000Z
+resolved: 2026-09-26T12:00:00.000Z
 title: The phone header no longer identifies WHICH wallet is live
 area: ui
 files:
@@ -72,3 +73,20 @@ Constraints on the implementation, so it is one step to pick up:
 The alternative Jakub reserved on 2026-08-07 is scheme 183C, which removes the WALLET's border
 rather than adding identity. That is a different question - it is about whether the two controls
 should match - and it does not address this one.
+
+## Resolution (2026-09-26)
+
+Scheme E, additively: `AccountAvatar` gained `showIdentity` (default false, so the drawer rows and
+`AccountDropdownSelector` are unchanged); only the phone header's `WalletPill` passes true.
+
+- Monogram (`walletMonogram`): address-shaped names (`0x...` or any 20+ char unbroken token) run
+  FIRST and return null, which falls back to today's currency glyph - the todo's option, not the
+  sketch's "two hex chars after 0x". Then trailing 1-2 digits (`S1`, `W10`), two-word initials,
+  one-word first two letters.
+- Fill: beyond the sketch, which kept `brandPrimaryStrong`. `GWColors.walletIdentityFill(address)`
+  picks one of 8 mode-invariant fills by SHA-256 of the lowercased address, so same-named wallets
+  and address-shaped names still differ. Every fill clears 4.5:1 with `textOnBrand` and 3:1 against
+  `surfaceElevated` in both modes (worst: 4.97 text, 3.20 vs white bar). 1-in-8 colour collisions
+  remain by construction.
+- Watched wallets keep the eye icon, on the identity fill. Network badge unchanged.
+- Test: `test/account/wallet_identity_test.dart`.
