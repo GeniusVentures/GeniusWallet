@@ -239,7 +239,7 @@ class _PairDappFooterState extends State<_PairDappFooter> {
               child: GWButton(
                 label: 'Cancel',
                 variant: GWButtonVariant.gradientOutline,
-                size: GWButtonSize.lg,
+                size: GWButtonSize.md,
                 expand: true,
                 onPressed: _isConnecting
                     ? null
@@ -252,7 +252,7 @@ class _PairDappFooterState extends State<_PairDappFooter> {
                 child: GWButton(
                   label: 'Connect',
                   variant: GWButtonVariant.gradient,
-                  size: GWButtonSize.lg,
+                  size: GWButtonSize.md,
                   expand: true,
                   isLoading: _isConnecting,
                   onPressed: _isConnecting ? null : _connect,
