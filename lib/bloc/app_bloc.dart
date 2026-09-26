@@ -598,6 +598,14 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       }
       return w;
     }).toList();
+    // The header reads the selected wallet from this cubit, not from our list.
+    final selected = walletDetailsCubit.state.selectedWallet;
+    if (selected != null &&
+        selected.address.toLowerCase() == event.address.toLowerCase()) {
+      walletDetailsCubit.selectWallet(
+        selected.copyWith(walletName: event.newName),
+      );
+    }
     final sdkState = _getSDKAccountState();
     emit(
       state.copyWith(
