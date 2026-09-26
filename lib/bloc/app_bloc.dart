@@ -610,7 +610,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         selected != null &&
         selected.walletType != WalletType.sgnus &&
         selected.address.toLowerCase() == event.address.toLowerCase()) {
-      await walletDetailsCubit.selectWallet(replacementWallet(remaining));
+      try {
+        await walletDetailsCubit.selectWallet(replacementWallet(remaining));
+      } catch (e) {
+        // The wallet is already gone, so the list below must still go out.
+        debugPrint('Persisting the replacement wallet failed: $e');
+      }
     }
     final sdkState = _getSDKAccountState();
     emit(

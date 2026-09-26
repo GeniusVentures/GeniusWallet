@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show FileSystemException;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -443,6 +444,37 @@ void main() {
       }
     });
 
+    testWidgets('a failed selection write still drops the deleted wallet', (
+      tester,
+    ) async {
+      final main = _eth('Main wallet', _addrA);
+      final api = _RenameApi(sgnusAccounts: [_addrB]);
+      final cubit = _FailingSelectCubit(
+        initialState: WalletDetailsState(selectedWallet: main),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [main, _eth('Savings', _addrB)],
+      );
+      try {
+        appBloc.add(DeleteWallet(_addrA));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        expect(api.deleted, _addrA);
+        expect(
+          appBloc.state.wallets.where((w) => w.address == _addrA),
+          isEmpty,
+        );
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    });
+
     group('restoring the selection', () {
       final local = _eth('Main wallet', _addrA);
       final sdkSameKey = _eth(
@@ -516,5 +548,18 @@ class _CountingCubit extends WalletDetailsCubit {
   @override
   FutureOr<void> getCoins() async {
     fetches++;
+  }
+}
+
+class _FailingSelectCubit extends _CountingCubit {
+  _FailingSelectCubit({
+    required super.initialState,
+    required super.geniusApi,
+    required super.networkTokensProvider,
+  });
+
+  @override
+  Future<void> selectWallet(Wallet wallet) async {
+    throw const FileSystemException('disk full');
   }
 }
