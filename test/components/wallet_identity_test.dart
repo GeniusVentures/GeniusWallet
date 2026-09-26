@@ -9,6 +9,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
+import 'package:genius_wallet/account/account_dropdown_selector.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/mobile_header.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -17,6 +18,7 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
@@ -320,6 +322,56 @@ void main() {
         expect(cubit.state.selectedWallet?.address, _addrB);
         expect(box.get(selectedWalletKey), _addrB);
         expect(find.text('MW'), findsNothing);
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    });
+
+    testWidgets('the desktop selector follows a delete of the selected '
+        'wallet', (tester) async {
+      tester.view.physicalSize = const Size(1400, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final main = _eth('Main wallet', _addrA);
+      // The survivor comes from the SDK merge; see _RenameApi.
+      final api = _RenameApi(sgnusAccounts: [_addrB]);
+      final cubit = _CountingCubit(
+        initialState: WalletDetailsState(selectedWallet: main),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [main, _eth('Savings', _addrB)],
+      );
+      try {
+        await tester.pumpWidget(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<WalletDetailsCubit>.value(value: cubit),
+              BlocProvider<AppBloc>.value(value: appBloc),
+            ],
+            child: MaterialApp(
+              theme: themeFor(GWAppearanceMode.dark),
+              home: const Scaffold(body: AccountDropdownSelector()),
+            ),
+          ),
+        );
+        expect(find.text(WalletUtils.getAddressForDisplay(_addrA)), findsOne);
+
+        appBloc.add(DeleteWallet(_addrA));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pump();
+
+        expect(find.text('Super Genius'), findsOne);
+        expect(
+          find.text(WalletUtils.getAddressForDisplay(_addrA)),
+          findsNothing,
+        );
       } finally {
         await tester.runAsync(() => appBloc.close());
         await cubit.close();

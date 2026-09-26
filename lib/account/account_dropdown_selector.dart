@@ -1,64 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
-import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-class AccountDropdownSelector extends StatefulWidget {
-  final ValueChanged<Wallet>? onAccountSelected;
-  final Wallet? initialSelected;
-
-  const AccountDropdownSelector({
-    super.key,
-    this.onAccountSelected,
-    this.initialSelected,
-  });
-
-  @override
-  State<AccountDropdownSelector> createState() =>
-      _AccountDropdownSelectorState();
-}
-
-class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
-  Wallet? selectedWallet;
-  String? savedWalletAddress;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSavedWallet();
-  }
-
-  Future<void> _loadSavedWallet() async {
-    final address = Hive.box(walletBoxName).get(selectedWalletKey);
-    if (!mounted) {
-      return;
-    }
-    setState(() => savedWalletAddress = address);
-  }
-
-  Future<void> _showAccountDrawer() async {
-    // The entry owns the real side effects (the WalletDetailsCubit update
-    // and the Hive persistence write) - see AccountDrawer.show. This method
-    // only does the widget-local work: skip if nothing changed, mirror the
-    // selection locally, and fire the caller's own callback.
-    final selected = await AccountDrawer.show(context);
-
-    if (selected == null || selected == selectedWallet) {
-      return;
-    }
-
-    setState(() => selectedWallet = selected);
-    widget.onAccountSelected?.call(selected);
-  }
+/// The desktop top bar's wallet chip. It shows the selection held by
+/// [WalletDetailsCubit], like the header pill, so a change made anywhere
+/// (a delete included) reaches it.
+class AccountDropdownSelector extends StatelessWidget {
+  const AccountDropdownSelector({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -74,21 +30,20 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
             ),
           );
         }
-        selectedWallet ??= wallets.firstWhere(
-          (w) => w.address == savedWalletAddress,
-          orElse: () => widget.initialSelected ?? wallets.first,
-        );
+        final selectedWallet =
+            context.watch<WalletDetailsCubit>().state.selectedWallet ??
+            wallets.first;
         return Tooltip(
           message: "Select wallet",
           child: TextButton(
             style: navContextChipStyle(context),
-            onPressed: () => _showAccountDrawer(),
+            onPressed: () => AccountDrawer.show(context),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               spacing: GeniusWalletConsts.space4,
               children: [
                 AccountAvatar(
-                  wallet: selectedWallet!,
+                  wallet: selectedWallet,
                   isSelected: false,
                   size: 25,
                 ),
@@ -97,10 +52,10 @@ class _AccountDropdownSelectorState extends State<AccountDropdownSelector> {
                   // lets the row overflow.
                   Flexible(
                     child: Text(
-                      selectedWallet!.walletType == WalletType.sgnus
+                      selectedWallet.walletType == WalletType.sgnus
                           ? 'Super Genius'
                           : WalletUtils.getAddressForDisplay(
-                              selectedWallet!.address,
+                              selectedWallet.address,
                             ),
                       style: Theme.of(context).textTheme.bodyMedium,
                       maxLines: 1,
