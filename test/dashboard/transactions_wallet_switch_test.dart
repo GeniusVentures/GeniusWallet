@@ -109,4 +109,25 @@ void main() {
       expect(transactions.state.map((t) => t.fromAddress), [_b]);
     },
   );
+
+  test(
+    'after A -> B -> A, the first read for A cannot land on the newer one',
+    () async {
+      walletDetails.selectWallet(_wallet(_a));
+      await pumpEventQueue();
+      final staleRead = storage.reads[_a]!;
+      walletDetails.selectWallet(_wallet(_b));
+      await pumpEventQueue();
+      walletDetails.selectWallet(_wallet(_a));
+      await pumpEventQueue();
+
+      final current = _tx(_a);
+      storage.reads[_a]!.complete([current]);
+      await pumpEventQueue();
+      staleRead.complete([_tx(_a)]);
+      await pumpEventQueue();
+
+      expect(transactions.state, [current]);
+    },
+  );
 }

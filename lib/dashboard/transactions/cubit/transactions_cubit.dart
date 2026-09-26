@@ -18,9 +18,14 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
   /// The wallet whose history this cubit holds, or is loading.
   String? _walletAddress;
 
+  /// Bumped by every load; only the newest load's read may land. An address
+  /// check alone lets A's stale read through after an A -> B -> A switch.
+  int _loadGeneration = 0;
+
   /// Loads [walletAddress]'s stored history. Switching wallets drops the old
-  /// rows at once, and a read that a newer switch superseded is discarded.
+  /// rows at once, and a read that a newer load superseded is discarded.
   Future<void> loadInitial(String walletAddress) async {
+    final generation = ++_loadGeneration;
     if (walletAddress != _walletAddress) {
       // The first load merges, as rows can arrive before any wallet is known.
       if (_walletAddress != null) {
@@ -30,7 +35,7 @@ class TransactionsCubit extends Cubit<List<Transaction>> {
       _walletAddress = walletAddress;
     }
     final txs = await _storage.getTransactions(walletAddress);
-    if (walletAddress != _walletAddress) {
+    if (generation != _loadGeneration) {
       return;
     }
     _transactions.addAll(txs);
