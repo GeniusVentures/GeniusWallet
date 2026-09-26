@@ -289,134 +289,13 @@ class CoinsScreenState extends State<CoinsScreen> {
           );
           final double pctOfTotal = total == 0 ? 0 : dayChange / total * 100;
 
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                // Assets header - sketch 178 SCHEME A, 2026-08-07. This is a
-                // REVERT of scheme C, which shipped earlier the same day and
-                // which Jakub rejected on the phone hours later:
-                //
-                //   The Assets section on the dashboard looks fine in itself,
-                //   but Assets was supposed to respect the SAME component -
-                //   the same colour and everything - as Transactions, as
-                //   Compute, as Markets. So that has to change.
-                //
-                // Scheme C demoted the word Assets to an 11px uppercase
-                // secondary kicker and gave the big type to the number. The
-                // cost was recorded in this very comment at the time: Markets,
-                // Transactions and Compute all name themselves in 18px white
-                // `titleLg` and Assets stopped matching. That recorded cost is
-                // exactly what he objected to, and the fallback named there,
-                // scheme A, is what is built below. So: the title goes back to
-                // the plain `String` path every other section uses, and the
-                // total moves to a band of its own directly beneath it.
-                //
-                // MEASURED COST: +48px of panel header (46 -> 94), pinned by
-                // `assets_header_scheme_a_test.dart` from the exported
-                // constants. That is 4 less than the sketch's 52, for two
-                // reasons stated at their own sites below: no spacer under the
-                // band, and the total at 24 rather than an untokened 28.
-                //
-                // The desktop consequence, since this file is ONE file for both
-                // surfaces and `ContributionsDashboardView` mounts it there
-                // too: the desktop Assets panel grows the same 48px, inside a
-                // slot whose `SingleChildScrollView` absorbs it. Nothing
-                // overflows; roughly one row scrolls out of first view. Do NOT
-                // fork this header by breakpoint to avoid that. Two different
-                // Assets headers in one app is the inconsistency he is
-                // complaining about, relocated.
-                //
-                // THE RENDERED TITLE GAP, with its whole history, because the
-                // number he approved is not the number that has been shipping:
-                //
-                //   before scheme C   slack 10, pad  0, C=20  ->  R2 = 30
-                //   scheme C          slack  0, pad  0, C=20  ->  R2 = 20
-                //   scheme A (here)   slack 10, pad 16, C= 0  ->  R2 = 26
-                //
-                // He approved 30 on 2026-08-06. Scheme C's two-line block ate
-                // the whole 44px reservation, so there was no centring slack
-                // left and the rendered gap silently became 20. Scheme A moves
-                // it to 26, which is the value every other panel renders. It is
-                // a move back TOWARD what he approved, not away from it, and it
-                // is named at the checkpoint rather than slipped through.
-                //
-                // A DOC DEBT this task cannot pay: `gw_section_title_rhythm_test.dart`
-                // is byte-pinned by this task (its md5 is a gate), and its
-                // library doc table lists Assets at `C=20 / R2=30` while its
-                // `ROW INSET - CoinCardRow (Assets)` case labels its output as
-                // the Assets gap. Both describe the pre-scheme-A panel and are
-                // now stale. The ASSERTIONS there stay correct and green -
-                // `CoinCardRow` really does bring more inset than the pad can
-                // absorb - so this is documentation debt, recorded here, to be
-                // paid in a docs-only pass.
-                //
-                // The value-empty footer's `if (isDashboard && total == 0)`
-                // branch further down is untouched by all of this, and
-                // `state.coins.isEmpty` still returns a `GWEmptyState` above
-                // this header, so the band never renders against no data.
-                if (isDashboard) ...[
-                  GWSectionTitle(
-                    // The plain `String` path, the same one Markets,
-                    // Transactions, Compute and the four news sections take.
-                    // That identity IS the change: one component, one size, one
-                    // colour, one position across all four dashboard sections.
-                    title: 'Assets',
-                    // `contentTopInset` is DELIBERATELY absent, and the default
-                    // 0 is correct rather than merely accepted.
-                    //
-                    // The parameter is a MEASURED description of the first
-                    // widget under the title. Until now that widget was a
-                    // `CoinCardRow`, whose `ListTile` snaps to a default tile
-                    // height and centres its content, putting its first painted
-                    // pixel ~20px below its own layout box. Hence the 20 that
-                    // used to sit here.
-                    //
-                    // After this change the first widget under the title is the
-                    // total band, which paints at its own top pixel and has no
-                    // slack of its own. Leaving the 20 behind would spend the
-                    // component's bottom pad against slack that is no longer
-                    // there and render a 30px gap under a band that cannot
-                    // absorb it, re-breaking the rhythm the component exists to
-                    // hold. The 20 has not vanished; it moved one widget
-                    // further down, where nothing needs to declare it.
-                    //
-                    // `go`, not `push` - `/assets` IS a bottom-nav destination
-                    // as of sketch 182 scheme S7 (2026-08-07). The premise that
-                    // justified `push` here was that Assets was a content page
-                    // with no tab, and S7 falsified it by giving Assets the
-                    // bar's second slot. Two entrances to one route with
-                    // different back behaviour reads as randomness, so this one
-                    // now matches the tab. The precedent is already in the
-                    // tree: `transactions_slim_view.dart:363` makes exactly
-                    // this call for `/transactions`, with exactly this reason.
-                    //
-                    // What it gives up, stated because it is a real trade and
-                    // the same one `/transactions` already made: `go` replaces
-                    // the dashboard rather than stacking on it, so the
-                    // dashboard is disposed and its market-data refresh timer
-                    // is torn down and re-armed on the way back.
-                    //
-                    // There is no guard for "the section is short": a link that
-                    // appears and disappears as balances move reads as a bug,
-                    // and `/assets` is a full view with a search and a sort even
-                    // when it lists three rows.
-                    trailing: GWViewAllLink(onTap: () => context.go('/assets')),
-                  ),
-                  AssetsTotalBand(
-                    total: total,
-                    dayChange: dayChange,
-                    pctOfTotal: pctOfTotal,
-                  ),
-                ],
-                // NO spacer between the band and the first `CoinCardRow`, and
-                // that absence is still a decision (260807-wbu, Task 2). The
-                // row's own top inset IS the gap; it used to be the ~20px
-                // `ListTile` centring snap, and as of this task it is
-                // `kGWRowSeparatorGap` (`gw_row_rhythm.dart`) = 12, a
-                // DECLARED value rather than a Material default. 12 lands
-                // closer to sketch 178's drawn 14 than the 20 it replaces.
-                // Do not add a spacer here without walking it on device first
-                // - Jakub has not seen the tighter gap yet.
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              // Bounded (the desktop slot, the coin picker): only the rows
+              // scroll, so the Receive / Buy GNUS / Send actions stay in view.
+              // Unbounded (the phone dashboard, inside the page scroll): hug.
+              final bool hug = !constraints.maxHeight.isFinite;
+              final rows = <Widget>[
                 for (int i = 0; i < orderedCoins.length; i++) ...[
                   CoinCardRow(
                     onTap: () {
@@ -457,64 +336,204 @@ class CoinsScreenState extends State<CoinsScreen> {
                 // Value-empty footer: the truly-no-coins case is handled above
                 // by the state.coins.isEmpty -> GWEmptyState branch; this strip
                 // covers a wallet that HAS coins but holds no value (total==0).
-                if (isDashboard && total == 0)
-                  Padding(
-                    // top space8 mirrors the header's bottom space8 so the gap
-                    // above the CTAs matches the Assets→first-row gap.
-                    padding: const EdgeInsets.only(
-                      top: GeniusWalletConsts.space8,
+              ];
+              return Column(
+                mainAxisSize: hug ? MainAxisSize.min : MainAxisSize.max,
+                children: [
+                  // Assets header - sketch 178 SCHEME A, 2026-08-07. This is a
+                  // REVERT of scheme C, which shipped earlier the same day and
+                  // which Jakub rejected on the phone hours later:
+                  //
+                  //   The Assets section on the dashboard looks fine in itself,
+                  //   but Assets was supposed to respect the SAME component -
+                  //   the same colour and everything - as Transactions, as
+                  //   Compute, as Markets. So that has to change.
+                  //
+                  // Scheme C demoted the word Assets to an 11px uppercase
+                  // secondary kicker and gave the big type to the number. The
+                  // cost was recorded in this very comment at the time: Markets,
+                  // Transactions and Compute all name themselves in 18px white
+                  // `titleLg` and Assets stopped matching. That recorded cost is
+                  // exactly what he objected to, and the fallback named there,
+                  // scheme A, is what is built below. So: the title goes back to
+                  // the plain `String` path every other section uses, and the
+                  // total moves to a band of its own directly beneath it.
+                  //
+                  // MEASURED COST: +48px of panel header (46 -> 94), pinned by
+                  // `assets_header_scheme_a_test.dart` from the exported
+                  // constants. That is 4 less than the sketch's 52, for two
+                  // reasons stated at their own sites below: no spacer under the
+                  // band, and the total at 24 rather than an untokened 28.
+                  //
+                  // The desktop consequence, since this file is ONE file for both
+                  // surfaces and `ContributionsDashboardView` mounts it there
+                  // too: the desktop Assets panel grows the same 48px, inside a
+                  // slot whose `SingleChildScrollView` absorbs it. Nothing
+                  // overflows; roughly one row scrolls out of first view. Do NOT
+                  // fork this header by breakpoint to avoid that. Two different
+                  // Assets headers in one app is the inconsistency he is
+                  // complaining about, relocated.
+                  //
+                  // THE RENDERED TITLE GAP, with its whole history, because the
+                  // number he approved is not the number that has been shipping:
+                  //
+                  //   before scheme C   slack 10, pad  0, C=20  ->  R2 = 30
+                  //   scheme C          slack  0, pad  0, C=20  ->  R2 = 20
+                  //   scheme A (here)   slack 10, pad 16, C= 0  ->  R2 = 26
+                  //
+                  // He approved 30 on 2026-08-06. Scheme C's two-line block ate
+                  // the whole 44px reservation, so there was no centring slack
+                  // left and the rendered gap silently became 20. Scheme A moves
+                  // it to 26, which is the value every other panel renders. It is
+                  // a move back TOWARD what he approved, not away from it, and it
+                  // is named at the checkpoint rather than slipped through.
+                  //
+                  // A DOC DEBT this task cannot pay: `gw_section_title_rhythm_test.dart`
+                  // is byte-pinned by this task (its md5 is a gate), and its
+                  // library doc table lists Assets at `C=20 / R2=30` while its
+                  // `ROW INSET - CoinCardRow (Assets)` case labels its output as
+                  // the Assets gap. Both describe the pre-scheme-A panel and are
+                  // now stale. The ASSERTIONS there stay correct and green -
+                  // `CoinCardRow` really does bring more inset than the pad can
+                  // absorb - so this is documentation debt, recorded here, to be
+                  // paid in a docs-only pass.
+                  //
+                  // The value-empty footer's `if (isDashboard && total == 0)`
+                  // branch further down is untouched by all of this, and
+                  // `state.coins.isEmpty` still returns a `GWEmptyState` above
+                  // this header, so the band never renders against no data.
+                  if (isDashboard) ...[
+                    GWSectionTitle(
+                      // The plain `String` path, the same one Markets,
+                      // Transactions, Compute and the four news sections take.
+                      // That identity IS the change: one component, one size, one
+                      // colour, one position across all four dashboard sections.
+                      title: 'Assets',
+                      // `contentTopInset` is DELIBERATELY absent, and the default
+                      // 0 is correct rather than merely accepted.
+                      //
+                      // The parameter is a MEASURED description of the first
+                      // widget under the title. Until now that widget was a
+                      // `CoinCardRow`, whose `ListTile` snaps to a default tile
+                      // height and centres its content, putting its first painted
+                      // pixel ~20px below its own layout box. Hence the 20 that
+                      // used to sit here.
+                      //
+                      // After this change the first widget under the title is the
+                      // total band, which paints at its own top pixel and has no
+                      // slack of its own. Leaving the 20 behind would spend the
+                      // component's bottom pad against slack that is no longer
+                      // there and render a 30px gap under a band that cannot
+                      // absorb it, re-breaking the rhythm the component exists to
+                      // hold. The 20 has not vanished; it moved one widget
+                      // further down, where nothing needs to declare it.
+                      //
+                      // `go`, not `push` - `/assets` IS a bottom-nav destination
+                      // as of sketch 182 scheme S7 (2026-08-07). The premise that
+                      // justified `push` here was that Assets was a content page
+                      // with no tab, and S7 falsified it by giving Assets the
+                      // bar's second slot. Two entrances to one route with
+                      // different back behaviour reads as randomness, so this one
+                      // now matches the tab. The precedent is already in the
+                      // tree: `transactions_slim_view.dart:363` makes exactly
+                      // this call for `/transactions`, with exactly this reason.
+                      //
+                      // What it gives up, stated because it is a real trade and
+                      // the same one `/transactions` already made: `go` replaces
+                      // the dashboard rather than stacking on it, so the
+                      // dashboard is disposed and its market-data refresh timer
+                      // is torn down and re-armed on the way back.
+                      //
+                      // There is no guard for "the section is short": a link that
+                      // appears and disappears as balances move reads as a bug,
+                      // and `/assets` is a full view with a search and a sort even
+                      // when it lists three rows.
+                      trailing: GWViewAllLink(
+                        onTap: () => context.go('/assets'),
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GWButton(
-                            variant: GWButtonVariant.gradientOutline,
-                            size: GWButtonSize.sm,
-                            label: 'Receive',
-                            expand: true,
-                            onPressed: () => _showReceive(state),
-                          ),
-                        ),
-                        const SizedBox(width: GeniusWalletConsts.space4),
-                        Expanded(
-                          child: GWButton(
-                            // Full brand-CTA gradient (#0AD89C→#0AAEE6) - the
-                            // GNUS-logo gradient the walk picked, replacing the
-                            // flat neon #14C8FF primary fill.
-                            variant: GWButtonVariant.gradient,
-                            size: GWButtonSize.sm,
-                            label: 'Buy GNUS',
-                            expand: true,
-                            onPressed: () => context.push(
-                              '/buy',
-                              extra: {'origin': 'MARKETS'},
+                    AssetsTotalBand(
+                      total: total,
+                      dayChange: dayChange,
+                      pctOfTotal: pctOfTotal,
+                    ),
+                  ],
+                  // NO spacer between the band and the first `CoinCardRow`, and
+                  // that absence is still a decision (260807-wbu, Task 2). The
+                  // row's own top inset IS the gap; it used to be the ~20px
+                  // `ListTile` centring snap, and as of this task it is
+                  // `kGWRowSeparatorGap` (`gw_row_rhythm.dart`) = 12, a
+                  // DECLARED value rather than a Material default. 12 lands
+                  // closer to sketch 178's drawn 14 than the 20 it replaces.
+                  // Do not add a spacer here without walking it on device first
+                  // - Jakub has not seen the tighter gap yet.
+                  if (hug)
+                    ...rows
+                  else
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(children: rows),
+                      ),
+                    ),
+                  if (isDashboard && total == 0)
+                    Padding(
+                      // top space8 mirrors the header's bottom space8 so the gap
+                      // above the CTAs matches the Assets→first-row gap.
+                      padding: const EdgeInsets.only(
+                        top: GeniusWalletConsts.space8,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GWButton(
+                              variant: GWButtonVariant.gradientOutline,
+                              size: GWButtonSize.sm,
+                              label: 'Receive',
+                              expand: true,
+                              onPressed: () => _showReceive(state),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: GeniusWalletConsts.space4),
+                          Expanded(
+                            child: GWButton(
+                              // Full brand-CTA gradient (#0AD89C→#0AAEE6) - the
+                              // GNUS-logo gradient the walk picked, replacing the
+                              // flat neon #14C8FF primary fill.
+                              variant: GWButtonVariant.gradient,
+                              size: GWButtonSize.sm,
+                              label: 'Buy GNUS',
+                              expand: true,
+                              onPressed: () => context.push(
+                                '/buy',
+                                extra: {'origin': 'MARKETS'},
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                // Dashboard Send entry point, keyed off HOLDINGS, not
-                // `total` -- a testnet coin carries no CoinGecko price, so
-                // `total` reads zero even on a funded wallet. Opens the
-                // picker (`/send` with no extra), never a preselected coin.
-                if (isDashboard &&
-                    state.coins.any((coin) => (coin.balance ?? 0) > 0) &&
-                    canSendFrom(state.selectedWallet, state.selectedNetwork))
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: GeniusWalletConsts.space8,
+                  // Dashboard Send entry point, keyed off HOLDINGS, not
+                  // `total` -- a testnet coin carries no CoinGecko price, so
+                  // `total` reads zero even on a funded wallet. Opens the
+                  // picker (`/send` with no extra), never a preselected coin.
+                  if (isDashboard &&
+                      state.coins.any((coin) => (coin.balance ?? 0) > 0) &&
+                      canSendFrom(state.selectedWallet, state.selectedNetwork))
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: GeniusWalletConsts.space8,
+                      ),
+                      child: GWButton(
+                        variant: GWButtonVariant.gradientOutline,
+                        size: GWButtonSize.sm,
+                        label: 'Send',
+                        expand: true,
+                        onPressed: () => context.push('/send'),
+                      ),
                     ),
-                    child: GWButton(
-                      variant: GWButtonVariant.gradientOutline,
-                      size: GWButtonSize.sm,
-                      label: 'Send',
-                      expand: true,
-                      onPressed: () => context.push('/send'),
-                    ),
-                  ),
-              ],
-            ),
+                ],
+              );
+            },
           );
         },
       ),
