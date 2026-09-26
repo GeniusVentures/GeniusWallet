@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -139,8 +141,7 @@ void main() {
   ) async {
     final wallet = _eth('Main wallet', _addrA);
     final api = _RenameApi();
-    // No network selected, so selectWallet's coin refetch stops at its guard.
-    final cubit = WalletDetailsCubit(
+    final cubit = _CountingCubit(
       initialState: WalletDetailsState(selectedWallet: wallet),
       geniusApi: api,
       networkTokensProvider: NetworkTokensProvider(),
@@ -188,6 +189,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(cubit.state.selectedWallet?.walletName, 'Savings');
+      expect(cubit.fetches, 0, reason: 'a rename must not refetch holdings');
       expect(find.text('SA'), findsOneWidget);
       expect(find.text('MW'), findsNothing);
     } finally {
@@ -195,4 +197,19 @@ void main() {
       await cubit.close();
     }
   });
+}
+
+class _CountingCubit extends WalletDetailsCubit {
+  _CountingCubit({
+    required super.initialState,
+    required super.geniusApi,
+    required super.networkTokensProvider,
+  });
+
+  int fetches = 0;
+
+  @override
+  FutureOr<void> getCoins() async {
+    fetches++;
+  }
 }

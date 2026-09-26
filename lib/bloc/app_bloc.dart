@@ -602,9 +602,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final selected = walletDetailsCubit.state.selectedWallet;
     if (selected != null &&
         selected.address.toLowerCase() == event.address.toLowerCase()) {
-      walletDetailsCubit.selectWallet(
-        selected.copyWith(walletName: event.newName),
-      );
+      walletDetailsCubit.renameSelectedWallet(event.newName);
     }
     final sdkState = _getSDKAccountState();
     emit(

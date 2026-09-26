@@ -154,6 +154,17 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     getCoins();
   }
 
+  /// A rename is metadata only: it must not refetch holdings like a reselect.
+  void renameSelectedWallet(String newName) {
+    final selected = state.selectedWallet;
+    if (selected == null) {
+      return;
+    }
+    emit(
+      state.copyWith(selectedWallet: selected.copyWith(walletName: newName)),
+    );
+  }
+
   void setSelectedWalletBalance(String balance) {
     if (balance != state.selectedWalletBalance) {
       emit(state.copyWith(selectedWalletBalance: balance));
