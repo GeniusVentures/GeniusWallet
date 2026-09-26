@@ -185,7 +185,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
     setState(() {});
   }
 
-  // Same favicon service as the mobile path (fenced by D-09). tryParse so a
+  // Same favicon service as the mobile path. tryParse so a
   // half-typed / hostless URL degrades to an empty host rather than throwing.
   String _getFaviconUrl(String url) {
     final host = Uri.tryParse(url.trim())?.host ?? '';
@@ -320,7 +320,7 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       child: Row(
         children: [
           // canGoBack()/canGoForward() are synchronous here (no FutureBuilder):
-          // brand-tinted + tappable when true, muted + inert otherwise (D-02).
+          // brand-tinted + tappable when true, muted + inert otherwise.
           _buildIconButton(
             Icons.arrow_back,
             canGoBack() ? goBack : null,
