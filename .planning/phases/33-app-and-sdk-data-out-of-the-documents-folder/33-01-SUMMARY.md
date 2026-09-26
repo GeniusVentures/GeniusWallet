@@ -25,7 +25,8 @@ and keeps Documents whenever it already holds `wallet.hive` or `secure_storage_i
 - `flutter analyze` root and packages/genius_api: No issues, exit 0
 - brace, raw-colors and key-logging checks: exit 0; new files are `i/lf`
 - The new-install path and Linux are verified by the unit test only
-- The Windows existing-install walk (Task 3 human-check) is PENDING, left for the orchestrator
+- Windows existing-install walk PASSED 2026-09-26: log `Base path directory: C:\Users\User\Documents`,
+  `%LOCALAPPDATA%\GeniusVentures` never created, Documents listing unchanged, wallets/history/SDK accounts confirmed
 
 ## Deviations
 - Added: a failed resolver future clears its memo so the next call retries (plan-checker note),
