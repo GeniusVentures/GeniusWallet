@@ -274,6 +274,16 @@ class GeniusApi {
     );
 
     _isSdkInitialized = true;
+
+    // Pinning the key the node now knows keeps later starts from adding an
+    // SDK account each time readAll() happens to list another wallet first.
+    try {
+      await _secureStorage.saveSGNUSLinkedAddress(
+        storedKey.account(0).address(),
+      );
+    } catch (_) {
+      debugPrint('Failed to record the SDK-linked wallet');
+    }
   }
 
   Future<void> _initializeAndroidKeyStore() async {

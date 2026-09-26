@@ -159,4 +159,49 @@ void main() {
       expect(await raw.read(key: key), isNull);
     });
   });
+
+  group('SDK-linked wallet', () {
+    const a = 'wallet_0xaaaa';
+    const b = 'wallet_0xbbbb';
+    const c = 'wallet_0xcccc';
+    const watched = '__watches_key__0x0000';
+
+    Map<String, String> ordered(List<String> keys) => {
+      for (final key in keys) key: '{}',
+    };
+
+    test('the pick does not depend on the order readAll() returns', () {
+      final forward = storage.sgnusLinkCandidates(ordered([c, a, watched, b]));
+      final backward = storage.sgnusLinkCandidates(ordered([b, watched, a, c]));
+
+      expect(forward, [a, b, c]);
+      expect(backward, forward);
+    });
+
+    test('a watch-only wallet is never linked', () {
+      expect(storage.sgnusLinkCandidates(ordered([watched])), isEmpty);
+    });
+
+    test('the recorded wallet wins and survives a restart', () async {
+      await storage.saveSGNUSLinkedAddress('0xCCCC');
+      for (final key in [b, a, c]) {
+        await raw.write(key: key, value: '{}');
+      }
+
+      final restarted = await LocalWalletStorage.create(secureStorage: raw);
+      final candidates = restarted.sgnusLinkCandidates(await raw.readAll());
+
+      expect(candidates, [c, a, b]);
+    });
+
+    test('a deleted linked wallet falls back to the lowest address', () async {
+      await storage.saveSGNUSLinkedAddress('0xdddd');
+      final candidates = storage.sgnusLinkCandidates({
+        ...await raw.readAll(),
+        ...ordered([c, b]),
+      });
+
+      expect(candidates, [b, c]);
+    });
+  });
 }
