@@ -44,6 +44,8 @@ dependencies:
   html_unescape: ^2.0.0
   connectivity_plus: 7.0.0
   reown_walletkit: ^1.4.0
+  # The desktop Pay stub imports its platform interface directly.
+  walletconnect_pay: 1.0.0
   crypto: ^3.0.6
   intl: ^0.20.2
   app_links: ^7.0.0

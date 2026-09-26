@@ -1664,7 +1664,7 @@ packages:
     source: hosted
     version: "0.0.18"
   walletconnect_pay:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: walletconnect_pay
       sha256: e41dc37b3541f87c1b9b402cc01b733e9d26ed98467690a87c12ee8b7f0a28b1
