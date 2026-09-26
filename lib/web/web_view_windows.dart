@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
@@ -76,11 +77,20 @@ class _WebViewWindowsState extends State<WebViewWindows> {
       // exception that could echo it back (Uri.parse quotes its source).
       await WalletKitInstance().walletKit.pair(uri: Uri.parse(text));
       _lastHandledWalletConnectUri = text;
-      // Clear the clipboard after processing to avoid repeated connections.
-      await Clipboard.setData(const ClipboardData(text: ''));
     } catch (e) {
       debugPrint('❌ Clipboard WalletConnect pair failed: ${e.runtimeType}');
+      if (mounted) {
+        showToast(
+          context,
+          "Couldn't connect to the dApp. Try again.",
+          type: ToastType.error,
+        );
+      }
     } finally {
+      // Clear on both outcomes: on success it stops a repeat connection, and
+      // on failure it drops the symKey-bearing link so the poller does not
+      // re-toast on the same text every 2 seconds.
+      await Clipboard.setData(const ClipboardData(text: ''));
       _isClipboardPairing = false;
     }
   }
