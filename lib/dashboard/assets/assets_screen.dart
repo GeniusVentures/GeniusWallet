@@ -244,10 +244,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
   /// The pair, rather than sorting bare [AssetRowData] and looking the coin
   /// back up by symbol: a wallet may legitimately hold two entries with the
   /// same symbol on different networks, and a symbol-keyed lookup would hand
-  /// both rows the same coin. `compareAssetsByValue` - the shared authority
-  /// `sortAssets` itself delegates to - is applied directly instead, so the
-  /// order is byte-identical to what plan 25-01's `sortAssets(...).take(5)`
-  /// produces.
+  /// both rows the same coin.
   ({Coin coin, AssetRowData row}) _project(Coin coin) {
     final data = _marketData[coin.symbol?.toLowerCase()];
     return (
@@ -356,8 +353,11 @@ class _AssetsScreenState extends State<AssetsScreen> {
     // already-populated list must never blank the page.
     final bool hasCoins = coins.isNotEmpty;
 
-    final pairs = coins.map(_project).toList()
-      ..sort((a, b) => compareAssetsByValue(_ascending, a.row, b.row));
+    final pairs = orderAssets(
+      coins.map(_project),
+      (pair) => pair.row,
+      ascending: _ascending,
+    );
     final visible = pairs
         .where((p) => matchesAssetQuery(_query, p.row))
         .toList();

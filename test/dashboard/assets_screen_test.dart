@@ -216,18 +216,16 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('descending is the default and leads with the unpriced holding', (
+  testWidgets('descending is the default: by value, unpriced holding last', (
     tester,
   ) async {
     _phone(tester);
     await tester.pumpWidget(_host(coins: _wallet, prices: _prices));
     await tester.pumpAndSettle();
 
-    // GNUS is pinned FIRST outright (Jakub, 2026-08-07), above even the
-    // unpriced tier - so this also proves the pin outranks UNLST, not just the
-    // priced rows. UNLST then sits above ETH, the LARGEST priced row, which is
-    // the original point of this case and is unchanged.
-    expect(_rendered(tester), ['GNUS', 'UNLST', 'ETH', 'USDC']);
+    // ETH 3200, USDC 250, GNUS 85: GNUS ranks by its own value, and the
+    // holding the feed cannot price follows every priced one.
+    expect(_rendered(tester), ['ETH', 'USDC', 'GNUS', 'UNLST']);
     expect(tester.takeException(), isNull);
   });
 
@@ -243,15 +241,13 @@ void main() {
     await tester.pumpWidget(_host(coins: _wallet, prices: _prices));
     await tester.pumpAndSettle();
 
-    expect(_rendered(tester), ['GNUS', 'UNLST', 'ETH', 'USDC']);
+    expect(_rendered(tester), ['ETH', 'USDC', 'GNUS', 'UNLST']);
 
     await tester.tap(find.bySemanticsLabel(_descLabel));
     await tester.pumpAndSettle();
 
-    // The exact mirror: priced rows ascending, the unpriced tier LAST. A
-    // toggle that left UNLST pinned to the top would fail here, which is the
-    // point - a block that does not move makes the control read as broken.
-    expect(_rendered(tester), ['GNUS', 'USDC', 'ETH', 'UNLST']);
+    // The exact mirror, so the toggle visibly reorders every row.
+    expect(_rendered(tester), ['UNLST', 'GNUS', 'USDC', 'ETH']);
     expect(tester.takeException(), isNull);
     handle.dispose();
   });
@@ -354,8 +350,8 @@ void main() {
     handle.dispose();
   });
 
-  testWidgets('the all-zero wallet renders rows, and the toggle does not '
-      'reorder them', (tester) async {
+  testWidgets('the all-zero wallet renders only the GNUS row, in both '
+      'directions', (tester) async {
     _phone(tester);
     // Disposed explicitly at the END OF THE BODY, not via addTearDown: the
     // framework's leaked-handle check runs BEFORE tearDowns, so an
@@ -367,19 +363,16 @@ void main() {
     await tester.pumpWidget(_host(coins: _zeroWallet, prices: _zeroPrices));
     await tester.pumpAndSettle();
 
-    // NOT an empty state. Four real rows, every one reading $0.00, ordered
-    // GNUS first then alphabetically. "A wallet with no funds is not a broken
-    // wallet."
+    // NOT an empty state: a wallet holding nothing is offered the Genius
+    // token rather than a list of $0.00 rows.
     expect(find.byType(GWEmptyState), findsNothing);
-    const expected = ['GNUS', 'AAVE', 'ETH', 'USDC'];
+    const expected = ['GNUS'];
     expect(_rendered(tester), expected);
 
     await tester.tap(find.bySemanticsLabel(_descLabel));
     await tester.pumpAndSettle();
 
-    // The arrow flipped; the order did not. Correct per D-1 - nothing has
-    // value to rank - and it is on the walk as W-4 so it is not mistaken for
-    // a dead button.
+    // The arrow flipped; with one row there is nothing to reorder.
     expect(find.bySemanticsLabel(_ascLabel), findsOneWidget);
     expect(_rendered(tester), expected);
     expect(tester.takeException(), isNull);
@@ -395,12 +388,7 @@ void main() {
     // Written out rather than derived, so this fails loudly if the shared rule
     // changes: WBTC 30000, ETH 3200, SOL 1500, MATIC 400, USDC 250, GNUS 85,
     // DAI 12.
-    //
-    // It DID fail loudly, exactly as designed, when GNUS was pinned first
-    // (Jakub, 2026-08-07) - GNUS leads on 85 despite being sixth by value, and
-    // USDC is the row the pin pushed off the five. Updated deliberately, with
-    // the rule change, rather than relaxed.
-    const topFive = ['GNUS', 'WBTC', 'ETH', 'SOL', 'MATIC'];
+    const topFive = ['WBTC', 'ETH', 'SOL', 'MATIC', 'USDC'];
 
     final rows = _bigWallet
         .map(

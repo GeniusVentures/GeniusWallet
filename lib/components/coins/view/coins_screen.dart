@@ -248,35 +248,15 @@ class CoinsScreenState extends State<CoinsScreen> {
           // bare, uncapped list.
           final bool isDashboard = widget.onCoinSelected == null;
 
-          // Display order: `compareAssetsByValue`, the SHARED authority the
-          // `/assets` page sorts by (`assets_sort.dart`, phase 25-02). Descending
-          // (`ascending: false`) is that page's default, so the panel's top 5 is
-          // literally the head of the page's list - the two surfaces cannot
-          // disagree about which coins are "the top 5" or what order they come
-          // in, which is the defect a widget-local sort here would guarantee.
+          // Ordered by `orderAssets`, the rule the `/assets` page also uses,
+          // so the panel's top 5 is the head of that page's list. Sorted as
+          // (coin, row) pairs: two networks can hold the same symbol.
           //
-          // It REPLACES the old GNUS-first partition, and that is a real change
-          // worth naming: GNUS is no longer pinned absolutely, it wins as a
-          // TIE-BREAK among equal-ranking rows (step 4 of the comparator). In a
-          // wallet where every balance is zero - Jakub's - every priced row ties
-          // at value 0 and GNUS is still first. In a funded wallet a larger
-          // holding now outranks it. Consistency with `/assets` is what bought
-          // that; the comparator is the one place to change it if it is wrong.
-          //
-          // The (coin, row) PAIR rather than sorting bare `AssetRowData` and
-          // looking the coin back up by symbol: a wallet may legitimately hold
-          // two entries with the same symbol on different networks, and a
-          // symbol-keyed lookup would hand both rows the same coin. Same shape
-          // `assets_screen.dart:_project` builds.
-          //
-          // ponytail: that projection is duplicated here rather than shared -
-          // `assets_sort.dart` is Flutter-free by design and knows nothing about
-          // `Coin`, and the two plans in this phase were fenced from each other's
-          // files. Ceiling: the two can drift. Upgrade path now that both have
-          // landed: one `assetRowFor(Coin, CoinGeckoMarketData?)` beside the
-          // comparator, and delete both copies.
-          final pairs = filteredCoins.map(
-            (coin) {
+          // ponytail: the Coin -> AssetRowData projection is duplicated in
+          // `assets_screen.dart`. Ceiling: the two can drift. Upgrade path: one
+          // `assetRowFor(Coin, CoinGeckoMarketData?)` beside the comparator.
+          final pairs = orderAssets(
+            filteredCoins.map((coin) {
               final data = _marketData[coin.symbol?.toLowerCase()];
               return (
                 coin: coin,
@@ -292,8 +272,10 @@ class CoinsScreenState extends State<CoinsScreen> {
                   hasMarketData: data != null,
                 ),
               );
-            },
-          ).toList()..sort((a, b) => compareAssetsByValue(false, a.row, b.row));
+            }),
+            (pair) => pair.row,
+            ascending: false,
+          );
 
           final orderedCoins = [
             for (final pair
