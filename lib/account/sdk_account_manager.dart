@@ -98,6 +98,7 @@ class SDKAccountManagerButton extends StatelessWidget {
         builder: (context, state) {
           final accounts = state.sdkAccounts;
           final selected = state.selectedSDKAccount;
+          final linked = state.linkedSDKAccount?.toLowerCase();
           // Fail-soft read: registers the InheritedWidget dependency that
           // forces this content to rebuild on a live appearance toggle
           // (04-02 D-02).
@@ -139,6 +140,7 @@ class SDKAccountManagerButton extends StatelessWidget {
                   context,
                   account,
                   isSelected: account == selected,
+                  isStartAccount: account.toLowerCase() == linked,
                 ),
             ],
           );
@@ -168,6 +170,7 @@ class SDKAccountManagerButton extends StatelessWidget {
     BuildContext context,
     String address, {
     required bool isSelected,
+    required bool isStartAccount,
   }) {
     // Fail-soft read: registers the InheritedWidget dependency (on the
     // per-row context passed in from the drawer's own itemBuilder, NOT the
@@ -179,6 +182,7 @@ class SDKAccountManagerButton extends StatelessWidget {
     final can = sdkRowActions(
       isSelected: isSelected,
       hasMnemonic: mnemonic != null,
+      isStartAccount: isStartAccount,
     );
 
     // Sketch 068-A. This was a `GWCard` whose selected state was a 2px brand
@@ -210,7 +214,9 @@ class SDKAccountManagerButton extends StatelessWidget {
         color: gw.textPrimary,
         fontWeight: FontWeight.w500,
       ),
-      subtitle: isSelected ? 'Active processing account' : null,
+      subtitle: isSelected
+          ? 'Active processing account'
+          : (isStartAccount ? 'The app starts with this account' : null),
       // ONE menu on EVERY row (sketch 069-A). Before this, the selected row got
       // a three-item menu and every OTHER row got a bare red delete
       // `IconButton` and no menu at all -- so Delete was never IN the menu, the
@@ -597,16 +603,17 @@ class SDKAccountManagerButton extends StatelessWidget {
 /// [hasMnemonic] is separate from [isSelected].
 ///
 /// Delete inverts: the SDK refuses to delete the account it is currently
-/// using (`GeniusApi.deleteAccount`'s own doc), so the active row is the one
-/// row where it must be off.
+/// using (`GeniusApi.deleteAccount`'s own doc), and the account the app starts
+/// with would be re-imported on the next start, so both rows keep it off.
 ({bool payout, bool phrase, bool qr, bool delete}) sdkRowActions({
   required bool isSelected,
   required bool hasMnemonic,
+  bool isStartAccount = false,
 }) => (
   payout: isSelected,
   phrase: isSelected && hasMnemonic,
   qr: isSelected && hasMnemonic,
-  delete: !isSelected,
+  delete: !isSelected && !isStartAccount,
 );
 
 /// The merged add-account dialog: pick the import method, then paste.
