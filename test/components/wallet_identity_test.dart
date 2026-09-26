@@ -45,6 +45,9 @@ class _RenameApi implements GeniusApi {
   String? getSelectedAccountAddress() => null;
 
   @override
+  String? getStartAccountAddress() => null;
+
+  @override
   List<String> getAvailableAccounts() => const [];
 
   @override
