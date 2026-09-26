@@ -10,15 +10,16 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// between children - "partial adoption reads as a different design language
 /// on the same screen."
 ///
-/// This is now the SINGLE place those five values live. Four consumers:
+/// This is now the SINGLE place those five values live. Consumers include
 /// [GWTimeframeSegment] (`gw_timeframe_segment.dart`), `_TransactionFilterBar`
 /// (`transactions_slim_view.dart`), the Buy GNUS "Your orders" filter
-/// track (`banxa_buy_screen.dart`), and the Compute panel's balance unit
-/// track (`_UnitTrack` in `compute_panel.dart`, `260731-kc5`). Converging
-/// all four onto one container is what turns CONVENTIONS.md's "they change
+/// track (`banxa_buy_screen.dart`), the Compute panel's balance unit
+/// track (`_UnitTrack` in `compute_panel.dart`) and the add-account method
+/// switch (`sdk_account_manager.dart`). Converging
+/// them onto one container is what turns CONVENTIONS.md's "they change
 /// together" pairing rule from a comment into something the compiler
 /// enforces - editing this file is now the only way to move any of the five
-/// values, so the four tracks cannot drift apart by editing one file the
+/// values, so the tracks cannot drift apart by editing one file the
 /// way the first two already had.
 ///
 /// This widget owns geometry ONLY. It does not know what a "chip" is, does

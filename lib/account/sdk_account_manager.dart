@@ -10,6 +10,7 @@ import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
+import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
@@ -609,14 +610,6 @@ class SDKAccountManagerButton extends StatelessWidget {
 );
 
 /// The merged add-account dialog: pick the import method, then paste.
-///
-/// The method switch is built to `CONVENTIONS.md`'s **Control track** recipe
-/// (`surfaceSunken` fill, `borderSubtle` hairline, `radiusPill`, 3px track
-/// padding, 2px chip gap) rather than to a component, because there is no
-/// component - there are FIVE private implementations of this recipe already
-/// (`_TimeframeSegment` twice, the transactions filter track, `_PresetChip`,
-/// and now this). A todo is filed; building `GWSegmentedControl` for one
-/// consumer would fail the promotion test 065 and 068 both used.
 class _AddAccountDialog extends StatefulWidget {
   const _AddAccountDialog({required this.validity});
 
@@ -666,22 +659,23 @@ class _AddAccountDialogState extends State<_AddAccountDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: gw.surfaceSunken,
-                border: Border.all(color: gw.borderSubtle),
-                borderRadius: BorderRadius.circular(
-                  GeniusWalletConsts.radiusPill,
+            GWControlTrack(
+              children: [
+                Expanded(
+                  child: _MethodChip(
+                    label: 'Recovery phrase',
+                    selected: phrase,
+                    onTap: () => _setMethod(phrase: true),
+                  ),
                 ),
-              ),
-              child: Row(
-                children: [
-                  _modeChip('Recovery phrase', selected: phrase, value: true),
-                  const SizedBox(width: 2),
-                  _modeChip('Private key', selected: !phrase, value: false),
-                ],
-              ),
+                Expanded(
+                  child: _MethodChip(
+                    label: 'Private key',
+                    selected: !phrase,
+                    onTap: () => _setMethod(phrase: false),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: GeniusWalletConsts.space6),
             if (phrase) ...[
@@ -727,37 +721,62 @@ class _AddAccountDialogState extends State<_AddAccountDialog> {
   void _recheck() =>
       widget.validity.check(phrase: _phrase, value: _controller.text.trim());
 
-  Widget _modeChip(
-    String label, {
-    required bool selected,
-    required bool value,
-  }) {
+  void _setMethod({required bool phrase}) {
+    // Checked against state, not the chip's last-built `selected`, so a
+    // double tap cannot clear the field twice or flip the method back.
+    if (_phrase == phrase) {
+      return;
+    }
+    // Switching method clears the field: a mnemonic left in the box while
+    // the label says "Private key" is the kind of thing that gets pasted
+    // into the wrong import.
+    _controller.clear();
+    setState(() => _phrase = phrase);
+    _recheck();
+  }
+}
+
+/// One option of the add-account method switch. Stays enabled when selected
+/// so it keeps keyboard focus and is announced as "selected", not "disabled".
+class _MethodChip extends StatelessWidget {
+  const _MethodChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-        onTap: selected
-            ? null
-            : () {
-                // Switching method clears the field: a mnemonic left in the
-                // box while the label says "Private key" is the kind of thing
-                // that gets pasted into the wrong import.
-                _controller.clear();
-                setState(() => _phrase = value);
-                _recheck();
-              },
-        child: Container(
-          height: 36,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            gradient: selected ? GeniusWalletGradient.brandCta : null,
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
-          ),
-          child: Text(
-            label,
-            style: GeniusWalletTypography.labelMd.copyWith(
-              color: selected ? context.gw.textOnBrand : gw.textSecondary,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+    return Semantics(
+      button: true,
+      selected: selected,
+      // Transparent Material so the ink paints above the track's well
+      // instead of underneath it.
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+          onTap: onTap,
+          child: Container(
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: selected ? GeniusWalletGradient.brandCta : null,
+              borderRadius: BorderRadius.circular(
+                GeniusWalletConsts.radiusPill,
+              ),
+            ),
+            child: Text(
+              label,
+              style: GeniusWalletTypography.labelMd.copyWith(
+                color: selected ? gw.textOnBrand : gw.textMutedOnSunken,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              ),
             ),
           ),
         ),
