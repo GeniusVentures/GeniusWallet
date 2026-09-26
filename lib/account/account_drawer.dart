@@ -235,7 +235,12 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     // user confirms this State is usually disposed and the delete would be
     // lost. AppBloc selects the replacement wallet when this one was selected.
     if (confirmed == true) {
-      appBloc.add(DeleteWallet(wallet.address));
+      appBloc.add(
+        DeleteWallet(
+          wallet.address,
+          watchOnly: wallet.walletType == WalletType.tracking,
+        ),
+      );
     }
   }
 

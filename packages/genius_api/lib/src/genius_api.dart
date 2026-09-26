@@ -745,8 +745,8 @@ class GeniusApi {
     await loadStoredWallets();
   }
 
-  Future<void> deleteWallet(String address) async {
-    await _secureStorage.deleteWallet(address);
+  Future<void> deleteWallet(String address, {required bool watchOnly}) async {
+    await _secureStorage.deleteWallet(address, watchOnly: watchOnly);
     await loadStoredWallets();
   }
 

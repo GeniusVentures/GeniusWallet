@@ -155,8 +155,24 @@ void main() {
       final renamed = Wallet.fromJson(jsonDecode((await raw.read(key: key))!));
       expect(renamed.walletName, 'Renamed');
 
-      await storage.deleteWallet(address.toUpperCase());
+      await storage.deleteWallet(address.toUpperCase(), watchOnly: true);
       expect(await raw.read(key: key), isNull);
+    });
+
+    test('deleting the watch-only row keeps a private key for the same '
+        'address', () async {
+      final keyEntry = storage.createWalletKey(address);
+      final watchEntry = storage.createWatchedWalletKey(address);
+      // The key entry is listed first, so an address-only match would take it.
+      storage = await withValues({
+        keyEntry: '{"stored":"key"}',
+        watchEntry: jsonEncode(wallet.toJson()),
+      });
+
+      await storage.deleteWallet(address, watchOnly: true);
+
+      expect(await raw.read(key: watchEntry), isNull);
+      expect(await raw.read(key: keyEntry), '{"stored":"key"}');
     });
   });
 

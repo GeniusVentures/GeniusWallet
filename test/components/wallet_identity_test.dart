@@ -46,13 +46,15 @@ class _RenameApi implements GeniusApi {
   /// wallet list is only filled by `LoadWallets`, the SGNUS merge is not.
   final List<String> sgnusAccounts;
   String? deleted;
+  bool? deletedWatchOnly;
 
   @override
   Future<void> renameWallet(String address, String newName) async {}
 
   @override
-  Future<void> deleteWallet(String address) async {
+  Future<void> deleteWallet(String address, {required bool watchOnly}) async {
     deleted = address;
+    deletedWatchOnly = watchOnly;
   }
 
   @override
@@ -83,7 +85,7 @@ class _GatedDeleteApi extends _RenameApi {
   final calls = <String>[];
 
   @override
-  Future<void> deleteWallet(String address) async {
+  Future<void> deleteWallet(String address, {required bool watchOnly}) async {
     calls.add(address);
     await gate.future;
   }
@@ -375,7 +377,7 @@ void main() {
         );
         expect(find.text(WalletUtils.getAddressForDisplay(_addrA)), findsOne);
 
-        appBloc.add(DeleteWallet(_addrA));
+        appBloc.add(DeleteWallet(_addrA, watchOnly: false));
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 50)),
         );
@@ -412,7 +414,7 @@ void main() {
       );
       try {
         // Straight to the bloc: the rule must hold even if a UI skips it.
-        appBloc.add(DeleteWallet(_addrA));
+        appBloc.add(DeleteWallet(_addrA, watchOnly: false));
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 50)),
         );
@@ -444,7 +446,7 @@ void main() {
         wallets: [sdkSameKey, local, other],
       );
       try {
-        appBloc.add(DeleteWallet(_addrA));
+        appBloc.add(DeleteWallet(_addrA, watchOnly: false));
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 50)),
         );
@@ -472,7 +474,7 @@ void main() {
         wallets: [main, _eth('Savings', _addrB)],
       );
       try {
-        appBloc.add(DeleteWallet(_addrA));
+        appBloc.add(DeleteWallet(_addrA, watchOnly: false));
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 50)),
         );
@@ -481,6 +483,38 @@ void main() {
           appBloc.state.wallets.where((w) => w.address == _addrA),
           isEmpty,
         );
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    });
+
+    testWidgets('deleting the watch-only row of a key wallet address '
+        'keeps the key wallet selected', (tester) async {
+      final key = _eth('Main wallet', _addrA);
+      final watch = key.copyWith(walletType: WalletType.tracking);
+      final api = _RenameApi(sgnusAccounts: [_addrB]);
+      final cubit = _CountingCubit(
+        initialState: WalletDetailsState(selectedWallet: key),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [key, watch],
+      );
+      try {
+        appBloc.add(DeleteWallet(_addrA, watchOnly: true));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        expect(api.deleted, _addrA);
+        expect(api.deletedWatchOnly, isTrue);
+        expect(cubit.state.selectedWallet, key);
+        final event = DeleteWallet(_addrA, watchOnly: true);
+        expect(AppBloc.isDeletedRow(watch, event), isTrue);
+        expect(AppBloc.isDeletedRow(key, event), isFalse);
       } finally {
         await tester.runAsync(() => appBloc.close());
         await cubit.close();
@@ -504,8 +538,8 @@ void main() {
       );
       try {
         appBloc
-          ..add(DeleteWallet(_addrA))
-          ..add(DeleteWallet(_addrB));
+          ..add(DeleteWallet(_addrA, watchOnly: false))
+          ..add(DeleteWallet(_addrB, watchOnly: false));
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 50)),
         );

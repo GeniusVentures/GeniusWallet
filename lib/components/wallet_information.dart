@@ -230,6 +230,9 @@ class WalletInformationState extends State<WalletInformation> {
                               onPressed: () {
                                 geniusApi.deleteWallet(
                                   state.selectedWallet?.address ?? "",
+                                  watchOnly:
+                                      state.selectedWallet?.walletType ==
+                                      WalletType.tracking,
                                 );
                                 showToast(
                                   context,

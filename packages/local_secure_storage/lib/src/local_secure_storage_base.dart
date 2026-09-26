@@ -188,12 +188,17 @@ class LocalWalletStorage {
     }
   }
 
-  Future<void> deleteWallet(String walletAddress) async {
+  /// A private key and a watch-only row can share one address, so the caller
+  /// names which one goes: an address-only match could delete the key.
+  Future<void> deleteWallet(String walletAddress,
+      {required bool watchOnly}) async {
+    final target = watchOnly
+        ? createWatchedWalletKey(walletAddress)
+        : createWalletKey(walletAddress);
     Map<String, String> keys = await _secureStorage.readAll();
 
     for (var entry in keys.entries) {
-      if ((isAWallet(entry.key) || isAWatchedWallet(entry.key)) &&
-          isKeyMatchesAddress(entry.key, walletAddress)) {
+      if (entry.key.toLowerCase() == target) {
         await deleteKey(entry.key);
         return;
       }
