@@ -1449,11 +1449,11 @@ both use `getApplicationDocumentsDirectory()`. SDK private keys are NOT in Docum
 Keychain / KeyStore); only the public-key account list is. Constraints to resolve in discuss: the SDK writes
 more files than the obvious list; Windows refuses renames of open files; two first-launch instances would
 race; roaming (`%APPDATA%`) vs local AppData; `.planning/reference/FRESH-INSTALL-RECIPE.md` hardcodes paths.
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 33 to break down)
+- [ ] 33-01-PLAN.md — one folder resolver (new installs to local AppData/XDG, existing stay in Documents) wired into Hive, the SDK base path and Sentry logs; reset recipe covers both
 
 ---
 
