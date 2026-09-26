@@ -43,3 +43,13 @@ actually guarantees rather than claiming blanket protection.
 
 Related: UI-SPEC §3.5; `.planning/todos/pending/2026-07-21-seed-phrase-clipboard-has-no-expiry-or-confirm.md`
 (the adjacent clipboard-retention exposure on the same screens).
+
+## Resolution (2026-09-26)
+
+Followed MetaMask: Android-only `FLAG_SECURE` (blanks screenshots, recordings and the recents
+thumbnail) while a seed is on screen; iOS, macOS, Windows and Linux are deliberately untouched.
+`SecureScreen` (`lib/utils/secure_screen.dart`) holds a ref-counted flag through the existing
+`ai.gnus.genius_wallet/platform` channel (`setSecure` in `MainActivity.kt`). Wrapped: the recovery
+phrase screen, the verify screen, and the SDK account "Recovery phrase QR" dialog. Not wrapped: the
+"Copy recovery phrase" path (it shows nothing) and the import/add-account paste fields (user input).
+Not device-tested: no Android build on the dev machine.
