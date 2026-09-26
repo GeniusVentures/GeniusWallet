@@ -1,7 +1,7 @@
 ---
 phase: 25
 title: One scroll on the dashboard - capped sections with View all
-status: ready-to-plan
+status: complete
 raised_by: Jakub, 2026-08-06 live iPhone walk
 blocked_by: none - quick task 260806-wys (dashboard section rhythm) LANDED 2026-08-07
 scope: TWO deliverables, to be planned as two plans and executed in parallel

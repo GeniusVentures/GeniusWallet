@@ -1,7 +1,8 @@
 ---
 slug: mobile-shell-dock
 created: 2026-08-06
-status: root-caused
+updated: 2026-09-26
+status: resolved
 area: ui / navigation shell
 suspect_files:
   - lib/components/overlay/responsive_overlay.dart
@@ -89,3 +90,12 @@ No regression test yet. The invariant worth pinning is "the mobile bar is never 
 fraction of the viewport", and it needs a shell harness (GoRouter + AppBloc + WalletDetailsCubit)
 that no test currently builds - `test/account/account_drawer_show_test.dart` has the closest one.
 Recorded rather than skipped silently.
+
+## Resolution (closed 2026-09-26)
+
+Both faults fixed in develop by `d3f1122c` (phase 24, shipped via PR #225): the phone bar is height-bounded
+(`kMobileBarHeight = 60`, `lib/components/overlay/responsive_overlay.dart:105,198,205`; the dock `SizedBox`
+states both axes at :365-366), and `MobileHeader` is a real `AppBar` with `toolbarHeight: 60`
+(`lib/components/overlay/mobile_header.dart:54-58`). The owed regression guard now exists:
+`test/components/mobile_nav_destinations_test.dart:283` (slot stack fits the bar height) and
+`test/components/mobile_header_brand_and_pill_test.dart` (header mounted in a real `Scaffold`).
