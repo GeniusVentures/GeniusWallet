@@ -262,7 +262,6 @@ void main() {
         args: const TokenInfoArgs(
           walletCoin: _usdcCoin,
           network: 'Polygon Amoy',
-          originLabel: 'ASSETS',
         ),
       ),
     );

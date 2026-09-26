@@ -1,7 +1,7 @@
 // The parity gate quick task 260731-hsb owes: a source-scanning census that
 // fails on a fourth /token-info push site (or one passing a bare map), plus
 // the widget/unit behaviour that makes the census worth having - one payload
-// type, the origin label, wallet-context rows that only render when the
+// type, a title-only page header, wallet-context rows that only render when the
 // caller genuinely knows them, and the loading/failed/uncovered split that
 // stops a rate limit from being printed as "not covered by our market data
 // provider" (Findings 3).
@@ -19,7 +19,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
 import 'package:genius_wallet/hive/models/coin_gecko_market_data.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -192,16 +194,15 @@ void main() {
 
   group('TokenInfoArgs.fromExtra', () {
     test('an already-typed TokenInfoArgs round-trips unchanged', () {
-      const args = TokenInfoArgs(coinGeckoId: 'bitcoin', originLabel: 'ASSETS');
+      const args = TokenInfoArgs(coinGeckoId: 'bitcoin');
       expect(identical(TokenInfoArgs.fromExtra(args), args), isTrue);
     });
 
-    test('null becomes the const empty payload, MARKETS default', () {
+    test('null becomes the const empty payload', () {
       final args = TokenInfoArgs.fromExtra(null);
       expect(args.marketData, isNull);
       expect(args.coinGeckoId, isNull);
       expect(args.walletCoin, isNull);
-      expect(args.originLabel, 'MARKETS');
     });
 
     test('the legacy map shape carries its marketData through', () {
@@ -215,7 +216,6 @@ void main() {
         'isGnusWalletConnected': true,
       });
       expect(args.marketData, data);
-      expect(args.originLabel, 'MARKETS');
     });
 
     test('a serialised (JSON map) marketData deep link still decodes', () {
@@ -232,30 +232,12 @@ void main() {
     });
   });
 
-  group('TokenInfoScreen - origin label and wallet-context rows', () {
-    testWidgets('originLabel renders on the back link; default is MARKETS', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
-      tester.view.devicePixelRatio = 2.0;
-      addTearDown(tester.view.reset);
-
-      await tester.pumpWidget(
-        _host(
-          args: TokenInfoArgs(marketData: _usdc(), originLabel: 'ASSETS'),
-        ),
-      );
-      await tester.pump();
-
-      expect(find.text('ASSETS'), findsOneWidget);
-      expect(find.text('MARKETS'), findsNothing);
-    });
-
-    testWidgets(
-      'default originLabel renders MARKETS - unchanged from before this '
-      'plan',
-      (tester) async {
-        tester.view.physicalSize = const Size(1400 * 2, 1000 * 2);
+  group('TokenInfoScreen - page header and wallet-context rows', () {
+    for (final size in const [Size(1400, 1000), Size(390, 844)]) {
+      testWidgets('title-only header, no back link, at ${size.width}', (
+        tester,
+      ) async {
+        tester.view.physicalSize = size * 2;
         tester.view.devicePixelRatio = 2.0;
         addTearDown(tester.view.reset);
 
@@ -264,9 +246,17 @@ void main() {
         );
         await tester.pump();
 
-        expect(find.text('MARKETS'), findsOneWidget);
-      },
-    );
+        // The same header Transactions uses, and it is the page's first row.
+        final header = find.byType(GWPageHeader);
+        expect(
+          find.descendant(of: header, matching: find.text('USD Coin')),
+          findsOneWidget,
+        );
+        expect(find.byType(GWBackLink), findsNothing);
+        expect(find.text('MARKETS'), findsNothing);
+        expect(find.text('ASSETS'), findsNothing);
+      });
+    }
 
     testWidgets('a null walletCoin renders no Address or Network row', (
       tester,

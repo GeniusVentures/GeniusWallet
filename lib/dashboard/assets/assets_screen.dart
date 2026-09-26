@@ -604,7 +604,6 @@ class _AssetsScreenState extends State<AssetsScreen> {
                 marketData: _marketData[coin.symbol?.toLowerCase()],
                 walletCoin: coin,
                 network: state.selectedNetwork?.name,
-                originLabel: 'ASSETS',
               ),
             );
           },
