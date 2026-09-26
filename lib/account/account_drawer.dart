@@ -198,8 +198,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     // Close the drawer first so the dialog appears on the correct navigator.
     Navigator.of(context).pop();
 
-    // Guard: require at least one wallet to remain.
-    if (appBloc.state.wallets.length <= 1) {
+    // Guard: at least one of the user's own wallets must remain; SDK accounts
+    // do not count (the bloc enforces the same rule).
+    if (!AppBloc.canDeleteWallet(appBloc.state.wallets)) {
       showToast(
         navigator.context,
         'You must keep at least one wallet.',

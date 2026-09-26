@@ -585,10 +585,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         orElse: () => remaining.first,
       );
 
+  /// True while another of the user's own wallets would remain. SDK accounts
+  /// do not count: they are not reloaded once no local wallet is left, so a
+  /// deletion they "covered" would leave the user with nothing after a restart.
+  static bool canDeleteWallet(List<Wallet> wallets) =>
+      wallets.where((w) => w.walletType != WalletType.sgnus).length > 1;
+
   FutureOr<void> _onDeleteWallet(
     DeleteWallet event,
     Emitter<AppState> emit,
   ) async {
+    // Enforced here, not only in the drawer: deleting a wallet is irreversible.
+    if (!canDeleteWallet(state.wallets)) {
+      return;
+    }
     await api.deleteWallet(event.address);
     _baseWallets = _baseWallets
         .where((w) => w.address != event.address)
@@ -596,7 +606,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final remaining = await _mergeSgnusWallet();
     // The header reads the selected wallet from the cubit, so a deleted
     // selection is replaced and persisted exactly as a drawer switch does.
-    // The drawer refuses to delete the last wallet, so one always remains.
+    // The guard above keeps at least one of the user's own wallets.
     final selected = walletDetailsCubit.state.selectedWallet;
     if (remaining.isNotEmpty &&
         selected != null &&

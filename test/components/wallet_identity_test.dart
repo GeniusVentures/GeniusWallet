@@ -326,6 +326,38 @@ void main() {
       }
     });
 
+    testWidgets('the last own wallet cannot be deleted even with an SDK '
+        'account connected', (tester) async {
+      final main = _eth('Main wallet', _addrA);
+      final sdk = _eth(
+        'Super Genius Wallet',
+        _addrB,
+      ).copyWith(walletType: WalletType.sgnus);
+      final api = _RenameApi(sgnusAccounts: [_addrB]);
+      final cubit = _CountingCubit(
+        initialState: WalletDetailsState(selectedWallet: main),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [sdk, main],
+      );
+      try {
+        // Straight to the bloc: the rule must hold even if a UI skips it.
+        appBloc.add(DeleteWallet(_addrA));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        expect(api.deleted, isNull);
+        expect(cubit.state.selectedWallet, main);
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    });
+
     testWidgets('the last wallet cannot be deleted', (tester) async {
       final main = _eth('Main wallet', _addrA);
       final api = _RenameApi();
