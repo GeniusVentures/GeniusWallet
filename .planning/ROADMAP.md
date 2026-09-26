@@ -1431,6 +1431,30 @@ Plans:
 - [x] 32-03-PLAN.md — goal 2 part 2: account, wallet, PIN, receive, settings, logs and Banxa labels
 - [x] 32-04-PLAN.md — goal 2 part 3: form errors, banners, swap/bridge/WalletConnect foregrounds, and the census test that locks the sweep
 
+### Phase 33: App and SDK data out of the Documents folder
+
+**Goal:** On Windows and Linux, the app's and the SDK's data live in the app's own data folder, not
+loose in the user's Documents. Existing installs move their data there once, without losing anything.
+**Requirements**: TBD
+**Depends on:** Phase 32
+**Success Criteria** (what must be TRUE):
+
+  1. A fresh Windows/Linux install writes nothing into the user's Documents folder
+  2. An existing install's data (Hive boxes, SDK node store, secure_storage_id, my_tasks.json, configs, logs) moves once and the wallet, SDK accounts and history all still load
+  3. A move that fails part-way leaves the app fully usable from the old location, and retries safely next start
+  4. Android, iOS and macOS are unchanged (their Documents is already app-private)
+
+Found 2026-09-26 while tracing why the SDK had 6 accounts: `prepareConfigFiles()` and `Hive.initFlutter()`
+both use `getApplicationDocumentsDirectory()`. SDK private keys are NOT in Documents (Credential Manager /
+Keychain / KeyStore); only the public-key account list is. Constraints to resolve in discuss: the SDK writes
+more files than the obvious list; Windows refuses renames of open files; two first-launch instances would
+race; roaming (`%APPDATA%`) vs local AppData; `.planning/reference/FRESH-INSTALL-RECIPE.md` hardcodes paths.
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 33 to break down)
+
 ---
 
 # Milestone v2.0: Squid Router integration — SHIPPED 2026-09-24

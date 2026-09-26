@@ -656,6 +656,8 @@ Open decisions:
 
 ### Roadmap Evolution
 
+- Phase 33 added (2026-09-26): App and SDK data out of the Documents folder (Windows/Linux)
+
 - **Phase 32 added 2026-09-25:** Contrast and text-scale accessibility pass. It covers the switch outline, the status-text AA fix, the bottom-bar textScaler clamp and the five Material text slots.
 
 - **Phase 31 added 2026-09-23:** Send native coins and ERC-20 tokens (EVM only; SGNUS later).
