@@ -139,16 +139,19 @@ class _QrView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 250, maxHeight: 250),
-      child: QrImageView(
-        // Fixed white regardless of appearance: a QR code needs a light
-        // quiet zone around its dark modules to scan reliably -- a
-        // scannability requirement, not a style choice.
-        // raw-color-ok: fixed white quiet zone, required for scan reliability
-        backgroundColor: Colors.white,
-        data: wcUri,
-        version: QrVersions.auto,
+    // Centred: the drawer is wider than the 250px code on desktop.
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 250, maxHeight: 250),
+        child: QrImageView(
+          // Fixed white regardless of appearance: a QR code needs a light
+          // quiet zone around its dark modules to scan reliably -- a
+          // scannability requirement, not a style choice.
+          // raw-color-ok: fixed white quiet zone, required for scan reliability
+          backgroundColor: Colors.white,
+          data: wcUri,
+          version: QrVersions.auto,
+        ),
       ),
     );
   }
