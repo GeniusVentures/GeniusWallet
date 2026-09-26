@@ -76,8 +76,9 @@ should match - and it does not address this one.
 
 ## Resolution (2026-09-26)
 
-Scheme E, additively: `AccountAvatar` gained `showIdentity` (default false, so the drawer rows and
-`AccountDropdownSelector` are unchanged); only the phone header's `WalletPill` passes true.
+Scheme E, in a header-only widget: `WalletIdentityAvatar` in
+`lib/components/overlay/mobile_header.dart`, used only by `WalletPill`. `AccountAvatar` is unchanged,
+so the drawer rows and `AccountDropdownSelector` look as before.
 
 - Monogram (`walletMonogram`): address-shaped names (`0x...` or any 20+ char unbroken token) run
   FIRST and return null, which falls back to today's currency glyph - the todo's option, not the
@@ -88,5 +89,8 @@ Scheme E, additively: `AccountAvatar` gained `showIdentity` (default false, so t
   and address-shaped names still differ. Every fill clears 4.5:1 with `textOnBrand` and 3:1 against
   `surfaceElevated` in both modes (worst: 4.97 text, 3.20 vs white bar). 1-in-8 colour collisions
   remain by construction.
-- Watched wallets keep the eye icon, on the identity fill. Network badge unchanged.
-- Test: `test/account/wallet_identity_test.dart`.
+- Watch-only wallets keep their monogram; the eye is a small top-left badge opposite the network
+  badge. Only an address-shaped watch-only name shows the eye as the disc's glyph.
+- Renaming the selected wallet updates the header (the drawer's rename was silently dropped before;
+  the cubit now updates the name without reselecting, so holdings are not refetched).
+- Test: `test/components/wallet_identity_test.dart`.
