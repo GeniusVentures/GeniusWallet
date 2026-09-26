@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:genius_wallet/chart/chart_axis.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/gw_timeframe_segment.dart';
-import 'package:genius_wallet/components/pulsing_skeleton.dart';
+import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/dashboard/chart/markets_hero_card.dart'
     show chooseAxisDateFormat;
 import 'package:genius_wallet/services/coin_gecko/coin_gecko_api.dart';
@@ -573,9 +573,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                   ),
                 )
               else
-                const Expanded(
-                  child: Center(child: PulsingSkeleton(width: double.infinity)),
-                ),
+                const Expanded(child: Center(child: Loading())),
             ],
           );
 
