@@ -13,35 +13,48 @@ abstract final class SecureWindow {
   /// Counted, not a bool: a flow swaps one seed screen for the next by mounting
   /// the new one before disposing the old, and a bool would clear it there.
   static int _holders = 0;
+  static Future<void> _secured = Future.value();
 
-  static void acquire() {
+  /// True once Android has confirmed the flag for the current holders.
+  static bool get isSecured => _isSecured;
+  static bool _isSecured = false;
+
+  static bool get applies =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  /// Completes once the flag is in place, or once setting it has failed.
+  static Future<void> acquire() {
     _holders++;
     if (_holders == 1) {
-      _set(true);
+      _secured = _set(true).then((_) {
+        _isSecured = _holders > 0;
+      });
     }
+    return _secured;
   }
 
   static void release() {
     _holders--;
     if (_holders == 0) {
-      _set(false);
+      _isSecured = false;
+      unawaited(_set(false));
     }
   }
 
-  static void _set(bool secure) {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
-      return;
+  static Future<void> _set(bool secure) {
+    if (!applies) {
+      return Future.value();
     }
-    // A missing flag is weaker protection, not a failure the screen can act on.
-    unawaited(
-      _channel
-          .invokeMethod<void>('setSecure', secure)
-          .catchError((Object _) {}),
-    );
+    // Fails open: a missing flag is weaker protection, but hiding the phrase
+    // for good would lock the user out of backing up their wallet.
+    return _channel
+        .invokeMethod<void>('setSecure', secure)
+        .catchError((Object _) {});
   }
 }
 
-/// Holds [SecureWindow] for as long as [child] is in the tree.
+/// Holds [SecureWindow] for as long as [child] is in the tree, and shows
+/// [child] only once the flag is in place so no frame is captured before it.
 class SecureScreen extends StatefulWidget {
   const SecureScreen({super.key, required this.child});
 
@@ -52,10 +65,20 @@ class SecureScreen extends StatefulWidget {
 }
 
 class _SecureScreenState extends State<SecureScreen> {
+  late bool _shown;
+
   @override
   void initState() {
     super.initState();
-    SecureWindow.acquire();
+    _shown = !SecureWindow.applies || SecureWindow.isSecured;
+    final secured = SecureWindow.acquire();
+    if (!_shown) {
+      secured.then((_) {
+        if (mounted) {
+          setState(() => _shown = true);
+        }
+      });
+    }
   }
 
   @override
@@ -65,5 +88,6 @@ class _SecureScreenState extends State<SecureScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) =>
+      _shown ? widget.child : const SizedBox.shrink();
 }

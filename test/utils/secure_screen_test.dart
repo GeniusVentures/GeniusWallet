@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -46,6 +48,50 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     expect(calls, [true, false]);
 
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('Android: the child waits for the flag to be confirmed', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final reply = Completer<void>();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.arguments == true) {
+            await reply.future;
+          }
+          return null;
+        });
+
+    await tester.pumpWidget(
+      const SecureScreen(child: Text('seed', textDirection: TextDirection.ltr)),
+    );
+    await tester.pump();
+    expect(find.text('seed'), findsNothing);
+
+    reply.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('seed'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('Android: a failed flag still shows the child', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          throw PlatformException(code: 'unavailable');
+        });
+
+    await tester.pumpWidget(
+      const SecureScreen(child: Text('seed', textDirection: TextDirection.ltr)),
+    );
+    await tester.pump();
+    expect(find.text('seed'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
     debugDefaultTargetPlatformOverride = null;
   });
 
