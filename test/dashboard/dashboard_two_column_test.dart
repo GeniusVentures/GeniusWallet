@@ -2,6 +2,7 @@
 // left column; halved with Markets it drew a flat line.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_wallet/chart/crypto_live_chart.dart';
 import 'package:genius_wallet/components/gw_timeframe_segment.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -67,4 +68,25 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
+
+  testWidgets('tapping the active range again rebuilds the chart to retry', (
+    tester,
+  ) async {
+    await _pumpAt(tester, 1440);
+    Key? chartKey() =>
+        tester.widget<CryptoLiveChart>(find.byType(CryptoLiveChart)).key;
+    final before = chartKey();
+
+    final original = FlutterError.onError;
+    FlutterError.onError = (_) {};
+    try {
+      await tester.tap(find.text('1D'));
+      await tester.pump();
+    } finally {
+      FlutterError.onError = original;
+    }
+
+    expect(chartKey(), isNot(before));
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }

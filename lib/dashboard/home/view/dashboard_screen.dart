@@ -639,11 +639,20 @@ class _ChartDashboardViewState extends State<ChartDashboardView> {
     }
   }
 
+  // Bumped when the active range is tapped again: a new key rebuilds the
+  // chart, so a failed or empty range can be retried in place.
+  int _reloads = 0;
+
   void _setRange(int index) {
     PageStorage.maybeOf(
       context,
     )?.writeState(context, index, identifier: _rangeStorageId);
-    setState(() => _rangeIndex = index);
+    setState(() {
+      if (index == _rangeIndex) {
+        _reloads++;
+      }
+      _rangeIndex = index;
+    });
   }
 
   @override
@@ -659,6 +668,7 @@ class _ChartDashboardViewState extends State<ChartDashboardView> {
           ),
           Expanded(
             child: CryptoLiveChart(
+              key: ValueKey(_reloads),
               coinGeckoCoinId: kNativeMarketCoinId,
               tokenSymbol: 'gnus',
               priceHeight: 28,
