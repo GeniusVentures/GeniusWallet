@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,11 +12,13 @@ import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/mobile_header.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import '../theme/theme_contrast_test.dart' show contrastRatio, themeFor;
 
@@ -31,15 +34,32 @@ Wallet _eth(String name, String address) => Wallet(
 const _addrA = '0x1111111111111111111111111111111111111111';
 const _addrB = '0x2222222222222222222222222222222222222222';
 
-/// Only what a rename reaches; anything else throws. `implements` because the
-/// real constructor loads the native SDK.
+/// Only what a rename or delete reaches; anything else throws. `implements`
+/// because the real constructor loads the native SDK.
 class _RenameApi implements GeniusApi {
+  _RenameApi({this.sgnusAccounts = const []});
+
+  /// Stands in for the wallets that survive a delete: the seeded bloc's own
+  /// wallet list is only filled by `LoadWallets`, the SGNUS merge is not.
+  final List<String> sgnusAccounts;
+  String? deleted;
+
   @override
   Future<void> renameWallet(String address, String newName) async {}
 
   @override
-  Stream<SGNUSConnection> getSGNUSConnectionStream() =>
-      Stream.value(SGNUSConnection.empty());
+  Future<void> deleteWallet(String address) async {
+    deleted = address;
+  }
+
+  @override
+  Stream<SGNUSConnection> getSGNUSConnectionStream() => Stream.value(
+    SGNUSConnection(
+      sgnusAddress: '',
+      walletAddress: '',
+      isConnected: sgnusAccounts.isNotEmpty,
+    ),
+  );
 
   @override
   String? getSelectedAccountAddress() => null;
@@ -48,7 +68,7 @@ class _RenameApi implements GeniusApi {
   String? getStartAccountAddress() => null;
 
   @override
-  List<String> getAvailableAccounts() => const [];
+  List<String> getAvailableAccounts() => sgnusAccounts;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -65,6 +85,39 @@ class _SeededAppBloc extends AppBloc {
        ) {
     emit(state.copyWith(wallets: wallets));
   }
+}
+
+Widget _drawerHost(WalletDetailsCubit cubit, AppBloc appBloc) =>
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<WalletDetailsCubit>.value(value: cubit),
+        BlocProvider<AppBloc>.value(value: appBloc),
+      ],
+      child: MaterialApp(
+        theme: themeFor(GWAppearanceMode.dark),
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Column(
+              children: [
+                const WalletPill(),
+                TextButton(
+                  onPressed: () => AccountDrawer.show(context),
+                  child: const Text('open drawer'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+Future<void> _tapDeleteOnFirstRow(WidgetTester tester) async {
+  await tester.tap(find.text('open drawer'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byIcon(Icons.more_vert).first);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Delete'));
+  await tester.pumpAndSettle();
 }
 
 Future<CircleAvatar> _pump(WidgetTester tester, Wallet wallet) async {
@@ -218,6 +271,79 @@ void main() {
       await tester.runAsync(() => appBloc.close());
       await cubit.close();
     }
+  });
+
+  group('deleting from the drawer', () {
+    late Box box;
+    setUp(() async {
+      // In-memory backend: real disk I/O never completes inside testWidgets.
+      box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+    });
+    tearDown(() => box.close());
+
+    testWidgets('deleting the selected wallet deletes it and selects another', (
+      tester,
+    ) async {
+      final main = _eth('Main wallet', _addrA);
+      final api = _RenameApi(sgnusAccounts: [_addrB]);
+      final cubit = _CountingCubit(
+        initialState: WalletDetailsState(selectedWallet: main),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [main, _eth('Savings', _addrB)],
+      );
+      try {
+        await tester.pumpWidget(_drawerHost(cubit, appBloc));
+        expect(find.text('MW'), findsOneWidget);
+
+        await _tapDeleteOnFirstRow(tester);
+        expect(find.text('Delete wallet'), findsOneWidget);
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+
+        expect(api.deleted, _addrA);
+        expect(cubit.state.selectedWallet?.address, _addrB);
+        expect(box.get(selectedWalletKey), _addrB);
+        expect(find.text('MW'), findsNothing);
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    });
+
+    testWidgets('the last wallet cannot be deleted', (tester) async {
+      final main = _eth('Main wallet', _addrA);
+      final api = _RenameApi();
+      final cubit = _CountingCubit(
+        initialState: WalletDetailsState(selectedWallet: main),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [main],
+      );
+      try {
+        await tester.pumpWidget(_drawerHost(cubit, appBloc));
+
+        await _tapDeleteOnFirstRow(tester);
+        expect(find.text('You must keep at least one wallet.'), findsOneWidget);
+        await tester.pump(const Duration(seconds: 3));
+        await tester.pumpAndSettle();
+
+        expect(api.deleted, isNull);
+        expect(cubit.state.selectedWallet, main);
+        expect(find.text('MW'), findsOneWidget);
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    });
   });
 }
 
