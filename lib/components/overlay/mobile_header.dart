@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/components/overlay/more_sheet.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -380,7 +382,7 @@ class WalletPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // No `gw` read here while the control is bare: the chip that used it went
-    // with the border, and `AccountAvatar` sources its own colours.
+    // with the border, and `WalletIdentityAvatar` sources its own colours.
     final state = context.watch<WalletDetailsCubit>().state;
     final wallet = state.selectedWallet;
     final network = state.selectedNetwork;
@@ -413,7 +415,7 @@ class WalletPill extends StatelessWidget {
       // already identifies the control on its own.
       //
       // Unlike the hamburger, this control does not go plain when its chip is
-      // removed: `AccountAvatar` is itself an opaque disc, and every wallet
+      // removed: `WalletIdentityAvatar` is itself an opaque disc, and every wallet
       // identity fill clears 3:1 against the bar in both modes. So it keeps a
       // visible round object and 1.4.11 is carried by the avatar rather than by
       // an edge. Removing the chip costs nothing measurable - the surfaceMenu
@@ -463,17 +465,131 @@ class WalletPill extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(GeniusWalletConsts.space3),
               child: wallet != null
-                  ? AccountAvatar(
+                  ? WalletIdentityAvatar(
                       wallet: wallet,
-                      isSelected: true,
-                      size: 32,
                       networkIconPath: network?.iconPath,
-                      showIdentity: true,
                     )
                   : const _NoWalletAvatar(),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Up to three characters naming [walletName] inside a small disc, or null
+/// when the name is empty or looks like an address - an address fragment
+/// would read as an identity it is not, so that check runs first.
+String? walletMonogram(String walletName) {
+  final name = walletName.trim();
+  if (name.isEmpty || RegExp(r'^(0x\S*|\S{20,})$').hasMatch(name)) {
+    return null;
+  }
+  final digits = RegExp(r'(?<!\d)\d{1,2}$').firstMatch(name)?.group(0);
+  final letter = RegExp(r'\p{L}', unicode: true).firstMatch(name)?.group(0);
+  if (digits != null && letter != null) {
+    return '$letter$digits'.toUpperCase();
+  }
+  final words = name.split(RegExp(r'\s+'));
+  if (words.length >= 2) {
+    return '${words[0].characters.first}${words[1].characters.first}'
+        .toUpperCase();
+  }
+  return name.characters.take(2).toString().toUpperCase();
+}
+
+/// The pill's 32px disc: a fill picked by address plus [walletMonogram], so
+/// two wallets on the same currency still look different. Falls back to the
+/// currency icon for an address-shaped name, and to an eye for watch-only.
+class WalletIdentityAvatar extends StatelessWidget {
+  const WalletIdentityAvatar({
+    super.key,
+    required this.wallet,
+    this.networkIconPath,
+  });
+
+  static const double size = 32;
+
+  final Wallet wallet;
+
+  /// The chain badge at bottom-right; omitted when null.
+  final String? networkIconPath;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final monogram = walletMonogram(wallet.walletName);
+    final Widget glyph;
+    if (wallet.walletType == WalletType.tracking) {
+      glyph = Icon(
+        Icons.remove_red_eye_outlined,
+        size: 20,
+        color: gw.textOnBrand,
+      );
+    } else if (monogram != null) {
+      // Scales down rather than clipping when a wide pair like `WW` or a
+      // three-character `S10` meets the disc.
+      glyph = FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          monogram,
+          maxLines: 1,
+          style: GeniusWalletTypography.labelMd.copyWith(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: gw.textOnBrand,
+          ),
+        ),
+      );
+    } else {
+      glyph = Image.asset(
+        'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png',
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+      );
+    }
+    final disc = CircleAvatar(
+      radius: size / 2 - 2,
+      backgroundColor: GWColors.walletIdentityFill(wallet.address),
+      child: glyph,
+    );
+
+    if (networkIconPath == null) {
+      return disc;
+    }
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        children: [
+          Positioned.fill(child: disc),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: 16,
+              height: 16,
+              // A 2px stroke of the bar colour that separates the badge from
+              // both the disc and the bar at >= 3:1 (WCAG 1.4.11).
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: gw.surfaceElevated,
+                shape: BoxShape.circle,
+              ),
+              // Decorative: the chain is named in the pill's semantic label.
+              child: ClipOval(
+                child: Image.asset(
+                  networkIconPath!,
+                  fit: BoxFit.contain,
+                  excludeFromSemantics: true,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
