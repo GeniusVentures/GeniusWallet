@@ -495,50 +495,50 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_secure_storage
-      sha256: "9cad52d75ebc511adfae3d447d5d13da15a55a92c9410e50f67335b6d21d16ea"
+      sha256: fe638107c5f69119156ada2db5a57734385fac3f64430bd7252a00d3ead2ca4b
       url: "https://pub.dev"
     source: hosted
-    version: "9.2.4"
+    version: "10.3.4"
+  flutter_secure_storage_darwin:
+    dependency: transitive
+    description:
+      name: flutter_secure_storage_darwin
+      sha256: "82329fa5cdf343773b1b6897dea959105a29f092454259edff92f9f6637e8149"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.2"
   flutter_secure_storage_linux:
     dependency: transitive
     description:
       name: flutter_secure_storage_linux
-      sha256: be76c1d24a97d0b98f8b54bce6b481a380a6590df992d0098f868ad54dc8f688
+      sha256: caa75bd78f017422912e3a904933113b2428eb79f981ac37acd2dd2a700458ea
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.3"
-  flutter_secure_storage_macos:
-    dependency: transitive
-    description:
-      name: flutter_secure_storage_macos
-      sha256: "6c0a2795a2d1de26ae202a0d78527d163f4acbb11cde4c75c670f3a0fc064247"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.3"
+    version: "3.0.3"
   flutter_secure_storage_platform_interface:
     dependency: transitive
     description:
       name: flutter_secure_storage_platform_interface
-      sha256: cf91ad32ce5adef6fba4d736a542baca9daf3beac4db2d04be350b87f69ac4a8
+      sha256: "64951127f001f546891c86f414972bf49ef2c4c8a4c92c65f5790cc0c9100045"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.2"
+    version: "2.1.1"
   flutter_secure_storage_web:
     dependency: transitive
     description:
       name: flutter_secure_storage_web
-      sha256: f4ebff989b4f07b2656fb16b47852c0aab9fed9b4ec1c70103368337bc1886a9
+      sha256: "073a62b3aeb866ab4ce795f960413948e51e5a42a9b0c8333b6daf5bb3208a1c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.1"
+    version: "2.1.1"
   flutter_secure_storage_windows:
     dependency: transitive
     description:
       name: flutter_secure_storage_windows
-      sha256: b20b07cb5ed4ed74fc567b78a72936203f587eba460af1df11281c9326cd3709
+      sha256: "3b7c8e068875dfd46719ff57c90d8c459c87f2302ed6b00ff006b3c9fcad1613"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.2"
+    version: "4.1.0"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -716,14 +716,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.14.2"
-  js:
-    dependency: transitive
-    description:
-      name: js
-      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.7"
   json_annotation:
     dependency: transitive
     description:
@@ -1175,26 +1167,26 @@ packages:
     dependency: transitive
     description:
       name: reown_core
-      sha256: "41295f6bc7a656af3b7bf20f69c0e41a4ee83a1d10803269e46f2213184e136b"
+      sha256: ec80a54a8d2ab25a8573bc2e68bac0e170a0b646d6e60729938600b8afb791cd
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.8"
+    version: "1.5.1"
   reown_sign:
     dependency: transitive
     description:
       name: reown_sign
-      sha256: "96061ed17109fe768196cad782e50ae59818fc91b7470a49d950423755e9d641"
+      sha256: e148c0742b39e5fd44fd2437c0b76625a2f361269608b77d9c136d42618fe995
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.9"
+    version: "1.4.1"
   reown_walletkit:
     dependency: "direct main"
     description:
       name: reown_walletkit
-      sha256: "43da9b8852c77a01aa0c4a513a71b7276c5c840d137de690937391bf3a451e61"
+      sha256: "69ea9fe1c79df453f4495eeb36c2d05cede06a9945337c465c759c2ed01cb1e6"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.5.1"
   rxdart:
     dependency: "direct main"
     description:
@@ -1667,10 +1659,10 @@ packages:
     dependency: "direct main"
     description:
       name: walletconnect_pay
-      sha256: e41dc37b3541f87c1b9b402cc01b733e9d26ed98467690a87c12ee8b7f0a28b1
+      sha256: d795838c9178115923c3497000cdae0def27c106b48236cd06cecfa973dd1ff2
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.0"
   watcher:
     dependency: transitive
     description:

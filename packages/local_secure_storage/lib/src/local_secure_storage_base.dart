@@ -30,9 +30,12 @@ class LocalWalletStorage {
     if (secureStorage != null) {
       storageInstance = secureStorage;
     } else {
-      // Use EncryptedSharedPreferences to match v3.4+ default behavior
+      // resetOnError defaults to true, which erases every stored wallet on a
+      // single read error; migrateWithBackup protects the v9 -> v10 data
+      // migration so a failed migration can be recovered rather than lost.
       const androidOptions = AndroidOptions(
-        encryptedSharedPreferences: true,
+        resetOnError: false,
+        migrateWithBackup: true,
       );
 
       storageInstance = const FlutterSecureStorage(
