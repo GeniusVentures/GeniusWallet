@@ -58,3 +58,29 @@ no `onChanged`, so its tabs remain visual-only. What remains for THIS file is: (
 `CryptoLiveChart`'s own `_fetchHistoricalData` through `fetchHistoricalPrices(..., days: ...)` the
 same way the Markets hero now does, and (b) the step 3 zoom/pan product call above, which this
 note does not resolve.
+
+## Closed 2026-09-26
+
+Wired the same way as the Markets hero. `kLiveChartRanges` in `crypto_live_chart.dart`
+maps each tab to a `fetchHistoricalPrices(..., days:)` call (1/1/7/30/365) plus the window
+to plot. 1H re-windows the 1D series because CoinGecko has no sub-day range. Picking a
+tab clears the series, so the chart shows the existing `PulsingSkeleton` and then either
+the new series or the existing "No price history" `GWEmptyState`. A response for a range
+that is no longer selected is dropped. Live ticks now roll the selected window forward.
+Before this, a tick cut the view back to the last 50 points, and a tick landing on an
+empty series replaced the loading or empty state with a single point.
+
+- Coin page: the chart's own header segment calls `_selectRange` directly.
+- Dashboard: `ChartDashboardView` is stateful and holds the index. `_ChartSectionHeader`'s
+  segment reports taps, and the chart reacts to `rangeIndex` in `didUpdateWidget`.
+- The hover and axis time format now comes from `chooseAxisDateFormat`, the one the
+  Markets hero uses, so 1W, 1M and 1Y no longer label everything with a clock time.
+
+Step 3 (zoom/pan) was already settled: the zoom/pan buttons had been replaced by the
+segment before this todo was picked up.
+
+Guard: `test/chart/crypto_live_chart_range_test.dart`. It injects a fake fetch through the
+`@visibleForTesting fetchHistory` seam and checks two things. Tapping 1Y requests 365 days,
+and tapping 1H re-plots only the last hour. A host that changes `rangeIndex` triggers a
+new fetch with the new day count. Removing the segment's `onChanged` makes the first test
+fail (Expected 365, Actual 1).
