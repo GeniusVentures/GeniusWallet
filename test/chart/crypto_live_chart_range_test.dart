@@ -84,6 +84,55 @@ void main() {
     expect(find.byType(Loading), findsNothing);
   });
 
+  testWidgets('an older answer for the same range cannot overwrite a newer '
+      'request', (tester) async {
+    tester.view.physicalSize = const Size(1000, 600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final calls = <Completer<Map<int, double>>>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        home: Scaffold(
+          body: SizedBox(
+            width: 800,
+            height: 400,
+            child: CryptoLiveChart(
+              coinGeckoCoinId: 'bitcoin',
+              tokenSymbol: 'btc',
+              priceHeight: 20,
+              showPriceHeader: false,
+              fetchHistory: (_, {days = 1}) {
+                final c = Completer<Map<int, double>>();
+                calls.add(c);
+                return c.future;
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    // 1D (initial) -> 1Y -> 1D again: two 1D requests are now in flight.
+    await tester.tap(find.text('1Y'));
+    await tester.pump();
+    await tester.tap(find.text('1D'));
+    await tester.pump();
+    expect(calls, hasLength(3));
+
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    calls.first.complete({now - 60: 1.0, now: 2.0});
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(LineChart), findsNothing);
+    expect(find.byType(Loading), findsOneWidget);
+
+    calls.last.complete({now - 60: 3.0, now: 4.0});
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(LineChart), findsOneWidget);
+  });
+
   testWidgets('tapping a tab re-fetches and re-plots that range', (
     tester,
   ) async {
