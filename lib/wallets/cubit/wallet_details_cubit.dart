@@ -156,9 +156,11 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   Future<void> selectWallet(Wallet wallet) async {
     emit(state.copyWith(selectedWallet: wallet));
     getCoins();
-    final box = Hive.box(walletBoxName);
-    await box.put(selectedWalletKey, wallet.address);
-    await box.put(selectedWalletTypeKey, wallet.walletType.name);
+    // One write, so a failure can't pair the new address with the old type.
+    await Hive.box(walletBoxName).putAll({
+      selectedWalletKey: wallet.address,
+      selectedWalletTypeKey: wallet.walletType.name,
+    });
   }
 
   /// The wallet [selectWallet] last persisted, else the first one. With no
