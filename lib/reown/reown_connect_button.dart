@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -10,6 +9,7 @@ import 'package:genius_wallet/navigation/router.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/reown/approve_dapp_connection_drawer.dart';
 import 'package:genius_wallet/reown/handle_dapp_requests.dart';
+import 'package:genius_wallet/reown/pair_dapp_drawer.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -20,7 +20,6 @@ import 'package:genius_wallet/theme/nav_chip_style.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:provider/provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 
 final List<String> supportedMethods = [
@@ -56,7 +55,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
   bool _timedOut = false;
   bool _isInitialized = false;
   Completer<void>? _initCompleter;
-  final TextEditingController _uriController = TextEditingController();
   bool _listenersAttached = false;
   void Function()? _sessionRequestDisposer;
   late final void Function(SessionConnect?) _sessionConnectHandler;
@@ -84,7 +82,6 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       _sessionRequestDisposer?.call();
       _listenersAttached = false;
     }
-    _uriController.dispose();
     super.dispose();
   }
 
@@ -272,191 +269,27 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       // The pairing URI carries a symKey — it goes to the QR and the manual
       // copy field, never to the console.
       final wcUri = pairingInfo.uri.toString();
-      String? manualInputError;
-      bool showManualInput = _isDesktopOrIot;
 
       if (!mounted) {
         return;
       }
 
-      await showDialog<void>(
+      await PairDappDrawer.show(
         context: context,
-        builder: (ctx) => StatefulBuilder(
-          builder: (ctx, setInnerState) => AlertDialog(
-            backgroundColor:
-                Theme.of(ctx).extension<GWColors>()?.surfaceElevated ??
-                GWColors.dark().surfaceElevated,
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    'assets/images/crypto/wallet-connect.png',
-                    height: 30,
-                    width: 30,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text("Wallet Connect"),
-              ],
-            ),
-            content: ConstrainedBox(
-              constraints: const BoxConstraints(
-                minWidth: GeniusBreakpoints.small * 1 / 2,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                spacing: 8,
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchInCurve: Curves.easeIn,
-                    switchOutCurve: Curves.easeOut,
-                    child: showManualInput
-                        ? KeyedSubtree(
-                            key: ValueKey(
-                              "manual-${DateTime.now().millisecondsSinceEpoch}",
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  spacing: 8,
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller: _uriController,
-                                        decoration: InputDecoration(
-                                          hintText: "wc:...",
-                                          errorText: manualInputError,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.paste,
-                                        color: ctx.gw.brandPrimary,
-                                      ),
-                                      tooltip: "Paste from clipboard",
-                                      onPressed: () async {
-                                        final data = await Clipboard.getData(
-                                          Clipboard.kTextPlain,
-                                        );
-                                        if (data?.text != null &&
-                                            data!.text!.trim().isNotEmpty) {
-                                          setInnerState(() {
-                                            _uriController.text = data.text!
-                                                .trim();
-                                            manualInputError = null;
-                                          });
-                                        } else {
-                                          setInnerState(() {
-                                            manualInputError =
-                                                "Clipboard is empty or has no text.";
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          )
-                        : KeyedSubtree(
-                            key: ValueKey(
-                              "qr-${DateTime.now().millisecondsSinceEpoch}",
-                            ),
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(
-                                maxWidth: 250,
-                                maxHeight: 250,
-                              ),
-                              child: QrImageView(
-                                // Fixed white regardless of appearance: a QR
-                                // code needs a light quiet zone around dark
-                                // modules to scan reliably -- this is a
-                                // scannability requirement, not a style
-                                // choice, so it does not follow gw.
-                                backgroundColor: Colors.white,
-                                data: wcUri,
-                                version: QrVersions.auto,
-                              ),
-                            ),
-                          ),
-                  ),
-                  TextButton.icon(
-                    onPressed: () {
-                      setInnerState(() => showManualInput = !showManualInput);
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      // transparent carries no colour decision -- nothing
-                      // here to flip between modes.
-                      backgroundColor: Colors.transparent,
-                    ),
-                    icon: Icon(Icons.link, color: ctx.gw.brandPrimary),
-                    label: Text(
-                      showManualInput ? "Show QR Code" : "Enter URI Manually",
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  setState(() => _isConnecting = false);
-                },
-                child: const Text("Cancel"),
-              ),
-              if (showManualInput)
-                FilledButton(
-                  onPressed: () async {
-                    final input = _uriController.text.trim();
-
-                    if (!input.startsWith('wc:') || !input.contains('@')) {
-                      setInnerState(() {
-                        manualInputError =
-                            '❌ Invalid WalletConnect URI format.';
-                      });
-                      debugPrint('❌ Invalid format: $input');
-                      return;
-                    }
-
-                    try {
-                      final paired = await _tryPair(Uri.parse(input));
-                      if (!paired) {
-                        setInnerState(() {
-                          manualInputError =
-                              '❌ Failed to start WalletConnect session.';
-                        });
-                        return;
-                      }
-                      _didManualPair = true;
-                      if (!mounted) {
-                        return;
-                      }
-                      Navigator.of(context).pop();
-                    } catch (e) {
-                      setInnerState(() {
-                        manualInputError = '❌ URI Connect Failed: $e';
-                      });
-                      debugPrint('❌ WalletKit pair failed: $e');
-                    }
-                  },
-                  child: const Text("Connect"),
-                ),
-            ],
-          ),
-        ),
+        wcUri: wcUri,
+        startWithPaste: _isDesktopOrIot,
+        onPair: (uri) async {
+          final paired = await _tryPair(uri);
+          if (paired) {
+            _didManualPair = true;
+          }
+          return paired;
+        },
       );
+
+      if (!mounted) {
+        return;
+      }
 
       if (_session == null) {
         setState(() {
