@@ -87,9 +87,6 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         );
       }
     } finally {
-      // Released first: a throwing clipboard call below must not leave every
-      // later copied link ignored.
-      _isClipboardPairing = false;
       // Drop the symKey-bearing link on both outcomes so the poller does not
       // re-pair or re-toast it, but only if it is still what was copied: the
       // user may have copied something else while pairing was in flight.
@@ -104,6 +101,9 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         // Could not check or clear it, so remember it instead of re-pairing.
         _lastHandledWalletConnectUri = text;
       }
+      // Released only after cleanup, which cannot throw past the catch above:
+      // an earlier release lets the next poll re-pair the same link.
+      _isClipboardPairing = false;
     }
   }
 
