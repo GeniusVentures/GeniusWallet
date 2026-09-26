@@ -697,10 +697,10 @@ class _AddAccountDialogState extends State<_AddAccountDialog> {
               // stroke `focusedBorder` draws -- "no flat blue as the accent" is
               // the app's rule and this is the state it matters most in.
               focusRing: true,
-              // Recessed on the dialog's own `surfaceElevated`, the same call the
-              // drawer fields took: at `surfaceElevated` the field would be
-              // painted its own background's colour.
-              fill: gw.surfaceSunken,
+              // A well on the dialog's white `surfaceElevated`, like the method
+              // track above it; only fields inside a `surfaceMenu` drawer need the
+              // darker `surfaceSunken` to stay visible.
+              fill: gw.surfaceWell,
               // IME hardening (06-04 §3.6) -- do not remove.
               // `enableIMEPersonalizedLearning` is the one that maps to
               // Android's IME_FLAG_NO_PERSONALIZED_LEARNING; the other three do
