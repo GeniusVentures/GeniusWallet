@@ -48,23 +48,29 @@ void stubPayOnDesktop() {
 
 class WalletKitInstance {
   static final WalletKitInstance _instance = WalletKitInstance._internal();
-  late final ReownWalletKit walletKit;
+  final Future<void> Function()? _init;
   Future<void>? _initFuture;
+
+  late final ReownWalletKit walletKit = ReownWalletKit(
+    core: ReownCore(projectId: '999123e54f32a21dbd087339746231b1'),
+    metadata: const PairingMetadata(
+      name: 'Gnus.ai Wallet',
+      description: 'Gnus.ai wallet',
+      url: 'https://gnus.ai/',
+      icons: ['https://example.com/logo.png'],
+    ),
+  );
 
   factory WalletKitInstance() => _instance;
 
-  WalletKitInstance._internal() {
+  WalletKitInstance._internal() : _init = null {
     stubPayOnDesktop();
-    walletKit = ReownWalletKit(
-      core: ReownCore(projectId: '999123e54f32a21dbd087339746231b1'),
-      metadata: const PairingMetadata(
-        name: 'Gnus.ai Wallet',
-        description: 'Gnus.ai wallet',
-        url: 'https://gnus.ai/',
-        icons: ['https://example.com/logo.png'],
-      ),
-    );
   }
+
+  /// Test-only seam: a fake init function, so a test never builds the real
+  /// SDK client or touches the Pay stub.
+  @visibleForTesting
+  WalletKitInstance.withInit(Future<void> Function() init) : _init = init;
 
   Future<void> initOnce() {
     final inFlight = _initFuture;
@@ -72,7 +78,7 @@ class WalletKitInstance {
       return inFlight;
     }
 
-    final future = walletKit.init();
+    final future = (_init ?? walletKit.init)();
     _initFuture = future;
     return future;
   }

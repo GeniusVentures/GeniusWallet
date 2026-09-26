@@ -3,6 +3,8 @@
 // stubPayOnDesktop() must swap in a platform that completes on desktop and
 // leaves android/ios on the real method channel.
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/reown/reown_walletkit_instance.dart';
@@ -76,5 +78,53 @@ void main() {
         },
       );
     }
+  });
+
+  group('WalletKitInstance.initOnce() - retry after failure, single start', () {
+    test('a failed start is forgotten; the next call retries', () async {
+      var callCount = 0;
+      final instance = WalletKitInstance.withInit(() async {
+        callCount++;
+        if (callCount == 1) {
+          throw StateError('relay unreachable');
+        }
+      });
+
+      await expectLater(instance.initOnce(), throwsStateError);
+      expect(callCount, 1);
+
+      await instance.initOnce();
+      expect(callCount, 2);
+    });
+
+    test('two concurrent calls share one in-flight start', () async {
+      var callCount = 0;
+      final gate = Completer<void>();
+      final instance = WalletKitInstance.withInit(() {
+        callCount++;
+        return gate.future;
+      });
+
+      final first = instance.initOnce();
+      final second = instance.initOnce();
+
+      expect(identical(first, second), isTrue);
+      expect(callCount, 1);
+
+      gate.complete();
+      await Future.wait([first, second]);
+    });
+
+    test('a successful start is never repeated', () async {
+      var callCount = 0;
+      final instance = WalletKitInstance.withInit(() async {
+        callCount++;
+      });
+
+      await instance.initOnce();
+      await instance.initOnce();
+
+      expect(callCount, 1);
+    });
   });
 }
