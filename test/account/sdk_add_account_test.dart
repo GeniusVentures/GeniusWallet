@@ -107,4 +107,55 @@ void main() {
       await details.close();
     }
   });
+
+  testWidgets('Switching method swaps the form and clears the field', (
+    tester,
+  ) async {
+    final api = _RefusingApi();
+    final details = WalletDetailsCubit(
+      geniusApi: api,
+      networkTokensProvider: NetworkTokensProvider(),
+    );
+    final bloc = _SeededAppBloc(
+      api: api,
+      transactionsCubit: TransactionsCubit(),
+      walletDetailsCubit: details,
+      networkProvider: NetworkProvider(),
+    );
+    try {
+      await tester.pumpWidget(
+        BlocProvider<AppBloc>.value(
+          value: bloc,
+          child: MaterialApp(
+            theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
+            home: const Scaffold(body: SDKAccountManagerButton()),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(SDKAccountManagerButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add account'));
+      await tester.pumpAndSettle();
+
+      const phraseHint = 'Paste 12 or 24 words, separated by spaces';
+      const keyHint = 'Paste the Ethereum private key (hex)';
+      expect(find.text(phraseHint), findsOneWidget);
+      await tester.enterText(find.byType(TextField), _validPhrase);
+
+      await tester.tap(find.text('Private key'));
+      await tester.pumpAndSettle();
+      expect(find.text(keyHint), findsOneWidget);
+      expect(find.text(phraseHint), findsNothing);
+      expect(find.text(_validPhrase), findsNothing, reason: 'field cleared');
+
+      await tester.tap(find.text('Recovery phrase').first);
+      await tester.pumpAndSettle();
+      expect(find.text(phraseHint), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    } finally {
+      await tester.runAsync(() => bloc.close());
+      await details.close();
+    }
+  });
 }
