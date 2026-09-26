@@ -15,6 +15,7 @@ _Network _$NetworkFromJson(Map<String, dynamic> json) => _Network(
   rpcUrl: json['rpcUrl'] as String?,
   iconPath: json['iconPath'] as String?,
   tokensPath: json['tokensPath'] as String?,
+  testnet: json['testnet'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$NetworkToJson(_Network instance) => <String, dynamic>{
@@ -26,4 +27,5 @@ Map<String, dynamic> _$NetworkToJson(_Network instance) => <String, dynamic>{
   'rpcUrl': instance.rpcUrl,
   'iconPath': instance.iconPath,
   'tokensPath': instance.tokensPath,
+  'testnet': instance.testnet,
 };

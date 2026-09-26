@@ -21,7 +21,9 @@ mixin _$Network {
 /// [symbol]. Base's chain key is "base"; the coin it spends is ETH.
 /// Falls back to [symbol], which is correct for every chain named after
 /// its own currency.
- String? get nativeSymbol; int? get chainId; String? get coinGeckoId; String? get rpcUrl; String? get iconPath; String? get tokensPath;
+ String? get nativeSymbol; int? get chainId; String? get coinGeckoId; String? get rpcUrl; String? get iconPath; String? get tokensPath;/// Set in `networks.json`, never inferred from [name]: the testnet marker
+/// is spelled differently on almost every chain.
+ bool get testnet;
 /// Create a copy of Network
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -34,16 +36,16 @@ $NetworkCopyWith<Network> get copyWith => _$NetworkCopyWithImpl<Network>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Network&&(identical(other.name, name) || other.name == name)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.nativeSymbol, nativeSymbol) || other.nativeSymbol == nativeSymbol)&&(identical(other.chainId, chainId) || other.chainId == chainId)&&(identical(other.coinGeckoId, coinGeckoId) || other.coinGeckoId == coinGeckoId)&&(identical(other.rpcUrl, rpcUrl) || other.rpcUrl == rpcUrl)&&(identical(other.iconPath, iconPath) || other.iconPath == iconPath)&&(identical(other.tokensPath, tokensPath) || other.tokensPath == tokensPath));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Network&&(identical(other.name, name) || other.name == name)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.nativeSymbol, nativeSymbol) || other.nativeSymbol == nativeSymbol)&&(identical(other.chainId, chainId) || other.chainId == chainId)&&(identical(other.coinGeckoId, coinGeckoId) || other.coinGeckoId == coinGeckoId)&&(identical(other.rpcUrl, rpcUrl) || other.rpcUrl == rpcUrl)&&(identical(other.iconPath, iconPath) || other.iconPath == iconPath)&&(identical(other.tokensPath, tokensPath) || other.tokensPath == tokensPath)&&(identical(other.testnet, testnet) || other.testnet == testnet));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,symbol,nativeSymbol,chainId,coinGeckoId,rpcUrl,iconPath,tokensPath);
+int get hashCode => Object.hash(runtimeType,name,symbol,nativeSymbol,chainId,coinGeckoId,rpcUrl,iconPath,tokensPath,testnet);
 
 @override
 String toString() {
-  return 'Network(name: $name, symbol: $symbol, nativeSymbol: $nativeSymbol, chainId: $chainId, coinGeckoId: $coinGeckoId, rpcUrl: $rpcUrl, iconPath: $iconPath, tokensPath: $tokensPath)';
+  return 'Network(name: $name, symbol: $symbol, nativeSymbol: $nativeSymbol, chainId: $chainId, coinGeckoId: $coinGeckoId, rpcUrl: $rpcUrl, iconPath: $iconPath, tokensPath: $tokensPath, testnet: $testnet)';
 }
 
 
@@ -54,7 +56,7 @@ abstract mixin class $NetworkCopyWith<$Res>  {
   factory $NetworkCopyWith(Network value, $Res Function(Network) _then) = _$NetworkCopyWithImpl;
 @useResult
 $Res call({
- String? name, String? symbol, String? nativeSymbol, int? chainId, String? coinGeckoId, String? rpcUrl, String? iconPath, String? tokensPath
+ String? name, String? symbol, String? nativeSymbol, int? chainId, String? coinGeckoId, String? rpcUrl, String? iconPath, String? tokensPath, bool testnet
 });
 
 
@@ -71,7 +73,7 @@ class _$NetworkCopyWithImpl<$Res>
 
 /// Create a copy of Network
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,Object? symbol = freezed,Object? nativeSymbol = freezed,Object? chainId = freezed,Object? coinGeckoId = freezed,Object? rpcUrl = freezed,Object? iconPath = freezed,Object? tokensPath = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,Object? symbol = freezed,Object? nativeSymbol = freezed,Object? chainId = freezed,Object? coinGeckoId = freezed,Object? rpcUrl = freezed,Object? iconPath = freezed,Object? tokensPath = freezed,Object? testnet = null,}) {
   return _then(_self.copyWith(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,symbol: freezed == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
@@ -81,7 +83,8 @@ as int?,coinGeckoId: freezed == coinGeckoId ? _self.coinGeckoId : coinGeckoId //
 as String?,rpcUrl: freezed == rpcUrl ? _self.rpcUrl : rpcUrl // ignore: cast_nullable_to_non_nullable
 as String?,iconPath: freezed == iconPath ? _self.iconPath : iconPath // ignore: cast_nullable_to_non_nullable
 as String?,tokensPath: freezed == tokensPath ? _self.tokensPath : tokensPath // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,testnet: null == testnet ? _self.testnet : testnet // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -166,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? name,  String? symbol,  String? nativeSymbol,  int? chainId,  String? coinGeckoId,  String? rpcUrl,  String? iconPath,  String? tokensPath)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? name,  String? symbol,  String? nativeSymbol,  int? chainId,  String? coinGeckoId,  String? rpcUrl,  String? iconPath,  String? tokensPath,  bool testnet)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Network() when $default != null:
-return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.coinGeckoId,_that.rpcUrl,_that.iconPath,_that.tokensPath);case _:
+return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.coinGeckoId,_that.rpcUrl,_that.iconPath,_that.tokensPath,_that.testnet);case _:
   return orElse();
 
 }
@@ -187,10 +190,10 @@ return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? name,  String? symbol,  String? nativeSymbol,  int? chainId,  String? coinGeckoId,  String? rpcUrl,  String? iconPath,  String? tokensPath)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? name,  String? symbol,  String? nativeSymbol,  int? chainId,  String? coinGeckoId,  String? rpcUrl,  String? iconPath,  String? tokensPath,  bool testnet)  $default,) {final _that = this;
 switch (_that) {
 case _Network():
-return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.coinGeckoId,_that.rpcUrl,_that.iconPath,_that.tokensPath);case _:
+return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.coinGeckoId,_that.rpcUrl,_that.iconPath,_that.tokensPath,_that.testnet);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +210,10 @@ return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? name,  String? symbol,  String? nativeSymbol,  int? chainId,  String? coinGeckoId,  String? rpcUrl,  String? iconPath,  String? tokensPath)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? name,  String? symbol,  String? nativeSymbol,  int? chainId,  String? coinGeckoId,  String? rpcUrl,  String? iconPath,  String? tokensPath,  bool testnet)?  $default,) {final _that = this;
 switch (_that) {
 case _Network() when $default != null:
-return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.coinGeckoId,_that.rpcUrl,_that.iconPath,_that.tokensPath);case _:
+return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.coinGeckoId,_that.rpcUrl,_that.iconPath,_that.tokensPath,_that.testnet);case _:
   return null;
 
 }
@@ -222,7 +225,7 @@ return $default(_that.name,_that.symbol,_that.nativeSymbol,_that.chainId,_that.c
 @JsonSerializable()
 
 class _Network implements Network {
-  const _Network({this.name, this.symbol, this.nativeSymbol, this.chainId, this.coinGeckoId, this.rpcUrl, this.iconPath, this.tokensPath});
+  const _Network({this.name, this.symbol, this.nativeSymbol, this.chainId, this.coinGeckoId, this.rpcUrl, this.iconPath, this.tokensPath, this.testnet = false});
   factory _Network.fromJson(Map<String, dynamic> json) => _$NetworkFromJson(json);
 
 @override final  String? name;
@@ -239,6 +242,9 @@ class _Network implements Network {
 @override final  String? rpcUrl;
 @override final  String? iconPath;
 @override final  String? tokensPath;
+/// Set in `networks.json`, never inferred from [name]: the testnet marker
+/// is spelled differently on almost every chain.
+@override@JsonKey() final  bool testnet;
 
 /// Create a copy of Network
 /// with the given fields replaced by the non-null parameter values.
@@ -253,16 +259,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Network&&(identical(other.name, name) || other.name == name)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.nativeSymbol, nativeSymbol) || other.nativeSymbol == nativeSymbol)&&(identical(other.chainId, chainId) || other.chainId == chainId)&&(identical(other.coinGeckoId, coinGeckoId) || other.coinGeckoId == coinGeckoId)&&(identical(other.rpcUrl, rpcUrl) || other.rpcUrl == rpcUrl)&&(identical(other.iconPath, iconPath) || other.iconPath == iconPath)&&(identical(other.tokensPath, tokensPath) || other.tokensPath == tokensPath));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Network&&(identical(other.name, name) || other.name == name)&&(identical(other.symbol, symbol) || other.symbol == symbol)&&(identical(other.nativeSymbol, nativeSymbol) || other.nativeSymbol == nativeSymbol)&&(identical(other.chainId, chainId) || other.chainId == chainId)&&(identical(other.coinGeckoId, coinGeckoId) || other.coinGeckoId == coinGeckoId)&&(identical(other.rpcUrl, rpcUrl) || other.rpcUrl == rpcUrl)&&(identical(other.iconPath, iconPath) || other.iconPath == iconPath)&&(identical(other.tokensPath, tokensPath) || other.tokensPath == tokensPath)&&(identical(other.testnet, testnet) || other.testnet == testnet));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,symbol,nativeSymbol,chainId,coinGeckoId,rpcUrl,iconPath,tokensPath);
+int get hashCode => Object.hash(runtimeType,name,symbol,nativeSymbol,chainId,coinGeckoId,rpcUrl,iconPath,tokensPath,testnet);
 
 @override
 String toString() {
-  return 'Network(name: $name, symbol: $symbol, nativeSymbol: $nativeSymbol, chainId: $chainId, coinGeckoId: $coinGeckoId, rpcUrl: $rpcUrl, iconPath: $iconPath, tokensPath: $tokensPath)';
+  return 'Network(name: $name, symbol: $symbol, nativeSymbol: $nativeSymbol, chainId: $chainId, coinGeckoId: $coinGeckoId, rpcUrl: $rpcUrl, iconPath: $iconPath, tokensPath: $tokensPath, testnet: $testnet)';
 }
 
 
@@ -273,7 +279,7 @@ abstract mixin class _$NetworkCopyWith<$Res> implements $NetworkCopyWith<$Res> {
   factory _$NetworkCopyWith(_Network value, $Res Function(_Network) _then) = __$NetworkCopyWithImpl;
 @override @useResult
 $Res call({
- String? name, String? symbol, String? nativeSymbol, int? chainId, String? coinGeckoId, String? rpcUrl, String? iconPath, String? tokensPath
+ String? name, String? symbol, String? nativeSymbol, int? chainId, String? coinGeckoId, String? rpcUrl, String? iconPath, String? tokensPath, bool testnet
 });
 
 
@@ -290,7 +296,7 @@ class __$NetworkCopyWithImpl<$Res>
 
 /// Create a copy of Network
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = freezed,Object? symbol = freezed,Object? nativeSymbol = freezed,Object? chainId = freezed,Object? coinGeckoId = freezed,Object? rpcUrl = freezed,Object? iconPath = freezed,Object? tokensPath = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = freezed,Object? symbol = freezed,Object? nativeSymbol = freezed,Object? chainId = freezed,Object? coinGeckoId = freezed,Object? rpcUrl = freezed,Object? iconPath = freezed,Object? tokensPath = freezed,Object? testnet = null,}) {
   return _then(_Network(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,symbol: freezed == symbol ? _self.symbol : symbol // ignore: cast_nullable_to_non_nullable
@@ -300,7 +306,8 @@ as int?,coinGeckoId: freezed == coinGeckoId ? _self.coinGeckoId : coinGeckoId //
 as String?,rpcUrl: freezed == rpcUrl ? _self.rpcUrl : rpcUrl // ignore: cast_nullable_to_non_nullable
 as String?,iconPath: freezed == iconPath ? _self.iconPath : iconPath // ignore: cast_nullable_to_non_nullable
 as String?,tokensPath: freezed == tokensPath ? _self.tokensPath : tokensPath // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,testnet: null == testnet ? _self.testnet : testnet // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

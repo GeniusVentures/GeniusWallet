@@ -43,7 +43,7 @@ class AccountDrawer {
   /// call site would mean a caller could forget it, and forgetting the Hive
   /// write would silently stop wallet selection persisting across restarts.
   ///
-  /// [includeNetwork] prepends a network strip and retitles the sheet, which
+  /// [includeNetwork] prepends a network field and retitles the sheet, which
   /// is what the phone header's single wallet pill opens: one surface
   /// answering both "whose wallet" and "on which chain", instead of the two
   /// separate controls the phone header used to carry.
@@ -118,7 +118,7 @@ class AccountDrawer {
 class _AccountDrawerBody extends StatefulWidget {
   const _AccountDrawerBody({this.networks = const [], this.currentNetwork});
 
-  /// Empty for every caller that does not ask for the network strip, which
+  /// Empty for every caller that does not ask for the network field, which
   /// is what makes the section vanish rather than render an empty header.
   final List<Network> networks;
   final Network? currentNetwork;
@@ -260,16 +260,6 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       network.chainId == widget.currentNetwork?.chainId &&
       network.rpcUrl == widget.currentNetwork?.rpcUrl;
 
-  /// The current network first, then provider order. This is what makes
-  /// "which chain am I on" free: the answer is visible without a single
-  /// horizontal swipe, which matters because the ten networks in
-  /// `networks.json` total roughly 3.7 screens of chips.
-  List<Network> get _orderedNetworks {
-    final current = widget.networks.where(_isCurrent).toList();
-    final rest = widget.networks.where((n) => !_isCurrent(n)).toList();
-    return [...current, ...rest];
-  }
-
   void _selectNetwork(BuildContext context, Network network) {
     // Already there: no emit, no Hive write, and above all no toast
     // announcing a switch that did not happen.
@@ -289,6 +279,18 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       walletCubit: walletCubit,
       network: network,
     );
+  }
+
+  Future<void> _pickNetwork(BuildContext context) async {
+    final picked = await NetworkPicker.show(
+      context,
+      networks: widget.networks,
+      current: widget.currentNetwork,
+    );
+    if (picked == null || !context.mounted) {
+      return;
+    }
+    _selectNetwork(context, picked);
   }
 
   Widget _buildDrawerRow(
@@ -511,16 +513,10 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
         return ListView(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
           children: [
-            // The network strip, when this sheet was opened as the combined
-            // wallet-and-network surface. A HORIZONTAL strip rather than the
-            // vertical list `_showNetworkDrawer` uses, because this sheet is
-            // a wallet control first: ten networks stacked vertically would
-            // push the user's own wallets entirely below the fold and invert
-            // the priority of the surface. The cost is that the tenth network
-            // takes about three swipes, which is captured as a todo -
-            // grouping mainnets and testnets needs a field in networks.json
-            // that does not exist yet, and inferring "testnet" from a name is
-            // a guess that breaks silently.
+            // The network field, when this sheet was opened as the combined
+            // wallet-and-network surface. One field rather than a list, so the
+            // user's own wallets stay above the fold; it opens the same
+            // searchable, Mainnet/Testnet picker the desktop selector uses.
             //
             // `_AccountSectionHeader` is reused exactly as it stands, with no
             // variant flag: this section is the same kind of thing the other
@@ -530,22 +526,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                 title: 'Network',
                 caption: 'Which chain the balances below are read from.',
               ),
-              SizedBox(
-                height: 44,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _orderedNetworks.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(width: GeniusWalletConsts.space4),
-                  itemBuilder: (context, index) {
-                    final network = _orderedNetworks[index];
-                    return NetworkSelectChip(
-                      network: network,
-                      selected: _isCurrent(network),
-                      onTap: () => _selectNetwork(context, network),
-                    );
-                  },
-                ),
+              NetworkSelectField(
+                network: widget.currentNetwork,
+                onTap: () => _pickNetwork(context),
               ),
               const SizedBox(height: GeniusWalletConsts.space8),
             ],

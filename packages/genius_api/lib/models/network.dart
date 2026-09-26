@@ -22,6 +22,10 @@ abstract class Network with _$Network {
     String? rpcUrl,
     String? iconPath,
     String? tokensPath,
+
+    /// Set in `networks.json`, never inferred from [name]: the testnet marker
+    /// is spelled differently on almost every chain.
+    @Default(false) bool testnet,
   }) = _Network;
 
   factory Network.fromJson(Map<String, Object?> json) =>
