@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
@@ -6,10 +7,12 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 const _a = '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 const _b = '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
@@ -58,8 +61,11 @@ void main() {
   late TransactionsCubit transactions;
   late WalletDetailsCubit walletDetails;
   late AppBloc appBloc;
+  late Box box;
 
-  setUp(() {
+  setUp(() async {
+    // Selecting a wallet persists it, so the wallet box has to be open.
+    box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
     storage = _GatedStorage();
     transactions = TransactionsCubit(storage: storage);
     walletDetails = WalletDetailsCubit(
@@ -74,16 +80,19 @@ void main() {
     );
   });
 
-  tearDown(() => appBloc.close());
+  tearDown(() async {
+    await appBloc.close();
+    await box.close();
+  });
 
   test('selecting another wallet shows that wallet\'s transactions', () async {
-    walletDetails.selectWallet(_wallet(_a));
+    await walletDetails.selectWallet(_wallet(_a));
     await pumpEventQueue();
     storage.reads[_a]!.complete([_tx(_a)]);
     await pumpEventQueue();
     expect(transactions.state.map((t) => t.fromAddress), [_a]);
 
-    walletDetails.selectWallet(_wallet(_b));
+    await walletDetails.selectWallet(_wallet(_b));
     await pumpEventQueue();
 
     expect(transactions.state, isEmpty, reason: 'old rows cleared at once');
@@ -96,9 +105,9 @@ void main() {
   test(
     'a slow read for the previous wallet cannot overwrite the new one',
     () async {
-      walletDetails.selectWallet(_wallet(_a));
+      await walletDetails.selectWallet(_wallet(_a));
       await pumpEventQueue();
-      walletDetails.selectWallet(_wallet(_b));
+      await walletDetails.selectWallet(_wallet(_b));
       await pumpEventQueue();
 
       storage.reads[_b]!.complete([_tx(_b)]);
@@ -113,12 +122,12 @@ void main() {
   test(
     'after A -> B -> A, the first read for A cannot land on the newer one',
     () async {
-      walletDetails.selectWallet(_wallet(_a));
+      await walletDetails.selectWallet(_wallet(_a));
       await pumpEventQueue();
       final staleRead = storage.reads[_a]!;
-      walletDetails.selectWallet(_wallet(_b));
+      await walletDetails.selectWallet(_wallet(_b));
       await pumpEventQueue();
-      walletDetails.selectWallet(_wallet(_a));
+      await walletDetails.selectWallet(_wallet(_a));
       await pumpEventQueue();
 
       final current = _tx(_a);
