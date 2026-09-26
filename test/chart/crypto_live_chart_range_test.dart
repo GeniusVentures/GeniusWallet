@@ -32,7 +32,7 @@ Widget _host(_FakeFetch fake, {bool ownHeader = true, int rangeIndex = 1}) =>
             coinGeckoCoinId: 'bitcoin',
             tokenSymbol: 'btc',
             // The test font draws every glyph a full em wide; 20 keeps
-            // 'Loading...' inside the price glow's 280px OverflowBox.
+            // the price inside the price glow's 280px OverflowBox.
             priceHeight: 20,
             showPriceHeader: !ownHeader,
             rangeIndex: rangeIndex,
