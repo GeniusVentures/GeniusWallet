@@ -87,11 +87,18 @@ class _WebViewWindowsState extends State<WebViewWindows> {
         );
       }
     } finally {
+      // Released first: a throwing clipboard call below must not leave every
+      // later copied link ignored.
+      _isClipboardPairing = false;
       // Clear on both outcomes: on success it stops a repeat connection, and
       // on failure it drops the symKey-bearing link so the poller does not
       // re-toast on the same text every 2 seconds.
-      await Clipboard.setData(const ClipboardData(text: ''));
-      _isClipboardPairing = false;
+      try {
+        await Clipboard.setData(const ClipboardData(text: ''));
+      } catch (_) {
+        // Could not clear it, so remember it instead of re-pairing it.
+        _lastHandledWalletConnectUri = text;
+      }
     }
   }
 
