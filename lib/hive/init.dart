@@ -24,7 +24,7 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 /// 2. The boxes open concurrently. They are independent files, and nothing here
 ///    read one box to decide how to open another.
 Future<void> initHive() async {
-  await Hive.initFlutter();
+  Hive.init((await appDataDirectory()).path);
 
   Hive
     ..registerAdapter(CoinGeckoCoinAdapter())

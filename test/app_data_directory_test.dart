@@ -19,10 +19,10 @@ void main() {
   tearDown(() => temp.deleteSync(recursive: true));
 
   String pick(String os, Map<String, String> env) => pickAppDataDirectory(
-        documents: docs,
-        operatingSystem: os,
-        environment: env,
-      ).path;
+    documents: docs,
+    operatingSystem: os,
+    environment: env,
+  ).path;
 
   test('existing installs are detected by the wallet box file', () {
     expect(walletBoxName, 'wallet');
@@ -104,7 +104,10 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
 
-    await expectLater(appDataDirectory(), throwsA(isA<MissingPluginException>()));
+    await expectLater(
+      appDataDirectory(),
+      throwsA(isA<MissingPluginException>()),
+    );
 
     messenger.setMockMethodCallHandler(channel, (_) async => docs.path);
     final first = appDataDirectory();
