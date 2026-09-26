@@ -30,7 +30,10 @@ class InitializationStatusTicked extends AppEvent {}
 class DeleteWallet extends AppEvent {
   final String address;
 
-  DeleteWallet(this.address);
+  /// A key wallet and a watch-only row can share [address]; this picks one.
+  final bool watchOnly;
+
+  DeleteWallet(this.address, {required this.watchOnly});
 }
 
 class RenameWallet extends AppEvent {

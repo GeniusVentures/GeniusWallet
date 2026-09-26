@@ -589,6 +589,14 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   static bool canDeleteWallet(List<Wallet> wallets) =>
       wallets.where((w) => w.walletType != WalletType.sgnus).length > 1;
 
+  /// True for the one row [event] deletes. A key wallet, a watch-only row and
+  /// an SDK account made from the same key can all share one address.
+  @visibleForTesting
+  static bool isDeletedRow(Wallet wallet, DeleteWallet event) =>
+      wallet.walletType != WalletType.sgnus &&
+      (wallet.walletType == WalletType.tracking) == event.watchOnly &&
+      wallet.address.toLowerCase() == event.address.toLowerCase();
+
   FutureOr<void> _onDeleteWallet(
     DeleteWallet event,
     Emitter<AppState> emit,
@@ -597,21 +605,16 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     if (!canDeleteWallet(state.wallets)) {
       return;
     }
-    await api.deleteWallet(event.address);
-    _baseWallets = _baseWallets
-        .where((w) => w.address != event.address)
-        .toList();
+    await api.deleteWallet(event.address, watchOnly: event.watchOnly);
+    _baseWallets = _baseWallets.where((w) => !isDeletedRow(w, event)).toList();
     final remaining = await _mergeSgnusWallet();
     // The header reads the selected wallet from the cubit, so a deleted
     // selection is replaced and persisted exactly as a drawer switch does.
     // The guard above keeps at least one of the user's own wallets.
     final selected = walletDetailsCubit.state.selectedWallet;
-    // Only a local wallet can be deleted here, and an SDK account made from
-    // the same key shares its address, so the type is part of the match.
     if (remaining.isNotEmpty &&
         selected != null &&
-        selected.walletType != WalletType.sgnus &&
-        selected.address.toLowerCase() == event.address.toLowerCase()) {
+        isDeletedRow(selected, event)) {
       try {
         await walletDetailsCubit.selectWallet(replacementWallet(remaining));
       } catch (e) {
