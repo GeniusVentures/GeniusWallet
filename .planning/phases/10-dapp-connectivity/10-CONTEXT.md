@@ -85,7 +85,7 @@ WalletKit start, and is proven to pair on x64 Windows. Requirement SCR-06; ROADM
     string has double quotes, and this machine's does (`"Windows 11 Pro" 10.0 (Build 26200)`).
   - Plan 01 therefore gates the bump behind a decision.
 
-- **D-09:** Take the reown_walletkit ^1.5.1 bump now (plan option-a), guarded: the key store sets `resetOnError: false` and `migrateWithBackup: true`, and the Windows key store file is backed up before the first v10 launch. The Android v9 to v10 migration ships without an Android upgrade walk in this phase; that is a known, accepted gap. — **Reversibility:** one-way — v10 re-encrypts Android secure storage on first read and cannot go back to v9.
+- **D-09:** Take the reown_walletkit ^1.5.1 bump now (plan option-a), guarded: the key store sets `resetOnError: false` and `migrateWithBackup: true`, and the Windows key store file is backed up before the first v10 launch. The Android v9 to v10 upgrade is walked after this phase merges to develop, using the CI-published `Android-develop-Release` APK on the GW_Test emulator: a wallet made on the previous develop build must still open after installing the new one over it. Not a pre-merge gate. — **Reversibility:** one-way — v10 re-encrypts Android secure storage on first read and cannot go back to v9.
 ### Claude's Discretion
 - The drawer's exact layout, spacing and copy, within the redesign drawer rules.
 - How `initOnce()` is made testable (injected init function vs. a seam), keeping the diff small.
