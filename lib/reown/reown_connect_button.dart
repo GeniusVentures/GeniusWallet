@@ -223,7 +223,7 @@ class _ReownConnectButtonState extends State<ReownConnectButton> {
       debugPrint("✅ WalletKit initialized");
     } catch (e) {
       debugPrint("❌ WalletKit initialization failed: $e");
-      // Forget this attempt so the next Connect press retries init (D-04).
+      // Forget this attempt so the next Connect press retries init.
       _initCompleter = null;
     } finally {
       completer.complete();
