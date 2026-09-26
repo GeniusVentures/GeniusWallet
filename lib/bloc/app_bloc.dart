@@ -80,9 +80,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     // Every selection path (drawer, header, dev fixtures) ends in this cubit,
     // so following it here is what keeps the history on the selected wallet.
+    // No dedupe: re-picking a wallet whose read failed must retry, and
+    // showWallet already skips a wallet that loaded.
     _selectedWalletSubscription = walletDetailsCubit.stream
         .map((s) => s.selectedWallet?.address)
-        .distinct()
         .listen(_showTransactionsFor);
   }
 
