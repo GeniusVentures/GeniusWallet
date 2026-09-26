@@ -45,3 +45,20 @@ catch. A network wrongly classified as a testnet disappears from the default str
 
 `lib/account/account_drawer.dart`, the `widget.networks.isNotEmpty` block in `_AccountDrawerBody`,
 using `NetworkSelectChip` from `lib/network/network_dropdown_selector.dart`.
+
+## Closed 2026-09-26
+
+`networks.json` carries `"testnet": true` on the five testnets and `Network` gained
+`@Default(false) bool testnet`; nothing is inferred from names.
+
+A first cut (mainnet strip plus a "Show test networks" disclosure) was walked and replaced.
+The phone sheet now shows one select field, `NetworkSelectField`: the current network's icon
+and name. Tapping it opens `NetworkPicker`, a name filter above a list split into "Mainnet"
+and "Testnet" sections by the flag, current network marked by `GWSelectRow`'s tint and check,
+`GWEmptyState` when nothing matches. The desktop "Select Network" drawer opens the same
+picker, so it gained the filter and sections too. A pick goes through the sheet's existing
+`_selectNetwork`, so persistence and the toast are unchanged. The chip strip is gone.
+
+The field and the search input use `surfaceWell` (light `#EFF2F6`, dark unchanged at the
+sunken value) with a `borderControl` edge: on the white light-mode drawer the old sunken
+fill read as too heavy; the edge is 3.28:1 against the panel.
