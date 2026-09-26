@@ -427,15 +427,16 @@ includes the KYC redirect, which D-02 defers. See `09-OUTSTANDING.md` (written b
   3. Pressing connect twice concurrently initializes WalletKit exactly once (develop's idempotent Completer guard, not an arch check)
   4. When init has failed, pressing connect retries it and, if it fails again, tells the user to restart the app rather than failing silently (finding 20)
 
-**Plans**: 3 plans
+**Plans**: 4 plans
 **UI hint**: yes
-**Findings**: 3, 20.
+**Findings**: 3, 20. Criterion 2 was measured false on develop: WalletKit never starts on desktop (WalletConnect Pay has no desktop plugin), see `10-CONTEXT.md`.
 
 Plans:
 
-- [ ] 10-01-PLAN.md — A failed WalletKit start is really retried (shared `initOnce` + button guard), clipboard-pairing error toast, init unit test (SCR-06)
-- [ ] 10-02-PLAN.md — The pairing dialog becomes a ResponsiveDrawer (`PairDappDrawer`); the pairing link never reaches screen or console (SCR-06)
-- [ ] 10-03-PLAN.md — Gates on the finished tree + live pairing walk on Windows x64 (react-app.walletconnect.com) (SCR-06)
+- [ ] 10-01-PLAN.md — WalletKit starts on desktop: a no-op WalletConnect Pay platform before init; reown_walletkit ^1.5.1 behind a key-store decision (SCR-06)
+- [ ] 10-02-PLAN.md — A failed WalletKit start is really retried (shared `initOnce` + button guard), clipboard-pairing error toast, init unit test (SCR-06)
+- [ ] 10-03-PLAN.md — The pairing dialog becomes a ResponsiveDrawer (`PairDappDrawer`); the pairing link never reaches screen or console (SCR-06)
+- [ ] 10-04-PLAN.md — Gates on the finished tree + live pairing walk on Windows x64 (react-app.walletconnect.com) (SCR-06)
 
 ### Phase 11: Functional closeout
 
