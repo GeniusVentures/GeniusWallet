@@ -1,5 +1,6 @@
 // SendCubit in isolation: no widget, no RPC, no real Hive box -- a
 // configurable fake GeniusApi drives every case.
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -47,6 +48,7 @@ class _RecordingStorage implements TransactionStorageService {
 
   final bool failWrites;
   final List<Transaction> writes = [];
+  final List<String> writtenFor = [];
 
   @override
   Future<void> addTransaction(String walletAddress, Transaction tx) async {
@@ -54,7 +56,11 @@ class _RecordingStorage implements TransactionStorageService {
       throw StateError('disk full');
     }
     writes.add(tx);
+    writtenFor.add(walletAddress);
   }
+
+  @override
+  Future<List<Transaction>> getTransactions(String walletAddress) async => [];
 
   @override
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
@@ -71,6 +77,7 @@ class _ConfigurableApi implements GeniusApi {
     List<TransactionReceipt?>? receiptSequence,
     List<SendFee>? feeSequence,
     BigInt? tokenBalance,
+    this.receiptGate,
   }) : balance = balance ?? BigInt.parse('10000000000000000000'),
        tokenBalance = tokenBalance ?? BigInt.zero,
        _receiptSequence = receiptSequence ?? [_completedReceipt()],
@@ -81,6 +88,9 @@ class _ConfigurableApi implements GeniusApi {
   Exception? estimateError;
   ApiResponse<String>? signResponse;
   Exception? signError;
+
+  /// Holds every receipt read until it completes.
+  final Future<void>? receiptGate;
   final List<TransactionReceipt?> _receiptSequence;
   int _receiptCalls = 0;
   final List<SendFee> _feeSequence;
@@ -152,6 +162,7 @@ class _ConfigurableApi implements GeniusApi {
     required String hash,
     required String rpcUrl,
   }) async {
+    await receiptGate;
     final index = _receiptCalls < _receiptSequence.length
         ? _receiptCalls
         : _receiptSequence.length - 1;
@@ -673,6 +684,58 @@ void main() {
         );
       },
     );
+
+    test(
+      'a send settling after a wallet switch is stored, not shown',
+      () async {
+        final storage = _RecordingStorage();
+        final transactionsCubit = TransactionsCubit(storage: storage);
+        await transactionsCubit.loadInitial(_walletAddress);
+        final receipt = Completer<void>();
+
+        final settling = settlePendingSends(
+          walletAddress: _walletAddress,
+          rows: [row(hash: _hash)],
+          networks: const [_amoy],
+          api: _ConfigurableApi(receiptGate: receipt.future),
+          storage: storage,
+          transactions: transactionsCubit,
+        );
+        await transactionsCubit.loadInitial(
+          '0x9999999999999999999999999999999999999999',
+        );
+        receipt.complete();
+        await settling;
+
+        expect(storage.writtenFor, [_walletAddress]);
+        expect(
+          storage.writes.single.transactionStatus,
+          TransactionStatus.completed,
+        );
+        expect(transactionsCubit.state, isEmpty);
+      },
+    );
+
+    test('a send for the wallet on screen shows settled', () async {
+      final storage = _RecordingStorage();
+      final transactionsCubit = TransactionsCubit(storage: storage);
+      await transactionsCubit.loadInitial(_walletAddress.toUpperCase());
+
+      await settlePendingSends(
+        walletAddress: _walletAddress,
+        rows: [row(hash: _hash)],
+        networks: const [_amoy],
+        api: _ConfigurableApi(),
+        storage: storage,
+        transactions: transactionsCubit,
+      );
+
+      expect(storage.writtenFor, [_walletAddress]);
+      expect(
+        transactionsCubit.state.single.transactionStatus,
+        TransactionStatus.completed,
+      );
+    });
 
     test('the sender matches regardless of address case', () async {
       final storage = _RecordingStorage();
