@@ -24,23 +24,22 @@ class LocalWalletStorage {
 
   LocalWalletStorage._create(this._secureStorage, this._web3);
 
+  /// Android options for the wallet store. resetOnError stays false: its default
+  /// erases every wallet on one read error. migrateWithBackup stays false: it
+  /// skips migrating v9's EncryptedSharedPreferences, so upgraded wallets vanish.
+  @visibleForTesting
+  static const androidOptions = AndroidOptions(
+    resetOnError: false,
+    migrateWithBackup: false,
+  );
+
   static Future<LocalWalletStorage> create(
       {FlutterSecureStorage? secureStorage, Web3? web3}) async {
     FlutterSecureStorage storageInstance;
     if (secureStorage != null) {
       storageInstance = secureStorage;
     } else {
-      // resetOnError defaults to true, which erases every stored wallet on a
-      // single read error; migrateWithBackup protects the v9 -> v10 data
-      // migration so a failed migration can be recovered rather than lost.
-      const androidOptions = AndroidOptions(
-        resetOnError: false,
-        migrateWithBackup: true,
-      );
-
-      storageInstance = const FlutterSecureStorage(
-        aOptions: androidOptions,
-      );
+      storageInstance = const FlutterSecureStorage(aOptions: androidOptions);
     }
 
     final web3Instance = web3 ?? Web3();

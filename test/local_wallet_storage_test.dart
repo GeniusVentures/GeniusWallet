@@ -24,6 +24,15 @@ class _UnreadableStorage extends Fake implements FlutterSecureStorage {
 }
 
 void main() {
+  test('Android options keep v9 wallets readable after the v10 upgrade', () {
+    final options = LocalWalletStorage.androidOptions.toMap();
+    // migrateWithBackup skips the EncryptedSharedPreferences migration, so v9
+    // wallets stop being read; resetOnError would wipe them on one bad read.
+    expect(options['migrateWithBackup'], 'false');
+    expect(options['migrateOnAlgorithmChange'], 'true');
+    expect(options['resetOnError'], 'false');
+  });
+
   const raw = FlutterSecureStorage();
   late LocalWalletStorage storage;
 
