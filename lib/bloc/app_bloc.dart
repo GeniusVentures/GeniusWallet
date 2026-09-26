@@ -41,6 +41,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   Timer? _processingTimer;
   Timer? _initTimer;
   StreamSubscription<SGNUSConnection>? _sgnusConnectionSubscription;
+  StreamSubscription<String?>? _selectedWalletSubscription;
   List<Wallet> _baseWallets = [];
 
   AppBloc({
@@ -76,6 +77,24 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     // loaded (unlike `_processingTimer`, started from `_onLoadWallets`
     // below), so there is no later, more-correct point to start it from.
     _startInitPolling();
+
+    // Every selection path (drawer, header, dev fixtures) ends in this cubit,
+    // so following it here is what keeps the history on the selected wallet.
+    _selectedWalletSubscription = walletDetailsCubit.stream
+        .map((s) => s.selectedWallet?.address)
+        .distinct()
+        .listen(_showTransactionsFor);
+  }
+
+  void _showTransactionsFor(String? address) {
+    // DEV-ONLY: a fixture wallet keeps the mock rows the bubble injected.
+    if (address == null ||
+        (kDebugMode && kShowDevTools && walletDetailsCubit.mockMode)) {
+      return;
+    }
+    transactionsCubit.showWallet(address).catchError((Object e) {
+      debugPrint('Could not load transactions for the selected wallet: $e');
+    });
   }
 
   Future<void> _onInitializeSDK(
@@ -832,6 +851,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _processingTimer?.cancel();
     _initTimer?.cancel();
     _sgnusConnectionSubscription?.cancel();
+    _selectedWalletSubscription?.cancel();
     return super.close();
   }
 }
