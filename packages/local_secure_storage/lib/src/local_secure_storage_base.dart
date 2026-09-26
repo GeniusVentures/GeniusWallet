@@ -19,6 +19,10 @@ class LocalWalletStorage {
   static const _walletKeyPrefix = 'wallet_';
   static const _accountKeyPrefix = '__account__';
 
+  /// Address of the wallet the Genius SDK is initialised with. Must not
+  /// contain [_walletKeyPrefix], or it would be read back as a wallet.
+  static const _sgnusLinkedAddressKey = '__sgnus_linked_address__';
+
   final FlutterSecureStorage _secureStorage;
   final Web3 _web3;
 
@@ -301,19 +305,40 @@ class LocalWalletStorage {
   }
 
   Future<StoredKey?> getSGNUSLinkedWalletPrivateKey() async {
-    Map<String, String> keys = await _secureStorage.readAll();
+    final keys = await _secureStorage.readAll();
 
-    for (var entry in keys.entries) {
-      if (isAWallet(entry.key)) {
-        StoredKey? storedKey = StoredKey.importJson(entry.value);
-        if (storedKey == null) {
-          continue;
-        }
+    for (final key in sgnusLinkCandidates(keys)) {
+      final storedKey = StoredKey.importJson(keys[key]!);
+      if (storedKey != null) {
         return storedKey;
       }
     }
 
     return null;
+  }
+
+  /// Wallet entries in the order the SDK link is tried: the linked wallet,
+  /// then the rest by lowest address, so readAll() order never picks the key.
+  /// Watch-only wallets hold no key and are never candidates.
+  @visibleForTesting
+  List<String> sgnusLinkCandidates(Map<String, String> keys) {
+    final candidates = keys.keys.where(isAWallet).toList()..sort();
+    final linked = keys[_sgnusLinkedAddressKey];
+    // ponytail: if the linked wallet is deleted, the lowest address takes over
+    // and the SDK gains one account for it; asking the user would avoid that.
+    if (linked != null && candidates.remove(createWalletKey(linked))) {
+      candidates.insert(0, createWalletKey(linked));
+    }
+    return candidates;
+  }
+
+  /// Records the wallet the SDK was initialised with, so later starts reuse
+  /// its key instead of adding another SDK account.
+  Future<void> saveSGNUSLinkedAddress(String address) async {
+    await _secureStorage.write(
+      key: _sgnusLinkedAddressKey,
+      value: address.toLowerCase(),
+    );
   }
 
   // Don't pass any sensitive data to the UI, no privateKey or mnemonic
