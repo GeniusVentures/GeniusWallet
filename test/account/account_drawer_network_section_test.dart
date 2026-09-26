@@ -405,6 +405,21 @@ void main() {
               .where((r) => r.selected)
               .map((r) => r.title);
           expect(selected, [_netPoly.name]);
+
+          // Screen readers get the same answer as the check mark.
+          final handle = tester.ensureSemantics();
+          expect(
+            tester.getSemantics(
+              find
+                  .ancestor(
+                    of: find.text(_netPoly.name!),
+                    matching: find.byType(GWSelectRow),
+                  )
+                  .first,
+            ),
+            isSemantics(isSelected: true, hasSelectedState: true),
+          );
+          handle.dispose();
         },
       );
     },

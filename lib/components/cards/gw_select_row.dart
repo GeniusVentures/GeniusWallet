@@ -89,89 +89,93 @@ class GWSelectRow extends StatelessWidget {
     // row to rebuild on a live appearance toggle while the drawer stays open.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
-    // Hover plumbing moved into `GWHoverable` (23-05); this widget held no
-    // other state, so it is a `StatelessWidget` now.
-    return GWHoverable(
-      builder: (hovered) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: GeniusWalletConsts.space2),
-          padding: const EdgeInsets.symmetric(
-            horizontal: GeniusWalletConsts.space6,
-            vertical: GeniusWalletConsts.space6,
-          ),
-          decoration: BoxDecoration(
-            // Resting is transparent: a row painted the panel's own colour is
-            // decoration nobody sees. Unselected hover is THE app-wide recipe
-            // (sketch 044) - brand tint + brand hairline, no geometry.
-            gradient: selected ? _selectionTint : null,
-            color: selected
-                ? null
-                : (hovered ? GWDecorations.hoverFill : Colors.transparent),
-            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
-            border: Border.all(
-              color: selected || hovered
-                  ? GWDecorations.hoverEdge
-                  : Colors.transparent,
-              width: 1,
+    // Hover plumbing lives in `GWHoverable`; this widget holds no other state,
+    // so it is a `StatelessWidget`. `selected` reaches screen readers too, not
+    // just the tint and check mark.
+    return Semantics(
+      selected: selected,
+      child: GWHoverable(
+        builder: (hovered) => InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: GeniusWalletConsts.space2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: GeniusWalletConsts.space6,
+              vertical: GeniusWalletConsts.space6,
             ),
-          ),
-          child: Row(
-            children: [
-              leading,
-              const SizedBox(width: GeniusWalletConsts.space6),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          titleStyle ??
-                          GeniusWalletTypography.bodySm.copyWith(
-                            color: gw.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                    if (subtitle != null)
+            decoration: BoxDecoration(
+              // Resting is transparent: a row painted the panel's own colour is
+              // decoration nobody sees. Unselected hover is THE app-wide recipe
+              // (sketch 044) - brand tint + brand hairline, no geometry.
+              gradient: selected ? _selectionTint : null,
+              color: selected
+                  ? null
+                  : (hovered ? GWDecorations.hoverFill : Colors.transparent),
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
+              border: Border.all(
+                color: selected || hovered
+                    ? GWDecorations.hoverEdge
+                    : Colors.transparent,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                leading,
+                const SizedBox(width: GeniusWalletConsts.space6),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        subtitle!,
+                        title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style:
-                            subtitleStyle ??
-                            GeniusWalletTypography.labelMd.copyWith(
-                              color: gw.textSecondary,
+                            titleStyle ??
+                            GeniusWalletTypography.bodySm.copyWith(
+                              color: gw.textPrimary,
+                              fontWeight: FontWeight.w600,
                             ),
                       ),
-                  ],
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: GeniusWalletConsts.space4),
-                trailing!,
-              ],
-              if (selected) ...[
-                const SizedBox(width: GeniusWalletConsts.space4),
-                ShaderMask(
-                  shaderCallback: (bounds) =>
-                      GeniusWalletGradient.brandCta.createShader(bounds),
-                  child: const Icon(
-                    Icons.check_circle,
-                    size: 20,
-                    color: Colors.white,
+                      if (subtitle != null)
+                        Text(
+                          subtitle!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              subtitleStyle ??
+                              GeniusWalletTypography.labelMd.copyWith(
+                                color: gw.textSecondary,
+                              ),
+                        ),
+                    ],
                   ),
                 ),
+                if (trailing != null) ...[
+                  const SizedBox(width: GeniusWalletConsts.space4),
+                  trailing!,
+                ],
+                if (selected) ...[
+                  const SizedBox(width: GeniusWalletConsts.space4),
+                  ShaderMask(
+                    shaderCallback: (bounds) =>
+                        GeniusWalletGradient.brandCta.createShader(bounds),
+                    child: const Icon(
+                      Icons.check_circle,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+                if (action != null) ...[
+                  const SizedBox(width: GeniusWalletConsts.space2),
+                  action!,
+                ],
               ],
-              if (action != null) ...[
-                const SizedBox(width: GeniusWalletConsts.space2),
-                action!,
-              ],
-            ],
+            ),
           ),
         ),
       ),
