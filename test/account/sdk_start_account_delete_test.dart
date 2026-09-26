@@ -90,6 +90,27 @@ void main() {
     await details.close();
   });
 
+  test('a late SDK start is recorded on the next account refresh', () async {
+    // Fresh install: the bloc starts before any wallet, so nothing is linked.
+    final late = WalletDetailsCubit(
+      geniusApi: api,
+      networkTokensProvider: NetworkTokensProvider(),
+    );
+    final fresh = AppBloc(
+      api: api,
+      transactionsCubit: TransactionsCubit(),
+      walletDetailsCubit: late,
+      networkProvider: NetworkProvider(),
+    );
+    expect(fresh.state.linkedSDKAccount, isNull);
+
+    // The first wallet then starts the SDK; any later refresh must see it.
+    fresh.add(RefreshSDKAccounts());
+    await fresh.close();
+    expect(fresh.state.linkedSDKAccount, _start);
+    await late.close();
+  });
+
   test('the start account never reaches the SDK delete', () async {
     bloc.add(DeleteSDKAccount(_start.toLowerCase()));
     bloc.add(DeleteSDKAccount(_other));
