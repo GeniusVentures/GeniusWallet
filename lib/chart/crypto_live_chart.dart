@@ -460,7 +460,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
                     // because it tests the pure function, not this widget.
                     // Ellipsis over shrink-to-fit.
                     Text(
-                      _hasData ? formattedPrice : 'Loading...',
+                      _hasData ? formattedPrice : '',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -512,7 +512,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
               ] else
                 _ChartHeaderRow(
                   hasData: _hasData,
-                  formattedPrice: _hasData ? formattedPrice : 'Loading...',
+                  formattedPrice: _hasData ? formattedPrice : '',
                   percentChange: _percentAt(_displayPrice),
                   // _ChartHeaderRow's only use of this colour is its % Text.
                   trendColor: trendTextColor,
