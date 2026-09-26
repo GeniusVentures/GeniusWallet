@@ -177,12 +177,11 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       ],
     );
 
-    if (newName != null &&
-        newName.isNotEmpty &&
-        newName != wallet.walletName &&
-        mounted) {
+    // Not gated on `mounted`: the drawer was popped above, so by the time the
+    // user confirms this State is usually disposed and the rename would be lost.
+    if (newName != null && newName.isNotEmpty && newName != wallet.walletName) {
       appBloc.add(RenameWallet(wallet.address, newName));
-      if (wallet.address == _selectedWallet?.address) {
+      if (mounted && wallet.address == _selectedWallet?.address) {
         setState(() {
           _selectedWallet = _selectedWallet!.copyWith(walletName: newName);
         });

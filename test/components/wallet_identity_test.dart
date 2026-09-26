@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/account/account_drawer.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/mobile_header.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
+import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 import '../theme/theme_contrast_test.dart' show contrastRatio, themeFor;
 
@@ -20,6 +28,39 @@ Wallet _eth(String name, String address) => Wallet(
 
 const _addrA = '0x1111111111111111111111111111111111111111';
 const _addrB = '0x2222222222222222222222222222222222222222';
+
+/// Only what a rename reaches; anything else throws. `implements` because the
+/// real constructor loads the native SDK.
+class _RenameApi implements GeniusApi {
+  @override
+  Future<void> renameWallet(String address, String newName) async {}
+
+  @override
+  Stream<SGNUSConnection> getSGNUSConnectionStream() =>
+      Stream.value(SGNUSConnection.empty());
+
+  @override
+  String? getSelectedAccountAddress() => null;
+
+  @override
+  List<String> getAvailableAccounts() => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SeededAppBloc extends AppBloc {
+  _SeededAppBloc({
+    required super.api,
+    required super.walletDetailsCubit,
+    required List<Wallet> wallets,
+  }) : super(
+         transactionsCubit: TransactionsCubit(),
+         networkProvider: NetworkProvider(),
+       ) {
+    emit(state.copyWith(wallets: wallets));
+  }
+}
 
 Future<CircleAvatar> _pump(WidgetTester tester, Wallet wallet) async {
   await tester.pumpWidget(
@@ -91,5 +132,67 @@ void main() {
     await _pump(tester, _eth(_addrA, _addrA));
     expect(find.byType(Text), findsNothing);
     expect(find.byType(Image), findsOneWidget);
+  });
+
+  testWidgets('renaming the selected wallet updates the header disc', (
+    tester,
+  ) async {
+    final wallet = _eth('Main wallet', _addrA);
+    final api = _RenameApi();
+    // No network selected, so selectWallet's coin refetch stops at its guard.
+    final cubit = WalletDetailsCubit(
+      initialState: WalletDetailsState(selectedWallet: wallet),
+      geniusApi: api,
+      networkTokensProvider: NetworkTokensProvider(),
+    );
+    final appBloc = _SeededAppBloc(
+      api: api,
+      walletDetailsCubit: cubit,
+      wallets: [wallet],
+    );
+    try {
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<WalletDetailsCubit>.value(value: cubit),
+            BlocProvider<AppBloc>.value(value: appBloc),
+          ],
+          child: MaterialApp(
+            theme: themeFor(GWAppearanceMode.dark),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => Column(
+                  children: [
+                    const WalletPill(),
+                    TextButton(
+                      onPressed: () => AccountDrawer.show(context),
+                      child: const Text('open drawer'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('MW'), findsOneWidget);
+
+      await tester.tap(find.text('open drawer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rename'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), 'Savings');
+      await tester.tap(find.text('Rename'));
+      await tester.pumpAndSettle();
+
+      expect(cubit.state.selectedWallet?.walletName, 'Savings');
+      expect(find.text('SA'), findsOneWidget);
+      expect(find.text('MW'), findsNothing);
+    } finally {
+      await tester.runAsync(() => appBloc.close());
+      await cubit.close();
+    }
   });
 }
