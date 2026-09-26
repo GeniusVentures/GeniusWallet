@@ -1,8 +1,7 @@
 // A real `show()` opened from a host button, in both appearance modes, at
 // the default 800x600 surface (>= GeniusBreakpoints.medium) so every case
-// exercises the desktop side-drawer branch of ResponsiveDrawer.show --
-// mirroring test/reown/approve_drawer_contract_test.dart's own approach for
-// the drawer this one follows in the connect flow.
+// exercises the desktop side-drawer branch of ResponsiveDrawer.show, the same
+// way the approve-connection drawer that follows it in the flow is tested.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
