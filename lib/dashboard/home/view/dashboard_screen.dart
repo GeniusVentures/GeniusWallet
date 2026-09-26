@@ -261,15 +261,9 @@ class ResponsiveDashboardView extends StatelessWidget {
             child: Row(
               spacing: GeniusWalletConsts.space3,
               children: [
-                Expanded(
-                  child: Column(
-                    spacing: GeniusWalletConsts.space3,
-                    children: [
-                      Expanded(child: ChartDashboardView()),
-                      Expanded(child: MarketsDashboardView()),
-                    ],
-                  ),
-                ),
+                // The chart takes the whole left column: halved with Markets
+                // it drew a flat line. Markets keeps its own tab.
+                Expanded(child: ChartDashboardView()),
                 Expanded(child: TransactionsDashboardView()),
               ],
             ),
@@ -548,11 +542,9 @@ class _MarketsDashboardViewState extends State<MarketsDashboardView> {
         // GWErrorState is NOT adaptive -- e3r (2e82ec2) gave the compact
         // tier to GWEmptyState only -- so with a retry it needs roughly
         // 224px (24+24 padding + 72 circle + 16+24 title + 16+48 button).
-        // The two-column dashboard hands this panel Expanded space that
-        // lands near 114px at an ordinary window height, beneath a 300px
-        // overview row, so this content needs the same scroll-safe wrapper
-        // Task 2 introduced for wallet_overview.dart, or closing this skin
-        // gap would open a fresh RenderFlex overflow in the same commit.
+        // A short dashboard slot can hand this panel far less than that, so
+        // this content needs the same scroll-safe wrapper wallet_overview.dart
+        // uses, or it overflows its card.
         child: _MarketsErrorScrollSafe(
           child: GWErrorState(
             // Develop's string, byte-for-byte (UI-SPEC §6) -- a
