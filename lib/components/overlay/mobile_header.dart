@@ -371,23 +371,9 @@ class BrandLockup extends StatelessWidget {
 /// it identifies nothing and the `borderControl` edge carries WCAG 1.4.11
 /// alone, at 3.30:1. That is precisely the case that token exists for.
 ///
-/// WHAT F GIVES UP, recorded here because it is a measured cost and not an
-/// oversight: this header no longer prints the wallet's name anywhere.
-/// [AccountAvatar] paints `crypto/{currencySymbol}.png` on a flat
-/// `brandPrimaryStrong` fill - no per-wallet colour, no blockie, no seed - so
-/// it identifies the CURRENCY, not the wallet, and two ETH wallets render
-/// identical headers (sketch 181, finding 1). At 44px it is slightly worse: the
-/// 32px disc and the 16px network badge resolve to the same `crypto/eth.png`
-/// for an ETH wallet on Ethereum, so the same picture is drawn twice, 3px
-/// apart.
-///
-/// The remedy is named and costed and is NOT built here: sketch 181 scheme E
-/// puts a two-character monogram inside this same 44px circle at zero extra
-/// width, as an additive `monogram` branch on [AccountAvatar] in
-/// `lib/account/account_drawer.dart` - a file outside this change. It is filed
-/// as a todo and put to Jakub as a ruling rather than closed silently. Until
-/// then the semantic label below is the only thing in this header that names a
-/// wallet or a chain at all.
+/// The header prints no wallet name, so the disc carries the identity: a
+/// monogram of the name on a fill picked by address. A currency icon here would
+/// make two ETH wallets indistinguishable, which is a spoofing risk.
 class WalletPill extends StatelessWidget {
   const WalletPill({super.key});
 
@@ -406,11 +392,6 @@ class WalletPill extends StatelessWidget {
     // the WALLET is named either. Both facts are load-bearing rather than
     // decorative, and all three branches below are asserted in
     // `mobile_header_brand_and_pill_test.dart`.
-    //
-    // A sighted user reads a picture of the currency; a VoiceOver user still
-    // hears the wallet and the chain. That asymmetry is the gap the monogram
-    // in this class's doc would close, and it is why this block must survive
-    // any further trimming of this control byte for byte.
     final String semanticLabel;
     if (wallet == null) {
       semanticLabel = 'No wallet selected. Opens wallet and network';
@@ -429,11 +410,11 @@ class WalletPill extends StatelessWidget {
       // the wallet holds a VALUE (which wallet, which chain) and the hamburger
       // holds none, so only the wallet earns the chip. C answers that the
       // difference, while real, is not worth 3.30:1 of border when the avatar
-      // already identifies the control at 7.54:1 on its own.
+      // already identifies the control on its own.
       //
       // Unlike the hamburger, this control does not go plain when its chip is
-      // removed: `AccountAvatar` is itself an opaque disc on brandPrimaryStrong
-      // #0AAEE6, which measures 7.54:1 against the bar. So the wallet keeps a
+      // removed: `AccountAvatar` is itself an opaque disc, and every wallet
+      // identity fill clears 3:1 against the bar in both modes. So it keeps a
       // visible round object and 1.4.11 is carried by the avatar rather than by
       // an edge. Removing the chip costs nothing measurable - the surfaceMenu
       // fill under it was 1.11:1 and identified nothing.
@@ -487,6 +468,7 @@ class WalletPill extends StatelessWidget {
                       isSelected: true,
                       size: 32,
                       networkIconPath: network?.iconPath,
+                      showIdentity: true,
                     )
                   : const _NoWalletAvatar(),
             ),

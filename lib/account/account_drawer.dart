@@ -603,6 +603,27 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   }
 }
 
+/// Up to three characters naming [walletName] inside a small disc, or null
+/// when the name is empty or looks like an address - an address fragment
+/// would read as an identity it is not, so that check runs first.
+String? walletMonogram(String walletName) {
+  final name = walletName.trim();
+  if (name.isEmpty || RegExp(r'^(0x\S*|\S{20,})$').hasMatch(name)) {
+    return null;
+  }
+  final digits = RegExp(r'(?<!\d)\d{1,2}$').firstMatch(name)?.group(0);
+  final letter = RegExp(r'\p{L}', unicode: true).firstMatch(name)?.group(0);
+  if (digits != null && letter != null) {
+    return '$letter$digits'.toUpperCase();
+  }
+  final words = name.split(RegExp(r'\s+'));
+  if (words.length >= 2) {
+    return '${words[0].characters.first}${words[1].characters.first}'
+        .toUpperCase();
+  }
+  return name.characters.take(2).toString().toUpperCase();
+}
+
 /// The wallet avatar, shared by this drawer's rows AND
 /// `AccountDropdownSelector`'s collapsed top-bar chip - both need it, and
 /// Dart's file-scoped privacy means a private method can no longer serve
@@ -618,6 +639,7 @@ class AccountAvatar extends StatelessWidget {
     required this.isSelected,
     required this.size,
     this.networkIconPath,
+    this.showIdentity = false,
   });
 
   final Wallet wallet;
@@ -632,17 +654,40 @@ class AccountAvatar extends StatelessWidget {
   /// this parameter.
   final String? networkIconPath;
 
+  /// Paints a per-wallet identity instead of the currency: a fill picked by
+  /// address plus [walletMonogram]. Off by default, so the drawer rows, which
+  /// already print each wallet's name, stay exactly as they were.
+  final bool showIdentity;
+
   @override
   Widget build(BuildContext context) {
     final isWatched = wallet.walletType == WalletType.tracking;
+    final monogram = showIdentity ? walletMonogram(wallet.walletName) : null;
     final avatar = CircleAvatar(
       radius: size / 2 - 2,
-      backgroundColor: context.gw.brandPrimaryStrong,
+      backgroundColor: showIdentity
+          ? GWColors.walletIdentityFill(wallet.address)
+          : context.gw.brandPrimaryStrong,
       child: isWatched
           ? Icon(
               Icons.remove_red_eye_outlined,
               size: 20,
               color: context.gw.textOnBrand,
+            )
+          : monogram != null
+          // Scales down rather than clipping when a wide pair like `WW` or a
+          // three-character `S10` meets a small disc.
+          ? FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                monogram,
+                maxLines: 1,
+                style: GeniusWalletTypography.labelMd.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: context.gw.textOnBrand,
+                ),
+              ),
             )
           : Image.asset(
               'assets/images/crypto/${wallet.currencySymbol.toLowerCase()}.png',
