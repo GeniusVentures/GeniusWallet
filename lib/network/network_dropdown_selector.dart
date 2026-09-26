@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
+import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/inputs/gw_focus_ring.dart';
+import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -56,84 +60,228 @@ class NetworkSelection {
   }
 }
 
-/// One network as a horizontal chip, for the strip at the top of the combined
-/// wallet-and-network sheet.
-///
-/// The name is TEXT, beside the icon rather than instead of it. The phone
-/// header identifies the current chain with a 16px badge, which is a
-/// change-detector and not an identifier; this chip is where the chain is
-/// actually named on screen.
-class NetworkSelectChip extends StatelessWidget {
-  const NetworkSelectChip({
+/// The phone sheet's network control: the current chain, named, in a field
+/// that opens [NetworkPicker]. The name is text beside the icon because the
+/// header's 16px badge only signals a change; this is where the chain is named.
+class NetworkSelectField extends StatelessWidget {
+  const NetworkSelectField({
     super.key,
     required this.network,
-    required this.selected,
     required this.onTap,
   });
 
-  final Network network;
-  final bool selected;
+  final Network? network;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-
-    // Selected is a brand TINT plus a brand edge, deliberately NOT the brand
-    // CTA gradient that `GWTimeframeSegment`'s selected chip wears. This
-    // sheet already carries one gradient fill - the `Add Wallet` footer - and
-    // the house rule is one filled gradient per surface, fill meaning
-    // commitment. Being already on a network is not a commitment. The edge
-    // carries 1.4.11 at 9.86:1, so selection is never colour alone.
-    final fill = selected
-        ? gw.brandPrimary.withValues(alpha: 0.12)
-        : gw.surfaceSunken;
-    final edge = selected ? gw.brandPrimary : gw.borderSubtle;
+    final name = network?.name ?? network?.symbol ?? 'Select a network';
 
     return Semantics(
-      selected: selected,
-      child: Material(
-        color: fill,
-        shape: StadiumBorder(side: BorderSide(color: edge)),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: SizedBox(
-            // 44, the touch-target floor. Every target in this strip and in
-            // the header clears it.
-            height: 44,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space4,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    network.iconPath ?? "",
-                    width: 20,
-                    height: 20,
-                    // Same fail-soft shape the drawer rows use: a missing or
-                    // corrupt iconPath degrades to blank rather than throwing
-                    // mid-build.
-                    errorBuilder: (context, error, stackTrace) =>
-                        const SizedBox(width: 20, height: 20),
-                  ),
-                  const SizedBox(width: GeniusWalletConsts.space4),
-                  Text(
-                    network.name ?? "Unnamed",
-                    style: GeniusWalletTypography.labelMd.copyWith(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: gw.textPrimary,
+      button: true,
+      label: 'Network, $name',
+      excludeSemantics: true,
+      child: GWFocusRing(
+        radius: GeniusWalletConsts.radiusLg,
+        // surfaceWell, not surfaceSunken: on the white light-mode panel the
+        // sunken grey read as a heavy block. The fill is only a step from the
+        // panel, so the control edge carries WCAG 1.4.11 on its own.
+        background: gw.surfaceWell,
+        restingColor: gw.borderControl,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusLg),
+            child: SizedBox(
+              height: 48,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: GeniusWalletConsts.space6,
+                ),
+                child: Row(
+                  spacing: GeniusWalletConsts.space4,
+                  children: [
+                    Image.asset(
+                      network?.iconPath ?? "",
+                      width: 20,
+                      height: 20,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const SizedBox(width: 20, height: 20),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GeniusWalletTypography.labelMd.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: gw.textPrimary,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: gw.textSecondary,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The one network picker: a name filter above the list, split into Mainnet
+/// and Testnet by the `testnet` flag. Both the desktop selector and the phone
+/// sheet open it; it only returns the pick, the caller applies it.
+class NetworkPicker extends StatefulWidget {
+  const NetworkPicker({super.key, required this.networks, this.current});
+
+  final List<Network> networks;
+  final Network? current;
+
+  /// Opens the picker; resolves to the tapped network, or null if dismissed.
+  static Future<Network?> show(
+    BuildContext context, {
+    required List<Network> networks,
+    Network? current,
+  }) {
+    return ResponsiveDrawer.show<Network>(
+      context: context,
+      // Owns a scrolling viewport, so the inset lives on the field and the
+      // list rather than on the shell (kDrawerBodyPadding).
+      bodyPadding: EdgeInsets.zero,
+      title: "Select Network",
+      child: NetworkPicker(networks: networks, current: current),
+    );
+  }
+
+  @override
+  State<NetworkPicker> createState() => _NetworkPickerState();
+}
+
+class _NetworkPickerState extends State<NetworkPicker> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final query = _query.trim().toLowerCase();
+    final matches = widget.networks
+        .where((n) => (n.name ?? '').toLowerCase().contains(query))
+        .toList();
+    final mainnets = matches.where((n) => !n.testnet).toList();
+    final testnets = matches.where((n) => n.testnet).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            GeniusWalletConsts.space10,
+            GeniusWalletConsts.space10,
+            GeniusWalletConsts.space10,
+            GeniusWalletConsts.space6,
+          ),
+          child: GWTextField(
+            hint: 'Search networks',
+            leadingIcon: Icon(Icons.search, size: 20, color: gw.textSecondary),
+            focusRing: true,
+            fill: gw.surfaceWell,
+            onChanged: (value) => setState(() => _query = value),
+          ),
+        ),
+        Expanded(
+          child: matches.isEmpty
+              ? GWEmptyState(
+                  icon: Icons.search_off,
+                  title: 'No networks match "${_query.trim()}"',
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(
+                    GeniusWalletConsts.space10,
+                    0,
+                    GeniusWalletConsts.space10,
+                    GeniusWalletConsts.space10,
+                  ),
+                  children: [
+                    if (mainnets.isNotEmpty)
+                      _NetworkSection(
+                        key: const ValueKey('mainnet-section'),
+                        label: 'Mainnet',
+                        networks: mainnets,
+                        current: widget.current,
+                      ),
+                    if (testnets.isNotEmpty)
+                      _NetworkSection(
+                        key: const ValueKey('testnet-section'),
+                        label: 'Testnet',
+                        networks: testnets,
+                        current: widget.current,
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A labelled group of picker rows; tapping a row pops the picker with it.
+class _NetworkSection extends StatelessWidget {
+  const _NetworkSection({
+    super.key,
+    required this.label,
+    required this.networks,
+    required this.current,
+  });
+
+  final String label;
+  final List<Network> networks;
+  final Network? current;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            GeniusWalletConsts.space4,
+            GeniusWalletConsts.space6,
+            GeniusWalletConsts.space4,
+            GeniusWalletConsts.space4,
+          ),
+          child: GWKicker(label),
+        ),
+        for (final network in networks)
+          GWSelectRow(
+            // chainId AND rpcUrl: networks.json ships pairs that share neither
+            // reliably on their own.
+            selected:
+                network.chainId == current?.chainId &&
+                network.rpcUrl == current?.rpcUrl,
+            onTap: () => Navigator.of(context).pop(network),
+            leading: SizedBox(
+              width: 36,
+              height: 36,
+              child: Image.asset(
+                network.iconPath ?? "",
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) =>
+                    const SizedBox(width: 36, height: 36),
+              ),
+            ),
+            title: network.name ?? "Unnamed",
+            subtitle: network.symbol,
+          ),
+      ],
     );
   }
 }
@@ -180,21 +328,10 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
 
   void _showNetworkDrawer(List<Network> networks) async {
     final walletCubit = context.read<WalletDetailsCubit>();
-    final selected = await ResponsiveDrawer.show<Network>(
-      context: context,
-      // Owns a scrolling viewport: the inset lives on the list so it scrolls
-      // with the content and rows still reach the panel edge (kDrawerBodyPadding).
-      bodyPadding: EdgeInsets.zero,
-      title: "Select Network",
-      child: ListView(
-        // The inset the rows used to carry as `contentPadding` now lives on
-        // the viewport, so it scrolls with the content (kDrawerBodyPadding).
-        padding: const EdgeInsets.all(GeniusWalletConsts.space10),
-        children: networks.map((network) {
-          final isSelected = network.chainId == selectedNetwork?.chainId;
-          return _buildDrawerRow(network, isSelected);
-        }).toList(),
-      ),
+    final selected = await NetworkPicker.show(
+      context,
+      networks: networks,
+      current: selectedNetwork,
     );
 
     if (!mounted) {
@@ -218,33 +355,6 @@ class _NetworkDropdownSelectorState extends State<NetworkDropdownSelector> {
         network: selected,
       );
     }
-  }
-
-  /// Sketch 068-A. This was a bare `ListTile` with `selected: isSelected` and
-  /// nothing else -- no `selectedTileColor`, no check, and the title's colour
-  /// literally commented out (`// color: color`). With no `ListTileTheme`
-  /// behind it, `selected: true` paints NOTHING: the drawer whose whole job is
-  /// to show which network you are on did not show which network you are on.
-  ///
-  /// `GWSelectRow` brings the tint, the brand edge, the check glyph that
-  /// carries 1.4.11 on its own, and the app-wide hover recipe.
-  Widget _buildDrawerRow(Network network, bool isSelected) {
-    return GWSelectRow(
-      selected: isSelected,
-      onTap: () => Navigator.of(context).pop(network),
-      leading: SizedBox(
-        width: 36,
-        height: 36,
-        child: Image.asset(
-          network.iconPath ?? "",
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) =>
-              const SizedBox(width: 36, height: 36),
-        ),
-      ),
-      title: network.name ?? "Unnamed",
-      subtitle: network.symbol,
-    );
   }
 
   @override

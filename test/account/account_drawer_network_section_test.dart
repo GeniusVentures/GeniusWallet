@@ -38,6 +38,8 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
@@ -79,7 +81,7 @@ class _SeededNetworkProvider extends NetworkProvider {
   List<Network> get networks => _seeded;
 }
 
-// Deliberately NOT the real networks. Three is enough to prove ordering, and
+// Deliberately NOT the real networks. Three mainnets and a testnet, and
 // naming them apart from anything in networks.json makes a test that
 // accidentally reads the real asset fail loudly rather than pass by luck.
 const _netEth = Network(
@@ -106,7 +108,18 @@ const _netBase = Network(
   iconPath: 'assets/images/crypto/base.png',
 );
 
-const _networks = [_netEth, _netPoly, _netBase];
+// A testnet placed BETWEEN mainnets, so sections that merely kept provider
+// order would still show it among them and fail the grouping test below.
+const _netTest = Network(
+  name: 'Testchain Delta',
+  symbol: 'DEL',
+  chainId: 90004,
+  rpcUrl: 'https://delta.invalid',
+  iconPath: 'assets/images/crypto/eth-testnet.png',
+  testnet: true,
+);
+
+const _networks = [_netEth, _netTest, _netPoly, _netBase];
 
 const _walletA = Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -131,7 +144,7 @@ class _Harness {
 }
 
 /// [current] seeds `WalletDetailsCubit.state.selectedNetwork`, which is what
-/// the sheet marks as selected and orders first.
+/// the sheet shows in its field and the picker marks as selected.
 ///
 /// `selectedWallet` is deliberately left null: `selectNetwork` calls
 /// `getCoins()`, and `getCoins` returns at its first guard
@@ -224,7 +237,7 @@ Future<void> _withHarness(
     // which would otherwise trip flutter_test's pending-Timer invariant.
     ToastManager.instance.disposeAll();
     // BOUNDED, never `pumpAndSettle`. This runs with the sheet still mounted
-    // in most tests here, and after a chip tap that does not pop it the
+    // in most tests here, and after a pick that does not pop it the
     // settle does not terminate - it spins to the 10-minute test timeout.
     // A fixed pump is all this needs: it exists only to let `disposeAll`'s
     // toast-removal run, which is a 300ms reverse at most.
@@ -266,7 +279,7 @@ void main() {
           expect(find.text('Accounts'), findsOneWidget);
           expect(find.text('Wallet and network'), findsNothing);
           expect(find.text('NETWORK'), findsNothing);
-          expect(find.byType(NetworkSelectChip), findsNothing);
+          expect(find.byType(NetworkSelectField), findsNothing);
           // The 174 sections are untouched by the flag.
           expect(find.text('YOUR ACCOUNTS'), findsOneWidget);
           expect(find.text('Wallet A'), findsOneWidget);
@@ -297,12 +310,7 @@ void main() {
           expect(find.text('Wallet and network'), findsOneWidget);
           expect(find.text('Accounts'), findsNothing);
           expect(find.text('NETWORK'), findsOneWidget);
-          // At LEAST one, not exactly `_networks.length`: the strip is a lazy
-          // horizontal `ListView`, so only the chips inside the viewport are
-          // built. On a 390pt phone roughly two and a half fit, which is the
-          // documented cost of the horizontal axis - reachability of the rest
-          // is asserted by its own test below rather than papered over here.
-          expect(find.byType(NetworkSelectChip), findsAtLeastNWidgets(1));
+          expect(find.byType(NetworkSelectField), findsOneWidget);
           // Still the sketch-174 drawer underneath.
           expect(find.text('YOUR ACCOUNTS'), findsOneWidget);
           expect(find.text('Wallet A'), findsOneWidget);
@@ -337,79 +345,9 @@ void main() {
     },
   );
 
-  testWidgets(
-    'the current network sorts FIRST regardless of its index in the provider '
-    'list - Beta is second in _networks and must lead the strip, so "which '
-    'chain am I on" costs no horizontal scrolling',
-    (tester) async {
-      await _withHarness(
-        tester,
-        current: _netPoly,
-        body: (walletBox, networkBox, harness) async {
-          final pending = _Pending();
-          await tester.pumpWidget(
-            _openerHost(
-              harness: harness,
-              pending: pending,
-              includeNetwork: true,
-            ),
-          );
-
-          await _open(tester);
-
-          final chips = tester
-              .widgetList<NetworkSelectChip>(find.byType(NetworkSelectChip))
-              .toList();
-          expect(chips.first.network, _netPoly);
-          expect(chips.first.selected, isTrue);
-          // Provider order survives behind the promoted one. Only the chips
-          // in the viewport are built, so this reads the second rather than
-          // the whole list; the third is covered by the reachability test.
-          expect(chips[1].network, _netEth);
-          expect(chips[1].selected, isFalse);
-        },
-      );
-    },
-  );
-
-  testWidgets(
-    'the networks past the fold are reachable by swiping the strip. This is '
-    'the accepted cost of the horizontal axis: the answer to "which chain am '
-    'I on" is free, but the last network takes a swipe to reach',
-    (tester) async {
-      await _withHarness(
-        tester,
-        current: _netPoly,
-        body: (walletBox, networkBox, harness) async {
-          final pending = _Pending();
-          await tester.pumpWidget(
-            _openerHost(
-              harness: harness,
-              pending: pending,
-              includeNetwork: true,
-            ),
-          );
-
-          await _open(tester);
-
-          expect(find.text('Testchain Gamma'), findsNothing);
-
-          await tester.scrollUntilVisible(
-            find.text('Testchain Gamma'),
-            120,
-            scrollable: find.byWidgetPredicate(
-              (w) => w is Scrollable && w.axis == Axis.horizontal,
-            ),
-          );
-          await tester.pumpAndSettle();
-
-          expect(find.text('Testchain Gamma'), findsOneWidget);
-        },
-      );
-    },
-  );
-
-  testWidgets('every chip clears the 44px touch target floor', (tester) async {
+  testWidgets('the network field clears the 44px touch target floor', (
+    tester,
+  ) async {
     await _withHarness(
       tester,
       current: _netPoly,
@@ -421,20 +359,17 @@ void main() {
 
         await _open(tester);
 
-        for (final element in find.byType(NetworkSelectChip).evaluate()) {
-          expect(
-            tester.getSize(find.byElementPredicate((e) => e == element)).height,
-            greaterThanOrEqualTo(44.0),
-          );
-        }
+        expect(
+          tester.getSize(find.byType(NetworkSelectField)).height,
+          greaterThanOrEqualTo(44.0),
+        );
       },
     );
   });
 
   testWidgets(
-    'tapping another chip reaches BOTH the cubit and BOTH Hive keys. A cubit '
-    'write without the Hive write would silently revert the chain on the next '
-    'launch and read balances from an RPC the user did not choose',
+    'the picker splits by the testnet flag: every testnet under Testnet, no '
+    'mainnet there, and the current network marked',
     (tester) async {
       await _withHarness(
         tester,
@@ -450,26 +385,110 @@ void main() {
           );
 
           await _open(tester);
+          await _openPicker(tester);
 
-          // Alpha, the second chip. Its label's centre sits just past the
-          // right edge at 390pt with these deliberately long fixture names,
-          // so it is swiped into view first - which is what a user does.
-          await tester.scrollUntilVisible(
-            find.text('Testchain Alpha'),
-            120,
-            scrollable: find.byWidgetPredicate(
-              (w) => w is Scrollable && w.axis == Axis.horizontal,
+          expect(
+            _rowTitles(tester, find.byKey(const ValueKey('testnet-section'))),
+            _networks.where((n) => n.testnet).map((n) => n.name).toList(),
+          );
+          expect(
+            _rowTitles(tester, find.byKey(const ValueKey('mainnet-section'))),
+            _networks.where((n) => !n.testnet).map((n) => n.name).toList(),
+          );
+          final selected = tester
+              .widgetList<GWSelectRow>(
+                find.descendant(
+                  of: find.byType(NetworkPicker),
+                  matching: find.byType(GWSelectRow),
+                ),
+              )
+              .where((r) => r.selected)
+              .map((r) => r.title);
+          expect(selected, [_netPoly.name]);
+        },
+      );
+    },
+  );
+
+  testWidgets(
+    'typing in the picker narrows the list by name, and a query that matches '
+    'nothing shows the empty state',
+    (tester) async {
+      await _withHarness(
+        tester,
+        current: _netPoly,
+        body: (walletBox, networkBox, harness) async {
+          final pending = _Pending();
+          await tester.pumpWidget(
+            _openerHost(
+              harness: harness,
+              pending: pending,
+              includeNetwork: true,
             ),
           );
+
+          await _open(tester);
+          await _openPicker(tester);
+
+          await tester.enterText(
+            find.descendant(
+              of: find.byType(NetworkPicker),
+              matching: find.byType(TextField),
+            ),
+            'delta',
+          );
+          await tester.pump();
+
+          expect(_rowTitles(tester, find.byType(NetworkPicker)), [
+            _netTest.name,
+          ]);
+          expect(find.byKey(const ValueKey('mainnet-section')), findsNothing);
+
+          await tester.enterText(
+            find.descendant(
+              of: find.byType(NetworkPicker),
+              matching: find.byType(TextField),
+            ),
+            'zzz',
+          );
+          await tester.pump();
+
+          expect(_rowTitles(tester, find.byType(NetworkPicker)), isEmpty);
+          expect(find.byType(GWEmptyState), findsOneWidget);
+        },
+      );
+    },
+  );
+
+  testWidgets(
+    'picking another network reaches BOTH the cubit and BOTH Hive keys. A '
+    'cubit write without the Hive write would silently revert the chain on '
+    'the next launch and read balances from an RPC the user did not choose',
+    (tester) async {
+      await _withHarness(
+        tester,
+        current: _netPoly,
+        body: (walletBox, networkBox, harness) async {
+          final pending = _Pending();
+          await tester.pumpWidget(
+            _openerHost(
+              harness: harness,
+              pending: pending,
+              includeNetwork: true,
+            ),
+          );
+
+          await _open(tester);
+          await _openPicker(tester);
+
+          await tester.tap(_inPicker('Testchain Delta'));
           await tester.pumpAndSettle();
 
-          await tester.tap(find.text('Testchain Alpha'));
-          await tester.pumpAndSettle();
-
-          expect(harness.walletDetailsCubit.state.selectedNetwork, _netEth);
-          expect(networkBox.get(selectedNetworkKeyChainId), _netEth.chainId);
-          expect(networkBox.get(selectedNetworkKeyRpcUrl), _netEth.rpcUrl);
-          // The sheet closes on selection, the way the row list already does.
+          expect(harness.walletDetailsCubit.state.selectedNetwork, _netTest);
+          expect(networkBox.get(selectedNetworkKeyChainId), _netTest.chainId);
+          expect(networkBox.get(selectedNetworkKeyRpcUrl), _netTest.rpcUrl);
+          // Both the picker and the sheet close on selection.
+          expect(find.byType(NetworkPicker), findsNothing);
           expect(find.text('Wallet and network'), findsNothing);
         },
       );
@@ -477,8 +496,8 @@ void main() {
   );
 
   testWidgets(
-    'tapping the chip you are already on is a no-op: no emit, no Hive write, '
-    'no toast announcing a switch that did not happen',
+    'picking the network you are already on is a no-op: no emit, no Hive '
+    'write, no toast announcing a switch that did not happen',
     (tester) async {
       await _withHarness(
         tester,
@@ -494,6 +513,7 @@ void main() {
           );
 
           await _open(tester);
+          await _openPicker(tester);
 
           // "Did not re-emit" is asserted by OBJECT IDENTITY on the state,
           // not by counting stream events. Every emit builds a fresh
@@ -503,14 +523,9 @@ void main() {
           // hangs the test to its 10-minute timeout.
           final stateBefore = harness.walletDetailsCubit.state;
 
-          await tester.tap(find.text('Testchain Beta'));
-          // BOUNDED pumps, never `pumpAndSettle`. This is the one tap in the
-          // file that leaves the sheet OPEN, and `pumpAndSettle` does not
-          // terminate here: the sheet stays mounted, so whatever keeps
-          // scheduling frames behind it keeps scheduling them, and the call
-          // spins until the 10-minute test timeout. Two bounded pumps are
-          // also the honest tool for asserting that NOTHING happened - a
-          // settle would be waiting for an event this test asserts never
+          await tester.tap(_inPicker('Testchain Beta'));
+          // BOUNDED pumps, never `pumpAndSettle`: the sheet stays open here,
+          // and a settle would wait for an event this test asserts never
           // occurs.
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 400));
@@ -528,3 +543,18 @@ void main() {
     },
   );
 }
+
+Future<void> _openPicker(WidgetTester tester) async {
+  await tester.tap(find.byType(NetworkSelectField));
+  await tester.pumpAndSettle();
+}
+
+Finder _inPicker(String text) =>
+    find.descendant(of: find.byType(NetworkPicker), matching: find.text(text));
+
+List<String?> _rowTitles(WidgetTester tester, Finder scope) => tester
+    .widgetList<GWSelectRow>(
+      find.descendant(of: scope, matching: find.byType(GWSelectRow)),
+    )
+    .map((r) => r.title)
+    .toList();

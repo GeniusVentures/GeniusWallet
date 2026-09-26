@@ -10,6 +10,7 @@
   },
   {
     "name": "Ethereum Sepolia",
+    "testnet": true,
     "symbol": "eth",
     "coinGeckoId": "ethereum",
     "chainId": 11155111,
@@ -28,6 +29,7 @@
   },
   {
     "name": "Polygon Amoy",
+    "testnet": true,
     "symbol": "matic",
     "coinGeckoId": "matic-network",
     "chainId": 80002,
@@ -46,6 +48,7 @@
   },
   {
     "name": "Super Genius - TestNet",
+    "testnet": true,
     "symbol": "gnus",
     "coinGeckoId": "genius-ai",
     "chainId": 15305752297694,
@@ -64,6 +67,7 @@
   },
   {
     "name": "BNB TestNet",
+    "testnet": true,
     "symbol": "bnb",
     "coinGeckoId": "binancecoin",
     "chainId": 97,
@@ -83,6 +87,7 @@
   },
   {
     "name": "Base - Sepolia",
+    "testnet": true,
     "symbol": "base",
     "nativeSymbol": "eth",
     "coinGeckoId": "ethereum",
