@@ -273,6 +273,17 @@ void main() {
     }
   });
 
+  test('after a delete, an own wallet is picked before an SDK account', () {
+    final sdk = _eth(
+      'Super Genius Wallet',
+      _addrB,
+    ).copyWith(walletType: WalletType.sgnus);
+    final own = _eth('Savings', _addrA);
+    // SDK accounts are listed first, so "first" alone would pick one.
+    expect(AppBloc.replacementWallet([sdk, own]), own);
+    expect(AppBloc.replacementWallet([sdk]), sdk);
+  });
+
   group('deleting from the drawer', () {
     late Box box;
     setUp(() async {
