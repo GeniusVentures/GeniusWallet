@@ -227,16 +227,21 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
     _viewMaxX = _priceData.last.x;
   }
 
+  // Bumped per fetch: only the newest may touch the chart, even when a quick
+  // A -> B -> A leaves an older request for the same range still in flight.
+  int _fetchGeneration = 0;
+
   Future<void> _fetchHistoricalData() async {
     final int requested = _rangeIndex;
+    final int generation = ++_fetchGeneration;
     try {
       final historicalPrices = await widget.fetchHistory(
         widget.coinGeckoCoinId,
         days: kLiveChartRanges[requested].days,
       );
 
-      // A later tab tap owns the chart now; this answer is for a stale range.
-      if (!mounted || requested != _rangeIndex) {
+      // A later tab tap owns the chart now; this answer is stale.
+      if (!mounted || generation != _fetchGeneration) {
         return;
       }
       if (historicalPrices.isNotEmpty) {
@@ -255,7 +260,7 @@ class CryptoLiveChartState extends State<CryptoLiveChart> {
       // this code path, but the rule holds regardless: never log a caught
       // network error into anything that could later carry wallet data.
     } finally {
-      if (mounted && requested == _rangeIndex) {
+      if (mounted && generation == _fetchGeneration) {
         setState(() {
           _loadAttempted = true;
         });
