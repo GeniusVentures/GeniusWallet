@@ -403,27 +403,28 @@ void main() {
       _coin('FFF', balance: 4),
     ];
 
-    Widget host({required Function(Coin)? onCoinSelected}) => MaterialApp(
-      theme: ThemeData(extensions: [GWColors.dark()]),
-      home: Scaffold(
-        body: BlocProvider<WalletDetailsCubit>(
-          create: (_) => WalletDetailsCubit(
-            initialState: WalletDetailsState(
-              coins: wallet,
-              coinsStatus: WalletStatus.successful,
+    Widget host({required Function(Coin)? onCoinSelected, List<Coin>? coins}) =>
+        MaterialApp(
+          theme: ThemeData(extensions: [GWColors.dark()]),
+          home: Scaffold(
+            body: BlocProvider<WalletDetailsCubit>(
+              create: (_) => WalletDetailsCubit(
+                initialState: WalletDetailsState(
+                  coins: coins ?? wallet,
+                  coinsStatus: WalletStatus.successful,
+                ),
+                geniusApi: _UnusedApi(),
+                networkTokensProvider: NetworkTokensProvider(),
+              ),
+              child: SingleChildScrollView(
+                child: SizedBox(
+                  width: 900,
+                  child: CoinsScreen(onCoinSelected: onCoinSelected),
+                ),
+              ),
             ),
-            geniusApi: _UnusedApi(),
-            networkTokensProvider: NetworkTokensProvider(),
           ),
-          child: SingleChildScrollView(
-            child: SizedBox(
-              width: 900,
-              child: CoinsScreen(onCoinSelected: onCoinSelected),
-            ),
-          ),
-        ),
-      ),
-    );
+        );
 
     testWidgets('renders exactly five rows, ordered by the shared comparator', (
       tester,
@@ -456,6 +457,30 @@ void main() {
       expect(find.byType(CoinCardRow), findsNWidgets(wallet.length));
       expect(find.byType(GWViewAllLink), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    group('a wallet holding nothing', () {
+      final List<Coin> empty = [
+        _coin('AAA', balance: 0),
+        _coin('GNUS', balance: 0),
+        _coin('BBB', balance: 0),
+      ];
+      List<String?> shown(WidgetTester tester) => tester
+          .widgetList<CoinCardRow>(find.byType(CoinCardRow))
+          .map((r) => r.symbol)
+          .toList();
+
+      testWidgets('the dashboard shows GNUS alone', (tester) async {
+        await tester.pumpWidget(host(onCoinSelected: null, coins: empty));
+        await tester.pump();
+        expect(shown(tester), ['GNUS']);
+      });
+
+      testWidgets('a picker still offers every token', (tester) async {
+        await tester.pumpWidget(host(onCoinSelected: (_) {}, coins: empty));
+        await tester.pump();
+        expect(shown(tester), ['AAA', 'BBB', 'GNUS']);
+      });
     });
   });
 }

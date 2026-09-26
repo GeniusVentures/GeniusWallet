@@ -254,27 +254,29 @@ class CoinsScreenState extends State<CoinsScreen> {
           // ponytail: the Coin -> AssetRowData projection is duplicated in
           // `assets_screen.dart`. Ceiling: the two can drift. Upgrade path: one
           // `assetRowFor(Coin, CoinGeckoMarketData?)` beside the comparator.
-          final pairs = orderAssets(
-            filteredCoins.map((coin) {
-              final data = _marketData[coin.symbol?.toLowerCase()];
-              return (
-                coin: coin,
-                row: AssetRowData(
-                  name: coin.name ?? '',
-                  symbol: coin.symbol ?? '',
-                  balance: coin.balance ?? 0.0,
-                  price: data?.currentPrice ?? 0.0,
-                  // The ABSENCE of a map entry is the "no market data"
-                  // signal, and it must never be flattened into a price of
-                  // zero on the way in (T-25-01): a coin the feed has never
-                  // heard of and a coin quoting 0.00 rank in different tiers.
-                  hasMarketData: data != null,
-                ),
-              );
-            }),
-            (pair) => pair.row,
-            ascending: false,
-          );
+          final unordered = filteredCoins.map((coin) {
+            final data = _marketData[coin.symbol?.toLowerCase()];
+            return (
+              coin: coin,
+              row: AssetRowData(
+                name: coin.name ?? '',
+                symbol: coin.symbol ?? '',
+                balance: coin.balance ?? 0.0,
+                price: data?.currentPrice ?? 0.0,
+                // The ABSENCE of a map entry is the "no market data"
+                // signal, and it must never be flattened into a price of
+                // zero on the way in (T-25-01): a coin the feed has never
+                // heard of and a coin quoting 0.00 rank in different tiers.
+                hasMarketData: data != null,
+              ),
+            );
+          }).toList();
+          // A picker keeps every row, zero balances included: the user may be
+          // picking a token to receive. Only the display gets GNUS-when-empty.
+          final pairs = isDashboard
+              ? orderAssets(unordered, (pair) => pair.row, ascending: false)
+              : (unordered
+                  ..sort((a, b) => compareAssetsByValue(false, a.row, b.row)));
 
           final orderedCoins = [
             for (final pair
