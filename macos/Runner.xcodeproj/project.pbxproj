@@ -475,7 +475,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
-					"\"flutter_secure_storage_macos\"",
+					"\"flutter_secure_storage_darwin\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ai.gnus.GeniusWallet;
 				PRODUCT_NAME = "Genius Wallet";
@@ -631,7 +631,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
-					"\"flutter_secure_storage_macos\"",
+					"\"flutter_secure_storage_darwin\"",
 					"-framework",
 					"\"url_launcher_macos\"",
 				);
@@ -679,7 +679,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
-					"\"flutter_secure_storage_macos\"",
+					"\"flutter_secure_storage_darwin\"",
 					"-framework",
 					"\"url_launcher_macos\"",
 				);
