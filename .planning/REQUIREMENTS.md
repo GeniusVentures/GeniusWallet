@@ -291,4 +291,40 @@ Started 2026-09-28. Research: `research/SUMMARY.md`.
 - Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — Phase 22: 3 complete (ORG-01 closed on developer judgement with CI still unexecuted, ORG-02, ORG-03); Phase 23: 1 complete (ORG-04) and 1 PARTIAL (ORG-05, four extractions refused/deferred).
 
 ---
+
+### Milestone v3.0 — child wallets & account linking
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| LINK-01 | Phase 34 — Account linking | Pending |
+| LINK-02 | Phase 34 — Account linking | Pending |
+| LINK-03 | Phase 34 — Account linking | Pending |
+| SWT-01 | Phase 35 — Unified header switcher | Pending |
+| SWT-02 | Phase 35 — Unified header switcher | Pending |
+| SWT-03 | Phase 35 — Unified header switcher | Pending |
+| SWT-04 | Phase 35 — Unified header switcher | Pending |
+| SWT-05 | Phase 35 — Unified header switcher | Pending |
+| CHILD-01 | Phase 36 — Child wallet bindings & read-only view | Pending |
+| CHILD-02 | Phase 36 — Child wallet bindings & read-only view | Pending |
+| VER-01 | Phase 36 — Child wallet bindings & read-only view | Pending |
+| CHILD-03 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-04 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-05 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-06 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-07 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-08 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-09 | Phase 37 — Child write operations & pending model | Pending |
+| PEND-01 | Phase 37 — Child write operations & pending model | Pending |
+| PEND-02 | Phase 37 — Child write operations & pending model | Pending |
+| SWT-06 | Phase 37 — Child write operations & pending model | Pending |
+| VER-02 | Phase 37 — Child write operations & pending model | Pending — cross-cutting: restated as a standing success criterion in every v3.0 phase, counted/closed here only, mirroring BLD-02's treatment in the v1.0 table above |
+
+**Coverage:**
+
+- v3.0 requirements: **22 total** (6 SWT + 3 LINK + 9 CHILD + 2 PEND + 2 VER)
+- Mapped to phases: **22/22 ✓** — every v3.0 requirement maps to exactly one phase; no orphans, no duplicates
+- Phases: 34-37 (4 phases), continuing numbering from v1.0/v2.0 (last phase: 33)
+- Note: VER-02 ("each v3.0 phase closes only after a walk on the live testnet") is cross-cutting by design — it appears as a standing success criterion in Phases 34-37's ROADMAP entries, but is mapped/counted at Phase 37 only, where the milestone's last write operation closes it
+- Precondition flag: live testnet is currently stuck in `INITIALIZING_BLOCKCHAIN` (unrelated to the required SuperGenius `c575a16` SDK); VER-02 walks are recorded as blocked gaps, not silently skipped, until this clears
+
 *Last updated: 2026-09-16 — merged into `phase-26-swap-wiring`. The drafted SWP-01..08 were retired into SWAP-01, the id the branch's plans and commits already cite; v2.0 is now SWAP-01, FEE-01..02, DAP-01..03 mapped to phases 26-30 (6/6, no orphans). Previous v1.0 traceability stands unchanged below*
