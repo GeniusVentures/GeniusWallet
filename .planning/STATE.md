@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Squid Router integration
-current_phase: 31
-current_phase_name: "Send native coins and ERC-20 tokens - complete, walked on Sepolia"
-status: milestone-complete
-stopped_at: "v2.0 shipped and archived 2026-09-24 (milestones/v2.0-*). PR #246 (4 backlog fixes) open as draft. v1.0 still executing: phase 11 + phase 14 remaining. Next: /gsd-new-milestone or v1.0 phase 11."
-last_updated: "2026-09-24T12:00:00.000Z"
-last_activity: 2026-09-24
-last_activity_desc: v2.0 audited (gaps accepted: DAP-02 partial) and archived; backlog fixes in PR #246
+milestone: v3.0
+milestone_name: Child wallets & account linking
+status: planning
+last_updated: "2026-09-28T23:17:33.360Z"
+last_activity: 2026-09-28
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -29,9 +25,12 @@ either a new milestone (`/gsd-new-milestone`) or the v1.0 residue below.
 
 ## Current Position
 
-Milestone: v2.0 complete — phases 26, 29, 30, 31 merged (PRs #233-#235, #244); backlog fixes in #246.
-DAP-02 accepted as a partial; FEE-01 deferred (business). Open follow-up: swap history rows lack a
-chain id (pending todo). v1.0 is still executing: phase 11 closeout and phase 14's plan 14-08.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-09-28 — Milestone v3.0 started
+
+v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
 
 ### v2.0 Phase Tracking
 

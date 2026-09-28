@@ -12,9 +12,17 @@ Users can safely custody their keys and reliably perform core wallet actions (cr
 
 **v2.0 Squid Router integration shipped 2026-09-24** (phases 26, 29, 30, 31; PRs #233-#235, #244): real Squid swaps on the `/swap` tab, every route fee named before confirming, dApp calldata decoded instead of blind-signed, and Send for native coins and ERC-20 tokens. DAP-02 ships the input side only; FEE-01 waits on Squid (business). Archive: `milestones/v2.0-ROADMAP.md`. v1.0 (redesign port) is still executing: phase 11 closeout and phase 14's last plan are open.
 
-## Next Milestone Goals
+## Current Milestone: v3.0 Child wallets & account linking
 
-Not yet defined — start with `/gsd-new-milestone`.
+**Goal:** One account switcher shows which wallet the SDK node runs as and which wallet the user manages, every SDK account is tied to the ETH wallet it came from, and the user can register their own sub-accounts as children of a main account and move GNUS between them.
+
+**Target features:**
+- One header switcher (desktop + mobile) replacing "SDK Accounts" and the wallet menu, with two independent selections: SDK wallet and active wallet
+- Account linking: each SDK account shows its source ETH wallet; no orphan "Super Genius Wallet N" rows. Adding a key-backed wallet already adds its SDK account (`_registerWallet`); this makes the link visible and reliable
+- Bind the 11 unbound GeniusSDK child functions (+ `GetPubSub`) in `genius_api`
+- Child-wallet UI for the user's own sub-accounts: register, list with balances, fund, recover, revoke, detach, replace main
+
+**Constraints:** fund/recover/revoke return "submitted", not "confirmed" — the UI shows a pending state. `RegisterChild` runs on the child's node. Needs SuperGenius `c575a16` with `upnp_enabled: false`. v1.0 stays open alongside (no phase archival, as with v2.0).
 
 <details>
 <summary>v2.0 milestone brief (archived)</summary>
@@ -71,6 +79,12 @@ Symbiosis named once, never built) and the go-forward decision.
 - [x] Decode dApp swap calldata in the Reown approval flow (end blind signing) — Phase 30; DAP-02 accepted as a partial: the input side shows, the destination is not in the calldata
 - ~~Collect ~3% integrator fee on swaps routed through Squid~~ — deferred 2026-09-18 (FEE-01): a business item Squid configures server-side; route details already name every fee (FEE-02)
 - [x] Send native coins and ERC-20 tokens — Phase 31, walked on Sepolia 2026-09-23
+
+<!-- v3.0 scope — started 2026-09-28, see REQUIREMENTS.md. -->
+
+- [ ] One header account switcher (SDK wallet + active wallet), desktop and mobile
+- [ ] Every SDK account linked to and labelled with its source ETH wallet
+- [ ] Child wallets: register, list, fund, recover, revoke, detach, replace main
 
 ### Out of Scope
 
@@ -129,4 +143,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-16 after milestone v2.0 (Squid Router integration) started*
+*Last updated: 2026-09-28 after milestone v3.0 (Child wallets & account linking) started*
