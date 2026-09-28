@@ -153,6 +153,47 @@ folded into that count, the same treatment WIRE-01/02 already get (see Coverage)
 
 Archived to `milestones/v2.0-REQUIREMENTS.md`.
 
+## v3.0 Requirements — Child wallets & account linking
+
+Started 2026-09-28. Research: `research/SUMMARY.md`.
+
+### Header switcher (SWT)
+
+- [ ] **SWT-01**: User opens one header switcher on desktop that shows the current SDK wallet and the current active wallet; the old "SDK Accounts" button and wallet dropdown are gone
+- [ ] **SWT-02**: User can change the SDK wallet and the active wallet independently from that switcher
+- [ ] **SWT-03**: User can open the same switcher on mobile
+- [ ] **SWT-04**: User can create, import and delete accounts from the switcher
+- [ ] **SWT-05**: Send and Swap confirm screens name the active wallet they spend from, and the switcher labels which selection runs the node and which one sends and swaps
+- [ ] **SWT-06**: User cannot switch the SDK wallet while an operation submitted from it is still pending; the switcher says why
+
+### Account linking (LINK)
+
+- [ ] **LINK-01**: When the user creates or imports a key-backed wallet, the app records which SDK address came from it (public addresses only; no key material in state or logs)
+- [ ] **LINK-02**: Every SDK account shows its source wallet's name; the "Super Genius Wallet N" rows are gone
+- [ ] **LINK-03**: SDK accounts added before this feature are linked on a best-effort basis; any that cannot be linked are shown as unlinked, never hidden
+
+### Child wallets (CHILD)
+
+- [ ] **CHILD-01**: The 11 child functions and `GeniusSDKGetPubSub` are bound in `genius_api`, with struct layouts matching `GeniusSDK.h` and every SDK-allocated result freed
+- [ ] **CHILD-02**: User sees the children registered under the current SDK wallet, each with its GNUS balance
+- [ ] **CHILD-03**: User can register one of their SDK accounts as a child of a chosen main
+- [ ] **CHILD-04**: User can fund a child from its main
+- [ ] **CHILD-05**: User can recover funds from a child back to its main
+- [ ] **CHILD-06**: User can revoke a child from its main
+- [ ] **CHILD-07**: User can detach a child from its main
+- [ ] **CHILD-08**: User can move a child to a new main
+- [ ] **CHILD-09**: When an action must run as the other account (main or child), the app says so and offers to switch the SDK wallet
+
+### Pending operations (PEND)
+
+- [ ] **PEND-01**: Every submitted child operation shows as pending until the registration list or balance reflects it, then as done; after a timeout it shows "not confirmed yet", never "done"
+- [ ] **PEND-02**: User cannot submit the same child operation twice while it is pending
+
+### Verification (VER)
+
+- [ ] **VER-01**: Dev mocks (`GW_DEV_TOOLS`) cover the child list, balances and every child operation, including the pending and timeout states
+- [ ] **VER-02**: Each v3.0 phase closes only after a walk on the live testnet
+
 ## Beyond v2.0 (deferred)
 
 - **FEE-01** *(deferred 2026-09-18 — business, not engineering)*: Squid enables an integrator fee on
@@ -182,6 +223,9 @@ Archived to `milestones/v2.0-REQUIREMENTS.md`.
 | New feature milestones | Deferred until the port lands — **superseded 2026-09-16:** v2.0 (Squid Router integration) authorized alongside the redesign tail; staking and other new chains remain deferred |
 | GNUS on a third-party router (Squid/Symbiosis) (v2.0) | BD-driven on both — Squid wants a "market maker loan" + direct contact (old ITS path deprecated), Symbiosis wants "additional review". Not self-serve, not engineering. The native burn→mint bridge (`lib/dashboard/bridge/`) remains GNUS's cross-chain answer |
 | Symbiosis Finance integration (v2.0) | Named once as a contingency (squidrouter submodule commit `ee95bf6`, 2025-05-26), never built. Decision 2026-09-16: not pursued — the finished Squid client + free API is the cheaper real path |
+| Registration metadata UI (`game_id`, `publisher_id`, `dev_wallet`, `peers_cut`) (v3.0) | No consensus code reads these fields today; sub-accounts register with empty defaults. Revisit when a game integration consumes them |
+| Auto-selecting the linked SDK account when the active wallet changes (v3.0) | The two selections stay independent by decision (2026-09-28) |
+| Confirmation by transaction hash for child operations (v3.0) | The SDK's child calls return no tx hash, so nothing can be polled; pending resolves from the registration list and balances instead. An SDK-side change |
 | Modifying the `squidrouter/` submodule (v2.0) | Auto-generated API client (AGENTS.md: "Files under `/banxa` and `/squidrouter` are auto-generated. Do not change them."). Consume as-is; regenerate upstream if the API drifts |
 
 ## Traceability
