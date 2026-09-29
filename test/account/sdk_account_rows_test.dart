@@ -101,6 +101,15 @@ class _Api implements GeniusApi {
   @override
   BigInt getChildBalanceAll(String childAddress) => BigInt.zero;
 
+  // The switcher's own registrations pre-read now calls this for every own
+  // account once a registry sits above the drawer -- an OK, empty read
+  // matches this file's "nobody has any children" fixtures.
+  @override
+  ChildRegistrations getChildRegistrations(String mainAddress) => const (
+    result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    entries: <ChildRegistration>[],
+  );
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
