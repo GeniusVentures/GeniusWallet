@@ -31,6 +31,15 @@ Wallet _eth(String name, String address) => Wallet(
   address: address,
 );
 
+Wallet _tracking(String name, String address) => Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: name,
+  currencySymbol: 'ETH',
+  walletType: WalletType.tracking,
+  balance: 0,
+  address: address,
+);
+
 final _link = <String, SDKAccountLink>{
   _sdkAddr.toLowerCase(): (
     walletAddress: _walletAddr.toLowerCase(),
@@ -180,6 +189,20 @@ void main() {
           defaultAccount: null,
           links: _link,
           wallets: [wallet],
+          activeWallet: null,
+        ),
+        SDKDeleteBlock.lastWallet,
+      );
+    });
+
+    test('a linked account is blocked as the last wallet even with a '
+        'watch-only wallet left', () {
+      expect(
+        AppBloc.sdkDeleteBlock(
+          sdkAddress: _sdkAddr,
+          defaultAccount: null,
+          links: _link,
+          wallets: [wallet, _tracking('Watching', '0xWATCH')],
           activeWallet: null,
         ),
         SDKDeleteBlock.lastWallet,

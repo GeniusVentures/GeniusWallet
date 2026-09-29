@@ -629,11 +629,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         orElse: () => remaining.first,
       );
 
-  /// True while another of the user's own wallets would remain. SDK accounts
-  /// do not count: they are not reloaded once no local wallet is left, so a
-  /// deletion they "covered" would leave the user with nothing after a restart.
+  /// True while another of the user's own key-holding wallets would remain.
+  /// SDK accounts do not count: they are not reloaded once no local wallet is
+  /// left, so a deletion they "covered" would leave the user with nothing
+  /// after a restart. Watch-only wallets do not count either: they hold no
+  /// key, so they cannot sign or be restored from.
   static bool canDeleteWallet(List<Wallet> wallets) =>
-      wallets.where((w) => w.walletType != WalletType.sgnus).length > 1;
+      wallets
+          .where(
+            (w) =>
+                w.walletType != WalletType.sgnus &&
+                w.walletType != WalletType.tracking,
+          )
+          .length >
+      1;
 
   /// True for the one row [event] deletes. A key wallet, a watch-only row and
   /// an SDK account made from the same key can all share one address.
