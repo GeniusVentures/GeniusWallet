@@ -16,6 +16,9 @@ const _otherAddress = '0x5555555555555555555555555555555555eeee';
 const _childAddress = '0x2222222222222222222222222222222222bbbb';
 const _secondChildAddress = '0x3333333333333333333333333333333333cccc';
 const _newMainAddress = '0x7777777777777777777777777777777777ffff';
+const _earlierTransferReason =
+    "An earlier transfer for this child hasn't confirmed yet. Check again, "
+    'or wait a few minutes.';
 
 const _appState = AppState(
   selectedSDKAccount: _mainAddress,
@@ -721,7 +724,7 @@ void main() {
     });
 
     test('a timed-out recover never resolves while the node runs as another '
-        'account, and expires on the first pass there', () {
+        'account, and keeps its lock until it expires', () {
       var now = DateTime(2024);
       var running = _mainAddress;
       final api = _FakeApi();
@@ -754,26 +757,92 @@ void main() {
       cubit.resolve();
       expect(cubit.state.justResolved, isEmpty);
       expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.operations.single.expired, isFalse);
+      expect(cubit.balanceLockReason(_childAddress), _earlierTransferReason);
+
+      now = submittedAt.add(const Duration(minutes: 6));
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
       expect(cubit.state.operations.single.expired, isTrue);
       expect(cubit.balanceLockReason(_childAddress), isNull);
 
       cubit.close();
     });
 
+    test('a fund whose node switches away and back inside one poll never '
+        'resolves, and keeps its hold and lock until it expires', () async {
+      var now = DateTime(2024);
+      var running = _mainAddress;
+      AppState appState() => AppState(
+        selectedSDKAccount: running,
+        sdkAccounts: const [_mainAddress, _otherAddress],
+        wallets: const [],
+        sdkAccountLinks: const <String, SDKAccountLink>{},
+      );
+      final appStates = StreamController<AppState>.broadcast();
+      final api = _FakeApi(); // the main holds 10 GNUS
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: appState,
+        appStates: appStates.stream,
+        now: () => now,
+      );
+      final submittedAt = now;
+      final amount = BigInt.from(10000000);
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: amount,
+      );
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+
+      now = submittedAt.add(const Duration(minutes: 3));
+      for (final account in [_otherAddress, _mainAddress]) {
+        running = account;
+        appStates.add(appState());
+        await Future<void>.delayed(Duration.zero);
+      }
+      api.balances[_childAddress] = amount;
+      cubit.resolve();
+
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations.single.expired, isFalse);
+      expect(cubit.balanceLockReason(_childAddress), _earlierTransferReason);
+      expect(
+        cubit.payingBalance(ChildOperationKind.fund, _secondChildAddress),
+        BigInt.zero,
+      );
+
+      now = submittedAt.add(const Duration(minutes: 6));
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations.single.expired, isTrue);
+      expect(cubit.balanceLockReason(_childAddress), isNull);
+      expect(
+        cubit.payingBalance(ChildOperationKind.fund, _secondChildAddress),
+        amount,
+      );
+
+      await cubit.close();
+      await appStates.close();
+    });
+
     test(
-      'a fund whose node switches away and back inside one poll never '
-      'resolves: it expires on the switch and frees its hold and lock',
+      "after a switch, the new main can't fund the child until the old "
+      "main's timed-out fund expires, so its late landing never toasts",
       () async {
         var now = DateTime(2024);
         var running = _mainAddress;
         AppState appState() => AppState(
           selectedSDKAccount: running,
-          sdkAccounts: const [_mainAddress, _otherAddress],
+          sdkAccounts: const [_mainAddress, _newMainAddress],
           wallets: const [],
           sdkAccountLinks: const <String, SDKAccountLink>{},
         );
         final appStates = StreamController<AppState>.broadcast();
-        final api = _FakeApi(); // the main holds 10 GNUS
+        final api = _FakeApi()..minionsBalance = '100000000'; // 100 GNUS
         final cubit = ChildOperationsCubit(
           api: api,
           readAppState: appState,
@@ -781,32 +850,52 @@ void main() {
           now: () => now,
         );
         final submittedAt = now;
-        final amount = BigInt.from(10000000);
         cubit.submit(
           kind: ChildOperationKind.fund,
           target: _childAddress,
           main: _mainAddress,
-          amountMinions: amount,
+          amountMinions: BigInt.from(10000000),
         );
         now = submittedAt.add(childOperationTimeout);
         cubit.resolve();
 
         now = submittedAt.add(const Duration(minutes: 3));
-        for (final account in [_otherAddress, _mainAddress]) {
-          running = account;
-          appStates.add(appState());
-          await Future<void>.delayed(Duration.zero);
-        }
-        api.balances[_childAddress] = amount;
-        cubit.resolve();
-
-        expect(cubit.state.justResolved, isEmpty);
-        expect(cubit.state.operations.single.expired, isTrue);
-        expect(cubit.balanceLockReason(_childAddress), isNull);
-        expect(
-          cubit.payingBalance(ChildOperationKind.fund, _childAddress),
-          amount,
+        running = _newMainAddress;
+        appStates.add(appState());
+        await Future<void>.delayed(Duration.zero);
+        GeniusNodeReturnValue? fundFromNewMain() => cubit.submit(
+          kind: ChildOperationKind.fund,
+          target: _childAddress,
+          main: _newMainAddress,
+          amountMinions: BigInt.from(5000000),
         );
+        expect(fundFromNewMain(), isNull);
+        expect(cubit.balanceLockReason(_childAddress), _earlierTransferReason);
+
+        // The old main's write lands late, seen from the new main's view.
+        now = submittedAt.add(const Duration(minutes: 4));
+        api.balances[_childAddress] = BigInt.from(10000000);
+        cubit.resolve();
+        expect(cubit.state.justResolved, isEmpty);
+
+        now = submittedAt
+            .add(const Duration(minutes: 6))
+            .subtract(const Duration(milliseconds: 1));
+        cubit.resolve();
+        expect(fundFromNewMain(), isNull);
+        expect(api.fundCallCount, 1);
+
+        now = submittedAt.add(const Duration(minutes: 6));
+        cubit.resolve();
+        expect(cubit.state.justResolved, isEmpty);
+        expect(cubit.balanceLockReason(_childAddress), isNull);
+
+        // The new fund's baseline already includes the old landing, so it
+        // stays pending instead of reading that landing as its own.
+        expect(fundFromNewMain(), GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+        cubit.resolve();
+        expect(cubit.state.justResolved, isEmpty);
+        expect(cubit.operationsFor(_childAddress).single.notConfirmed, isFalse);
 
         await cubit.close();
         await appStates.close();
