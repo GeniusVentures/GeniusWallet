@@ -1503,14 +1503,14 @@ for the full dependency reasoning.
   3. The link is stored and displayed using public addresses only; no key material appears in the link's state, storage, or logs.
   4. Standing (VER-02): this phase's linked/unlinked labels are confirmed on a live-testnet walk before closing; if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`, the walk is recorded as a blocked gap, not skipped.
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 
 - [x] 34-01-PLAN.md — link capture tracer (storage -> API -> wallet-menu names), start-account rename, links in AppState (wave 1)
 - [x] 34-02-PLAN.md — SDK Accounts rows named by wallet, wallet-menu SDK badges, "Default account" wording (wave 2)
 - [x] 34-03-PLAN.md — provable-only backfill for old accounts, run after SDK start and after import (wave 2)
-- [ ] 34-04-PLAN.md — SDK Accounts form saves the wallet and reports added / already there / pending (wave 3)
+- [x] 34-04-PLAN.md — SDK Accounts form saves the wallet and reports added / already there / pending (wave 3)
 - [ ] 34-05-PLAN.md — delete coupling: wallet delete keeps the account, account delete takes its wallet, both paths via AppBloc (wave 4)
 
 ### Phase 35: Unified header switcher
