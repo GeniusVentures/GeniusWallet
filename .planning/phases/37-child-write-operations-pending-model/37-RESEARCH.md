@@ -271,7 +271,7 @@ final fg = !enabled ? gw.textSecondary.withValues(alpha: 0.5) : (danger ? gw.sta
 | A2 | Switching TO an account with its own pending op (vs. FROM one, which SWT-06 locks) is not addressed by any D-number; assumed allowed. | Common Pitfall 2 | Medium — a second race window SWT-06 doesn't close if wrong; worth a planner/user check |
 | A3 | Registry resolve() should piggyback on `ChildWalletsCubit`'s 10s timer rather than run its own — inferred from D-11's wording, not spelled out. | Don't Hand-Roll, Pitfall 3 | Low — either wiring satisfies D-11's letter; risk is only doubled FFI volume if ignored |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Switching TO an account with its own pending op** — PEND-02's per-(kind,target) independence (D-15) likely covers this; confirm during the live/dev-mock walk rather than pre-building a broader gate.
 2. **Per-code failure copy** — default to the UI-SPEC's generic "The SDK refused to {verb} this child." (matches `_confirmDeleteSDKAccount`'s existing pattern, which also has no per-code detail) unless the planner wants finer-grained wording.
@@ -369,3 +369,5 @@ None — every claim traces to a file read this session or a locked CONTEXT.md d
 **Valid until:** Next SDK header regeneration or a Phase 38+ change to `ChildWalletsCubit`/`AppBloc`'s switch flow — no package pins in this phase, so valid for the life of this branch.
 
 > **Correction (orchestrator, before planning):** the main address the user types is an SGNUS address, `0x` + 128 hex (`GeniusSDK.h:57` `GENIUS_SDK_ADDRESS_SIZE`), not an EVM address. Do not reuse `isEvmAddress`; validate `^0x[0-9a-fA-F]{128}$` (case-insensitive compare downstream).
+
+RESOLVED: switching TO an account with its own pending operation is allowed (only switching away from the submitting account locks); failure copy is generic ("The SDK refused to {verb}: {reason}").
