@@ -479,6 +479,60 @@ void main() {
       cubit.close();
     });
 
+    test('a stale baseline never resolves: the child spending on its own '
+        'long after a timed-out recover is not read as either recover', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(100000000); // 100 GNUS
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(10000000),
+      );
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+
+      // An hour later the child has spent 15 GNUS of its own; the recover
+      // of 10 never landed.
+      now = submittedAt.add(const Duration(hours: 1));
+      api.balances[_childAddress] = BigInt.from(85000000);
+      cubit.resolve();
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.justResolved, isEmpty);
+
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(5000000),
+      );
+      final retry = cubit.state.operations.single;
+      expect(retry.baselineMinions, BigInt.from(85000000));
+      expect(retry.carriedMinions, BigInt.from(10000000));
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+
+      // The retry's own 5 lands: still waiting on the earlier 10.
+      api.balances[_childAddress] = BigInt.from(80000000);
+      cubit.resolve();
+      expect(cubit.state.operations, hasLength(1));
+      expect(cubit.state.justResolved, isEmpty);
+
+      api.balances[_childAddress] = BigInt.from(70000000);
+      cubit.resolve();
+      expect(cubit.state.operations, isEmpty);
+      expect(cubit.state.justResolved, hasLength(1));
+
+      cubit.close();
+    });
+
     test('the node running as another account is refused, no SDK call', () {
       final api = _FakeApi();
       final cubit = ChildOperationsCubit(
