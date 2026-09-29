@@ -9,6 +9,7 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
+import 'package:genius_wallet/components/overlays/gw_menu_item.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -369,83 +370,49 @@ class ChildWalletRow extends StatelessWidget {
                   controller.isOpen ? controller.close() : controller.open(),
             ),
             menuChildren: [
-              _ChildActionMenuItem(
+              GWMenuItem(
                 icon: Icons.arrow_upward,
                 label: 'Fund',
-                locked: balanceLock != null,
-                lockedReason: balanceLock ?? '',
-                onPressed: () =>
-                    startFund(context, child: wallet, mainAddress: mainAddress),
+                lockedReason: balanceLock,
+                onPressed: balanceLock != null
+                    ? null
+                    : () => startFund(
+                        context,
+                        child: wallet,
+                        mainAddress: mainAddress,
+                      ),
               ),
-              _ChildActionMenuItem(
+              GWMenuItem(
                 icon: Icons.arrow_downward,
                 label: 'Recover',
-                locked: balanceLock != null,
-                lockedReason: balanceLock ?? '',
-                onPressed: () => startRecover(
-                  context,
-                  child: wallet,
-                  mainAddress: mainAddress,
-                ),
+                lockedReason: balanceLock,
+                onPressed: balanceLock != null
+                    ? null
+                    : () => startRecover(
+                        context,
+                        child: wallet,
+                        mainAddress: mainAddress,
+                      ),
               ),
-              _ChildActionMenuItem(
+              GWMenuItem(
                 icon: Icons.link_off,
                 label: 'Revoke',
-                locked: revokeLocked,
-                lockedReason: 'Already revoking this child',
-                enabledColor: gw.statusErrorText,
-                onPressed: () => startRevoke(
-                  context,
-                  child: wallet,
-                  mainAddress: mainAddress,
-                ),
+                lockedReason: revokeLocked
+                    ? 'Already revoking this child'
+                    : null,
+                color: gw.statusErrorText,
+                onPressed: revokeLocked
+                    ? null
+                    : () => startRevoke(
+                        context,
+                        child: wallet,
+                        mainAddress: mainAddress,
+                      ),
               ),
             ],
           ),
         ],
       ),
     );
-  }
-}
-
-/// One row-menu action, lockable. Disabled/tooltipped rather than hidden
-/// when [locked], reusing `SDKAccountRow`'s own disabled-item dimming so a
-/// locked action reads the same way everywhere in the app.
-class _ChildActionMenuItem extends StatelessWidget {
-  const _ChildActionMenuItem({
-    required this.icon,
-    required this.label,
-    required this.locked,
-    required this.lockedReason,
-    required this.onPressed,
-    this.enabledColor,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool locked;
-  final String lockedReason;
-  final VoidCallback onPressed;
-  final Color? enabledColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final gw = context.gw;
-    final fg = locked
-        ? gw.textSecondary.withValues(alpha: 0.5)
-        : (enabledColor ?? gw.textPrimary);
-    final item = MenuItemButton(
-      leadingIcon: GWIcon.material(icon, color: fg),
-      style: MenuItemButton.styleFrom(
-        foregroundColor: fg,
-        disabledForegroundColor: fg,
-      ),
-      onPressed: locked ? null : onPressed,
-      child: Text(label),
-    );
-    if (!locked) {
-      return item;
-    }
-    return Tooltip(message: lockedReason, child: item);
   }
 }

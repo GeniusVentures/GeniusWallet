@@ -14,6 +14,7 @@ import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
+import 'package:genius_wallet/components/overlays/gw_menu_item.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -145,37 +146,31 @@ class SDKAccountRow extends StatelessWidget {
               controller.isOpen ? controller.close() : controller.open(),
         ),
         menuChildren: [
-          _menuItem(
-            gw,
+          GWMenuItem(
             icon: Icons.edit_location_alt,
             label: 'Set payout address',
             // The SDK sets the payout address on the CURRENTLY SELECTED
             // account, so this is meaningless on any other row.
             onPressed: can.payout
-                ? () => _showSetPayoutAddressDialog(context)
+                ? () => showSetPayoutAddressDialog(context)
                 : null,
           ),
-          _menuItem(
-            gw,
+          GWMenuItem(
             icon: Icons.numbers,
             label: 'Copy recovery phrase',
             // Two gates, both real: the SDK only exposes the SELECTED
             // account's mnemonic, and an account imported from a private key
             // has no phrase at all.
             onPressed: can.phrase
-                ? () => _copyMnemonic(context, mnemonic!)
+                ? () => copyRecoveryPhrase(context, mnemonic!)
                 : null,
           ),
-          _menuItem(
-            gw,
+          GWMenuItem(
             icon: Icons.qr_code,
             label: 'Show recovery QR',
-            onPressed: can.qr
-                ? () => _showMnemonicQr(context, mnemonic!)
-                : null,
+            onPressed: can.qr ? () => showRecoveryQr(context, mnemonic!) : null,
           ),
-          _menuItem(
-            gw,
+          GWMenuItem(
             icon: Icons.account_balance_wallet_outlined,
             label: 'View balance',
             // Every row gets this, not just the selected one - it has no
@@ -184,8 +179,7 @@ class SDKAccountRow extends StatelessWidget {
                 ? () => Navigator.of(context).pop(balanceWallet)
                 : null,
           ),
-          _menuItem(
-            gw,
+          GWMenuItem(
             icon: Icons.account_tree,
             label: 'Child wallets',
             // The SDK only knows the children of the account it is running
@@ -200,16 +194,15 @@ class SDKAccountRow extends StatelessWidget {
                 : null,
           ),
           const Divider(height: 9, indent: 12, endIndent: 12),
-          _menuItem(
-            gw,
+          GWMenuItem(
             icon: Icons.delete_outline,
             label: 'Delete account',
-            danger: true,
+            color: gw.statusErrorText,
             // Disabled, not hidden. `GeniusApi.deleteAccount`'s own doc says
             // the SDK refuses to delete the selected account, so this is the
             // rule made visible rather than a new one invented here.
             onPressed: can.delete
-                ? () => _confirmDeleteSDKAccount(context, address)
+                ? () => confirmDeleteSDKAccount(context, address)
                 : null,
           ),
         ],
@@ -221,310 +214,274 @@ class SDKAccountRow extends StatelessWidget {
     }
     return Tooltip(message: lockedReason, child: row);
   }
+}
 
-  /// One menu row, so the four items cannot drift in icon size, colour or
-  /// disabled treatment. `onPressed: null` is Material's own disabled state -
-  /// nothing here fakes it with opacity.
-  Widget _menuItem(
-    GWColors gw, {
-    required IconData icon,
-    required String label,
-    required VoidCallback? onPressed,
-    bool danger = false,
-  }) {
-    final enabled = onPressed != null;
-    // The icon has to be dimmed HERE. `MenuItemButton` disables its own
-    // foreground, but `leadingIcon` is a widget we hand it -- so a disabled
-    // "Delete account" rendered a greyed label beside a full-strength red
-    // trash glyph, which is exactly how it looked on the walk.
-    final fg = !enabled
-        ? gw.textSecondary.withValues(alpha: 0.5)
-        : (danger ? gw.statusErrorText : gw.textPrimary);
-    return MenuItemButton(
-      leadingIcon: GWIcon.material(icon, color: fg),
-      style: MenuItemButton.styleFrom(
-        foregroundColor: fg,
-        // Without this, Material substitutes its own onSurface@38% for the
-        // disabled label and the row disagrees with its own icon again.
-        disabledForegroundColor: fg,
+/// A seed phrase leaving the app deserves a word about it. This used to be
+/// `onPressed: () => {Clipboard.setData(...)}` and nothing else - no
+/// confirmation, no feedback - while every other copy in the app says
+/// "Address copied to clipboard". This is the one value where a silent
+/// clipboard write is a security event rather than a convenience.
+///
+/// Public: every row carrying an SDK account reaches this from its own menu
+/// now, not just [SDKAccountRow]'s.
+Future<void> copyRecoveryPhrase(BuildContext context, String mnemonic) async {
+  final navigator = Navigator.of(context, rootNavigator: true);
+  Navigator.of(context).pop();
+
+  final confirmed = await GWDialog.show<bool>(
+    context: navigator.context,
+    title: 'Copy recovery phrase?',
+    message:
+        'Anyone who reads your clipboard gets full control of this account. '
+        'Paste it where you need it and clear the clipboard afterwards.',
+    actions: [
+      GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
+      GWDialogAction(
+        label: 'Copy',
+        variant: GWButtonVariant.primary,
+        onPressed: () => navigator.pop(true),
       ),
-      onPressed: onPressed,
-      child: Text(label),
+    ],
+  );
+
+  if (confirmed != true) {
+    return;
+  }
+  await Clipboard.setData(ClipboardData(text: mnemonic));
+  // The other half of the confirmation above: the dialog makes the exposure
+  // deliberate, this ends it. Conditional, so a value the user copies in the
+  // meantime survives.
+  scheduleSecretClipboardClear(mnemonic);
+  unawaited(HapticFeedback.lightImpact());
+  if (navigator.context.mounted) {
+    // `navigator.context` is the ROOT navigator's and outlives the popped
+    // drawer, so the guard above is the correct one -- the analyzer
+    // cannot see that and reads it as unrelated to this context.
+    showToast(
+      // ignore: use_build_context_synchronously
+      navigator.context,
+      'Recovery phrase copied to clipboard',
+      duration: const Duration(seconds: 2),
     );
   }
+}
 
-  /// A seed phrase leaving the app deserves a word about it. This used to be
-  /// `onPressed: () => {Clipboard.setData(...)}` and nothing else - no
-  /// confirmation, no feedback - while every other copy in the app says
-  /// "Address copied to clipboard". This is the one value where a silent
-  /// clipboard write is a security event rather than a convenience.
-  Future<void> _copyMnemonic(BuildContext context, String mnemonic) async {
-    final navigator = Navigator.of(context, rootNavigator: true);
-    Navigator.of(context).pop();
+/// The recovery QR. Was the only dialog in this section still a raw
+/// `AlertDialog` with a stock `TextButton`; it is `GWDialog` now.
+///
+/// The WHITE backdrop behind the code stays and is deliberately
+/// mode-invariant: a QR needs a light quiet zone to scan, so it is not
+/// routed through GWColors (03-GAP-INVENTORY §6).
+Future<void> showRecoveryQr(BuildContext context, String mnemonic) async {
+  final navigator = Navigator.of(context, rootNavigator: true);
+  Navigator.of(context).pop();
 
-    final confirmed = await GWDialog.show<bool>(
-      context: navigator.context,
-      title: 'Copy recovery phrase?',
-      message:
-          'Anyone who reads your clipboard gets full control of this account. '
-          'Paste it where you need it and clear the clipboard afterwards.',
-      actions: [
-        GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
-        GWDialogAction(
-          label: 'Copy',
-          variant: GWButtonVariant.primary,
-          onPressed: () => navigator.pop(true),
-        ),
-      ],
-    );
+  await GWDialog.show<void>(
+    context: navigator.context,
+    title: 'Recovery phrase QR',
+    content: SecureScreen(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const GWWarningNote(
+            'Anyone who photographs this code gets full control of the '
+            'account. Do not show it on a shared or recorded screen.',
+          ),
+          const SizedBox(height: GeniusWalletConsts.space6),
+          // Self-contained, exactly as `CryptoAddressQR` (sketch 034-A2) does
+          // it: the QR carries its own size and its own white backing. The old
+          // shape here was a `SizedBox(width: GeniusBreakpoints.small * 0.5)`
+          // around a white `Container` - a BREAKPOINT constant used as a pixel
+          // width, and a caller-supplied wrapper to shrink the code. That is
+          // the exact pattern `crypto_address_qr.dart` records having already
+          // fixed once ("no longer depends on the caller's wrapping SizedBox").
+          //
+          // `Colors.white` is deliberate and mode-invariant in both files: a
+          // camera needs a light quiet zone, so this is NEVER an appearance
+          // token.
+          QrImageView(
+            data: mnemonic,
+            version: QrVersions.auto,
+            size: 190,
+            backgroundColor: Colors.white,
+          ),
+        ],
+      ),
+    ),
+    actions: [GWDialogAction(label: 'Done', onPressed: () => navigator.pop())],
+  );
+}
 
-    if (confirmed != true) {
-      return;
-    }
-    await Clipboard.setData(ClipboardData(text: mnemonic));
-    // The other half of the confirmation above: the dialog makes the exposure
-    // deliberate, this ends it. Conditional, so a value the user copies in the
-    // meantime survives.
-    scheduleSecretClipboardClear(mnemonic);
-    unawaited(HapticFeedback.lightImpact());
-    if (navigator.context.mounted) {
-      // `navigator.context` is the ROOT navigator's and outlives the popped
-      // drawer, so the guard above is the correct one -- the analyzer
-      // cannot see that and reads it as unrelated to this context.
-      showToast(
-        // ignore: use_build_context_synchronously
-        navigator.context,
-        'Recovery phrase copied to clipboard',
-        duration: const Duration(seconds: 2),
-      );
-    }
+/// The `isSelected` guard that used to live here is gone: the menu no longer
+/// offers Delete on the active account at all, so a guard here could never
+/// fire. The SDK's own refusal is still the real rule -- see the disabled
+/// item [sdkRowActions] gates.
+Future<void> confirmDeleteSDKAccount(
+  BuildContext context,
+  String address,
+) async {
+  final bloc = context.read<AppBloc>();
+  // Read straight off the bloc and its own cubit - no provider lookup - so
+  // the block and the wallet it names agree with what the delete itself
+  // will enforce.
+  final block = AppBloc.sdkDeleteBlock(
+    sdkAddress: address,
+    defaultAccount: bloc.state.defaultSDKAccount,
+    links: bloc.state.sdkAccountLinks,
+    wallets: bloc.state.wallets,
+    activeWallet: bloc.walletDetailsCubit.state.selectedWallet,
+  );
+  final linked = AppBloc.linkedWallet(
+    address,
+    bloc.state.sdkAccountLinks,
+    bloc.state.wallets,
+  );
+  final navigator = Navigator.of(context, rootNavigator: true);
+  Navigator.of(context).pop();
+
+  if (block == SDKDeleteBlock.defaultAccount) {
+    return;
   }
-
-  /// The recovery QR. Was the only dialog in this section still a raw
-  /// `AlertDialog` with a stock `TextButton`; it is `GWDialog` now.
-  ///
-  /// The WHITE backdrop behind the code stays and is deliberately
-  /// mode-invariant: a QR needs a light quiet zone to scan, so it is not
-  /// routed through GWColors (03-GAP-INVENTORY §6).
-  Future<void> _showMnemonicQr(BuildContext context, String mnemonic) async {
-    final navigator = Navigator.of(context, rootNavigator: true);
-    Navigator.of(context).pop();
-
+  if (block == SDKDeleteBlock.activeWallet) {
     await GWDialog.show<void>(
       context: navigator.context,
-      title: 'Recovery phrase QR',
-      content: SecureScreen(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const GWWarningNote(
-              'Anyone who photographs this code gets full control of the '
-              'account. Do not show it on a shared or recorded screen.',
-            ),
-            const SizedBox(height: GeniusWalletConsts.space6),
-            // Self-contained, exactly as `CryptoAddressQR` (sketch 034-A2) does
-            // it: the QR carries its own size and its own white backing. The old
-            // shape here was a `SizedBox(width: GeniusBreakpoints.small * 0.5)`
-            // around a white `Container` - a BREAKPOINT constant used as a pixel
-            // width, and a caller-supplied wrapper to shrink the code. That is
-            // the exact pattern `crypto_address_qr.dart` records having already
-            // fixed once ("no longer depends on the caller's wrapping SizedBox").
-            //
-            // `Colors.white` is deliberate and mode-invariant in both files: a
-            // camera needs a light quiet zone, so this is NEVER an appearance
-            // token.
-            QrImageView(
-              data: mnemonic,
-              version: QrVersions.auto,
-              size: 190,
-              backgroundColor: Colors.white,
-            ),
-          ],
-        ),
+      title: 'Cannot delete this account',
+      message:
+          '"${linked?.walletName}" is your active wallet. Pick another '
+          'active wallet first, then delete this account.',
+      actions: [GWDialogAction(label: 'OK', onPressed: () => navigator.pop())],
+    );
+    return;
+  }
+  if (block == SDKDeleteBlock.lastWallet) {
+    await GWDialog.show<void>(
+      context: navigator.context,
+      title: 'Cannot delete this account',
+      message:
+          'Deleting this account also removes "${linked?.walletName}", and '
+          'you must keep at least one wallet.',
+      actions: [GWDialogAction(label: 'OK', onPressed: () => navigator.pop())],
+    );
+    return;
+  }
+
+  final confirmed = await GWDialog.show<bool>(
+    context: navigator.context,
+    title: 'Delete SDK account',
+    message: linked != null
+        ? 'This deletes the SDK account and removes the wallet '
+              '"${linked.walletName}" from the app. If you have no copy of '
+              'its recovery phrase, neither can be restored.'
+        : 'The SDK will stop being able to sign with '
+              '${WalletUtils.getAddressForDisplay(address)}. If you have no '
+              'copy of its recovery phrase, this account cannot be restored.',
+    actions: [
+      GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
+      GWDialogAction(
+        label: 'Delete account',
+        // Mode-invariant statusError destructive fill -- never
+        // Colors.red/redAccent, never routed through GWColors.
+        variant: GWButtonVariant.destructive,
+        onPressed: () => navigator.pop(true),
       ),
-      actions: [
-        GWDialogAction(label: 'Done', onPressed: () => navigator.pop()),
-      ],
-    );
+    ],
+  );
+
+  if (confirmed != true) {
+    return;
   }
 
-  /// The `isSelected` guard that used to live here is gone: the menu no longer
-  /// offers Delete on the active account at all, so a guard here could never
-  /// fire. The SDK's own refusal is still the real rule -- see the disabled
-  /// item in `_menuItem` above.
-  Future<void> _confirmDeleteSDKAccount(
-    BuildContext context,
-    String address,
-  ) async {
-    final bloc = context.read<AppBloc>();
-    // Read straight off the bloc and its own cubit - no provider lookup - so
-    // the block and the wallet it names agree with what the delete itself
-    // will enforce (D-10, D-11).
-    final block = AppBloc.sdkDeleteBlock(
-      sdkAddress: address,
-      defaultAccount: bloc.state.defaultSDKAccount,
-      links: bloc.state.sdkAccountLinks,
-      wallets: bloc.state.wallets,
-      activeWallet: bloc.walletDetailsCubit.state.selectedWallet,
-    );
-    final linked = AppBloc.linkedWallet(
-      address,
-      bloc.state.sdkAccountLinks,
-      bloc.state.wallets,
-    );
-    final navigator = Navigator.of(context, rootNavigator: true);
-    Navigator.of(context).pop();
+  bloc.add(DeleteSDKAccount(address));
 
-    if (block == SDKDeleteBlock.defaultAccount) {
-      return;
-    }
-    if (block == SDKDeleteBlock.activeWallet) {
-      await GWDialog.show<void>(
-        context: navigator.context,
-        title: 'Cannot delete this account',
-        message:
-            '"${linked?.walletName}" is your active wallet. Pick another '
-            'active wallet first, then delete this account.',
-        actions: [
-          GWDialogAction(label: 'OK', onPressed: () => navigator.pop()),
-        ],
-      );
-      return;
-    }
-    if (block == SDKDeleteBlock.lastWallet) {
-      await GWDialog.show<void>(
-        context: navigator.context,
-        title: 'Cannot delete this account',
-        message:
-            'Deleting this account also removes "${linked?.walletName}", and '
-            'you must keep at least one wallet.',
-        actions: [
-          GWDialogAction(label: 'OK', onPressed: () => navigator.pop()),
-        ],
-      );
-      return;
-    }
+  // The old code said "SDK account deleted" UNCONDITIONALLY, one line after
+  // dispatching and without checking anything -- and `_onDeleteSDKAccount`
+  // emits only on `GENIUS_NODE_RET_OK` with no else branch, so a refusal was
+  // silent at both layers and the user was told a delete worked when it had
+  // not.
+  //
+  // The bloc exposes no error for this, so the observable truth is whether
+  // the address left the list. The timeout is the "nothing happened" case,
+  // which is exactly the refusal we could not see before.
+  final removed = await bloc.stream
+      .map((s) => !s.sdkAccounts.contains(address))
+      .firstWhere((gone) => gone, orElse: () => false)
+      .timeout(const Duration(seconds: 3), onTimeout: () => false);
 
-    final confirmed = await GWDialog.show<bool>(
-      context: navigator.context,
-      title: 'Delete SDK account',
-      message: linked != null
-          ? 'This deletes the SDK account and removes the wallet '
-                '"${linked.walletName}" from the app. If you have no copy of '
-                'its recovery phrase, neither can be restored.'
-          : 'The SDK will stop being able to sign with '
-                '${WalletUtils.getAddressForDisplay(address)}. If you have no '
-                'copy of its recovery phrase, this account cannot be restored.',
-      actions: [
-        GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
-        GWDialogAction(
-          label: 'Delete account',
-          // Mode-invariant statusError destructive fill -- never
-          // Colors.red/redAccent, never routed through GWColors.
-          variant: GWButtonVariant.destructive,
-          onPressed: () => navigator.pop(true),
-        ),
-      ],
-    );
+  if (!navigator.context.mounted) {
+    return;
+  }
+  // `navigator.context` is the ROOT navigator's and outlives the popped
+  // drawer, so the guard above is the correct one -- the analyzer
+  // cannot see that and reads it as unrelated to this context.
+  showToast(
+    // ignore: use_build_context_synchronously
+    navigator.context,
+    removed ? 'SDK account deleted' : 'The SDK refused to delete that account.',
+    type: removed ? ToastType.success : ToastType.error,
+    duration: Duration(seconds: removed ? 1 : 3),
+  );
+}
 
-    if (confirmed != true) {
-      return;
-    }
+Future<void> showSetPayoutAddressDialog(BuildContext context) async {
+  final controller = TextEditingController();
+  final bloc = context.read<AppBloc>();
+  final navigator = Navigator.of(context, rootNavigator: true);
+  Navigator.of(context).pop();
 
-    bloc.add(DeleteSDKAccount(address));
+  final payoutAddress = await GWDialog.show<String>(
+    context: navigator.context,
+    title: 'Set payout address',
+    message: 'Processing rewards for this account are paid here.',
+    content: _PayoutAddressForm(controller: controller),
+    actions: [
+      GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop()),
+      GWDialogAction(
+        label: 'Set address',
+        variant: GWButtonVariant.primary,
+        onPressed: () {
+          // Validation the field never had: it used to post any string at
+          // all, and the SDK's rejection came back as an opaque enum name.
+          if (!isEvmAddress(controller.text)) {
+            return;
+          }
+          navigator.pop(controller.text.trim());
+        },
+      ),
+    ],
+  );
 
-    // The old code said "SDK account deleted" UNCONDITIONALLY, one line after
-    // dispatching and without checking anything -- and `_onDeleteSDKAccount`
-    // emits only on `GENIUS_NODE_RET_OK` with no else branch, so a refusal was
-    // silent at both layers and the user was told a delete worked when it had
-    // not.
-    //
-    // The bloc exposes no error for this, so the observable truth is whether
-    // the address left the list. The timeout is the "nothing happened" case,
-    // which is exactly the refusal we could not see before.
-    final removed = await bloc.stream
-        .map((s) => !s.sdkAccounts.contains(address))
-        .firstWhere((gone) => gone, orElse: () => false)
-        .timeout(const Duration(seconds: 3), onTimeout: () => false);
-
-    if (!navigator.context.mounted) {
-      return;
-    }
-    // `navigator.context` is the ROOT navigator's and outlives the popped
-    // drawer, so the guard above is the correct one -- the analyzer
-    // cannot see that and reads it as unrelated to this context.
-    showToast(
-      // ignore: use_build_context_synchronously
-      navigator.context,
-      removed
-          ? 'SDK account deleted'
-          : 'The SDK refused to delete that account.',
-      type: removed ? ToastType.success : ToastType.error,
-      duration: Duration(seconds: removed ? 1 : 3),
-    );
+  if (payoutAddress == null || payoutAddress.isEmpty) {
+    return;
   }
 
-  Future<void> _showSetPayoutAddressDialog(BuildContext context) async {
-    final controller = TextEditingController();
-    final bloc = context.read<AppBloc>();
-    final navigator = Navigator.of(context, rootNavigator: true);
-    Navigator.of(context).pop();
+  bloc.add(SetSDKPayoutAddress(payoutAddress));
 
-    final payoutAddress = await GWDialog.show<String>(
-      context: navigator.context,
-      title: 'Set payout address',
-      message: 'Processing rewards for this account are paid here.',
-      content: _PayoutAddressForm(controller: controller),
-      actions: [
-        GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop()),
-        GWDialogAction(
-          label: 'Set address',
-          variant: GWButtonVariant.primary,
-          onPressed: () {
-            // Validation the field never had: it used to post any string at
-            // all, and the SDK's rejection came back as an opaque enum name.
-            if (!isEvmAddress(controller.text)) {
-              return;
-            }
-            navigator.pop(controller.text.trim());
-          },
-        ),
-      ],
-    );
+  // AWAIT the next state. The old code read `state.setPayoutAddressResult`
+  // synchronously on the line after `add(...)`, and a bloc processes events
+  // asynchronously -- so it reported the PREVIOUS attempt's result, or
+  // "Failed to set payout address: null" on the first call after a start.
+  final result = await bloc.stream
+      .map((s) => s.setPayoutAddressResult)
+      .firstWhere((_) => true, orElse: () => null)
+      .timeout(const Duration(seconds: 5), onTimeout: () => null);
 
-    if (payoutAddress == null || payoutAddress.isEmpty) {
-      return;
-    }
-
-    bloc.add(SetSDKPayoutAddress(payoutAddress));
-
-    // AWAIT the next state. The old code read `state.setPayoutAddressResult`
-    // synchronously on the line after `add(...)`, and a bloc processes events
-    // asynchronously -- so it reported the PREVIOUS attempt's result, or
-    // "Failed to set payout address: null" on the first call after a start.
-    final result = await bloc.stream
-        .map((s) => s.setPayoutAddressResult)
-        .firstWhere((_) => true, orElse: () => null)
-        .timeout(const Duration(seconds: 5), onTimeout: () => null);
-
-    if (!navigator.context.mounted) {
-      return;
-    }
-    final ok = result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
-    // `navigator.context` is the ROOT navigator's and outlives the popped
-    // drawer, so the guard above is the correct one -- the analyzer
-    // cannot see that and reads it as unrelated to this context.
-    showToast(
-      // ignore: use_build_context_synchronously
-      navigator.context,
-      ok
-          ? 'Payout address set'
-          : 'The SDK refused that payout address'
-                '${result == null ? '' : ' (${result.name})'}.',
-      type: ok ? ToastType.success : ToastType.error,
-      duration: Duration(seconds: ok ? 1 : 3),
-    );
+  if (!navigator.context.mounted) {
+    return;
   }
+  final ok = result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  // `navigator.context` is the ROOT navigator's and outlives the popped
+  // drawer, so the guard above is the correct one -- the analyzer
+  // cannot see that and reads it as unrelated to this context.
+  showToast(
+    // ignore: use_build_context_synchronously
+    navigator.context,
+    ok
+        ? 'Payout address set'
+        : 'The SDK refused that payout address'
+              '${result == null ? '' : ' (${result.name})'}.',
+    type: ok ? ToastType.success : ToastType.error,
+    duration: Duration(seconds: ok ? 1 : 3),
+  );
 }
 
 /// Which of the row menu's five actions are available, as a rule rather than
