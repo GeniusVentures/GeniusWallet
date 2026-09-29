@@ -1,7 +1,7 @@
-// Each SDK row must say which wallet it came from, or admit it has none.
-// This file proves the row-naming and row-address contract directly against
-// `SDKAccountRow`'s output, reached through the real switcher drawer rather
-// than a standalone host.
+// Each account row must say which wallet it came from, or admit it has
+// none, and "Run node as this" -- not a row tap -- is the only path that
+// switches the node. Reached through the real switcher
+// drawer rather than a standalone host.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,9 +11,9 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
-import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
@@ -144,8 +144,8 @@ Future<void> _pumpDrawer(
   WalletDetailsCubit details, {
   ChildOperationsCubit? operations,
 }) async {
-  // Tall enough that both sections, however many accounts each holds,
-  // build inside the viewport rather than needing a scroll per assertion.
+  // Tall enough that every row, however many, builds inside the viewport
+  // rather than needing a scroll per assertion.
   tester.view.physicalSize = const Size(1200, 2000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(() {
@@ -203,8 +203,9 @@ void main() {
   });
 
   testWidgets(
-    'row titles name the wallet, or say Unlinked/wallet removed, and the '
-    'address stays on every row - each one selectable and deletable',
+    'a linked account merges onto its wallet\'s row and shows that name '
+    'once; an unlinked or wallet-removed account is honest about it - every '
+    'row keeps its own short address',
     (tester) async {
       final api = _Api(
         links: const {
@@ -226,47 +227,41 @@ void main() {
         sdkAccounts: const [_mainA, _mainB, _oldAddr, _unlinkedAddr],
         wallets: const [_walletMainA, _walletMainB],
         sdkAccountLinks: api.links,
-        // Selected (Active processing account) and default (Default
-        // account) sit on two DIFFERENT rows here, so both subtitles are
-        // proven independently.
+        // The default account (mainA) and the running one (mainB) sit on
+        // two DIFFERENT merged rows, so both markers are proven
+        // independently: " · Default account" inline, "On node" as a tag.
         selectedSDKAccount: _mainB,
         defaultSDKAccount: _mainA.toLowerCase(),
       );
 
       await _pumpDrawer(tester, bloc, details);
 
-      // Titles: same-named wallets stay two rows, the removed-wallet link
-      // keeps its old name, and the unmatched account is honest about it.
-      // Scoped to SDKAccountRow: both linked accounts' own wallets ALSO
-      // render, by the same name, in the "Sending from" section above.
-      expect(
-        find.descendant(
-          of: find.byType(SDKAccountRow),
-          matching: find.text('Main'),
-        ),
-        findsNWidgets(2),
-      );
+      // One row per account: merging leaves exactly one "Main" per
+      // linked pair, not the two the pre-merge switcher would have shown.
+      expect(find.text('Main'), findsNWidgets(2));
       expect(find.text('Old (wallet removed)'), findsOneWidget);
       expect(find.text('Unlinked'), findsOneWidget);
 
-      // Each row's own short address, plus the right status suffix.
+      // Each row's own short address, plus the right status.
       expect(
         find.textContaining('0xaaaa...1111 · Default account'),
         findsOneWidget,
       );
-      expect(
-        find.textContaining('0xaaaa...2222 · Active processing account'),
-        findsOneWidget,
-      );
+      expect(find.text('0xaaaa...2222'), findsOneWidget);
+      expect(find.text('On node'), findsOneWidget);
       expect(find.text('0xaaaa...3333'), findsOneWidget);
       expect(find.text('0xaaaa...4444'), findsOneWidget);
 
-      // Rows keep the SDK's own order.
-      final titleOrder = tester
-          .widgetList<SDKAccountRow>(find.byType(SDKAccountRow))
-          .map((row) => row.name)
-          .toList();
-      expect(titleOrder, ['Main', 'Main', 'Old (wallet removed)', 'Unlinked']);
+      // Render order: own wallets (merged) first, then unmerged accounts.
+      final order = [
+        '0xaaaa...1111',
+        '0xaaaa...2222',
+        '0xaaaa...3333',
+        '0xaaaa...4444',
+      ].map((text) => tester.getTopLeft(find.textContaining(text)).dy).toList();
+      for (var i = 1; i < order.length; i++) {
+        expect(order[i], greaterThan(order[i - 1]));
+      }
 
       await tester.runAsync(() => bloc.close());
       await details.close();
@@ -415,7 +410,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('child of $_mainA'), findsOneWidget);
-      expect(find.byType(SDKAccountRow), findsNothing);
+      expect(find.text('Main'), findsNothing);
 
       await tester.runAsync(() => bloc.close());
       await details.close();
@@ -426,8 +421,9 @@ void main() {
     const target = '0xaaaa5555';
 
     testWidgets(
-      'a pending fund from the running account locks every other row, '
-      'tooltipped, and a tap refuses the switch instead of dispatching it',
+      'a pending fund from the running account disables "Run node as this" '
+      'on every other row, tooltipped with the reason, and a row tap never '
+      'reaches the SDK select',
       (tester) async {
         final api = _Api(accounts: const [_mainA, _mainB]);
         final details = WalletDetailsCubit(
@@ -462,10 +458,11 @@ void main() {
         expect(find.byIcon(Icons.lock_outline), findsOneWidget);
         expect(find.byTooltip(reason), findsOneWidget);
 
-        await tester.tap(find.byType(SDKAccountRow).at(1));
-        await tester.pumpAndSettle();
+        // A tap only ever affects wallet selection; mainB has no
+        // sgnus wallet here, so it is a no-op either way, never the switch.
+        await tester.tap(find.text('0xaaaa...2222'));
+        await tester.pump();
 
-        expect(find.text(reason), findsWidgets);
         expect(bloc.state.selectedSDKAccount, _mainA);
 
         await tester.runAsync(() => bloc.close());
@@ -475,8 +472,7 @@ void main() {
     );
 
     testWidgets(
-      'the selected row carries no lock glyph, and Sending from switching is '
-      'unaffected',
+      'the on-node row carries no lock glyph -- exactly one row does',
       (tester) async {
         final api = _Api(accounts: const [_mainA, _mainB]);
         final details = WalletDetailsCubit(
@@ -506,30 +502,18 @@ void main() {
 
         await _pumpDrawer(tester, bloc, details, operations: operations);
 
-        final selectedRowFinder = find.byWidgetPredicate(
-          (w) => w is SDKAccountRow && w.address == _mainA,
+        final onNodeRow = find.ancestor(
+          of: find.text('0xaaaa...1111'),
+          matching: find.byType(GWSelectRow),
         );
         expect(
           find.descendant(
-            of: selectedRowFinder,
+            of: onNodeRow,
             matching: find.byIcon(Icons.lock_outline),
           ),
           findsNothing,
         );
-
-        // "Sending from" is a separate section built from plain
-        // `GWSelectRow`s, not `SDKAccountRow` -- this widget's lock only
-        // ever reaches the "Node running as" rows above, so the lone lock
-        // glyph on screen stays inside that section (proven exhaustively,
-        // with the real Hive-backed switch, in account_drawer_show_test.dart).
         expect(find.byIcon(Icons.lock_outline), findsOneWidget);
-        expect(
-          find.descendant(
-            of: find.byType(SDKAccountRow),
-            matching: find.byIcon(Icons.lock_outline),
-          ),
-          findsOneWidget,
-        );
 
         await tester.runAsync(() => bloc.close());
         await details.close();
@@ -538,8 +522,8 @@ void main() {
     );
 
     testWidgets(
-      'once the pending op times out to notConfirmed, the lock releases and '
-      'a tap switches again',
+      'once the pending op times out to notConfirmed, "Run node as this" '
+      're-enables on the other row and switches the node',
       (tester) async {
         var now = DateTime(2024);
         final api = _Api(accounts: const [_mainA, _mainB]);
@@ -579,8 +563,14 @@ void main() {
 
         expect(find.byIcon(Icons.lock_outline), findsNothing);
 
-        await tester.tap(find.byType(SDKAccountRow).at(1));
+        // Rows render wallet A first (index 0), then mainA and mainB as
+        // unmerged accounts -- mainB is index 2.
+        await tester.tap(find.byTooltip('Account options').at(2));
         await tester.pumpAndSettle();
+        await tester.tap(
+          find.widgetWithText(MenuItemButton, 'Run node as this'),
+        );
+        await tester.pump();
 
         expect(bloc.state.selectedSDKAccount, _mainB);
 
@@ -592,7 +582,7 @@ void main() {
 
     testWidgets(
       'a drawer pumped without any registry above it renders every row '
-      'unlocked',
+      'unlocked, and "Run node as this" switches freely',
       (tester) async {
         final api = _Api(accounts: const [_mainA, _mainB]);
         final details = WalletDetailsCubit(
@@ -616,8 +606,14 @@ void main() {
 
         expect(find.byIcon(Icons.lock_outline), findsNothing);
 
-        await tester.tap(find.byType(SDKAccountRow).at(1));
+        // Rows render wallet A first (index 0), then mainA and mainB as
+        // unmerged accounts -- mainB is index 2.
+        await tester.tap(find.byTooltip('Account options').at(2));
         await tester.pumpAndSettle();
+        await tester.tap(
+          find.widgetWithText(MenuItemButton, 'Run node as this'),
+        );
+        await tester.pump();
 
         expect(bloc.state.selectedSDKAccount, _mainB);
 

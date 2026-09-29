@@ -50,7 +50,6 @@ import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
-import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -79,7 +78,7 @@ class _FakeGeniusApi implements GeniusApi {
 }
 
 /// Tracks a delete so a test can prove the row menu's confirmed delete
-/// reached the bloc's own call, not a bypassed one (D-12).
+/// reached the bloc's own call, not a bypassed one.
 class _DeletingApi extends _FakeGeniusApi {
   String? deleted;
   bool? deletedWatchOnly;
@@ -606,8 +605,8 @@ void main() {
     };
 
     testWidgets(
-      'tapping an unselected SDK row calls the API and leaves the active '
-      'wallet untouched',
+      'tapping an unlinked account row never calls the SDK API, and is a '
+      'no-op when it has no sgnus wallet of its own',
       (tester) async {
         final api = _SelectingApi();
         final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
@@ -631,24 +630,19 @@ void main() {
           await tester.tap(find.text('open drawer'));
           await tester.pumpAndSettle();
 
-          // BOUNDED: the row's own toast arms a 1s auto-dismiss Timer, and
-          // the drawer stays open (no route pop here), so `pumpAndSettle`
-          // would spin to the test timeout waiting on it.
           await tester.tap(find.text('Beta (wallet removed)'));
           await tester.pump();
 
-          expect(api.selectCalls, [sdkB]);
+          expect(api.selectCalls, isEmpty);
           expect(harness.walletDetailsCubit.state.selectedWallet, _walletA);
         } finally {
-          ToastManager.instance.disposeAll();
-          await tester.pump(const Duration(milliseconds: 400));
           await harness.dispose(tester);
           await box.close();
         }
       },
     );
 
-    testWidgets('re-tapping the already-selected SDK row calls nothing', (
+    testWidgets("'Run node as this' is disabled on the row already on node", (
       tester,
     ) async {
       final api = _SelectingApi();
@@ -672,9 +666,15 @@ void main() {
         await tester.tap(find.text('open drawer'));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('Alpha (wallet removed)'));
-        await tester.pump();
+        // Rows render wallet A first, then the two unlinked accounts in
+        // sdkAccounts order -- sdkA (on node) is index 1.
+        await tester.tap(find.byTooltip('Account options').at(1));
+        await tester.pumpAndSettle();
 
+        final item = tester.widget<MenuItemButton>(
+          find.widgetWithText(MenuItemButton, 'Run node as this'),
+        );
+        expect(item.onPressed, isNull);
         expect(api.selectCalls, isEmpty);
       } finally {
         await harness.dispose(tester);
@@ -686,6 +686,13 @@ void main() {
       'tapping an own-wallet row changes the active wallet and calls the '
       'SDK API nothing',
       (tester) async {
+        tester.view.physicalSize = const Size(1200, 2000);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
         final api = _SelectingApi();
         final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
         final harness = _build(
@@ -755,9 +762,10 @@ void main() {
         await tester.tap(find.text('open drawer'));
         await tester.pumpAndSettle();
 
-        // sdkAccounts order is [sdkWithBalance, sdkWithoutBalance]; only
-        // the first's lowercased address matches the sgnus wallet above.
-        await tester.tap(find.byTooltip('Account options').at(0));
+        // Rows render Wallet A first (index 0), then sdkAccounts order
+        // [sdkWithBalance, sdkWithoutBalance] as unmerged accounts; only
+        // sdkWithBalance's lowercased address matches the sgnus wallet above.
+        await tester.tap(find.byTooltip('Account options').at(1));
         await tester.pumpAndSettle();
         await tester.tap(find.text('View balance'));
         await tester.pumpAndSettle();
@@ -766,7 +774,7 @@ void main() {
 
         await tester.tap(find.text('open drawer'));
         await tester.pumpAndSettle();
-        await tester.tap(find.byTooltip('Account options').at(1));
+        await tester.tap(find.byTooltip('Account options').at(2));
         await tester.pumpAndSettle();
 
         final disabled = tester.widget<MenuItemButton>(
@@ -780,8 +788,8 @@ void main() {
     });
 
     testWidgets(
-      'the wallet linked to the active SDK account shows ACTIVE ON NODE, '
-      'not SDK',
+      'the wallet linked to the active SDK account shows On node, not SDK '
+      '(the two are now one merged row)',
       (tester) async {
         final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
         final links = <String, SDKAccountLink>{
@@ -809,7 +817,7 @@ void main() {
           await tester.tap(find.text('open drawer'));
           await tester.pumpAndSettle();
 
-          expect(find.text('ACTIVE ON NODE'), findsOneWidget);
+          expect(find.text('On node'), findsOneWidget);
           expect(find.text('SDK'), findsNothing);
           expect(find.text('SDK PENDING'), findsNothing);
         } finally {
@@ -864,7 +872,7 @@ void main() {
 
     testWidgets(
       'a tracking wallet sharing the linked wallet\'s address does not '
-      'also show ACTIVE ON NODE',
+      'also show On node',
       (tester) async {
         const sharedAddress = '0xEEEE000000000000000000000000000000000E';
         const trackedTwin = Wallet(
@@ -909,7 +917,7 @@ void main() {
           await tester.tap(find.text('open drawer'));
           await tester.pumpAndSettle();
 
-          expect(find.text('ACTIVE ON NODE'), findsOneWidget);
+          expect(find.text('On node'), findsOneWidget);
 
           final trackedRow = find.ancestor(
             of: find.text('Watched twin'),
@@ -920,17 +928,11 @@ void main() {
             matching: find.byType(GWSelectRow),
           );
           expect(
-            find.descendant(
-              of: trackedRow,
-              matching: find.text('ACTIVE ON NODE'),
-            ),
+            find.descendant(of: trackedRow, matching: find.text('On node')),
             findsNothing,
           );
           expect(
-            find.descendant(
-              of: ownedRow,
-              matching: find.text('ACTIVE ON NODE'),
-            ),
+            find.descendant(of: ownedRow, matching: find.text('On node')),
             findsOneWidget,
           );
         } finally {
@@ -942,8 +944,7 @@ void main() {
   });
 
   testWidgets(
-    'the row menu, Delete, then confirm deletes Wallet B through the bloc '
-    '(D-12)',
+    'the row menu, Delete, then confirm deletes Wallet B through the bloc',
     (tester) async {
       final api = _DeletingApi();
       final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));

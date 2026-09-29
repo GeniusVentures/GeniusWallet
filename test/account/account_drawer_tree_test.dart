@@ -10,11 +10,11 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
-import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_screen.dart'
     show ChildWalletRow;
+import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -147,6 +147,14 @@ double _leftIndentOf(WidgetTester tester, Finder rowFinder) {
   return (padding.padding as EdgeInsets).left;
 }
 
+/// The one row whose title AND subtitle match both -- `SDKAccountRow` is
+/// gone (Rule of Three merged it into a private tile no other file can name),
+/// so a row is now found the way a human would: by what it says.
+Finder _rowFor({required String title, required String subtitle}) =>
+    find.byWidgetPredicate(
+      (w) => w is GWSelectRow && w.title == title && w.subtitle == subtitle,
+    );
+
 void main() {
   tearDown(() => DevMockChildWallets.instance.clear());
 
@@ -178,12 +186,17 @@ void main() {
 
       await _pumpDrawer(tester, bloc, details, operations: operations);
 
+      // Neither account is linked to its same-address wallet here (no
+      // links configured), so both stay their own "Unlinked" account rows.
+      final mainARow = _rowFor(title: 'Unlinked', subtitle: '0xaaaa...1111');
+      final mainBRow = _rowFor(title: 'Unlinked', subtitle: '0xaaaa...2222');
+
       expect(find.byType(ChildWalletRow), findsOneWidget);
       expect(_leftIndentOf(tester, find.byType(ChildWalletRow)), 24.0);
 
-      final mainARowY = tester.getTopLeft(find.byType(SDKAccountRow).at(0)).dy;
+      final mainARowY = tester.getTopLeft(mainARow).dy;
       final childRowY = tester.getTopLeft(find.byType(ChildWalletRow)).dy;
-      final mainBRowY = tester.getTopLeft(find.byType(SDKAccountRow).at(1)).dy;
+      final mainBRowY = tester.getTopLeft(mainBRow).dy;
       expect(mainARowY, lessThan(childRowY));
       expect(childRowY, lessThan(mainBRowY));
 
@@ -201,8 +214,9 @@ void main() {
   );
 
   testWidgets(
-    'threeChildren with the other own account linked nests it once under '
-    "the running account, alongside the preset's two synthetic children",
+    'threeChildren registers the other own account under the running main, '
+    'but its own wallet link surfaces it at a top-level merged row instead '
+    'of nesting it a second time',
     (tester) async {
       DevMockChildWallets.instance.arm(DevChildWalletsPreset.threeChildren);
       final api = _Api(accounts: const [_mainA, _mainB]);
@@ -229,11 +243,18 @@ void main() {
 
       await _pumpDrawer(tester, bloc, details, operations: operations);
 
-      // mainB never duplicates as a foreign leaf -- it is still one
-      // SDKAccountRow, just nested one level deeper than mainA.
-      expect(find.byType(SDKAccountRow), findsNWidgets(2));
+      // Main B merges onto its own wallet's row and renders once, at depth
+      // 0 -- never duplicated as a nested leaf under Main A.
+      expect(find.text('Main B'), findsOneWidget);
+      final mainBRow = find.ancestor(
+        of: find.text('Main B'),
+        matching: find.byType(GWSelectRow),
+      );
+      expect(_leftIndentOf(tester, mainBRow), 0.0);
+
+      // The preset's two synthetic (not-owned) children still nest under
+      // Main A, the running account.
       expect(find.byType(ChildWalletRow), findsNWidgets(2));
-      expect(_leftIndentOf(tester, find.byType(SDKAccountRow).at(1)), 24.0);
       expect(_leftIndentOf(tester, find.byType(ChildWalletRow).at(0)), 24.0);
 
       await tester.runAsync(() => bloc.close());
@@ -265,23 +286,26 @@ void main() {
 
     await _pumpDrawer(tester, bloc, details, operations: operations);
 
-    expect(find.byType(SDKAccountRow), findsNWidgets(2));
+    final mainARow = _rowFor(title: 'Unlinked', subtitle: '0xaaaa...1111');
+    final mainBRow = _rowFor(title: 'Unlinked', subtitle: '0xaaaa...2222');
+    expect(mainARow, findsOneWidget);
+    expect(mainBRow, findsOneWidget);
     expect(find.byType(ChildWalletRow), findsNothing);
-    expect(_leftIndentOf(tester, find.byType(SDKAccountRow).at(0)), 0.0);
-    expect(_leftIndentOf(tester, find.byType(SDKAccountRow).at(1)), 0.0);
+    expect(_leftIndentOf(tester, mainARow), 0.0);
+    expect(_leftIndentOf(tester, mainBRow), 0.0);
 
     await tester.runAsync(() => bloc.close());
     await details.close();
     await operations?.close();
   }
 
-  testWidgets('no registry above the drawer renders every SDK row flat', (
+  testWidgets('no registry above the drawer renders every account row flat', (
     tester,
   ) async {
     await expectFlat(tester, (_, _) => null);
   });
 
-  testWidgets('nodeNotRunning armed renders every SDK row flat', (
+  testWidgets('nodeNotRunning armed renders every account row flat', (
     tester,
   ) async {
     await expectFlat(tester, (api, bloc) {
@@ -294,7 +318,9 @@ void main() {
     });
   });
 
-  testWidgets('queryError armed renders every SDK row flat', (tester) async {
+  testWidgets('queryError armed renders every account row flat', (
+    tester,
+  ) async {
     await expectFlat(tester, (api, bloc) {
       DevMockChildWallets.instance.arm(DevChildWalletsPreset.queryError);
       return ChildOperationsCubit(
