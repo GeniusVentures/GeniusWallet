@@ -209,6 +209,68 @@ Future<void> startRevoke(
   }
 }
 
+/// Opens the Detach confirmation for [account], the node's own account,
+/// currently registered under [main]. Runs on the child's own node, so
+/// [ensureRunningAs] guards the node into running as [account] itself, not
+/// [main].
+Future<void> startDetach(
+  BuildContext context, {
+  required String account,
+  required String main,
+}) async {
+  final registry = context.read<ChildOperationsCubit>();
+  if (!await ensureRunningAs(context, account) || !context.mounted) {
+    return;
+  }
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final mainName = registry.labelFor(main);
+  final accountName = registry.labelFor(account);
+
+  final confirmed = await GWDialog.show<bool>(
+    // ignore: use_build_context_synchronously
+    context: navigator.context,
+    title: 'Detach from main?',
+    message:
+        'Detach from $mainName? $accountName will no longer be a child of '
+        '$mainName.',
+    actions: [
+      GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
+      GWDialogAction(
+        label: 'Detach',
+        variant: GWButtonVariant.destructive,
+        onPressed: () => navigator.pop(true),
+      ),
+    ],
+  );
+
+  if (confirmed != true) {
+    return;
+  }
+
+  final result = registry.submit(
+    kind: ChildOperationKind.detach,
+    target: account,
+    main: main,
+  );
+
+  if (!navigator.context.mounted) {
+    return;
+  }
+  if (result == null) {
+    showToast(
+      // ignore: use_build_context_synchronously
+      navigator.context,
+      'Nothing was sent. Try again.',
+      type: ToastType.error,
+    );
+    return;
+  }
+  if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+    // ignore: use_build_context_synchronously
+    _showRefusalToast(navigator.context, result, 'detach this account');
+  }
+}
+
 /// The Fund/Recover confirmation, shaped like `sdk_account_manager.dart`'s
 /// `_AddAccountDialog`: a private `StatefulWidget` building `GWDialog` itself
 /// so the amount field's error text can update live. Parameterized by

@@ -10,8 +10,16 @@ import 'package:genius_wallet/squid_router/squid_util.dart' show toBaseUnits;
 import 'package:genius_wallet/utils/wallet_utils.dart';
 
 /// Which SDK write an operation represents. Each kind arrives with its own
-/// submit and resolve arm below.
-enum ChildOperationKind { fund, recover, revoke }
+/// submit and resolve arm below. [fund], [recover] and [revoke] are
+/// main-side: they run only while the node runs as the main. [detach] is
+/// child-side: it runs only while the node runs as the account being
+/// detached.
+enum ChildOperationKind { fund, recover, revoke, detach }
+
+/// True for a kind that runs on the child's own node rather than the main's
+/// -- [ChildOperationsCubit.submit] then requires the node to already be
+/// running as `target`, not `main`.
+bool _isChildSide(ChildOperationKind kind) => kind == ChildOperationKind.detach;
 
 /// How long an unresolved operation stays pending before it reads "Not
 /// confirmed yet" instead.
@@ -132,11 +140,15 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         op.fromAccount.toLowerCase() == account.toLowerCase(),
   );
 
+  /// True for a kind that carries a GNUS amount -- fund and recover only.
+  bool _hasAmount(ChildOperationKind kind) =>
+      kind == ChildOperationKind.fund || kind == ChildOperationKind.recover;
+
   /// The balance [kind] draws on for [target]. Fund draws on the running
   /// account's own GNUS balance -- BigInt.tryParse on the SDK's decimal
   /// string, zero on a bad parse rather than a thrown exception. Recover
-  /// draws on the child's own balance. Revoke takes no amount and never
-  /// calls this.
+  /// draws on the child's own balance. Revoke and detach take no amount and
+  /// never call this.
   BigInt payingBalance(ChildOperationKind kind, String target) {
     switch (kind) {
       case ChildOperationKind.fund:
@@ -144,14 +156,16 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       case ChildOperationKind.recover:
         return _api.getChildBalanceAll(target);
       case ChildOperationKind.revoke:
+      case ChildOperationKind.detach:
         return BigInt.zero;
     }
   }
 
   /// Submits [kind] against [target], or returns null with no SDK call when
-  /// the node isn't running as [main], the kind is already pending on
-  /// [target], or (for an amount-carrying kind) the amount is out of range.
-  /// Only appends the operation, and only emits, on `RET_OK`.
+  /// the node isn't running as the side [kind] requires (`main` for a
+  /// main-side kind, `target` for a child-side one), the kind is already
+  /// pending on [target], or (for an amount-carrying kind) the amount is out
+  /// of range. Only appends the operation, and only emits, on `RET_OK`.
   GeniusNodeReturnValue? submit({
     required ChildOperationKind kind,
     required String target,
@@ -160,14 +174,15 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     BigInt? amountMinions,
   }) {
     final running = runningAccount;
-    if (running == null || running.toLowerCase() != main.toLowerCase()) {
+    final requiredRunner = _isChildSide(kind) ? target : main;
+    if (running == null ||
+        running.toLowerCase() != requiredRunner.toLowerCase()) {
       return null;
     }
     if (isPending(kind, target)) {
       return null;
     }
-    // Revoke carries no amount -- only fund and recover are checked here.
-    if (kind != ChildOperationKind.revoke) {
+    if (_hasAmount(kind)) {
       final amount = amountMinions;
       if (amount == null ||
           amount <= BigInt.zero ||
@@ -177,11 +192,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     }
 
     // Read BEFORE the write, so resolve() has an honest number to compare
-    // the balance against once the write lands. Revoke resolves off the
-    // registrations list instead, so it has no use for a balance baseline.
-    final baseline = kind == ChildOperationKind.revoke
-        ? null
-        : _api.getChildBalanceAll(target);
+    // the balance against once the write lands. Revoke and detach resolve
+    // off the registrations list instead, so neither has a use for a
+    // balance baseline.
+    final baseline = _hasAmount(kind) ? _api.getChildBalanceAll(target) : null;
     final result = switch (kind) {
       ChildOperationKind.fund => _api.fundChildGnus(
         minionsToGnus(amountMinions!),
@@ -192,6 +206,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         target,
       ),
       ChildOperationKind.revoke => _api.revokeChild(target),
+      ChildOperationKind.detach => _api.detachChild(
+        const ChildRegistrationMetadata(),
+      ),
     };
     if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       return result;
@@ -209,7 +226,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
               existing,
           ChildOperation(
             kind: kind,
-            fromAccount: main,
+            fromAccount: requiredRunner,
             target: target,
             main: main,
             newMain: newMain,
@@ -275,14 +292,22 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         final current = _api.getChildBalanceAll(op.target);
         return current <= (op.baselineMinions! - op.amountMinions!);
       case ChildOperationKind.revoke:
-        final registrations = _api.getChildRegistrations(op.main);
-        if (!registrations.isOk) {
-          return false;
-        }
-        return !registrations.entries.any(
-          (r) => r.childAddress.toLowerCase() == op.target.toLowerCase(),
-        );
+      case ChildOperationKind.detach:
+        return !_listedUnder(op.main, op.target);
     }
+  }
+
+  /// True when an OK read of [main]'s registrations lists [target],
+  /// case-insensitively. A non-OK read counts as "still listed", so revoke
+  /// and detach never resolve on a failed read.
+  bool _listedUnder(String main, String target) {
+    final registrations = _api.getChildRegistrations(main);
+    if (!registrations.isOk) {
+      return true;
+    }
+    return registrations.entries.any(
+      (r) => r.childAddress.toLowerCase() == target.toLowerCase(),
+    );
   }
 
   @override

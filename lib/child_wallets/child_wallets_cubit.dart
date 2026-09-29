@@ -42,6 +42,7 @@ class ChildWalletsState {
     required this.mainAddress,
     this.mainName = 'Unlinked',
     this.children = const [],
+    this.parentMain,
   });
 
   final ChildWalletsStatus status;
@@ -49,15 +50,23 @@ class ChildWalletsState {
   final String mainName;
   final List<ChildWallet> children;
 
+  /// The other own SDK account whose registrations list this screen's own
+  /// account as a child, or null when none does. Only meaningful when
+  /// [status] is [ChildWalletsStatus.loaded] -- a disconnected or failed
+  /// read never sets it.
+  final String? parentMain;
+
   ChildWalletsState copyWith({
     ChildWalletsStatus? status,
     String? mainName,
     List<ChildWallet>? children,
+    String? parentMain,
   }) => ChildWalletsState(
     status: status ?? this.status,
     mainAddress: mainAddress,
     mainName: mainName ?? this.mainName,
     children: children ?? this.children,
+    parentMain: parentMain,
   );
 }
 
@@ -107,26 +116,21 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
         ? DevMockChildWallets.instance.preset.value
         : null;
 
-    final ChildRegistrations registrations;
-    if (devPreset != null) {
-      registrations = DevMockChildWallets.registrationsFor(
-        devPreset,
-        appState,
-        state.mainAddress,
+    if (devPreset == null && appState.selectedSDKAccount == null) {
+      emit(
+        state.copyWith(
+          status: ChildWalletsStatus.nodeNotRunning,
+          mainName: mainName,
+          children: const [],
+        ),
       );
-    } else {
-      if (appState.selectedSDKAccount == null) {
-        emit(
-          state.copyWith(
-            status: ChildWalletsStatus.nodeNotRunning,
-            mainName: mainName,
-            children: const [],
-          ),
-        );
-        return;
-      }
-      registrations = _api.getChildRegistrations(state.mainAddress);
+      return;
     }
+    final registrations = _registrationsFor(
+      state.mainAddress,
+      appState,
+      devPreset,
+    );
 
     if (registrations.isNotInitialized) {
       emit(
@@ -177,8 +181,50 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
         status: ChildWalletsStatus.loaded,
         mainName: mainName,
         children: children,
+        parentMain: _findParentMain(appState, devPreset),
       ),
     );
+  }
+
+  /// Routes a registrations read for [main] through the dev-preset branch
+  /// when one is armed, or the real SDK otherwise -- the one place both the
+  /// main list and the parent-main lookup below read registrations, so a
+  /// dev preset covers both.
+  ChildRegistrations _registrationsFor(
+    String main,
+    AppState appState,
+    DevChildWalletsPreset? devPreset,
+  ) {
+    if (devPreset != null) {
+      return DevMockChildWallets.registrationsFor(devPreset, appState, main);
+    }
+    return _api.getChildRegistrations(main);
+  }
+
+  /// The first of the user's other own SDK accounts whose OK-read
+  /// registrations list this screen's own account as a child, in any case --
+  /// the subject itself is never queried as its own main, and a non-OK read
+  /// for one account is simply skipped. A main registered by someone else's
+  /// account stays undiscoverable, since the SDK has no by-child query.
+  // ponytail: one registrations read per own account per poll -- fine for a
+  // handful of SDK accounts; upgrade path is an SDK by-child query.
+  String? _findParentMain(AppState appState, DevChildWalletsPreset? devPreset) {
+    final subject = state.mainAddress.toLowerCase();
+    for (final account in appState.sdkAccounts) {
+      if (account.toLowerCase() == subject) {
+        continue;
+      }
+      final registrations = _registrationsFor(account, appState, devPreset);
+      if (!registrations.isOk) {
+        continue;
+      }
+      if (registrations.entries.any(
+        (entry) => entry.childAddress.toLowerCase() == subject,
+      )) {
+        return account;
+      }
+    }
+    return null;
   }
 
   @override
