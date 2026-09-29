@@ -220,4 +220,46 @@ void main() {
       expect(candidates, [b, c]);
     });
   });
+
+  group('SDK account links', () {
+    test('a saved link round-trips', () async {
+      await storage.saveSDKAccountLink('0xSDK', '0xWallet', 'Main wallet');
+
+      expect(await storage.getSDKAccountLinks(), {
+        '0xsdk': (walletAddress: '0xwallet', walletName: 'Main wallet'),
+      });
+    });
+
+    test('both addresses are lowercased on save', () async {
+      await storage.saveSDKAccountLink('0xAAAA', '0xBBBB', 'Savings');
+
+      final raw2 = await raw.read(key: '__sdk_links__');
+      expect(raw2, contains('0xaaaa'));
+      expect(raw2, contains('0xbbbb'));
+      expect(raw2, isNot(contains('0xAAAA')));
+    });
+
+    test('a corrupt value reads as no links, never throws', () async {
+      storage = await withValues({'__sdk_links__': 'not json'});
+
+      expect(await storage.getSDKAccountLinks(), isEmpty);
+    });
+
+    test('no stored value also reads as no links', () async {
+      expect(await storage.getSDKAccountLinks(), isEmpty);
+    });
+
+    test('a second link is added, not lost', () async {
+      await storage.saveSDKAccountLink('0xSDK1', '0xWallet1', 'One');
+      await storage.saveSDKAccountLink('0xSDK2', '0xWallet2', 'Two');
+
+      expect((await storage.getSDKAccountLinks()).keys, ['0xsdk1', '0xsdk2']);
+    });
+
+    test('the key is never read back as a wallet, watch or account', () {
+      expect(storage.isAWallet('__sdk_links__'), isFalse);
+      expect(storage.isAWatchedWallet('__sdk_links__'), isFalse);
+      expect(storage.isAAccount('__sdk_links__'), isFalse);
+    });
+  });
 }
