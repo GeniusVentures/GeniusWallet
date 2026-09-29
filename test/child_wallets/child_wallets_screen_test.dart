@@ -146,6 +146,9 @@ class _FakeApi implements GeniusApi {
   Map<String, BigInt> balances;
   Map<String, ChildRegistrations> otherRegistrations;
   int registrationsCallCount = 0;
+  int registerCallCount = 0;
+  String? lastRegisteredMain;
+  ChildRegistrationMetadata? lastRegisteredMetadata;
 
   @override
   ChildRegistrations getChildRegistrations(String mainAddress) {
@@ -164,6 +167,17 @@ class _FakeApi implements GeniusApi {
   @override
   GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) =>
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+
+  @override
+  GeniusNodeReturnValue registerChild(
+    String mainAddress,
+    ChildRegistrationMetadata metadata,
+  ) {
+    registerCallCount++;
+    lastRegisteredMain = mainAddress;
+    lastRegisteredMetadata = metadata;
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -921,6 +935,142 @@ void main() {
         await cubit.close();
       },
     );
+
+    testWidgets(
+      "reads 'Register as a child of…' when not registered, with no Detach "
+      'button',
+      (tester) async {
+        final api = _FakeApi(registrations: _emptyOkRegistrations);
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _withOtherOwnAppState,
+        );
+
+        expect(
+          find.widgetWithText(GWButton, 'Register as a child of…'),
+          findsOneWidget,
+        );
+        expect(find.widgetWithText(GWButton, 'Detach'), findsNothing);
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets(
+      'Register picks a main from the picker, confirms the exact copy, '
+      'sends empty metadata, and resolves once the chosen main lists the '
+      'subject',
+      (tester) async {
+        final api = _FakeApi(registrations: _emptyOkRegistrations);
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _withOtherOwnAppState,
+        );
+
+        await tester.tap(
+          find.widgetWithText(GWButton, 'Register as a child of…'),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Parent Wallet'), findsOneWidget);
+        await tester.tap(find.text('Parent Wallet'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(GWButton, 'Continue'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Register as a child?'), findsOneWidget);
+        expect(
+          find.text(
+            'Register Main Wallet as a child of Parent Wallet? Main Wallet '
+            'will be controlled by Parent Wallet until detached.',
+          ),
+          findsOneWidget,
+        );
+        await tester.tap(
+          find.descendant(
+            of: find.byType(GWDialog),
+            matching: find.widgetWithText(GWButton, 'Register'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(api.registerCallCount, 1);
+        expect(api.lastRegisteredMain, _otherOwnAddress);
+        expect(api.lastRegisteredMetadata, const ChildRegistrationMetadata());
+        expect(find.text('Registering…'), findsOneWidget);
+
+        // The real signal: an OK read of the chosen main now lists the
+        // subject.
+        api.otherRegistrations = {
+          _otherOwnAddress.toLowerCase(): (
+            result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+            entries: const [
+              ChildRegistration(
+                childAddress: _mainAddress,
+                mainAddress: _otherOwnAddress,
+                sequence: 0,
+              ),
+            ],
+          ),
+        };
+        await tester.tap(find.byTooltip('Refresh'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Registering…'), findsNothing);
+        expect(find.text('Child of Parent Wallet'), findsOneWidget);
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets('a pending Register locks the card button, tooltipped', (
+      tester,
+    ) async {
+      final api = _FakeApi(registrations: _emptyOkRegistrations);
+      final operations = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _withOtherOwnAppState,
+      );
+      final cubit = ChildWalletsCubit(
+        api: api,
+        readAppState: () => _withOtherOwnAppState,
+        mainAddress: _mainAddress,
+      );
+
+      operations.submit(
+        kind: ChildOperationKind.register,
+        target: _mainAddress,
+        main: _otherOwnAddress,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(extensions: [GWColors.dark()]),
+          home: MultiBlocProvider(
+            providers: [
+              BlocProvider<ChildWalletsCubit>.value(value: cubit),
+              BlocProvider<ChildOperationsCubit>.value(value: operations),
+            ],
+            child: const ChildWalletsScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final registerButton = tester.widget<GWButton>(
+        find.widgetWithText(GWButton, 'Register as a child of…'),
+      );
+      expect(registerButton.onPressed, isNull);
+      expect(
+        find.byTooltip('Already registering this account'),
+        findsOneWidget,
+      );
+
+      await cubit.close();
+      await operations.close();
+    });
   });
 
   group('minionsToGnus', () {
