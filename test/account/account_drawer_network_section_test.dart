@@ -281,8 +281,8 @@ void main() {
           expect(find.text('Wallet and network'), findsNothing);
           expect(find.text('NETWORK'), findsNothing);
           expect(find.byType(NetworkSelectField), findsNothing);
-          // The account sections are untouched by the flag.
-          expect(find.text('SENDING FROM'), findsOneWidget);
+          // The account section is untouched by the flag.
+          expect(find.text('ACCOUNTS'), findsOneWidget);
           expect(find.text('Wallet A'), findsOneWidget);
         },
       );
@@ -313,7 +313,7 @@ void main() {
           expect(find.text('NETWORK'), findsOneWidget);
           expect(find.byType(NetworkSelectField), findsOneWidget);
           // Still the account switcher underneath.
-          expect(find.text('SENDING FROM'), findsOneWidget);
+          expect(find.text('ACCOUNTS'), findsOneWidget);
           expect(find.text('Wallet A'), findsOneWidget);
           expect(find.text('Add wallet'), findsOneWidget);
         },
@@ -321,41 +321,38 @@ void main() {
     },
   );
 
-  testWidgets(
-    'the phone WalletPill opens this same sheet, both section headers shown',
-    (tester) async {
-      await _withHarness(
-        tester,
-        current: _netPoly,
-        body: (walletBox, networkBox, harness) async {
-          await tester.pumpWidget(
-            MultiProvider(
-              providers: [
-                BlocProvider<WalletDetailsCubit>.value(
-                  value: harness.walletDetailsCubit,
-                ),
-                BlocProvider<AppBloc>.value(value: harness.appBloc),
-                ChangeNotifierProvider<NetworkProvider>.value(
-                  value: harness.networkProvider,
-                ),
-              ],
-              child: MaterialApp(
-                theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
-                home: const Scaffold(body: Center(child: WalletPill())),
+  testWidgets('the phone WalletPill opens this same sheet, the merged Accounts '
+      'section header shown', (tester) async {
+    await _withHarness(
+      tester,
+      current: _netPoly,
+      body: (walletBox, networkBox, harness) async {
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: [
+              BlocProvider<WalletDetailsCubit>.value(
+                value: harness.walletDetailsCubit,
               ),
+              BlocProvider<AppBloc>.value(value: harness.appBloc),
+              ChangeNotifierProvider<NetworkProvider>.value(
+                value: harness.networkProvider,
+              ),
+            ],
+            child: MaterialApp(
+              theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
+              home: const Scaffold(body: Center(child: WalletPill())),
             ),
-          );
+          ),
+        );
 
-          await tester.tap(find.byType(WalletPill));
-          await tester.pumpAndSettle();
+        await tester.tap(find.byType(WalletPill));
+        await tester.pumpAndSettle();
 
-          expect(find.text('Wallet and network'), findsOneWidget);
-          expect(find.text('SENDING FROM'), findsOneWidget);
-          expect(find.text('NODE RUNNING AS'), findsOneWidget);
-        },
-      );
-    },
-  );
+        expect(find.text('Wallet and network'), findsOneWidget);
+        expect(find.text('ACCOUNTS'), findsOneWidget);
+      },
+    );
+  });
 
   testWidgets(
     'the current network is named in WORDS on screen - the whole point of the '
