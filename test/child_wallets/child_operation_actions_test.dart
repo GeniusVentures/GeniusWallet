@@ -1122,9 +1122,18 @@ void main() {
       await tester.pumpAndSettle();
 
       // The picker excludes this account (never offered) and its current
-      // main (already the relationship being moved away from).
-      expect(find.text('Main Wallet'), findsNothing);
-      expect(find.text('Parent Wallet'), findsNothing);
+      // main (already the relationship being moved away from) -- scoped to
+      // the dialog, since the card behind it still names both.
+      final pickerRows = find.descendant(
+        of: find.byType(GWDialog),
+        matching: find.text('Main Wallet'),
+      );
+      final pickerParentRow = find.descendant(
+        of: find.byType(GWDialog),
+        matching: find.text('Parent Wallet'),
+      );
+      expect(pickerRows, findsNothing);
+      expect(pickerParentRow, findsNothing);
       expect(find.text('New Main Wallet'), findsOneWidget);
 
       await tester.tap(find.text('New Main Wallet'));

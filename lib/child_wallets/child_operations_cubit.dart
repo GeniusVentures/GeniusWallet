@@ -11,16 +11,18 @@ import 'package:genius_wallet/utils/wallet_utils.dart';
 
 /// Which SDK write an operation represents. Each kind arrives with its own
 /// submit and resolve arm below. [fund], [recover] and [revoke] are
-/// main-side: they run only while the node runs as the main. [detach] and
-/// [register] are child-side: they run only while the node runs as the
-/// account being detached or registered.
-enum ChildOperationKind { fund, recover, revoke, detach, register }
+/// main-side: they run only while the node runs as the main. [detach],
+/// [register] and [move] are child-side: they run only while the node runs
+/// as the account being detached, registered or moved.
+enum ChildOperationKind { fund, recover, revoke, detach, register, move }
 
 /// True for a kind that runs on the child's own node rather than the main's
 /// -- [ChildOperationsCubit.submit] then requires the node to already be
 /// running as `target`, not `main`.
 bool _isChildSide(ChildOperationKind kind) =>
-    kind == ChildOperationKind.detach || kind == ChildOperationKind.register;
+    kind == ChildOperationKind.detach ||
+    kind == ChildOperationKind.register ||
+    kind == ChildOperationKind.move;
 
 /// How long an unresolved operation stays pending before it reads "Not
 /// confirmed yet" instead.
@@ -170,6 +172,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
       case ChildOperationKind.register:
+      case ChildOperationKind.move:
         return BigInt.zero;
     }
   }
@@ -224,6 +227,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       ),
       ChildOperationKind.register => _api.registerChild(
         main,
+        const ChildRegistrationMetadata(),
+      ),
+      ChildOperationKind.move => _api.replaceMain(
+        newMain!,
         const ChildRegistrationMetadata(),
       ),
     };
@@ -313,6 +320,11 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         return _listedUnder(op.main, op.target) == false;
       case ChildOperationKind.register:
         return _listedUnder(op.main, op.target) == true;
+      case ChildOperationKind.move:
+        // Both halves have to be an OK, definite read -- a non-OK read of
+        // either main leaves this pending rather than guessing.
+        return _listedUnder(op.main, op.target) == false &&
+            _listedUnder(op.newMain!, op.target) == true;
     }
   }
 

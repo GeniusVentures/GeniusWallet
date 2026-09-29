@@ -22,6 +22,8 @@ String pendingText(ChildOperation op, String Function(String) labelFor) {
       return 'Detaching…';
     case ChildOperationKind.register:
       return 'Registering…';
+    case ChildOperationKind.move:
+      return 'Moving to ${labelFor(op.newMain!)}…';
   }
 }
 
@@ -40,6 +42,8 @@ String resolvedText(ChildOperation op, String Function(String) labelFor) {
       return 'Detached from ${labelFor(op.main)}';
     case ChildOperationKind.register:
       return 'Registered as a child of ${labelFor(op.main)}';
+    case ChildOperationKind.move:
+      return 'Moved to ${labelFor(op.newMain!)}';
   }
 }
 
