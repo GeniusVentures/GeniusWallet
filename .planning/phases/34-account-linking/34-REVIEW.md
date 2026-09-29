@@ -2,270 +2,166 @@
 phase: 34-account-linking
 reviewed: 2026-09-29T00:00:00Z
 depth: standard
-files_reviewed: 23
+files_reviewed: 8
 files_reviewed_list:
-  - lib/account/account_drawer.dart
-  - lib/account/sdk_account_manager.dart
   - lib/bloc/app_bloc.dart
-  - lib/bloc/app_event.dart
-  - lib/bloc/app_state.dart
-  - lib/components/job/submit_job_button.dart
+  - lib/account/account_drawer.dart
   - lib/components/wallet_information.dart
-  - lib/dashboard/compute/compute_panel.dart
-  - lib/dashboard/compute/compute_state.dart
+  - lib/account/sdk_account_manager.dart
   - packages/genius_api/lib/src/genius_api.dart
-  - packages/local_secure_storage/lib/src/local_secure_storage_base.dart
-  - test/account/account_drawer_show_test.dart
   - test/account/sdk_account_delete_coupling_test.dart
-  - test/account/sdk_account_links_test.dart
-  - test/account/sdk_account_rows_test.dart
-  - test/account/sdk_add_account_test.dart
-  - test/account/sdk_link_backfill_test.dart
-  - test/account/sdk_start_account_delete_test.dart
-  - test/components/wallet_identity_test.dart
   - test/components/wallet_information_delete_test.dart
-  - test/dashboard/compute_panel_wiring_test.dart
-  - test/dashboard/compute_state_test.dart
-  - test/local_wallet_storage_test.dart
+  - test/components/wallet_identity_test.dart
 findings:
-  critical: 1
-  warning: 3
-  info: 2
-  total: 6
-status: issues_found
+  critical: 0
+  warning: 0
+  info: 1
+  total: 1
+status: clean
 ---
 
-# Phase 34: Code Review Report
+# Phase 34: Code Review Report (Iteration 2)
 
 **Reviewed:** 2026-09-29
 **Depth:** standard
-**Files Reviewed:** 23
-**Status:** issues_found
+**Files Reviewed:** 8 (iteration-1 findings' fix sites; scoped to `git diff 555f6f47..HEAD` plus the callers/tests it touches)
+**Status:** clean
 
 ## Summary
 
-Phase 34 wires SDK-account ↔ ETH-wallet linking through `AppBloc`, `GeniusApi`
-and `LocalWalletStorage`, plus the two drawer surfaces that display it. The
-delete-coupling rules (D-08..D-12), the naming rules (D-17..D-20) and the
-backfill pass (D-13..D-16) are each backed by focused, well-targeted unit
-tests, and no secret material (mnemonic/private key) is logged, stored on a
-Bloc/Cubit state class, or otherwise leaked in the diff — the wallet-safety
-rules in `AGENTS.md` are respected throughout the new code. `brace-every-if`
-is followed in every added line, and no new `_buildFoo()`-style widget
-helpers were introduced (`_RowBadge` was correctly promoted to a
-`StatelessWidget`).
+Re-review of the three iteration-1 fix commits (`e0ac429e`, `fe7426a8`,
+`839d6f31`) plus the review-fix report's skip decision for WR-01. All three
+applied fixes are correct, each closes the finding it targets without
+reopening a different gap, and the regression tests added alongside them
+exercise the exact scenario each finding described. The rest of the phase
+diff (`git diff 616700e6..HEAD`) outside these fix commits is unchanged from
+iteration 1 and was already reviewed there; nothing in the iteration-2 diff
+touches any other part of that surface. No new bugs, security issues, or
+quality regressions were introduced by the fixes themselves.
 
-One finding is a real data-loss/wrong-wallet-selection defect: the
-last-wallet guard the new SDK-delete-coupling logic (D-11/D-12) leans on
-(`AppBloc.canDeleteWallet`) counts watch-only (keyless) wallets as if they
-were a real fallback wallet, so an SDK-account delete (or a direct wallet
-delete) can legitimately remove a user's only key-holding wallet while a
-watch-only row survives — exactly the "you must keep at least one wallet"
-guarantee the feature advertises, silently defeated. The remaining findings
-are lower-severity robustness/data-integrity gaps in the new backfill and
-stream-timeout code.
+## Resolved from iteration 1
 
-## Critical Issues
+### CR-01 — Fixed, verified
 
-### CR-01: The last-wallet guard counts watch-only wallets, so an SDK-account delete can remove the user's only signing wallet
+`AppBloc.canDeleteWallet` now takes a `deletingWatchOnly` parameter
+(`lib/bloc/app_bloc.dart:640-655`) and branches: deleting a watch-only row
+only needs one other row of any kind (`WalletType.sgnus` excluded, `tracking`
+included in the count), deleting a key-holding wallet needs another
+key-holding wallet (`sgnus` and `tracking` both excluded). All three call
+sites correctly infer the branch from the row actually being deleted:
 
-**File:** `lib/bloc/app_bloc.dart:635-636` (also reached from `lib/bloc/app_bloc.dart:812-814` inside the new `sdkDeleteBlock`, and from `lib/account/account_drawer.dart:270` and `lib/components/wallet_information.dart:245-247`)
+- `AppBloc._onDeleteWallet` (`app_bloc.dart:670`): `deletingWatchOnly:
+  event.watchOnly`, where `DeleteWallet.watchOnly` is the caller-supplied flag
+  for which of two same-address rows is targeted.
+- `_AccountDrawerBodyState._confirmDeleteWallet`
+  (`account_drawer.dart:270-273`): `deletingWatchOnly: wallet.walletType ==
+  WalletType.tracking`.
+- `WalletInformationState`'s "More → Delete Wallet" handler
+  (`wallet_information.dart:245-249`): same pattern.
+- `AppBloc.sdkDeleteBlock`'s call to `canDeleteWallet(wallets)`
+  (`app_bloc.dart:831`) is intentionally left at the default (`false`) —
+  `sdkDeleteBlock` only ever reaches this check for a `linkedWallet`, which
+  `linkedWallet` itself guarantees is never `sgnus` or `tracking`
+  (`app_bloc.dart:778-784`), so the key-wallet branch is always the correct
+  one there.
 
-**Issue:** `canDeleteWallet` is the single rule phase 34 explicitly consolidated so D-08..D-12 all "go through one shared rule" (per the `34-CONTEXT.md` D-12 folded todo and the `_onDeleteWallet`/`sdkDeleteBlock` doc comments). It is defined as:
+Traced every combination by hand against the new logic: one key wallet alone
+(blocked, both branches), one key + one tracking (deleting the key wallet:
+blocked; deleting the tracking row: allowed), two key wallets (either
+deletable), one tracking wallet alone (blocked). All match the intended
+"never reach zero usable wallets" rule and the fix does not reintroduce the
+original over-block regression the fix report describes (deleting a
+watch-only row when a key wallet is the only other row remaining) —
+confirmed against the pinned `test/components/wallet_identity_test.dart:496`
+case, which still exercises `[key, watch]` deleting the watch-only row and
+still expects it to succeed with `key` staying selected.
 
-```dart
-static bool canDeleteWallet(List<Wallet> wallets) =>
-    wallets.where((w) => w.walletType != WalletType.sgnus).length > 1;
-```
+New regression tests directly hit the previously-uncovered gap:
+`sdk_account_delete_coupling_test.dart`'s `'a linked account is blocked as
+the last wallet even with a watch-only wallet left'` (expects
+`SDKDeleteBlock.lastWallet` for `[keyWallet, trackingWallet]`) and
+`wallet_information_delete_test.dart`'s `'with a watch-only wallet as the
+only other row, the warning shows and nothing is deleted'`. Both match
+CR-01's own suggested fix-verification shape from iteration 1.
 
-This excludes only `WalletType.sgnus` rows. `WalletType.tracking` (watch-only,
-address-only — see `packages/genius_api/lib/types/wallet_type.dart:2`) is
-counted as "another wallet that would remain." A user with exactly one
-key-holding wallet (mnemonic/privateKey/keystore) linked to an SDK account,
-plus one watch-only wallet, can:
+### WR-02 — Fixed, verified
 
-- delete the SDK account through the new `_onDeleteSDKAccount` path
-  (`sdkDeleteBlock` returns `null`, not `SDKDeleteBlock.lastWallet`, because
-  `canDeleteWallet([keyWallet, trackingWallet])` is `true`), which cascades
-  into `_deleteWallet(linked.address, watchOnly: false)` (D-10) and removes
-  the key wallet too, or
-- delete the key wallet directly from the drawer/wallet-information "More"
-  menu the same way.
+Both stream waits in `sdk_account_manager.dart` now supply `orElse`:
+`_confirmDeleteSDKAccount`'s `.firstWhere((gone) => gone, orElse: () =>
+false)` (line 521) and `_showSetPayoutAddressDialog`'s `.firstWhere((_) =>
+true, orElse: () => null)` (line 650, replacing the bare `.first`). Both
+degrade to their pre-existing `.timeout(...)` fallback value if `bloc.stream`
+completes (e.g. `AppBloc.close()`) before the awaited condition is met,
+instead of throwing `StateError`. This is the exact fix iteration 1
+suggested and it is correct: `Stream.firstWhere` with `orElse` returns the
+`orElse` value on stream completion rather than throwing, and the values
+chosen (`false` / `null`) are the same values each site's own `onTimeout`
+already used, so the two failure modes ("too slow" and "stream ended") now
+produce identical, already-handled outcomes.
 
-Either path leaves the user with only the watch-only wallet — no signing
-key anywhere in the app — with no warning shown, because the guard reports
-"you have another wallet." The in-app delete confirmation even says "If you
-have no copy of its recovery phrase, the wallet cannot be restored," but the
-guard that is supposed to prevent reaching zero *usable* wallets never
-fires. This is the exact failure mode `canDeleteWallet`'s own doc comment
-warns about for SDK accounts ("would leave the user with nothing after a
-restart") — the same reasoning was never extended to watch-only rows, which
-equally hold no key and cannot back up or sign anything.
+### WR-03 — Fixed, verified
 
-No test in this phase's diff exercises "one key wallet + one tracking
-wallet" for either `canDeleteWallet` or `sdkDeleteBlock`
-(`sdk_account_delete_coupling_test.dart`'s "last wallet" case uses a single
-wallet only), so this gap is untested as well as unfixed.
+`addWalletFromSecret` (`genius_api.dart:978-988`) now reuses the
+`getStoredKeys()` lookup to find the matching key (`matchingKey`, a `.where`
+result) instead of the previous `.any(...)` boolean-only check, and derives
+`name` from `matchingKey.first.name()` when `alreadyExists` is true, falling
+back to `_defaultWalletName(address)` only for a genuinely new secret.
+`matchingKey.first` is safe: it is only read inside the `alreadyExists`
+branch, which is defined as `matchingKey.isNotEmpty`. Any SDK link this path
+creates now carries the wallet's real, possibly user-renamed name from the
+start, closing the latent data-integrity gap without depending on
+`AppBloc.sdkAccountName`'s live-name preference or
+`LocalWalletStorage._freezeLinkNames`'s re-stamp to mask it.
 
-**Fix:**
+### WR-01 — Skip accepted; downgraded to Info (IN-01)
 
-```dart
-static bool canDeleteWallet(List<Wallet> wallets) => wallets
-    .where((w) =>
-        w.walletType != WalletType.sgnus &&
-        w.walletType != WalletType.tracking)
-    .length >
-    1;
-```
-
-Because `canDeleteWallet` is the single shared gate D-12 intentionally
-routed every delete surface through, this one-line fix closes the gap for
-the wallet-delete drawer, the wallet-information "More" menu, and the new
-SDK-account delete simultaneously. Add a regression test alongside the
-existing `sdkDeleteBlock` group: one key wallet + one tracking wallet linked
-to an SDK account must resolve to `SDKDeleteBlock.lastWallet`, not `null`.
-
-## Warnings
-
-### WR-01: Backfill silently retries a real, mutating SDK call for every unresolved wallet on every future wallet add
-
-**File:** `packages/genius_api/lib/src/genius_api.dart:386-388` (call site inside `_registerWallet`), `packages/genius_api/lib/src/genius_api.dart:427-468` (`linkExistingSDKAccounts`), `packages/genius_api/lib/src/genius_api.dart:494-526` (`backfillLinks`' ambiguous-result handling)
-
-**Issue:** `linkExistingSDKAccounts()` is called both from `_onInitializeSDK`
-(the intended "once, after the node is up" pass per D-13) **and** from the
-end of every `_registerWallet` call — i.e. on every wallet create/import and
-every "Add SDK account" submission, per D-13's own "it re-runs only for
-wallets still unlinked" clause. For a wallet whose link can never be proven
-deterministically (`backfillLinks`' `added.length > 1` abort case, or more
-than one simultaneous "no-op" elimination candidate), `wallet.reAdd()` —
-which is `_addToSDK(key)`, a real call into `addAccountWithMnemonic`/
-`addAccountWithPrivateKey` — gets invoked again on every subsequent,
-unrelated wallet add for as long as that one wallet stays unlinked. The
-correctness of doing this repeatedly rests entirely on an unverified
-assumption recorded only as a "ponytail" about the *outcome* ("stays
-'Unlinked' forever"), not about the *side effect* of re-submitting the key
-to the SDK indefinitely. If re-adding an already-known key is ever not a
-true no-op on some SDK build, this path grows duplicate accounts for that
-wallet by one on every future import, not once.
-
-**Fix:** Either gate the repeated re-add behind a persisted "backfill
-attempted and failed for this address" marker (skip `reAdd()` for a wallet
-already tried and left ambiguous, only retrying it from `_onInitializeSDK`'s
-one pass), or restrict `linkExistingSDKAccounts()`'s call sites to
-SDK-startup only and let `_registerWallet`'s own direct
-`newAddresses.length == 1` check be the sole coverage for accounts added
-while the node is already running.
-
-### WR-02: Unhandled `StateError` if the bloc closes while a delete/payout confirmation is waiting on `bloc.stream`
-
-**File:** `lib/account/sdk_account_manager.dart:519-522` (`_confirmDeleteSDKAccount`), `lib/account/sdk_account_manager.dart:648-651` (`_showSetPayoutAddressDialog`)
-
-**Issue:** Both handlers wait for a bloc-stream predicate with a timeout:
-
-```dart
-final removed = await bloc.stream
-    .map((s) => !s.sdkAccounts.contains(address))
-    .firstWhere((gone) => gone)
-    .timeout(const Duration(seconds: 3), onTimeout: () => false);
-```
-
-`Stream.firstWhere`/`Stream.first` throw `StateError('No element')` (or
-Bad State) if the underlying stream **completes** before the predicate is
-satisfied — which is exactly what happens if `AppBloc.close()` runs (e.g.
-the app is torn down, or the widget tree unmounts and disposes the bloc)
-while this `await` is pending. `.timeout(...)` only covers "too slow," not
-"the stream ended," so this throws instead of hitting `onTimeout`. Neither
-call site is awaited by its caller (`onPressed: () => _confirmDeleteSDKAccount(...)`
-/ `onPressed: () => _showSetPayoutAddressDialog(...)`), so the exception
-surfaces as an unhandled async error rather than a caught, reported one.
-
-**Fix:** Wrap the stream wait so a closed stream degrades the same way a
-timeout does, e.g.:
-
-```dart
-final removed = await bloc.stream
-    .map((s) => !s.sdkAccounts.contains(address))
-    .firstWhere((gone) => gone, orElse: () => false)
-    .timeout(const Duration(seconds: 3), onTimeout: () => false);
-```
-
-(`firstWhere`'s `orElse` covers the "stream closed without a match" case;
-`.first` in the payout dialog needs an equivalent `orElse`-via-`fold`/
-`defaultIfEmpty` treatment, or a manual `try/catch` around the whole
-`await`.)
-
-### WR-03: `addWalletFromSecret`'s "already exists" path can persist the wrong wallet name into a new SDK link
-
-**File:** `packages/genius_api/lib/src/genius_api.dart:983-1005`
-
-**Issue:** `addWalletFromSecret` always constructs its `storedKey` with the
-throwaway `_defaultWalletName(address)` (`name = _defaultWalletName(address)`
-at line 983), never the wallet's real, possibly user-renamed name — even
-when `alreadyExists` is true and the real name is available via
-`_secureStorage.getStoredKeys()` (already read one line above to compute
-`alreadyExists`). If this "already exists" branch is the one that actually
-gets the account onto the running SDK for the first time (e.g. the wallet
-was saved while the node was down, per D-07, and the user re-pastes the
-same secret into the SDK-add dialog before backfill/init has linked it),
-`_registerWallet(storedKey, save: false)` may call `_addToSDK` successfully
-and persist `SDKAccountLink.walletName` as the auto-generated address-based
-name rather than the wallet's real display name.
-
-Today this is masked: `AppBloc.sdkAccountName` prefers the *live* wallet's
-`walletName` whenever the wallet still exists, and
-`LocalWalletStorage._freezeLinkNames` re-stamps the link with the correct
-current name at delete time. So the wrong name currently never reaches the
-UI. It is still a latent data-integrity bug in the stored link record, and
-the masking depends on two separate pieces of unrelated code continuing to
-cooperate exactly as they do today.
-
-**Fix:** When `alreadyExists` is true, build (or re-derive) `storedKey`'s
-name from the matched existing key's own `.name()` instead of
-`_defaultWalletName(address)`, so any link this path creates carries the
-wallet's real name from the start.
+See below.
 
 ## Info
 
-### IN-01: `wallet_information.dart`'s delete action no longer navigates away, but the file is dead code
+### IN-01: Backfill re-runs `wallet.reAdd()` for every unresolved wallet on every future wallet add — accepted as a known, documented ceiling, not a defect
 
-**File:** `lib/components/wallet_information.dart:230-264`
+**File:** `packages/genius_api/lib/src/genius_api.dart:386-388` (call site
+inside `_registerWallet`), `427-468` (`linkExistingSDKAccounts`), `494-526`
+(`backfillLinks`' ambiguous-result handling)
 
-**Issue:** The pre-existing "More options → Delete Wallet" handler used to
-call `geniusApi.deleteWallet(...)` directly and then `context.go('/dashboard')`
-after a short delay. The phase-34 fix (D-12) correctly routes the delete
-through `AppBloc.canDeleteWallet` + `DeleteWallet`, but the new handler never
-navigates away after a successful delete — it just dispatches the event and
-leaves the screen showing whatever `WalletDetailsCubit` now resolves to.
-`WalletInformation` is confirmed dead code (per its own header comment and
-`lib/dev/generated_closure_canary.dart`'s doc: "nothing reachable from
-`main.dart` imports these 9 widgets," this one included, and it is never
-mounted, only compiled), so there is no live-app impact today. Flagging so
-this isn't rediscovered as a regression if the widget is ever wired up to a
-real screen.
+**Issue:** As described in iteration 1's WR-01: a wallet whose link can never
+be proven deterministically stays "Unlinked" and has its key re-submitted to
+the SDK (`_addToSDK` → `addAccountWithMnemonic`/`addAccountWithPrivateKey`)
+on every subsequent wallet add, for as long as it remains unlinked.
 
-**Fix:** No action needed while the widget stays unreachable; if it is ever
-mounted for real, decide explicitly whether staying on-screen (showing the
-cubit's new selection) or navigating away is the intended UX, and add a test
-for whichever is chosen.
+Iteration 1 treated this as a Warning because the correctness of repeating
+the re-add rested on an *unverified* assumption that re-adding an
+already-known key to the SDK is a true no-op. That assumption is now
+confirmed: re-adding an existing key via `GeniusAccount`'s add path is
+idempotent (returns the existing account rather than creating a duplicate),
+per the SuperGenius SDK's own `GeniusAccount.cpp`. With that confirmed, the
+repeated re-add call can no longer grow duplicate accounts for an unresolved
+wallet — the worst case is a wasted, no-op SDK call on each future import,
+which is a performance/efficiency concern (explicitly out of v1 review
+scope) rather than a correctness one.
 
-### IN-02: No regression test for the watch-only + last-key-wallet interaction (see CR-01)
+This also lines up with what the code already documents: D-14 required
+verifying re-add idempotency before backfill shipped ("If it creates a
+duplicate, skip backfill entirely"), and the `ponytail:` comment at
+`genius_api.dart:470-472` already records the "stays 'Unlinked' forever"
+outcome as a known, accepted ceiling with a stated upgrade path (an SDK call
+that derives an address without registering it). Recorded as Info rather
+than closed outright because the repeated no-op call is still worth
+eliminating eventually (the stated upgrade path), and because this
+conclusion rests on the native SDK's own source, which this repository does
+not vendor or test against directly — a future SDK version changing that
+behavior would silently reopen this as a real bug with no local test to
+catch it.
 
-**File:** `test/account/sdk_account_delete_coupling_test.dart`, `test/components/wallet_information_delete_test.dart`
-
-**Issue:** Every "last wallet" test in this phase's diff (`'a linked account
-is blocked as the last wallet'`, `'the last wallet cannot be deleted'`, `'the
-last own wallet cannot be deleted even with an SDK account connected'`)
-constructs its wallet list from key-holding and/or sgnus wallets only. None
-mixes in a `WalletType.tracking` wallet, so CR-01's gap has no failing test
-to catch it.
-
-**Fix:** Once CR-01 is fixed, add a case with `[keyWallet, trackingWallet]`
-to `AppBloc.sdkDeleteBlock`'s test group (expect `SDKDeleteBlock.lastWallet`)
-and to the direct-delete test group (expect the wallet to survive and "You
-must keep at least one wallet." to show).
+**Fix:** No action required now. If/when `linkExistingSDKAccounts()` or its
+call sites are next touched, prefer the upgrade path already named in the
+`ponytail:` comment (derive an address from a key without registering it) so
+the repeated re-add call is eliminated rather than merely proven harmless.
 
 ---
 
 _Reviewed: 2026-09-29_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
+_Iteration: 2_
