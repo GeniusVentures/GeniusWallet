@@ -33,10 +33,14 @@ class LocalWalletStorage {
   /// would be read back as one of those.
   static const _sdkAccountLinksKey = '__sdk_links__';
 
-  final FlutterSecureStorage _secureStorage;
+  final _SerialStorage _secureStorage;
   final Web3 _web3;
 
-  LocalWalletStorage._create(this._secureStorage, this._web3);
+  /// Serialises each read-change-write of the links map.
+  static final _linksLock = _SerialQueue();
+
+  LocalWalletStorage._create(FlutterSecureStorage storage, this._web3)
+    : _secureStorage = _SerialStorage(storage);
 
   /// Android options for the wallet store. resetOnError stays false: its default
   /// erases every wallet on one read error. migrateWithBackup stays false: it
@@ -47,8 +51,10 @@ class LocalWalletStorage {
     migrateWithBackup: false,
   );
 
-  static Future<LocalWalletStorage> create(
-      {FlutterSecureStorage? secureStorage, Web3? web3}) async {
+  static Future<LocalWalletStorage> create({
+    FlutterSecureStorage? secureStorage,
+    Web3? web3,
+  }) async {
     FlutterSecureStorage storageInstance;
     if (secureStorage != null) {
       storageInstance = secureStorage;
@@ -57,8 +63,10 @@ class LocalWalletStorage {
     }
 
     final web3Instance = web3 ?? Web3();
-    final localWalletStorage =
-        LocalWalletStorage._create(storageInstance, web3Instance);
+    final localWalletStorage = LocalWalletStorage._create(
+      storageInstance,
+      web3Instance,
+    );
 
     return localWalletStorage;
   }
@@ -93,8 +101,11 @@ class LocalWalletStorage {
   }
 
   Future<Account> createNewAccount() async {
-    final account =
-        Account(balance: 0.0, name: 'Genius', lastBalanceRetrievalDate: null);
+    final account = Account(
+      balance: 0.0,
+      name: 'Genius',
+      lastBalanceRetrievalDate: null,
+    );
     await saveAccount(account);
     return account;
   }
@@ -107,8 +118,9 @@ class LocalWalletStorage {
     }
 
     try {
-      Account? account =
-          Account.fromJson(Map<String, dynamic>.from(jsonDecode(accountData)));
+      Account? account = Account.fromJson(
+        Map<String, dynamic>.from(jsonDecode(accountData)),
+      );
       return account;
     } catch (e) {
       debugPrint('Issue with loading acount');
@@ -120,7 +132,9 @@ class LocalWalletStorage {
 
   Future<void> saveAccount(Account account) async {
     await _secureStorage.write(
-        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
+      key: _accountKeyPrefix,
+      value: jsonEncode(account.toJson()),
+    );
   }
 
   Future<void> saveAccountBalance(double balance) async {
@@ -134,7 +148,9 @@ class LocalWalletStorage {
     account.lastBalanceRetrievalDate = DateTime.now();
 
     await _secureStorage.write(
-        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
+      key: _accountKeyPrefix,
+      value: jsonEncode(account.toJson()),
+    );
   }
 
   Future<void> updateAccountFetchDate() async {
@@ -147,7 +163,9 @@ class LocalWalletStorage {
     account.lastBalanceRetrievalDate = DateTime.now();
 
     await _secureStorage.write(
-        key: _accountKeyPrefix, value: jsonEncode(account.toJson()));
+      key: _accountKeyPrefix,
+      value: jsonEncode(account.toJson()),
+    );
   }
 
   Future<void> deleteAccount() async {
@@ -163,14 +181,16 @@ class LocalWalletStorage {
 
   Future<void> saveStoredKey(StoredKey storedKey) async {
     await _secureStorage.write(
-        key: createWalletKey(storedKey.account(0).address()),
-        value: storedKey.exportJson());
+      key: createWalletKey(storedKey.account(0).address()),
+      value: storedKey.exportJson(),
+    );
   }
 
   Future<void> saveWatchedWallet(Wallet wallet) async {
     await _secureStorage.write(
-        key: createWatchedWalletKey(wallet.address),
-        value: jsonEncode(wallet.toJson()));
+      key: createWatchedWalletKey(wallet.address),
+      value: jsonEncode(wallet.toJson()),
+    );
   }
 
   Future<void> renameWallet(String walletAddress, String newName) async {
@@ -184,14 +204,19 @@ class LocalWalletStorage {
           final walletJson = Map<String, dynamic>.from(jsonDecode(entry.value));
           walletJson['walletName'] = newName;
           await _secureStorage.write(
-              key: entry.key, value: jsonEncode(walletJson));
+            key: entry.key,
+            value: jsonEncode(walletJson),
+          );
         } else {
           // For stored-key wallets, parse the JSON, update the name, and save.
-          final storedKeyJson =
-              Map<String, dynamic>.from(jsonDecode(entry.value));
+          final storedKeyJson = Map<String, dynamic>.from(
+            jsonDecode(entry.value),
+          );
           storedKeyJson['name'] = newName;
           await _secureStorage.write(
-              key: entry.key, value: jsonEncode(storedKeyJson));
+            key: entry.key,
+            value: jsonEncode(storedKeyJson),
+          );
         }
         return;
       }
@@ -205,8 +230,10 @@ class LocalWalletStorage {
   /// before the entry is gone, so that account still says whose it was
   /// (D-08, D-09). Links are never removed here. Watch-only deletes have no
   /// SDK account and never touch links.
-  Future<void> deleteWallet(String walletAddress,
-      {required bool watchOnly}) async {
+  Future<void> deleteWallet(
+    String walletAddress, {
+    required bool watchOnly,
+  }) async {
     final target = watchOnly
         ? createWatchedWalletKey(walletAddress)
         : createWalletKey(walletAddress);
@@ -244,7 +271,10 @@ class LocalWalletStorage {
       for (final sdkAddress in links.keys.toList()) {
         final link = links[sdkAddress]!;
         if (link.walletAddress == lowered && link.walletName != name) {
-          links[sdkAddress] = (walletAddress: link.walletAddress, walletName: name);
+          links[sdkAddress] = (
+            walletAddress: link.walletAddress,
+            walletName: name,
+          );
           changed = true;
         }
       }
@@ -349,7 +379,8 @@ class LocalWalletStorage {
           wallets.add(await _toSafeWallet(storedKeyWallet));
         } else if (isAWatchedWallet(entry.key)) {
           final Wallet wallet = Wallet.fromJson(
-              Map<String, dynamic>.from(jsonDecode(entry.value)));
+            Map<String, dynamic>.from(jsonDecode(entry.value)),
+          );
           wallets.add(await _fetchBalanceForWatchedWallet(wallet));
         }
       } catch (e) {
@@ -442,25 +473,26 @@ class LocalWalletStorage {
     String sdkAddress,
     String walletAddress,
     String walletName,
-  ) async {
+  ) => _linksLock.run(() async {
     final links = await getSDKAccountLinks();
     links[sdkAddress.toLowerCase()] = (
       walletAddress: walletAddress.toLowerCase(),
       walletName: walletName,
     );
     await _writeSDKAccountLinks(links);
-  }
+  });
 
   /// Drops [sdkAddress]'s link entirely (lowercased). Used when its SDK
   /// account is deleted along with its wallet, so a stale link never reads
   /// as "linked" to a wallet that is not coming back.
-  Future<void> removeSDKAccountLink(String sdkAddress) async {
-    final links = await getSDKAccountLinks();
-    if (links.remove(sdkAddress.toLowerCase()) == null) {
-      return;
-    }
-    await _writeSDKAccountLinks(links);
-  }
+  Future<void> removeSDKAccountLink(String sdkAddress) =>
+      _linksLock.run(() async {
+        final links = await getSDKAccountLinks();
+        if (links.remove(sdkAddress.toLowerCase()) == null) {
+          return;
+        }
+        await _writeSDKAccountLinks(links);
+      });
 
   Future<void> _writeSDKAccountLinks(Map<String, SDKAccountLink> links) async {
     await _secureStorage.write(
@@ -481,15 +513,18 @@ class LocalWalletStorage {
     final address = wallet.storedKey.account(0).address();
     final List<Network> networks = await readNetworkAssets();
     final symbol = CoinUtil.getSymbol(wallet.storedKey.account(0).coinType());
-    final network =
-        networks.where((element) => (element.symbol) == symbol.toLowerCase());
+    final network = networks.where(
+      (element) => (element.symbol) == symbol.toLowerCase(),
+    );
 
     double walletBalance = 0;
 
     try {
       if (network.isNotEmpty) {
         walletBalance = await _web3.getBalance(
-            address: address, rpcUrl: network.first.rpcUrl ?? "");
+          address: address,
+          rpcUrl: network.first.rpcUrl ?? "",
+        );
       }
     } catch (e) {
       debugPrint('Failed to fetch wallet balance');
@@ -497,8 +532,9 @@ class LocalWalletStorage {
 
     return Wallet(
       walletName: wallet.storedKey.name(),
-      currencySymbol:
-          CoinUtil.getSymbol(wallet.storedKey.account(0).coinType()),
+      currencySymbol: CoinUtil.getSymbol(
+        wallet.storedKey.account(0).coinType(),
+      ),
       coinType: wallet.storedKey.account(0).coinType(),
       balance: walletBalance,
       address: wallet.storedKey.account(0).address(),
@@ -511,14 +547,17 @@ class LocalWalletStorage {
   Future<Wallet> _fetchBalanceForWatchedWallet(Wallet wallet) async {
     final List<Network> networks = await readNetworkAssets();
     final network = networks.where(
-        (element) => element.symbol == wallet.currencySymbol.toLowerCase());
+      (element) => element.symbol == wallet.currencySymbol.toLowerCase(),
+    );
 
     double walletBalance = 0;
 
     try {
       if (network.isNotEmpty) {
         walletBalance = await _web3.getBalance(
-            address: wallet.address, rpcUrl: network.first.rpcUrl ?? "");
+          address: wallet.address,
+          rpcUrl: network.first.rpcUrl ?? "",
+        );
       }
     } catch (e) {
       debugPrint('Failed to fetch wallet balance');
@@ -535,6 +574,39 @@ class LocalWalletStorage {
   }
 }
 
+/// Runs queued operations one at a time, in order; a failure does not block
+/// the next operation.
+class _SerialQueue {
+  Future<void> _tail = Future.value();
+
+  Future<T> run<T>(Future<T> Function() op) {
+    final result = _tail.then((_) => op());
+    _tail = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+}
+
+/// The Windows backend rewrites one file per write, and a read that lands
+/// mid-write fails to decrypt and deletes that file, taking every wallet with
+/// it. One process-wide queue keeps reads and writes from overlapping.
+class _SerialStorage {
+  _SerialStorage(this._storage);
+
+  final FlutterSecureStorage _storage;
+  static final _queue = _SerialQueue();
+
+  Future<String?> read({required String key}) =>
+      _queue.run(() => _storage.read(key: key));
+
+  Future<Map<String, String>> readAll() => _queue.run(_storage.readAll);
+
+  Future<void> write({required String key, required String? value}) =>
+      _queue.run(() => _storage.write(key: key, value: value));
+
+  Future<void> delete({required String key}) =>
+      _queue.run(() => _storage.delete(key: key));
+}
+
 Future<List<Network>> readNetworkAssets() async {
   const String assetLocation = 'assets/json/networks/networks.json';
   final String? response = await safeLoadAsset(assetLocation);
@@ -546,7 +618,8 @@ Future<List<Network>> readNetworkAssets() async {
   final networksJson = await jsonDecode(response);
 
   List<Network> networkList = List<Network>.from(
-      networksJson.map((network) => Network.fromJson(network)));
+    networksJson.map((network) => Network.fromJson(network)),
+  );
 
   return networkList;
 }
