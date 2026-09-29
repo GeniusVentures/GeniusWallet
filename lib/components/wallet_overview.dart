@@ -40,8 +40,6 @@ class WalletsOverview extends StatefulWidget {
 
 class WalletsOverviewState extends State<WalletsOverview> {
   bool _useMinions = false;
-  double _gnusBalance = 0;
-  double _minionsBalance = 0;
   Timer? _balanceTimer;
 
   // This subtree owns both cubits the job flow needs. GnusCubit has no
@@ -62,7 +60,6 @@ class WalletsOverviewState extends State<WalletsOverview> {
       gnusCubit: _gnusCubit,
       geniusApi: widget.geniusApi,
     );
-    _fetchBalances();
     // 10s matches the deleted `genius_balance_display.dart:58-61`'s own
     // polling cadence for these same two SDK reads - this card replaces
     // that widget's use here (`14-08-PLAN.md` Task 3), so it mirrors the
@@ -73,19 +70,8 @@ class WalletsOverviewState extends State<WalletsOverview> {
     // that re-reads `DateTime.now()`.
     _balanceTimer = Timer.periodic(
       const Duration(seconds: 10),
-      (_) => _fetchBalances(),
+      (_) => setState(() {}),
     );
-  }
-
-  void _fetchBalances() {
-    final gnus = double.tryParse(widget.geniusApi.getSGNUSBalance()) ?? 0;
-    final minions = double.tryParse(widget.geniusApi.getMinionsBalance()) ?? 0;
-    if (mounted) {
-      setState(() {
-        _gnusBalance = gnus;
-        _minionsBalance = minions;
-      });
-    }
   }
 
   /// Sets the unit rather than flipping it (`260731-kc5-PLAN.md`'s
@@ -241,9 +227,14 @@ class WalletsOverviewState extends State<WalletsOverview> {
                           processingPercentage: appState.processingPercentage,
                         );
 
+                        // Read on every build: a wallet or node-account
+                        // switch rebuilds this, so no old number survives it.
+                        final sdkBalance = context
+                            .read<WalletDetailsCubit>()
+                            .readSdkBalance();
                         final balance = _useMinions
-                            ? _minionsBalance
-                            : _gnusBalance;
+                            ? sdkBalance?.minions
+                            : sdkBalance?.gnus;
 
                         return ComputePanel(
                           view: view,

@@ -345,6 +345,18 @@ class _AssetsScreenState extends State<AssetsScreen> {
     WalletDetailsState state,
     GWColors gw,
   ) {
+    if (state.balanceUnreadable) {
+      return const [
+        GWPageHeader(title: 'Assets'),
+        DashboardScrollContainer(
+          child: GWEmptyState(
+            icon: Icons.account_balance_wallet_outlined,
+            title: kBalanceUnreadableMessage,
+          ),
+        ),
+      ];
+    }
+
     final coins = state.coins;
 
     // S1, S2 and S3 all require an EMPTY coin list, so "the controls are

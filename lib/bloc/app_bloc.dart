@@ -47,6 +47,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   Timer? _initTimer;
   StreamSubscription<SGNUSConnection>? _sgnusConnectionSubscription;
   StreamSubscription<String?>? _selectedWalletSubscription;
+  StreamSubscription<AppState>? _nodeAccountSubscription;
   List<Wallet> _baseWallets = [];
 
   AppBloc({
@@ -91,6 +92,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _selectedWalletSubscription = walletDetailsCubit.stream
         .map((s) => s.selectedWallet?.address)
         .listen(_showTransactionsFor);
+
+    // Whose SDK balance the selected wallet shows depends on the node account.
+    _nodeAccountSubscription = stream.listen(
+      walletDetailsCubit.appStateChanged,
+    );
   }
 
   void _showTransactionsFor(String? address) {
@@ -761,6 +767,23 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     return null;
   }
 
+  /// The SDK account behind [wallet]: an SDK wallet's own address, or the
+  /// account linked to one of the user's own wallets; null for anything else.
+  static String? sdkAccountFor(
+    Wallet wallet,
+    Map<String, SDKAccountLink> links,
+  ) {
+    if (wallet.walletType == WalletType.sgnus) {
+      return wallet.address;
+    }
+    for (final sdkAddress in links.keys) {
+      if (linkedWallet(sdkAddress, links, [wallet]) != null) {
+        return sdkAddress;
+      }
+    }
+    return null;
+  }
+
   /// The label for the SDK row at [sdkAddress]: the live wallet's name, the
   /// removed wallet's last known name, or an honest 'Unlinked'.
   static String sdkAccountName(
@@ -967,6 +990,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _initTimer?.cancel();
     _sgnusConnectionSubscription?.cancel();
     _selectedWalletSubscription?.cancel();
+    _nodeAccountSubscription?.cancel();
     return super.close();
   }
 }
