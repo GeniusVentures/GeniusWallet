@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
@@ -14,12 +15,14 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_screen.dart'
     show ChildWalletRow;
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 
@@ -325,4 +328,412 @@ void main() {
       );
     });
   });
+
+  group('collapsible mains', () {
+    testWidgets(
+      'a main starts expanded with a Hide children chevron; tapping hides '
+      'its subtree and flips to Show children; tapping again restores it, '
+      'without changing the active wallet',
+      (tester) async {
+        DevMockChildWallets.instance.arm(DevChildWalletsPreset.oneChild);
+        final api = _Api(accounts: const [_mainA, _mainB]);
+        final details = WalletDetailsCubit(
+          geniusApi: api,
+          networkTokensProvider: NetworkTokensProvider(),
+        );
+        final bloc = _SeededAppBloc(
+          api: api,
+          transactionsCubit: TransactionsCubit(),
+          walletDetailsCubit: details,
+          networkProvider: NetworkProvider(),
+          sdkAccounts: const [_mainA, _mainB],
+          wallets: const [_walletMainA, _walletMainB],
+          sdkAccountLinks: const {},
+          selectedSDKAccount: _mainA,
+        );
+        final operations = ChildOperationsCubit(
+          api: api,
+          readAppState: () => bloc.state,
+          devTools: true,
+        );
+
+        await _pumpDrawer(tester, bloc, details, operations: operations);
+
+        expect(find.byTooltip('Hide children'), findsOneWidget);
+        expect(find.byType(ChildWalletRow), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Hide children'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ChildWalletRow), findsNothing);
+        expect(find.byTooltip('Show children'), findsOneWidget);
+        expect(bloc.state.selectedSDKAccount, _mainA);
+
+        await tester.tap(find.byTooltip('Show children'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ChildWalletRow), findsOneWidget);
+        expect(find.byTooltip('Hide children'), findsOneWidget);
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+
+    testWidgets('a leaf row carries no chevron', (tester) async {
+      DevMockChildWallets.instance.arm(DevChildWalletsPreset.oneChild);
+      final api = _Api(accounts: const [_mainA, _mainB]);
+      final details = WalletDetailsCubit(
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final bloc = _SeededAppBloc(
+        api: api,
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: details,
+        networkProvider: NetworkProvider(),
+        sdkAccounts: const [_mainA, _mainB],
+        wallets: const [_walletMainA, _walletMainB],
+        sdkAccountLinks: const {},
+        selectedSDKAccount: _mainA,
+      );
+      final operations = ChildOperationsCubit(
+        api: api,
+        readAppState: () => bloc.state,
+        devTools: true,
+      );
+
+      await _pumpDrawer(tester, bloc, details, operations: operations);
+
+      // mainB has no children under this preset, so it never gets a chevron.
+      final mainBRow = _rowFor(title: 'Unlinked', subtitle: '0xaaaa...2222');
+      expect(
+        find.descendant(
+          of: mainBRow,
+          matching: find.byIcon(Icons.chevron_right),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: mainBRow, matching: find.byIcon(Icons.expand_more)),
+        findsNothing,
+      );
+
+      await tester.runAsync(() => bloc.close());
+      await details.close();
+      await operations.close();
+    });
+
+    testWidgets('closing and reopening the drawer forgets a collapsed main', (
+      tester,
+    ) async {
+      DevMockChildWallets.instance.arm(DevChildWalletsPreset.oneChild);
+      final api = _Api(accounts: const [_mainA, _mainB]);
+      final details = WalletDetailsCubit(
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final bloc = _SeededAppBloc(
+        api: api,
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: details,
+        networkProvider: NetworkProvider(),
+        sdkAccounts: const [_mainA, _mainB],
+        wallets: const [_walletMainA, _walletMainB],
+        sdkAccountLinks: const {},
+        selectedSDKAccount: _mainA,
+      );
+      final operations = ChildOperationsCubit(
+        api: api,
+        readAppState: () => bloc.state,
+        devTools: true,
+      );
+
+      await _pumpDrawer(tester, bloc, details, operations: operations);
+      await tester.tap(find.byTooltip('Hide children'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ChildWalletRow), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('open drawer'));
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Hide children'), findsOneWidget);
+      expect(find.byType(ChildWalletRow), findsOneWidget);
+
+      await tester.runAsync(() => bloc.close());
+      await details.close();
+      await operations.close();
+    });
+  });
+
+  group('nested own row child actions', () {
+    const nestMainA = '0xAAAA111111111111111111111111111111AAA1';
+    const nestMainB = '0xBBBB222222222222222222222222222222BBB2';
+
+    ChildRegistrations okList(List<String> children, String main) => (
+      result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+      entries: [
+        for (var i = 0; i < children.length; i++)
+          ChildRegistration(
+            childAddress: children[i],
+            mainAddress: main,
+            sequence: i,
+          ),
+      ],
+    );
+
+    Finder accountRow(String address) => _rowFor(
+      title: 'Unlinked',
+      subtitle: WalletUtils.getAddressForDisplay(address),
+    );
+
+    Future<void> openMenu(WidgetTester tester, Finder row) async {
+      await tester.tap(
+        find.descendant(of: row, matching: find.byTooltip('Account options')),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Future<(_SeededAppBloc, WalletDetailsCubit, ChildOperationsCubit)>
+    pumpNested(
+      WidgetTester tester,
+      _PerMainApi api, {
+      String? selectedSDKAccount = nestMainA,
+    }) async {
+      final details = WalletDetailsCubit(
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final bloc = _SeededAppBloc(
+        api: api,
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: details,
+        networkProvider: NetworkProvider(),
+        sdkAccounts: const [nestMainA, nestMainB],
+        wallets: const [],
+        sdkAccountLinks: const {},
+        selectedSDKAccount: selectedSDKAccount,
+      );
+      final operations = ChildOperationsCubit(
+        api: api,
+        readAppState: () => bloc.state,
+        devTools: true,
+      );
+      await _pumpDrawer(tester, bloc, details, operations: operations);
+      return (bloc, details, operations);
+    }
+
+    testWidgets(
+      'B nested under running A gets Fund/Recover/Revoke after a divider',
+      (tester) async {
+        final api = _PerMainApi(
+          registrationsByMain: {
+            nestMainA.toLowerCase(): okList([nestMainB], nestMainA),
+          },
+        );
+        final (bloc, details, operations) = await pumpNested(tester, api);
+
+        await openMenu(tester, accountRow(nestMainB));
+        expect(find.widgetWithText(MenuItemButton, 'Fund'), findsOneWidget);
+        expect(find.widgetWithText(MenuItemButton, 'Recover'), findsOneWidget);
+        expect(find.widgetWithText(MenuItemButton, 'Revoke'), findsOneWidget);
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+
+    testWidgets("A's own top-level menu never carries them", (tester) async {
+      final api = _PerMainApi(
+        registrationsByMain: {
+          nestMainA.toLowerCase(): okList([nestMainB], nestMainA),
+        },
+      );
+      final (bloc, details, operations) = await pumpNested(tester, api);
+
+      await openMenu(tester, accountRow(nestMainA));
+      expect(find.widgetWithText(MenuItemButton, 'Fund'), findsNothing);
+      expect(find.widgetWithText(MenuItemButton, 'Recover'), findsNothing);
+      expect(find.widgetWithText(MenuItemButton, 'Revoke'), findsNothing);
+
+      await tester.runAsync(() => bloc.close());
+      await details.close();
+      await operations.close();
+    });
+
+    testWidgets(
+      'Fund on B submits through the registry with main A; the pending badge '
+      "shows under B's row, locking Fund and Recover with the same reason",
+      (tester) async {
+        final api = _PerMainApi(
+          registrationsByMain: {
+            nestMainA.toLowerCase(): okList([nestMainB], nestMainA),
+          },
+        );
+        final (bloc, details, operations) = await pumpNested(tester, api);
+
+        await openMenu(tester, accountRow(nestMainB));
+        await tester.tap(find.widgetWithText(MenuItemButton, 'Fund'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), '1.5');
+        await tester.tap(find.widgetWithText(GWButton, 'Fund'));
+        await tester.pumpAndSettle();
+
+        expect(api.fundCalls, [nestMainB]);
+        expect(find.text('Funding 1.5 GNUS…'), findsOneWidget);
+
+        await openMenu(tester, accountRow(nestMainB));
+        final fundItem = tester.widget<MenuItemButton>(
+          find.widgetWithText(MenuItemButton, 'Fund'),
+        );
+        final recoverItem = tester.widget<MenuItemButton>(
+          find.widgetWithText(MenuItemButton, 'Recover'),
+        );
+        expect(fundItem.onPressed, isNull);
+        expect(recoverItem.onPressed, isNull);
+        expect(find.byTooltip('Already funding this child'), findsWidgets);
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+
+    testWidgets(
+      "Revoke locks independently, with its own reason, while a revoke on "
+      'B is pending',
+      (tester) async {
+        final api = _PerMainApi(
+          registrationsByMain: {
+            nestMainA.toLowerCase(): okList([nestMainB], nestMainA),
+          },
+        );
+        final (bloc, details, operations) = await pumpNested(tester, api);
+
+        operations.submit(
+          kind: ChildOperationKind.revoke,
+          target: nestMainB,
+          main: nestMainA,
+        );
+        await tester.pumpAndSettle();
+
+        await openMenu(tester, accountRow(nestMainB));
+        final revokeItem = tester.widget<MenuItemButton>(
+          find.widgetWithText(MenuItemButton, 'Revoke'),
+        );
+        expect(revokeItem.onPressed, isNull);
+        expect(find.byTooltip('Already revoking this child'), findsOneWidget);
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+
+    testWidgets(
+      'running as B, Fund on B opens the switch dialog naming A, not B',
+      (tester) async {
+        final api = _PerMainApi(
+          registrationsByMain: {
+            nestMainA.toLowerCase(): okList([nestMainB], nestMainA),
+          },
+        );
+        final (bloc, details, operations) = await pumpNested(
+          tester,
+          api,
+          selectedSDKAccount: nestMainB,
+        );
+
+        await openMenu(tester, accountRow(nestMainB));
+        await tester.tap(find.widgetWithText(MenuItemButton, 'Fund'));
+        await tester.pumpAndSettle();
+
+        final mainLabel = WalletUtils.getAddressForDisplay(nestMainA);
+        expect(find.text('Switch to $mainLabel?'), findsOneWidget);
+        expect(api.selectCalls, isEmpty);
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+  });
+}
+
+/// `implements`, not `extends`: the real constructor dlopens the native SDK.
+/// Registrations differ PER MAIN, unlike [DevMockChildWallets] (which only
+/// ever nests under the running account) -- needed to prove a nested own
+/// row's menu with the node running as either side of the registered pair.
+class _PerMainApi implements GeniusApi {
+  _PerMainApi({this.registrationsByMain = const {}});
+
+  final Map<String, ChildRegistrations> registrationsByMain;
+
+  String? _selected;
+  final fundCalls = <String>[];
+  final revokeCalls = <String>[];
+  final selectCalls = <String>[];
+
+  static const _emptyRegistrations = (
+    result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    entries: <ChildRegistration>[],
+  );
+
+  @override
+  ChildRegistrations getChildRegistrations(String mainAddress) =>
+      registrationsByMain[mainAddress.toLowerCase()] ?? _emptyRegistrations;
+
+  @override
+  BigInt getChildBalanceAll(String childAddress) => BigInt.zero;
+
+  // Comfortably above every amount the Fund dialog test submits.
+  @override
+  String getMinionsBalance([String? tokenId]) => '1000000000';
+
+  @override
+  GeniusNodeReturnValue fundChildGnus(String amountGnus, String childAddress) {
+    fundCalls.add(childAddress);
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
+
+  @override
+  GeniusNodeReturnValue revokeChild(String childAddress) {
+    revokeCalls.add(childAddress);
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
+
+  @override
+  String? getSelectedAccountAddress() => _selected;
+
+  @override
+  Future<GeniusNodeReturnValue> selectGeniusAccountAsync(
+    String publicAddress,
+  ) async {
+    selectCalls.add(publicAddress);
+    _selected = publicAddress;
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
+
+  @override
+  String? getSelectedAccountMnemonic() => null;
+
+  @override
+  List<String> getAvailableAccounts() => const [];
+
+  @override
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => const {};
+
+  @override
+  Stream<SGNUSConnection> getSGNUSConnectionStream() =>
+      Stream.value(SGNUSConnection.empty());
+
+  @override
+  String? getStartAccountAddress() => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -32,11 +32,14 @@ class AccountTreeRow {
   /// Set for [AccountRowKind.merged] and [AccountRowKind.account] rows.
   final String? sdkAddress;
 
-  /// Set for [AccountRowKind.foreignChild] rows: the main whose registrations
-  /// named this child.
+  /// The main whose registrations named this child -- set for every
+  /// [AccountRowKind.foreignChild] row, and for an own ([merged]/[account])
+  /// row nested at depth 1 or deeper.
   final String? parentMain;
 
-  /// Set for [AccountRowKind.foreignChild] rows.
+  /// The registration entry this row was reached through -- set for every
+  /// [AccountRowKind.foreignChild] row, and for a nested own row, so its menu
+  /// can offer the same Fund/Recover/Revoke a foreign child's row does.
   final ChildWallet? child;
 
   /// True when at least one row sits directly under this one.
@@ -115,7 +118,12 @@ List<AccountTreeRow> buildAccountTree({
   final visited = <String>{};
   final rows = <AccountTreeRow>[];
 
-  void placeAccount(String account, int depth) {
+  void placeAccount(
+    String account,
+    int depth, {
+    ChildWallet? childEntry,
+    String? parentMain,
+  }) {
     final lower = account.toLowerCase();
     if (visited.contains(lower)) {
       return;
@@ -129,6 +137,8 @@ List<AccountTreeRow> buildAccountTree({
         depth: depth,
         sdkAddress: account,
         wallet: wallet,
+        child: childEntry,
+        parentMain: parentMain,
       ),
     );
 
@@ -141,7 +151,12 @@ List<AccountTreeRow> buildAccountTree({
           continue;
         }
         hasChildren = true;
-        placeAccount(ownAccount, depth + 1);
+        placeAccount(
+          ownAccount,
+          depth + 1,
+          childEntry: entry,
+          parentMain: account,
+        );
       } else {
         if (visited.contains(childLower)) {
           continue;
@@ -165,6 +180,8 @@ List<AccountTreeRow> buildAccountTree({
         depth: depth,
         sdkAddress: account,
         wallet: wallet,
+        child: childEntry,
+        parentMain: parentMain,
         hasChildren: true,
       );
     }
@@ -198,4 +215,35 @@ List<AccountTreeRow> buildAccountTree({
   }
 
   return rows;
+}
+
+/// Filters [rows] for render, hiding every descendant of a main whose key
+/// (its lowercased [AccountTreeRow.sdkAddress]) is in [collapsedMains].
+///
+/// [rows] is depth-first, so a collapsed main's whole subtree is contiguous:
+/// once a collapsed main is kept, every following row deeper than it is
+/// skipped until the depth returns to the main's own level (a sibling or an
+/// ancestor's next branch), which also makes a collapsed main nested inside
+/// another collapsed main a no-op -- it was already going to be skipped. A
+/// key with no matching row changes nothing.
+List<AccountTreeRow> visibleAccountRows(
+  List<AccountTreeRow> rows,
+  Set<String> collapsedMains,
+) {
+  final visible = <AccountTreeRow>[];
+  int? skipBelowDepth;
+  for (final row in rows) {
+    if (skipBelowDepth != null) {
+      if (row.depth > skipBelowDepth) {
+        continue;
+      }
+      skipBelowDepth = null;
+    }
+    visible.add(row);
+    final key = row.sdkAddress?.toLowerCase();
+    if (row.hasChildren && key != null && collapsedMains.contains(key)) {
+      skipBelowDepth = row.depth;
+    }
+  }
+  return visible;
 }
