@@ -134,10 +134,11 @@ class _SeededCubit extends WalletDetailsCubit {
     required super.geniusApi,
     required super.networkTokensProvider,
     required Network network,
+    Wallet wallet = _wallet,
   }) {
     emit(
       state.copyWith(
-        selectedWallet: _wallet,
+        selectedWallet: wallet,
         selectedNetwork: network,
         selectedWalletBalance: '5',
       ),
@@ -154,6 +155,7 @@ Future<void> _mountReady(
   required TransactionStorageService storage,
   GeniusApi? api,
   Network network = _ethereum,
+  Wallet wallet = _wallet,
 }) async {
   tester.view.physicalSize = const Size(1200, 1800);
   tester.view.devicePixelRatio = 1.0;
@@ -167,6 +169,7 @@ Future<void> _mountReady(
             geniusApi: api ?? _UnusedApi(),
             networkTokensProvider: NetworkTokensProvider(),
             network: network,
+            wallet: wallet,
           ),
         ),
         BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
@@ -603,6 +606,60 @@ void main() {
       await _submit(tester);
 
       expect(find.text('Submitting swap…'), findsNothing);
+    });
+  });
+
+  group('names the wallet the swap will spend from', () {
+    testWidgets(
+      'the ready rung shows the wallet name, short address, and one Switch '
+      'link',
+      (tester) async {
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(const SwapRouteUnavailable(null)),
+          storage: storage,
+        );
+
+        expect(
+          find.text('Sending from Swap Wallet · 0xSWAP...SWAP'),
+          findsOneWidget,
+        );
+        expect(find.widgetWithText(TextButton, 'Switch ›'), findsOneWidget);
+      },
+    );
+
+    testWidgets('an unnamed wallet reads the short address alone', (
+      tester,
+    ) async {
+      final storage = _RecordingStorage();
+      await _mountReady(
+        tester,
+        execute: _answering(const SwapRouteUnavailable(null)),
+        storage: storage,
+        wallet: _wallet.copyWith(walletName: ''),
+      );
+
+      expect(find.text('Sending from 0xSWAP...SWAP'), findsOneWidget);
+    });
+
+    testWidgets('the CTA still submits: adding the From line changes no '
+        'submit behaviour', (tester) async {
+      final storage = _RecordingStorage();
+      await _mountReady(
+        tester,
+        execute: _answering(
+          SwapBroadcast(
+            hash: _hash,
+            status: TransactionStatus.completed,
+            transaction: _route(),
+          ),
+        ),
+        storage: storage,
+      );
+      await _submit(tester);
+
+      expect(storage.writes, hasLength(2));
     });
   });
 }
