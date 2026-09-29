@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart' show GeniusNodeReturnValue;
+import 'package:genius_wallet/child_wallets/child_operation_switch_dialog.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
     show ChildWallet, minionsToGnus;
@@ -11,6 +12,21 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
+/// Shows the SDK's refusal reason for [kind]'s [verb] -- shared by every
+/// main-side action so the wording only differs by the one clause the
+/// UI-SPEC actually varies.
+void _showRefusalToast(
+  BuildContext context,
+  GeniusNodeReturnValue result,
+  String verb,
+) {
+  showToast(
+    context,
+    'The SDK refused to $verb: ${result.name}',
+    type: ToastType.error,
+  );
+}
+
 /// Opens the Fund dialog for [child], paid from [mainAddress]. Every write
 /// goes through the registry -- this file never calls the SDK directly.
 Future<void> startFund(
@@ -19,16 +35,29 @@ Future<void> startFund(
   required String mainAddress,
 }) async {
   final registry = context.read<ChildOperationsCubit>();
+  if (!await ensureRunningAs(context, mainAddress) || !context.mounted) {
+    return;
+  }
   // Root navigator, not a route pop: the MenuAnchor this is called from
   // closes itself on selection -- there is no drawer route to close here.
   final navigator = Navigator.of(context, rootNavigator: true);
   final barrierColor = context.gw.surfaceOverlay;
+  final mainName = registry.labelFor(mainAddress);
+  final childName = registry.labelFor(child.address);
 
   final amount = await showDialog<BigInt>(
+    // ignore: use_build_context_synchronously
     context: navigator.context,
     barrierColor: barrierColor,
-    builder: (_) =>
-        _FundDialog(registry: registry, child: child, mainAddress: mainAddress),
+    builder: (_) => _AmountDialog(
+      registry: registry,
+      kind: ChildOperationKind.fund,
+      target: child.address,
+      title: 'Fund $childName',
+      fromToSentence: 'From $mainName to $childName.',
+      payerLabel: mainName,
+      primaryLabel: 'Fund',
+    ),
   );
 
   if (amount == null) {
@@ -55,36 +84,160 @@ Future<void> startFund(
     return;
   }
   if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-    showToast(
-      // ignore: use_build_context_synchronously
-      navigator.context,
-      'The SDK refused to fund this child: ${result.name}',
-      type: ToastType.error,
-    );
+    // ignore: use_build_context_synchronously
+    _showRefusalToast(navigator.context, result, 'fund this child');
   }
   // OK: no toast here -- the pending badge is the feedback, and the success
   // toast only fires once the registry's own resolve() sees the real signal.
 }
 
-/// The Fund confirmation, shaped like `sdk_account_manager.dart`'s
+/// Opens the Recover dialog for [child], paid to [mainAddress]. Same shape
+/// as [startFund], mirrored the other direction.
+Future<void> startRecover(
+  BuildContext context, {
+  required ChildWallet child,
+  required String mainAddress,
+}) async {
+  final registry = context.read<ChildOperationsCubit>();
+  if (!await ensureRunningAs(context, mainAddress) || !context.mounted) {
+    return;
+  }
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final barrierColor = context.gw.surfaceOverlay;
+  final mainName = registry.labelFor(mainAddress);
+  final childName = registry.labelFor(child.address);
+
+  final amount = await showDialog<BigInt>(
+    // ignore: use_build_context_synchronously
+    context: navigator.context,
+    barrierColor: barrierColor,
+    builder: (_) => _AmountDialog(
+      registry: registry,
+      kind: ChildOperationKind.recover,
+      target: child.address,
+      title: 'Recover from $childName',
+      fromToSentence: 'From $childName to $mainName.',
+      payerLabel: childName,
+      primaryLabel: 'Recover',
+    ),
+  );
+
+  if (amount == null) {
+    return;
+  }
+
+  final result = registry.submit(
+    kind: ChildOperationKind.recover,
+    target: child.address,
+    main: mainAddress,
+    amountMinions: amount,
+  );
+
+  if (!navigator.context.mounted) {
+    return;
+  }
+  if (result == null) {
+    showToast(
+      // ignore: use_build_context_synchronously
+      navigator.context,
+      'Nothing was sent. Try again.',
+      type: ToastType.error,
+    );
+    return;
+  }
+  if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+    // ignore: use_build_context_synchronously
+    _showRefusalToast(navigator.context, result, 'recover from this child');
+  }
+}
+
+/// Opens the Revoke confirmation for [child], run as [mainAddress]. No
+/// amount -- a destructive confirm, then a plain submit.
+Future<void> startRevoke(
+  BuildContext context, {
+  required ChildWallet child,
+  required String mainAddress,
+}) async {
+  final registry = context.read<ChildOperationsCubit>();
+  if (!await ensureRunningAs(context, mainAddress) || !context.mounted) {
+    return;
+  }
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final mainName = registry.labelFor(mainAddress);
+  final childName = registry.labelFor(child.address);
+
+  final confirmed = await GWDialog.show<bool>(
+    // ignore: use_build_context_synchronously
+    context: navigator.context,
+    title: 'Revoke child?',
+    message: 'Revoke $childName? It will no longer be a child of $mainName.',
+    actions: [
+      GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
+      GWDialogAction(
+        label: 'Revoke',
+        variant: GWButtonVariant.destructive,
+        onPressed: () => navigator.pop(true),
+      ),
+    ],
+  );
+
+  if (confirmed != true) {
+    return;
+  }
+
+  final result = registry.submit(
+    kind: ChildOperationKind.revoke,
+    target: child.address,
+    main: mainAddress,
+  );
+
+  if (!navigator.context.mounted) {
+    return;
+  }
+  if (result == null) {
+    showToast(
+      // ignore: use_build_context_synchronously
+      navigator.context,
+      'Nothing was sent. Try again.',
+      type: ToastType.error,
+    );
+    return;
+  }
+  if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+    // ignore: use_build_context_synchronously
+    _showRefusalToast(navigator.context, result, 'revoke this child');
+  }
+}
+
+/// The Fund/Recover confirmation, shaped like `sdk_account_manager.dart`'s
 /// `_AddAccountDialog`: a private `StatefulWidget` building `GWDialog` itself
-/// so the amount field's error text can update live.
-class _FundDialog extends StatefulWidget {
-  const _FundDialog({
+/// so the amount field's error text can update live. Parameterized by
+/// [kind]/[title]/[fromToSentence]/[payerLabel]/[primaryLabel] rather than
+/// copied, since Fund and Recover differ only in those five values.
+class _AmountDialog extends StatefulWidget {
+  const _AmountDialog({
     required this.registry,
-    required this.child,
-    required this.mainAddress,
+    required this.kind,
+    required this.target,
+    required this.title,
+    required this.fromToSentence,
+    required this.payerLabel,
+    required this.primaryLabel,
   });
 
   final ChildOperationsCubit registry;
-  final ChildWallet child;
-  final String mainAddress;
+  final ChildOperationKind kind;
+  final String target;
+  final String title;
+  final String fromToSentence;
+  final String payerLabel;
+  final String primaryLabel;
 
   @override
-  State<_FundDialog> createState() => _FundDialogState();
+  State<_AmountDialog> createState() => _AmountDialogState();
 }
 
-class _FundDialogState extends State<_FundDialog> {
+class _AmountDialogState extends State<_AmountDialog> {
   final _controller = TextEditingController();
   String? _error;
 
@@ -96,21 +249,15 @@ class _FundDialogState extends State<_FundDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final registry = widget.registry;
-    final mainName = registry.labelFor(widget.mainAddress);
-    final childName = registry.labelFor(widget.child.address);
-    final balance = registry.payingBalance(
-      ChildOperationKind.fund,
-      widget.child.address,
-    );
+    final balance = widget.registry.payingBalance(widget.kind, widget.target);
 
     return GWDialog(
-      title: 'Fund $childName',
+      title: widget.title,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('From $mainName to $childName.'),
+          Text(widget.fromToSentence),
           const SizedBox(height: GeniusWalletConsts.space6),
           GWTextField(
             controller: _controller,
@@ -144,13 +291,13 @@ class _FundDialogState extends State<_FundDialog> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         GWDialogAction(
-          label: 'Fund',
+          label: widget.primaryLabel,
           variant: GWButtonVariant.primary,
           onPressed: () {
             final parsed = parseGnusAmount(
               _controller.text,
               balanceMinions: balance,
-              payer: mainName,
+              payer: widget.payerLabel,
             );
             if (parsed.minions == null) {
               setState(() => _error = parsed.error);

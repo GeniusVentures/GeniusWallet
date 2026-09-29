@@ -14,6 +14,10 @@ String pendingText(ChildOperation op, String Function(String) labelFor) {
   switch (op.kind) {
     case ChildOperationKind.fund:
       return 'Funding ${formatTokenAmount(op.amountMinions!, 6)} GNUS…';
+    case ChildOperationKind.recover:
+      return 'Recovering ${formatTokenAmount(op.amountMinions!, 6)} GNUS…';
+    case ChildOperationKind.revoke:
+      return 'Revoking…';
   }
 }
 
@@ -23,6 +27,11 @@ String resolvedText(ChildOperation op, String Function(String) labelFor) {
     case ChildOperationKind.fund:
       final amount = formatTokenAmount(op.amountMinions!, 6);
       return 'Funded $amount GNUS to ${labelFor(op.target)}';
+    case ChildOperationKind.recover:
+      final amount = formatTokenAmount(op.amountMinions!, 6);
+      return 'Recovered $amount GNUS from ${labelFor(op.target)}';
+    case ChildOperationKind.revoke:
+      return 'Revoked ${labelFor(op.target)}';
   }
 }
 
