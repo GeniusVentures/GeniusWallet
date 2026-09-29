@@ -1241,6 +1241,33 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               'it.',
                         ),
                         _devButton(
+                          'Writes confirm',
+                          () => DevMockChildWallets.instance.setWriteMode(
+                            DevChildWalletsWriteMode.confirm,
+                          ),
+                          tooltip:
+                              'Writes succeed; the list or balance changes '
+                              '3 s later. Applies while a preset is armed.',
+                        ),
+                        _devButton(
+                          'Writes time out',
+                          () => DevMockChildWallets.instance.setWriteMode(
+                            DevChildWalletsWriteMode.timeout,
+                          ),
+                          tooltip:
+                              'Writes are accepted but nothing changes, so '
+                              'they end Not confirmed yet after 2 minutes.',
+                        ),
+                        _devButton(
+                          'Writes fail',
+                          () => DevMockChildWallets.instance.setWriteMode(
+                            DevChildWalletsWriteMode.fail,
+                          ),
+                          tooltip:
+                              'Writes are refused at submission with an SDK '
+                              'error.',
+                        ),
+                        _devButton(
                           'Clear',
                           () => DevMockChildWallets.instance.clear(),
                           tooltip:
