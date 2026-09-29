@@ -18,6 +18,8 @@ String pendingText(ChildOperation op, String Function(String) labelFor) {
       return 'Recovering ${formatTokenAmount(op.amountMinions!, 6)} GNUS…';
     case ChildOperationKind.revoke:
       return 'Revoking…';
+    case ChildOperationKind.detach:
+      return 'Detaching…';
   }
 }
 
@@ -32,6 +34,8 @@ String resolvedText(ChildOperation op, String Function(String) labelFor) {
       return 'Recovered $amount GNUS from ${labelFor(op.target)}';
     case ChildOperationKind.revoke:
       return 'Revoked ${labelFor(op.target)}';
+    case ChildOperationKind.detach:
+      return 'Detached from ${labelFor(op.main)}';
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:genius_wallet/child_wallets/child_operation_dialogs.dart';
 import 'package:genius_wallet/child_wallets/child_operation_status.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
@@ -43,11 +44,7 @@ class ChildWalletsScreen extends StatelessWidget {
         scroll: false,
         child: Column(
           children: [
-            _ChildWalletsHeader(
-              mainName: state.mainName,
-              mainAddress: state.mainAddress,
-              onRefresh: refresh,
-            ),
+            _ChildWalletsHeader(state: state, onRefresh: refresh),
             const SizedBox(height: GeniusWalletConsts.space8),
             Expanded(
               child: _ChildWalletsBody(state: state, onRetry: refresh),
@@ -109,22 +106,27 @@ class _ChildWalletsBody extends StatelessWidget {
   }
 }
 
-/// Names the main account this screen is listing children for. Renders in
-/// every state (populated, empty, disconnected, error) -- never hidden.
+/// The "This account" card: names the main account this screen is listing
+/// children for, and -- once loaded -- whether the running account is
+/// itself registered as someone else's child, with Detach when it is.
+/// Renders in every state (populated, empty, disconnected, error) -- the
+/// identity itself is never hidden, only the status line and actions are.
 class _ChildWalletsHeader extends StatelessWidget {
-  const _ChildWalletsHeader({
-    required this.mainName,
-    required this.mainAddress,
-    required this.onRefresh,
-  });
+  const _ChildWalletsHeader({required this.state, required this.onRefresh});
 
-  final String mainName;
-  final String mainAddress;
+  final ChildWalletsState state;
   final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
     final gw = context.gw;
+    final registry = context.watch<ChildOperationsCubit>();
+    final subject = state.mainAddress;
+    final loaded = state.status == ChildWalletsStatus.loaded;
+    final parentMain = state.parentMain;
+    final pendingOp = loaded ? registry.latestFor(subject) : null;
+    final detachLocked = registry.isPending(ChildOperationKind.detach, subject);
+
     return Container(
       padding: const EdgeInsets.all(GeniusWalletConsts.space6),
       decoration: BoxDecoration(
@@ -132,6 +134,7 @@ class _ChildWalletsHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusMd),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             radius: 16,
@@ -149,7 +152,7 @@ class _ChildWalletsHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  mainName,
+                  state.mainName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GeniusWalletTypography.bodySm.copyWith(
@@ -158,7 +161,7 @@ class _ChildWalletsHeader extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  WalletUtils.getAddressForDisplay(mainAddress),
+                  WalletUtils.getAddressForDisplay(subject),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GeniusWalletTypography.labelMd.copyWith(
@@ -166,6 +169,49 @@ class _ChildWalletsHeader extends StatelessWidget {
                     color: gw.textSecondary,
                   ),
                 ),
+                if (loaded) ...[
+                  const SizedBox(height: GeniusWalletConsts.space3),
+                  Text(
+                    parentMain != null
+                        ? 'Child of ${registry.labelFor(parentMain)}'
+                        : 'Not registered as a child',
+                    style: GeniusWalletTypography.bodySm.copyWith(
+                      color: gw.textSecondary,
+                    ),
+                  ),
+                  if (pendingOp != null) ...[
+                    const SizedBox(height: GeniusWalletConsts.space2),
+                    ChildOperationBadge(
+                      op: pendingOp,
+                      labelFor: registry.labelFor,
+                      onCheckAgain: registry.resolve,
+                    ),
+                  ],
+                  if (parentMain != null) ...[
+                    const SizedBox(height: GeniusWalletConsts.space4),
+                    Wrap(
+                      spacing: GeniusWalletConsts.space4,
+                      runSpacing: GeniusWalletConsts.space4,
+                      children: [
+                        GWButton(
+                          label: 'Detach',
+                          variant: GWButtonVariant.secondary,
+                          size: GWButtonSize.sm,
+                          tooltip: detachLocked
+                              ? 'Already detaching this account'
+                              : null,
+                          onPressed: detachLocked
+                              ? null
+                              : () => startDetach(
+                                  context,
+                                  account: subject,
+                                  main: parentMain,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
               ],
             ),
           ),
