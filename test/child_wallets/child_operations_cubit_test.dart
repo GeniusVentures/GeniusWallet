@@ -2031,6 +2031,24 @@ void main() {
       expect(result[_mainAddress.toLowerCase()], hasLength(1));
     });
 
+    test('null when every own account read comes back non-OK', () {
+      final api = _FakeApi()
+        ..registrationsResultByMain = {
+          _mainAddress.toLowerCase():
+              GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
+          _otherAddress.toLowerCase():
+              GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
+        };
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(
+          selectedSDKAccount: _mainAddress,
+          sdkAccounts: [_mainAddress, _otherAddress],
+        ),
+      );
+      expect(cubit.ownRegistrations(), isNull);
+    });
+
     test('keys the result by lowercased main', () {
       final api = _FakeApi()
         ..registrationEntriesByMain = {

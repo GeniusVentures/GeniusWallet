@@ -218,9 +218,8 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   List<String> get ownAccounts => _readAppState().sdkAccounts;
 
   /// Every own SDK account's registrations, keyed by lowercased main -- null
-  /// while the node isn't running and no dev preset is armed. An account
-  /// whose own read fails is simply left out, so one bad read doesn't blank
-  /// the other accounts' nesting.
+  /// when the node isn't running, no dev preset is armed, or every own
+  /// account's read failed. One bad read among several is simply left out.
   // ponytail: one registrations read per own account per open or change;
   // upgrade path is an SDK by-child query.
   Map<String, List<ChildWallet>>? ownRegistrations() {
@@ -229,6 +228,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     }
     final appState = _readAppState();
     final result = <String, List<ChildWallet>>{};
+    var anyOk = false;
     for (final main in appState.sdkAccounts) {
       final registrations = _devMocked
           ? DevMockChildWallets.registrationsFor(
@@ -240,6 +240,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       if (!registrations.isOk) {
         continue;
       }
+      anyOk = true;
       result[main.toLowerCase()] = [
         for (final entry in registrations.entries)
           ChildWallet(
@@ -258,7 +259,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
           ),
       ];
     }
-    return result;
+    return anyOk || appState.sdkAccounts.isEmpty ? result : null;
   }
 
   /// True for a kind that carries a GNUS amount -- fund and recover only.
