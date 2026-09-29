@@ -57,7 +57,6 @@ import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:local_secure_storage/local_secure_storage.dart'
     show SDKAccountLink;
-import 'package:provider/provider.dart';
 
 /// Hand-written fake for [GeniusApi] - `implements` + a `noSuchMethod`
 /// forward, not `extends`, because the real `GeniusApi`'s constructor dlopens
@@ -74,14 +73,6 @@ import 'package:provider/provider.dart';
 class _FakeGeniusApi implements GeniusApi {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// The one addition an sgnus row needs: `GeniusBalanceDisplay` reads
-/// [GeniusApi] straight from `Provider`, unguarded by any try/catch, so a
-/// drawer seeded with an sgnus wallet needs this rather than the plain fake.
-class _FakeGeniusApiWithBalance extends _FakeGeniusApi {
-  @override
-  String getMinionsBalance([String? tokenId]) => '0';
 }
 
 /// Tracks a delete so a test can prove the row menu's confirmed delete
@@ -353,20 +344,17 @@ void main() {
         await tester.tap(find.text('open drawer'));
         await tester.pumpAndSettle();
 
-        // 24-02: the drawer now holds TWO sections, so its title dropped the
-        // "Your" - that word moved down onto the section header which actually
-        // owns those rows. Both are asserted, which is strictly stronger than
-        // the single title check this replaced: it pins the split itself, not
-        // just that something rendered.
+        // Both sections are always present, each with its own label - the
+        // switcher never leaves one implied by an absent header. The harness
+        // has no SDK accounts and no default account, so the node section
+        // shows its own explicit empty state rather than vanishing.
         expect(find.text('Accounts'), findsOneWidget);
-        expect(find.text('YOUR ACCOUNTS'), findsOneWidget);
-        // The harness has no sgnus wallets and an empty `sdkAccounts`, so the
-        // SDK section must NOT be drawn at all - an empty box above the user's
-        // own wallets is exactly what the conditional in the drawer prevents.
-        expect(find.text('SDK ACCOUNTS'), findsNothing);
+        expect(find.text('SENDING FROM'), findsOneWidget);
+        expect(find.text('NODE RUNNING AS'), findsOneWidget);
+        expect(find.text('Node not running'), findsOneWidget);
         expect(find.text('Wallet A'), findsOneWidget);
         expect(find.text('Wallet B'), findsOneWidget);
-        expect(find.text('Add Wallet'), findsOneWidget);
+        expect(find.text('Add wallet'), findsOneWidget);
       });
     },
   );
@@ -445,9 +433,9 @@ void main() {
   });
 
   group('the wallet menu SDK badge and address-based selection', () {
-    // Named identically to the real Wallet A below - exactly the collision
-    // `_matchesSelected`'s address+type match exists to survive. Under the
-    // old name-only comparison this row would ALSO have lit up as selected.
+    // Named identically to the real Wallet A below, but an sgnus row - which
+    // never renders in "Sending from" at all, so it can never be the one
+    // that lights up or duplicates the name.
     const sgnusRowNamedWalletA = Wallet(
       coinType: TWCoinType.TWCoinTypeEthereum,
       walletName: 'Wallet A',
@@ -471,16 +459,10 @@ void main() {
     ) async {
       await harness.walletDetailsCubit.selectWallet(_walletA);
       await tester.pumpWidget(
-        // The sgnus row above renders a real `GeniusBalanceDisplay`, which
-        // reads `GeniusApi` straight from `Provider` - absent everywhere
-        // else in this file because no other test seeds an sgnus wallet.
-        Provider<GeniusApi>.value(
-          value: _FakeGeniusApiWithBalance(),
-          child: _openerHost(
-            walletDetailsCubit: harness.walletDetailsCubit,
-            appBloc: harness.appBloc,
-            pending: pending,
-          ),
+        _openerHost(
+          walletDetailsCubit: harness.walletDetailsCubit,
+          appBloc: harness.appBloc,
+          pending: pending,
         ),
       );
       await tester.tap(find.text('open drawer'));
@@ -489,7 +471,7 @@ void main() {
 
     testWidgets(
       'with the SDK running: SDK shows once, SDK PENDING is absent, and '
-      'only the real wallet - never the same-named sgnus row - is checked',
+      'Wallet A renders once - the same-named sgnus row is not shown',
       (tester) async {
         final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
         final harness = _build(
@@ -503,6 +485,7 @@ void main() {
 
           expect(find.text('SDK'), findsOneWidget);
           expect(find.text('SDK PENDING'), findsNothing);
+          expect(find.text('Wallet A'), findsOneWidget);
 
           final selectedRows = tester
               .widgetList<GWSelectRow>(find.byType(GWSelectRow))
@@ -527,8 +510,8 @@ void main() {
         final pending = _Pending();
         try {
           await pumpSelectedDrawer(tester, harness, pending);
-          // Wallet B's row sits below the fold once the SDK section's own
-          // header/caption/row claim their height - the drawer's `ListView`
+          // Wallet B's row sits below the fold once the section headers and
+          // Wallet A's row claim their height - the drawer's `ListView`
           // never builds a sliver child this far outside the viewport
           // until it is scrolled into range.
           await tester.scrollUntilVisible(find.text('Wallet B'), 200);

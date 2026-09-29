@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
-import 'package:genius_api/genius_api.dart' show SDKAddOutcome;
+import 'package:genius_api/genius_api.dart' show SDKAddOutcome, Wallet;
 import 'package:genius_wallet/account/add_account_secret_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -137,9 +137,8 @@ class SDKAccountManagerButton extends StatelessWidget {
               ),
               // No separators: GWSelectRow carries its own bottom margin.
               for (final account in accounts)
-                _buildAccountRow(
-                  context,
-                  account,
+                SDKAccountRow(
+                  address: account,
                   name: AppBloc.sdkAccountName(
                     account,
                     state.sdkAccountLinks,
@@ -167,18 +166,36 @@ class SDKAccountManagerButton extends StatelessWidget {
         variant: GWButtonVariant.gradient,
         size: GWButtonSize.lg,
         expand: true,
-        onPressed: () => _showAddAccountDialog(context),
+        onPressed: () => showAddSdkAccountDialog(context),
       ),
     );
   }
+}
 
-  Widget _buildAccountRow(
-    BuildContext context,
-    String address, {
-    required String name,
-    required bool isSelected,
-    required bool isStartAccount,
-  }) {
+/// One row in the "Node running as" section: an SDK account's identity, its
+/// selection state and the menu that manages it (payout address, recovery
+/// phrase, delete). The mnemonic it reads stays a build-local, never a field.
+class SDKAccountRow extends StatelessWidget {
+  const SDKAccountRow({
+    super.key,
+    required this.address,
+    required this.name,
+    required this.isSelected,
+    required this.isStartAccount,
+    this.balanceWallet,
+  });
+
+  final String address;
+  final String name;
+  final bool isSelected;
+  final bool isStartAccount;
+
+  /// The linked sgnus wallet this row's "View balance" menu item selects, or
+  /// null when the account has none.
+  final Wallet? balanceWallet;
+
+  @override
+  Widget build(BuildContext context) {
     // Fail-soft read: registers the InheritedWidget dependency (on the
     // per-row context passed in from the drawer's own itemBuilder, NOT the
     // widget-level this.context) that forces this row to rebuild on a live
@@ -538,75 +555,6 @@ class SDKAccountManagerButton extends StatelessWidget {
     );
   }
 
-  /// ONE dialog for both import paths (sketch 069-A). There used to be two,
-  /// opened by two footer buttons that could not fit their own labels; they
-  /// differed only in a hint string and which bloc event they fired, and each
-  /// carried its own copy of the IME hardening. One dialog means one warning,
-  /// one field and one place to get the security flags right.
-  ///
-  /// SECURITY (V6): this dialog handles key material. `GWTextField` is a pure
-  /// presentation wrapper around the SAME `TextEditingController` -- it never
-  /// reads or logs the value; the value flows straight from
-  /// `controller.text.trim()` into the bloc event.
-  ///
-  /// The bloc reports exactly what happened to the pasted secret -- saved
-  /// and linked, already one of the user's wallets, saved but pending its
-  /// SDK link, or failed outright -- so this dialog reports that outcome
-  /// rather than guessing from a list-length change.
-  Future<void> _showAddAccountDialog(BuildContext context) async {
-    final bloc = context.read<AppBloc>();
-    final validity = AddAccountSecretCubit(bloc.api);
-    final result = await showDialog<({bool phrase, String value})>(
-      context: context,
-      barrierColor: context.gw.surfaceOverlay,
-      builder: (_) => _AddAccountDialog(validity: validity),
-    ).whenComplete(validity.close);
-
-    if (result == null) {
-      return;
-    }
-
-    final done = Completer<SDKAddOutcome>();
-    bloc.add(
-      result.phrase
-          ? AddSDKAccountWithMnemonic(result.value, done: done)
-          : AddSDKAccountWithPrivateKey(result.value, done: done),
-    );
-    final outcome = await done.future.timeout(
-      const Duration(seconds: 60),
-      onTimeout: () => SDKAddOutcome.failed,
-    );
-
-    if (!context.mounted) {
-      return;
-    }
-    final (message, type, seconds) = switch (outcome) {
-      SDKAddOutcome.added => ('Account added', ToastType.success, 1),
-      SDKAddOutcome.alreadyThere => (
-        'That wallet is already in the app.',
-        ToastType.success,
-        2,
-      ),
-      SDKAddOutcome.pending => (
-        'Wallet saved. Its SDK account is pending and will be added once '
-            'the node is running.',
-        ToastType.warning,
-        4,
-      ),
-      SDKAddOutcome.failed => (
-        'That account could not be added.',
-        ToastType.error,
-        3,
-      ),
-    };
-    showToast(
-      context,
-      message,
-      type: type,
-      duration: Duration(seconds: seconds),
-    );
-  }
-
   Future<void> _showSetPayoutAddressDialog(BuildContext context) async {
     final controller = TextEditingController();
     final bloc = context.read<AppBloc>();
@@ -692,6 +640,63 @@ class SDKAccountManagerButton extends StatelessWidget {
   qr: isSelected && hasMnemonic,
   delete: !isSelected && !isStartAccount,
 );
+
+/// One dialog for both import paths: a segmented control picks mnemonic vs
+/// private key, sharing one warning and one field. The bloc reports exactly
+/// what happened to the pasted secret rather than assuming success.
+Future<void> showAddSdkAccountDialog(BuildContext context) async {
+  final bloc = context.read<AppBloc>();
+  final validity = AddAccountSecretCubit(bloc.api);
+  final result = await showDialog<({bool phrase, String value})>(
+    context: context,
+    barrierColor: context.gw.surfaceOverlay,
+    builder: (_) => _AddAccountDialog(validity: validity),
+  ).whenComplete(validity.close);
+
+  if (result == null) {
+    return;
+  }
+
+  final done = Completer<SDKAddOutcome>();
+  bloc.add(
+    result.phrase
+        ? AddSDKAccountWithMnemonic(result.value, done: done)
+        : AddSDKAccountWithPrivateKey(result.value, done: done),
+  );
+  final outcome = await done.future.timeout(
+    const Duration(seconds: 60),
+    onTimeout: () => SDKAddOutcome.failed,
+  );
+
+  if (!context.mounted) {
+    return;
+  }
+  final (message, type, seconds) = switch (outcome) {
+    SDKAddOutcome.added => ('Account added', ToastType.success, 1),
+    SDKAddOutcome.alreadyThere => (
+      'That wallet is already in the app.',
+      ToastType.success,
+      2,
+    ),
+    SDKAddOutcome.pending => (
+      'Wallet saved. Its SDK account is pending and will be added once '
+          'the node is running.',
+      ToastType.warning,
+      4,
+    ),
+    SDKAddOutcome.failed => (
+      'That account could not be added.',
+      ToastType.error,
+      3,
+    ),
+  };
+  showToast(
+    context,
+    message,
+    type: type,
+    duration: Duration(seconds: seconds),
+  );
+}
 
 /// The merged add-account dialog: pick the import method, then paste.
 class _AddAccountDialog extends StatefulWidget {

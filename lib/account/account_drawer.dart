@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
@@ -19,39 +20,17 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_secure_storage/local_secure_storage.dart'
     show SDKAccountLink;
 import 'package:provider/provider.dart';
 
-/// The account drawer, extracted from `AccountDropdownSelector`'s former
-/// private `_showAccountDrawer` so a second surface can open it - the
-/// compute panel's *not the default account* state offers a switch-wallet
-/// affordance that otherwise has no destination.
-///
-/// This is a code move, not a redesign: the drawer that opens is the same
-/// drawer, with the same title, the same rows, the same footer and the same
-/// body inset.
+/// The account switcher: two independent selections, "Sending from" and
+/// "Node running as" - changing one never touches the other.
 class AccountDrawer {
-  /// Opens the drawer and returns the wallet the user selected, or `null` if
-  /// they dismissed it without picking one.
-  ///
-  /// The selection's side effect - [WalletDetailsCubit.selectWallet], which
-  /// also persists it across restarts - happens HERE, inside the entry, so no
-  /// caller can forget it.
-  ///
-  /// [includeNetwork] prepends a network field and retitles the sheet, which
-  /// is what the phone header's single wallet pill opens: one surface
-  /// answering both "whose wallet" and "on which chain", instead of the two
-  /// separate controls the phone header used to carry.
-  ///
-  /// It defaults to FALSE, and that default is load-bearing. Every existing
-  /// caller - the compute panel's *not the default account* state included -
-  /// passes nothing and gets byte-identical behaviour, title included. The
-  /// title is derived here rather than by the body because
-  /// `test/account/account_drawer_show_test.dart` pins `find.text('Accounts')`
-  /// and must stay green without being edited.
+  /// Opens the switcher and returns the picked wallet, selecting it via
+  /// [WalletDetailsCubit] before returning - the entry itself selects the
+  /// wallet, so no caller can forget to.
   static Future<Wallet?> show(
     BuildContext context, {
     bool includeNetwork = false,
@@ -90,7 +69,7 @@ class AccountDrawer {
       // iconSize 28 (sketch 068-A). Gradient because adding a wallet is the
       // panel's only action and it is a commitment.
       footer: GWButton(
-        label: 'Add Wallet',
+        label: 'Add wallet',
         leading: const Icon(Icons.add),
         variant: GWButtonVariant.gradient,
         size: GWButtonSize.lg,
@@ -437,46 +416,25 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             _RowBadge(label: 'ACTIVE ON NODE', color: gw.brandSecondary),
             const SizedBox(width: GeniusWalletConsts.space3),
           ],
-          // `isShowSuffix: false` -- GeniusBalanceDisplay hard-codes the suffix
-          // as the abbreviation "min", so with it on this row read "0 min"
-          // directly above another row reading "0.0 minions". One unit, two
-          // spellings, adjacent. The suffix is written here instead so both
-          // branches say the same word.
-          if (wallet.walletType == WalletType.sgnus) ...[
-            GeniusBalanceDisplay(
-              useMinions: true,
-              fontSize: 12,
-              fontColor: gw.textSecondary,
+          // Capped and ellipsised ONLY once a badge is in play - the SDK
+          // pill is new width this row never carried before, and this is
+          // the one part of the row allowed to give ground for it.
+          // Unbadged rows keep their exact pre-existing size.
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: sdkBadge == WalletSDKBadge.none ? double.infinity : 48,
             ),
-            Text(
-              ' minions',
+            child: Text(
+              WalletUtils.formatMinions(wallet.balance),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
               style: GeniusWalletTypography.labelMd.copyWith(
                 color: gw.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
-          ] else
-            // Capped and ellipsised ONLY once a badge is in play - the SDK
-            // pill is new width this row never carried before, and this is
-            // the one part of the row allowed to give ground for it.
-            // Unbadged rows keep their exact pre-existing size.
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: sdkBadge == WalletSDKBadge.none
-                    ? double.infinity
-                    : 48,
-              ),
-              child: Text(
-                WalletUtils.formatMinions(wallet.balance),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.end,
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  color: gw.textSecondary,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
+          ),
           if (isWatched) ...[
             const SizedBox(width: GeniusWalletConsts.space3),
             Icon(
@@ -523,32 +481,30 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                   },
                   child: const Text('Copy address'),
                 ),
-                if (wallet.walletType != WalletType.sgnus)
-                  MenuItemButton(
-                    leadingIcon: Icon(
-                      Icons.edit_outlined,
-                      size: 20,
-                      color: gw.textPrimary,
-                    ),
-                    style: MenuItemButton.styleFrom(
-                      foregroundColor: gw.textPrimary,
-                    ),
-                    onPressed: () => _confirmRenameWallet(context, wallet),
-                    child: const Text('Rename'),
+                MenuItemButton(
+                  leadingIcon: Icon(
+                    Icons.edit_outlined,
+                    size: 20,
+                    color: gw.textPrimary,
                   ),
-                if (wallet.walletType != WalletType.sgnus)
-                  MenuItemButton(
-                    leadingIcon: Icon(
-                      Icons.delete_outline,
-                      size: 20,
-                      color: gw.statusErrorText,
-                    ),
-                    onPressed: () => _confirmDeleteWallet(context, wallet),
-                    child: Text(
-                      'Delete',
-                      style: TextStyle(color: gw.statusErrorText),
-                    ),
+                  style: MenuItemButton.styleFrom(
+                    foregroundColor: gw.textPrimary,
                   ),
+                  onPressed: () => _confirmRenameWallet(context, wallet),
+                  child: const Text('Rename'),
+                ),
+                MenuItemButton(
+                  leadingIcon: Icon(
+                    Icons.delete_outline,
+                    size: 20,
+                    color: gw.statusErrorText,
+                  ),
+                  onPressed: () => _confirmDeleteWallet(context, wallet),
+                  child: Text(
+                    'Delete',
+                    style: TextStyle(color: gw.statusErrorText),
+                  ),
+                ),
               ],
             ),
     );
@@ -564,35 +520,15 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
 
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, appState) {
-        final wallets = appState.wallets;
-        // The blanket "You have no wallets!" early return was removed in 24-02.
-        // With two sections each owning its own empty note, it would have
-        // swallowed BOTH headers -- including the one explanation the user most
-        // needs when the list is short, that the node is disconnected.
-        // 24-02: ONE flat list used to hold two unrelated kinds of account.
-        // `app_bloc.dart:628` returns `[...sgnusWallets, ..._baseWallets]`, so
-        // SDK accounts were already sorted first -- but nothing said they were
-        // a different thing, and they differ in almost every way that matters:
-        // unit (minions vs the network's currency), balance source (native SDK
-        // vs RPC), transactions screen, and whether rename/delete are even
-        // allowed. Splitting the list is the smallest change that stops the
-        // drawer implying they are interchangeable.
-        final sdkWallets = wallets
-            .where((w) => w.walletType == WalletType.sgnus)
-            .toList();
-        final ownWallets = wallets
+        // Two independent selections, never one flat list: which wallet sends
+        // and swaps, and which account the node computes on. sgnus rows carry
+        // no selection of their own here - their balance is reached from the
+        // linked SDK row's own menu instead.
+        final ownWallets = appState.wallets
             .where((w) => w.walletType != WalletType.sgnus)
             .toList();
-
-        // `state.sdkAccounts` is filled by `_getSDKAccountState()`, which calls
-        // `api.getAvailableAccounts()` WITHOUT checking the connection.
-        // `_mergeSgnusWallet()` DOES check it and returns base wallets only
-        // when the node is down (app_bloc.dart:606-609). So the two lists
-        // disagreeing is a precise signal: the node has accounts, but is not
-        // connected right now. Without this the rows just vanish and the user
-        // is told nothing.
-        final nodeHasAccounts = appState.sdkAccounts.isNotEmpty;
-        final nodeDisconnected = sdkWallets.isEmpty && nodeHasAccounts;
+        final sdkAccounts = appState.sdkAccounts;
+        final defaultAccount = appState.defaultSDKAccount?.toLowerCase();
 
         return ListView(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
@@ -601,10 +537,6 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             // wallet-and-network surface. One field rather than a list, so the
             // user's own wallets stay above the fold; it opens the same
             // searchable, Mainnet/Testnet picker the desktop selector uses.
-            //
-            // `_AccountSectionHeader` is reused exactly as it stands, with no
-            // variant flag: this section is the same kind of thing the other
-            // two are.
             if (widget.networks.isNotEmpty) ...[
               const _AccountSectionHeader(
                 title: 'Network',
@@ -616,41 +548,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
               ),
               const SizedBox(height: GeniusWalletConsts.space8),
             ],
-            // The SDK section appears only when it has something to SAY -
-            // either real accounts, or the fact that the node dropped and took
-            // them away. A user who has never run a node would otherwise get a
-            // header and an empty box pushing their own wallets below the fold,
-            // which is the first thing they came here for.
-            if (sdkWallets.isNotEmpty || nodeDisconnected) ...[
-              const _AccountSectionHeader(
-                title: 'SDK Accounts',
-                caption:
-                    'Node accounts that earn minions for sharing your GPU. '
-                    'Balances come from the SuperGenius node, and these '
-                    'accounts cannot be renamed or deleted.',
-              ),
-              if (sdkWallets.isNotEmpty)
-                ...sdkWallets.map(
-                  (w) => _buildDrawerRow(
-                    context,
-                    w,
-                    _matchesSelected(w),
-                    isActiveOnNode: w.address == appState.selectedSDKAccount,
-                  ),
-                )
-              else
-                const _AccountSectionNote(
-                  text:
-                      'The SuperGenius node is not connected, so its accounts '
-                      'are unavailable right now.',
-                ),
-              const SizedBox(height: GeniusWalletConsts.space8),
-            ],
             const _AccountSectionHeader(
-              title: 'Your Accounts',
-              caption:
-                  'Wallets you created or imported. Used for swaps, sends and '
-                  'everything else on-chain.',
+              title: 'Sending from',
+              caption: 'Sends, swaps and balances use this wallet.',
             ),
             if (ownWallets.isNotEmpty)
               ...ownWallets.map(
@@ -667,6 +567,33 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
               )
             else
               const _AccountSectionNote(text: 'No wallets yet.'),
+            const SizedBox(height: GeniusWalletConsts.space8),
+            const _AccountSectionHeader(
+              title: 'Node running as',
+              caption: 'The GNUS node processes and earns as this account.',
+            ),
+            // Never vanishes: a disconnected node and a connected-but-empty
+            // node are two different facts, each said in words rather than
+            // left as an absent section.
+            if (sdkAccounts.isNotEmpty)
+              ...sdkAccounts.map(
+                (account) => SDKAccountRow(
+                  address: account,
+                  name: AppBloc.sdkAccountName(
+                    account,
+                    appState.sdkAccountLinks,
+                    appState.wallets,
+                  ),
+                  isSelected: account == appState.selectedSDKAccount,
+                  isStartAccount: account.toLowerCase() == defaultAccount,
+                ),
+              )
+            else
+              _AccountSectionNote(
+                text: appState.defaultSDKAccount == null
+                    ? 'Node not running'
+                    : 'No SDK accounts yet',
+              ),
           ],
         );
       },
@@ -674,11 +601,8 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   }
 }
 
-/// The wallet avatar, shared by this drawer's rows AND
-/// `AccountDropdownSelector`'s collapsed top-bar chip - both need it, and
-/// Dart's file-scoped privacy means a private method can no longer serve
-/// both once the drawer moved to its own file. A public widget rather than a
-/// top-level function, per the house rule against `_buildFoo()` helpers.
+/// The wallet avatar, shared by this drawer's rows and the desktop chip - a
+/// public widget rather than a `_buildFoo()` helper, per the house rule.
 ///
 /// `isSelected` is accepted for parity with the pre-extraction signature but
 /// unused in the body, exactly as it was before this move.
