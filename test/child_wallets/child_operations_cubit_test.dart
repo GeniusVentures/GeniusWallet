@@ -943,6 +943,62 @@ void main() {
 
       cubit.close();
     });
+    test('a zero balance read never resolves a recover: the SDK reads an '
+        'unsynced child as zero too', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(100000000); // 100 GNUS
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(10000000),
+      );
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+
+      api.balances[_childAddress] = BigInt.zero;
+      cubit.resolve();
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.justResolved, isEmpty);
+
+      cubit.close();
+    });
+
+    test('a recover of the whole balance ends Not confirmed yet', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(1000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+
+      api.balances[_childAddress] = BigInt.zero;
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.justResolved, isEmpty);
+
+      cubit.close();
+    });
   });
 
   group('revoke', () {

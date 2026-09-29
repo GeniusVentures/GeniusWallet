@@ -443,8 +443,13 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         return _baselineTrusted(op, now) &&
             _childBalance(op.target) >= op.baselineMinions! + op.amountMinions!;
       case ChildOperationKind.recover:
+        // ponytail: the SDK reads an unsynced child as 0 too, so 0 never
+        // counts and a recover that empties the child ends "Not confirmed
+        // yet"; the upgrade path is a per-write tx hash from the SDK.
+        final current = _childBalance(op.target);
         return _baselineTrusted(op, now) &&
-            _childBalance(op.target) <= op.baselineMinions! - op.amountMinions!;
+            current > BigInt.zero &&
+            current <= op.baselineMinions! - op.amountMinions!;
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
         return _listedUnder(op.main, op.target) == false;
