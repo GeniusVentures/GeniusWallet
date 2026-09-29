@@ -440,6 +440,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   bool _signalMet(ChildOperation op, DateTime now) {
     switch (op.kind) {
       case ChildOperationKind.fund:
+        // ponytail: a baseline read as 0 before the child synced lets its
+        // real balance appearing read as this fund landing; the upgrade path
+        // is a per-write tx hash from the SDK.
         return _baselineTrusted(op, now) &&
             _childBalance(op.target) >= op.baselineMinions! + op.amountMinions!;
       case ChildOperationKind.recover:
