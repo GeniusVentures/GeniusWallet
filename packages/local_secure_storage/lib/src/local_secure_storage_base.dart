@@ -200,6 +200,11 @@ class LocalWalletStorage {
 
   /// A private key and a watch-only row can share one address, so the caller
   /// names which one goes: an address-only match could delete the key.
+  ///
+  /// A key wallet's current name is frozen onto every SDK link it produced
+  /// before the entry is gone, so that account still says whose it was
+  /// (D-08, D-09). Links are never removed here. Watch-only deletes have no
+  /// SDK account and never touch links.
   Future<void> deleteWallet(String walletAddress,
       {required bool watchOnly}) async {
     final target = watchOnly
@@ -209,9 +214,45 @@ class LocalWalletStorage {
 
     for (var entry in keys.entries) {
       if (entry.key.toLowerCase() == target) {
+        if (!watchOnly) {
+          await _freezeLinkNames(walletAddress, entry.value);
+        }
         await deleteKey(entry.key);
         return;
       }
+    }
+  }
+
+  /// Copies the wallet's current name (the field [renameWallet] writes) onto
+  /// every link pointing at it, so a deleted wallet's SDK account keeps
+  /// reading its last known name. A parse failure leaves link names as they
+  /// were.
+  Future<void> _freezeLinkNames(
+    String walletAddress,
+    String storedKeyJson,
+  ) async {
+    try {
+      final name =
+          Map<String, dynamic>.from(jsonDecode(storedKeyJson))['name']
+              as String?;
+      if (name == null) {
+        return;
+      }
+      final lowered = walletAddress.toLowerCase();
+      final links = await getSDKAccountLinks();
+      var changed = false;
+      for (final sdkAddress in links.keys.toList()) {
+        final link = links[sdkAddress]!;
+        if (link.walletAddress == lowered && link.walletName != name) {
+          links[sdkAddress] = (walletAddress: link.walletAddress, walletName: name);
+          changed = true;
+        }
+      }
+      if (changed) {
+        await _writeSDKAccountLinks(links);
+      }
+    } catch (_) {
+      // Leaves link names as they were.
     }
   }
 
@@ -407,6 +448,21 @@ class LocalWalletStorage {
       walletAddress: walletAddress.toLowerCase(),
       walletName: walletName,
     );
+    await _writeSDKAccountLinks(links);
+  }
+
+  /// Drops [sdkAddress]'s link entirely (lowercased). Used when its SDK
+  /// account is deleted along with its wallet, so a stale link never reads
+  /// as "linked" to a wallet that is not coming back.
+  Future<void> removeSDKAccountLink(String sdkAddress) async {
+    final links = await getSDKAccountLinks();
+    if (links.remove(sdkAddress.toLowerCase()) == null) {
+      return;
+    }
+    await _writeSDKAccountLinks(links);
+  }
+
+  Future<void> _writeSDKAccountLinks(Map<String, SDKAccountLink> links) async {
     await _secureStorage.write(
       key: _sdkAccountLinksKey,
       value: jsonEncode(

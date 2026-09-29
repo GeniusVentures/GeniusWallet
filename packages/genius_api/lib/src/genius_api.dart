@@ -209,6 +209,10 @@ class GeniusApi {
   Future<Map<String, SDKAccountLink>> getSDKAccountLinks() =>
       _secureStorage.getSDKAccountLinks();
 
+  /// See [LocalWalletStorage.removeSDKAccountLink].
+  Future<void> removeSDKAccountLink(String sdkAddress) =>
+      _secureStorage.removeSDKAccountLink(sdkAddress);
+
   Future<void> initSDK() => _initFuture ??= _doInitSDK();
 
   Future<void> _doInitSDK() async {
