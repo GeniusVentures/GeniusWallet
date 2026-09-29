@@ -7,7 +7,6 @@ import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart' show SDKAddOutcome, Wallet;
 import 'package:genius_wallet/account/add_account_secret_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
-import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
@@ -21,156 +20,10 @@ import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
-import 'package:genius_wallet/theme/nav_chip_style.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/secret_clipboard.dart';
 import 'package:genius_wallet/utils/secure_screen.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-
-/// A widget that shows the currently selected SDK account and opens a drawer
-/// for managing SDK accounts (select, add, delete).
-///
-/// This is separate from [AccountDropdownSelector] because it manages the
-/// native SDK's account list rather than the app's wallet list. The SDK
-/// account determines which identity the node uses for processing and
-/// minting operations.
-class SDKAccountManagerButton extends StatelessWidget {
-  const SDKAccountManagerButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<AppBloc, AppState>(
-      builder: (context, state) {
-        final selected = state.selectedSDKAccount;
-        final accounts = state.sdkAccounts;
-
-        if (accounts.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Tooltip(
-          message: 'SDK Accounts',
-          child: TextButton(
-            style: navContextChipStyle(context),
-            onPressed: () => _showSDKAccountDrawer(context),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: GeniusWalletConsts.space4,
-              children: [
-                const GWIcon.material(Icons.settings_applications),
-                if (MediaQuery.sizeOf(context).width >= GeniusBreakpoints.small)
-                  // Flexible: the desktop bar squeezes this label before it
-                  // lets the row overflow.
-                  Flexible(
-                    child: Text(
-                      selected != null
-                          ? WalletUtils.getAddressForDisplay(selected)
-                          : 'No account',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                const GWIcon.material(Icons.arrow_drop_down),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _showSDKAccountDrawer(BuildContext context) async {
-    await ResponsiveDrawer.show(
-      context: context,
-      // Owns a scrolling viewport: the inset lives on the list so it scrolls
-      // with the content and rows still reach the panel edge (kDrawerBodyPadding).
-      bodyPadding: EdgeInsets.zero,
-      // Sketch 068-A: the title is the SHELL's again. This drawer used to omit
-      // it and render `BottomDrawer` inside instead -- a second header with a
-      // CENTRED title and the ✕ on the LEFT, where the other eighteen drawers
-      // have it top-right. That was a stand-off until 156-A, which turned it
-      // into a visible defect: the panel is `surfaceElevated` #0C0E14 and
-      // `BottomDrawer` paints itself `surfaceMenu` #171A21, so the header
-      // became a lighter block sitting inside its own drawer.
-      title: 'SDK Accounts',
-      child: BlocBuilder<AppBloc, AppState>(
-        builder: (context, state) {
-          final accounts = state.sdkAccounts;
-          final selected = state.selectedSDKAccount;
-          final defaultAccount = state.defaultSDKAccount?.toLowerCase();
-          // Fail-soft read: registers the InheritedWidget dependency that
-          // forces this content to rebuild on a live appearance toggle
-          // (04-02 D-02).
-          final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-
-          if (accounts.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(GeniusWalletConsts.space10),
-              child: Text(
-                'No SDK accounts available.\nAdd one to get started.',
-                textAlign: TextAlign.center,
-                style: GeniusWalletTypography.bodyMd.copyWith(
-                  color: gw.textSecondary,
-                ),
-              ),
-            );
-          }
-
-          // The inset lives on the scrolling viewport, so it scrolls with the
-          // content and the rows still reach the panel edge
-          // (kDrawerBodyPadding's documented opt-out).
-          return ListView(
-            padding: const EdgeInsets.all(GeniusWalletConsts.space10),
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  bottom: GeniusWalletConsts.space6,
-                ),
-                child: Text(
-                  'Select the account the SDK uses for processing:',
-                  style: GeniusWalletTypography.labelMd.copyWith(
-                    color: gw.textSecondary,
-                  ),
-                ),
-              ),
-              // No separators: GWSelectRow carries its own bottom margin.
-              for (final account in accounts)
-                SDKAccountRow(
-                  address: account,
-                  name: AppBloc.sdkAccountName(
-                    account,
-                    state.sdkAccountLinks,
-                    state.wallets,
-                  ),
-                  isSelected: account == selected,
-                  isStartAccount: account.toLowerCase() == defaultAccount,
-                ),
-            ],
-          );
-        },
-      ),
-      // ONE CTA, not two (sketch 069-A). Two `Expanded` buttons in a 420px
-      // panel get 420 - 40 padding - 8 gap = 186px each, and "Add with private
-      // key" plus its 20px leading icon needs about 210 -- so BOTH labels were
-      // silently ellipsized to "Add with mn…" and "Add with priv…". Nothing was
-      // misconfigured; the layout was asking for more room than exists.
-      //
-      // The mnemonic/private-key choice moved INTO the dialog, where it is one
-      // segmented control rather than two competing CTAs, and where both paths
-      // can share one warning and one field.
-      footer: GWButton(
-        label: 'Add account',
-        leading: const GWIcon.material(Icons.add),
-        variant: GWButtonVariant.gradient,
-        size: GWButtonSize.lg,
-        expand: true,
-        onPressed: () => showAddSdkAccountDialog(context),
-      ),
-    );
-  }
-}
 
 /// One row in the "Node running as" section: an SDK account's identity, its
 /// selection state and the menu that manages it (payout address, recovery
