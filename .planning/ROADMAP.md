@@ -1488,7 +1488,7 @@ for the full dependency reasoning.
 - [ ] **Phase 35: Unified header switcher** - One header control, desktop and mobile, for the SDK wallet and the active wallet
 - [ ] **Phase 36: Child wallet bindings & read-only view** - The 11 child functions are bound and safe; the user sees their children and balances
 - [ ] **Phase 37: Child write operations & pending model** - Register, fund, recover, revoke, detach, replace-main, with an honest pending state and a switch lock
-- [x] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
+- [ ] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
 
 ## Phase Details
 
