@@ -1,16 +1,20 @@
 // Deleting an SDK account takes its linked wallet with it (D-10), refuses
 // while that wallet is active or is the last one (D-11), and a plain wallet
 // delete never reaches an SDK account at all (D-08).
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart'
     show SDKAccountLink;
@@ -53,6 +57,9 @@ class _Api implements GeniusApi {
   String? getSelectedAccountAddress() => null;
 
   @override
+  String? getSelectedAccountMnemonic() => null;
+
+  @override
   List<String> getAvailableAccounts() => const [];
 
   @override
@@ -89,11 +96,18 @@ class _SeededAppBloc extends AppBloc {
     required super.walletDetailsCubit,
     required List<Wallet> wallets,
     Map<String, SDKAccountLink> sdkAccountLinks = const {},
+    List<String> sdkAccounts = const [],
   }) : super(
          transactionsCubit: TransactionsCubit(),
          networkProvider: NetworkProvider(),
        ) {
-    emit(state.copyWith(wallets: wallets, sdkAccountLinks: sdkAccountLinks));
+    emit(
+      state.copyWith(
+        wallets: wallets,
+        sdkAccountLinks: sdkAccountLinks,
+        sdkAccounts: sdkAccounts,
+      ),
+    );
   }
 }
 
@@ -305,6 +319,57 @@ void main() {
       expect(api.deletedAccounts, isEmpty);
       expect(api.removedLinks, isEmpty);
       expect(api.deletedWallet, _walletAddr);
+    },
+  );
+
+  testWidgets(
+    'the delete dialog names the linked wallet, and refuses while it is '
+    'the active wallet',
+    (tester) async {
+      final api = _Api();
+      final details = WalletDetailsCubit(
+        initialState: WalletDetailsState(selectedWallet: wallet),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final bloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: details,
+        wallets: [wallet, other],
+        sdkAccountLinks: _link,
+        sdkAccounts: [_sdkAddr],
+      );
+      try {
+        await tester.pumpWidget(
+          BlocProvider<AppBloc>.value(
+            value: bloc,
+            child: MaterialApp(
+              theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
+              home: const Scaffold(body: SDKAccountManagerButton()),
+            ),
+          ),
+        );
+        await tester.tap(find.byType(SDKAccountManagerButton));
+        await tester.pumpAndSettle();
+        expect(find.text('Main'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Account options'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete account'));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.textContaining('"Main" is your active wallet.'),
+          findsOneWidget,
+        );
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+
+        expect(api.deletedAccounts, isEmpty);
+      } finally {
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+      }
     },
   );
 }

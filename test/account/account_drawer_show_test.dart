@@ -43,6 +43,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -81,6 +82,35 @@ class _FakeGeniusApi implements GeniusApi {
 class _FakeGeniusApiWithBalance extends _FakeGeniusApi {
   @override
   String getMinionsBalance([String? tokenId]) => '0';
+}
+
+/// Tracks a delete so a test can prove the row menu's confirmed delete
+/// reached the bloc's own call, not a bypassed one (D-12).
+class _DeletingApi extends _FakeGeniusApi {
+  String? deleted;
+  bool? deletedWatchOnly;
+
+  @override
+  Future<void> deleteWallet(String address, {required bool watchOnly}) async {
+    deleted = address;
+    deletedWatchOnly = watchOnly;
+  }
+
+  @override
+  Stream<SGNUSConnection> getSGNUSConnectionStream() =>
+      Stream.value(SGNUSConnection.empty());
+
+  @override
+  String? getSelectedAccountAddress() => null;
+
+  @override
+  String? getStartAccountAddress() => null;
+
+  @override
+  List<String> getAvailableAccounts() => const [];
+
+  @override
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {};
 }
 
 /// Seeds `AppBloc.state.wallets` directly, bypassing `LoadWallets` (which
@@ -146,13 +176,14 @@ _Harness _build(
   List<Wallet> wallets, {
   Map<String, SDKAccountLink> sdkAccountLinks = const {},
   String? defaultSDKAccount,
+  GeniusApi? api,
 }) {
   final walletDetailsCubit = WalletDetailsCubit(
-    geniusApi: _FakeGeniusApi(),
+    geniusApi: api ?? _FakeGeniusApi(),
     networkTokensProvider: NetworkTokensProvider(),
   );
   final appBloc = _SeededAppBloc(
-    api: _FakeGeniusApi(),
+    api: api ?? _FakeGeniusApi(),
     transactionsCubit: TransactionsCubit(),
     walletDetailsCubit: walletDetailsCubit,
     networkProvider: NetworkProvider(),
@@ -511,4 +542,40 @@ void main() {
       },
     );
   });
+
+  testWidgets(
+    'the row menu, Delete, then confirm deletes Wallet B through the bloc '
+    '(D-12)',
+    (tester) async {
+      final api = _DeletingApi();
+      final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+      final harness = _build([_walletA, _walletB], api: api);
+      final pending = _Pending();
+      try {
+        await tester.pumpWidget(
+          _openerHost(
+            walletDetailsCubit: harness.walletDetailsCubit,
+            appBloc: harness.appBloc,
+            pending: pending,
+          ),
+        );
+
+        await tester.tap(find.text('open drawer'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.more_vert).at(1));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+        expect(find.text('Delete wallet'), findsOneWidget);
+        await tester.tap(find.text('Delete'));
+        await tester.pumpAndSettle();
+
+        expect(api.deleted, _walletB.address);
+        expect(api.deletedWatchOnly, isFalse);
+      } finally {
+        await harness.dispose(tester);
+        await box.close();
+      }
+    },
+  );
 }

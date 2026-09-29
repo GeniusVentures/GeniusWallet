@@ -431,16 +431,64 @@ class SDKAccountManagerButton extends StatelessWidget {
     String address,
   ) async {
     final bloc = context.read<AppBloc>();
+    // Read straight off the bloc and its own cubit - no provider lookup - so
+    // the block and the wallet it names agree with what the delete itself
+    // will enforce (D-10, D-11).
+    final block = AppBloc.sdkDeleteBlock(
+      sdkAddress: address,
+      defaultAccount: bloc.state.defaultSDKAccount,
+      links: bloc.state.sdkAccountLinks,
+      wallets: bloc.state.wallets,
+      activeWallet: bloc.walletDetailsCubit.state.selectedWallet,
+    );
+    final linked = AppBloc.linkedWallet(
+      address,
+      bloc.state.sdkAccountLinks,
+      bloc.state.wallets,
+    );
     final navigator = Navigator.of(context, rootNavigator: true);
     Navigator.of(context).pop();
+
+    if (block == SDKDeleteBlock.defaultAccount) {
+      return;
+    }
+    if (block == SDKDeleteBlock.activeWallet) {
+      await GWDialog.show<void>(
+        context: navigator.context,
+        title: 'Cannot delete this account',
+        message:
+            '"${linked?.walletName}" is your active wallet. Pick another '
+            'active wallet first, then delete this account.',
+        actions: [
+          GWDialogAction(label: 'OK', onPressed: () => navigator.pop()),
+        ],
+      );
+      return;
+    }
+    if (block == SDKDeleteBlock.lastWallet) {
+      await GWDialog.show<void>(
+        context: navigator.context,
+        title: 'Cannot delete this account',
+        message:
+            'Deleting this account also removes "${linked?.walletName}", and '
+            'you must keep at least one wallet.',
+        actions: [
+          GWDialogAction(label: 'OK', onPressed: () => navigator.pop()),
+        ],
+      );
+      return;
+    }
 
     final confirmed = await GWDialog.show<bool>(
       context: navigator.context,
       title: 'Delete SDK account',
-      message:
-          'The SDK will stop being able to sign with '
-          '${WalletUtils.getAddressForDisplay(address)}. If you have no copy '
-          'of its recovery phrase, this account cannot be restored.',
+      message: linked != null
+          ? 'This deletes the SDK account and removes the wallet '
+                '"${linked.walletName}" from the app. If you have no copy of '
+                'its recovery phrase, neither can be restored.'
+          : 'The SDK will stop being able to sign with '
+                '${WalletUtils.getAddressForDisplay(address)}. If you have no '
+                'copy of its recovery phrase, this account cannot be restored.',
       actions: [
         GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
         GWDialogAction(
