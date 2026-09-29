@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Child wallets & account linking
-current_phase: 36
-current_phase_name: Child wallet bindings & read-only view
+current_phase: 37
+current_phase_name: Child write operations & pending model
 status: executing
 stopped_at: Phase 34 context gathered
-last_updated: "2026-09-29T06:45:18.312Z"
+last_updated: "2026-09-29T08:48:15.679Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 34 execution started
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 11
+  completed_phases: 3
+  total_plans: 16
   completed_plans: 11
-  percent: 50
+  percent: 69
 resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
 ---
 
@@ -25,14 +25,14 @@ resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 36 — Child wallet bindings & read-only view
+**Current focus:** Phase 37 — Child write operations & pending model
 
 ## Current Position
 
-Phase: 36 (Child wallet bindings & read-only view) — EXECUTING
-Plan: 3 of 3 (complete)
-Status: Phase 36 executed and verified (human walk pending); Phase 37 next
-Last activity: 2026-09-29 — Phase 36 execution started
+Phase: 37 (Child write operations & pending model) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 37
+Last activity: 2026-09-29 — Phase 37 execution started
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
 
