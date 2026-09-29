@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/data/gw_row_badge.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart'
     show formatTokenAmount;
+import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// The present-participle phrase [op] shows while still pending.
@@ -24,23 +26,44 @@ String resolvedText(ChildOperation op, String Function(String) labelFor) {
   }
 }
 
-/// The pending badge for one row. No spinner by construction: the write is
-/// synchronous, so this badge IS the in-flight state.
+/// The pending, or timed-out, badge for one row. No spinner by construction:
+/// the write is synchronous, so this badge IS the in-flight state. A
+/// notConfirmed op adds a "Check again" button beside it.
 class ChildOperationBadge extends StatelessWidget {
   const ChildOperationBadge({
     super.key,
     required this.op,
     required this.labelFor,
+    required this.onCheckAgain,
   });
 
   final ChildOperation op;
   final String Function(String) labelFor;
+  final VoidCallback onCheckAgain;
 
   @override
   Widget build(BuildContext context) {
-    return GWRowBadge(
-      label: pendingText(op, labelFor),
+    final badge = GWRowBadge(
+      label: op.notConfirmed ? 'Not confirmed yet' : pendingText(op, labelFor),
       color: context.gw.statusWarningText,
+    );
+    if (!op.notConfirmed) {
+      return badge;
+    }
+    // Wrap, not Row: a narrow row has no space beside the badge for a
+    // button too, so this drops to a second line instead of overflowing.
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: GeniusWalletConsts.space2,
+      children: [
+        badge,
+        GWButton(
+          label: 'Check again',
+          variant: GWButtonVariant.ghost,
+          size: GWButtonSize.sm,
+          onPressed: onCheckAgain,
+        ),
+      ],
     );
   }
 }

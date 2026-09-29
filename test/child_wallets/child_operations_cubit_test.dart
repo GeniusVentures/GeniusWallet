@@ -4,6 +4,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 
@@ -20,10 +21,9 @@ const _appState = AppState(
 );
 
 /// `implements`, not `extends`: the real constructor dlopens the native SDK.
+/// A refused fund is exercised at the widget level in
+/// child_operation_actions_test.dart -- this fake always returns OK.
 class _FakeApi implements GeniusApi {
-  _FakeApi({this.fundResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK});
-
-  final GeniusNodeReturnValue fundResult;
   final Map<String, BigInt> balances = {};
   int fundCallCount = 0;
 
@@ -38,7 +38,7 @@ class _FakeApi implements GeniusApi {
   @override
   GeniusNodeReturnValue fundChildGnus(String amountGnus, String childAddress) {
     fundCallCount++;
-    return fundResult;
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   }
 
   @override

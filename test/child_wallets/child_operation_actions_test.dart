@@ -323,7 +323,7 @@ void main() {
     );
     now = submittedAt.add(const Duration(minutes: 2));
     operations.resolve();
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Not confirmed yet'), findsOneWidget);
 
