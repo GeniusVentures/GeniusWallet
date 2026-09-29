@@ -34,9 +34,9 @@ status: complete
 - Three dev-bubble buttons (Writes confirm / Writes time out / Writes fail) between Node not running and Clear
 
 ## Task Commits
-1. Coverage for simulated writes - `877d493a` (test)
-2. Simulate writes behind the dev gate (GREEN) - `b8faa34a` (feat)
-3. Write-mode buttons in the dev bubble; phase gate - `b3391491` (feat)
+1. Coverage for simulated writes - `3328bfc9` (test)
+2. Simulate writes behind the dev gate (GREEN) - `42dc0320` (feat)
+3. Write-mode buttons in the dev bubble; phase gate - `0167d4cf` (feat)
 
 ## Verification
 No plan deviations. Full suite: 2149 passed / 5 skipped / 0 failed (2133 baseline + 16 new). `flutter analyze lib test`: 0 issues. Format/brace/raw-colour/key-logging scripts clean. ID-identifier gate: 0 matches on all three commits. Windows debug build compiled (not run).

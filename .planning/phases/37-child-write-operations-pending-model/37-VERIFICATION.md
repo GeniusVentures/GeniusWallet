@@ -14,13 +14,13 @@ human_verification:
     why_human: "Requires launching the app in a dev-tools debug build and clicking through the bubble; the agent may not run the app. All of this is unit/widget-tested already (test/dev/dev_mock_child_wallets_test.dart, test/child_wallets/*), but a manual walk is the SUMMARY-claimed and roadmap-required closing check for VER-01/VER-02's dev-mock half."
   - test: "The one-per-child Fund/Recover lock and its balance netting (_committed/payingBalance), walked by hand against two children and two mains"
     expected: "A main funding two different children at once never lets the second exceed its real balance; a second Fund/Recover on the SAME child while the first is pending or timed-out-but-not-expired is refused with 'Already funding this child' / the earlier-transfer message; the lock releases only at the 6-minute expiry or on an observed landing"
-    why_human: "REVIEW-FIX (iteration 4, commits 74d78806/ebc1edea) marks this fix explicitly 'requires human verification (logic)' — money-safety logic that unit tests cover but a human review round asked to be re-walked live before trusting it with real GNUS"
+    why_human: "REVIEW-FIX (iteration 4, commits fbd8e014/165379b7) marks this fix explicitly 'requires human verification (logic)' — money-safety logic that unit tests cover but a human review round asked to be re-walked live before trusting it with real GNUS"
   - test: "View-scoped resolution after an account switch (_onOwnView) and the expired/switchedAway flags"
     expected: "A fund or recover submitted from M1 never resolves while the node runs as M2, even if M2's read of the child happens to satisfy the signal; switching back to M1 does not revive it; the op keeps holding its lock until 6 minutes after submission regardless of how many times the account is switched"
-    why_human: "REVIEW-FIX iterations 5-7 (commits 3d89be2a, 0b0b6115, 9ee14b7f, 65549888) are each marked 'requires human verification (logic)' — the reviewer could not prove from the SDK's docs alone that a switched account's read of a child differs from another account's, so this was accepted as tested-but-not-field-proven"
+    why_human: "REVIEW-FIX iterations 5-7 (commits e02deb7e, 5e522382, 42728e9f, 5297dd52) are each marked 'requires human verification (logic)' — the reviewer could not prove from the SDK's docs alone that a switched account's read of a child differs from another account's, so this was accepted as tested-but-not-field-proven"
   - test: "Mixed mock/real source isolation (op.mocked vs _devMocked) across an arm/clear cycle mid-operation"
     expected: "A real fund submitted before a dev preset is armed never resolves off the mock's fixture balance, and a mock-submitted write never resolves off a real SDK read after 'Clear' — both stay pending/time out until read from the same source they were submitted to"
-    why_human: "REVIEW-FIX iteration 5 WR-03 (commit 1f2fb4da) is marked 'requires human verification (logic)' — this is exactly the dev-bubble walk's own correctness precondition, so it is worth a dedicated manual pass rather than trusting the unit test alone"
+    why_human: "REVIEW-FIX iteration 5 WR-03 (commit b17461e0) is marked 'requires human verification (logic)' — this is exactly the dev-bubble walk's own correctness precondition, so it is worth a dedicated manual pass rather than trusting the unit test alone"
   - test: "Windows debug build sanity launch (build only was verified here, not launched)"
     expected: "genius_wallet.exe from the 37-05 Windows debug build starts and the Child wallets screen (and its new menu/card actions) render without a crash"
     why_human: "The orchestrator's established context says the build compiled in plan 37-05 but was never run; this agent is also instructed never to run the app or touch wallet data directories"
@@ -49,7 +49,7 @@ human_verification:
 
 ### Observable Truths — Plan-level must_haves (all 5 plans)
 
-Every truth below traces to a specific plan's `must_haves.truths`. All were checked against the current HEAD (`65549888`) source, not narrated from SUMMARY/REVIEW-FIX claims.
+Every truth below traces to a specific plan's `must_haves.truths`. All were checked against the current HEAD (`5297dd52`) source, not narrated from SUMMARY/REVIEW-FIX claims.
 
 | Plan | Truth (paraphrased) | Status | Evidence |
 |------|----------------------|--------|----------|
@@ -179,19 +179,19 @@ None. Scanned every phase-modified file for `TBD|FIXME|XXX`, `TODO|HACK|PLACEHOL
 
 **Test:** From one main, fund two different children concurrently; on one child, attempt a second Fund/Recover while the first is pending, then again once it has timed out but not yet expired (before 6:00), then again after expiry.
 **Expected:** The two-child case never lets the second exceed the main's real balance; the same-child case is refused with the pending/earlier-transfer message until 6:00, then allowed.
-**Why human:** REVIEW-FIX (iteration 4, commits `74d78806`/`ebc1edea`) explicitly tags this "requires human verification (logic)" — it is money-safety logic covered by unit tests but flagged for a live re-walk before trusting real GNUS to it.
+**Why human:** REVIEW-FIX (iteration 4, commits `fbd8e014`/`165379b7`) explicitly tags this "requires human verification (logic)" — it is money-safety logic covered by unit tests but flagged for a live re-walk before trusting real GNUS to it.
 
 ### 4. View-scoped resolution across an account switch
 
 **Test:** Submit a Fund or Recover from M1, let it time out (past 2:00), switch the running account to M2, then back to M1, before 6:00 elapses.
 **Expected:** It never resolves while M2 is running, even if M2's read happens to satisfy the balance signal; it keeps its hold and lock the whole 6 minutes regardless of how many switches happen; it resolves or expires normally once observed from M1 again.
-**Why human:** REVIEW-FIX iterations 5-7 (`3d89be2a`, `0b0b6115`, `9ee14b7f`, `65549888`) are each tagged "requires human verification (logic)" — the SDK's docs don't confirm whether a switched account's synced view of a child differs from another's, so this was accepted as tested-but-not-field-proven.
+**Why human:** REVIEW-FIX iterations 5-7 (`e02deb7e`, `5e522382`, `42728e9f`, `5297dd52`) are each tagged "requires human verification (logic)" — the SDK's docs don't confirm whether a switched account's synced view of a child differs from another's, so this was accepted as tested-but-not-field-proven.
 
 ### 5. Mixed mock/real source isolation
 
 **Test:** Submit a real Fund (no preset armed) so it goes pending, then arm a dev preset mid-flight; separately, submit a mock Fund under a preset, then tap "Clear" mid-flight.
 **Expected:** Neither op resolves off the other source's read; both continue to time out/expire normally rather than falsely resolving.
-**Why human:** REVIEW-FIX iteration 5 WR-03 (`1f2fb4da`) is tagged "requires human verification (logic)" — this is the precondition for trusting human verification item #2's own dev-bubble walk, so it is worth confirming directly.
+**Why human:** REVIEW-FIX iteration 5 WR-03 (`b17461e0`) is tagged "requires human verification (logic)" — this is the precondition for trusting human verification item #2's own dev-bubble walk, so it is worth confirming directly.
 
 ### 6. Windows debug build launch sanity
 

@@ -29,7 +29,7 @@ pure refactor, so no test can fail before it. The existing picker widget tests c
 ### CR-01: Concurrent Fund/Recover submissions from one account can jointly exceed its real balance
 
 **Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `test/child_wallets/child_operations_cubit_test.dart`
-**Commit:** a5f11640
+**Commit:** 8dbc0077
 **Status:** fixed: requires human verification (logic)
 **Applied fix:** `payingBalance()` now subtracts `_committed()`, which is the total of every tracked
 op drawing on the same balance: Fund ops from the running account, or Recover ops on that child.
@@ -45,7 +45,7 @@ holding its share of the child's balance.
 ### CR-02: A resubmitted operation can resolve on an unrelated, older operation's late-arriving effect
 
 **Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `test/child_wallets/child_operations_cubit_test.dart`
-**Commit:** 6563386f
+**Commit:** 89ab7edb
 **Status:** fixed: requires human verification (logic)
 **Applied fix:** The timed-out op is carried forward instead of dropped. The retry inherits the old
 op's `baselineMinions` and gets a new `carriedMinions` equal to the old op's total. `totalMinions`
@@ -60,7 +60,7 @@ The recover mirror is tested too.
 ### WR-01: `submit()` has no registry-level guard against a self-referential register/move
 
 **Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `test/child_wallets/child_operations_cubit_test.dart`
-**Commit:** fdfd57e3
+**Commit:** 014640a9
 **Applied fix:** `submit()` returns null with no SDK call when a register's main equals the target
 (the running account), or when a move's newMain is null, equals the target, or equals the current
 main. All comparisons are case-insensitive. Tests use upper-cased addresses to prove it.
@@ -68,7 +68,7 @@ main. All comparisons are case-insensitive. Tests use upper-cased addresses to p
 ### WR-02: A badge shows only the most-recently-submitted operation, hiding a concurrently-pending sibling
 
 **Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `lib/child_wallets/child_wallets_screen.dart`, `test/child_wallets/child_operation_actions_test.dart`
-**Commit:** 6ffb5019
+**Commit:** 7804937b
 **Applied fix:** `latestFor()` is replaced by `operationsFor()`, which returns every tracked op on the
 target in submission order. The child row renders one `ChildOperationBadge` per op in a
 right-aligned `Column` (`space2` apart). The "This account" card renders each op under the status
@@ -78,7 +78,7 @@ existing 320px no-overflow test still passes.
 ### WR-03: `ChildOperationToasts` silently drops a resolution toast if the navigator hasn't attached
 
 **Files modified:** `lib/child_wallets/child_operation_status.dart`, `test/child_wallets/child_operation_actions_test.dart`
-**Commit:** 52025627
+**Commit:** dcbed3d3
 **Applied fix:** When `navigatorKey.currentContext` is null, the listener now retries through
 `addPostFrameCallback` instead of returning. It does not schedule frames itself, so there is no busy
 loop. `labelFor` is captured when the listener fires. Widget test: the op resolves while no
@@ -87,7 +87,7 @@ loop. `labelFor` is captured when the listener fires. Widget test: the op resolv
 ### WR-04: `_MainPickerDialogState` repeats the `_buildFoo(): Widget` helper-method pattern AGENTS.md forbids
 
 **Files modified:** `lib/child_wallets/child_main_picker_dialog.dart`
-**Commit:** 5a57149c
+**Commit:** e260cb80
 **Applied fix:** `_listContent`/`_manualContent` became the private StatelessWidgets
 `_MainPickerListContent` (candidates, nameFor, picked, onPick, onManual) and
 `_MainPickerManualContent` (controller, error, onBack, onChanged). The manual-entry error moved to a
@@ -97,7 +97,7 @@ loop. `labelFor` is captured when the listener fires. Widget test: the op resolv
 ## Verification
 
 All gates ran in the **main checkout** (`workflow.use_worktrees: false`, so no worktree was created)
-on `gsd/v3.0-child-wallets`, at HEAD 5a57149c:
+on `gsd/v3.0-child-wallets`, at HEAD e260cb80:
 
 - `flutter test`: 2158 passed / 5 skipped / 0 failed. That is the 2149 baseline plus 9 new tests.
 - `flutter analyze lib test`: No issues found (exit 0).
@@ -127,7 +127,7 @@ possible, the fix picks the one that ends in "Not confirmed yet" rather than a p
 ### WR-01: A retry inherits a baseline of any age
 
 **Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `test/child_wallets/child_operations_cubit_test.dart`
-**Commit:** 47d002ce
+**Commit:** ee79b023
 **Status:** fixed: requires human verification (logic)
 **Applied fix:** Each fund or recover now records `baselineAt`. A baseline older than three timeouts
 (6 min) is never trusted. `_signalMet` returns false past that point, for every fund or recover op,
@@ -151,7 +151,7 @@ later, retry 5). Nothing resolves at the hour mark. The retry gets a fresh basel
 ### WR-02: `replaces` ignores which main paid
 
 **Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `test/child_wallets/child_operations_cubit_test.dart`
-**Commit:** d2ee0587
+**Commit:** ecc3a6be
 **Status:** fixed: requires human verification (logic)
 **Applied fix:** `replaces` also requires `fromAccount` to equal the submitting account
 (case-insensitive). The old main's op stays as its own entry, and its hold stays on the old main.
@@ -166,7 +166,7 @@ and then M2's op resolves.
 ### WR-03: A retry never checks whether the attempt it replaces landed, and names only its own amount
 
 **Files modified:** `lib/child_wallets/child_operation_dialogs.dart`, `lib/child_wallets/child_operation_status.dart`, `test/child_wallets/child_operation_actions_test.dart`
-**Commit:** b7504e13
+**Commit:** 508dde04
 **Applied fix:** `startFund` and `startRecover` call `registry.resolve()` before the amount dialog
 opens. A late-landed earlier attempt then resolves, toasts and releases its hold, and the next fund
 does not carry it. The badge and toast show `totalMinions` and add ", including an earlier attempt"
@@ -180,7 +180,7 @@ on the badge and in the toast.
 ## Verification (iteration 3)
 
 All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
-at HEAD b7504e13:
+at HEAD 508dde04:
 
 - `flutter test`: 2162 passed / 5 skipped / 0 failed. That is the 2158 baseline plus 4 new tests.
 - `flutter analyze lib test`: No issues found (exit 0).
@@ -220,7 +220,7 @@ funding two children still can't overspend), and `resolve()` before the amount d
 ### CR-01, CR-02: cross-account and inherited-baseline false "done"
 
 **Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `lib/child_wallets/child_operation_status.dart`, `lib/child_wallets/child_operation_dialogs.dart`, `lib/child_wallets/child_wallets_screen.dart`, both test files
-**Commits:** 74d78806 (registry), ebc1edea (menu + dialog)
+**Commits:** fbd8e014 (registry), 165379b7 (menu + dialog)
 **Status:** fixed: requires human verification (logic)
 **Applied fix:** `balanceLockReason(target)` is the single lock. `submit()` refuses a Fund or Recover
 while any fund or recover on that child, from any account, is pending or timed out but not
@@ -239,7 +239,7 @@ GENIUS_NODE_RET_OK`.
 
 ### CR-03: recover resolves on a 0 read
 
-**Commit:** 5aff522f
+**Commit:** afd33569
 **Status:** fixed: requires human verification (logic)
 **Applied fix:** `_signalMet` for recover requires `current > 0`, marked with a `ponytail:` comment.
 A recover that empties the child ends "Not confirmed yet". The review's own test (recover 10 from
@@ -249,7 +249,7 @@ A recover that empties the child ends "Not confirmed yet". The review's own test
 
 ### WR-01: fund baseline read as 0 before the child synced
 
-**Commit:** 859e770b
+**Commit:** 38ec4ab5
 **Reason:** the amendment accepts this as a known ceiling. A `ponytail:` comment on the fund signal
 names it. The upgrade path is a per-write tx hash.
 
@@ -272,7 +272,7 @@ names it. The upgrade path is a per-write tx hash.
 ## Verification (iteration 4)
 
 All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
-at HEAD 859e770b:
+at HEAD 38ec4ab5:
 
 - `flutter test`: 2165 passed / 5 skipped / 0 failed (2162 - 7 removed + 10 new).
 - `flutter analyze lib test`: No issues found, exit 0.
@@ -296,7 +296,7 @@ test that failed first. IN-01 and IN-03 stay as documented info. IN-02 got one c
 
 ### WR-01: a timed-out fund/recover resolves on another account's view after a switch
 
-**Commit:** 3d89be2a · **Status:** fixed: requires human verification (logic)
+**Commit:** e02deb7e · **Status:** fixed: requires human verification (logic)
 **Applied fix:** `_onOwnView(op)` requires the running account to equal `op.fromAccount`
 (case-insensitive) before a fund or recover can resolve. On another account the op stays
 pending or timed out. It still expires at 6 minutes, because expiry does not go through the
@@ -309,7 +309,7 @@ trip M1 -> M2 -> M1 inside the window still resolves on a view that may be resyn
 
 ### WR-02: `expired` does not stop a resolve
 
-**Commit:** 0b0b6115 · **Status:** fixed: requires human verification (logic)
+**Commit:** 5e522382 · **Status:** fixed: requires human verification (logic)
 **Applied fix:** `_signalMet` returns false first when `op.expired`. As a side effect, expired
 recovers no longer read the balance on every poll. The `Stopwatch` option was not taken. A
 backwards step still delays timeout and expiry of a live op. **Test:** a fund expires, the clock
@@ -318,7 +318,7 @@ lock returns.
 
 ### WR-03: debug builds mix mock and real reads across one op
 
-**Commit:** 1f2fb4da · **Status:** fixed: requires human verification (logic)
+**Commit:** b17461e0 · **Status:** fixed: requires human verification (logic)
 **Applied fix:** `ChildOperation.mocked` is set from `_devMocked` at submit. `_signalMet` returns
 false while `op.mocked != _devMocked`, so the op times out or expires instead. This covers every
 kind, including revoke and detach. **Seam:** `kShowDevTools` is a compile-time `false` under
@@ -330,7 +330,7 @@ resolve it. `justResolved` stays empty in both, so no toast.
 
 ### WR-04: the poll's stop condition had no test
 
-**Commit:** c1575e7f
+**Commit:** ed158052
 **Applied fix:** a widget test moves the injected clock and the fake timers together, 10 s per
 tick, with no manual `resolve()`. Fund and Recover stay locked at 2 min and unlock at 6. The
 registry is left open, so a poll that outlives expiry fails the test as a pending Timer.
@@ -339,7 +339,7 @@ registry is left open, so a poll that outlives expiry fails the test as a pendin
 
 ### WR-05: two doc comments over 3 lines
 
-**Commit:** c8887712
+**Commit:** 5926049f
 **Applied fix:** `submit` and `resolve` are now 3 lines each. They keep the reasons: a refused
 write never shows as pending, the signal is checked before the timeout, and there is no emit
 without a change.
@@ -349,12 +349,12 @@ without a change.
 - **IN-01** (Check again on an expired op), **IN-03** (expiry releases a hold still in flight):
   left as documented. Not changed.
 - **IN-02:** the recover `ponytail:` now says a MAX recover empties the child and cannot confirm.
-  It ends "Not confirmed yet" and locks the child until expiry. Commit 437fd6d3.
+  It ends "Not confirmed yet" and locks the child until expiry. Commit 036cfc02.
 
 ## Verification (iteration 5)
 
 All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
-at HEAD 437fd6d3:
+at HEAD 036cfc02:
 
 - `flutter test`: 2170 passed / 5 skipped / 0 failed (2165 + 5 new).
 - `flutter analyze lib test`: No issues found, exit 0.
@@ -371,7 +371,7 @@ _Iteration: 5_
 # Iteration 6
 
 **Scope:** the item left open in iteration 5, the round trip M1 -> M2 -> M1 inside the 6-min window.
-**Commit:** 9ee14b7f · **Status:** fixed: requires human verification (logic)
+**Commit:** 42728e9f · **Status:** fixed: requires human verification (logic)
 
 **Applied fix:** in `resolve()`, a fund or recover also expires when `_onOwnView(op)` is false. The
 registry now takes `appStates` (AppBloc's stream, wired in `lib/main.dart`) and runs `resolve()` on
@@ -396,7 +396,7 @@ tests still pass only because they never call `resolve()` while on the new main.
 ## Verification (iteration 6)
 
 All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
-at HEAD 9ee14b7f:
+at HEAD 42728e9f:
 
 - `flutter test`: 2171 passed / 5 skipped / 0 failed (2170 + 1 new).
 - `flutter analyze lib test`: No issues found, exit 0.
@@ -413,7 +413,7 @@ _Iteration: 6_
 
 **Decision applied:** safety over convenience. An op that switched away never resolves, but it keeps
 its hold and its lock until 6 min after submit.
-**Commit:** 65549888 · **Status:** fixed: requires human verification (logic)
+**Commit:** 5297dd52 · **Status:** fixed: requires human verification (logic)
 
 **Applied fix:** a new `switchedAway` flag separates "can no longer resolve" from "released". A
 switch sets it (plus `notConfirmed`), and `_signalMet` refuses on it. `expired` now only means the
@@ -432,7 +432,7 @@ resolved. Both failed before the change.
 ## Verification (iteration 7)
 
 All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
-at HEAD 65549888:
+at HEAD 5297dd52:
 
 - `flutter test`: 2172 passed / 5 skipped / 0 failed (2171 + 1 new).
 - `flutter analyze lib test`: No issues found, exit 0.

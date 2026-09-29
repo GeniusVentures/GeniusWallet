@@ -31,8 +31,8 @@ status: complete
 - CHILD WALLETS bubble section (None / One child / Three children / Query error / Node not running / Clear), inserted after BANXA and before NAVIGATE
 
 ## Task Commits
-1. Dev presets, gated in the cubit - `36503bd4` (feat)
-2. CHILD WALLETS section in the dev bubble; phase gate - `8e34b44b` (feat)
+1. Dev presets, gated in the cubit - `a811279e` (feat)
+2. CHILD WALLETS section in the dev bubble; phase gate - `78766ba4` (feat)
 
 ## Verification
 No deviations from the plan. Full suite: 2032 passed / 5 skipped / 0 failed (2008 baseline + 24 new). `flutter analyze lib test`: 0 issues. Package-scoped analyze on the two genius_api files: exactly 109 pre-existing warnings, none new. Format/brace/raw-colour/key-logging scripts clean. ID-identifier gate: 0 matches on both commits. Windows debug build compiled (not run).

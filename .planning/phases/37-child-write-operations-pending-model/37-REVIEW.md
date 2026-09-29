@@ -28,7 +28,7 @@ status: clean
 
 ## Summary
 
-This pass read `git diff b45d1f63..HEAD` against the whole cubit. It traced `submit()`,
+This pass read `git diff 94cdeb3a..HEAD` against the whole cubit. It traced `submit()`,
 `resolve()`, `_signalMet`, `balanceLockReason`, `_committed` and the poll, plus the callers:
 `ensureRunningAs`, the account drawer's switch lock, `DevMockChildWallets`, and
 `GeniusApi.getChildBalanceAll`/`selectGeniusAccountAsync`.
