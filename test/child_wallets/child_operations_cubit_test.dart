@@ -1,6 +1,8 @@
 // Unit-level proof of the registry's pure logic: amount parsing, the 2-minute
 // timeout edge, Check again, and the per-child lock -- all without a widget
 // tree, using a fake API and a mutable clock the cubit reads through `now`.
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
@@ -719,7 +721,7 @@ void main() {
     });
 
     test('a timed-out recover never resolves while the node runs as another '
-        'account, and still expires on time', () {
+        'account, and expires on the first pass there', () {
       var now = DateTime(2024);
       var running = _mainAddress;
       final api = _FakeApi();
@@ -752,16 +754,64 @@ void main() {
       cubit.resolve();
       expect(cubit.state.justResolved, isEmpty);
       expect(cubit.state.operations.single.notConfirmed, isTrue);
-      expect(cubit.state.operations.single.expired, isFalse);
-      expect(cubit.balanceLockReason(_childAddress), isNotNull);
-
-      now = submittedAt.add(const Duration(minutes: 6));
-      cubit.resolve();
-      expect(cubit.state.justResolved, isEmpty);
       expect(cubit.state.operations.single.expired, isTrue);
+      expect(cubit.balanceLockReason(_childAddress), isNull);
 
       cubit.close();
     });
+
+    test(
+      'a fund whose node switches away and back inside one poll never '
+      'resolves: it expires on the switch and frees its hold and lock',
+      () async {
+        var now = DateTime(2024);
+        var running = _mainAddress;
+        AppState appState() => AppState(
+          selectedSDKAccount: running,
+          sdkAccounts: const [_mainAddress, _otherAddress],
+          wallets: const [],
+          sdkAccountLinks: const <String, SDKAccountLink>{},
+        );
+        final appStates = StreamController<AppState>.broadcast();
+        final api = _FakeApi(); // the main holds 10 GNUS
+        final cubit = ChildOperationsCubit(
+          api: api,
+          readAppState: appState,
+          appStates: appStates.stream,
+          now: () => now,
+        );
+        final submittedAt = now;
+        final amount = BigInt.from(10000000);
+        cubit.submit(
+          kind: ChildOperationKind.fund,
+          target: _childAddress,
+          main: _mainAddress,
+          amountMinions: amount,
+        );
+        now = submittedAt.add(childOperationTimeout);
+        cubit.resolve();
+
+        now = submittedAt.add(const Duration(minutes: 3));
+        for (final account in [_otherAddress, _mainAddress]) {
+          running = account;
+          appStates.add(appState());
+          await Future<void>.delayed(Duration.zero);
+        }
+        api.balances[_childAddress] = amount;
+        cubit.resolve();
+
+        expect(cubit.state.justResolved, isEmpty);
+        expect(cubit.state.operations.single.expired, isTrue);
+        expect(cubit.balanceLockReason(_childAddress), isNull);
+        expect(
+          cubit.payingBalance(ChildOperationKind.fund, _childAddress),
+          amount,
+        );
+
+        await cubit.close();
+        await appStates.close();
+      },
+    );
 
     test('hasPendingFrom is true only while pending, case-insensitively', () {
       var now = DateTime(2024);
