@@ -23,7 +23,71 @@ class _UnreadableStorage extends Fake implements FlutterSecureStorage {
   }) => Future.error(PlatformException(code: 'locked'));
 }
 
+/// In-memory storage whose calls take a moment and record any overlap, as
+/// the Windows backend's single rewritten file cannot survive one.
+class _OverlapStorage extends Fake implements FlutterSecureStorage {
+  final values = <String, String>{};
+  var active = 0;
+  var maxActive = 0;
+
+  Future<T> _slow<T>(T Function() op) async {
+    active++;
+    maxActive = active > maxActive ? active : maxActive;
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    active--;
+    return op();
+  }
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => _slow(() => values[key]);
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => _slow(() {
+    if (value == null) {
+      values.remove(key);
+    } else {
+      values[key] = value;
+    }
+  });
+}
+
 void main() {
+  test('concurrent reads and writes never overlap, and concurrent link '
+      'saves all persist', () async {
+    final slow = _OverlapStorage();
+    final store = await LocalWalletStorage.create(secureStorage: slow);
+
+    await Future.wait([
+      store.saveSDKAccountLink('0xA', '0x1', 'One'),
+      store.getSDKAccountLinks(),
+      store.saveSDKAccountLink('0xB', '0x2', 'Two'),
+      store.getSDKAccountLinks(),
+    ]);
+
+    expect(slow.maxActive, 1);
+    expect(
+      (await store.getSDKAccountLinks()).keys,
+      unorderedEquals(['0xa', '0xb']),
+    );
+  });
+
   test('Android options keep v9 wallets readable after the v10 upgrade', () {
     final options = LocalWalletStorage.androidOptions.toMap();
     // migrateWithBackup skips the EncryptedSharedPreferences migration, so v9
