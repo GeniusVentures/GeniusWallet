@@ -1370,4 +1370,53 @@ void main() {
     await childWallets.close();
     await operations.close();
   });
+
+  testWidgets('a resolution before the root navigator attaches still toasts '
+      'once it does', (tester) async {
+    final api = _FakeApi();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final operations = ChildOperationsCubit(
+      api: api,
+      readAppState: () => _appState,
+    );
+    final attached = ValueNotifier(false);
+    addTearDown(attached.dispose);
+
+    await tester.pumpWidget(
+      BlocProvider<ChildOperationsCubit>.value(
+        value: operations,
+        child: ChildOperationToasts(
+          navigatorKey: navigatorKey,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: attached,
+            builder: (_, isAttached, _) => isAttached
+                ? MaterialApp(
+                    navigatorKey: navigatorKey,
+                    theme: ThemeData(extensions: [GWColors.dark()]),
+                    home: const SizedBox(),
+                  )
+                : const SizedBox(),
+          ),
+        ),
+      ),
+    );
+
+    operations.submit(
+      kind: ChildOperationKind.fund,
+      target: _childAddress,
+      main: _mainAddress,
+      amountMinions: BigInt.from(1000000),
+    );
+    api.balances[_childAddress] = BigInt.from(1000000);
+    operations.resolve();
+    await tester.pump();
+    expect(operations.state.justResolved, hasLength(1));
+
+    attached.value = true;
+    await tester.pumpAndSettle();
+
+    expect(find.text('Funded 1 GNUS to Game Wallet'), findsOneWidget);
+
+    await operations.close();
+  });
 }
