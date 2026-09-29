@@ -28,6 +28,8 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/send/send_cubit.dart' show settlePendingSends;
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:local_secure_storage/local_secure_storage.dart'
+    show SDKAccountLink;
 
 part 'app_event.dart';
 part 'app_state.dart';
@@ -707,6 +709,46 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     );
   }
 
+  /// The user's own wallet [sdkAddress] was linked to, or null when it has
+  /// no link or that wallet was deleted. Never an SDK or watch-only row —
+  /// a deleted wallet's key stays in the SDK, not in [wallets].
+  static Wallet? linkedWallet(
+    String sdkAddress,
+    Map<String, SDKAccountLink> links,
+    List<Wallet> wallets,
+  ) {
+    final link = links[sdkAddress.toLowerCase()];
+    if (link == null) {
+      return null;
+    }
+    for (final wallet in wallets) {
+      if (wallet.walletType != WalletType.sgnus &&
+          wallet.walletType != WalletType.tracking &&
+          wallet.address.toLowerCase() == link.walletAddress) {
+        return wallet;
+      }
+    }
+    return null;
+  }
+
+  /// The label for the SDK row at [sdkAddress]: the live wallet's name, the
+  /// removed wallet's last known name, or an honest 'Unlinked' (D-09, D-16).
+  static String sdkAccountName(
+    String sdkAddress,
+    Map<String, SDKAccountLink> links,
+    List<Wallet> wallets,
+  ) {
+    final wallet = linkedWallet(sdkAddress, links, wallets);
+    if (wallet != null) {
+      return wallet.walletName;
+    }
+    final link = links[sdkAddress.toLowerCase()];
+    if (link != null) {
+      return '${link.walletName} (wallet removed)';
+    }
+    return 'Unlinked';
+  }
+
   Future<List<Wallet>> _mergeSgnusWallet() async {
     final connection = await api.getSGNUSConnectionStream().first;
     if (!connection.isConnected) {
@@ -714,13 +756,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
 
     final accounts = api.getAvailableAccounts();
-    final sgnusWallets = accounts.asMap().entries.map((entry) {
-      final index = entry.key;
-      final address = entry.value;
+    final links = await api.getSDKAccountLinks();
+    final sgnusWallets = accounts.map((address) {
       return Wallet(
-        walletName: accounts.length == 1
-            ? 'Super Genius Wallet'
-            : 'Super Genius Wallet ${index + 1}',
+        walletName: sdkAccountName(address, links, _baseWallets),
         walletType: WalletType.sgnus,
         address: address,
         currencySymbol: 'minions',

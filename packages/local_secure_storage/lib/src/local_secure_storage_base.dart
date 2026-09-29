@@ -12,6 +12,11 @@ import 'package:genius_api/web3/web3.dart';
 
 import 'package:flutter/material.dart';
 
+/// One wallet's SGNUS account: which wallet produced it, and its name at
+/// link time. Holds public addresses and a display name only, never key
+/// material.
+typedef SDKAccountLink = ({String walletAddress, String walletName});
+
 class LocalWalletStorage {
   /// Key used for storing user PIN locally.
   static const _pinKey = '__pin_key__';
@@ -22,6 +27,11 @@ class LocalWalletStorage {
   /// Address of the wallet the Genius SDK is initialised with. Must not
   /// contain [_walletKeyPrefix], or it would be read back as a wallet.
   static const _sgnusLinkedAddressKey = '__sgnus_linked_address__';
+
+  /// Map of SDK address -> the wallet that produced it. Must not contain
+  /// [_walletKeyPrefix], [_watchesKeyPrefix] or [_accountKeyPrefix], or it
+  /// would be read back as one of those.
+  static const _sdkAccountLinksKey = '__sdk_links__';
 
   final FlutterSecureStorage _secureStorage;
   final Web3 _web3;
@@ -343,6 +353,54 @@ class LocalWalletStorage {
     await _secureStorage.write(
       key: _sgnusLinkedAddressKey,
       value: address.toLowerCase(),
+    );
+  }
+
+  /// The wallet each SDK account was produced from, keyed by lowercased SDK
+  /// address. Never throws — a missing or corrupt value reads as no links.
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async {
+    final raw = await _secureStorage.read(key: _sdkAccountLinksKey);
+    if (raw == null) {
+      return {};
+    }
+    try {
+      final decoded = Map<String, dynamic>.from(jsonDecode(raw));
+      return decoded.map((sdkAddress, value) {
+        final entry = Map<String, dynamic>.from(value as Map);
+        return MapEntry(sdkAddress, (
+          walletAddress: entry['wallet'] as String,
+          walletName: entry['name'] as String,
+        ));
+      });
+    } catch (e) {
+      debugPrint('Failed to parse SDK account links: $e');
+      return {};
+    }
+  }
+
+  /// Records that [sdkAddress] was produced by [walletAddress], named
+  /// [walletName] at link time. Both addresses are lowercased so a later
+  /// lookup never misses on case alone.
+  Future<void> saveSDKAccountLink(
+    String sdkAddress,
+    String walletAddress,
+    String walletName,
+  ) async {
+    final links = await getSDKAccountLinks();
+    links[sdkAddress.toLowerCase()] = (
+      walletAddress: walletAddress.toLowerCase(),
+      walletName: walletName,
+    );
+    await _secureStorage.write(
+      key: _sdkAccountLinksKey,
+      value: jsonEncode(
+        links.map(
+          (sdkAddress, link) => MapEntry(sdkAddress, {
+            'wallet': link.walletAddress,
+            'name': link.walletName,
+          }),
+        ),
+      ),
     );
   }
 

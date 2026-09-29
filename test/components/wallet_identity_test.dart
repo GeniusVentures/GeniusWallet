@@ -22,6 +22,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 
 import '../theme/theme_contrast_test.dart' show contrastRatio, themeFor;
 
@@ -74,6 +75,9 @@ class _RenameApi implements GeniusApi {
 
   @override
   List<String> getAvailableAccounts() => sgnusAccounts;
+
+  @override
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {};
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

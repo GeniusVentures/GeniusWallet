@@ -189,6 +189,11 @@ class GeniusApi {
     return await _secureStorage.updateAccountFetchDate();
   }
 
+  /// The wallet each SDK account was produced from. See
+  /// [LocalWalletStorage.getSDKAccountLinks].
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() =>
+      _secureStorage.getSDKAccountLinks();
+
   Future<void> initSDK() => _initFuture ??= _doInitSDK();
 
   Future<void> _doInitSDK() async {
@@ -283,6 +288,21 @@ class GeniusApi {
     } catch (_) {
       debugPrint('Failed to record the SDK-linked wallet');
     }
+
+    // The start account never goes through _registerWallet's diff below, so
+    // it needs its own link: this is the only place both addresses are known
+    // for it, on every start including a fresh install's first wallet.
+    if (_address.isNotEmpty) {
+      try {
+        await _secureStorage.saveSDKAccountLink(
+          _address,
+          storedKey.account(0).address(),
+          storedKey.name(),
+        );
+      } catch (_) {
+        debugPrint('Failed to record the SDK account link');
+      }
+    }
   }
 
   Future<void> _initializeAndroidKeyStore() async {
@@ -301,6 +321,7 @@ class GeniusApi {
 
   Future<void> _registerWallet(StoredKey storedKey) async {
     final wasAlreadyInitialized = _isSdkInitialized;
+    final before = getAvailableAccounts();
 
     await _secureStorage.saveStoredKey(storedKey);
     await _initSDK(storedKey);
@@ -324,6 +345,26 @@ class GeniusApi {
               .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
               .join();
           addAccountWithPrivateKey(privateKeyAsStr);
+        }
+      }
+
+      // Only a clean single new address is trustworthy enough to record;
+      // zero or several leaves this wallet for the backfill pass instead of
+      // guessing (D-06).
+      final after = getAvailableAccounts();
+      final newAddresses = after
+          .map((a) => a.toLowerCase())
+          .toSet()
+          .difference(before.map((a) => a.toLowerCase()).toSet());
+      if (newAddresses.length == 1) {
+        try {
+          await _secureStorage.saveSDKAccountLink(
+            newAddresses.single,
+            storedKey.account(0).address(),
+            storedKey.name(),
+          );
+        } catch (_) {
+          debugPrint('Failed to record the SDK account link');
         }
       }
     }
