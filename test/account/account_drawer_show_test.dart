@@ -48,6 +48,7 @@ import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -104,6 +105,18 @@ class _DeletingApi extends _FakeGeniusApi {
 
   @override
   Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {};
+}
+
+/// Answers an OK, empty registrations read for any main -- enough for a
+/// `ChildOperationsCubit` above the drawer to prove the flat-list note only
+/// shows when no registry can answer at all, not whenever nobody has any
+/// children.
+class _RegistrationsApi extends _FakeGeniusApi {
+  @override
+  ChildRegistrations getChildRegistrations(String mainAddress) => const (
+    result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    entries: <ChildRegistration>[],
+  );
 }
 
 /// Records a selection attempt and answers the getters `_onSelectSDKAccount`
@@ -245,6 +258,7 @@ Widget _openerHost({
   required WalletDetailsCubit walletDetailsCubit,
   required AppBloc appBloc,
   required _Pending pending,
+  ChildOperationsCubit? operations,
 }) => MultiBlocProvider(
   // Providers wrap `MaterialApp` itself, not just `home` - `ResponsiveDrawer
   // .show` pushes on the ROOT navigator (`useRootNavigator: true`), and a
@@ -255,6 +269,11 @@ Widget _openerHost({
   providers: [
     BlocProvider<WalletDetailsCubit>.value(value: walletDetailsCubit),
     BlocProvider<AppBloc>.value(value: appBloc),
+    // Absent by default: every existing test in this file renders with no
+    // registry above the drawer, unlocked, exactly as before this cubit
+    // existed.
+    if (operations != null)
+      BlocProvider<ChildOperationsCubit>.value(value: operations),
   ],
   child: MaterialApp(
     theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
@@ -391,14 +410,16 @@ void main() {
         await tester.tap(find.text('open drawer'));
         await tester.pumpAndSettle();
 
-        // Both sections are always present, each with its own label - the
-        // switcher never leaves one implied by an absent header. The harness
-        // has no SDK accounts and no default account, so the node section
-        // shows its own explicit empty state rather than vanishing.
+        // One merged section, always present - the switcher never leaves it
+        // implied by an absent header. The harness provides no registry
+        // above the drawer, so registrations can't be read and the flat-list
+        // note shows instead of a silently-empty tree.
         expect(find.text('Accounts'), findsOneWidget);
-        expect(find.text('SENDING FROM'), findsOneWidget);
-        expect(find.text('NODE RUNNING AS'), findsOneWidget);
-        expect(find.text('Node not running'), findsOneWidget);
+        expect(find.text('ACCOUNTS'), findsOneWidget);
+        expect(
+          find.text('Child wallets show while the node is running.'),
+          findsOneWidget,
+        );
         expect(find.text('Wallet A'), findsOneWidget);
         expect(find.text('Wallet B'), findsOneWidget);
         expect(find.text('Add wallet'), findsOneWidget);
@@ -799,11 +820,21 @@ void main() {
     );
 
     testWidgets(
-      'a running node with zero accounts reads No SDK accounts yet, not '
-      'Node not running',
+      'a running node with zero accounts and a real registry shows no '
+      'flat-list note, just both wallet rows',
       (tester) async {
         final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
-        final harness = _build([_walletA], defaultSDKAccount: '0xstart');
+        final api = _RegistrationsApi();
+        final harness = _build(
+          [_walletA, _walletB],
+          selectedSDKAccount: '0xstart',
+          defaultSDKAccount: '0xstart',
+          api: api,
+        );
+        final operations = ChildOperationsCubit(
+          api: api,
+          readAppState: () => harness.appBloc.state,
+        );
         final pending = _Pending();
         try {
           await tester.pumpWidget(
@@ -811,16 +842,22 @@ void main() {
               walletDetailsCubit: harness.walletDetailsCubit,
               appBloc: harness.appBloc,
               pending: pending,
+              operations: operations,
             ),
           );
           await tester.tap(find.text('open drawer'));
           await tester.pumpAndSettle();
 
-          expect(find.text('No SDK accounts yet'), findsOneWidget);
-          expect(find.text('Node not running'), findsNothing);
+          expect(
+            find.text('Child wallets show while the node is running.'),
+            findsNothing,
+          );
+          expect(find.text('Wallet A'), findsOneWidget);
+          expect(find.text('Wallet B'), findsOneWidget);
         } finally {
           await harness.dispose(tester);
           await box.close();
+          await operations.close();
         }
       },
     );

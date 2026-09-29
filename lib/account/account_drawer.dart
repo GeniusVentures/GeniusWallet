@@ -35,8 +35,9 @@ import 'package:local_secure_storage/local_secure_storage.dart'
     show SDKAccountLink;
 import 'package:provider/provider.dart';
 
-/// The account switcher: two independent selections, "Sending from" and
-/// "Node running as" - changing one never touches the other.
+/// The account switcher: one "Accounts" list. Tapping a row selects it for
+/// sends and swaps; running the node as it is a separate menu action -
+/// changing one never touches the other.
 class AccountDrawer {
   /// Opens the switcher and returns the picked wallet, selecting it via
   /// [WalletDetailsCubit] before returning - the entry itself selects the
@@ -559,8 +560,8 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                 appState.wallets,
               );
         // A pending child operation submitted from the running account locks
-        // every OTHER row -- active-wallet ("Sending from") switching above
-        // is never touched by this.
+        // every OTHER row -- selecting a wallet for sends/swaps above is
+        // never touched by this.
         final running = appState.selectedSDKAccount;
         final lockedReason =
             operations != null &&
@@ -569,6 +570,10 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             ? 'Waiting for a child operation from ${operations.labelFor(running)} '
                   'to confirm'
             : null;
+        final treeRows = buildAccountTree(
+          sdkAccounts: sdkAccounts,
+          registrations: _registrations,
+        );
 
         return ListView(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
@@ -589,76 +594,67 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
               const SizedBox(height: GeniusWalletConsts.space8),
             ],
             const _AccountSectionHeader(
-              title: 'Sending from',
-              caption: 'Sends, swaps and balances use this wallet.',
+              title: 'Accounts',
+              caption:
+                  'Tap to send, swap and see balances from an account. Use '
+                  'the menu to run the node as one.',
             ),
-            if (ownWallets.isNotEmpty)
-              ...ownWallets.map(
-                (w) => _buildDrawerRow(
-                  context,
-                  w,
-                  _matchesSelected(w),
-                  isActiveOnNode:
-                      activeOnNode != null &&
-                      w.walletType == activeOnNode.walletType &&
-                      w.address.toLowerCase() ==
-                          activeOnNode.address.toLowerCase(),
-                  sdkBadge: walletSDKBadge(
-                    w,
-                    appState.sdkAccountLinks,
-                    sdkRunning: appState.defaultSDKAccount != null,
-                  ),
-                ),
-              )
-            else
-              const _AccountSectionNote(text: 'No wallets yet.'),
-            const SizedBox(height: GeniusWalletConsts.space8),
-            const _AccountSectionHeader(
-              title: 'Node running as',
-              caption: 'The GNUS node processes and earns as this account.',
-            ),
-            // Never vanishes: a disconnected node and a connected-but-empty
-            // node are two different facts, each said in words rather than
-            // left as an absent section.
-            if (sdkAccounts.isNotEmpty)
-              ...buildAccountTree(
-                sdkAccounts: sdkAccounts,
-                registrations: _registrations,
-              ).map(
-                (row) => Padding(
-                  padding: EdgeInsets.only(
-                    left: min(row.depth, 2) * GeniusWalletConsts.space12,
-                  ),
-                  child: row.kind == AccountRowKind.account
-                      ? SDKAccountRow(
-                          address: row.sdkAddress!,
-                          name: AppBloc.sdkAccountName(
-                            row.sdkAddress!,
-                            appState.sdkAccountLinks,
-                            appState.wallets,
-                          ),
-                          isSelected:
-                              row.sdkAddress == appState.selectedSDKAccount,
-                          isStartAccount:
-                              row.sdkAddress!.toLowerCase() == defaultAccount,
-                          balanceWallet: _sgnusWalletFor(
-                            row.sdkAddress!,
-                            appState.wallets,
-                          ),
-                          lockedReason: lockedReason,
-                        )
-                      : ChildWalletRow(
-                          wallet: row.child!,
-                          mainAddress: row.parentMain!,
-                        ),
-                ),
-              )
-            else
-              _AccountSectionNote(
-                text: appState.defaultSDKAccount == null
-                    ? 'Node not running'
-                    : 'No SDK accounts yet',
+            // Registrations could not be read (node down, or the read
+            // failed) -- the list below still renders, flat, with this as
+            // the one honest note rather than a second, silently-empty
+            // section.
+            if (_registrations == null)
+              const _AccountSectionNote(
+                text: 'Child wallets show while the node is running.',
               ),
+            if (ownWallets.isEmpty && treeRows.isEmpty)
+              const _AccountSectionNote(text: 'No wallets yet.'),
+            ...ownWallets.map(
+              (w) => _buildDrawerRow(
+                context,
+                w,
+                _matchesSelected(w),
+                isActiveOnNode:
+                    activeOnNode != null &&
+                    w.walletType == activeOnNode.walletType &&
+                    w.address.toLowerCase() ==
+                        activeOnNode.address.toLowerCase(),
+                sdkBadge: walletSDKBadge(
+                  w,
+                  appState.sdkAccountLinks,
+                  sdkRunning: appState.defaultSDKAccount != null,
+                ),
+              ),
+            ),
+            ...treeRows.map(
+              (row) => Padding(
+                padding: EdgeInsets.only(
+                  left: min(row.depth, 2) * GeniusWalletConsts.space12,
+                ),
+                child: row.kind == AccountRowKind.account
+                    ? SDKAccountRow(
+                        address: row.sdkAddress!,
+                        name: AppBloc.sdkAccountName(
+                          row.sdkAddress!,
+                          appState.sdkAccountLinks,
+                          appState.wallets,
+                        ),
+                        isSelected:
+                            row.sdkAddress == appState.selectedSDKAccount,
+                        isStartAccount:
+                            row.sdkAddress!.toLowerCase() == defaultAccount,
+                        balanceWallet: _sgnusWalletFor(
+                          row.sdkAddress!,
+                          appState.wallets,
+                        ),
+                        lockedReason: lockedReason,
+                      )
+                    : ChildWalletRow(
+                        wallet: row.child!,
+                        mainAddress: row.parentMain!,
+                      ),
+              ),
+            ),
             const SizedBox(height: GeniusWalletConsts.space8),
             Align(
               alignment: Alignment.centerLeft,
