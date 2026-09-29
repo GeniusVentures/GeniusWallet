@@ -372,6 +372,67 @@ class GeniusApi {
     await loadStoredWallets();
   }
 
+  // ponytail: an account that cannot be proven this way stays 'Unlinked'
+  // forever; the upgrade is an SDK call that derives an address from a key
+  // without registering it, so no re-add is needed to prove a match.
+
+  /// Decides which unlinked wallet produced which leftover SDK address by
+  /// re-adding each key and diffing the account list; a single new address
+  /// or a one-to-one leftover pair links, anything wider stays unlinked.
+  @visibleForTesting
+  static Map<String, SDKAccountLink> backfillLinks({
+    required List<
+      ({
+        String walletAddress,
+        String walletName,
+        GeniusNodeReturnValue Function() reAdd,
+      })
+    >
+    unlinked,
+    required List<String> Function() accounts,
+    required Set<String> linkedSDKAddresses,
+  }) {
+    final newLinks = <String, SDKAccountLink>{};
+    final eliminationCandidates =
+        <({String walletAddress, String walletName})>[];
+
+    for (final wallet in unlinked) {
+      final before = accounts().map((a) => a.toLowerCase()).toSet();
+      final result = wallet.reAdd();
+      if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+        continue;
+      }
+      final after = accounts().map((a) => a.toLowerCase()).toSet();
+      final added = after.difference(before);
+      if (added.length == 1) {
+        newLinks[added.single] = (
+          walletAddress: wallet.walletAddress,
+          walletName: wallet.walletName,
+        );
+      } else if (added.isEmpty) {
+        eliminationCandidates.add((
+          walletAddress: wallet.walletAddress,
+          walletName: wallet.walletName,
+        ));
+      } else {
+        return newLinks;
+      }
+    }
+
+    if (eliminationCandidates.length == 1) {
+      final claimed = {...linkedSDKAddresses, ...newLinks.keys};
+      final leftover = accounts()
+          .map((a) => a.toLowerCase())
+          .toSet()
+          .difference(claimed);
+      if (leftover.length == 1) {
+        newLinks[leftover.single] = eliminationCandidates.single;
+      }
+    }
+
+    return newLinks;
+  }
+
   Future<Map<String, dynamic>> _loadUserOverrides(
     Directory overridesDir,
     String fileName,
