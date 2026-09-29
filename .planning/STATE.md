@@ -2,20 +2,20 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Child wallets & account linking
-current_phase: 37
-current_phase_name: Child write operations & pending model
+current_phase: 38
+current_phase_name: Account tree switcher
 status: executing
-stopped_at: Phase 34 context gathered
-last_updated: "2026-09-29T08:48:15.679Z"
+stopped_at: Phase 38 plan 01 executed
+last_updated: "2026-09-29T09:00:00.000Z"
 last_activity: 2026-09-29
-last_activity_desc: Phase 34 execution started
+last_activity_desc: Phase 38 plan 01 executed (account tree nesting, ownRegistrations, merged Accounts header)
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 16
-  completed_plans: 16
-  percent: 69
-resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 19
+  completed_plans: 17
+  percent: 89
+resume_file: .planning/phases/38-account-tree-switcher/38-02-PLAN.md
 ---
 
 # Project State
@@ -25,14 +25,17 @@ resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 37 — Child write operations & pending model
+**Current focus:** Phase 38 — Account tree switcher
 
 ## Current Position
 
-Phase: 37 (Child write operations & pending model) — EXECUTING
-Plan: 5 of 5 — complete
-Status: Phases 34-37 executed and verified in code; live walks pending (see Deferred Verification)
-Last activity: 2026-09-29 — Phase 37 execution started
+Phase: 38 (Account tree switcher) — EXECUTING
+Plan: 1 of 3 — complete (38-01: tracer, nesting edge cases, merged Accounts header)
+Status: Phases 34-37 executed and verified in code; live walks pending (see Deferred Verification).
+Phase 38 plan 01 landed `buildAccountTree`, `ChildOperationsCubit.ownRegistrations()`, and the
+merged "Accounts" header; SWT-07 stays Pending in REQUIREMENTS.md until plans 02-03 land the
+merged SDK-account-onto-wallet-row and the collapsible-main/live-refresh work.
+Last activity: 2026-09-29 — Phase 38 plan 01 executed
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
 
@@ -250,6 +253,7 @@ Progress: [████████████████████] 36/36 p
 
 Full log in PROJECT.md Key Decisions. Recent:
 
+- **Phase 38 plan 01 (2026-09-29): account tree nesting** — `buildAccountTree` (pure, `lib/account/account_tree.dart`) walks each own SDK account's registrations with one visited set so a cycle, self-listing or second main all dedupe to first placement; `ChildOperationsCubit.ownRegistrations()` does the keyed SDK/dev-mock read (null when the node is down or any read fails), reached through the cubit rather than a direct `GeniusApi` call from the drawer's `State` per AGENTS.md. The switcher's two headers ("Sending from"/"Node running as") are merged into one "Accounts" section with a single flat-list note. SWT-07 stays Pending in REQUIREMENTS.md — plans 02-03 still owe the merged SDK-account-onto-wallet-row and collapsible mains.
 - **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWAP-01, FEE-01..02, DAP-01..03 (6/6 mapped, no orphans — the drafted SWP-01..08 were retired into SWAP-01's criteria on 2026-09-16, that being the id the branch's plans and commits already cite); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
 - **Port the design incrementally, layer by layer** (2026-07-16) — 128 of the design's 172 files collide with develop (74%); one step means reconciling all of them with nothing verifiable in between
 - Sequence by dependency, not subject: tokens → `gw_*` primitives → nav shell → screen areas. Each phase lands on a layer that already exists and has been reviewed
@@ -665,6 +669,7 @@ Open decisions:
 | Phase 29 P02 | 25min | 2 tasks | 4 files |
 | Phase 29 P03 | 20min | 2 tasks | 3 files |
 | Phase 29 P04 | 25min | 2 tasks | 1 files |
+| Phase 38-account-tree-switcher P01 | n/a | 3 tasks | 7 files |
 
 ### Roadmap Evolution
 
