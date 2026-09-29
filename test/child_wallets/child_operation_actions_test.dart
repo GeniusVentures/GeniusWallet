@@ -1,6 +1,8 @@
 // Proves the fund flow end to end through the real screen: row menu -> the
 // Fund dialog -> the registry -> a fake SDK write -> the pending badge ->
 // resolve() observing a real balance rise -> the one-shot success toast.
+// Also proves the per-child lock, "Not confirmed yet" plus "Check again",
+// and that the registry keeps working once its screen is gone.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +20,7 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 
 const _mainAddress = '0x1111111111111111111111111111111111aaaa';
 const _childAddress = '0x2222222222222222222222222222222222bbbb';
+const _secondChildAddress = '0x4444444444444444444444444444444444dddd';
 
 const _mainWallet = Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -37,6 +40,15 @@ const _childWallet = Wallet(
   address: _childAddress,
 );
 
+const _secondChildWallet = Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: 'Second Wallet',
+  currencySymbol: 'ETH',
+  walletType: WalletType.privateKey,
+  balance: 0,
+  address: _secondChildAddress,
+);
+
 const _appState = AppState(
   selectedSDKAccount: _mainAddress,
   sdkAccounts: [_mainAddress],
@@ -44,6 +56,20 @@ const _appState = AppState(
   sdkAccountLinks: {
     _mainAddress: (walletAddress: _mainAddress, walletName: 'Main Wallet'),
     _childAddress: (walletAddress: _childAddress, walletName: 'Game Wallet'),
+  },
+);
+
+const _twoChildAppState = AppState(
+  selectedSDKAccount: _mainAddress,
+  sdkAccounts: [_mainAddress],
+  wallets: [_mainWallet, _childWallet, _secondChildWallet],
+  sdkAccountLinks: {
+    _mainAddress: (walletAddress: _mainAddress, walletName: 'Main Wallet'),
+    _childAddress: (walletAddress: _childAddress, walletName: 'Game Wallet'),
+    _secondChildAddress: (
+      walletAddress: _secondChildAddress,
+      walletName: 'Second Wallet',
+    ),
   },
 );
 
@@ -58,22 +84,42 @@ const _registrations = (
   ],
 );
 
+const _twoChildRegistrations = (
+  result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+  entries: [
+    ChildRegistration(
+      childAddress: _childAddress,
+      mainAddress: _mainAddress,
+      sequence: 0,
+    ),
+    ChildRegistration(
+      childAddress: _secondChildAddress,
+      mainAddress: _mainAddress,
+      sequence: 1,
+    ),
+  ],
+);
+
 /// `implements`, not `extends`: the real constructor dlopens the native SDK.
 class _FakeApi implements GeniusApi {
-  _FakeApi({this.fundResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK});
+  _FakeApi({
+    this.registrations = _registrations,
+    this.fundResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+  });
 
+  final ChildRegistrations registrations;
   final GeniusNodeReturnValue fundResult;
-  BigInt childBalance = BigInt.zero;
+  final Map<String, BigInt> balances = {};
   String? lastFundedAmount;
   String? lastFundedChild;
   int fundCallCount = 0;
 
   @override
-  ChildRegistrations getChildRegistrations(String mainAddress) =>
-      _registrations;
+  ChildRegistrations getChildRegistrations(String mainAddress) => registrations;
 
   @override
-  BigInt getChildBalanceAll(String childAddress) => childBalance;
+  BigInt getChildBalanceAll(String childAddress) =>
+      balances[childAddress] ?? BigInt.zero;
 
   // Comfortably above every amount these tests type in.
   @override
@@ -98,15 +144,18 @@ Future<(ChildWalletsCubit, ChildOperationsCubit)> _pumpScreen(
   WidgetTester tester, {
   required GeniusApi api,
   required GlobalKey<NavigatorState> navigatorKey,
+  AppState appState = _appState,
+  DateTime Function() now = DateTime.now,
 }) async {
   final childWallets = ChildWalletsCubit(
     api: api,
-    readAppState: () => _appState,
+    readAppState: () => appState,
     mainAddress: _mainAddress,
   );
   final operations = ChildOperationsCubit(
     api: api,
-    readAppState: () => _appState,
+    readAppState: () => appState,
+    now: now,
   );
 
   await tester.pumpWidget(
@@ -159,7 +208,7 @@ void main() {
     expect(find.text('Funding 1.5 GNUS…'), findsOneWidget);
 
     // The real signal: the child's balance actually rose by the amount.
-    api.childBalance = BigInt.from(1500000);
+    api.balances[_childAddress] = BigInt.from(1500000);
     await tester.tap(find.byTooltip('Refresh'));
     await tester.pumpAndSettle();
 
@@ -196,6 +245,204 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Funding 1.5 GNUS…'), findsNothing);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets(
+    'the Fund item locks while pending, tooltipped, and releases once not '
+    'confirmed',
+    (tester) async {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+        now: () => now,
+      );
+      final submittedAt = now;
+
+      operations.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      await tester.pump();
+      await tester.tap(find.byTooltip('Child actions'));
+      await tester.pumpAndSettle();
+
+      final locked = tester.widget<MenuItemButton>(
+        find.widgetWithText(MenuItemButton, 'Fund'),
+      );
+      expect(locked.onPressed, isNull);
+      expect(find.byTooltip('Already funding this child'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Child actions'));
+      await tester.pumpAndSettle();
+
+      // Timed out: the lock releases even though the balance never moved.
+      now = submittedAt.add(const Duration(minutes: 2));
+      operations.resolve();
+      await tester.pump();
+      await tester.tap(find.byTooltip('Child actions'));
+      await tester.pumpAndSettle();
+
+      final released = tester.widget<MenuItemButton>(
+        find.widgetWithText(MenuItemButton, 'Fund'),
+      );
+      expect(released.onPressed, isNotNull);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets('Check again resolves once the balance has actually risen', (
+    tester,
+  ) async {
+    var now = DateTime(2024);
+    final api = _FakeApi();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      now: () => now,
+    );
+    final submittedAt = now;
+
+    operations.submit(
+      kind: ChildOperationKind.fund,
+      target: _childAddress,
+      main: _mainAddress,
+      amountMinions: BigInt.from(1000000),
+    );
+    now = submittedAt.add(const Duration(minutes: 2));
+    operations.resolve();
+    await tester.pump();
+
+    expect(find.text('Not confirmed yet'), findsOneWidget);
+
+    api.balances[_childAddress] = BigInt.from(1000000);
+    await tester.tap(find.widgetWithText(GWButton, 'Check again'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Not confirmed yet'), findsNothing);
+    expect(find.text('Funded 1 GNUS to Game Wallet'), findsOneWidget);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets(
+    'the registry keeps resolving and toasts once its screen is disposed',
+    (tester) async {
+      final api = _FakeApi();
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+      );
+
+      await _openFundDialog(tester);
+      await tester.enterText(find.byType(TextField), '1.5');
+      await tester.tap(find.widgetWithText(GWButton, 'Fund'));
+      await tester.pumpAndSettle();
+
+      // The screen closing in production: the route holding ChildWalletsScreen
+      // is gone, but the registry lives above the router and survives.
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          theme: ThemeData(extensions: [GWColors.dark()]),
+          home: BlocProvider<ChildOperationsCubit>.value(
+            value: operations,
+            child: ChildOperationToasts(
+              navigatorKey: navigatorKey,
+              child: const SizedBox(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      api.balances[_childAddress] = BigInt.from(1500000);
+      await tester.pump(const Duration(seconds: 10));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Funded 1.5 GNUS to Game Wallet'), findsOneWidget);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets('two children pending each show their own badge, independent of '
+      'submission order', (tester) async {
+    final api = _FakeApi(registrations: _twoChildRegistrations);
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _twoChildAppState,
+    );
+
+    // Submitted in reverse of the row order the SDK returns.
+    operations.submit(
+      kind: ChildOperationKind.fund,
+      target: _secondChildAddress,
+      main: _mainAddress,
+      amountMinions: BigInt.from(2500000),
+    );
+    operations.submit(
+      kind: ChildOperationKind.fund,
+      target: _childAddress,
+      main: _mainAddress,
+      amountMinions: BigInt.from(1000000),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Funding 1 GNUS…'), findsOneWidget);
+    expect(find.text('Funding 2.5 GNUS…'), findsOneWidget);
+
+    final firstRowTop = tester.getTopLeft(find.text('Game Wallet')).dy;
+    final secondRowTop = tester.getTopLeft(find.text('Second Wallet')).dy;
+    expect(firstRowTop, lessThan(secondRowTop));
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets('a pending row lays out without overflow at 320px wide', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final api = _FakeApi();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+    );
+
+    operations.submit(
+      kind: ChildOperationKind.fund,
+      target: _childAddress,
+      main: _mainAddress,
+      amountMinions: BigInt.from(1500000),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
 
     await childWallets.close();
     await operations.close();
