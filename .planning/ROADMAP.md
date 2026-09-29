@@ -1527,11 +1527,11 @@ Plans:
   5. Send and Swap confirm screens name the active wallet they are spending from.
   6. Standing (VER-02): a live-testnet walk on both desktop and mobile confirms the switcher before closing, or is recorded as a blocked gap if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`.
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 
-- [ ] 35-01-PLAN.md — tracer: the account drawer becomes the two-section switcher (Sending from / Node running as), View balance, both add actions; SDK tests hosted by it (wave 1)
+- [x] 35-01-PLAN.md — tracer: the account drawer becomes the two-section switcher (Sending from / Node running as), View balance, both add actions; SDK tests hosted by it (wave 1)
 - [ ] 35-02-PLAN.md — Send review and Swap name the From wallet (wave 2)
 - [ ] 35-03-PLAN.md — one desktop AccountSwitcher chip, old SDK chip and wallet dropdown deleted, full gate + Windows compile (wave 3)
 
