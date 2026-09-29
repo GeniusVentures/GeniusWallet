@@ -40,14 +40,14 @@ created: 2026-09-29
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 38-01-01 | 01 | 1 | SWT-07 | T-38-02, T-38-03 | FFI reads only on key change; foreign leaves act through the shared registry | widget (tracer) | `flutter test test/account/ test/child_wallets/` | ❌ creates `test/account/account_drawer_tree_test.dart` | ⬜ pending |
-| 38-01-02 | 01 | 1 | SWT-07 | T-38-01, T-38-04 | walk terminates on any cycle; reads only own accounts | unit | `flutter test test/account/account_tree_test.dart test/child_wallets/child_operations_cubit_test.dart` | ❌ creates `test/account/account_tree_test.dart` | ⬜ pending |
-| 38-01-03 | 01 | 1 | SWT-07 | — | N/A | widget | `flutter test` | ✅ | ⬜ pending |
-| 38-02-01 | 02 | 2 | SWT-07 | — | disabled look shared; no visible change | widget | `flutter test test/components/gw_menu_item_test.dart test/account/ test/child_wallets/` | ❌ creates `test/components/gw_menu_item_test.dart` | ⬜ pending |
-| 38-02-02 | 02 | 2 | SWT-07 | T-38-05..T-38-09 | SDK items gated by On node only; phrase/QR only on the running row; row tap never switches the node | unit + widget | `flutter test` | ✅ | ⬜ pending |
-| 38-03-01 | 03 | 3 | SWT-07 | T-38-10, T-38-11 | child actions only via start* flows and registry locks | unit + widget | `flutter test test/account/ test/child_wallets/` | ✅ | ⬜ pending |
-| 38-03-02 | 03 | 3 | SWT-07 | T-38-12 | preset listener gated and removed on dispose | widget + contrast | `flutter test test/account/ test/components/` | ✅ | ⬜ pending |
-| 38-03-03 | 03 | 3 | SWT-07 | — | ID, trailer, LF, key-logging gates | gate + Windows debug compile | `flutter test && flutter analyze lib test` | ✅ | ⬜ pending |
+| 38-01-01 | 01 | 1 | SWT-07 | T-38-02, T-38-03 | FFI reads only on key change; foreign leaves act through the shared registry | widget (tracer) | `flutter test test/account/ test/child_wallets/` | ✅ | ✅ green |
+| 38-01-02 | 01 | 1 | SWT-07 | T-38-01, T-38-04 | walk terminates on any cycle; reads only own accounts | unit | `flutter test test/account/account_tree_test.dart test/child_wallets/child_operations_cubit_test.dart` | ✅ | ✅ green |
+| 38-01-03 | 01 | 1 | SWT-07 | — | N/A | widget | `flutter test` | ✅ | ✅ green |
+| 38-02-01 | 02 | 2 | SWT-07 | — | disabled look shared; no visible change | widget | `flutter test test/components/gw_menu_item_test.dart test/account/ test/child_wallets/` | ✅ | ✅ green |
+| 38-02-02 | 02 | 2 | SWT-07 | T-38-05..T-38-09 | SDK items gated by On node only; phrase/QR only on the running row; row tap never switches the node | unit + widget | `flutter test` | ✅ | ✅ green |
+| 38-03-01 | 03 | 3 | SWT-07 | T-38-10, T-38-11 | child actions only via start* flows and registry locks | unit + widget | `flutter test test/account/ test/child_wallets/` | ✅ | ✅ green |
+| 38-03-02 | 03 | 3 | SWT-07 | T-38-12 | preset listener gated and removed on dispose | widget + contrast | `flutter test test/account/ test/components/` | ✅ | ✅ green (listener compiled out under `flutter test`'s `kShowDevTools=false`; source-level `grep -c` checks below stand in) |
+| 38-03-03 | 03 | 3 | SWT-07 | — | ID, trailer, LF, key-logging gates | gate + Windows debug compile | `flutter test && flutter analyze lib test` | ✅ | ✅ green -- full suite 2227/5/0 (2202 baseline + 25 new); analyze/format/brace/raw-colour/key-logging clean; ID gate 0 (`BASE=22addb51`); trailer gate 0; every phase-created file `i/lf`; Windows debug build succeeded (`build\windows\x64\runner\Debug\genius_wallet.exe`) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -81,7 +81,7 @@ Existing tests that change with the drawer: `account_drawer_show_test.dart`, `ac
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
-- [ ] Feedback latency measured during execution
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] Feedback latency measured during execution (quick run after every task commit, full suite at each plan's close)
+- [ ] `nyquist_compliant: true` set in frontmatter (set by `/gsd-validate-phase`, not this executor)
 
 **Approval:** {pending / approved YYYY-MM-DD}
