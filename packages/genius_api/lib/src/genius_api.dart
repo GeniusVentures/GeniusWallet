@@ -329,24 +329,7 @@ class GeniusApi {
     // If the SDK was already initialized, _initSDK returned early and did
     // NOT register this account on the SDK side. Register it now.
     if (wasAlreadyInitialized) {
-      if (storedKey.isMnemonic()) {
-        final mnemonic = storedKey.decryptMnemonic(Uint8List(0));
-        if (mnemonic != null) {
-          addAccountWithMnemonic(mnemonic);
-        }
-      } else {
-        final privateKey = storedKey.privateKey(
-          TWCoinType.TWCoinTypeEthereum,
-          Uint8List(0),
-        );
-        if (privateKey != null) {
-          final privateKeyAsStr = privateKey
-              .data()
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-          addAccountWithPrivateKey(privateKeyAsStr);
-        }
-      }
+      _addToSDK(storedKey);
 
       // Only a clean single new address is trustworthy enough to record;
       // zero or several leaves this wallet for the backfill pass instead of
@@ -369,7 +352,82 @@ class GeniusApi {
       }
     }
 
+    // Wallets saved while the node was down get their link the moment it
+    // starts; this also mops up anything the diff above left unlinked.
+    await linkExistingSDKAccounts();
+
     await loadStoredWallets();
+  }
+
+  /// Adds [key]'s account to the running SDK, the same re-add step
+  /// `_registerWallet` and the backfill pass both need, but returning the
+  /// result so a caller can react to more than a clean single new address.
+  GeniusNodeReturnValue _addToSDK(StoredKey key) {
+    if (key.isMnemonic()) {
+      final mnemonic = key.decryptMnemonic(Uint8List(0));
+      if (mnemonic == null) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      return addAccountWithMnemonic(mnemonic);
+    }
+    final privateKey = key.privateKey(
+      TWCoinType.TWCoinTypeEthereum,
+      Uint8List(0),
+    );
+    if (privateKey == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+    }
+    final privateKeyAsStr = privateKey
+        .data()
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join();
+    return addAccountWithPrivateKey(privateKeyAsStr);
+  }
+
+  /// Links every stored key wallet that predates this feature where the
+  /// link can be proven, skipping any already linked so a fully linked
+  /// install makes no SDK add calls. No-ops if the SDK is not running.
+  Future<void> linkExistingSDKAccounts() async {
+    if (!_isSdkInitialized) {
+      return;
+    }
+    try {
+      final links = await _secureStorage.getSDKAccountLinks();
+      final linkedWalletAddresses = links.values
+          .map((link) => link.walletAddress.toLowerCase())
+          .toSet();
+      final storedKeys = await _secureStorage.getStoredKeys();
+      final unlinked = storedKeys
+          .where(
+            (key) => !linkedWalletAddresses.contains(
+              key.account(0).address().toLowerCase(),
+            ),
+          )
+          .map(
+            (key) => (
+              walletAddress: key.account(0).address(),
+              walletName: key.name(),
+              reAdd: () => _addToSDK(key),
+            ),
+          )
+          .toList();
+
+      final newLinks = backfillLinks(
+        unlinked: unlinked,
+        accounts: getAvailableAccounts,
+        linkedSDKAddresses: links.keys.toSet(),
+      );
+
+      for (final entry in newLinks.entries) {
+        await _secureStorage.saveSDKAccountLink(
+          entry.key,
+          entry.value.walletAddress,
+          entry.value.walletName,
+        );
+      }
+    } catch (_) {
+      debugPrint('Failed to backfill SDK account links');
+    }
   }
 
   // ponytail: an account that cannot be proven this way stays 'Unlinked'
