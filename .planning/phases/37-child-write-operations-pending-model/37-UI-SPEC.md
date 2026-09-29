@@ -22,7 +22,7 @@ sources:
   - lib/components/cards/gw_select_row.dart (`GWSelectRow` — the main-picker list rows)
   - lib/components/feedback/gw_empty_state.dart, gw_error_state.dart, gw_warning_note.dart
   - lib/send/send_screen.dart:206-228, lib/send/send_cubit.dart:469-517 (the exact-decimal amount field: GWTextField + MAX GWButton + RegExp decimal-places guard + "supports up to N decimal places" error wording — reused verbatim for Fund/Recover)
-  - lib/utils/wallet_utils.dart (`isEvmAddress`, `getAddressForDisplay` — reused for the manual-address field and every short-address render)
+  - lib/utils/wallet_utils.dart (`getAddressForDisplay` — reused for every short-address render). The manual main-address field validates an SGNUS address (`0x` + 128 hex, `GeniusSDK.h:57`), NOT `isEvmAddress` (that is the 42-char EVM payout format)
   - lib/dev/dev_tools_bubble.dart:1181-1253, lib/dev/dev_mock_child_wallets.dart (the shipped CHILD WALLETS dev section this phase extends with write presets)
   - lib/navigation/router.dart:208-226 (the shipped `/child-wallets` route — `extra` carries the main address)
   - lib/main.dart:388-423 (the app-root `MultiBlocProvider`, above `MaterialApp.router` — where D-10's pending-operations registry is provided)
@@ -250,7 +250,7 @@ refused to delete that account." (`sdk_account_manager.dart:431`).
 | List row (unlinked own account) | "Unlinked" over short address — same shape as `36-UI-SPEC.md`'s child-row precedent |
 | Manual-entry row | "Enter an address" (trailing `Icons.chevron_right`) |
 | Manual-entry field | `GWTextField(label: 'Address', hint: '0x…')` — same field shape as `_PayoutAddressForm` |
-| Manual-entry error | "Not a complete address - 42 characters starting with 0x." (verbatim reuse of `_PayoutAddressForm`'s own string, `sdk_account_manager.dart:784`) |
+| Manual-entry error | "Not an SDK address - 0x followed by 128 hex characters." (SGNUS format per `GeniusSDK.h:57`; the payout form's 42-char EVM string does not apply here) |
 | Manual-entry back link | "‹ Back" — returns to the list without losing a prior list selection |
 | Primary action | "Continue" — enabled once a list row is selected or a valid address is entered |
 
