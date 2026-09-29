@@ -724,5 +724,47 @@ void main() {
         expect(storage.writes, isEmpty);
       },
     );
+
+    testWidgets(
+      'no wallet selected yet reads enterAmount, not a wallet-specific '
+      'refusal',
+      (tester) async {
+        tester.view.physicalSize = const Size(1200, 1800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<WalletDetailsCubit>(
+                create: (_) => WalletDetailsCubit(
+                  geniusApi: _UnusedApi(),
+                  networkTokensProvider: NetworkTokensProvider(),
+                ),
+              ),
+              BlocProvider<TransactionsCubit>(
+                create: (_) => TransactionsCubit(),
+              ),
+            ],
+            child: MaterialApp(
+              theme: ThemeData(extensions: [GWColors.dark()]),
+              home: SwapScreen(
+                swapAvailable: true,
+                preselectSymbol: 'ETH',
+                preselectChainId: 1,
+                provider: const _Provider(),
+                execute: _answering(const SwapRouteUnavailable(null)),
+                storage: _RecordingStorage(),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text('Enter an amount'), findsOneWidget);
+        expect(find.text("Can't sign with this wallet"), findsNothing);
+      },
+    );
   });
 }
