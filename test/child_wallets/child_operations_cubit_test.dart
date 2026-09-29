@@ -397,6 +397,88 @@ void main() {
       cubit.close();
     });
 
+    test('a timed-out fund landing late does not resolve the retry that '
+        'replaced it', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(500000),
+      );
+
+      // Only the abandoned first fund lands.
+      api.balances[_childAddress] = BigInt.from(1000000);
+      cubit.resolve();
+      expect(cubit.state.operations.single.notConfirmed, isFalse);
+      expect(cubit.state.justResolved, isEmpty);
+
+      // Then the retry does too.
+      api.balances[_childAddress] = BigInt.from(1500000);
+      cubit.resolve();
+      expect(cubit.state.operations, isEmpty);
+      expect(
+        cubit.state.justResolved.single.amountMinions,
+        BigInt.from(500000),
+      );
+
+      cubit.close();
+    });
+
+    test('a timed-out recover landing late does not resolve the retry that '
+        'replaced it', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(3000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(500000),
+      );
+
+      api.balances[_childAddress] = BigInt.from(2000000);
+      cubit.resolve();
+      expect(cubit.state.operations, hasLength(1));
+      expect(cubit.state.justResolved, isEmpty);
+
+      api.balances[_childAddress] = BigInt.from(1500000);
+      cubit.resolve();
+      expect(cubit.state.operations, isEmpty);
+      expect(cubit.state.justResolved, hasLength(1));
+
+      cubit.close();
+    });
+
     test('the node running as another account is refused, no SDK call', () {
       final api = _FakeApi();
       final cubit = ChildOperationsCubit(
