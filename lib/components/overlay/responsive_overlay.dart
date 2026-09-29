@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
-import 'package:genius_wallet/account/account_dropdown_selector.dart';
-import 'package:genius_wallet/account/sdk_account_manager.dart';
+import 'package:genius_wallet/account/account_switcher.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/mobile_header.dart';
 import 'package:genius_wallet/components/overlay/nav_destinations.dart';
@@ -34,11 +33,6 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
     // (36px chip + 6px padding + 2px border), matching the nav tab hover at
     // responsive_overlay.dart's destination row.
     //
-    // ponytail: SDKAccountManagerButton self-hides to SizedBox.shrink() when
-    // accounts.isEmpty, but Row(spacing: 2) still reserves its 2px gap --
-    // a 2px phantom gap below the perceptual threshold. Ceiling: the track
-    // never tightens that last 2px. Upgrade path: lift the accounts.isEmpty
-    // read up to this function and build the children list conditionally.
     Flexible(
       child: Container(
         // 6px horizontal (3 vertical) so the outer fields keep a hair more room
@@ -56,21 +50,9 @@ List<Widget> _buildActionRowWidgets(BuildContext context) {
           children: [
             const NetworkDropdownSelector(),
             _trackDivider(gw),
-            // The SDK chip and ITS divider appear together. SDKAccountManagerButton
-            // self-hides to SizedBox.shrink() when the account list is empty, and
-            // with a divider next to it that would leave a hairline floating
-            // against nothing. So the emptiness is read HERE instead -- the
-            // upgrade path the previous `ponytail:` note named, now required
-            // rather than optional. `watch` (not `read`): the divider has to
-            // disappear the moment the list empties.
-            //
-            // The two address chips are the bar's only elastic parts: they
-            // ellipsize so a narrow window or large text never overflows it.
-            if (context.watch<AppBloc>().state.sdkAccounts.isNotEmpty) ...[
-              const Flexible(child: SDKAccountManagerButton()),
-              _trackDivider(gw),
-            ],
-            const Flexible(child: AccountDropdownSelector()),
+            // The account chip is the bar's only elastic part: it ellipsizes
+            // so a narrow window or large text never overflows it.
+            const Flexible(child: AccountSwitcher()),
             _trackDivider(gw),
             ReownConnectButton(
               walletAddress:
