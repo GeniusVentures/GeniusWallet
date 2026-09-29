@@ -16,10 +16,12 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/swap_execution.dart';
@@ -156,6 +158,9 @@ Future<void> _mountReady(
   GeniusApi? api,
   Network network = _ethereum,
   Wallet wallet = _wallet,
+  // Only the "Switch ›" navigation case needs this: `_AccountDrawerBody`
+  // reads `AppBloc` and would otherwise fail its `Provider.of` lookup.
+  AppBloc? appBloc,
 }) async {
   tester.view.physicalSize = const Size(1200, 1800);
   tester.view.devicePixelRatio = 1.0;
@@ -173,6 +178,7 @@ Future<void> _mountReady(
           ),
         ),
         BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
+        if (appBloc != null) BlocProvider<AppBloc>.value(value: appBloc),
       ],
       child: MaterialApp(
         theme: ThemeData(extensions: [GWColors.dark()]),
@@ -660,6 +666,39 @@ void main() {
       await _submit(tester);
 
       expect(storage.writes, hasLength(2));
+    });
+
+    testWidgets('tapping Switch opens the account switcher', (tester) async {
+      final appWalletCubit = WalletDetailsCubit(
+        geniusApi: _UnusedApi(),
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = AppBloc(
+        api: _UnusedApi(),
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: appWalletCubit,
+        networkProvider: NetworkProvider(),
+      );
+      try {
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(const SwapRouteUnavailable(null)),
+          storage: storage,
+          appBloc: appBloc,
+        );
+
+        await tester.tap(find.widgetWithText(TextButton, 'Switch ›'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Accounts'), findsOneWidget);
+        expect(find.text('SENDING FROM'), findsOneWidget);
+      } finally {
+        // A real 3s poll `Timer` starts in the constructor; closing it needs
+        // the same real-zone treatment `account_drawer_show_test.dart` uses.
+        await tester.runAsync(() => appBloc.close());
+        await appWalletCubit.close();
+      }
     });
   });
 }
