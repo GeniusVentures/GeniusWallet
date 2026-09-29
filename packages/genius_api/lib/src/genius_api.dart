@@ -57,15 +57,17 @@ enum SDKAddOutcome {
 /// for inline [ffi.Array]<[ffi.Char]> fields in FFI structs.
 extension _CharArrayToDartString on ffi.Array<ffi.Char> {
   /// Reads this null-terminated C string array, reading at most [maxLength]
-  /// chars.
+  /// bytes and decoding as UTF-8; a byte above 0x7F never throws, and this
+  /// is identical to the old char-code reader for the ASCII data it reads
+  /// today.
   String toDartString(int maxLength) {
     final units = <int>[];
     for (var i = 0; i < maxLength; i++) {
       final c = this[i];
       if (c == 0) break;
-      units.add(c);
+      units.add(c & 0xFF);
     }
-    return String.fromCharCodes(units);
+    return utf8.decode(units, allowMalformed: true);
   }
 }
 
@@ -105,18 +107,37 @@ class GeniusInitStatus {
   const GeniusInitStatus({required this.percentage, required this.message});
 }
 
-/// One child registered under a main account: public addresses and the
-/// registration order only, never the metadata a UI has no consumer for.
+/// Caller-supplied metadata carried on a child registration. [peersCut]
+/// holds the raw uint64 bits as a Dart int (negative once the top bit is
+/// set), never range-checked here.
+class ChildRegistrationMetadata {
+  const ChildRegistrationMetadata({
+    this.gameId = '',
+    this.publisherId = '',
+    this.devWallet = '',
+    this.peersCut = 0,
+  });
+
+  final String gameId;
+  final String publisherId;
+  final String devWallet;
+  final int peersCut;
+}
+
+/// One child registered under a main account: public addresses, the
+/// registration order, and its metadata.
 class ChildRegistration {
   const ChildRegistration({
     required this.childAddress,
     required this.mainAddress,
     required this.sequence,
+    this.metadata = const ChildRegistrationMetadata(),
   });
 
   final String childAddress;
   final String mainAddress;
   final int sequence;
+  final ChildRegistrationMetadata metadata;
 }
 
 /// The result of a registrations read, so a zero-count success (empty list)
@@ -170,6 +191,12 @@ ChildRegistrations collectChildRegistrations(
               childAddress: e.child_address.address.toDartString(131),
               mainAddress: e.main_address.address.toDartString(131),
               sequence: e.sequence,
+              metadata: ChildRegistrationMetadata(
+                gameId: e.metadata.game_id.toDartString(128),
+                publisherId: e.metadata.publisher_id.toDartString(128),
+                devWallet: e.metadata.dev_wallet.toDartString(128),
+                peersCut: e.metadata.peers_cut,
+              ),
             ),
           );
         }
@@ -184,6 +211,80 @@ ChildRegistrations collectChildRegistrations(
     malloc.free(mainPtr);
     calloc.free(entriesPtrPtr);
     calloc.free(countPtr);
+  }
+}
+
+/// Writes [m]'s three strings into [out] as UTF-8 plus a NUL terminator,
+/// each capped at 127 bytes, then copies [ChildRegistrationMetadata.peersCut]
+/// through unchecked. Returns false and writes nothing if any string is too
+/// long, leaving a calloc'd [out] zeroed.
+@visibleForTesting
+bool writeRegistrationMetadata(
+  ffi.Pointer<GeniusRegistrationMetadata> out,
+  ChildRegistrationMetadata m,
+) {
+  final gameId = utf8.encode(m.gameId);
+  final publisherId = utf8.encode(m.publisherId);
+  final devWallet = utf8.encode(m.devWallet);
+  if (gameId.length > 127 ||
+      publisherId.length > 127 ||
+      devWallet.length > 127) {
+    return false;
+  }
+  _writeMetadataField(out.ref.game_id, gameId);
+  _writeMetadataField(out.ref.publisher_id, publisherId);
+  _writeMetadataField(out.ref.dev_wallet, devWallet);
+  out.ref.peers_cut = m.peersCut;
+  return true;
+}
+
+void _writeMetadataField(ffi.Array<ffi.Char> field, List<int> bytes) {
+  for (var i = 0; i < bytes.length; i++) {
+    field[i] = bytes[i];
+  }
+  field[bytes.length] = 0;
+}
+
+/// Writes [amountGnus] into [out] as UTF-8 plus a NUL terminator. Returns
+/// false and writes nothing if it exceeds the 21-byte value field.
+@visibleForTesting
+bool writeTokenValue(ffi.Pointer<GeniusTokenValue> out, String amountGnus) {
+  final bytes = utf8.encode(amountGnus);
+  if (bytes.length > 21) {
+    return false;
+  }
+  for (var i = 0; i < bytes.length; i++) {
+    out.ref.value[i] = bytes[i];
+  }
+  out.ref.value[bytes.length] = 0;
+  return true;
+}
+
+/// `null` unless `0 <= v < 2^64`; otherwise the raw 64-bit pattern as a
+/// (possibly negative) Dart int, ready for an `ffi.Uint64` parameter.
+@visibleForTesting
+int? uint64Arg(BigInt v) {
+  if (v < BigInt.zero || v >= (BigInt.one << 64)) {
+    return null;
+  }
+  return v.toSigned(64).toInt();
+}
+
+/// Writes [tokenId]'s hex bytes into [out], or all zeros (the default token)
+/// when null. Mirrors the parse every other token-id wrapper already has.
+void _writeTokenId(ffi.Pointer<GeniusTokenID> out, String? tokenId) {
+  if (tokenId == null) {
+    for (var i = 0; i < 32; i++) {
+      out.ref.data[i] = 0;
+    }
+    return;
+  }
+  final cleanTokenId = tokenId.startsWith('0x')
+      ? tokenId.substring(2)
+      : tokenId;
+  for (var i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
+    final hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
+    out.ref.data[i] = int.parse(hexByte, radix: 16);
   }
 }
 
@@ -1551,6 +1652,234 @@ class GeniusApi {
         addressPtr,
       );
       return BigInt.from(raw).toUnsigned(64);
+    } finally {
+      malloc.free(addressPtr);
+    }
+  }
+
+  /// The node's PubSub handle as an opaque address, or null before the node
+  /// starts it. Node-owned -- nothing here releases it.
+  int? getPubSubHandle() {
+    if (!_isSdkInitialized) {
+      return null;
+    }
+    final ptr = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetPubSub();
+    return ptr == nullptr ? null : ptr.address;
+  }
+
+  /// Registers this node as a child wallet under [mainAddress]. `RET_OK`
+  /// means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue registerChild(
+    String mainAddress,
+    ChildRegistrationMetadata metadata,
+  ) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = mainAddress.toNativeUtf8().cast<Char>();
+    final metadataPtr = calloc<GeniusRegistrationMetadata>();
+    try {
+      if (!writeRegistrationMetadata(metadataPtr, metadata)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRegisterChild(
+        addressPtr,
+        metadataPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(metadataPtr);
+    }
+  }
+
+  /// [childAddress]'s balance for one token, in Minion Tokens.
+  BigInt getChildBalance(String childAddress, {String? tokenId}) {
+    if (!_isSdkInitialized) {
+      return BigInt.zero;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final tokenIdPtr = calloc<GeniusTokenID>();
+    try {
+      _writeTokenId(tokenIdPtr, tokenId);
+      final raw = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetChildBalance(
+        addressPtr,
+        tokenIdPtr.ref,
+      );
+      return BigInt.from(raw).toUnsigned(64);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(tokenIdPtr);
+    }
+  }
+
+  /// Funds [childAddress] with [amountMinions] Minion Tokens. `RET_OK` means
+  /// submitted, not confirmed by consensus.
+  GeniusNodeReturnValue fundChild(
+    BigInt amountMinions,
+    String childAddress, {
+    String? tokenId,
+  }) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final amount = uint64Arg(amountMinions);
+    if (amount == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final tokenIdPtr = calloc<GeniusTokenID>();
+    try {
+      _writeTokenId(tokenIdPtr, tokenId);
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKFundChild(
+        amount,
+        addressPtr,
+        tokenIdPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(tokenIdPtr);
+    }
+  }
+
+  /// Funds [childAddress] with a GNUS-string [amountGnus]. `RET_OK` means
+  /// submitted, not confirmed by consensus.
+  GeniusNodeReturnValue fundChildGnus(String amountGnus, String childAddress) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final amountPtr = calloc<GeniusTokenValue>();
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    try {
+      if (!writeTokenValue(amountPtr, amountGnus)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKFundChildGNUS(
+        amountPtr,
+        addressPtr,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      calloc.free(amountPtr);
+      malloc.free(addressPtr);
+    }
+  }
+
+  /// Recovers [amountMinions] Minion Tokens from [childAddress] back to this
+  /// node. `RET_OK` means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue recoverFromChild(
+    BigInt amountMinions,
+    String childAddress, {
+    String? tokenId,
+  }) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final amount = uint64Arg(amountMinions);
+    if (amount == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final tokenIdPtr = calloc<GeniusTokenID>();
+    try {
+      _writeTokenId(tokenIdPtr, tokenId);
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRecoverFromChild(
+        amount,
+        addressPtr,
+        tokenIdPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(tokenIdPtr);
+    }
+  }
+
+  /// Recovers a GNUS-string [amountGnus] from [childAddress] back to this
+  /// node. `RET_OK` means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue recoverFromChildGnus(
+    String amountGnus,
+    String childAddress,
+  ) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final amountPtr = calloc<GeniusTokenValue>();
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    try {
+      if (!writeTokenValue(amountPtr, amountGnus)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRecoverFromChildGNUS(
+        amountPtr,
+        addressPtr,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      calloc.free(amountPtr);
+      malloc.free(addressPtr);
+    }
+  }
+
+  /// Ends this node's own child-wallet registration under its current main.
+  /// `RET_OK` means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final metadataPtr = calloc<GeniusRegistrationMetadata>();
+    try {
+      if (!writeRegistrationMetadata(metadataPtr, metadata)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKDetachChild(
+        metadataPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      calloc.free(metadataPtr);
+    }
+  }
+
+  /// Changes this node's registered main wallet to [newMainAddress]. `RET_OK`
+  /// means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue replaceMain(
+    String newMainAddress,
+    ChildRegistrationMetadata metadata,
+  ) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = newMainAddress.toNativeUtf8().cast<Char>();
+    final metadataPtr = calloc<GeniusRegistrationMetadata>();
+    try {
+      if (!writeRegistrationMetadata(metadataPtr, metadata)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKReplaceMain(
+        addressPtr,
+        metadataPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(metadataPtr);
+    }
+  }
+
+  /// Creates a main-initiated revoke transaction against [childAddress].
+  /// `RET_OK` means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue revokeChild(String childAddress) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    try {
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRevokeChild(
+        addressPtr,
+      );
+      return _mapNodeReturnValue(result);
     } finally {
       malloc.free(addressPtr);
     }

@@ -47,7 +47,9 @@ String _readField(ffi.Array<ffi.Char> field, int maxLength) {
   final units = <int>[];
   for (var i = 0; i < maxLength; i++) {
     final c = field[i];
-    if (c == 0) break;
+    if (c == 0) {
+      break;
+    }
     units.add(c & 0xFF);
   }
   return utf8.decode(units, allowMalformed: true);
