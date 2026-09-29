@@ -1,10 +1,17 @@
-// Pins the one-time backfill decision for accounts older than the link
-// feature (LINK-03): a re-add's single new address links, a one-to-one
-// leftover pair links, and anything wider is left honestly 'Unlinked'
-// rather than guessed.
+// Pins the one-time backfill for accounts older than the link feature:
+// a re-add's single new address links, a one-to-one leftover pair links,
+// and anything wider is left honestly 'Unlinked' rather than guessed.
+// Also pins that the pass runs once after SDK start-up.
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
+import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 
 typedef _Candidate = ({
   String walletAddress,
@@ -155,4 +162,86 @@ void main() {
       expect(result, isEmpty);
     });
   });
+
+  group('AppBloc.InitializeSDK runs the backfill pass once', () {
+    late _CountingApi api;
+    late AppBloc bloc;
+
+    setUp(() {
+      api = _CountingApi();
+      bloc = AppBloc(
+        api: api,
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: WalletDetailsCubit(
+          geniusApi: api,
+          networkTokensProvider: NetworkTokensProvider(),
+        ),
+        networkProvider: NetworkProvider(),
+      );
+    });
+
+    tearDown(() async {
+      await bloc.close();
+    });
+
+    test(
+      'after InitializeSDK, the pass ran once and sdkStatus is loaded',
+      () async {
+        bloc.add(LoadWallets());
+        await bloc.stream.firstWhere(
+          (s) => s.subscribeToWalletStatus == AppStatus.loaded,
+        );
+
+        bloc.add(InitializeSDK());
+        final state = await bloc.stream.firstWhere(
+          (s) => s.sdkAccountLinks.isNotEmpty,
+        );
+
+        expect(api.linkCalls, 1);
+        expect(state.sdkStatus, AppStatus.loaded);
+      },
+    );
+  });
+}
+
+/// `implements`, not `extends`: the real constructor dlopens the native SDK.
+class _CountingApi implements GeniusApi {
+  int linkCalls = 0;
+
+  @override
+  Future<void> initSDK() async {}
+
+  @override
+  Future<void> linkExistingSDKAccounts() async {
+    linkCalls++;
+  }
+
+  @override
+  Stream<List<Wallet>> getWallets() => Stream.value(const []);
+
+  @override
+  Stream<SGNUSConnection> getSGNUSConnectionStream() => Stream.value(
+    const SGNUSConnection(
+      sgnusAddress: '',
+      walletAddress: '',
+      isConnected: false,
+    ),
+  );
+
+  @override
+  String? getSelectedAccountAddress() => null;
+
+  @override
+  String? getStartAccountAddress() => '0xstart';
+
+  @override
+  List<String> getAvailableAccounts() => const [];
+
+  @override
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {
+    '0xstart': (walletAddress: '0xstart', walletName: 'Main'),
+  };
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

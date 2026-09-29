@@ -112,6 +112,23 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         sdkAccountLinks: await api.getSDKAccountLinks(),
       ),
     );
+
+    await api.linkExistingSDKAccounts();
+
+    // Wait for the wallet list's own emit so the new names land after it,
+    // never racing it; a stuck load must not block this pass forever.
+    if (state.subscribeToWalletStatus != AppStatus.loaded) {
+      try {
+        await stream
+            .firstWhere((s) => s.subscribeToWalletStatus == AppStatus.loaded)
+            .timeout(const Duration(seconds: 30));
+      } catch (_) {
+        // Swallowed: a later refresh still picks up any names found above.
+      }
+    }
+    if (!isClosed) {
+      add(RefreshSDKAccounts());
+    }
   }
 
   Future<void> _onLoadWallets(LoadWallets event, Emitter<AppState> emit) async {

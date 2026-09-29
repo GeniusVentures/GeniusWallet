@@ -349,6 +349,20 @@ class LocalWalletStorage {
     return candidates;
   }
 
+  /// Every parseable key wallet, in [sdkDefaultWalletCandidates] order.
+  /// Watch-only wallets hold no key and are never included.
+  Future<List<StoredKey>> getStoredKeys() async {
+    final keys = await _secureStorage.readAll();
+    final storedKeys = <StoredKey>[];
+    for (final key in sdkDefaultWalletCandidates(keys)) {
+      final storedKey = StoredKey.importJson(keys[key]!);
+      if (storedKey != null) {
+        storedKeys.add(storedKey);
+      }
+    }
+    return storedKeys;
+  }
+
   /// Records the wallet the SDK was initialised with, so later starts reuse
   /// its key instead of adding another SDK account.
   Future<void> saveSDKDefaultWalletAddress(String address) async {
