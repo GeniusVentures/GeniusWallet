@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
-import 'package:genius_wallet/account/sdk_account_manager.dart';
+import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -128,16 +128,35 @@ void main() {
   });
 
   testWidgets('Delete is disabled on the start account row', (tester) async {
+    // Tall enough that all three rows and the node section's button build
+    // without a scroll.
+    tester.view.physicalSize = const Size(1200, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(
-      BlocProvider<AppBloc>.value(
-        value: bloc,
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<WalletDetailsCubit>.value(value: details),
+          BlocProvider<AppBloc>.value(value: bloc),
+        ],
         child: MaterialApp(
           theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
-          home: const Scaffold(body: SDKAccountManagerButton()),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => AccountDrawer.show(context),
+                child: const Text('open drawer'),
+              ),
+            ),
+          ),
         ),
       ),
     );
-    await tester.tap(find.byType(SDKAccountManagerButton));
+    await tester.tap(find.text('open drawer'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Default account'), findsOneWidget);
 
