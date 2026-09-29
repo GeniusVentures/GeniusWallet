@@ -23,6 +23,7 @@ const _mainAddress = '0x1111111111111111111111111111111111aaaa';
 const _childAddress = '0x2222222222222222222222222222222222bbbb';
 const _secondChildAddress = '0x4444444444444444444444444444444444dddd';
 const _parentAddress = '0x6666666666666666666666666666666666eeee';
+const _newMainAddress = '0x8888888888888888888888888888888888ffff';
 
 const _mainWallet = Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -100,6 +101,35 @@ const _withParentAppState = AppState(
   },
 );
 
+const _newMainWallet = Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: 'New Main Wallet',
+  currencySymbol: 'ETH',
+  walletType: WalletType.privateKey,
+  balance: 0,
+  address: _newMainAddress,
+);
+
+/// A third own account, alongside [_parentAddress] -- Move's picker needs
+/// somewhere else to move to besides the account's current main.
+const _withTwoOwnMainsAppState = AppState(
+  selectedSDKAccount: _mainAddress,
+  sdkAccounts: [_mainAddress, _parentAddress, _newMainAddress],
+  wallets: [_mainWallet, _childWallet, _parentWallet, _newMainWallet],
+  sdkAccountLinks: {
+    _mainAddress: (walletAddress: _mainAddress, walletName: 'Main Wallet'),
+    _childAddress: (walletAddress: _childAddress, walletName: 'Game Wallet'),
+    _parentAddress: (
+      walletAddress: _parentAddress,
+      walletName: 'Parent Wallet',
+    ),
+    _newMainAddress: (
+      walletAddress: _newMainAddress,
+      walletName: 'New Main Wallet',
+    ),
+  },
+);
+
 const _registrations = (
   result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
   entries: [
@@ -140,6 +170,7 @@ class _FakeApi implements GeniusApi {
     this.revokeResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
     this.detachResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
     this.registerResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    this.moveResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
     this.otherRegistrations = const {},
   });
 
@@ -152,6 +183,7 @@ class _FakeApi implements GeniusApi {
   final GeniusNodeReturnValue revokeResult;
   final GeniusNodeReturnValue detachResult;
   final GeniusNodeReturnValue registerResult;
+  final GeniusNodeReturnValue moveResult;
   final Map<String, BigInt> balances = {};
   String? lastFundedAmount;
   String? lastFundedChild;
@@ -161,11 +193,14 @@ class _FakeApi implements GeniusApi {
   ChildRegistrationMetadata? lastDetachMetadata;
   String? lastRegisteredMain;
   ChildRegistrationMetadata? lastRegisteredMetadata;
+  String? lastMoveNewMain;
+  ChildRegistrationMetadata? lastMoveMetadata;
   int fundCallCount = 0;
   int recoverCallCount = 0;
   int revokeCallCount = 0;
   int detachCallCount = 0;
   int registerCallCount = 0;
+  int moveCallCount = 0;
 
   @override
   ChildRegistrations getChildRegistrations(String mainAddress) {
@@ -229,6 +264,17 @@ class _FakeApi implements GeniusApi {
     lastRegisteredMain = mainAddress;
     lastRegisteredMetadata = metadata;
     return registerResult;
+  }
+
+  @override
+  GeniusNodeReturnValue replaceMain(
+    String newMainAddress,
+    ChildRegistrationMetadata metadata,
+  ) {
+    moveCallCount++;
+    lastMoveNewMain = newMainAddress;
+    lastMoveMetadata = metadata;
+    return moveResult;
   }
 
   @override
@@ -1035,6 +1081,208 @@ void main() {
     );
     expect(registerButton.onPressed, isNull);
     expect(find.byTooltip('Already registering this account'), findsOneWidget);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets(
+    'Move picks a new main from the picker, excluding this account and its '
+    'current main, confirms with the warning note, and resolves once both '
+    'halves land, then toasts once',
+    (tester) async {
+      final api = _FakeApi(
+        otherRegistrations: {
+          _parentAddress.toLowerCase(): (
+            result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+            entries: const [
+              ChildRegistration(
+                childAddress: _mainAddress,
+                mainAddress: _parentAddress,
+                sequence: 0,
+              ),
+            ],
+          ),
+          _newMainAddress.toLowerCase(): (
+            result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+            entries: const <ChildRegistration>[],
+          ),
+        },
+      );
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+        appState: _withTwoOwnMainsAppState,
+      );
+
+      expect(find.text('Child of Parent Wallet'), findsOneWidget);
+      await tester.tap(find.widgetWithText(GWButton, 'Move to another main'));
+      await tester.pumpAndSettle();
+
+      // The picker excludes this account (never offered) and its current
+      // main (already the relationship being moved away from).
+      expect(find.text('Main Wallet'), findsNothing);
+      expect(find.text('Parent Wallet'), findsNothing);
+      expect(find.text('New Main Wallet'), findsOneWidget);
+
+      await tester.tap(find.text('New Main Wallet'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(GWButton, 'Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Move to another main?'), findsOneWidget);
+      expect(
+        find.text(
+          'Move to New Main Wallet? Main Wallet will no longer be a child '
+          'of Parent Wallet.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'The child keeps its current balance; nothing is transferred by '
+          'this action.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byType(GWDialog),
+          matching: find.widgetWithText(GWButton, 'Move'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(api.moveCallCount, 1);
+      expect(api.lastMoveNewMain, _newMainAddress);
+      expect(api.lastMoveMetadata, const ChildRegistrationMetadata());
+      expect(find.text('Moving to New Main Wallet…'), findsOneWidget);
+      // Still the list-based truth until the real signal lands -- the new
+      // main is never claimed early.
+      expect(find.text('Child of Parent Wallet'), findsOneWidget);
+
+      // The real signal: the old main no longer lists it, the new main now
+      // does.
+      api.otherRegistrations = {
+        _parentAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const <ChildRegistration>[],
+        ),
+        _newMainAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _newMainAddress,
+              sequence: 0,
+            ),
+          ],
+        ),
+      };
+      await tester.tap(find.byTooltip('Refresh'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Moving to New Main Wallet…'), findsNothing);
+      expect(find.text('Moved to New Main Wallet'), findsOneWidget);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets('a refused Move shows the reason and never shows a badge', (
+    tester,
+  ) async {
+    final api = _FakeApi(
+      moveResult: GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT,
+      otherRegistrations: {
+        _parentAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _parentAddress,
+              sequence: 0,
+            ),
+          ],
+        ),
+      },
+    );
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _withTwoOwnMainsAppState,
+    );
+
+    await tester.tap(find.widgetWithText(GWButton, 'Move to another main'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('New Main Wallet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(GWButton, 'Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(GWDialog),
+        matching: find.widgetWithText(GWButton, 'Move'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(api.moveCallCount, 1);
+    expect(
+      find.text(
+        'The SDK refused to move this account: GENIUS_NODE_INVALID_ARGUMENT',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Moving to'), findsNothing);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets('a pending Move locks the card button, tooltipped', (
+    tester,
+  ) async {
+    final api = _FakeApi(
+      otherRegistrations: {
+        _parentAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _parentAddress,
+              sequence: 0,
+            ),
+          ],
+        ),
+      },
+    );
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _withTwoOwnMainsAppState,
+    );
+
+    operations.submit(
+      kind: ChildOperationKind.move,
+      target: _mainAddress,
+      main: _parentAddress,
+      newMain: _newMainAddress,
+    );
+    await tester.pumpAndSettle();
+
+    final moveButton = tester.widget<GWButton>(
+      find.widgetWithText(GWButton, 'Move to another main'),
+    );
+    expect(moveButton.onPressed, isNull);
+    expect(find.byTooltip('Already moving this account'), findsOneWidget);
 
     await childWallets.close();
     await operations.close();

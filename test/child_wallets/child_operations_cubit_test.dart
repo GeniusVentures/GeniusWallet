@@ -12,6 +12,7 @@ const _mainAddress = '0x1111111111111111111111111111111111aaaa';
 const _otherAddress = '0x5555555555555555555555555555555555eeee';
 const _childAddress = '0x2222222222222222222222222222222222bbbb';
 const _secondChildAddress = '0x3333333333333333333333333333333333cccc';
+const _newMainAddress = '0x7777777777777777777777777777777777ffff';
 
 const _appState = AppState(
   selectedSDKAccount: _mainAddress,
@@ -34,14 +35,28 @@ class _FakeApi implements GeniusApi {
   int revokeCallCount = 0;
   int detachCallCount = 0;
   int registerCallCount = 0;
+  int moveCallCount = 0;
   String? lastRecoveredAmount;
   String? lastRecoveredChild;
   String? lastRevokedChild;
   ChildRegistrationMetadata? lastDetachMetadata;
   String? lastRegisteredMain;
   ChildRegistrationMetadata? lastRegisteredMetadata;
+  String? lastMoveNewMain;
+  ChildRegistrationMetadata? lastMoveMetadata;
   GeniusNodeReturnValue registrationsResult;
   List<ChildRegistration> registrationEntries = const [];
+
+  /// Per-main override, keyed by lowercased main address -- only move's tests
+  /// need the old and new main to answer a registrations read differently.
+  /// Falls back to [registrationEntries] for any main not listed here, so
+  /// every single-main test above is unaffected.
+  Map<String, List<ChildRegistration>> registrationEntriesByMain = const {};
+
+  /// Same per-main override, for the read's own OK/not-OK result -- move's
+  /// "one half fails" test needs the new main's read to fail while the old
+  /// main's still succeeds.
+  Map<String, GeniusNodeReturnValue> registrationsResultByMain = const {};
 
   @override
   BigInt getChildBalanceAll(String childAddress) =>
@@ -76,8 +91,14 @@ class _FakeApi implements GeniusApi {
   }
 
   @override
-  ChildRegistrations getChildRegistrations(String mainAddress) =>
-      (result: registrationsResult, entries: registrationEntries);
+  ChildRegistrations getChildRegistrations(String mainAddress) => (
+    result:
+        registrationsResultByMain[mainAddress.toLowerCase()] ??
+        registrationsResult,
+    entries:
+        registrationEntriesByMain[mainAddress.toLowerCase()] ??
+        registrationEntries,
+  );
 
   @override
   GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) {
@@ -94,6 +115,17 @@ class _FakeApi implements GeniusApi {
     registerCallCount++;
     lastRegisteredMain = mainAddress;
     lastRegisteredMetadata = metadata;
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
+
+  @override
+  GeniusNodeReturnValue replaceMain(
+    String newMainAddress,
+    ChildRegistrationMetadata metadata,
+  ) {
+    moveCallCount++;
+    lastMoveNewMain = newMainAddress;
+    lastMoveMetadata = metadata;
     return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   }
 
@@ -922,6 +954,244 @@ void main() {
 
       expect(second, isNull);
       expect(api.registerCallCount, 1);
+
+      cubit.close();
+    });
+  });
+
+  group('move', () {
+    test('submit calls the replace-main wrapper with the new main and empty '
+        'metadata, running as the account itself', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
+
+      expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      expect(api.moveCallCount, 1);
+      expect(api.lastMoveNewMain, _newMainAddress);
+      expect(api.lastMoveMetadata, const ChildRegistrationMetadata());
+
+      cubit.close();
+    });
+
+    test('running as the old main, not the account itself, is refused, no '
+        'SDK call', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(selectedSDKAccount: _otherAddress),
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
+
+      expect(result, isNull);
+      expect(api.moveCallCount, 0);
+
+      cubit.close();
+    });
+
+    test('a second move for the same account while pending is refused', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
+
+      final second = cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
+
+      expect(second, isNull);
+      expect(api.moveCallCount, 1);
+
+      cubit.close();
+    });
+
+    test(
+      'an OK read of the old main without the account AND an OK read of '
+      'the new main listing it resolves',
+      () {
+        final api = _FakeApi()
+          ..registrationEntriesByMain = {
+            _otherAddress.toLowerCase(): const [
+              ChildRegistration(
+                childAddress: _mainAddress,
+                mainAddress: _otherAddress,
+                sequence: 0,
+              ),
+            ],
+            _newMainAddress.toLowerCase(): const [],
+          };
+        final cubit = ChildOperationsCubit(
+          api: api,
+          readAppState: () => _appState,
+        );
+        cubit.submit(
+          kind: ChildOperationKind.move,
+          target: _mainAddress,
+          main: _otherAddress,
+          newMain: _newMainAddress,
+        );
+
+        // Only the new main has picked it up so far -- still pending.
+        api.registrationEntriesByMain = {
+          _otherAddress.toLowerCase(): const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _otherAddress,
+              sequence: 0,
+            ),
+          ],
+          _newMainAddress.toLowerCase(): const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _newMainAddress,
+              sequence: 0,
+            ),
+          ],
+        };
+        cubit.resolve();
+        expect(cubit.state.operations, hasLength(1));
+        expect(cubit.state.justResolved, isEmpty);
+
+        // Now both halves agree.
+        api.registrationEntriesByMain = {
+          _otherAddress.toLowerCase(): const [],
+          _newMainAddress.toLowerCase(): const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _newMainAddress,
+              sequence: 0,
+            ),
+          ],
+        };
+        cubit.resolve();
+        expect(cubit.state.operations, isEmpty);
+        expect(cubit.state.justResolved, hasLength(1));
+
+        cubit.close();
+      },
+    );
+
+    test(
+      'the same lists with the account in a different case still resolve',
+      () {
+        final api = _FakeApi()
+          ..registrationEntriesByMain = {
+            _otherAddress.toLowerCase(): const [],
+            _newMainAddress.toLowerCase(): [
+              ChildRegistration(
+                childAddress: _mainAddress.toUpperCase(),
+                mainAddress: _newMainAddress,
+                sequence: 0,
+              ),
+            ],
+          };
+        final cubit = ChildOperationsCubit(
+          api: api,
+          readAppState: () => _appState,
+        );
+        cubit.submit(
+          kind: ChildOperationKind.move,
+          target: _mainAddress,
+          main: _otherAddress,
+          newMain: _newMainAddress,
+        );
+
+        cubit.resolve();
+
+        expect(cubit.state.operations, isEmpty);
+        expect(cubit.state.justResolved, hasLength(1));
+
+        cubit.close();
+      },
+    );
+
+    test(
+      'a non-OK read of the new main alone leaves it pending, then times '
+      'out to notConfirmed',
+      () {
+        var now = DateTime(2024);
+        final api = _FakeApi()
+          ..registrationEntriesByMain = {
+            _otherAddress.toLowerCase(): const [],
+          }
+          ..registrationsResultByMain = {
+            _newMainAddress.toLowerCase():
+                GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
+          };
+        final cubit = ChildOperationsCubit(
+          api: api,
+          readAppState: () => _appState,
+          now: () => now,
+        );
+        final submittedAt = now;
+        cubit.submit(
+          kind: ChildOperationKind.move,
+          target: _mainAddress,
+          main: _otherAddress,
+          newMain: _newMainAddress,
+        );
+
+        cubit.resolve();
+        expect(cubit.state.operations, hasLength(1));
+        expect(cubit.state.justResolved, isEmpty);
+
+        now = submittedAt.add(childOperationTimeout);
+        cubit.resolve();
+
+        expect(cubit.state.operations.single.notConfirmed, isTrue);
+        expect(cubit.state.justResolved, isEmpty);
+
+        cubit.close();
+      },
+    );
+
+    test('only the old main clearing, with the new main not yet listing it, '
+        'stays pending', () {
+      final api = _FakeApi()
+        ..registrationEntriesByMain = {
+          _otherAddress.toLowerCase(): const [],
+          _newMainAddress.toLowerCase(): const [],
+        };
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
+
+      cubit.resolve();
+
+      expect(cubit.state.operations, hasLength(1));
+      expect(cubit.state.justResolved, isEmpty);
 
       cubit.close();
     });
