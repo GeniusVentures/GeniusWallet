@@ -11,15 +11,16 @@ import 'package:genius_wallet/utils/wallet_utils.dart';
 
 /// Which SDK write an operation represents. Each kind arrives with its own
 /// submit and resolve arm below. [fund], [recover] and [revoke] are
-/// main-side: they run only while the node runs as the main. [detach] is
-/// child-side: it runs only while the node runs as the account being
-/// detached.
-enum ChildOperationKind { fund, recover, revoke, detach }
+/// main-side: they run only while the node runs as the main. [detach] and
+/// [register] are child-side: they run only while the node runs as the
+/// account being detached or registered.
+enum ChildOperationKind { fund, recover, revoke, detach, register }
 
 /// True for a kind that runs on the child's own node rather than the main's
 /// -- [ChildOperationsCubit.submit] then requires the node to already be
 /// running as `target`, not `main`.
-bool _isChildSide(ChildOperationKind kind) => kind == ChildOperationKind.detach;
+bool _isChildSide(ChildOperationKind kind) =>
+    kind == ChildOperationKind.detach || kind == ChildOperationKind.register;
 
 /// How long an unresolved operation stays pending before it reads "Not
 /// confirmed yet" instead.
@@ -101,15 +102,23 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   /// [address]'s linked wallet name, or its own short address when it has
   /// none -- a badge or toast should never carry the bare word "Unlinked".
   String labelFor(String address) {
+    final name = nameFor(address);
+    return name == 'Unlinked'
+        ? WalletUtils.getAddressForDisplay(address)
+        : name;
+  }
+
+  /// [address]'s linked wallet name, or the literal word "Unlinked" when it
+  /// has none -- unlike [labelFor], for the one place "Unlinked" itself is
+  /// the intended copy (the main picker's row title, paired with the short
+  /// address as its own subtitle).
+  String nameFor(String address) {
     final appState = _readAppState();
-    final name = AppBloc.sdkAccountName(
+    return AppBloc.sdkAccountName(
       address,
       appState.sdkAccountLinks,
       appState.wallets,
     );
-    return name == 'Unlinked'
-        ? WalletUtils.getAddressForDisplay(address)
-        : name;
   }
 
   /// The most recently submitted operation targeting [target], or null when
@@ -140,6 +149,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         op.fromAccount.toLowerCase() == account.toLowerCase(),
   );
 
+  /// The user's own SDK accounts -- the main picker's candidate list.
+  List<String> get ownAccounts => _readAppState().sdkAccounts;
+
   /// True for a kind that carries a GNUS amount -- fund and recover only.
   bool _hasAmount(ChildOperationKind kind) =>
       kind == ChildOperationKind.fund || kind == ChildOperationKind.recover;
@@ -147,8 +159,8 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   /// The balance [kind] draws on for [target]. Fund draws on the running
   /// account's own GNUS balance -- BigInt.tryParse on the SDK's decimal
   /// string, zero on a bad parse rather than a thrown exception. Recover
-  /// draws on the child's own balance. Revoke and detach take no amount and
-  /// never call this.
+  /// draws on the child's own balance. Revoke, detach and register take no
+  /// amount and never call this.
   BigInt payingBalance(ChildOperationKind kind, String target) {
     switch (kind) {
       case ChildOperationKind.fund:
@@ -157,6 +169,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         return _api.getChildBalanceAll(target);
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
+      case ChildOperationKind.register:
         return BigInt.zero;
     }
   }
@@ -207,6 +220,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       ),
       ChildOperationKind.revoke => _api.revokeChild(target),
       ChildOperationKind.detach => _api.detachChild(
+        const ChildRegistrationMetadata(),
+      ),
+      ChildOperationKind.register => _api.registerChild(
+        main,
         const ChildRegistrationMetadata(),
       ),
     };
@@ -293,17 +310,20 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         return current <= (op.baselineMinions! - op.amountMinions!);
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
-        return !_listedUnder(op.main, op.target);
+        return _listedUnder(op.main, op.target) == false;
+      case ChildOperationKind.register:
+        return _listedUnder(op.main, op.target) == true;
     }
   }
 
-  /// True when an OK read of [main]'s registrations lists [target],
-  /// case-insensitively. A non-OK read counts as "still listed", so revoke
-  /// and detach never resolve on a failed read.
-  bool _listedUnder(String main, String target) {
+  /// Whether an OK read of [main]'s registrations lists [target],
+  /// case-insensitively -- or null when the read itself wasn't OK. Callers
+  /// only resolve on a definite true or false, never on an unknown read, so
+  /// revoke, detach and register all stay pending through a failed read.
+  bool? _listedUnder(String main, String target) {
     final registrations = _api.getChildRegistrations(main);
     if (!registrations.isOk) {
-      return true;
+      return null;
     }
     return registrations.entries.any(
       (r) => r.childAddress.toLowerCase() == target.toLowerCase(),
