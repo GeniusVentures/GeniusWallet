@@ -2,7 +2,7 @@
 phase: 34
 slug: account-linking
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-29
 ---
@@ -38,13 +38,16 @@ created: 2026-09-29
 
 Filled by the planner per task. Required coverage:
 
-| Requirement | Behavior | Test Type | Automated Command | File Exists |
-|-------------|----------|-----------|-------------------|-------------|
-| LINK-01 | `_registerWallet` captures the SGNUS↔ETH link on create/import; link storage round-trips public addresses only | unit | `flutter test test/local_wallet_storage_test.dart` | ❌ W0 (extend) |
-| LINK-01 | SDK-form add also saves the wallet; re-entering an existing wallet links without duplicating | widget | `flutter test test/account/sdk_add_account_test.dart` | ❌ W0 (extend) |
-| LINK-02 | `_mergeSgnusWallet` and SDK Accounts rows label linked accounts by wallet name + short address; "(wallet removed)" and "Unlinked" cases | unit + widget | new test under `test/bloc/` or `test/account/` | ❌ W0 |
-| LINK-03 | Backfill links matchable old accounts without growing the account list; unmatched read "Unlinked" | unit | new backfill test against a hand-rolled `GeniusApi` fake | ❌ W0 |
-| D-10..D-12 | All wallet deletes route through `AppBloc`; SDK-account delete removes the linked wallet; blocked for the active wallet | widget | new `test/components/wallet_information_delete_test.dart` | ❌ W0 |
+| Requirement | Plan-Task | Behavior | Test Type | Automated Command | File Exists |
+|-------------|-----------|----------|-----------|-------------------|-------------|
+| LINK-01 | 01-T1 | Link map round-trips lowercased public addresses + name; capture feeds wallet-menu names | unit + bloc | `flutter test test/local_wallet_storage_test.dart test/account/sdk_account_links_test.dart` | ❌ created in 01-T1 |
+| LINK-01/D-20 | 01-T2, 01-T3 | Start-account rename; links reach AppState at every SDK emit | unit + bloc | `flutter test` | ✅ extend |
+| LINK-02 | 02-T1 | SDK rows: name / address + status / order / empty / same-name | widget | `flutter test test/account/sdk_account_rows_test.dart` | ❌ created in 02-T1 |
+| LINK-02/D-19 | 02-T2 | SDK and SDK PENDING badges; address-based selection | unit + widget | `flutter test test/account/account_drawer_show_test.dart` | ✅ extend |
+| D-20 | 02-T3 | Compute panel "Not the default account" | unit + widget | `flutter test test/dashboard/` | ✅ extend |
+| LINK-03 | 03-T1, 03-T2 | Backfill links provable pairs only, stops on a jump >1, runs after SDK start | unit + bloc | `flutter test test/account/sdk_link_backfill_test.dart` | ❌ created in 03-T1 (TDD) |
+| LINK-01/D-01..D-07 | 04-T1, 04-T2 | SDK form saves the wallet; added / already there / pending / failed; no selection change | widget | `flutter test test/account/sdk_add_account_test.dart` | ✅ extend (04-T1 is analyze + grep: StoredKey needs the native lib) |
+| D-08..D-12 | 05-T1..T3 | Name snapshot; SDK delete takes its wallet, refused for the active/last wallet; both wallet deletes via AppBloc | unit + bloc + widget | `flutter test test/account/sdk_account_delete_coupling_test.dart test/components/wallet_information_delete_test.dart test/account/account_drawer_show_test.dart` | ❌ created in 05-T2/T3 |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -70,11 +73,11 @@ Filled by the planner per task. Required coverage:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-09-29 (plan-checker)
