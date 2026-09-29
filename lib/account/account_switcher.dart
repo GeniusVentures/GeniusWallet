@@ -10,11 +10,11 @@ import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
-/// The desktop top bar's wallet chip. It shows the selection held by
-/// [WalletDetailsCubit], like the header pill, so a change made anywhere
-/// (a delete included) reaches it.
-class AccountDropdownSelector extends StatelessWidget {
-  const AccountDropdownSelector({super.key});
+/// The desktop top bar's one account chip. Names the active wallet, from
+/// [WalletDetailsCubit] like the header pill, and opens the drawer where
+/// both the wallet and the node's SDK account are chosen.
+class AccountSwitcher extends StatelessWidget {
+  const AccountSwitcher({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +33,17 @@ class AccountDropdownSelector extends StatelessWidget {
         final selectedWallet =
             context.watch<WalletDetailsCubit>().state.selectedWallet ??
             wallets.first;
+        final label = selectedWallet.walletType == WalletType.sgnus
+            ? 'Super Genius'
+            : (selectedWallet.walletName.isNotEmpty
+                  ? selectedWallet.walletName
+                  : WalletUtils.getAddressForDisplay(selectedWallet.address));
+        final selectedSDKAccount = state.selectedSDKAccount;
+        final nodeStatus = selectedSDKAccount != null
+            ? 'Node running as ${AppBloc.sdkAccountName(selectedSDKAccount, state.sdkAccountLinks, state.wallets)}'
+            : 'Node not running';
         return Tooltip(
-          message: "Select wallet",
+          message: 'Sending from $label · $nodeStatus',
           child: TextButton(
             style: navContextChipStyle(context),
             onPressed: () => AccountDrawer.show(context),
@@ -52,11 +61,7 @@ class AccountDropdownSelector extends StatelessWidget {
                   // lets the row overflow.
                   Flexible(
                     child: Text(
-                      selectedWallet.walletType == WalletType.sgnus
-                          ? 'Super Genius'
-                          : WalletUtils.getAddressForDisplay(
-                              selectedWallet.address,
-                            ),
+                      label,
                       style: Theme.of(context).textTheme.bodyMedium,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

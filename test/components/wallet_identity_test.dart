@@ -10,7 +10,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
-import 'package:genius_wallet/account/account_dropdown_selector.dart';
+import 'package:genius_wallet/account/account_switcher.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/mobile_header.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -19,7 +19,6 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -375,11 +374,11 @@ void main() {
             ],
             child: MaterialApp(
               theme: themeFor(GWAppearanceMode.dark),
-              home: const Scaffold(body: AccountDropdownSelector()),
+              home: const Scaffold(body: AccountSwitcher()),
             ),
           ),
         );
-        expect(find.text(WalletUtils.getAddressForDisplay(_addrA)), findsOne);
+        expect(find.text('Main wallet'), findsOne);
 
         appBloc.add(DeleteWallet(_addrA, watchOnly: false));
         await tester.runAsync(
@@ -388,10 +387,7 @@ void main() {
         await tester.pump();
 
         expect(find.text('Super Genius'), findsOne);
-        expect(
-          find.text(WalletUtils.getAddressForDisplay(_addrA)),
-          findsNothing,
-        );
+        expect(find.text('Main wallet'), findsNothing);
       } finally {
         await tester.runAsync(() => appBloc.close());
         await cubit.close();
