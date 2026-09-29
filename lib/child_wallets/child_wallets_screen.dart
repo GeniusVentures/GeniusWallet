@@ -199,6 +199,10 @@ class ChildWalletRow extends StatelessWidget {
     final gw = context.gw;
     final registry = context.watch<ChildOperationsCubit>();
     final pendingOp = registry.latestFor(wallet.address);
+    final fundLocked = registry.isPending(
+      ChildOperationKind.fund,
+      wallet.address,
+    );
     final linkedWallet = wallet.linkedWallet;
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -264,6 +268,7 @@ class ChildWalletRow extends StatelessWidget {
               child: ChildOperationBadge(
                 op: pendingOp,
                 labelFor: registry.labelFor,
+                onCheckAgain: registry.resolve,
               ),
             ),
           ],
@@ -275,22 +280,58 @@ class ChildWalletRow extends StatelessWidget {
                   controller.isOpen ? controller.close() : controller.open(),
             ),
             menuChildren: [
-              MenuItemButton(
-                leadingIcon: GWIcon.material(
-                  Icons.arrow_upward,
-                  color: gw.textPrimary,
-                ),
-                style: MenuItemButton.styleFrom(
-                  foregroundColor: gw.textPrimary,
-                ),
+              _ChildActionMenuItem(
+                icon: Icons.arrow_upward,
+                label: 'Fund',
+                locked: fundLocked,
+                lockedReason: 'Already funding this child',
                 onPressed: () =>
                     startFund(context, child: wallet, mainAddress: mainAddress),
-                child: const Text('Fund'),
               ),
             ],
           ),
         ],
       ),
     );
+  }
+}
+
+/// One row-menu action, lockable. Disabled/tooltipped rather than hidden
+/// when [locked], reusing `SDKAccountRow`'s own disabled-item dimming so a
+/// locked action reads the same way everywhere in the app.
+class _ChildActionMenuItem extends StatelessWidget {
+  const _ChildActionMenuItem({
+    required this.icon,
+    required this.label,
+    required this.locked,
+    required this.lockedReason,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool locked;
+  final String lockedReason;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = context.gw;
+    final fg = locked
+        ? gw.textSecondary.withValues(alpha: 0.5)
+        : gw.textPrimary;
+    final item = MenuItemButton(
+      leadingIcon: GWIcon.material(icon, color: fg),
+      style: MenuItemButton.styleFrom(
+        foregroundColor: fg,
+        disabledForegroundColor: fg,
+      ),
+      onPressed: locked ? null : onPressed,
+      child: Text(label),
+    );
+    if (!locked) {
+      return item;
+    }
+    return Tooltip(message: lockedReason, child: item);
   }
 }

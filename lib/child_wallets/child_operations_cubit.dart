@@ -115,9 +115,26 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     return null;
   }
 
+  /// True while a [kind] operation on [target] is still pending -- a
+  /// notConfirmed op never counts, since it has already stopped blocking.
+  bool isPending(ChildOperationKind kind, String target) =>
+      state.operations.any(
+        (op) =>
+            op.kind == kind &&
+            !op.notConfirmed &&
+            op.target.toLowerCase() == target.toLowerCase(),
+      );
+
+  /// True while anything submitted from [account] is still pending.
+  bool hasPendingFrom(String account) => state.operations.any(
+    (op) =>
+        !op.notConfirmed &&
+        op.fromAccount.toLowerCase() == account.toLowerCase(),
+  );
+
   /// The balance [kind] draws on for [target]. Fund draws on the running
-  /// account's own GNUS balance -- the SDK reports it as a decimal string,
-  /// never a double, so a bad parse still returns zero rather than throwing.
+  /// account's own GNUS balance -- BigInt.tryParse on the SDK's decimal
+  /// string, zero on a bad parse rather than a thrown exception.
   BigInt payingBalance(ChildOperationKind kind, String target) {
     switch (kind) {
       case ChildOperationKind.fund:
@@ -137,6 +154,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   }) {
     final running = runningAccount;
     if (running == null || running.toLowerCase() != main.toLowerCase()) {
+      return null;
+    }
+    if (isPending(kind, target)) {
       return null;
     }
     final amount = amountMinions;
@@ -162,7 +182,13 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     emit(
       ChildOperationsState(
         operations: [
-          ...state.operations,
+          // Drop any notConfirmed op this same kind+target already holds --
+          // this submit replaces it, not adds a second entry for the child.
+          for (final existing in state.operations)
+            if (!(existing.kind == kind &&
+                existing.notConfirmed &&
+                existing.target.toLowerCase() == target.toLowerCase()))
+              existing,
           ChildOperation(
             kind: kind,
             fromAccount: main,
@@ -185,28 +211,38 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     return result;
   }
 
-  /// Re-checks every tracked operation against its own resolution signal.
-  /// Resolved operations leave [ChildOperationsState.operations] and become
-  /// [ChildOperationsState.justResolved]; this is a no-op when nothing
-  /// resolved, so a listener never fires on an unrelated emit.
+  /// Checks each op's signal first, then times out a still-pending one past
+  /// [childOperationTimeout]. "Check again" calls this same method. No-op
+  /// when nothing changed, so a listener never fires on an unrelated emit.
   void resolve() {
     if (state.operations.isEmpty) {
       return;
     }
+    final now = _now();
     final resolved = <ChildOperation>[];
     final remaining = <ChildOperation>[];
+    var changed = false;
     for (final op in state.operations) {
       if (_signalMet(op)) {
         resolved.add(op);
+        changed = true;
+        continue;
+      }
+      if (!op.notConfirmed &&
+          !now.isBefore(op.submittedAt.add(childOperationTimeout))) {
+        remaining.add(op.copyWith(notConfirmed: true));
+        changed = true;
       } else {
         remaining.add(op);
       }
     }
-    if (resolved.isEmpty) {
+    if (!changed) {
       return;
     }
     emit(ChildOperationsState(operations: remaining, justResolved: resolved));
-    if (remaining.isEmpty) {
+    // Stops once nothing left is actually pending -- a notConfirmed op never
+    // resolves on its own, so polling it further would be wasted reads.
+    if (remaining.every((op) => op.notConfirmed)) {
       _pollTimer?.cancel();
       _pollTimer = null;
     }
