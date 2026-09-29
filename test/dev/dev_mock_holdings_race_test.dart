@@ -27,6 +27,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -170,6 +171,7 @@ void main() {
       final api = _FakeGeniusApi();
       final cubit = _cubit(api);
       addTearDown(cubit.close);
+      cubit.appStateChanged(AppState(selectedSDKAccount: _sgnusWallet.address));
 
       await cubit.getCoins();
 

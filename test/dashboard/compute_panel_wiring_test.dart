@@ -91,6 +91,9 @@ class _SeededAppBloc extends AppBloc {
   }) {
     emit(state.copyWith(processingFeedStatus: processingFeedStatus));
   }
+
+  void runNodeAs(String account) =>
+      emit(state.copyWith(selectedSDKAccount: account));
 }
 
 /// Seeds `WalletDetailsCubit.state.selectedWallet` directly from within a
@@ -123,7 +126,7 @@ class _Harness {
 
   final _FakeGeniusApi geniusApi;
   final WalletDetailsCubit walletDetailsCubit;
-  final AppBloc appBloc;
+  final _SeededAppBloc appBloc;
 
   /// Mirrors `account_drawer_show_test.dart`'s own harness note:
   /// `AppBloc.close()` awaits its internal event-stream settling, and its
@@ -244,6 +247,35 @@ void main() {
 
       expect(find.text('Not the default account'), findsOneWidget);
       expect(find.text('Disconnected'), findsNothing);
+    } finally {
+      await _teardown(tester, harness);
+    }
+  });
+
+  testWidgets('the balance tile shows a number only once the node runs as the '
+      'selected wallet', (tester) async {
+    final harness = _build();
+    try {
+      await tester.pumpWidget(_host(harness: harness));
+      harness.geniusApi.emitConnection(
+        SGNUSConnection(
+          sgnusAddress: _linkedWallet.address,
+          walletAddress: _linkedWallet.address,
+          isConnected: true,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(kBalanceUnreadableMessage), findsOneWidget);
+      expect(find.text('MIN'), findsNothing);
+
+      harness.appBloc.runNodeAs(_linkedWallet.address);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(kBalanceUnreadableMessage), findsNothing);
+      expect(find.text('MIN'), findsOneWidget);
     } finally {
       await _teardown(tester, harness);
     }

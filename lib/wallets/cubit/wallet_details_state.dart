@@ -1,5 +1,9 @@
 part of 'wallet_details_cubit.dart';
 
+/// Shown in place of any balance while [WalletDetailsState.balanceUnreadable].
+const String kBalanceUnreadableMessage =
+    'Run the node as this account to see its balance.';
+
 class WalletDetailsState {
   final Wallet? selectedWallet;
   final Network? selectedNetwork;
@@ -21,6 +25,10 @@ class WalletDetailsState {
   final Network? coinsNetwork;
   final String? selectedWalletBalance;
 
+  /// The selected wallet's holdings come from the node, but the node runs as
+  /// an account that can't read them, so [coins] is empty and no number shows.
+  final bool balanceUnreadable;
+
   const WalletDetailsState({
     this.selectedWallet,
     this.copyAddressStatus = WalletStatus.initial,
@@ -37,6 +45,7 @@ class WalletDetailsState {
     this.initStatus = WalletStatus.initial,
     this.selectedCoin,
     this.selectedWalletBalance,
+    this.balanceUnreadable = false,
   });
 
   WalletDetailsState copyWith({
@@ -55,6 +64,7 @@ class WalletDetailsState {
     List<Transaction>? transactions,
     String? selectedWalletBalance,
     WalletStatus? initStatus,
+    bool? balanceUnreadable,
   }) {
     return WalletDetailsState(
       selectedWallet: selectedWallet ?? this.selectedWallet,
@@ -74,6 +84,7 @@ class WalletDetailsState {
       initStatus: initStatus ?? this.initStatus,
       selectedWalletBalance:
           selectedWalletBalance ?? this.selectedWalletBalance,
+      balanceUnreadable: balanceUnreadable ?? this.balanceUnreadable,
     );
   }
 }

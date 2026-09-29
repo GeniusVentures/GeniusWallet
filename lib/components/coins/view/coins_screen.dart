@@ -225,6 +225,13 @@ class CoinsScreenState extends State<CoinsScreen> {
             );
           }
 
+          if (state.balanceUnreadable) {
+            return const GWEmptyState(
+              icon: Icons.account_balance_wallet_outlined,
+              title: kBalanceUnreadableMessage,
+            );
+          }
+
           if (state.coins.isEmpty) {
             return const GWEmptyState(
               icon: Icons.account_balance_wallet_outlined,
