@@ -776,7 +776,7 @@ class _SwapScreenState extends State<SwapScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: GWButton(
           variant: GWButtonVariant.gradient,
-          size: GWButtonSize.lg,
+          size: GWButtonSize.md,
           expand: true,
           label: label,
           // ROUTE-ERROR RUNG: retry fetches directly — a user tapping Retry

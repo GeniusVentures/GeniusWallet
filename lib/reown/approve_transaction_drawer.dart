@@ -77,7 +77,7 @@ class ApproveTransactionDrawer {
             child: GWButton(
               label: "Reject",
               variant: GWButtonVariant.gradientOutline,
-              size: GWButtonSize.lg,
+              size: GWButtonSize.sm,
               expand: true,
               onPressed: () => Navigator.of(context).pop(false),
             ),
@@ -87,7 +87,7 @@ class ApproveTransactionDrawer {
             child: GWButton(
               label: "Approve",
               variant: GWButtonVariant.gradient,
-              size: GWButtonSize.lg,
+              size: GWButtonSize.sm,
               expand: true,
               onPressed: () => Navigator.of(context).pop(true),
             ),

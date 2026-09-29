@@ -117,7 +117,7 @@ class PinScreen extends StatelessWidget {
                     return GWButton(
                       label: 'Continue',
                       variant: GWButtonVariant.gradient,
-                      size: GWButtonSize.lg,
+                      size: GWButtonSize.md,
                       expand: true,
                       // CLOSURE-wrapped. develop had `onCompleted(...)` here,
                       // which invoked during build and disabled the button.

@@ -812,7 +812,7 @@ class _BanxaBuyFormState extends State<BanxaBuyForm> {
           const SizedBox(height: GeniusWalletConsts.space10),
           GWButton(
             variant: GWButtonVariant.gradient,
-            size: GWButtonSize.lg,
+            size: GWButtonSize.md,
             expand: true,
             label: ctaLabel,
             onPressed: ctaOnPressed,
@@ -1439,7 +1439,7 @@ class _OrderRows extends StatelessWidget {
           label: 'Complete Payment',
           // A commitment - it takes you to pay.
           variant: GWButtonVariant.gradient,
-          size: GWButtonSize.lg,
+          size: GWButtonSize.sm,
           expand: true,
         ),
       );
@@ -1468,7 +1468,7 @@ class _OrderRows extends StatelessWidget {
           // unlike `order_details_page.dart`'s `secondary` Retry, which that
           // page keeps.
           variant: GWButtonVariant.gradientOutline,
-          size: GWButtonSize.lg,
+          size: GWButtonSize.sm,
           expand: true,
         ),
       );

@@ -719,7 +719,7 @@ class BridgeScreenState extends State<BridgeScreen> {
     if (ctaState == BridgeCtaState.ready) {
       return GWButton(
         variant: GWButtonVariant.gradient,
-        size: GWButtonSize.lg,
+        size: GWButtonSize.md,
         expand: true,
         label: label,
         onPressed: () => _submitBridge(context, state),

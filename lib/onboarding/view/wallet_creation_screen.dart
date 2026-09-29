@@ -45,7 +45,7 @@ class WalletCreationScreen extends StatelessWidget {
                     child: GWButton(
                       label: 'I already have a wallet',
                       variant: GWButtonVariant.secondary,
-                      size: GWButtonSize.lg,
+                      size: GWButtonSize.md,
                       expand: true,
                       onPressed: () => context.push('/import_existing_wallet'),
                     ),
@@ -55,7 +55,7 @@ class WalletCreationScreen extends StatelessWidget {
                     child: GWButton(
                       label: 'Create new wallet',
                       variant: GWButtonVariant.gradient,
-                      size: GWButtonSize.lg,
+                      size: GWButtonSize.md,
                       expand: true,
                       onPressed: () => context.push('/create_wallet'),
                     ),
