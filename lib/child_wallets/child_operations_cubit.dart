@@ -151,16 +151,13 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     );
   }
 
-  /// The most recently submitted operation targeting [target], or null when
-  /// none is tracked.
-  ChildOperation? latestFor(String target) {
-    for (final op in state.operations.reversed) {
-      if (op.target.toLowerCase() == target.toLowerCase()) {
-        return op;
-      }
-    }
-    return null;
-  }
+  /// Every tracked operation on [target], in submission order. More than
+  /// one when different kinds are pending at once, since the lock is per
+  /// kind -- each needs its own badge.
+  List<ChildOperation> operationsFor(String target) => [
+    for (final op in state.operations)
+      if (op.target.toLowerCase() == target.toLowerCase()) op,
+  ];
 
   /// True while a [kind] operation on [target] is still pending -- a
   /// notConfirmed op never counts, since it has already stopped blocking.

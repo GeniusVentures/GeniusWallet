@@ -1296,4 +1296,78 @@ void main() {
     await childWallets.close();
     await operations.close();
   });
+
+  testWidgets('a child with two kinds pending shows both badges, not just the '
+      'newest', (tester) async {
+    final api = _FakeApi();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+    );
+
+    operations.submit(
+      kind: ChildOperationKind.fund,
+      target: _childAddress,
+      main: _mainAddress,
+      amountMinions: BigInt.from(1000000),
+    );
+    operations.submit(
+      kind: ChildOperationKind.revoke,
+      target: _childAddress,
+      main: _mainAddress,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Funding 1 GNUS…'), findsOneWidget);
+    expect(find.text('Revoking…'), findsOneWidget);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets('the card with two kinds pending shows both badges, not just '
+      'the newest', (tester) async {
+    final api = _FakeApi(
+      otherRegistrations: {
+        _parentAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _parentAddress,
+              sequence: 0,
+            ),
+          ],
+        ),
+      },
+    );
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _withTwoOwnMainsAppState,
+    );
+
+    operations.submit(
+      kind: ChildOperationKind.detach,
+      target: _mainAddress,
+      main: _parentAddress,
+    );
+    operations.submit(
+      kind: ChildOperationKind.move,
+      target: _mainAddress,
+      main: _parentAddress,
+      newMain: _newMainAddress,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Detaching…'), findsOneWidget);
+    expect(find.text('Moving to New Main Wallet…'), findsOneWidget);
+
+    await childWallets.close();
+    await operations.close();
+  });
 }
