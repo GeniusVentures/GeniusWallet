@@ -13,7 +13,7 @@ progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 25
 resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
 ---
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 ## Current Position
 
 Phase: 35 (Unified header switcher) — EXECUTING
-Plan: 3 of 3
+Plan: 3 of 3 (complete)
 Status: Executing Phase 35
 Last activity: 2026-09-29 — Phase 35 execution started
 
