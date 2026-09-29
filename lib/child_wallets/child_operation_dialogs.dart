@@ -40,8 +40,8 @@ Future<void> startFund(
   if (!await ensureRunningAs(context, mainAddress) || !context.mounted) {
     return;
   }
-  // The poll stops once everything has timed out, so an earlier attempt
-  // that has since landed resolves here -- not paid twice, not carried.
+  // The poll can be up to 10 s behind, so an earlier fund or recover that
+  // has since landed resolves here and lifts the child's lock first.
   registry.resolve();
   // Root navigator, not a route pop: the MenuAnchor this is called from
   // closes itself on selection -- there is no drawer route to close here.
@@ -468,66 +468,84 @@ class _AmountDialogState extends State<_AmountDialog> {
     super.dispose();
   }
 
+  // Rebuilds on every registry emit: a fund or recover on this child that
+  // starts while the dialog is open locks it here too, not only at submit.
   @override
-  Widget build(BuildContext context) {
-    final balance = widget.registry.payingBalance(widget.kind, widget.target);
+  Widget build(BuildContext context) =>
+      BlocBuilder<ChildOperationsCubit, ChildOperationsState>(
+        bloc: widget.registry,
+        builder: (context, _) {
+          final balance = widget.registry.payingBalance(
+            widget.kind,
+            widget.target,
+          );
+          final lockReason = widget.registry.balanceLockReason(widget.target);
 
-    return GWDialog(
-      title: widget.title,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(widget.fromToSentence),
-          const SizedBox(height: GeniusWalletConsts.space6),
-          GWTextField(
-            controller: _controller,
-            label: 'Amount',
-            hint: '0.0',
-            errorText: _error,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            suffix: Row(
+          return GWDialog(
+            title: widget.title,
+            content: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('GNUS'),
-                const SizedBox(width: GeniusWalletConsts.space4),
-                GWButton(
-                  label: 'MAX',
-                  variant: GWButtonVariant.ghost,
-                  size: GWButtonSize.sm,
-                  onPressed: () => setState(() {
-                    _controller.text = minionsToGnus(balance);
-                    _error = null;
-                  }),
+                Text(widget.fromToSentence),
+                const SizedBox(height: GeniusWalletConsts.space6),
+                GWTextField(
+                  controller: _controller,
+                  label: 'Amount',
+                  hint: '0.0',
+                  errorText: _error,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  suffix: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('GNUS'),
+                      const SizedBox(width: GeniusWalletConsts.space4),
+                      GWButton(
+                        label: 'MAX',
+                        variant: GWButtonVariant.ghost,
+                        size: GWButtonSize.sm,
+                        onPressed: () => setState(() {
+                          _controller.text = minionsToGnus(balance);
+                          _error = null;
+                        }),
+                      ),
+                    ],
+                  ),
+                  onChanged: (_) => setState(() => _error = null),
                 ),
+                if (lockReason != null) ...[
+                  const SizedBox(height: GeniusWalletConsts.space6),
+                  GWWarningNote(lockReason),
+                ],
               ],
             ),
-            onChanged: (_) => setState(() => _error = null),
-          ),
-        ],
-      ),
-      actions: [
-        GWDialogAction(
-          label: 'Cancel',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        GWDialogAction(
-          label: widget.primaryLabel,
-          variant: GWButtonVariant.primary,
-          onPressed: () {
-            final parsed = parseGnusAmount(
-              _controller.text,
-              balanceMinions: balance,
-              payer: widget.payerLabel,
-            );
-            if (parsed.minions == null) {
-              setState(() => _error = parsed.error);
-              return;
-            }
-            Navigator.of(context).pop(parsed.minions);
-          },
-        ),
-      ],
-    );
-  }
+            actions: [
+              GWDialogAction(
+                label: 'Cancel',
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              GWDialogAction(
+                label: widget.primaryLabel,
+                variant: GWButtonVariant.primary,
+                onPressed: lockReason != null
+                    ? null
+                    : () {
+                        final parsed = parseGnusAmount(
+                          _controller.text,
+                          balanceMinions: balance,
+                          payer: widget.payerLabel,
+                        );
+                        if (parsed.minions == null) {
+                          setState(() => _error = parsed.error);
+                          return;
+                        }
+                        Navigator.of(context).pop(parsed.minions);
+                      },
+              ),
+            ],
+          );
+        },
+      );
 }
