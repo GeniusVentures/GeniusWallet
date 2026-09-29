@@ -13,7 +13,7 @@ progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 50
 resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
 ---
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 ## Current Position
 
 Phase: 36 (Child wallet bindings & read-only view) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Executing Phase 36
 Last activity: 2026-09-29 — Phase 36 execution started
 
