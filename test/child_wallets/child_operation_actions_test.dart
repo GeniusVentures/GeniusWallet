@@ -139,6 +139,7 @@ class _FakeApi implements GeniusApi {
     this.recoverResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
     this.revokeResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
     this.detachResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    this.registerResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
     this.otherRegistrations = const {},
   });
 
@@ -150,6 +151,7 @@ class _FakeApi implements GeniusApi {
   final GeniusNodeReturnValue recoverResult;
   final GeniusNodeReturnValue revokeResult;
   final GeniusNodeReturnValue detachResult;
+  final GeniusNodeReturnValue registerResult;
   final Map<String, BigInt> balances = {};
   String? lastFundedAmount;
   String? lastFundedChild;
@@ -157,10 +159,13 @@ class _FakeApi implements GeniusApi {
   String? lastRecoveredChild;
   String? lastRevokedChild;
   ChildRegistrationMetadata? lastDetachMetadata;
+  String? lastRegisteredMain;
+  ChildRegistrationMetadata? lastRegisteredMetadata;
   int fundCallCount = 0;
   int recoverCallCount = 0;
   int revokeCallCount = 0;
   int detachCallCount = 0;
+  int registerCallCount = 0;
 
   @override
   ChildRegistrations getChildRegistrations(String mainAddress) {
@@ -213,6 +218,17 @@ class _FakeApi implements GeniusApi {
     detachCallCount++;
     lastDetachMetadata = metadata;
     return detachResult;
+  }
+
+  @override
+  GeniusNodeReturnValue registerChild(
+    String mainAddress,
+    ChildRegistrationMetadata metadata,
+  ) {
+    registerCallCount++;
+    lastRegisteredMain = mainAddress;
+    lastRegisteredMetadata = metadata;
+    return registerResult;
   }
 
   @override
@@ -886,6 +902,139 @@ void main() {
     );
     expect(detachButton.onPressed, isNull);
     expect(find.byTooltip('Already detaching this account'), findsOneWidget);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets(
+    'Register picks a main from the picker, sends empty metadata, and '
+    'resolves once the chosen main lists the subject, then toasts once',
+    (tester) async {
+      final api = _FakeApi();
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+        appState: _withParentAppState,
+      );
+
+      await tester.tap(
+        find.widgetWithText(GWButton, 'Register as a child of…'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Parent Wallet'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(GWButton, 'Continue'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(GWDialog),
+          matching: find.widgetWithText(GWButton, 'Register'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(api.registerCallCount, 1);
+      expect(api.lastRegisteredMain, _parentAddress);
+      expect(api.lastRegisteredMetadata, const ChildRegistrationMetadata());
+      expect(find.text('Registering…'), findsOneWidget);
+
+      // The real signal: an OK read of the chosen main now lists the
+      // subject.
+      api.otherRegistrations = {
+        _parentAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _parentAddress,
+              sequence: 0,
+            ),
+          ],
+        ),
+      };
+      await tester.tap(find.byTooltip('Refresh'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Registering…'), findsNothing);
+      expect(
+        find.text('Registered as a child of Parent Wallet'),
+        findsOneWidget,
+      );
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets('a refused Register shows the reason and never shows a badge', (
+    tester,
+  ) async {
+    final api = _FakeApi(
+      registerResult: GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT,
+    );
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _withParentAppState,
+    );
+
+    await tester.tap(find.widgetWithText(GWButton, 'Register as a child of…'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Parent Wallet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(GWButton, 'Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(GWDialog),
+        matching: find.widgetWithText(GWButton, 'Register'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(api.registerCallCount, 1);
+    expect(
+      find.text(
+        'The SDK refused to register this account: '
+        'GENIUS_NODE_INVALID_ARGUMENT',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Registering…'), findsNothing);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets('a pending Register locks the card button, tooltipped', (
+    tester,
+  ) async {
+    final api = _FakeApi();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _withParentAppState,
+    );
+
+    operations.submit(
+      kind: ChildOperationKind.register,
+      target: _mainAddress,
+      main: _parentAddress,
+    );
+    await tester.pumpAndSettle();
+
+    final registerButton = tester.widget<GWButton>(
+      find.widgetWithText(GWButton, 'Register as a child of…'),
+    );
+    expect(registerButton.onPressed, isNull);
+    expect(find.byTooltip('Already registering this account'), findsOneWidget);
 
     await childWallets.close();
     await operations.close();
