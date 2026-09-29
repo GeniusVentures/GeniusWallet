@@ -165,7 +165,7 @@ Started 2026-09-28. Research: `research/SUMMARY.md`.
 - [ ] **SWT-04**: User can create, import and delete accounts from the switcher
 - [ ] **SWT-05**: Send and Swap confirm screens name the active wallet they spend from, and the switcher labels which selection runs the node and which one sends and swaps
 - [ ] **SWT-06**: User cannot switch the SDK wallet while an operation submitted from it is still pending; the switcher says why
-- [ ] **SWT-07**: User sees their accounts as one list in the switcher, children nested under their main, with "Selected" and "On node" tags for the two independent selections
+- [x] **SWT-07**: User sees their accounts as one list in the switcher, children nested under their main, with "Selected" and "On node" tags for the two independent selections
 
 ### Account linking (LINK)
 
@@ -318,7 +318,7 @@ Started 2026-09-28. Research: `research/SUMMARY.md`.
 | PEND-01 | Phase 37 — Child write operations & pending model | Pending |
 | PEND-02 | Phase 37 — Child write operations & pending model | Pending |
 | SWT-06 | Phase 37 — Child write operations & pending model | Pending |
-| SWT-07 | Phase 38 — Account tree switcher | Pending |
+| SWT-07 | Phase 38 — Account tree switcher | Complete |
 | VER-02 | Phase 37 — Child write operations & pending model | Pending — cross-cutting: restated as a standing success criterion in every v3.0 phase, counted/closed here only, mirroring BLD-02's treatment in the v1.0 table above |
 
 **Coverage:**
