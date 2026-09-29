@@ -162,6 +162,5 @@ the repeated re-add call is eliminated rather than merely proven harmless.
 ---
 
 _Reviewed: 2026-09-29_
-_Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
 _Iteration: 2_
