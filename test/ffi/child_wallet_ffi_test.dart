@@ -362,4 +362,28 @@ void main() {
       expect(uint64Arg(BigInt.one << 64), isNull);
     });
   });
+
+  group('writeTokenId', () {
+    test('an odd-length hex id is padded, not truncated or thrown on', () {
+      final out = calloc<GeniusTokenID>();
+      try {
+        writeTokenId(out, 'abc');
+        expect(out.ref.data[0], 0x0a);
+        expect(out.ref.data[1], 0xbc);
+      } finally {
+        calloc.free(out);
+      }
+    });
+
+    test('null writes the all-zero default token', () {
+      final out = calloc<GeniusTokenID>();
+      try {
+        out.ref.data[0] = 1;
+        writeTokenId(out, null);
+        expect(out.ref.data[0], 0);
+      } finally {
+        calloc.free(out);
+      }
+    });
+  });
 }

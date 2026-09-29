@@ -270,20 +270,26 @@ int? uint64Arg(BigInt v) {
   return v.toSigned(64).toInt();
 }
 
+/// Pads an odd-length hex string with a leading zero so it parses byte-
+/// aligned.
+String _padHexEven(String hex) => hex.length.isOdd ? '0$hex' : hex;
+
 /// Writes [tokenId]'s hex bytes into [out], or all zeros (the default token)
 /// when null. Mirrors the parse every other token-id wrapper already has.
-void _writeTokenId(ffi.Pointer<GeniusTokenID> out, String? tokenId) {
+@visibleForTesting
+void writeTokenId(ffi.Pointer<GeniusTokenID> out, String? tokenId) {
   if (tokenId == null) {
     for (var i = 0; i < 32; i++) {
       out.ref.data[i] = 0;
     }
     return;
   }
-  final cleanTokenId = tokenId.startsWith('0x')
-      ? tokenId.substring(2)
-      : tokenId;
-  for (var i = 0; i < 32 && i * 2 < cleanTokenId.length; i++) {
-    final hexByte = cleanTokenId.substring(i * 2, (i + 1) * 2);
+  final cleanTokenId = _padHexEven(
+    tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId,
+  );
+  final maxBytes = (cleanTokenId.length ~/ 2).clamp(0, 32);
+  for (var i = 0; i < maxBytes; i++) {
+    final hexByte = cleanTokenId.substring(i * 2, i * 2 + 2);
     out.ref.data[i] = int.parse(hexByte, radix: 16);
   }
 }
@@ -1231,14 +1237,9 @@ class GeniusApi {
 
     if (tokenId != null) {
       // Parse provided token ID
-      String cleanTokenId = tokenId.startsWith('0x')
-          ? tokenId.substring(2)
-          : tokenId;
-
-      // Pad odd-length hex strings with a leading zero
-      if (cleanTokenId.length.isOdd) {
-        cleanTokenId = '0$cleanTokenId';
-      }
+      final cleanTokenId = _padHexEven(
+        tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId,
+      );
 
       // Parse hex bytes big-endian (most significant byte first)
       final maxBytes = (cleanTokenId.length ~/ 2).clamp(0, 32);
@@ -1701,7 +1702,7 @@ class GeniusApi {
     final addressPtr = childAddress.toNativeUtf8().cast<Char>();
     final tokenIdPtr = calloc<GeniusTokenID>();
     try {
-      _writeTokenId(tokenIdPtr, tokenId);
+      writeTokenId(tokenIdPtr, tokenId);
       final raw = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetChildBalance(
         addressPtr,
         tokenIdPtr.ref,
@@ -1730,7 +1731,7 @@ class GeniusApi {
     final addressPtr = childAddress.toNativeUtf8().cast<Char>();
     final tokenIdPtr = calloc<GeniusTokenID>();
     try {
-      _writeTokenId(tokenIdPtr, tokenId);
+      writeTokenId(tokenIdPtr, tokenId);
       final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKFundChild(
         amount,
         addressPtr,
@@ -1783,7 +1784,7 @@ class GeniusApi {
     final addressPtr = childAddress.toNativeUtf8().cast<Char>();
     final tokenIdPtr = calloc<GeniusTokenID>();
     try {
-      _writeTokenId(tokenIdPtr, tokenId);
+      writeTokenId(tokenIdPtr, tokenId);
       final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRecoverFromChild(
         amount,
         addressPtr,
