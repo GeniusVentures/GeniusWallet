@@ -29,9 +29,9 @@ status: complete
 - New `/child-wallets` route and a "Child wallets" SDK-row menu item, gated to the account the node runs as
 
 ## Task Commits
-1. Tracer: one main's children and balances - `a443e62f` (feat)
-2. Struct layout and free-contract tests - `1283487a` (test)
-3. Every state, the 10s poll, and the menu gate - `3d30934c` (feat)
+1. Tracer: one main's children and balances - `a5729386` (feat)
+2. Struct layout and free-contract tests - `1b3232f3` (test)
+3. Every state, the 10s poll, and the menu gate - `bfc38b7c` (feat)
 
 ## Verification
 No deviations from the plan. Full suite: 2000 passed / 5 skipped / 0 failed (baseline 1968 + 32 new). `flutter analyze lib test`: 0 issues. `flutter analyze` on the two genius_api files: exactly 109 pre-existing warnings, none new. Format/brace/raw-colour/key-logging scripts clean. ID-identifier gate: 0 matches on every commit. Live node walk deferred to end-of-milestone per this plan's own `<verification>` note.

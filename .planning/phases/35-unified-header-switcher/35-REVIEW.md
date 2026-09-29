@@ -27,7 +27,7 @@ status: clean
 
 ## Summary
 
-Re-review of `git diff cc7243fc..HEAD` (the iteration-1 fix commits) against the two Warnings
+Re-review of `git diff 72d9fb5f..HEAD` (the iteration-1 fix commits) against the two Warnings
 and one Info raised in iteration 1. Traced both fixes end to end rather than trusting the fix
 report's own description.
 

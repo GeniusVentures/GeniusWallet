@@ -28,7 +28,7 @@ scope by default, but requested explicitly since it covers WR-02's fix surface).
 ### WR-01: A watch-only wallet sharing the linked wallet's address is mislabeled "ACTIVE ON NODE"
 
 **Files modified:** `lib/account/account_drawer.dart`
-**Commit:** `570ae07e`
+**Commit:** `37108065`
 **Applied fix:** `isActiveOnNode` now matches on `walletType` as well as address, the same
 pair `_matchesSelected` already checks a few lines above. A watch-only (tracking) wallet
 sharing an address with an owned wallet no longer lights up "ACTIVE ON NODE" when the owned
@@ -37,7 +37,7 @@ wallet is what the node is actually linked to.
 ### WR-02: Swap's new "Sending from" line has no gate against a wallet that cannot actually sign
 
 **Files modified:** `lib/squid_router/swap_cta_state.dart`, `lib/squid_router/swap_screen.dart`
-**Commit:** `10c6fb50`
+**Commit:** `70c1d78e`
 **Applied fix:** Reused Send's existing guard (`canSendFrom`, `lib/reown/utilities.dart`)
 rather than inventing a new rule, per the fix guidance:
 
@@ -57,7 +57,7 @@ rather than inventing a new rule, per the fix guidance:
 ### IN-01 (requested alongside WR-02, not independently in scope): the "Switch ›" link's navigation was not exercised by any test
 
 **Files modified:** `test/squid_router/swap_submit_test.dart`
-**Commit:** `4e3dadd8`
+**Commit:** `9dad497d`
 **Applied fix:** Added `AppBloc? appBloc` as an optional parameter to the shared `_mountReady`
 harness (wired into the `MultiBlocProvider` only when supplied, so every existing case is
 unaffected), then added a case that builds a minimal `AppBloc` + `WalletDetailsCubit`, mounts
@@ -104,7 +104,7 @@ _Iteration: 1_
 
 **Files modified:** `test/account/account_drawer_show_test.dart`,
 `test/squid_router/swap_cta_state_test.dart`, `test/squid_router/swap_submit_test.dart`
-**Commits:** `021551c2`, `5b89eacc`, `786db6d6`
+**Commits:** `74404c7c`, `61d3336f`, `746c9b6d`
 **Applied fix:** Three regression tests, each confirmed to fail against a manually reverted
 copy of its fix before being committed against the real code:
 
@@ -124,7 +124,7 @@ copy of its fix before being committed against the real code:
 ### IN-02: `_buildSwapCta` read a possibly-null wallet through `canSendFrom`, misreading a transient no-wallet state as a signing refusal
 
 **Files modified:** `lib/squid_router/swap_screen.dart`, `test/squid_router/swap_submit_test.dart`
-**Commit:** `316d1ab6`
+**Commit:** `882a7523`
 **Applied fix:** `_buildSwapCta` now short-circuits `canSign` to `true` when
 `walletState.selectedWallet` is `null`, per the fix guidance — a wallet that was never
 selected keeps the pre-existing `enterAmount` reading instead of falling through

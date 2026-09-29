@@ -31,15 +31,15 @@ status: complete
 - Ten `GeniusApi` wrappers return plain Dart values and `NOT_INITIALIZED`/zero/null when the SDK isn't up; a `lib/` grep proves none has a UI caller
 
 ## Task Commits
-1. Bind the ten remaining symbols and the registration error code — `fb7d6ac8` (feat)
-2. Failing tests for the marshalling helpers — `054e817f` (test)
-3. Plain-Dart wrappers for every binding — `cf6e67e9` (feat)
+1. Bind the ten remaining symbols and the registration error code — `c7bd61e6` (feat)
+2. Failing tests for the marshalling helpers — `6fc8a4fe` (test)
+3. Plain-Dart wrappers for every binding — `96bdc482` (feat)
 
 ## Verification
 No deviations from the plan. Full suite: 2008 passed / 5 skipped / 0 failed (baseline 2000 + 8 new). `flutter analyze lib test`: 0 issues. Package-scoped analyze on the two genius_api files: exactly 109 pre-existing warnings, none new. Format, brace-style, ID-identifier gate and key-logging checks all clean.
 
 ## TDD Gate Compliance
-RED (`054e817f`) precedes GREEN (`cf6e67e9`); both confirmed in git log.
+RED (`6fc8a4fe`) precedes GREEN (`96bdc482`); both confirmed in git log.
 
 ## Self-Check: PASSED
 All modified files present on disk; all three commit hashes found in git log.

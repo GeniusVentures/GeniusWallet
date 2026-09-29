@@ -36,9 +36,9 @@ status: complete
 - `ensureRunningAs` (new `child_operation_switch_dialog.dart`): a no-op when already running as required, a plain switch dialog otherwise, a refusal while the running account has its own pending op, and a 30s await-the-real-signal wait (not the delete flow's 3s -- the switch runs in a background isolate) before the guarded action opens
 
 ## Task Commits
-1. Coverage for recover, revoke and the switch guard - `d7543240` (test)
-2. Recover, revoke and the switch-and-continue guard (GREEN) - `c43f9c4f` (feat)
-3. LF normalization on the new switch-dialog test - `db9b73d2` (fix)
+1. Coverage for recover, revoke and the switch guard - `230a10c5` (test)
+2. Recover, revoke and the switch-and-continue guard (GREEN) - `0652952b` (feat)
+3. LF normalization on the new switch-dialog test - `3b109525` (fix)
 
 ## Verification
 No plan deviations. Full suite: 2079 passed / 5 skipped / 0 failed (2058 baseline + 21 new). `flutter analyze lib test`: 0 issues. Format/brace/raw-colour/key-logging scripts clean. ID-identifier gate: 0 matches on both content commits.

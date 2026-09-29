@@ -116,9 +116,9 @@ status: complete
 
 Each task was committed atomically:
 
-1. **Task 1: Two-section drawer with SDK rows, opened from the phone pill** - `3cef42b1` (feat)
-2. **Task 2: View balance, Add from phrase or key, ACTIVE ON NODE, independence tests** - `dc75607b` (feat)
-3. **Task 3: SDK row tests run against the switcher drawer** - `f51e808f` (test)
+1. **Task 1: Two-section drawer with SDK rows, opened from the phone pill** - `458a9305` (feat)
+2. **Task 2: View balance, Add from phrase or key, ACTIVE ON NODE, independence tests** - `a011e05b` (feat)
+3. **Task 3: SDK row tests run against the switcher drawer** - `d2313355` (test)
 
 ## Files Created/Modified
 - `lib/account/sdk_account_manager.dart` - `SDKAccountRow` widget, `showAddSdkAccountDialog`, View balance menu item
@@ -148,7 +148,7 @@ Plan 02 and 03 (desktop chip, `AccountSwitcher`) can now build on a stable `Acco
 
 ## Self-Check: PASSED
 
-All 9 files (8 modified + this SUMMARY) confirmed present; all 3 task commit hashes (`3cef42b1`, `dc75607b`, `f51e808f`) confirmed in git log.
+All 9 files (8 modified + this SUMMARY) confirmed present; all 3 task commit hashes (`458a9305`, `a011e05b`, `d2313355`) confirmed in git log.
 
 ---
 *Phase: 35-unified-header-switcher*

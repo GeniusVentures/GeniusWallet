@@ -28,8 +28,8 @@ status: complete
 - `SDKAccountManagerButton` and its private drawer deleted; the stale drawer-census entry removed with it
 
 ## Task Commits
-1. One desktop chip naming both selections - `78bb4ba2` (feat)
-2. Delete the old SDK chip; full phase gate - `3aec11ab` (feat)
+1. One desktop chip naming both selections - `d163b9c0` (feat)
+2. Delete the old SDK chip; full phase gate - `a8238861` (feat)
 
 ## Verification
 No deviations. Full suite 1958 passed / 5 skipped / 0 failed (net zero: +1 tooltip test, -1 stale census test). Analyze/format/brace/raw-colour/key-logging scripts clean. Windows debug build compiles (not run). VER-02 (live-node switcher walk, desktop and phone) pending for the end-of-milestone manual UAT.

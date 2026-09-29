@@ -36,10 +36,10 @@ status: complete
 - `account_drawer` reads the registry via `context.watch<ChildOperationsCubit?>()`, so a host without one (every pre-existing test) renders unlocked exactly as before
 
 ## Task Commits
-1. Coverage for the move flow - `b34d7b1c` (test)
-2. Move a child to another main (GREEN) - `05244669` (feat)
-3. Coverage for the switcher lock - `7b448ed3` (test)
-4. Lock the switcher while an operation from the running account is pending (GREEN) - `96cc1fad` (feat)
+1. Coverage for the move flow - `c06ca17c` (test)
+2. Move a child to another main (GREEN) - `03d87a70` (feat)
+3. Coverage for the switcher lock - `e522f368` (test)
+4. Lock the switcher while an operation from the running account is pending (GREEN) - `5123c423` (feat)
 
 ## Verification
 No plan deviations. Full suite: 2133 passed / 5 skipped / 0 failed (2119 baseline + 14 new). `flutter analyze lib test`: 0 issues. Format/brace/raw-colour/key-logging scripts clean. ID-identifier gate: 0 matches on all four commits.

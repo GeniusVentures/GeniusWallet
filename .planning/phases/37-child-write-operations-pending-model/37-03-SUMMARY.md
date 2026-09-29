@@ -37,10 +37,10 @@ status: complete
 - `child_main_picker_dialog.dart`: `isSdkAddress` (`0x` + 128 hex, any case) and `showMainPicker` -- the user's other own accounts in a height-bounded, scrolled list, a manual-entry fallback validated against the same shape and the excluded set, Back keeps the earlier pick
 
 ## Task Commits
-1. Coverage for the This account card and Detach - `d1efc4d4` (test)
-2. The This account card, own-position lookup, and detach (GREEN) - `3f86f99c` (feat)
-3. Coverage for the main picker and register - `67ed58e4` (test)
-4. The main picker dialog and register (GREEN) - `b55c8ebd` (feat)
+1. Coverage for the This account card and Detach - `040b028f` (test)
+2. The This account card, own-position lookup, and detach (GREEN) - `b8766a09` (feat)
+3. Coverage for the main picker and register - `468385e6` (test)
+4. The main picker dialog and register (GREEN) - `3a8926fc` (feat)
 
 ## Verification
 No plan deviations. Full suite: 2119 passed / 5 skipped / 0 failed (2079 baseline + 40 new). `flutter analyze lib test`: 0 issues. Format/brace/raw-colour/key-logging scripts clean. ID-identifier gate: 0 matches on all four commits.

@@ -84,7 +84,7 @@ No orphaned requirements found — REQUIREMENTS.md's requirements-map table list
 
 ### Anti-Patterns Found
 
-None. No `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` markers, no empty-return stubs, no hardcoded empty data flowing to render, no raw `Colors.*`, no `_buildX()` widget helpers, no plan/decision-ID leakage in phase 36's own diff. Code review (`36-REVIEW.md`) found 2 issues (1 warning: `_writeTokenId` odd-length-hex crash risk; 1 info: unguarded `extra` cast in router) — both fixed with a regression test for the warning (`36-REVIEW-FIX.md`, commits `f8d04e17`, `ec7e81dc`), independently confirmed present in the current source (`writeTokenId`/`_padHexEven` in `genius_api.dart`, `is String` guard in `router.dart`).
+None. No `TBD`/`FIXME`/`XXX`/`TODO`/`HACK`/`PLACEHOLDER` markers, no empty-return stubs, no hardcoded empty data flowing to render, no raw `Colors.*`, no `_buildX()` widget helpers, no plan/decision-ID leakage in phase 36's own diff. Code review (`36-REVIEW.md`) found 2 issues (1 warning: `_writeTokenId` odd-length-hex crash risk; 1 info: unguarded `extra` cast in router) — both fixed with a regression test for the warning (`36-REVIEW-FIX.md`, commits `8d21710d`, `d5b02184`), independently confirmed present in the current source (`writeTokenId`/`_padHexEven` in `genius_api.dart`, `is String` guard in `router.dart`).
 
 ### Human Verification Required
 

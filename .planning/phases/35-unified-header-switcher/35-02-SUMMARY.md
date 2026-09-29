@@ -98,8 +98,8 @@ status: complete
 
 Each task was committed atomically:
 
-1. **Task 1: Send review names the From wallet** - `2700afae` (feat)
-2. **Task 2: Swap names its From wallet beside the submit button** - `9dd54ffd` (test, RED) / `4148c640` (feat, GREEN)
+1. **Task 1: Send review names the From wallet** - `47df94ae` (feat)
+2. **Task 2: Swap names its From wallet beside the submit button** - `2772e010` (test, RED) / `4b1eb7e5` (feat, GREEN)
 
 ## Files Created/Modified
 - `lib/components/data/gw_copy_row.dart` - optional `caption` field, rendered above `_displayValue`
@@ -130,7 +130,7 @@ Plan 03 (desktop chip / `AccountSwitcher`) can proceed independently -- this pla
 
 ## Self-Check: PASSED
 
-All 7 modified files (4 lib + 3 test) confirmed present; all 3 commit hashes (`2700afae`, `9dd54ffd`, `4148c640`) confirmed in git log.
+All 7 modified files (4 lib + 3 test) confirmed present; all 3 commit hashes (`47df94ae`, `2772e010`, `4b1eb7e5`) confirmed in git log.
 
 ---
 *Phase: 35-unified-header-switcher*
