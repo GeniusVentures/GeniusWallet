@@ -518,7 +518,7 @@ class SDKAccountManagerButton extends StatelessWidget {
     // which is exactly the refusal we could not see before.
     final removed = await bloc.stream
         .map((s) => !s.sdkAccounts.contains(address))
-        .firstWhere((gone) => gone)
+        .firstWhere((gone) => gone, orElse: () => false)
         .timeout(const Duration(seconds: 3), onTimeout: () => false);
 
     if (!navigator.context.mounted) {
@@ -647,7 +647,7 @@ class SDKAccountManagerButton extends StatelessWidget {
     // "Failed to set payout address: null" on the first call after a start.
     final result = await bloc.stream
         .map((s) => s.setPayoutAddressResult)
-        .first
+        .firstWhere((_) => true, orElse: () => null)
         .timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     if (!navigator.context.mounted) {
