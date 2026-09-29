@@ -2,7 +2,7 @@
 phase: 37
 slug: child-write-operations-pending-model
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-29
 ---
@@ -38,16 +38,18 @@ created: 2026-09-29
 
 Filled by the planner per task. Required coverage:
 
-| Requirement | Behavior | Test Type | Automated Command | File Exists |
-|-------------|----------|-----------|-------------------|-------------|
-| CHILD-03/06/07/08 | Register / revoke / detach / move submit, then resolve on list membership | unit (cubit) | `flutter test test/child_wallets/` | ❌ W0 |
-| CHILD-04/05 | Fund / recover amount: exact decimals, > 0, ≤ paying balance; resolve on balance delta vs baseline | unit | `flutter test test/child_wallets/` | ❌ W0 |
-| CHILD-09 | Wrong-side action offers "Switch and continue", awaits the real switch, never switches silently | widget | `flutter test test/child_wallets/` | ❌ W0 |
-| PEND-01 | Pending → resolved on signal; 2-minute timeout → "Not confirmed yet"; never "done" without the signal; non-OK submit fails immediately | unit (fake clock) | `flutter test test/child_wallets/` | ❌ W0 |
-| PEND-02 | Same kind + target locked while pending; different targets independent | unit | `flutter test test/child_wallets/` | ❌ W0 |
-| SWT-06 | Switcher "Node running as" rows refuse switching away while an op from the running account is pending; release on resolve/timeout; active wallet never locked | widget | `flutter test test/account/` | ✅ extend |
-| VER-01 | Mock confirm / time-out / error modes drive each state | unit + widget | `flutter test test/dev/ test/child_wallets/` | ✅ extend |
-| (address) | Manual main address accepts only `0x` + 128 hex | unit | `flutter test test/child_wallets/` | ❌ W0 |
+| Requirement | Plan / Task | Behavior | Test Type | Automated Command | File Exists |
+|-------------|-------------|----------|-----------|-------------------|-------------|
+| CHILD-04, PEND-01 | 01 / T1 (tracer) | Fund from the row menu -> pending badge -> resolve on balance >= baseline + amount -> one toast | widget | `flutter test test/child_wallets/` | ❌ created by 01-T1 |
+| PEND-01, PEND-02, CHILD-04 | 01 / T2 | 2:00 timeout -> "Not confirmed yet" + Check again; never done without the signal; per kind+target lock; amount table | unit (injected clock) + widget | `flutter test test/child_wallets/` | ❌ created by 01-T2 |
+| CHILD-05, CHILD-06 | 02 / T1 | Recover capped at the child's balance, resolves on <= baseline - amount; revoke resolves only on an OK read without the child | unit + widget | `flutter test test/child_wallets/` | ✅ extend |
+| CHILD-09 | 02 / T2 | "Switch and continue" names the account, dispatches only on tap, waits for the real switch; refused while the running account has a pending op | widget | `flutter test test/child_wallets/` | ❌ created by 02-T2 |
+| CHILD-07 | 03 / T1 | "This account" card own position; detach resolves when the old main's OK read drops it | unit + widget | `flutter test test/child_wallets/` | ✅ extend |
+| CHILD-03, (address) | 03 / T2 | Picker; manual main accepts only `0x` + 128 hex; register resolves when the chosen main lists it | unit + widget | `flutter test test/child_wallets/` | ❌ created by 03-T2 |
+| CHILD-08 | 04 / T1 | Move resolves only when both halves are observed | unit + widget | `flutter test test/child_wallets/` | ✅ extend |
+| SWT-06 | 04 / T2 | "Node running as" rows locked with the reason while an op from the running account is pending; release on resolve/timeout; active wallet never locked | widget | `flutter test test/account/` | ✅ extend |
+| VER-01 | 05 / T1 | Mock confirm / time-out / fail modes drive each state for all six kinds | unit + widget | `flutter test test/dev/ test/child_wallets/` | ✅ extend |
+| (phase gate) | 05 / T2 | Full suite, analyze, format, scripts, Windows debug build (not run) | suite | `flutter test` | ✅ |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
