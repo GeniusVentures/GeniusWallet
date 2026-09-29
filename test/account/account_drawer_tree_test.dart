@@ -214,9 +214,8 @@ void main() {
   );
 
   testWidgets(
-    'threeChildren registers the other own account under the running main, '
-    'but its own wallet link surfaces it at a top-level merged row instead '
-    'of nesting it a second time',
+    'threeChildren nests the other own account, merged onto its wallet, '
+    'under the running main exactly once',
     (tester) async {
       DevMockChildWallets.instance.arm(DevChildWalletsPreset.threeChildren);
       final api = _Api(accounts: const [_mainA, _mainB]);
@@ -243,17 +242,13 @@ void main() {
 
       await _pumpDrawer(tester, bloc, details, operations: operations);
 
-      // Main B merges onto its own wallet's row and renders once, at depth
-      // 0 -- never duplicated as a nested leaf under Main A.
       expect(find.text('Main B'), findsOneWidget);
       final mainBRow = find.ancestor(
         of: find.text('Main B'),
         matching: find.byType(GWSelectRow),
       );
-      expect(_leftIndentOf(tester, mainBRow), 0.0);
+      expect(_leftIndentOf(tester, mainBRow), 24.0);
 
-      // The preset's two synthetic (not-owned) children still nest under
-      // Main A, the running account.
       expect(find.byType(ChildWalletRow), findsNWidgets(2));
       expect(_leftIndentOf(tester, find.byType(ChildWalletRow).at(0)), 24.0);
 

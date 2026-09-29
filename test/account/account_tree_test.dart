@@ -348,5 +348,30 @@ void main() {
       expect(rows[1].wallet, walletB);
       expect(rows[1].depth, 1);
     });
+
+    test('a linked child nests under its main even when its wallet comes '
+        'first and the main has no wallet', () {
+      final walletB = _wallet('Wallet B', '0xw222');
+      final rows = _tree(
+        wallets: [walletB],
+        sdkAccounts: const [_mainA, _mainB],
+        links: <String, SDKAccountLink>{
+          _mainB.toLowerCase(): (
+            walletAddress: '0xw222',
+            walletName: 'Wallet B',
+          ),
+        },
+        registrations: {
+          _mainA.toLowerCase(): [_entry(_mainB)],
+        },
+      );
+
+      expect(rows.map((r) => (r.sdkAddress, r.depth)), [
+        (_mainA, 0),
+        (_mainB, 1),
+      ]);
+      expect(rows[1].kind, AccountRowKind.merged);
+      expect(rows[1].wallet, walletB);
+    });
   });
 }
