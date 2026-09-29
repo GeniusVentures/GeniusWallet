@@ -17,6 +17,7 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:go_router/go_router.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 
 // Ten-character, already-lowercased addresses, distinct in their last four,
@@ -220,6 +221,155 @@ void main() {
           .map((row) => row.name)
           .toList();
       expect(titleOrder, ['Main', 'Main', 'Old (wallet removed)', 'Unlinked']);
+
+      await tester.runAsync(() => bloc.close());
+      await details.close();
+    },
+  );
+
+  testWidgets("the selected row's Child wallets item is enabled", (
+    tester,
+  ) async {
+    final api = _Api(
+      links: const {_mainA: (walletAddress: _mainA, walletName: 'Main')},
+      accounts: const [_mainA, _mainB],
+    );
+    final details = WalletDetailsCubit(
+      geniusApi: api,
+      networkTokensProvider: NetworkTokensProvider(),
+    );
+    final bloc = _SeededAppBloc(
+      api: api,
+      transactionsCubit: TransactionsCubit(),
+      walletDetailsCubit: details,
+      networkProvider: NetworkProvider(),
+      sdkAccounts: const [_mainA, _mainB],
+      wallets: const [_walletMainA],
+      sdkAccountLinks: api.links,
+      selectedSDKAccount: _mainA,
+    );
+
+    await _pumpDrawer(tester, bloc, details);
+
+    await tester.tap(find.byTooltip('Account options').at(0));
+    await tester.pumpAndSettle();
+
+    final item = tester.widget<MenuItemButton>(
+      find.widgetWithText(MenuItemButton, 'Child wallets'),
+    );
+    expect(item.onPressed, isNotNull);
+
+    await tester.runAsync(() => bloc.close());
+    await details.close();
+  });
+
+  testWidgets("another row's Child wallets item is disabled", (tester) async {
+    final api = _Api(
+      links: const {_mainA: (walletAddress: _mainA, walletName: 'Main')},
+      accounts: const [_mainA, _mainB],
+    );
+    final details = WalletDetailsCubit(
+      geniusApi: api,
+      networkTokensProvider: NetworkTokensProvider(),
+    );
+    final bloc = _SeededAppBloc(
+      api: api,
+      transactionsCubit: TransactionsCubit(),
+      walletDetailsCubit: details,
+      networkProvider: NetworkProvider(),
+      sdkAccounts: const [_mainA, _mainB],
+      wallets: const [_walletMainA],
+      sdkAccountLinks: api.links,
+      selectedSDKAccount: _mainA,
+    );
+
+    await _pumpDrawer(tester, bloc, details);
+
+    await tester.tap(find.byTooltip('Account options').at(1));
+    await tester.pumpAndSettle();
+
+    final item = tester.widget<MenuItemButton>(
+      find.widgetWithText(MenuItemButton, 'Child wallets'),
+    );
+    expect(item.onPressed, isNull);
+
+    await tester.runAsync(() => bloc.close());
+    await details.close();
+  });
+
+  testWidgets(
+    "tapping the selected row's Child wallets item closes the drawer and "
+    "routes to it with that row's address",
+    (tester) async {
+      final api = _Api(
+        links: const {_mainA: (walletAddress: _mainA, walletName: 'Main')},
+        accounts: const [_mainA, _mainB],
+      );
+      final details = WalletDetailsCubit(
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final bloc = _SeededAppBloc(
+        api: api,
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: details,
+        networkProvider: NetworkProvider(),
+        sdkAccounts: const [_mainA, _mainB],
+        wallets: const [_walletMainA],
+        sdkAccountLinks: api.links,
+        selectedSDKAccount: _mainA,
+      );
+
+      tester.view.physicalSize = const Size(1200, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => AccountDrawer.show(context),
+                  child: const Text('open drawer'),
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/child-wallets',
+            builder: (context, state) => Text('child of ${state.extra}'),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<WalletDetailsCubit>.value(value: details),
+            BlocProvider<AppBloc>.value(value: bloc),
+          ],
+          child: MaterialApp.router(
+            theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.tap(find.text('open drawer'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Account options').at(0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(MenuItemButton, 'Child wallets'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('child of $_mainA'), findsOneWidget);
+      expect(find.byType(SDKAccountRow), findsNothing);
 
       await tester.runAsync(() => bloc.close());
       await details.close();
