@@ -305,7 +305,7 @@ free call.
 | A1 | Computed `sizeOf` values (392 / 664 bytes) are correct MSVC x64 layout | Architecture Patterns | D-16's own test catches this immediately at `flutter test` time — low risk, self-correcting |
 | A2 | A record type is the right shape for the registrations wrapper (vs. a sealed class) | Don't Hand-Roll | Cosmetic — either satisfies D-08/D-13; this is Claude's Discretion, not locked |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Registrations wrapper: record vs. sealed class for the error/empty distinction?**
    - What we know: D-13 needs 0-count-success to read as empty; D-08 needs a distinguishable

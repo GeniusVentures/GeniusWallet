@@ -2,7 +2,7 @@
 phase: 36
 slug: child-wallet-bindings-read-only-view
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-09-29
 ---
@@ -38,13 +38,15 @@ created: 2026-09-29
 
 Filled by the planner per task. Required coverage:
 
-| Requirement | Behavior | Test Type | Automated Command | File Exists |
-|-------------|----------|-----------|-------------------|-------------|
-| CHILD-01 | New structs' `sizeOf` matches the header layout (392 / 664 bytes, MSVC x64) | unit | `flutter test test/ffi/child_wallet_struct_layout_test.dart` | ❌ W0 |
-| CHILD-01 | Registration list wrapper: empty (RET_OK, null, 0) is an empty list; non-OK is an error, not an empty list | unit | wrapper tests with a fake native surface or the mock | ❌ W0 |
-| CHILD-02 | Screen renders populated / empty / node-not-running / error; header names the main | widget | `flutter test test/child_wallets/` | ❌ W0 |
-| CHILD-02 | Minions → GNUS conversion is integer-exact | unit | table test | ❌ W0 |
-| VER-01 | Every dev-mock preset drives the matching screen state | widget | `flutter test test/child_wallets/` (mock presets) | ❌ W0 |
+| Task | Requirement | Behavior | Test Type | Automated Command | File Exists |
+|------|-------------|----------|-----------|-------------------|-------------|
+| 36-01 T1 | CHILD-02 | Populated screen: header names the main, rows show name/'Unlinked', short address, balance, SDK order; minions → GNUS table | widget + unit | `flutter test test/child_wallets/` | ❌ created by the task |
+| 36-01 T2 | CHILD-01 | `sizeOf` 392 / 664; registrations seam: empty is empty, non-OK is error, non-null array freed exactly once | unit (pure Dart, recording fake) | `flutter test test/ffi/` | ❌ created by the task |
+| 36-01 T3 | CHILD-02 | Empty / node-not-running / error + Retry, lag note, 10 s poll + Refresh, menu gate + navigation | widget | `flutter test` | ✅ extends T1 + test/account |
+| 36-02 T1 | CHILD-01 | All 12 symbols bound; enum member 7; exhaustive switch compiles | analyze + unit | `flutter analyze lib test && flutter test test/submit_job/ test/ffi/` | ✅ |
+| 36-02 T2 | CHILD-01 | Metadata/amount boundary checks, raw-bit round trip, byte-safe reads | unit | `flutter test test/ffi/` | ✅ extends T2 file |
+| 36-03 T1 | VER-01 | Every preset drives its screen state through the real cubit | unit + widget | `flutter test test/dev/dev_mock_child_wallets_test.dart test/child_wallets/` | ❌ created by the task |
+| 36-03 T2 | VER-01 | Bubble section present; phase gate; Windows compile | full suite + build | `flutter test` | ✅ |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,7 +54,7 @@ Filled by the planner per task. Required coverage:
 
 ## Wave 0 Requirements
 
-- [ ] `test/ffi/child_wallet_struct_layout_test.dart`
+- [ ] `test/ffi/child_wallet_ffi_test.dart` (layout + free contract; the struct-layout test named above lives here)
 - [ ] `test/child_wallets/` screen + cubit tests
 - [ ] `lib/dev/dev_mock_child_wallets.dart` (needed before widget tests can drive states)
 
