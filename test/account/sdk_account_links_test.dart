@@ -49,7 +49,7 @@ class _LinkedApi implements GeniusApi {
   String? getSelectedAccountAddress() => null;
 
   @override
-  String? getStartAccountAddress() => null;
+  String? getStartAccountAddress() => '0xS1';
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -139,5 +139,17 @@ void main() {
         expect(names['0xS2'], 'Unlinked');
       },
     );
+
+    test('a refresh also carries the link map and the start address into '
+        'state', () async {
+      bloc.add(RefreshSDKAccounts());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(
+        bloc.state.sdkAccountLinks,
+        await _LinkedApi().getSDKAccountLinks(),
+      );
+      expect(bloc.state.defaultSDKAccount, '0xS1');
+    });
   });
 }

@@ -83,8 +83,14 @@ class AppState extends Equatable {
   /// All available SDK account addresses.
   final List<String> sdkAccounts;
 
-  /// The SDK account the app starts with; it cannot be deleted.
-  final String? linkedSDKAccount;
+  /// The SDK account the app starts with, shown as 'Default account'; it
+  /// cannot be deleted.
+  final String? defaultSDKAccount;
+
+  /// The wallet each SDK account was produced from, keyed by lowercased SDK
+  /// address. Holds public addresses and a display name only, never key
+  /// material.
+  final Map<String, SDKAccountLink> sdkAccountLinks;
 
   /// The result of the last [SetSDKPayoutAddress] operation, or null if
   /// no operation has been performed yet.
@@ -108,7 +114,8 @@ class AppState extends Equatable {
     this.initMessage,
     this.selectedSDKAccount,
     this.sdkAccounts = const [],
-    this.linkedSDKAccount,
+    this.defaultSDKAccount,
+    this.sdkAccountLinks = const {},
     this.setPayoutAddressResult,
     this.accountStatus = AppStatus.initial,
   });
@@ -131,7 +138,8 @@ class AppState extends Equatable {
     String? initMessage,
     String? selectedSDKAccount,
     List<String>? sdkAccounts,
-    String? linkedSDKAccount,
+    String? defaultSDKAccount,
+    Map<String, SDKAccountLink>? sdkAccountLinks,
     GeniusNodeReturnValue? setPayoutAddressResult,
     AppStatus? accountStatus,
   }) {
@@ -155,7 +163,8 @@ class AppState extends Equatable {
       initMessage: initMessage ?? this.initMessage,
       selectedSDKAccount: selectedSDKAccount ?? this.selectedSDKAccount,
       sdkAccounts: sdkAccounts ?? this.sdkAccounts,
-      linkedSDKAccount: linkedSDKAccount ?? this.linkedSDKAccount,
+      defaultSDKAccount: defaultSDKAccount ?? this.defaultSDKAccount,
+      sdkAccountLinks: sdkAccountLinks ?? this.sdkAccountLinks,
       setPayoutAddressResult:
           setPayoutAddressResult ?? this.setPayoutAddressResult,
       accountStatus: accountStatus ?? this.accountStatus,
@@ -182,7 +191,8 @@ class AppState extends Equatable {
     initMessage,
     selectedSDKAccount,
     sdkAccounts,
-    linkedSDKAccount,
+    defaultSDKAccount,
+    sdkAccountLinks,
     setPayoutAddressResult,
   ];
 }

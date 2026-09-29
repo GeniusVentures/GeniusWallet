@@ -108,7 +108,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     emit(
       state.copyWith(
         sdkStatus: AppStatus.loaded,
-        linkedSDKAccount: api.getStartAccountAddress(),
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: await api.getSDKAccountLinks(),
       ),
     );
   }
@@ -128,7 +129,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           subscribeToWalletStatus: AppStatus.loaded,
           selectedSDKAccount: sdkState.$1,
           sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
+          defaultSDKAccount: api.getStartAccountAddress(),
+          sdkAccountLinks: await api.getSDKAccountLinks(),
         ),
       );
       return;
@@ -178,7 +180,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         subscribeToWalletStatus: AppStatus.loaded,
         selectedSDKAccount: sdkState.$1,
         sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: await api.getSDKAccountLinks(),
       ),
     );
   }
@@ -650,7 +653,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         wallets: remaining,
         selectedSDKAccount: sdkState.$1,
         sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: await api.getSDKAccountLinks(),
       ),
     );
   }
@@ -678,7 +682,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         wallets: await _mergeSgnusWallet(),
         selectedSDKAccount: sdkState.$1,
         sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: await api.getSDKAccountLinks(),
       ),
     );
   }
@@ -704,7 +709,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         wallets: await _mergeSgnusWallet(),
         selectedSDKAccount: sdkState.$1,
         sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: await api.getSDKAccountLinks(),
       ),
     );
   }
@@ -795,7 +801,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           wallets: await _mergeSgnusWallet(),
           selectedSDKAccount: sdkState.$1,
           sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
+          defaultSDKAccount: api.getStartAccountAddress(),
+          sdkAccountLinks: await api.getSDKAccountLinks(),
         ),
       );
     }
@@ -813,7 +820,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           wallets: await _mergeSgnusWallet(),
           selectedSDKAccount: sdkState.$1,
           sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
+          defaultSDKAccount: api.getStartAccountAddress(),
+          sdkAccountLinks: await api.getSDKAccountLinks(),
         ),
       );
     }
@@ -831,7 +839,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           wallets: await _mergeSgnusWallet(),
           selectedSDKAccount: sdkState.$1,
           sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
+          defaultSDKAccount: api.getStartAccountAddress(),
+          sdkAccountLinks: await api.getSDKAccountLinks(),
         ),
       );
     }
@@ -856,7 +865,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           wallets: await _mergeSgnusWallet(),
           selectedSDKAccount: sdkState.$1,
           sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
+          defaultSDKAccount: api.getStartAccountAddress(),
+          sdkAccountLinks: await api.getSDKAccountLinks(),
         ),
       );
     }
@@ -872,7 +882,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         wallets: await _mergeSgnusWallet(),
         selectedSDKAccount: sdkState.$1,
         sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: await api.getSDKAccountLinks(),
       ),
     );
   }
