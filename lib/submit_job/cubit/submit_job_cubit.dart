@@ -613,6 +613,8 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
         return "Token transfer failed.";
       case GeniusNodeReturnValue.GENIUS_NODE_ERROR_PAY_DEV:
         return "Payment to dev failed.";
+      case GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION:
+        return "Child wallet registration failed.";
       case GeniusNodeReturnValue.GENIUS_NODE_RET_OK:
         return "";
     }
