@@ -2,11 +2,11 @@
 phase: 37-child-write-operations-pending-model
 fixed_at: 2026-09-29T00:00:00Z
 review_path: .planning/phases/37-child-write-operations-pending-model/37-REVIEW.md
-iteration: 3
-findings_in_scope: 3
+iteration: 4
+findings_in_scope: 4
 fixed: 3
-skipped: 0
-status: all_fixed
+skipped: 1
+status: partial
 ---
 
 # Phase 37: Code Review Fix Report
@@ -194,3 +194,92 @@ at HEAD b7504e13:
 
 _Fixed: 2026-09-29_
 _Iteration: 3_
+
+---
+
+# Iteration 4 — simplification
+
+**Source review:** 37-REVIEW.md (iteration 3): 3 critical, 1 warning.
+**Decisions applied:** the CONTEXT amendment (one fund or recover per child at a time, no zero-read recover).
+**Summary:** 4 in scope. 3 fixed, 1 accepted as a documented ceiling (WR-01). Deletion first: the
+carry/merge machinery is gone, not patched.
+
+## What was removed
+
+`carriedMinions`, `otherAttemptsMinions`, `totalMinions`, `baselineAt`, `_awaited`, baseline
+inheritance, cross-account absorption, and the ", including an earlier attempt" copy. With no
+inheritance, the baseline is always read at submit, so `submittedAt` dates it.
+
+## What was kept
+
+The per-op baseline, the 6-minute trust window, the paying account's reserved balance (a main
+funding two children still can't overspend), and `resolve()` before the amount dialog opens.
+
+## Fixed Issues
+
+### CR-01, CR-02: cross-account and inherited-baseline false "done"
+
+**Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `lib/child_wallets/child_operation_status.dart`, `lib/child_wallets/child_operation_dialogs.dart`, `lib/child_wallets/child_wallets_screen.dart`, both test files
+**Commits:** 74d78806 (registry), ebc1edea (menu + dialog)
+**Status:** fixed: requires human verification (logic)
+**Applied fix:** `balanceLockReason(target)` is the single lock. `submit()` refuses a Fund or Recover
+while any fund or recover on that child, from any account, is pending or timed out but not
+expired. A new explicit `expired` flag is set by `resolve()` past 6 minutes. From then on the op
+can't resolve and releases its hold and its lock. The poll keeps running until expiry, so the menus
+rebuild on time. An expired op gives its badge up to the next fund or recover on that child.
+Register, revoke, detach and move are unchanged.
+The reason copy is "Already funding this child" or "Already recovering from this child" while
+pending. Once timed out, it reads "An earlier transfer for this child hasn't confirmed yet. Check
+again, or wait a few minutes." The copy appears on both disabled menu items (Tooltip, the
+UI-SPEC's lock styling) and in the amount dialog (a `GWWarningNote` with the primary action
+disabled). The dialog follows the registry live.
+**Both review traces are now impossible:** the second main's fund and the retry are refused at
+`submit()`, with no SDK call. Both tests failed on the old code with `Expected: null, Actual:
+GENIUS_NODE_RET_OK`.
+
+### CR-03: recover resolves on a 0 read
+
+**Commit:** 5aff522f
+**Status:** fixed: requires human verification (logic)
+**Applied fix:** `_signalMet` for recover requires `current > 0`, marked with a `ponytail:` comment.
+A recover that empties the child ends "Not confirmed yet". The review's own test (recover 10 from
+100 times out, read drops to 0) and a whole-balance recover both failed first.
+
+## Accepted (not fixed)
+
+### WR-01: fund baseline read as 0 before the child synced
+
+**Commit:** 859e770b
+**Reason:** the amendment accepts this as a known ceiling. A `ponytail:` comment on the fund signal
+names it. The upgrade path is a per-write tx hash.
+
+## Tests
+
+- **Removed as obsolete (7):** the retry-carry tests (fund, recover, stale baseline), the two-op
+  move test, "after notConfirmed, a new submit leaves exactly one op", and the two carry-wording
+  widget tests.
+- **Added or rewritten (10):**
+  - a pending recover locks a fund;
+  - a timed-out fund locks a fund and a recover until expiry, while another child stays free;
+  - Check again seeing it land unlocks;
+  - an expired recover never resolves, and the next recover reads a fresh baseline;
+  - both review cross-account traces;
+  - an expired fund releases its hold;
+  - two zero-read recover tests;
+  - the dialog locking live.
+- The menu lock widget test was rewritten: pending, then timed out, then expired.
+
+## Verification (iteration 4)
+
+All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
+at HEAD 859e770b:
+
+- `flutter test`: 2165 passed / 5 skipped / 0 failed (2162 - 7 removed + 10 new).
+- `flutter analyze lib test`: No issues found, exit 0.
+- `dart format --set-exit-if-changed lib/child_wallets test/child_wallets`: exit 0.
+- `bash tool/check_brace_style.sh`: exit 0. `bash tool/check_raw_colors.sh`: exit 0.
+- `git ls-files --eol`: all 6 changed files are `i/lf w/lf`.
+- No finding, decision, plan or phase identifiers in source or test names. No `GeniusApi()` is
+  constructed. Amounts stay `BigInt`. `submit()` is still the only write path.
+
+_Iteration: 4_
