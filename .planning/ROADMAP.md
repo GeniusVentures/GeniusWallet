@@ -1594,12 +1594,12 @@ Plans:
   4. Child rows' menus offer Fund, Recover and Revoke through the same pending registry and locks as the Child wallets screen, which stays.
   5. Desktop and mobile; both appearance modes meet WCAG AA; dev-bubble child presets drive the tree.
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 
 - [x] 38-01-PLAN.md — tracer: registrations -> pure tree -> children nested under their main, foreign children with Fund/Recover/Revoke; cycle-safe walk; one Accounts header with the node-down note (wave 1)
-- [ ] 38-02-PLAN.md — GWMenuItem and public SDK actions; each SDK account merged onto its wallet's row, Selected and On node tags, Run node as this with the pending lock (wave 2)
+- [x] 38-02-PLAN.md — GWMenuItem and public SDK actions; each SDK account merged onto its wallet's row, Selected and On node tags, Run node as this with the pending lock (wave 2)
 - [ ] 38-03-PLAN.md — child actions on nested own rows, collapsible mains, live refresh, phone-width and contrast checks; phase gate and Windows compile (wave 3)
 
 ## Progress
