@@ -19,6 +19,7 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -386,7 +387,7 @@ void main() {
         );
         await tester.pump();
 
-        expect(find.text('Super Genius'), findsOne);
+        expect(find.text(WalletUtils.getAddressForDisplay(_addrB)), findsOne);
         expect(find.text('Main wallet'), findsNothing);
       } finally {
         await tester.runAsync(() => appBloc.close());
