@@ -1,10 +1,10 @@
 // The seam plan 14-04 extracted: `AccountDrawer.show(context)` must work from
-// ANY context, not just `AccountDropdownSelector`'s former private method -
+// ANY context, not just the header chip's own button -
 // that is the whole reason the compute panel's *not linked* state (plan
 // 14-08) has anywhere to send the user.
 //
 // Every test below opens the drawer from a plain `Builder`, never from
-// `AccountDropdownSelector` itself - proving the entry point stands on its
+// `AccountSwitcher` itself - proving the entry point stands on its
 // own is the point of this file.
 //
 // Hive trap, recorded in
@@ -239,7 +239,7 @@ class _Pending {
   Future<Wallet?>? future;
 }
 
-/// A plain context, deliberately NOT `AccountDropdownSelector` - a button on
+/// A plain context, deliberately NOT `AccountSwitcher` - a button on
 /// a bare `Builder` is the "any surface" this plan exists to make possible.
 Widget _openerHost({
   required WalletDetailsCubit walletDetailsCubit,
