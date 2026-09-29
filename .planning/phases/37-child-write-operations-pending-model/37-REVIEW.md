@@ -16,7 +16,7 @@ findings:
   warning: 5
   info: 3
   total: 8
-status: issues_found
+status: clean
 ---
 
 # Phase 37: Code Review Report (iteration 4)
@@ -238,3 +238,7 @@ paying balance".
 
 _Reviewed: 2026-09-29_
 _Depth: deep_
+
+## Resolution
+
+All iteration-4 warnings fixed (REVIEW-FIX iterations 5-7), plus: a fund/recover expires for resolution the moment the node switches away from its submitting account, keeping its hold and per-child lock until 6 minutes after submit. Remaining accepted ceilings: a fund whose baseline read 0 before the child synced; a MAX recover cannot confirm. Both carry ponytail comments.

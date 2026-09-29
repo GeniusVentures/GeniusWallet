@@ -2,11 +2,11 @@
 phase: 37-child-write-operations-pending-model
 fixed_at: 2026-09-29T00:00:00Z
 review_path: .planning/phases/37-child-write-operations-pending-model/37-REVIEW.md
-iteration: 4
-findings_in_scope: 4
-fixed: 3
-skipped: 1
-status: partial
+iteration: 7
+findings_in_scope: 1
+fixed: 1
+skipped: 0
+status: all_fixed
 ---
 
 # Phase 37: Code Review Fix Report
@@ -283,3 +283,162 @@ at HEAD 859e770b:
   constructed. Amounts stay `BigInt`. `submit()` is still the only write path.
 
 _Iteration: 4_
+
+---
+
+# Iteration 5
+
+**Source review:** 37-REVIEW.md (iteration 4): 5 warnings, 3 info.
+**Summary:** WR-01..WR-05 in scope. All 5 fixed, 0 skipped. Each behaviour change had a regression
+test that failed first. IN-01 and IN-03 stay as documented info. IN-02 got one comment line.
+
+## Fixed Issues
+
+### WR-01: a timed-out fund/recover resolves on another account's view after a switch
+
+**Commit:** 3d89be2a · **Status:** fixed: requires human verification (logic)
+**Applied fix:** `_onOwnView(op)` requires the running account to equal `op.fromAccount`
+(case-insensitive) before a fund or recover can resolve. On another account the op stays
+pending or timed out. It still expires at 6 minutes, because expiry does not go through the
+signal. **Test:** the review's trace. A recover of 10 from 100 times out, the node switches, and
+the read drops to 50. Nothing resolves, the lock holds, and it expires at 6 min. **Two existing
+tests changed:** both cross-main tests resolved the old main's op while the node ran as the new
+main. That is exactly the path now closed. They now switch back to the old main before it lands.
+**Not done:** the review's "full fix", expiring holding ops on every `SelectSDKAccount`. A round
+trip M1 -> M2 -> M1 inside the window still resolves on a view that may be resyncing.
+
+### WR-02: `expired` does not stop a resolve
+
+**Commit:** 0b0b6115 · **Status:** fixed: requires human verification (logic)
+**Applied fix:** `_signalMet` returns false first when `op.expired`. As a side effect, expired
+recovers no longer read the balance on every poll. The `Stopwatch` option was not taken. A
+backwards step still delays timeout and expiry of a live op. **Test:** a fund expires, the clock
+steps back to 3 min, and the balance meets the signal. It stays expired, nothing resolves, and no
+lock returns.
+
+### WR-03: debug builds mix mock and real reads across one op
+
+**Commit:** 1f2fb4da · **Status:** fixed: requires human verification (logic)
+**Applied fix:** `ChildOperation.mocked` is set from `_devMocked` at submit. `_signalMet` returns
+false while `op.mocked != _devMocked`, so the op times out or expires instead. This covers every
+kind, including revoke and detach. **Seam:** `kShowDevTools` is a compile-time `false` under
+`flutter test`, so the registry takes `devTools` (default `kShowDevTools`). `kDebugMode` still
+gates it, and `lib/main.dart` is unchanged. **Tests:** (1) A real fund, then a preset armed. The
+mock's 250 GNUS does not resolve it. After `clear()`, it resolves on its own real landing. (2) A
+mock fund in timeout mode makes no SDK call. After `clear()` a 300 GNUS real read does not
+resolve it. `justResolved` stays empty in both, so no toast.
+
+### WR-04: the poll's stop condition had no test
+
+**Commit:** c1575e7f
+**Applied fix:** a widget test moves the injected clock and the fake timers together, 10 s per
+tick, with no manual `resolve()`. Fund and Recover stay locked at 2 min and unlock at 6. The
+registry is left open, so a poll that outlives expiry fails the test as a pending Timer.
+**Mutation checks (reverted):** the old `every((op) => op.notConfirmed)` condition fails on
+`expired`. A poll that never stops fails with "A Timer is still pending…".
+
+### WR-05: two doc comments over 3 lines
+
+**Commit:** c8887712
+**Applied fix:** `submit` and `resolve` are now 3 lines each. They keep the reasons: a refused
+write never shows as pending, the signal is checked before the timeout, and there is no emit
+without a change.
+
+## Info
+
+- **IN-01** (Check again on an expired op), **IN-03** (expiry releases a hold still in flight):
+  left as documented. Not changed.
+- **IN-02:** the recover `ponytail:` now says a MAX recover empties the child and cannot confirm.
+  It ends "Not confirmed yet" and locks the child until expiry. Commit 437fd6d3.
+
+## Verification (iteration 5)
+
+All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
+at HEAD 437fd6d3:
+
+- `flutter test`: 2170 passed / 5 skipped / 0 failed (2165 + 5 new).
+- `flutter analyze lib test`: No issues found, exit 0.
+- `dart format --set-exit-if-changed lib/child_wallets test/child_wallets`: exit 0.
+- `bash tool/check_brace_style.sh`: exit 0. `bash tool/check_raw_colors.sh`: exit 0.
+- `git ls-files --eol`: all 3 changed files are `i/lf w/lf`.
+- No finding, decision, plan or phase identifiers in the diff. No `GeniusApi()`. Amounts stay
+  `BigInt`. `submit()` is still the only write path. No commit carries a trailer.
+
+_Iteration: 5_
+
+---
+
+# Iteration 6
+
+**Scope:** the item left open in iteration 5, the round trip M1 -> M2 -> M1 inside the 6-min window.
+**Commit:** 9ee14b7f · **Status:** fixed: requires human verification (logic)
+
+**Applied fix:** in `resolve()`, a fund or recover also expires when `_onOwnView(op)` is false. The
+registry now takes `appStates` (AppBloc's stream, wired in `lib/main.dart`) and runs `resolve()` on
+every distinct change of the running account. Before this it only pulled the account on a poll
+tick, so a round trip between two ticks went unseen. The op ends "Not confirmed yet", can never
+resolve, and frees its hold and its per-child lock.
+
+**Tests:** new: fund 10 from M1, time out, switch to M2 and back to M1 at 3 min, balance rises by
+10. Nothing resolves, `justResolved` stays empty (no toast), the op is expired, the lock is null, and
+M1's paying balance is whole again. It failed first with the plumbing in place and no expiry. A
+mutation check with the subscription disabled also fails it. Changed: the off-view recover test
+now expires on the first pass on the other account, not at 6 min.
+
+**Open trade-off, for a decision:** releasing the lock at the switch reopens iteration 3's
+cross-account trace in the 2-6 min window. M1's fund times out, the user switches to M2, and M2
+funds the same child. If M1's write then lands, it satisfies M2's baseline and toasts a false
+"Funded". Before this change the lock refused M2 until 6 min, and the `_baselineLifetime` ponytail
+accepted this only after the window. The fix, if wanted, is to keep an op that expired on a switch
+locking and holding until `submittedAt + 6 min` while still never resolving. The two cross-main
+tests still pass only because they never call `resolve()` while on the new main.
+
+## Verification (iteration 6)
+
+All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
+at HEAD 9ee14b7f:
+
+- `flutter test`: 2171 passed / 5 skipped / 0 failed (2170 + 1 new).
+- `flutter analyze lib test`: No issues found, exit 0.
+- `dart format --set-exit-if-changed` on the 3 changed files: exit 0.
+- `bash tool/check_brace_style.sh`: exit 0. `bash tool/check_raw_colors.sh`: exit 0.
+- `git ls-files --eol`: all 3 changed files are `i/lf w/lf`. No identifiers in source or test names,
+  no `GeniusApi()`, no trailer.
+
+_Iteration: 6_
+
+---
+
+# Iteration 7
+
+**Decision applied:** safety over convenience. An op that switched away never resolves, but it keeps
+its hold and its lock until 6 min after submit.
+**Commit:** 65549888 · **Status:** fixed: requires human verification (logic)
+
+**Applied fix:** a new `switchedAway` flag separates "can no longer resolve" from "released". A
+switch sets it (plus `notConfirmed`), and `_signalMet` refuses on it. `expired` now only means the
+6-min window has passed, so `_holdsBalance` (the hold and the lock) still ends only at expiry. The
+poll keeps running until then, so the lock lifts on time. A 3-line WHY comment is in `resolve()`.
+
+**Tests:** new, the reported trace: M1's fund times out, and the node switches to M2 at 3 min through
+the app-state stream. M2's fund on the same child is refused with the timed-out lock reason. M1's
+write lands at 4 min and nothing is toasted. M2 is still refused at 5:59.999. At 6:00 the lock
+lifts. M2's fund then reads a baseline that already includes M1's landing, so it stays pending with
+no false "Funded". This test failed first with `Expected: null, Actual: GENIUS_NODE_RET_OK`.
+Updated: the off-view recover and the switch round-trip tests now expect the lock and hold to stay
+through 3 min (not expired, M1's paying balance 0), then expired and released at 6:00, and never
+resolved. Both failed before the change.
+
+## Verification (iteration 7)
+
+All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
+at HEAD 65549888:
+
+- `flutter test`: 2172 passed / 5 skipped / 0 failed (2171 + 1 new).
+- `flutter analyze lib test`: No issues found, exit 0.
+- `dart format --set-exit-if-changed lib/child_wallets test/child_wallets`: exit 0.
+- `bash tool/check_brace_style.sh`: exit 0. `bash tool/check_raw_colors.sh`: exit 0.
+- `git ls-files --eol`: both changed files are `i/lf w/lf`. No identifiers in source or test names,
+  no `GeniusApi()`, no trailer.
+
+_Iteration: 7_
