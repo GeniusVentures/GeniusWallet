@@ -581,6 +581,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                   _matchesSelected(w),
                   isActiveOnNode:
                       activeOnNode != null &&
+                      w.walletType == activeOnNode.walletType &&
                       w.address.toLowerCase() ==
                           activeOnNode.address.toLowerCase(),
                   sdkBadge: walletSDKBadge(
