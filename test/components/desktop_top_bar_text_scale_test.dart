@@ -214,7 +214,7 @@ void main() {
       inspect: () {
         expect(find.byType(AccountSwitcher), findsOneWidget);
         expect(
-          find.byTooltip('Sending from Main · Node running as Unlinked'),
+          find.byTooltip('Wallet: Main · Earning: Unlinked'),
           findsOneWidget,
         );
       },

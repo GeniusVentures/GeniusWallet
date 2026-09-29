@@ -167,13 +167,13 @@ Future<void> confirmDeleteSDKAccount(
 
   final confirmed = await GWDialog.show<bool>(
     context: navigator.context,
-    title: 'Delete SDK account',
+    title: 'Delete earning account',
     message: linked != null
-        ? 'This deletes the SDK account and removes the wallet '
+        ? 'This deletes the earning account and removes the wallet '
               '"${linked.walletName}" from the app. If you have no copy of '
               'its recovery phrase, neither can be restored.'
-        : 'The SDK will stop being able to sign with '
-              '${WalletUtils.getAddressForDisplay(address)}. If you have no '
+        : 'The earning account '
+              '${WalletUtils.getAddressForDisplay(address)} will be removed. If you have no '
               'copy of its recovery phrase, this account cannot be restored.',
     actions: [
       GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
@@ -216,7 +216,7 @@ Future<void> confirmDeleteSDKAccount(
   showToast(
     // ignore: use_build_context_synchronously
     navigator.context,
-    removed ? 'SDK account deleted' : 'The SDK refused to delete that account.',
+    removed ? 'Earning account deleted' : "Couldn't delete that account.",
     type: removed ? ToastType.success : ToastType.error,
     duration: Duration(seconds: removed ? 1 : 3),
   );
@@ -231,7 +231,7 @@ Future<void> showSetPayoutAddressDialog(BuildContext context) async {
   final payoutAddress = await GWDialog.show<String>(
     context: navigator.context,
     title: 'Set payout address',
-    message: 'Processing rewards for this account are paid here.',
+    message: 'Earnings for this account are paid here.',
     content: _PayoutAddressForm(controller: controller),
     actions: [
       GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop()),
@@ -275,10 +275,7 @@ Future<void> showSetPayoutAddressDialog(BuildContext context) async {
   showToast(
     // ignore: use_build_context_synchronously
     navigator.context,
-    ok
-        ? 'Payout address set'
-        : 'The SDK refused that payout address'
-              '${result == null ? '' : ' (${result.name})'}.',
+    ok ? 'Payout address set' : "Couldn't save that payout address.",
     type: ok ? ToastType.success : ToastType.error,
     duration: Duration(seconds: ok ? 1 : 3),
   );

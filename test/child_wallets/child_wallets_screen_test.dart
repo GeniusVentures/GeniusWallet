@@ -25,7 +25,7 @@ const _linkedChildAddress = '0x2222222222222222222222222222222222bbbb';
 const _unlinkedChildAddress = '0x3333333333333333333333333333333333cccc';
 const _otherOwnAddress = '0x9999999999999999999999999999999999ffff';
 
-const _lagNote = "Balances come from the node's synced view and can lag.";
+const _lagNote = 'Balances can take a moment to update.';
 
 const _mainWallet = Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -358,7 +358,7 @@ void main() {
         );
 
         expect(find.text('Main Wallet'), findsOneWidget);
-        expect(find.text('Node not running'), findsOneWidget);
+        expect(find.text('Not earning right now'), findsOneWidget);
         expect(find.text(_lagNote), findsNothing);
         expect(api.registrationsCallCount, 0);
 
@@ -377,7 +377,7 @@ void main() {
         );
 
         expect(find.text('Main Wallet'), findsOneWidget);
-        expect(find.text('Node not running'), findsOneWidget);
+        expect(find.text('Not earning right now'), findsOneWidget);
         expect(find.text(_lagNote), findsNothing);
 
         await cubit.close();
@@ -770,7 +770,7 @@ void main() {
       );
 
       expect(find.text('Main Wallet'), findsOneWidget);
-      expect(find.text('Node not running'), findsOneWidget);
+      expect(find.text('Not earning right now'), findsOneWidget);
 
       await cubit.close();
     });

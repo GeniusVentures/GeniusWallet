@@ -168,7 +168,7 @@ void main() {
     expect(bloc.state.switchingSDKAccount, isNull);
     expect(bloc.state.selectedSDKAccount, _old);
     expect(
-      find.text("The node couldn't switch to 0xaaaa...2222."),
+      find.text("Couldn't switch earning to 0xaaaa...2222."),
       findsOneWidget,
     );
 

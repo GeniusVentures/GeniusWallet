@@ -196,8 +196,8 @@ void main() {
     expect(find.text('Switch to 0x1111...aaaa?'), findsOneWidget);
     expect(
       find.text(
-        'This action needs to run as 0x1111...aaaa, not the account the '
-        'node currently runs as.',
+        'This action needs to run as 0x1111...aaaa, not the account '
+        'currently earning.',
       ),
       findsOneWidget,
     );
@@ -263,7 +263,9 @@ void main() {
 
       expect(api.selectCalls, [_mainAddress]);
       expect(
-        find.text("The node didn't switch to 0x1111...aaaa. Nothing was sent."),
+        find.text(
+          "Couldn't switch earning to 0x1111...aaaa. Nothing was sent.",
+        ),
         findsOneWidget,
       );
       expect(find.text('ACTION OPENED'), findsNothing);
@@ -297,7 +299,9 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(
-        find.text("The node didn't switch to 0x1111...aaaa. Nothing was sent."),
+        find.text(
+          "Couldn't switch earning to 0x1111...aaaa. Nothing was sent.",
+        ),
         findsOneWidget,
       );
       expect(find.text('ACTION OPENED'), findsNothing);

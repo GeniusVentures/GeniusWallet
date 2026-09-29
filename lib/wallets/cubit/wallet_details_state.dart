@@ -2,7 +2,7 @@ part of 'wallet_details_cubit.dart';
 
 /// Shown in place of any balance while [WalletDetailsState.balanceUnreadable].
 const String kBalanceUnreadableMessage =
-    'Run the node as this account to see its balance.';
+    'Earn with this account to see its balance.';
 
 class WalletDetailsState {
   final Wallet? selectedWallet;

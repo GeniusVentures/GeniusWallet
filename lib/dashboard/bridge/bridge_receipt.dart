@@ -4,15 +4,8 @@ import 'package:genius_api/models/transaction.dart';
 /// (`showTransactionDetails`), because `bridge_screen.dart` has never built
 /// one — bridge's result today is a raw `AlertDialog`, not a `Transaction`.
 ///
-/// WHY `TransactionType.mint`: the destination-chain half of a bridge IS a
-/// mint, and the API call itself asks for it (`bridgeOut(...
-/// shouldMintTokens: true)`). `TransactionType` is Hive-persisted with
-/// explicit `@HiveField` indices (`packages/genius_api/lib/models/
-/// transaction.dart`), so adding an eighth value would be a persisted-schema
-/// change — out of bounds for a re-skin phase (D-19). The knowingly accepted
-/// cost: the receipt's badge and title copy read "Minted", not "Bridged".
-/// D-19's sanctioned fallback, if this reads badly in situ, is `transfer` —
-/// a walk-time observation, not a call made here.
+/// WHY `TransactionType.transfer`: a bridge's destination half is a mint on
+/// chain, but "mint" rows read "Earned", which a bridged amount is not.
 ///
 /// WHY `fees` is always blank: the only fee datum bridge has is a gas PRICE
 /// in Gwei of the SOURCE chain's native token (`getBrigeOutGasCost`), while
@@ -49,7 +42,7 @@ Transaction bridgeReceiptTransaction({
     transactionStatus: isSuccess
         ? TransactionStatus.completed
         : TransactionStatus.failed,
-    type: TransactionType.mint,
+    type: TransactionType.transfer,
     // exchangeRate deliberately left unset (null): bridge is 1:1 and has no
     // rate, so leaving it unset is what correctly suppresses the Rate row.
   );

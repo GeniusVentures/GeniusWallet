@@ -22,11 +22,7 @@ void _showRefusalToast(
   GeniusNodeReturnValue result,
   String verb,
 ) {
-  showToast(
-    context,
-    'The SDK refused to $verb: ${result.name}',
-    type: ToastType.error,
-  );
+  showToast(context, "Couldn't $verb.", type: ToastType.error);
 }
 
 /// Opens the Fund dialog for [child], paid from [mainAddress]. Every write

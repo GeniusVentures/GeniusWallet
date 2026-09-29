@@ -59,7 +59,7 @@ TransactionBadgeSpec badgeSpec(TransactionBadgeKind kind, GWColors gw) {
       return TransactionBadgeSpec(
         fill: gw.brandTertiary,
         svgAsset: 'assets/images/pickaxe.svg',
-        label: 'Mint',
+        label: 'Earned',
       );
     case TransactionBadgeKind.job:
       // Icons.dns is Material's server rack — matches the sketch's two

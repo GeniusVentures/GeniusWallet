@@ -92,7 +92,7 @@ class ComputePanel extends StatelessWidget {
   final ValueChanged<bool> onUnitChanged;
 
   /// Fires when a sub-line's inline affordance is tapped - `Choose a wallet
-  /// ›`, `Switch wallet ›`, `See node status ›` or `Reconnect ›`. The
+  /// ›`, `Switch wallet ›`, `Earning status ›` or `Reconnect ›`. The
   /// identity is [ComputeStatusView.link]; this widget only renders it, the
   /// caller decides what it does (open the account drawer, navigate to
   /// `/network`, re-arm the polling timer via `RetryProcessingStatus`).
@@ -630,7 +630,7 @@ class _ComputeTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const GWKicker('Compute node', dense: true),
+          const GWKicker('Earning', dense: true),
           const SizedBox(height: 3),
           // GWStatusDot alone keeps this row at its 18px line box - both
           // the label and the trailing value render at `labelMd`; a

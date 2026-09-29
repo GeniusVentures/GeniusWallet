@@ -545,8 +545,8 @@ void main() {
         try {
           await pumpSelectedDrawer(tester, harness, pending);
 
-          expect(find.text('SDK'), findsOneWidget);
-          expect(find.text('SDK PENDING'), findsNothing);
+          expect(find.text('Can earn'), findsOneWidget);
+          expect(find.text('Setting up'), findsNothing);
           expect(find.text('Wallet A'), findsOneWidget);
 
           final selectedRows = tester
@@ -578,8 +578,8 @@ void main() {
           // until it is scrolled into range.
           await tester.scrollUntilVisible(find.text('Wallet B'), 200);
 
-          expect(find.text('SDK PENDING'), findsOneWidget);
-          expect(find.text('SDK'), findsOneWidget);
+          expect(find.text('Setting up'), findsOneWidget);
+          expect(find.text('Can earn'), findsOneWidget);
         } finally {
           await harness.dispose(tester);
           await box.close();
@@ -637,45 +637,46 @@ void main() {
       },
     );
 
-    testWidgets("'Run node as this' is disabled on the row already on node", (
-      tester,
-    ) async {
-      final api = _SelectingApi();
-      final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
-      final harness = _build(
-        [_walletA],
-        sdkAccountLinks: sdkLinks,
-        sdkAccounts: const [sdkA, sdkB],
-        selectedSDKAccount: sdkA,
-        api: api,
-      );
-      final pending = _Pending();
-      try {
-        await tester.pumpWidget(
-          _openerHost(
-            walletDetailsCubit: harness.walletDetailsCubit,
-            appBloc: harness.appBloc,
-            pending: pending,
-          ),
+    testWidgets(
+      "'Earn with this account' is disabled on the row already on node",
+      (tester) async {
+        final api = _SelectingApi();
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        final harness = _build(
+          [_walletA],
+          sdkAccountLinks: sdkLinks,
+          sdkAccounts: const [sdkA, sdkB],
+          selectedSDKAccount: sdkA,
+          api: api,
         );
-        await tester.tap(find.text('open drawer'));
-        await tester.pumpAndSettle();
+        final pending = _Pending();
+        try {
+          await tester.pumpWidget(
+            _openerHost(
+              walletDetailsCubit: harness.walletDetailsCubit,
+              appBloc: harness.appBloc,
+              pending: pending,
+            ),
+          );
+          await tester.tap(find.text('open drawer'));
+          await tester.pumpAndSettle();
 
-        // Rows render wallet A first, then the two unlinked accounts in
-        // sdkAccounts order -- sdkA (on node) is index 1.
-        await tester.tap(find.byTooltip('Account options').at(1));
-        await tester.pumpAndSettle();
+          // Rows render wallet A first, then the two unlinked accounts in
+          // sdkAccounts order -- sdkA (on node) is index 1.
+          await tester.tap(find.byTooltip('Account options').at(1));
+          await tester.pumpAndSettle();
 
-        final item = tester.widget<MenuItemButton>(
-          find.widgetWithText(MenuItemButton, 'Run node as this'),
-        );
-        expect(item.onPressed, isNull);
-        expect(api.selectCalls, isEmpty);
-      } finally {
-        await harness.dispose(tester);
-        await box.close();
-      }
-    });
+          final item = tester.widget<MenuItemButton>(
+            find.widgetWithText(MenuItemButton, 'Earn with this account'),
+          );
+          expect(item.onPressed, isNull);
+          expect(api.selectCalls, isEmpty);
+        } finally {
+          await harness.dispose(tester);
+          await box.close();
+        }
+      },
+    );
 
     testWidgets(
       'tapping an own-wallet row changes the active wallet and calls the '
@@ -812,9 +813,9 @@ void main() {
           await tester.tap(find.text('open drawer'));
           await tester.pumpAndSettle();
 
-          expect(find.text('On node'), findsOneWidget);
-          expect(find.text('SDK'), findsNothing);
-          expect(find.text('SDK PENDING'), findsNothing);
+          expect(find.text('Earning'), findsOneWidget);
+          expect(find.text('Can earn'), findsNothing);
+          expect(find.text('Setting up'), findsNothing);
         } finally {
           await harness.dispose(tester);
           await box.close();
@@ -912,7 +913,7 @@ void main() {
           await tester.tap(find.text('open drawer'));
           await tester.pumpAndSettle();
 
-          expect(find.text('On node'), findsOneWidget);
+          expect(find.text('Earning'), findsOneWidget);
 
           final trackedRow = find.ancestor(
             of: find.text('Watched twin'),
@@ -923,11 +924,11 @@ void main() {
             matching: find.byType(GWSelectRow),
           );
           expect(
-            find.descendant(of: trackedRow, matching: find.text('On node')),
+            find.descendant(of: trackedRow, matching: find.text('Earning')),
             findsNothing,
           );
           expect(
-            find.descendant(of: ownedRow, matching: find.text('On node')),
+            find.descendant(of: ownedRow, matching: find.text('Earning')),
             findsOneWidget,
           );
         } finally {

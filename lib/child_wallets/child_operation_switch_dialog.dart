@@ -48,8 +48,8 @@ Future<bool> ensureRunningAs(
     context: navigator.context,
     title: 'Switch to $requiredLabel?',
     message:
-        'This action needs to run as $requiredLabel, not the account the '
-        'node currently runs as.',
+        'This action needs to run as $requiredLabel, not the account '
+        'currently earning.',
     actions: [
       GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
       GWDialogAction(
@@ -103,7 +103,7 @@ Future<bool> ensureRunningAs(
     showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
-      "The node didn't switch to $requiredLabel. Nothing was sent.",
+      "Couldn't switch earning to $requiredLabel. Nothing was sent.",
       type: ToastType.error,
     );
     return false;
