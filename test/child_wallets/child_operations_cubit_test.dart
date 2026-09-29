@@ -5,9 +5,13 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
+import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
+    show ChildWallet, minionsToGnus;
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 
@@ -99,15 +103,22 @@ class _FakeApi implements GeniusApi {
     return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   }
 
+  /// How many times [getChildRegistrations] has been called -- proves a
+  /// dev-mocked read never reaches this fake at all.
+  int childRegistrationsCallCount = 0;
+
   @override
-  ChildRegistrations getChildRegistrations(String mainAddress) => (
-    result:
-        registrationsResultByMain[mainAddress.toLowerCase()] ??
-        registrationsResult,
-    entries:
-        registrationEntriesByMain[mainAddress.toLowerCase()] ??
-        registrationEntries,
-  );
+  ChildRegistrations getChildRegistrations(String mainAddress) {
+    childRegistrationsCallCount++;
+    return (
+      result:
+          registrationsResultByMain[mainAddress.toLowerCase()] ??
+          registrationsResult,
+      entries:
+          registrationEntriesByMain[mainAddress.toLowerCase()] ??
+          registrationEntries,
+    );
+  }
 
   @override
   GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) {
@@ -1975,6 +1986,138 @@ void main() {
       expect(cubit.state.operations, hasLength(1));
 
       cubit.close();
+    });
+  });
+
+  group('ownRegistrations', () {
+    tearDown(() => DevMockChildWallets.instance.clear());
+
+    test('null when nothing runs and no preset is armed', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () =>
+            const AppState(sdkAccounts: [_mainAddress, _otherAddress]),
+      );
+      expect(cubit.ownRegistrations(), isNull);
+    });
+
+    test("null once any one own account's read comes back non-OK", () {
+      final api = _FakeApi()
+        ..registrationsResultByMain = {
+          _otherAddress.toLowerCase():
+              GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
+        };
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(
+          selectedSDKAccount: _mainAddress,
+          sdkAccounts: [_mainAddress, _otherAddress],
+        ),
+      );
+      expect(cubit.ownRegistrations(), isNull);
+    });
+
+    test('keys the result by lowercased main', () {
+      final api = _FakeApi()
+        ..registrationEntriesByMain = {
+          _mainAddress.toLowerCase(): const [
+            ChildRegistration(
+              childAddress: _childAddress,
+              mainAddress: _mainAddress,
+              sequence: 0,
+            ),
+          ],
+        };
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(
+          selectedSDKAccount: _mainAddress,
+          sdkAccounts: [_mainAddress],
+        ),
+      );
+      final result = cubit.ownRegistrations();
+      expect(result, isNotNull);
+      expect(result!.keys, [_mainAddress.toLowerCase()]);
+      expect(result[_mainAddress.toLowerCase()], hasLength(1));
+    });
+
+    test('names, linked wallets and balances match what ChildWalletsCubit '
+        'builds for the same entries', () {
+      const wallet = Wallet(
+        coinType: TWCoinType.TWCoinTypeEthereum,
+        walletName: 'Linked wallet',
+        currencySymbol: 'ETH',
+        walletType: WalletType.privateKey,
+        balance: 0,
+        address: _childAddress,
+      );
+      const links = {
+        _childAddress: (
+          walletAddress: _childAddress,
+          walletName: 'Linked wallet',
+        ),
+      };
+      const appState = AppState(
+        selectedSDKAccount: _mainAddress,
+        sdkAccounts: [_mainAddress],
+        wallets: [wallet],
+        sdkAccountLinks: links,
+      );
+      final api = _FakeApi()
+        ..registrationEntriesByMain = {
+          _mainAddress.toLowerCase(): const [
+            ChildRegistration(
+              childAddress: _childAddress,
+              mainAddress: _mainAddress,
+              sequence: 0,
+            ),
+          ],
+        }
+        ..balances[_childAddress] = BigInt.from(2500000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => appState,
+      );
+
+      final built = cubit
+          .ownRegistrations()![_mainAddress.toLowerCase()]!
+          .single;
+      final expected = ChildWallet(
+        address: _childAddress,
+        name: AppBloc.sdkAccountName(
+          _childAddress,
+          appState.sdkAccountLinks,
+          appState.wallets,
+        ),
+        linkedWallet: AppBloc.linkedWallet(
+          _childAddress,
+          appState.sdkAccountLinks,
+          appState.wallets,
+        ),
+        balanceGnus: minionsToGnus(BigInt.from(2500000)),
+      );
+      expect(built.address, expected.address);
+      expect(built.name, expected.name);
+      expect(built.linkedWallet, expected.linkedWallet);
+      expect(built.balanceGnus, expected.balanceGnus);
+    });
+
+    test('with a preset armed and no running account it answers from the mock, '
+        "and the fake's own registrations read count stays 0", () {
+      DevMockChildWallets.instance.arm(DevChildWalletsPreset.oneChild);
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () =>
+            const AppState(sdkAccounts: [_mainAddress, _otherAddress]),
+        devTools: true,
+      );
+
+      final result = cubit.ownRegistrations();
+
+      expect(result, isNotNull);
+      expect(api.childRegistrationsCallCount, 0);
     });
   });
 }
