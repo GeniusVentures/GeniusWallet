@@ -443,14 +443,16 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         // ponytail: a baseline read as 0 before the child synced lets its
         // real balance appearing read as this fund landing; the upgrade path
         // is a per-write tx hash from the SDK.
-        return _baselineTrusted(op, now) &&
+        return _onOwnView(op) &&
+            _baselineTrusted(op, now) &&
             _childBalance(op.target) >= op.baselineMinions! + op.amountMinions!;
       case ChildOperationKind.recover:
         // ponytail: the SDK reads an unsynced child as 0 too, so 0 never
         // counts and a recover that empties the child ends "Not confirmed
         // yet"; the upgrade path is a per-write tx hash from the SDK.
         final current = _childBalance(op.target);
-        return _baselineTrusted(op, now) &&
+        return _onOwnView(op) &&
+            _baselineTrusted(op, now) &&
             current > BigInt.zero &&
             current <= op.baselineMinions! - op.amountMinions!;
       case ChildOperationKind.revoke:
@@ -465,6 +467,12 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
             _listedUnder(op.newMain!, op.target) == true;
     }
   }
+
+  /// True while the node runs as [op]'s own account. Its baseline came from
+  /// that account's synced view of the child; another's can read it
+  /// differently, so a fund or recover waits for a switch back, or expires.
+  bool _onOwnView(ChildOperation op) =>
+      runningAccount?.toLowerCase() == op.fromAccount.toLowerCase();
 
   /// False once [op]'s baseline is older than [_baselineLifetime] at [at].
   bool _baselineTrusted(ChildOperation op, DateTime at) =>

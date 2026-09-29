@@ -583,7 +583,9 @@ void main() {
       expect(result, isNull);
       expect(api.fundCallCount, 1);
 
-      // Only the old main's own 5 can land, and it resolves only its own op.
+      // Only the old main's own 5 can land, and it resolves only its own op,
+      // once the node runs as the old main again.
+      running = _mainAddress;
       api.balances[_childAddress] = BigInt.from(5000000);
       cubit.resolve();
       expect(cubit.state.operations, isEmpty);
@@ -630,10 +632,13 @@ void main() {
       );
       expect(early, isNull);
 
-      // The old main's 10 lands and resolves its own op.
+      // The old main's 10 lands and resolves its own op on its own view.
+      running = _mainAddress;
       api.balances[_childAddress] = BigInt.from(10000000);
       cubit.resolve();
       expect(cubit.state.justResolved.single.fromAccount, _mainAddress);
+
+      running = _newMainAddress;
 
       final fund = cubit.submit(
         kind: ChildOperationKind.fund,
@@ -677,6 +682,51 @@ void main() {
 
       expect(result, isNull);
       expect(api.fundCallCount, 0);
+
+      cubit.close();
+    });
+
+    test('a timed-out recover never resolves while the node runs as another '
+        'account, and still expires on time', () {
+      var now = DateTime(2024);
+      var running = _mainAddress;
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(100000000); // 100 GNUS
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => AppState(
+          selectedSDKAccount: running,
+          sdkAccounts: const [_mainAddress, _otherAddress],
+          wallets: const [],
+          sdkAccountLinks: const <String, SDKAccountLink>{},
+        ),
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(10000000),
+      );
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+
+      // The switch lands and the other account's view reads the child
+      // part-synced: non-zero and below the recover's target.
+      now = submittedAt.add(const Duration(minutes: 3));
+      running = _otherAddress;
+      api.balances[_childAddress] = BigInt.from(50000000);
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.operations.single.expired, isFalse);
+      expect(cubit.balanceLockReason(_childAddress), isNotNull);
+
+      now = submittedAt.add(const Duration(minutes: 6));
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations.single.expired, isTrue);
 
       cubit.close();
     });
