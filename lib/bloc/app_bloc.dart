@@ -70,8 +70,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<RenameWallet>(_onRenameWallet);
     on<SgnusConnectionChanged>(_onSgnusConnectionChanged);
     on<SelectSDKAccount>(_onSelectSDKAccount);
-    on<AddSDKAccountWithMnemonic>(_onAddSDKAccountWithMnemonic);
-    on<AddSDKAccountWithPrivateKey>(_onAddSDKAccountWithPrivateKey);
     // One at a time: concurrent deletes would each pass the same block check.
     on<DeleteSDKAccount>(_onDeleteSDKAccount, transformer: sequential());
     on<RefreshSDKAccounts>(_onRefreshSDKAccounts);
@@ -892,48 +890,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final result = await api.selectGeniusAccountAsync(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       await _emitSDKAccounts(emit);
-    }
-  }
-
-  FutureOr<void> _onAddSDKAccountWithMnemonic(
-    AddSDKAccountWithMnemonic event,
-    Emitter<AppState> emit,
-  ) => _addSDKAccountFromSecret(
-    event.mnemonic,
-    isMnemonic: true,
-    done: event.done,
-    emit: emit,
-  );
-
-  FutureOr<void> _onAddSDKAccountWithPrivateKey(
-    AddSDKAccountWithPrivateKey event,
-    Emitter<AppState> emit,
-  ) => _addSDKAccountFromSecret(
-    event.privateKey,
-    isMnemonic: false,
-    done: event.done,
-    emit: emit,
-  );
-
-  /// Shared by both add-account events: saves the wallet behind [secret] and
-  /// links its SDK account through [GeniusApi.addWalletFromSecret], then
-  /// reports the outcome to [done]. Never selects an SDK account or changes
-  /// the active wallet.
-  Future<void> _addSDKAccountFromSecret(
-    String secret, {
-    required bool isMnemonic,
-    required Completer<SDKAddOutcome>? done,
-    required Emitter<AppState> emit,
-  }) async {
-    var outcome = SDKAddOutcome.failed;
-    try {
-      outcome = await api.addWalletFromSecret(secret, isMnemonic: isMnemonic);
-      if (outcome != SDKAddOutcome.failed) {
-        _baseWallets = await api.getWallets().first;
-        await _emitSDKAccounts(emit);
-      }
-    } finally {
-      done?.complete(outcome);
     }
   }
 

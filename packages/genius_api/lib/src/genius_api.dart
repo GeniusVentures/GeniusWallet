@@ -38,21 +38,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:web3dart/web3dart.dart' show TransactionReceipt;
 
-/// What [GeniusApi.addWalletFromSecret] did with a pasted secret.
-enum SDKAddOutcome {
-  /// A new wallet was saved and its SDK account is linked.
-  added,
-
-  /// The secret matched a wallet already in the app; nothing new was saved.
-  alreadyThere,
-
-  /// The wallet was saved, but its SDK account could not be added yet.
-  pending,
-
-  /// The secret could not be turned into a wallet.
-  failed,
-}
-
 /// Extension that mirrors [Utf8Pointer.toDartString] on [ffi.Pointer<Utf8>]
 /// for inline [ffi.Array]<[ffi.Char]> fields in FFI structs.
 extension _CharArrayToDartString on ffi.Array<ffi.Char> {
@@ -1135,87 +1120,6 @@ class GeniusApi {
     await _registerWallet(storedKey);
 
     return true;
-  }
-
-  /// Saves the ETH wallet behind a pasted mnemonic or private key and links
-  /// its SDK account, the same as any other import. A secret that already
-  /// matches a stored wallet saves nothing new; its outcome only reports
-  /// what happened, never a key or address.
-  Future<SDKAddOutcome> addWalletFromSecret(
-    String secret, {
-    required bool isMnemonic,
-  }) async {
-    Uint8List? privateKeyBytes;
-    try {
-      StoredKey? probe;
-      if (isMnemonic) {
-        probe = StoredKey.importHDWallet(
-          secret,
-          '',
-          '',
-          TWCoinType.TWCoinTypeEthereum,
-        );
-      } else {
-        final digits = secret.startsWith(RegExp('0[xX]'))
-            ? secret.substring(2)
-            : secret;
-        privateKeyBytes = Uint8List.fromList(hex.decode(digits));
-        probe = StoredKey.importPrivateKey(
-          privateKeyBytes,
-          '',
-          '',
-          TWCoinType.TWCoinTypeEthereum,
-        );
-      }
-
-      if (probe == null) {
-        return SDKAddOutcome.failed;
-      }
-      final address = probe.account(0).address();
-
-      final matchingKey = (await _secureStorage.getStoredKeys()).where(
-        (key) =>
-            key.account(0).address().toLowerCase() == address.toLowerCase(),
-      );
-      final alreadyExists = matchingKey.isNotEmpty;
-
-      // A link created from an already-saved wallet must carry its real,
-      // possibly user-renamed name -- not a fresh address-based one.
-      final name = alreadyExists
-          ? matchingKey.first.name()
-          : _defaultWalletName(address);
-      final storedKey = isMnemonic
-          ? StoredKey.importHDWallet(
-              secret,
-              name,
-              '',
-              TWCoinType.TWCoinTypeEthereum,
-            )
-          : StoredKey.importPrivateKey(
-              privateKeyBytes!,
-              name,
-              '',
-              TWCoinType.TWCoinTypeEthereum,
-            );
-
-      if (storedKey == null) {
-        return SDKAddOutcome.failed;
-      }
-
-      if (alreadyExists) {
-        await _registerWallet(storedKey, save: false);
-        return SDKAddOutcome.alreadyThere;
-      }
-
-      final sdkHasAccount = await _registerWallet(storedKey);
-      return sdkHasAccount ? SDKAddOutcome.added : SDKAddOutcome.pending;
-    } catch (_) {
-      return SDKAddOutcome.failed;
-    } finally {
-      if (privateKeyBytes != null) {
-        privateKeyBytes.fillRange(0, privateKeyBytes.length, 0);
-      }
-    }
   }
 
   Future<void> renameWallet(String address, String newName) async {

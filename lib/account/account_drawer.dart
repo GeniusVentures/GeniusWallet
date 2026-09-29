@@ -560,16 +560,6 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                       ),
               ),
             ),
-            const SizedBox(height: GeniusWalletConsts.space8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: GWButton(
-                label: 'Add from phrase or key',
-                variant: GWButtonVariant.secondary,
-                size: GWButtonSize.sm,
-                onPressed: () => showAddSdkAccountDialog(context),
-              ),
-            ),
           ],
         );
       },

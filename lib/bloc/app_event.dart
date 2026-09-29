@@ -55,26 +55,6 @@ class SelectSDKAccount extends AppEvent {
   SelectSDKAccount(this.publicAddress);
 }
 
-class AddSDKAccountWithMnemonic extends AppEvent {
-  final String mnemonic;
-
-  /// Completed with what happened to the pasted secret, for a caller that
-  /// wants to report it (e.g. the add-account dialog's toast).
-  final Completer<SDKAddOutcome>? done;
-
-  AddSDKAccountWithMnemonic(this.mnemonic, {this.done});
-}
-
-class AddSDKAccountWithPrivateKey extends AppEvent {
-  final String privateKey;
-
-  /// Completed with what happened to the pasted secret, for a caller that
-  /// wants to report it (e.g. the add-account dialog's toast).
-  final Completer<SDKAddOutcome>? done;
-
-  AddSDKAccountWithPrivateKey(this.privateKey, {this.done});
-}
-
 class DeleteSDKAccount extends AppEvent {
   final String publicAddress;
 
