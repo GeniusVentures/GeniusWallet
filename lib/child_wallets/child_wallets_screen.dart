@@ -124,7 +124,9 @@ class _ChildWalletsHeader extends StatelessWidget {
     final subject = state.mainAddress;
     final loaded = state.status == ChildWalletsStatus.loaded;
     final parentMain = state.parentMain;
-    final pendingOp = loaded ? registry.latestFor(subject) : null;
+    final pendingOps = loaded
+        ? registry.operationsFor(subject)
+        : const <ChildOperation>[];
     final detachLocked = registry.isPending(ChildOperationKind.detach, subject);
     final registerLocked = registry.isPending(
       ChildOperationKind.register,
@@ -184,10 +186,10 @@ class _ChildWalletsHeader extends StatelessWidget {
                       color: gw.textSecondary,
                     ),
                   ),
-                  if (pendingOp != null) ...[
+                  for (final op in pendingOps) ...[
                     const SizedBox(height: GeniusWalletConsts.space2),
                     ChildOperationBadge(
-                      op: pendingOp,
+                      op: op,
                       labelFor: registry.labelFor,
                       onCheckAgain: registry.resolve,
                     ),
@@ -275,7 +277,7 @@ class ChildWalletRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final gw = context.gw;
     final registry = context.watch<ChildOperationsCubit>();
-    final pendingOp = registry.latestFor(wallet.address);
+    final pendingOps = registry.operationsFor(wallet.address);
     final fundLocked = registry.isPending(
       ChildOperationKind.fund,
       wallet.address,
@@ -347,13 +349,21 @@ class ChildWalletRow extends StatelessWidget {
               color: gw.textSecondary,
             ),
           ),
-          if (pendingOp != null) ...[
+          if (pendingOps.isNotEmpty) ...[
             const SizedBox(width: GeniusWalletConsts.space3),
             Flexible(
-              child: ChildOperationBadge(
-                op: pendingOp,
-                labelFor: registry.labelFor,
-                onCheckAgain: registry.resolve,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                spacing: GeniusWalletConsts.space2,
+                children: [
+                  for (final op in pendingOps)
+                    ChildOperationBadge(
+                      op: op,
+                      labelFor: registry.labelFor,
+                      onCheckAgain: registry.resolve,
+                    ),
+                ],
               ),
             ),
           ],
