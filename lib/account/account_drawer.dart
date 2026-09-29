@@ -267,7 +267,10 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
 
     // Guard: at least one of the user's own wallets must remain; SDK accounts
     // do not count (the bloc enforces the same rule).
-    if (!AppBloc.canDeleteWallet(appBloc.state.wallets)) {
+    if (!AppBloc.canDeleteWallet(
+      appBloc.state.wallets,
+      deletingWatchOnly: wallet.walletType == WalletType.tracking,
+    )) {
       showToast(
         navigator.context,
         'You must keep at least one wallet.',
