@@ -533,6 +533,66 @@ void main() {
       cubit.close();
     });
 
+    test('after the child moves, a fund from its new main leaves the old '
+        "main's timed-out fund and its hold with the old main", () {
+      var now = DateTime(2024);
+      var running = _mainAddress;
+      final api = _FakeApi()..minionsBalance = '100000000'; // 100 GNUS
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => AppState(
+          selectedSDKAccount: running,
+          sdkAccounts: const [_mainAddress, _newMainAddress],
+          wallets: const [],
+          sdkAccountLinks: const <String, SDKAccountLink>{},
+        ),
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(10000000),
+      );
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+
+      running = _newMainAddress;
+      final result = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _newMainAddress,
+        amountMinions: BigInt.from(5000000),
+      );
+      expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      expect(cubit.state.operations, hasLength(2));
+      final oldMainOp = cubit.state.operations.first;
+      expect(oldMainOp.fromAccount, _mainAddress);
+      expect(oldMainOp.notConfirmed, isTrue);
+      expect(cubit.state.operations.last.carriedMinions, isNull);
+
+      running = _mainAddress.toUpperCase();
+      expect(
+        cubit.payingBalance(ChildOperationKind.fund, _childAddress),
+        BigInt.from(90000000),
+      );
+
+      // Only the old main's 10 lands: that resolves the old main's fund,
+      // never the new main's 5.
+      api.balances[_childAddress] = BigInt.from(10000000);
+      cubit.resolve();
+      expect(cubit.state.justResolved.single.fromAccount, _mainAddress);
+      expect(cubit.state.operations.single.fromAccount, _newMainAddress);
+
+      api.balances[_childAddress] = BigInt.from(15000000);
+      cubit.resolve();
+      expect(cubit.state.operations, isEmpty);
+      expect(cubit.state.justResolved.single.fromAccount, _newMainAddress);
+
+      cubit.close();
+    });
+
     test('the node running as another account is refused, no SDK call', () {
       final api = _FakeApi();
       final cubit = ChildOperationsCubit(
