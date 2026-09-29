@@ -2,6 +2,7 @@
 // registrations wrapper copies every field before it frees anything, frees a
 // non-null array exactly once, and never touches memory when the count is
 // zero or the array pointer is null.
+import 'dart:convert';
 import 'dart:ffi' as ffi;
 
 import 'package:ffi/ffi.dart';
@@ -28,6 +29,28 @@ ffi.Pointer<GeniusRegistrationDiscoveryEntry> _buildEntries(int count) {
     entry.sequence = i;
   }
   return entries;
+}
+
+/// Writes [value] as UTF-8 bytes plus a NUL terminator into a metadata char
+/// array field, mirroring how the native side fills a registration's strings.
+void _writeMetadataField(ffi.Array<ffi.Char> field, String value) {
+  final bytes = utf8.encode(value);
+  for (var i = 0; i < bytes.length; i++) {
+    field[i] = bytes[i];
+  }
+  field[bytes.length] = 0;
+}
+
+/// Reads a null-terminated char array back as UTF-8, byte-masked the same
+/// way the production reader is -- so a byte above 0x7F never throws.
+String _readField(ffi.Array<ffi.Char> field, int maxLength) {
+  final units = <int>[];
+  for (var i = 0; i < maxLength; i++) {
+    final c = field[i];
+    if (c == 0) break;
+    units.add(c & 0xFF);
+  }
+  return utf8.decode(units, allowMalformed: true);
 }
 
 /// A `query` double that ignores the requested address and always reports
@@ -208,6 +231,133 @@ void main() {
       );
 
       expect(freedPointer, entries.cast<ffi.Void>());
+    });
+
+    test('entries carry metadata, a non-ASCII game id included', () {
+      final entries = calloc<GeniusRegistrationDiscoveryEntry>(1);
+      _writeAddress(entries[0].child_address.address, 'child0');
+      _writeAddress(entries[0].main_address.address, 'main0');
+      entries[0].sequence = 5;
+      _writeMetadataField(entries[0].metadata.game_id, 'gamé');
+      _writeMetadataField(entries[0].metadata.publisher_id, 'pub');
+      _writeMetadataField(entries[0].metadata.dev_wallet, 'wallet');
+      entries[0].metadata.peers_cut = 9;
+
+      final result = collectChildRegistrations(
+        'main',
+        query: _scriptedQuery(
+          entries: entries,
+          count: 1,
+          returnCode: GeniusNodeReturnValue.GENIUS_NODE_RET_OK.value,
+        ),
+        free: (ptr) => calloc.free(ptr),
+      );
+
+      final metadata = result.entries.single.metadata;
+      expect(metadata.gameId, 'gamé');
+      expect(metadata.publisherId, 'pub');
+      expect(metadata.devWallet, 'wallet');
+      expect(metadata.peersCut, 9);
+    });
+  });
+
+  group('writeRegistrationMetadata', () {
+    test('round-trips ASCII and non-ASCII fields', () {
+      final out = calloc<GeniusRegistrationMetadata>();
+      try {
+        final ok = writeRegistrationMetadata(
+          out,
+          const ChildRegistrationMetadata(
+            gameId: 'gamé',
+            publisherId: 'pub',
+            devWallet: 'wallet',
+            peersCut: 42,
+          ),
+        );
+        expect(ok, isTrue);
+        expect(_readField(out.ref.game_id, 128), 'gamé');
+        expect(_readField(out.ref.publisher_id, 128), 'pub');
+        expect(_readField(out.ref.dev_wallet, 128), 'wallet');
+        expect(out.ref.peers_cut, 42);
+      } finally {
+        calloc.free(out);
+      }
+    });
+
+    test('a 127-byte field is accepted', () {
+      final out = calloc<GeniusRegistrationMetadata>();
+      try {
+        final gameId = List.filled(127, 'a').join();
+        final ok = writeRegistrationMetadata(
+          out,
+          ChildRegistrationMetadata(gameId: gameId),
+        );
+        expect(ok, isTrue);
+        expect(_readField(out.ref.game_id, 128), gameId);
+      } finally {
+        calloc.free(out);
+      }
+    });
+
+    test('a 128-byte non-ASCII field is rejected, struct stays zeroed', () {
+      final out = calloc<GeniusRegistrationMetadata>();
+      try {
+        final gameId = List.filled(64, 'é').join(); // 128 UTF-8 bytes
+        final ok = writeRegistrationMetadata(
+          out,
+          ChildRegistrationMetadata(gameId: gameId, peersCut: 7),
+        );
+        expect(ok, isFalse);
+        expect(out.ref.game_id[0], 0);
+        expect(out.ref.peers_cut, 0);
+      } finally {
+        calloc.free(out);
+      }
+    });
+
+    test('peersCut -1 round-trips as -1', () {
+      final out = calloc<GeniusRegistrationMetadata>();
+      try {
+        final ok = writeRegistrationMetadata(
+          out,
+          const ChildRegistrationMetadata(peersCut: -1),
+        );
+        expect(ok, isTrue);
+        expect(out.ref.peers_cut, -1);
+      } finally {
+        calloc.free(out);
+      }
+    });
+  });
+
+  group('writeTokenValue', () {
+    test('accepts a plain GNUS amount string', () {
+      final out = calloc<GeniusTokenValue>();
+      try {
+        expect(writeTokenValue(out, '12.345678'), isTrue);
+        expect(_readField(out.ref.value, 22), '12.345678');
+      } finally {
+        calloc.free(out);
+      }
+    });
+
+    test('accepts a 21-byte string, rejects 22 bytes', () {
+      final out = calloc<GeniusTokenValue>();
+      try {
+        expect(writeTokenValue(out, List.filled(21, '1').join()), isTrue);
+        expect(writeTokenValue(out, List.filled(22, '1').join()), isFalse);
+      } finally {
+        calloc.free(out);
+      }
+    });
+  });
+
+  group('uint64Arg', () {
+    test('accepts the full uint64 range, rejects outside it', () {
+      expect(uint64Arg(BigInt.zero), 0);
+      expect(uint64Arg((BigInt.one << 64) - BigInt.one), -1);
+      expect(uint64Arg(-BigInt.one), isNull);
+      expect(uint64Arg(BigInt.one << 64), isNull);
     });
   });
 }
