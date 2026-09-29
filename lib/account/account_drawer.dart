@@ -232,6 +232,11 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       appState.sdkAccounts.join(','),
       operations?.state,
       DevMockChildWallets.instance.preset.value,
+      // Bloc state keeps the same list/map instance across an emit that
+      // doesn't touch it, so identity here still catches a rename or a
+      // link change without a per-build deep compare.
+      appState.wallets,
+      appState.sdkAccountLinks,
     );
     if (key == _registrationsKey) {
       return;
