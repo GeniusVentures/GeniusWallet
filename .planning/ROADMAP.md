@@ -1488,6 +1488,7 @@ for the full dependency reasoning.
 - [ ] **Phase 35: Unified header switcher** - One header control, desktop and mobile, for the SDK wallet and the active wallet
 - [ ] **Phase 36: Child wallet bindings & read-only view** - The 11 child functions are bound and safe; the user sees their children and balances
 - [ ] **Phase 37: Child write operations & pending model** - Register, fund, recover, revoke, detach, replace-main, with an honest pending state and a switch lock
+- [ ] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
 
 ## Phase Details
 
@@ -1580,6 +1581,25 @@ Plans:
 - [x] 37-04-PLAN.md — move to another main; switcher "Node running as" lock while an op from the running account is pending (wave 4)
 - [x] 37-05-PLAN.md — dev-mock write simulation (confirm / time out / fail) and bubble buttons; phase gate and Windows compile; VER-02 live walk stays pending (wave 5)
 
+### Phase 38: Account tree switcher
+
+**Goal**: The switcher shows one list of the user's accounts, each wallet row carrying its linked SDK account, with children nested under their main. Two tags mark the independent selections: "Selected" (wallet features) and "On node" (the account the node runs as).
+**Depends on**: Phase 37
+**Requirements**: SWT-07
+**Success Criteria** (what must be TRUE):
+
+  1. The "Sending from" and "Node running as" lists are replaced by one list; an SDK account linked to a wallet appears once, on that wallet's row; an unlinked SDK account gets its own row; a watch-only wallet never offers "On node".
+  2. Tapping a row selects it for wallet features ("Selected"); "Run node as this" lives in the row menu, is refused with its reason while a child operation from the running account is pending, and never changes "Selected".
+  3. While the node runs, each of the user's own children is nested under its main instead of appearing twice; a child that is not one of the user's accounts shows as a row that cannot be selected; with the node down the list is flat with a one-line note.
+  4. Child rows' menus offer Fund, Recover and Revoke through the same pending registry and locks as the Child wallets screen, which stays.
+  5. Desktop and mobile; both appearance modes meet WCAG AA; dev-bubble child presets drive the tree.
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 38 to break down)
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -1588,3 +1608,4 @@ Plans:
 | 35. Unified header switcher | 3/3 | Awaiting human verification (live walk) | - |
 | 36. Child wallet bindings & read-only view | 3/3 | Awaiting human verification (live walk) | - |
 | 37. Child write operations & pending model | 5/5 | Awaiting human verification (live walk) | - |
+| 38. Account tree switcher | 0/? | Not started | - |
