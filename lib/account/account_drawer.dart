@@ -677,7 +677,9 @@ class _AccountRowTile extends StatelessWidget {
       titleStyle: locked
           ? GeniusWalletTypography.bodySm.copyWith(
               fontWeight: FontWeight.w600,
-              color: gw.textSecondary.withValues(alpha: 0.5),
+              // 70%, not 50% -- see GWMenuItem's disabled-item colour for
+              // why 50% fails the 3:1 non-text contrast floor here too.
+              color: gw.textSecondary.withValues(alpha: 0.7),
             )
           : null,
       subtitle:
@@ -686,7 +688,7 @@ class _AccountRowTile extends StatelessWidget {
       subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
         fontFamily: GeniusWalletTypography.monoFamily,
         color: locked
-            ? gw.textSecondary.withValues(alpha: 0.5)
+            ? gw.textSecondary.withValues(alpha: 0.7)
             : gw.textSecondary,
       ),
       trailing: nested
@@ -807,7 +809,7 @@ class _AccountRowTile extends StatelessWidget {
             Icons.account_balance_wallet,
             size: 20,
             color: locked
-                ? gw.textSecondary.withValues(alpha: 0.5)
+                ? gw.textSecondary.withValues(alpha: 0.7)
                 : (onNode ? gw.brandPrimaryStrong : gw.textSecondary),
           );
     final isExpanded = expanded;
