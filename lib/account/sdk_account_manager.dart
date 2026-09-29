@@ -37,6 +37,7 @@ class SDKAccountRow extends StatelessWidget {
     required this.isSelected,
     required this.isStartAccount,
     this.balanceWallet,
+    this.lockedReason,
   });
 
   final String address;
@@ -48,6 +49,12 @@ class SDKAccountRow extends StatelessWidget {
   /// null when the account has none.
   final Wallet? balanceWallet;
 
+  /// Non-null while a child operation submitted from the running account is
+  /// still pending -- switching AWAY from it is refused with this as the
+  /// reason. Never locks the selected row itself (tapping it is already a
+  /// no-op) or "Sending from" rows, which this widget never renders.
+  final String? lockedReason;
+
   @override
   Widget build(BuildContext context) {
     // Fail-soft read: registers the InheritedWidget dependency (on the
@@ -55,6 +62,7 @@ class SDKAccountRow extends StatelessWidget {
     // widget-level this.context) that forces this row to rebuild on a live
     // appearance toggle while the drawer stays open (04-02 D-02).
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final locked = lockedReason != null && !isSelected;
 
     final mnemonic = context.read<AppBloc>().api.getSelectedAccountMnemonic();
     final can = sdkRowActions(
@@ -68,9 +76,13 @@ class SDKAccountRow extends StatelessWidget {
     // when it became selected. `GWSelectRow` keeps its border width constant
     // and says "selected" with the tint, the brand edge and the check glyph,
     // the same three the token picker uses.
-    return GWSelectRow(
+    final row = GWSelectRow(
       selected: isSelected,
       onTap: () {
+        if (locked) {
+          showToast(context, lockedReason!, type: ToastType.warning);
+          return;
+        }
         if (!isSelected) {
           context.read<AppBloc>().add(SelectSDKAccount(address));
           showToast(
@@ -82,12 +94,20 @@ class SDKAccountRow extends StatelessWidget {
       },
       leading: GWIcon.material(
         Icons.account_balance_wallet,
-        color: isSelected ? context.gw.brandPrimaryStrong : gw.textSecondary,
+        color: locked
+            ? gw.textSecondary.withValues(alpha: 0.5)
+            : (isSelected ? context.gw.brandPrimaryStrong : gw.textSecondary),
       ),
       // The title now names the wallet this account came from - the
       // row's own default style, since the mono treatment belongs to the
       // address on the line below, not a wallet name.
       title: name,
+      titleStyle: locked
+          ? GeniusWalletTypography.bodySm.copyWith(
+              fontWeight: FontWeight.w600,
+              color: gw.textSecondary.withValues(alpha: 0.5),
+            )
+          : null,
       // The address stays on every row, linked or not, with the same
       // mono subtitle style the wallet-menu rows use.
       subtitle:
@@ -97,8 +117,13 @@ class SDKAccountRow extends StatelessWidget {
               : (isStartAccount ? ' · Default account' : '')),
       subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
         fontFamily: GeniusWalletTypography.monoFamily,
-        color: gw.textSecondary,
+        color: locked
+            ? gw.textSecondary.withValues(alpha: 0.5)
+            : gw.textSecondary,
       ),
+      trailing: locked
+          ? Icon(Icons.lock_outline, size: 14, color: gw.textSecondary)
+          : null,
       // ONE menu on EVERY row (sketch 069-A). Before this, the selected row got
       // a three-item menu and every OTHER row got a bare red delete
       // `IconButton` and no menu at all -- so Delete was never IN the menu, the
@@ -190,6 +215,11 @@ class SDKAccountRow extends StatelessWidget {
         ],
       ),
     );
+
+    if (!locked) {
+      return row;
+    }
+    return Tooltip(message: lockedReason, child: row);
   }
 
   /// One menu row, so the four items cannot drift in icon size, colour or

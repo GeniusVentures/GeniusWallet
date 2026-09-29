@@ -6,6 +6,7 @@ import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
@@ -496,6 +497,11 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     // seeded once rather than watched.
     _selectedWallet ??= context.read<WalletDetailsCubit>().state.selectedWallet;
 
+    // Nullable: the registry is provided once, at the app root, above the
+    // router -- a host that never wires it (an older test harness, a screen
+    // outside that subtree) simply has nothing pending to lock.
+    final operations = context.watch<ChildOperationsCubit?>();
+
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, appState) {
         // Two independent selections, never one flat list: which wallet sends
@@ -516,6 +522,17 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                 appState.sdkAccountLinks,
                 appState.wallets,
               );
+        // A pending child operation submitted from the running account locks
+        // every OTHER row -- active-wallet ("Sending from") switching above
+        // is never touched by this.
+        final running = appState.selectedSDKAccount;
+        final lockedReason =
+            operations != null &&
+                running != null &&
+                operations.hasPendingFrom(running)
+            ? 'Waiting for a child operation from ${operations.labelFor(running)} '
+                  'to confirm'
+            : null;
 
         return ListView(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
@@ -579,6 +596,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                   isSelected: account == appState.selectedSDKAccount,
                   isStartAccount: account.toLowerCase() == defaultAccount,
                   balanceWallet: _sgnusWalletFor(account, appState.wallets),
+                  lockedReason: lockedReason,
                 ),
               )
             else
