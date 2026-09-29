@@ -68,8 +68,8 @@ class ChildOperation {
   final DateTime submittedAt;
   final bool notConfirmed;
 
-  /// A timed-out fund or recover whose baseline is too old to trust: it can
-  /// no longer resolve, and no longer holds its amount or locks its child.
+  /// A fund or recover whose baseline is too old, or whose node switched
+  /// away: it can no longer resolve, hold its amount or lock its child.
   final bool expired;
 
   /// Submitted to the dev mock rather than the SDK. It resolves only while
@@ -113,17 +113,24 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   ChildOperationsCubit({
     required GeniusApi api,
     required AppState Function() readAppState,
+    Stream<AppState>? appStates,
     DateTime Function() now = DateTime.now,
     bool devTools = kShowDevTools,
   }) : _api = api,
        _readAppState = readAppState,
        _now = now,
        _devTools = devTools,
-       super(const ChildOperationsState());
+       super(const ChildOperationsState()) {
+    _accountSwitches = appStates
+        ?.map((s) => s.selectedSDKAccount?.toLowerCase())
+        .distinct()
+        .listen((_) => resolve());
+  }
 
   final GeniusApi _api;
   final AppState Function() _readAppState;
   final DateTime Function() _now;
+  StreamSubscription<String?>? _accountSwitches;
 
   /// [kShowDevTools] outside tests, which can't pass a define to reach the
   /// mock. [kDebugMode] still gates it, so a release build never mocks.
@@ -425,7 +432,11 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       final timesOut =
           !op.notConfirmed &&
           !now.isBefore(op.submittedAt.add(childOperationTimeout));
-      final expires = _holdsBalance(op) && !_baselineTrusted(op, now);
+      // A switch away may leave its own view resyncing when the node comes
+      // back, so its baseline is never trusted again. Every switch runs this
+      // pass, so a round trip between two polls can't slip past it.
+      final expires =
+          _holdsBalance(op) && (!_baselineTrusted(op, now) || !_onOwnView(op));
       if (timesOut || expires) {
         remaining.add(
           op.copyWith(notConfirmed: true, expired: op.expired || expires),
@@ -490,7 +501,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
 
   /// True while the node runs as [op]'s own account. Its baseline came from
   /// that account's synced view of the child; another's can read it
-  /// differently, so a fund or recover waits for a switch back, or expires.
+  /// differently, so a fund or recover never resolves off it.
   bool _onOwnView(ChildOperation op) =>
       runningAccount?.toLowerCase() == op.fromAccount.toLowerCase();
 
@@ -521,6 +532,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   @override
   Future<void> close() {
     _pollTimer?.cancel();
+    _accountSwitches?.cancel();
     return super.close();
   }
 }

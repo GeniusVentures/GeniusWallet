@@ -429,6 +429,7 @@ class MyApp extends StatelessWidget {
             create: (context) => ChildOperationsCubit(
               api: geniusApi,
               readAppState: () => context.read<AppBloc>().state,
+              appStates: context.read<AppBloc>().stream,
             ),
           ),
         ],
