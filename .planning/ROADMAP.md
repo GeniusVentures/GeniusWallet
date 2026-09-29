@@ -1571,6 +1571,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 34. Account linking | 5/5 | Awaiting human verification (live walk) | - |
-| 35. Unified header switcher | 0/3 | Planned | - |
+| 35. Unified header switcher | 3/3 | Awaiting human verification (live walk) | - |
 | 36. Child wallet bindings & read-only view | 0/TBD | Not started | - |
 | 37. Child write operations & pending model | 0/TBD | Not started | - |
