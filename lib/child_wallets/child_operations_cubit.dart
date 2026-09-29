@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart' show GeniusNodeReturnValue;
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
     show minionsToGnus;
+import 'package:genius_wallet/dev/dev_flags.dart';
+import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart' show toBaseUnits;
 import 'package:genius_wallet/utils/wallet_utils.dart';
 
@@ -101,6 +104,21 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   /// The account the node currently runs as, or null when it isn't running.
   String? get runningAccount => _readAppState().selectedSDKAccount;
 
+  /// True only in a dev-tools debug build with a read preset armed - every
+  /// read and write below then routes to [DevMockChildWallets] instead of
+  /// the SDK, so no real write can ever happen while a preset is armed.
+  bool get _devMocked =>
+      kDebugMode &&
+      kShowDevTools &&
+      DevMockChildWallets.instance.preset.value != null;
+
+  /// [target]'s GNUS balance, in minions, from the mock while [_devMocked],
+  /// or the SDK otherwise - the one read both [payingBalance] and
+  /// [_signalMet] share for fund and recover.
+  BigInt _childBalance(String target) => _devMocked
+      ? DevMockChildWallets.balanceFor(target)
+      : _api.getChildBalanceAll(target);
+
   /// [address]'s linked wallet name, or its own short address when it has
   /// none -- a badge or toast should never carry the bare word "Unlinked".
   String labelFor(String address) {
@@ -166,9 +184,11 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   BigInt payingBalance(ChildOperationKind kind, String target) {
     switch (kind) {
       case ChildOperationKind.fund:
-        return BigInt.tryParse(_api.getMinionsBalance()) ?? BigInt.zero;
+        return _devMocked
+            ? DevMockChildWallets.mainBalanceMinions
+            : BigInt.tryParse(_api.getMinionsBalance()) ?? BigInt.zero;
       case ChildOperationKind.recover:
-        return _api.getChildBalanceAll(target);
+        return _childBalance(target);
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
       case ChildOperationKind.register:
@@ -211,29 +231,43 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     // the balance against once the write lands. Revoke and detach resolve
     // off the registrations list instead, so neither has a use for a
     // balance baseline.
-    final baseline = _hasAmount(kind) ? _api.getChildBalanceAll(target) : null;
-    final result = switch (kind) {
-      ChildOperationKind.fund => _api.fundChildGnus(
-        minionsToGnus(amountMinions!),
-        target,
-      ),
-      ChildOperationKind.recover => _api.recoverFromChildGnus(
-        minionsToGnus(amountMinions!),
-        target,
-      ),
-      ChildOperationKind.revoke => _api.revokeChild(target),
-      ChildOperationKind.detach => _api.detachChild(
-        const ChildRegistrationMetadata(),
-      ),
-      ChildOperationKind.register => _api.registerChild(
-        main,
-        const ChildRegistrationMetadata(),
-      ),
-      ChildOperationKind.move => _api.replaceMain(
-        newMain!,
-        const ChildRegistrationMetadata(),
-      ),
-    };
+    final baseline = _hasAmount(kind) ? _childBalance(target) : null;
+    final op = ChildOperation(
+      kind: kind,
+      fromAccount: requiredRunner,
+      target: target,
+      main: main,
+      newMain: newMain,
+      amountMinions: amountMinions,
+      baselineMinions: baseline,
+      submittedAt: _now(),
+    );
+    // No real SDK write may ever be issued while a preset is armed --
+    // submitWrite is the only path a write takes from here.
+    final result = _devMocked
+        ? DevMockChildWallets.instance.submitWrite(op)
+        : switch (kind) {
+            ChildOperationKind.fund => _api.fundChildGnus(
+              minionsToGnus(amountMinions!),
+              target,
+            ),
+            ChildOperationKind.recover => _api.recoverFromChildGnus(
+              minionsToGnus(amountMinions!),
+              target,
+            ),
+            ChildOperationKind.revoke => _api.revokeChild(target),
+            ChildOperationKind.detach => _api.detachChild(
+              const ChildRegistrationMetadata(),
+            ),
+            ChildOperationKind.register => _api.registerChild(
+              main,
+              const ChildRegistrationMetadata(),
+            ),
+            ChildOperationKind.move => _api.replaceMain(
+              newMain!,
+              const ChildRegistrationMetadata(),
+            ),
+          };
     if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       return result;
     }
@@ -248,16 +282,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
                 existing.notConfirmed &&
                 existing.target.toLowerCase() == target.toLowerCase()))
               existing,
-          ChildOperation(
-            kind: kind,
-            fromAccount: requiredRunner,
-            target: target,
-            main: main,
-            newMain: newMain,
-            amountMinions: amountMinions,
-            baselineMinions: baseline,
-            submittedAt: _now(),
-          ),
+          op,
         ],
       ),
     );
@@ -310,10 +335,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   bool _signalMet(ChildOperation op) {
     switch (op.kind) {
       case ChildOperationKind.fund:
-        final current = _api.getChildBalanceAll(op.target);
+        final current = _childBalance(op.target);
         return current >= (op.baselineMinions! + op.amountMinions!);
       case ChildOperationKind.recover:
-        final current = _api.getChildBalanceAll(op.target);
+        final current = _childBalance(op.target);
         return current <= (op.baselineMinions! - op.amountMinions!);
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
@@ -333,7 +358,13 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   /// only resolve on a definite true or false, never on an unknown read, so
   /// revoke, detach and register all stay pending through a failed read.
   bool? _listedUnder(String main, String target) {
-    final registrations = _api.getChildRegistrations(main);
+    final registrations = _devMocked
+        ? DevMockChildWallets.registrationsFor(
+            DevMockChildWallets.instance.preset.value!,
+            _readAppState(),
+            main,
+          )
+        : _api.getChildRegistrations(main);
     if (!registrations.isOk) {
       return null;
     }
