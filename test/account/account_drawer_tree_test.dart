@@ -104,6 +104,11 @@ class _SeededAppBloc extends AppBloc {
       ),
     );
   }
+
+  /// Simulates a rename landing: a fresh [Wallet] list, nothing else on
+  /// state touched.
+  void updateWallets(List<Wallet> wallets) =>
+      emit(state.copyWith(wallets: wallets));
 }
 
 Future<void> _pumpDrawer(
@@ -846,6 +851,83 @@ void main() {
           find.descendant(of: rowC, matching: find.text('On node')),
           findsOneWidget,
         );
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+  });
+
+  group('foreign child rename', () {
+    const ownMain = '0xAAAA111111111111111111111111111111AAA1';
+    const foreignChild = '0xBBBB222222222222222222222222222222BBB2';
+
+    Wallet linkedWallet(String name) => Wallet(
+      coinType: TWCoinType.TWCoinTypeEthereum,
+      walletName: name,
+      currencySymbol: 'ETH',
+      walletType: WalletType.privateKey,
+      balance: 0,
+      address: foreignChild,
+    );
+
+    testWidgets(
+      'a rename of the linked wallet updates a foreign-child row with no '
+      'other registrations-key change',
+      (tester) async {
+        final api = _PerMainApi(
+          registrationsByMain: {
+            ownMain.toLowerCase(): (
+              result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+              entries: const [
+                ChildRegistration(
+                  childAddress: foreignChild,
+                  mainAddress: ownMain,
+                  sequence: 0,
+                ),
+              ],
+            ),
+          },
+        );
+        final details = WalletDetailsCubit(
+          geniusApi: api,
+          networkTokensProvider: NetworkTokensProvider(),
+        );
+        final links = {
+          foreignChild.toLowerCase(): (
+            walletAddress: foreignChild.toLowerCase(),
+            walletName: 'Old name',
+          ),
+        };
+        final bloc = _SeededAppBloc(
+          api: api,
+          transactionsCubit: TransactionsCubit(),
+          walletDetailsCubit: details,
+          networkProvider: NetworkProvider(),
+          sdkAccounts: const [ownMain],
+          wallets: [linkedWallet('Old name')],
+          sdkAccountLinks: links,
+          selectedSDKAccount: ownMain,
+        );
+        final operations = ChildOperationsCubit(
+          api: api,
+          readAppState: () => bloc.state,
+        );
+
+        Finder childRowName(String name) => find.descendant(
+          of: find.byType(ChildWalletRow),
+          matching: find.text(name),
+        );
+
+        await _pumpDrawer(tester, bloc, details, operations: operations);
+        expect(childRowName('Old name'), findsOneWidget);
+
+        bloc.updateWallets([linkedWallet('New name')]);
+        await tester.pumpAndSettle();
+
+        expect(childRowName('New name'), findsOneWidget);
+        expect(childRowName('Old name'), findsNothing);
 
         await tester.runAsync(() => bloc.close());
         await details.close();
