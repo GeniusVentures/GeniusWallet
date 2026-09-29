@@ -2,9 +2,9 @@
 phase: 37-child-write-operations-pending-model
 fixed_at: 2026-09-29T00:00:00Z
 review_path: .planning/phases/37-child-write-operations-pending-model/37-REVIEW.md
-iteration: 1
-findings_in_scope: 6
-fixed: 6
+iteration: 3
+findings_in_scope: 3
+fixed: 3
 skipped: 0
 status: all_fixed
 ---
@@ -111,3 +111,86 @@ on `gsd/v3.0-child-wallets`, at HEAD 5a57149c:
 
 _Fixed: 2026-09-29_
 _Iteration: 1_
+
+---
+
+# Iteration 3
+
+**Source review:** 37-REVIEW.md (iteration 2): 3 warnings, all in the carry-forward path.
+**Summary:** 3 in scope, 3 fixed, 0 skipped. Each fix has a regression test that failed before the change.
+
+The rule applied throughout: nothing reads as done without its own signal. Where two options were
+possible, the fix picks the one that ends in "Not confirmed yet" rather than a possible false toast.
+
+## Fixed Issues
+
+### WR-01: A retry inherits a baseline of any age
+
+**Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `test/child_wallets/child_operations_cubit_test.dart`
+**Commit:** 47d002ce
+**Status:** fixed: requires human verification (logic)
+**Applied fix:** Each fund or recover now records `baselineAt`. A baseline older than three timeouts
+(6 min) is never trusted. `_signalMet` returns false past that point, for every fund or recover op,
+not just a retry. A retry keeps the earlier baseline only if it stays trusted through the retry's
+own timeout, which means it was read less than 2x the timeout ago. Otherwise the retry reads a fresh
+baseline. A `ponytail:` comment on `_baselineLifetime` names two ceilings: other movement inside the
+window can still interfere, and a write that lands after the window holds its amount until restart.
+The upgrade path is a per-write tx hash from the SDK.
+**Deviation from the brief:** past the window, the retry still takes over the old attempt's amount
+(fresh baseline, `carriedMinions` kept). It does not leave the old op as a separate entry. With a
+separate entry, the stale attempt landing after the retry could satisfy the retry's fresh baseline
+and toast a false "done". It would also hold its amount forever, because a stale op can no longer
+resolve. Merging means the retry waits for both amounts. The worst case is "Not confirmed yet"
+when the earlier attempt had already landed before the retry.
+**Gating the old op too:** the resolve-before-dialog added in WR-03 would otherwise have resolved
+the review's own example falsely ("Recovered 10 GNUS") at the one-hour mark.
+**Test:** the review's recover example (100 GNUS, recover 10 times out, child spends 15 an hour
+later, retry 5). Nothing resolves at the hour mark. The retry gets a fresh baseline of 85 and carries
+10. It resolves only at 70.
+
+### WR-02: `replaces` ignores which main paid
+
+**Files modified:** `lib/child_wallets/child_operations_cubit.dart`, `test/child_wallets/child_operations_cubit_test.dart`
+**Commit:** d2ee0587
+**Status:** fixed: requires human verification (logic)
+**Applied fix:** `replaces` also requires `fromAccount` to equal the submitting account
+(case-insensitive). The old main's op stays as its own entry, and its hold stays on the old main.
+Keeping it separate made one new false "done" possible: the old main's attempt landing could
+satisfy the new main's fresh baseline. So `submit()` records a signal-only `otherAttemptsMinions`,
+the total of other accounts' tracked ops of the same kind on that child. `_signalMet` waits for that
+total too. It is not counted in `_committed`, so nothing is reserved twice.
+**Test:** M1 funds C with 10, and the fund times out. M2 funds C with 5, which leaves 2 ops. M1's
+free balance (upper-cased address) is 90. M1's 10 lands, and only M1's op resolves. M2's 5 lands,
+and then M2's op resolves.
+
+### WR-03: A retry never checks whether the attempt it replaces landed, and names only its own amount
+
+**Files modified:** `lib/child_wallets/child_operation_dialogs.dart`, `lib/child_wallets/child_operation_status.dart`, `test/child_wallets/child_operation_actions_test.dart`
+**Commit:** b7504e13
+**Applied fix:** `startFund` and `startRecover` call `registry.resolve()` before the amount dialog
+opens. A late-landed earlier attempt then resolves, toasts and releases its hold, and the next fund
+does not carry it. The badge and toast show `totalMinions` and add ", including an earlier attempt"
+when `carriedMinions` is set. Examples: "Recovering 1.5 GNUS, including an earlier attempt…" and
+"Recovered 1.5 GNUS from Game Wallet, including an earlier attempt". Without a carry, the wording is
+unchanged. `submit()` is still the only write path.
+**Tests (widget):** (1) A fund times out and then lands. Opening Fund toasts "Funded 1 GNUS to Game
+Wallet", the badge clears, and the next 0.5 has no carry. (2) A recover retry shows the carried total
+on the badge and in the toast.
+
+## Verification (iteration 3)
+
+All gates ran in the **main checkout** (`workflow.use_worktrees: false`) on `gsd/v3.0-child-wallets`,
+at HEAD b7504e13:
+
+- `flutter test`: 2162 passed / 5 skipped / 0 failed. That is the 2158 baseline plus 4 new tests.
+- `flutter analyze lib test`: No issues found (exit 0).
+- `dart format --set-exit-if-changed` on the 5 changed files: 0 changed.
+- `bash tool/check_brace_style.sh`: exit 0. `bash tool/check_raw_colors.sh`: exit 0.
+- `git ls-files --eol`: all 5 changed files are `i/lf w/lf`.
+- No finding, decision, plan or phase identifiers in the changed source or tests. No `GeniusApi()`
+  constructed. Amounts stay `BigInt` end to end.
+
+---
+
+_Fixed: 2026-09-29_
+_Iteration: 3_
