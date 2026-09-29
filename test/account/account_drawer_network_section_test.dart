@@ -281,8 +281,8 @@ void main() {
           expect(find.text('Wallet and network'), findsNothing);
           expect(find.text('NETWORK'), findsNothing);
           expect(find.byType(NetworkSelectField), findsNothing);
-          // The account section is untouched by the flag.
-          expect(find.text('ACCOUNTS'), findsOneWidget);
+          // The drawer title already says Accounts; no repeated heading.
+          expect(find.text('ACCOUNTS'), findsNothing);
           expect(find.text('Wallet A'), findsOneWidget);
         },
       );

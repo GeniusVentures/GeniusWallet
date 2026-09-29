@@ -90,7 +90,7 @@ class AccountDrawer {
         label: 'Add wallet',
         leading: const Icon(Icons.add),
         variant: GWButtonVariant.gradient,
-        size: GWButtonSize.lg,
+        size: GWButtonSize.sm,
         expand: true,
         onPressed: () => context.push('/landing_screen', extra: true),
       ),
@@ -504,20 +504,14 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
               ),
               const SizedBox(height: GeniusWalletConsts.space8),
             ],
-            const _AccountSectionHeader(
-              title: 'Accounts',
+            // The drawer's own title already says "Accounts" when there is
+            // no Network section above to tell apart.
+            _AccountSectionHeader(
+              title: widget.networks.isNotEmpty ? 'Accounts' : null,
               caption:
                   'Tap to send, swap and see balances from an account. Use '
                   'the menu to run the node as one.',
             ),
-            // Registrations could not be read (node down, or the read
-            // failed) -- the list below still renders, flat, with this as
-            // the one honest note rather than a second, silently-empty
-            // section.
-            if (_registrations == null)
-              const _AccountSectionNote(
-                text: 'Child wallets show while the node is running.',
-              ),
             if (treeRows.isEmpty)
               const _AccountSectionNote(text: 'No wallets yet.'),
             ...visibleRows.map(
@@ -1120,9 +1114,9 @@ class AccountAvatar extends StatelessWidget {
 /// and the practical half of it applies here - this is `const`-constructible at
 /// both call sites, which a helper method never is.
 class _AccountSectionHeader extends StatelessWidget {
-  const _AccountSectionHeader({required this.title, required this.caption});
+  const _AccountSectionHeader({this.title, required this.caption});
 
-  final String title;
+  final String? title;
   final String caption;
 
   @override
@@ -1140,15 +1134,17 @@ class _AccountSectionHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title.toUpperCase(),
-            style: GeniusWalletTypography.labelMd.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-              color: gw.textSecondary,
+          if (title != null) ...[
+            Text(
+              title!.toUpperCase(),
+              style: GeniusWalletTypography.labelMd.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+                color: gw.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: GeniusWalletConsts.space2),
+            const SizedBox(height: GeniusWalletConsts.space2),
+          ],
           Text(
             caption,
             // textPrimary80, not textPrimary38: this sentence is the only place

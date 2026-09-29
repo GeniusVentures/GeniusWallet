@@ -409,16 +409,11 @@ void main() {
         await tester.tap(find.text('open drawer'));
         await tester.pumpAndSettle();
 
-        // One merged section, always present - the switcher never leaves it
-        // implied by an absent header. The harness provides no registry
-        // above the drawer, so registrations can't be read and the flat-list
-        // note shows instead of a silently-empty tree.
+        // The drawer title names the one list; no repeated section heading,
+        // and no note when registrations can't be read -- just a flat list.
         expect(find.text('Accounts'), findsOneWidget);
-        expect(find.text('ACCOUNTS'), findsOneWidget);
-        expect(
-          find.text('Child wallets show while the node is running.'),
-          findsOneWidget,
-        );
+        expect(find.text('ACCOUNTS'), findsNothing);
+        expect(find.textContaining('Child wallets show'), findsNothing);
         expect(find.text('Wallet A'), findsOneWidget);
         expect(find.text('Wallet B'), findsOneWidget);
         expect(find.text('Add wallet'), findsOneWidget);

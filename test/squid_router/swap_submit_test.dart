@@ -692,7 +692,6 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Accounts'), findsOneWidget);
-        expect(find.text('ACCOUNTS'), findsOneWidget);
       } finally {
         // A real 3s poll `Timer` starts in the constructor; closing it needs
         // the same real-zone treatment `account_drawer_show_test.dart` uses.
