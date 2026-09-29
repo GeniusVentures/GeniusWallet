@@ -119,3 +119,9 @@ The user can register one of their SDK accounts as a child of a main, fund a chi
 
 *Phase: 37-child-write-operations-pending-model*
 *Context gathered: 2026-09-29*
+
+## Amendment (after code review, 2026-09-29)
+
+- **D-18 (supersedes D-12's "stops blocking" for fund/recover only):** at most one outstanding balance operation (Fund or Recover, from any account) per child at a time. A timed-out fund/recover shows "Not confirmed yet" but keeps blocking a new fund/recover on that child until its baseline expires (6 minutes) or "Check again" observes it landed. No merging, carrying or cross-account accounting of attempts. Why: three review rounds showed that merging overlapping attempts on one balance keeps producing paths to a false "done"; one-at-a-time makes attribution unambiguous. Register, revoke, detach and move keep D-12 as written.
+- **D-19:** a Recover never resolves on a child balance read of 0 (the SDK cannot tell empty from not-synced); a recover that empties the child ends "Not confirmed yet".
+- **Known ceiling:** a Fund whose baseline was read as 0 before the child synced can resolve when the real balance appears. `ponytail:` — upgrade path is a per-write tx hash when the SDK offers one.
