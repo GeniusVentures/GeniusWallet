@@ -24,8 +24,19 @@ const _appState = AppState(
 /// A refused fund is exercised at the widget level in
 /// child_operation_actions_test.dart -- this fake always returns OK.
 class _FakeApi implements GeniusApi {
+  _FakeApi({
+    this.registrationsResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+  });
+
   final Map<String, BigInt> balances = {};
   int fundCallCount = 0;
+  int recoverCallCount = 0;
+  int revokeCallCount = 0;
+  String? lastRecoveredAmount;
+  String? lastRecoveredChild;
+  String? lastRevokedChild;
+  GeniusNodeReturnValue registrationsResult;
+  List<ChildRegistration> registrationEntries = const [];
 
   @override
   BigInt getChildBalanceAll(String childAddress) =>
@@ -40,6 +51,28 @@ class _FakeApi implements GeniusApi {
     fundCallCount++;
     return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   }
+
+  @override
+  GeniusNodeReturnValue recoverFromChildGnus(
+    String amountGnus,
+    String childAddress,
+  ) {
+    recoverCallCount++;
+    lastRecoveredAmount = amountGnus;
+    lastRecoveredChild = childAddress;
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
+
+  @override
+  GeniusNodeReturnValue revokeChild(String childAddress) {
+    revokeCallCount++;
+    lastRevokedChild = childAddress;
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
+
+  @override
+  ChildRegistrations getChildRegistrations(String mainAddress) =>
+      (result: registrationsResult, entries: registrationEntries);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -349,6 +382,267 @@ void main() {
       now = submittedAt.add(childOperationTimeout);
       cubit.resolve();
       expect(cubit.hasPendingFrom(_mainAddress), isFalse);
+
+      cubit.close();
+    });
+  });
+
+  group('recover', () {
+    test('payingBalance reads the child, not the running account', () {
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(3000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      expect(
+        cubit.payingBalance(ChildOperationKind.recover, _childAddress),
+        BigInt.from(3000000),
+      );
+
+      cubit.close();
+    });
+
+    test('above the child balance is refused, no SDK call', () {
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(1000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000001),
+      );
+
+      expect(result, isNull);
+      expect(api.recoverCallCount, 0);
+
+      cubit.close();
+    });
+
+    test('the full child balance passes and reaches the SDK', () {
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(1000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+
+      expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      expect(api.recoverCallCount, 1);
+      expect(api.lastRecoveredAmount, '1.000000');
+      expect(api.lastRecoveredChild, _childAddress);
+
+      cubit.close();
+    });
+
+    test('resolves once the child balance falls to exactly baseline minus '
+        'amount, not above it', () {
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(2000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+
+      api.balances[_childAddress] = BigInt.from(1000001);
+      cubit.resolve();
+      expect(cubit.state.operations, hasLength(1));
+      expect(cubit.state.justResolved, isEmpty);
+
+      api.balances[_childAddress] = BigInt.from(1000000);
+      cubit.resolve();
+      expect(cubit.state.operations, isEmpty);
+      expect(cubit.state.justResolved, hasLength(1));
+
+      cubit.close();
+    });
+
+    test('the node running as another account is refused, no SDK call', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _otherAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+
+      expect(result, isNull);
+      expect(api.recoverCallCount, 0);
+
+      cubit.close();
+    });
+  });
+
+  group('revoke', () {
+    test(
+      'submit calls the revoke wrapper with the child, no amount needed',
+      () {
+        final api = _FakeApi()
+          ..registrationEntries = const [
+            ChildRegistration(
+              childAddress: _childAddress,
+              mainAddress: _mainAddress,
+              sequence: 0,
+            ),
+          ];
+        final cubit = ChildOperationsCubit(
+          api: api,
+          readAppState: () => _appState,
+        );
+
+        final result = cubit.submit(
+          kind: ChildOperationKind.revoke,
+          target: _childAddress,
+          main: _mainAddress,
+        );
+
+        expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+        expect(api.revokeCallCount, 1);
+        expect(api.lastRevokedChild, _childAddress);
+
+        cubit.close();
+      },
+    );
+
+    test('an OK read of the main without the child resolves', () {
+      final api = _FakeApi()
+        ..registrationEntries = const [
+          ChildRegistration(
+            childAddress: _childAddress,
+            mainAddress: _mainAddress,
+            sequence: 0,
+          ),
+        ];
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+
+      api.registrationEntries = const [];
+      cubit.resolve();
+
+      expect(cubit.state.operations, isEmpty);
+      expect(cubit.state.justResolved, hasLength(1));
+
+      cubit.close();
+    });
+
+    test(
+      'the same list with the child in a different case does not resolve',
+      () {
+        final api = _FakeApi()
+          ..registrationEntries = const [
+            ChildRegistration(
+              childAddress: _childAddress,
+              mainAddress: _mainAddress,
+              sequence: 0,
+            ),
+          ];
+        final cubit = ChildOperationsCubit(
+          api: api,
+          readAppState: () => _appState,
+        );
+        cubit.submit(
+          kind: ChildOperationKind.revoke,
+          target: _childAddress,
+          main: _mainAddress,
+        );
+
+        api.registrationEntries = [
+          ChildRegistration(
+            childAddress: _childAddress.toUpperCase(),
+            mainAddress: _mainAddress,
+            sequence: 0,
+          ),
+        ];
+        cubit.resolve();
+
+        expect(cubit.state.operations, hasLength(1));
+        expect(cubit.state.justResolved, isEmpty);
+
+        cubit.close();
+      },
+    );
+
+    test('a non-OK read never resolves and times out to notConfirmed', () {
+      var now = DateTime(2024);
+      final api =
+          _FakeApi(
+              registrationsResult:
+                  GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
+            )
+            ..registrationEntries = const [
+              ChildRegistration(
+                childAddress: _childAddress,
+                mainAddress: _mainAddress,
+                sequence: 0,
+              ),
+            ];
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.justResolved, isEmpty);
+
+      cubit.close();
+    });
+
+    test('the node running as another account is refused, no SDK call', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _otherAddress,
+      );
+
+      expect(result, isNull);
+      expect(api.revokeCallCount, 0);
 
       cubit.close();
     });
