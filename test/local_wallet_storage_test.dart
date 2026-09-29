@@ -267,5 +267,66 @@ void main() {
       expect(storage.isAWatchedWallet('__sdk_links__'), isFalse);
       expect(storage.isAAccount('__sdk_links__'), isFalse);
     });
+
+    test('removeSDKAccountLink drops only its entry', () async {
+      await storage.saveSDKAccountLink('0xSDK1', '0xWallet1', 'One');
+      await storage.saveSDKAccountLink('0xSDK2', '0xWallet2', 'Two');
+
+      await storage.removeSDKAccountLink('0xSDK1');
+
+      expect(await storage.getSDKAccountLinks(), {
+        '0xsdk2': (walletAddress: '0xwallet2', walletName: 'Two'),
+      });
+    });
+  });
+
+  group('deleting a wallet freezes its SDK link name', () {
+    const addr = '0xFEED000000000000000000000000000000FEED';
+
+    test('a key wallet delete freezes its current name onto every link '
+        'pointing at it', () async {
+      storage = await withValues({
+        storage.createWalletKey(addr): '{"name":"Renamed"}',
+      });
+      await storage.saveSDKAccountLink('0xSDK', addr, 'Old name');
+
+      await storage.deleteWallet(addr, watchOnly: false);
+
+      expect(await storage.getSDKAccountLinks(), {
+        '0xsdk': (walletAddress: addr.toLowerCase(), walletName: 'Renamed'),
+      });
+    });
+
+    test('a watch-only delete never touches links', () async {
+      storage = await withValues({
+        storage.createWatchedWalletKey(addr): jsonEncode({
+          'walletName': 'Watched',
+          'currencySymbol': 'ETH',
+          'coinType': 60,
+          'balance': 0.0,
+          'address': addr,
+          'walletType': 'tracking',
+        }),
+      });
+      await storage.saveSDKAccountLink('0xSDK', addr, 'Old name');
+      final before = await raw.read(key: '__sdk_links__');
+
+      await storage.deleteWallet(addr, watchOnly: true);
+
+      expect(await raw.read(key: '__sdk_links__'), before);
+    });
+
+    test('a parse failure on the deleted wallet leaves the link name '
+        'unchanged', () async {
+      storage = await withValues({storage.createWalletKey(addr): 'not json'});
+      await storage.saveSDKAccountLink('0xSDK', addr, 'Old name');
+
+      await storage.deleteWallet(addr, watchOnly: false);
+
+      expect(
+        (await storage.getSDKAccountLinks())['0xsdk']?.walletName,
+        'Old name',
+      );
+    });
   });
 }
