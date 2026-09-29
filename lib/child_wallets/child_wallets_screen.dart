@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/account/account_drawer.dart' show AccountAvatar;
+import 'package:genius_wallet/child_wallets/child_operation_dialogs.dart';
+import 'package:genius_wallet/child_wallets/child_operation_status.dart';
+import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/components/feedback/gw_error_state.dart';
+import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -19,33 +23,46 @@ class ChildWalletsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.watch<ChildWalletsCubit>();
+    final operations = context.read<ChildOperationsCubit>();
     final state = cubit.state;
     final populatedOrConnectedEmpty = state.status == ChildWalletsStatus.loaded;
 
-    return GWScreen(
-      appBar: AppBar(title: const Text('Child wallets')),
-      scroll: false,
-      child: Column(
-        children: [
-          _ChildWalletsHeader(
-            mainName: state.mainName,
-            mainAddress: state.mainAddress,
-            onRefresh: cubit.refresh,
-          ),
-          const SizedBox(height: GeniusWalletConsts.space8),
-          Expanded(
-            child: _ChildWalletsBody(state: state, onRetry: cubit.refresh),
-          ),
-          if (populatedOrConnectedEmpty) ...[
-            const SizedBox(height: GeniusWalletConsts.space6),
-            Text(
-              "Balances come from the node's synced view and can lag.",
-              style: GeniusWalletTypography.bodySm.copyWith(
-                color: context.gw.textSecondary,
-              ),
+    void refresh() {
+      cubit.refresh();
+      operations.resolve();
+    }
+
+    return BlocListener<ChildOperationsCubit, ChildOperationsState>(
+      // The registry's own resolve is the truth; this just makes the row's
+      // displayed balance/list catch up to it immediately rather than
+      // waiting for the next 10s poll.
+      listenWhen: (previous, current) => current.justResolved.isNotEmpty,
+      listener: (_, _) => cubit.refresh(),
+      child: GWScreen(
+        appBar: AppBar(title: const Text('Child wallets')),
+        scroll: false,
+        child: Column(
+          children: [
+            _ChildWalletsHeader(
+              mainName: state.mainName,
+              mainAddress: state.mainAddress,
+              onRefresh: refresh,
             ),
+            const SizedBox(height: GeniusWalletConsts.space8),
+            Expanded(
+              child: _ChildWalletsBody(state: state, onRetry: refresh),
+            ),
+            if (populatedOrConnectedEmpty) ...[
+              const SizedBox(height: GeniusWalletConsts.space6),
+              Text(
+                "Balances come from the node's synced view and can lag.",
+                style: GeniusWalletTypography.bodySm.copyWith(
+                  color: context.gw.textSecondary,
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -83,8 +100,10 @@ class _ChildWalletsBody extends StatelessWidget {
           itemCount: state.children.length,
           separatorBuilder: (_, _) =>
               Divider(height: 1, color: context.gw.borderSubtle),
-          itemBuilder: (_, index) =>
-              _ChildWalletRow(wallet: state.children[index]),
+          itemBuilder: (_, index) => ChildWalletRow(
+            wallet: state.children[index],
+            mainAddress: state.mainAddress,
+          ),
         );
     }
   }
@@ -162,16 +181,24 @@ class _ChildWalletsHeader extends StatelessWidget {
   }
 }
 
-/// One child's identity and balance. Not a `GWSelectRow`: nothing here is
-/// tappable yet, so this reuses only its content shape.
-class _ChildWalletRow extends StatelessWidget {
-  const _ChildWalletRow({required this.wallet});
+/// One child's identity, balance and actions: a "Child actions" menu (Fund,
+/// more to follow) and its own pending/not-confirmed badge. Not a
+/// `GWSelectRow`: the row itself is not tappable, only its trailing menu is.
+class ChildWalletRow extends StatelessWidget {
+  const ChildWalletRow({
+    super.key,
+    required this.wallet,
+    required this.mainAddress,
+  });
 
   final ChildWallet wallet;
+  final String mainAddress;
 
   @override
   Widget build(BuildContext context) {
     final gw = context.gw;
+    final registry = context.watch<ChildOperationsCubit>();
+    final pendingOp = registry.latestFor(wallet.address);
     final linkedWallet = wallet.linkedWallet;
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -230,6 +257,37 @@ class _ChildWalletRow extends StatelessWidget {
             style: GeniusWalletTypography.labelMd.copyWith(
               color: gw.textSecondary,
             ),
+          ),
+          if (pendingOp != null) ...[
+            const SizedBox(width: GeniusWalletConsts.space3),
+            Flexible(
+              child: ChildOperationBadge(
+                op: pendingOp,
+                labelFor: registry.labelFor,
+              ),
+            ),
+          ],
+          MenuAnchor(
+            builder: (context, controller, child) => IconButton(
+              icon: GWIcon.material(Icons.more_vert, color: gw.textSecondary),
+              tooltip: 'Child actions',
+              onPressed: () =>
+                  controller.isOpen ? controller.close() : controller.open(),
+            ),
+            menuChildren: [
+              MenuItemButton(
+                leadingIcon: GWIcon.material(
+                  Icons.arrow_upward,
+                  color: gw.textPrimary,
+                ),
+                style: MenuItemButton.styleFrom(
+                  foregroundColor: gw.textPrimary,
+                ),
+                onPressed: () =>
+                    startFund(context, child: wallet, mainAddress: mainAddress),
+                child: const Text('Fund'),
+              ),
+            ],
           ),
         ],
       ),

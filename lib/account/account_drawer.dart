@@ -9,6 +9,7 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/data/gw_row_badge.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -135,41 +136,6 @@ Wallet? _sgnusWalletFor(String sdkAddress, List<Wallet> wallets) {
     }
   }
   return null;
-}
-
-/// One small pill for a drawer row's trailing area. Promoted from the
-/// "ACTIVE ON NODE" container's own one-off `Container` once a second and
-/// third label ("SDK", "SDK PENDING") needed the identical shape - the same
-/// padding, tint, border and 9px all-caps text, keyed off one colour.
-class _RowBadge extends StatelessWidget {
-  const _RowBadge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: GeniusWalletConsts.space4,
-        vertical: 2,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusXs),
-      ),
-      child: Text(
-        label,
-        style: GeniusWalletTypography.labelMd.copyWith(
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.8,
-          color: color,
-        ),
-      ),
-    );
-  }
 }
 
 /// The drawer's body: the row list plus the two confirm flows reachable from
@@ -413,7 +379,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
           // two badges would otherwise stack on the same row and say the
           // same thing twice.
           if (sdkBadge != WalletSDKBadge.none && !isActiveOnNode) ...[
-            _RowBadge(
+            GWRowBadge(
               label: sdkBadge == WalletSDKBadge.linked ? 'SDK' : 'SDK PENDING',
               color: sdkBadge == WalletSDKBadge.linked
                   ? gw.brandPrimaryOnSurface
@@ -425,7 +391,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
           // which wallet the UI is showing, so the check glyph and this
           // badge can legitimately sit on different rows.
           if (isActiveOnNode) ...[
-            _RowBadge(label: 'ACTIVE ON NODE', color: gw.brandSecondary),
+            GWRowBadge(label: 'ACTIVE ON NODE', color: gw.brandSecondary),
             const SizedBox(width: GeniusWalletConsts.space3),
           ],
           // Capped and ellipsised ONLY once a badge is in play - the SDK
