@@ -5,6 +5,11 @@
 /// mapping stays in the screen (where `GWColors` is in scope), this module
 /// only owns the precedence rule, the copy and the enabled/disabled rule.
 enum SwapCtaState {
+  /// The selected wallet holds no signing key on this network (tracking or
+  /// SGNUS). Outranks every other rung -- there is nothing this wallet can
+  /// submit, whatever the amount says.
+  cannotSign,
+
   /// No tokens selected, or the amount is empty/unparseable.
   enterAmount,
 
@@ -36,8 +41,9 @@ bool exceedsPrecision(String amount, int decimals) =>
 /// Resolves the swap CTA's state from the screen's raw inputs.
 ///
 /// Precedence, top to bottom (D-09 / UI-SPEC CTA ladder):
-/// `submitting` → `enterAmount` (no tokens / no parseable amount) →
-/// `tooPrecise` → `routeError` → `insufficientBalance` → `findingRoute` → `ready`.
+/// `submitting` → `cannotSign` → `enterAmount` (no tokens / no parseable
+/// amount) → `tooPrecise` → `routeError` → `insufficientBalance` →
+/// `findingRoute` → `ready`.
 SwapCtaState resolveSwapCtaState({
   required bool hasBothTokens,
   required String fromAmount,
@@ -47,10 +53,16 @@ SwapCtaState resolveSwapCtaState({
   required bool routeError,
   required bool isSubmitting,
   bool tooPrecise = false,
+  bool canSign = true,
 }) {
   // Submitting outranks everything — the closure is mid-flight.
   if (isSubmitting) {
     return SwapCtaState.submitting;
+  }
+
+  // A wallet with no signing key can never reach ready, whatever else is true.
+  if (!canSign) {
+    return SwapCtaState.cannotSign;
   }
 
   final parsedAmount = double.tryParse(fromAmount);
@@ -87,12 +99,14 @@ SwapCtaState resolveSwapCtaState({
   return SwapCtaState.ready;
 }
 
-/// The UI-SPEC Copywriting Contract's six swap CTA strings, verbatim.
+/// The label for each swap CTA rung.
 ///
 /// [symbol] is interpolated only for [SwapCtaState.insufficientBalance];
 /// falls back to the symbol-less string when null or empty.
 String swapCtaLabel(SwapCtaState state, {String? symbol, int? decimals}) {
   switch (state) {
+    case SwapCtaState.cannotSign:
+      return "Can't sign with this wallet";
     case SwapCtaState.enterAmount:
       return 'Enter an amount';
     case SwapCtaState.insufficientBalance:
