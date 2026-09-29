@@ -6,6 +6,7 @@ import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
+import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 
 const _mainAddress = '0x1111111111111111111111111111111111aaaa';
@@ -1764,6 +1765,75 @@ void main() {
 
       expect(cubit.state.operations, hasLength(1));
       expect(cubit.state.justResolved, isEmpty);
+
+      cubit.close();
+    });
+  });
+
+  group('a dev preset armed or cleared mid-flight', () {
+    tearDown(() {
+      DevMockChildWallets.instance.clear();
+      DevMockChildWallets.instance.setWriteMode(
+        DevChildWalletsWriteMode.confirm,
+      );
+    });
+
+    test('a real fund never resolves on the mock balance an armed preset '
+        'reads', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        devTools: true,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      expect(api.fundCallCount, 1);
+
+      // The mock reads any unknown child as 250 GNUS.
+      DevMockChildWallets.instance.arm(DevChildWalletsPreset.oneChild);
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations, hasLength(1));
+
+      DevMockChildWallets.instance.clear();
+      api.balances[_childAddress] = BigInt.from(1000000);
+      cubit.resolve();
+      expect(cubit.state.justResolved, hasLength(1));
+
+      cubit.close();
+    });
+
+    test('a mock fund never resolves on the real balance once the preset is '
+        'cleared', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        devTools: true,
+      );
+      DevMockChildWallets.instance.arm(DevChildWalletsPreset.oneChild);
+      DevMockChildWallets.instance.setWriteMode(
+        DevChildWalletsWriteMode.timeout,
+      );
+      final result = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      expect(api.fundCallCount, 0);
+
+      DevMockChildWallets.instance.clear();
+      api.balances[_childAddress] = BigInt.from(300000000); // 300 GNUS
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations, hasLength(1));
 
       cubit.close();
     });

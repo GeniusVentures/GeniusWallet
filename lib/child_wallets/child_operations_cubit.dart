@@ -53,6 +53,7 @@ class ChildOperation {
     required this.submittedAt,
     this.notConfirmed = false,
     this.expired = false,
+    this.mocked = false,
   });
 
   final ChildOperationKind kind;
@@ -71,6 +72,10 @@ class ChildOperation {
   /// no longer resolve, and no longer holds its amount or locks its child.
   final bool expired;
 
+  /// Submitted to the dev mock rather than the SDK. It resolves only while
+  /// reads come from the same source, never on a mix of mock and real.
+  final bool mocked;
+
   ChildOperation copyWith({bool? notConfirmed, bool? expired}) =>
       ChildOperation(
         kind: kind,
@@ -83,6 +88,7 @@ class ChildOperation {
         submittedAt: submittedAt,
         notConfirmed: notConfirmed ?? this.notConfirmed,
         expired: expired ?? this.expired,
+        mocked: mocked,
       );
 }
 
@@ -108,14 +114,20 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     required GeniusApi api,
     required AppState Function() readAppState,
     DateTime Function() now = DateTime.now,
+    bool devTools = kShowDevTools,
   }) : _api = api,
        _readAppState = readAppState,
        _now = now,
+       _devTools = devTools,
        super(const ChildOperationsState());
 
   final GeniusApi _api;
   final AppState Function() _readAppState;
   final DateTime Function() _now;
+
+  /// [kShowDevTools] outside tests, which can't pass a define to reach the
+  /// mock. [kDebugMode] still gates it, so a release build never mocks.
+  final bool _devTools;
   Timer? _pollTimer;
 
   /// The account the node currently runs as, or null when it isn't running.
@@ -126,7 +138,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   /// the SDK, so no real write can ever happen while a preset is armed.
   bool get _devMocked =>
       kDebugMode &&
-      kShowDevTools &&
+      _devTools &&
       DevMockChildWallets.instance.preset.value != null;
 
   /// [target]'s GNUS balance, in minions, from the mock while [_devMocked],
@@ -345,6 +357,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       // off the registrations list instead.
       baselineMinions: _hasAmount(kind) ? _childBalance(target) : null,
       submittedAt: _now(),
+      mocked: _devMocked,
     );
     // No real SDK write may ever be issued while a preset is armed --
     // submitWrite is the only path a write takes from here.
@@ -441,6 +454,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     // The flag, not the clock, is final: a wall clock stepped back would
     // otherwise trust an expired baseline again.
     if (op.expired) {
+      return false;
+    }
+    // A preset armed or cleared since submit swaps every read's source.
+    if (op.mocked != _devMocked) {
       return false;
     }
     switch (op.kind) {
