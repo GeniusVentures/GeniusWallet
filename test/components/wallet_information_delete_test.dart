@@ -32,6 +32,15 @@ Wallet _eth(String name, String address) => Wallet(
   address: address,
 );
 
+Wallet _tracking(String name, String address) => Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: name,
+  currencySymbol: 'ETH',
+  walletType: WalletType.tracking,
+  balance: 0,
+  address: address,
+);
+
 /// `implements`, not `extends`: the real constructor dlopens the native SDK.
 class _Api implements GeniusApi {
   String? deleted;
@@ -142,6 +151,41 @@ void main() {
 
         expect(api.deleted, _addrA);
         expect(api.deletedWatchOnly, isFalse);
+      } finally {
+        await tester.runAsync(() => appBloc.close());
+        await cubit.close();
+      }
+    },
+  );
+
+  testWidgets(
+    'with a watch-only wallet as the only other row, the warning shows and '
+    'nothing is deleted',
+    (tester) async {
+      final main = _eth('Main wallet', _addrA);
+      final api = _Api();
+      final cubit = WalletDetailsCubit(
+        initialState: WalletDetailsState(selectedWallet: main),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: cubit,
+        wallets: [main, _tracking('Watching', _addrB)],
+      );
+      try {
+        await _pumpWalletInformation(
+          tester,
+          api: api,
+          cubit: cubit,
+          appBloc: appBloc,
+        );
+
+        await _openMoreAndTapDelete(tester);
+
+        expect(find.text('You must keep at least one wallet.'), findsOneWidget);
+        expect(api.deleted, isNull);
       } finally {
         await tester.runAsync(() => appBloc.close());
         await cubit.close();
