@@ -1,217 +1,170 @@
 ---
 phase: 37-child-write-operations-pending-model
-reviewed: 2026-09-29T00:00:00Z
+reviewed: 2026-09-29T11:39:14Z
 depth: standard
-files_reviewed: 20
+iteration: 2
+files_reviewed: 7
 files_reviewed_list:
-  - lib/account/account_drawer.dart
-  - lib/account/sdk_account_manager.dart
+  - lib/child_wallets/child_operations_cubit.dart
+  - lib/child_wallets/child_wallets_screen.dart
+  - lib/child_wallets/child_operation_status.dart
   - lib/child_wallets/child_main_picker_dialog.dart
   - lib/child_wallets/child_operation_dialogs.dart
-  - lib/child_wallets/child_operation_status.dart
-  - lib/child_wallets/child_operation_switch_dialog.dart
-  - lib/child_wallets/child_operations_cubit.dart
-  - lib/child_wallets/child_wallets_cubit.dart
-  - lib/child_wallets/child_wallets_screen.dart
-  - lib/components/data/gw_row_badge.dart
-  - lib/dev/dev_mock_child_wallets.dart
-  - lib/dev/dev_tools_bubble.dart
-  - lib/main.dart
-  - test/account/sdk_account_rows_test.dart
-  - test/child_wallets/child_main_picker_test.dart
-  - test/child_wallets/child_operation_actions_test.dart
-  - test/child_wallets/child_operation_switch_dialog_test.dart
   - test/child_wallets/child_operations_cubit_test.dart
-  - test/child_wallets/child_wallets_screen_test.dart
-  - test/dev/dev_mock_child_wallets_test.dart
+  - test/child_wallets/child_operation_actions_test.dart
 findings:
-  critical: 2
-  warning: 4
+  critical: 0
+  warning: 3
   info: 0
-  total: 6
+  total: 3
 status: issues_found
 ---
 
-# Phase 37: Code Review Report
+# Phase 37: Code Review Report (iteration 2)
 
 **Reviewed:** 2026-09-29
 **Depth:** standard
-**Files Reviewed:** 20
+**Files Reviewed:** 7
 **Status:** issues_found
 
 ## Summary
 
-Reviewed `git diff 4061095c..HEAD` for the child-write-operations pending model. The amount
-path is genuinely double-free of floating point (`BigInt` end to end, `toBaseUnits`/`minionsToGnus`
-are integer-only), address comparisons are consistently case-insensitive, `ChildOperationsCubit.submit()`
-is confirmed to be the *only* call site for all six SDK write wrappers (verified by grep across
-`lib/`), dev mocks are correctly gated behind `kDebugMode && kShowDevTools` with no real-SDK call
-reachable while a preset is armed, the 2:00 timeout is exact (`!now.isBefore(submittedAt + timeout)`,
-tested at 1:59.999 / exactly 2:00), and the SWT-06 switch-away lock and its await-the-real-signal
-switch dialog are both implemented as specced.
+This pass checked `git diff 8d37e6ea..HEAD` against the iteration-1 findings, then re-read the whole
+phase diff (`4061095c..HEAD`) for anything the fixes introduced.
 
-However, two money-safety/honesty gaps survive that the UI-SPEC and tests do not cover:
+- `submit()` is still the only SDK write path. A grep of `lib/` for all six wrappers finds calls only
+  inside `ChildOperationsCubit.submit()`, and each call issues exactly one write.
+- Reservations are released correctly. A resolve removes the op, which releases its reservation, and
+  that includes "Check again" and a manual refresh, both of which call `resolve()`. A non-OK or
+  refused submit appends nothing, and a timed-out op it would have replaced stays with its hold.
+- Nothing is double-counted permanently in the normal path. The retry drops the old op and carries
+  its total, so the carried amount counts once.
+- Fund and Recover reservations use disjoint predicates (kind plus paying account). Neither can make
+  the other resolve as done.
+- Carry-forward composes across 3+ retries: `carried = replaced.totalMinions`, and the baseline is
+  inherited unchanged. Recover is the exact mirror (`<= baseline - total`).
+- The dev mock applies only the attempt's own `amountMinions`, which matches the real SDK.
 
-1. **Concurrent same-kind operations from one account, to different targets, are not netted
-   against the account's real balance** — each `submit()` call checks the amount against a fresh
-   balance read with no knowledge of other already-submitted-but-unconfirmed operations from the
-   same account, so two legitimate Fund calls can jointly commit more than the account holds.
-2. **A timed-out (`notConfirmed`) operation's tracking is discarded on resubmission**, so its real
-   SDK effect — if it lands late — has no owner left to be checked against, and can silently
-   satisfy a *different*, newer operation's balance-based resolution instead.
+Three new defects remain, all in the carry-forward path:
+- its baseline has no age limit;
+- `replaces` does not care which main paid;
+- the retry never checks whether the attempt it replaces already landed.
 
-Also flagged: no registry-level guard against a self-referential register/move (relies entirely on
-the picker's client-side exclusion set), a badge that can hide a second concurrently-pending
-operation on the same target, a private `Widget`-returning helper method that repeats an
-AGENTS.md-forbidden pattern, and a resolution toast that is silently dropped if fired before the
-root navigator has attached.
+## Resolved from iteration 1
 
-## Critical Issues
+| ID | Status |
+|----|--------|
+| CR-01 concurrent funds exceed balance | Resolved. `_committed`/`_lessCommitted` are used by both `submit()` and the amount dialog. The one exception is the cross-main path in WR-02 below. |
+| CR-02 retry resolves on the abandoned attempt's late landing | Resolved for that case. The fix introduced WR-01 below. |
+| WR-01 self-referential register/move | Resolved. Case-insensitive guard in `submit()`; a move to the current main is also refused. |
+| WR-02 badge hides a sibling op | Resolved. `operationsFor()` puts one badge per op on the row and on the card. |
+| WR-03 toast dropped before the navigator attaches | Resolved. Post-frame retry, no self-scheduled frames. |
+| WR-04 `_buildFoo()` helpers | Resolved. Two private `StatelessWidget`s. |
 
-### CR-01: Concurrent Fund/Recover submissions from one account can jointly exceed its real balance
-
-**File:** `lib/child_wallets/child_operations_cubit.dart:184-198, 205-296`
-**Issue:** `submit()`'s amount guard (`amount > payingBalance(kind, target)`) and `payingBalance()`
-both read the account's *current* SDK-reported balance at the moment of that single call
-(`BigInt.tryParse(_api.getMinionsBalance())` for Fund, `_childBalance(target)` for Recover). Nothing
-in `ChildOperationsCubit` sums the amounts of other operations already submitted from the same
-account that are still pending (unconfirmed by the node). `isPending(kind, target)` only blocks a
-second operation of the *same kind* against the *same target* — it does not block, and
-`hasPendingFrom` is never consulted inside `submit()` to block, a second Fund from the same main to
-a *different* child.
-
-Concretely: a main with a real balance of 100 GNUS can Fund child A with 60 GNUS (accepted — 60 ≤
-100), and, before that Fund's balance change is observed by the node, Fund child B with another 60
-GNUS (also accepted — 60 ≤ 100, since the local balance read has not yet moved). 120 GNUS has now
-been committed against a 100 GNUS balance, both writes having gone through the one real write path.
-No test in `test/child_wallets/child_operations_cubit_test.dart` exercises two concurrent pending
-operations from the same account against a shared balance, and neither `37-CONTEXT.md` nor
-`37-UI-SPEC.md` calls this out as an accepted ceiling (`ponytail:`) — the only `ponytail:` in this
-file is about restart persistence (line 87), not balance netting.
-
-**Fix:** Track a running "committed" total per paying account (sum of `amountMinions` for every
-still-pending Fund — and, symmetrically, Recover per child — from that account) and subtract it
-from the balance read before comparing:
-
-```dart
-BigInt _committedFrom(String account, ChildOperationKind kind) => state.operations
-    .where((op) => !op.notConfirmed &&
-        op.kind == kind &&
-        op.fromAccount.toLowerCase() == account.toLowerCase())
-    .fold(BigInt.zero, (sum, op) => sum + op.amountMinions!);
-
-// in submit(), before the amount check:
-final available = payingBalance(kind, target) - _committedFrom(requiredRunner, kind);
-if (amount > available) { return null; }
-```
-
----
-
-### CR-02: A resubmitted operation can resolve on an unrelated, older operation's late-arriving effect
-
-**File:** `lib/child_wallets/child_operations_cubit.dart:278-285, 335-354`
-**Issue:** PEND-02 correctly allows resubmitting the same kind+target once the earlier attempt is
-`notConfirmed` (D-16: "Timed-out operations do not lock"). But `submit()` implements this by
-**dropping** the old, timed-out operation from `state.operations` entirely (the `for` comprehension
-at lines 280-284 filters it out before appending the new one) — its `baselineMinions` and
-`amountMinions` are simply forgotten.
-
-If the SDK write behind the abandoned operation was genuinely fire-and-forget and still lands after
-the timeout (the SDK docs and `PITFALLS.md` both note there is no tx hash and no reliable
-cancellation), its balance delta becomes indistinguishable "unrelated activity" against the *new*
-operation's `_signalMet` check (`current >= baseline + amount` for Fund,
-`current <= baseline - amount` for Recover). Because `baseline` for the new op was captured *after*
-the old op was submitted but *before* its late effect lands, the new op can resolve — with a
-"Funded {amount} GNUS" success toast and cleared badge — from a credit that is wholly or partly the
-old, abandoned operation's money, not the new operation's own confirmed write. This is exactly the
-"can a balance change from unrelated activity resolve the wrong operation" case the review brief
-calls out, and it is directly reachable through the shipped retry path (no dev-only gate).
-`test/child_wallets/child_operations_cubit_test.dart:362-395` ("after notConfirmed, a new submit
-leaves exactly one op for that child") confirms the old op's tracking is discarded, but does not
-exercise the old op's write later landing.
-
-**Fix:** Keep the discarded operation's baseline+amount around as an "orphaned" record (at least
-until its own funds would have satisfied it, or forever, memory-bounded) so `resolve()` can still
-attribute a matching balance delta to it instead of crediting whichever tracked operation happens to
-be checked next; or, more conservatively, use a monotonically-increasing sequence/nonce in the
-resolve check so a new op only counts a delta that arrives strictly after its own baseline read and
-is not already claimed by a still-tracked or newly-orphaned prior op for that account+target+kind.
+The two conservative trade-offs from the brief were checked and not flagged: timed-out funds keep
+their reservation, and a retry after a never-landing timeout ends "Not confirmed yet". Neither can
+lose funds or report a false "done" on its own. WR-01 below is a separate mechanism.
 
 ## Warnings
 
-### WR-01: `submit()` has no registry-level guard against a self-referential register/move
+### WR-01: A retry inherits a baseline of any age, so unrelated activity can report a false "done"
 
-**File:** `lib/child_wallets/child_operations_cubit.dart:205-270`; callers in
-`lib/child_wallets/child_operation_dialogs.dart:278-349, 354-427`; exclusion logic in
-`lib/child_wallets/child_main_picker_dialog.dart:74-89`
-**Issue:** The review brief asks whether any path can "send to a malformed/self address." Today it
-cannot, but only because `_MainPickerDialogState._isExcluded`/`excluded` (populated by the two
-callers as `{account}` for Register and `{account, oldMain}` for Move) is the *sole* place that
-prevents choosing `main == target` or `newMain == target`. `submit()` — documented as "the only
-path a write takes" — performs no equivalent check itself. A future caller of `submit()` (another
-screen, a fixed picker bug, a test harness) that passes `main == target` or `newMain == target`
-would sail through every existing guard (`running` check, `isPending`, amount check — N/A for these
-kinds) and call `_api.registerChild(target, ...)` or `_api.replaceMain(target, ...)` against the
-node's own address.
-**Fix:** Add a cheap self-reference guard inside `submit()` itself:
+**File:** `lib/child_wallets/child_operations_cubit.dart:288-297, 396-403`
+
+**Issue:** The retry uses `replaced.baselineMinions`, the child balance read when the *first*
+attempt was submitted. That can be any age within the app's lifetime, because a timed-out op is
+never evicted. `_signalMet` then counts every balance movement since that first read. Before the fix,
+it only counted movement since the retry.
+
+Example with Recover:
+1. A recover of 10 GNUS times out and never lands.
+2. The child spends 15 GNUS on its own over the next hour.
+3. The user retries with 5 GNUS, and the node drops that attempt too.
+4. The next poll sees `current <= B0 - 15`. It resolves and toasts "Recovered 5 GNUS from X", but
+   the main received nothing.
+
+The same happens for Fund when the child's balance rises from any source other than this registry.
+
+A fresh baseline carried the same class of risk, but only for movement after the retry. Inheriting
+the baseline adds every movement since the first attempt, with no limit, and that directly causes
+a false "done". The reverse also happens: a correct retry never resolves if the child earned
+(Recover) or spent (Fund) in between. Nothing in the code marks this limit. The only `ponytail:`
+comments cover restart persistence and reservations.
+
+**Fix:** Limit how long a baseline can be inherited, and mark the limit with a `ponytail:` comment:
 ```dart
-if (kind == ChildOperationKind.register && main.toLowerCase() == target.toLowerCase()) {
-  return null;
-}
-if (kind == ChildOperationKind.move && newMain!.toLowerCase() == target.toLowerCase()) {
-  return null;
-}
+// ponytail: an inherited baseline counts unrelated balance movement since the
+// first attempt; past 2x the timeout a retry starts fresh instead.
+final carry = replaced != null &&
+    _now().isBefore(replaced.submittedAt.add(childOperationTimeout * 2));
+final baseline = _hasAmount(kind)
+    ? (carry ? replaced.baselineMinions : null) ?? _childBalance(target)
+    : null;
+// carriedMinions: carry ? replaced.totalMinions : null
 ```
+Also add a test where the child's balance drifts between the first attempt and the retry.
 
-### WR-02: A badge shows only the most-recently-submitted operation, hiding a concurrently-pending sibling
+### WR-02: `replaces` ignores which main paid, so after a Move one main's reservation moves to another
 
-**File:** `lib/child_wallets/child_operations_cubit.dart:144-153` (`latestFor`); consumed at
-`lib/child_wallets/child_wallets_screen.dart:127, 278`
-**Issue:** PEND-02 deliberately locks by `(kind, target)`, not by target alone (confirmed by
-`37-UI-SPEC.md`'s "partial" row: "Revoke stays available on a row whose Fund is pending"). That
-means a child row, or the "This account" card, can legitimately have two operations of different
-kinds pending at once (e.g. Fund then Revoke on the same child; Detach then Move on "This account").
-`latestFor()` returns only the single most-recently-submitted operation for that target, so the
-badge silently stops showing the earlier one the moment the second is submitted — even though its
-own menu item is still correctly locked (`isPending` is checked independently per kind). A user
-sees "Already funding this child" on a greyed-out Fund item with no visible badge explaining why,
-because the row's one badge slot is occupied by the newer Revoke. The success toast for the hidden
-operation still fires later (via `justResolved`, independent of `latestFor`), so no money-safety
-issue, but it is a real "can anything look less busy than it truly is" gap the UI-SPEC's own
-"backstop" note (which only covers *different children*, not same-target/different-kind) does not
-address.
-**Fix:** Either render every pending operation for a target (a small stack of badges), or make the
-"not-confirmed" state, at minimum, additive rather than last-write-wins in the badge slot.
+**File:** `lib/child_wallets/child_operations_cubit.dart:281-290, 198, 344-345`
 
-### WR-03: `ChildOperationToasts` silently drops a resolution toast if the navigator hasn't attached
+**Issue:** `replaces` matches only on kind, `notConfirmed` and target. It does not check
+`fromAccount` or `main`. Here is a reachable sequence:
+1. Main M1 funds child C with 10 GNUS, and the fund times out.
+2. C moves to M2. The move runs as C.
+3. M1's timed-out op still shows its "Not confirmed yet" badge on C's row, now under M2, and Fund is
+   enabled there.
+4. M2 funds C with 5 GNUS. That retry drops M1's op and carries its 10 GNUS.
 
-**File:** `lib/child_wallets/child_operation_status.dart:106-125`
-**Issue:** `justResolved` is a one-shot signal — it is empty on every emission except the exact one
-produced by the `resolve()` call that resolved it. If `navigatorKey.currentContext` happens to be
-`null` at that instant (e.g., `resolve()`'s 10s poll fires during a route transition, or very early
-in the app's life before the root `Navigator` has mounted), the method returns immediately at line
-111-113 and the toast for that operation — the one and only place "Funded X GNUS" is ever
-communicated to the user — is lost forever. The row's own data (updated balance/registration list)
-still reflects the truth once the screen refreshes, so this is not a data-correctness bug, but for a
-money-moving action losing the one explicit confirmation is a real (if narrow) UX/honesty gap.
-**Fix:** Retry on the next frame (`WidgetsBinding.instance.addPostFrameCallback`) instead of
-dropping silently when `currentContext` is null, or fall back to `scaffoldMessengerKey`-style queuing
-already used elsewhere in the toast plumbing if one exists.
+The consequences:
+- M1's reservation disappears. `drawsOn` for Fund is `fromAccount == running`, and the carried 10
+  now sits on an M2 op. After a switch back to M1 (allowed once M2's op times out), M1 can commit
+  its full balance again while its own 10 GNUS may still land. That is the iteration-1 CR-01
+  over-commit, reached through a different path.
+- M2's free balance is reduced by 10 GNUS it never sent.
+- If M1's attempt never lands, M2's retry can never resolve, and M2 holds that 10 GNUS until the
+  app restarts.
 
-### WR-04: `_MainPickerDialogState` repeats the `_buildFoo(): Widget` helper-method pattern AGENTS.md forbids
+No test covers a replacement across mains.
 
-**File:** `lib/child_wallets/child_main_picker_dialog.dart:112, 169`
-**Issue:** AGENTS.md is explicit: "Widgets, not helper methods. Extract to a `StatelessWidget`,
-never a `_buildFoo()` returning a `Widget`." `_listContent(BuildContext)` and
-`_manualContent(BuildContext)` are private `State` methods returning `Widget` used to switch the
-dialog's body — the exact shape the rule names (not `const`-able, invisible to DevTools, rebuilds
-the whole dialog State on every keystroke). This mirrors a pre-existing violation already in
-`lib/dev/dev_tools_bubble.dart` (`_buildExpandedPanel`/`_buildCollapsedBubble`, not part of this
-diff), but this phase adds two new instances of the same anti-pattern rather than following the
-`_AmountDialog`/`_AmountDialogState` pattern in the same PR, which correctly stays inline in `build`.
-**Fix:** Extract `_MainPickerListContent` and `_MainPickerManualContent` as small `StatelessWidget`s
-taking the state they need as constructor parameters (candidates/excluded/nameFor/onPick, and
-controller/error/onBack respectively).
+**Fix:** Only replace an op submitted by the same account:
+```dart
+bool replaces(ChildOperation existing) =>
+    existing.kind == kind &&
+    existing.notConfirmed &&
+    existing.target.toLowerCase() == target.toLowerCase() &&
+    existing.fromAccount.toLowerCase() == requiredRunner.toLowerCase();
+```
+The M1 op then stays as its own entry and keeps M1's hold. Allowing two ops for one kind and target
+is safe here: `isPending` ignores notConfirmed ops, and `operationsFor` already renders every op.
+
+### WR-03: A retry never checks whether the attempt it replaces already landed, and it announces only its own amount
+
+**File:** `lib/child_wallets/child_operations_cubit.dart:288-290, 388-393`;
+`lib/child_wallets/child_operation_dialogs.dart:34-74, 98-136`;
+`lib/child_wallets/child_operation_status.dart:16-18, 34-38`
+
+**Issue:** The poll timer stops once every op is notConfirmed (lines 390-393). After that, a timed-out
+fund that lands late is noticed only on "Check again" or a manual refresh. Meanwhile the screen's own
+10 s poll refreshes the child's balance, and the Fund menu item is enabled again.
+`startFund`/`startRecover` open the amount dialog and `submit()` sends a second payment without ever
+running `_signalMet(replaced)`. A user who retries "Not confirmed yet" can therefore pay twice when
+the first attempt has already arrived. The money goes to their own child, so it is recoverable, but
+it is an unintended duplicate that one balance read would prevent.
+
+The copy also misleads after a retry. The badge reads "Funding 0.5 GNUS…" while the op waits for
+1.5 to land. The success toast says "Funded 0.5 GNUS", and the first attempt's landing is never
+announced. That toast is the only place a resolution is announced. The fund-retry test locks this
+wording in by asserting `justResolved.single.amountMinions == 500000`.
+
+**Fix:** Resolve before offering a retry, and name the carried amount:
+```dart
+// startFund / startRecover, before showDialog:
+registry.resolve(); // a late-landed first attempt resolves and toasts here
+```
+In `pendingText`/`resolvedText`, when `op.carriedMinions != null`, show `op.totalMinions` and add
+"(incl. earlier attempt)". Alternatively, keep the poll running while any amount-carrying op is
+notConfirmed and holds a reservation.
 
 ---
 
