@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/dev/dev_flags.dart';
+import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 
 /// [minions] (1 Minion = 1e-6 GNUS) as an exact GNUS string. Integer division
 /// only -- a float divide would lose precision a wallet balance cannot.
@@ -76,6 +79,12 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
        ) {
     refresh();
     _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) => refresh());
+    if (kDebugMode && kShowDevTools) {
+      // Removed in close() below, under the identical gate, so a listener
+      // never outlives its cubit -- same idiom as SubmitJobCubit's
+      // _devJobScenario listener.
+      DevMockChildWallets.instance.preset.addListener(refresh);
+    }
   }
 
   final GeniusApi _api;
@@ -90,18 +99,35 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
       appState.wallets,
     );
 
-    if (appState.selectedSDKAccount == null) {
-      emit(
-        state.copyWith(
-          status: ChildWalletsStatus.nodeNotRunning,
-          mainName: mainName,
-          children: const [],
-        ),
+    // DEV-ONLY: null unless both gates hold, so the branches below are
+    // unreachable outside a dev-tools debug build. An armed preset bypasses
+    // the no-selected-account check -- it stands in for the SDK read that
+    // check exists to guard.
+    final devPreset = (kDebugMode && kShowDevTools)
+        ? DevMockChildWallets.instance.preset.value
+        : null;
+
+    final ChildRegistrations registrations;
+    if (devPreset != null) {
+      registrations = DevMockChildWallets.registrationsFor(
+        devPreset,
+        appState,
+        state.mainAddress,
       );
-      return;
+    } else {
+      if (appState.selectedSDKAccount == null) {
+        emit(
+          state.copyWith(
+            status: ChildWalletsStatus.nodeNotRunning,
+            mainName: mainName,
+            children: const [],
+          ),
+        );
+        return;
+      }
+      registrations = _api.getChildRegistrations(state.mainAddress);
     }
 
-    final registrations = _api.getChildRegistrations(state.mainAddress);
     if (registrations.isNotInitialized) {
       emit(
         state.copyWith(
@@ -138,7 +164,9 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
               appState.wallets,
             ),
             balanceGnus: minionsToGnus(
-              _api.getChildBalanceAll(entry.childAddress),
+              devPreset != null
+                  ? DevMockChildWallets.balanceFor(entry.childAddress)
+                  : _api.getChildBalanceAll(entry.childAddress),
             ),
           ),
         )
@@ -156,6 +184,9 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
   @override
   Future<void> close() {
     _pollTimer?.cancel();
+    if (kDebugMode && kShowDevTools) {
+      DevMockChildWallets.instance.preset.removeListener(refresh);
+    }
     return super.close();
   }
 }

@@ -12,6 +12,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_screen.dart';
+import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
@@ -58,6 +59,16 @@ const _selectedAppState = AppState(
 const _noAccountAppState = AppState(
   selectedSDKAccount: null,
   sdkAccounts: [],
+  wallets: [_mainWallet, _childWallet],
+  sdkAccountLinks: _links,
+);
+
+/// Unlike [_selectedAppState], lists the linked child among [sdkAccounts] --
+/// the dev-preset group below needs a real linked sibling for
+/// [DevChildWalletsPreset.threeChildren]'s leading slot to resolve to.
+const _devSelectedAppState = AppState(
+  selectedSDKAccount: _mainAddress,
+  sdkAccounts: [_mainAddress, _linkedChildAddress],
   wallets: [_mainWallet, _childWallet],
   sdkAccountLinks: _links,
 );
@@ -110,6 +121,33 @@ class _FakeApi implements GeniusApi {
   @override
   BigInt getChildBalanceAll(String childAddress) =>
       balances[childAddress] ?? BigInt.zero;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Delegates to [DevMockChildWallets]' own preset fixtures instead of a
+/// canned registration set -- stands in for the cubit's own
+/// `kDebugMode && kShowDevTools` branch, which is compiled out under
+/// `flutter test` and so cannot be reached through the real gate here.
+class _DevPresetApi implements GeniusApi {
+  _DevPresetApi({
+    required this.preset,
+    required this.appState,
+    required this.mainAddress,
+  });
+
+  final DevChildWalletsPreset preset;
+  final AppState appState;
+  final String mainAddress;
+
+  @override
+  ChildRegistrations getChildRegistrations(String mainAddress) =>
+      DevMockChildWallets.registrationsFor(preset, appState, mainAddress);
+
+  @override
+  BigInt getChildBalanceAll(String childAddress) =>
+      DevMockChildWallets.balanceFor(childAddress);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -532,6 +570,130 @@ void main() {
       await cubit.close();
     },
   );
+
+  group('dev presets, fed through the real cubit and screen', () {
+    testWidgets('none renders the empty copy and the lag note', (tester) async {
+      final api = _DevPresetApi(
+        preset: DevChildWalletsPreset.none,
+        appState: _devSelectedAppState,
+        mainAddress: _mainAddress,
+      );
+      final cubit = await _pumpScreen(
+        tester,
+        api: api,
+        appState: _devSelectedAppState,
+      );
+
+      expect(find.text('Main Wallet'), findsOneWidget);
+      expect(
+        find.text('No child wallets registered under this account.'),
+        findsOneWidget,
+      );
+      expect(find.text(_lagNote), findsOneWidget);
+
+      await cubit.close();
+    });
+
+    testWidgets('oneChild renders exactly one row', (tester) async {
+      final api = _DevPresetApi(
+        preset: DevChildWalletsPreset.oneChild,
+        appState: _devSelectedAppState,
+        mainAddress: _mainAddress,
+      );
+      final cubit = await _pumpScreen(
+        tester,
+        api: api,
+        appState: _devSelectedAppState,
+      );
+
+      expect(find.text('Main Wallet'), findsOneWidget);
+      expect(find.text('Unlinked'), findsOneWidget);
+      expect(
+        find.text(
+          WalletUtils.getAddressForDisplay(
+            DevMockChildWallets.singleChildAddress,
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      await cubit.close();
+    });
+
+    testWidgets(
+      'threeChildren renders its linked sibling, an unlinked balance and a '
+      'zero balance, in fixture order',
+      (tester) async {
+        final api = _DevPresetApi(
+          preset: DevChildWalletsPreset.threeChildren,
+          appState: _devSelectedAppState,
+          mainAddress: _mainAddress,
+        );
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _devSelectedAppState,
+        );
+
+        expect(find.text('Main Wallet'), findsOneWidget);
+        // Linked slot: the real sibling's own wallet name, not "Unlinked".
+        expect(find.text('Game Wallet'), findsOneWidget);
+        // The unlinked pair: one nonzero, one zero.
+        expect(find.text('Unlinked'), findsNWidgets(2));
+        expect(find.text('0.00'), findsOneWidget);
+
+        // Fixture order: the linked row sits above both unlinked rows.
+        final linkedTop = tester.getTopLeft(find.text('Game Wallet')).dy;
+        final firstUnlinkedTop = tester
+            .getTopLeft(find.text('Unlinked').at(0))
+            .dy;
+        final secondUnlinkedTop = tester
+            .getTopLeft(find.text('Unlinked').at(1))
+            .dy;
+        expect(linkedTop, lessThan(firstUnlinkedTop));
+        expect(firstUnlinkedTop, lessThan(secondUnlinkedTop));
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets('queryError renders the error copy and Retry', (tester) async {
+      final api = _DevPresetApi(
+        preset: DevChildWalletsPreset.queryError,
+        appState: _devSelectedAppState,
+        mainAddress: _mainAddress,
+      );
+      final cubit = await _pumpScreen(
+        tester,
+        api: api,
+        appState: _devSelectedAppState,
+      );
+
+      expect(find.text('Main Wallet'), findsOneWidget);
+      expect(find.text("Couldn't load child wallets"), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+
+      await cubit.close();
+    });
+
+    testWidgets('nodeNotRunning renders Node not running', (tester) async {
+      final api = _DevPresetApi(
+        preset: DevChildWalletsPreset.nodeNotRunning,
+        appState: _devSelectedAppState,
+        mainAddress: _mainAddress,
+      );
+      final cubit = await _pumpScreen(
+        tester,
+        api: api,
+        appState: _devSelectedAppState,
+      );
+
+      expect(find.text('Main Wallet'), findsOneWidget);
+      expect(find.text('Node not running'), findsOneWidget);
+
+      await cubit.close();
+    });
+  });
 
   group('minionsToGnus', () {
     final cases = <BigInt, String>{
