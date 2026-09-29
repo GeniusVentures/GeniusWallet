@@ -49,6 +49,7 @@ class ChildOperation {
     this.newMain,
     this.amountMinions,
     this.carriedMinions,
+    this.otherAttemptsMinions,
     this.baselineMinions,
     this.baselineAt,
     required this.submittedAt,
@@ -64,6 +65,10 @@ class ChildOperation {
 
   /// The timed-out attempt(s) this op replaced, still able to land late.
   final BigInt? carriedMinions;
+
+  /// Another account's timed-out attempts on the same child and kind. The
+  /// signal waits for them too; their hold stays on their own op.
+  final BigInt? otherAttemptsMinions;
   final BigInt? baselineMinions;
 
   /// When [baselineMinions] was read -- a retry that keeps an earlier
@@ -80,6 +85,7 @@ class ChildOperation {
     newMain: newMain,
     amountMinions: amountMinions,
     carriedMinions: carriedMinions,
+    otherAttemptsMinions: otherAttemptsMinions,
     baselineMinions: baselineMinions,
     baselineAt: baselineAt,
     submittedAt: submittedAt,
@@ -291,15 +297,25 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       }
     }
 
-    bool replaces(ChildOperation existing) =>
+    bool sameKindAndTarget(ChildOperation existing) =>
         existing.kind == kind &&
-        existing.notConfirmed &&
         existing.target.toLowerCase() == target.toLowerCase();
+    // Only the same account's attempt: another main's (the child has since
+    // moved) must keep its own op, so its hold stays on its own balance.
+    bool replaces(ChildOperation existing) =>
+        sameKindAndTarget(existing) &&
+        existing.notConfirmed &&
+        existing.fromAccount.toLowerCase() == requiredRunner.toLowerCase();
     // A timed-out attempt can still land late, so a retry carries its
     // amount: it resolves only once both have landed, never on the
     // abandoned attempt's money alone.
     final replaced = _hasAmount(kind)
         ? state.operations.where(replaces).firstOrNull
+        : null;
+    final otherAttempts = _hasAmount(kind)
+        ? state.operations
+              .where((o) => sameKindAndTarget(o) && !replaces(o))
+              .fold(BigInt.zero, (sum, o) => sum + o.totalMinions)
         : null;
     final now = _now();
     // The earlier baseline is kept only if it stays trusted until the retry
@@ -324,6 +340,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       newMain: newMain,
       amountMinions: amountMinions,
       carriedMinions: replaced?.totalMinions,
+      otherAttemptsMinions: otherAttempts,
       baselineMinions: baseline,
       baselineAt: _hasAmount(kind) ? inherited?.baselineAt ?? now : null,
       submittedAt: now,
@@ -419,10 +436,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     switch (op.kind) {
       case ChildOperationKind.fund:
         return _baselineTrusted(op, now) &&
-            _childBalance(op.target) >= op.baselineMinions! + op.totalMinions;
+            _childBalance(op.target) >= op.baselineMinions! + _awaited(op);
       case ChildOperationKind.recover:
         return _baselineTrusted(op, now) &&
-            _childBalance(op.target) <= op.baselineMinions! - op.totalMinions;
+            _childBalance(op.target) <= op.baselineMinions! - _awaited(op);
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
         return _listedUnder(op.main, op.target) == false;
@@ -435,6 +452,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
             _listedUnder(op.newMain!, op.target) == true;
     }
   }
+
+  /// Every amount that has to land before [op]'s balance signal is met.
+  BigInt _awaited(ChildOperation op) =>
+      op.totalMinions + (op.otherAttemptsMinions ?? BigInt.zero);
 
   /// False once [op]'s baseline is older than [_baselineLifetime] at [at].
   bool _baselineTrusted(ChildOperation op, DateTime at) =>
