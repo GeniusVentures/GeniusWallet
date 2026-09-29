@@ -188,7 +188,8 @@ void main() {
           .map((t) => t.data)
           .whereType<String>()
           .where(
-            (s) => s == 'Main' || s == 'Old (wallet removed)' || s == 'Unlinked',
+            (s) =>
+                s == 'Main' || s == 'Old (wallet removed)' || s == 'Unlinked',
           )
           .toList();
       expect(titleOrder, ['Main', 'Main', 'Old (wallet removed)', 'Unlinked']);
