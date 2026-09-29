@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Child wallets & account linking
-current_phase: 35
-current_phase_name: Unified header switcher
+current_phase: 36
+current_phase_name: Child wallet bindings & read-only view
 status: executing
 stopped_at: Phase 34 context gathered
-last_updated: "2026-09-29T04:18:29.872Z"
+last_updated: "2026-09-29T06:45:18.312Z"
 last_activity: 2026-09-29
 last_activity_desc: Phase 34 execution started
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 8
+  completed_phases: 2
+  total_plans: 11
   completed_plans: 8
-  percent: 25
+  percent: 50
 resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
 ---
 
@@ -25,14 +25,14 @@ resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** Phase 35 — Unified header switcher
+**Current focus:** Phase 36 — Child wallet bindings & read-only view
 
 ## Current Position
 
-Phase: 35 (Unified header switcher) — EXECUTING
-Plan: 3 of 3 (complete)
-Status: Phase 35 executed and verified (human walk pending); Phase 36 next
-Last activity: 2026-09-29 — Phase 35 execution started
+Phase: 36 (Child wallet bindings & read-only view) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 36
+Last activity: 2026-09-29 — Phase 36 execution started
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
 
