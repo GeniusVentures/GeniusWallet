@@ -467,8 +467,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
             _childBalance(op.target) >= op.baselineMinions! + op.amountMinions!;
       case ChildOperationKind.recover:
         // ponytail: the SDK reads an unsynced child as 0 too, so 0 never
-        // counts and a recover that empties the child ends "Not confirmed
-        // yet"; the upgrade path is a per-write tx hash from the SDK.
+        // counts. A recover that empties the child, as MAX does, cannot
+        // confirm: it ends "Not confirmed yet" and locks the child until it
+        // expires. The upgrade path is a per-write tx hash from the SDK.
         final current = _childBalance(op.target);
         return _onOwnView(op) &&
             _baselineTrusted(op, now) &&
