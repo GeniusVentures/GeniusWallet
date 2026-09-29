@@ -5,17 +5,17 @@ milestone_name: Child wallets & account linking
 current_phase: 38
 current_phase_name: Account tree switcher
 status: executing
-stopped_at: Phase 38 plan 01 executed
-last_updated: "2026-09-29T09:00:00.000Z"
+stopped_at: Phase 38 plan 02 executed
+last_updated: "2026-09-29T10:00:00.000Z"
 last_activity: 2026-09-29
-last_activity_desc: Phase 38 plan 01 executed (account tree nesting, ownRegistrations, merged Accounts header)
+last_activity_desc: Phase 38 plan 02 executed (merged account rows, GWMenuItem, Run node as this)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 19
-  completed_plans: 17
-  percent: 89
-resume_file: .planning/phases/38-account-tree-switcher/38-02-PLAN.md
+  completed_plans: 18
+  percent: 95
+resume_file: .planning/phases/38-account-tree-switcher/38-03-PLAN.md
 ---
 
 # Project State
@@ -30,12 +30,13 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 ## Current Position
 
 Phase: 38 (Account tree switcher) — EXECUTING
-Plan: 1 of 3 — complete (38-01: tracer, nesting edge cases, merged Accounts header)
+Plan: 2 of 3 — complete (38-02: GWMenuItem promotion, merged wallet/SDK-account rows, Run node as
+this replacing the SDK-row tap)
 Status: Phases 34-37 executed and verified in code; live walks pending (see Deferred Verification).
-Phase 38 plan 01 landed `buildAccountTree`, `ChildOperationsCubit.ownRegistrations()`, and the
-merged "Accounts" header; SWT-07 stays Pending in REQUIREMENTS.md until plans 02-03 land the
-merged SDK-account-onto-wallet-row and the collapsible-main/live-refresh work.
-Last activity: 2026-09-29 — Phase 38 plan 01 executed
+Phase 38 plan 02 landed `buildAccountTree`'s wallets/links merge, `_AccountRowTile` (Selected + On
+node tags), and deleted `SDKAccountRow`; SWT-07 still Pending in REQUIREMENTS.md until plan 03 adds
+the collapsible-main/child-action/refresh work on top.
+Last activity: 2026-09-29 — Phase 38 plan 02 executed
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
 
