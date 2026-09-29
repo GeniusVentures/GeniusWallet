@@ -824,6 +824,84 @@ void main() {
         }
       },
     );
+
+    testWidgets(
+      'a tracking wallet sharing the linked wallet\'s address does not '
+      'also show ACTIVE ON NODE',
+      (tester) async {
+        const sharedAddress = '0xEEEE000000000000000000000000000000000E';
+        const trackedTwin = Wallet(
+          coinType: TWCoinType.TWCoinTypeEthereum,
+          walletName: 'Watched twin',
+          currencySymbol: 'ETH',
+          walletType: WalletType.tracking,
+          balance: 0,
+          address: sharedAddress,
+        );
+        const ownedTwin = Wallet(
+          coinType: TWCoinType.TWCoinTypeEthereum,
+          walletName: 'Owned twin',
+          currencySymbol: 'ETH',
+          walletType: WalletType.privateKey,
+          balance: 0,
+          address: sharedAddress,
+        );
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        final links = <String, SDKAccountLink>{
+          sdkA.toLowerCase(): (
+            walletAddress: sharedAddress.toLowerCase(),
+            walletName: 'Owned twin',
+          ),
+        };
+        final harness = _build(
+          [trackedTwin, ownedTwin],
+          sdkAccountLinks: links,
+          sdkAccounts: const [sdkA],
+          selectedSDKAccount: sdkA,
+          api: _SelectingApi(),
+        );
+        final pending = _Pending();
+        try {
+          await tester.pumpWidget(
+            _openerHost(
+              walletDetailsCubit: harness.walletDetailsCubit,
+              appBloc: harness.appBloc,
+              pending: pending,
+            ),
+          );
+          await tester.tap(find.text('open drawer'));
+          await tester.pumpAndSettle();
+
+          expect(find.text('ACTIVE ON NODE'), findsOneWidget);
+
+          final trackedRow = find.ancestor(
+            of: find.text('Watched twin'),
+            matching: find.byType(GWSelectRow),
+          );
+          final ownedRow = find.ancestor(
+            of: find.text('Owned twin'),
+            matching: find.byType(GWSelectRow),
+          );
+          expect(
+            find.descendant(
+              of: trackedRow,
+              matching: find.text('ACTIVE ON NODE'),
+            ),
+            findsNothing,
+          );
+          expect(
+            find.descendant(
+              of: ownedRow,
+              matching: find.text('ACTIVE ON NODE'),
+            ),
+            findsOneWidget,
+          );
+        } finally {
+          await harness.dispose(tester);
+          await box.close();
+        }
+      },
+    );
   });
 
   testWidgets(
