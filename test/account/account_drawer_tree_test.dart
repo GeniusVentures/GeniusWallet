@@ -154,7 +154,7 @@ Future<void> _pumpDrawer(
 }
 
 /// The indent this file's Padding wrapper applies at [depth] -- must match
-/// `account_drawer.dart`'s own `min(depth, 2) * GeniusWalletConsts.space12`.
+/// `account_drawer.dart`'s own `min(depth, 2) * GeniusWalletConsts.space6`.
 double _leftIndentOf(WidgetTester tester, Finder rowFinder) {
   final padding = tester.widget<Padding>(
     find.ancestor(of: rowFinder, matching: find.byType(Padding)).first,
@@ -207,7 +207,7 @@ void main() {
       final mainBRow = _rowFor(title: 'Unlinked', subtitle: '0xaaaa...2222');
 
       expect(find.byType(ChildWalletRow), findsOneWidget);
-      expect(_leftIndentOf(tester, find.byType(ChildWalletRow)), 24.0);
+      expect(_leftIndentOf(tester, find.byType(ChildWalletRow)), 12.0);
 
       final mainARowY = tester.getTopLeft(mainARow).dy;
       final childRowY = tester.getTopLeft(find.byType(ChildWalletRow)).dy;
@@ -262,10 +262,10 @@ void main() {
         of: find.text('Main B'),
         matching: find.byType(GWSelectRow),
       );
-      expect(_leftIndentOf(tester, mainBRow), 24.0);
+      expect(_leftIndentOf(tester, mainBRow), 12.0);
 
       expect(find.byType(ChildWalletRow), findsNWidgets(2));
-      expect(_leftIndentOf(tester, find.byType(ChildWalletRow).at(0)), 24.0);
+      expect(_leftIndentOf(tester, find.byType(ChildWalletRow).at(0)), 12.0);
 
       await tester.runAsync(() => bloc.close());
       await details.close();

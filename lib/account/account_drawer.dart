@@ -517,7 +517,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             ...visibleRows.map(
               (row) => Padding(
                 padding: EdgeInsets.only(
-                  left: min(row.depth, 2) * GeniusWalletConsts.space12,
+                  left: min(row.depth, 2) * GeniusWalletConsts.space6,
                 ),
                 child: row.kind == AccountRowKind.foreignChild
                     ? ChildWalletRow(
