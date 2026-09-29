@@ -1488,7 +1488,7 @@ for the full dependency reasoning.
 - [ ] **Phase 35: Unified header switcher** - One header control, desktop and mobile, for the SDK wallet and the active wallet
 - [ ] **Phase 36: Child wallet bindings & read-only view** - The 11 child functions are bound and safe; the user sees their children and balances
 - [ ] **Phase 37: Child write operations & pending model** - Register, fund, recover, revoke, detach, replace-main, with an honest pending state and a switch lock
-- [ ] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
+- [x] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
 
 ## Phase Details
 
@@ -1594,13 +1594,13 @@ Plans:
   4. Child rows' menus offer Fund, Recover and Revoke through the same pending registry and locks as the Child wallets screen, which stays.
   5. Desktop and mobile; both appearance modes meet WCAG AA; dev-bubble child presets drive the tree.
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans executed
 
 Plans:
 
 - [x] 38-01-PLAN.md — tracer: registrations -> pure tree -> children nested under their main, foreign children with Fund/Recover/Revoke; cycle-safe walk; one Accounts header with the node-down note (wave 1)
 - [x] 38-02-PLAN.md — GWMenuItem and public SDK actions; each SDK account merged onto its wallet's row, Selected and On node tags, Run node as this with the pending lock (wave 2)
-- [ ] 38-03-PLAN.md — child actions on nested own rows, collapsible mains, live refresh, phone-width and contrast checks; phase gate and Windows compile (wave 3)
+- [x] 38-03-PLAN.md — child actions on nested own rows, collapsible mains, live refresh, phone-width and contrast checks; phase gate and Windows compile (wave 3)
 
 ## Progress
 
@@ -1610,4 +1610,4 @@ Plans:
 | 35. Unified header switcher | 3/3 | Awaiting human verification (live walk) | - |
 | 36. Child wallet bindings & read-only view | 3/3 | Awaiting human verification (live walk) | - |
 | 37. Child write operations & pending model | 5/5 | Awaiting human verification (live walk) | - |
-| 38. Account tree switcher | 1/3 | Executing | - |
+| 38. Account tree switcher | 3/3 | Awaiting human verification (live walk) | - |

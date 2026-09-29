@@ -4,18 +4,18 @@ milestone: v3.0
 milestone_name: Child wallets & account linking
 current_phase: 38
 current_phase_name: Account tree switcher
-status: executing
-stopped_at: Phase 38 plan 02 executed
+status: awaiting_verification
+stopped_at: Phase 38 plan 03 executed (phase complete, live walk pending)
 last_updated: "2026-09-29T10:00:00.000Z"
 last_activity: 2026-09-29
-last_activity_desc: Phase 38 plan 02 executed (merged account rows, GWMenuItem, Run node as this)
+last_activity_desc: Phase 38 plan 03 executed (child actions on nested rows, collapsible mains, live refresh, phone-width and contrast fixes, Windows compile)
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 19
-  completed_plans: 18
-  percent: 95
-resume_file: .planning/phases/38-account-tree-switcher/38-03-PLAN.md
+  completed_plans: 19
+  percent: 100
+resume_file: null
 ---
 
 # Project State
@@ -29,14 +29,18 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 ## Current Position
 
-Phase: 38 (Account tree switcher) — EXECUTING
-Plan: 2 of 3 — complete (38-02: GWMenuItem promotion, merged wallet/SDK-account rows, Run node as
-this replacing the SDK-row tap)
-Status: Phases 34-37 executed and verified in code; live walks pending (see Deferred Verification).
-Phase 38 plan 02 landed `buildAccountTree`'s wallets/links merge, `_AccountRowTile` (Selected + On
-node tags), and deleted `SDKAccountRow`; SWT-07 still Pending in REQUIREMENTS.md until plan 03 adds
-the collapsible-main/child-action/refresh work on top.
-Last activity: 2026-09-29 — Phase 38 plan 02 executed
+Phase: 38 (Account tree switcher) — 3/3 PLANS EXECUTED, awaiting human live-testnet walk
+Plan: 3 of 3 — complete (38-03: Fund/Recover/Revoke on nested own rows, collapsible mains with a
+chevron, live refresh via a gated CHILD WALLETS preset listener, phone-width wrap for a nested row's
+tags/balance, two AA contrast fixes — a new `brandPrimaryBadgeText` token and GWMenuItem's disabled
+foreground raised from 50% to 70% alpha)
+Status: Phases 34-38 all executed and verified in code; live walks pending for all five (see
+Deferred Verification). v3.0's entire plan list (19/19) is now executed.
+Phase 38 plan 03 closes SWT-07 (marked complete in REQUIREMENTS.md) — the switcher is one list,
+children nest under their main with a working chevron, child rows get Fund/Recover/Revoke, the tree
+stays current while open, fits a phone, and its tags/disabled items are measured in both modes.
+Full suite 2227/5/0 (2202 baseline + 25 new). Windows debug build compiled clean.
+Last activity: 2026-09-29 — Phase 38 plan 03 executed (phase 38 complete pending live walk)
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
 
