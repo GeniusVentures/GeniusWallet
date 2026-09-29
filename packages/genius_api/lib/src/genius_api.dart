@@ -975,12 +975,17 @@ class GeniusApi {
       }
       final address = probe.account(0).address();
 
-      final alreadyExists = (await _secureStorage.getStoredKeys()).any(
+      final matchingKey = (await _secureStorage.getStoredKeys()).where(
         (key) =>
             key.account(0).address().toLowerCase() == address.toLowerCase(),
       );
+      final alreadyExists = matchingKey.isNotEmpty;
 
-      final name = _defaultWalletName(address);
+      // A link created from an already-saved wallet must carry its real,
+      // possibly user-renamed name -- not a fresh address-based one.
+      final name = alreadyExists
+          ? matchingKey.first.name()
+          : _defaultWalletName(address);
       final storedKey = isMnemonic
           ? StoredKey.importHDWallet(
               secret,
