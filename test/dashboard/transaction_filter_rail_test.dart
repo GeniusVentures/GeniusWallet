@@ -285,15 +285,15 @@ void main() {
     await tester.pumpWidget(_host(width: 1200, gw: gw));
 
     expect(
-      tester.widget<Text>(railText('Mint')).style!.fontWeight,
+      tester.widget<Text>(railText('Earned')).style!.fontWeight,
       FontWeight.w500,
     );
 
-    await tester.tap(rowFor('Mint'));
+    await tester.tap(rowFor('Earned'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
-    final active = tester.widget<Text>(railText('Mint')).style!;
+    final active = tester.widget<Text>(railText('Earned')).style!;
     expect(active.fontWeight, FontWeight.w700);
     // RED if the label is tinted brand — sketch 022 variant B, rejected.
     expect(active.color, gw.textPrimary);
@@ -330,21 +330,21 @@ void main() {
       _host(width: 1200, gw: gwFor(GWAppearanceMode.dark)),
     );
 
-    await tester.tap(rowFor('Mint'));
+    await tester.tap(rowFor('Earned'));
     await tester.pumpAndSettle();
     expect(
-      tester.widget<Text>(railText('Mint')).style!.fontWeight,
+      tester.widget<Text>(railText('Earned')).style!.fontWeight,
       FontWeight.w700,
       reason: 'first tap activates',
     );
 
-    await tester.tap(rowFor('Mint'));
+    await tester.tap(rowFor('Earned'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
     // Back to resting weight — nothing is selected, which is the All state.
     expect(
-      tester.widget<Text>(railText('Mint')).style!.fontWeight,
+      tester.widget<Text>(railText('Earned')).style!.fontWeight,
       FontWeight.w500,
       reason: 'second tap on the active row must clear to All',
     );
@@ -414,7 +414,8 @@ void main() {
       // An inactive row renders the same 2px box with a NULL gradient, so the
       // rail never twitches when selection moves.
       expect(
-        (_ruleOf(tester, rowFor('Mint')).decoration as BoxDecoration).gradient,
+        (_ruleOf(tester, rowFor('Earned')).decoration as BoxDecoration)
+            .gradient,
         isNull,
       );
 

@@ -87,7 +87,7 @@ enum ComputeLink {
     ComputeLink.none => null,
     ComputeLink.chooseWallet => 'Choose a wallet ›',
     ComputeLink.switchWallet => 'Switch wallet ›',
-    ComputeLink.seeNodeStatus => 'See node status ›',
+    ComputeLink.seeNodeStatus => 'Earning status ›',
     ComputeLink.reconnect => 'Reconnect ›',
   };
 }
@@ -310,7 +310,7 @@ ComputeStatusView viewForComputeState(
       subline = 'Feed live';
       dotRole = ComputeDotRole.brand;
     case ComputeState.processing:
-      label = 'Processing';
+      label = 'Earning';
       subline = null;
       dotRole = ComputeDotRole.brand;
     case ComputeState.jobComplete:
@@ -320,7 +320,7 @@ ComputeStatusView viewForComputeState(
       dotRole = ComputeDotRole.success;
     case ComputeState.ready:
       label = 'Ready';
-      subline = 'Node online · waiting for work';
+      subline = 'Online · waiting for work';
       trailing = 'idle';
       dotRole = ComputeDotRole.success;
   }

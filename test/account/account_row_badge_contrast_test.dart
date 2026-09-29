@@ -57,12 +57,12 @@ void main() {
 
     test('On node (statusSuccessText) wash clears 4.5:1 -- $mode', () {
       final gw = themeFor(mode).extension<GWColors>()!;
-      checkBadge('On node', gw, gw.statusSuccessText, '$mode');
+      checkBadge('Earning', gw, gw.statusSuccessText, '$mode');
     });
 
     test('SDK PENDING (statusWarningText) wash clears 4.5:1 -- $mode', () {
       final gw = themeFor(mode).extension<GWColors>()!;
-      checkBadge('SDK PENDING', gw, gw.statusWarningText, '$mode');
+      checkBadge('Setting up', gw, gw.statusWarningText, '$mode');
     });
 
     test('Switching… (statusWarningText) wash clears 4.5:1 -- $mode', () {

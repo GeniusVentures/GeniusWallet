@@ -206,7 +206,7 @@ void main() {
 
         expect(
           find.text(
-            'You have no other SDK accounts. Enter an address instead.',
+            'You have no other earning accounts. Enter an address instead.',
           ),
           findsOneWidget,
         );
@@ -259,7 +259,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Not an SDK address - 0x followed by 128 hex characters.'),
+        find.text(
+          'Not an earning account address - 0x followed by 128 hex characters.',
+        ),
         findsOneWidget,
       );
       final continueButton = tester.widget<GWButton>(

@@ -848,7 +848,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.descendant(of: rowC, matching: find.text('On node')),
+          find.descendant(of: rowC, matching: find.text('Earning')),
           findsOneWidget,
         );
 

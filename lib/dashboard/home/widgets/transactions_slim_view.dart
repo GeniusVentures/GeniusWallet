@@ -52,7 +52,7 @@ enum Filters {
   all('All', null),
   sent('Sent', TransactionBadgeKind.sent),
   received('Received', TransactionBadgeKind.received),
-  mint('Mint', TransactionBadgeKind.mint),
+  mint('Earned', TransactionBadgeKind.mint),
   jobs('Computing', TransactionBadgeKind.job),
   escrow('Escrow', TransactionBadgeKind.escrow),
   swap('Swapped', TransactionBadgeKind.swap),

@@ -43,12 +43,12 @@ class AccountSwitcher extends StatelessWidget {
         final selectedSDKAccount = state.selectedSDKAccount;
         final switchingSDKAccount = state.switchingSDKAccount;
         final nodeStatus = switchingSDKAccount != null
-            ? 'Node switching to ${AppBloc.sdkAccountName(switchingSDKAccount, state.sdkAccountLinks, state.wallets)}'
+            ? 'Earning: switching to ${AppBloc.sdkAccountName(switchingSDKAccount, state.sdkAccountLinks, state.wallets)}'
             : selectedSDKAccount != null
-            ? 'Node running as ${AppBloc.sdkAccountName(selectedSDKAccount, state.sdkAccountLinks, state.wallets)}'
-            : 'Node not running';
+            ? 'Earning: ${AppBloc.sdkAccountName(selectedSDKAccount, state.sdkAccountLinks, state.wallets)}'
+            : 'Not earning';
         return Tooltip(
-          message: 'Sending from $label · $nodeStatus',
+          message: 'Wallet: $label · $nodeStatus',
           child: TextButton(
             style: navContextChipStyle(context),
             onPressed: () => AccountDrawer.show(context),

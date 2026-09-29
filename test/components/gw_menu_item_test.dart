@@ -79,7 +79,7 @@ void main() {
       _host(
         const GWMenuItem(
           icon: Icons.dns_outlined,
-          label: 'Run node as this',
+          label: 'Earn with this account',
           onPressed: null,
           lockedReason: 'Waiting for a child operation from Main to confirm',
         ),

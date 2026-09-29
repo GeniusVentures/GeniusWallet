@@ -40,7 +40,7 @@ class _NodeSwitchToastsState extends State<NodeSwitchToasts> {
     final label = name == 'Unlinked'
         ? WalletUtils.getAddressForDisplay(target)
         : name;
-    _toastWhenAttached("The node couldn't switch to $label.");
+    _toastWhenAttached("Couldn't switch earning to $label.");
   }
 
   void _toastWhenAttached(String message) {

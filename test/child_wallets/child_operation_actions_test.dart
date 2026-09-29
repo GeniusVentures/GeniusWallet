@@ -394,12 +394,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(api.fundCallCount, 1);
-    expect(
-      find.text(
-        'The SDK refused to fund this child: GENIUS_NODE_INVALID_ARGUMENT',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text("Couldn't fund this child."), findsOneWidget);
     expect(find.text('Funding 1.5 GNUS…'), findsNothing);
 
     await childWallets.close();
@@ -765,13 +760,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(api.recoverCallCount, 1);
-    expect(
-      find.text(
-        'The SDK refused to recover from this child: '
-        'GENIUS_NODE_INVALID_ARGUMENT',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text("Couldn't recover from this child."), findsOneWidget);
     expect(find.text('Recovering 1.5 GNUS…'), findsNothing);
 
     await childWallets.close();
@@ -844,12 +833,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(api.revokeCallCount, 1);
-    expect(
-      find.text(
-        'The SDK refused to revoke this child: GENIUS_NODE_INVALID_ARGUMENT',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text("Couldn't revoke this child."), findsOneWidget);
     expect(find.text('Revoking…'), findsNothing);
 
     await childWallets.close();
@@ -1002,13 +986,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(api.detachCallCount, 1);
-    expect(
-      find.text(
-        'The SDK refused to detach this account: '
-        'GENIUS_NODE_INVALID_ARGUMENT',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text("Couldn't detach this account."), findsOneWidget);
     expect(find.text('Detaching…'), findsNothing);
 
     await childWallets.close();
@@ -1148,13 +1126,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(api.registerCallCount, 1);
-    expect(
-      find.text(
-        'The SDK refused to register this account: '
-        'GENIUS_NODE_INVALID_ARGUMENT',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text("Couldn't register this account."), findsOneWidget);
     expect(find.text('Registering…'), findsNothing);
 
     await childWallets.close();
@@ -1346,12 +1318,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(api.moveCallCount, 1);
-    expect(
-      find.text(
-        'The SDK refused to move this account: GENIUS_NODE_INVALID_ARGUMENT',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text("Couldn't move this account."), findsOneWidget);
     expect(find.textContaining('Moving to'), findsNothing);
 
     await childWallets.close();

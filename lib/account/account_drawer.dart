@@ -457,7 +457,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
         _updateRegistrations(appState, operations);
         final defaultAccount = appState.defaultSDKAccount?.toLowerCase();
         // A pending child operation submitted from the running account locks
-        // every OTHER row's "Run node as this" -- selecting a wallet for
+        // every OTHER row's "Earn with this account" -- selecting a wallet for
         // sends/swaps is never touched by this.
         final running = appState.selectedSDKAccount;
         final switching = appState.switchingSDKAccount;
@@ -510,8 +510,8 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             _AccountSectionHeader(
               title: widget.networks.isNotEmpty ? 'Accounts' : null,
               caption:
-                  'Tap to send, swap and see balances from an account. Use '
-                  'the menu to run the node as one.',
+                  'Tap an account to use it as your wallet for transfers and '
+                  'swaps. Use its menu to earn with it.',
             ),
             if (treeRows.isEmpty)
               const _AccountSectionNote(text: 'No wallets yet.'),
@@ -528,7 +528,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                     : _AccountRowTile(
                         row: row,
                         selected: _rowSelected(row, appState.wallets),
-                        // The pending target says so instead of On node, even
+                        // The pending target says so instead of Earning, even
                         // if a read already names it, until the switch settles.
                         switching: _rowOnNode(row, switching),
                         onNode:
@@ -602,7 +602,7 @@ class _AccountRowTile extends StatelessWidget {
   final Wallet? balanceWallet;
 
   /// Non-null while a child operation submitted from the running account is
-  /// still pending -- "Run node as this" refuses every row but the running
+  /// still pending -- "Earn with this account" refuses every row but the running
   /// one with this as the reason. Never locks a row tap.
   final String? lockedReason;
 
@@ -617,7 +617,7 @@ class _AccountRowTile extends StatelessWidget {
   final VoidCallback? onToggle;
 
   /// True only for a row carrying an SDK account that is not the one
-  /// currently running -- the one condition "Run node as this" refuses.
+  /// currently running -- the one condition "Earn with this account" refuses.
   bool get _locked => row.sdkAddress != null && lockedReason != null && !onNode;
 
   @override
@@ -695,8 +695,8 @@ class _AccountRowTile extends StatelessWidget {
               spacing: GeniusWalletConsts.space3,
               runSpacing: GeniusWalletConsts.space2,
               children: [
-                // A plain wallet's link status drops once On node shows (a row
-                // on node is always linked), and "SDK PENDING" drops beside
+                // A plain wallet's link status drops once Earning shows (a row
+                // on node is always linked), and "Setting up" drops beside
                 // Selected so two long labels never crowd out the name.
                 if (row.kind == AccountRowKind.wallet &&
                     sdkBadge != WalletSDKBadge.none &&
@@ -704,8 +704,8 @@ class _AccountRowTile extends StatelessWidget {
                     !(selected && sdkBadge == WalletSDKBadge.pending))
                   GWRowBadge(
                     label: sdkBadge == WalletSDKBadge.linked
-                        ? 'SDK'
-                        : 'SDK PENDING',
+                        ? 'Can earn'
+                        : 'Setting up',
                     color: sdkBadge == WalletSDKBadge.linked
                         ? gw.brandPrimaryBadgeText
                         : gw.statusWarningText,
@@ -716,7 +716,7 @@ class _AccountRowTile extends StatelessWidget {
                     color: gw.brandPrimaryBadgeText,
                   ),
                 if (onNode)
-                  GWRowBadge(label: 'On node', color: gw.statusSuccessText),
+                  GWRowBadge(label: 'Earning', color: gw.statusSuccessText),
                 if (switching)
                   GWRowBadge(label: 'Switching…', color: gw.statusWarningText),
               ],
@@ -887,7 +887,7 @@ class _AccountRowTile extends StatelessWidget {
     return anchor([
       GWMenuItem(
         icon: Icons.dns_outlined,
-        label: 'Run node as this',
+        label: 'Earn with this account',
         lockedReason: _locked ? lockedReason : null,
         onPressed: onNode || switching || _locked
             ? null
@@ -895,7 +895,7 @@ class _AccountRowTile extends StatelessWidget {
                 context.read<AppBloc>().add(SelectSDKAccount(sdkAddress));
                 showToast(
                   context,
-                  'Switching the node…',
+                  'Switching earning…',
                   duration: const Duration(seconds: 1),
                 );
               },

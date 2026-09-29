@@ -606,7 +606,7 @@ class SubmitJobCubit extends Cubit<SubmitJobState> {
       case GeniusNodeReturnValue.GENIUS_NODE_ERROR_PROCESS_IMAGE:
         return "Failed to process the job. Please check your input and try again.";
       case GeniusNodeReturnValue.GENIUS_NODE_ERROR_MINT:
-        return "Token minting failed.";
+        return "Couldn't create the job's tokens.";
       case GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT:
         return "Invalid job data.";
       case GeniusNodeReturnValue.GENIUS_NODE_ERROR_TRANSFER:

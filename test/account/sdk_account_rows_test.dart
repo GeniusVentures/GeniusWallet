@@ -251,7 +251,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('0xaaaa...2222'), findsOneWidget);
-      expect(find.text('On node'), findsOneWidget);
+      expect(find.text('Earning'), findsOneWidget);
       expect(find.text('0xaaaa...3333'), findsOneWidget);
       expect(find.text('0xaaaa...4444'), findsOneWidget);
 
@@ -571,7 +571,7 @@ void main() {
         await tester.tap(find.byTooltip('Account options').at(2));
         await tester.pumpAndSettle();
         await tester.tap(
-          find.widgetWithText(MenuItemButton, 'Run node as this'),
+          find.widgetWithText(MenuItemButton, 'Earn with this account'),
         );
         await tester.pump();
 
@@ -614,7 +614,7 @@ void main() {
         await tester.tap(find.byTooltip('Account options').at(2));
         await tester.pumpAndSettle();
         await tester.tap(
-          find.widgetWithText(MenuItemButton, 'Run node as this'),
+          find.widgetWithText(MenuItemButton, 'Earn with this account'),
         );
         await tester.pump();
 
@@ -651,7 +651,9 @@ void main() {
       // unmerged accounts -- mainB is index 2.
       await tester.tap(find.byTooltip('Account options').at(2));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(MenuItemButton, 'Run node as this'));
+      await tester.tap(
+        find.widgetWithText(MenuItemButton, 'Earn with this account'),
+      );
       await tester.pump();
       await tester.pump();
 
@@ -666,7 +668,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('On node'), findsNothing);
+      expect(find.text('Earning'), findsNothing);
 
       api._selectedAccount = _mainB;
       await tester.pump(const Duration(seconds: 3));
@@ -676,7 +678,7 @@ void main() {
       expect(
         find.descendant(
           of: rowFor('0xaaaa...2222'),
-          matching: find.text('On node'),
+          matching: find.text('Earning'),
         ),
         findsOneWidget,
       );

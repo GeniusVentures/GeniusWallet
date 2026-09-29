@@ -93,7 +93,7 @@ class _MainPickerDialogState extends State<_MainPickerDialog> {
   String? get _manualError {
     final text = _controller.text.trim();
     if (text.isNotEmpty && !isSdkAddress(text)) {
-      return 'Not an SDK address - 0x followed by 128 hex characters.';
+      return 'Not an earning account address - 0x followed by 128 hex characters.';
     }
     if (text.isNotEmpty && _isExcluded(text)) {
       return "That account can't be chosen here.";
@@ -162,7 +162,7 @@ class _MainPickerListContent extends StatelessWidget {
       children: [
         if (candidates.isEmpty)
           Text(
-            'You have no other SDK accounts. Enter an address instead.',
+            'You have no other earning accounts. Enter an address instead.',
             style: GeniusWalletTypography.bodySm.copyWith(
               color: gw.textSecondary,
             ),

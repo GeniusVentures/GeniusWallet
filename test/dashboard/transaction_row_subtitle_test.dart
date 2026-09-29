@@ -456,7 +456,7 @@ void main() {
 
       // …and the subtitle still carries both of its own pieces.
       final rp = _paragraphWith(tester, 'to wallet');
-      expect(rp.text.toPlainText(), 'Minted to wallet');
+      expect(rp.text.toPlainText(), 'Earned to wallet');
     });
   });
 

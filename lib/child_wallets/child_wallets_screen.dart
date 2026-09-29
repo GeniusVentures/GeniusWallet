@@ -53,7 +53,7 @@ class ChildWalletsScreen extends StatelessWidget {
             if (populatedOrConnectedEmpty) ...[
               const SizedBox(height: GeniusWalletConsts.space6),
               Text(
-                "Balances come from the node's synced view and can lag.",
+                'Balances can take a moment to update.',
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: context.gw.textSecondary,
                 ),
@@ -80,7 +80,7 @@ class _ChildWalletsBody extends StatelessWidget {
       case ChildWalletsStatus.nodeNotRunning:
         return const GWEmptyState(
           icon: Icons.cloud_off_outlined,
-          title: 'Node not running',
+          title: 'Not earning right now',
         );
       case ChildWalletsStatus.error:
         return GWErrorState(
