@@ -24,10 +24,10 @@ class SubmitJobButton extends StatefulWidget {
 class SubmitJobButtonState extends State<SubmitJobButton> {
   @override
   Widget build(BuildContext context) {
-    final isSelectedWalletLinkedToSGNUS =
+    final isDefaultAccountWallet =
         widget.walletAddress == widget.gnusConnectedWalletAddress;
 
-    if (!isSelectedWalletLinkedToSGNUS) {
+    if (!isDefaultAccountWallet) {
       return const SizedBox.shrink();
     }
 

@@ -12,12 +12,12 @@
 // deliberately narrow.
 //
 // In particular: a disconnected SGNUS node must resolve to "Disconnected",
-// never "Not linked" - `wallet_overview.dart:179` used to pass
-// `connection?.walletAddress ?? ""` into the linked-wallet comparison, which
-// made every wallet test as "not linked" whenever the node was offline. That
-// false accusation (`T-14-30`) is closed by precedence in
-// `compute_state.dart`; this test proves the precedence survives the real
-// wiring, not just the pure resolver's own unit tests.
+// never "Not the default account" - `wallet_overview.dart:179` used to pass
+// `connection?.walletAddress ?? ""` into the default-account comparison,
+// which made every wallet test as "not the default account" whenever the
+// node was offline. That false accusation (`T-14-30`) is closed by
+// precedence in `compute_state.dart`; this test proves the precedence
+// survives the real wiring, not just the pure resolver's own unit tests.
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -190,8 +190,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets(
-    'a disconnected node resolves to Disconnected, never Not linked - the '
-    'false-accusation bug wallet_overview.dart:179 used to cause',
+    'a disconnected node resolves to Disconnected, never Not the default '
+    'account - the false-accusation bug wallet_overview.dart:179 used to '
+    'cause',
     (tester) async {
       final harness = _build();
       try {
@@ -201,7 +202,7 @@ void main() {
         // isConnected: false with an EMPTY walletAddress - exactly what the
         // real SGNUSConnection.empty() reports, and exactly the shape that
         // used to make every wallet compare unequal to "" and read as
-        // not-linked instead of disconnected.
+        // not-the-default-account instead of disconnected.
         harness.geniusApi.emitConnection(
           const SGNUSConnection(
             sgnusAddress: '',
@@ -217,7 +218,7 @@ void main() {
         await tester.pump();
 
         expect(find.text('Disconnected'), findsOneWidget);
-        expect(find.text('Not linked'), findsNothing);
+        expect(find.text('Not the default account'), findsNothing);
       } finally {
         await _teardown(tester, harness);
       }
@@ -225,7 +226,7 @@ void main() {
   );
 
   testWidgets('a connected node whose address differs from the selected wallet '
-      'resolves to Not linked', (tester) async {
+      'resolves to Not the default account', (tester) async {
     final harness = _build();
     try {
       await tester.pumpWidget(_host(harness: harness));
@@ -241,7 +242,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('Not linked'), findsOneWidget);
+      expect(find.text('Not the default account'), findsOneWidget);
       expect(find.text('Disconnected'), findsNothing);
     } finally {
       await _teardown(tester, harness);
@@ -259,8 +260,9 @@ void main() {
         await tester.pumpWidget(_host(harness: harness));
         await tester.pump();
 
-        // Connected AND linked, so the resolver reaches the `unavailable`
-        // rung rather than being pre-empted by `disconnected`/`notLinked`.
+        // Connected AND the default account, so the resolver reaches the
+        // `unavailable` rung rather than being pre-empted by
+        // `disconnected`/`notDefaultAccount`.
         harness.geniusApi.emitConnection(
           SGNUSConnection(
             sgnusAddress: _linkedWallet.address,
