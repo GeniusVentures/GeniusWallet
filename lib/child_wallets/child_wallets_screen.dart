@@ -182,7 +182,7 @@ class _ChildWalletsHeader extends StatelessWidget {
 }
 
 /// One child's identity, balance and actions: a "Child actions" menu (Fund,
-/// more to follow) and its own pending/not-confirmed badge. Not a
+/// Recover, Revoke) and its own pending/not-confirmed badge. Not a
 /// `GWSelectRow`: the row itself is not tappable, only its trailing menu is.
 class ChildWalletRow extends StatelessWidget {
   const ChildWalletRow({
@@ -201,6 +201,14 @@ class ChildWalletRow extends StatelessWidget {
     final pendingOp = registry.latestFor(wallet.address);
     final fundLocked = registry.isPending(
       ChildOperationKind.fund,
+      wallet.address,
+    );
+    final recoverLocked = registry.isPending(
+      ChildOperationKind.recover,
+      wallet.address,
+    );
+    final revokeLocked = registry.isPending(
+      ChildOperationKind.revoke,
       wallet.address,
     );
     final linkedWallet = wallet.linkedWallet;
@@ -288,6 +296,29 @@ class ChildWalletRow extends StatelessWidget {
                 onPressed: () =>
                     startFund(context, child: wallet, mainAddress: mainAddress),
               ),
+              _ChildActionMenuItem(
+                icon: Icons.arrow_downward,
+                label: 'Recover',
+                locked: recoverLocked,
+                lockedReason: 'Already recovering from this child',
+                onPressed: () => startRecover(
+                  context,
+                  child: wallet,
+                  mainAddress: mainAddress,
+                ),
+              ),
+              _ChildActionMenuItem(
+                icon: Icons.link_off,
+                label: 'Revoke',
+                locked: revokeLocked,
+                lockedReason: 'Already revoking this child',
+                enabledColor: gw.statusErrorText,
+                onPressed: () => startRevoke(
+                  context,
+                  child: wallet,
+                  mainAddress: mainAddress,
+                ),
+              ),
             ],
           ),
         ],
@@ -306,6 +337,7 @@ class _ChildActionMenuItem extends StatelessWidget {
     required this.locked,
     required this.lockedReason,
     required this.onPressed,
+    this.enabledColor,
   });
 
   final IconData icon;
@@ -313,13 +345,14 @@ class _ChildActionMenuItem extends StatelessWidget {
   final bool locked;
   final String lockedReason;
   final VoidCallback onPressed;
+  final Color? enabledColor;
 
   @override
   Widget build(BuildContext context) {
     final gw = context.gw;
     final fg = locked
         ? gw.textSecondary.withValues(alpha: 0.5)
-        : gw.textPrimary;
+        : (enabledColor ?? gw.textPrimary);
     final item = MenuItemButton(
       leadingIcon: GWIcon.material(icon, color: fg),
       style: MenuItemButton.styleFrom(

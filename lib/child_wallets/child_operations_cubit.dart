@@ -10,8 +10,8 @@ import 'package:genius_wallet/squid_router/squid_util.dart' show toBaseUnits;
 import 'package:genius_wallet/utils/wallet_utils.dart';
 
 /// Which SDK write an operation represents. Each kind arrives with its own
-/// submit and resolve arm below -- fund is the first.
-enum ChildOperationKind { fund }
+/// submit and resolve arm below.
+enum ChildOperationKind { fund, recover, revoke }
 
 /// How long an unresolved operation stays pending before it reads "Not
 /// confirmed yet" instead.
@@ -134,17 +134,24 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
 
   /// The balance [kind] draws on for [target]. Fund draws on the running
   /// account's own GNUS balance -- BigInt.tryParse on the SDK's decimal
-  /// string, zero on a bad parse rather than a thrown exception.
+  /// string, zero on a bad parse rather than a thrown exception. Recover
+  /// draws on the child's own balance. Revoke takes no amount and never
+  /// calls this.
   BigInt payingBalance(ChildOperationKind kind, String target) {
     switch (kind) {
       case ChildOperationKind.fund:
         return BigInt.tryParse(_api.getMinionsBalance()) ?? BigInt.zero;
+      case ChildOperationKind.recover:
+        return _api.getChildBalanceAll(target);
+      case ChildOperationKind.revoke:
+        return BigInt.zero;
     }
   }
 
   /// Submits [kind] against [target], or returns null with no SDK call when
-  /// the node isn't running as [main] or the amount is out of range. Only
-  /// appends the operation, and only emits, on `RET_OK`.
+  /// the node isn't running as [main], the kind is already pending on
+  /// [target], or (for an amount-carrying kind) the amount is out of range.
+  /// Only appends the operation, and only emits, on `RET_OK`.
   GeniusNodeReturnValue? submit({
     required ChildOperationKind kind,
     required String target,
@@ -159,21 +166,32 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     if (isPending(kind, target)) {
       return null;
     }
-    final amount = amountMinions;
-    if (amount == null ||
-        amount <= BigInt.zero ||
-        amount > payingBalance(kind, target)) {
-      return null;
+    // Revoke carries no amount -- only fund and recover are checked here.
+    if (kind != ChildOperationKind.revoke) {
+      final amount = amountMinions;
+      if (amount == null ||
+          amount <= BigInt.zero ||
+          amount > payingBalance(kind, target)) {
+        return null;
+      }
     }
 
     // Read BEFORE the write, so resolve() has an honest number to compare
-    // the balance against once the write lands.
-    final baseline = _api.getChildBalanceAll(target);
+    // the balance against once the write lands. Revoke resolves off the
+    // registrations list instead, so it has no use for a balance baseline.
+    final baseline = kind == ChildOperationKind.revoke
+        ? null
+        : _api.getChildBalanceAll(target);
     final result = switch (kind) {
       ChildOperationKind.fund => _api.fundChildGnus(
-        minionsToGnus(amount),
+        minionsToGnus(amountMinions!),
         target,
       ),
+      ChildOperationKind.recover => _api.recoverFromChildGnus(
+        minionsToGnus(amountMinions!),
+        target,
+      ),
+      ChildOperationKind.revoke => _api.revokeChild(target),
     };
     if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       return result;
@@ -195,7 +213,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
             target: target,
             main: main,
             newMain: newMain,
-            amountMinions: amount,
+            amountMinions: amountMinions,
             baselineMinions: baseline,
             submittedAt: _now(),
           ),
@@ -253,6 +271,17 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       case ChildOperationKind.fund:
         final current = _api.getChildBalanceAll(op.target);
         return current >= (op.baselineMinions! + op.amountMinions!);
+      case ChildOperationKind.recover:
+        final current = _api.getChildBalanceAll(op.target);
+        return current <= (op.baselineMinions! - op.amountMinions!);
+      case ChildOperationKind.revoke:
+        final registrations = _api.getChildRegistrations(op.main);
+        if (!registrations.isOk) {
+          return false;
+        }
+        return !registrations.entries.any(
+          (r) => r.childAddress.toLowerCase() == op.target.toLowerCase(),
+        );
     }
   }
 
