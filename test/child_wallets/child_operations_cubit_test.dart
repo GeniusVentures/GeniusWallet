@@ -1119,6 +1119,27 @@ void main() {
       cubit.close();
     });
 
+    test('registering the account as its own child is refused, no SDK '
+        'call', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.register,
+        target: _mainAddress,
+        main: _mainAddress.toUpperCase(),
+      );
+
+      expect(result, isNull);
+      expect(api.registerCallCount, 0);
+      expect(cubit.state.operations, isEmpty);
+
+      cubit.close();
+    });
+
     test('submitting again while pending is refused', () {
       final api = _FakeApi();
       final cubit = ChildOperationsCubit(
@@ -1185,6 +1206,35 @@ void main() {
 
       expect(result, isNull);
       expect(api.moveCallCount, 0);
+
+      cubit.close();
+    });
+
+    test('moving to the account itself or to its current main is refused, '
+        'no SDK call', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      final toSelf = cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _mainAddress.toUpperCase(),
+      );
+      final toSameMain = cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _otherAddress.toUpperCase(),
+      );
+
+      expect(toSelf, isNull);
+      expect(toSameMain, isNull);
+      expect(api.moveCallCount, 0);
+      expect(cubit.state.operations, isEmpty);
 
       cubit.close();
     });

@@ -237,10 +237,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       .fold(BigInt.zero, (sum, op) => sum + op.totalMinions);
 
   /// Submits [kind] against [target], or returns null with no SDK call when
-  /// the node isn't running as the side [kind] requires (`main` for a
-  /// main-side kind, `target` for a child-side one), the kind is already
-  /// pending on [target], or (for an amount-carrying kind) the amount is out
-  /// of range. Only appends the operation, and only emits, on `RET_OK`.
+  /// the node runs as the wrong side, the chosen main is the account itself
+  /// (or a move's current main), [kind] is already pending on [target], or
+  /// the amount is out of range. Appends and emits only on `RET_OK`.
   GeniusNodeReturnValue? submit({
     required ChildOperationKind kind,
     required String target,
@@ -252,6 +251,22 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     final requiredRunner = _isChildSide(kind) ? target : main;
     if (running == null ||
         running.toLowerCase() != requiredRunner.toLowerCase()) {
+      return null;
+    }
+    // Checked here, not only by the picker's exclusions: an account can
+    // never become its own child, and a move to the main it already has is
+    // no move at all.
+    final selfReferential = switch (kind) {
+      ChildOperationKind.register => main.toLowerCase() == target.toLowerCase(),
+      ChildOperationKind.move =>
+        newMain == null ||
+            {
+              target.toLowerCase(),
+              main.toLowerCase(),
+            }.contains(newMain.toLowerCase()),
+      _ => false,
+    };
+    if (selfReferential) {
       return null;
     }
     if (isPending(kind, target)) {
