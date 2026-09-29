@@ -41,6 +41,7 @@ class ChildOperation {
     required this.main,
     this.newMain,
     this.amountMinions,
+    this.carriedMinions,
     this.baselineMinions,
     required this.submittedAt,
     this.notConfirmed = false,
@@ -52,6 +53,9 @@ class ChildOperation {
   final String main;
   final String? newMain;
   final BigInt? amountMinions;
+
+  /// The timed-out attempt(s) this op replaced, still able to land late.
+  final BigInt? carriedMinions;
   final BigInt? baselineMinions;
   final DateTime submittedAt;
   final bool notConfirmed;
@@ -63,10 +67,16 @@ class ChildOperation {
     main: main,
     newMain: newMain,
     amountMinions: amountMinions,
+    carriedMinions: carriedMinions,
     baselineMinions: baselineMinions,
     submittedAt: submittedAt,
     notConfirmed: notConfirmed ?? this.notConfirmed,
   );
+
+  /// Everything this op waits to see land: its own amount plus
+  /// [carriedMinions]. Zero for a kind without an amount.
+  BigInt get totalMinions =>
+      (amountMinions ?? BigInt.zero) + (carriedMinions ?? BigInt.zero);
 }
 
 /// [operations] in submission order. [justResolved] holds only the
@@ -224,7 +234,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     bool Function(ChildOperation) drawsOn,
   ) => state.operations
       .where((op) => op.kind == kind && drawsOn(op))
-      .fold(BigInt.zero, (sum, op) => sum + op.amountMinions!);
+      .fold(BigInt.zero, (sum, op) => sum + op.totalMinions);
 
   /// Submits [kind] against [target], or returns null with no SDK call when
   /// the node isn't running as the side [kind] requires (`main` for a
@@ -256,11 +266,23 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       }
     }
 
+    bool replaces(ChildOperation existing) =>
+        existing.kind == kind &&
+        existing.notConfirmed &&
+        existing.target.toLowerCase() == target.toLowerCase();
+    // A timed-out attempt can still land late, so a retry inherits its
+    // baseline and amount: it resolves only once both have landed, never on
+    // the abandoned attempt's money alone.
+    final replaced = _hasAmount(kind)
+        ? state.operations.where(replaces).firstOrNull
+        : null;
     // Read BEFORE the write, so resolve() has an honest number to compare
     // the balance against once the write lands. Revoke and detach resolve
     // off the registrations list instead, so neither has a use for a
     // balance baseline.
-    final baseline = _hasAmount(kind) ? _childBalance(target) : null;
+    final baseline = _hasAmount(kind)
+        ? replaced?.baselineMinions ?? _childBalance(target)
+        : null;
     final op = ChildOperation(
       kind: kind,
       fromAccount: requiredRunner,
@@ -268,6 +290,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       main: main,
       newMain: newMain,
       amountMinions: amountMinions,
+      carriedMinions: replaced?.totalMinions,
       baselineMinions: baseline,
       submittedAt: _now(),
     );
@@ -307,10 +330,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
           // Drop any notConfirmed op this same kind+target already holds --
           // this submit replaces it, not adds a second entry for the child.
           for (final existing in state.operations)
-            if (!(existing.kind == kind &&
-                existing.notConfirmed &&
-                existing.target.toLowerCase() == target.toLowerCase()))
-              existing,
+            if (!replaces(existing)) existing,
           op,
         ],
       ),
@@ -365,10 +385,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     switch (op.kind) {
       case ChildOperationKind.fund:
         final current = _childBalance(op.target);
-        return current >= (op.baselineMinions! + op.amountMinions!);
+        return current >= (op.baselineMinions! + op.totalMinions);
       case ChildOperationKind.recover:
         final current = _childBalance(op.target);
-        return current <= (op.baselineMinions! - op.amountMinions!);
+        return current <= (op.baselineMinions! - op.totalMinions);
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
         return _listedUnder(op.main, op.target) == false;
