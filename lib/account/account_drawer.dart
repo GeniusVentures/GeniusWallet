@@ -482,7 +482,12 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
         final visibleRows = visibleAccountRows(treeRows, _collapsedMains);
 
         return ListView(
-          padding: const EdgeInsets.all(GeniusWalletConsts.space10),
+          padding: const EdgeInsets.fromLTRB(
+            GeniusWalletConsts.space10 / 2,
+            GeniusWalletConsts.space10,
+            GeniusWalletConsts.space10,
+            GeniusWalletConsts.space10,
+          ),
           children: [
             // The network field, when this sheet was opened as the combined
             // wallet-and-network surface. One field rather than a list, so the
@@ -653,10 +658,6 @@ class _AccountRowTile extends StatelessWidget {
     final addressText = wallet?.address ?? sdkAddress!;
     final anyTag =
         selected || onNode || (sdkBadge != WalletSDKBadge.none && !onNode);
-    // Only a nested row's own indent actually eats into the row's width
-    // budget -- a depth-0 row always has room, so it keeps the exact,
-    // unwrapped layout every existing screenshot and test already expects.
-    final nested = row.depth >= 1;
 
     final tile = GWSelectRow(
       selected: selected,
@@ -692,21 +693,18 @@ class _AccountRowTile extends StatelessWidget {
             ? gw.textSecondary.withValues(alpha: 0.8)
             : gw.textSecondary,
       ),
-      trailing: nested
-          ? _nestedTrailing(gw, wallet, anyTag, onNode, isWatched, locked)
-          : Row(
-              mainAxisSize: MainAxisSize.min,
+      titleTrailing: anyTag
+          ? Wrap(
+              spacing: GeniusWalletConsts.space3,
+              runSpacing: GeniusWalletConsts.space2,
               children: [
-                // A plain wallet's own link status - suppressed once On node
-                // shows below, since a row that is on node is always linked
-                // and the two would otherwise say the same thing twice. "SDK
-                // PENDING" ALSO drops once Selected shows: at phone width the
-                // two longer labels together do not fit next to a name and
-                // address; "SDK" alone is short enough to keep.
+                // A plain wallet's link status drops once On node shows (a row
+                // on node is always linked), and "SDK PENDING" drops beside
+                // Selected so two long labels never crowd out the name.
                 if (row.kind == AccountRowKind.wallet &&
                     sdkBadge != WalletSDKBadge.none &&
                     !onNode &&
-                    !(selected && sdkBadge == WalletSDKBadge.pending)) ...[
+                    !(selected && sdkBadge == WalletSDKBadge.pending))
                   GWRowBadge(
                     label: sdkBadge == WalletSDKBadge.linked
                         ? 'SDK'
@@ -715,55 +713,47 @@ class _AccountRowTile extends StatelessWidget {
                         ? gw.brandPrimaryBadgeText
                         : gw.statusWarningText,
                   ),
-                  const SizedBox(width: GeniusWalletConsts.space3),
-                ],
-                // Two independent tags, either or both: which wallet sends
-                // and swaps, and which account the node computes on.
-                if (selected) ...[
+                if (selected)
                   GWRowBadge(
                     label: 'Selected',
                     color: gw.brandPrimaryBadgeText,
                   ),
-                  const SizedBox(width: GeniusWalletConsts.space3),
-                ],
-                if (onNode) ...[
+                if (onNode)
                   GWRowBadge(label: 'On node', color: gw.statusSuccessText),
-                  const SizedBox(width: GeniusWalletConsts.space3),
-                ],
-                // Capped and ellipsised ONLY once a tag is in play -
-                // unbadged rows keep their exact pre-existing size. An
-                // account row with no wallet of its own shows no balance
-                // here; "View balance" is its menu's own item.
-                if (wallet != null)
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: anyTag ? 48 : double.infinity,
-                    ),
-                    child: Text(
-                      WalletUtils.formatMinions(wallet.balance),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                      style: GeniusWalletTypography.labelMd.copyWith(
-                        color: gw.textSecondary,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                if (isWatched) ...[
-                  const SizedBox(width: GeniusWalletConsts.space3),
+              ],
+            )
+          : null,
+      // An account row with no wallet of its own shows no balance here;
+      // "View balance" is its menu's own item.
+      subtitleTrailing: wallet != null
+          ? Text(
+              WalletUtils.formatMinions(wallet.balance),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: GeniusWalletTypography.labelMd.copyWith(
+                color: gw.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            )
+          : null,
+      trailing: isWatched || locked
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isWatched)
                   Icon(
                     Icons.remove_red_eye_outlined,
                     size: 16,
                     color: gw.textSecondary,
                   ),
-                ],
-                if (locked) ...[
+                if (isWatched && locked)
                   const SizedBox(width: GeniusWalletConsts.space3),
+                if (locked)
                   Icon(Icons.lock_outline, size: 14, color: gw.textSecondary),
-                ],
               ],
-            ),
+            )
+          : null,
       action: _menu(context, gw, appBloc, operations),
     );
 
@@ -834,92 +824,6 @@ class _AccountRowTile extends StatelessWidget {
         ),
         const SizedBox(width: GeniusWalletConsts.space2),
         content,
-      ],
-    );
-  }
-
-  /// [trailing] for a nested row (depth >= 1): its own indent already spends
-  /// part of the row's width budget, and its own Fund/Recover/Revoke menu
-  /// items live one level deeper still, so at phone width both tags plus a
-  /// balance can genuinely not fit on one line. Width-
-  /// capped and wrapping here -- unlike the depth-0 case above, which never
-  /// gets this tight and keeps its plain, unwrapped Row.  A nested row is
-  /// always [AccountRowKind.merged] or [AccountRowKind.account] (registered
-  /// children are only ever own SDK accounts), so it never carries the SDK
-  /// badge a plain wallet row does.
-  Widget _nestedTrailing(
-    GWColors gw,
-    Wallet? wallet,
-    bool anyTag,
-    bool onNode,
-    bool isWatched,
-    bool locked,
-  ) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (anyTag)
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 62),
-            child: Wrap(
-              alignment: WrapAlignment.end,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: GeniusWalletConsts.space3,
-              runSpacing: GeniusWalletConsts.space2,
-              children: [
-                if (selected)
-                  GWRowBadge(
-                    label: 'Selected',
-                    color: gw.brandPrimaryBadgeText,
-                  ),
-                if (onNode)
-                  GWRowBadge(label: 'On node', color: gw.statusSuccessText),
-                if (wallet != null)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 48),
-                    child: Text(
-                      WalletUtils.formatMinions(wallet.balance),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                      style: GeniusWalletTypography.labelMd.copyWith(
-                        color: gw.textSecondary,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          )
-        else if (wallet != null)
-          // A childless-of-own-accounts row still reaches here at depth >=
-          // 1 without a tag; a chevron main's own indent plus chevron alone
-          // is enough to need the same cap.
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 48),
-            child: Text(
-              WalletUtils.formatMinions(wallet.balance),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-              style: GeniusWalletTypography.labelMd.copyWith(
-                color: gw.textSecondary,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-        if (isWatched) ...[
-          const SizedBox(width: GeniusWalletConsts.space3),
-          Icon(
-            Icons.remove_red_eye_outlined,
-            size: 16,
-            color: gw.textSecondary,
-          ),
-        ],
-        if (locked) ...[
-          const SizedBox(width: GeniusWalletConsts.space3),
-          Icon(Icons.lock_outline, size: 14, color: gw.textSecondary),
-        ],
       ],
     );
   }
