@@ -23,7 +23,7 @@ findings:
   warning: 1
   info: 1
   total: 2
-status: issues_found
+status: clean
 ---
 
 # Phase 36: Code Review Report
@@ -104,3 +104,7 @@ If any future caller pushes this route with a non-`String`, non-null `extra` (e.
 
 _Reviewed: 2026-09-29_
 _Depth: standard_
+
+## Resolution
+
+WR-01 and IN-01 fixed with a regression test for the odd-length token id; see 36-REVIEW-FIX.md.
