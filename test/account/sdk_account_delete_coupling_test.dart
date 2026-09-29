@@ -1,6 +1,6 @@
-// Deleting an SDK account takes its linked wallet with it (D-10), refuses
-// while that wallet is active or is the last one (D-11), and a plain wallet
-// delete never reaches an SDK account at all (D-08).
+// Deleting an SDK account takes its linked wallet with it, refuses while
+// that wallet is active or is the last one, and a plain wallet delete never
+// reaches an SDK account at all.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +10,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
-import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -393,17 +392,12 @@ void main() {
         );
         await tester.tap(find.text('open drawer'));
         await tester.pumpAndSettle();
-        // Scoped to the SDK row: the linked wallet renders under the same
-        // name in "Sending from" too.
-        expect(
-          find.descendant(
-            of: find.byType(SDKAccountRow),
-            matching: find.text('Main'),
-          ),
-          findsOneWidget,
-        );
+        // One merged row: the linked wallet and its SDK account no
+        // longer render as two separate "Main" rows.
+        expect(find.text('Main'), findsOneWidget);
 
-        await tester.tap(find.byTooltip('Account options'));
+        // Rows render Main (merged, linked) first, then Savings (plain).
+        await tester.tap(find.byTooltip('Account options').at(0));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Delete account'));
         await tester.pumpAndSettle();
