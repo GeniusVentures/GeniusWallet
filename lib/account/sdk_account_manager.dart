@@ -212,11 +212,11 @@ class SDKAccountManagerButton extends StatelessWidget {
         Icons.account_balance_wallet,
         color: isSelected ? context.gw.brandPrimaryStrong : gw.textSecondary,
       ),
-      // The title now names the wallet this account came from (D-17) - the
+      // The title now names the wallet this account came from - the
       // row's own default style, since the mono treatment belongs to the
       // address on the line below, not a wallet name.
       title: name,
-      // The address stays on every row, linked or not (D-16), with the same
+      // The address stays on every row, linked or not, with the same
       // mono subtitle style the wallet-menu rows use.
       subtitle:
           WalletUtils.getAddressForDisplay(address) +

@@ -110,7 +110,7 @@ class AccountDrawer {
 }
 
 /// Whether an own-wallet row has an SDK account, and if not, whether one is
-/// still on its way (D-19).
+/// still on its way.
 enum WalletSDKBadge {
   /// Tracking and sgnus rows, or an own wallet the SDK is running without
   /// ever having linked.
@@ -120,11 +120,11 @@ enum WalletSDKBadge {
   linked,
 
   /// No link yet, but the SDK is not running to make one - not a permanent
-  /// "no", just not yet (D-06/D-07).
+  /// "no", just not yet.
   pending,
 }
 
-/// Resolves [wallet]'s badge from the link map (D-19). Tracking and sgnus
+/// Resolves [wallet]'s badge from the link map. Tracking and sgnus
 /// wallets never carry one - the SDK section already says which of THEM has
 /// the link, via `sdk_account_manager.dart`'s row naming.
 WalletSDKBadge walletSDKBadge(
@@ -318,7 +318,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
 
   /// True when [wallet] is the row highlighted as selected. Matched on
   /// lowercased address AND wallet type, not name - an SDK row now carries
-  /// its own wallet's name (D-17), so two rows named alike would otherwise
+  /// its own wallet's name, so two rows named alike would otherwise
   /// both light up.
   bool _matchesSelected(Wallet wallet) {
     final selected = _selectedWallet;
@@ -411,7 +411,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // D-19: which of the user's OWN wallets has an SDK account, at a
+          // Which of the user's OWN wallets has an SDK account, at a
           // glance. Own-wallet rows only - `walletSDKBadge` already returns
           // `none` for sgnus/tracking rows, so this never doubles up with
           // `isActiveOnNode` below on the same row.

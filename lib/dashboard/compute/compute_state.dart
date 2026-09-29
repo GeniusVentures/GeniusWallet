@@ -43,7 +43,7 @@ enum ComputeState {
 
   /// The node is connected, but its own wallet address differs from the
   /// selected wallet's address - the selected wallet is not the one the SDK
-  /// starts with (D-20).
+  /// starts with.
   notDefaultAccount,
 
   /// The processing feed is flagged unavailable - `app_bloc.dart:192-195`

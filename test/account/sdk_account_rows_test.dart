@@ -1,5 +1,5 @@
-// Each SDK row must say which wallet it came from, or admit it has none
-// (D-16, D-17). This file proves the row-naming and row-address contract
+// Each SDK row must say which wallet it came from, or admit it has none.
+// This file proves the row-naming and row-address contract
 // directly against `_buildAccountRow`'s output, the same way
 // `sdk_start_account_delete_test.dart` proves the delete gating.
 import 'package:flutter/material.dart';
