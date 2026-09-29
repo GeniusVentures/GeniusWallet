@@ -105,14 +105,25 @@ class _FakeApi implements GeniusApi {
   _FakeApi({
     this.registrations = _registrations,
     this.fundResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    this.recoverResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    this.revokeResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
   });
 
-  final ChildRegistrations registrations;
+  // Mutable so a revoke test can prove its resolve reads a later list, not
+  // the one captured at submission.
+  ChildRegistrations registrations;
   final GeniusNodeReturnValue fundResult;
+  final GeniusNodeReturnValue recoverResult;
+  final GeniusNodeReturnValue revokeResult;
   final Map<String, BigInt> balances = {};
   String? lastFundedAmount;
   String? lastFundedChild;
+  String? lastRecoveredAmount;
+  String? lastRecoveredChild;
+  String? lastRevokedChild;
   int fundCallCount = 0;
+  int recoverCallCount = 0;
+  int revokeCallCount = 0;
 
   @override
   ChildRegistrations getChildRegistrations(String mainAddress) => registrations;
@@ -131,6 +142,24 @@ class _FakeApi implements GeniusApi {
     lastFundedAmount = amountGnus;
     lastFundedChild = childAddress;
     return fundResult;
+  }
+
+  @override
+  GeniusNodeReturnValue recoverFromChildGnus(
+    String amountGnus,
+    String childAddress,
+  ) {
+    recoverCallCount++;
+    lastRecoveredAmount = amountGnus;
+    lastRecoveredChild = childAddress;
+    return recoverResult;
+  }
+
+  @override
+  GeniusNodeReturnValue revokeChild(String childAddress) {
+    revokeCallCount++;
+    lastRevokedChild = childAddress;
+    return revokeResult;
   }
 
   @override
@@ -182,6 +211,18 @@ Future<void> _openFundDialog(WidgetTester tester) async {
   await tester.tap(find.byTooltip('Child actions'));
   await tester.pumpAndSettle();
   await tester.tap(find.widgetWithText(MenuItemButton, 'Fund'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _openRecoverDialog(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('Child actions'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(MenuItemButton, 'Recover'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _openMenu(WidgetTester tester) async {
+  await tester.tap(find.byTooltip('Child actions'));
   await tester.pumpAndSettle();
 }
 
@@ -447,4 +488,192 @@ void main() {
     await childWallets.close();
     await operations.close();
   });
+
+  testWidgets(
+    'recover resolves once the child balance really falls, then toasts once',
+    (tester) async {
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(2000000);
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+      );
+
+      await _openRecoverDialog(tester);
+      expect(find.text('Recover from Game Wallet'), findsOneWidget);
+      expect(find.text('From Game Wallet to Main Wallet.'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), '1.5');
+      await tester.tap(find.widgetWithText(GWButton, 'Recover'));
+      await tester.pumpAndSettle();
+
+      expect(api.recoverCallCount, 1);
+      expect(api.lastRecoveredAmount, '1.500000');
+      expect(api.lastRecoveredChild, _childAddress);
+      expect(find.text('Recovering 1.5 GNUS…'), findsOneWidget);
+
+      // The real signal: the child's balance actually fell by the amount.
+      api.balances[_childAddress] = BigInt.from(500000);
+      await tester.tap(find.byTooltip('Refresh'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Recovering 1.5 GNUS…'), findsNothing);
+      expect(find.text('Recovered 1.5 GNUS from Game Wallet'), findsOneWidget);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets('a refused recover shows the reason and never shows a badge', (
+    tester,
+  ) async {
+    final api = _FakeApi(
+      recoverResult: GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT,
+    );
+    api.balances[_childAddress] = BigInt.from(2000000);
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+    );
+
+    await _openRecoverDialog(tester);
+    await tester.enterText(find.byType(TextField), '1.5');
+    await tester.tap(find.widgetWithText(GWButton, 'Recover'));
+    await tester.pumpAndSettle();
+
+    expect(api.recoverCallCount, 1);
+    expect(
+      find.text(
+        'The SDK refused to recover from this child: '
+        'GENIUS_NODE_INVALID_ARGUMENT',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Recovering 1.5 GNUS…'), findsNothing);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets(
+    'revoke confirms the exact copy and resolves once the child leaves the '
+    'list, then toasts once',
+    (tester) async {
+      final api = _FakeApi();
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+      );
+
+      await _openMenu(tester);
+      await tester.tap(find.widgetWithText(MenuItemButton, 'Revoke'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Revoke child?'), findsOneWidget);
+      expect(
+        find.text(
+          'Revoke Game Wallet? It will no longer be a child of '
+          'Main Wallet.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.widgetWithText(GWButton, 'Revoke'));
+      await tester.pumpAndSettle();
+
+      expect(api.revokeCallCount, 1);
+      expect(api.lastRevokedChild, _childAddress);
+      expect(find.text('Revoking…'), findsOneWidget);
+
+      // The real signal: an OK read of the main no longer lists the child.
+      api.registrations = (
+        result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+        entries: const [],
+      );
+      await tester.tap(find.byTooltip('Refresh'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Revoked Game Wallet'), findsOneWidget);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets('a refused revoke shows the reason and never shows a badge', (
+    tester,
+  ) async {
+    final api = _FakeApi(
+      revokeResult: GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT,
+    );
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+    );
+
+    await _openMenu(tester);
+    await tester.tap(find.widgetWithText(MenuItemButton, 'Revoke'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(GWButton, 'Revoke'));
+    await tester.pumpAndSettle();
+
+    expect(api.revokeCallCount, 1);
+    expect(
+      find.text(
+        'The SDK refused to revoke this child: GENIUS_NODE_INVALID_ARGUMENT',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Revoking…'), findsNothing);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets(
+    'a pending Revoke locks only Revoke on that child -- Fund and Recover '
+    'stay enabled',
+    (tester) async {
+      final api = _FakeApi();
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+      );
+
+      operations.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+      await tester.pump();
+      await _openMenu(tester);
+
+      final revokeItem = tester.widget<MenuItemButton>(
+        find.widgetWithText(MenuItemButton, 'Revoke'),
+      );
+      expect(revokeItem.onPressed, isNull);
+      expect(find.byTooltip('Already revoking this child'), findsOneWidget);
+
+      final fundItem = tester.widget<MenuItemButton>(
+        find.widgetWithText(MenuItemButton, 'Fund'),
+      );
+      final recoverItem = tester.widget<MenuItemButton>(
+        find.widgetWithText(MenuItemButton, 'Recover'),
+      );
+      expect(fundItem.onPressed, isNotNull);
+      expect(recoverItem.onPressed, isNotNull);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
 }
