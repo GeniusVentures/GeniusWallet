@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 Phase: 37 (Child write operations & pending model) — EXECUTING
 Plan: 5 of 5 — complete
-Status: Executing Phase 37
+Status: Phases 34-37 executed and verified in code; live walks pending (see Deferred Verification)
 Last activity: 2026-09-29 — Phase 37 execution started
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
@@ -520,6 +520,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 | 34 | verification_deferred_human | /gsd-verify-work 34 |
 | 35 | verification_deferred_human | /gsd-verify-work 35 |
 | 36 | verification_deferred_human | /gsd-verify-work 36 |
+| 37 | verification_deferred_human | /gsd-verify-work 37 |
 
 ## Deferred Items
 
