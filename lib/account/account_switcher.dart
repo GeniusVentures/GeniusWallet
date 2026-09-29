@@ -33,11 +33,13 @@ class AccountSwitcher extends StatelessWidget {
         final selectedWallet =
             context.watch<WalletDetailsCubit>().state.selectedWallet ??
             wallets.first;
-        final label = selectedWallet.walletType == WalletType.sgnus
-            ? 'Super Genius'
-            : (selectedWallet.walletName.isNotEmpty
-                  ? selectedWallet.walletName
-                  : WalletUtils.getAddressForDisplay(selectedWallet.address));
+        // Every SDK account shares one generic name, so its address is what
+        // tells them apart.
+        final label =
+            selectedWallet.walletType == WalletType.sgnus ||
+                selectedWallet.walletName.isEmpty
+            ? WalletUtils.getAddressForDisplay(selectedWallet.address)
+            : selectedWallet.walletName;
         final selectedSDKAccount = state.selectedSDKAccount;
         final nodeStatus = selectedSDKAccount != null
             ? 'Node running as ${AppBloc.sdkAccountName(selectedSDKAccount, state.sdkAccountLinks, state.wallets)}'
