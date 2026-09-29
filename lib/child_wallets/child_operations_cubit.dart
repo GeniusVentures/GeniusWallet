@@ -176,19 +176,26 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   bool _hasAmount(ChildOperationKind kind) =>
       kind == ChildOperationKind.fund || kind == ChildOperationKind.recover;
 
-  /// The balance [kind] draws on for [target]. Fund draws on the running
-  /// account's own GNUS balance -- BigInt.tryParse on the SDK's decimal
-  /// string, zero on a bad parse rather than a thrown exception. Recover
-  /// draws on the child's own balance. Revoke, detach and register take no
-  /// amount and never call this.
+  /// The balance [kind] still has free for [target]: the running account's
+  /// own GNUS for Fund, the child's for Recover, less what this registry has
+  /// already sent against it (see [_committed]). Zero on a bad balance parse.
   BigInt payingBalance(ChildOperationKind kind, String target) {
     switch (kind) {
       case ChildOperationKind.fund:
-        return _devMocked
-            ? DevMockChildWallets.mainBalanceMinions
-            : BigInt.tryParse(_api.getMinionsBalance()) ?? BigInt.zero;
+        final running = runningAccount?.toLowerCase();
+        return _lessCommitted(
+          _devMocked
+              ? DevMockChildWallets.mainBalanceMinions
+              : BigInt.tryParse(_api.getMinionsBalance()) ?? BigInt.zero,
+          kind,
+          (op) => op.fromAccount.toLowerCase() == running,
+        );
       case ChildOperationKind.recover:
-        return _childBalance(target);
+        return _lessCommitted(
+          _childBalance(target),
+          kind,
+          (op) => op.target.toLowerCase() == target.toLowerCase(),
+        );
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
       case ChildOperationKind.register:
@@ -196,6 +203,28 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         return BigInt.zero;
     }
   }
+
+  /// [balance] less [_committed], floored at zero.
+  BigInt _lessCommitted(
+    BigInt balance,
+    ChildOperationKind kind,
+    bool Function(ChildOperation) drawsOn,
+  ) {
+    final free = balance - _committed(kind, drawsOn);
+    return free < BigInt.zero ? BigInt.zero : free;
+  }
+
+  /// The amounts of every tracked [kind] op [drawsOn] the same balance. A
+  /// timed-out op counts too: there is no tx hash, so the SDK may still land
+  /// it, and the balance read has not moved for it yet.
+  // ponytail: one that never lands holds its amount until restart or a
+  // resolve; the upgrade path is an SDK receipt per write.
+  BigInt _committed(
+    ChildOperationKind kind,
+    bool Function(ChildOperation) drawsOn,
+  ) => state.operations
+      .where((op) => op.kind == kind && drawsOn(op))
+      .fold(BigInt.zero, (sum, op) => sum + op.amountMinions!);
 
   /// Submits [kind] against [target], or returns null with no SDK call when
   /// the node isn't running as the side [kind] requires (`main` for a

@@ -62,9 +62,12 @@ class _FakeApi implements GeniusApi {
   BigInt getChildBalanceAll(String childAddress) =>
       balances[childAddress] ?? BigInt.zero;
 
-  // Comfortably above every amount these tests submit.
+  // Comfortably above every amount these tests submit, unless a test lowers
+  // it to prove the paying-balance check.
+  String minionsBalance = '10000000';
+
   @override
-  String getMinionsBalance([String? tokenId]) => '10000000';
+  String getMinionsBalance([String? tokenId]) => minionsBalance;
 
   @override
   GeniusNodeReturnValue fundChildGnus(String amountGnus, String childAddress) {
@@ -437,6 +440,106 @@ void main() {
       now = submittedAt.add(childOperationTimeout);
       cubit.resolve();
       expect(cubit.hasPendingFrom(_mainAddress), isFalse);
+
+      cubit.close();
+    });
+  });
+
+  group('the paying balance', () {
+    test('two funds to different children cannot jointly exceed the main '
+        'balance', () {
+      var now = DateTime(2024);
+      final api = _FakeApi()..minionsBalance = '100000000'; // 100 GNUS
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      final first = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(60000000),
+      );
+      expect(first, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+
+      final available = cubit.payingBalance(
+        ChildOperationKind.fund,
+        _secondChildAddress,
+      );
+      expect(available, BigInt.from(40000000));
+      expect(
+        parseGnusAmount(
+          '60',
+          balanceMinions: available,
+          payer: 'Main Wallet',
+        ).error,
+        "Main Wallet doesn't have that much GNUS.",
+      );
+      final second = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _secondChildAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(60000000),
+      );
+      expect(second, isNull);
+      expect(api.fundCallCount, 1);
+
+      // Timed out is not the same as not sent: the first fund may still
+      // land, so it keeps holding its share of the balance.
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(
+        cubit.payingBalance(ChildOperationKind.fund, _secondChildAddress),
+        BigInt.from(40000000),
+      );
+
+      final rest = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _secondChildAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(40000000),
+      );
+      expect(rest, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      expect(api.fundCallCount, 2);
+
+      cubit.close();
+    });
+
+    test('a timed-out recover still holds its share of the child balance', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(100000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(60000000),
+      );
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+
+      final again = cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(60000000),
+      );
+
+      expect(again, isNull);
+      expect(api.recoverCallCount, 1);
+      expect(
+        cubit.payingBalance(ChildOperationKind.recover, _childAddress),
+        BigInt.from(40000000),
+      );
 
       cubit.close();
     });
