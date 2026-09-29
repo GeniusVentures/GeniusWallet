@@ -58,8 +58,22 @@ The established `GeniusWalletConsts.space*` set (already on develop). No new val
 | space8 | 16px | Gap between "Sending from" and "Node running as" sections; secondary button's top margin under a section |
 | space10 | 20px | Drawer list outer padding (`ListView` padding, unchanged) |
 
-Exceptions: none. Every measurement here is an existing token already in use at the files this
-phase touches — this phase adds no new spacing value.
+**Exceptions (space3=6px, space6=12px, space10=20px fall outside the canonical
+4/8/16/24/32/48/64 set) — none introduced or changed by this phase.** Each is a pre-existing
+`GeniusWalletConsts.space*` token, already defined at `lib/theme/genius_wallet_consts.dart:19-31`,
+inherited unchanged from the shipped components this phase relocates into one drawer:
+
+- **space3 (6px)** — badge→trailing-content gap and trailing-icon gap in `_buildDrawerRow`,
+  `lib/account/account_drawer.dart:428,438,481` (the gap after each `_RowBadge` and before the
+  watched-wallet eye icon).
+- **space6 (12px)** — `GWSelectRow`'s own row padding and leading→content gap,
+  `lib/components/cards/gw_select_row.dart:104-105,126`; and `_AccountSectionHeader`'s
+  caption→content bottom inset, `lib/account/account_drawer.dart:799`.
+- **space10 (20px)** — the drawer's outer `ListView` padding, `lib/account/account_drawer.dart:598`
+  (`padding: const EdgeInsets.all(GeniusWalletConsts.space10)`).
+
+This phase adds no new spacing value and does not change any of the three exceptions above — they
+are read from the components being merged, not authored here.
 
 ---
 
@@ -71,14 +85,38 @@ phase touches — this phase adds no new spacing value.
 | Section caption | 14px (`bodySm`) | 400 | 1.45 | The one-sentence explanation under each section title |
 | Row title | 16px (`bodySm`/w600 default) or mono `labelMd` for an address-as-title | 600 | 1.4 | Wallet name / SDK account name (`GWSelectRow.title`) |
 | Row subtitle | 13px (`labelMd`, mono) | 500 | 18/13 | Short address, "· Default account", "· Active processing account" |
-| Badge label | 13px (`labelMd`, w600 per `_RowBadge`) | 600 | 18/13 | "SDK" / "SDK PENDING" / "ACTIVE ON NODE" |
-| Chip label (desktop) | inherits `Theme.of(context).textTheme.bodyMedium` | 400 | default | The active wallet's name/short address inside the merged chip (unchanged from `AccountDropdownSelector` today) |
+| Badge label | `labelMd` base, overridden to 9px per `_RowBadge` | 700 | 18/13 (base; rendered tight at 9px) | "SDK" / "SDK PENDING" / "ACTIVE ON NODE" |
+| Chip label (desktop) | inherits `Theme.of(context).textTheme.bodyMedium` (→ `bodyMd`) | 400 | default | The active wallet's name/short address inside the merged chip (unchanged from `AccountDropdownSelector` today) |
 | New "From wallet" line (Swap) | 14px (`bodySm`) | 400 | 20/14 | `Sending from {walletName}` |
 | New inline link ("Switch ›") | 13px (`labelMd`) | 500 | 18/13 | Opens the switcher drawer from the Swap screen |
 
 No new type role is introduced. The "From wallet" line on Swap reuses the exact sub-line + inline
 link shape Phase 14 already established for the compute panel (`_SublineRow`: `Row([Flexible(text,
 maxLines:1,ellipsis), SizedBox(space3), link])`) rather than inventing a new pattern.
+
+**Weight exception (4 weights: 700/600/500/400) — none newly introduced by this phase.** This is a
+merge of existing drawers (see the file banner); every weight above is a pre-existing shipped token,
+carried forward unchanged. Traced to source:
+
+- **700** — section title, `_AccountSectionHeader.build`, `lib/account/account_drawer.dart:807`
+  (`GeniusWalletTypography.labelMd.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1.2)`); the
+  same w700 override is what `_RowBadge` also uses for its label,
+  `lib/account/account_drawer.dart:173`.
+- **600** — row title, `GWSelectRow.build`, `lib/components/cards/gw_select_row.dart:140`
+  (`GeniusWalletTypography.bodySm.copyWith(fontWeight: FontWeight.w600)`).
+- **500** — row subtitle, `GWSelectRow.build`, `lib/components/cards/gw_select_row.dart:150`
+  (`labelMd` used with no weight override — `labelMd`'s own default is `FontWeight.w500`, defined at
+  `lib/theme/genius_wallet_typography.dart:130`). The new inline link ("Switch ›") reuses this same
+  default, unchanged.
+- **400** — section caption, `_AccountSectionHeader.build`, `lib/account/account_drawer.dart:818`
+  (`bodySm` with no weight override — `bodySm`'s default is `FontWeight.w400`, defined at
+  `lib/theme/genius_wallet_typography.dart:119`); the desktop chip label reuses the same default via
+  `Theme.of(context).textTheme.bodyMedium` (→ `bodyMd`, also w400) at
+  `lib/account/account_dropdown_selector.dart:60`.
+
+This phase does not restyle any of the drawers it merges — it relocates existing rows/sections into
+one drawer and changes copy/behaviour per D-01..D-14 only. No weight above is changed, added, or
+removed by this phase.
 
 ---
 
@@ -166,6 +204,9 @@ field:
 [ NetworkDropdownSelector ] | [ AccountSwitcher ] | [ ReownConnectButton ]
 ```
 
+- **Visual focal point:** the wallet avatar + name inside the chip — the identity, not the trailing
+  `arrow_drop_down` caret or the track's hairline dividers. Nothing in the merge adds weight, color
+  or size to the caret or the track relative to today.
 - The conditional `if (sdkAccounts.isNotEmpty)` wrapper around the SDK chip is deleted — `AccountSwitcher`
   always renders (D-04), so the track never has a "phantom gap" for an absent chip (closes the
   `ponytail:` note at `responsive_overlay.dart:37-41` as a side effect, not a goal of this phase).
@@ -214,6 +255,11 @@ Row order within "Sending from" is unchanged from today's `ownWallets` order. Ro
 "Node running as" is unchanged from today's `sdk_account_manager.dart` order (selected/start-account
 sorting, if any, stays as-is — this phase does not reorder SDK accounts).
 
+**Visual focal point:** the "Sending from" section header (w700, uppercase, tracked) and its
+selected row's gradient tint — the drawer opens on the question "which wallet am I sending from,"
+so that pairing is the first thing the eye should land on. "Node running as" is the secondary read,
+one `space8` gap below.
+
 ### Send review drawer (`send_transaction_details.dart`)
 
 The `GWCopyRow(label: 'From', value: fromAddress)` row (line 78) becomes
@@ -234,7 +280,7 @@ needed here.
 
 ## UI Considerations
 
-Applicable state considerations resolved: 6 covered, 1 backstop, 0 unresolved.
+Applicable state considerations resolved: 10 covered, 1 backstop, 0 unresolved.
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
@@ -245,6 +291,10 @@ Applicable state considerations resolved: 6 covered, 1 backstop, 0 unresolved.
 | long-text | Swap "Sending from {walletName}" line | ✅ covered | `Flexible` + `maxLines:1`/ellipsis; the "Switch ›" link never truncates (same rule Phase 14 §1.5.2 already established for this exact sub-line shape). |
 | overflow | SDK row's badge + trailing content at narrow drawer width | ✅ covered | Reuses Phase 34's fix verbatim: balance text gets a bounded/ellipsised width only when a badge shows (`34-02-SUMMARY.md`). No new overflow surface is introduced. |
 | zero-one-many | Multiple own wallets / multiple SDK accounts | 🧪 backstop | { statement: "Both sections render N rows without changing row shape, badge logic, or menu contents as N grows", verification: backstop } |
+| loading | "Node running as" section while the node is starting | ✅ covered | The SDK list is read from `AppState` and renders whatever is there; while the node is not yet connected it shows the "Node not running" note, never a spinner that could hang. |
+| error | Row actions that fail (select SDK account, delete, add from phrase) | ✅ covered | Existing toasts/dialogs from the SDK drawer and Phase 34 are reused unchanged; the switcher adds no new failure surface. |
+| populated | Chip, drawer, Send "From" row, Swap "From" line | ✅ covered | Specified in Screen Contracts; each shows the active wallet's name and short address, and the chip tooltip names both selections. |
+| partial | SDK account with no linked wallet | ✅ covered | Row reads "Unlinked" + short address (Phase 34 label), still selectable. |
 
 ---
 
