@@ -4,17 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
-import 'package:genius_api/genius_api.dart' show SDKAddOutcome, Wallet;
+import 'package:genius_api/genius_api.dart' show SDKAddOutcome;
 import 'package:genius_wallet/account/add_account_secret_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
-import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
-import 'package:genius_wallet/components/overlays/gw_menu_item.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
@@ -24,197 +21,7 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/secret_clipboard.dart';
 import 'package:genius_wallet/utils/secure_screen.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
-import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-
-/// One row in the "Node running as" section: an SDK account's identity, its
-/// selection state and the menu that manages it (payout address, recovery
-/// phrase, delete). The mnemonic it reads stays a build-local, never a field.
-class SDKAccountRow extends StatelessWidget {
-  const SDKAccountRow({
-    super.key,
-    required this.address,
-    required this.name,
-    required this.isSelected,
-    required this.isStartAccount,
-    this.balanceWallet,
-    this.lockedReason,
-  });
-
-  final String address;
-  final String name;
-  final bool isSelected;
-  final bool isStartAccount;
-
-  /// The linked sgnus wallet this row's "View balance" menu item selects, or
-  /// null when the account has none.
-  final Wallet? balanceWallet;
-
-  /// Non-null while a child operation submitted from the running account is
-  /// still pending -- switching AWAY from it is refused with this as the
-  /// reason. Never locks the selected row itself (tapping it is already a
-  /// no-op) or "Sending from" rows, which this widget never renders.
-  final String? lockedReason;
-
-  @override
-  Widget build(BuildContext context) {
-    // Fail-soft read: registers the InheritedWidget dependency (on the
-    // per-row context passed in from the drawer's own itemBuilder, NOT the
-    // widget-level this.context) that forces this row to rebuild on a live
-    // appearance toggle while the drawer stays open (04-02 D-02).
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-    final locked = lockedReason != null && !isSelected;
-
-    final mnemonic = context.read<AppBloc>().api.getSelectedAccountMnemonic();
-    final can = sdkRowActions(
-      isSelected: isSelected,
-      hasMnemonic: mnemonic != null,
-      isStartAccount: isStartAccount,
-    );
-
-    // Sketch 068-A. This was a `GWCard` whose selected state was a 2px brand
-    // border -- which also meant the row's geometry changed by 1px on each side
-    // when it became selected. `GWSelectRow` keeps its border width constant
-    // and says "selected" with the tint, the brand edge and the check glyph,
-    // the same three the token picker uses.
-    final row = GWSelectRow(
-      selected: isSelected,
-      onTap: () {
-        if (locked) {
-          showToast(context, lockedReason!, type: ToastType.warning);
-          return;
-        }
-        if (!isSelected) {
-          context.read<AppBloc>().add(SelectSDKAccount(address));
-          showToast(
-            context,
-            'SDK account selected',
-            duration: const Duration(seconds: 1),
-          );
-        }
-      },
-      leading: GWIcon.material(
-        Icons.account_balance_wallet,
-        color: locked
-            ? gw.textSecondary.withValues(alpha: 0.5)
-            : (isSelected ? context.gw.brandPrimaryStrong : gw.textSecondary),
-      ),
-      // The title now names the wallet this account came from - the
-      // row's own default style, since the mono treatment belongs to the
-      // address on the line below, not a wallet name.
-      title: name,
-      titleStyle: locked
-          ? GeniusWalletTypography.bodySm.copyWith(
-              fontWeight: FontWeight.w600,
-              color: gw.textSecondary.withValues(alpha: 0.5),
-            )
-          : null,
-      // The address stays on every row, linked or not, with the same
-      // mono subtitle style the wallet-menu rows use.
-      subtitle:
-          WalletUtils.getAddressForDisplay(address) +
-          (isSelected
-              ? ' · Active processing account'
-              : (isStartAccount ? ' · Default account' : '')),
-      subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
-        fontFamily: GeniusWalletTypography.monoFamily,
-        color: locked
-            ? gw.textSecondary.withValues(alpha: 0.5)
-            : gw.textSecondary,
-      ),
-      trailing: locked
-          ? Icon(Icons.lock_outline, size: 14, color: gw.textSecondary)
-          : null,
-      // ONE menu on EVERY row (sketch 069-A). Before this, the selected row got
-      // a three-item menu and every OTHER row got a bare red delete
-      // `IconButton` and no menu at all -- so Delete was never IN the menu, the
-      // menu never appeared on a row you could delete, and the code's own
-      // guard ("Cannot delete the currently selected SDK account") could never
-      // fire from the UI, because the button it guards was not rendered there.
-      //
-      // Inapplicable items are DISABLED, not absent, so the menu keeps one
-      // shape and one order whichever row you open it on.
-      // No local `MenuStyle`: the container's fill, shape and surface tint are
-      // `theme.dart`'s `menuTheme`, and its label typography is
-      // `menuButtonTheme`. Both call sites used to duplicate this under a
-      // comment claiming the theme supplied no menuTheme -- it always did.
-      action: MenuAnchor(
-        builder: (context, controller, child) => IconButton(
-          icon: GWIcon.material(Icons.more_vert, color: gw.textSecondary),
-          tooltip: 'Account options',
-          onPressed: () =>
-              controller.isOpen ? controller.close() : controller.open(),
-        ),
-        menuChildren: [
-          GWMenuItem(
-            icon: Icons.edit_location_alt,
-            label: 'Set payout address',
-            // The SDK sets the payout address on the CURRENTLY SELECTED
-            // account, so this is meaningless on any other row.
-            onPressed: can.payout
-                ? () => showSetPayoutAddressDialog(context)
-                : null,
-          ),
-          GWMenuItem(
-            icon: Icons.numbers,
-            label: 'Copy recovery phrase',
-            // Two gates, both real: the SDK only exposes the SELECTED
-            // account's mnemonic, and an account imported from a private key
-            // has no phrase at all.
-            onPressed: can.phrase
-                ? () => copyRecoveryPhrase(context, mnemonic!)
-                : null,
-          ),
-          GWMenuItem(
-            icon: Icons.qr_code,
-            label: 'Show recovery QR',
-            onPressed: can.qr ? () => showRecoveryQr(context, mnemonic!) : null,
-          ),
-          GWMenuItem(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'View balance',
-            // Every row gets this, not just the selected one - it has no
-            // exclusivity gate, unlike the three above.
-            onPressed: balanceWallet != null
-                ? () => Navigator.of(context).pop(balanceWallet)
-                : null,
-          ),
-          GWMenuItem(
-            icon: Icons.account_tree,
-            label: 'Child wallets',
-            // The SDK only knows the children of the account it is running
-            // as, so this is meaningless on any other row - same shape as
-            // the payout/phrase/QR gates above.
-            onPressed: can.childWallets
-                ? () {
-                    final router = GoRouter.of(context);
-                    Navigator.of(context).pop();
-                    router.push('/child-wallets', extra: address);
-                  }
-                : null,
-          ),
-          const Divider(height: 9, indent: 12, endIndent: 12),
-          GWMenuItem(
-            icon: Icons.delete_outline,
-            label: 'Delete account',
-            color: gw.statusErrorText,
-            // Disabled, not hidden. `GeniusApi.deleteAccount`'s own doc says
-            // the SDK refuses to delete the selected account, so this is the
-            // rule made visible rather than a new one invented here.
-            onPressed: can.delete
-                ? () => confirmDeleteSDKAccount(context, address)
-                : null,
-          ),
-        ],
-      ),
-    );
-
-    if (!locked) {
-      return row;
-    }
-    return Tooltip(message: lockedReason, child: row);
-  }
-}
 
 /// A seed phrase leaving the app deserves a word about it. This used to be
 /// `onPressed: () => {Clipboard.setData(...)}` and nothing else - no
@@ -222,8 +29,7 @@ class SDKAccountRow extends StatelessWidget {
 /// "Address copied to clipboard". This is the one value where a silent
 /// clipboard write is a security event rather than a convenience.
 ///
-/// Public: every row carrying an SDK account reaches this from its own menu
-/// now, not just [SDKAccountRow]'s.
+/// Public: any row carrying an SDK account reaches this from its own menu.
 Future<void> copyRecoveryPhrase(BuildContext context, String mnemonic) async {
   final navigator = Navigator.of(context, rootNavigator: true);
   Navigator.of(context).pop();
