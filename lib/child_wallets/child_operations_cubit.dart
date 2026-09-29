@@ -31,6 +31,13 @@ bool _isChildSide(ChildOperationKind kind) =>
 /// confirmed yet" instead.
 const childOperationTimeout = Duration(minutes: 2);
 
+/// How long a fund or recover's balance baseline stays trustworthy. Past it
+/// the op never resolves on the balance, and a retry reads a fresh one.
+// ponytail: other movement on the child inside this window can still read
+// as the write landing, and a write landing after it holds its amount until
+// restart; the upgrade path is a per-write tx hash from the SDK.
+final _baselineLifetime = childOperationTimeout * 3;
+
 /// One in-flight or timed-out SDK write. Public addresses, minions and a
 /// timestamp only -- never a key, mnemonic or seed.
 class ChildOperation {
@@ -43,6 +50,7 @@ class ChildOperation {
     this.amountMinions,
     this.carriedMinions,
     this.baselineMinions,
+    this.baselineAt,
     required this.submittedAt,
     this.notConfirmed = false,
   });
@@ -57,6 +65,10 @@ class ChildOperation {
   /// The timed-out attempt(s) this op replaced, still able to land late.
   final BigInt? carriedMinions;
   final BigInt? baselineMinions;
+
+  /// When [baselineMinions] was read -- a retry that keeps an earlier
+  /// attempt's baseline keeps its read time too.
+  final DateTime? baselineAt;
   final DateTime submittedAt;
   final bool notConfirmed;
 
@@ -69,6 +81,7 @@ class ChildOperation {
     amountMinions: amountMinions,
     carriedMinions: carriedMinions,
     baselineMinions: baselineMinions,
+    baselineAt: baselineAt,
     submittedAt: submittedAt,
     notConfirmed: notConfirmed ?? this.notConfirmed,
   );
@@ -282,18 +295,26 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         existing.kind == kind &&
         existing.notConfirmed &&
         existing.target.toLowerCase() == target.toLowerCase();
-    // A timed-out attempt can still land late, so a retry inherits its
-    // baseline and amount: it resolves only once both have landed, never on
-    // the abandoned attempt's money alone.
+    // A timed-out attempt can still land late, so a retry carries its
+    // amount: it resolves only once both have landed, never on the
+    // abandoned attempt's money alone.
     final replaced = _hasAmount(kind)
         ? state.operations.where(replaces).firstOrNull
+        : null;
+    final now = _now();
+    // The earlier baseline is kept only if it stays trusted until the retry
+    // itself times out; otherwise the retry reads a fresh one.
+    final inherited =
+        replaced != null &&
+            _baselineTrusted(replaced, now.add(childOperationTimeout))
+        ? replaced
         : null;
     // Read BEFORE the write, so resolve() has an honest number to compare
     // the balance against once the write lands. Revoke and detach resolve
     // off the registrations list instead, so neither has a use for a
     // balance baseline.
     final baseline = _hasAmount(kind)
-        ? replaced?.baselineMinions ?? _childBalance(target)
+        ? inherited?.baselineMinions ?? _childBalance(target)
         : null;
     final op = ChildOperation(
       kind: kind,
@@ -304,7 +325,8 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       amountMinions: amountMinions,
       carriedMinions: replaced?.totalMinions,
       baselineMinions: baseline,
-      submittedAt: _now(),
+      baselineAt: _hasAmount(kind) ? inherited?.baselineAt ?? now : null,
+      submittedAt: now,
     );
     // No real SDK write may ever be issued while a preset is armed --
     // submitWrite is the only path a write takes from here.
@@ -368,7 +390,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     final remaining = <ChildOperation>[];
     var changed = false;
     for (final op in state.operations) {
-      if (_signalMet(op)) {
+      if (_signalMet(op, now)) {
         resolved.add(op);
         changed = true;
         continue;
@@ -393,14 +415,14 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     }
   }
 
-  bool _signalMet(ChildOperation op) {
+  bool _signalMet(ChildOperation op, DateTime now) {
     switch (op.kind) {
       case ChildOperationKind.fund:
-        final current = _childBalance(op.target);
-        return current >= (op.baselineMinions! + op.totalMinions);
+        return _baselineTrusted(op, now) &&
+            _childBalance(op.target) >= op.baselineMinions! + op.totalMinions;
       case ChildOperationKind.recover:
-        final current = _childBalance(op.target);
-        return current <= (op.baselineMinions! - op.totalMinions);
+        return _baselineTrusted(op, now) &&
+            _childBalance(op.target) <= op.baselineMinions! - op.totalMinions;
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
         return _listedUnder(op.main, op.target) == false;
@@ -413,6 +435,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
             _listedUnder(op.newMain!, op.target) == true;
     }
   }
+
+  /// False once [op]'s baseline is older than [_baselineLifetime] at [at].
+  bool _baselineTrusted(ChildOperation op, DateTime at) =>
+      at.isBefore(op.baselineAt!.add(_baselineLifetime));
 
   /// Whether an OK read of [main]'s registrations lists [target],
   /// case-insensitively -- or null when the read itself wasn't OK. Callers
