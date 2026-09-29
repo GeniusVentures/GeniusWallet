@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart' show GeniusNodeReturnValue;
+import 'package:genius_wallet/child_wallets/child_main_picker_dialog.dart';
 import 'package:genius_wallet/child_wallets/child_operation_switch_dialog.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
@@ -268,6 +269,81 @@ Future<void> startDetach(
   if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
     // ignore: use_build_context_synchronously
     _showRefusalToast(navigator.context, result, 'detach this account');
+  }
+}
+
+/// Opens the main picker for [account], the node's own account, then the
+/// Register confirmation for the chosen main. Child-side, like [startDetach].
+Future<void> startRegister(
+  BuildContext context, {
+  required String account,
+}) async {
+  final registry = context.read<ChildOperationsCubit>();
+  if (!await ensureRunningAs(context, account) || !context.mounted) {
+    return;
+  }
+  final accountName = registry.labelFor(account);
+
+  // The original context, not the navigator's: showMainPicker reads the
+  // registry itself, and only the original context is a descendant of
+  // where the registry is provided -- showDialog's own useRootNavigator
+  // still anchors the dialog at the app root regardless.
+  final main = await showMainPicker(
+    // ignore: use_build_context_synchronously
+    context,
+    title: 'Register as a child of…',
+    candidates: registry.ownAccounts,
+    excluded: {account},
+  );
+
+  if (main == null || !context.mounted) {
+    return;
+  }
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final mainName = registry.labelFor(main);
+
+  final confirmed = await GWDialog.show<bool>(
+    // ignore: use_build_context_synchronously
+    context: navigator.context,
+    title: 'Register as a child?',
+    message:
+        'Register $accountName as a child of $mainName? $accountName will '
+        'be controlled by $mainName until detached.',
+    actions: [
+      GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
+      GWDialogAction(
+        label: 'Register',
+        variant: GWButtonVariant.primary,
+        onPressed: () => navigator.pop(true),
+      ),
+    ],
+  );
+
+  if (confirmed != true) {
+    return;
+  }
+
+  final result = registry.submit(
+    kind: ChildOperationKind.register,
+    target: account,
+    main: main,
+  );
+
+  if (!navigator.context.mounted) {
+    return;
+  }
+  if (result == null) {
+    showToast(
+      // ignore: use_build_context_synchronously
+      navigator.context,
+      'Nothing was sent. Try again.',
+      type: ToastType.error,
+    );
+    return;
+  }
+  if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+    // ignore: use_build_context_synchronously
+    _showRefusalToast(navigator.context, result, 'register this account');
   }
 }
 

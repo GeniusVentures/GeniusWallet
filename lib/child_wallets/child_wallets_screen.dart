@@ -126,6 +126,10 @@ class _ChildWalletsHeader extends StatelessWidget {
     final parentMain = state.parentMain;
     final pendingOp = loaded ? registry.latestFor(subject) : null;
     final detachLocked = registry.isPending(ChildOperationKind.detach, subject);
+    final registerLocked = registry.isPending(
+      ChildOperationKind.register,
+      subject,
+    );
 
     return Container(
       padding: const EdgeInsets.all(GeniusWalletConsts.space6),
@@ -187,12 +191,12 @@ class _ChildWalletsHeader extends StatelessWidget {
                       onCheckAgain: registry.resolve,
                     ),
                   ],
-                  if (parentMain != null) ...[
-                    const SizedBox(height: GeniusWalletConsts.space4),
-                    Wrap(
-                      spacing: GeniusWalletConsts.space4,
-                      runSpacing: GeniusWalletConsts.space4,
-                      children: [
+                  const SizedBox(height: GeniusWalletConsts.space4),
+                  Wrap(
+                    spacing: GeniusWalletConsts.space4,
+                    runSpacing: GeniusWalletConsts.space4,
+                    children: [
+                      if (parentMain != null)
                         GWButton(
                           label: 'Detach',
                           variant: GWButtonVariant.secondary,
@@ -207,10 +211,21 @@ class _ChildWalletsHeader extends StatelessWidget {
                                   account: subject,
                                   main: parentMain,
                                 ),
+                        )
+                      else
+                        GWButton(
+                          label: 'Register as a child of…',
+                          variant: GWButtonVariant.secondary,
+                          size: GWButtonSize.sm,
+                          tooltip: registerLocked
+                              ? 'Already registering this account'
+                              : null,
+                          onPressed: registerLocked
+                              ? null
+                              : () => startRegister(context, account: subject),
                         ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ],
               ],
             ),

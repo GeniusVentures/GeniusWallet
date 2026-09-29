@@ -20,6 +20,8 @@ String pendingText(ChildOperation op, String Function(String) labelFor) {
       return 'Revoking…';
     case ChildOperationKind.detach:
       return 'Detaching…';
+    case ChildOperationKind.register:
+      return 'Registering…';
   }
 }
 
@@ -36,6 +38,8 @@ String resolvedText(ChildOperation op, String Function(String) labelFor) {
       return 'Revoked ${labelFor(op.target)}';
     case ChildOperationKind.detach:
       return 'Detached from ${labelFor(op.main)}';
+    case ChildOperationKind.register:
+      return 'Registered as a child of ${labelFor(op.main)}';
   }
 }
 
