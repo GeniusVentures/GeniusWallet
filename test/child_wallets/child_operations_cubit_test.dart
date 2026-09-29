@@ -362,10 +362,41 @@ void main() {
       cubit.close();
     });
 
-    test('after notConfirmed, a new submit leaves exactly one op for that '
-        'child', () {
+    test('a pending recover locks a fund on the same child too', () {
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(3000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+
+      expect(
+        cubit.balanceLockReason(_childAddress.toUpperCase()),
+        'Already recovering from this child',
+      );
+      final fund = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(500000),
+      );
+      expect(fund, isNull);
+      expect(api.fundCallCount, 0);
+
+      cubit.close();
+    });
+
+    test('a timed-out fund locks a new fund and a recover on that child until '
+        'it expires, then a new fund takes its place', () {
       var now = DateTime(2024);
       final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(3000000);
       final cubit = ChildOperationsCubit(
         api: api,
         readAppState: () => _appState,
@@ -381,24 +412,59 @@ void main() {
       now = submittedAt.add(childOperationTimeout);
       cubit.resolve();
       expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(
+        cubit.balanceLockReason(_childAddress),
+        "An earlier transfer for this child hasn't confirmed yet. Check "
+        'again, or wait a few minutes.',
+      );
 
-      final replaced = cubit.submit(
+      final fund = cubit.submit(
         kind: ChildOperationKind.fund,
         target: _childAddress,
         main: _mainAddress,
         amountMinions: BigInt.from(500000),
       );
+      final recover = cubit.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(500000),
+      );
+      expect(fund, isNull);
+      expect(recover, isNull);
+      expect(api.fundCallCount, 1);
+      expect(api.recoverCallCount, 0);
 
-      expect(replaced, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
-      expect(cubit.state.operations, hasLength(1));
-      expect(cubit.state.operations.single.notConfirmed, isFalse);
-      expect(cubit.state.operations.single.amountMinions, BigInt.from(500000));
+      // Another child is not locked by it.
+      final other = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _secondChildAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(500000),
+      );
+      expect(other, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+
+      now = submittedAt.add(const Duration(minutes: 6));
+      cubit.resolve();
+      expect(cubit.operationsFor(_childAddress).single.expired, isTrue);
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.balanceLockReason(_childAddress), isNull);
+
+      final next = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(500000),
+      );
+      expect(next, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      final op = cubit.operationsFor(_childAddress).single;
+      expect(op.amountMinions, BigInt.from(500000));
+      expect(op.notConfirmed, isFalse);
 
       cubit.close();
     });
 
-    test('a timed-out fund landing late does not resolve the retry that '
-        'replaced it', () {
+    test('Check again seeing a timed-out fund land releases the lock', () {
       var now = DateTime(2024);
       final api = _FakeApi();
       final cubit = ChildOperationsCubit(
@@ -415,72 +481,25 @@ void main() {
       );
       now = submittedAt.add(childOperationTimeout);
       cubit.resolve();
-      cubit.submit(
-        kind: ChildOperationKind.fund,
-        target: _childAddress,
-        main: _mainAddress,
-        amountMinions: BigInt.from(500000),
-      );
 
-      // Only the abandoned first fund lands.
       api.balances[_childAddress] = BigInt.from(1000000);
       cubit.resolve();
-      expect(cubit.state.operations.single.notConfirmed, isFalse);
-      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.justResolved, hasLength(1));
+      expect(cubit.balanceLockReason(_childAddress), isNull);
 
-      // Then the retry does too.
-      api.balances[_childAddress] = BigInt.from(1500000);
-      cubit.resolve();
-      expect(cubit.state.operations, isEmpty);
-      expect(
-        cubit.state.justResolved.single.amountMinions,
-        BigInt.from(500000),
-      );
-
-      cubit.close();
-    });
-
-    test('a timed-out recover landing late does not resolve the retry that '
-        'replaced it', () {
-      var now = DateTime(2024);
-      final api = _FakeApi();
-      api.balances[_childAddress] = BigInt.from(3000000);
-      final cubit = ChildOperationsCubit(
-        api: api,
-        readAppState: () => _appState,
-        now: () => now,
-      );
-      final submittedAt = now;
-      cubit.submit(
-        kind: ChildOperationKind.recover,
-        target: _childAddress,
-        main: _mainAddress,
-        amountMinions: BigInt.from(1000000),
-      );
-      now = submittedAt.add(childOperationTimeout);
-      cubit.resolve();
-      cubit.submit(
-        kind: ChildOperationKind.recover,
+      final next = cubit.submit(
+        kind: ChildOperationKind.fund,
         target: _childAddress,
         main: _mainAddress,
         amountMinions: BigInt.from(500000),
       );
-
-      api.balances[_childAddress] = BigInt.from(2000000);
-      cubit.resolve();
-      expect(cubit.state.operations, hasLength(1));
-      expect(cubit.state.justResolved, isEmpty);
-
-      api.balances[_childAddress] = BigInt.from(1500000);
-      cubit.resolve();
-      expect(cubit.state.operations, isEmpty);
-      expect(cubit.state.justResolved, hasLength(1));
+      expect(next, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
 
       cubit.close();
     });
 
-    test('a stale baseline never resolves: the child spending on its own '
-        'long after a timed-out recover is not read as either recover', () {
+    test('an expired recover never resolves, and the next recover reads a '
+        'fresh baseline', () {
       var now = DateTime(2024);
       final api = _FakeApi();
       api.balances[_childAddress] = BigInt.from(100000000); // 100 GNUS
@@ -504,7 +523,7 @@ void main() {
       now = submittedAt.add(const Duration(hours: 1));
       api.balances[_childAddress] = BigInt.from(85000000);
       cubit.resolve();
-      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.operations.single.expired, isTrue);
       expect(cubit.state.justResolved, isEmpty);
 
       cubit.submit(
@@ -513,28 +532,24 @@ void main() {
         main: _mainAddress,
         amountMinions: BigInt.from(5000000),
       );
-      final retry = cubit.state.operations.single;
-      expect(retry.baselineMinions, BigInt.from(85000000));
-      expect(retry.carriedMinions, BigInt.from(10000000));
-      cubit.resolve();
-      expect(cubit.state.justResolved, isEmpty);
+      expect(
+        cubit.state.operations.single.baselineMinions,
+        BigInt.from(85000000),
+      );
 
-      // The retry's own 5 lands: still waiting on the earlier 10.
       api.balances[_childAddress] = BigInt.from(80000000);
       cubit.resolve();
-      expect(cubit.state.operations, hasLength(1));
-      expect(cubit.state.justResolved, isEmpty);
-
-      api.balances[_childAddress] = BigInt.from(70000000);
-      cubit.resolve();
       expect(cubit.state.operations, isEmpty);
-      expect(cubit.state.justResolved, hasLength(1));
+      expect(
+        cubit.state.justResolved.single.amountMinions,
+        BigInt.from(5000000),
+      );
 
       cubit.close();
     });
 
-    test('after the child moves, a fund from its new main leaves the old '
-        "main's timed-out fund and its hold with the old main", () {
+    test('after the child moves, a fund from its new main is refused while the '
+        "old main's timed-out fund can still land", () {
       var now = DateTime(2024);
       var running = _mainAddress;
       final api = _FakeApi()..minionsBalance = '100000000'; // 100 GNUS
@@ -553,7 +568,7 @@ void main() {
         kind: ChildOperationKind.fund,
         target: _childAddress,
         main: _mainAddress,
-        amountMinions: BigInt.from(10000000),
+        amountMinions: BigInt.from(5000000),
       );
       now = submittedAt.add(childOperationTimeout);
       cubit.resolve();
@@ -563,32 +578,85 @@ void main() {
         kind: ChildOperationKind.fund,
         target: _childAddress,
         main: _newMainAddress,
+        amountMinions: BigInt.from(10000000),
+      );
+      expect(result, isNull);
+      expect(api.fundCallCount, 1);
+
+      // Only the old main's own 5 can land, and it resolves only its own op.
+      api.balances[_childAddress] = BigInt.from(5000000);
+      cubit.resolve();
+      expect(cubit.state.operations, isEmpty);
+      expect(cubit.state.justResolved.single.fromAccount, _mainAddress);
+      expect(
+        cubit.state.justResolved.single.amountMinions,
+        BigInt.from(5000000),
+      );
+
+      cubit.close();
+    });
+
+    test('a retry from the new main is refused while its own timed-out fund '
+        'can still land, so the old main landing never reads as it', () {
+      var now = DateTime(2024);
+      var running = _mainAddress;
+      final api = _FakeApi()..minionsBalance = '100000000'; // 100 GNUS
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => AppState(
+          selectedSDKAccount: running,
+          sdkAccounts: const [_mainAddress, _newMainAddress],
+          wallets: const [],
+          sdkAccountLinks: const <String, SDKAccountLink>{},
+        ),
+        now: () => now,
+      );
+      final start = now;
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(10000000),
+      );
+      now = start.add(childOperationTimeout);
+      cubit.resolve();
+
+      running = _newMainAddress;
+      final early = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _newMainAddress,
         amountMinions: BigInt.from(5000000),
       );
-      expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
-      expect(cubit.state.operations, hasLength(2));
-      final oldMainOp = cubit.state.operations.first;
-      expect(oldMainOp.fromAccount, _mainAddress);
-      expect(oldMainOp.notConfirmed, isTrue);
-      expect(cubit.state.operations.last.carriedMinions, isNull);
+      expect(early, isNull);
 
-      running = _mainAddress.toUpperCase();
-      expect(
-        cubit.payingBalance(ChildOperationKind.fund, _childAddress),
-        BigInt.from(90000000),
-      );
-
-      // Only the old main's 10 lands: that resolves the old main's fund,
-      // never the new main's 5.
+      // The old main's 10 lands and resolves its own op.
       api.balances[_childAddress] = BigInt.from(10000000);
       cubit.resolve();
       expect(cubit.state.justResolved.single.fromAccount, _mainAddress);
-      expect(cubit.state.operations.single.fromAccount, _newMainAddress);
 
-      api.balances[_childAddress] = BigInt.from(15000000);
+      final fund = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _newMainAddress,
+        amountMinions: BigInt.from(5000000),
+      );
+      expect(fund, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      now = start.add(childOperationTimeout * 2);
       cubit.resolve();
-      expect(cubit.state.operations, isEmpty);
-      expect(cubit.state.justResolved.single.fromAccount, _newMainAddress);
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+
+      final retry = cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _newMainAddress,
+        amountMinions: BigInt.from(5000000),
+      );
+      expect(retry, isNull);
+      expect(api.fundCallCount, 2);
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
 
       cubit.close();
     });
@@ -700,6 +768,32 @@ void main() {
       );
       expect(rest, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
       expect(api.fundCallCount, 2);
+
+      cubit.close();
+    });
+
+    test('an expired fund releases its hold on the paying balance', () {
+      var now = DateTime(2024);
+      final api = _FakeApi()..minionsBalance = '100000000'; // 100 GNUS
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(60000000),
+      );
+
+      now = submittedAt.add(const Duration(minutes: 6));
+      cubit.resolve();
+      expect(
+        cubit.payingBalance(ChildOperationKind.fund, _secondChildAddress),
+        BigInt.from(100000000),
+      );
 
       cubit.close();
     });

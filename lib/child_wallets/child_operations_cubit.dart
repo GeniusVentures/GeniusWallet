@@ -31,11 +31,12 @@ bool _isChildSide(ChildOperationKind kind) =>
 /// confirmed yet" instead.
 const childOperationTimeout = Duration(minutes: 2);
 
-/// How long a fund or recover's balance baseline stays trustworthy. Past it
-/// the op never resolves on the balance, and a retry reads a fresh one.
-// ponytail: other movement on the child inside this window can still read
-// as the write landing, and a write landing after it holds its amount until
-// restart; the upgrade path is a per-write tx hash from the SDK.
+/// How long a fund or recover's balance baseline stays trustworthy. Until
+/// then a timed-out one can still resolve and still locks its child; past it,
+/// it never resolves and releases its hold and its lock.
+// ponytail: other movement on the child inside this window can still read as
+// the write landing, and one landing after it can read as the next fund or
+// recover on that child; the upgrade path is a per-write tx hash from the SDK.
 final _baselineLifetime = childOperationTimeout * 3;
 
 /// One in-flight or timed-out SDK write. Public addresses, minions and a
@@ -48,12 +49,10 @@ class ChildOperation {
     required this.main,
     this.newMain,
     this.amountMinions,
-    this.carriedMinions,
-    this.otherAttemptsMinions,
     this.baselineMinions,
-    this.baselineAt,
     required this.submittedAt,
     this.notConfirmed = false,
+    this.expired = false,
   });
 
   final ChildOperationKind kind;
@@ -63,39 +62,28 @@ class ChildOperation {
   final String? newMain;
   final BigInt? amountMinions;
 
-  /// The timed-out attempt(s) this op replaced, still able to land late.
-  final BigInt? carriedMinions;
-
-  /// Another account's timed-out attempts on the same child and kind. The
-  /// signal waits for them too; their hold stays on their own op.
-  final BigInt? otherAttemptsMinions;
+  /// The child's balance read at [submittedAt], just before the write.
   final BigInt? baselineMinions;
-
-  /// When [baselineMinions] was read -- a retry that keeps an earlier
-  /// attempt's baseline keeps its read time too.
-  final DateTime? baselineAt;
   final DateTime submittedAt;
   final bool notConfirmed;
 
-  ChildOperation copyWith({bool? notConfirmed}) => ChildOperation(
-    kind: kind,
-    fromAccount: fromAccount,
-    target: target,
-    main: main,
-    newMain: newMain,
-    amountMinions: amountMinions,
-    carriedMinions: carriedMinions,
-    otherAttemptsMinions: otherAttemptsMinions,
-    baselineMinions: baselineMinions,
-    baselineAt: baselineAt,
-    submittedAt: submittedAt,
-    notConfirmed: notConfirmed ?? this.notConfirmed,
-  );
+  /// A timed-out fund or recover whose baseline is too old to trust: it can
+  /// no longer resolve, and no longer holds its amount or locks its child.
+  final bool expired;
 
-  /// Everything this op waits to see land: its own amount plus
-  /// [carriedMinions]. Zero for a kind without an amount.
-  BigInt get totalMinions =>
-      (amountMinions ?? BigInt.zero) + (carriedMinions ?? BigInt.zero);
+  ChildOperation copyWith({bool? notConfirmed, bool? expired}) =>
+      ChildOperation(
+        kind: kind,
+        fromAccount: fromAccount,
+        target: target,
+        main: main,
+        newMain: newMain,
+        amountMinions: amountMinions,
+        baselineMinions: baselineMinions,
+        submittedAt: submittedAt,
+        notConfirmed: notConfirmed ?? this.notConfirmed,
+        expired: expired ?? this.expired,
+      );
 }
 
 /// [operations] in submission order. [justResolved] holds only the
@@ -171,8 +159,8 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   }
 
   /// Every tracked operation on [target], in submission order. More than
-  /// one when different kinds are pending at once, since the lock is per
-  /// kind -- each needs its own badge.
+  /// one when different kinds are pending at once -- each needs its own
+  /// badge.
   List<ChildOperation> operationsFor(String target) => [
     for (final op in state.operations)
       if (op.target.toLowerCase() == target.toLowerCase()) op,
@@ -180,6 +168,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
 
   /// True while a [kind] operation on [target] is still pending -- a
   /// notConfirmed op never counts, since it has already stopped blocking.
+  /// Fund and Recover lock through [balanceLockReason] instead.
   bool isPending(ChildOperationKind kind, String target) =>
       state.operations.any(
         (op) =>
@@ -201,6 +190,33 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   /// True for a kind that carries a GNUS amount -- fund and recover only.
   bool _hasAmount(ChildOperationKind kind) =>
       kind == ChildOperationKind.fund || kind == ChildOperationKind.recover;
+
+  /// True while [op] is a fund or recover that can still resolve: it holds
+  /// its amount and locks its child until then, even once timed out.
+  bool _holdsBalance(ChildOperation op) => _hasAmount(op.kind) && !op.expired;
+
+  /// Why a new Fund or Recover on [target] can't start yet, or null when it
+  /// can. One at a time per child, from any account: without a tx hash, two
+  /// overlapping ones on one balance can't be told apart.
+  String? balanceLockReason(String target) {
+    final blocking = state.operations
+        .where(
+          (op) =>
+              _holdsBalance(op) &&
+              op.target.toLowerCase() == target.toLowerCase(),
+        )
+        .firstOrNull;
+    if (blocking == null) {
+      return null;
+    }
+    if (blocking.notConfirmed) {
+      return "An earlier transfer for this child hasn't confirmed yet. Check "
+          'again, or wait a few minutes.';
+    }
+    return blocking.kind == ChildOperationKind.fund
+        ? 'Already funding this child'
+        : 'Already recovering from this child';
+  }
 
   /// The balance [kind] still has free for [target]: the running account's
   /// own GNUS for Fund, the child's for Recover, less what this registry has
@@ -241,21 +257,22 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   }
 
   /// The amounts of every tracked [kind] op [drawsOn] the same balance. A
-  /// timed-out op counts too: there is no tx hash, so the SDK may still land
-  /// it, and the balance read has not moved for it yet.
-  // ponytail: one that never lands holds its amount until restart or a
-  // resolve; the upgrade path is an SDK receipt per write.
+  /// timed-out op counts too until it expires: there is no tx hash, so the
+  /// SDK may still land it, and the balance read has not moved for it yet.
+  // ponytail: one that never lands holds its amount until it expires; the
+  // upgrade path is an SDK receipt per write.
   BigInt _committed(
     ChildOperationKind kind,
     bool Function(ChildOperation) drawsOn,
   ) => state.operations
-      .where((op) => op.kind == kind && drawsOn(op))
-      .fold(BigInt.zero, (sum, op) => sum + op.totalMinions);
+      .where((op) => op.kind == kind && drawsOn(op) && _holdsBalance(op))
+      .fold(BigInt.zero, (sum, op) => sum + op.amountMinions!);
 
   /// Submits [kind] against [target], or returns null with no SDK call when
   /// the node runs as the wrong side, the chosen main is the account itself
-  /// (or a move's current main), [kind] is already pending on [target], or
-  /// the amount is out of range. Appends and emits only on `RET_OK`.
+  /// (or a move's current main), [kind] is already pending on [target] (any
+  /// fund or recover, for those two), or the amount is out of range. Appends
+  /// and emits only on `RET_OK`.
   GeniusNodeReturnValue? submit({
     required ChildOperationKind kind,
     required String target,
@@ -285,7 +302,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     if (selfReferential) {
       return null;
     }
-    if (isPending(kind, target)) {
+    final locked = _hasAmount(kind)
+        ? balanceLockReason(target) != null
+        : isPending(kind, target);
+    if (locked) {
       return null;
     }
     if (_hasAmount(kind)) {
@@ -297,41 +317,22 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       }
     }
 
-    bool sameKindAndTarget(ChildOperation existing) =>
-        existing.kind == kind &&
-        existing.target.toLowerCase() == target.toLowerCase();
-    // Only the same account's attempt: another main's (the child has since
-    // moved) must keep its own op, so its hold stays on its own balance.
-    bool replaces(ChildOperation existing) =>
-        sameKindAndTarget(existing) &&
-        existing.notConfirmed &&
-        existing.fromAccount.toLowerCase() == requiredRunner.toLowerCase();
-    // A timed-out attempt can still land late, so a retry carries its
-    // amount: it resolves only once both have landed, never on the
-    // abandoned attempt's money alone.
-    final replaced = _hasAmount(kind)
-        ? state.operations.where(replaces).firstOrNull
-        : null;
-    final otherAttempts = _hasAmount(kind)
-        ? state.operations
-              .where((o) => sameKindAndTarget(o) && !replaces(o))
-              .fold(BigInt.zero, (sum, o) => sum + o.totalMinions)
-        : null;
-    final now = _now();
-    // The earlier baseline is kept only if it stays trusted until the retry
-    // itself times out; otherwise the retry reads a fresh one.
-    final inherited =
-        replaced != null &&
-            _baselineTrusted(replaced, now.add(childOperationTimeout))
-        ? replaced
-        : null;
-    // Read BEFORE the write, so resolve() has an honest number to compare
-    // the balance against once the write lands. Revoke and detach resolve
-    // off the registrations list instead, so neither has a use for a
-    // balance baseline.
-    final baseline = _hasAmount(kind)
-        ? inherited?.baselineMinions ?? _childBalance(target)
-        : null;
+    // Replaces the notConfirmed op of the same kind this account already
+    // holds on [target], so the child keeps one badge for it. Any fund or
+    // recover still on [target] has expired (the lock above refused
+    // otherwise), so it can never resolve and gives its badge up too.
+    bool replaces(ChildOperation existing) {
+      if (existing.target.toLowerCase() != target.toLowerCase()) {
+        return false;
+      }
+      if (_hasAmount(kind)) {
+        return _hasAmount(existing.kind);
+      }
+      return existing.kind == kind &&
+          existing.notConfirmed &&
+          existing.fromAccount.toLowerCase() == requiredRunner.toLowerCase();
+    }
+
     final op = ChildOperation(
       kind: kind,
       fromAccount: requiredRunner,
@@ -339,11 +340,11 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       main: main,
       newMain: newMain,
       amountMinions: amountMinions,
-      carriedMinions: replaced?.totalMinions,
-      otherAttemptsMinions: otherAttempts,
-      baselineMinions: baseline,
-      baselineAt: _hasAmount(kind) ? inherited?.baselineAt ?? now : null,
-      submittedAt: now,
+      // Read BEFORE the write, so resolve() has an honest number to compare
+      // the balance against once the write lands. The other kinds resolve
+      // off the registrations list instead.
+      baselineMinions: _hasAmount(kind) ? _childBalance(target) : null,
+      submittedAt: _now(),
     );
     // No real SDK write may ever be issued while a preset is armed --
     // submitWrite is the only path a write takes from here.
@@ -378,8 +379,6 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     emit(
       ChildOperationsState(
         operations: [
-          // Drop any notConfirmed op this same kind+target already holds --
-          // this submit replaces it, not adds a second entry for the child.
           for (final existing in state.operations)
             if (!replaces(existing)) existing,
           op,
@@ -396,8 +395,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   }
 
   /// Checks each op's signal first, then times out a still-pending one past
-  /// [childOperationTimeout]. "Check again" calls this same method. No-op
-  /// when nothing changed, so a listener never fires on an unrelated emit.
+  /// [childOperationTimeout] and expires a fund or recover past
+  /// [_baselineLifetime]. "Check again" calls this same method. No-op when
+  /// nothing changed, so a listener never fires on an unrelated emit.
   void resolve() {
     if (state.operations.isEmpty) {
       return;
@@ -412,9 +412,14 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         changed = true;
         continue;
       }
-      if (!op.notConfirmed &&
-          !now.isBefore(op.submittedAt.add(childOperationTimeout))) {
-        remaining.add(op.copyWith(notConfirmed: true));
+      final timesOut =
+          !op.notConfirmed &&
+          !now.isBefore(op.submittedAt.add(childOperationTimeout));
+      final expires = _holdsBalance(op) && !_baselineTrusted(op, now);
+      if (timesOut || expires) {
+        remaining.add(
+          op.copyWith(notConfirmed: true, expired: op.expired || expires),
+        );
         changed = true;
       } else {
         remaining.add(op);
@@ -424,9 +429,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       return;
     }
     emit(ChildOperationsState(operations: remaining, justResolved: resolved));
-    // Stops once nothing left is actually pending -- a notConfirmed op never
-    // resolves on its own, so polling it further would be wasted reads.
-    if (remaining.every((op) => op.notConfirmed)) {
+    // Stops once nothing left can resolve on its own: a timed-out fund or
+    // recover keeps it running until it expires, so its lock lifts on time.
+    if (remaining.every((op) => op.notConfirmed && !_holdsBalance(op))) {
       _pollTimer?.cancel();
       _pollTimer = null;
     }
@@ -436,10 +441,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     switch (op.kind) {
       case ChildOperationKind.fund:
         return _baselineTrusted(op, now) &&
-            _childBalance(op.target) >= op.baselineMinions! + _awaited(op);
+            _childBalance(op.target) >= op.baselineMinions! + op.amountMinions!;
       case ChildOperationKind.recover:
         return _baselineTrusted(op, now) &&
-            _childBalance(op.target) <= op.baselineMinions! - _awaited(op);
+            _childBalance(op.target) <= op.baselineMinions! - op.amountMinions!;
       case ChildOperationKind.revoke:
       case ChildOperationKind.detach:
         return _listedUnder(op.main, op.target) == false;
@@ -453,13 +458,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     }
   }
 
-  /// Every amount that has to land before [op]'s balance signal is met.
-  BigInt _awaited(ChildOperation op) =>
-      op.totalMinions + (op.otherAttemptsMinions ?? BigInt.zero);
-
   /// False once [op]'s baseline is older than [_baselineLifetime] at [at].
   bool _baselineTrusted(ChildOperation op, DateTime at) =>
-      at.isBefore(op.baselineAt!.add(_baselineLifetime));
+      at.isBefore(op.submittedAt.add(_baselineLifetime));
 
   /// Whether an OK read of [main]'s registrations lists [target],
   /// case-insensitively -- or null when the read itself wasn't OK. Callers
