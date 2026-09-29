@@ -1185,10 +1185,9 @@ void showTransactionDetails(
                 // panel's ONLY action, so it carries the brand signature — hollow,
                 // because opening a block explorer commits to nothing.
                 variant: GWButtonVariant.gradientOutline,
-                // lg = 56, matching Swap Settings' Apply and both account drawers.
-                // Without it this took the `md` default and was the ONE drawer
-                // footer in the app 8px shorter than its neighbours.
-                size: GWButtonSize.lg,
+                // sm, like every other drawer footer button; without it this
+                // takes the `md` default and stands taller than its neighbours.
+                size: GWButtonSize.sm,
                 expand: true,
               )),
   );

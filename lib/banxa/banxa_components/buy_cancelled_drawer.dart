@@ -20,7 +20,7 @@ class BuyCancelledDrawer {
         onPressed: () => Navigator.of(context).pop(),
         label: 'Close',
         variant: GWButtonVariant.gradientOutline,
-        size: GWButtonSize.lg,
+        size: GWButtonSize.sm,
         expand: true,
       ),
     );

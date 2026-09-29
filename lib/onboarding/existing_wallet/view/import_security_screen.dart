@@ -211,7 +211,7 @@ class _ImportSecurityScreenState extends State<ImportSecurityScreen> {
                             GWButton(
                               label: 'Import',
                               variant: GWButtonVariant.gradient,
-                              size: GWButtonSize.lg,
+                              size: GWButtonSize.md,
                               expand: true,
                               onPressed: () {
                                 if (!formKey.currentState!.validate()) {

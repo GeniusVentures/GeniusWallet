@@ -27,7 +27,7 @@ class BuySuccessDrawer {
         },
         label: 'Done',
         variant: GWButtonVariant.gradient,
-        size: GWButtonSize.lg,
+        size: GWButtonSize.sm,
         expand: true,
       ),
     );
