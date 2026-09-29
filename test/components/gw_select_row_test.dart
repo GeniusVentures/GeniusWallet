@@ -79,4 +79,36 @@ void main() {
     expect(resting, chosen);
     expect(resting, 1);
   });
+
+  testWidgets('tags sit on the title line and the balance on the subtitle '
+      'line, right-aligned', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 380,
+              child: GWSelectRow(
+                leading: const SizedBox(width: 36, height: 36),
+                title: 'Main',
+                subtitle: '0xabcd...1234',
+                titleTrailing: const Text('TAG'),
+                subtitleTrailing: const Text('BAL'),
+                onTap: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    double midY(String text) => tester.getCenter(find.text(text)).dy;
+    expect(midY('TAG'), closeTo(midY('Main'), 2));
+    expect(midY('BAL'), closeTo(midY('0xabcd...1234'), 2));
+    expect(
+      tester.getTopRight(find.text('BAL')).dx,
+      greaterThan(tester.getTopRight(find.text('0xabcd...1234')).dx + 100),
+    );
+  });
 }

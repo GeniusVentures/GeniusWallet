@@ -40,6 +40,8 @@ class GWSelectRow extends StatelessWidget {
     this.subtitle,
     this.titleStyle,
     this.subtitleStyle,
+    this.titleTrailing,
+    this.subtitleTrailing,
     this.trailing,
     this.action,
     this.selected = false,
@@ -60,6 +62,12 @@ class GWSelectRow extends StatelessWidget {
   /// Same escape hatch for the second line - the wallet picker's address wants
   /// the mono treatment where a token's symbol does not.
   final TextStyle? subtitleStyle;
+
+  /// Short tags beside the title; they wrap under it when the row is narrow.
+  final Widget? titleTrailing;
+
+  /// Right-aligned on the subtitle's line, e.g. a balance beside an address.
+  final Widget? subtitleTrailing;
 
   /// INFORMATION, drawn before the state glyph: a balance, a "watched" eye.
   final Widget? trailing;
@@ -129,27 +137,50 @@ class GWSelectRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style:
-                            titleStyle ??
-                            GeniusWalletTypography.bodySm.copyWith(
-                              color: gw.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                      Wrap(
+                        spacing: GeniusWalletConsts.space3,
+                        runSpacing: GeniusWalletConsts.space2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                titleStyle ??
+                                GeniusWalletTypography.bodySm.copyWith(
+                                  color: gw.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          ?titleTrailing,
+                        ],
                       ),
                       if (subtitle != null)
-                        Text(
-                          subtitle!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              subtitleStyle ??
-                              GeniusWalletTypography.labelMd.copyWith(
-                                color: gw.textSecondary,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                subtitle!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style:
+                                    subtitleStyle ??
+                                    GeniusWalletTypography.labelMd.copyWith(
+                                      color: gw.textSecondary,
+                                    ),
                               ),
+                            ),
+                            if (subtitleTrailing != null) ...[
+                              const SizedBox(width: GeniusWalletConsts.space4),
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: subtitleTrailing,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                     ],
                   ),
