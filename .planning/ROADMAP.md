@@ -1549,7 +1549,13 @@ Plans:
   3. Dev mocks (`GW_DEV_TOOLS`) reproduce the child list and balances so this phase is verifiable without live testnet.
   4. Standing (VER-02): a live-testnet walk confirms the real child list and balances render correctly before closing, or is recorded as a blocked gap if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`.
 
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 36-01-PLAN.md — tracer: SDK-row "Child wallets" -> /child-wallets with names and exact GNUS balances; free contract and struct layout tests; every state, 10 s poll, menu gate (wave 1)
+- [ ] 36-02-PLAN.md — the other ten bindings + GENIUS_NODE_ERROR_REGISTRATION, plain-Dart wrappers with boundary checks, opaque unfreed PubSub handle (wave 2)
+- [ ] 36-03-PLAN.md — DevMockChildWallets presets + CHILD WALLETS dev-bubble section; phase gate and Windows compile (wave 3)
 
 ### Phase 37: Child write operations & pending model
 
