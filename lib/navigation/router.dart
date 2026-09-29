@@ -209,8 +209,11 @@ final geniusWalletRouter = GoRouter(
       path: '/child-wallets',
       builder: (context, state) {
         final appBloc = context.read<AppBloc>();
+        final extra = state.extra;
         final mainAddress =
-            state.extra as String? ?? appBloc.state.selectedSDKAccount ?? '';
+            (extra is String ? extra : null) ??
+            appBloc.state.selectedSDKAccount ??
+            '';
         return BlocProvider(
           create: (_) => ChildWalletsCubit(
             api: context.read<GeniusApi>(),
