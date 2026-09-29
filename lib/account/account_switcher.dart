@@ -41,7 +41,10 @@ class AccountSwitcher extends StatelessWidget {
             ? WalletUtils.getAddressForDisplay(selectedWallet.address)
             : selectedWallet.walletName;
         final selectedSDKAccount = state.selectedSDKAccount;
-        final nodeStatus = selectedSDKAccount != null
+        final switchingSDKAccount = state.switchingSDKAccount;
+        final nodeStatus = switchingSDKAccount != null
+            ? 'Node switching to ${AppBloc.sdkAccountName(switchingSDKAccount, state.sdkAccountLinks, state.wallets)}'
+            : selectedSDKAccount != null
             ? 'Node running as ${AppBloc.sdkAccountName(selectedSDKAccount, state.sdkAccountLinks, state.wallets)}'
             : 'Node not running';
         return Tooltip(

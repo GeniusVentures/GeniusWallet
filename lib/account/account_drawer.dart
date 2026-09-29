@@ -460,6 +460,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
         // every OTHER row's "Run node as this" -- selecting a wallet for
         // sends/swaps is never touched by this.
         final running = appState.selectedSDKAccount;
+        final switching = appState.switchingSDKAccount;
         final lockedReason =
             operations != null &&
                 running != null &&
@@ -527,7 +528,12 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                     : _AccountRowTile(
                         row: row,
                         selected: _rowSelected(row, appState.wallets),
-                        onNode: _rowOnNode(row, running),
+                        // The pending target says so instead of On node, even
+                        // if a read already names it, until the switch settles.
+                        switching: _rowOnNode(row, switching),
+                        onNode:
+                            !_rowOnNode(row, switching) &&
+                            _rowOnNode(row, running),
                         isStartAccount: _rowIsStart(row, defaultAccount),
                         sdkBadge: row.kind == AccountRowKind.wallet
                             ? walletSDKBadge(
@@ -571,6 +577,7 @@ class _AccountRowTile extends StatelessWidget {
     required this.row,
     required this.selected,
     required this.onNode,
+    required this.switching,
     required this.isStartAccount,
     required this.sdkBadge,
     required this.balanceWallet,
@@ -584,6 +591,9 @@ class _AccountRowTile extends StatelessWidget {
   final AccountTreeRow row;
   final bool selected;
   final bool onNode;
+
+  /// The node was asked to run as this row and has not confirmed it yet.
+  final bool switching;
   final bool isStartAccount;
   final WalletSDKBadge sdkBadge;
 
@@ -641,7 +651,10 @@ class _AccountRowTile extends StatelessWidget {
           );
     final addressText = wallet?.address ?? sdkAddress!;
     final anyTag =
-        selected || onNode || (sdkBadge != WalletSDKBadge.none && !onNode);
+        selected ||
+        onNode ||
+        switching ||
+        (sdkBadge != WalletSDKBadge.none && !onNode);
 
     final tile = GWSelectRow(
       selected: selected,
@@ -704,6 +717,8 @@ class _AccountRowTile extends StatelessWidget {
                   ),
                 if (onNode)
                   GWRowBadge(label: 'On node', color: gw.statusSuccessText),
+                if (switching)
+                  GWRowBadge(label: 'Switching…', color: gw.statusWarningText),
               ],
             )
           : null,
@@ -874,13 +889,13 @@ class _AccountRowTile extends StatelessWidget {
         icon: Icons.dns_outlined,
         label: 'Run node as this',
         lockedReason: _locked ? lockedReason : null,
-        onPressed: onNode || _locked
+        onPressed: onNode || switching || _locked
             ? null
             : () {
                 context.read<AppBloc>().add(SelectSDKAccount(sdkAddress));
                 showToast(
                   context,
-                  'SDK account selected',
+                  'Switching the node…',
                   duration: const Duration(seconds: 1),
                 );
               },

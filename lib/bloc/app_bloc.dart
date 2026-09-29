@@ -45,6 +45,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   Timer? _processingTimer;
   Timer? _initTimer;
+  Timer? _switchPollTimer;
   StreamSubscription<SGNUSConnection>? _sgnusConnectionSubscription;
   StreamSubscription<String?>? _selectedWalletSubscription;
   StreamSubscription<AppState>? _nodeAccountSubscription;
@@ -70,6 +71,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<RenameWallet>(_onRenameWallet);
     on<SgnusConnectionChanged>(_onSgnusConnectionChanged);
     on<SelectSDKAccount>(_onSelectSDKAccount);
+    on<SDKSwitchPolled>(_onSDKSwitchPolled);
     // One at a time: concurrent deletes would each pass the same block check.
     on<DeleteSDKAccount>(_onDeleteSDKAccount, transformer: sequential());
     on<RefreshSDKAccounts>(_onRefreshSDKAccounts);
@@ -858,18 +860,27 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     debugPrint("FFI mintTokens result: $result");
   }
 
-  /// Returns (selectedSDKAccount, sdkAccounts) tuple from the native SDK.
   /// Re-reads the wallet list and SDK accounts, then emits them. Every await
   /// finishes before `state` is read, so a status another handler emitted
-  /// meanwhile is never overwritten by a stale snapshot.
-  Future<void> _emitSDKAccounts(Emitter<AppState> emit) async {
+  /// meanwhile is never overwritten by a stale snapshot. A real selected
+  /// account ends the switch to [settling], if that is still the one pending.
+  Future<void> _emitSDKAccounts(
+    Emitter<AppState> emit, {
+    String? settling,
+  }) async {
     final wallets = await _mergeSgnusWallet();
     final links = await api.getSDKAccountLinks();
     final sdkState = _getSDKAccountState();
+    final selected = sdkState.$1;
     emit(
       state.copyWith(
         wallets: wallets,
-        selectedSDKAccount: sdkState.$1,
+        selectedSDKAccount: selected,
+        clearSelectedSDKAccount: selected == null,
+        clearSwitchingSDKAccount:
+            selected != null &&
+            settling != null &&
+            state.switchingSDKAccount == settling,
         sdkAccounts: sdkState.$2,
         defaultSDKAccount: api.getStartAccountAddress(),
         sdkAccountLinks: links,
@@ -877,6 +888,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     );
   }
 
+  /// Returns (selectedSDKAccount, sdkAccounts) tuple from the native SDK.
   (String?, List<String>) _getSDKAccountState() {
     final selected = api.getSelectedAccountAddress();
     final accounts = api.getAvailableAccounts();
@@ -887,9 +899,45 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     SelectSDKAccount event,
     Emitter<AppState> emit,
   ) async {
-    final result = await api.selectGeniusAccountAsync(event.publicAddress);
-    if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      await _emitSDKAccounts(emit);
+    final target = event.publicAddress;
+    _switchPollTimer?.cancel();
+    emit(state.copyWith(switchingSDKAccount: target));
+    // A throw counts as a refusal, or the row would say "Switching" forever.
+    final ok = await api
+        .selectGeniusAccountAsync(target)
+        .then(
+          (r) => r == GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          onError: (Object _) => false,
+        );
+    if (state.switchingSDKAccount != target) {
+      return;
+    }
+    if (!ok) {
+      emit(state.copyWith(clearSwitchingSDKAccount: true));
+      return;
+    }
+    await _emitSDKAccounts(emit, settling: target);
+    // A node that is still starting answers with no account for minutes, so
+    // keep asking until it names one. Uncapped: a cap would only guess.
+    if (state.switchingSDKAccount == target && !isClosed) {
+      _switchPollTimer?.cancel();
+      _switchPollTimer = Timer.periodic(
+        const Duration(seconds: 3),
+        (_) => add(SDKSwitchPolled()),
+      );
+    }
+  }
+
+  Future<void> _onSDKSwitchPolled(
+    SDKSwitchPolled event,
+    Emitter<AppState> emit,
+  ) async {
+    final target = state.switchingSDKAccount;
+    if (target != null && api.getSelectedAccountAddress() != null) {
+      await _emitSDKAccounts(emit, settling: target);
+    }
+    if (state.switchingSDKAccount == null) {
+      _switchPollTimer?.cancel();
     }
   }
 
@@ -944,6 +992,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   Future<void> close() {
     _processingTimer?.cancel();
     _initTimer?.cancel();
+    _switchPollTimer?.cancel();
     _sgnusConnectionSubscription?.cancel();
     _selectedWalletSubscription?.cancel();
     _nodeAccountSubscription?.cancel();

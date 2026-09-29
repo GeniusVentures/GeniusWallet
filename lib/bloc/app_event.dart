@@ -55,6 +55,9 @@ class SelectSDKAccount extends AppEvent {
   SelectSDKAccount(this.publicAddress);
 }
 
+/// Re-reads the node's selected account while a switch is still landing.
+class SDKSwitchPolled extends AppEvent {}
+
 class DeleteSDKAccount extends AppEvent {
   final String publicAddress;
 
