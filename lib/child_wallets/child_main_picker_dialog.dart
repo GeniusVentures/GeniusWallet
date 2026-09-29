@@ -88,11 +88,37 @@ class _MainPickerDialogState extends State<_MainPickerDialog> {
     return (isSdkAddress(text) && !_isExcluded(text)) ? text : null;
   }
 
+  /// Why the typed address can't be used yet, or null while it is empty or
+  /// fine.
+  String? get _manualError {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty && !isSdkAddress(text)) {
+      return 'Not an SDK address - 0x followed by 128 hex characters.';
+    }
+    if (text.isNotEmpty && _isExcluded(text)) {
+      return "That account can't be chosen here.";
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return GWDialog(
       title: widget.title,
-      content: _manual ? _manualContent(context) : _listContent(context),
+      content: _manual
+          ? _MainPickerManualContent(
+              controller: _controller,
+              error: _manualError,
+              onBack: () => setState(() => _manual = false),
+              onChanged: () => setState(() {}),
+            )
+          : _MainPickerListContent(
+              candidates: _visibleCandidates,
+              nameFor: widget.nameFor,
+              picked: _picked,
+              onPick: (candidate) => setState(() => _picked = candidate),
+              onManual: () => setState(() => _manual = true),
+            ),
       actions: [
         GWDialogAction(
           label: 'Cancel',
@@ -108,10 +134,28 @@ class _MainPickerDialogState extends State<_MainPickerDialog> {
       ],
     );
   }
+}
 
-  Widget _listContent(BuildContext context) {
+/// The picker's list mode: the user's other own accounts, or a line saying
+/// there are none, then the "Enter an address" row.
+class _MainPickerListContent extends StatelessWidget {
+  const _MainPickerListContent({
+    required this.candidates,
+    required this.nameFor,
+    required this.picked,
+    required this.onPick,
+    required this.onManual,
+  });
+
+  final List<String> candidates;
+  final String Function(String) nameFor;
+  final String? picked;
+  final ValueChanged<String> onPick;
+  final VoidCallback onManual;
+
+  @override
+  Widget build(BuildContext context) {
     final gw = context.gw;
-    final candidates = _visibleCandidates;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,15 +185,15 @@ class _MainPickerDialogState extends State<_MainPickerDialog> {
                           color: gw.textSecondary,
                         ),
                       ),
-                      title: widget.nameFor(candidate),
+                      title: nameFor(candidate),
                       subtitle: WalletUtils.getAddressForDisplay(candidate),
                       subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
                         fontFamily: GeniusWalletTypography.monoFamily,
                         color: gw.textSecondary,
                       ),
                       selected:
-                          _picked?.toLowerCase() == candidate.toLowerCase(),
-                      onTap: () => setState(() => _picked = candidate),
+                          picked?.toLowerCase() == candidate.toLowerCase(),
+                      onTap: () => onPick(candidate),
                     ),
                 ],
               ),
@@ -160,21 +204,29 @@ class _MainPickerDialogState extends State<_MainPickerDialog> {
           leading: Icon(Icons.edit_outlined, color: gw.textSecondary),
           title: 'Enter an address',
           trailing: Icon(Icons.chevron_right, color: gw.textSecondary),
-          onTap: () => setState(() => _manual = true),
+          onTap: onManual,
         ),
       ],
     );
   }
+}
 
-  Widget _manualContent(BuildContext context) {
-    final gw = context.gw;
-    final text = _controller.text.trim();
-    String? error;
-    if (text.isNotEmpty && !isSdkAddress(text)) {
-      error = 'Not an SDK address - 0x followed by 128 hex characters.';
-    } else if (text.isNotEmpty && _isExcluded(text)) {
-      error = "That account can't be chosen here.";
-    }
+/// The picker's manual mode: a back link and the address field.
+class _MainPickerManualContent extends StatelessWidget {
+  const _MainPickerManualContent({
+    required this.controller,
+    required this.error,
+    required this.onBack,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String? error;
+  final VoidCallback onBack;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,16 +235,16 @@ class _MainPickerDialogState extends State<_MainPickerDialog> {
           label: '‹ Back',
           variant: GWButtonVariant.ghost,
           size: GWButtonSize.sm,
-          onPressed: () => setState(() => _manual = false),
+          onPressed: onBack,
         ),
         const SizedBox(height: GeniusWalletConsts.space6),
         GWTextField(
-          controller: _controller,
+          controller: controller,
           label: 'Address',
           hint: '0x…',
           errorText: error,
-          fill: gw.surfaceSunken,
-          onChanged: (_) => setState(() {}),
+          fill: context.gw.surfaceSunken,
+          onChanged: (_) => onChanged(),
           autocorrect: false,
           enableSuggestions: false,
           textCapitalization: TextCapitalization.none,
