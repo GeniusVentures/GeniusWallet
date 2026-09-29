@@ -174,6 +174,81 @@ void main() {
     });
   });
 
+  group('resolveSwapCtaState — cannotSign rung', () {
+    test('canSign false, otherwise ready -> cannotSign, disabled', () {
+      final state = resolveSwapCtaState(
+        hasBothTokens: true,
+        fromAmount: '1',
+        fromBalance: 10,
+        isFetchingRoute: false,
+        hasRoute: true,
+        routeError: false,
+        isSubmitting: false,
+        canSign: false,
+      );
+      expect(state, SwapCtaState.cannotSign);
+      expect(swapCtaEnabled(state), isFalse);
+      expect(swapCtaLabel(state), "Can't sign with this wallet");
+    });
+
+    test('cannotSign outranks enterAmount', () {
+      final state = resolveSwapCtaState(
+        hasBothTokens: false,
+        fromAmount: '',
+        fromBalance: null,
+        isFetchingRoute: false,
+        hasRoute: false,
+        routeError: false,
+        isSubmitting: false,
+        canSign: false,
+      );
+      expect(state, SwapCtaState.cannotSign);
+    });
+
+    test('cannotSign outranks tooPrecise', () {
+      final state = resolveSwapCtaState(
+        hasBothTokens: true,
+        fromAmount: '1.0000009',
+        fromBalance: 10,
+        isFetchingRoute: false,
+        hasRoute: false,
+        routeError: false,
+        isSubmitting: false,
+        tooPrecise: true,
+        canSign: false,
+      );
+      expect(state, SwapCtaState.cannotSign);
+    });
+
+    test('cannotSign outranks routeError', () {
+      final state = resolveSwapCtaState(
+        hasBothTokens: true,
+        fromAmount: '1',
+        fromBalance: 10,
+        isFetchingRoute: false,
+        hasRoute: false,
+        routeError: true,
+        isSubmitting: false,
+        canSign: false,
+      );
+      expect(state, SwapCtaState.cannotSign);
+    });
+
+    test('cannotSign outranks insufficientBalance', () {
+      final state = resolveSwapCtaState(
+        hasBothTokens: true,
+        fromAmount: '5',
+        fromBalance: 1,
+        isFetchingRoute: false,
+        hasRoute: false,
+        routeError: false,
+        isSubmitting: false,
+        canSign: false,
+      );
+      expect(state, SwapCtaState.cannotSign);
+    });
+  });
+
   group('resolveSwapCtaState — submitting rung outranks everything', () {
     test('isSubmitting true -> submitting, disabled, regardless of amount', () {
       final state = resolveSwapCtaState(
@@ -241,6 +316,20 @@ void main() {
         hasRoute: false,
         routeError: false,
         isSubmitting: true,
+      );
+      expect(state, SwapCtaState.submitting);
+    });
+
+    test('submitting outranks cannotSign', () {
+      final state = resolveSwapCtaState(
+        hasBothTokens: true,
+        fromAmount: '1',
+        fromBalance: 10,
+        isFetchingRoute: false,
+        hasRoute: true,
+        routeError: false,
+        isSubmitting: true,
+        canSign: false,
       );
       expect(state, SwapCtaState.submitting);
     });
