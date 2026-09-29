@@ -701,4 +701,28 @@ void main() {
       }
     });
   });
+
+  group('a wallet that cannot sign', () {
+    testWidgets(
+      'the CTA refuses instead of reaching ready, and a tap sends nothing',
+      (tester) async {
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(const SwapRouteUnavailable(null)),
+          storage: storage,
+          wallet: _wallet.copyWith(walletType: WalletType.tracking),
+        );
+
+        expect(_cta, findsNothing, reason: 'a tracking wallet cannot sign');
+        expect(find.text("Can't sign with this wallet"), findsOneWidget);
+
+        await tester.tap(find.text("Can't sign with this wallet"));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(storage.writes, isEmpty);
+      },
+    );
+  });
 }
