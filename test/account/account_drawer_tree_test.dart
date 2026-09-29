@@ -78,7 +78,7 @@ class _Api implements GeniusApi {
   String? getStartAccountAddress() => null;
 
   @override
-  BigInt getChildBalanceAll(String childAddress) => BigInt.zero;
+  BigInt getChildBalance(String childAddress, {String? tokenId}) => BigInt.zero;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -961,7 +961,7 @@ class _PerMainApi implements GeniusApi {
       registrationsByMain[mainAddress.toLowerCase()] ?? _emptyRegistrations;
 
   @override
-  BigInt getChildBalanceAll(String childAddress) => BigInt.zero;
+  BigInt getChildBalance(String childAddress, {String? tokenId}) => BigInt.zero;
 
   // Comfortably above every amount the Fund dialog test submits.
   @override

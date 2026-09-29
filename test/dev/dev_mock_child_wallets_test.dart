@@ -79,7 +79,7 @@ class _MockWriteApi implements GeniusApi {
   final DateTime Function() now;
 
   @override
-  BigInt getChildBalanceAll(String childAddress) =>
+  BigInt getChildBalance(String childAddress, {String? tokenId}) =>
       DevMockChildWallets.balanceFor(childAddress);
 
   @override

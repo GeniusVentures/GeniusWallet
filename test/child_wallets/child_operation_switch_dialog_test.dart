@@ -54,7 +54,7 @@ class _SwitchingApi implements GeniusApi {
   String getMinionsBalance([String? tokenId]) => '10000000';
 
   @override
-  BigInt getChildBalanceAll(String childAddress) => BigInt.zero;
+  BigInt getChildBalance(String childAddress, {String? tokenId}) => BigInt.zero;
 
   @override
   GeniusNodeReturnValue fundChildGnus(String amountGnus, String childAddress) =>

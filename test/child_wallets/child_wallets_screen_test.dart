@@ -161,8 +161,13 @@ class _FakeApi implements GeniusApi {
   }
 
   @override
-  BigInt getChildBalanceAll(String childAddress) =>
+  BigInt getChildBalance(String childAddress, {String? tokenId}) =>
       balances[childAddress] ?? BigInt.zero;
+
+  // The all-tokens total is not a GNUS amount; a screen that read it would
+  // show this instead of the balances above.
+  @override
+  BigInt getChildBalanceAll(String childAddress) => BigInt.from(987654321000);
 
   @override
   GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) =>
@@ -203,7 +208,7 @@ class _DevPresetApi implements GeniusApi {
       DevMockChildWallets.registrationsFor(preset, appState, mainAddress);
 
   @override
-  BigInt getChildBalanceAll(String childAddress) =>
+  BigInt getChildBalance(String childAddress, {String? tokenId}) =>
       DevMockChildWallets.balanceFor(childAddress);
 
   @override
