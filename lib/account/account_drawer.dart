@@ -123,6 +123,20 @@ WalletSDKBadge walletSDKBadge(
   return sdkRunning ? WalletSDKBadge.none : WalletSDKBadge.pending;
 }
 
+/// The sgnus wallet [sdkAddress]'s "View balance" menu item selects, or null
+/// when the SDK has none linked - the same lowercased-address match
+/// [walletSDKBadge] uses.
+Wallet? _sgnusWalletFor(String sdkAddress, List<Wallet> wallets) {
+  final address = sdkAddress.toLowerCase();
+  for (final wallet in wallets) {
+    if (wallet.walletType == WalletType.sgnus &&
+        wallet.address.toLowerCase() == address) {
+      return wallet;
+    }
+  }
+  return null;
+}
+
 /// One small pill for a drawer row's trailing area. Promoted from the
 /// "ACTIVE ON NODE" container's own one-off `Container` once a second and
 /// third label ("SDK", "SDK PENDING") needed the identical shape - the same
@@ -394,10 +408,11 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Which of the user's OWN wallets has an SDK account, at a
-          // glance. Own-wallet rows only - `walletSDKBadge` already returns
-          // `none` for sgnus/tracking rows, so this never doubles up with
-          // `isActiveOnNode` below on the same row.
-          if (sdkBadge != WalletSDKBadge.none) ...[
+          // glance. Suppressed when ACTIVE ON NODE already shows below - a
+          // row that IS the node's active account is always linked, so the
+          // two badges would otherwise stack on the same row and say the
+          // same thing twice.
+          if (sdkBadge != WalletSDKBadge.none && !isActiveOnNode) ...[
             _RowBadge(
               label: sdkBadge == WalletSDKBadge.linked ? 'SDK' : 'SDK PENDING',
               color: sdkBadge == WalletSDKBadge.linked
@@ -406,12 +421,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             ),
             const SizedBox(width: GeniusWalletConsts.space3),
           ],
-          // 24-02: which SDK account the NODE computes on is a SEPARATE state
-          // from which wallet the UI is showing. `SelectSDKAccount` is
-          // dispatched from exactly one place -- sdk_account_manager.dart:185 --
-          // and the drawer's own tap only calls `walletCubit.selectWallet`.
-          // So the check glyph and this badge can legitimately sit on different
-          // rows, and before this badge existed nothing said so.
+          // Which SDK account the NODE computes on is a SEPARATE state from
+          // which wallet the UI is showing, so the check glyph and this
+          // badge can legitimately sit on different rows.
           if (isActiveOnNode) ...[
             _RowBadge(label: 'ACTIVE ON NODE', color: gw.brandSecondary),
             const SizedBox(width: GeniusWalletConsts.space3),
@@ -529,6 +541,15 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             .toList();
         final sdkAccounts = appState.sdkAccounts;
         final defaultAccount = appState.defaultSDKAccount?.toLowerCase();
+        // The own wallet the node currently computes on, if any - resolved
+        // once per build rather than per row.
+        final activeOnNode = appState.selectedSDKAccount == null
+            ? null
+            : AppBloc.linkedWallet(
+                appState.selectedSDKAccount!,
+                appState.sdkAccountLinks,
+                appState.wallets,
+              );
 
         return ListView(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
@@ -558,6 +579,10 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                   context,
                   w,
                   _matchesSelected(w),
+                  isActiveOnNode:
+                      activeOnNode != null &&
+                      w.address.toLowerCase() ==
+                          activeOnNode.address.toLowerCase(),
                   sdkBadge: walletSDKBadge(
                     w,
                     appState.sdkAccountLinks,
@@ -586,6 +611,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                   ),
                   isSelected: account == appState.selectedSDKAccount,
                   isStartAccount: account.toLowerCase() == defaultAccount,
+                  balanceWallet: _sgnusWalletFor(account, appState.wallets),
                 ),
               )
             else
@@ -594,6 +620,16 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                     ? 'Node not running'
                     : 'No SDK accounts yet',
               ),
+            const SizedBox(height: GeniusWalletConsts.space8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: GWButton(
+                label: 'Add from phrase or key',
+                variant: GWButtonVariant.secondary,
+                size: GWButtonSize.sm,
+                onPressed: () => showAddSdkAccountDialog(context),
+              ),
+            ),
           ],
         );
       },
