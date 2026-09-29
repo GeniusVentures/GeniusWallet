@@ -2,166 +2,136 @@
 phase: 35-unified-header-switcher
 reviewed: 2026-09-29T00:00:00Z
 depth: standard
-files_reviewed: 20
+files_reviewed: 6
 files_reviewed_list:
   - lib/account/account_drawer.dart
-  - lib/account/account_switcher.dart
-  - lib/account/sdk_account_manager.dart
-  - lib/components/data/gw_copy_row.dart
-  - lib/components/overlay/responsive_overlay.dart
-  - lib/reown/send_transaction_details.dart
-  - lib/send/send_screen.dart
+  - lib/squid_router/swap_cta_state.dart
   - lib/squid_router/swap_screen.dart
-  - test/account/account_drawer_network_section_test.dart
-  - test/account/account_drawer_show_test.dart
-  - test/account/sdk_account_delete_coupling_test.dart
-  - test/account/sdk_account_rows_test.dart
-  - test/account/sdk_add_account_test.dart
-  - test/account/sdk_start_account_delete_test.dart
-  - test/components/desktop_top_bar_text_scale_test.dart
-  - test/components/drawer_padding_invariant_test.dart
-  - test/components/gw_copy_row_test.dart
-  - test/components/wallet_identity_test.dart
-  - test/send/send_screen_test.dart
+  - lib/send/send_screen.dart
   - test/squid_router/swap_submit_test.dart
+  - test/squid_router/swap_cta_state_test.dart
 findings:
   critical: 0
-  warning: 2
+  warning: 1
   info: 1
-  total: 3
-status: issues_found
+  total: 2
+status: clean
 ---
 
-# Phase 35: Code Review Report
+# Phase 35: Code Review Report (iteration 2)
 
 **Reviewed:** 2026-09-29
 **Depth:** standard
-**Files Reviewed:** 20
+**Files Reviewed:** 6
 **Status:** issues_found
 
 ## Summary
 
-This phase merges the desktop "SDK Accounts" chip and the wallet dropdown into one
-`AccountSwitcher`/`AccountDrawer` surface with two independent sections ("Sending from" /
-"Node running as"), adds the D-07 "View balance" menu item, extends `GWCopyRow` with a
-`caption`, and adds a wrong-account guard line to Send's review row and to the Swap screen.
+Re-review of `git diff cc7243fc..HEAD` (the iteration-1 fix commits) against the two Warnings
+and one Info raised in iteration 1. Traced both fixes end to end rather than trusting the fix
+report's own description.
 
-The diff itself is disciplined: no new `_buildFoo()` widget helpers were introduced, no new
-plan/phase/sketch identifiers were added to source or test comments, every new/changed `if`
-is braced, no hardcoded colors or new color pairings were introduced, `SDKAccountManagerButton`
-and `AccountDropdownSelector` were fully deleted with no dangling references, and the mnemonic
-continues to be read as a `build()`-local value only (never stored on a Bloc/Cubit state class,
-never logged). The two selections ("Sending from" vs "Node running as") are wired through two
-independent dispatch paths (`WalletDetailsCubit.selectWallet` vs `AppBloc.add(SelectSDKAccount)`)
-and I could not find a code path where tapping one row mutates the other's selection.
+## Resolved from iteration 1
 
-Two real correctness gaps were found, both traced through to a concrete, currently-untested
-scenario rather than a hypothetical, plus one test-coverage gap on the new Swap "Switch ›" link.
-No BLOCKER-level issue (no wrong-signer bug, no leaked secret, no new insecure pattern) was found
-in the reviewed diff.
+**WR-01 (mislabeled "ACTIVE ON NODE"):** Confirmed fixed. `account_drawer.dart:584` now adds
+`w.walletType == activeOnNode.walletType` to the `isActiveOnNode` comparison, the exact pair
+`_matchesSelected` already checked a few lines above. A tracking wallet sharing an address with
+an owned wallet can no longer both light up "ACTIVE ON NODE" — only the walletType that actually
+matches `AppBloc.linkedWallet`'s result does.
+
+**WR-02 (Swap has no gate against a non-signing wallet):** Confirmed fixed, and confirmed
+correctly ordered. Traced the full precedence chain in `resolveSwapCtaState`:
+`isSubmitting` → `!canSign` → `enterAmount` → `tooPrecise` → `routeError` →
+`insufficientBalance` → `findingRoute`/`!hasRoute` → `ready`, matching the updated docstring
+exactly. `canSign` defaults to `true`, so every pre-existing pure-Dart test in
+`swap_cta_state_test.dart` (which never passes `canSign`) is unaffected — the new rung cannot
+fire for a normal signing wallet. `_buildSwapCta` computes `canSign: canSendFrom(wallet, network)`
+fresh on every build (via `context.read` inside a method re-invoked whenever the enclosing
+`BlocListener` triggers `setState` on a wallet/network change), so a switch is picked up. Because
+`_submitSwap` is wired to `onPressed` only in the branch gated on
+`state == SwapCtaState.ready || state == SwapCtaState.routeError`, and `cannotSign` structurally
+outranks `ready`, there is no code path by which a non-signing wallet's tap reaches
+`widget.execute` — this isn't just a label, it is a real refusal, closing the exact gap iteration
+1 found. The disabled/refused rendering reuses the pre-existing `gw.statusError` (fill, 12% alpha)
+/ `gw.statusErrorText` (AA-safe foreground, per its own field doc) pair already used for
+`insufficientBalance`/`tooPrecise` — no new color or pairing was introduced, so no new WCAG
+exposure exists in either light or dark mode. `_SwapFromWallet` mirrors the same `canSend` check
+independently (via `context.select`) and swaps its own label/color the same way. No regression
+found in the `unavailable` (Squid not configured) precedence: that gate still sits above the
+ladder and its label/styling is untouched by the new rung.
+
+**IN-01 (untested "Switch ›" navigation):** Confirmed fixed. `swap_submit_test.dart` now has
+`tapping Switch opens the account switcher`, which supplies a real `AppBloc`, taps
+`find.widgetWithText(TextButton, 'Switch ›')`, and asserts `find.text('Accounts')` and
+`find.text('SENDING FROM')` both appear — an actual navigation assertion, not just presence of
+the link.
 
 ## Warnings
 
-### WR-01: A watch-only wallet sharing the linked wallet's address is mislabeled "ACTIVE ON NODE"
+### WR-03: Neither iteration-1 fix shipped with a test that reproduces the bug it fixes
 
-**File:** `lib/account/account_drawer.dart:582-585`
+**File:** `lib/account/account_drawer.dart:582-586`, `lib/squid_router/swap_cta_state.dart:47-100`
 
-**Issue:** `isActiveOnNode` is computed by comparing **address only**:
+**Issue:** Both fixes are structurally correct (confirmed above by tracing the code), but neither
+is backed by a regression test that would fail if the fix were reverted or the new logic
+regressed later:
 
-```dart
-isActiveOnNode:
-    activeOnNode != null &&
-    w.address.toLowerCase() ==
-        activeOnNode.address.toLowerCase(),
-```
+- **WR-01:** No test anywhere in the suite constructs the scenario the original finding
+  described — a tracking wallet and an owned wallet sharing one address, both present in
+  `ownWallets`, with an SDK account linked to the owned one. `test/account/account_drawer_show_test.dart`'s
+  `'the wallet linked to the active SDK account shows ACTIVE ON NODE'` test uses a single wallet
+  with no address-twin, so it cannot distinguish the old (address-only) comparison from the new
+  (address+walletType) one — it would pass identically either way. `walletSDKBadge` (a different
+  function) has its own tracking-wallet test, but `isActiveOnNode` does not.
+- **WR-02:** `swap_cta_state_test.dart`'s own header comment says it has "one expectation per
+  behavior bullet... plus the precedence cases" for every other rung, but no case was added for
+  `cannotSign` — nothing asserts `canSign: false` outranks `enterAmount`, `tooPrecise`,
+  `routeError`, or `insufficientBalance`, and nothing in `swap_submit_test.dart` mounts
+  `SwapScreen` with a `WalletType.tracking` or `WalletType.sgnus` wallet to prove the CTA actually
+  renders disabled with "Can't sign with this wallet" (as opposed to, say, `canSendFrom` being
+  wired to the wrong field, or a future edit reordering the precedence checks). The fix report
+  states the pure-Dart suite "needed no changes" — true only because the new parameter defaults
+  away the change, which also means nothing in CI would catch a regression here.
 
-`activeOnNode` comes from `AppBloc.linkedWallet(...)`, which explicitly excludes
-`WalletType.tracking` and `WalletType.sgnus` when resolving the wallet an SDK account is linked
-to (`app_bloc.dart:779-781`). But `ownWallets` (the list this badge is computed for) includes
-**tracking** wallets — only `sgnus` is filtered out (`account_drawer.dart:539-541`). The
-file's own `_matchesSelected` helper already guards against exactly this by comparing address
-**and** `walletType` (with a comment explaining why: "an SDK row now carries its own wallet's
-name, so two rows named alike would otherwise both light up") — but that same walletType check
-was not applied here.
+This project's own AGENTS.md is explicit that "non-trivial logic leaves ONE runnable check
+behind, the smallest thing that fails if the logic breaks" — both of these are exactly that kind
+of logic (a discriminator added to a wallet match; a new precedence rung with security-adjacent
+consequences), and both shipped without one.
 
-This codebase explicitly supports a watch-only (tracking) wallet sharing an address with an
-owned wallet — see `test/components/wallet_identity_test.dart`'s "deleting the watch-only row of
-a key wallet address keeps the key wallet selected" and "deleting a local wallet keeps a selected
-SDK account that shares its address" tests, which pin this as a real, tested scenario elsewhere
-in the app. Reached that way, this drawer would show **both** the owned wallet's row and its
-watch-only twin badged "ACTIVE ON NODE" simultaneously, even though `walletSDKBadge` (a few lines
-above) is explicit that "Tracking and sgnus wallets never carry one" — the ACTIVE ON NODE badge
-contradicts that stated invariant for the tracking row. No fund-loss or wrong-signing risk (a
-tracking wallet can never be selected as the active send/swap wallet), but it directly
-misinforms the user about which wallet the node is processing on, which is exactly the kind of
-"two selections should never cross-contaminate" bug this phase's own design brief calls out.
-
-**Fix:** Match on `walletType` too, the same way `_matchesSelected` does:
-
-```dart
-isActiveOnNode:
-    activeOnNode != null &&
-    w.walletType == activeOnNode.walletType &&
-    w.address.toLowerCase() == activeOnNode.address.toLowerCase(),
-```
-
-### WR-02: Swap's new "Sending from" line has no gate against a wallet that cannot actually sign
-
-**File:** `lib/squid_router/swap_screen.dart:1136-1184` (`_SwapFromWallet`), `:453-565`
-(`_submitSwap`) — contrast with `lib/send/send_screen.dart:50-60`
-
-**Issue:** `send_screen.dart` refuses to render a form at all when the active wallet cannot sign:
-
-```dart
-if (wallet == null || network == null || !canSendFrom(wallet, network)) {
-  return const Scaffold(body: SafeArea(child: GWEmptyState(...)));
-}
-```
-
-`canSendFrom` (`lib/reown/utilities.dart:24-29`) excludes `WalletType.tracking` and
-`WalletType.sgnus`. `SwapScreen` has no equivalent gate anywhere in the file (confirmed: no
-occurrence of `WalletType.tracking`/`WalletType.sgnus`/`canSignOn` in
-`lib/squid_router/swap_screen.dart`), and `WalletDetailsCubit.getCoins()` does not special-case
-tracking wallets either, so a watch-only wallet's holdings load normally and the CTA ladder can
-reach `SwapCtaState.ready` for it.
-
-The new `_SwapFromWallet` widget's doc comment explicitly frames this line as "the same
-wrong-account guard Send's review row carries" — but Send's guard is backed by an early refusal
-(`canSendFrom`), while Swap's is only a label with no refusal behind it. Concretely: select a
-watch-only or SGNUS wallet as the active wallet (reachable via this same phase's own "View
-balance" menu item for the SGNUS case), and the Swap screen will happily show "Sending from
-{name} · {address}" with an enabled gradient "Swap" button; tapping it drives real calls into
-`api.approve`/`api.signAndSendTransaction` for an address the app holds no signing key for. This
-does not put funds at risk of going to the wrong recipient (there is no key to sign with), but it
-is a materially different, and materially weaker, guarantee than the one this exact code comment
-claims to provide, and the failure the user sees will be whatever raw exception/rejection the API
-layer produces rather than Send's friendly "This wallet can't sign a transaction on this network."
-
-**Fix:** Gate `SwapScreen` the same way `SendScreen` does, e.g. add a `canSendFrom`-equivalent
-check (or reuse `canSendFrom` itself) in `_SwapScreenState.build`/`_buildSwapContent` and refuse
-early with the same `GWEmptyState` pattern, rather than only naming the wallet in
-`_SwapFromWallet`.
+**Fix:** For WR-01, add a case (e.g. in `account_drawer_show_test.dart`) with a tracking wallet
+and an owned wallet sharing an address, where only the owned one is `linkedWallet`, asserting
+exactly one "ACTIVE ON NODE" badge appears and it is not on the tracking row. For WR-02, add a
+`swap_cta_state_test.dart` case asserting `canSign: false` overrides every other input (mirroring
+the existing "submitting outranks X" cases), and a `swap_submit_test.dart` case that mounts
+`SwapScreen` with a `WalletType.tracking` wallet and asserts the CTA shows "Can't sign with this
+wallet" disabled and `storage.writes` stays empty after a tap.
 
 ## Info
 
-### IN-01: The new "Switch ›" link's navigation is not exercised by any test
+### IN-02: `_buildSwapCta` reads a possibly-null wallet/network through `canSendFrom`, so a
+transient no-wallet state reads as "Can't sign with this wallet" rather than "Enter an amount"
 
-**File:** `test/squid_router/swap_submit_test.dart`
+**File:** `lib/squid_router/swap_screen.dart:751-754`
 
-**Issue:** `swap_submit_test.dart`'s `_mountReady` harness provides only `WalletDetailsCubit` and
-`TransactionsCubit` (no `AppBloc`). The new test group "names the wallet the swap will spend
-from" asserts the `TextButton` labelled `'Switch ›'` exists, but never taps it. `_SwapFromWallet`'s
-`onPressed` calls `AccountDrawer.show(context)`, whose child (`_AccountDrawerBody`) requires both
-`WalletDetailsCubit` and `BlocBuilder<AppBloc, AppState>`. In production this is fine as long as
-`AppBloc` is provided above every route that can host `/swap`, but nothing in this test suite
-proves the link actually opens the switcher (as opposed to, say, silently failing a
-`Provider.of` lookup or throwing on tap).
+**Issue:** `canSendFrom(wallet, network)` returns `false` whenever either argument is `null`
+(`lib/reown/utilities.dart:24-29`), and `WalletDetailsState.selectedWallet`/`selectedNetwork` are
+both nullable and observed to start `null` in this cubit (`wallet_details_cubit.dart:247`). Before
+this fix, that transient state resolved to `enterAmount` (since `hasBothTokens` is independently
+false); after it, `cannotSign` outranks `enterAmount`, so the CTA would read "Can't sign with this
+wallet" during that window instead. This isn't misleading in a harmful way (a wallet that isn't
+selected yet indeed can't sign), and no test or production code path was found where the Swap
+screen is actually reachable with no wallet selected (onboarding always seeds one first), so this
+is unlikely to be user-visible. Noting it because it is a real, if narrow, behavior change from
+the pre-fix ladder.
 
-**Fix:** Add a case that taps `find.text('Switch ›')` (with `AppBloc` added to the harness) and
-asserts the switcher drawer opens (e.g. `find.text('Accounts')` or `find.text('SENDING FROM')`),
-mirroring the coverage the account-drawer test suite already has for every other entry point.
+**Fix:** Optional — if ever reachable, guard `canSign` with `wallet != null` explicitly so a
+"no wallet yet" state still reads `enterAmount` rather than the wallet-specific refusal.
 
 ---
 
 _Reviewed: 2026-09-29_
 _Depth: standard_
+
+## Resolution
+
+Iteration 2 findings (missing regression tests; no-wallet ladder reading) were fixed and proven by failing-then-passing tests; see 35-REVIEW-FIX.md "Iteration 2".
