@@ -41,7 +41,6 @@ const _census = <String, _Inset>{
   // scrolls with the content and the rows still reach the panel edge. This
   // is the half of 07-06's prohibition that was right.
   'lib/account/account_drawer.dart': _Inset.ownsScrollingViewport,
-  'lib/account/sdk_account_manager.dart': _Inset.ownsScrollingViewport,
   'lib/network/network_dropdown_selector.dart': _Inset.ownsScrollingViewport,
   'lib/squid_router/token_selector_drawer.dart': _Inset.ownsScrollingViewport,
   // 21-02: the bridge's destination-network picker, the fifth GWSelectRow
