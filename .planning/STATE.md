@@ -2,17 +2,20 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Child wallets & account linking
-status: planning
-last_updated: "2026-09-29T00:40:00.000Z"
-stopped_at: "Phase 34 context gathered"
-resume_file: ".planning/phases/34-account-linking/34-CONTEXT.md"
+current_phase: 34
+current_phase_name: Account linking
+status: executing
+stopped_at: Phase 34 context gathered
+last_updated: "2026-09-29T01:12:12.327Z"
 last_activity: 2026-09-29
+last_activity_desc: Phase 34 execution started
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
+resume_file: .planning/phases/34-account-linking/34-CONTEXT.md
 ---
 
 # Project State
@@ -22,15 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** v2.0 shipped and archived 2026-09-24 (`milestones/v2.0-ROADMAP.md`). Next is
-either a new milestone (`/gsd-new-milestone`) or the v1.0 residue below.
+**Current focus:** Phase 34 — Account linking
 
 ## Current Position
 
-Phase: 34 (not started)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-09-28 — Milestone v3.0 started
+Phase: 34 (Account linking) — EXECUTING
+Plan: 1 of 5
+Status: Executing Phase 34
+Last activity: 2026-09-28 — Phase 34 execution started
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
 
