@@ -281,10 +281,8 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       .fold(BigInt.zero, (sum, op) => sum + op.amountMinions!);
 
   /// Submits [kind] against [target], or returns null with no SDK call when
-  /// the node runs as the wrong side, the chosen main is the account itself
-  /// (or a move's current main), [kind] is already pending on [target] (any
-  /// fund or recover, for those two), or the amount is out of range. Appends
-  /// and emits only on `RET_OK`.
+  /// the side, main, lock or amount is wrong. Appends and emits only on
+  /// `RET_OK`, so a refused write never shows as pending.
   GeniusNodeReturnValue? submit({
     required ChildOperationKind kind,
     required String target,
@@ -407,10 +405,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     return result;
   }
 
-  /// Checks each op's signal first, then times out a still-pending one past
-  /// [childOperationTimeout] and expires a fund or recover past
-  /// [_baselineLifetime]. "Check again" calls this same method. No-op when
-  /// nothing changed, so a listener never fires on an unrelated emit.
+  /// Resolves each op whose signal is met, else times it out or expires it.
+  /// Signal first, so one landing on the timeout tick still reads as done.
+  /// Emits only on a change, so a listener never fires on an unrelated emit.
   void resolve() {
     if (state.operations.isEmpty) {
       return;
