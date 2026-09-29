@@ -110,4 +110,41 @@ void main() {
 
     expect(copied, [_longValue]);
   });
+
+  testWidgets(
+    'a caption renders above the value, and tapping still copies the FULL '
+    'value',
+    (tester) async {
+      await tester.pumpWidget(
+        _host(
+          const GWCopyRow(
+            label: 'From',
+            value: _longValue,
+            caption: 'Main Wallet',
+          ),
+        ),
+      );
+
+      expect(find.text('Main Wallet'), findsOneWidget);
+      expect(find.text('0xabcd...cdef01'), findsOneWidget);
+
+      await tester.tap(find.byType(GWCopyRow));
+      await tester.pump();
+
+      expect(copied, [_longValue]);
+    },
+  );
+
+  testWidgets('a null or empty caption adds no extra text', (tester) async {
+    await tester.pumpWidget(
+      _host(const GWCopyRow(label: 'From', value: _longValue)),
+    );
+    expect(find.text('Main Wallet'), findsNothing);
+
+    await tester.pumpWidget(
+      _host(const GWCopyRow(label: 'From', value: _longValue, caption: '')),
+    );
+    // Only the value renders -- an empty caption is treated as absent.
+    expect(find.text('0xabcd...cdef01'), findsOneWidget);
+  });
 }
