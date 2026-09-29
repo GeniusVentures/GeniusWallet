@@ -629,20 +629,30 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         orElse: () => remaining.first,
       );
 
-  /// True while another of the user's own key-holding wallets would remain.
-  /// SDK accounts do not count: they are not reloaded once no local wallet is
-  /// left, so a deletion they "covered" would leave the user with nothing
-  /// after a restart. Watch-only wallets do not count either: they hold no
-  /// key, so they cannot sign or be restored from.
-  static bool canDeleteWallet(List<Wallet> wallets) =>
-      wallets
-          .where(
-            (w) =>
-                w.walletType != WalletType.sgnus &&
-                w.walletType != WalletType.tracking,
-          )
-          .length >
-      1;
+  /// True while it is safe to delete a row from [wallets]. Removing a
+  /// watch-only row never touches a key, so it only needs another row of any
+  /// kind left; removing a key-holding wallet (the default, and always the
+  /// case for [sdkDeleteBlock]'s linked-wallet check) needs another
+  /// key-holding wallet left - SDK accounts do not count (they are not
+  /// reloaded once no local wallet is left, so a deletion they "covered"
+  /// would leave the user with nothing after a restart), and neither does a
+  /// watch-only row, which holds no key and cannot sign or be restored from.
+  static bool canDeleteWallet(
+    List<Wallet> wallets, {
+    bool deletingWatchOnly = false,
+  }) {
+    if (deletingWatchOnly) {
+      return wallets.where((w) => w.walletType != WalletType.sgnus).length > 1;
+    }
+    return wallets
+            .where(
+              (w) =>
+                  w.walletType != WalletType.sgnus &&
+                  w.walletType != WalletType.tracking,
+            )
+            .length >
+        1;
+  }
 
   /// True for the one row [event] deletes. A key wallet, a watch-only row and
   /// an SDK account made from the same key can all share one address.
@@ -657,7 +667,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     // Enforced here, not only in the drawer: deleting a wallet is irreversible.
-    if (!canDeleteWallet(state.wallets)) {
+    if (!canDeleteWallet(state.wallets, deletingWatchOnly: event.watchOnly)) {
       return;
     }
     await _deleteWallet(event.address, watchOnly: event.watchOnly);

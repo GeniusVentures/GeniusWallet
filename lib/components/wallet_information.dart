@@ -244,6 +244,8 @@ class WalletInformationState extends State<WalletInformation> {
                                 // directly, skipping the last-wallet guard.
                                 if (!AppBloc.canDeleteWallet(
                                   appBloc.state.wallets,
+                                  deletingWatchOnly:
+                                      wallet.walletType == WalletType.tracking,
                                 )) {
                                   showToast(
                                     navigator.context,
