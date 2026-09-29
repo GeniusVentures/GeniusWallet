@@ -2002,8 +2002,18 @@ void main() {
       expect(cubit.ownRegistrations(), isNull);
     });
 
-    test("null once any one own account's read comes back non-OK", () {
+    test("skips only the own account whose read comes back non-OK, keeping "
+        "the rest", () {
       final api = _FakeApi()
+        ..registrationEntriesByMain = {
+          _mainAddress.toLowerCase(): const [
+            ChildRegistration(
+              childAddress: _childAddress,
+              mainAddress: _mainAddress,
+              sequence: 0,
+            ),
+          ],
+        }
         ..registrationsResultByMain = {
           _otherAddress.toLowerCase():
               GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
@@ -2015,7 +2025,10 @@ void main() {
           sdkAccounts: [_mainAddress, _otherAddress],
         ),
       );
-      expect(cubit.ownRegistrations(), isNull);
+      final result = cubit.ownRegistrations();
+      expect(result, isNotNull);
+      expect(result!.keys, [_mainAddress.toLowerCase()]);
+      expect(result[_mainAddress.toLowerCase()], hasLength(1));
     });
 
     test('keys the result by lowercased main', () {
