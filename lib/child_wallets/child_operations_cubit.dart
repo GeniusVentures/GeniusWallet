@@ -6,7 +6,7 @@ import 'package:genius_api/ffi/genius_api_ffi.dart' show GeniusNodeReturnValue;
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
-    show minionsToGnus;
+    show ChildWallet, minionsToGnus;
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart' show toBaseUnits;
@@ -216,6 +216,49 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
 
   /// The user's own SDK accounts -- the main picker's candidate list.
   List<String> get ownAccounts => _readAppState().sdkAccounts;
+
+  /// Every own SDK account's registrations, keyed by lowercased main -- null
+  /// while the node isn't running and no dev preset is armed, or once any
+  /// one account's read comes back non-OK.
+  // ponytail: one registrations read per own account per open or change;
+  // upgrade path is an SDK by-child query.
+  Map<String, List<ChildWallet>>? ownRegistrations() {
+    if (!_devMocked && runningAccount == null) {
+      return null;
+    }
+    final appState = _readAppState();
+    final result = <String, List<ChildWallet>>{};
+    for (final main in appState.sdkAccounts) {
+      final registrations = _devMocked
+          ? DevMockChildWallets.registrationsFor(
+              DevMockChildWallets.instance.preset.value!,
+              appState,
+              main,
+            )
+          : _api.getChildRegistrations(main);
+      if (!registrations.isOk) {
+        return null;
+      }
+      result[main.toLowerCase()] = [
+        for (final entry in registrations.entries)
+          ChildWallet(
+            address: entry.childAddress,
+            name: AppBloc.sdkAccountName(
+              entry.childAddress,
+              appState.sdkAccountLinks,
+              appState.wallets,
+            ),
+            linkedWallet: AppBloc.linkedWallet(
+              entry.childAddress,
+              appState.sdkAccountLinks,
+              appState.wallets,
+            ),
+            balanceGnus: minionsToGnus(_childBalance(entry.childAddress)),
+          ),
+      ];
+    }
+    return result;
+  }
 
   /// True for a kind that carries a GNUS amount -- fund and recover only.
   bool _hasAmount(ChildOperationKind kind) =>

@@ -1,12 +1,19 @@
+import 'dart:math' show min;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/account/account_tree.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
+import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
+    show ChildWallet;
+import 'package:genius_wallet/child_wallets/child_wallets_screen.dart'
+    show ChildWalletRow;
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
@@ -14,6 +21,7 @@ import 'package:genius_wallet/components/data/gw_row_badge.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -161,6 +169,33 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   // build) purely so the rename flow below can update it in place when a
   // rename touches the currently-selected wallet.
   Wallet? _selectedWallet;
+
+  /// The last key [_registrations] was read for -- see [_updateRegistrations].
+  Object? _registrationsKey;
+
+  /// Every own account's registered children, or null while the node is down
+  /// and no dev preset is armed, or a read failed. Read once per open and
+  /// again only when [_updateRegistrations]'s key actually changes, never on
+  /// every rebuild -- an FFI call per own account is too costly to repeat on
+  /// every frame this drawer paints.
+  Map<String, List<ChildWallet>>? _registrations;
+
+  void _updateRegistrations(
+    AppState appState,
+    ChildOperationsCubit? operations,
+  ) {
+    final key = (
+      appState.selectedSDKAccount,
+      appState.sdkAccounts.join(','),
+      operations?.state,
+      DevMockChildWallets.instance.preset.value,
+    );
+    if (key == _registrationsKey) {
+      return;
+    }
+    _registrationsKey = key;
+    _registrations = operations?.ownRegistrations();
+  }
 
   Future<void> _confirmRenameWallet(BuildContext context, Wallet wallet) async {
     final appBloc = context.read<AppBloc>();
@@ -504,6 +539,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
 
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, appState) {
+        _updateRegistrations(appState, operations);
         // Two independent selections, never one flat list: which wallet sends
         // and swaps, and which account the node computes on. sgnus rows carry
         // no selection of their own here - their balance is reached from the
@@ -585,18 +621,36 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
             // node are two different facts, each said in words rather than
             // left as an absent section.
             if (sdkAccounts.isNotEmpty)
-              ...sdkAccounts.map(
-                (account) => SDKAccountRow(
-                  address: account,
-                  name: AppBloc.sdkAccountName(
-                    account,
-                    appState.sdkAccountLinks,
-                    appState.wallets,
+              ...buildAccountTree(
+                sdkAccounts: sdkAccounts,
+                registrations: _registrations,
+              ).map(
+                (row) => Padding(
+                  padding: EdgeInsets.only(
+                    left: min(row.depth, 2) * GeniusWalletConsts.space12,
                   ),
-                  isSelected: account == appState.selectedSDKAccount,
-                  isStartAccount: account.toLowerCase() == defaultAccount,
-                  balanceWallet: _sgnusWalletFor(account, appState.wallets),
-                  lockedReason: lockedReason,
+                  child: row.kind == AccountRowKind.account
+                      ? SDKAccountRow(
+                          address: row.sdkAddress!,
+                          name: AppBloc.sdkAccountName(
+                            row.sdkAddress!,
+                            appState.sdkAccountLinks,
+                            appState.wallets,
+                          ),
+                          isSelected:
+                              row.sdkAddress == appState.selectedSDKAccount,
+                          isStartAccount:
+                              row.sdkAddress!.toLowerCase() == defaultAccount,
+                          balanceWallet: _sgnusWalletFor(
+                            row.sdkAddress!,
+                            appState.wallets,
+                          ),
+                          lockedReason: lockedReason,
+                        )
+                      : ChildWalletRow(
+                          wallet: row.child!,
+                          mainAddress: row.parentMain!,
+                        ),
                 ),
               )
             else
