@@ -218,8 +218,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   List<String> get ownAccounts => _readAppState().sdkAccounts;
 
   /// Every own SDK account's registrations, keyed by lowercased main -- null
-  /// while the node isn't running and no dev preset is armed, or once any
-  /// one account's read comes back non-OK.
+  /// while the node isn't running and no dev preset is armed. An account
+  /// whose own read fails is simply left out, so one bad read doesn't blank
+  /// the other accounts' nesting.
   // ponytail: one registrations read per own account per open or change;
   // upgrade path is an SDK by-child query.
   Map<String, List<ChildWallet>>? ownRegistrations() {
@@ -237,7 +238,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
             )
           : _api.getChildRegistrations(main);
       if (!registrations.isOk) {
-        return null;
+        continue;
       }
       result[main.toLowerCase()] = [
         for (final entry in registrations.entries)
