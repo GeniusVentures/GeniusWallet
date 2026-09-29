@@ -16,11 +16,13 @@ import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_screen.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 const _mainAddress = '0x1111111111111111111111111111111111aaaa';
 const _childAddress = '0x2222222222222222222222222222222222bbbb';
 const _secondChildAddress = '0x4444444444444444444444444444444444dddd';
+const _parentAddress = '0x6666666666666666666666666666666666eeee';
 
 const _mainWallet = Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -73,6 +75,31 @@ const _twoChildAppState = AppState(
   },
 );
 
+const _parentWallet = Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: 'Parent Wallet',
+  currencySymbol: 'ETH',
+  walletType: WalletType.privateKey,
+  balance: 0,
+  address: _parentAddress,
+);
+
+/// Lists [_parentAddress] as a second own account -- the "This account"
+/// card's Detach flow needs a parent for the running account to detach from.
+const _withParentAppState = AppState(
+  selectedSDKAccount: _mainAddress,
+  sdkAccounts: [_mainAddress, _parentAddress],
+  wallets: [_mainWallet, _childWallet, _parentWallet],
+  sdkAccountLinks: {
+    _mainAddress: (walletAddress: _mainAddress, walletName: 'Main Wallet'),
+    _childAddress: (walletAddress: _childAddress, walletName: 'Game Wallet'),
+    _parentAddress: (
+      walletAddress: _parentAddress,
+      walletName: 'Parent Wallet',
+    ),
+  },
+);
+
 const _registrations = (
   result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
   entries: [
@@ -101,32 +128,51 @@ const _twoChildRegistrations = (
 );
 
 /// `implements`, not `extends`: the real constructor dlopens the native SDK.
+/// [registrations] answers a read for [_mainAddress] itself (the children
+/// list this screen shows); [otherRegistrations] answers a read for any
+/// other own account, by lowercased address -- the "This account" card's
+/// parent-main lookup and a Detach's own resolve read.
 class _FakeApi implements GeniusApi {
   _FakeApi({
     this.registrations = _registrations,
     this.fundResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
     this.recoverResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
     this.revokeResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    this.detachResult = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    this.otherRegistrations = const {},
   });
 
-  // Mutable so a revoke test can prove its resolve reads a later list, not
-  // the one captured at submission.
+  // Mutable so a revoke/detach test can prove its resolve reads a later
+  // list, not the one captured at submission.
   ChildRegistrations registrations;
+  Map<String, ChildRegistrations> otherRegistrations;
   final GeniusNodeReturnValue fundResult;
   final GeniusNodeReturnValue recoverResult;
   final GeniusNodeReturnValue revokeResult;
+  final GeniusNodeReturnValue detachResult;
   final Map<String, BigInt> balances = {};
   String? lastFundedAmount;
   String? lastFundedChild;
   String? lastRecoveredAmount;
   String? lastRecoveredChild;
   String? lastRevokedChild;
+  ChildRegistrationMetadata? lastDetachMetadata;
   int fundCallCount = 0;
   int recoverCallCount = 0;
   int revokeCallCount = 0;
+  int detachCallCount = 0;
 
   @override
-  ChildRegistrations getChildRegistrations(String mainAddress) => registrations;
+  ChildRegistrations getChildRegistrations(String mainAddress) {
+    if (mainAddress.toLowerCase() == _mainAddress.toLowerCase()) {
+      return registrations;
+    }
+    return otherRegistrations[mainAddress.toLowerCase()] ??
+        const (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: <ChildRegistration>[],
+        );
+  }
 
   @override
   BigInt getChildBalanceAll(String childAddress) =>
@@ -160,6 +206,13 @@ class _FakeApi implements GeniusApi {
     revokeCallCount++;
     lastRevokedChild = childAddress;
     return revokeResult;
+  }
+
+  @override
+  GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) {
+    detachCallCount++;
+    lastDetachMetadata = metadata;
+    return detachResult;
   }
 
   @override
@@ -676,4 +729,165 @@ void main() {
       await operations.close();
     },
   );
+
+  testWidgets(
+    'Detach confirms the exact copy, sends empty metadata, and resolves '
+    'once the old main no longer lists the subject, then toasts once',
+    (tester) async {
+      final api = _FakeApi(
+        otherRegistrations: {
+          _parentAddress.toLowerCase(): (
+            result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+            entries: const [
+              ChildRegistration(
+                childAddress: _mainAddress,
+                mainAddress: _parentAddress,
+                sequence: 0,
+              ),
+            ],
+          ),
+        },
+      );
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+        appState: _withParentAppState,
+      );
+
+      expect(find.text('Child of Parent Wallet'), findsOneWidget);
+      await tester.tap(find.widgetWithText(GWButton, 'Detach'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Detach from main?'), findsOneWidget);
+      expect(
+        find.text(
+          'Detach from Parent Wallet? Main Wallet will no longer be a '
+          'child of Parent Wallet.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byType(GWDialog),
+          matching: find.widgetWithText(GWButton, 'Detach'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(api.detachCallCount, 1);
+      expect(api.lastDetachMetadata, const ChildRegistrationMetadata());
+      expect(find.text('Detaching…'), findsOneWidget);
+
+      // The real signal: an OK read of the old main no longer lists the
+      // subject.
+      api.otherRegistrations = {
+        _parentAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const <ChildRegistration>[],
+        ),
+      };
+      await tester.tap(find.byTooltip('Refresh'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Detaching…'), findsNothing);
+      expect(find.text('Detached from Parent Wallet'), findsOneWidget);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets('a refused Detach shows the reason and never shows a badge', (
+    tester,
+  ) async {
+    final api = _FakeApi(
+      detachResult: GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT,
+      otherRegistrations: {
+        _parentAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _parentAddress,
+              sequence: 0,
+            ),
+          ],
+        ),
+      },
+    );
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _withParentAppState,
+    );
+
+    await tester.tap(find.widgetWithText(GWButton, 'Detach'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(GWDialog),
+        matching: find.widgetWithText(GWButton, 'Detach'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(api.detachCallCount, 1);
+    expect(
+      find.text(
+        'The SDK refused to detach this account: '
+        'GENIUS_NODE_INVALID_ARGUMENT',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Detaching…'), findsNothing);
+
+    await childWallets.close();
+    await operations.close();
+  });
+
+  testWidgets('a pending Detach locks the card button, tooltipped', (
+    tester,
+  ) async {
+    final api = _FakeApi(
+      otherRegistrations: {
+        _parentAddress.toLowerCase(): (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: const [
+            ChildRegistration(
+              childAddress: _mainAddress,
+              mainAddress: _parentAddress,
+              sequence: 0,
+            ),
+          ],
+        ),
+      },
+    );
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      appState: _withParentAppState,
+    );
+
+    operations.submit(
+      kind: ChildOperationKind.detach,
+      target: _mainAddress,
+      main: _parentAddress,
+    );
+    await tester.pumpAndSettle();
+
+    final detachButton = tester.widget<GWButton>(
+      find.widgetWithText(GWButton, 'Detach'),
+    );
+    expect(detachButton.onPressed, isNull);
+    expect(find.byTooltip('Already detaching this account'), findsOneWidget);
+
+    await childWallets.close();
+    await operations.close();
+  });
 }

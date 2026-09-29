@@ -13,6 +13,8 @@ import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_screen.dart';
+import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
@@ -21,6 +23,7 @@ import 'package:local_secure_storage/local_secure_storage.dart';
 const _mainAddress = '0x1111111111111111111111111111111111aaaa';
 const _linkedChildAddress = '0x2222222222222222222222222222222222bbbb';
 const _unlinkedChildAddress = '0x3333333333333333333333333333333333cccc';
+const _otherOwnAddress = '0x9999999999999999999999999999999999ffff';
 
 const _lagNote = "Balances come from the node's synced view and can lag.";
 
@@ -42,13 +45,36 @@ const _childWallet = Wallet(
   address: _linkedChildAddress,
 );
 
+const _otherOwnWallet = Wallet(
+  coinType: TWCoinType.TWCoinTypeEthereum,
+  walletName: 'Parent Wallet',
+  currencySymbol: 'ETH',
+  walletType: WalletType.privateKey,
+  balance: 0,
+  address: _otherOwnAddress,
+);
+
 const _links = <String, SDKAccountLink>{
   _mainAddress: (walletAddress: _mainAddress, walletName: 'Main Wallet'),
   _linkedChildAddress: (
     walletAddress: _linkedChildAddress,
     walletName: 'Game Wallet',
   ),
+  _otherOwnAddress: (
+    walletAddress: _otherOwnAddress,
+    walletName: 'Parent Wallet',
+  ),
 };
+
+/// [_mainAddress] plus one other own account ([_otherOwnAddress]) -- the
+/// "This account" card's parent-main lookup needs a second own account to
+/// have anything to find.
+const _withOtherOwnAppState = AppState(
+  selectedSDKAccount: _mainAddress,
+  sdkAccounts: [_mainAddress, _otherOwnAddress],
+  wallets: [_mainWallet, _childWallet, _otherOwnWallet],
+  sdkAccountLinks: _links,
+);
 
 const _selectedAppState = AppState(
   selectedSDKAccount: _mainAddress,
@@ -106,22 +132,38 @@ const _queryErrorRegistrations = (
 );
 
 /// `implements`, not `extends`: the real constructor dlopens the native SDK.
+/// [registrations] answers a read for [_mainAddress] itself (the screen's own
+/// list); [otherRegistrations] answers a read for any other own account, by
+/// lowercased address -- the parent-main lookup's own reads.
 class _FakeApi implements GeniusApi {
-  _FakeApi({required this.registrations, this.balances = const {}});
+  _FakeApi({
+    required this.registrations,
+    this.balances = const {},
+    this.otherRegistrations = const {},
+  });
 
   ChildRegistrations registrations;
   Map<String, BigInt> balances;
+  Map<String, ChildRegistrations> otherRegistrations;
   int registrationsCallCount = 0;
 
   @override
   ChildRegistrations getChildRegistrations(String mainAddress) {
     registrationsCallCount++;
-    return registrations;
+    if (mainAddress.toLowerCase() == _mainAddress.toLowerCase()) {
+      return registrations;
+    }
+    return otherRegistrations[mainAddress.toLowerCase()] ??
+        _emptyOkRegistrations;
   }
 
   @override
   BigInt getChildBalanceAll(String childAddress) =>
       balances[childAddress] ?? BigInt.zero;
+
+  @override
+  GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) =>
+      GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -713,6 +755,172 @@ void main() {
 
       await cubit.close();
     });
+  });
+
+  group('the "This account" card', () {
+    testWidgets(
+      "reads 'Not registered as a child' when no own account lists the "
+      'subject, and shows no Detach button',
+      (tester) async {
+        final api = _FakeApi(registrations: _emptyOkRegistrations);
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _withOtherOwnAppState,
+        );
+
+        expect(find.text('Not registered as a child'), findsOneWidget);
+        expect(find.widgetWithText(GWButton, 'Detach'), findsNothing);
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets(
+      "reads 'Child of {main}' when another own account's OK list contains "
+      'the subject, case-insensitively',
+      (tester) async {
+        final api = _FakeApi(
+          registrations: _emptyOkRegistrations,
+          otherRegistrations: {
+            _otherOwnAddress.toLowerCase(): (
+              result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+              entries: [
+                ChildRegistration(
+                  childAddress: _mainAddress.toUpperCase(),
+                  mainAddress: _otherOwnAddress,
+                  sequence: 0,
+                ),
+              ],
+            ),
+          },
+        );
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _withOtherOwnAppState,
+        );
+
+        expect(find.text('Child of Parent Wallet'), findsOneWidget);
+        expect(find.widgetWithText(GWButton, 'Detach'), findsOneWidget);
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets(
+      'a non-OK read from one own account is skipped, keeping the subject '
+      'unregistered',
+      (tester) async {
+        final api = _FakeApi(
+          registrations: _emptyOkRegistrations,
+          otherRegistrations: {
+            _otherOwnAddress.toLowerCase(): (
+              result: GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT,
+              entries: const [
+                ChildRegistration(
+                  childAddress: _mainAddress,
+                  mainAddress: _otherOwnAddress,
+                  sequence: 0,
+                ),
+              ],
+            ),
+          },
+        );
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _withOtherOwnAppState,
+        );
+
+        expect(find.text('Not registered as a child'), findsOneWidget);
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets(
+      'node down or a read error shows identity only -- no status line, no '
+      'buttons',
+      (tester) async {
+        final api = _FakeApi(registrations: _queryErrorRegistrations);
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _withOtherOwnAppState,
+        );
+
+        expect(find.text('Not registered as a child'), findsNothing);
+        expect(find.widgetWithText(GWButton, 'Detach'), findsNothing);
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets(
+      'Detach confirms the exact copy, sends empty metadata, and resolves '
+      'once the old main no longer lists the subject',
+      (tester) async {
+        final api = _FakeApi(
+          registrations: _emptyOkRegistrations,
+          otherRegistrations: {
+            _otherOwnAddress.toLowerCase(): (
+              result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+              entries: const [
+                ChildRegistration(
+                  childAddress: _mainAddress,
+                  mainAddress: _otherOwnAddress,
+                  sequence: 0,
+                ),
+              ],
+            ),
+          },
+        );
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _withOtherOwnAppState,
+        );
+
+        expect(find.text('Child of Parent Wallet'), findsOneWidget);
+        await tester.tap(find.widgetWithText(GWButton, 'Detach'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Detach from main?'), findsOneWidget);
+        expect(
+          find.text(
+            'Detach from Parent Wallet? Main Wallet will no longer be a '
+            'child of Parent Wallet.',
+          ),
+          findsOneWidget,
+        );
+        await tester.tap(
+          find.descendant(
+            of: find.byType(GWDialog),
+            matching: find.widgetWithText(GWButton, 'Detach'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Detaching…'), findsOneWidget);
+
+        // The real signal: an OK read of the old main no longer lists the
+        // subject.
+        api.otherRegistrations = {
+          _otherOwnAddress.toLowerCase(): (
+            result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+            entries: const <ChildRegistration>[],
+          ),
+        };
+        await tester.tap(find.byTooltip('Refresh'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Detaching…'), findsNothing);
+        expect(find.text('Not registered as a child'), findsOneWidget);
+
+        await cubit.close();
+      },
+    );
   });
 
   group('minionsToGnus', () {

@@ -32,9 +32,11 @@ class _FakeApi implements GeniusApi {
   int fundCallCount = 0;
   int recoverCallCount = 0;
   int revokeCallCount = 0;
+  int detachCallCount = 0;
   String? lastRecoveredAmount;
   String? lastRecoveredChild;
   String? lastRevokedChild;
+  ChildRegistrationMetadata? lastDetachMetadata;
   GeniusNodeReturnValue registrationsResult;
   List<ChildRegistration> registrationEntries = const [];
 
@@ -73,6 +75,13 @@ class _FakeApi implements GeniusApi {
   @override
   ChildRegistrations getChildRegistrations(String mainAddress) =>
       (result: registrationsResult, entries: registrationEntries);
+
+  @override
+  GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) {
+    detachCallCount++;
+    lastDetachMetadata = metadata;
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -643,6 +652,112 @@ void main() {
 
       expect(result, isNull);
       expect(api.revokeCallCount, 0);
+
+      cubit.close();
+    });
+  });
+
+  group('detach', () {
+    test('submit calls the detach wrapper with empty metadata, running as the '
+        'account itself, not the old main', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.detach,
+        target: _mainAddress,
+        main: _otherAddress,
+      );
+
+      expect(result, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+      expect(api.detachCallCount, 1);
+      expect(api.lastDetachMetadata, const ChildRegistrationMetadata());
+
+      cubit.close();
+    });
+
+    test('running as the old main, not the account itself, is refused, no '
+        'SDK call', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(selectedSDKAccount: _otherAddress),
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.detach,
+        target: _mainAddress,
+        main: _otherAddress,
+      );
+
+      expect(result, isNull);
+      expect(api.detachCallCount, 0);
+
+      cubit.close();
+    });
+
+    test('an OK read of the old main without the account resolves', () {
+      final api = _FakeApi()
+        ..registrationEntries = const [
+          ChildRegistration(
+            childAddress: _mainAddress,
+            mainAddress: _otherAddress,
+            sequence: 0,
+          ),
+        ];
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.detach,
+        target: _mainAddress,
+        main: _otherAddress,
+      );
+
+      api.registrationEntries = const [];
+      cubit.resolve();
+
+      expect(cubit.state.operations, isEmpty);
+      expect(cubit.state.justResolved, hasLength(1));
+
+      cubit.close();
+    });
+
+    test('a non-OK read never resolves and times out to notConfirmed', () {
+      var now = DateTime(2024);
+      final api =
+          _FakeApi(
+              registrationsResult:
+                  GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
+            )
+            ..registrationEntries = const [
+              ChildRegistration(
+                childAddress: _mainAddress,
+                mainAddress: _otherAddress,
+                sequence: 0,
+              ),
+            ];
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.detach,
+        target: _mainAddress,
+        main: _otherAddress,
+      );
+
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.justResolved, isEmpty);
 
       cubit.close();
     });
