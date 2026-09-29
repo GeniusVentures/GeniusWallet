@@ -181,7 +181,7 @@ TextStyle _sublineStyle(GWColors gw) => GeniusWalletTypography.numericBody
 /// header comment prescribes: the pure state module owns the semantic
 /// role, the call site (here, where `GWColors` is in scope) owns the
 /// colour token. Confirmed as-is rather than overridden: plan 01's
-/// `notLinked -> warning` choice (flagged as an open decision in its
+/// `notDefaultAccount -> warning` choice (flagged as an open decision in its
 /// SUMMARY) is accepted here unchanged, since overriding the STATE→role
 /// mapping would mean editing `compute_state.dart`, which this plan does
 /// not own.
