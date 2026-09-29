@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
+import 'package:genius_api/genius_api.dart' show SDKAddOutcome;
 import 'package:genius_wallet/account/add_account_secret_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -500,7 +501,10 @@ class SDKAccountManagerButton extends StatelessWidget {
   /// reads or logs the value; the value flows straight from
   /// `controller.text.trim()` into the bloc event.
   ///
-  /// Success is reported only once the SDK's account list actually grows.
+  /// The bloc reports exactly what happened to the pasted secret -- saved
+  /// and linked, already one of the user's wallets, saved but pending its
+  /// SDK link, or failed outright -- so this dialog reports that outcome
+  /// rather than guessing from a list-length change.
   Future<void> _showAddAccountDialog(BuildContext context) async {
     final bloc = context.read<AppBloc>();
     final validity = AddAccountSecretCubit(bloc.api);
@@ -514,29 +518,44 @@ class SDKAccountManagerButton extends StatelessWidget {
       return;
     }
 
-    // The handler emits only when the SDK returns OK, so -- as with delete --
-    // the observable truth is whether the account list grew. Subscribed before
-    // dispatching, so the emission cannot slip past.
-    final before = bloc.state.sdkAccounts.length;
-    final grew = bloc.stream
-        .map((s) => s.sdkAccounts.length > before)
-        .firstWhere((added) => added)
-        .timeout(const Duration(seconds: 3), onTimeout: () => false);
+    final done = Completer<SDKAddOutcome>();
     bloc.add(
       result.phrase
-          ? AddSDKAccountWithMnemonic(result.value)
-          : AddSDKAccountWithPrivateKey(result.value),
+          ? AddSDKAccountWithMnemonic(result.value, done: done)
+          : AddSDKAccountWithPrivateKey(result.value, done: done),
     );
-    final added = await grew;
+    final outcome = await done.future.timeout(
+      const Duration(seconds: 60),
+      onTimeout: () => SDKAddOutcome.failed,
+    );
 
     if (!context.mounted) {
       return;
     }
+    final (message, type, seconds) = switch (outcome) {
+      SDKAddOutcome.added => ('Account added', ToastType.success, 1),
+      SDKAddOutcome.alreadyThere => (
+        'That wallet is already in the app.',
+        ToastType.success,
+        2,
+      ),
+      SDKAddOutcome.pending => (
+        'Wallet saved. Its SDK account is pending and will be added once '
+            'the node is running.',
+        ToastType.warning,
+        4,
+      ),
+      SDKAddOutcome.failed => (
+        'That account could not be added.',
+        ToastType.error,
+        3,
+      ),
+    };
     showToast(
       context,
-      added ? 'Account added' : 'The SDK did not add that account.',
-      type: added ? ToastType.success : ToastType.error,
-      duration: Duration(seconds: added ? 1 : 3),
+      message,
+      type: type,
+      duration: Duration(seconds: seconds),
     );
   }
 

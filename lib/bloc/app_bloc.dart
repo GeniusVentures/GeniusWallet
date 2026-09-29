@@ -828,38 +828,51 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   FutureOr<void> _onAddSDKAccountWithMnemonic(
     AddSDKAccountWithMnemonic event,
     Emitter<AppState> emit,
-  ) async {
-    final result = api.addAccountWithMnemonic(event.mnemonic);
-    if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      final sdkState = _getSDKAccountState();
-      emit(
-        state.copyWith(
-          wallets: await _mergeSgnusWallet(),
-          selectedSDKAccount: sdkState.$1,
-          sdkAccounts: sdkState.$2,
-          defaultSDKAccount: api.getStartAccountAddress(),
-          sdkAccountLinks: await api.getSDKAccountLinks(),
-        ),
-      );
-    }
-  }
+  ) => _addSDKAccountFromSecret(
+    event.mnemonic,
+    isMnemonic: true,
+    done: event.done,
+    emit: emit,
+  );
 
   FutureOr<void> _onAddSDKAccountWithPrivateKey(
     AddSDKAccountWithPrivateKey event,
     Emitter<AppState> emit,
-  ) async {
-    final result = api.addAccountWithPrivateKey(event.privateKey);
-    if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      final sdkState = _getSDKAccountState();
-      emit(
-        state.copyWith(
-          wallets: await _mergeSgnusWallet(),
-          selectedSDKAccount: sdkState.$1,
-          sdkAccounts: sdkState.$2,
-          defaultSDKAccount: api.getStartAccountAddress(),
-          sdkAccountLinks: await api.getSDKAccountLinks(),
-        ),
-      );
+  ) => _addSDKAccountFromSecret(
+    event.privateKey,
+    isMnemonic: false,
+    done: event.done,
+    emit: emit,
+  );
+
+  /// Shared by both add-account events: saves the wallet behind [secret] and
+  /// links its SDK account through [GeniusApi.addWalletFromSecret], then
+  /// reports the outcome to [done]. Never selects an SDK account or changes
+  /// the active wallet.
+  Future<void> _addSDKAccountFromSecret(
+    String secret, {
+    required bool isMnemonic,
+    required Completer<SDKAddOutcome>? done,
+    required Emitter<AppState> emit,
+  }) async {
+    var outcome = SDKAddOutcome.failed;
+    try {
+      outcome = await api.addWalletFromSecret(secret, isMnemonic: isMnemonic);
+      if (outcome != SDKAddOutcome.failed) {
+        _baseWallets = await api.getWallets().first;
+        final sdkState = _getSDKAccountState();
+        emit(
+          state.copyWith(
+            wallets: await _mergeSgnusWallet(),
+            selectedSDKAccount: sdkState.$1,
+            sdkAccounts: sdkState.$2,
+            defaultSDKAccount: api.getStartAccountAddress(),
+            sdkAccountLinks: await api.getSDKAccountLinks(),
+          ),
+        );
+      }
+    } finally {
+      done?.complete(outcome);
     }
   }
 
