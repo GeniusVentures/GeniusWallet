@@ -548,6 +548,37 @@ void main() {
       cubit.close();
     });
 
+    test('an expired fund stays expired when the clock steps back', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      now = submittedAt.add(const Duration(minutes: 6));
+      cubit.resolve();
+      expect(cubit.state.operations.single.expired, isTrue);
+
+      // An NTP correction puts the wall clock back inside the window, and
+      // the balance now reads as the fund landing.
+      now = submittedAt.add(const Duration(minutes: 3));
+      api.balances[_childAddress] = BigInt.from(1000000);
+      cubit.resolve();
+      expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations.single.expired, isTrue);
+      expect(cubit.balanceLockReason(_childAddress), isNull);
+
+      cubit.close();
+    });
+
     test('after the child moves, a fund from its new main is refused while the '
         "old main's timed-out fund can still land", () {
       var now = DateTime(2024);

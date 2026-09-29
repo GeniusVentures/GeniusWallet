@@ -438,6 +438,11 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   }
 
   bool _signalMet(ChildOperation op, DateTime now) {
+    // The flag, not the clock, is final: a wall clock stepped back would
+    // otherwise trust an expired baseline again.
+    if (op.expired) {
+      return false;
+    }
     switch (op.kind) {
       case ChildOperationKind.fund:
         // ponytail: a baseline read as 0 before the child synced lets its
