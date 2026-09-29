@@ -39,7 +39,7 @@ Deferred Verification). v3.0's entire plan list (19/19) is now executed.
 Phase 38 plan 03 closes SWT-07 (marked complete in REQUIREMENTS.md) — the switcher is one list,
 children nest under their main with a working chevron, child rows get Fund/Recover/Revoke, the tree
 stays current while open, fits a phone, and its tags/disabled items are measured in both modes.
-Full suite 2227/5/0 (2202 baseline + 25 new). Windows debug build compiled clean.
+Full suite 2234/5/0 after review fixes and a secure-storage serialisation fix. Windows debug build compiled clean.
 Last activity: 2026-09-29 — Phase 38 plan 03 executed (phase 38 complete pending live walk)
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
@@ -530,6 +530,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 | 35 | verification_deferred_human | /gsd-verify-work 35 |
 | 36 | verification_deferred_human | /gsd-verify-work 36 |
 | 37 | verification_deferred_human | /gsd-verify-work 37 |
+| 38 | verification_deferred_human | /gsd-verify-work 38 |
 
 ## Deferred Items
 
