@@ -199,7 +199,7 @@ class GeniusApi {
   Future<void> _doInitSDK() async {
     requestPermissions();
 
-    final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
+    final storedKey = await _secureStorage.getSDKDefaultWalletKey();
     if (storedKey == null) {
       debugPrint("No suitable wallet found");
       return;
@@ -282,11 +282,11 @@ class GeniusApi {
     // Pinning the key the node now knows keeps later starts from adding an
     // SDK account each time readAll() happens to list another wallet first.
     try {
-      await _secureStorage.saveSGNUSLinkedAddress(
+      await _secureStorage.saveSDKDefaultWalletAddress(
         storedKey.account(0).address(),
       );
     } catch (_) {
-      debugPrint('Failed to record the SDK-linked wallet');
+      debugPrint('Failed to record the SDK default wallet');
     }
 
     // The start account never goes through _registerWallet's diff below, so

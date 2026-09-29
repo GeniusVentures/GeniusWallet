@@ -26,7 +26,7 @@ class LocalWalletStorage {
 
   /// Address of the wallet the Genius SDK is initialised with. Must not
   /// contain [_walletKeyPrefix], or it would be read back as a wallet.
-  static const _sgnusLinkedAddressKey = '__sgnus_linked_address__';
+  static const _sdkDefaultWalletKey = '__sgnus_linked_address__';
 
   /// Map of SDK address -> the wallet that produced it. Must not contain
   /// [_walletKeyPrefix], [_watchesKeyPrefix] or [_accountKeyPrefix], or it
@@ -319,10 +319,10 @@ class LocalWalletStorage {
     return wallets;
   }
 
-  Future<StoredKey?> getSGNUSLinkedWalletPrivateKey() async {
+  Future<StoredKey?> getSDKDefaultWalletKey() async {
     final keys = await _secureStorage.readAll();
 
-    for (final key in sgnusLinkCandidates(keys)) {
+    for (final key in sdkDefaultWalletCandidates(keys)) {
       final storedKey = StoredKey.importJson(keys[key]!);
       if (storedKey != null) {
         return storedKey;
@@ -332,26 +332,28 @@ class LocalWalletStorage {
     return null;
   }
 
-  /// Wallet entries in the order the SDK link is tried: the linked wallet,
-  /// then the rest by lowest address, so readAll() order never picks the key.
-  /// Watch-only wallets hold no key and are never candidates.
+  /// Wallet entries in the order the SDK default is tried: the default
+  /// wallet, then the rest by lowest address, so readAll() order never picks
+  /// the key. Watch-only wallets hold no key and are never candidates.
   @visibleForTesting
-  List<String> sgnusLinkCandidates(Map<String, String> keys) {
+  List<String> sdkDefaultWalletCandidates(Map<String, String> keys) {
     final candidates = keys.keys.where(isAWallet).toList()..sort();
-    final linked = keys[_sgnusLinkedAddressKey];
-    // ponytail: if the linked wallet is deleted, the lowest address takes over
-    // and the SDK gains one account for it; asking the user would avoid that.
-    if (linked != null && candidates.remove(createWalletKey(linked))) {
-      candidates.insert(0, createWalletKey(linked));
+    final defaultWallet = keys[_sdkDefaultWalletKey];
+    // ponytail: if the default wallet is deleted, the lowest address takes
+    // over and the SDK gains one account for it; asking the user would avoid
+    // that.
+    if (defaultWallet != null &&
+        candidates.remove(createWalletKey(defaultWallet))) {
+      candidates.insert(0, createWalletKey(defaultWallet));
     }
     return candidates;
   }
 
   /// Records the wallet the SDK was initialised with, so later starts reuse
   /// its key instead of adding another SDK account.
-  Future<void> saveSGNUSLinkedAddress(String address) async {
+  Future<void> saveSDKDefaultWalletAddress(String address) async {
     await _secureStorage.write(
-      key: _sgnusLinkedAddressKey,
+      key: _sdkDefaultWalletKey,
       value: address.toLowerCase(),
     );
   }

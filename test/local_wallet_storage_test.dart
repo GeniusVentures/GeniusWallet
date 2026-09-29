@@ -176,7 +176,7 @@ void main() {
     });
   });
 
-  group('SDK-linked wallet', () {
+  group('SDK default wallet', () {
     const a = 'wallet_0xaaaa';
     const b = 'wallet_0xbbbb';
     const c = 'wallet_0xcccc';
@@ -187,32 +187,38 @@ void main() {
     };
 
     test('the pick does not depend on the order readAll() returns', () {
-      final forward = storage.sgnusLinkCandidates(ordered([c, a, watched, b]));
-      final backward = storage.sgnusLinkCandidates(ordered([b, watched, a, c]));
+      final forward = storage.sdkDefaultWalletCandidates(
+        ordered([c, a, watched, b]),
+      );
+      final backward = storage.sdkDefaultWalletCandidates(
+        ordered([b, watched, a, c]),
+      );
 
       expect(forward, [a, b, c]);
       expect(backward, forward);
     });
 
-    test('a watch-only wallet is never linked', () {
-      expect(storage.sgnusLinkCandidates(ordered([watched])), isEmpty);
+    test('a watch-only wallet is never a default candidate', () {
+      expect(storage.sdkDefaultWalletCandidates(ordered([watched])), isEmpty);
     });
 
     test('the recorded wallet wins and survives a restart', () async {
-      await storage.saveSGNUSLinkedAddress('0xCCCC');
+      await storage.saveSDKDefaultWalletAddress('0xCCCC');
       for (final key in [b, a, c]) {
         await raw.write(key: key, value: '{}');
       }
 
       final restarted = await LocalWalletStorage.create(secureStorage: raw);
-      final candidates = restarted.sgnusLinkCandidates(await raw.readAll());
+      final candidates = restarted.sdkDefaultWalletCandidates(
+        await raw.readAll(),
+      );
 
       expect(candidates, [c, a, b]);
     });
 
-    test('a deleted linked wallet falls back to the lowest address', () async {
-      await storage.saveSGNUSLinkedAddress('0xdddd');
-      final candidates = storage.sgnusLinkCandidates({
+    test('a deleted default wallet falls back to the lowest address', () async {
+      await storage.saveSDKDefaultWalletAddress('0xdddd');
+      final candidates = storage.sdkDefaultWalletCandidates({
         ...await raw.readAll(),
         ...ordered([c, b]),
       });
