@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/account/node_switch_toasts.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
@@ -450,9 +451,12 @@ class MyApp extends StatelessWidget {
                   router: geniusWalletRouter,
                   child: ChildOperationToasts(
                     navigatorKey: navigatorKey,
-                    child: GlobalSwapFabHost(
-                      router: geniusWalletRouter,
-                      child: child ?? const SizedBox.shrink(),
+                    child: NodeSwitchToasts(
+                      navigatorKey: navigatorKey,
+                      child: GlobalSwapFabHost(
+                        router: geniusWalletRouter,
+                        child: child ?? const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                 ),

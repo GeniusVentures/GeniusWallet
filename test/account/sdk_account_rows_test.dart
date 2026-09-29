@@ -54,10 +54,13 @@ const _walletMainB = Wallet(
 
 /// `implements`, not `extends`: the real constructor dlopens the native SDK.
 class _Api implements GeniusApi {
-  _Api({this.links = const {}, this.accounts = const []});
+  _Api({this.links = const {}, this.accounts = const [], this.lands = true});
 
   final Map<String, SDKAccountLink> links;
   final List<String> accounts;
+
+  /// False: the node is still starting and names no account after a select.
+  final bool lands;
 
   @override
   String? getSelectedAccountMnemonic() => null;
@@ -88,7 +91,7 @@ class _Api implements GeniusApi {
 
   @override
   Future<GeniusNodeReturnValue> selectGeniusAccountAsync(String address) async {
-    _selectedAccount = address;
+    _selectedAccount = lands ? address : null;
     return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   }
 
@@ -622,4 +625,65 @@ void main() {
       },
     );
   });
+
+  testWidgets(
+    'a switch the node has not confirmed tags its row "Switching…" and no '
+    'row "On node", until the node reports the account',
+    (tester) async {
+      final api = _Api(accounts: const [_mainA, _mainB], lands: false);
+      final details = WalletDetailsCubit(
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final bloc = _SeededAppBloc(
+        api: api,
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: details,
+        networkProvider: NetworkProvider(),
+        sdkAccounts: const [_mainA, _mainB],
+        wallets: const [_walletMainA],
+        sdkAccountLinks: const {},
+        selectedSDKAccount: _mainA,
+      );
+      await _pumpDrawer(tester, bloc, details);
+
+      // Rows render wallet A first (index 0), then mainA and mainB as
+      // unmerged accounts -- mainB is index 2.
+      await tester.tap(find.byTooltip('Account options').at(2));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(MenuItemButton, 'Run node as this'));
+      await tester.pump();
+      await tester.pump();
+
+      Finder rowFor(String address) => find.ancestor(
+        of: find.text(address),
+        matching: find.byType(GWSelectRow),
+      );
+      expect(
+        find.descendant(
+          of: rowFor('0xaaaa...2222'),
+          matching: find.text('Switching…'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('On node'), findsNothing);
+
+      api._selectedAccount = _mainB;
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump();
+
+      expect(find.text('Switching…'), findsNothing);
+      expect(
+        find.descendant(
+          of: rowFor('0xaaaa...2222'),
+          matching: find.text('On node'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.pumpAndSettle();
+      await tester.runAsync(() => bloc.close());
+      await details.close();
+    },
+  );
 }

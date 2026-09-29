@@ -1,6 +1,6 @@
-// The account tree's row tags ("Selected", "On node", "SDK", "SDK PENDING")
-// are all GWRowBadge: label text at the badge's own colour, on a 12% wash of
-// that same colour. Proven here against the wash alone, and against that
+// The account tree's row tags ("Selected", "On node", "Switching…", "SDK",
+// "SDK PENDING") are all GWRowBadge: label text at the badge's own colour, on
+// a 12% wash of that same colour. Proven here against the wash alone, and against that
 // same wash further composited on GWSelectRow's own selection tint -- the
 // one background a tagged row can actually sit on.
 import 'package:flutter/material.dart';
@@ -63,6 +63,11 @@ void main() {
     test('SDK PENDING (statusWarningText) wash clears 4.5:1 -- $mode', () {
       final gw = themeFor(mode).extension<GWColors>()!;
       checkBadge('SDK PENDING', gw, gw.statusWarningText, '$mode');
+    });
+
+    test('Switching… (statusWarningText) wash clears 4.5:1 -- $mode', () {
+      final gw = themeFor(mode).extension<GWColors>()!;
+      checkBadge('Switching…', gw, gw.statusWarningText, '$mode');
     });
   }
 }

@@ -29,9 +29,13 @@ const _childAddress = '0x2222222222222222222222222222222222bbbb';
 /// Answers the getters `AppBloc._onSelectSDKAccount` reads after a select,
 /// and its own `selectCalls` proves the dispatch happened exactly once.
 class _SwitchingApi implements GeniusApi {
-  _SwitchingApi({this.landsAfterSelect = true});
+  _SwitchingApi({
+    this.landsAfterSelect = true,
+    this.result = GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+  });
 
   final bool landsAfterSelect;
+  final GeniusNodeReturnValue result;
   final selectCalls = <String>[];
   String? _selected;
 
@@ -43,7 +47,7 @@ class _SwitchingApi implements GeniusApi {
     if (landsAfterSelect) {
       _selected = publicAddress;
     }
-    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+    return result;
   }
 
   @override
@@ -263,6 +267,73 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('ACTION OPENED'), findsNothing);
+
+      await registry.close();
+      await tester.runAsync(() => appBloc.close());
+    },
+  );
+
+  testWidgets(
+    'a switch the node refuses fails at once instead of waiting out the '
+    'timeout, and no action opens',
+    (tester) async {
+      final api = _SwitchingApi(
+        landsAfterSelect: false,
+        result: GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
+      );
+      final registry = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(selectedSDKAccount: _otherAddress),
+      );
+      final appBloc = _buildAppBloc(
+        api: api,
+        selectedSDKAccount: _otherAddress,
+      );
+      await _pumpHarness(tester, registry: registry, appBloc: appBloc);
+
+      await _tapStart(tester);
+      await tester.tap(find.widgetWithText(GWButton, 'Switch and continue'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(
+        find.text("The node didn't switch to 0x1111...aaaa. Nothing was sent."),
+        findsOneWidget,
+      );
+      expect(find.text('ACTION OPENED'), findsNothing);
+
+      await tester.pumpAndSettle();
+      await registry.close();
+      await tester.runAsync(() => appBloc.close());
+    },
+  );
+
+  testWidgets(
+    'a switch the node confirms only after a while opens the action then, '
+    'not while it still reports no account',
+    (tester) async {
+      final api = _SwitchingApi(landsAfterSelect: false);
+      final registry = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(selectedSDKAccount: _otherAddress),
+      );
+      final appBloc = _buildAppBloc(
+        api: api,
+        selectedSDKAccount: _otherAddress,
+      );
+      await _pumpHarness(tester, registry: registry, appBloc: appBloc);
+
+      await _tapStart(tester);
+      await tester.tap(find.widgetWithText(GWButton, 'Switch and continue'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 7));
+      expect(find.text('ACTION OPENED'), findsNothing);
+
+      api._selected = _mainAddress;
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ACTION OPENED'), findsOneWidget);
 
       await registry.close();
       await tester.runAsync(() => appBloc.close());

@@ -80,6 +80,10 @@ class AppState extends Equatable {
   /// The currently selected SDK account address (for processing/minting).
   final String? selectedSDKAccount;
 
+  /// The account a requested node switch is moving to, until the SDK reports
+  /// a real selected account again or refuses the switch.
+  final String? switchingSDKAccount;
+
   /// All available SDK account addresses.
   final List<String> sdkAccounts;
 
@@ -113,6 +117,7 @@ class AppState extends Equatable {
     this.initPercentage,
     this.initMessage,
     this.selectedSDKAccount,
+    this.switchingSDKAccount,
     this.sdkAccounts = const [],
     this.defaultSDKAccount,
     this.sdkAccountLinks = const {},
@@ -137,6 +142,9 @@ class AppState extends Equatable {
     double? initPercentage,
     String? initMessage,
     String? selectedSDKAccount,
+    bool clearSelectedSDKAccount = false,
+    String? switchingSDKAccount,
+    bool clearSwitchingSDKAccount = false,
     List<String>? sdkAccounts,
     String? defaultSDKAccount,
     Map<String, SDKAccountLink>? sdkAccountLinks,
@@ -161,7 +169,12 @@ class AppState extends Equatable {
           processingCompletedAt ?? this.processingCompletedAt,
       initPercentage: initPercentage ?? this.initPercentage,
       initMessage: initMessage ?? this.initMessage,
-      selectedSDKAccount: selectedSDKAccount ?? this.selectedSDKAccount,
+      selectedSDKAccount: clearSelectedSDKAccount
+          ? null
+          : selectedSDKAccount ?? this.selectedSDKAccount,
+      switchingSDKAccount: clearSwitchingSDKAccount
+          ? null
+          : switchingSDKAccount ?? this.switchingSDKAccount,
       sdkAccounts: sdkAccounts ?? this.sdkAccounts,
       defaultSDKAccount: defaultSDKAccount ?? this.defaultSDKAccount,
       sdkAccountLinks: sdkAccountLinks ?? this.sdkAccountLinks,
@@ -190,6 +203,7 @@ class AppState extends Equatable {
     initPercentage,
     initMessage,
     selectedSDKAccount,
+    switchingSDKAccount,
     sdkAccounts,
     defaultSDKAccount,
     sdkAccountLinks,

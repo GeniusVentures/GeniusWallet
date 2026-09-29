@@ -56,6 +56,12 @@ extension _CharArrayToDartString on ffi.Array<ffi.Char> {
   }
 }
 
+final _sdkAddressPattern = RegExp(r'^0x[0-9a-fA-F]{128}$');
+
+/// [raw] when it is a real SDK account address ("0x" + 128 hex), else null.
+String? sdkAddressOrNull(String raw) =>
+    _sdkAddressPattern.hasMatch(raw) ? raw : null;
+
 /// Isolate entry point for [GeniusApi.selectGeniusAccountAsync].
 ///
 /// Opens the native library independently (the OS shares code pages across
@@ -1468,13 +1474,16 @@ class GeniusApi {
   }
 
   /// Returns the public address of the currently selected Genius account,
-  /// or null if the SDK is not initialized.
+  /// or null when there is none: the SDK is not initialized, or it answers
+  /// with a placeholder such as "0xUNVAILABLE" while an account switch lands.
   String? getSelectedAccountAddress() {
     if (!_isSdkInitialized) {
       return null;
     }
     final rawAddress = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetAddress();
-    return rawAddress.address.toDartString(GENIUS_SDK_ADDRESS_SIZE);
+    return sdkAddressOrNull(
+      rawAddress.address.toDartString(GENIUS_SDK_ADDRESS_SIZE),
+    );
   }
 
   /// The SDK account the node was started with. Every start imports its key

@@ -73,6 +73,8 @@ Future<bool> ensureRunningAs(
     return true;
   }
 
+  final required = requiredAccount.toLowerCase();
+  var started = bloc.state.switchingSDKAccount?.toLowerCase() == required;
   bloc.add(SelectSDKAccount(requiredAccount));
   showToast(
     // ignore: use_build_context_synchronously
@@ -80,22 +82,24 @@ Future<bool> ensureRunningAs(
     'Switching to $requiredLabel…',
   );
 
-  // Await-the-real-signal, not the dispatch: `SelectSDKAccount` only emits
-  // once `selectGeniusAccountAsync` itself resolves, same idiom as the SDK
-  // account delete flow's own removal check.
+  // Lands only when the node reports the account. Once our switch has shown
+  // up as pending, its end without that report is a refusal, not a wait.
   final landed = await bloc.stream
-      .map(
-        (s) =>
-            s.selectedSDKAccount?.toLowerCase() ==
-            requiredAccount.toLowerCase(),
-      )
-      .firstWhere((matched) => matched, orElse: () => false)
+      .map<bool?>((s) {
+        final switching = s.switchingSDKAccount?.toLowerCase();
+        if (s.selectedSDKAccount?.toLowerCase() == required) {
+          return true;
+        }
+        started = started || switching == required;
+        return started && switching == null ? false : null;
+      })
+      .firstWhere((outcome) => outcome != null, orElse: () => false)
       .timeout(_switchTimeout, onTimeout: () => false);
 
   if (!navigator.context.mounted) {
     return false;
   }
-  if (!landed) {
+  if (landed != true) {
     showToast(
       // ignore: use_build_context_synchronously
       navigator.context,
