@@ -14,6 +14,7 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 
 const _start = '0xAAAA';
 const _other = '0xBBBB';
@@ -34,6 +35,9 @@ class _Api implements GeniusApi {
 
   @override
   List<String> getAvailableAccounts() => const [_start, _other, _selected];
+
+  @override
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {};
 
   @override
   Stream<SGNUSConnection> getSGNUSConnectionStream() =>
@@ -60,7 +64,7 @@ class _SeededAppBloc extends AppBloc {
       state.copyWith(
         sdkAccounts: const [_start, _other, _selected],
         selectedSDKAccount: _selected,
-        linkedSDKAccount: _start.toLowerCase(),
+        defaultSDKAccount: _start.toLowerCase(),
       ),
     );
   }
@@ -102,12 +106,12 @@ void main() {
       walletDetailsCubit: late,
       networkProvider: NetworkProvider(),
     );
-    expect(fresh.state.linkedSDKAccount, isNull);
+    expect(fresh.state.defaultSDKAccount, isNull);
 
     // The first wallet then starts the SDK; any later refresh must see it.
     fresh.add(RefreshSDKAccounts());
     await fresh.close();
-    expect(fresh.state.linkedSDKAccount, _start);
+    expect(fresh.state.defaultSDKAccount, _start);
     await late.close();
   });
 

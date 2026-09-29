@@ -98,7 +98,7 @@ class SDKAccountManagerButton extends StatelessWidget {
         builder: (context, state) {
           final accounts = state.sdkAccounts;
           final selected = state.selectedSDKAccount;
-          final linked = state.linkedSDKAccount?.toLowerCase();
+          final defaultAccount = state.defaultSDKAccount?.toLowerCase();
           // Fail-soft read: registers the InheritedWidget dependency that
           // forces this content to rebuild on a live appearance toggle
           // (04-02 D-02).
@@ -140,7 +140,7 @@ class SDKAccountManagerButton extends StatelessWidget {
                   context,
                   account,
                   isSelected: account == selected,
-                  isStartAccount: account.toLowerCase() == linked,
+                  isStartAccount: account.toLowerCase() == defaultAccount,
                 ),
             ],
           );
