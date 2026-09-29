@@ -278,14 +278,8 @@ class ChildWalletRow extends StatelessWidget {
     final gw = context.gw;
     final registry = context.watch<ChildOperationsCubit>();
     final pendingOps = registry.operationsFor(wallet.address);
-    final fundLocked = registry.isPending(
-      ChildOperationKind.fund,
-      wallet.address,
-    );
-    final recoverLocked = registry.isPending(
-      ChildOperationKind.recover,
-      wallet.address,
-    );
+    // Fund and Recover share one lock: one balance operation per child.
+    final balanceLock = registry.balanceLockReason(wallet.address);
     final revokeLocked = registry.isPending(
       ChildOperationKind.revoke,
       wallet.address,
@@ -378,16 +372,16 @@ class ChildWalletRow extends StatelessWidget {
               _ChildActionMenuItem(
                 icon: Icons.arrow_upward,
                 label: 'Fund',
-                locked: fundLocked,
-                lockedReason: 'Already funding this child',
+                locked: balanceLock != null,
+                lockedReason: balanceLock ?? '',
                 onPressed: () =>
                     startFund(context, child: wallet, mainAddress: mainAddress),
               ),
               _ChildActionMenuItem(
                 icon: Icons.arrow_downward,
                 label: 'Recover',
-                locked: recoverLocked,
-                lockedReason: 'Already recovering from this child',
+                locked: balanceLock != null,
+                lockedReason: balanceLock ?? '',
                 onPressed: () => startRecover(
                   context,
                   child: wallet,

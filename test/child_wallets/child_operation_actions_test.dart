@@ -407,8 +407,8 @@ void main() {
   });
 
   testWidgets(
-    'the Fund item locks while pending, tooltipped, and releases once not '
-    'confirmed',
+    'Fund and Recover lock while a fund is pending, stay locked with a plain '
+    'reason once it is not confirmed, and release once it expires',
     (tester) async {
       var now = DateTime(2024);
       final api = _FakeApi();
@@ -421,6 +421,10 @@ void main() {
       );
       final submittedAt = now;
 
+      MenuItemButton item(String label) => tester.widget<MenuItemButton>(
+        find.widgetWithText(MenuItemButton, label),
+      );
+
       operations.submit(
         kind: ChildOperationKind.fund,
         target: _childAddress,
@@ -428,38 +432,43 @@ void main() {
         amountMinions: BigInt.from(1000000),
       );
       await tester.pump();
-      await tester.tap(find.byTooltip('Child actions'));
-      await tester.pumpAndSettle();
+      await _openMenu(tester);
+      expect(item('Fund').onPressed, isNull);
+      expect(item('Recover').onPressed, isNull);
+      expect(item('Revoke').onPressed, isNotNull);
+      expect(find.byTooltip('Already funding this child'), findsNWidgets(2));
+      await _openMenu(tester);
 
-      final locked = tester.widget<MenuItemButton>(
-        find.widgetWithText(MenuItemButton, 'Fund'),
-      );
-      expect(locked.onPressed, isNull);
-      expect(find.byTooltip('Already funding this child'), findsOneWidget);
-
-      await tester.tap(find.byTooltip('Child actions'));
-      await tester.pumpAndSettle();
-
-      // Timed out: the lock releases even though the balance never moved.
       now = submittedAt.add(const Duration(minutes: 2));
       operations.resolve();
       await tester.pump();
-      await tester.tap(find.byTooltip('Child actions'));
-      await tester.pumpAndSettle();
-
-      final released = tester.widget<MenuItemButton>(
-        find.widgetWithText(MenuItemButton, 'Fund'),
+      await _openMenu(tester);
+      expect(item('Fund').onPressed, isNull);
+      expect(item('Recover').onPressed, isNull);
+      expect(
+        find.byTooltip(
+          "An earlier transfer for this child hasn't confirmed yet. Check "
+          'again, or wait a few minutes.',
+        ),
+        findsNWidgets(2),
       );
-      expect(released.onPressed, isNotNull);
+      await _openMenu(tester);
+
+      now = submittedAt.add(const Duration(minutes: 6));
+      operations.resolve();
+      await tester.pump();
+      await _openMenu(tester);
+      expect(item('Fund').onPressed, isNotNull);
+      expect(item('Recover').onPressed, isNotNull);
+      expect(find.text('Funded 1 GNUS to Game Wallet'), findsNothing);
 
       await childWallets.close();
       await operations.close();
     },
   );
 
-  testWidgets('Check again resolves once the balance has actually risen', (
-    tester,
-  ) async {
+  testWidgets('Check again resolves once the balance has actually risen, '
+      'and unlocks Fund', (tester) async {
     var now = DateTime(2024);
     final api = _FakeApi();
     final navigatorKey = GlobalKey<NavigatorState>();
@@ -490,9 +499,52 @@ void main() {
     expect(find.text('Not confirmed yet'), findsNothing);
     expect(find.text('Funded 1 GNUS to Game Wallet'), findsOneWidget);
 
+    // Landed, so the child is free for the next fund.
+    await _openMenu(tester);
+    expect(
+      tester
+          .widget<MenuItemButton>(find.widgetWithText(MenuItemButton, 'Fund'))
+          .onPressed,
+      isNotNull,
+    );
+
     await childWallets.close();
     await operations.close();
   });
+
+  testWidgets(
+    'a recover starting while the Fund dialog is open disables Fund and says '
+    'why, with no SDK call',
+    (tester) async {
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(3000000);
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+      );
+
+      await _openFundDialog(tester);
+      operations.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Already recovering from this child'), findsOneWidget);
+      final fund = tester.widget<GWButton>(
+        find.widgetWithText(GWButton, 'Fund'),
+      );
+      expect(fund.onPressed, isNull);
+      expect(api.fundCallCount, 0);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
 
   testWidgets(
     'the registry keeps resolving and toasts once its screen is disposed',
