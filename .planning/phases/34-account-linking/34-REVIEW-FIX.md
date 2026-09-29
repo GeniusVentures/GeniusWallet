@@ -58,5 +58,4 @@ The underlying worry (re-adding an already-known key might not be a true no-op o
 ---
 
 _Fixed: 2026-09-29_
-_Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_

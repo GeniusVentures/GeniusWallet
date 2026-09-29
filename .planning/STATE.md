@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 Phase: 34 (Account linking) — EXECUTING
 Plan: 5 of 5 — complete
-Status: Executing Phase 34
+Status: Phase 34 executed and verified (human walk pending); Phase 35 next
 Last activity: 2026-09-29 — 34-05 (delete coupling) complete
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
@@ -512,6 +512,12 @@ the redesign track added many test files since the original 14-test snapshot). *
 | Original design branch | worktree `C:\Users\User\Documents\Projects\GNUS-compare\GeniusWallet-3514` | Builds + runs as a Release exe — the visual source of truth |
 | Verified fixes | branch `ui-redesign-3.514-develop` | Read-only; source of the 3 BEH-02 fix commits |
 | Regression audit | `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` | 37 findings, assigned per phase in ROADMAP.md |
+
+## Deferred Verification
+
+| Phase | State | Resume |
+|-------|-------|--------|
+| 34 | verification_deferred_human | /gsd-verify-work 34 |
 
 ## Deferred Items
 
