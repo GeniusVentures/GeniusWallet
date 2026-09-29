@@ -40,6 +40,9 @@ Future<void> startFund(
   if (!await ensureRunningAs(context, mainAddress) || !context.mounted) {
     return;
   }
+  // The poll stops once everything has timed out, so an earlier attempt
+  // that has since landed resolves here -- not paid twice, not carried.
+  registry.resolve();
   // Root navigator, not a route pop: the MenuAnchor this is called from
   // closes itself on selection -- there is no drawer route to close here.
   final navigator = Navigator.of(context, rootNavigator: true);
@@ -104,6 +107,7 @@ Future<void> startRecover(
   if (!await ensureRunningAs(context, mainAddress) || !context.mounted) {
     return;
   }
+  registry.resolve();
   final navigator = Navigator.of(context, rootNavigator: true);
   final barrierColor = context.gw.surfaceOverlay;
   final mainName = registry.labelFor(mainAddress);

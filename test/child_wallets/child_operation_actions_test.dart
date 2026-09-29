@@ -495,6 +495,103 @@ void main() {
   });
 
   testWidgets(
+    'opening Fund first resolves an earlier attempt that has since landed, '
+    'so the next fund does not wait on it',
+    (tester) async {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+        now: () => now,
+      );
+      final submittedAt = now;
+
+      operations.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      now = submittedAt.add(const Duration(minutes: 2));
+      operations.resolve();
+      await tester.pumpAndSettle();
+      expect(find.text('Not confirmed yet'), findsOneWidget);
+
+      // It landed late, and nobody pressed Check again.
+      api.balances[_childAddress] = BigInt.from(1000000);
+      await _openFundDialog(tester);
+
+      expect(find.text('Funded 1 GNUS to Game Wallet'), findsOneWidget);
+      expect(find.text('Not confirmed yet'), findsNothing);
+
+      await tester.enterText(find.byType(TextField), '0.5');
+      await tester.tap(find.widgetWithText(GWButton, 'Fund'));
+      await tester.pumpAndSettle();
+
+      expect(operations.state.operations.single.carriedMinions, isNull);
+      expect(find.text('Funding 0.5 GNUS…'), findsOneWidget);
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets(
+    'a recover retried after a timeout names the total it waits for, badge '
+    'and toast',
+    (tester) async {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      api.balances[_childAddress] = BigInt.from(3000000);
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final (childWallets, operations) = await _pumpScreen(
+        tester,
+        api: api,
+        navigatorKey: navigatorKey,
+        now: () => now,
+      );
+      final submittedAt = now;
+
+      operations.submit(
+        kind: ChildOperationKind.recover,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      now = submittedAt.add(const Duration(minutes: 2));
+      operations.resolve();
+      await tester.pumpAndSettle();
+
+      await _openRecoverDialog(tester);
+      await tester.enterText(find.byType(TextField), '0.5');
+      await tester.tap(find.widgetWithText(GWButton, 'Recover'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Recovering 1.5 GNUS, including an earlier attempt…'),
+        findsOneWidget,
+      );
+
+      api.balances[_childAddress] = BigInt.from(1500000);
+      await tester.tap(find.byTooltip('Refresh'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Recovered 1.5 GNUS from Game Wallet, including an earlier attempt',
+        ),
+        findsOneWidget,
+      );
+
+      await childWallets.close();
+      await operations.close();
+    },
+  );
+
+  testWidgets(
     'the registry keeps resolving and toasts once its screen is disposed',
     (tester) async {
       final api = _FakeApi();

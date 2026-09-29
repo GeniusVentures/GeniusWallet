@@ -9,13 +9,21 @@ import 'package:genius_wallet/squid_router/squid_util.dart'
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
+/// Everything [op] waits to see land, so a retry names the earlier attempt
+/// it carries rather than only its own amount.
+String _amountText(ChildOperation op) =>
+    '${formatTokenAmount(op.totalMinions, 6)} GNUS';
+
+String _earlierText(ChildOperation op) =>
+    op.carriedMinions == null ? '' : ', including an earlier attempt';
+
 /// The present-participle phrase [op] shows while still pending.
 String pendingText(ChildOperation op, String Function(String) labelFor) {
   switch (op.kind) {
     case ChildOperationKind.fund:
-      return 'Funding ${formatTokenAmount(op.amountMinions!, 6)} GNUS…';
+      return 'Funding ${_amountText(op)}${_earlierText(op)}…';
     case ChildOperationKind.recover:
-      return 'Recovering ${formatTokenAmount(op.amountMinions!, 6)} GNUS…';
+      return 'Recovering ${_amountText(op)}${_earlierText(op)}…';
     case ChildOperationKind.revoke:
       return 'Revoking…';
     case ChildOperationKind.detach:
@@ -31,11 +39,11 @@ String pendingText(ChildOperation op, String Function(String) labelFor) {
 String resolvedText(ChildOperation op, String Function(String) labelFor) {
   switch (op.kind) {
     case ChildOperationKind.fund:
-      final amount = formatTokenAmount(op.amountMinions!, 6);
-      return 'Funded $amount GNUS to ${labelFor(op.target)}';
+      return 'Funded ${_amountText(op)} to ${labelFor(op.target)}'
+          '${_earlierText(op)}';
     case ChildOperationKind.recover:
-      final amount = formatTokenAmount(op.amountMinions!, 6);
-      return 'Recovered $amount GNUS from ${labelFor(op.target)}';
+      return 'Recovered ${_amountText(op)} from ${labelFor(op.target)}'
+          '${_earlierText(op)}';
     case ChildOperationKind.revoke:
       return 'Revoked ${labelFor(op.target)}';
     case ChildOperationKind.detach:
