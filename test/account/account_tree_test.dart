@@ -373,5 +373,72 @@ void main() {
       expect(rows[1].kind, AccountRowKind.merged);
       expect(rows[1].wallet, walletB);
     });
+
+    test('a nested own row carries its registration entry and its direct '
+        "main's address, for its Fund/Recover/Revoke menu", () {
+      final rows = _tree(
+        sdkAccounts: const [_mainA, _mainB],
+        registrations: {
+          _mainA.toLowerCase(): [_entry(_mainB)],
+        },
+      );
+
+      expect(rows[0].child, isNull);
+      expect(rows[0].parentMain, isNull);
+      expect(rows[1].child?.address, _mainB);
+      expect(rows[1].parentMain, _mainA);
+    });
+  });
+
+  group('visibleAccountRows', () {
+    List<AccountTreeRow> collapse(Set<String> collapsedMains) =>
+        visibleAccountRows(
+          _tree(
+            sdkAccounts: const [_mainA, _mainB, _mainC],
+            registrations: {
+              _mainA.toLowerCase(): [_entry(_mainB)],
+              _mainB.toLowerCase(): [_entry(_foreignX)],
+            },
+          ),
+          collapsedMains,
+        );
+
+    test('nothing collapsed renders every row', () {
+      final rows = collapse({});
+      expect(rows.map((r) => r.sdkAddress ?? r.child?.address), [
+        _mainA,
+        _mainB,
+        _foreignX,
+        _mainC,
+      ]);
+    });
+
+    test('collapsing the depth-1 main hides only its own subtree', () {
+      final rows = collapse({_mainB.toLowerCase()});
+      expect(rows.map((r) => r.sdkAddress ?? r.child?.address), [
+        _mainA,
+        _mainB,
+        _mainC,
+      ]);
+    });
+
+    test('collapsing the root hides every descendant, not just its direct '
+        'child', () {
+      final rows = collapse({_mainA.toLowerCase()});
+      expect(rows.map((r) => r.sdkAddress ?? r.child?.address), [
+        _mainA,
+        _mainC,
+      ]);
+    });
+
+    test('a key matching no row changes nothing', () {
+      final rows = collapse({'0xnotarow'});
+      expect(rows.map((r) => r.sdkAddress ?? r.child?.address), [
+        _mainA,
+        _mainB,
+        _foreignX,
+        _mainC,
+      ]);
+    });
   });
 }

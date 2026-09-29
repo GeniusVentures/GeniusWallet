@@ -9,6 +9,10 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_tree.dart';
 import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_operation_dialogs.dart'
+    show startFund, startRecover, startRevoke;
+import 'package:genius_wallet/child_wallets/child_operation_status.dart'
+    show ChildOperationBadge;
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
     show ChildWallet;
@@ -181,6 +185,19 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   /// every rebuild -- an FFI call per own account is too costly to repeat on
   /// every frame this drawer paints.
   Map<String, List<ChildWallet>>? _registrations;
+
+  /// Mains hidden by a chevron tap, keyed by lowercased `sdkAddress`. Lives
+  /// for this open only -- a fresh `State` on the next open starts empty,
+  /// i.e. every main expanded.
+  final Set<String> _collapsedMains = {};
+
+  void _toggleCollapse(String key) {
+    setState(() {
+      if (!_collapsedMains.remove(key)) {
+        _collapsedMains.add(key);
+      }
+    });
+  }
 
   void _updateRegistrations(
     AppState appState,
@@ -430,6 +447,10 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
           links: appState.sdkAccountLinks,
           registrations: _registrations,
         );
+        // Full tree for the empty check and for indenting by its real
+        // depth; filtered only for what actually renders, so collapsing a
+        // main never changes what "No wallets yet." means.
+        final visibleRows = visibleAccountRows(treeRows, _collapsedMains);
 
         return ListView(
           padding: const EdgeInsets.all(GeniusWalletConsts.space10),
@@ -465,7 +486,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
               ),
             if (treeRows.isEmpty)
               const _AccountSectionNote(text: 'No wallets yet.'),
-            ...treeRows.map(
+            ...visibleRows.map(
               (row) => Padding(
                 padding: EdgeInsets.only(
                   left: min(row.depth, 2) * GeniusWalletConsts.space12,
@@ -493,6 +514,15 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                         lockedReason: lockedReason,
                         onRename: _confirmRenameWallet,
                         onDeleteWallet: _confirmDeleteWallet,
+                        expanded: row.hasChildren
+                            ? !_collapsedMains.contains(
+                                row.sdkAddress!.toLowerCase(),
+                              )
+                            : null,
+                        onToggle: row.hasChildren
+                            ? () =>
+                                  _toggleCollapse(row.sdkAddress!.toLowerCase())
+                            : null,
                       ),
               ),
             ),
@@ -529,6 +559,8 @@ class _AccountRowTile extends StatelessWidget {
     required this.lockedReason,
     required this.onRename,
     required this.onDeleteWallet,
+    required this.expanded,
+    required this.onToggle,
   });
 
   final AccountTreeRow row;
@@ -549,6 +581,13 @@ class _AccountRowTile extends StatelessWidget {
   final void Function(BuildContext context, Wallet wallet) onRename;
   final void Function(BuildContext context, Wallet wallet) onDeleteWallet;
 
+  /// Null for a leaf (no chevron at all); otherwise whether this main's
+  /// children currently show.
+  final bool? expanded;
+
+  /// Flips [expanded]. Null exactly when [expanded] is null.
+  final VoidCallback? onToggle;
+
   /// True only for a row carrying an SDK account that is not the one
   /// currently running -- the one condition "Run node as this" refuses.
   bool get _locked => row.sdkAddress != null && lockedReason != null && !onNode;
@@ -560,10 +599,20 @@ class _AccountRowTile extends StatelessWidget {
     // open.
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final appBloc = context.read<AppBloc>();
+    // Nullable for the same reason the drawer body's own read is: a host
+    // that never provides the registry has nothing pending to lock or show.
+    final operations = context.watch<ChildOperationsCubit?>();
     final wallet = row.wallet;
     final sdkAddress = row.sdkAddress;
     final isWatched = wallet?.walletType == WalletType.tracking;
     final locked = _locked;
+    // A nested own account is reached only through another main's
+    // registrations, so depth >= 1 with a child entry is exactly that case --
+    // a top-level row never carries one.
+    final isNestedOwn = row.depth >= 1 && row.child != null;
+    final pendingOps = isNestedOwn && operations != null
+        ? operations.operationsFor(sdkAddress!)
+        : const <ChildOperation>[];
 
     final title = wallet != null
         ? wallet.walletName
@@ -590,15 +639,7 @@ class _AccountRowTile extends StatelessWidget {
           Navigator.of(context).pop(target);
         }
       },
-      leading: wallet != null
-          ? AccountAvatar(wallet: wallet, isSelected: selected, size: 36)
-          : Icon(
-              Icons.account_balance_wallet,
-              size: 20,
-              color: locked
-                  ? gw.textSecondary.withValues(alpha: 0.5)
-                  : (onNode ? gw.brandPrimaryStrong : gw.textSecondary),
-            ),
+      leading: _leading(gw, wallet, locked),
       title: title,
       titleStyle: locked
           ? GeniusWalletTypography.bodySm.copyWith(
@@ -680,19 +721,90 @@ class _AccountRowTile extends StatelessWidget {
           ],
         ],
       ),
-      action: _menu(context, gw, appBloc),
+      action: _menu(context, gw, appBloc, operations),
     );
 
-    if (!locked) {
-      return tile;
+    final result = locked ? Tooltip(message: lockedReason, child: tile) : tile;
+    if (pendingOps.isEmpty) {
+      return result;
     }
-    return Tooltip(message: lockedReason, child: tile);
+    // Under the tile, inside the same indent: the outer Padding this row
+    // already sits in (account_drawer.dart's ListView) applies to this whole
+    // Column, not just the tile above.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        result,
+        Padding(
+          padding: const EdgeInsets.only(
+            left: GeniusWalletConsts.space6,
+            bottom: GeniusWalletConsts.space4,
+          ),
+          child: Wrap(
+            spacing: GeniusWalletConsts.space2,
+            runSpacing: GeniusWalletConsts.space2,
+            children: [
+              for (final op in pendingOps)
+                ChildOperationBadge(
+                  op: op,
+                  labelFor: operations!.labelFor,
+                  onCheckAgain: operations.resolve,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// The avatar, or an account icon, with a chevron ahead of it when this row
+  /// is a main -- absent, not merely hidden, on a leaf, so a leaf's left edge
+  /// does not move.
+  Widget _leading(GWColors gw, Wallet? wallet, bool locked) {
+    final content = wallet != null
+        ? AccountAvatar(wallet: wallet, isSelected: selected, size: 36)
+        : Icon(
+            Icons.account_balance_wallet,
+            size: 20,
+            color: locked
+                ? gw.textSecondary.withValues(alpha: 0.5)
+                : (onNode ? gw.brandPrimaryStrong : gw.textSecondary),
+          );
+    final isExpanded = expanded;
+    if (isExpanded == null) {
+      return content;
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(
+            isExpanded ? Icons.expand_more : Icons.chevron_right,
+            size: 18,
+          ),
+          iconSize: 18,
+          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+          padding: EdgeInsets.zero,
+          color: gw.textSecondary,
+          tooltip: isExpanded ? 'Hide children' : 'Show children',
+          onPressed: onToggle,
+        ),
+        const SizedBox(width: GeniusWalletConsts.space2),
+        content,
+      ],
+    );
   }
 
   /// wallet: Copy address, Rename, Delete, unchanged. merged/account: "Run
   /// node as this" plus the four gated SDK items, plus Delete
-  /// wallet/account - every old menu action keeps a home.
-  Widget? _menu(BuildContext context, GWColors gw, AppBloc appBloc) {
+  /// wallet/account, plus -- when nested under another own main --
+  /// Fund/Recover/Revoke after a divider.
+  Widget? _menu(
+    BuildContext context,
+    GWColors gw,
+    AppBloc appBloc,
+    ChildOperationsCubit? operations,
+  ) {
     // No local `MenuStyle` -- see `theme.dart`'s menuTheme/menuButtonTheme.
     Widget anchor(List<Widget> items) => MenuAnchor(
       builder: (context, controller, child) => IconButton(
@@ -820,6 +932,52 @@ class _AccountRowTile extends StatelessWidget {
             ? () => confirmDeleteSDKAccount(context, sdkAddress)
             : null,
       ),
+      // Nested under another own main: the kind's own items above are
+      // unchanged by depth, and every other child of this same main gets the
+      // identical block -- only one `startRevoke(` call site in this file.
+      if (row.depth >= 1 && row.child != null && operations != null) ...[
+        const Divider(height: 9, indent: 12, endIndent: 12),
+        GWMenuItem(
+          icon: Icons.arrow_upward,
+          label: 'Fund',
+          lockedReason: operations.balanceLockReason(sdkAddress),
+          onPressed: operations.balanceLockReason(sdkAddress) != null
+              ? null
+              : () => startFund(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+        GWMenuItem(
+          icon: Icons.arrow_downward,
+          label: 'Recover',
+          lockedReason: operations.balanceLockReason(sdkAddress),
+          onPressed: operations.balanceLockReason(sdkAddress) != null
+              ? null
+              : () => startRecover(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+        GWMenuItem(
+          icon: Icons.link_off,
+          label: 'Revoke',
+          lockedReason:
+              operations.isPending(ChildOperationKind.revoke, sdkAddress)
+              ? 'Already revoking this child'
+              : null,
+          color: gw.statusErrorText,
+          onPressed: operations.isPending(ChildOperationKind.revoke, sdkAddress)
+              ? null
+              : () => startRevoke(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+      ],
     ]);
   }
 
