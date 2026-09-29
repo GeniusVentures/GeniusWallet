@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/models/network.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
@@ -12,6 +13,7 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/squid_router/held_tokens.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/squid_client.dart';
@@ -736,6 +738,7 @@ class _SwapScreenState extends State<SwapScreen> {
   /// visibility check is gone; a ladder whose disabled rungs never appear is
   /// not a ladder.
   Widget _buildSwapCta(GWColors gw) {
+    final walletState = context.read<WalletDetailsCubit>().state;
     final state = resolveSwapCtaState(
       hasBothTokens: fromToken != null && toToken != null,
       fromAmount: fromAmount,
@@ -745,6 +748,10 @@ class _SwapScreenState extends State<SwapScreen> {
       routeError: routeError,
       isSubmitting: isSubmitting,
       tooPrecise: _tooPrecise,
+      canSign: canSendFrom(
+        walletState.selectedWallet,
+        walletState.selectedNetwork,
+      ),
     );
     // The availability gate sits ABOVE the ladder, not inside it: a build that
     // cannot reach Squid has no rung to be on, and the ladder stays the single
@@ -784,7 +791,8 @@ class _SwapScreenState extends State<SwapScreen> {
     final isRefused =
         !unavailable &&
         (state == SwapCtaState.insufficientBalance ||
-            state == SwapCtaState.tooPrecise);
+            state == SwapCtaState.tooPrecise ||
+            state == SwapCtaState.cannotSign);
     final background = isRefused
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
@@ -1130,9 +1138,9 @@ class _SwapScreenState extends State<SwapScreen> {
   }
 }
 
-/// Names the wallet a swap will spend from, beside the button that spends it
-/// -- the same wrong-account guard Send's review row carries. Reads the
-/// active wallet directly so a switch updates this line on its own.
+/// Names the wallet a swap will spend from, or says it can't sign here when
+/// it holds no key on this network -- the same wrong-account guard Send's
+/// review row carries. Reads the active wallet directly, so a switch updates.
 class _SwapFromWallet extends StatelessWidget {
   const _SwapFromWallet();
 
@@ -1144,12 +1152,17 @@ class _SwapFromWallet extends StatelessWidget {
     if (wallet == null) {
       return const SizedBox.shrink();
     }
+    final network = context.select<WalletDetailsCubit, Network?>(
+      (c) => c.state.selectedNetwork,
+    );
+    final canSend = canSendFrom(wallet, network);
 
     final gw = context.gw;
     final short = WalletUtils.getAddressForDisplay(wallet.address);
-    final label = wallet.walletName.isEmpty
-        ? 'Sending from $short'
-        : 'Sending from ${wallet.walletName} · $short';
+    final name = wallet.walletName.isEmpty
+        ? short
+        : '${wallet.walletName} · $short';
+    final label = canSend ? 'Sending from $name' : "Can't sign from $name";
 
     return Padding(
       padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space6),
@@ -1161,7 +1174,7 @@ class _SwapFromWallet extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GeniusWalletTypography.bodySm.copyWith(
-                color: gw.textSecondary,
+                color: canSend ? gw.textSecondary : gw.statusErrorText,
               ),
             ),
           ),
