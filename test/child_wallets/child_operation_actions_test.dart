@@ -215,7 +215,7 @@ class _FakeApi implements GeniusApi {
   }
 
   @override
-  BigInt getChildBalanceAll(String childAddress) =>
+  BigInt getChildBalance(String childAddress, {String? tokenId}) =>
       balances[childAddress] ?? BigInt.zero;
 
   // Comfortably above every amount these tests type in.

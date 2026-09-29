@@ -99,7 +99,7 @@ class _Api implements GeniusApi {
   String? getStartAccountAddress() => null;
 
   @override
-  BigInt getChildBalanceAll(String childAddress) => BigInt.zero;
+  BigInt getChildBalance(String childAddress, {String? tokenId}) => BigInt.zero;
 
   // The switcher's own registrations pre-read now calls this for every own
   // account once a registry sits above the drawer -- an OK, empty read

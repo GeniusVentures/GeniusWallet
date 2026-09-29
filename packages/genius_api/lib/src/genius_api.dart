@@ -1544,8 +1544,8 @@ class GeniusApi {
     );
   }
 
-  /// [childAddress]'s balance across all its child registrations, in Minion
-  /// Tokens. The native call returns the uint64 reinterpreted as a signed
+  /// [childAddress]'s balance summed across every token it holds, in Minion
+  /// Tokens -- not a GNUS amount; [getChildBalance] reads one token. The native call returns the uint64 reinterpreted as a signed
   /// 64-bit int, so the top bit must be restored here rather than trusted.
   BigInt getChildBalanceAll(String childAddress) {
     if (!_isSdkInitialized) {

@@ -170,7 +170,7 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
             balanceGnus: minionsToGnus(
               devPreset != null
                   ? DevMockChildWallets.balanceFor(entry.childAddress)
-                  : _api.getChildBalanceAll(entry.childAddress),
+                  : _api.getChildBalance(entry.childAddress),
             ),
           ),
         )

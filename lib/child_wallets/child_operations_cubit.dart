@@ -164,7 +164,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   /// [_signalMet] share for fund and recover.
   BigInt _childBalance(String target) => _devMocked
       ? DevMockChildWallets.balanceFor(target)
-      : _api.getChildBalanceAll(target);
+      : _api.getChildBalance(target);
 
   /// [address]'s linked wallet name, or its own short address when it has
   /// none -- a badge or toast should never carry the bare word "Unlinked".
