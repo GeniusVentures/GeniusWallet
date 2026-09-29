@@ -295,6 +295,16 @@ class SDKAccountRow extends StatelessWidget {
                 ? () => _showMnemonicQr(context, mnemonic!)
                 : null,
           ),
+          _menuItem(
+            gw,
+            icon: Icons.account_balance_wallet_outlined,
+            label: 'View balance',
+            // Every row gets this, not just the selected one - it has no
+            // exclusivity gate, unlike the three above.
+            onPressed: balanceWallet != null
+                ? () => Navigator.of(context).pop(balanceWallet)
+                : null,
+          ),
           const Divider(height: 9, indent: 12, endIndent: 12),
           _menuItem(
             gw,

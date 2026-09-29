@@ -41,6 +41,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
@@ -48,6 +49,7 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
@@ -104,6 +106,43 @@ class _DeletingApi extends _FakeGeniusApi {
   Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {};
 }
 
+/// Records a selection attempt and answers the getters `_onSelectSDKAccount`
+/// reads afterwards. Its re-merge of `AppState.wallets` is not asserted on
+/// below - the seeded bloc's own `_baseWallets` is empty, so a tap that
+/// reaches the bloc rebuilds the row list from nothing. That is a fact about
+/// this harness, not a defect; these tests assert on `WalletDetailsCubit`
+/// and on [selectCalls] instead of on rows after a tap.
+class _SelectingApi extends _FakeGeniusApi {
+  final selectCalls = <String>[];
+
+  @override
+  Future<GeniusNodeReturnValue> selectGeniusAccountAsync(
+    String publicAddress,
+  ) async {
+    selectCalls.add(publicAddress);
+    return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  }
+
+  @override
+  String? getSelectedAccountMnemonic() => null;
+
+  @override
+  String? getSelectedAccountAddress() => null;
+
+  @override
+  String? getStartAccountAddress() => null;
+
+  @override
+  List<String> getAvailableAccounts() => const [];
+
+  @override
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {};
+
+  @override
+  Stream<SGNUSConnection> getSGNUSConnectionStream() =>
+      Stream.value(SGNUSConnection.empty());
+}
+
 /// Seeds `AppBloc.state.wallets` directly, bypassing `LoadWallets` (which
 /// reaches Hive boxes this test does not open and the real SGNUS merge path)
 /// - the same seeding pattern `job_flow_test.dart`'s `_SeededSubmitJobCubit`
@@ -117,12 +156,16 @@ class _SeededAppBloc extends AppBloc {
     required List<Wallet> wallets,
     Map<String, SDKAccountLink> sdkAccountLinks = const {},
     String? defaultSDKAccount,
+    List<String> sdkAccounts = const [],
+    String? selectedSDKAccount,
   }) {
     emit(
       state.copyWith(
         wallets: wallets,
         sdkAccountLinks: sdkAccountLinks,
         defaultSDKAccount: defaultSDKAccount,
+        sdkAccounts: sdkAccounts,
+        selectedSDKAccount: selectedSDKAccount,
       ),
     );
   }
@@ -167,6 +210,8 @@ _Harness _build(
   List<Wallet> wallets, {
   Map<String, SDKAccountLink> sdkAccountLinks = const {},
   String? defaultSDKAccount,
+  List<String> sdkAccounts = const [],
+  String? selectedSDKAccount,
   GeniusApi? api,
 }) {
   final walletDetailsCubit = WalletDetailsCubit(
@@ -181,6 +226,8 @@ _Harness _build(
     wallets: wallets,
     sdkAccountLinks: sdkAccountLinks,
     defaultSDKAccount: defaultSDKAccount,
+    sdkAccounts: sdkAccounts,
+    selectedSDKAccount: selectedSDKAccount,
   );
   return _Harness(walletDetailsCubit, appBloc);
 }
@@ -518,6 +565,259 @@ void main() {
 
           expect(find.text('SDK PENDING'), findsOneWidget);
           expect(find.text('SDK'), findsOneWidget);
+        } finally {
+          await harness.dispose(tester);
+          await box.close();
+        }
+      },
+    );
+  });
+
+  group('the two selections stay independent', () {
+    const sdkA = '0xAAAA000000000000000000000000000000000A';
+    const sdkB = '0xBBBB000000000000000000000000000000000B';
+    // Neither address matches a real wallet, so each name is honest about a
+    // removed wallet rather than the shared 'Unlinked' string - which would
+    // make the two rows indistinguishable by title.
+    final sdkLinks = <String, SDKAccountLink>{
+      sdkA.toLowerCase(): (walletAddress: '0xnope1', walletName: 'Alpha'),
+      sdkB.toLowerCase(): (walletAddress: '0xnope2', walletName: 'Beta'),
+    };
+
+    testWidgets(
+      'tapping an unselected SDK row calls the API and leaves the active '
+      'wallet untouched',
+      (tester) async {
+        final api = _SelectingApi();
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        final harness = _build(
+          [_walletA],
+          sdkAccountLinks: sdkLinks,
+          sdkAccounts: const [sdkA, sdkB],
+          selectedSDKAccount: sdkA,
+          api: api,
+        );
+        final pending = _Pending();
+        try {
+          await harness.walletDetailsCubit.selectWallet(_walletA);
+          await tester.pumpWidget(
+            _openerHost(
+              walletDetailsCubit: harness.walletDetailsCubit,
+              appBloc: harness.appBloc,
+              pending: pending,
+            ),
+          );
+          await tester.tap(find.text('open drawer'));
+          await tester.pumpAndSettle();
+
+          // BOUNDED: the row's own toast arms a 1s auto-dismiss Timer, and
+          // the drawer stays open (no route pop here), so `pumpAndSettle`
+          // would spin to the test timeout waiting on it.
+          await tester.tap(find.text('Beta (wallet removed)'));
+          await tester.pump();
+
+          expect(api.selectCalls, [sdkB]);
+          expect(harness.walletDetailsCubit.state.selectedWallet, _walletA);
+        } finally {
+          ToastManager.instance.disposeAll();
+          await tester.pump(const Duration(milliseconds: 400));
+          await harness.dispose(tester);
+          await box.close();
+        }
+      },
+    );
+
+    testWidgets('re-tapping the already-selected SDK row calls nothing', (
+      tester,
+    ) async {
+      final api = _SelectingApi();
+      final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+      final harness = _build(
+        [_walletA],
+        sdkAccountLinks: sdkLinks,
+        sdkAccounts: const [sdkA, sdkB],
+        selectedSDKAccount: sdkA,
+        api: api,
+      );
+      final pending = _Pending();
+      try {
+        await tester.pumpWidget(
+          _openerHost(
+            walletDetailsCubit: harness.walletDetailsCubit,
+            appBloc: harness.appBloc,
+            pending: pending,
+          ),
+        );
+        await tester.tap(find.text('open drawer'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Alpha (wallet removed)'));
+        await tester.pump();
+
+        expect(api.selectCalls, isEmpty);
+      } finally {
+        await harness.dispose(tester);
+        await box.close();
+      }
+    });
+
+    testWidgets(
+      'tapping an own-wallet row changes the active wallet and calls the '
+      'SDK API nothing',
+      (tester) async {
+        final api = _SelectingApi();
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        final harness = _build(
+          [_walletA, _walletB],
+          sdkAccountLinks: sdkLinks,
+          sdkAccounts: const [sdkA, sdkB],
+          selectedSDKAccount: sdkA,
+          api: api,
+        );
+        final pending = _Pending();
+        try {
+          await harness.walletDetailsCubit.selectWallet(_walletA);
+          await tester.pumpWidget(
+            _openerHost(
+              walletDetailsCubit: harness.walletDetailsCubit,
+              appBloc: harness.appBloc,
+              pending: pending,
+            ),
+          );
+          await tester.tap(find.text('open drawer'));
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Wallet B'));
+          await tester.pumpAndSettle();
+          await pending.future;
+
+          expect(harness.walletDetailsCubit.state.selectedWallet, _walletB);
+          expect(api.selectCalls, isEmpty);
+        } finally {
+          await harness.dispose(tester);
+          await box.close();
+        }
+      },
+    );
+
+    testWidgets('View balance selects the linked sgnus wallet, matched '
+        'case-insensitively, and is disabled when the account has none', (
+      tester,
+    ) async {
+      const sdkWithBalance = '0xcccc000000000000000000000000000000000c';
+      const sdkWithoutBalance = '0xdddd000000000000000000000000000000000d';
+      const sgnusWallet = Wallet(
+        coinType: TWCoinType.TWCoinTypeEthereum,
+        walletName: 'Node balance',
+        currencySymbol: 'minions',
+        walletType: WalletType.sgnus,
+        balance: 0,
+        // Uppercase, against the lowercase SDK account address above.
+        address: '0xCCCC000000000000000000000000000000000C',
+      );
+      final api = _SelectingApi();
+      final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+      final harness = _build(
+        [_walletA, sgnusWallet],
+        sdkAccounts: const [sdkWithBalance, sdkWithoutBalance],
+        api: api,
+      );
+      final pending = _Pending();
+      try {
+        await tester.pumpWidget(
+          _openerHost(
+            walletDetailsCubit: harness.walletDetailsCubit,
+            appBloc: harness.appBloc,
+            pending: pending,
+          ),
+        );
+        await tester.tap(find.text('open drawer'));
+        await tester.pumpAndSettle();
+
+        // sdkAccounts order is [sdkWithBalance, sdkWithoutBalance]; only
+        // the first's lowercased address matches the sgnus wallet above.
+        await tester.tap(find.byTooltip('Account options').at(0));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('View balance'));
+        await tester.pumpAndSettle();
+
+        expect(harness.walletDetailsCubit.state.selectedWallet, sgnusWallet);
+
+        await tester.tap(find.text('open drawer'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Account options').at(1));
+        await tester.pumpAndSettle();
+
+        final disabled = tester.widget<MenuItemButton>(
+          find.widgetWithText(MenuItemButton, 'View balance'),
+        );
+        expect(disabled.onPressed, isNull);
+      } finally {
+        await harness.dispose(tester);
+        await box.close();
+      }
+    });
+
+    testWidgets(
+      'the wallet linked to the active SDK account shows ACTIVE ON NODE, '
+      'not SDK',
+      (tester) async {
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        final links = <String, SDKAccountLink>{
+          sdkA.toLowerCase(): (
+            walletAddress: _walletA.address.toLowerCase(),
+            walletName: 'Wallet A',
+          ),
+        };
+        final harness = _build(
+          [_walletA],
+          sdkAccountLinks: links,
+          sdkAccounts: const [sdkA],
+          selectedSDKAccount: sdkA,
+          api: _SelectingApi(),
+        );
+        final pending = _Pending();
+        try {
+          await tester.pumpWidget(
+            _openerHost(
+              walletDetailsCubit: harness.walletDetailsCubit,
+              appBloc: harness.appBloc,
+              pending: pending,
+            ),
+          );
+          await tester.tap(find.text('open drawer'));
+          await tester.pumpAndSettle();
+
+          expect(find.text('ACTIVE ON NODE'), findsOneWidget);
+          expect(find.text('SDK'), findsNothing);
+          expect(find.text('SDK PENDING'), findsNothing);
+        } finally {
+          await harness.dispose(tester);
+          await box.close();
+        }
+      },
+    );
+
+    testWidgets(
+      'a running node with zero accounts reads No SDK accounts yet, not '
+      'Node not running',
+      (tester) async {
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        final harness = _build([_walletA], defaultSDKAccount: '0xstart');
+        final pending = _Pending();
+        try {
+          await tester.pumpWidget(
+            _openerHost(
+              walletDetailsCubit: harness.walletDetailsCubit,
+              appBloc: harness.appBloc,
+              pending: pending,
+            ),
+          );
+          await tester.tap(find.text('open drawer'));
+          await tester.pumpAndSettle();
+
+          expect(find.text('No SDK accounts yet'), findsOneWidget);
+          expect(find.text('Node not running'), findsNothing);
         } finally {
           await harness.dispose(tester);
           await box.close();
