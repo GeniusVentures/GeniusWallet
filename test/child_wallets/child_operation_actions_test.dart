@@ -467,6 +467,58 @@ void main() {
     },
   );
 
+  testWidgets('the poll alone keeps a timed-out fund locked, unlocks Fund and '
+      'Recover once it expires, and then stops', (tester) async {
+    var now = DateTime(2024);
+    final api = _FakeApi();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    final (childWallets, operations) = await _pumpScreen(
+      tester,
+      api: api,
+      navigatorKey: navigatorKey,
+      now: () => now,
+    );
+    final submittedAt = now;
+
+    MenuItemButton item(String label) => tester.widget<MenuItemButton>(
+      find.widgetWithText(MenuItemButton, label),
+    );
+
+    // Moves the injected clock and the fake timers together, one poll tick
+    // at a time, so every tick reads the time it fires at.
+    Future<void> pollUntil(Duration elapsed) async {
+      while (now.isBefore(submittedAt.add(elapsed))) {
+        now = now.add(const Duration(seconds: 10));
+        await tester.pump(const Duration(seconds: 10));
+      }
+    }
+
+    operations.submit(
+      kind: ChildOperationKind.fund,
+      target: _childAddress,
+      main: _mainAddress,
+      amountMinions: BigInt.from(1000000),
+    );
+
+    await pollUntil(const Duration(minutes: 2));
+    expect(operations.state.operations.single.notConfirmed, isTrue);
+    await _openMenu(tester);
+    expect(item('Fund').onPressed, isNull);
+    expect(item('Recover').onPressed, isNull);
+    await _openMenu(tester);
+
+    await pollUntil(const Duration(minutes: 6));
+    expect(operations.state.operations.single.expired, isTrue);
+    await _openMenu(tester);
+    expect(item('Fund').onPressed, isNotNull);
+    expect(item('Recover').onPressed, isNotNull);
+    await _openMenu(tester);
+
+    // The registry is left open on purpose: a poll still running after
+    // expiry fails this test as a Timer pending past the widget tree.
+    await childWallets.close();
+  });
+
   testWidgets('Check again resolves once the balance has actually risen, '
       'and unlocks Fund', (tester) async {
     var now = DateTime(2024);
