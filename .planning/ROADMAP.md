@@ -1570,7 +1570,7 @@ Plans:
   4. When an action must run as the other account (main or child), the app says so and offers to switch the SDK wallet.
   5. VER-02 (closes here for traceability): each of the six write operations is walked on the live testnet before this phase — and the milestone — closes; if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`, this is recorded as a blocking gap, not skipped.
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans executed
 
 Plans:
 
@@ -1578,7 +1578,7 @@ Plans:
 - [x] 37-02-PLAN.md — recover and revoke on child rows; switch-and-continue guard on every action, refused while the running account has a pending op (wave 2)
 - [x] 37-03-PLAN.md — "This account" card with own position; detach; main picker (own accounts or 0x+128-hex address) and register (wave 3)
 - [x] 37-04-PLAN.md — move to another main; switcher "Node running as" lock while an op from the running account is pending (wave 4)
-- [ ] 37-05-PLAN.md — dev-mock write simulation (confirm / time out / fail) and bubble buttons; phase gate and Windows compile; VER-02 live walk stays pending (wave 5)
+- [x] 37-05-PLAN.md — dev-mock write simulation (confirm / time out / fail) and bubble buttons; phase gate and Windows compile; VER-02 live walk stays pending (wave 5)
 
 ## Progress
 
@@ -1587,4 +1587,4 @@ Plans:
 | 34. Account linking | 5/5 | Awaiting human verification (live walk) | - |
 | 35. Unified header switcher | 3/3 | Awaiting human verification (live walk) | - |
 | 36. Child wallet bindings & read-only view | 3/3 | Awaiting human verification (live walk) | - |
-| 37. Child write operations & pending model | 4/5 | In Progress | - |
+| 37. Child write operations & pending model | 5/5 | Awaiting human verification (live walk) | - |
