@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/account/account_drawer.dart' show AccountAvatar;
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/feedback/gw_error_state.dart';
 import 'package:genius_wallet/components/scaffold/gw_screen.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -16,7 +18,9 @@ class ChildWalletsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<ChildWalletsCubit>().state;
+    final cubit = context.watch<ChildWalletsCubit>();
+    final state = cubit.state;
+    final populatedOrConnectedEmpty = state.status == ChildWalletsStatus.loaded;
 
     return GWScreen(
       appBar: AppBar(title: const Text('Child wallets')),
@@ -26,20 +30,63 @@ class ChildWalletsScreen extends StatelessWidget {
           _ChildWalletsHeader(
             mainName: state.mainName,
             mainAddress: state.mainAddress,
+            onRefresh: cubit.refresh,
           ),
           const SizedBox(height: GeniusWalletConsts.space8),
           Expanded(
-            child: ListView.separated(
-              itemCount: state.children.length,
-              separatorBuilder: (_, _) =>
-                  Divider(height: 1, color: context.gw.borderSubtle),
-              itemBuilder: (_, index) =>
-                  _ChildWalletRow(wallet: state.children[index]),
-            ),
+            child: _ChildWalletsBody(state: state, onRetry: cubit.refresh),
           ),
+          if (populatedOrConnectedEmpty) ...[
+            const SizedBox(height: GeniusWalletConsts.space6),
+            Text(
+              "Balances come from the node's synced view and can lag.",
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: context.gw.textSecondary,
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+}
+
+/// The list for a populated or connected-empty read, or the empty/error
+/// state that explains why there is nothing to list.
+class _ChildWalletsBody extends StatelessWidget {
+  const _ChildWalletsBody({required this.state, required this.onRetry});
+
+  final ChildWalletsState state;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (state.status) {
+      case ChildWalletsStatus.nodeNotRunning:
+        return const GWEmptyState(
+          icon: Icons.cloud_off_outlined,
+          title: 'Node not running',
+        );
+      case ChildWalletsStatus.error:
+        return GWErrorState(
+          title: "Couldn't load child wallets",
+          onRetry: onRetry,
+        );
+      case ChildWalletsStatus.loaded:
+        if (state.children.isEmpty) {
+          return const GWEmptyState(
+            icon: Icons.account_tree_outlined,
+            title: 'No child wallets registered under this account.',
+          );
+        }
+        return ListView.separated(
+          itemCount: state.children.length,
+          separatorBuilder: (_, _) =>
+              Divider(height: 1, color: context.gw.borderSubtle),
+          itemBuilder: (_, index) =>
+              _ChildWalletRow(wallet: state.children[index]),
+        );
+    }
   }
 }
 
@@ -49,10 +96,12 @@ class _ChildWalletsHeader extends StatelessWidget {
   const _ChildWalletsHeader({
     required this.mainName,
     required this.mainAddress,
+    required this.onRefresh,
   });
 
   final String mainName;
   final String mainAddress;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +149,12 @@ class _ChildWalletsHeader extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            color: gw.textSecondary,
+            onPressed: onRefresh,
           ),
         ],
       ),

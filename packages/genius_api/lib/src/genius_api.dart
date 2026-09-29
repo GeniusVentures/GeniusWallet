@@ -127,9 +127,12 @@ typedef ChildRegistrations = ({
 });
 
 /// Lets a caller branch on a registrations read without importing the raw
-/// FFI binding file for one enum comparison.
+/// FFI binding file for two enum comparisons.
 extension ChildRegistrationsStatus on ChildRegistrations {
   bool get isOk => result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+
+  bool get isNotInitialized =>
+      result == GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
 }
 
 /// Drives a registrations query through injected native calls so its free

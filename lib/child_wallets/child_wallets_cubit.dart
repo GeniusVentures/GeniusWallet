@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -73,10 +75,12 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
          ),
        ) {
     refresh();
+    _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) => refresh());
   }
 
   final GeniusApi _api;
   final AppState Function() _readAppState;
+  Timer? _pollTimer;
 
   void refresh() {
     final appState = _readAppState();
@@ -86,7 +90,28 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
       appState.wallets,
     );
 
+    if (appState.selectedSDKAccount == null) {
+      emit(
+        state.copyWith(
+          status: ChildWalletsStatus.nodeNotRunning,
+          mainName: mainName,
+          children: const [],
+        ),
+      );
+      return;
+    }
+
     final registrations = _api.getChildRegistrations(state.mainAddress);
+    if (registrations.isNotInitialized) {
+      emit(
+        state.copyWith(
+          status: ChildWalletsStatus.nodeNotRunning,
+          mainName: mainName,
+          children: const [],
+        ),
+      );
+      return;
+    }
     if (!registrations.isOk) {
       emit(
         state.copyWith(
@@ -126,5 +151,11 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
         children: children,
       ),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _pollTimer?.cancel();
+    return super.close();
   }
 }

@@ -25,6 +25,7 @@ void main() {
       expect(can.qr, isTrue);
       // The SDK refuses to delete the account it is using.
       expect(can.delete, isFalse);
+      expect(can.childWallets, isTrue);
     });
 
     test(
@@ -35,6 +36,7 @@ void main() {
         expect(can.phrase, isFalse);
         expect(can.qr, isFalse);
         expect(can.delete, isFalse);
+        expect(can.childWallets, isTrue);
       },
     );
 
@@ -51,6 +53,11 @@ void main() {
         reason: 'payout applies to the active account',
       );
       expect(can.delete, isTrue);
+      expect(
+        can.childWallets,
+        isFalse,
+        reason: 'only the account the node runs as has children to show',
+      );
     });
 
     test('every row has at least one action, so the menu is never dead', () {
@@ -63,6 +70,22 @@ void main() {
           expect(
             can.payout || can.phrase || can.qr || can.delete,
             isTrue,
+            reason: 'selected=$selected mnemonic=$mnemonic',
+          );
+        }
+      }
+    });
+
+    test('childWallets tracks isSelected across every combination', () {
+      for (final selected in [true, false]) {
+        for (final mnemonic in [true, false]) {
+          final can = sdkRowActions(
+            isSelected: selected,
+            hasMnemonic: mnemonic,
+          );
+          expect(
+            can.childWallets,
+            selected,
             reason: 'selected=$selected mnemonic=$mnemonic',
           );
         }

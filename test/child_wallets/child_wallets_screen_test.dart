@@ -1,7 +1,7 @@
 // Proves the read-only child-wallets screen against a fake API: the header
-// names the main account, each child shows its linked name or "Unlinked"
-// plus its own address, balances render exact, and rows keep the SDK's own
-// order.
+// names the main account in every state, each child shows its linked name
+// or "Unlinked" plus its own address, balances render exact, rows keep the
+// SDK's own order, and the screen re-reads on demand and on a timer.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +19,8 @@ import 'package:local_secure_storage/local_secure_storage.dart';
 const _mainAddress = '0x1111111111111111111111111111111111aaaa';
 const _linkedChildAddress = '0x2222222222222222222222222222222222bbbb';
 const _unlinkedChildAddress = '0x3333333333333333333333333333333333cccc';
+
+const _lagNote = "Balances come from the node's synced view and can lag.";
 
 const _mainWallet = Wallet(
   coinType: TWCoinType.TWCoinTypeEthereum,
@@ -46,15 +48,64 @@ const _links = <String, SDKAccountLink>{
   ),
 };
 
+const _selectedAppState = AppState(
+  selectedSDKAccount: _mainAddress,
+  sdkAccounts: [_mainAddress],
+  wallets: [_mainWallet, _childWallet],
+  sdkAccountLinks: _links,
+);
+
+const _noAccountAppState = AppState(
+  selectedSDKAccount: null,
+  sdkAccounts: [],
+  wallets: [_mainWallet, _childWallet],
+  sdkAccountLinks: _links,
+);
+
+const _populatedRegistrations = (
+  result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+  entries: [
+    ChildRegistration(
+      childAddress: _linkedChildAddress,
+      mainAddress: _mainAddress,
+      sequence: 0,
+    ),
+    ChildRegistration(
+      childAddress: _unlinkedChildAddress,
+      mainAddress: _mainAddress,
+      sequence: 1,
+    ),
+  ],
+);
+
+const _emptyOkRegistrations = (
+  result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+  entries: <ChildRegistration>[],
+);
+
+const _notInitializedRegistrations = (
+  result: GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
+  entries: <ChildRegistration>[],
+);
+
+const _queryErrorRegistrations = (
+  result: GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT,
+  entries: <ChildRegistration>[],
+);
+
 /// `implements`, not `extends`: the real constructor dlopens the native SDK.
 class _FakeApi implements GeniusApi {
-  _FakeApi({required this.registrations, required this.balances});
+  _FakeApi({required this.registrations, this.balances = const {}});
 
-  final ChildRegistrations registrations;
-  final Map<String, BigInt> balances;
+  ChildRegistrations registrations;
+  Map<String, BigInt> balances;
+  int registrationsCallCount = 0;
 
   @override
-  ChildRegistrations getChildRegistrations(String mainAddress) => registrations;
+  ChildRegistrations getChildRegistrations(String mainAddress) {
+    registrationsCallCount++;
+    return registrations;
+  }
 
   @override
   BigInt getChildBalanceAll(String childAddress) =>
@@ -64,24 +115,20 @@ class _FakeApi implements GeniusApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Future<void> _pumpScreen(
+/// Pumps the screen over a hand-built cubit and returns it -- the caller
+/// closes it explicitly, before the test body ends, so its poll timer is
+/// cancelled before the test framework's own pending-timer check runs.
+Future<ChildWalletsCubit> _pumpScreen(
   WidgetTester tester, {
-  required ChildRegistrations registrations,
-  required Map<String, BigInt> balances,
+  required GeniusApi api,
+  required AppState appState,
   GWColors? colors,
 }) async {
-  final api = _FakeApi(registrations: registrations, balances: balances);
   final cubit = ChildWalletsCubit(
     api: api,
-    readAppState: () => const AppState(
-      selectedSDKAccount: _mainAddress,
-      sdkAccounts: [_mainAddress],
-      wallets: [_mainWallet, _childWallet],
-      sdkAccountLinks: _links,
-    ),
+    readAppState: () => appState,
     mainAddress: _mainAddress,
   );
-  addTearDown(cubit.close);
 
   await tester.pumpWidget(
     MaterialApp(
@@ -92,39 +139,27 @@ Future<void> _pumpScreen(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  await tester.pump();
+  return cubit;
 }
 
 void main() {
-  const registrations = (
-    result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
-    entries: [
-      ChildRegistration(
-        childAddress: _linkedChildAddress,
-        mainAddress: _mainAddress,
-        sequence: 0,
-      ),
-      ChildRegistration(
-        childAddress: _unlinkedChildAddress,
-        mainAddress: _mainAddress,
-        sequence: 1,
-      ),
-    ],
-  );
-  final balances = <String, BigInt>{
-    _linkedChildAddress: BigInt.from(1234567),
-    _unlinkedChildAddress: BigInt.from(999999),
-  };
-
   final appearances = {'dark': GWColors.dark(), 'light': GWColors.light()};
 
   for (final appearance in appearances.entries) {
     testWidgets('renders the main, each child and their balances in '
         '${appearance.key} appearance', (tester) async {
-      await _pumpScreen(
+      final api = _FakeApi(
+        registrations: _populatedRegistrations,
+        balances: {
+          _linkedChildAddress: BigInt.from(1234567),
+          _unlinkedChildAddress: BigInt.from(999999),
+        },
+      );
+      final cubit = await _pumpScreen(
         tester,
-        registrations: registrations,
-        balances: balances,
+        api: api,
+        appState: _selectedAppState,
         colors: appearance.value,
       );
 
@@ -160,8 +195,343 @@ void main() {
       final linkedRowTop = tester.getTopLeft(find.text('Game Wallet')).dy;
       final unlinkedRowTop = tester.getTopLeft(find.text('Unlinked')).dy;
       expect(linkedRowTop, lessThan(unlinkedRowTop));
+
+      await cubit.close();
     });
   }
+
+  group('every state keeps the header, and gates the lag note', () {
+    testWidgets('connected and populated shows the lag note', (tester) async {
+      final api = _FakeApi(
+        registrations: _populatedRegistrations,
+        balances: {_linkedChildAddress: BigInt.from(1)},
+      );
+      final cubit = await _pumpScreen(
+        tester,
+        api: api,
+        appState: _selectedAppState,
+      );
+
+      expect(find.text('Main Wallet'), findsOneWidget);
+      expect(find.text(_lagNote), findsOneWidget);
+
+      await cubit.close();
+    });
+
+    testWidgets('connected and empty shows the empty copy and the lag note', (
+      tester,
+    ) async {
+      final api = _FakeApi(registrations: _emptyOkRegistrations);
+      final cubit = await _pumpScreen(
+        tester,
+        api: api,
+        appState: _selectedAppState,
+      );
+
+      expect(find.text('Main Wallet'), findsOneWidget);
+      expect(
+        find.text('No child wallets registered under this account.'),
+        findsOneWidget,
+      );
+      expect(find.text(_lagNote), findsOneWidget);
+
+      await cubit.close();
+    });
+
+    testWidgets(
+      'no selected account shows Node not running, no lag note, no SDK call',
+      (tester) async {
+        final api = _FakeApi(registrations: _populatedRegistrations);
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _noAccountAppState,
+        );
+
+        expect(find.text('Main Wallet'), findsOneWidget);
+        expect(find.text('Node not running'), findsOneWidget);
+        expect(find.text(_lagNote), findsNothing);
+        expect(api.registrationsCallCount, 0);
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets(
+      'an uninitialized SDK read also shows Node not running, no lag note',
+      (tester) async {
+        final api = _FakeApi(registrations: _notInitializedRegistrations);
+        final cubit = await _pumpScreen(
+          tester,
+          api: api,
+          appState: _selectedAppState,
+        );
+
+        expect(find.text('Main Wallet'), findsOneWidget);
+        expect(find.text('Node not running'), findsOneWidget);
+        expect(find.text(_lagNote), findsNothing);
+
+        await cubit.close();
+      },
+    );
+
+    testWidgets('a query failure shows the error copy and Retry, no lag note', (
+      tester,
+    ) async {
+      final api = _FakeApi(registrations: _queryErrorRegistrations);
+      final cubit = await _pumpScreen(
+        tester,
+        api: api,
+        appState: _selectedAppState,
+      );
+
+      expect(find.text('Main Wallet'), findsOneWidget);
+      expect(find.text("Couldn't load child wallets"), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      expect(find.text(_lagNote), findsNothing);
+
+      await cubit.close();
+    });
+  });
+
+  testWidgets('a zero-minion child reads 0.00 GNUS, not a syncing guess', (
+    tester,
+  ) async {
+    const registrations = (
+      result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+      entries: [
+        ChildRegistration(
+          childAddress: _linkedChildAddress,
+          mainAddress: _mainAddress,
+          sequence: 0,
+        ),
+      ],
+    );
+    final api = _FakeApi(
+      registrations: registrations,
+      balances: {_linkedChildAddress: BigInt.zero},
+    );
+    final cubit = await _pumpScreen(
+      tester,
+      api: api,
+      appState: _selectedAppState,
+    );
+
+    expect(find.text('0.00'), findsOneWidget);
+    expect(find.text(' GNUS'), findsOneWidget);
+
+    await cubit.close();
+  });
+
+  testWidgets('Retry re-reads exactly once', (tester) async {
+    final api = _FakeApi(registrations: _queryErrorRegistrations);
+    final cubit = await _pumpScreen(
+      tester,
+      api: api,
+      appState: _selectedAppState,
+    );
+    expect(api.registrationsCallCount, 1);
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+
+    expect(api.registrationsCallCount, 2);
+
+    await cubit.close();
+  });
+
+  testWidgets('Refresh re-reads exactly once', (tester) async {
+    final api = _FakeApi(registrations: _populatedRegistrations);
+    final cubit = await _pumpScreen(
+      tester,
+      api: api,
+      appState: _selectedAppState,
+    );
+    expect(api.registrationsCallCount, 1);
+
+    await tester.tap(find.byTooltip('Refresh'));
+    await tester.pump();
+
+    expect(api.registrationsCallCount, 2);
+
+    await cubit.close();
+  });
+
+  testWidgets('polls every 10 seconds while open, and stops once closed', (
+    tester,
+  ) async {
+    final api = _FakeApi(registrations: _populatedRegistrations);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: [GWColors.dark()]),
+        home: BlocProvider<ChildWalletsCubit>(
+          create: (_) => ChildWalletsCubit(
+            api: api,
+            readAppState: () => _selectedAppState,
+            mainAddress: _mainAddress,
+          ),
+          child: const ChildWalletsScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(api.registrationsCallCount, 1);
+
+    await tester.pump(const Duration(seconds: 10));
+    expect(api.registrationsCallCount, 2);
+
+    // The route closing in production: the provider that owns the cubit is
+    // torn down, which must cancel its timer.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 10));
+    expect(api.registrationsCallCount, 2);
+  });
+
+  testWidgets('a long linked name ellipsizes at one line', (tester) async {
+    const longName =
+        'A Very Long Wallet Name That Should Not Wrap Or Overflow The Row';
+    const longWallet = Wallet(
+      coinType: TWCoinType.TWCoinTypeEthereum,
+      walletName: longName,
+      currencySymbol: 'ETH',
+      walletType: WalletType.privateKey,
+      balance: 0,
+      address: _linkedChildAddress,
+    );
+    const appState = AppState(
+      selectedSDKAccount: _mainAddress,
+      wallets: [longWallet],
+      sdkAccountLinks: {
+        _linkedChildAddress: (
+          walletAddress: _linkedChildAddress,
+          walletName: longName,
+        ),
+      },
+    );
+    const registrations = (
+      result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+      entries: [
+        ChildRegistration(
+          childAddress: _linkedChildAddress,
+          mainAddress: _mainAddress,
+          sequence: 0,
+        ),
+      ],
+    );
+    final api = _FakeApi(registrations: registrations);
+    final cubit = await _pumpScreen(tester, api: api, appState: appState);
+
+    final text = tester.widget<Text>(find.text(longName));
+    expect(text.maxLines, 1);
+    expect(text.overflow, TextOverflow.ellipsis);
+
+    await cubit.close();
+  });
+
+  testWidgets(
+    'two children sharing a wallet name stay distinguishable by address',
+    (tester) async {
+      const addressA = '0x4444444444444444444444444444444444dddd';
+      const addressB = '0x5555555555555555555555555555555555eeee';
+      const walletA = Wallet(
+        coinType: TWCoinType.TWCoinTypeEthereum,
+        walletName: 'Shared Name',
+        currencySymbol: 'ETH',
+        walletType: WalletType.privateKey,
+        balance: 0,
+        address: addressA,
+      );
+      const walletB = Wallet(
+        coinType: TWCoinType.TWCoinTypeEthereum,
+        walletName: 'Shared Name',
+        currencySymbol: 'ETH',
+        walletType: WalletType.privateKey,
+        balance: 0,
+        address: addressB,
+      );
+      const appState = AppState(
+        selectedSDKAccount: _mainAddress,
+        wallets: [walletA, walletB],
+        sdkAccountLinks: {
+          addressA: (walletAddress: addressA, walletName: 'Shared Name'),
+          addressB: (walletAddress: addressB, walletName: 'Shared Name'),
+        },
+      );
+      const registrations = (
+        result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+        entries: [
+          ChildRegistration(
+            childAddress: addressA,
+            mainAddress: _mainAddress,
+            sequence: 0,
+          ),
+          ChildRegistration(
+            childAddress: addressB,
+            mainAddress: _mainAddress,
+            sequence: 1,
+          ),
+        ],
+      );
+      final api = _FakeApi(registrations: registrations);
+      final cubit = await _pumpScreen(tester, api: api, appState: appState);
+
+      expect(find.text('Shared Name'), findsNWidgets(2));
+      expect(
+        find.text(WalletUtils.getAddressForDisplay(addressA)),
+        findsOneWidget,
+      );
+      expect(
+        find.text(WalletUtils.getAddressForDisplay(addressB)),
+        findsOneWidget,
+      );
+
+      await cubit.close();
+    },
+  );
+
+  testWidgets(
+    'a child address differing only in case from its link still shows the '
+    'wallet name',
+    (tester) async {
+      const lowerAddress = '0x6666666666666666666666666666666666ffff';
+      const upperAddress = '0X6666666666666666666666666666666666FFFF';
+      const wallet = Wallet(
+        coinType: TWCoinType.TWCoinTypeEthereum,
+        walletName: 'Cased Wallet',
+        currencySymbol: 'ETH',
+        walletType: WalletType.privateKey,
+        balance: 0,
+        address: lowerAddress,
+      );
+      const appState = AppState(
+        selectedSDKAccount: _mainAddress,
+        wallets: [wallet],
+        sdkAccountLinks: {
+          lowerAddress: (
+            walletAddress: lowerAddress,
+            walletName: 'Cased Wallet',
+          ),
+        },
+      );
+      const registrations = (
+        result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+        entries: [
+          ChildRegistration(
+            childAddress: upperAddress,
+            mainAddress: _mainAddress,
+            sequence: 0,
+          ),
+        ],
+      );
+      final api = _FakeApi(registrations: registrations);
+      final cubit = await _pumpScreen(tester, api: api, appState: appState);
+
+      expect(find.text('Cased Wallet'), findsOneWidget);
+
+      await cubit.close();
+    },
+  );
 
   group('minionsToGnus', () {
     final cases = <BigInt, String>{
