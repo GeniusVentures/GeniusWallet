@@ -21,12 +21,14 @@ import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:go_router/go_router.dart';
+import 'package:local_secure_storage/local_secure_storage.dart'
+    show SDKAccountLink;
 import 'package:provider/provider.dart';
 
 /// The account drawer, extracted from `AccountDropdownSelector`'s former
 /// private `_showAccountDrawer` so a second surface can open it - the
-/// compute panel's *not linked* state offers a switch-wallet affordance that
-/// otherwise has no destination.
+/// compute panel's *not the default account* state offers a switch-wallet
+/// affordance that otherwise has no destination.
 ///
 /// This is a code move, not a redesign: the drawer that opens is the same
 /// drawer, with the same title, the same rows, the same footer and the same
@@ -45,9 +47,9 @@ class AccountDrawer {
   /// separate controls the phone header used to carry.
   ///
   /// It defaults to FALSE, and that default is load-bearing. Every existing
-  /// caller - the compute panel's *not linked* state included - passes
-  /// nothing and gets byte-identical behaviour, title included. The title is
-  /// derived here rather than by the body because
+  /// caller - the compute panel's *not the default account* state included -
+  /// passes nothing and gets byte-identical behaviour, title included. The
+  /// title is derived here rather than by the body because
   /// `test/account/account_drawer_show_test.dart` pins `find.text('Accounts')`
   /// and must stay green without being edited.
   static Future<Wallet?> show(
@@ -104,6 +106,76 @@ class AccountDrawer {
     await walletCubit.selectWallet(selected);
 
     return selected;
+  }
+}
+
+/// Whether an own-wallet row has an SDK account, and if not, whether one is
+/// still on its way (D-19).
+enum WalletSDKBadge {
+  /// Tracking and sgnus rows, or an own wallet the SDK is running without
+  /// ever having linked.
+  none,
+
+  /// [links] holds an entry whose wallet address matches this one.
+  linked,
+
+  /// No link yet, but the SDK is not running to make one - not a permanent
+  /// "no", just not yet (D-06/D-07).
+  pending,
+}
+
+/// Resolves [wallet]'s badge from the link map (D-19). Tracking and sgnus
+/// wallets never carry one - the SDK section already says which of THEM has
+/// the link, via `sdk_account_manager.dart`'s row naming.
+WalletSDKBadge walletSDKBadge(
+  Wallet wallet,
+  Map<String, SDKAccountLink> links, {
+  required bool sdkRunning,
+}) {
+  if (wallet.walletType == WalletType.tracking ||
+      wallet.walletType == WalletType.sgnus) {
+    return WalletSDKBadge.none;
+  }
+  final address = wallet.address.toLowerCase();
+  final isLinked = links.values.any((link) => link.walletAddress == address);
+  if (isLinked) {
+    return WalletSDKBadge.linked;
+  }
+  return sdkRunning ? WalletSDKBadge.none : WalletSDKBadge.pending;
+}
+
+/// One small pill for a drawer row's trailing area. Promoted from the
+/// "ACTIVE ON NODE" container's own one-off `Container` once a second and
+/// third label ("SDK", "SDK PENDING") needed the identical shape - the same
+/// padding, tint, border and 9px all-caps text, keyed off one colour.
+class _RowBadge extends StatelessWidget {
+  const _RowBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space4,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusXs),
+      ),
+      child: Text(
+        label,
+        style: GeniusWalletTypography.labelMd.copyWith(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+          color: color,
+        ),
+      ),
+    );
   }
 }
 
@@ -244,6 +316,19 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     }
   }
 
+  /// True when [wallet] is the row highlighted as selected. Matched on
+  /// lowercased address AND wallet type, not name - an SDK row now carries
+  /// its own wallet's name (D-17), so two rows named alike would otherwise
+  /// both light up.
+  bool _matchesSelected(Wallet wallet) {
+    final selected = _selectedWallet;
+    if (selected == null) {
+      return false;
+    }
+    return wallet.address.toLowerCase() == selected.address.toLowerCase() &&
+        wallet.walletType == selected.walletType;
+  }
+
   /// True when [network] is the one the app is currently reading balances
   /// from. Matched on `chainId` AND `rpcUrl` because `networks.json` ships
   /// mainnet/testnet pairs that share neither reliably on their own.
@@ -289,6 +374,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     Wallet wallet,
     bool isSelected, {
     bool isActiveOnNode = false,
+    WalletSDKBadge sdkBadge = WalletSDKBadge.none,
   }) {
     // Fail-soft read: registers the InheritedWidget dependency (on the
     // per-row context passed in from the drawer's own itemBuilder, NOT the
@@ -325,6 +411,19 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // D-19: which of the user's OWN wallets has an SDK account, at a
+          // glance. Own-wallet rows only - `walletSDKBadge` already returns
+          // `none` for sgnus/tracking rows, so this never doubles up with
+          // `isActiveOnNode` below on the same row.
+          if (sdkBadge != WalletSDKBadge.none) ...[
+            _RowBadge(
+              label: sdkBadge == WalletSDKBadge.linked ? 'SDK' : 'SDK PENDING',
+              color: sdkBadge == WalletSDKBadge.linked
+                  ? gw.brandPrimaryOnSurface
+                  : gw.statusWarningText,
+            ),
+            const SizedBox(width: GeniusWalletConsts.space3),
+          ],
           // 24-02: which SDK account the NODE computes on is a SEPARATE state
           // from which wallet the UI is showing. `SelectSDKAccount` is
           // dispatched from exactly one place -- sdk_account_manager.dart:185 --
@@ -332,30 +431,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
           // So the check glyph and this badge can legitimately sit on different
           // rows, and before this badge existed nothing said so.
           if (isActiveOnNode) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space4,
-                vertical: 2,
-              ),
-              decoration: BoxDecoration(
-                color: gw.brandSecondary.withValues(alpha: 0.12),
-                border: Border.all(
-                  color: gw.brandSecondary.withValues(alpha: 0.5),
-                ),
-                borderRadius: BorderRadius.circular(
-                  GeniusWalletConsts.radiusXs,
-                ),
-              ),
-              child: Text(
-                'ACTIVE ON NODE',
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                  color: gw.brandSecondary,
-                ),
-              ),
-            ),
+            _RowBadge(label: 'ACTIVE ON NODE', color: gw.brandSecondary),
             const SizedBox(width: GeniusWalletConsts.space3),
           ],
           // `isShowSuffix: false` -- GeniusBalanceDisplay hard-codes the suffix
@@ -377,11 +453,25 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
               ),
             ),
           ] else
-            Text(
-              WalletUtils.formatMinions(wallet.balance),
-              style: GeniusWalletTypography.labelMd.copyWith(
-                color: gw.textSecondary,
-                fontStyle: FontStyle.italic,
+            // Capped and ellipsised ONLY once a badge is in play - the SDK
+            // pill is new width this row never carried before, and this is
+            // the one part of the row allowed to give ground for it.
+            // Unbadged rows keep their exact pre-existing size.
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: sdkBadge == WalletSDKBadge.none
+                    ? double.infinity
+                    : 48,
+              ),
+              child: Text(
+                WalletUtils.formatMinions(wallet.balance),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: GeniusWalletTypography.labelMd.copyWith(
+                  color: gw.textSecondary,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ),
           if (isWatched) ...[
@@ -541,7 +631,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                   (w) => _buildDrawerRow(
                     context,
                     w,
-                    w.walletName == _selectedWallet?.walletName,
+                    _matchesSelected(w),
                     isActiveOnNode: w.address == appState.selectedSDKAccount,
                   ),
                 )
@@ -564,7 +654,12 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                 (w) => _buildDrawerRow(
                   context,
                   w,
-                  w.walletName == _selectedWallet?.walletName,
+                  _matchesSelected(w),
+                  sdkBadge: walletSDKBadge(
+                    w,
+                    appState.sdkAccountLinks,
+                    sdkRunning: appState.defaultSDKAccount != null,
+                  ),
                 ),
               )
             else
