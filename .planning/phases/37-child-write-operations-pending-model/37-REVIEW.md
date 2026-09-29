@@ -1,205 +1,238 @@
 ---
 phase: 37-child-write-operations-pending-model
-reviewed: 2026-09-29T11:53:39Z
+reviewed: 2026-09-29T12:11:37Z
 depth: deep
-iteration: 3
-files_reviewed: 5
+iteration: 4
+files_reviewed: 6
 files_reviewed_list:
   - lib/child_wallets/child_operations_cubit.dart
   - lib/child_wallets/child_operation_dialogs.dart
   - lib/child_wallets/child_operation_status.dart
+  - lib/child_wallets/child_wallets_screen.dart
   - test/child_wallets/child_operations_cubit_test.dart
   - test/child_wallets/child_operation_actions_test.dart
 findings:
-  critical: 3
-  warning: 1
-  info: 0
-  total: 4
+  critical: 0
+  warning: 5
+  info: 3
+  total: 8
 status: issues_found
 ---
 
-# Phase 37: Code Review Report (iteration 3)
+# Phase 37: Code Review Report (iteration 4)
 
 **Reviewed:** 2026-09-29
 **Depth:** deep
-**Files Reviewed:** 5
+**Files Reviewed:** 6
 **Status:** issues_found
 
 ## Summary
 
-This pass read `git diff d3b7d510..HEAD` against the whole cubit. It traced `submit()`, `resolve()`,
-`_signalMet`, `_committed` and the two dialog entry points, plus `GeniusApi.getChildBalanceAll` and
-the SDK header's contract for it.
+This pass read `git diff b45d1f63..HEAD` against the whole cubit. It traced `submit()`,
+`resolve()`, `_signalMet`, `balanceLockReason`, `_committed` and the poll, plus the callers:
+`ensureRunningAs`, the account drawer's switch lock, `DevMockChildWallets`, and
+`GeniusApi.getChildBalanceAll`/`selectGeniusAccountAsync`.
 
-The iteration-3 fixes do what they say for the cases they test: a same-account retry, a stale
-baseline, and M1 10 followed by M2 5. The cross-account mechanism is one-directional, though.
-`otherAttemptsMinions` protects the new op from the old op's landing, but nothing protects the old
-op from the new op's landing. It is also lost when a retry inherits a baseline. Both produce a
-false "Funded"/"Recovered" toast and release a hold whose money can still land. A third false
-"done" is older but is now more reachable: the SDK documents a balance read of 0 as ambiguous
-(`GeniusSDK.h:586-598`, "no balance vs. not-yet-synced"), and a Recover resolves on a 0 read. The
-new `resolve()` in `startFund`/`startRecover` runs straight after `ensureRunningAs` may have
-restarted the node on another account.
+The simplification works. Deleting the carry and merge code removes all three iteration-3 false
+"done" traces rather than patching them. The one-per-child lock holds as an invariant. No BLOCKER
+could be proven. The remaining risk is **where** a balance is read, not how the ops are
+combined: a timed-out op keeps resolving for four more minutes across an account switch
+(WR-01). Its expiry also depends on a wall clock that the `expired` flag does not guard (WR-02).
 
-Checks that came back clean:
-- **(d)** `submit()` is still the only write path. A grep of `lib/` for all six wrappers and
-  `submitWrite` finds calls only in `child_operations_cubit.dart:350-373`.
-- **(b)** `otherAttemptsMinions` is not summed in `_committed`. The carried amount moves with the
-  retry, and the retry comes from the same account, so the hold stays on the same balance.
-- **(c)** Nothing lets the running account send more than its balance less its own holds, except
-  after a false resolve (CR-01, CR-02, CR-03), which releases a hold early.
+Answers to the brief:
+
+- **(a) False "done":** no path is left inside the registry's own accounting. Two paths remain
+  through the read itself. WR-01 is a baseline from one node view compared with a read from
+  another, after a switch. WR-03 is a mixed mock/real source in debug builds. A backwards clock
+  step can also revive an expired op (WR-02). "Other movement" and the 0-baseline fund are the
+  documented ceilings.
+- **(b) Lock:** sound. `submit()` and `resolve()` are synchronous, so nothing interleaves. The lock
+  check and `replaces` read the same `state.operations` in one turn. `balanceLockReason` has no
+  account filter, so an op from another account after a switch is refused (the new tests prove
+  both of iteration 3's traces). At the exact boundary `_baselineTrusted` and `expires` both use
+  the same `now`, so the op cannot resolve and expire in the same pass. The lock can't get stuck:
+  every holding op comes from `submit()`, which starts the timer, and the timer is cancelled only
+  when nothing holds. The one exception is the wall clock (WR-02).
+- **(c) Reservations:** no double count beyond the documented "landed but not yet resolved"
+  window. `startFund` calls `resolve()` first, which narrows that window. Releasing a hold at
+  expiry can over-commit a fund still in flight (IN-03).
+- **(d) Writes:** a grep of `lib/` and `packages/genius_api/lib` finds the six wrappers and
+  `submitWrite` called only from `submit()` (`child_operations_cubit.dart:351-374`). Clean.
+- **(e) Poll and `expired`:** the poll stops at the emit where every op is notConfirmed and nothing
+  holds. It keeps running through the 2-6 min window and emits at expiry, and
+  `ChildWalletRow`/`_AmountDialog` rebuild from that emit. So the menus unlock with no refresh,
+  up to 10 s after the 6-minute mark. No test exercises this (WR-04).
+- **(f) AGENTS.md:** braces, colours, no plan IDs, LF endings and the ponytail markers are all
+  fine. Two doc comments this diff touched exceed 3 lines (WR-05).
 
 ## Resolved from earlier iterations
 
 | ID | Status |
 |----|--------|
-| it.1 CR-01 concurrent funds exceed balance | Resolved (still holds; exceptions are the early releases below) |
-| it.1 CR-02 retry resolves on the abandoned attempt | Resolved for same-account retries |
-| it.1 WR-01..WR-04 | Resolved, unchanged this iteration |
-| it.2 WR-01 baseline of any age | Resolved. `_baselineTrusted` gates every fund/recover signal at 6 min; the retry inherits only if the baseline stays trusted through its own timeout |
-| it.2 WR-02 `replaces` ignores the payer | Resolved for the hold. The signal-side follow-up has gaps (CR-01, CR-02) |
-| it.2 WR-03 retry never checks a late landing | Resolved. `registry.resolve()` runs before the amount dialog; copy shows `totalMinions` plus ", including an earlier attempt" |
+| it.3 CR-01 later other-account attempt resolves the earlier op | Resolved. A second fund/recover on the child is refused at `submit()` (`:305-310`); test "after the child moves…" |
+| it.3 CR-02 inherited baseline drops other-account attempts | Resolved by deletion. No inheritance; the baseline is always read at submit (`:346`) |
+| it.3 CR-03 recover resolves on a 0 read | Resolved for 0 (`:454`). The non-zero half (an under-read after a switch) is WR-01 |
+| it.3 WR-01 fund baseline read as 0 before sync | Accepted ceiling (amendment), marked `ponytail:` at `:443-445` |
+| it.2 WR-01..WR-03 (baseline age, `replaces` payer, retry never checks) | Superseded. The machinery is gone; the 6-min trust window and resolve-before-dialog are kept |
+| it.1 CR-01 concurrent funds exceed balance | Holds while an op holds; released at expiry (IN-03) |
+| it.1 CR-02, WR-01..WR-04 | Resolved, unchanged |
 
-## State and transition model (fund / recover)
+## State model (fund / recover)
 
-| State | Representation | Holds (`_committed`) | Can resolve |
-|-------|----------------|----------------------|-------------|
-| Pending | in `operations`, `notConfirmed == false` | amount + carried | yes (baseline always trusted: the 2-min window ends before `baselineAt + 6 min`) |
-| Timed out | `notConfirmed == true`, `now < baselineAt + 6 min` | amount + carried | yes |
-| Expired baseline | `notConfirmed == true`, `now >= baselineAt + 6 min` | amount + carried, until restart | never |
-| Merged / carried | removed; its `totalMinions` becomes the same-account retry's `carriedMinions` | moves to the retry | through the retry only |
-| Counted as another attempt | stays its own op; its `totalMinions` is snapshotted into a later other-account op's `otherAttemptsMinions` | its own, unchanged | yes, **against its own awaited total only** (CR-01) |
-| Resolved | removed, placed in `justResolved`, toast | released | n/a |
+| State | `notConfirmed` / `expired` | Holds + locks child | Can resolve |
+|-------|----------------------------|---------------------|-------------|
+| Pending | F / F | yes | yes |
+| Timed out | T / F | yes | yes, until `submittedAt + 6 min` |
+| Expired | T / T | no | no (by the clock only, see WR-02) |
+| Resolved | removed, in `justResolved` | no | n/a |
 
-| # | Trigger | From -> To | Code |
-|---|---------|------------|------|
-| T1 | `submit` OK, no same-account notConfirmed op | none -> Pending, fresh baseline, `otherAttempts` = snapshot | `:300-347` |
-| T2 | `submit` OK, same-account notConfirmed op R | R -> Merged; new Pending carries `R.total`; baseline inherited if R trusted at `now + 2 min`, else fresh; `otherAttempts` recomputed from the **current** list | `:312-345` |
-| T3 | `submit` refused / non-OK | no change | `:268-298, :374` |
-| T4 | `resolve`, signal met while trusted | Pending/Timed out -> Resolved | `:410-413, :435-442` |
-| T5 | `resolve`, 2 min since `submittedAt` | Pending -> Timed out | `:415-418` |
-| T6 | clock passes `baselineAt + 6 min` | Timed out -> Expired (implicit) | `:461-462` |
-| T7 | poll (only while something is Pending), Refresh, Check again, opening Fund/Recover | runs `resolve` | `:391, screen:33, dialogs:45, :110` |
-| T8 | restart | everything forgotten | memory-only registry |
-
-The CR items below are the edges where T4 fires without the attempt's own money landing.
-
-## Critical Issues
-
-### CR-01: A later attempt from another main resolves the earlier main's op as done
-
-**File:** `lib/child_wallets/child_operations_cubit.dart:315-319, 378-388, 437-439, 457-458`
-
-**Issue:** When M2 submits while M1's op A on the same child is timed out, only the new op B gets
-`otherAttemptsMinions = A.total`. A itself is not updated, so A's signal is still
-`balance >= A.baseline + A.total`. If B's amount is at least A's, B landing alone satisfies A.
-
-Trace, with C at 0 and the reachable move path from iteration 2:
-1. M1 funds C with 5 (A: baseline 0, awaited 5). It times out at 2 min.
-2. C moves to M2, and M2 funds C with 10 (B: baseline 0, total 10, others 5, awaited 15).
-3. Only B lands, so C = 10.
-4. On the next `resolve`, A passes (`10 >= 0 + 5`) and toasts **"Funded 5 GNUS to C"**. M1 sent
-   nothing that arrived.
-
-After that, B needs 15 and ends "Not confirmed yet" even though its own money arrived. M1's 5-GNUS
-hold is released while A can still land, which reopens the CR-01 over-commit (c). A still has to be
-trusted when B lands (within 6 min of A's baseline), and in dev-mock confirm mode B lands after 3 s.
-The recover mirror is the same. The new test only covers M1 10 followed by M2 5, where the order
-hides this.
-
-**Fix:** When a fund or recover is appended, add its own new amount to every other-account op of
-the same kind and target. Then each side waits for the other. The worst case is "Not confirmed yet".
-```dart
-// ChildOperation.copyWith gains `BigInt? otherAttemptsMinions`.
-for (final existing in state.operations)
-  if (!replaces(existing))
-    _hasAmount(kind) && sameKindAndTarget(existing)
-        ? existing.copyWith(
-            otherAttemptsMinions:
-                (existing.otherAttemptsMinions ?? BigInt.zero) + amountMinions!,
-          )
-        : existing,
-```
-Bump by `amountMinions`, not `totalMinions`: the carried part was already added when the replaced
-op was submitted. Add the reversed-amounts test (M1 5, then M2 10, only M2's lands, nothing resolves).
-
-### CR-02: A retry that inherits a baseline drops the other-account attempts that baseline predates
-
-**File:** `lib/child_wallets/child_operations_cubit.dart:315-319, 323-345`
-
-**Issue:** `inherited` keeps `replaced.baselineMinions`, but `otherAttemptsMinions` is recomputed
-from the current list. An other-account op that was in the replaced op's snapshot and has since
-landed and resolved is no longer in that list. Its landing is still inside the inherited baseline's
-delta, though, so the retry counts it as its own money.
-
-Trace, with C at 0:
-1. M1 fund O = 10 times out.
-2. M2 fund R = 5 (baseline 0, others 10).
-3. O lands, C = 10, and O resolves correctly. R needs 15 and stays.
-4. R times out. Within 4 min of R's baseline, M2 retries with X = 5. `resolve()` leaves R because
-   `10 < 15`. X inherits baseline 0 and carries 5, and its others is 0 because O is gone. So
-   awaited = 10.
-5. The next `resolve` passes X (`10 >= 0 + 10`) and toasts **"Funded 10 GNUS to C, including an
-   earlier attempt"**. Neither of M2's attempts landed, and M2's 10-GNUS hold is released while
-   both can still land (c).
-
-**Fix:** When the baseline is inherited, inherit the others total with it. With CR-01's bump in
-place, `R.otherAttemptsMinions` already covers every other-account amount since R's baseline:
-```dart
-otherAttemptsMinions: inherited != null
-    ? inherited.otherAttemptsMinions
-    : otherAttempts,
-```
-Add the O-lands-then-M2-retries test above.
-
-### CR-03: A Recover resolves on a 0 balance read, which the SDK defines as possibly "not yet synced"
-
-**File:** `lib/child_wallets/child_operations_cubit.dart:147-149, 440-442`;
-`lib/child_wallets/child_operation_dialogs.dart:40-45, 107-110`
-
-**Issue:** `GeniusSDKGetChildBalanceAll` returns 0 both for an empty child and for one the local
-CRDT view has not synced yet (`GeniusSDK.h:586-588, 596-598`; the phase-36 research lists it as
-Pitfall 5). `_signalMet` for recover is `current <= baseline - awaited`. Any trusted recover passes
-on a 0 read, because `amount <= payingBalance <= baseline`. The result is **"Recovered X GNUS from
-C"** and the child-side hold is released while the recover can still land.
-
-Iteration 3 made this more reachable. `startFund`/`startRecover` now call `registry.resolve()`
-straight after `ensureRunningAs`, which can have just switched the node to another account and
-restarted it. That is the moment a child's balance is most likely unsynced, and it happens while an
-earlier recover (from M1, timed out, under 6 min old) is still trusted. The screen's own footnote
-admits "Balances come from the node's synced view and can lag". A partial sync that under-reads is
-the same failure with a non-zero number.
-
-**Fix:** Never resolve a recover on a 0 read. A recover that empties the child then ends "Not
-confirmed yet", which is the accepted conservative outcome. Mark it:
-```dart
-case ChildOperationKind.recover:
-  // ponytail: 0 also means "not synced" to the SDK, so a recover that
-  // empties the child ends "Not confirmed yet"; upgrade path is a tx receipt.
-  final current = _childBalance(op.target);
-  return _baselineTrusted(op, now) &&
-      current > BigInt.zero &&
-      current <= op.baselineMinions! - _awaited(op);
-```
-Add a test: a recover of 10 from 100 times out, the read drops to 0, and nothing resolves.
+Transitions: submit OK -> Pending (refused while any holding op is on the child; drops expired
+fund/recover ops on it). Resolve: signal met -> Resolved. At >= 2 min -> Timed out. At >= 6 min
+-> Expired (it can go straight from Pending if the first resolve is late). A restart forgets
+everything. Invariant: **at most one holding fund/recover per child (case-insensitive), from any
+account**. It holds because the lock and `replaces` are evaluated synchronously on the same
+list.
 
 ## Warnings
 
-### WR-01: A Fund baseline read as 0 by an unsynced node lets a pre-existing balance read as the fund landing
+### WR-01: A timed-out fund/recover keeps resolving on another account's node view after a switch
 
-**File:** `lib/child_wallets/child_operations_cubit.dart:332-334, 438-439`
+**File:** `lib/child_wallets/child_operations_cubit.dart:440-455, 181-185`;
+`lib/child_wallets/child_operation_dialogs.dart:45, 110`;
+`lib/child_wallets/child_operation_switch_dialog.dart:34`
 
-**Issue:** The same 0 ambiguity applies to the baseline. After `ensureRunningAs` switches the node,
-the Fund baseline is read at `submit()` a few seconds later. If C is not synced yet, the baseline is
-0. Once C syncs to its real balance, say 50, a fund of 10 passes `50 >= 0 + 10` and toasts
-"Funded 10" before anything has landed. This is a WARNING rather than a BLOCKER because it needs the
-main's own balance (`payingBalance`) to have synced while the child's has not. The code has no way
-to tell a real 0 (a newly registered child being funded for the first time) from an unsynced 0.
+**Issue:** The baseline is read on the node running as `op.fromAccount`. SWT-06 (`hasPendingFrom`)
+lifts at the 2-minute timeout, but the op stays trusted and keeps resolving until 6 minutes. In
+that window any `ensureRunningAs` can switch the node to another account, and the poll and the
+`registry.resolve()` straight after the switch (`dialogs:45, 110`) then compare M1's baseline with
+the new selection's view of the child. `GeniusSDK.h` says the read comes "from the locally-synced
+CRDT UTXO view". D-19 covers only a read of 0. A partial or stale **non-zero** read still passes:
 
-**Fix:** Cheapest honest option: when the fund baseline reads 0 and `ChildWalletsCubit`'s last OK
-row for that child showed a non-zero balance, refuse the submit ("Balances are still syncing. Try
-again."). Alternatively, record a zero-baseline fund as unresolvable on the balance (it ends "Not
-confirmed yet") and mark that with a `ponytail:` comment.
+1. M1 recovers 10 from C (baseline 100). It times out at 2 min.
+2. At 3 min the user starts any action that needs M2, and the switch lands.
+3. `resolve()` reads C on M2's view. Any value in `1..90` toasts **"Recovered 10 GNUS from C"** and
+   releases the lock while M1's recover can still land.
+
+A stale-high read does the same to a fund. The poll can also run while `selectGeniusAccountAsync`
+is mid-flight: `selectedSDKAccount` still names the old account, and the read comes from an SDK
+that is switching. This is a WARNING rather than a BLOCKER only because the SDK does not document
+whether the view differs per account. If selecting an account restarts or resyncs the view, it is
+a BLOCKER.
+
+**Fix:** Resolve a balance op only on the view that read its baseline. Anywhere else it waits, and
+it resolves or expires once the user switches back:
+```dart
+bool _sameView(ChildOperation op) =>
+    runningAccount?.toLowerCase() == op.fromAccount.toLowerCase();
+// fund:    return _sameView(op) && _baselineTrusted(op, now) && ...
+// recover: return _sameView(op) && _baselineTrusted(op, now) && current > BigInt.zero && ...
+```
+A round trip M1 -> M2 -> M1 within the window still resolves on a resyncing view. The full fix is to
+expire holding ops whenever `SelectSDKAccount` lands, which ends them "Not confirmed yet". Add a
+test: recover times out, `running` flips to another account, the read drops to a non-zero value
+below the target, and nothing resolves.
+
+### WR-02: `expired` does not stop a resolve; expiry and the lock hang on the wall clock
+
+**File:** `lib/child_wallets/child_operations_cubit.dart:70-72, 110, 446-455, 470-471`
+
+**Issue:** The doc on `expired` says the op "can no longer resolve", but `_signalMet` never reads
+the flag. It re-derives trust from `_now()`, which defaults to `DateTime.now`, a wall clock. If the
+clock steps backwards (NTP correction, manual change), an expired op becomes trusted again. On a
+later rise or fall it resolves against a baseline more than 6 minutes old, which breaks the (a)
+bound. A backwards step on a pending op likewise delays `expires` and the timeout, which extends
+both the child lock and the SWT-06 switch lock by the size of the step. The recover arm also reads
+the balance (`:452`) before the trust check, so expired recovers still hit the FFI on every poll.
+
+**Fix:** Make the flag authoritative:
+```dart
+bool _signalMet(ChildOperation op, DateTime now) {
+  if (op.expired) {
+    return false;
+  }
+  ...
+```
+Optionally measure elapsed time with a `Stopwatch` started at submit rather than `DateTime`
+differences.
+
+### WR-03: Debug builds mix mock and real reads across one op's lifetime
+
+**File:** `lib/child_wallets/child_operations_cubit.dart:127-137, 346, 477-484`;
+`lib/dev/dev_mock_child_wallets.dart:83-92, 319-336`
+
+**Issue:** `_devMocked` is re-evaluated on every read, so the baseline and the resolve read can come
+from different sources. A real fund with baseline 0 is pending when the tester arms a preset.
+`DevMockChildWallets.balanceFor(realAddress)` returns 250 GNUS, which passes `>= 0 + amount`, and
+the tester sees a false **"Funded"**. A real pending revoke resolves the same way, because the mock
+registrations do not list the real child. In the other direction, `clear()` drops `_addedTo` and
+`_removedFrom`, and mock-submitted revokes and detaches then resolve on real reads. Release builds
+are unaffected (`kDebugMode`). The dev mocks are the walk-through tool for this very model, though,
+so a false toast during a walk misleads the verifier.
+
+**Fix:** Record the source on the op (`final bool mocked`, set from `_devMocked` at submit). In
+`_signalMet`, return false when `op.mocked != _devMocked`, which leaves the op to time out or
+expire. The alternative is to have `DevMockChildWallets.arm`/`clear` drop the registry.
+
+### WR-04: The poll's new stop condition, the thing that unlocks the menus on time, has no test
+
+**File:** `lib/child_wallets/child_operations_cubit.dart:432-437`;
+`test/child_wallets/child_operation_actions_test.dart:409-468`;
+`test/child_wallets/child_operations_cubit_test.dart:395-465`
+
+**Issue:** Every new expiry test sets `now` to 6 min and calls `resolve()` by hand. Reverting line
+434 to the old `remaining.every((op) => op.notConfirmed)` would stop the poll at the 2-minute
+timeout. The menu would then stay locked until a manual refresh or restart, and all 2165 tests
+would still pass. The fix report's claim that the poll keeps running until expiry and the menus
+rebuild on time has no check behind it.
+
+**Fix:** Add one widget test that drives the timer. Inject `now` and submit a fund. Then advance
+both `now` and `tester.pump(const Duration(seconds: 10))` past 2 min, where the lock stays, and
+past 6 min, where Fund is enabled, with no manual `resolve()` call.
+
+### WR-05: Two doc comments this diff edited exceed the 3-line limit
+
+**File:** `lib/child_wallets/child_operations_cubit.dart:271-275` (5 lines),
+`:397-400` (4 lines)
+
+**Issue:** AGENTS.md sets "Doc comment: 3 lines max". This diff grew `submit`'s doc from 4 lines to
+5 and `resolve`'s from 3 to 4.
+
+**Fix:** Trim to three lines. For example, `submit`: "Submits [kind] against [target], or returns
+null with no SDK call when the side, main, lock or amount is wrong. Appends and emits only on
+`RET_OK`."
+
+## Info
+
+### IN-01: "Check again" on an expired op can never change it
+
+**File:** `lib/child_wallets/child_operation_status.dart:77-89`;
+`lib/child_wallets/child_operations_cubit.dart:70-72`
+
+**Issue:** An expired fund/recover still renders "Not confirmed yet" with "Check again" until a
+restart or the next fund/recover on that child. The lock copy tells the user to "wait a few
+minutes". After the wait the badge looks exactly the same, and the button does nothing for it.
+**Fix:** Hide "Check again" when `op.expired`, or accept it and say so in the badge semantics.
+
+### IN-02: MAX on Recover submits an op that cannot confirm by construction
+
+**File:** `lib/child_wallets/child_operation_dialogs.dart:505-513`;
+`lib/child_wallets/child_operations_cubit.dart:453-455`
+
+**Issue:** MAX fills the child's whole free balance. Under D-19 that recover can only end "Not
+confirmed yet", and it locks the child for 6 minutes even when it lands. That outcome is certain,
+not "uncertain", and the dialog gives no hint of it.
+**Fix:** Add a one-line `GWWarningNote` when the typed amount equals the child's balance, or leave
+it as is and note the consequence beside D-19.
+
+### IN-03: Expiry releases a hold whose fund may still be in flight
+
+**File:** `lib/child_wallets/child_operations_cubit.dart:262-269`
+
+**Issue:** At 6 min the hold is released even if the SDK has not yet debited the main. The main can
+then fund another child with the same money. Consensus rejects one of the two, so no funds are
+lost. The `ponytail:` comment names the "holds until it expires" ceiling but not this consequence.
+**Fix:** Extend the existing ponytail with "…and one still in flight after it can over-commit the
+paying balance".
 
 ---
 
