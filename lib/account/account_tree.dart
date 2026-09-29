@@ -99,6 +99,19 @@ List<AccountTreeRow> buildAccountTree({
     }
   }
 
+  // An own account some other own account lists as a child waits for that
+  // main to nest it, whatever order the wallets come in.
+  final nestedUnderOwnMain = <String>{
+    for (final entry
+        in registrations?.entries ??
+            const <MapEntry<String, List<ChildWallet>>>[])
+      if (ownByLower.containsKey(entry.key.toLowerCase()))
+        for (final child in entry.value)
+          if (ownByLower.containsKey(child.address.toLowerCase()) &&
+              child.address.toLowerCase() != entry.key.toLowerCase())
+            child.address.toLowerCase(),
+  };
+
   final visited = <String>{};
   final rows = <AccountTreeRow>[];
 
@@ -169,13 +182,17 @@ List<AccountTreeRow> buildAccountTree({
       );
       continue;
     }
-    if (visited.contains(account.toLowerCase())) {
-      // Already placed by an earlier root's nesting walk -- this wallet's
-      // row IS that nested merged row, so it does not render twice.
+    if (nestedUnderOwnMain.contains(account.toLowerCase())) {
       continue;
     }
     placeAccount(account, 0);
   }
+  for (final account in sdkAccounts) {
+    if (!nestedUnderOwnMain.contains(account.toLowerCase())) {
+      placeAccount(account, 0);
+    }
+  }
+  // A cycle leaves every member waiting on another; place what is left.
   for (final account in sdkAccounts) {
     placeAccount(account, 0);
   }
