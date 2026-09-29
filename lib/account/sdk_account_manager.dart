@@ -139,6 +139,11 @@ class SDKAccountManagerButton extends StatelessWidget {
                 _buildAccountRow(
                   context,
                   account,
+                  name: AppBloc.sdkAccountName(
+                    account,
+                    state.sdkAccountLinks,
+                    state.wallets,
+                  ),
                   isSelected: account == selected,
                   isStartAccount: account.toLowerCase() == defaultAccount,
                 ),
@@ -169,6 +174,7 @@ class SDKAccountManagerButton extends StatelessWidget {
   Widget _buildAccountRow(
     BuildContext context,
     String address, {
+    required String name,
     required bool isSelected,
     required bool isStartAccount,
   }) {
@@ -206,17 +212,21 @@ class SDKAccountManagerButton extends StatelessWidget {
         Icons.account_balance_wallet,
         color: isSelected ? context.gw.brandPrimaryStrong : gw.textSecondary,
       ),
-      // The address IS the title here, so it takes the mono treatment through
-      // the row's own escape hatch rather than a hand-built Column.
-      title: WalletUtils.getAddressForDisplay(address),
-      titleStyle: GeniusWalletTypography.bodySm.copyWith(
+      // The title now names the wallet this account came from (D-17) - the
+      // row's own default style, since the mono treatment belongs to the
+      // address on the line below, not a wallet name.
+      title: name,
+      // The address stays on every row, linked or not (D-16), with the same
+      // mono subtitle style the wallet-menu rows use.
+      subtitle:
+          WalletUtils.getAddressForDisplay(address) +
+          (isSelected
+              ? ' · Active processing account'
+              : (isStartAccount ? ' · Default account' : '')),
+      subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
         fontFamily: GeniusWalletTypography.monoFamily,
-        color: gw.textPrimary,
-        fontWeight: FontWeight.w500,
+        color: gw.textSecondary,
       ),
-      subtitle: isSelected
-          ? 'Active processing account'
-          : (isStartAccount ? 'The app starts with this account' : null),
       // ONE menu on EVERY row (sketch 069-A). Before this, the selected row got
       // a three-item menu and every OTHER row got a bare red delete
       // `IconButton` and no menu at all -- so Delete was never IN the menu, the

@@ -136,7 +136,7 @@ void main() {
     );
     await tester.tap(find.byType(SDKAccountManagerButton));
     await tester.pumpAndSettle();
-    expect(find.text('The app starts with this account'), findsOneWidget);
+    expect(find.textContaining('Default account'), findsOneWidget);
 
     VoidCallback? delete() => tester
         .widget<MenuItemButton>(
