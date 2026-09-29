@@ -769,6 +769,55 @@ class NativeLibrary {
       _GeniusSDKGetTaskResultPtr.asFunction<
         GeniusArray Function(ffi.Pointer<ffi.Char>)
       >();
+
+  /// The array is SDK-allocated; the caller frees it with GeniusSDKFree
+  /// when non-null. Zero registrations (RET_OK, null, count 0) is a valid,
+  /// empty result, not an error.
+  int GeniusSDKGetRegistrationsForMain(
+    ffi.Pointer<ffi.Char> main_address,
+    ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>> out_entries,
+    ffi.Pointer<ffi.Uint64> out_count,
+  ) {
+    return _GeniusSDKGetRegistrationsForMain(
+      main_address,
+      out_entries,
+      out_count,
+    );
+  }
+
+  late final _GeniusSDKGetRegistrationsForMainPtr =
+      _lookup<
+        ffi.NativeFunction<
+          GeniusNodeReturnValue_t Function(
+            ffi.Pointer<ffi.Char>,
+            ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>,
+            ffi.Pointer<ffi.Uint64>,
+          )
+        >
+      >('GeniusSDKGetRegistrationsForMain');
+  late final _GeniusSDKGetRegistrationsForMain =
+      _GeniusSDKGetRegistrationsForMainPtr.asFunction<
+        int Function(
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>,
+          ffi.Pointer<ffi.Uint64>,
+        )
+      >();
+
+  /// Returns the main account's summed balance across all its children, in
+  /// Minion Tokens.
+  int GeniusSDKGetChildBalanceAll(ffi.Pointer<ffi.Char> main_address) {
+    return _GeniusSDKGetChildBalanceAll(main_address);
+  }
+
+  late final _GeniusSDKGetChildBalanceAllPtr =
+      _lookup<ffi.NativeFunction<ffi.Uint64 Function(ffi.Pointer<ffi.Char>)>>(
+        'GeniusSDKGetChildBalanceAll',
+      );
+  late final _GeniusSDKGetChildBalanceAll =
+      _GeniusSDKGetChildBalanceAllPtr.asFunction<
+        int Function(ffi.Pointer<ffi.Char>)
+      >();
 }
 
 typedef __u_char = ffi.UnsignedChar;
@@ -1150,6 +1199,33 @@ final class GeniusMnemonicAndInitPath extends ffi.Struct {
 
   @ffi.Array.multi([216])
   external ffi.Array<ffi.Char> mnemonic;
+}
+
+/// @brief Per-game metadata recorded with a child registration.
+final class GeniusRegistrationMetadata extends ffi.Struct {
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Char> game_id;
+
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Char> publisher_id;
+
+  @ffi.Array.multi([128])
+  external ffi.Array<ffi.Char> dev_wallet;
+
+  @ffi.Uint64()
+  external int peers_cut;
+}
+
+/// @brief One child registered under a main account, as the SDK returns it.
+final class GeniusRegistrationDiscoveryEntry extends ffi.Struct {
+  external GeniusAddress child_address;
+
+  external GeniusAddress main_address;
+
+  @ffi.Uint64()
+  external int sequence;
+
+  external GeniusRegistrationMetadata metadata;
 }
 
 const int _STDINT_H = 1;
