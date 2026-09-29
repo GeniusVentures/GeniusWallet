@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
+import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
@@ -34,6 +35,7 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// The list one side of the swap may pick from: everything except the token the
@@ -1109,6 +1111,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                 const SizedBox(
                                   height: GeniusWalletConsts.space4,
                                 ),
+                                const _SwapFromWallet(),
                                 _buildSwapCta(gw),
                               ],
                             ),
@@ -1120,6 +1123,59 @@ class _SwapScreenState extends State<SwapScreen> {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Names the wallet a swap will spend from, beside the button that spends it
+/// -- the same wrong-account guard Send's review row carries. Reads the
+/// active wallet directly so a switch updates this line on its own.
+class _SwapFromWallet extends StatelessWidget {
+  const _SwapFromWallet();
+
+  @override
+  Widget build(BuildContext context) {
+    final wallet = context.select<WalletDetailsCubit, Wallet?>(
+      (c) => c.state.selectedWallet,
+    );
+    if (wallet == null) {
+      return const SizedBox.shrink();
+    }
+
+    final gw = context.gw;
+    final short = WalletUtils.getAddressForDisplay(wallet.address);
+    final label = wallet.walletName.isEmpty
+        ? 'Sending from $short'
+        : 'Sending from ${wallet.walletName} · $short';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space6),
+      child: Row(
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: gw.textSecondary,
+              ),
+            ),
+          ),
+          const SizedBox(width: GeniusWalletConsts.space3),
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              foregroundColor: gw.brandPrimaryOnSurface,
+              textStyle: GeniusWalletTypography.labelMd,
+            ),
+            onPressed: () => unawaited(AccountDrawer.show(context)),
+            child: const Text('Switch ›'),
           ),
         ],
       ),
