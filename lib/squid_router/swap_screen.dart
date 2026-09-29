@@ -748,10 +748,12 @@ class _SwapScreenState extends State<SwapScreen> {
       routeError: routeError,
       isSubmitting: isSubmitting,
       tooPrecise: _tooPrecise,
-      canSign: canSendFrom(
-        walletState.selectedWallet,
-        walletState.selectedNetwork,
-      ),
+      // No wallet selected yet is a transient state, not a refusal — keep
+      // the pre-existing enterAmount reading rather than blaming a wallet
+      // that was never chosen.
+      canSign:
+          walletState.selectedWallet == null ||
+          canSendFrom(walletState.selectedWallet, walletState.selectedNetwork),
     );
     // The availability gate sits ABOVE the ladder, not inside it: a build that
     // cannot reach Squid has no rung to be on, and the ladder stays the single
