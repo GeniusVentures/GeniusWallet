@@ -105,6 +105,94 @@ class GeniusInitStatus {
   const GeniusInitStatus({required this.percentage, required this.message});
 }
 
+/// One child registered under a main account: public addresses and the
+/// registration order only, never the metadata a UI has no consumer for.
+class ChildRegistration {
+  const ChildRegistration({
+    required this.childAddress,
+    required this.mainAddress,
+    required this.sequence,
+  });
+
+  final String childAddress;
+  final String mainAddress;
+  final int sequence;
+}
+
+/// The result of a registrations read, so a zero-count success (empty list)
+/// stays distinguishable from a query failure (non-OK, also empty).
+typedef ChildRegistrations = ({
+  GeniusNodeReturnValue result,
+  List<ChildRegistration> entries,
+});
+
+/// Lets a caller branch on a registrations read without importing the raw
+/// FFI binding file for one enum comparison.
+extension ChildRegistrationsStatus on ChildRegistrations {
+  bool get isOk => result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+}
+
+/// Drives a registrations query through injected native calls so its free
+/// contract (copy first, free a non-null array exactly once) can be tested
+/// without the real SDK. [GeniusApi.getChildRegistrations] is the caller.
+@visibleForTesting
+ChildRegistrations collectChildRegistrations(
+  String mainAddress, {
+  required int Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>,
+    ffi.Pointer<ffi.Uint64>,
+  )
+  query,
+  required void Function(ffi.Pointer<ffi.Void>) free,
+}) {
+  final mainPtr = mainAddress.toNativeUtf8().cast<Char>();
+  final entriesPtrPtr = calloc<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>();
+  final countPtr = calloc<ffi.Uint64>();
+  try {
+    final rv = query(mainPtr, entriesPtrPtr, countPtr);
+    final mapped = _mapNodeReturnValue(rv);
+    final entries = entriesPtrPtr.value;
+    try {
+      if (mapped != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+        return (result: mapped, entries: const <ChildRegistration>[]);
+      }
+      final count = countPtr.value;
+      final list = <ChildRegistration>[];
+      if (entries != nullptr) {
+        for (var i = 0; i < count; i++) {
+          final e = entries[i];
+          list.add(
+            ChildRegistration(
+              childAddress: e.child_address.address.toDartString(131),
+              mainAddress: e.main_address.address.toDartString(131),
+              sequence: e.sequence,
+            ),
+          );
+        }
+      }
+      return (result: mapped, entries: list);
+    } finally {
+      if (entries != nullptr) {
+        free(entries.cast<ffi.Void>());
+      }
+    }
+  } finally {
+    malloc.free(mainPtr);
+    calloc.free(entriesPtrPtr);
+    calloc.free(countPtr);
+  }
+}
+
+GeniusNodeReturnValue _mapNodeReturnValue(int value) {
+  try {
+    return GeniusNodeReturnValue.fromValue(value);
+  } catch (e) {
+    debugPrint("Unknown GeniusNodeReturnValue: $value");
+    return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+  }
+}
+
 class GeniusApi {
   static const MethodChannel _platformChannel = MethodChannel(
     'ai.gnus.genius_wallet/platform',
@@ -1431,12 +1519,37 @@ class GeniusApi {
     return _mapNodeReturnValue(result);
   }
 
-  GeniusNodeReturnValue _mapNodeReturnValue(int value) {
+  /// The children registered under [mainAddress], in SDK order. Zero
+  /// registrations is a valid empty list, not an error.
+  ChildRegistrations getChildRegistrations(String mainAddress) {
+    if (!_isSdkInitialized) {
+      return (
+        result: GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
+        entries: const <ChildRegistration>[],
+      );
+    }
+    return collectChildRegistrations(
+      mainAddress,
+      query: _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetRegistrationsForMain,
+      free: _ffiBridgePrebuilt.sgnsLib.GeniusSDKFree,
+    );
+  }
+
+  /// [childAddress]'s balance across all its child registrations, in Minion
+  /// Tokens. The native call returns the uint64 reinterpreted as a signed
+  /// 64-bit int, so the top bit must be restored here rather than trusted.
+  BigInt getChildBalanceAll(String childAddress) {
+    if (!_isSdkInitialized) {
+      return BigInt.zero;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
     try {
-      return GeniusNodeReturnValue.fromValue(value);
-    } catch (e) {
-      debugPrint("Unknown GeniusNodeReturnValue: $value");
-      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      final raw = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetChildBalanceAll(
+        addressPtr,
+      );
+      return BigInt.from(raw).toUnsigned(64);
+    } finally {
+      malloc.free(addressPtr);
     }
   }
 

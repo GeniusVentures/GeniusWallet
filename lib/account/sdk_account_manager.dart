@@ -23,6 +23,7 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/secret_clipboard.dart';
 import 'package:genius_wallet/utils/secure_screen.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 /// One row in the "Node running as" section: an SDK account's identity, its
@@ -156,6 +157,21 @@ class SDKAccountRow extends StatelessWidget {
             // exclusivity gate, unlike the three above.
             onPressed: balanceWallet != null
                 ? () => Navigator.of(context).pop(balanceWallet)
+                : null,
+          ),
+          _menuItem(
+            gw,
+            icon: Icons.account_tree,
+            label: 'Child wallets',
+            // The SDK only knows the children of the account it is running
+            // as, so this is meaningless on any other row - same shape as
+            // the payout/phrase/QR gates above.
+            onPressed: can.childWallets
+                ? () {
+                    final router = GoRouter.of(context);
+                    Navigator.of(context).pop();
+                    router.push('/child-wallets', extra: address);
+                  }
                 : null,
           ),
           const Divider(height: 9, indent: 12, endIndent: 12),
@@ -481,8 +497,8 @@ class SDKAccountRow extends StatelessWidget {
   }
 }
 
-/// Which of the row menu's four actions are available, as a rule rather than
-/// four conditions spread through a widget tree.
+/// Which of the row menu's five actions are available, as a rule rather than
+/// five conditions spread through a widget tree.
 ///
 /// The gates are not cosmetic. **`GeniusSDKGetMnemonic` returns the SELECTED
 /// account's phrase**, so offering Copy or QR on any other row would show one
@@ -493,7 +509,8 @@ class SDKAccountRow extends StatelessWidget {
 /// Delete inverts: the SDK refuses to delete the account it is currently
 /// using (`GeniusApi.deleteAccount`'s own doc), and the account the app starts
 /// with would be re-imported on the next start, so both rows keep it off.
-({bool payout, bool phrase, bool qr, bool delete}) sdkRowActions({
+({bool payout, bool phrase, bool qr, bool delete, bool childWallets})
+sdkRowActions({
   required bool isSelected,
   required bool hasMnemonic,
   bool isStartAccount = false,
@@ -502,6 +519,7 @@ class SDKAccountRow extends StatelessWidget {
   phrase: isSelected && hasMnemonic,
   qr: isSelected && hasMnemonic,
   delete: !isSelected && !isStartAccount,
+  childWallets: isSelected,
 );
 
 /// One dialog for both import paths: a segmented control picks mnemonic vs
