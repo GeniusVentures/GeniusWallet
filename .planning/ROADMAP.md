@@ -1527,7 +1527,14 @@ Plans:
   5. Send and Swap confirm screens name the active wallet they are spending from.
   6. Standing (VER-02): a live-testnet walk on both desktop and mobile confirms the switcher before closing, or is recorded as a blocked gap if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`.
 
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+
+- [ ] 35-01-PLAN.md — tracer: the account drawer becomes the two-section switcher (Sending from / Node running as), View balance, both add actions; SDK tests hosted by it (wave 1)
+- [ ] 35-02-PLAN.md — Send review and Swap name the From wallet (wave 2)
+- [ ] 35-03-PLAN.md — one desktop AccountSwitcher chip, old SDK chip and wallet dropdown deleted, full gate + Windows compile (wave 3)
+
 **UI hint**: yes
 
 ### Phase 36: Child wallet bindings & read-only view
@@ -1564,6 +1571,6 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 34. Account linking | 5/5 | Awaiting human verification (live walk) | - |
-| 35. Unified header switcher | 0/TBD | Not started | - |
+| 35. Unified header switcher | 0/3 | Planned | - |
 | 36. Child wallet bindings & read-only view | 0/TBD | Not started | - |
 | 37. Child write operations & pending model | 0/TBD | Not started | - |
