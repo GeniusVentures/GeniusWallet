@@ -53,6 +53,7 @@ class ChildOperation {
     required this.submittedAt,
     this.notConfirmed = false,
     this.expired = false,
+    this.switchedAway = false,
     this.mocked = false,
   });
 
@@ -68,28 +69,36 @@ class ChildOperation {
   final DateTime submittedAt;
   final bool notConfirmed;
 
-  /// A fund or recover whose baseline is too old, or whose node switched
-  /// away: it can no longer resolve, hold its amount or lock its child.
+  /// A fund or recover whose baseline is too old: it can no longer resolve,
+  /// hold its amount or lock its child.
   final bool expired;
+
+  /// A fund or recover whose node has run as another account since submit:
+  /// it can never resolve, but holds and locks until it [expired].
+  final bool switchedAway;
 
   /// Submitted to the dev mock rather than the SDK. It resolves only while
   /// reads come from the same source, never on a mix of mock and real.
   final bool mocked;
 
-  ChildOperation copyWith({bool? notConfirmed, bool? expired}) =>
-      ChildOperation(
-        kind: kind,
-        fromAccount: fromAccount,
-        target: target,
-        main: main,
-        newMain: newMain,
-        amountMinions: amountMinions,
-        baselineMinions: baselineMinions,
-        submittedAt: submittedAt,
-        notConfirmed: notConfirmed ?? this.notConfirmed,
-        expired: expired ?? this.expired,
-        mocked: mocked,
-      );
+  ChildOperation copyWith({
+    bool? notConfirmed,
+    bool? expired,
+    bool? switchedAway,
+  }) => ChildOperation(
+    kind: kind,
+    fromAccount: fromAccount,
+    target: target,
+    main: main,
+    newMain: newMain,
+    amountMinions: amountMinions,
+    baselineMinions: baselineMinions,
+    submittedAt: submittedAt,
+    notConfirmed: notConfirmed ?? this.notConfirmed,
+    expired: expired ?? this.expired,
+    switchedAway: switchedAway ?? this.switchedAway,
+    mocked: mocked,
+  );
 }
 
 /// [operations] in submission order. [justResolved] holds only the
@@ -121,6 +130,8 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
        _now = now,
        _devTools = devTools,
        super(const ChildOperationsState()) {
+    // Every switch runs a pass, so a round trip between two polls can't
+    // slip past resolve() unseen.
     _accountSwitches = appStates
         ?.map((s) => s.selectedSDKAccount?.toLowerCase())
         .distinct()
@@ -210,8 +221,8 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   bool _hasAmount(ChildOperationKind kind) =>
       kind == ChildOperationKind.fund || kind == ChildOperationKind.recover;
 
-  /// True while [op] is a fund or recover that can still resolve: it holds
-  /// its amount and locks its child until then, even once timed out.
+  /// True while [op] is a fund or recover that has not expired: it holds its
+  /// amount and locks its child until then, even timed out or switched away.
   bool _holdsBalance(ChildOperation op) => _hasAmount(op.kind) && !op.expired;
 
   /// Why a new Fund or Recover on [target] can't start yet, or null when it
@@ -432,14 +443,18 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       final timesOut =
           !op.notConfirmed &&
           !now.isBefore(op.submittedAt.add(childOperationTimeout));
-      // A switch away may leave its own view resyncing when the node comes
-      // back, so its baseline is never trusted again. Every switch runs this
-      // pass, so a round trip between two polls can't slip past it.
-      final expires =
-          _holdsBalance(op) && (!_baselineTrusted(op, now) || !_onOwnView(op));
-      if (timesOut || expires) {
+      // After a switch its own view may be resyncing, so it never resolves;
+      // it still holds and locks until it expires, or its late write could
+      // read as the next fund on this child from another account.
+      final switches = _holdsBalance(op) && !op.switchedAway && !_onOwnView(op);
+      final expires = _holdsBalance(op) && !_baselineTrusted(op, now);
+      if (timesOut || switches || expires) {
         remaining.add(
-          op.copyWith(notConfirmed: true, expired: op.expired || expires),
+          op.copyWith(
+            notConfirmed: true,
+            expired: op.expired || expires,
+            switchedAway: op.switchedAway || switches,
+          ),
         );
         changed = true;
       } else {
@@ -459,9 +474,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   }
 
   bool _signalMet(ChildOperation op, DateTime now) {
-    // The flag, not the clock, is final: a wall clock stepped back would
-    // otherwise trust an expired baseline again.
-    if (op.expired) {
+    // The flags, not the clock or the running account, are final: a clock
+    // stepped back or a switch back would otherwise trust a stale baseline.
+    if (op.expired || op.switchedAway) {
       return false;
     }
     // A preset armed or cleared since submit swaps every read's source.
