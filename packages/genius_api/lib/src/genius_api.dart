@@ -972,12 +972,18 @@ class GeniusApi {
       final address = probe.account(0).address();
 
       final alreadyExists = (await _secureStorage.getStoredKeys()).any(
-        (key) => key.account(0).address().toLowerCase() == address.toLowerCase(),
+        (key) =>
+            key.account(0).address().toLowerCase() == address.toLowerCase(),
       );
 
       final name = _defaultWalletName(address);
       final storedKey = isMnemonic
-          ? StoredKey.importHDWallet(secret, name, '', TWCoinType.TWCoinTypeEthereum)
+          ? StoredKey.importHDWallet(
+              secret,
+              name,
+              '',
+              TWCoinType.TWCoinTypeEthereum,
+            )
           : StoredKey.importPrivateKey(
               privateKeyBytes!,
               name,
