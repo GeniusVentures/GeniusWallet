@@ -1030,34 +1030,10 @@ void main() {
       cubit.close();
     });
 
-    test(
-      'an OK read of the old main without the account AND an OK read of '
-      'the new main listing it resolves',
-      () {
-        final api = _FakeApi()
-          ..registrationEntriesByMain = {
-            _otherAddress.toLowerCase(): const [
-              ChildRegistration(
-                childAddress: _mainAddress,
-                mainAddress: _otherAddress,
-                sequence: 0,
-              ),
-            ],
-            _newMainAddress.toLowerCase(): const [],
-          };
-        final cubit = ChildOperationsCubit(
-          api: api,
-          readAppState: () => _appState,
-        );
-        cubit.submit(
-          kind: ChildOperationKind.move,
-          target: _mainAddress,
-          main: _otherAddress,
-          newMain: _newMainAddress,
-        );
-
-        // Only the new main has picked it up so far -- still pending.
-        api.registrationEntriesByMain = {
+    test('an OK read of the old main without the account AND an OK read of '
+        'the new main listing it resolves', () {
+      final api = _FakeApi()
+        ..registrationEntriesByMain = {
           _otherAddress.toLowerCase(): const [
             ChildRegistration(
               childAddress: _mainAddress,
@@ -1065,36 +1041,57 @@ void main() {
               sequence: 0,
             ),
           ],
-          _newMainAddress.toLowerCase(): const [
-            ChildRegistration(
-              childAddress: _mainAddress,
-              mainAddress: _newMainAddress,
-              sequence: 0,
-            ),
-          ],
+          _newMainAddress.toLowerCase(): const [],
         };
-        cubit.resolve();
-        expect(cubit.state.operations, hasLength(1));
-        expect(cubit.state.justResolved, isEmpty);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
 
-        // Now both halves agree.
-        api.registrationEntriesByMain = {
-          _otherAddress.toLowerCase(): const [],
-          _newMainAddress.toLowerCase(): const [
-            ChildRegistration(
-              childAddress: _mainAddress,
-              mainAddress: _newMainAddress,
-              sequence: 0,
-            ),
-          ],
-        };
-        cubit.resolve();
-        expect(cubit.state.operations, isEmpty);
-        expect(cubit.state.justResolved, hasLength(1));
+      // Only the new main has picked it up so far -- still pending.
+      api.registrationEntriesByMain = {
+        _otherAddress.toLowerCase(): const [
+          ChildRegistration(
+            childAddress: _mainAddress,
+            mainAddress: _otherAddress,
+            sequence: 0,
+          ),
+        ],
+        _newMainAddress.toLowerCase(): const [
+          ChildRegistration(
+            childAddress: _mainAddress,
+            mainAddress: _newMainAddress,
+            sequence: 0,
+          ),
+        ],
+      };
+      cubit.resolve();
+      expect(cubit.state.operations, hasLength(1));
+      expect(cubit.state.justResolved, isEmpty);
 
-        cubit.close();
-      },
-    );
+      // Now both halves agree.
+      api.registrationEntriesByMain = {
+        _otherAddress.toLowerCase(): const [],
+        _newMainAddress.toLowerCase(): const [
+          ChildRegistration(
+            childAddress: _mainAddress,
+            mainAddress: _newMainAddress,
+            sequence: 0,
+          ),
+        ],
+      };
+      cubit.resolve();
+      expect(cubit.state.operations, isEmpty);
+      expect(cubit.state.justResolved, hasLength(1));
+
+      cubit.close();
+    });
 
     test(
       'the same lists with the account in a different case still resolve',
@@ -1130,45 +1127,40 @@ void main() {
       },
     );
 
-    test(
-      'a non-OK read of the new main alone leaves it pending, then times '
-      'out to notConfirmed',
-      () {
-        var now = DateTime(2024);
-        final api = _FakeApi()
-          ..registrationEntriesByMain = {
-            _otherAddress.toLowerCase(): const [],
-          }
-          ..registrationsResultByMain = {
-            _newMainAddress.toLowerCase():
-                GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
-          };
-        final cubit = ChildOperationsCubit(
-          api: api,
-          readAppState: () => _appState,
-          now: () => now,
-        );
-        final submittedAt = now;
-        cubit.submit(
-          kind: ChildOperationKind.move,
-          target: _mainAddress,
-          main: _otherAddress,
-          newMain: _newMainAddress,
-        );
+    test('a non-OK read of the new main alone leaves it pending, then times '
+        'out to notConfirmed', () {
+      var now = DateTime(2024);
+      final api = _FakeApi()
+        ..registrationEntriesByMain = {_otherAddress.toLowerCase(): const []}
+        ..registrationsResultByMain = {
+          _newMainAddress.toLowerCase():
+              GeniusNodeReturnValue.GENIUS_NODE_ERROR_REGISTRATION,
+        };
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
 
-        cubit.resolve();
-        expect(cubit.state.operations, hasLength(1));
-        expect(cubit.state.justResolved, isEmpty);
+      cubit.resolve();
+      expect(cubit.state.operations, hasLength(1));
+      expect(cubit.state.justResolved, isEmpty);
 
-        now = submittedAt.add(childOperationTimeout);
-        cubit.resolve();
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
 
-        expect(cubit.state.operations.single.notConfirmed, isTrue);
-        expect(cubit.state.justResolved, isEmpty);
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.state.justResolved, isEmpty);
 
-        cubit.close();
-      },
-    );
+      cubit.close();
+    });
 
     test('only the old main clearing, with the new main not yet listing it, '
         'stays pending', () {

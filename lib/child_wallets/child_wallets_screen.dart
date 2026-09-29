@@ -130,6 +130,7 @@ class _ChildWalletsHeader extends StatelessWidget {
       ChildOperationKind.register,
       subject,
     );
+    final moveLocked = registry.isPending(ChildOperationKind.move, subject);
 
     return Container(
       padding: const EdgeInsets.all(GeniusWalletConsts.space6),
@@ -196,7 +197,7 @@ class _ChildWalletsHeader extends StatelessWidget {
                     spacing: GeniusWalletConsts.space4,
                     runSpacing: GeniusWalletConsts.space4,
                     children: [
-                      if (parentMain != null)
+                      if (parentMain != null) ...[
                         GWButton(
                           label: 'Detach',
                           variant: GWButtonVariant.secondary,
@@ -211,8 +212,23 @@ class _ChildWalletsHeader extends StatelessWidget {
                                   account: subject,
                                   main: parentMain,
                                 ),
-                        )
-                      else
+                        ),
+                        GWButton(
+                          label: 'Move to another main',
+                          variant: GWButtonVariant.secondary,
+                          size: GWButtonSize.sm,
+                          tooltip: moveLocked
+                              ? 'Already moving this account'
+                              : null,
+                          onPressed: moveLocked
+                              ? null
+                              : () => startMove(
+                                  context,
+                                  account: subject,
+                                  oldMain: parentMain,
+                                ),
+                        ),
+                      ] else
                         GWButton(
                           label: 'Register as a child of…',
                           variant: GWButtonVariant.secondary,

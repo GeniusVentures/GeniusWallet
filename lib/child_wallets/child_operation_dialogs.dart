@@ -7,6 +7,7 @@ import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
     show ChildWallet, minionsToGnus;
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -344,6 +345,84 @@ Future<void> startRegister(
   if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
     // ignore: use_build_context_synchronously
     _showRefusalToast(navigator.context, result, 'register this account');
+  }
+}
+
+/// Opens the main picker for [account], the node's own account currently
+/// registered under [oldMain], then the Move confirmation for the chosen new
+/// main. Child-side, like [startDetach] and [startRegister].
+Future<void> startMove(
+  BuildContext context, {
+  required String account,
+  required String oldMain,
+}) async {
+  final registry = context.read<ChildOperationsCubit>();
+  if (!await ensureRunningAs(context, account) || !context.mounted) {
+    return;
+  }
+  final accountName = registry.labelFor(account);
+
+  final newMain = await showMainPicker(
+    // ignore: use_build_context_synchronously
+    context,
+    title: 'Move to another main',
+    candidates: registry.ownAccounts,
+    excluded: {account, oldMain},
+  );
+
+  if (newMain == null || !context.mounted) {
+    return;
+  }
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final oldMainName = registry.labelFor(oldMain);
+  final newMainName = registry.labelFor(newMain);
+
+  final confirmed = await GWDialog.show<bool>(
+    // ignore: use_build_context_synchronously
+    context: navigator.context,
+    title: 'Move to another main?',
+    message:
+        'Move to $newMainName? $accountName will no longer be a child of '
+        '$oldMainName.',
+    content: const GWWarningNote(
+      'The child keeps its current balance; nothing is transferred by this action.',
+    ),
+    actions: [
+      GWDialogAction(label: 'Cancel', onPressed: () => navigator.pop(false)),
+      GWDialogAction(
+        label: 'Move',
+        variant: GWButtonVariant.destructive,
+        onPressed: () => navigator.pop(true),
+      ),
+    ],
+  );
+
+  if (confirmed != true) {
+    return;
+  }
+
+  final result = registry.submit(
+    kind: ChildOperationKind.move,
+    target: account,
+    main: oldMain,
+    newMain: newMain,
+  );
+
+  if (!navigator.context.mounted) {
+    return;
+  }
+  if (result == null) {
+    showToast(
+      // ignore: use_build_context_synchronously
+      navigator.context,
+      'Nothing was sent. Try again.',
+      type: ToastType.error,
+    );
+    return;
+  }
+  if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+    // ignore: use_build_context_synchronously
+    _showRefusalToast(navigator.context, result, 'move this account');
   }
 }
 
