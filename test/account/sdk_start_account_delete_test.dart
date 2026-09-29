@@ -50,6 +50,9 @@ class _Api implements GeniusApi {
   }
 
   @override
+  Future<void> removeSDKAccountLink(String sdkAddress) async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

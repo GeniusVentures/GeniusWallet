@@ -34,6 +34,9 @@ import 'package:local_secure_storage/local_secure_storage.dart'
 part 'app_event.dart';
 part 'app_state.dart';
 
+/// Why an SDK-account delete was refused. See [AppBloc.sdkDeleteBlock].
+enum SDKDeleteBlock { defaultAccount, activeWallet, lastWallet }
+
 class AppBloc extends Bloc<AppEvent, AppState> {
   final GeniusApi api;
   final TransactionsCubit transactionsCubit;
@@ -68,7 +71,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<SelectSDKAccount>(_onSelectSDKAccount);
     on<AddSDKAccountWithMnemonic>(_onAddSDKAccountWithMnemonic);
     on<AddSDKAccountWithPrivateKey>(_onAddSDKAccountWithPrivateKey);
-    on<DeleteSDKAccount>(_onDeleteSDKAccount);
+    // One at a time: concurrent deletes would each pass the same block check.
+    on<DeleteSDKAccount>(_onDeleteSDKAccount, transformer: sequential());
     on<RefreshSDKAccounts>(_onRefreshSDKAccounts);
     on<SetSDKPayoutAddress>(_onSetSDKPayoutAddress);
     on<SettlePendingSends>(_onSettlePendingSends);
@@ -647,12 +651,30 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     if (!canDeleteWallet(state.wallets)) {
       return;
     }
-    await api.deleteWallet(event.address, watchOnly: event.watchOnly);
+    await _deleteWallet(event.address, watchOnly: event.watchOnly);
+    final sdkState = _getSDKAccountState();
+    emit(
+      state.copyWith(
+        wallets: await _mergeSgnusWallet(),
+        selectedSDKAccount: sdkState.$1,
+        sdkAccounts: sdkState.$2,
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: await api.getSDKAccountLinks(),
+      ),
+    );
+  }
+
+  /// Deletes [address]'s wallet from storage and this bloc's own wallet
+  /// list, moving the selection off it if it was selected. Never touches an
+  /// SDK account (D-08) - shared by a direct wallet delete and, via
+  /// [_onDeleteSDKAccount], the wallet side of an SDK-account delete.
+  Future<void> _deleteWallet(String address, {required bool watchOnly}) async {
+    final event = DeleteWallet(address, watchOnly: watchOnly);
+    await api.deleteWallet(address, watchOnly: watchOnly);
     _baseWallets = _baseWallets.where((w) => !isDeletedRow(w, event)).toList();
     final remaining = await _mergeSgnusWallet();
     // The header reads the selected wallet from the cubit, so a deleted
     // selection is replaced and persisted exactly as a drawer switch does.
-    // The guard above keeps at least one of the user's own wallets.
     final selected = walletDetailsCubit.state.selectedWallet;
     if (remaining.isNotEmpty &&
         selected != null &&
@@ -664,16 +686,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         debugPrint('Persisting the replacement wallet failed: $e');
       }
     }
-    final sdkState = _getSDKAccountState();
-    emit(
-      state.copyWith(
-        wallets: remaining,
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-        defaultSDKAccount: api.getStartAccountAddress(),
-        sdkAccountLinks: await api.getSDKAccountLinks(),
-      ),
-    );
   }
 
   FutureOr<void> _onRenameWallet(
@@ -770,6 +782,37 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       return '${link.walletName} (wallet removed)';
     }
     return 'Unlinked';
+  }
+
+  /// Why deleting [sdkAddress] must be refused, or null when it is allowed.
+  /// The default account is never deletable (D-11's start-account mirror).
+  /// A linked account is refused while its wallet is the active one, or
+  /// while deleting it would leave no wallet at all (D-11).
+  static SDKDeleteBlock? sdkDeleteBlock({
+    required String sdkAddress,
+    required String? defaultAccount,
+    required Map<String, SDKAccountLink> links,
+    required List<Wallet> wallets,
+    required Wallet? activeWallet,
+  }) {
+    if (defaultAccount != null &&
+        defaultAccount.toLowerCase() == sdkAddress.toLowerCase()) {
+      return SDKDeleteBlock.defaultAccount;
+    }
+    final linked = linkedWallet(sdkAddress, links, wallets);
+    if (linked == null) {
+      return null;
+    }
+    if (activeWallet != null &&
+        activeWallet.walletType != WalletType.sgnus &&
+        activeWallet.walletType != WalletType.tracking &&
+        activeWallet.address.toLowerCase() == linked.address.toLowerCase()) {
+      return SDKDeleteBlock.activeWallet;
+    }
+    if (!canDeleteWallet(wallets)) {
+      return SDKDeleteBlock.lastWallet;
+    }
+    return null;
   }
 
   Future<List<Wallet>> _mergeSgnusWallet() async {
@@ -880,15 +923,29 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     DeleteSDKAccount event,
     Emitter<AppState> emit,
   ) async {
-    // The next start imports this account's key again, so deleting it would
-    // silently bring it back.
-    final start = api.getStartAccountAddress();
-    if (start != null &&
-        start.toLowerCase() == event.publicAddress.toLowerCase()) {
+    final block = sdkDeleteBlock(
+      sdkAddress: event.publicAddress,
+      defaultAccount: api.getStartAccountAddress(),
+      links: state.sdkAccountLinks,
+      wallets: state.wallets,
+      activeWallet: walletDetailsCubit.state.selectedWallet,
+    );
+    if (block != null) {
       return;
     }
     final result = api.deleteAccount(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+      await api.removeSDKAccountLink(event.publicAddress);
+      // The account's linked wallet goes with it (D-10); an unlinked or
+      // already-removed wallet leaves nothing further to delete.
+      final linked = linkedWallet(
+        event.publicAddress,
+        state.sdkAccountLinks,
+        state.wallets,
+      );
+      if (linked != null) {
+        await _deleteWallet(linked.address, watchOnly: false);
+      }
       final sdkState = _getSDKAccountState();
       emit(
         state.copyWith(
