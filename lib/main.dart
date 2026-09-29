@@ -11,6 +11,8 @@ import 'package:genius_wallet/banxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_operation_status.dart';
+import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
@@ -420,6 +422,15 @@ class MyApp extends StatelessWidget {
               ),
             ),
           ),
+          // The one app-level child-operations registry -- provided above
+          // the router so both the /child-wallets screen and the switcher's
+          // own rows can read the same instance.
+          BlocProvider<ChildOperationsCubit>(
+            create: (context) => ChildOperationsCubit(
+              api: geniusApi,
+              readAppState: () => context.read<AppBloc>().state,
+            ),
+          ),
         ],
         child: ValueListenableBuilder<GWAppearanceMode>(
           valueListenable: GWAppearance.instance,
@@ -436,9 +447,12 @@ class MyApp extends StatelessWidget {
                 // kDebugMode && kShowDevTools - see DevToolsBubbleHost's doc.
                 DevToolsBubbleHost(
                   router: geniusWalletRouter,
-                  child: GlobalSwapFabHost(
-                    router: geniusWalletRouter,
-                    child: child ?? const SizedBox.shrink(),
+                  child: ChildOperationToasts(
+                    navigatorKey: navigatorKey,
+                    child: GlobalSwapFabHost(
+                      router: geniusWalletRouter,
+                      child: child ?? const SizedBox.shrink(),
+                    ),
                   ),
                 ),
               ),

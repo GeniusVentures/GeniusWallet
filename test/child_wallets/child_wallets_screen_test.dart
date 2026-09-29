@@ -10,6 +10,7 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_screen.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
@@ -167,12 +168,21 @@ Future<ChildWalletsCubit> _pumpScreen(
     readAppState: () => appState,
     mainAddress: _mainAddress,
   );
+  // Every fund-related assertion lives in child_operation_actions_test.dart;
+  // this registry only has to exist so the row's menu/badge can read it.
+  final operations = ChildOperationsCubit(
+    api: api,
+    readAppState: () => appState,
+  );
 
   await tester.pumpWidget(
     MaterialApp(
       theme: ThemeData(extensions: [colors ?? GWColors.dark()]),
-      home: BlocProvider<ChildWalletsCubit>.value(
-        value: cubit,
+      home: MultiBlocProvider(
+        providers: [
+          BlocProvider<ChildWalletsCubit>.value(value: cubit),
+          BlocProvider<ChildOperationsCubit>.value(value: operations),
+        ],
         child: const ChildWalletsScreen(),
       ),
     ),
@@ -403,12 +413,22 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: ThemeData(extensions: [GWColors.dark()]),
-        home: BlocProvider<ChildWalletsCubit>(
-          create: (_) => ChildWalletsCubit(
-            api: api,
-            readAppState: () => _selectedAppState,
-            mainAddress: _mainAddress,
-          ),
+        home: MultiBlocProvider(
+          providers: [
+            BlocProvider<ChildWalletsCubit>(
+              create: (_) => ChildWalletsCubit(
+                api: api,
+                readAppState: () => _selectedAppState,
+                mainAddress: _mainAddress,
+              ),
+            ),
+            BlocProvider<ChildOperationsCubit>(
+              create: (_) => ChildOperationsCubit(
+                api: api,
+                readAppState: () => _selectedAppState,
+              ),
+            ),
+          ],
           child: const ChildWalletsScreen(),
         ),
       ),
