@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-07-21)
 
 Phase: 35 (Unified header switcher) — EXECUTING
 Plan: 3 of 3 (complete)
-Status: Executing Phase 35
+Status: Phase 35 executed and verified (human walk pending); Phase 36 next
 Last activity: 2026-09-29 — Phase 35 execution started
 
 v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
@@ -518,6 +518,7 @@ the redesign track added many test files since the original 14-test snapshot). *
 | Phase | State | Resume |
 |-------|-------|--------|
 | 34 | verification_deferred_human | /gsd-verify-work 34 |
+| 35 | verification_deferred_human | /gsd-verify-work 35 |
 
 ## Deferred Items
 
