@@ -340,7 +340,7 @@ void main() {
     },
   );
 
-  group('walletSDKBadge (D-19)', () {
+  group('walletSDKBadge', () {
     const links = <String, SDKAccountLink>{
       '0xsdk9999': (walletAddress: '0xaaaaaaaa', walletName: 'Main'),
     };
@@ -361,7 +361,7 @@ void main() {
     });
 
     test('an sgnus row never carries a badge - it already names its wallet '
-        'itself (D-17)', () {
+        'itself', () {
       const wallet = Wallet(
         coinType: TWCoinType.TWCoinTypeEthereum,
         walletName: 'Main',
@@ -393,7 +393,7 @@ void main() {
     });
 
     test('an unlinked own wallet reads pending only while the SDK is not '
-        'running (D-06/D-07)', () {
+        'running', () {
       const wallet = Wallet(
         coinType: TWCoinType.TWCoinTypeEthereum,
         walletName: 'Not yet linked',
@@ -413,105 +413,102 @@ void main() {
     });
   });
 
-  group(
-    'the wallet menu SDK badge and address-based selection (D-19, D-06)',
-    () {
-      // Named identically to the real Wallet A below - exactly the collision
-      // `_matchesSelected`'s address+type match exists to survive. Under the
-      // old name-only comparison this row would ALSO have lit up as selected.
-      const sgnusRowNamedWalletA = Wallet(
-        coinType: TWCoinType.TWCoinTypeEthereum,
+  group('the wallet menu SDK badge and address-based selection', () {
+    // Named identically to the real Wallet A below - exactly the collision
+    // `_matchesSelected`'s address+type match exists to survive. Under the
+    // old name-only comparison this row would ALSO have lit up as selected.
+    const sgnusRowNamedWalletA = Wallet(
+      coinType: TWCoinType.TWCoinTypeEthereum,
+      walletName: 'Wallet A',
+      currencySymbol: 'minions',
+      walletType: WalletType.sgnus,
+      balance: 0,
+      address: '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+    );
+
+    final links = <String, SDKAccountLink>{
+      _walletA.address.toLowerCase(): (
+        walletAddress: _walletA.address.toLowerCase(),
         walletName: 'Wallet A',
-        currencySymbol: 'minions',
-        walletType: WalletType.sgnus,
-        balance: 0,
-        address: '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
-      );
+      ),
+    };
 
-      final links = <String, SDKAccountLink>{
-        _walletA.address.toLowerCase(): (
-          walletAddress: _walletA.address.toLowerCase(),
-          walletName: 'Wallet A',
-        ),
-      };
-
-      Future<void> pumpSelectedDrawer(
-        WidgetTester tester,
-        _Harness harness,
-        _Pending pending,
-      ) async {
-        await harness.walletDetailsCubit.selectWallet(_walletA);
-        await tester.pumpWidget(
-          // The sgnus row above renders a real `GeniusBalanceDisplay`, which
-          // reads `GeniusApi` straight from `Provider` - absent everywhere
-          // else in this file because no other test seeds an sgnus wallet.
-          Provider<GeniusApi>.value(
-            value: _FakeGeniusApiWithBalance(),
-            child: _openerHost(
-              walletDetailsCubit: harness.walletDetailsCubit,
-              appBloc: harness.appBloc,
-              pending: pending,
-            ),
+    Future<void> pumpSelectedDrawer(
+      WidgetTester tester,
+      _Harness harness,
+      _Pending pending,
+    ) async {
+      await harness.walletDetailsCubit.selectWallet(_walletA);
+      await tester.pumpWidget(
+        // The sgnus row above renders a real `GeniusBalanceDisplay`, which
+        // reads `GeniusApi` straight from `Provider` - absent everywhere
+        // else in this file because no other test seeds an sgnus wallet.
+        Provider<GeniusApi>.value(
+          value: _FakeGeniusApiWithBalance(),
+          child: _openerHost(
+            walletDetailsCubit: harness.walletDetailsCubit,
+            appBloc: harness.appBloc,
+            pending: pending,
           ),
+        ),
+      );
+      await tester.tap(find.text('open drawer'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'with the SDK running: SDK shows once, SDK PENDING is absent, and '
+      'only the real wallet - never the same-named sgnus row - is checked',
+      (tester) async {
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        final harness = _build(
+          [sgnusRowNamedWalletA, _walletA, _walletB],
+          sdkAccountLinks: links,
+          defaultSDKAccount: '0xstart',
         );
-        await tester.tap(find.text('open drawer'));
-        await tester.pumpAndSettle();
-      }
+        final pending = _Pending();
+        try {
+          await pumpSelectedDrawer(tester, harness, pending);
 
-      testWidgets(
-        'with the SDK running: SDK shows once, SDK PENDING is absent, and '
-        'only the real wallet - never the same-named sgnus row - is checked',
-        (tester) async {
-          final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
-          final harness = _build(
-            [sgnusRowNamedWalletA, _walletA, _walletB],
-            sdkAccountLinks: links,
-            defaultSDKAccount: '0xstart',
-          );
-          final pending = _Pending();
-          try {
-            await pumpSelectedDrawer(tester, harness, pending);
+          expect(find.text('SDK'), findsOneWidget);
+          expect(find.text('SDK PENDING'), findsNothing);
 
-            expect(find.text('SDK'), findsOneWidget);
-            expect(find.text('SDK PENDING'), findsNothing);
+          final selectedRows = tester
+              .widgetList<GWSelectRow>(find.byType(GWSelectRow))
+              .where((r) => r.selected);
+          expect(selectedRows, hasLength(1));
+        } finally {
+          await harness.dispose(tester);
+          await box.close();
+        }
+      },
+    );
 
-            final selectedRows = tester
-                .widgetList<GWSelectRow>(find.byType(GWSelectRow))
-                .where((r) => r.selected);
-            expect(selectedRows, hasLength(1));
-          } finally {
-            await harness.dispose(tester);
-            await box.close();
-          }
-        },
-      );
+    testWidgets(
+      'with the SDK stopped: the still-unlinked wallet reads SDK PENDING',
+      (tester) async {
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        final harness = _build(
+          [sgnusRowNamedWalletA, _walletA, _walletB],
+          sdkAccountLinks: links,
+          // No default account: nothing has started the SDK yet.
+        );
+        final pending = _Pending();
+        try {
+          await pumpSelectedDrawer(tester, harness, pending);
+          // Wallet B's row sits below the fold once the SDK section's own
+          // header/caption/row claim their height - the drawer's `ListView`
+          // never builds a sliver child this far outside the viewport
+          // until it is scrolled into range.
+          await tester.scrollUntilVisible(find.text('Wallet B'), 200);
 
-      testWidgets(
-        'with the SDK stopped: the still-unlinked wallet reads SDK PENDING',
-        (tester) async {
-          final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
-          final harness = _build(
-            [sgnusRowNamedWalletA, _walletA, _walletB],
-            sdkAccountLinks: links,
-            // No default account: nothing has started the SDK yet.
-          );
-          final pending = _Pending();
-          try {
-            await pumpSelectedDrawer(tester, harness, pending);
-            // Wallet B's row sits below the fold once the SDK section's own
-            // header/caption/row claim their height - the drawer's `ListView`
-            // never builds a sliver child this far outside the viewport
-            // until it is scrolled into range.
-            await tester.scrollUntilVisible(find.text('Wallet B'), 200);
-
-            expect(find.text('SDK PENDING'), findsOneWidget);
-            expect(find.text('SDK'), findsOneWidget);
-          } finally {
-            await harness.dispose(tester);
-            await box.close();
-          }
-        },
-      );
-    },
-  );
+          expect(find.text('SDK PENDING'), findsOneWidget);
+          expect(find.text('SDK'), findsOneWidget);
+        } finally {
+          await harness.dispose(tester);
+          await box.close();
+        }
+      },
+    );
+  });
 }

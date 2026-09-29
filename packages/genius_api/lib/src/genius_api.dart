@@ -350,7 +350,7 @@ class GeniusApi {
 
       // Only a clean single new address is trustworthy enough to record;
       // zero or several leaves this wallet for the backfill pass instead of
-      // guessing (D-06).
+      // guessing.
       final after = getAvailableAccounts();
       final newAddresses = after
           .map((a) => a.toLowerCase())

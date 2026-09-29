@@ -738,7 +738,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   /// The label for the SDK row at [sdkAddress]: the live wallet's name, the
-  /// removed wallet's last known name, or an honest 'Unlinked' (D-09, D-16).
+  /// removed wallet's last known name, or an honest 'Unlinked'.
   static String sdkAccountName(
     String sdkAddress,
     Map<String, SDKAccountLink> links,
