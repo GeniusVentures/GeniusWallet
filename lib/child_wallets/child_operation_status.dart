@@ -106,21 +106,34 @@ class ChildOperationToasts extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<ChildOperationsCubit, ChildOperationsState>(
       listenWhen: (previous, current) => current.justResolved.isNotEmpty,
-      listener: (context, state) {
-        final toastContext = navigatorKey.currentContext;
-        if (toastContext == null) {
-          return;
-        }
-        final labelFor = context.read<ChildOperationsCubit>().labelFor;
-        for (final op in state.justResolved) {
-          showToast(
-            toastContext,
-            resolvedText(op, labelFor),
-            type: ToastType.success,
-          );
-        }
-      },
+      listener: (context, state) => _toastWhenAttached(
+        state.justResolved,
+        context.read<ChildOperationsCubit>().labelFor,
+      ),
       child: child,
     );
+  }
+
+  /// Toasts [ops] on the root navigator, or retries after the next frame
+  /// while it isn't mounted yet -- this toast is the only place a
+  /// resolution is ever announced, so it waits rather than drops it.
+  void _toastWhenAttached(
+    List<ChildOperation> ops,
+    String Function(String) labelFor,
+  ) {
+    final toastContext = navigatorKey.currentContext;
+    if (toastContext == null) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _toastWhenAttached(ops, labelFor),
+      );
+      return;
+    }
+    for (final op in ops) {
+      showToast(
+        toastContext,
+        resolvedText(op, labelFor),
+        type: ToastType.success,
+      );
+    }
   }
 }
