@@ -2,6 +2,8 @@
 // rows: SDK (or dev-mock) registrations -> ChildOperationsCubit ->
 // buildAccountTree -> real drawer rows, through the same `AccountDrawer.show`
 // entry `sdk_account_rows_test.dart` already pumps.
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,13 +19,16 @@ import 'package:genius_wallet/child_wallets/child_wallets_screen.dart'
     show ChildWalletRow;
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
+import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:local_secure_storage/local_secure_storage.dart';
 
 const _mainA = '0xaaaa1111';
@@ -106,10 +111,12 @@ Future<void> _pumpDrawer(
   _SeededAppBloc bloc,
   WalletDetailsCubit details, {
   ChildOperationsCubit? operations,
+  // Tall enough by default that every row, however deep, builds inside the
+  // viewport rather than needing a scroll per assertion. A caller proving a
+  // phone-width layout passes its own, narrower size.
+  Size size = const Size(1200, 2000),
 }) async {
-  // Tall enough that every row, however deep, builds inside the viewport
-  // rather than needing a scroll per assertion.
-  tester.view.physicalSize = const Size(1200, 2000);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(() {
     tester.view.resetPhysicalSize();
@@ -655,6 +662,190 @@ void main() {
         final mainLabel = WalletUtils.getAddressForDisplay(nestMainA);
         expect(find.text('Switch to $mainLabel?'), findsOneWidget);
         expect(api.selectCalls, isEmpty);
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+  });
+
+  group('live refresh and phone width', () {
+    testWidgets(
+      'a revoke that resolves after the simulated write lands removes its '
+      'row from the still-open drawer, with no reopen',
+      (tester) async {
+        DevMockChildWallets.instance.arm(DevChildWalletsPreset.oneChild);
+        final api = _Api(accounts: const [_mainA, _mainB]);
+        final details = WalletDetailsCubit(
+          geniusApi: api,
+          networkTokensProvider: NetworkTokensProvider(),
+        );
+        final bloc = _SeededAppBloc(
+          api: api,
+          transactionsCubit: TransactionsCubit(),
+          walletDetailsCubit: details,
+          networkProvider: NetworkProvider(),
+          sdkAccounts: const [_mainA, _mainB],
+          wallets: const [_walletMainA, _walletMainB],
+          sdkAccountLinks: const {},
+          selectedSDKAccount: _mainA,
+        );
+        final operations = ChildOperationsCubit(
+          api: api,
+          readAppState: () => bloc.state,
+          devTools: true,
+        );
+
+        await _pumpDrawer(tester, bloc, details, operations: operations);
+        expect(find.byType(ChildWalletRow), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Child actions'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(MenuItemButton, 'Revoke'));
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(GWDialog),
+            matching: find.widgetWithText(GWButton, 'Revoke'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Not yet -- the simulated write hasn't landed.
+        expect(find.byType(ChildWalletRow), findsOneWidget);
+
+        // The registry's own 3 s write lands, then resolve() reads the now
+        // real removal -- the drawer never closed for any of this.
+        await tester.pump(const Duration(seconds: 3));
+        operations.resolve();
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ChildWalletRow), findsNothing);
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+
+    testWidgets(
+      'a four-deep own-account chain fits 360px wide with no overflow; the '
+      "deepest main's indent matches its own child's",
+      (tester) async {
+        const mainA = '0xAAAA111111111111111111111111111111AAA1';
+        const mainB = '0xBBBB222222222222222222222222222222BBB2';
+        const mainC = '0xCCCC333333333333333333333333333333CCC3';
+        const mainD = '0xDDDD444444444444444444444444444444DDD4';
+
+        Wallet wallet(String name, String address) => Wallet(
+          coinType: TWCoinType.TWCoinTypeEthereum,
+          walletName: name,
+          currencySymbol: 'ETH',
+          walletType: WalletType.privateKey,
+          balance: 0,
+          address: address,
+        );
+        final walletA = wallet('Main A', mainA);
+        final walletB = wallet('Main B', mainB);
+        final walletC = wallet('Main C', mainC);
+        final walletD = wallet('Main D', mainD);
+        // Keys and `walletAddress` values are matched lowercased by
+        // `AppBloc.linkedWallet` -- this fixture's addresses are mixed case
+        // (so an address alone tells the four rows apart), so both sides are
+        // lowercased explicitly here.
+        final links = <String, SDKAccountLink>{
+          mainA.toLowerCase(): (
+            walletAddress: mainA.toLowerCase(),
+            walletName: 'Main A',
+          ),
+          mainB.toLowerCase(): (
+            walletAddress: mainB.toLowerCase(),
+            walletName: 'Main B',
+          ),
+          mainC.toLowerCase(): (
+            walletAddress: mainC.toLowerCase(),
+            walletName: 'Main C',
+          ),
+          mainD.toLowerCase(): (
+            walletAddress: mainD.toLowerCase(),
+            walletName: 'Main D',
+          ),
+        };
+        ChildRegistrations regs(String child, String main) => (
+          result: GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          entries: [
+            ChildRegistration(
+              childAddress: child,
+              mainAddress: main,
+              sequence: 0,
+            ),
+          ],
+        );
+        final api = _PerMainApi(
+          registrationsByMain: {
+            mainA.toLowerCase(): regs(mainB, mainA),
+            mainB.toLowerCase(): regs(mainC, mainB),
+            mainC.toLowerCase(): regs(mainD, mainC),
+          },
+        );
+        final details = WalletDetailsCubit(
+          geniusApi: api,
+          networkTokensProvider: NetworkTokensProvider(),
+        );
+        // In-memory box: `selectWallet` persists the pick with one Hive
+        // write, same setup account_drawer_show_test.dart's harness uses.
+        final box = await Hive.openBox(walletBoxName, bytes: Uint8List(0));
+        addTearDown(() => box.close());
+        await details.selectWallet(walletC);
+        final bloc = _SeededAppBloc(
+          api: api,
+          transactionsCubit: TransactionsCubit(),
+          walletDetailsCubit: details,
+          networkProvider: NetworkProvider(),
+          sdkAccounts: const [mainA, mainB, mainC, mainD],
+          wallets: [walletA, walletB, walletC, walletD],
+          sdkAccountLinks: links,
+          selectedSDKAccount: mainC,
+        );
+        final operations = ChildOperationsCubit(
+          api: api,
+          readAppState: () => bloc.state,
+          devTools: true,
+        );
+
+        await _pumpDrawer(
+          tester,
+          bloc,
+          details,
+          operations: operations,
+          size: const Size(360, 800),
+        );
+
+        expect(tester.takeException(), isNull);
+
+        Finder rowFor(String name) => find.ancestor(
+          of: find.text(name),
+          matching: find.byType(GWSelectRow),
+        );
+        final rowA = rowFor('Main A');
+        final rowB = rowFor('Main B');
+        final rowC = rowFor('Main C');
+        final rowD = rowFor('Main D');
+        for (final row in [rowA, rowB, rowC, rowD]) {
+          expect(row, findsOneWidget);
+          expect(tester.getRect(row).right, lessThanOrEqualTo(360.0));
+        }
+        expect(_leftIndentOf(tester, rowD), _leftIndentOf(tester, rowC));
+
+        expect(
+          find.descendant(of: rowC, matching: find.text('Selected')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: rowC, matching: find.text('On node')),
+          findsOneWidget,
+        );
 
         await tester.runAsync(() => bloc.close());
         await details.close();

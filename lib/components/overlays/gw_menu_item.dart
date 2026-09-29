@@ -35,8 +35,12 @@ class GWMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final enabled = onPressed != null;
+    // 70%, not 50%: measured against surfaceMenu (the real menu backdrop,
+    // not the row it's opened from), 50% clears only 2.10:1 (light) /
+    // 2.32:1 (dark) -- under the 3:1 non-text floor. 70% clears 3.01:1 /
+    // 3.31:1, the minimum step that does.
     final fg = !enabled
-        ? gw.textSecondary.withValues(alpha: 0.5)
+        ? gw.textSecondary.withValues(alpha: 0.7)
         : (color ?? gw.textPrimary);
     final item = MenuItemButton(
       leadingIcon: GWIcon.material(icon, color: fg),
