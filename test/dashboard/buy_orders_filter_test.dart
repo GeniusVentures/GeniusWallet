@@ -6,6 +6,7 @@ import 'package:genius_api/controllers/sgnus_transactions_controller.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -299,7 +300,13 @@ void main() {
     );
 
     expect(find.text('No buy orders yet'), findsOneWidget);
-    await tester.tap(find.text('Buy GNUS'));
+    // The page header carries its own Buy GNUS; this one is the empty state's.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(GWEmptyState),
+        matching: find.text('Buy GNUS'),
+      ),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('buy page'), findsOneWidget);

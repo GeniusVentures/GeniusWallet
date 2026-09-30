@@ -571,7 +571,7 @@ class _AssetsScreenState extends State<AssetsScreen> {
                   label: 'Buy GNUS',
                   expand: true,
                   onPressed: () =>
-                      context.push('/buy', extra: {'origin': 'MARKETS'}),
+                      context.push('/buy', extra: {'origin': 'ASSETS'}),
                 ),
               ),
             ],

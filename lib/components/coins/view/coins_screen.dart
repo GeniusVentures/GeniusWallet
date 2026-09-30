@@ -507,7 +507,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                               expand: true,
                               onPressed: () => context.push(
                                 '/buy',
-                                extra: {'origin': 'MARKETS'},
+                                extra: {'origin': 'HOME'},
                               ),
                             ),
                           ),
