@@ -51,18 +51,16 @@ class FakeBanxaApi implements BanxaApiService {
     fetchAllOrdersCalls++;
     lastCustomerId = externalCustomerId;
     customerIds.add(externalCustomerId);
+    final answer = List.of(orders);
+    final error = fetchOrdersError;
     final held = holdFetch?.call(externalCustomerId);
     if (held != null) {
       await held.future;
     }
-    if (fetchOrdersError != null) {
-      throw fetchOrdersError!;
+    if (error != null) {
+      throw error;
     }
-    return OrdersResponse(
-      orders: List.of(orders),
-      total: orders.length,
-      pageTotal: 1,
-    );
+    return OrdersResponse(orders: answer, total: answer.length, pageTotal: 1);
   }
 
   @override
