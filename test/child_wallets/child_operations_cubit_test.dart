@@ -1106,6 +1106,31 @@ void main() {
 
       cubit.close();
     });
+
+    test('deleting a child is refused while its main revokes it', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(
+          selectedSDKAccount: _mainAddress,
+          sdkAccounts: [_mainAddress, _childAddress],
+          wallets: [],
+          sdkAccountLinks: <String, SDKAccountLink>{},
+        ),
+      );
+      final noChildren = <String, List<ChildWallet>>{_childAddress: const []};
+      expect(cubit.deleteLockReason(_childAddress, noChildren), isNull);
+
+      cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+
+      expect(cubit.deleteLockReason(_childAddress, noChildren), isNotNull);
+
+      cubit.close();
+    });
   });
 
   group('onTransferResolved', () {

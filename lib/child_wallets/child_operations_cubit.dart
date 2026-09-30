@@ -331,15 +331,16 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     if (paysOrReceives || hasPendingFrom(account)) {
       return "A transfer for this account hasn't finished yet";
     }
-    // A child registering or moving under [account] is not listed in its
-    // registrations until it lands, and would land under a deleted key.
+    // A registration change on [account], or one moving a child under it,
+    // is not reflected in registrations until it lands.
     final incoming = state.operations.any(
       (op) =>
           !op.notConfirmed &&
           [
+            op.target,
             op.main,
             op.newMain,
-          ].any((main) => main?.toLowerCase() == account.toLowerCase()),
+          ].any((a) => a?.toLowerCase() == account.toLowerCase()),
     );
     if (incoming) {
       return "A child wallet change for this account hasn't finished yet";
