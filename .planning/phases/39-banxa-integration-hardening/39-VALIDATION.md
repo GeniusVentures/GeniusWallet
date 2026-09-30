@@ -81,7 +81,7 @@ Automated tests run against `FakeBanxaApi` (test/banxa/fake_banxa_api.dart) or h
 | Full-screen checkout per platform (Android, iOS, macOS, Windows) | Platform webviews and camera prompts | Open checkout, complete ID step, close early, confirm return and status |
 | GNUS listed on Banxa | Banxa-side action | Re-query `/v2/crypto/buy` for partner `gnus` |
 
-Sandbox coin list: unchecked (no sandbox key), 2026-09-30
+Sandbox coin list: not listed, 2026-09-30 (partner gnus answers in sandbox with 159 coins and 32 fiats; GNUS is not among them)
 
 Rule: if listed, the final walk must complete a sandbox buy to pass the sandbox-buy requirement. If not listed or unchecked, that requirement is recorded as blocked on Banxa at the final gate, neither passed nor failed.
 
