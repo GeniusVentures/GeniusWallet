@@ -140,6 +140,23 @@ void main() {
     expect(cubit.state.coins.single.balance, 7);
   });
 
+  test(
+    'a failed read after an unreadable one drops the unreadable notice',
+    () async {
+      final cubit = await _read(_wallet('0xUnlinked', WalletType.mnemonic));
+      expect(cubit.state.balanceUnreadable, isTrue);
+
+      // An RPC network with no symbol fails its read before any fetch.
+      cubit.selectNetwork(
+        const Network(name: 'Broken', rpcUrl: 'https://rpc.invalid'),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state.coinsStatus, WalletStatus.error);
+      expect(cubit.state.balanceUnreadable, isFalse);
+    },
+  );
+
   test('injected dev holdings replace the unreadable notice', () async {
     final cubit = await _read(_wallet(_stranger, WalletType.sgnus));
 
