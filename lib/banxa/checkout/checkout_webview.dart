@@ -1,7 +1,13 @@
+import 'dart:async';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_rules.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 /// Loads Banxa checkout inside the app. The return link and every navigation
 /// are judged by the pure rules; the page itself is never trusted.
@@ -31,15 +37,21 @@ class _CheckoutWebViewState extends State<CheckoutWebView> {
   @override
   void initState() {
     super.initState();
+    var params = const PlatformWebViewControllerCreationParams();
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      // Banxa's liveness step records video and needs it to play inline, with
+      // no tap, or WebKit shows it full screen and the step stalls.
+      params =
+          WebKitWebViewControllerCreationParams.fromPlatformWebViewControllerCreationParams(
+            params,
+            allowsInlineMediaPlayback: true,
+            mediaTypesRequiringUserAction: const {},
+          );
+    }
     _controller =
-        WebViewController(
-            onPermissionRequest: (request) {
-              if (_onBanxaPage && checkoutPermissionAllowed(request.types)) {
-                request.grant();
-              } else {
-                request.deny();
-              }
-            },
+        WebViewController.fromPlatformCreationParams(
+            params,
+            onPermissionRequest: _onPermissionRequest,
           )
           ..setJavaScriptMode(JavaScriptMode.unrestricted)
           ..setNavigationDelegate(
@@ -77,6 +89,46 @@ class _CheckoutWebViewState extends State<CheckoutWebView> {
             ),
           )
           ..loadRequest(widget.uri);
+    final platform = _controller.platform;
+    if (platform is AndroidWebViewController) {
+      unawaited(platform.setOnShowFileSelector(_pickFiles));
+    }
+  }
+
+  Future<void> _onPermissionRequest(WebViewPermissionRequest request) async {
+    if (!_onBanxaPage || !checkoutPermissionAllowed(request.types)) {
+      await request.deny();
+      return;
+    }
+    if (_controller.platform is AndroidWebViewController) {
+      final results = await androidPermissionsFor(
+        request.types,
+      ).toList().request();
+      // The OS prompt can outlive the page that triggered it.
+      if (!_onBanxaPage || !results.values.every((s) => s.isGranted)) {
+        await request.deny();
+        return;
+      }
+    }
+    await request.grant();
+  }
+
+  Future<List<String>> _pickFiles(FileSelectorParams params) async {
+    if (!_onBanxaPage) {
+      return const [];
+    }
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['jpg', 'jpeg', 'png', 'heic', 'pdf'],
+      allowMultiple: params.mode == FileSelectorMode.openMultiple,
+    );
+    if (result == null) {
+      return const [];
+    }
+    return [
+      for (final file in result.files)
+        if (file.path != null) Uri.file(file.path!).toString(),
+    ];
   }
 
   @override

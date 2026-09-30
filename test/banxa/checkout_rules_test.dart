@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_rules.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart'
     show WebviewPermissionDecision, WebviewPermissionKind;
@@ -140,6 +141,30 @@ void main() {
         }),
         isFalse,
       );
+    });
+  });
+
+  group('androidPermissionsFor', () {
+    test('asks the OS for exactly what the page asked for', () {
+      expect(androidPermissionsFor({WebViewPermissionResourceType.camera}), {
+        Permission.camera,
+      });
+      expect(
+        androidPermissionsFor({WebViewPermissionResourceType.microphone}),
+        {Permission.microphone},
+      );
+      expect(
+        androidPermissionsFor({
+          WebViewPermissionResourceType.camera,
+          WebViewPermissionResourceType.microphone,
+        }),
+        {Permission.camera, Permission.microphone},
+      );
+    });
+
+    test('asks for nothing when the page asked for nothing', () {
+      expect(androidPermissionsFor({}), isEmpty);
+      expect(androidPermissionsFor({const _Other()}), isEmpty);
     });
   });
 

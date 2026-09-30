@@ -1,4 +1,5 @@
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_windows/webview_windows.dart'
     show WebviewPermissionDecision, WebviewPermissionKind;
@@ -55,6 +56,18 @@ bool checkoutPermissionAllowed(Set<WebViewPermissionResourceType> types) {
             t == WebViewPermissionResourceType.camera ||
             t == WebViewPermissionResourceType.microphone,
       );
+}
+
+/// The web page cannot reach the camera on its own on Android: the app must
+/// hold the OS permission for whatever the page asked for, and nothing more.
+Set<Permission> androidPermissionsFor(
+  Set<WebViewPermissionResourceType> types,
+) {
+  return {
+    if (types.contains(WebViewPermissionResourceType.camera)) Permission.camera,
+    if (types.contains(WebViewPermissionResourceType.microphone))
+      Permission.microphone,
+  };
 }
 
 /// WebView2 names the page that asks, so the grant needs a Banxa page as well
