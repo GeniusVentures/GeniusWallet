@@ -531,6 +531,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                         // The pending target says so instead of Earning, even
                         // if a read already names it, until the switch settles.
                         switching: _rowOnNode(row, switching),
+                        switchPending: switching != null,
                         onNode:
                             !_rowOnNode(row, switching) &&
                             _rowOnNode(row, running),
@@ -579,6 +580,7 @@ class _AccountRowTile extends StatelessWidget {
     required this.selected,
     required this.onNode,
     required this.switching,
+    required this.switchPending,
     required this.isStartAccount,
     required this.sdkBadge,
     required this.balanceWallet,
@@ -596,6 +598,10 @@ class _AccountRowTile extends StatelessWidget {
 
   /// The node was asked to run as this row and has not confirmed it yet.
   final bool switching;
+
+  /// Any earning switch is still in flight, so the node's account may not
+  /// match any row's tag yet.
+  final bool switchPending;
   final bool isStartAccount;
   final WalletSDKBadge sdkBadge;
 
@@ -880,15 +886,18 @@ class _AccountRowTile extends StatelessWidget {
 
     // merged or account: every row carrying an SDK account.
     final sdkAddress = row.sdkAddress!;
-    // The SDK only exposes the SELECTED (on node) account's phrase, so the
-    // mnemonic is read only when this row is that one.
-    final mnemonic = onNode ? appBloc.api.getSelectedAccountMnemonic() : null;
+    // The SDK only exposes the running account's phrase, and mid-switch that
+    // may already be another row's, so nothing account-bound is offered then.
+    final settled = onNode && !switchPending;
+    final mnemonic = settled ? appBloc.api.getSelectedAccountMnemonic() : null;
     final can = sdkRowActions(
-      isSelected: onNode,
+      isSelected: settled,
       hasMnemonic: mnemonic != null,
       isStartAccount: isStartAccount,
     );
-    final deleteLock = operations?.deleteLockReason(sdkAddress, registrations);
+    final deleteLock = switchPending
+        ? 'Wait for the earning switch to finish'
+        : operations?.deleteLockReason(sdkAddress, registrations);
 
     return anchor([
       GWMenuItem(
@@ -967,7 +976,7 @@ class _AccountRowTile extends StatelessWidget {
         label: 'Delete account',
         color: gw.statusErrorText,
         lockedReason: deleteLock,
-        onPressed: can.delete && deleteLock == null
+        onPressed: !onNode && can.delete && deleteLock == null
             ? () => confirmDeleteSDKAccount(context, sdkAddress)
             : null,
       ),

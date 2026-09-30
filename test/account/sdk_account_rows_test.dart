@@ -627,6 +627,77 @@ void main() {
   });
 
   testWidgets(
+    'while a switch is in flight, the account being left offers no payout '
+    'and the account being switched to cannot be deleted',
+    (tester) async {
+      final api = _Api(accounts: const [_mainA, _mainB], lands: false);
+      final details = WalletDetailsCubit(
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final bloc = _SeededAppBloc(
+        api: api,
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: details,
+        networkProvider: NetworkProvider(),
+        sdkAccounts: const [_mainA, _mainB],
+        wallets: const [_walletMainA],
+        sdkAccountLinks: const {},
+        selectedSDKAccount: _mainA,
+      );
+      await _pumpDrawer(tester, bloc, details);
+
+      Finder optionsFor(String shortAddress) => find.descendant(
+        of: find.ancestor(
+          of: find.text(shortAddress),
+          matching: find.byWidgetPredicate(
+            (w) => w.runtimeType.toString() == '_AccountRowTile',
+          ),
+        ),
+        matching: find.byTooltip('Account options'),
+      );
+      final leaving = optionsFor('0xaaaa...1111').last;
+      final target = optionsFor('0xaaaa...2222').last;
+
+      MenuItemButton item(String label) => tester.widget<MenuItemButton>(
+        find.widgetWithText(MenuItemButton, label),
+      );
+
+      await tester.tap(leaving);
+      await tester.pumpAndSettle();
+      expect(item('Set payout address').onPressed, isNotNull);
+      await tester.tap(leaving);
+      await tester.pumpAndSettle();
+
+      await tester.tap(target);
+      await tester.pumpAndSettle();
+      expect(item('Delete account').onPressed, isNotNull);
+      await tester.tap(
+        find.widgetWithText(MenuItemButton, 'Earn with this account'),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      await tester.tap(leaving);
+      await tester.pumpAndSettle();
+      expect(item('Set payout address').onPressed, isNull);
+      await tester.tap(leaving);
+      await tester.pumpAndSettle();
+
+      await tester.tap(target);
+      await tester.pumpAndSettle();
+      expect(item('Delete account').onPressed, isNull);
+      await tester.tap(target);
+
+      api._selectedAccount = _mainB;
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+      await tester.runAsync(() => bloc.close());
+      await details.close();
+    },
+  );
+
+  testWidgets(
     'a switch the node has not confirmed tags its row "Switching…" and no '
     'row "On node", until the node reports the account',
     (tester) async {
