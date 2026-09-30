@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:genius_wallet/banxa/banxa_env.dart';
@@ -20,13 +21,16 @@ class BanxaApiService {
     String apiKey = kBanxaApiKey,
     bool sandbox = kBanxaSandbox,
     http.Client? client,
+    Duration timeout = const Duration(seconds: 20),
   }) : _apiKey = apiKey,
        _sandbox = sandbox,
+       _timeout = timeout,
        _client = client ?? http.Client();
 
   final String _apiKey;
   final bool _sandbox;
   final http.Client _client;
+  final Duration _timeout;
 
   /// The one return address for every order. If Banxa rejects a custom scheme,
   /// switch it to an https page on gnus.ai; the return matcher compares
@@ -45,6 +49,11 @@ class BanxaApiService {
     'x-api-key': _apiKey,
   };
 
+  // A stalled connection would otherwise hang the order poller and the Buy
+  // button for good.
+  Future<http.Response> _get(Uri uri) =>
+      _client.get(uri, headers: _headers).timeout(_timeout);
+
   void _check(http.Response response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw BanxaRequestException(response.statusCode);
@@ -52,10 +61,7 @@ class BanxaApiService {
   }
 
   Future<List<FiatCurrency>> getFiatCurrencies() async {
-    final response = await _client.get(
-      Uri.parse('$_baseUrl/fiats/buy'),
-      headers: _headers,
-    );
+    final response = await _get(Uri.parse('$_baseUrl/fiats/buy'));
     _check(response);
     final List data = json.decode(response.body);
     return data.map((e) => FiatCurrency.fromJson(e)).toList();
@@ -96,17 +102,14 @@ class BanxaApiService {
       '$_baseUrl/quotes/$orderType',
     ).replace(queryParameters: queryParams);
 
-    final response = await _client.get(uri, headers: _headers);
+    final response = await _get(uri);
     _check(response);
     final Map<String, dynamic> jsonMap = json.decode(response.body);
     return Quote.fromJson(jsonMap);
   }
 
   Future<List<CryptoCurrency>> getCryptoCurrencies() async {
-    final response = await _client.get(
-      Uri.parse('$_baseUrl/crypto/buy'),
-      headers: _headers,
-    );
+    final response = await _get(Uri.parse('$_baseUrl/crypto/buy'));
     _check(response);
     final List data = json.decode(response.body);
     return data.map((e) => CryptoCurrency.fromJson(e)).toList();
@@ -141,11 +144,13 @@ class BanxaApiService {
       'subPartnerId': ?subPartnerId,
     };
 
-    final response = await _client.post(
-      Uri.parse('$_baseUrl/buy'),
-      headers: _headers,
-      body: json.encode(bodyMap),
-    );
+    final response = await _client
+        .post(
+          Uri.parse('$_baseUrl/buy'),
+          headers: _headers,
+          body: json.encode(bodyMap),
+        )
+        .timeout(_timeout);
     _check(response);
     return OrderResponse.fromJson(json.decode(response.body));
   }
@@ -197,7 +202,7 @@ class BanxaApiService {
         },
       );
 
-      final response = await _client.get(uri, headers: _headers);
+      final response = await _get(uri);
       _check(response);
 
       final parsed = OrdersResponse.fromJson(json.decode(response.body));
@@ -231,10 +236,7 @@ class BanxaApiService {
   }
 
   Future<Order> getOrderById(String orderId) async {
-    final response = await _client.get(
-      Uri.parse('$_baseUrl/orders/$orderId'),
-      headers: _headers,
-    );
+    final response = await _get(Uri.parse('$_baseUrl/orders/$orderId'));
     _check(response);
     return Order.fromJson(json.decode(response.body));
   }

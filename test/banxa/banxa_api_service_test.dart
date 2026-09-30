@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -199,6 +200,25 @@ void main() {
           ),
         );
       }
+    });
+  });
+
+  group('timeout', () {
+    test('a request that never answers fails instead of hanging', () async {
+      final service = BanxaApiService(
+        apiKey: _key,
+        timeout: const Duration(milliseconds: 20),
+        client: MockClient((_) => Completer<http.Response>().future),
+      );
+
+      await expectLater(
+        service.getOrderById('o1'),
+        throwsA(isA<TimeoutException>()),
+      );
+      await expectLater(
+        _createOrder(service),
+        throwsA(isA<TimeoutException>()),
+      );
     });
   });
 }
