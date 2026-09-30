@@ -71,6 +71,7 @@ Future<GoRouter> _pump(
   int open = 0,
   WalletType walletType = WalletType.privateKey,
   void Function(Object? extra)? onBuy,
+  void Function(Object? extra)? onCheckout,
 }) async {
   tester.view.physicalSize = Size(width * 3, 900 * 3);
   tester.view.devicePixelRatio = 3.0;
@@ -86,6 +87,13 @@ Future<GoRouter> _pump(
         builder: (_, state) {
           onBuy?.call(state.extra);
           return const Scaffold(body: Text('buy page'));
+        },
+      ),
+      GoRoute(
+        path: '/checkout',
+        builder: (_, state) {
+          onCheckout?.call(state.extra);
+          return const Scaffold(body: Text('checkout page'));
         },
       ),
       GoRoute(
@@ -188,6 +196,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(copied, ['ord_new']);
+  });
+
+  testWidgets('an unpaid order drawer reopens that order in checkout', (
+    tester,
+  ) async {
+    Object? extra;
+    await _pump(
+      tester,
+      at: '/transactions?filter=purchase',
+      open: 1,
+      onCheckout: (e) => extra = e,
+    );
+
+    await tester.tap(find.text('Unpaid'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Complete payment'));
+    await tester.tap(find.text('Complete payment'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('checkout page'), findsOneWidget);
+    expect((extra as Map)['orderId'], 'ord_open_0');
   });
 
   testWidgets('going to the filtered URL while on the page switches the '

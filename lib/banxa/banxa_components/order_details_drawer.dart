@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_drawer_footer.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/order_transaction_mapping.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
@@ -12,5 +13,6 @@ void showOrderDetails(BuildContext context, Order order) {
     contentOverride: orderRowContent(order),
     extraTransactionRows: orderTransactionRows(order),
     extraNetworkRows: orderNetworkRows(order),
+    footer: OrderDrawerFooter(order: order),
   );
 }
