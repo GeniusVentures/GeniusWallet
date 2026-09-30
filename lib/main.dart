@@ -431,6 +431,7 @@ class MyApp extends StatelessWidget {
               api: geniusApi,
               readAppState: () => context.read<AppBloc>().state,
               appStates: context.read<AppBloc>().stream,
+              onTransferResolved: context.read<WalletDetailsCubit>().getCoins,
             ),
           ),
         ],

@@ -128,12 +128,7 @@ class _ChildWalletsHeader extends StatelessWidget {
     final pendingOps = loaded
         ? registry.operationsFor(subject)
         : const <ChildOperation>[];
-    final detachLocked = registry.isPending(ChildOperationKind.detach, subject);
-    final registerLocked = registry.isPending(
-      ChildOperationKind.register,
-      subject,
-    );
-    final moveLocked = registry.isPending(ChildOperationKind.move, subject);
+    final lock = registry.lockReason(subject);
 
     return Container(
       padding: const EdgeInsets.all(GeniusWalletConsts.space6),
@@ -205,10 +200,8 @@ class _ChildWalletsHeader extends StatelessWidget {
                           label: 'Detach',
                           variant: GWButtonVariant.secondary,
                           size: GWButtonSize.sm,
-                          tooltip: detachLocked
-                              ? 'Already detaching this account'
-                              : null,
-                          onPressed: detachLocked
+                          tooltip: lock,
+                          onPressed: lock != null
                               ? null
                               : () => startDetach(
                                   context,
@@ -220,10 +213,8 @@ class _ChildWalletsHeader extends StatelessWidget {
                           label: 'Move to another main',
                           variant: GWButtonVariant.secondary,
                           size: GWButtonSize.sm,
-                          tooltip: moveLocked
-                              ? 'Already moving this account'
-                              : null,
-                          onPressed: moveLocked
+                          tooltip: lock,
+                          onPressed: lock != null
                               ? null
                               : () => startMove(
                                   context,
@@ -236,10 +227,8 @@ class _ChildWalletsHeader extends StatelessWidget {
                           label: 'Register as a child of…',
                           variant: GWButtonVariant.secondary,
                           size: GWButtonSize.sm,
-                          tooltip: registerLocked
-                              ? 'Already registering this account'
-                              : null,
-                          onPressed: registerLocked
+                          tooltip: lock,
+                          onPressed: lock != null
                               ? null
                               : () => startRegister(context, account: subject),
                         ),
@@ -279,12 +268,8 @@ class ChildWalletRow extends StatelessWidget {
     final gw = context.gw;
     final registry = context.watch<ChildOperationsCubit>();
     final pendingOps = registry.operationsFor(wallet.address);
-    // Fund and Recover share one lock: one balance operation per child.
-    final balanceLock = registry.balanceLockReason(wallet.address);
-    final revokeLocked = registry.isPending(
-      ChildOperationKind.revoke,
-      wallet.address,
-    );
+    // One lock for every action: one operation per child at a time.
+    final lock = registry.lockReason(wallet.address);
     final linkedWallet = wallet.linkedWallet;
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -373,8 +358,8 @@ class ChildWalletRow extends StatelessWidget {
               GWMenuItem(
                 icon: Icons.arrow_upward,
                 label: 'Fund',
-                lockedReason: balanceLock,
-                onPressed: balanceLock != null
+                lockedReason: lock,
+                onPressed: lock != null
                     ? null
                     : () => startFund(
                         context,
@@ -385,8 +370,8 @@ class ChildWalletRow extends StatelessWidget {
               GWMenuItem(
                 icon: Icons.arrow_downward,
                 label: 'Recover',
-                lockedReason: balanceLock,
-                onPressed: balanceLock != null
+                lockedReason: lock,
+                onPressed: lock != null
                     ? null
                     : () => startRecover(
                         context,
@@ -397,11 +382,9 @@ class ChildWalletRow extends StatelessWidget {
               GWMenuItem(
                 icon: Icons.link_off,
                 label: 'Revoke',
-                lockedReason: revokeLocked
-                    ? 'Already revoking this child'
-                    : null,
+                lockedReason: lock,
                 color: gw.statusErrorText,
-                onPressed: revokeLocked
+                onPressed: lock != null
                     ? null
                     : () => startRevoke(
                         context,

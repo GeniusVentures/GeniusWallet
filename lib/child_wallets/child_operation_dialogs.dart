@@ -464,7 +464,7 @@ class _AmountDialogState extends State<_AmountDialog> {
     super.dispose();
   }
 
-  // Rebuilds on every registry emit: a fund or recover on this child that
+  // Rebuilds on every registry emit: any operation on this child that
   // starts while the dialog is open locks it here too, not only at submit.
   @override
   Widget build(BuildContext context) =>
@@ -475,7 +475,7 @@ class _AmountDialogState extends State<_AmountDialog> {
             widget.kind,
             widget.target,
           );
-          final lockReason = widget.registry.balanceLockReason(widget.target);
+          final lockReason = widget.registry.lockReason(widget.target);
 
           return GWDialog(
             title: widget.title,

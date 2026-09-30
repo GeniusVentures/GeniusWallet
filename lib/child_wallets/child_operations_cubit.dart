@@ -123,10 +123,12 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     Stream<AppState>? appStates,
     DateTime Function() now = DateTime.now,
     bool devTools = kShowDevTools,
+    void Function()? onTransferResolved,
   }) : _api = api,
        _readAppState = readAppState,
        _now = now,
        _devTools = devTools,
+       _onTransferResolved = onTransferResolved,
        super(const ChildOperationsState()) {
     // Every switch runs a pass, so a round trip between two polls can't
     // slip past resolve() unseen.
@@ -139,6 +141,10 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   final GeniusApi _api;
   final AppState Function() _readAppState;
   final DateTime Function() _now;
+
+  /// Runs once per [resolve] pass that resolved a fund or recover, so a
+  /// holdings view re-reads the balance the transfer just moved.
+  final void Function()? _onTransferResolved;
   StreamSubscription<String?>? _accountSwitches;
 
   /// [kShowDevTools] outside tests, which can't pass a define to reach the
@@ -193,17 +199,6 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     for (final op in state.operations)
       if (op.target.toLowerCase() == target.toLowerCase()) op,
   ];
-
-  /// True while a [kind] operation on [target] is still pending -- a
-  /// notConfirmed op never counts, since it has already stopped blocking.
-  /// Fund and Recover lock through [balanceLockReason] instead.
-  bool isPending(ChildOperationKind kind, String target) =>
-      state.operations.any(
-        (op) =>
-            op.kind == kind &&
-            !op.notConfirmed &&
-            op.target.toLowerCase() == target.toLowerCase(),
-      );
 
   /// True while anything submitted from [account] is still pending.
   bool hasPendingFrom(String account) => state.operations.any(
@@ -291,6 +286,34 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         : 'Already recovering from this child';
   }
 
+  /// Why no new operation of any kind on [target] can start yet, or null when
+  /// it can -- the one check [submit] and every menu share. A transfer and a
+  /// registration change on one child never overlap: whichever lands first
+  /// strands the other, as a revoke landing before a fund does.
+  String? lockReason(String target) {
+    final balanceLock = balanceLockReason(target);
+    if (balanceLock != null) {
+      return balanceLock;
+    }
+    // A notConfirmed one no longer blocks: it has no expiry, so a write that
+    // never lands would otherwise lock its child for good.
+    final change = state.operations
+        .where(
+          (op) =>
+              !_hasAmount(op.kind) &&
+              !op.notConfirmed &&
+              op.target.toLowerCase() == target.toLowerCase(),
+        )
+        .firstOrNull;
+    return switch (change?.kind) {
+      ChildOperationKind.revoke => 'Already revoking this child',
+      ChildOperationKind.detach => 'Already detaching this account',
+      ChildOperationKind.register => 'Already registering this account',
+      ChildOperationKind.move => 'Already moving this account',
+      _ => null,
+    };
+  }
+
   /// Why [account] can't be deleted yet, or null when it can. Its key is the
   /// only way to reach a transfer still landing on it or its registered
   /// children, so an unreadable [registrations] refuses too.
@@ -307,6 +330,19 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         );
     if (paysOrReceives || hasPendingFrom(account)) {
       return "A transfer for this account hasn't finished yet";
+    }
+    // A child registering or moving under [account] is not listed in its
+    // registrations until it lands, and would land under a deleted key.
+    final incoming = state.operations.any(
+      (op) =>
+          !op.notConfirmed &&
+          [
+            op.main,
+            op.newMain,
+          ].any((main) => main?.toLowerCase() == account.toLowerCase()),
+    );
+    if (incoming) {
+      return "A child wallet change for this account hasn't finished yet";
     }
     final children = registrations?[account.toLowerCase()];
     if (children == null) {
@@ -400,10 +436,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     if (selfReferential) {
       return null;
     }
-    final locked = _hasAmount(kind)
-        ? balanceLockReason(target) != null
-        : isPending(kind, target);
-    if (locked) {
+    if (lockReason(target) != null) {
       return null;
     }
     if (_hasAmount(kind)) {
@@ -535,6 +568,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       return;
     }
     emit(ChildOperationsState(operations: remaining, justResolved: resolved));
+    if (resolved.any((op) => _hasAmount(op.kind))) {
+      _onTransferResolved?.call();
+    }
     // Stops once nothing left can resolve on its own: a timed-out fund or
     // recover keeps it running until it expires, so its lock lifts on time.
     if (remaining.every((op) => op.notConfirmed && !_holdsBalance(op))) {
