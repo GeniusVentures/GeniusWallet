@@ -24,8 +24,15 @@ class FakeBanxaApi implements BanxaApiService {
   /// one repeats.
   final Map<String, List<String>> statuses = {};
 
+  /// Mirror the client getters of the same name.
+  @override
+  bool isConfigured = true;
+  @override
+  bool isSandbox = false;
+
   /// When set, the matching call throws this instead of answering.
   Exception? fetchOrdersError;
+  Exception? listError;
   Exception? quoteError;
   Exception? createError;
   Exception? orderByIdError;
@@ -33,6 +40,13 @@ class FakeBanxaApi implements BanxaApiService {
   /// When set, [fetchAllOrders] waits for it before answering, so a test can
   /// finish two fetches in a chosen order.
   Completer<void>? Function(String? customerId)? holdFetch;
+
+  /// When set, [getQuote] answers with this instead of [quote].
+  Future<Quote> Function()? quoteHandler;
+
+  int listCalls = 0;
+  final List<Map<String, String?>> quoteRequests = [];
+  final List<Map<String, String?>> createRequests = [];
 
   int fetchAllOrdersCalls = 0;
   String? lastCustomerId;
@@ -89,10 +103,22 @@ class FakeBanxaApi implements BanxaApiService {
   }
 
   @override
-  Future<List<FiatCurrency>> getFiatCurrencies() async => fiats;
+  Future<List<FiatCurrency>> getFiatCurrencies() async {
+    listCalls++;
+    if (listError != null) {
+      throw listError!;
+    }
+    return fiats;
+  }
 
   @override
-  Future<List<CryptoCurrency>> getCryptoCurrencies() async => cryptos;
+  Future<List<CryptoCurrency>> getCryptoCurrencies() async {
+    listCalls++;
+    if (listError != null) {
+      throw listError!;
+    }
+    return cryptos;
+  }
 
   @override
   Future<Quote> getQuote({
@@ -107,6 +133,16 @@ class FakeBanxaApi implements BanxaApiService {
     String? ipAddress,
     String? discountCode,
   }) async {
+    quoteRequests.add({
+      'fiat': fiat,
+      'fiatAmount': fiatAmount,
+      'paymentMethodId': paymentMethodId,
+      'crypto': crypto,
+      'blockchain': blockchain,
+    });
+    if (quoteHandler != null) {
+      return quoteHandler!();
+    }
     if (quoteError != null) {
       throw quoteError!;
     }
@@ -126,6 +162,12 @@ class FakeBanxaApi implements BanxaApiService {
     String? metadata,
     String? subPartnerId,
   }) async {
+    createRequests.add({
+      'walletAddress': walletAddress,
+      'externalCustomerId': externalCustomerId,
+      'fiatCurrency': fiatCurrency,
+      'cryptoAmount': cryptoAmount,
+    });
     if (createError != null) {
       throw createError!;
     }
