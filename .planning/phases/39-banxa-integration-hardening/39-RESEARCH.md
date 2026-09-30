@@ -433,7 +433,7 @@ See Patterns 3, 4, 6. Extra facts:
 - Which types "can receive": technically all five. `tracking` is watch-only (no keys), so GNUS bought to it cannot be spent from this app: warn or block (Open Decision). `sgnus` rows are SDK accounts; the address is still EVM and shares a customer id with the local wallet of the same address.
 - Chain/network string: `blockchain` is `Blockchain.id` from `/v2/crypto/buy` (`banxa_model.dart:219-247`, `json['id']`), taken via `selectedCrypto.defaultBlockchain.id` (`create_order_cubit.dart:176,230`). The app cannot choose it; Banxa's listing decides (Pitfall 7). Docs: `blockchain` is "Required for multi-chain assets".
 
-## Q6: Existing tests and Validation Architecture
+## Validation Architecture (existing tests, Q6)
 
 ### Existing `test/banxa` files that break or need updating
 
