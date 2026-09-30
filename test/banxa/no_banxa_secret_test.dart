@@ -48,4 +48,13 @@ void main() {
     expect(hits.length, 1);
     expect(hits.single, endsWith('lib/banxa/banxa_env.dart'));
   });
+
+  test('no print-family call in lib/banxa', () {
+    final call = RegExp(r'(^|[^A-Za-z0-9_])(print|debugPrint)\s*\(');
+    final hits = [
+      for (final f in _dartFiles('lib/banxa'))
+        if (call.hasMatch(_code(f))) _name(f),
+    ];
+    expect(hits, isEmpty);
+  });
 }

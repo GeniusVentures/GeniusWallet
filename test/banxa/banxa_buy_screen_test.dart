@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
 
+import 'fake_banxa_api.dart';
 import 'gw_pump.dart';
 
 /// Pins 09-08 Task 2/3's re-skin+redesign of `banxa_buy_screen.dart`.
@@ -21,7 +22,7 @@ import 'gw_pump.dart';
 /// asserted here (same posture 09-03 recorded for the pre-09-08 shape).
 void main() {
   Widget pumpableBuyScreen() => BlocProvider<OrdersCubit>(
-    create: (_) => OrdersCubit(),
+    create: (_) => OrdersCubit(api: FakeBanxaApi()),
     child: const SizedBox(width: 500, height: 900, child: BanxaBuyScreen()),
   );
 

@@ -7,6 +7,7 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'fake_banxa_api.dart';
 
 /// Fixture FACTORY FUNCTIONS for Phase 9's `test/banxa/` suite (09-01-PLAN.md
 /// Task 1). Mirrors `test/squid_router/route_details_card_test.dart:15-25`'s
@@ -72,7 +73,7 @@ Order testOrder({
 /// a second consumer (`order_rail_row_test.dart`), which is where it moved
 /// here: `fixtures.dart` is already this suite's shared fixture home.
 class SeededOrdersCubit extends OrdersCubit {
-  SeededOrdersCubit(this._seeded);
+  SeededOrdersCubit(this._seeded) : super(api: FakeBanxaApi());
 
   final OrdersState _seeded;
 

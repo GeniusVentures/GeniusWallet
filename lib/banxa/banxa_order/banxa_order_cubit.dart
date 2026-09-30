@@ -21,10 +21,12 @@ class OrdersCubit extends Cubit<OrdersState> {
   /// wallet and fetches nothing, which is the honest answer.
   ///
   /// Follows the selected wallet: a switch clears the list and refetches.
-  OrdersCubit({WalletDetailsCubit? walletDetailsCubit, BanxaApiService? api})
-    : _walletDetailsCubit = walletDetailsCubit,
-      _api = api ?? BanxaApiService(),
-      super(OrdersState.initial()) {
+  OrdersCubit({
+    WalletDetailsCubit? walletDetailsCubit,
+    required BanxaApiService api,
+  }) : _walletDetailsCubit = walletDetailsCubit,
+       _api = api,
+       super(OrdersState.initial()) {
     _customerKey = _customerId;
     _walletSubscription = _walletDetailsCubit?.stream.listen(_onWalletState);
     if (_customerKey != null) {

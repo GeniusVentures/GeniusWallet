@@ -15,6 +15,7 @@ import 'package:genius_wallet/screens/banxa_buy_screen.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
+import 'fake_banxa_api.dart';
 import 'fixtures.dart';
 import 'gw_pump.dart';
 
@@ -35,7 +36,7 @@ import 'gw_pump.dart';
 /// pinned against a hand-copied replica.
 void main() {
   Widget pumpableBuyScreen() => BlocProvider<OrdersCubit>(
-    create: (_) => OrdersCubit(),
+    create: (_) => OrdersCubit(api: FakeBanxaApi()),
     child: const BanxaBuyScreen(),
   );
 

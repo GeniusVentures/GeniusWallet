@@ -20,12 +20,10 @@ class DeepLinkService {
       if (uri != null) {
         _handleUri(uri, navigatorKey);
       }
-    }, onError: (err) => debugPrint("DeepLink error: $err"));
+    }, onError: (_) {});
   }
 
   void _handleUri(Uri uri, GlobalKey<NavigatorState> navigatorKey) {
-    debugPrint('🧭 Received deep link: $uri');
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = navigatorKey.currentContext;
       if (context != null) {
@@ -40,10 +38,7 @@ class DeepLinkService {
           fullPath += '?${uri.query}';
         }
 
-        debugPrint('📍 Navigating to: $fullPath');
         GoRouter.of(context).go(fullPath);
-      } else {
-        debugPrint("⚠️ Navigator context is null, can't navigate.");
       }
     });
   }

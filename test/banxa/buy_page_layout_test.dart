@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
 
+import 'fake_banxa_api.dart';
 import 'gw_pump.dart';
 
 /// Pins 09-08 Task 2/3's claims that a screenshot of a single state cannot
@@ -32,7 +33,7 @@ import 'gw_pump.dart';
 /// replica is a thing that can pass while production breaks.
 void main() {
   Widget pumpableBuyScreen() => BlocProvider<OrdersCubit>(
-    create: (_) => OrdersCubit(),
+    create: (_) => OrdersCubit(api: FakeBanxaApi()),
     child: const BanxaBuyScreen(),
   );
 

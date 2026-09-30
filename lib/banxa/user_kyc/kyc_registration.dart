@@ -37,7 +37,6 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
       return;
     }
 
-    debugPrint("Initializing WebView...");
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted) // Enable JS
       ..setNavigationDelegate(
@@ -46,25 +45,20 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
             setState(() {
               _isLoading = true;
             });
-            debugPrint("Page started loading: $url");
           },
           onPageFinished: (url) {
             setState(() {
               _isLoading = false;
             });
-            debugPrint("Page finished loading: $url");
           },
           onNavigationRequest: (request) {
-            debugPrint("Navigating to: ${request.url}");
             // Check if the current URL is the KYC redirect URL
             if (request.url.contains(BanxaApiService.banxaKycUrl)) {
-              debugPrint("KYC URL detected, continuing...");
               return NavigationDecision.navigate;
             }
 
             // Handle redirect URL after KYC completion
             if (request.url.contains(BanxaApiService.redirectUrl)) {
-              debugPrint("Redirect URL detected, popping the screen...");
               Navigator.pop(context, true);
               return NavigationDecision.prevent;
             }
@@ -78,7 +72,6 @@ class _BanxaKycScreenState extends State<BanxaKycScreen> {
       ..loadRequest(
         Uri.parse(BanxaApiService.banxaKycUrl),
       ); // Use the banxaKycUrl
-    debugPrint("WebView initialized and loading KYC URL...");
   }
 
   void _openInBrowser() {
