@@ -460,10 +460,13 @@ class _SwapScreenState extends State<SwapScreen> {
     final rpcUrl = network?.rpcUrl;
     final chainId = network?.chainId;
 
+    // Signing looks the key up by address, so a watch-only row sharing a key
+    // wallet's address would otherwise spend from that key.
     if (request == null ||
         address == null ||
         rpcUrl == null ||
-        chainId == null) {
+        chainId == null ||
+        !canSendFrom(walletState.selectedWallet, network)) {
       return;
     }
 
@@ -738,7 +741,14 @@ class _SwapScreenState extends State<SwapScreen> {
   /// visibility check is gone; a ladder whose disabled rungs never appear is
   /// not a ladder.
   Widget _buildSwapCta(GWColors gw) {
-    final walletState = context.read<WalletDetailsCubit>().state;
+    // Selected, not read: a watch-only row can share its address with a key
+    // wallet, so switching between them changes nothing else this screen hears.
+    // No wallet yet is transient, not a refusal.
+    final canSign = context.select<WalletDetailsCubit, bool>(
+      (c) =>
+          c.state.selectedWallet == null ||
+          canSendFrom(c.state.selectedWallet, c.state.selectedNetwork),
+    );
     final state = resolveSwapCtaState(
       hasBothTokens: fromToken != null && toToken != null,
       fromAmount: fromAmount,
@@ -748,12 +758,7 @@ class _SwapScreenState extends State<SwapScreen> {
       routeError: routeError,
       isSubmitting: isSubmitting,
       tooPrecise: _tooPrecise,
-      // No wallet selected yet is a transient state, not a refusal — keep
-      // the pre-existing enterAmount reading rather than blaming a wallet
-      // that was never chosen.
-      canSign:
-          walletState.selectedWallet == null ||
-          canSendFrom(walletState.selectedWallet, walletState.selectedNetwork),
+      canSign: canSign,
     );
     // The availability gate sits ABOVE the ladder, not inside it: a build that
     // cannot reach Squid has no rung to be on, and the ladder stays the single

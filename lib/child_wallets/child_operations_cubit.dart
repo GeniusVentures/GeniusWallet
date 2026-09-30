@@ -291,6 +291,22 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         : 'Already recovering from this child';
   }
 
+  /// Why [account] can't be deleted yet, or null when it can: a fund or
+  /// recover that may still land on it, or anything still pending from it.
+  String? deleteLockReason(String account) {
+    final paysOrReceives =
+        balanceLockReason(account) != null ||
+        state.operations.any(
+          (op) =>
+              _holdsBalance(op) &&
+              op.fromAccount.toLowerCase() == account.toLowerCase(),
+        );
+    if (paysOrReceives || hasPendingFrom(account)) {
+      return "A transfer for this account hasn't finished yet";
+    }
+    return null;
+  }
+
   /// The balance [kind] still has free for [target]: the running account's
   /// own GNUS for Fund, the child's for Recover, less what this registry has
   /// already sent against it (see [_committed]). Zero on a bad balance parse.

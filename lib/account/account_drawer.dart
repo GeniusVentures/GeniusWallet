@@ -883,6 +883,7 @@ class _AccountRowTile extends StatelessWidget {
       hasMnemonic: mnemonic != null,
       isStartAccount: isStartAccount,
     );
+    final deleteLock = operations?.deleteLockReason(sdkAddress);
 
     return anchor([
       GWMenuItem(
@@ -960,7 +961,8 @@ class _AccountRowTile extends StatelessWidget {
         icon: Icons.delete_outline,
         label: 'Delete account',
         color: gw.statusErrorText,
-        onPressed: can.delete
+        lockedReason: deleteLock,
+        onPressed: can.delete && deleteLock == null
             ? () => confirmDeleteSDKAccount(context, sdkAddress)
             : null,
       ),

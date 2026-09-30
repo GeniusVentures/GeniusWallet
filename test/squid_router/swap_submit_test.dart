@@ -146,6 +146,8 @@ class _SeededCubit extends WalletDetailsCubit {
       ),
     );
   }
+
+  void seat(Wallet wallet) => emit(state.copyWith(selectedWallet: wallet));
 }
 
 /// Mounts the screen and drives it to the ready rung: ETH is preselected onto
@@ -720,6 +722,39 @@ void main() {
         await tester.pump();
         await tester.pumpAndSettle();
 
+        expect(storage.writes, isEmpty);
+      },
+    );
+
+    testWidgets(
+      'switching to a watch-only row on the same address takes ready away',
+      (tester) async {
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(
+            SwapBroadcast(
+              hash: _hash,
+              status: TransactionStatus.completed,
+              transaction: _route(),
+            ),
+          ),
+          storage: storage,
+        );
+        expect(_cta, findsOneWidget, reason: 'the fixture never got ready');
+
+        final cubit =
+            BlocProvider.of<WalletDetailsCubit>(
+                  tester.element(find.byType(SwapScreen)),
+                )
+                as _SeededCubit;
+        cubit.seat(_wallet.copyWith(walletType: WalletType.tracking));
+        await tester.pump();
+
+        expect(_cta, findsNothing);
+        expect(find.text("Can't sign with this wallet"), findsOneWidget);
+        await tester.tap(find.text("Can't sign with this wallet"));
+        await tester.pumpAndSettle();
         expect(storage.writes, isEmpty);
       },
     );
