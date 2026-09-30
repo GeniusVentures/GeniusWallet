@@ -685,7 +685,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   /// Deletes [address]'s wallet from storage and this bloc's own wallet
   /// list, moving the selection off it if it was selected. Never touches an
-  /// SDK account (D-08) - shared by a direct wallet delete and, via
+  /// SDK account - shared by a direct wallet delete and, via
   /// [_onDeleteSDKAccount], the wallet side of an SDK-account delete.
   Future<void> _deleteWallet(String address, {required bool watchOnly}) async {
     final event = DeleteWallet(address, watchOnly: watchOnly);
@@ -803,9 +803,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   /// Why deleting [sdkAddress] must be refused, or null when it is allowed.
-  /// The default account is never deletable (D-11's start-account mirror).
-  /// A linked account is refused while its wallet is the active one, or
-  /// while deleting it would leave no wallet at all (D-11).
+  /// The default account is never deletable. A linked account is refused
+  /// while its wallet is the active one, or while deleting it would leave no
+  /// wallet at all.
   static SDKDeleteBlock? sdkDeleteBlock({
     required String sdkAddress,
     required String? defaultAccount,
@@ -958,7 +958,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final result = api.deleteAccount(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
       await api.removeSDKAccountLink(event.publicAddress);
-      // The account's linked wallet goes with it (D-10); an unlinked or
+      // The account's linked wallet goes with it; an unlinked or
       // already-removed wallet leaves nothing further to delete.
       final linked = linkedWallet(
         event.publicAddress,

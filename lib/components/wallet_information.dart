@@ -239,9 +239,9 @@ class WalletInformationState extends State<WalletInformation> {
                                 if (wallet == null) {
                                   return;
                                 }
-                                // Enforced here too, not only in the drawer
-                                // (D-12): this button used to call the API
-                                // directly, skipping the last-wallet guard.
+                                // Enforced here too, not only in the drawer:
+                                // this button used to call the API directly,
+                                // skipping the last-wallet guard.
                                 if (!AppBloc.canDeleteWallet(
                                   appBloc.state.wallets,
                                   deletingWatchOnly:
