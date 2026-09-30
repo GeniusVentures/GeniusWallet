@@ -77,7 +77,7 @@ void main() {
   group('allowsCheckoutNavigation', () {
     for (final url in [
       'https://checkout.banxa.com/x',
-      'http://example.com',
+      'https://bank.example/3ds',
       'about:blank',
     ]) {
       test('allows $url', () {
@@ -86,6 +86,8 @@ void main() {
     }
 
     for (final url in [
+      'http://example.com',
+      'http://checkout.banxa.com/x',
       'intent://scan/#Intent;scheme=zxing;end',
       'javascript:alert(1)',
       'file:///etc/passwd',

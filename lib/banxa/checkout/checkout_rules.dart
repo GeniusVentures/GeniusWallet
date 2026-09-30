@@ -35,13 +35,13 @@ bool isBanxaReturn(Uri? uri, {required bool isMainFrame}) {
       uri.path == expected.path;
 }
 
-/// The checkout page only ever needs the web; app links and script URLs are
-/// refused.
+/// Card entry and ID capture share this view, so cleartext http, app links and
+/// script URLs are refused.
 bool allowsCheckoutNavigation(Uri? uri) {
   if (uri == null) {
     return false;
   }
-  return const {'http', 'https', 'about'}.contains(uri.scheme);
+  return const {'https', 'about'}.contains(uri.scheme);
 }
 
 /// Linux has no embeddable webview, so it hands checkout to the system browser.
