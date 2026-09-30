@@ -6,6 +6,7 @@ import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_customer_id.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
 import 'package:genius_wallet/dev/dev_banxa_fixtures.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
@@ -24,8 +25,11 @@ class OrdersCubit extends Cubit<OrdersState> {
   OrdersCubit({
     WalletDetailsCubit? walletDetailsCubit,
     required BanxaApiService api,
+    this.pollInterval = const Duration(seconds: 15),
+    DateTime Function() now = DateTime.now,
   }) : _walletDetailsCubit = walletDetailsCubit,
        _api = api,
+       _now = now,
        super(OrdersState.initial()) {
     _customerKey = _customerId;
     _walletSubscription = _walletDetailsCubit?.stream.listen(_onWalletState);
@@ -36,8 +40,18 @@ class OrdersCubit extends Cubit<OrdersState> {
 
   final WalletDetailsCubit? _walletDetailsCubit;
   final BanxaApiService _api;
+  final DateTime Function() _now;
   StreamSubscription<WalletDetailsState>? _walletSubscription;
   String? _customerKey;
+
+  final Duration pollInterval;
+  Timer? _pollTimer;
+  bool _polling = false;
+  bool _foreground = true;
+
+  // Banxa can revive an expired order on a late payment, so it stays in the
+  // open set for this long after its last update.
+  static const Duration _expiredGrace = Duration(minutes: 60);
 
   /// Bumped by every fetch; only the newest fetch's result may land, so a slow
   /// response for wallet A can never appear under wallet B.
@@ -50,6 +64,7 @@ class OrdersCubit extends Cubit<OrdersState> {
     }
     _customerKey = key;
     emit(OrdersState.initial());
+    _syncTimer();
     unawaited(fetchOrders());
   }
 
@@ -145,6 +160,7 @@ class OrdersCubit extends Cubit<OrdersState> {
           filteredOrders: orders.orders,
         ),
       );
+      _syncTimer();
     } catch (e) {
       if (generation != _fetchGeneration || isClosed) {
         return;
@@ -155,8 +171,130 @@ class OrdersCubit extends Cubit<OrdersState> {
 
   @override
   Future<void> close() async {
+    _pollTimer?.cancel();
+    _pollTimer = null;
     await _walletSubscription?.cancel();
     return super.close();
+  }
+
+  bool _isOpen(Order order) {
+    final status = order.banxaStatus;
+    if (!status.isFinal) {
+      return true;
+    }
+    // ponytail: a fixed window; Banxa webhooks would replace polling for this.
+    return status == BanxaOrderStatus.expired &&
+        _now().difference(order.updatedAt) < _expiredGrace;
+  }
+
+  List<String> _openIds() => [
+    for (final order in state.orders?.orders ?? const <Order>[])
+      if (_isOpen(order)) order.id,
+  ];
+
+  void _syncTimer() {
+    if (isClosed || !_foreground || _openIds().isEmpty) {
+      _pollTimer?.cancel();
+      _pollTimer = null;
+      return;
+    }
+    _pollTimer ??= Timer.periodic(pollInterval, (_) => unawaited(_poll()));
+  }
+
+  /// The app going to the background stops the polling; coming back reads
+  /// every open order at once.
+  void setForeground(bool foreground) {
+    if (foreground == _foreground) {
+      return;
+    }
+    _foreground = foreground;
+    _syncTimer();
+    if (foreground && _pollTimer != null) {
+      unawaited(_poll());
+    }
+  }
+
+  /// Reads [orderId], puts it first and keeps it current from now on.
+  Future<void> track(String orderId) => _readOrder(orderId, toFront: true);
+
+  /// Reads [orderId] once, now.
+  Future<void> refreshOrder(String orderId) => _readOrder(orderId);
+
+  Future<void> _poll() async {
+    if (_polling || isClosed) {
+      return;
+    }
+    _polling = true;
+    final generation = _fetchGeneration;
+    try {
+      for (final id in _openIds()) {
+        if (generation != _fetchGeneration || isClosed) {
+          return;
+        }
+        await _readOrder(id, generation: generation);
+      }
+    } finally {
+      _polling = false;
+    }
+    _syncTimer();
+  }
+
+  Future<void> _readOrder(
+    String orderId, {
+    bool toFront = false,
+    int? generation,
+  }) async {
+    final startedIn = generation ?? _fetchGeneration;
+    final Order fresh;
+    try {
+      fresh = await _api.getOrderById(orderId);
+    } catch (_) {
+      // The old row stays; the next tick tries again.
+      return;
+    }
+    if (startedIn != _fetchGeneration || isClosed) {
+      return;
+    }
+    _merge(fresh, toFront: toFront);
+    _syncTimer();
+  }
+
+  void _merge(Order fresh, {required bool toFront}) {
+    final current = state.orders?.orders ?? const <Order>[];
+    final before = current.where((o) => o.id == fresh.id).firstOrNull;
+    if (before != null &&
+        !toFront &&
+        before.status == fresh.status &&
+        before.updatedAt == fresh.updatedAt) {
+      return;
+    }
+    final turnedFinal =
+        before != null &&
+        before.banxaStatus != fresh.banxaStatus &&
+        fresh.banxaStatus.isFinal;
+
+    List<Order> put(List<Order> list) {
+      final index = list.indexWhere((o) => o.id == fresh.id);
+      if (index < 0 || toFront) {
+        return [fresh, ...list.where((o) => o.id != fresh.id)];
+      }
+      return [...list]..[index] = fresh;
+    }
+
+    final orders = put(current);
+    emit(
+      state.copyWith(
+        orders: OrdersResponse(
+          orders: orders,
+          total: before == null
+              ? (state.orders?.total ?? 0) + 1
+              : state.orders!.total,
+          pageTotal: state.orders?.pageTotal ?? 1,
+        ),
+        filteredOrders: put(state.filteredOrders ?? current),
+        justFinished: turnedFinal ? [fresh] : const [],
+      ),
+    );
   }
 
   void applyFilters({String? status, DateTime? startDate, DateTime? endDate}) {

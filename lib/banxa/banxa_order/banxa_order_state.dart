@@ -9,11 +9,16 @@ class OrdersState {
   final List<Order>? filteredOrders;
   final String error;
 
+  /// Orders that turned final in the emit that carries this; every other
+  /// emit clears it, so a listener sees each outcome once.
+  final List<Order> justFinished;
+
   OrdersState({
     required this.status,
     this.orders,
     this.filteredOrders,
     required this.error,
+    this.justFinished = const [],
   });
 
   factory OrdersState.initial() => OrdersState(
@@ -28,12 +33,14 @@ class OrdersState {
     OrdersResponse? orders,
     List<Order>? filteredOrders,
     String? error,
+    List<Order>? justFinished,
   }) {
     return OrdersState(
       status: status ?? this.status,
       orders: orders ?? this.orders,
       filteredOrders: filteredOrders ?? this.filteredOrders,
       error: error ?? this.error,
+      justFinished: justFinished ?? const [],
     );
   }
 

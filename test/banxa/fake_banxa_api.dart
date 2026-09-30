@@ -38,6 +38,11 @@ class FakeBanxaApi implements BanxaApiService {
   String? lastCustomerId;
   final List<String?> customerIds = [];
   int getOrderByIdCalls = 0;
+  final List<String> readIds = [];
+
+  /// When set, [getOrderById] answers with the status it had at call time but
+  /// only once this completes.
+  Completer<void>? holdOrderById;
 
   @override
   Future<OrdersResponse> fetchAllOrders({
@@ -66,6 +71,11 @@ class FakeBanxaApi implements BanxaApiService {
   @override
   Future<Order> getOrderById(String orderId) async {
     getOrderByIdCalls++;
+    readIds.add(orderId);
+    final held = holdOrderById;
+    if (held != null) {
+      await held.future;
+    }
     if (orderByIdError != null) {
       throw orderByIdError!;
     }
