@@ -2,11 +2,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Phase 9 closeout (09-07): the standing gate over the ten Banxa surfaces
-/// this phase re-skinned. See `.planning/phases/09-banxa/09-CONTEXT.md`
-/// D-04 + D-07 and `09-UI-SPEC.md`'s addendum (order_details_page.dart) for
-/// how this exact ten-file list was derived — a glob over `lib/banxa/` would
-/// silently pick up the four Phase-21 drawers D-05 fences out of this phase.
+/// Phase 9 closeout (09-07): the standing gate over the Banxa surfaces
+/// this phase re-skinned. The list is explicit because a glob over
+/// `lib/banxa/` would silently pick up the four drawers fenced out of it.
 ///
 /// This is a Dart test, not a shell script (Phase 6's
 /// `tool/check_onboarding_seed_safety.sh` pattern), so it runs inside
@@ -14,27 +12,23 @@ import 'package:flutter_test/flutter_test.dart';
 /// defines — and behaves identically on this project's Windows host.
 ///
 /// What this gate pins (09-VALIDATION's first two automatable bullets):
-///   1. No pre-redesign colour literal reappears in any of the ten files,
+///   1. No pre-redesign colour literal reappears in any of the in-scope files,
 ///      outside the two named, count-pinned exceptions.
-///   2. Every one of the ten files still takes a live, appearance-aware
+///   2. Every one of the in-scope files still takes a live, appearance-aware
 ///      `GWColors` read (the const-widget-does-not-re-skin defect class).
 /// Plus two companion checks named in the plan: no raw Material button
-/// widget survives (except one named, reasoned exemption), and the file
+/// widget survives, and the file
 /// list itself never drifts onto a fenced Phase-21/cubit/service path.
 // `quote_card.dart` was removed from this list (and from `lib/`) by 09-08
 // Task 4: it was dead code with zero callers (its own header comment said
 // so), and the quote grid `banxa_buy_screen.dart` now renders is what it
-// existed to become. Nine files, not ten, from here on.
+// existed to become. Five files remain after the orders pages were deleted.
 const _inScopeFiles = <String>[
   'lib/screens/banxa_buy_screen.dart',
-  'lib/banxa/banxa_orders_history.dart',
   'lib/banxa/banxa_payment.dart',
   'lib/banxa/checkout_qr.dart',
   'lib/banxa/user_kyc/kyc_registration.dart',
-  'lib/banxa/banxa_components/order_card.dart',
-  'lib/banxa/banxa_components/order_details_card.dart',
   'lib/banxa/handle_banxa_drawer.dart',
-  'lib/screens/order_details_page.dart',
 ];
 
 /// The two literals this phase deliberately preserved. Each count is
@@ -49,18 +43,6 @@ const _allowedColorLiteralCount = <String, int>{
   // banxa_buy_screen.dart's boot overlay scrim — a temporary full-screen
   // block, mode-invariant by construction (09-03-SUMMARY.md).
   'lib/screens/banxa_buy_screen.dart': 1,
-};
-
-/// banxa_orders_history.dart's date-range `OutlinedButton` is explicitly NOT
-/// a re-skin target: 09-UI-SPEC.md's component inventory says the
-/// `DropdownMenu<String>`/date-range `OutlinedButton` pair "inherit theme
-/// styling already" (already wired to the app-wide ButtonTheme) and needs no
-/// structural change — it is a filter control, not a CTA. Every other raw
-/// Material button across these ten files was swapped to `GWButton` by
-/// 09-02 through 09-06. This is a recorded decision, not a way to silence
-/// the check: it is named by file and count, same as the colour allowlist.
-const _rawButtonExemptionCount = <String, int>{
-  'lib/banxa/banxa_orders_history.dart': 1,
 };
 
 /// Paths that must never appear in the in-scope list — the four Phase-21
@@ -122,9 +104,9 @@ List<String> _codeLines(String relativePath) {
 void main() {
   group('Banxa re-skin literal gate (09-07)', () {
     test(
-      'names all ten in-scope files and none of the fenced Phase-21/cubit/service paths',
+      'names all five in-scope files and none of the fenced Phase-21/cubit/service paths',
       () {
-        expect(_inScopeFiles.length, equals(9));
+        expect(_inScopeFiles.length, equals(5));
         for (final path in _inScopeFiles) {
           expect(
             File(path).existsSync(),
@@ -190,13 +172,10 @@ void main() {
         final rawButtonMatches = lines
             .where((line) => _rawButtonPattern.hasMatch(line))
             .length;
-        final exempted = _rawButtonExemptionCount[path] ?? 0;
         expect(
           rawButtonMatches,
-          equals(exempted),
-          reason:
-              '$path: expected $exempted named-exempt raw Material button(s), '
-              'found $rawButtonMatches',
+          equals(0),
+          reason: '$path: found $rawButtonMatches raw Material button(s)',
         );
       });
     }
