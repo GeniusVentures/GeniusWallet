@@ -58,12 +58,13 @@ class ChildWalletsState {
 
   ChildWalletsState copyWith({
     ChildWalletsStatus? status,
+    String? mainAddress,
     String? mainName,
     List<ChildWallet>? children,
     String? parentMain,
   }) => ChildWalletsState(
     status: status ?? this.status,
-    mainAddress: mainAddress,
+    mainAddress: mainAddress ?? this.mainAddress,
     mainName: mainName ?? this.mainName,
     children: children ?? this.children,
     parentMain: parentMain,
@@ -102,6 +103,11 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
 
   void refresh() {
     final appState = _readAppState();
+    // Opened before the node named an account: adopt it once it does, or
+    // every poll would query an empty address.
+    if (state.mainAddress.isEmpty && appState.selectedSDKAccount != null) {
+      emit(state.copyWith(mainAddress: appState.selectedSDKAccount));
+    }
     final mainName = AppBloc.sdkAccountName(
       state.mainAddress,
       appState.sdkAccountLinks,
