@@ -71,7 +71,7 @@ Automated tests run against `FakeBanxaApi` (test/banxa/fake_banxa_api.dart) or h
 - [ ] `git submodule update --init` and `flutter pub get` in the worktree, baseline recorded (39-01 T1)
 - [ ] Fake Banxa API used by all Banxa tests, constructor-injected (39-01 T1)
 - [ ] Banxa order status enum with a table test covering all eleven wire statuses (39-04 T1)
-- [ ] Sandbox coin list checked before the Buy card is built (39-06 T3)
+- [x] Sandbox coin list checked before the Buy card is built (39-06 T3)
 
 ## Manual-Only Verifications
 
@@ -80,6 +80,10 @@ Automated tests run against `FakeBanxaApi` (test/banxa/fake_banxa_api.dart) or h
 | A full sandbox buy completes and lands as `complete` in Transactions | Needs the Banxa sandbox key and hosted checkout | Sandbox build, test card 4111 1111 1111 1111, OTP 7203; watch the order reach Done under Buy orders |
 | Full-screen checkout per platform (Android, iOS, macOS, Windows) | Platform webviews and camera prompts | Open checkout, complete ID step, close early, confirm return and status |
 | GNUS listed on Banxa | Banxa-side action | Re-query `/v2/crypto/buy` for partner `gnus` |
+
+Sandbox coin list: unchecked (no sandbox key), 2026-09-30
+
+Rule: if listed, the final walk must complete a sandbox buy to pass the sandbox-buy requirement. If not listed or unchecked, that requirement is recorded as blocked on Banxa at the final gate, neither passed nor failed.
 
 ## Validation Sign-Off
 
