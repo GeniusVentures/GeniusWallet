@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/wallet.dart';
+import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/buy_gnus_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/buy_gnus_state.dart';
@@ -24,6 +27,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -117,9 +121,16 @@ class _BuyPage extends StatelessWidget {
                     label: originLabel ?? 'BACK',
                     onTap: () => context.pop(),
                   ),
-                  const GWPageHeader(
+                  GWPageHeader(
                     title: 'Buy GNUS',
                     subtitle: 'Powered by Banxa',
+                    trailing: GWButton(
+                      variant: GWButtonVariant.gradientOutline,
+                      size: GWButtonSize.sm,
+                      label: 'Buy orders',
+                      onPressed: () =>
+                          context.go('/transactions?filter=purchase'),
+                    ),
                   ),
                   Center(
                     child: ConstrainedBox(
@@ -144,12 +155,124 @@ class _BuyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<BuyGnusCubit, BuyGnusState>(
       builder: (context, state) {
+        final Widget content;
+        switch (state.availability) {
+          case BuyAvailability.ready:
+            content = _BuyForm(state: state);
+          case BuyAvailability.loading:
+            content = const _CardLoading();
+          case BuyAvailability.notListed:
+          case BuyAvailability.notConfigured:
+          case BuyAvailability.loadFailed:
+            content = _NotAvailable(availability: state.availability);
+        }
         return GWCard(
-          child: state.availability == BuyAvailability.ready
-              ? _BuyForm(state: state)
-              : const _CardLoading(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (state.isSandbox) ...[
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: _SandboxPill(),
+                ),
+                const SizedBox(height: GeniusWalletConsts.space6),
+              ],
+              content,
+            ],
+          ),
         );
       },
+    );
+  }
+}
+
+/// Shown whenever the client talks to Banxa's sandbox, so a test order is
+/// never mistaken for a real purchase.
+class _SandboxPill extends StatelessWidget {
+  const _SandboxPill();
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final (:fg, :bg) = orderStatusPaint(OrderStatusTone.warning, gw);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: GeniusWalletConsts.space6,
+        vertical: GeniusWalletConsts.space2,
+      ),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+      ),
+      child: Text(
+        'Sandbox · no real money',
+        style: GeniusWalletTypography.labelMd.copyWith(color: fg),
+      ),
+    );
+  }
+}
+
+/// Stands in for the whole form when Banxa cannot sell GNUS right now.
+class _NotAvailable extends StatelessWidget {
+  const _NotAvailable({required this.availability});
+
+  final BuyAvailability availability;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final String title;
+    final String body;
+    String? retryLabel;
+    switch (availability) {
+      case BuyAvailability.notListed:
+        title = "GNUS isn't on Banxa yet";
+        body =
+            "Banxa doesn't sell GNUS yet. Buying opens here as soon as it does.";
+        retryLabel = 'Check again';
+      case BuyAvailability.notConfigured:
+        title = "Buying isn't set up in this build";
+        body =
+            'This build has no Banxa connection. Use an official release to buy GNUS.';
+      case BuyAvailability.loadFailed:
+      case BuyAvailability.loading:
+      case BuyAvailability.ready:
+        title = "Couldn't reach Banxa";
+        body = 'Check your connection and try again.';
+        retryLabel = 'Try again';
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: GeniusWalletConsts.space8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: GeniusWalletTypography.titleMd.copyWith(
+              color: gw.textPrimary,
+            ),
+          ),
+          const SizedBox(height: GeniusWalletConsts.space4),
+          Text(
+            body,
+            textAlign: TextAlign.center,
+            style: GeniusWalletTypography.bodyMd.copyWith(
+              color: gw.textSecondary,
+            ),
+          ),
+          if (retryLabel != null) ...[
+            const SizedBox(height: GeniusWalletConsts.space8),
+            GWButton(
+              variant: GWButtonVariant.gradientOutline,
+              size: GWButtonSize.sm,
+              label: retryLabel,
+              onPressed: () => unawaited(context.read<BuyGnusCubit>().load()),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -212,6 +335,8 @@ class _BuyForm extends StatelessWidget {
         _YouGet(state: state),
         const SizedBox(height: GeniusWalletConsts.space6),
         _QuoteRows(state: state),
+        const SizedBox(height: GeniusWalletConsts.space10),
+        const _ToRow(),
         const SizedBox(height: GeniusWalletConsts.space10),
         _PaymentRow(state: state),
         const SizedBox(height: GeniusWalletConsts.space10),
@@ -746,10 +871,14 @@ class _QuoteGridRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: GeniusWalletTypography.bodyMd.copyWith(
-              color: gw.textSecondary,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GeniusWalletTypography.bodyMd.copyWith(
+                color: gw.textSecondary,
+              ),
             ),
           ),
           const SizedBox(width: GeniusWalletConsts.space6),
@@ -766,6 +895,95 @@ class _QuoteGridRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Where the GNUS goes: the Selected wallet, read here for display only.
+class _ToRow extends StatelessWidget {
+  const _ToRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return BlocSelector<WalletDetailsCubit, WalletDetailsState, Wallet?>(
+      selector: (s) => s.selectedWallet,
+      builder: (context, wallet) {
+        final change = _TextLink(
+          label: 'Change',
+          onTap: () => unawaited(AccountDrawer.show(context)),
+        );
+        if (wallet == null) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'No wallet to receive GNUS',
+                style: GeniusWalletTypography.bodyMd.copyWith(
+                  color: gw.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space2),
+              Text(
+                'Add or import a wallet first. GNUS is delivered straight to it.',
+                style: GeniusWalletTypography.bodySm.copyWith(
+                  color: gw.textSecondary,
+                ),
+              ),
+              const SizedBox(height: GeniusWalletConsts.space2),
+              change,
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const GWKicker('To'),
+                const SizedBox(width: GeniusWalletConsts.space6),
+                AccountAvatar(wallet: wallet, isSelected: false, size: 24),
+                const SizedBox(width: GeniusWalletConsts.space4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        wallet.walletName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GeniusWalletTypography.bodyMd.copyWith(
+                          color: gw.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        WalletUtils.getAddressForDisplay(wallet.address),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GeniusWalletTypography.bodySm.copyWith(
+                          color: gw.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                change,
+              ],
+            ),
+            if (wallet.walletType == WalletType.tracking) ...[
+              const SizedBox(height: GeniusWalletConsts.space2),
+              Text(
+                BuyGnusState.watchOnlyReason,
+                style: GeniusWalletTypography.bodySm.copyWith(
+                  color: gw.statusWarningText,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }
