@@ -10,6 +10,7 @@ import 'package:genius_wallet/banxa/banxa_order/buy_gnus_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/buy_gnus_state.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
@@ -86,6 +87,7 @@ class _Rig {
   final GoRouter router;
   bool disclaimerAccepted = false;
   int disclaimerSaves = 0;
+  final List<Object?> checkoutExtras = [];
 }
 
 Future<_Rig> _pumpCard(
@@ -124,8 +126,10 @@ Future<_Rig> _pumpCard(
       ),
       GoRoute(
         path: '/checkout',
-        builder: (_, state) =>
-            Text('checkout ${(state.extra as Map)['orderId']}'),
+        builder: (_, state) {
+          rig.checkoutExtras.add(state.extra);
+          return Text('checkout ${(state.extra as Map)['orderId']}');
+        },
       ),
       GoRoute(
         path: '/transactions',
@@ -442,6 +446,145 @@ void main() {
 
       expect(find.text("Couldn't reach Banxa"), findsNothing);
       expect(find.text('YOU PAY'), findsOneWidget);
+      await _unmount(tester);
+    });
+  });
+
+  group('buying', () {
+    const other = '0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359';
+
+    FakeBanxaApi api() => _api()..orders = [testOrder(id: 'ord_1')];
+
+    Future<void> tapBuy(WidgetTester tester) async {
+      await tester.tap(find.byWidgetPredicate(_isBuyButton));
+      await tester.pump(const Duration(milliseconds: 300));
+      await _settle(tester);
+    }
+
+    setUp(ToastManager.instance.disposeAll);
+    tearDown(ToastManager.instance.disposeAll);
+
+    testWidgets('the first buy asks for the disclaimer and remembers it', (
+      tester,
+    ) async {
+      final rig = await _pumpCard(
+        tester,
+        api: api(),
+        disclaimerAccepted: false,
+      );
+
+      await tapBuy(tester);
+
+      expect(find.text('Before your first buy'), findsOneWidget);
+      expect(rig.api.createRequests, isEmpty);
+
+      await tester.tap(find.byType(Checkbox));
+      await tester.pump();
+      await tester.tap(find.text('Continue'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await _settle(tester);
+
+      expect(rig.disclaimerSaves, 1);
+      expect(rig.api.createRequests, hasLength(1));
+      expect(find.text('checkout ord_1'), findsOneWidget);
+      await _unmount(tester);
+    });
+
+    testWidgets('closing the disclaimer unticked buys nothing', (tester) async {
+      final rig = await _pumpCard(
+        tester,
+        api: api(),
+        disclaimerAccepted: false,
+      );
+
+      await tapBuy(tester);
+      await tester.tap(find.text('Continue'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await _settle(tester);
+
+      expect(rig.disclaimerSaves, 0);
+      expect(rig.api.createRequests, isEmpty);
+      expect(find.text('YOU PAY'), findsOneWidget);
+      await _unmount(tester);
+    });
+
+    testWidgets('an accepted disclaimer is not asked again', (tester) async {
+      final rig = await _pumpCard(tester, api: api());
+
+      await tapBuy(tester);
+
+      expect(find.text('Before your first buy'), findsNothing);
+      expect(rig.api.createRequests, hasLength(1));
+      await _unmount(tester);
+    });
+
+    testWidgets('the order goes to the wallet Selected at the tap', (
+      tester,
+    ) async {
+      final rig = await _pumpCard(tester, api: api());
+      rig.wallets.pick(testWallet(other));
+      await tester.pump();
+
+      expect(find.text('0xfB69...d359'), findsOneWidget);
+      await tapBuy(tester);
+
+      expect(rig.api.createRequests.single['walletAddress'], other);
+      await _unmount(tester);
+    });
+
+    testWidgets('the new order is tracked and the checkout opens with it', (
+      tester,
+    ) async {
+      final rig = await _pumpCard(tester, api: api());
+
+      await tapBuy(tester);
+
+      expect(rig.orders.state.orders!.orders.first.id, 'ord_1');
+      expect(find.text('checkout ord_1'), findsOneWidget);
+      expect(rig.checkoutExtras.single, {
+        'orderId': 'ord_1',
+        'checkoutUrl': 'https://checkout.example/x',
+      });
+      expect(find.textContaining('checkout.example'), findsNothing);
+      await _unmount(tester);
+    });
+
+    testWidgets('quotes pause while the checkout is open and resume after', (
+      tester,
+    ) async {
+      final rig = await _pumpCard(tester, api: api());
+
+      await tapBuy(tester);
+      final during = rig.api.quoteRequests.length;
+      await tester.pump(const Duration(seconds: 25));
+      expect(rig.api.quoteRequests.length, during);
+
+      rig.router.pop();
+      await tester.pump(const Duration(milliseconds: 300));
+      await _settle(tester);
+
+      expect(find.text('YOU PAY'), findsOneWidget);
+      expect(rig.api.quoteRequests.length, greaterThan(during));
+      await _unmount(tester);
+    });
+
+    testWidgets('a failed order toasts and leaves the form usable', (
+      tester,
+    ) async {
+      final fake = api()..createError = Exception('boom');
+      final rig = await _pumpCard(tester, api: fake);
+
+      await tapBuy(tester);
+
+      expect(find.text(BuyGnusCubit.createFailedMessage), findsOneWidget);
+      expect(find.textContaining('checkout ord_1'), findsNothing);
+      expect(rig.checkoutExtras, isEmpty);
+      expect(find.text('YOU PAY'), findsOneWidget);
+      expect(_cta(tester).onPressed, isNotNull);
+
+      fake.createError = null;
+      await tapBuy(tester);
+      expect(find.text('checkout ord_1'), findsOneWidget);
       await _unmount(tester);
     });
   });

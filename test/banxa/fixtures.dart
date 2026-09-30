@@ -4,7 +4,6 @@ import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
-import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'fake_banxa_api.dart';
@@ -13,8 +12,8 @@ import 'fake_banxa_api.dart';
 /// Task 1). Mirrors `test/squid_router/route_details_card_test.dart:15-25`'s
 /// `_token()` idiom — a top-level function, not a class.
 ///
-/// This is fixture CONSTRUCTION only: it reads `banxa_model.dart` and
-/// `create_order_state.dart` and never modifies either (09-CONTEXT.md D-06).
+/// This is fixture CONSTRUCTION only: it reads `banxa_model.dart` and never
+/// modifies it.
 /// Dates are fixed `DateTime.utc(...)` values, never the current wall-clock
 /// time, so date-formatted assertions never drift between runs.
 Order testOrder({
@@ -93,67 +92,6 @@ OrdersState seededOrdersState(List<Order> orders) =>
         pageTotal: orders.length,
       ),
     );
-
-/// A `MakeOrderState` for the Buy GNUS FORM - selected currencies, an optional
-/// `Quote`, an optional payment method and an optional typed amount - built
-/// without a cubit or the network (09-CONTEXT.md D-03).
-///
-/// Was `testQuoteState()`, whose one consumer was the hand-copied quote-grid
-/// reconstruction in `buy_page_layout_test.dart`. 260731-uhe deleted that
-/// reconstruction (the real `BanxaBuyForm` is now reachable) and repurposed
-/// this fixture in place rather than adding a second one beside it: the same
-/// factory now serves the quote/no-quote pair, the non-USD fiat case and the
-/// narrow-payment-method-range case.
-///
-/// [withQuote] false gives the same state with `quote == null`, which is the
-/// other half of the height-invariance comparison.
-MakeOrderState testFormState({
-  String cryptoAmount = '0.0025',
-  String processingFee = '2.50',
-  String networkFee = '1.00',
-  String fiatCode = 'USD',
-  String fiatSymbol = '\$',
-  String cryptoCode = 'BTC',
-  bool withQuote = true,
-  PaymentMethod? paymentMethod,
-  String amountText = '',
-}) {
-  final fiat = FiatCurrency(
-    code: fiatCode,
-    name: 'US Dollar',
-    symbol: fiatSymbol,
-    supportedPaymentMethods: paymentMethod == null ? const [] : [paymentMethod],
-  );
-  final crypto = CryptoCurrency(
-    code: cryptoCode,
-    name: 'Bitcoin',
-    blockchains: [
-      Blockchain(
-        id: cryptoCode,
-        description: cryptoCode,
-        isDefault: true,
-        network: 'mainnet',
-        minimum: 0,
-      ),
-    ],
-  );
-  final quote = Quote(
-    paymentMethodId: 'pm_0001',
-    cryptoAmount: cryptoAmount,
-    fiatAmount: '100.00',
-    processingFee: processingFee,
-    networkFee: networkFee,
-  );
-  return MakeOrderState.initial().copyWith(
-    step: withQuote ? MakeOrderStep.quoteReady : MakeOrderStep.selecting,
-    selectedFiat: fiat,
-    selectedCrypto: crypto,
-    paymentMethods: paymentMethod == null ? const [] : [paymentMethod],
-    selectedPaymentMethod: paymentMethod,
-    amountText: amountText,
-    quote: withQuote ? quote : null,
-  );
-}
 
 Wallet testWallet(String address, {WalletType type = WalletType.privateKey}) =>
     Wallet(

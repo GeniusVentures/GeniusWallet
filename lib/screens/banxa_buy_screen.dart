@@ -9,6 +9,7 @@ import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/buy_gnus_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/buy_gnus_state.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
@@ -17,12 +18,14 @@ import 'package:genius_wallet/components/cards/gw_card.dart';
 import 'package:genius_wallet/components/cards/gw_detail_grid.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
 import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
+import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -60,6 +63,9 @@ class BanxaBuyScreen extends StatefulWidget {
 
 class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
   late final BuyGnusCubit _cubit;
+  late final StreamSubscription<BuyOrderStarted> _started;
+  late final AppLifecycleListener _lifecycle;
+  bool _inCheckout = false;
 
   @override
   void initState() {
@@ -67,6 +73,16 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
     final api = context.read<BanxaApiService>();
     final make = widget.createCubit ?? (BanxaApiService a) => BuyGnusCubit(a);
     _cubit = make(api);
+    _started = _cubit.orderStarted.listen((e) => unawaited(_openCheckout(e)));
+    // Quotes stop while the app is hidden, so they do not age in the dark.
+    _lifecycle = AppLifecycleListener(
+      onHide: _cubit.pause,
+      onShow: () {
+        if (!_inCheckout) {
+          _cubit.resume();
+        }
+      },
+    );
     unawaited(
       _cubit.load(
         initialFiat: widget.initialFiatCode,
@@ -75,8 +91,27 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
     );
   }
 
+  Future<void> _openCheckout(BuyOrderStarted order) async {
+    if (!mounted) {
+      return;
+    }
+    unawaited(context.read<OrdersCubit>().track(order.orderId));
+    _inCheckout = true;
+    _cubit.pause();
+    await context.push(
+      '/checkout',
+      extra: {'orderId': order.orderId, 'checkoutUrl': order.checkoutUrl},
+    );
+    _inCheckout = false;
+    if (mounted) {
+      _cubit.resume();
+    }
+  }
+
   @override
   void dispose() {
+    _lifecycle.dispose();
+    unawaited(_started.cancel());
     unawaited(_cubit.close());
     super.dispose();
   }
@@ -85,7 +120,13 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: _cubit,
-      child: _BuyPage(originLabel: widget.originLabel),
+      child: BlocListener<BuyGnusCubit, BuyGnusState>(
+        listenWhen: (p, c) =>
+            c.errorMessage.isNotEmpty && p.errorMessage != c.errorMessage,
+        listener: (context, state) =>
+            showToast(context, state.errorMessage, type: ToastType.error),
+        child: _BuyPage(originLabel: widget.originLabel),
+      ),
     );
   }
 }
@@ -1049,17 +1090,44 @@ class _BuyButton extends StatelessWidget {
         VoidCallback? onPressed;
         if (cta.action == BuyCtaAction.refresh) {
           onPressed = cubit.refreshQuote;
+        } else if (cta.action == BuyCtaAction.buy) {
+          onPressed = () => unawaited(_startBuy(context));
         }
         return GWButton(
           variant: GWButtonVariant.gradient,
           size: GWButtonSize.md,
           expand: true,
           label: cta.label,
+          isLoading: state.creating,
           onPressed: onPressed,
         );
       },
     );
   }
+}
+
+/// The first buy on a device asks for the disclaimer; every buy then reads the
+/// Selected wallet at this moment, so a switch after the quote is honoured.
+Future<void> _startBuy(BuildContext context) async {
+  final cubit = context.read<BuyGnusCubit>();
+  final wallets = context.read<WalletDetailsCubit>();
+  if (!cubit.state.disclaimerAccepted) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final accepted = await showDisclaimerDialog(
+      context,
+      title: 'Before your first buy',
+      message:
+          "Checkout opens inside GeniusWallet but is run by Banxa (banxa.com), a separate company. Your ID check and card details go to Banxa, not to GeniusWallet. By continuing you agree to Banxa's Terms of Use and Privacy & Cookies Policy.",
+      confirmText: 'Continue',
+      activeColor: gw.brandPrimaryOnSurface,
+      textColor: gw.textPrimary,
+    );
+    if (!accepted || !context.mounted) {
+      return;
+    }
+    await cubit.acceptDisclaimer();
+  }
+  await cubit.createOrder(wallets.state.selectedWallet);
 }
 
 /// One chip in a [GWControlTrack]. Selected is a flat fill, never the
