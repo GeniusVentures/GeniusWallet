@@ -12,6 +12,7 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_rules.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_webview.dart';
+import 'package:genius_wallet/banxa/checkout/checkout_webview_windows.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -42,7 +43,11 @@ Widget defaultCheckoutHost(
       onReturn: onReturn,
       onLoadError: onLoadError,
     ),
-    CheckoutHostKind.windows ||
+    CheckoutHostKind.windows => CheckoutWebViewWindows(
+      uri: uri,
+      onReturn: onReturn,
+      onLoadError: onLoadError,
+    ),
     CheckoutHostKind.external => CheckoutExternal(uri: uri),
   };
 }

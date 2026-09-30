@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_rules.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_windows/webview_windows.dart'
+    show WebviewPermissionDecision, WebviewPermissionKind;
 
 void main() {
   group('isTrustedCheckoutUrl', () {
@@ -98,8 +100,8 @@ void main() {
   });
 
   group('checkoutHostKind', () {
-    test('windows and linux use the system browser for now', () {
-      expect(checkoutHostKind('windows'), CheckoutHostKind.external);
+    test('windows has its own host and linux uses the system browser', () {
+      expect(checkoutHostKind('windows'), CheckoutHostKind.windows);
       expect(checkoutHostKind('linux'), CheckoutHostKind.external);
     });
 
@@ -138,6 +140,45 @@ void main() {
         }),
         isFalse,
       );
+    });
+  });
+
+  group('windowsCheckoutPermission', () {
+    const banxa = 'https://gnus.banxa-sandbox.com/checkout/abc';
+
+    test('camera and microphone are allowed on a Banxa page', () {
+      for (final kind in [
+        WebviewPermissionKind.camera,
+        WebviewPermissionKind.microphone,
+      ]) {
+        expect(
+          windowsCheckoutPermission(kind, url: banxa),
+          WebviewPermissionDecision.allow,
+        );
+      }
+    });
+
+    test('every other kind is denied', () {
+      for (final kind in WebviewPermissionKind.values) {
+        if (kind == WebviewPermissionKind.camera ||
+            kind == WebviewPermissionKind.microphone) {
+          continue;
+        }
+        expect(
+          windowsCheckoutPermission(kind, url: banxa),
+          WebviewPermissionDecision.deny,
+          reason: '$kind',
+        );
+      }
+    });
+
+    test('a page that is not Banxa gets nothing, not even the camera', () {
+      for (final url in ['https://bank.example/3ds', 'not a url', '']) {
+        expect(
+          windowsCheckoutPermission(WebviewPermissionKind.camera, url: url),
+          WebviewPermissionDecision.deny,
+        );
+      }
     });
   });
 }

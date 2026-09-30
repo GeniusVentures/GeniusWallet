@@ -1,5 +1,7 @@
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_windows/webview_windows.dart'
+    show WebviewPermissionDecision, WebviewPermissionKind;
 
 const _banxaHosts = ['banxa.com', 'banxa-sandbox.com'];
 
@@ -34,13 +36,13 @@ bool allowsCheckoutNavigation(Uri? uri) {
   return const {'http', 'https', 'about'}.contains(uri.scheme);
 }
 
-/// [windows] is reserved for its own in-app host; until it exists Windows
-/// falls back to the system browser like Linux.
+/// Linux has no embeddable webview, so it hands checkout to the system browser.
 enum CheckoutHostKind { webview, windows, external }
 
 CheckoutHostKind checkoutHostKind(String operatingSystem) {
   return switch (operatingSystem) {
-    'windows' || 'linux' => CheckoutHostKind.external,
+    'windows' => CheckoutHostKind.windows,
+    'linux' => CheckoutHostKind.external,
     _ => CheckoutHostKind.webview,
   };
 }
@@ -53,4 +55,20 @@ bool checkoutPermissionAllowed(Set<WebViewPermissionResourceType> types) {
             t == WebViewPermissionResourceType.camera ||
             t == WebViewPermissionResourceType.microphone,
       );
+}
+
+/// WebView2 names the page that asks, so the grant needs a Banxa page as well
+/// as camera or microphone.
+WebviewPermissionDecision windowsCheckoutPermission(
+  WebviewPermissionKind kind, {
+  required String url,
+}) {
+  final uri = Uri.tryParse(url);
+  final trusted = uri != null && isTrustedCheckoutUrl(uri);
+  final wanted =
+      kind == WebviewPermissionKind.camera ||
+      kind == WebviewPermissionKind.microphone;
+  return trusted && wanted
+      ? WebviewPermissionDecision.allow
+      : WebviewPermissionDecision.deny;
 }
