@@ -6,6 +6,7 @@ import 'package:genius_api/controllers/sgnus_transactions_controller.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
@@ -311,6 +312,34 @@ void main() {
 
     expect(find.text('buy page'), findsOneWidget);
     expect(extra, {'origin': 'TRANSACTIONS'});
+  });
+
+  testWidgets('a failed orders fetch is an error with a retry, not empty', (
+    tester,
+  ) async {
+    var retries = 0;
+    Widget host(OrdersStatus status) => MaterialApp(
+      theme: ThemeData(extensions: [GWColors.dark()]),
+      home: Scaffold(
+        body: TransactionsSlimView(
+          transactions: [_plain()],
+          page: true,
+          initialFilter: Filters.purchase,
+          buyOrdersStatus: status,
+          onRetryBuyOrders: () => retries++,
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(host(OrdersStatus.loading));
+    expect(find.text('Loading your buy orders'), findsOneWidget);
+    expect(find.text('No buy orders yet'), findsNothing);
+
+    await tester.pumpWidget(host(OrdersStatus.error));
+    expect(find.text("Couldn't load your buy orders"), findsOneWidget);
+    expect(find.text('No buy orders yet'), findsNothing);
+    await tester.tap(find.text('Try again'));
+    expect(retries, 1);
   });
 
   testWidgets('an SGNUS Selected wallet lists its orders too', (tester) async {

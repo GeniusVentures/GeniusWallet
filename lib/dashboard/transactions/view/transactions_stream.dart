@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
@@ -30,6 +32,9 @@ class TransactionsStream extends StatelessWidget {
               transactions: transactions,
               page: page,
               buyOrders: ordersState.orders?.orders ?? const [],
+              buyOrdersStatus: ordersState.status,
+              onRetryBuyOrders: () =>
+                  unawaited(context.read<OrdersCubit>().fetchOrders()),
               initialFilter: initialFilter,
             );
           },

@@ -10,6 +10,7 @@ import 'package:genius_wallet/banxa/banxa_components/order_details_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/order_transaction_mapping.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
@@ -204,6 +205,13 @@ class TransactionsSlimView extends StatefulWidget {
   /// The Selected wallet's Banxa orders, listed as purchase rows.
   final List<Order> buyOrders;
 
+  /// Where the orders fetch stands, so an empty Buy orders list can tell "none"
+  /// from "not loaded".
+  final OrdersStatus buyOrdersStatus;
+
+  /// Runs the orders fetch again from the error state.
+  final VoidCallback? onRetryBuyOrders;
+
   /// The filter to start on; a new non-null value switches the chip.
   final Filters? initialFilter;
 
@@ -213,6 +221,8 @@ class TransactionsSlimView extends StatefulWidget {
     this.isShowOnlySGNUSTransactions,
     this.page = false,
     this.buyOrders = const [],
+    this.buyOrdersStatus = OrdersStatus.success,
+    this.onRetryBuyOrders,
     this.initialFilter,
   });
 
@@ -634,6 +644,21 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     // Ahead of the two branches below, whatever else the wallet holds: an
     // empty Buy orders list is where someone comes to buy, so it offers to.
     if (selectedFilter == Filters.purchase && txs.isEmpty) {
+      if (widget.buyOrdersStatus == OrdersStatus.loading) {
+        return const GWEmptyState(
+          icon: Icons.shopping_bag_outlined,
+          title: 'Loading your buy orders',
+        );
+      }
+      if (widget.buyOrdersStatus == OrdersStatus.error) {
+        return GWEmptyState(
+          icon: Icons.error_outline,
+          title: "Couldn't load your buy orders",
+          message: 'Check your connection and try again.',
+          actionLabel: 'Try again',
+          onAction: widget.onRetryBuyOrders,
+        );
+      }
       return GWEmptyState(
         icon: Icons.shopping_bag_outlined,
         title: 'No buy orders yet',

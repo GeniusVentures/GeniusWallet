@@ -67,6 +67,9 @@ class _SgnusTransactionsScreenState extends State<SgnusTransactionsScreen> {
             isShowOnlySGNUSTransactions: true,
             page: widget.page,
             buyOrders: ordersState.orders?.orders ?? const [],
+            buyOrdersStatus: ordersState.status,
+            onRetryBuyOrders: () =>
+                unawaited(context.read<OrdersCubit>().fetchOrders()),
             initialFilter: widget.initialFilter,
           ),
         );
