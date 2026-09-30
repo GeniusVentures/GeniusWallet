@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -91,4 +92,21 @@ WebviewPermissionDecision windowsCheckoutPermission(
   return trusted && wanted
       ? WebviewPermissionDecision.allow
       : WebviewPermissionDecision.deny;
+}
+
+/// Android and iOS copy a picked ID photo into the app cache; this removes it
+/// once checkout is done. Desktop pickers hand back the original file, so
+/// nothing is cleared there.
+Future<void> clearPickedIdFiles(
+  String operatingSystem, {
+  Future<bool?> Function() clear = FilePicker.clearTemporaryFiles,
+}) async {
+  if (operatingSystem != 'android' && operatingSystem != 'ios') {
+    return;
+  }
+  try {
+    await clear();
+  } catch (_) {
+    // Cleanup only; the OS empties the cache in time.
+  }
 }

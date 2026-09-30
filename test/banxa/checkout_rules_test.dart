@@ -104,6 +104,27 @@ void main() {
     });
   });
 
+  group('clearPickedIdFiles', () {
+    test('clears the cache on mobile only, and never throws', () async {
+      var calls = 0;
+      Future<bool?> clear() async {
+        calls++;
+        return true;
+      }
+
+      await clearPickedIdFiles('android', clear: clear);
+      await clearPickedIdFiles('ios', clear: clear);
+      await clearPickedIdFiles('macos', clear: clear);
+      await clearPickedIdFiles('windows', clear: clear);
+      expect(calls, 2);
+
+      await clearPickedIdFiles(
+        'android',
+        clear: () async => throw UnimplementedError(),
+      );
+    });
+  });
+
   group('checkoutHostKind', () {
     test('windows has its own host and linux uses the system browser', () {
       expect(checkoutHostKind('windows'), CheckoutHostKind.windows);

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,7 @@ class _CheckoutWebViewState extends State<CheckoutWebView> {
   // The permission request names no origin, so the last main-frame page
   // stands in for it: a bank or 3-D Secure page never gets the camera.
   late bool _onBanxaPage = isTrustedCheckoutUrl(widget.uri);
+  bool _pickedFiles = false;
 
   @override
   void initState() {
@@ -125,10 +127,19 @@ class _CheckoutWebViewState extends State<CheckoutWebView> {
     if (result == null) {
       return const [];
     }
+    _pickedFiles = true;
     return [
       for (final file in result.files)
         if (file.path != null) Uri.file(file.path!).toString(),
     ];
+  }
+
+  @override
+  void dispose() {
+    if (_pickedFiles) {
+      unawaited(clearPickedIdFiles(Platform.operatingSystem));
+    }
+    super.dispose();
   }
 
   @override
