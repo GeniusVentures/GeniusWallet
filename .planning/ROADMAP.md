@@ -1489,7 +1489,7 @@ for the full dependency reasoning.
 - [ ] **Phase 36: Child wallet bindings & read-only view** - The 11 child functions are bound and safe; the user sees their children and balances
 - [ ] **Phase 37: Child write operations & pending model** - Register, fund, recover, revoke, detach, replace-main, with an honest pending state and a switch lock
 - [ ] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
-- [ ] **Phase 39: Banxa integration hardening** - No Banxa key in the app, KYC on the right host, finished orders labelled right, and a sandbox mode for real test buys
+- [ ] **Phase 39: Banxa integration hardening** - A redesigned Buy GNUS page: GNUS only, address prefilled, no Banxa key in the app, and a sandbox mode for real test buys
 
 ## Phase Details
 
@@ -1605,10 +1605,15 @@ Plans:
 
 ### Phase 39: Banxa integration hardening
 
-**Goal**: The Banxa buy flow is safe to ship and testable end to end without real money: no Banxa credential ships in the app or reaches a log, KYC opens the same Banxa environment as every other call, a finished order reads as finished, and a sandbox build can complete a whole buy.
+**Goal**: Buying GNUS feels like one step. The Buy page is rebuilt around GNUS only, with the receiving address prefilled from the Selected wallet, one clear "you get X GNUS" figure with fees underneath, and checkout that brings the user back to a tracked order. No Banxa credential ships in the app or reaches a log, KYC runs inside Banxa's checkout, finished orders read as finished, and a sandbox build can complete a whole buy.
 **Depends on**: Phase 38
 **Requirements**: TBD
-**Context**: 2026-09-30 audit of `lib/banxa/`. The production API key is hardcoded (`banxa_api_services.dart:14`, in git since `274da454`) and printed on every order lookup; the KYC WebView loads `gnus.banxa-sandbox.com` while all REST calls hit production; Banxa's finished status is `complete` but the app only handles `completed`; `submitKYC` and `generateHmacSignature` are dead and wrong. Banxa v2 is current, no API upgrade needed. Key rotation is a Banxa dashboard action outside the repo.
+**Context**: 2026-09-30 audit and UX research (`39-UX-RESEARCH.md`).
+  - Blocker: Banxa's `/v2/crypto/buy` for partner `gnus` lists 120 coins and GNUS is not one of them, so the page cannot buy GNUS today. Listing GNUS is a Banxa-side action; confirm before building the GNUS-only form.
+  - Fiat: 29 currencies. Debit/credit card is offered for all of them; a second method appears only for EUR (SEPA, PayPal), AUD, CAD, CLP, ZAR, MXN. "Only debit card" is Banxa's per-currency offer, not an app filter.
+  - The production API key is hardcoded (`banxa_api_services.dart:14`, in git since `274da454`) and printed on every order lookup; key rotation is a Banxa dashboard action.
+  - KYC WebView loads `gnus.banxa-sandbox.com` while REST calls hit production; Banxa finishes orders as `complete`, the app only handles `completed`; `submitKYC` / `generateHmacSignature` are dead.
+  - Open question: keep the fiat currency picker (29 options) or default from locale with a small override.
 
 **Plans:** 0 plans
 
