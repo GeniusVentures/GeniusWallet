@@ -7,8 +7,10 @@
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_details_drawer.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/order_transaction_mapping.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
@@ -234,6 +236,9 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     }
   }
 
+  int get _openBuyOrders =>
+      widget.buyOrders.where((o) => !o.banxaStatus.isFinal).length;
+
   /// SGNUS scoping only, NO filter applied — the ONE list that both the menu
   /// counts and the filtered-empty "you have N" number read, so the two can
   /// never disagree about how much history exists (T-12-14). Counts computed
@@ -399,6 +404,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                           ? _TransactionFilterBar(
                               selected: selectedFilter,
                               counts: filterCounts(scoped),
+                              openOrders: _openBuyOrders,
                               onChanged: (f) =>
                                   setState(() => selectedFilter = f),
                             )
@@ -497,6 +503,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
                     // `scoped`, NEVER `txs` — counts over the already-filtered
                     // list read 0 for every inactive filter.
                     counts: filterCounts(scoped),
+                    openOrders: _openBuyOrders,
                     onChanged: (f) => setState(() => selectedFilter = f),
                     // The bar has its own row here, so the width for a real
                     // touch target exists. The panel's inline bar does not.
@@ -872,11 +879,15 @@ class _TransactionFilterBar extends StatelessWidget {
     required this.counts,
     required this.onChanged,
     this.chipSize = _chipSize,
+    this.openOrders = 0,
   });
 
   final Filters selected;
   final Map<Filters, int> counts;
   final ValueChanged<Filters> onChanged;
+
+  /// Buy orders not yet finished; shown on that chip when above zero.
+  final int openOrders;
 
   /// Chip edge. Defaults to the 32 the panel has always drawn, where the bar
   /// shares a row with `GWSectionTitle` and has no width to spare.
@@ -954,6 +965,7 @@ class _TransactionFilterBar extends StatelessWidget {
     filter: f,
     active: f == selected,
     size: chipSize,
+    count: f == Filters.purchase ? openOrders : 0,
     // Tapping the active chip clears back to All — the
     // `emptySelectionAllowed` behaviour the segmented button had.
     onTap: () => onChanged(f == selected ? Filters.all : f),
@@ -1091,6 +1103,7 @@ class _FilterChip extends StatelessWidget {
     required this.active,
     required this.size,
     required this.onTap,
+    this.count = 0,
   });
 
   final Filters filter;
@@ -1098,12 +1111,19 @@ class _FilterChip extends StatelessWidget {
   final double size;
   final VoidCallback onTap;
 
+  /// A small pill on the chip's corner while above zero.
+  final int count;
+
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
 
+    final semanticLabel = count > 0
+        ? '${filter.label}, $count open'
+        : filter.label;
+
     return Semantics(
-      label: filter.label,
+      label: semanticLabel,
       button: true,
       selected: active,
       child: Tooltip(
@@ -1124,45 +1144,105 @@ class _FilterChip extends StatelessWidget {
             return Semantics(
               button: true,
               selected: active,
-              label: filter.label,
+              label: semanticLabel,
               excludeSemantics: true,
-              child: Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  onTap: onTap,
-                  hoverColor: Colors.transparent,
-                  borderRadius: BorderRadius.circular(
-                    GeniusWalletConsts.radiusPill,
-                  ),
-                  child: AnimatedContainer(
-                    // 120ms matches _TimeframeTab; the two controls must settle
-                    // at the same speed or the dashboard feels assembled from
-                    // parts.
-                    duration: const Duration(milliseconds: 120),
-                    height: size,
-                    width: size,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      // Active is the brandCta GRADIENT, never a flat blue —
-                      // the app-wide rule the 260721-0ze brand sweep set.
-                      gradient: active ? GeniusWalletGradient.brandCta : null,
-                      color: active
-                          ? null
-                          : (lifted ? gw.surfaceElevated : Colors.transparent),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      onTap: onTap,
+                      hoverColor: Colors.transparent,
                       borderRadius: BorderRadius.circular(
                         GeniusWalletConsts.radiusPill,
                       ),
-                    ),
-                    child: badgeGlyph(
-                      badgeSpec(filter.badgeKind!, gw),
-                      color: fg,
-                      size: 15,
+                      child: AnimatedContainer(
+                        // 120ms matches _TimeframeTab; the two controls must settle
+                        // at the same speed or the dashboard feels assembled from
+                        // parts.
+                        duration: const Duration(milliseconds: 120),
+                        height: size,
+                        width: size,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          // Active is the brandCta GRADIENT, never a flat blue —
+                          // the app-wide rule the 260721-0ze brand sweep set.
+                          gradient: active
+                              ? GeniusWalletGradient.brandCta
+                              : null,
+                          color: active
+                              ? null
+                              : (lifted
+                                    ? gw.surfaceElevated
+                                    : Colors.transparent),
+                          borderRadius: BorderRadius.circular(
+                            GeniusWalletConsts.radiusPill,
+                          ),
+                        ),
+                        child: badgeGlyph(
+                          badgeSpec(filter.badgeKind!, gw),
+                          color: fg,
+                          size: 15,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  if (count > 0)
+                    Positioned(
+                      top: -5,
+                      right: -5,
+                      child: IgnorePointer(child: _OpenCountPill(count: count)),
+                    ),
+                ],
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+/// The open-order count on the Buy orders chip. Opaque underneath so the
+/// warning wash reads the same over the chip's gradient and over the track.
+class _OpenCountPill extends StatelessWidget {
+  const _OpenCountPill({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final (:fg, :bg) = orderStatusPaint(OrderStatusTone.warning, gw);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: gw.surfaceElevated,
+        borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: bg,
+          border: Border.all(color: fg.withValues(alpha: 0.5)),
+          borderRadius: BorderRadius.circular(GeniusWalletConsts.radiusPill),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                '$count',
+                style: GeniusWalletTypography.labelMd.copyWith(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  height: 1.4,
+                  color: fg,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

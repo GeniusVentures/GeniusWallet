@@ -39,17 +39,22 @@ class _SgnusApi extends UnusedGeniusApi {
   SGNUSTransactionsController getSGNUSTransactionsController() => _feed;
 }
 
-/// Two orders; `ord_new` is the more recent, so it is the first row.
-FakeBanxaApi _api({bool withOrders = true}) => FakeBanxaApi(
+/// Two orders; `ord_new` is the more recent, so it is the first row. [open]
+/// adds that many unpaid ones.
+FakeBanxaApi _api({bool withOrders = true, int open = 0}) => FakeBanxaApi(
   orders: withOrders
       ? [
+          for (var i = 0; i < open; i++)
+            testOrder(id: 'ord_open_$i', status: 'pendingPayment'),
           testOrder(
             id: 'ord_old',
+            status: 'complete',
             cryptoId: 'GNUS',
             createdAt: DateTime.utc(2026, 1, 1),
           ),
           testOrder(
             id: 'ord_new',
+            status: 'complete',
             cryptoId: 'GNUS',
             createdAt: DateTime.utc(2026, 2, 1),
           ),
@@ -63,6 +68,7 @@ Future<GoRouter> _pump(
   double width = 1280,
   bool settle = true,
   bool withOrders = true,
+  int open = 0,
   WalletType walletType = WalletType.privateKey,
   void Function(Object? extra)? onBuy,
 }) async {
@@ -103,7 +109,7 @@ Future<GoRouter> _pump(
         BlocProvider(
           create: (_) => OrdersCubit(
             walletDetailsCubit: wallets,
-            api: _api(withOrders: withOrders),
+            api: _api(withOrders: withOrders, open: open),
           ),
         ),
       ],
@@ -206,6 +212,43 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Escrow'), findsOneWidget);
     expect(find.text('Buy orders'), findsNothing);
+  });
+
+  testWidgets('the Buy orders chip counts the open orders and says so', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(
+      tester,
+      at: '/transactions',
+      width: 600,
+      settle: false,
+      open: 2,
+    );
+
+    expect(
+      find.descendant(
+        of: find.byTooltip('Buy orders'),
+        matching: find.text('2'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel('Buy orders, 2 open'), findsWidgets);
+
+    await tester.pumpWidget(const SizedBox());
+    semantics.dispose();
+  });
+
+  testWidgets('with nothing open the chip carries no count', (tester) async {
+    await _pump(tester, at: '/transactions', width: 600, settle: false);
+
+    expect(
+      find.descendant(
+        of: find.byTooltip('Buy orders'),
+        matching: find.byType(Text),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('with no orders, its empty state offers Buy GNUS', (
