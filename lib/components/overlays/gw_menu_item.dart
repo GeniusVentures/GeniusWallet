@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
-/// One row-menu action, so icon size, colour and disabled treatment cannot
-/// drift between the wallet, SDK and child-operation menus that all use it.
-///
-/// `onPressed: null` is Material's own disabled state - nothing here fakes
-/// it with opacity. The icon still needs dimming explicitly: `MenuItemButton`
-/// disables its own foreground, but `leadingIcon` is a widget handed to it,
-/// so a disabled destructive item would otherwise show a greyed label next
-/// to a full-strength icon in [color].
+/// One row-menu action shared by the wallet, SDK and child-operation menus.
+/// Disabled is `onPressed: null`; the icon is dimmed here because
+/// `MenuItemButton` does not dim a caller-supplied `leadingIcon`.
 class GWMenuItem extends StatelessWidget {
   const GWMenuItem({
     super.key,
