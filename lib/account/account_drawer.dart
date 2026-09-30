@@ -979,8 +979,8 @@ class _AccountRowTile extends StatelessWidget {
         GWMenuItem(
           icon: Icons.arrow_upward,
           label: 'Fund',
-          lockedReason: operations.balanceLockReason(sdkAddress),
-          onPressed: operations.balanceLockReason(sdkAddress) != null
+          lockedReason: operations.lockReason(sdkAddress),
+          onPressed: operations.lockReason(sdkAddress) != null
               ? null
               : () => startFund(
                   context,
@@ -991,8 +991,8 @@ class _AccountRowTile extends StatelessWidget {
         GWMenuItem(
           icon: Icons.arrow_downward,
           label: 'Recover',
-          lockedReason: operations.balanceLockReason(sdkAddress),
-          onPressed: operations.balanceLockReason(sdkAddress) != null
+          lockedReason: operations.lockReason(sdkAddress),
+          onPressed: operations.lockReason(sdkAddress) != null
               ? null
               : () => startRecover(
                   context,
@@ -1003,12 +1003,9 @@ class _AccountRowTile extends StatelessWidget {
         GWMenuItem(
           icon: Icons.link_off,
           label: 'Revoke',
-          lockedReason:
-              operations.isPending(ChildOperationKind.revoke, sdkAddress)
-              ? 'Already revoking this child'
-              : null,
+          lockedReason: operations.lockReason(sdkAddress),
           color: gw.statusErrorText,
-          onPressed: operations.isPending(ChildOperationKind.revoke, sdkAddress)
+          onPressed: operations.lockReason(sdkAddress) != null
               ? null
               : () => startRevoke(
                   context,

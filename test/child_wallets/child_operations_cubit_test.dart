@@ -939,6 +939,220 @@ void main() {
 
       cubit.close();
     });
+
+    test('a revoke, detach or move is refused while a fund on that child '
+        'holds, even timed out, with no SDK call', () {
+      var now = DateTime(2024);
+      var running = _mainAddress;
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => AppState(
+          selectedSDKAccount: running,
+          sdkAccounts: const [_mainAddress, _childAddress, _newMainAddress],
+          wallets: const [],
+          sdkAccountLinks: const <String, SDKAccountLink>{},
+        ),
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      expect(cubit.lockReason(_childAddress), 'Already funding this child');
+
+      GeniusNodeReturnValue? revoke() => cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+      expect(revoke(), isNull);
+
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+      expect(revoke(), isNull);
+      expect(cubit.lockReason(_childAddress), _earlierTransferReason);
+
+      running = _childAddress;
+      expect(
+        cubit.submit(
+          kind: ChildOperationKind.detach,
+          target: _childAddress,
+          main: _mainAddress,
+        ),
+        isNull,
+      );
+      expect(
+        cubit.submit(
+          kind: ChildOperationKind.move,
+          target: _childAddress,
+          main: _mainAddress,
+          newMain: _newMainAddress,
+        ),
+        isNull,
+      );
+      expect(api.revokeCallCount, 0);
+      expect(api.detachCallCount, 0);
+      expect(api.moveCallCount, 0);
+
+      cubit.close();
+    });
+
+    test('a fund, a recover or another registration change is refused while '
+        'a revoke on that child is pending', () {
+      final api = _FakeApi()..balances[_childAddress] = BigInt.from(5000000);
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+      expect(cubit.lockReason(_childAddress), 'Already revoking this child');
+
+      for (final kind in [
+        ChildOperationKind.fund,
+        ChildOperationKind.recover,
+      ]) {
+        expect(
+          cubit.submit(
+            kind: kind,
+            target: _childAddress,
+            main: _mainAddress,
+            amountMinions: BigInt.from(1000000),
+          ),
+          isNull,
+        );
+      }
+      expect(api.fundCallCount, 0);
+      expect(api.recoverCallCount, 0);
+
+      cubit.close();
+    });
+
+    test('a move is refused while a detach of that account is pending', () {
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.detach,
+        target: _mainAddress,
+        main: _otherAddress,
+      );
+
+      final move = cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _mainAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
+
+      expect(move, isNull);
+      expect(api.moveCallCount, 0);
+      expect(cubit.lockReason(_mainAddress), 'Already detaching this account');
+
+      cubit.close();
+    });
+
+    test('deleting a main is refused while a child registers or moves under '
+        'it, until that times out', () {
+      var now = DateTime(2024);
+      final api = _FakeApi();
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(
+          selectedSDKAccount: _childAddress,
+          sdkAccounts: [_childAddress, _mainAddress, _newMainAddress],
+          wallets: [],
+          sdkAccountLinks: <String, SDKAccountLink>{},
+        ),
+        now: () => now,
+      );
+      final noChildren = <String, List<ChildWallet>>{
+        _mainAddress: const [],
+        _newMainAddress: const [],
+      };
+      expect(cubit.deleteLockReason(_mainAddress, noChildren), isNull);
+
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.register,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+      expect(
+        cubit.deleteLockReason(_mainAddress.toUpperCase(), noChildren),
+        isNotNull,
+      );
+
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+      expect(cubit.deleteLockReason(_mainAddress, noChildren), isNull);
+
+      cubit.submit(
+        kind: ChildOperationKind.move,
+        target: _childAddress,
+        main: _otherAddress,
+        newMain: _newMainAddress,
+      );
+      expect(cubit.deleteLockReason(_newMainAddress, noChildren), isNotNull);
+
+      cubit.close();
+    });
+  });
+
+  group('onTransferResolved', () {
+    test('runs once when a fund resolves, never for a revoke', () {
+      var refreshes = 0;
+      final api = _FakeApi()
+        ..registrationEntries = const [
+          ChildRegistration(
+            childAddress: _secondChildAddress,
+            mainAddress: _mainAddress,
+            sequence: 0,
+          ),
+        ];
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => _appState,
+        onTransferResolved: () => refreshes++,
+      );
+      cubit.submit(
+        kind: ChildOperationKind.fund,
+        target: _childAddress,
+        main: _mainAddress,
+        amountMinions: BigInt.from(1000000),
+      );
+      cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _secondChildAddress,
+        main: _mainAddress,
+      );
+      cubit.resolve();
+      expect(refreshes, 0);
+
+      api.registrationEntries = const [];
+      cubit.resolve();
+      expect(cubit.state.justResolved.single.kind, ChildOperationKind.revoke);
+      expect(refreshes, 0);
+
+      api.balances[_childAddress] = BigInt.from(1000000);
+      cubit.resolve();
+      expect(cubit.state.justResolved.single.kind, ChildOperationKind.fund);
+      expect(refreshes, 1);
+
+      cubit.resolve();
+      expect(refreshes, 1);
+
+      cubit.close();
+    });
   });
 
   group('the paying balance', () {

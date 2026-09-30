@@ -402,8 +402,8 @@ void main() {
   });
 
   testWidgets(
-    'Fund and Recover lock while a fund is pending, stay locked with a plain '
-    'reason once it is not confirmed, and release once it expires',
+    'Fund, Recover and Revoke lock while a fund is pending, stay locked with '
+    'a plain reason once it is not confirmed, and release once it expires',
     (tester) async {
       var now = DateTime(2024);
       final api = _FakeApi();
@@ -430,8 +430,8 @@ void main() {
       await _openMenu(tester);
       expect(item('Fund').onPressed, isNull);
       expect(item('Recover').onPressed, isNull);
-      expect(item('Revoke').onPressed, isNotNull);
-      expect(find.byTooltip('Already funding this child'), findsNWidgets(2));
+      expect(item('Revoke').onPressed, isNull);
+      expect(find.byTooltip('Already funding this child'), findsNWidgets(3));
       await _openMenu(tester);
 
       now = submittedAt.add(const Duration(minutes: 2));
@@ -445,7 +445,7 @@ void main() {
           "An earlier transfer for this child hasn't confirmed yet. Check "
           'again, or wait a few minutes.',
         ),
-        findsNWidgets(2),
+        findsNWidgets(3),
       );
       await _openMenu(tester);
 
@@ -455,6 +455,7 @@ void main() {
       await _openMenu(tester);
       expect(item('Fund').onPressed, isNotNull);
       expect(item('Recover').onPressed, isNotNull);
+      expect(item('Revoke').onPressed, isNotNull);
       expect(find.text('Funded 1 GNUS to Game Wallet'), findsNothing);
 
       await childWallets.close();
@@ -841,8 +842,8 @@ void main() {
   });
 
   testWidgets(
-    'a pending Revoke locks only Revoke on that child -- Fund and Recover '
-    'stay enabled',
+    'a pending Revoke locks Fund and Recover on that child too, with its '
+    'reason',
     (tester) async {
       final api = _FakeApi();
       final navigatorKey = GlobalKey<NavigatorState>();
@@ -864,7 +865,7 @@ void main() {
         find.widgetWithText(MenuItemButton, 'Revoke'),
       );
       expect(revokeItem.onPressed, isNull);
-      expect(find.byTooltip('Already revoking this child'), findsOneWidget);
+      expect(find.byTooltip('Already revoking this child'), findsNWidgets(3));
 
       final fundItem = tester.widget<MenuItemButton>(
         find.widgetWithText(MenuItemButton, 'Fund'),
@@ -872,8 +873,8 @@ void main() {
       final recoverItem = tester.widget<MenuItemButton>(
         find.widgetWithText(MenuItemButton, 'Recover'),
       );
-      expect(fundItem.onPressed, isNotNull);
-      expect(recoverItem.onPressed, isNotNull);
+      expect(fundItem.onPressed, isNull);
+      expect(recoverItem.onPressed, isNull);
 
       await childWallets.close();
       await operations.close();
@@ -993,7 +994,7 @@ void main() {
     await operations.close();
   });
 
-  testWidgets('a pending Detach locks the card button, tooltipped', (
+  testWidgets('a pending Detach locks Detach and Move, tooltipped', (
     tester,
   ) async {
     final api = _FakeApi(
@@ -1029,7 +1030,7 @@ void main() {
       find.widgetWithText(GWButton, 'Detach'),
     );
     expect(detachButton.onPressed, isNull);
-    expect(find.byTooltip('Already detaching this account'), findsOneWidget);
+    expect(find.byTooltip('Already detaching this account'), findsNWidgets(2));
 
     await childWallets.close();
     await operations.close();
@@ -1325,7 +1326,7 @@ void main() {
     await operations.close();
   });
 
-  testWidgets('a pending Move locks the card button, tooltipped', (
+  testWidgets('a pending Move locks Move and Detach, tooltipped', (
     tester,
   ) async {
     final api = _FakeApi(
@@ -1362,7 +1363,7 @@ void main() {
       find.widgetWithText(GWButton, 'Move to another main'),
     );
     expect(moveButton.onPressed, isNull);
-    expect(find.byTooltip('Already moving this account'), findsOneWidget);
+    expect(find.byTooltip('Already moving this account'), findsNWidgets(2));
 
     await childWallets.close();
     await operations.close();
@@ -1370,29 +1371,34 @@ void main() {
 
   testWidgets('a child with two kinds pending shows both badges, not just the '
       'newest', (tester) async {
+    var now = DateTime(2024);
     final api = _FakeApi();
     final navigatorKey = GlobalKey<NavigatorState>();
     final (childWallets, operations) = await _pumpScreen(
       tester,
       api: api,
       navigatorKey: navigatorKey,
+      now: () => now,
     );
 
+    // A pending revoke locks Fund, so the revoke times out first.
+    operations.submit(
+      kind: ChildOperationKind.revoke,
+      target: _childAddress,
+      main: _mainAddress,
+    );
+    now = now.add(childOperationTimeout);
+    operations.resolve();
     operations.submit(
       kind: ChildOperationKind.fund,
       target: _childAddress,
       main: _mainAddress,
       amountMinions: BigInt.from(1000000),
     );
-    operations.submit(
-      kind: ChildOperationKind.revoke,
-      target: _childAddress,
-      main: _mainAddress,
-    );
     await tester.pumpAndSettle();
 
     expect(find.text('Funding 1 GNUS…'), findsOneWidget);
-    expect(find.text('Revoking…'), findsOneWidget);
+    expect(find.text('Not confirmed yet'), findsOneWidget);
 
     await childWallets.close();
     await operations.close();
@@ -1414,19 +1420,24 @@ void main() {
         ),
       },
     );
+    var now = DateTime(2024);
     final navigatorKey = GlobalKey<NavigatorState>();
     final (childWallets, operations) = await _pumpScreen(
       tester,
       api: api,
       navigatorKey: navigatorKey,
       appState: _withTwoOwnMainsAppState,
+      now: () => now,
     );
 
+    // A pending detach locks Move, so the detach times out first.
     operations.submit(
       kind: ChildOperationKind.detach,
       target: _mainAddress,
       main: _parentAddress,
     );
+    now = now.add(childOperationTimeout);
+    operations.resolve();
     operations.submit(
       kind: ChildOperationKind.move,
       target: _mainAddress,
@@ -1435,7 +1446,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Detaching…'), findsOneWidget);
+    expect(find.text('Not confirmed yet'), findsOneWidget);
     expect(find.text('Moving to New Main Wallet…'), findsOneWidget);
 
     await childWallets.close();

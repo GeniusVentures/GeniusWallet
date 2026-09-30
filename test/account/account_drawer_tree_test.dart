@@ -616,8 +616,8 @@ void main() {
     );
 
     testWidgets(
-      "Revoke locks independently, with its own reason, while a revoke on "
-      'B is pending',
+      'Revoke, Fund and Recover all lock with the revoke reason while a '
+      'revoke on B is pending',
       (tester) async {
         final api = _PerMainApi(
           registrationsByMain: {
@@ -638,7 +638,15 @@ void main() {
           find.widgetWithText(MenuItemButton, 'Revoke'),
         );
         expect(revokeItem.onPressed, isNull);
-        expect(find.byTooltip('Already revoking this child'), findsOneWidget);
+        expect(
+          tester
+              .widget<MenuItemButton>(
+                find.widgetWithText(MenuItemButton, 'Fund'),
+              )
+              .onPressed,
+          isNull,
+        );
+        expect(find.byTooltip('Already revoking this child'), findsNWidgets(3));
 
         await tester.runAsync(() => bloc.close());
         await details.close();
