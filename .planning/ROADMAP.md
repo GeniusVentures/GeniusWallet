@@ -1489,6 +1489,7 @@ for the full dependency reasoning.
 - [ ] **Phase 36: Child wallet bindings & read-only view** - The 11 child functions are bound and safe; the user sees their children and balances
 - [ ] **Phase 37: Child write operations & pending model** - Register, fund, recover, revoke, detach, replace-main, with an honest pending state and a switch lock
 - [ ] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
+- [ ] **Phase 39: Banxa integration hardening** - No Banxa key in the app, KYC on the right host, finished orders labelled right, and a sandbox mode for real test buys
 
 ## Phase Details
 
@@ -1602,6 +1603,19 @@ Plans:
 - [x] 38-02-PLAN.md — GWMenuItem and public SDK actions; each SDK account merged onto its wallet's row, Selected and On node tags, Run node as this with the pending lock (wave 2)
 - [x] 38-03-PLAN.md — child actions on nested own rows, collapsible mains, live refresh, phone-width and contrast checks; phase gate and Windows compile (wave 3)
 
+### Phase 39: Banxa integration hardening
+
+**Goal**: The Banxa buy flow is safe to ship and testable end to end without real money: no Banxa credential ships in the app or reaches a log, KYC opens the same Banxa environment as every other call, a finished order reads as finished, and a sandbox build can complete a whole buy.
+**Depends on**: Phase 38
+**Requirements**: TBD
+**Context**: 2026-09-30 audit of `lib/banxa/`. The production API key is hardcoded (`banxa_api_services.dart:14`, in git since `274da454`) and printed on every order lookup; the KYC WebView loads `gnus.banxa-sandbox.com` while all REST calls hit production; Banxa's finished status is `complete` but the app only handles `completed`; `submitKYC` and `generateHmacSignature` are dead and wrong. Banxa v2 is current, no API upgrade needed. Key rotation is a Banxa dashboard action outside the repo.
+
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 39 to break down)
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -1611,3 +1625,4 @@ Plans:
 | 36. Child wallet bindings & read-only view | 3/3 | Awaiting human verification (live walk) | - |
 | 37. Child write operations & pending model | 5/5 | Awaiting human verification (live walk) | - |
 | 38. Account tree switcher | 3/3 | Awaiting human verification (live walk) | - |
+| 39. Banxa integration hardening | 0/0 | Not planned | - |
