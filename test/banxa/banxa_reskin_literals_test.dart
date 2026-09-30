@@ -25,7 +25,7 @@ import 'package:flutter_test/flutter_test.dart';
 // existed to become. Five files remain after the orders pages were deleted.
 const _inScopeFiles = <String>[
   'lib/screens/banxa_buy_screen.dart',
-  'lib/banxa/banxa_payment.dart',
+  'lib/banxa/checkout/checkout_screen.dart',
   'lib/banxa/checkout_qr.dart',
   'lib/banxa/user_kyc/kyc_registration.dart',
   'lib/banxa/handle_banxa_drawer.dart',

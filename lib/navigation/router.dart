@@ -6,7 +6,7 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
-import 'package:genius_wallet/banxa/banxa_payment.dart';
+import 'package:genius_wallet/banxa/checkout/checkout_screen.dart';
 import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
@@ -146,12 +146,11 @@ final geniusWalletRouter = GoRouter(
       path: '/checkout',
       builder: (context, state) {
         final args = state.extra as Map<String, dynamic>? ?? {};
-        final checkoutUrl = args['checkoutUrl'] as String? ?? '';
-        final redirectUrl = args['redirectUrl'] as String? ?? '';
 
-        return BanxaPaymentWebView(
-          checkoutUrl: checkoutUrl,
-          redirectUrl: redirectUrl,
+        return CheckoutScreen(
+          orderId: args['orderId'] as String? ?? '',
+          checkoutUrl: args['checkoutUrl'] as String? ?? '',
+          isSandbox: context.read<BanxaApiService>().isSandbox,
         );
       },
     ),
