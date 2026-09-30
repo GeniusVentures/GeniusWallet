@@ -4,6 +4,7 @@
 // zero or the array pointer is null.
 import 'dart:convert';
 import 'dart:ffi' as ffi;
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -360,6 +361,16 @@ void main() {
       expect(uint64Arg((BigInt.one << 64) - BigInt.one), -1);
       expect(uint64Arg(-BigInt.one), isNull);
       expect(uint64Arg(BigInt.one << 64), isNull);
+    });
+  });
+
+  group('writeHexAscii', () {
+    test('matches lowercase hex and NUL-terminates', () {
+      final key = Uint8List.fromList([0x00, 0x0f, 0xa5, 0xff, 0x10]);
+      final out = Uint8List(key.length * 2 + 1)..fillRange(0, 11, 0x78);
+      writeHexAscii(key, out);
+      expect(ascii.decode(out.sublist(0, 10)), '000fa5ff10');
+      expect(out[10], 0);
     });
   });
 

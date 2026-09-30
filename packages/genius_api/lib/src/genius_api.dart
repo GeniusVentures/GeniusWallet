@@ -261,6 +261,18 @@ int? uint64Arg(BigInt v) {
   return v.toSigned(64).toInt();
 }
 
+/// Writes [bytes] as lowercase hex ASCII into [out], NUL-terminated.
+/// [out] must hold `bytes.length * 2 + 1` bytes.
+@visibleForTesting
+void writeHexAscii(Uint8List bytes, Uint8List out) {
+  const digits = '0123456789abcdef';
+  for (var i = 0; i < bytes.length; i++) {
+    out[i * 2] = digits.codeUnitAt(bytes[i] >> 4);
+    out[i * 2 + 1] = digits.codeUnitAt(bytes[i] & 0x0f);
+  }
+  out[bytes.length * 2] = 0;
+}
+
 /// Pads an odd-length hex string with a leading zero so it parses byte-
 /// aligned.
 String _padHexEven(String hex) => hex.length.isOdd ? '0$hex' : hex;
@@ -603,11 +615,17 @@ class GeniusApi {
     if (privateKey == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
     }
-    final privateKeyAsStr = privateKey
-        .data()
-        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-        .join();
-    return addAccountWithPrivateKey(privateKeyAsStr);
+    final twLib = _ffiBridgePrebuilt.twLib;
+    final twData = twLib.TWPrivateKeyData(privateKey.nativehandle.cast());
+    try {
+      return addAccountWithPrivateKey(
+        twLib.TWDataBytes(twData).asTypedList(twLib.TWDataSize(twData)),
+      );
+    } finally {
+      twLib.TWDataReset(twData);
+      twLib.TWDataDelete(twData);
+      privateKey.delete();
+    }
   }
 
   /// Links every stored key wallet that predates this feature where the
@@ -1433,16 +1451,26 @@ class GeniusApi {
   }
 
   /// Adds a new Genius account to the SDK using an Ethereum private key.
-  GeniusNodeReturnValue addAccountWithPrivateKey(String privateKey) {
+  /// The key is hex-encoded straight into a native buffer, never a Dart
+  /// `String`, so the only copy can be wiped once the SDK call returns.
+  GeniusNodeReturnValue addAccountWithPrivateKey(Uint8List privateKey) {
     if (!_isSdkInitialized) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
-    final keyPtr = privateKey.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKAddAccountWithPrivateKey(
-      keyPtr,
-    );
-    malloc.free(keyPtr);
-    return _mapNodeReturnValue(result);
+    final length = privateKey.length * 2;
+    final keyPtr = calloc<Uint8>(length + 1);
+    final hexBuf = keyPtr.asTypedList(length + 1);
+    try {
+      writeHexAscii(privateKey, hexBuf);
+      return _mapNodeReturnValue(
+        _ffiBridgePrebuilt.sgnsLib.GeniusSDKAddAccountWithPrivateKey(
+          keyPtr.cast<Char>(),
+        ),
+      );
+    } finally {
+      hexBuf.fillRange(0, hexBuf.length, 0);
+      calloc.free(keyPtr);
+    }
   }
 
   /// Deletes a Genius account from the SDK. The currently selected account
