@@ -5,9 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
-import 'package:genius_wallet/banxa/banxa_helpers/order_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
-import 'package:genius_wallet/banxa/banxa_orders_history.dart';
 import 'package:genius_wallet/banxa/banxa_payment.dart';
 import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
@@ -34,7 +32,6 @@ import 'package:genius_wallet/navigation/web_view_extras.dart';
 import 'package:genius_wallet/network/network_page.dart';
 import 'package:genius_wallet/onboarding/routes/wallet_routes.dart';
 import 'package:genius_wallet/screens/banxa_buy_screen.dart';
-import 'package:genius_wallet/screens/order_details_page.dart';
 import 'package:genius_wallet/screens/splash.dart';
 import 'package:genius_wallet/send/send_screen.dart';
 import 'package:genius_wallet/services/coins_service.dart';
@@ -88,15 +85,6 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
-      // The orders history's own route, now that `/buy` is the buy form.
-      // Reached from the buy screen's orders rail ("View all") and from
-      // `order_details_page.dart`'s root-fallback back arrow.
-      path: '/buy/orders',
-      builder: (context, state) {
-        return const OrdersPage();
-      },
-    ),
-    GoRoute(
       path: '/createOrder',
       builder: (context, state) {
         final args = state.extra as Map<String, dynamic>? ?? {};
@@ -111,41 +99,10 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/orderDetails',
-      builder: (context, state) {
-        final extra = (state.extra as Map<String, dynamic>?) ?? {};
-        final orderId = extra['orderId'] as String? ?? '';
-        final checkoutUrl = extra['checkoutUrl'] as String?;
-        final redirectUrl = extra['redirectUrl'] as String?;
-        return OrderDetailsPage(
-          orderId: orderId,
-          checkoutUrl: checkoutUrl,
-          redirectUrl: redirectUrl,
-        );
-      },
-    ),
-    GoRoute(
+      // Banxa or anyone can open this link, so its query is ignored; the
+      // polled order status says what happened.
       path: '/banxa/callback',
-      builder: (ctx, state) {
-        final qp = state.uri.queryParameters;
-        final status = qp['status'];
-        final extOrderId = qp['extOrderId'];
-        final orderIdFromBanxa = qp['orderId'];
-
-        final effectiveOrderId =
-            orderIdFromBanxa ?? OrderLinker.instance.get(extOrderId ?? '');
-
-        if (effectiveOrderId != null && effectiveOrderId.isNotEmpty) {
-          return OrderDetailsPage(
-            orderId: effectiveOrderId,
-            initialStatus: status,
-            redirectUrl: state.uri.toString(),
-            checkoutUrl: null,
-          );
-        }
-
-        return const OrdersPage();
-      },
+      redirect: (_, _) => '/transactions?filter=purchase',
     ),
     GoRoute(
       path: '/checkoutQR',
@@ -325,10 +282,8 @@ final geniusWalletRouter = GoRouter(
         GoRoute(path: '/markets', builder: (_, _) => const MarketsScreen()),
         GoRoute(path: '/news', builder: (_, _) => const CryptoNewsScreen()),
         GoRoute(
-          // 09-08: `/buy` is the BUY FORM — the CTA labelled "Buy GNUS"
-          // (`wallet_information.dart`, `coins_screen.dart`) must open a page
-          // for buying GNUS, not the order history. The history is at
-          // `/buy/orders` (still outside the shell, unchanged by this move).
+          // `/buy` is the buy form: the "Buy GNUS" CTAs open it, not a
+          // list of orders.
           //
           // Moved INSIDE the shell 2026-07-31 (walk item 1), matching
           // `/token-info`'s own move on 2026-07-28 (sketch 071): it was the

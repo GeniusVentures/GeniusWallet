@@ -43,13 +43,7 @@ class CheckoutQrPage extends StatelessWidget {
             !cubit.hasNavigated) {
           cubit.hasNavigated = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.push(
-              '/orderDetails',
-              extra: {
-                'orderId': state.order!.orderId,
-                'checkoutUrl': state.order!.orderStatusUrl,
-              },
-            );
+            context.go('/transactions?filter=purchase');
           });
         }
 
@@ -64,13 +58,8 @@ class CheckoutQrPage extends StatelessWidget {
         }
 
         return Scaffold(
-          // Task 1 · sketch 152 / token_info_screen.dart:92-129, the shared
-          // back-arrow AppBar recipe already ported verbatim by 09-02's
-          // banxa_orders_history.dart — reused rather than reinvented. This
-          // screen is always reached via a push (from the checkout options
-          // sheet), so it always has a back target; no canGoBack branch
-          // needed the way order_details_page.dart/banxa_orders_history.dart
-          // require one.
+          // Always reached via a push from the checkout options sheet, so
+          // there is always a back target.
           appBar: AppBar(
             toolbarHeight: 48,
             backgroundColor: gw.surfaceSunken,

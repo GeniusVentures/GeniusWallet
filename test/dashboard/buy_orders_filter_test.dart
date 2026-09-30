@@ -83,6 +83,10 @@ Future<GoRouter> _pump(
         },
       ),
       GoRoute(
+        path: '/banxa/callback',
+        redirect: (_, _) => '/transactions?filter=purchase',
+      ),
+      GoRoute(
         path: '/transactions',
         builder: (_, state) => TransactionsScreen(
           initialFilter: filterFromQuery(state.uri.queryParameters['filter']),
@@ -180,6 +184,13 @@ void main() {
 
     router.go('/transactions?filter=purchase');
     await tester.pumpAndSettle();
+
+    expect(find.byType(TransactionRow), findsNWidgets(2));
+  });
+
+  testWidgets('the Banxa return link lands on Buy orders and ignores its '
+      'query', (tester) async {
+    await _pump(tester, at: '/banxa/callback?status=success&orderId=x');
 
     expect(find.byType(TransactionRow), findsNWidgets(2));
   });

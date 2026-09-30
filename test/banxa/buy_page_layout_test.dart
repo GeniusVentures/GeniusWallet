@@ -204,8 +204,7 @@ void main() {
         reason: "ShellRoute(...)'s closing paren was not found",
       );
 
-      // The exact-quote form so `'/buy'` never matches `'/buy/orders'`
-      // (which continues past the closing quote).
+      // The exact-quote form so `'/buy'` never matches a longer path.
       const buyRouteLiteral = "path: '/buy'";
       final buyIndex = source.indexOf(buyRouteLiteral);
       expect(
@@ -224,21 +223,6 @@ void main() {
         reason:
             "'/buy' must be declared INSIDE the ShellRoute's routes list, "
             'not after it closes',
-      );
-
-      // '/buy/orders' stays OUTSIDE the shell (unchanged by this move) — it
-      // keeps its own back-arrow AppBar (`banxa_orders_history.dart`) rather
-      // than the shell's persistent nav chrome.
-      final ordersIndex = source.indexOf("path: '/buy/orders'");
-      expect(
-        ordersIndex,
-        greaterThanOrEqualTo(0),
-        reason: "router.dart no longer declares a '/buy/orders' route",
-      );
-      expect(
-        ordersIndex < shellStart || ordersIndex > shellEnd,
-        isTrue,
-        reason: "'/buy/orders' unexpectedly moved inside the ShellRoute",
       );
     });
   });
