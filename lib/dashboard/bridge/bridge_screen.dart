@@ -14,6 +14,7 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_cta_state.dart';
 import 'package:genius_wallet/dashboard/bridge/bridge_receipt.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
+import 'package:genius_wallet/reown/utilities.dart' show canSendFrom;
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -722,7 +723,11 @@ class BridgeScreenState extends State<BridgeScreen> {
         size: GWButtonSize.md,
         expand: true,
         label: label,
-        onPressed: () => _submitBridge(context, state),
+        // Signing looks the key up by address, so a watch-only row sharing a
+        // key wallet's address would otherwise spend from that key.
+        onPressed: canSendFrom(state.selectedWallet, state.selectedNetwork)
+            ? () => _submitBridge(context, state)
+            : null,
       );
     }
 

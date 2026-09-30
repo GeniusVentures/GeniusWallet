@@ -647,6 +647,40 @@ void main() {
     );
 
     testWidgets(
+      'Delete account on B stays locked while a fund to B is unresolved',
+      (tester) async {
+        final api = _PerMainApi(
+          registrationsByMain: {
+            nestMainA.toLowerCase(): okList([nestMainB], nestMainA),
+          },
+        );
+        final (bloc, details, operations) = await pumpNested(tester, api);
+
+        operations.submit(
+          kind: ChildOperationKind.fund,
+          target: nestMainB,
+          main: nestMainA,
+          amountMinions: BigInt.from(1000000),
+        );
+        await tester.pumpAndSettle();
+
+        await openMenu(tester, accountRow(nestMainB));
+        final deleteItem = tester.widget<MenuItemButton>(
+          find.widgetWithText(MenuItemButton, 'Delete account'),
+        );
+        expect(deleteItem.onPressed, isNull);
+        expect(
+          find.byTooltip("A transfer for this account hasn't finished yet"),
+          findsOneWidget,
+        );
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+
+    testWidgets(
       'running as B, Fund on B opens the switch dialog naming A, not B',
       (tester) async {
         final api = _PerMainApi(

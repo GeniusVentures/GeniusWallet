@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/feedback/gw_warning_note.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
@@ -136,10 +137,24 @@ Future<void> confirmDeleteSDKAccount(
     bloc.state.sdkAccountLinks,
     bloc.state.wallets,
   );
+  // Checked again here, not only by the menu: the account's key is the only
+  // way to reach a transfer still landing on it.
+  final transferLock = context.read<ChildOperationsCubit?>()?.deleteLockReason(
+    address,
+  );
   final navigator = Navigator.of(context, rootNavigator: true);
   Navigator.of(context).pop();
 
   if (block == SDKDeleteBlock.defaultAccount) {
+    return;
+  }
+  if (transferLock != null) {
+    await GWDialog.show<void>(
+      context: navigator.context,
+      title: 'Cannot delete this account',
+      message: '$transferLock. Try again once it has.',
+      actions: [GWDialogAction(label: 'OK', onPressed: () => navigator.pop())],
+    );
     return;
   }
   if (block == SDKDeleteBlock.activeWallet) {
