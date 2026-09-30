@@ -1606,9 +1606,9 @@ Plans:
 
 ### Phase 39: Banxa integration hardening
 
-**Goal**: Buying GNUS feels like one step. The Buy page is rebuilt around GNUS only, with the receiving address prefilled from the Selected wallet, one clear "you get X GNUS" figure with fees underneath, and checkout that brings the user back to a tracked order. No Banxa credential ships in the app or reaches a log, KYC runs inside Banxa's checkout, finished orders read as finished, and a sandbox build can complete a whole buy.
+**Goal**: Buying GNUS feels like one step. The Buy page is rebuilt around GNUS only, with the receiving address prefilled from the Selected wallet, one clear "you get X GNUS" figure with fees underneath, and checkout that brings the user back to a tracked order. The Banxa key is supplied at build time, never committed and never logged, KYC runs inside Banxa's checkout, finished orders read as finished, and a sandbox build can complete a whole buy.
 **Depends on**: Phase 38
-**Requirements**: TBD
+**Requirements**: BUY-01, BUY-02, BUY-03, BUY-04, BUY-05, BUY-06, BUY-07, BUY-08, BUY-09, BUY-10, BUY-11, BUY-12, BUY-13, BUY-14
 **Context**: 2026-09-30 audit and UX research (`39-UX-RESEARCH.md`).
   - Blocker: Banxa's `/v2/crypto/buy` for partner `gnus` lists 120 coins and GNUS is not one of them, so the page cannot buy GNUS today. Listing GNUS is a Banxa-side action; confirm before building the GNUS-only form.
   - Fiat: 29 currencies. Debit/credit card is offered for all of them; a second method appears only for EUR (SEPA, PayPal), AUD, CAD, CLP, ZAR, MXN. "Only debit card" is Banxa's per-currency offer, not an app filter.
@@ -1618,11 +1618,23 @@ Plans:
   - Callback mismatch: Banxa is sent `geniuswallet://banxa/callback` but the in-app WebView waits for `yourapp://banxa-callback` (`create_order_cubit.dart:225`); the scheme is registered on macOS only.
   - Design picked 2026-09-30: sketch 080 A (compact card), 081 B (full-screen in-app checkout), 082 C (orders in Transactions behind a Buy orders filter). Also required: an easy way into Buy GNUS from the main surfaces, and a link from Buy GNUS to Transactions with the Buy orders filter already selected.
 
-**Plans:** 0 plans
+**Plans:** 13 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 39 to break down)
+- [ ] 39-01-PLAN.md — tracer: Selected wallet's Banxa orders in Transactions under a title-row Buy orders chip, `/transactions?filter=purchase` (wave 1)
+- [ ] 39-02-PLAN.md — return link opens Buy orders; old orders history and order details pages retired (wave 2)
+- [ ] 39-03-PLAN.md — key out of source via --dart-define, sandbox switch, typed request error, one required shared client, no prints in lib/banxa (wave 3)
+- [ ] 39-04-PLAN.md — Banxa status model, app-level poller, one-time final-status toast, open-order count on the chip (wave 4)
+- [ ] 39-05-PLAN.md — rows, pills and fixtures read the status model; the filtered copy of the order list goes (wave 5)
+- [ ] 39-06-PLAN.md — BuyGnusCubit test-first; sandbox coin-list check recorded (wave 6)
+- [ ] 39-07-PLAN.md — checkout rules and full-screen checkout with status-driven Done (wave 7)
+- [ ] 39-08-PLAN.md — the compact Buy GNUS card, hand-off to checkout, old form and cubit removed (wave 8)
+- [ ] 39-09-PLAN.md — Windows WebView2 host, checkout menu, QR drawer, leave prompt; QR page poller removed (wave 9)
+- [ ] 39-10-PLAN.md — KYC inside checkout: platform permissions, file upload, inline media (wave 10)
+- [ ] 39-11-PLAN.md — order drawer footer with each status's next step (wave 11)
+- [ ] 39-12-PLAN.md — closed-list deletion of the replaced Banxa UI and helpers (wave 12)
+- [ ] 39-13-PLAN.md — Buy GNUS entry points, CI key from a masked secret, and the phase gate with gated live walk (wave 13)
 
 ### Phase 40: Always-available GNUS bridge
 

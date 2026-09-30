@@ -195,6 +195,25 @@ Started 2026-09-28. Research: `research/SUMMARY.md`.
 - [ ] **VER-01**: Dev mocks (`GW_DEV_TOOLS`) cover the child list, balances and every child operation, including the pending and timeout states
 - [ ] **VER-02**: Each v3.0 phase closes only after a walk on the live testnet
 
+### Buy GNUS (BUY) — Phase 39
+
+Added 2026-09-30 with the Phase 39 plans. The Banxa key stays in the app as a build-time define; a proxy is deferred (39-CONTEXT D-01).
+
+- [ ] **BUY-01**: The Buy page is one compact card: an amount with a fiat pill defaulting from the device locale, per-currency preset chips, a payment-method row only when the currency offers more than one method, one "You get ~X GNUS" figure with rate, processing-fee and network-fee rows, and a quote that refreshes on its own (no separate quote step)
+- [ ] **BUY-02**: GNUS goes to the Selected wallet's address, read at the moment of the tap and shown as a "To" row (name + short address) with a Change link to the account switcher; there is no address field
+- [ ] **BUY-03**: Buy is disabled for a watch-only (tracking) wallet, with a one-line reason
+- [ ] **BUY-04**: The page buys GNUS only (no crypto picker); when Banxa does not list GNUS, or the build has no Banxa key, the card shows a clear "not available" state instead of the form
+- [ ] **BUY-05**: The Banxa API key is not in committed source: it is supplied at build time with `--dart-define` (CI from a repository secret), sent only as a request header, and never printed, logged, toasted or put in a Sentry breadcrumb
+- [ ] **BUY-06**: A build-time switch points the app at Banxa's sandbox, the Buy page and checkout show a sandbox marker, and a sandbox build can complete a whole buy
+- [ ] **BUY-07**: Checkout opens full screen inside the app with a slim header, Order > Pay > Done progress and a menu with "Pay on another device" (QR + copy link) and "Open in browser"; Android, iOS and macOS use the in-app WebView, Windows uses WebView2, Linux opens the system browser with a waiting screen; KYC runs inside Banxa's checkout and the separate KYC button and screen are gone
+- [ ] **BUY-08**: Done is decided by the order's polled status (payment received or later), not by the return URL; the return URL (one shared constant, matched on scheme, host and path in the main frame) only speeds it up; only https Banxa checkout URLs are opened
+- [ ] **BUY-09**: One status model maps all 11 Banxa statuses (plus `coinTransferred` and unknown values): `complete` is the only success, `paymentReceived` is not final, declined reads red, expired/cancelled/refunded read neutral
+- [ ] **BUY-10**: One app-level poller follows the Selected wallet's orders: it refetches on a wallet switch (a late response for the old wallet never lands), polls only non-final orders, stops when none remain, and pauses in the background
+- [ ] **BUY-11**: Banxa orders appear in Transactions with the order drawer; a "Buy orders" chip in the title row shows the count of open orders; `/transactions?filter=purchase` opens with it selected; the drawer shows the copyable order id, the status's next action and a Banxa support link on needs-ID, declined, expired or refunded orders
+- [ ] **BUY-12**: When a tracked order reaches a final status the user gets one toast with "View order" that opens that order's drawer
+- [ ] **BUY-13**: Buy GNUS is reachable from Home, Assets, the GNUS coin page and Transactions, and the Buy page links to Transactions with the Buy orders filter selected
+- [ ] **BUY-14**: Dead Banxa code is removed (client-side KYC and HMAC calls, the sandbox KYC screen and route, the checkout options sheet, the old orders history and order details pages, the order-id linker, all prints) and the Banxa tests are rewritten to match
+
 ## Beyond v2.0 (deferred)
 
 - **FEE-01** *(deferred 2026-09-18 — business, not engineering)*: Squid enables an integrator fee on
@@ -320,10 +339,24 @@ Started 2026-09-28. Research: `research/SUMMARY.md`.
 | SWT-06 | Phase 37 — Child write operations & pending model | Pending |
 | SWT-07 | Phase 38 — Account tree switcher | Complete |
 | VER-02 | Phase 37 — Child write operations & pending model | Pending — cross-cutting: restated as a standing success criterion in every v3.0 phase, counted/closed here only, mirroring BLD-02's treatment in the v1.0 table above |
+| BUY-01 | Phase 39 — Banxa integration hardening (39-06, 39-08) | Pending |
+| BUY-02 | Phase 39 — Banxa integration hardening (39-06, 39-08) | Pending |
+| BUY-03 | Phase 39 — Banxa integration hardening (39-06, 39-08) | Pending |
+| BUY-04 | Phase 39 — Banxa integration hardening (39-06, 39-08) | Pending |
+| BUY-05 | Phase 39 — Banxa integration hardening (39-03, 39-13) | Pending |
+| BUY-06 | Phase 39 — Banxa integration hardening (39-03, 39-06, 39-07, 39-08, 39-13) | Pending |
+| BUY-07 | Phase 39 — Banxa integration hardening (39-07, 39-09, 39-10) | Pending |
+| BUY-08 | Phase 39 — Banxa integration hardening (39-02, 39-07, 39-13) | Pending |
+| BUY-09 | Phase 39 — Banxa integration hardening (39-04, 39-05) | Pending |
+| BUY-10 | Phase 39 — Banxa integration hardening (39-01, 39-04) | Pending |
+| BUY-11 | Phase 39 — Banxa integration hardening (39-01, 39-04, 39-05, 39-11) | Pending |
+| BUY-12 | Phase 39 — Banxa integration hardening (39-04) | Pending |
+| BUY-13 | Phase 39 — Banxa integration hardening (39-08, 39-13) | Pending |
+| BUY-14 | Phase 39 — Banxa integration hardening (39-02, 39-03, 39-12) | Pending |
 
 **Coverage:**
 
-- v3.0 requirements: **22 total** (6 SWT + 3 LINK + 9 CHILD + 2 PEND + 2 VER)
+- v3.0 requirements: **22 total** (6 SWT + 3 LINK + 9 CHILD + 2 PEND + 2 VER), plus **14 BUY** added with Phase 39 (all mapped to Phase 39)
 - Mapped to phases: **22/22 ✓** — every v3.0 requirement maps to exactly one phase; no orphans, no duplicates
 - Phases: 34-37 (4 phases), continuing numbering from v1.0/v2.0 (last phase: 33)
 - Note: VER-02 ("each v3.0 phase closes only after a walk on the live testnet") is cross-cutting by design — it appears as a standing success criterion in Phases 34-37's ROADMAP entries, but is mapped/counted at Phase 37 only, where the milestone's last write operation closes it
