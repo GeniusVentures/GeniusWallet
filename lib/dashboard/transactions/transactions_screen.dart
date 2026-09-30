@@ -126,7 +126,10 @@ class TransactionsScreen extends StatelessWidget {
                         // enclosing scroll view cannot give, and "fill the
                         // window" is exactly the behaviour sketch 023 removed.
                         isSgnusWallet
-                            ? const SgnusTransactionsScreen(page: true)
+                            ? SgnusTransactionsScreen(
+                                page: true,
+                                initialFilter: initialFilter,
+                              )
                             : TransactionsStream(
                                 page: true,
                                 initialFilter: initialFilter,

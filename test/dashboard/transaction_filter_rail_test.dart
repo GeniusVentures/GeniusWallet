@@ -38,8 +38,8 @@ import '../theme/theme_contrast_test.dart' show contrastRatio;
 /// down. Teardown is not optional: a leaked surface changes every file that
 /// runs after this one.
 ///
-/// **(b) Label collisions.** Four `Filters` labels are also row action chips —
-/// a transaction row prints `Sent`, `Received`, `Swapped` and `Purchased`. This
+/// **(b) Label collisions.** Three `Filters` labels are also row action chips —
+/// a transaction row prints `Sent`, `Received` and `Swapped`. This
 /// harness renders the LIST beside the rail, so a bare `find.text('Sent')`
 /// matches two widgets. `transaction_filters_test.dart` dodges this by pumping
 /// a fixture that prints none of those words; the rail cannot dodge it, because
@@ -468,12 +468,12 @@ void main() {
     expect(tester.getSize(railFinder).width, 194);
 
     // The measured half of `_railWidth`'s budget: 194 - 24 row padding - 14
-    // glyph - 8 gap leaves 148 for label + count. `Purchased` is the widest
-    // label and draws 119.25 in the harness's one-em-per-character fallback
-    // font, so the numeral has 28.75 — two digits. This is the pessimistic
+    // glyph - 8 gap leaves 148 for label + count. `Buy orders` is the widest
+    // label and draws 132.5 in the harness's one-em-per-character fallback
+    // font, so the numeral has 15.5 — one digit. This is the pessimistic
     // font, not the shipped one; it is pinned so the comment's ceiling stays
     // true rather than becoming folklore.
-    expect(tester.getSize(railText('Purchased')).width, closeTo(119.25, 0.01));
+    expect(tester.getSize(railText('Buy orders')).width, closeTo(132.5, 0.01));
   });
 
   // 8 -------------------------------------------------------------------

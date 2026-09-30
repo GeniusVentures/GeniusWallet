@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genius_api/models/transaction.dart';
+import 'package:genius_api/controllers/sgnus_transactions_controller.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
@@ -29,32 +31,57 @@ Transaction _plain() => Transaction(
   type: TransactionType.transfer,
 );
 
+/// Answers only the SGNUS feed, with no rows of its own.
+class _SgnusApi extends UnusedGeniusApi {
+  final _feed = SGNUSTransactionsController();
+
+  @override
+  SGNUSTransactionsController getSGNUSTransactionsController() => _feed;
+}
+
 /// Two orders; `ord_new` is the more recent, so it is the first row.
-FakeBanxaApi _api() => FakeBanxaApi(
-  orders: [
-    testOrder(
-      id: 'ord_old',
-      cryptoId: 'GNUS',
-      createdAt: DateTime.utc(2026, 1, 1),
-    ),
-    testOrder(
-      id: 'ord_new',
-      cryptoId: 'GNUS',
-      createdAt: DateTime.utc(2026, 2, 1),
-    ),
-  ],
+FakeBanxaApi _api({bool withOrders = true}) => FakeBanxaApi(
+  orders: withOrders
+      ? [
+          testOrder(
+            id: 'ord_old',
+            cryptoId: 'GNUS',
+            createdAt: DateTime.utc(2026, 1, 1),
+          ),
+          testOrder(
+            id: 'ord_new',
+            cryptoId: 'GNUS',
+            createdAt: DateTime.utc(2026, 2, 1),
+          ),
+        ]
+      : [],
 );
 
-Future<GoRouter> _pump(WidgetTester tester, {required String at}) async {
-  tester.view.physicalSize = const Size(1280 * 3, 900 * 3);
+Future<GoRouter> _pump(
+  WidgetTester tester, {
+  required String at,
+  double width = 1280,
+  bool settle = true,
+  bool withOrders = true,
+  WalletType walletType = WalletType.privateKey,
+  void Function(Object? extra)? onBuy,
+}) async {
+  tester.view.physicalSize = Size(width * 3, 900 * 3);
   tester.view.devicePixelRatio = 3.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  final wallets = PickableWalletCubit(testWallet(_address));
+  final wallets = PickableWalletCubit(testWallet(_address, type: walletType));
   final router = GoRouter(
     initialLocation: at,
     routes: [
+      GoRoute(
+        path: '/buy',
+        builder: (_, state) {
+          onBuy?.call(state.extra);
+          return const Scaffold(body: Text('buy page'));
+        },
+      ),
       GoRoute(
         path: '/transactions',
         builder: (_, state) => TransactionsScreen(
@@ -66,10 +93,14 @@ Future<GoRouter> _pump(WidgetTester tester, {required String at}) async {
   await tester.pumpWidget(
     MultiBlocProvider(
       providers: [
+        RepositoryProvider<GeniusApi>.value(value: _SgnusApi()),
         BlocProvider<WalletDetailsCubit>.value(value: wallets),
         BlocProvider(create: (_) => TransactionsCubit(initial: [_plain()])),
         BlocProvider(
-          create: (_) => OrdersCubit(walletDetailsCubit: wallets, api: _api()),
+          create: (_) => OrdersCubit(
+            walletDetailsCubit: wallets,
+            api: _api(withOrders: withOrders),
+          ),
         ),
       ],
       child: MaterialApp.router(
@@ -78,7 +109,12 @@ Future<GoRouter> _pump(WidgetTester tester, {required String at}) async {
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  // The phone layout's background animates forever, so it cannot settle.
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump(const Duration(milliseconds: 300));
+  }
   return router;
 }
 
@@ -146,5 +182,48 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TransactionRow), findsNWidgets(2));
+  });
+
+  testWidgets('Buy orders is a chip in the bar, not in the More menu', (
+    tester,
+  ) async {
+    await _pump(tester, at: '/transactions', width: 600, settle: false);
+
+    expect(find.byTooltip('Buy orders'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('More filters'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Escrow'), findsOneWidget);
+    expect(find.text('Buy orders'), findsNothing);
+  });
+
+  testWidgets('with no orders, its empty state offers Buy GNUS', (
+    tester,
+  ) async {
+    Object? extra;
+    await _pump(
+      tester,
+      at: '/transactions?filter=purchase',
+      withOrders: false,
+      onBuy: (e) => extra = e,
+    );
+
+    expect(find.text('No buy orders yet'), findsOneWidget);
+    await tester.tap(find.text('Buy GNUS'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('buy page'), findsOneWidget);
+    expect(extra, {'origin': 'TRANSACTIONS'});
+  });
+
+  testWidgets('an SGNUS Selected wallet lists its orders too', (tester) async {
+    await _pump(
+      tester,
+      at: '/transactions?filter=purchase',
+      walletType: WalletType.sgnus,
+    );
+
+    expect(find.byType(TransactionRow), findsNWidgets(2));
+    await tester.pumpWidget(const SizedBox());
   });
 }

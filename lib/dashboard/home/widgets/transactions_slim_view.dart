@@ -59,7 +59,7 @@ enum Filters {
   jobs('Computing', TransactionBadgeKind.job),
   escrow('Escrow', TransactionBadgeKind.escrow),
   swap('Swapped', TransactionBadgeKind.swap),
-  purchase('Purchased', TransactionBadgeKind.purchase),
+  purchase('Buy orders', TransactionBadgeKind.purchase),
   pending('Pending', TransactionBadgeKind.pending),
   failed('Failed', TransactionBadgeKind.failed);
 
@@ -117,11 +117,12 @@ enum Filters {
     }.contains(tx.transactionStatus),
   };
 
-  /// The title row, in the locked order: Sent · Received · Mint · Jobs.
-  static const List<Filters> primary = [sent, received, mint, jobs];
+  /// The title row, in the locked order: Sent · Received · Mint · Jobs ·
+  /// Buy orders.
+  static const List<Filters> primary = [sent, received, mint, jobs, purchase];
 
   /// Types behind the `⋯` trigger.
-  static const List<Filters> overflowTypes = [escrow, swap, purchase];
+  static const List<Filters> overflowTypes = [escrow, swap];
 
   /// Statuses behind the `⋯` trigger, under their own header.
   static const List<Filters> overflowStatuses = [pending, failed];
@@ -260,9 +261,9 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
   /// ponytail: 148 is a fixed budget, so a long enough label beside a large
   /// enough count overflows rather than shrinking. Measured ceiling, in the
   /// widget-test fallback font (one em per character — the pessimistic case, at
-  /// 13.25px/char): the widest labels, `Purchased` and `Computing`, draw
-  /// **119.25px**, which leaves 28.75px — two digits, and a THREE-digit count
-  /// overflows by exactly 11px. Real Inter is roughly half that advance, so on
+  /// 13.25px/char): the widest label, `Buy orders`, draws **132.5px**, which
+  /// leaves 15.5px — one digit, and a TWO-digit count overflows by exactly
+  /// 11px. Real Inter is roughly half that advance, so on
   /// screen the ceiling is far higher; it has not been measured on a device and
   /// is not claimed here. Upgrade path if it is ever hit: widen this literal,
   /// which is the only value the rail's fit depends on. Do NOT reach for
@@ -623,6 +624,18 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
     /// transactions, but none match this filter" honest on a five-row panel.
     required int? limit,
   }) {
+    // Ahead of the two branches below, whatever else the wallet holds: an
+    // empty Buy orders list is where someone comes to buy, so it offers to.
+    if (selectedFilter == Filters.purchase && txs.isEmpty) {
+      return GWEmptyState(
+        icon: Icons.shopping_bag_outlined,
+        title: 'No buy orders yet',
+        message: 'GNUS you buy with a card shows up here.',
+        actionLabel: 'Buy GNUS',
+        onAction: () => context.push('/buy', extra: {'origin': 'TRANSACTIONS'}),
+      );
+    }
+
     // BRANCH 1 — this wallet has never transacted (within this scope). The one
     // branch allowed to be a dead end: there is nothing to show all of.
     if (scoped.isEmpty) {
