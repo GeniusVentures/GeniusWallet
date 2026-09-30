@@ -261,4 +261,56 @@ void main() {
       async.flushMicrotasks();
     });
   });
+
+  test('a tracked order survives a list fetch that started before it', () {
+    fakeAsync((async) {
+      final api = FakeBanxaApi(orders: [_order('c1', 'complete')]);
+      final cubit = _cubit(api);
+      async.flushMicrotasks();
+
+      final held = Completer<void>();
+      api.holdFetch = (_) => held;
+      unawaited(cubit.fetchOrders());
+      async.flushMicrotasks();
+      api.orders = [_order('c1', 'complete'), _order('n1', 'pendingPayment')];
+      unawaited(cubit.track('n1'));
+      async.flushMicrotasks();
+      held.complete();
+      async.flushMicrotasks();
+
+      expect(_ids(cubit), ['n1', 'c1']);
+
+      unawaited(cubit.close());
+      async.flushMicrotasks();
+    });
+  });
+
+  test('a list fetch started while track is in flight does not drop it', () {
+    fakeAsync((async) {
+      final api = FakeBanxaApi(orders: [_order('c1', 'complete')]);
+      final cubit = _cubit(api);
+      async.flushMicrotasks();
+
+      final heldRead = Completer<void>();
+      api.holdOrderById = heldRead;
+      unawaited(cubit.track('n1'));
+      async.flushMicrotasks();
+
+      final heldFetch = Completer<void>();
+      api.holdFetch = (_) => heldFetch;
+      unawaited(cubit.fetchOrders());
+      async.flushMicrotasks();
+
+      api.orders = [_order('c1', 'complete'), _order('n1', 'pendingPayment')];
+      heldRead.complete();
+      async.flushMicrotasks();
+      heldFetch.complete();
+      async.flushMicrotasks();
+
+      expect(_ids(cubit), contains('n1'));
+
+      unawaited(cubit.close());
+      async.flushMicrotasks();
+    });
+  });
 }

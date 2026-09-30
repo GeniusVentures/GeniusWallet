@@ -64,12 +64,17 @@ class OrdersCubit extends Cubit<OrdersState> {
   /// response for wallet A can never appear under wallet B.
   int _fetchGeneration = 0;
 
+  // Orders this session added by id. A list fetch that began before they
+  // existed must not erase them.
+  final Set<String> _trackedIds = {};
+
   void _onWalletState(WalletDetailsState _) {
     final key = _customerId;
     if (key == _customerKey) {
       return;
     }
     _customerKey = key;
+    _trackedIds.clear();
     emit(OrdersState.initial());
     _syncTimer();
     unawaited(fetchOrders());
@@ -147,7 +152,23 @@ class OrdersCubit extends Cubit<OrdersState> {
         return;
       }
 
-      emit(state.copyWith(status: OrdersStatus.success, orders: orders));
+      final fetchedIds = {for (final o in orders.orders) o.id};
+      final kept = [
+        for (final o in state.orders?.orders ?? const <Order>[])
+          if (_trackedIds.contains(o.id) && !fetchedIds.contains(o.id)) o,
+      ];
+      emit(
+        state.copyWith(
+          status: OrdersStatus.success,
+          orders: kept.isEmpty
+              ? orders
+              : OrdersResponse(
+                  orders: [...kept, ...orders.orders],
+                  total: orders.total + kept.length,
+                  pageTotal: orders.pageTotal,
+                ),
+        ),
+      );
       _syncTimer();
     } catch (e) {
       if (generation != _fetchGeneration || isClosed) {
@@ -203,7 +224,10 @@ class OrdersCubit extends Cubit<OrdersState> {
   }
 
   /// Reads [orderId], puts it first and keeps it current from now on.
-  Future<void> track(String orderId) => _readOrder(orderId, toFront: true);
+  Future<void> track(String orderId) {
+    _trackedIds.add(orderId);
+    return _readOrder(orderId, toFront: true);
+  }
 
   /// Reads [orderId] once, now.
   Future<void> refreshOrder(String orderId) => _readOrder(orderId);
@@ -232,7 +256,7 @@ class OrdersCubit extends Cubit<OrdersState> {
     bool toFront = false,
     int? generation,
   }) async {
-    final startedIn = generation ?? _fetchGeneration;
+    final startedFor = _customerKey;
     final Order fresh;
     try {
       fresh = await _api.getOrderById(orderId);
@@ -240,7 +264,12 @@ class OrdersCubit extends Cubit<OrdersState> {
       // The old row stays; the next tick tries again.
       return;
     }
-    if (startedIn != _fetchGeneration || isClosed) {
+    // A poll tick yields to any newer list fetch; a single read only to a
+    // wallet switch.
+    final superseded = generation != null
+        ? generation != _fetchGeneration
+        : startedFor != _customerKey;
+    if (superseded || isClosed) {
       return;
     }
     _merge(fresh, toFront: toFront);
