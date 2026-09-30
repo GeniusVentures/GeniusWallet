@@ -40,9 +40,6 @@ const _allowedColorLiteralCount = <String, int>{
   // checkout_qr.dart's QR quiet-zone backing — mode-invariant by design,
   // matching the shipped drawers-final convention (09-05-SUMMARY.md).
   'lib/banxa/checkout_qr.dart': 1,
-  // banxa_buy_screen.dart's boot overlay scrim — a temporary full-screen
-  // block, mode-invariant by construction (09-03-SUMMARY.md).
-  'lib/screens/banxa_buy_screen.dart': 1,
 };
 
 /// Paths that must never appear in the in-scope list — the four Phase-21

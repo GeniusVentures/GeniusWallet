@@ -91,10 +91,7 @@ final geniusWalletRouter = GoRouter(
 
         return BanxaBuyScreen(
           initialFiatCode: args['fiat'] as String?,
-          initialCryptoCode: args['crypto'] as String?,
-          initialPaymentMethodId: args['method'] as String?,
           initialAmount: args['amount'] as String?,
-          initialWalletAddress: args['wallet'] as String?,
         );
       },
     ),
@@ -281,45 +278,16 @@ final geniusWalletRouter = GoRouter(
         GoRoute(path: '/markets', builder: (_, _) => const MarketsScreen()),
         GoRoute(path: '/news', builder: (_, _) => const CryptoNewsScreen()),
         GoRoute(
-          // `/buy` is the buy form: the "Buy GNUS" CTAs open it, not a
-          // list of orders.
-          //
-          // Moved INSIDE the shell 2026-07-31 (walk item 1), matching
-          // `/token-info`'s own move on 2026-07-28 (sketch 071): it was the
-          // only entry point still pushed OUTSIDE the shell that both
-          // `wallet_information.dart` and `coins_screen.dart` reach with
-          // `context.push('/buy')` from a screen already inside the shell,
-          // so it pushes onto the shell's own nested Navigator exactly as
-          // `/token-info` does — the app's nav bar stays mounted rather than
-          // the screen replacing it with its own back-arrow AppBar.
+          // The "Buy GNUS" CTAs open the buy card. It moved inside the shell
+          // so the nav bar stays mounted, as `/token-info` does.
           path: '/buy',
           builder: (context, state) {
             final args = state.extra as Map<String, dynamic>? ?? {};
 
-            // Sensible defaults (walk item 3, 2026-07-31): a blank
-            // five-field form reads as broken, not as one waiting for
-            // input. USD/GNUS are always-available choices; the wallet
-            // address comes from the user's OWN selected wallet
-            // (`WalletDetailsCubit`), never a literal. Only applied when the
-            // caller didn't already pass one (`args['...']` still wins, so a
-            // deep link's own values are never clobbered). Payment method
-            // and amount stay blank on purpose: Banxa's available methods
-            // and limits depend on the fiat+crypto pair, so neither has a
-            // safe default.
-            final walletCubit = context.read<WalletDetailsCubit>();
-
             return BanxaBuyScreen(
-              initialFiatCode: args['fiat'] as String? ?? 'USD',
-              initialCryptoCode: args['crypto'] as String? ?? 'GNUS',
-              initialPaymentMethodId: args['method'] as String?,
+              initialFiatCode: args['fiat'] as String?,
               initialAmount: args['amount'] as String?,
-              initialWalletAddress:
-                  args['wallet'] as String? ??
-                  walletCubit.state.selectedWallet?.address,
-              // The back link's label (walk item 2, 2026-07-31). Each caller
-              // passes its own origin explicitly - never sniffed from the
-              // nav stack, which breaks silently on a deep link.
-              // `BanxaBuyScreen` falls back to 'BACK' when absent.
+              // Each caller names where it came from; a deep link has none.
               originLabel: args['origin'] as String?,
             );
           },

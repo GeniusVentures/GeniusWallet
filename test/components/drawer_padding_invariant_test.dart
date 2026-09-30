@@ -46,6 +46,8 @@ const _census = <String, _Inset>{
   // 21-02: the bridge's destination-network picker, the fifth GWSelectRow
   // call site.
   'lib/dashboard/bridge/bridge_screen.dart': _Inset.ownsScrollingViewport,
+  // The Buy card's currency picker: a search field over a scrolling list.
+  'lib/screens/banxa_buy_screen.dart': _Inset.ownsScrollingViewport,
   // 21-06 Task 1: the legacy BottomDrawer shell is deleted; the gallery's
   // demo is now a plain scrolling ListView, same shape as the five pickers
   // above.

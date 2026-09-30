@@ -12,8 +12,8 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 ///
 /// This is now the SINGLE place those five values live. Consumers include
 /// [GWTimeframeSegment] (`gw_timeframe_segment.dart`), `_TransactionFilterBar`
-/// (`transactions_slim_view.dart`), the Buy GNUS "Your orders" filter
-/// track (`banxa_buy_screen.dart`), the Compute panel's balance unit
+/// (`transactions_slim_view.dart`), the Buy GNUS amount chips and payment
+/// method track (`banxa_buy_screen.dart`), the Compute panel's balance unit
 /// track (`_UnitTrack` in `compute_panel.dart`) and the add-account method
 /// switch (`sdk_account_manager.dart`). Converging
 /// them onto one container is what turns CONVENTIONS.md's "they change
