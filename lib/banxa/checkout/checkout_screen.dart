@@ -745,14 +745,16 @@ class CheckoutResult extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                '+ $approx${order.cryptoAmount} ${order.crypto.id}',
-                textAlign: TextAlign.center,
-                style: GeniusWalletTypography.headlineLg.copyWith(
-                  color: gw.textPrimary,
+              if (!status.deliversNothing) ...[
+                Text(
+                  '+ $approx${order.cryptoAmount} ${order.crypto.id}',
+                  textAlign: TextAlign.center,
+                  style: GeniusWalletTypography.headlineLg.copyWith(
+                    color: gw.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: GeniusWalletConsts.space2),
+                const SizedBox(height: GeniusWalletConsts.space2),
+              ],
               Text(
                 notCharged
                     ? 'Not charged'

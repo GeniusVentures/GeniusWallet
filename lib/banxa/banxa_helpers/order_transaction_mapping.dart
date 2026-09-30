@@ -88,7 +88,11 @@ TxRowContent orderRowContent(Order order, {DateTime? now}) {
     _ => fiatPaid,
   };
 
-  final sign = banxa.isFinal ? '+ ' : '+ ≈';
+  final sign = banxa.deliversNothing
+      ? ''
+      : banxa.isFinal
+      ? '+ '
+      : '+ ≈';
 
   // The rail renders at most four rows and orders arrive one at a time on
   // different days, so it does NOT group by day the way the tab does - eight

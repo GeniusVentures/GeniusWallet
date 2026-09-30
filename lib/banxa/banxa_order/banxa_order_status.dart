@@ -82,6 +82,12 @@ enum BanxaOrderStatus {
     _ => false,
   };
 
+  /// Final without any GNUS reaching the wallet.
+  bool get deliversNothing => switch (this) {
+    declined || expired || cancelled || refunded => true,
+    _ => false,
+  };
+
   bool get isPaid => switch (this) {
     paymentReceived || inProgress || cryptoTransferred || complete => true,
     _ => false,

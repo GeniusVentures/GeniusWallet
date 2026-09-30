@@ -293,6 +293,7 @@ void main() {
     await pumpScreen(tester, status: 'declined');
 
     expect(find.text('Not charged'), findsOneWidget);
+    expect(find.textContaining('100 GNUS'), findsNothing);
     expect(find.text('Try again'), findsOneWidget);
     expect(find.text('Contact Banxa support'), findsOneWidget);
     expect(progress(tester).pay, CheckoutStepState.failed);

@@ -141,6 +141,14 @@ void main() {
       }
     });
 
+    test('an order that delivered nothing shows no incoming sign', () {
+      for (final wire in ['declined', 'expired', 'cancelled', 'refunded']) {
+        final content = orderRowContent(testOrder(status: wire), now: now);
+
+        expect(content.amount, '0.0025 BTC', reason: wire);
+      }
+    });
+
     test('a refunded order says how much came back', () {
       final content = orderRowContent(testOrder(status: 'refunded'), now: now);
 
