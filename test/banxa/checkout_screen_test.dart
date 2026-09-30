@@ -6,14 +6,42 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_screen.dart';
+import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher_platform_interface/link.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import 'fake_banxa_api.dart';
 import 'fixtures.dart';
 
 const _id = 'ord_0001';
 const _url = 'https://gnus.banxa-sandbox.com/checkout/abc';
+
+String? _launched;
+
+class _RecordingLauncher extends UrlLauncherPlatform {
+  @override
+  final LinkDelegate? linkDelegate = null;
+
+  @override
+  Future<bool> canLaunch(String url) async => true;
+
+  @override
+  Future<bool> launch(
+    String url, {
+    required bool useSafariVC,
+    required bool useWebView,
+    required bool enableJavaScript,
+    required bool enableDomStorage,
+    required bool universalLinksOnly,
+    required Map<String, String> headers,
+    String? webOnlyWindowName,
+  }) async {
+    _launched = url;
+    return true;
+  }
+}
 
 /// Counts how many times the host is created, not how often it is rebuilt.
 class _FakeHost extends StatefulWidget {
@@ -65,6 +93,8 @@ void main() {
   late List<MethodCall> platformCalls;
 
   setUp(() {
+    _launched = null;
+    UrlLauncherPlatform.instance = _RecordingLauncher();
     built = [];
     platformCalls = [];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -306,5 +336,127 @@ void main() {
       expect(find.text('Not charged'), findsOneWidget);
       expect(tester.takeException(), isNull);
     }
+  });
+
+  screenTest('the menu offers both, and Pay on another device shows the QR', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    await tester.tap(find.byTooltip('More'));
+    await tester.pump();
+
+    expect(find.text('Pay on another device'), findsOneWidget);
+    expect(find.text('Scan a code or copy the link'), findsOneWidget);
+    expect(find.text('Open in browser'), findsOneWidget);
+    expect(find.text('For Apple Pay or iDEAL'), findsOneWidget);
+
+    await tester.tap(find.text('Pay on another device'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CheckoutQrBody), findsOneWidget);
+    expect(
+      tester.widget<CheckoutQrBody>(find.byType(CheckoutQrBody)).checkoutUrl,
+      _url,
+    );
+  });
+
+  screenTest('Open in browser launches the checkout link', (tester) async {
+    await pumpScreen(tester);
+
+    await tester.tap(find.byTooltip('More'));
+    await tester.pump();
+    await tester.tap(find.text('Open in browser'));
+    await tester.pump();
+
+    expect(_launched, _url);
+  });
+
+  screenTest('a load error offers both ways out as well as Try again', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    await tester.tap(find.text('simulate error'));
+    await tester.pump();
+
+    expect(find.text('Try again'), findsOneWidget);
+    await tester.tap(find.text('Open in browser'));
+    await tester.pump();
+    expect(_launched, _url);
+
+    await tester.tap(find.text('Pay on another device'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CheckoutQrBody), findsOneWidget);
+  });
+
+  screenTest('a link that is not Banxa has no menu to hand it elsewhere', (
+    tester,
+  ) async {
+    await pumpScreen(tester, url: 'https://banxa.com.evil.io/pay');
+
+    expect(find.byTooltip('More'), findsNothing);
+  });
+
+  screenTest('closing while paying asks first; Keep paying stays', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Leave checkout?'), findsOneWidget);
+    expect(
+      find.text(
+        'Your order stays open for a while. You can finish it from Buy '
+        'orders in Transactions.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Keep paying'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Leave checkout?'), findsNothing);
+    expect(find.text('fake host'), findsOneWidget);
+    expect(find.text('buy stub'), findsNothing);
+  });
+
+  screenTest('Leave closes checkout', (tester) async {
+    await pumpScreen(tester);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Leave'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('buy stub'), findsOneWidget);
+  });
+
+  screenTest('the back gesture while paying asks instead of leaving', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Leave checkout?'), findsOneWidget);
+    expect(find.text('fake host'), findsOneWidget);
+  });
+
+  screenTest('once the result shows, closing does not ask', (tester) async {
+    await pumpScreen(tester);
+    api.statuses[_id] = ['paymentReceived'];
+    await tester.pump(const Duration(seconds: 15));
+    await tester.pump();
+    expect(find.text('View order'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Leave checkout?'), findsNothing);
+    expect(find.text('buy stub'), findsOneWidget);
   });
 }

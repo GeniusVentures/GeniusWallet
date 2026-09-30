@@ -5,9 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
-import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_screen.dart';
-import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
@@ -100,38 +98,6 @@ final geniusWalletRouter = GoRouter(
       // polled order status says what happened.
       path: '/banxa/callback',
       redirect: (_, _) => '/transactions?filter=purchase',
-    ),
-    GoRoute(
-      path: '/checkoutQR',
-      builder: (context, state) {
-        String? checkoutUrl;
-        String? orderId;
-
-        final extra = state.extra;
-        if (extra is Map) {
-          checkoutUrl = extra['checkoutUrl'] as String?;
-          orderId = extra['orderId'] as String?;
-        }
-        checkoutUrl ??= state.uri.queryParameters['checkoutUrl'];
-        orderId ??= state.uri.queryParameters['orderId'];
-
-        if (checkoutUrl == null || checkoutUrl.isEmpty) {
-          return const Scaffold(
-            body: Center(child: Text('Missing checkoutUrl')),
-          );
-        }
-
-        final api = BanxaApiService();
-
-        return BlocProvider(
-          create: (_) =>
-              PollingCubit(orderId: orderId ?? '', api: api)..startPolling(),
-          child: CheckoutQrPage(
-            checkoutUrl: checkoutUrl,
-            orderId: orderId ?? '',
-          ),
-        );
-      },
     ),
     GoRoute(
       path: '/kyc',

@@ -152,15 +152,6 @@ class BanxaApiService {
     return OrderResponse.fromJson(json.decode(response.body));
   }
 
-  Future<OrderStatus> getOrderStatus(String orderId) async {
-    final response = await _client.get(
-      Uri.parse('$_baseUrl/orders/$orderId'),
-      headers: _headers,
-    );
-    _check(response);
-    return OrderStatus.fromJson(json.decode(response.body));
-  }
-
   /// Fetches EVERY order in the window, not just the first page.
   ///
   /// The `limit` is per-request, and the response's own `total` says how many

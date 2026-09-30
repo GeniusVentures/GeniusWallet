@@ -61,6 +61,8 @@ const _census = <String, _Inset>{
   'lib/reown/approve_dapp_connection_drawer.dart': _Inset.shellInset,
   'lib/banxa/banxa_components/buy_success_drawer.dart': _Inset.shellInset,
   'lib/banxa/banxa_components/buy_cancelled_drawer.dart': _Inset.shellInset,
+  // The checkout's Pay on another device drawer; its body scrolls itself.
+  'lib/banxa/checkout/checkout_screen.dart': _Inset.shellInset,
   'lib/components/coins/view/coins_screen.dart': _Inset.shellInset,
   // Phase 31's send confirm drawer, same call shape as swap's approve
   // drawer -- no bodyPadding, so shellInset.

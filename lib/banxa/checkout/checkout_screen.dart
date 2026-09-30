@@ -13,8 +13,12 @@ import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_rules.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_webview.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_webview_windows.dart';
+import 'package:genius_wallet/banxa/checkout_qr.dart';
+import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
+import 'package:genius_wallet/components/overlays/gw_dialog.dart';
+import 'package:genius_wallet/components/overlays/gw_menu_item.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
@@ -129,6 +133,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
+  void _payOnAnotherDevice() {
+    unawaited(
+      ResponsiveDrawer.show<void>(
+        context: context,
+        title: 'Pay on another device',
+        child: CheckoutQrBody(checkoutUrl: widget.checkoutUrl),
+      ),
+    );
+  }
+
+  void _openInBrowserNow() {
+    final uri = Uri.tryParse(widget.checkoutUrl);
+    if (uri != null) {
+      unawaited(_openInBrowser(context, uri));
+    }
+  }
+
+  Future<void> _confirmLeave() async {
+    final leave = await GWDialog.show<bool>(
+      context: context,
+      title: 'Leave checkout?',
+      message:
+          'Your order stays open for a while. You can finish it from Buy '
+          'orders in Transactions.',
+      actions: [
+        GWDialogAction(
+          label: 'Leave',
+          onPressed: () => Navigator.of(context, rootNavigator: true).pop(true),
+        ),
+        GWDialogAction(
+          label: 'Keep paying',
+          variant: GWButtonVariant.gradient,
+          onPressed: () =>
+              Navigator.of(context, rootNavigator: true).pop(false),
+        ),
+      ],
+    );
+    if (leave == true && mounted) {
+      _close();
+    }
+  }
+
   void _close() {
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
@@ -153,6 +199,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final status = order?.banxaStatus;
 
         final Widget body;
+        var showingResult = false;
         if (!trusted) {
           body = _CheckoutNotice(
             title: "This checkout link isn't from Banxa",
@@ -169,6 +216,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         } else if (order != null &&
             status != null &&
             (status.isPaid || status.isFinal || (_returned && _readDone))) {
+          showingResult = true;
           body = CheckoutResult(order: order, onCompletePayment: _restartHost);
         } else if (_returned && !_readDone) {
           body = const _CheckoutNotice(
@@ -188,6 +236,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 label: 'Try again',
                 onPressed: _restartHost,
               ),
+              GWButton(
+                variant: GWButtonVariant.secondary,
+                expand: true,
+                label: 'Open in browser',
+                onPressed: _openInBrowserNow,
+              ),
+              GWButton(
+                variant: GWButtonVariant.ghost,
+                label: 'Pay on another device',
+                onPressed: _payOnAnotherDevice,
+              ),
             ],
           );
         } else {
@@ -202,25 +261,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           done: status?.isPaid ?? false,
         );
 
-        return Scaffold(
-          backgroundColor: gw.surfaceBase,
-          body: SafeArea(
-            child: Column(
-              children: [
-                _CheckoutHeader(
-                  isSandbox: widget.isSandbox,
-                  onClose: _close,
-                  progress: wide ? progress : null,
-                ),
-                if (!wide)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: GeniusWalletConsts.space4,
-                    ),
-                    child: progress,
+        final paying = trusted && !showingResult;
+
+        return PopScope(
+          canPop: !paying,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) {
+              unawaited(_confirmLeave());
+            }
+          },
+          child: Scaffold(
+            backgroundColor: gw.surfaceBase,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  _CheckoutHeader(
+                    isSandbox: widget.isSandbox,
+                    onClose: paying ? _confirmLeave : _close,
+                    onPayOnAnotherDevice: paying ? _payOnAnotherDevice : null,
+                    onOpenInBrowser: paying ? _openInBrowserNow : null,
+                    progress: wide ? progress : null,
                   ),
-                Expanded(child: body),
-              ],
+                  if (!wide)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: GeniusWalletConsts.space4,
+                      ),
+                      child: progress,
+                    ),
+                  Expanded(child: body),
+                ],
+              ),
             ),
           ),
         );
@@ -246,11 +317,15 @@ class _CheckoutHeader extends StatelessWidget {
   const _CheckoutHeader({
     required this.isSandbox,
     required this.onClose,
+    required this.onPayOnAnotherDevice,
+    required this.onOpenInBrowser,
     required this.progress,
   });
 
   final bool isSandbox;
   final VoidCallback onClose;
+  final VoidCallback? onPayOnAnotherDevice;
+  final VoidCallback? onOpenInBrowser;
   final Widget? progress;
 
   @override
@@ -324,9 +399,51 @@ class _CheckoutHeader extends StatelessWidget {
             ),
           ),
           ?progress,
+          if (onPayOnAnotherDevice != null && onOpenInBrowser != null)
+            _CheckoutMenu(
+              onPayOnAnotherDevice: onPayOnAnotherDevice!,
+              onOpenInBrowser: onOpenInBrowser!,
+            ),
           const SizedBox(width: GeniusWalletConsts.space4),
         ],
       ),
+    );
+  }
+}
+
+class _CheckoutMenu extends StatelessWidget {
+  const _CheckoutMenu({
+    required this.onPayOnAnotherDevice,
+    required this.onOpenInBrowser,
+  });
+
+  final VoidCallback onPayOnAnotherDevice;
+  final VoidCallback onOpenInBrowser;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    return MenuAnchor(
+      builder: (context, controller, child) => IconButton(
+        icon: Icon(Icons.more_vert, color: gw.textPrimary),
+        tooltip: 'More',
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
+      ),
+      menuChildren: [
+        GWMenuItem(
+          icon: Icons.qr_code_2,
+          label: 'Pay on another device',
+          subtitle: 'Scan a code or copy the link',
+          onPressed: onPayOnAnotherDevice,
+        ),
+        GWMenuItem(
+          icon: Icons.open_in_new,
+          label: 'Open in browser',
+          subtitle: 'For Apple Pay or iDEAL',
+          onPressed: onOpenInBrowser,
+        ),
+      ],
     );
   }
 }

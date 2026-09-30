@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:genius_wallet/components/gw_icon.dart';
+import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 
 /// One row-menu action shared by the wallet, SDK and child-operation menus.
@@ -13,6 +14,7 @@ class GWMenuItem extends StatelessWidget {
     required this.onPressed,
     this.lockedReason,
     this.color,
+    this.subtitle,
   });
 
   final IconData icon;
@@ -25,6 +27,9 @@ class GWMenuItem extends StatelessWidget {
 
   /// Overrides the enabled foreground colour, for a destructive item.
   final Color? color;
+
+  /// A second, smaller line under the label.
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +51,19 @@ class GWMenuItem extends StatelessWidget {
         disabledForegroundColor: fg,
       ),
       onPressed: onPressed,
-      child: Text(label),
+      child: subtitle == null
+          ? Text(label)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(label),
+                Text(
+                  subtitle!,
+                  style: GeniusWalletTypography.labelMd.copyWith(color: fg),
+                ),
+              ],
+            ),
     );
     if (enabled || lockedReason == null) {
       return item;

@@ -2,184 +2,78 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:genius_wallet/banxa/banxa_order/polling_order_cubit.dart';
-import 'package:genius_wallet/banxa/banxa_order/polling_order_state.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
-import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
-import 'package:genius_wallet/tokens/widgets/sketch_icons.dart';
-import 'package:genius_wallet/utils/breakpoints.dart';
-import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class CheckoutQrPage extends StatelessWidget {
-  final String checkoutUrl;
-  final String orderId;
+/// Drawer body that hands the checkout to another device. It has no poller of
+/// its own; the screen behind the drawer moves on when the order is paid.
+class CheckoutQrBody extends StatelessWidget {
+  const CheckoutQrBody({super.key, required this.checkoutUrl});
 
-  const CheckoutQrPage({
-    super.key,
-    required this.checkoutUrl,
-    required this.orderId,
-  });
+  final String checkoutUrl;
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final qrSize = math.max(
       160.0,
-      math.min(320.0, MediaQuery.sizeOf(context).width - 64),
+      math.min(240.0, MediaQuery.sizeOf(context).width - 120),
     );
 
-    return BlocBuilder<PollingCubit, PollingState>(
-      builder: (context, state) {
-        final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-        final cubit = context.read<PollingCubit>();
-        if (state.order != null &&
-            (state.order!.status.toLowerCase() == 'completed' ||
-                state.order!.status.toLowerCase() == 'inprogress') &&
-            !cubit.hasNavigated) {
-          cubit.hasNavigated = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.go('/transactions?filter=purchase');
-          });
-        }
-
-        if (state.order != null &&
-            (state.order!.status.toLowerCase() == 'failed' ||
-                state.order!.status.toLowerCase() == 'cancelled') &&
-            !cubit.hasNavigated) {
-          cubit.hasNavigated = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            showToast(context, 'Order ${state.order!.status}');
-          });
-        }
-
-        return Scaffold(
-          // Always reached via a push from the checkout options sheet, so
-          // there is always a back target.
-          appBar: AppBar(
-            toolbarHeight: 48,
-            backgroundColor: gw.surfaceSunken,
-            elevation: 0,
-            titleSpacing: 0,
-            automaticallyImplyLeading: false,
-            centerTitle: false,
-            title: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal:
-                    MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium
-                    ? GeniusWalletConsts.space10
-                    : GeniusWalletConsts.space8,
-              ),
-              child: Row(
-                children: [
-                  InkWell(
-                    onTap: () => Navigator.of(context).maybePop(),
-                    borderRadius: BorderRadius.circular(
-                      GeniusWalletConsts.radiusSm,
-                    ),
-                    child: SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: Center(
-                        child: SketchIcon(
-                          SketchIcons.back,
-                          size: 18,
-                          color: gw.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: GeniusWalletConsts.space6),
-                  Text(
-                    'Scan to Continue',
-                    style: GeniusWalletTypography.titleMd.copyWith(
-                      color: gw.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            "Scan with your phone's camera to open this checkout there. "
+            'This screen updates when Banxa has your payment.',
+            textAlign: TextAlign.center,
+            style: GeniusWalletTypography.bodyMd.copyWith(
+              color: gw.textSecondary,
+            ),
+          ),
+          const SizedBox(height: GeniusWalletConsts.space8),
+          Center(
+            child: Container(
+              // A scannable QR needs a light quiet zone in both appearances,
+              // so this backing must not follow the theme.
+              color: Colors.white,
+              padding: const EdgeInsets.all(GeniusWalletConsts.space4),
+              child: QrImageView(
+                data: checkoutUrl,
+                version: QrVersions.auto,
+                size: qrSize,
               ),
             ),
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(GeniusWalletConsts.space12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Scan this QR on another device to complete checkout.',
-                  textAlign: TextAlign.center,
-                  style: GeniusWalletTypography.bodyMd.copyWith(
-                    color: gw.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: GeniusWalletConsts.space8),
-                Center(
-                  child: Container(
-                    // The QR's white backing is the ONE literal that must
-                    // NOT change — a scannable QR needs a light quiet zone
-                    // regardless of theme (drawers-final/README.md's shipped
-                    // convention). Do not make this appearance-aware.
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(GeniusWalletConsts.space4),
-                    child: QrImageView(
-                      data: checkoutUrl,
-                      version: QrVersions.auto,
-                      size: qrSize,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: GeniusWalletConsts.space8),
-                SelectableText(
-                  checkoutUrl.length > 50
-                      ? '${checkoutUrl.substring(0, 50)}...'
-                      : checkoutUrl,
-                  textAlign: TextAlign.center,
-                  style: GeniusWalletTypography.bodySm.copyWith(
-                    color: gw.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: GeniusWalletConsts.space6),
-                GWButton(
-                  variant: GWButtonVariant.gradient,
-                  leading: const Icon(Icons.content_copy),
-                  label: 'Copy Link',
-                  expand: true,
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: checkoutUrl));
-                    if (context.mounted) {
-                      showToast(context, 'Link copied');
-                    }
-                  },
-                ),
-                const SizedBox(height: GeniusWalletConsts.space12),
-                Center(
-                  child: Column(
-                    children: [
-                      if (state.status == PollingStatus.loading)
-                        const Loading(),
-                      const SizedBox(height: GeniusWalletConsts.space6),
-                      Text(
-                        state.message.isNotEmpty
-                            ? state.message
-                            : 'Waiting for payment...',
-                        textAlign: TextAlign.center,
-                        style: GeniusWalletTypography.bodyLg.copyWith(
-                          color: gw.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+          const SizedBox(height: GeniusWalletConsts.space6),
+          SelectableText(
+            checkoutUrl,
+            textAlign: TextAlign.center,
+            style: GeniusWalletTypography.bodySm.copyWith(
+              color: gw.textSecondary,
+              fontFamily: GeniusWalletTypography.monoFamily,
             ),
           ),
-        );
-      },
+          const SizedBox(height: GeniusWalletConsts.space6),
+          GWButton(
+            variant: GWButtonVariant.secondary,
+            expand: true,
+            leading: const Icon(Icons.content_copy),
+            label: 'Copy link',
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: checkoutUrl));
+              if (context.mounted) {
+                showToast(context, 'Link copied');
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 }

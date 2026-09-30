@@ -170,7 +170,6 @@ void main() {
         service.getFiatCurrencies,
         service.getCryptoCurrencies,
         () => service.getOrderById('o1'),
-        () => service.getOrderStatus('o1'),
         () => _createOrder(service),
         () => service.getQuote(
           paymentMethodId: 'card',
