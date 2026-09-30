@@ -113,7 +113,7 @@ class DevBanxaFixtures {
       // success bucket
       order(
         id: 'dev-completed',
-        status: 'completed',
+        status: 'complete',
         fiatAmount: '250.00',
         cryptoAmount: '0.0031',
         cryptoId: 'ETH',

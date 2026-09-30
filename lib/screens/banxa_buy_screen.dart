@@ -81,9 +81,7 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
   /// Local UI state for the orders rail's count-chip filter (Task 3). Kept
   /// here rather than in `OrdersCubit` so tapping a chip on THIS screen
   /// cannot narrow what `OrdersPage` shows when the user next opens it — the
-  /// two screens share one `OrdersCubit` instance (`main.dart`), and
-  /// `OrdersCubit.applyFilters` filters by an exact status STRING, not a
-  /// tone bucket, so it cannot express this filter anyway.
+  /// two screens share one `OrdersCubit` instance (`main.dart`).
   OrderStatusTone? _selectedOrdersTone;
 
   @override

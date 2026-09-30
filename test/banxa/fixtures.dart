@@ -18,7 +18,7 @@ import 'fake_banxa_api.dart';
 /// Dates are fixed `DateTime.utc(...)` values, never the current wall-clock
 /// time, so date-formatted assertions never drift between runs.
 Order testOrder({
-  String status = 'completed',
+  String status = 'complete',
   String id = 'ord_0001',
   String fiat = 'USD',
   String fiatAmount = '100.00',
@@ -92,7 +92,6 @@ OrdersState seededOrdersState(List<Order> orders) =>
         total: orders.length,
         pageTotal: orders.length,
       ),
-      filteredOrders: orders,
     );
 
 /// A `MakeOrderState` for the Buy GNUS FORM - selected currencies, an optional

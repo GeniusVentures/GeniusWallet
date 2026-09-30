@@ -93,7 +93,8 @@ void main() {
       async.elapse(_tick);
       expect(cubit.state.justFinished.map((o) => o.id), ['p1']);
 
-      cubit.applyFilters();
+      unawaited(cubit.track('c1'));
+      async.flushMicrotasks();
       expect(cubit.state.justFinished, isEmpty);
       expect(
         seen.where((s) => s.justFinished.isNotEmpty).length,

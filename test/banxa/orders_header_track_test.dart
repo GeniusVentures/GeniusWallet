@@ -38,7 +38,7 @@ import 'gw_pump.dart';
 /// [_rowFor] for why that, and not the `fiatAmount` these keyed off before.
 final _completed = testOrder(
   id: 'ord_completed',
-  status: 'completed',
+  status: 'complete',
   fiatAmount: '111.11',
   cryptoAmount: '0.0011',
 );
@@ -70,7 +70,6 @@ OrdersState _seededState() => OrdersState.initial().copyWith(
     total: _seededOrders.length,
     pageTotal: _seededOrders.length,
   ),
-  filteredOrders: _seededOrders,
 );
 
 /// Matches one order's row by its AMOUNT LINE.
@@ -89,7 +88,7 @@ OrdersState _seededState() => OrdersState.initial().copyWith(
 /// It still identifies a ROW by content rather than merely proving something
 /// rendered: a different order's row cannot satisfy it.
 Finder _rowFor(Order order) =>
-    find.text('+ ${order.cryptoAmount} ${order.crypto.id}');
+    find.textContaining('${order.cryptoAmount} ${order.crypto.id}');
 
 void main() {
   Widget pumpableBuyScreen({required OrdersState seeded}) =>

@@ -41,7 +41,7 @@ void main() {
     count,
     (i) => testOrder(
       id: 'ord_${i.toString().padLeft(2, '0')}',
-      status: 'completed',
+      status: 'complete',
       fiatAmount: '${100 + i}.00',
       cryptoAmount: '0.0${101 + i}',
       // One day apart, so the newest-first sort is total and deterministic.

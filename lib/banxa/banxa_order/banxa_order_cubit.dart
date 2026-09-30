@@ -95,23 +95,11 @@ class OrdersCubit extends Cubit<OrdersState> {
         switch (override) {
           case DevBanxaOrders.seeded:
             final seeded = DevBanxaFixtures.seededOrders();
-            emit(
-              state.copyWith(
-                status: OrdersStatus.success,
-                orders: seeded,
-                filteredOrders: seeded.orders,
-              ),
-            );
+            emit(state.copyWith(status: OrdersStatus.success, orders: seeded));
             return;
           case DevBanxaOrders.empty:
             final none = OrdersResponse(orders: [], total: 0, pageTotal: 0);
-            emit(
-              state.copyWith(
-                status: OrdersStatus.success,
-                orders: none,
-                filteredOrders: const [],
-              ),
-            );
+            emit(state.copyWith(status: OrdersStatus.success, orders: none));
             return;
           case DevBanxaOrders.error:
             emit(
@@ -133,7 +121,6 @@ class OrdersCubit extends Cubit<OrdersState> {
         state.copyWith(
           status: OrdersStatus.success,
           orders: OrdersResponse(orders: const [], total: 0, pageTotal: 0),
-          filteredOrders: const [],
         ),
       );
       return;
@@ -153,13 +140,7 @@ class OrdersCubit extends Cubit<OrdersState> {
         return;
       }
 
-      emit(
-        state.copyWith(
-          status: OrdersStatus.success,
-          orders: orders,
-          filteredOrders: orders.orders,
-        ),
-      );
+      emit(state.copyWith(status: OrdersStatus.success, orders: orders));
       _syncTimer();
     } catch (e) {
       if (generation != _fetchGeneration || isClosed) {
@@ -291,31 +272,8 @@ class OrdersCubit extends Cubit<OrdersState> {
               : state.orders!.total,
           pageTotal: state.orders?.pageTotal ?? 1,
         ),
-        filteredOrders: put(state.filteredOrders ?? current),
         justFinished: turnedFinal ? [fresh] : const [],
       ),
     );
-  }
-
-  void applyFilters({String? status, DateTime? startDate, DateTime? endDate}) {
-    if (state.orders == null) {
-      return;
-    }
-
-    List<Order> filtered = state.orders!.orders;
-
-    if (status != null && status.isNotEmpty) {
-      filtered = filtered.where((o) => o.status == status).toList();
-    }
-
-    if (startDate != null) {
-      filtered = filtered.where((o) => o.createdAt.isAfter(startDate)).toList();
-    }
-
-    if (endDate != null) {
-      filtered = filtered.where((o) => o.createdAt.isBefore(endDate)).toList();
-    }
-
-    emit(state.copyWith(filteredOrders: filtered));
   }
 }

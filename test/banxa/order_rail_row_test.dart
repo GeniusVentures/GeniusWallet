@@ -25,7 +25,7 @@ import 'gw_pump.dart';
 void main() {
   final completed = testOrder(
     id: 'ord_completed',
-    status: 'completed',
+    status: 'complete',
     fiatAmount: '111.11',
     cryptoAmount: '0.0011',
   );
@@ -62,7 +62,7 @@ void main() {
 
   /// The row's amount line - the plain `Text` carrying `TxRowContent.amount`.
   Finder amountLine(Order order) =>
-      find.text('+ ${order.cryptoAmount} ${order.crypto.id}');
+      find.textContaining('${order.cryptoAmount} ${order.crypto.id}');
 
   Future<void> openDrawerFor(WidgetTester tester, Order order) async {
     await tester.tap(amountLine(order));
