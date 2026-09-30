@@ -254,21 +254,17 @@ Future<void> showSetPayoutAddressDialog(BuildContext context) async {
     return;
   }
 
-  bloc.add(SetSDKPayoutAddress(payoutAddress));
-
-  // AWAIT the next state. The old code read `state.setPayoutAddressResult`
-  // synchronously on the line after `add(...)`, and a bloc processes events
-  // asynchronously -- so it reported the PREVIOUS attempt's result, or
-  // "Failed to set payout address: null" on the first call after a start.
-  final result = await bloc.stream
-      .map((s) => s.setPayoutAddressResult)
-      .firstWhere((_) => true, orElse: () => null)
-      .timeout(const Duration(seconds: 5), onTimeout: () => null);
+  final request = SetSDKPayoutAddress(payoutAddress);
+  bloc.add(request);
+  // This request's own result: any state emission, or a repeat of the last
+  // result, says nothing about this attempt.
+  final ok = await request.result.future
+      .then((r) => r == GeniusNodeReturnValue.GENIUS_NODE_RET_OK)
+      .timeout(const Duration(seconds: 5), onTimeout: () => false);
 
   if (!navigator.context.mounted) {
     return;
   }
-  final ok = result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   // `navigator.context` is the ROOT navigator's and outlives the popped
   // drawer, so the guard above is the correct one -- the analyzer
   // cannot see that and reads it as unrelated to this context.

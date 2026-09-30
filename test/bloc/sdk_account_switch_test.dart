@@ -1,6 +1,8 @@
 // A node that is still starting answers "which account?" with a placeholder
 // for minutes. The app must treat that as no account, keep the switch
 // pending, and only name an account once the node really reports one.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,6 +60,21 @@ class _NodeApi implements GeniusApi {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Holds each native switch open until the test completes it.
+class _GatedNodeApi extends _NodeApi {
+  final pending = <String, Completer<GeniusNodeReturnValue>>{};
+
+  @override
+  Future<GeniusNodeReturnValue> selectGeniusAccountAsync(String address) {
+    final done = Completer<GeniusNodeReturnValue>();
+    pending[address] = done;
+    return done.future.then((r) {
+      reported = address;
+      return r;
+    });
+  }
 }
 
 class _SeededAppBloc extends AppBloc {
@@ -121,6 +138,30 @@ void main() {
     api.reported = _other;
     await tester.pump(const Duration(seconds: 3));
 
+    expect(bloc.state.selectedSDKAccount, _other);
+    expect(bloc.state.switchingSDKAccount, isNull);
+
+    await tester.runAsync(() => bloc.close());
+  });
+
+  testWidgets('a second switch starts only after the first returns, so the '
+      'node ends on the last account requested', (tester) async {
+    final api = _GatedNodeApi();
+    final bloc = _SeededAppBloc(api);
+
+    bloc.add(SelectSDKAccount(_target));
+    bloc.add(SelectSDKAccount(_other));
+    await tester.pump();
+    expect(api.pending.keys, [_target]);
+
+    api.pending[_target]!.complete(GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+    await tester.pump();
+    await tester.pump();
+    expect(bloc.state.switchingSDKAccount, _other);
+
+    api.pending[_other]!.complete(GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+    await tester.pump();
+    await tester.pump();
     expect(bloc.state.selectedSDKAccount, _other);
     expect(bloc.state.switchingSDKAccount, isNull);
 

@@ -50,6 +50,27 @@ class _OverlapStorage extends Fake implements FlutterSecureStorage {
   }) => _slow(() => values[key]);
 
   @override
+  Future<Map<String, String>> readAll({
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => _slow(() => Map.of(values));
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => _slow(() => values.remove(key));
+
+  @override
   Future<void> write({
     required String key,
     required String? value,
@@ -87,6 +108,27 @@ void main() {
       unorderedEquals(['0xa', '0xb']),
     );
   });
+
+  test(
+    'a link saved while a wallet delete freezes link names survives',
+    () async {
+      const addr = '0xFEED000000000000000000000000000000FEED';
+      final slow = _OverlapStorage();
+      final store = await LocalWalletStorage.create(secureStorage: slow);
+      slow.values[store.createWalletKey(addr)] = '{"name":"Renamed"}';
+      await store.saveSDKAccountLink('0xSDK', addr, 'Old name');
+
+      await Future.wait([
+        store.deleteWallet(addr, watchOnly: false),
+        store.saveSDKAccountLink('0xB', '0x2', 'Two'),
+      ]);
+
+      expect(
+        (await store.getSDKAccountLinks()).keys,
+        unorderedEquals(['0xsdk', '0xb']),
+      );
+    },
+  );
 
   test('Android options keep v9 wallets readable after the v10 upgrade', () {
     final options = LocalWalletStorage.androidOptions.toMap();

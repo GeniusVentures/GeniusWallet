@@ -2,6 +2,10 @@ part of 'app_bloc.dart';
 
 abstract class AppEvent {}
 
+/// A delete that can remove a key wallet. All of them share one queue, so
+/// each last-wallet guard sees the previous delete's result.
+sealed class WalletRemoval extends AppEvent {}
+
 class InitializeSDK extends AppEvent {}
 
 class LoadWallets extends AppEvent {}
@@ -27,7 +31,7 @@ class RetryProcessingStatus extends AppEvent {}
 /// existing shape.
 class InitializationStatusTicked extends AppEvent {}
 
-class DeleteWallet extends AppEvent {
+class DeleteWallet extends WalletRemoval {
   final String address;
 
   /// A key wallet and a watch-only row can share [address]; this picks one.
@@ -58,7 +62,7 @@ class SelectSDKAccount extends AppEvent {
 /// Re-reads the node's selected account while a switch is still landing.
 class SDKSwitchPolled extends AppEvent {}
 
-class DeleteSDKAccount extends AppEvent {
+class DeleteSDKAccount extends WalletRemoval {
   final String publicAddress;
 
   DeleteSDKAccount(this.publicAddress);
@@ -72,6 +76,9 @@ class SettlePendingSends extends AppEvent {}
 
 class SetSDKPayoutAddress extends AppEvent {
   final String publicAddress;
+
+  /// Completes with this request's own SDK result.
+  final result = Completer<GeniusNodeReturnValue>();
 
   SetSDKPayoutAddress(this.publicAddress);
 }

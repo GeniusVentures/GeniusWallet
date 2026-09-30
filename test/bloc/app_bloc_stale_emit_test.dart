@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/account.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
@@ -44,6 +45,10 @@ class _SlowLinksApi implements GeniusApi {
   String? getStartAccountAddress() => null;
 
   @override
+  GeniusNodeReturnValue setPayoutAddress(String _) =>
+      GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -76,4 +81,31 @@ void main() {
       expect(bloc.state.accountStatus, AppStatus.loaded);
     },
   );
+
+  test('a payout request that repeats the last result still gets its own '
+      'answer', () async {
+    final api = _SlowLinksApi();
+    final bloc = AppBloc(
+      api: api,
+      transactionsCubit: TransactionsCubit(),
+      walletDetailsCubit: WalletDetailsCubit(
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      ),
+      networkProvider: NetworkProvider(),
+    );
+    addTearDown(bloc.close);
+
+    final first = SetSDKPayoutAddress('0x1');
+    final second = SetSDKPayoutAddress('0x2');
+    bloc
+      ..add(first)
+      ..add(second);
+
+    expect(await first.result.future, GeniusNodeReturnValue.GENIUS_NODE_RET_OK);
+    expect(
+      await second.result.future.timeout(const Duration(seconds: 1)),
+      GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+    );
+  });
 }

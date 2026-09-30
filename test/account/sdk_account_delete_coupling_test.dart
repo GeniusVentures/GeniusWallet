@@ -57,6 +57,7 @@ class _Api implements GeniusApi {
   final deletedAccounts = <String>[];
   final removedLinks = <String>[];
   String? deletedWallet;
+  final deletedWallets = <String>[];
   bool? deletedWatchOnly;
 
   @override
@@ -92,6 +93,7 @@ class _Api implements GeniusApi {
   @override
   Future<void> deleteWallet(String address, {required bool watchOnly}) async {
     deletedWallet = address;
+    deletedWallets.add(address);
     deletedWatchOnly = watchOnly;
   }
 
@@ -344,6 +346,30 @@ void main() {
       expect(api.deletedWallet, _walletAddr);
     },
   );
+
+  test('a wallet delete and a linked account delete sent together never '
+      'remove both key wallets', () async {
+    final api = _Api();
+    final details = WalletDetailsCubit(
+      initialState: WalletDetailsState(selectedWallet: other),
+      geniusApi: api,
+      networkTokensProvider: NetworkTokensProvider(),
+    );
+    final bloc = _SeededAppBloc(
+      api: api,
+      walletDetailsCubit: details,
+      wallets: [wallet, other],
+      sdkAccountLinks: _link,
+    );
+
+    bloc.add(DeleteWallet(other.address, watchOnly: false));
+    bloc.add(DeleteSDKAccount(_sdkAddr));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await bloc.close();
+    await details.close();
+
+    expect(api.deletedWallets, [other.address]);
+  });
 
   testWidgets(
     'the delete dialog names the linked wallet, and refuses while it is '

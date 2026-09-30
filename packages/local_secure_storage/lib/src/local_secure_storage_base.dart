@@ -254,37 +254,35 @@ class LocalWalletStorage {
   /// every link pointing at it, so a deleted wallet's SDK account keeps
   /// reading its last known name. A parse failure leaves link names as they
   /// were.
-  Future<void> _freezeLinkNames(
-    String walletAddress,
-    String storedKeyJson,
-  ) async {
-    try {
-      final name =
-          Map<String, dynamic>.from(jsonDecode(storedKeyJson))['name']
-              as String?;
-      if (name == null) {
-        return;
-      }
-      final lowered = walletAddress.toLowerCase();
-      final links = await getSDKAccountLinks();
-      var changed = false;
-      for (final sdkAddress in links.keys.toList()) {
-        final link = links[sdkAddress]!;
-        if (link.walletAddress == lowered && link.walletName != name) {
-          links[sdkAddress] = (
-            walletAddress: link.walletAddress,
-            walletName: name,
-          );
-          changed = true;
+  Future<void> _freezeLinkNames(String walletAddress, String storedKeyJson) =>
+      _linksLock.run(() async {
+        try {
+          final name =
+              Map<String, dynamic>.from(jsonDecode(storedKeyJson))['name']
+                  as String?;
+          if (name == null) {
+            return;
+          }
+          final lowered = walletAddress.toLowerCase();
+          final links = await getSDKAccountLinks();
+          var changed = false;
+          for (final sdkAddress in links.keys.toList()) {
+            final link = links[sdkAddress]!;
+            if (link.walletAddress == lowered && link.walletName != name) {
+              links[sdkAddress] = (
+                walletAddress: link.walletAddress,
+                walletName: name,
+              );
+              changed = true;
+            }
+          }
+          if (changed) {
+            await _writeSDKAccountLinks(links);
+          }
+        } catch (_) {
+          // Leaves link names as they were.
         }
-      }
-      if (changed) {
-        await _writeSDKAccountLinks(links);
-      }
-    } catch (_) {
-      // Leaves link names as they were.
-    }
-  }
+      });
 
   Future<StoredKeyWallet?> getWallet(String walletAddress) async {
     Map<String, String> keys = await _secureStorage.readAll();
