@@ -34,7 +34,9 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
     this.typingDelay = const Duration(milliseconds: 600),
     bool Function()? readDisclaimerAccepted,
     Future<void> Function()? saveDisclaimerAccepted,
+    DateTime Function() now = DateTime.now,
   }) : _api = api,
+       _now = now,
        _readDisclaimer = readDisclaimerAccepted ?? readBanxaDisclaimerAccepted,
        _saveDisclaimer =
            saveDisclaimerAccepted ??
@@ -45,6 +47,7 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
       "Couldn't start your order. Try again.";
 
   final BanxaApiService _api;
+  final DateTime Function() _now;
   final Duration quoteInterval;
   final Duration typingDelay;
   final bool Function() _readDisclaimer;
@@ -163,9 +166,8 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
     _paused = true;
     _cancelTimers();
     _generation++;
-    if (state.quoting) {
-      emit(state.copyWith(quoting: false));
-    }
+    // The numbers on screen are old until resume() brings a new answer.
+    emit(state.copyWith(quoting: false, quoteStale: state.quote != null));
   }
 
   void resume() {
@@ -201,6 +203,14 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
         method == null ||
         gnus == null ||
         chain == null) {
+      return;
+    }
+    final fetchedAt = state.quoteFetchedAt;
+    if (state.quoteStale ||
+        fetchedAt == null ||
+        _now().difference(fetchedAt) > quoteInterval * 2) {
+      emit(state.copyWith(quoteStale: true));
+      unawaited(refreshQuote());
       return;
     }
     _cancelTimers();
@@ -317,7 +327,7 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
           quote: quote,
           quoting: false,
           quoteStale: false,
-          quoteFetchedAt: DateTime.now(),
+          quoteFetchedAt: _now(),
         ),
       );
     } catch (_) {

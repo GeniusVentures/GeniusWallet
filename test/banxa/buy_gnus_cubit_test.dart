@@ -82,6 +82,7 @@ void _run(
         fake,
         readDisclaimerAccepted: () => disclaimer,
         saveDisclaimerAccepted: save ?? () async {},
+        now: async.getClock(DateTime.utc(2026)).now,
       );
       if (load) {
         unawaited(cubit.load(localeName: 'en_US'));
@@ -303,6 +304,31 @@ void main() {
       final sent = api.createRequests.single;
       expect(sent['walletAddress'], _b);
       expect(sent['externalCustomerId'], 'gw-${_b.toLowerCase()}');
+    });
+
+    _run('a paused quote is stale and never becomes an order', (
+      async,
+      cubit,
+      api,
+    ) {
+      cubit.pause();
+      expect(cubit.state.quoteStale, isTrue);
+      unawaited(cubit.createOrder(testWallet(_a)));
+      async.flushMicrotasks();
+      expect(api.createRequests, isEmpty);
+    });
+
+    _run('a quote older than two refresh intervals is refreshed, not used', (
+      async,
+      cubit,
+      api,
+    ) {
+      api.quoteHandler = () => Completer<Quote>().future;
+      async.elapse(const Duration(seconds: 25));
+      unawaited(cubit.createOrder(testWallet(_a)));
+      async.flushMicrotasks();
+      expect(api.createRequests, isEmpty);
+      expect(cubit.state.quoteStale, isTrue);
     });
 
     _run('a watch-only wallet or a non-EVM address sends nothing', (
