@@ -160,6 +160,13 @@ void main() {
     expect(find.byType(TransactionRow), findsNWidgets(2));
   });
 
+  testWidgets('an unpaid order row uses the short status word', (tester) async {
+    await _pump(tester, at: '/transactions?filter=purchase', open: 1);
+
+    expect(find.text('Unpaid'), findsOneWidget);
+    expect(find.text('Pending Payment'), findsNothing);
+  });
+
   testWidgets('without the filter, orders sit beside the other rows', (
     tester,
   ) async {

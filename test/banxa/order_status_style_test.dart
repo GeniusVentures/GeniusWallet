@@ -7,27 +7,47 @@ import 'gw_pump.dart';
 
 void main() {
   group('orderStatusTone', () {
-    test('completed / COMPLETED -> success', () {
-      expect(orderStatusTone('completed'), OrderStatusTone.success);
-      expect(orderStatusTone('COMPLETED'), OrderStatusTone.success);
+    test('only complete is success, in any case', () {
+      expect(orderStatusTone('complete'), OrderStatusTone.success);
+      expect(orderStatusTone('COMPLETE'), OrderStatusTone.success);
     });
 
-    test('pendingpayment / pending / inprogress -> warning', () {
-      expect(orderStatusTone('pendingpayment'), OrderStatusTone.warning);
-      expect(orderStatusTone('pending'), OrderStatusTone.warning);
-      expect(orderStatusTone('inprogress'), OrderStatusTone.warning);
+    test('every in-flight status is warning', () {
+      for (final status in [
+        'pendingPayment',
+        'waitingPayment',
+        'extraVerification',
+        'paymentReceived',
+        'inProgress',
+        'cryptoTransferred',
+        'coinTransferred',
+      ]) {
+        expect(
+          orderStatusTone(status),
+          OrderStatusTone.warning,
+          reason: status,
+        );
+      }
     });
 
-    test('declined / cancelled / expired / failed -> error', () {
+    test('declined is error', () {
       expect(orderStatusTone('declined'), OrderStatusTone.error);
-      expect(orderStatusTone('cancelled'), OrderStatusTone.error);
-      expect(orderStatusTone('expired'), OrderStatusTone.error);
-      expect(orderStatusTone('failed'), OrderStatusTone.error);
     });
 
-    test('unknown / empty -> neutral, never a grey literal fallback', () {
-      expect(orderStatusTone('wat'), OrderStatusTone.neutral);
-      expect(orderStatusTone(''), OrderStatusTone.neutral);
+    test('expired, cancelled and refunded are neutral', () {
+      expect(orderStatusTone('expired'), OrderStatusTone.neutral);
+      expect(orderStatusTone('cancelled'), OrderStatusTone.neutral);
+      expect(orderStatusTone('refunded'), OrderStatusTone.neutral);
+    });
+
+    test('unknown, empty and the legacy strings are neutral', () {
+      for (final status in ['wat', '', 'completed', 'pending', 'failed']) {
+        expect(
+          orderStatusTone(status),
+          OrderStatusTone.neutral,
+          reason: status,
+        );
+      }
     });
   });
 
@@ -64,25 +84,16 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        gwHost(const OrderStatusPill(status: 'completed'), gw: GWColors.dark()),
+        gwHost(const OrderStatusPill(status: 'complete'), gw: GWColors.dark()),
       );
       await tester.pumpAndSettle();
-      final darkSuccess = tester
-          .widget<Text>(find.text('COMPLETED'))
-          .style!
-          .color;
+      final darkSuccess = tester.widget<Text>(find.text('DONE')).style!.color;
 
       await tester.pumpWidget(
-        gwHost(
-          const OrderStatusPill(status: 'completed'),
-          gw: GWColors.light(),
-        ),
+        gwHost(const OrderStatusPill(status: 'complete'), gw: GWColors.light()),
       );
       await tester.pumpAndSettle();
-      final lightSuccess = tester
-          .widget<Text>(find.text('COMPLETED'))
-          .style!
-          .color;
+      final lightSuccess = tester.widget<Text>(find.text('DONE')).style!.color;
 
       expect(darkSuccess, isNotNull);
       expect(lightSuccess, isNotNull);
@@ -92,14 +103,17 @@ void main() {
         gwHost(const OrderStatusPill(status: 'declined'), gw: GWColors.dark()),
       );
       await tester.pumpAndSettle();
-      final darkError = tester.widget<Text>(find.text('DECLINED')).style!.color;
+      final darkError = tester
+          .widget<Text>(find.text('PAYMENT DECLINED'))
+          .style!
+          .color;
 
       await tester.pumpWidget(
         gwHost(const OrderStatusPill(status: 'declined'), gw: GWColors.light()),
       );
       await tester.pumpAndSettle();
       final lightError = tester
-          .widget<Text>(find.text('DECLINED'))
+          .widget<Text>(find.text('PAYMENT DECLINED'))
           .style!
           .color;
 
@@ -117,23 +131,26 @@ void main() {
       'warning foreground differs between hosts, like every other tone',
       (tester) async {
         await tester.pumpWidget(
-          gwHost(const OrderStatusPill(status: 'pending'), gw: GWColors.dark()),
+          gwHost(
+            const OrderStatusPill(status: 'pendingPayment'),
+            gw: GWColors.dark(),
+          ),
         );
         await tester.pumpAndSettle();
         final darkWarning = tester
-            .widget<Text>(find.text('PENDING'))
+            .widget<Text>(find.text('WAITING FOR PAYMENT'))
             .style!
             .color;
 
         await tester.pumpWidget(
           gwHost(
-            const OrderStatusPill(status: 'pending'),
+            const OrderStatusPill(status: 'pendingPayment'),
             gw: GWColors.light(),
           ),
         );
         await tester.pumpAndSettle();
         final lightWarning = tester
-            .widget<Text>(find.text('PENDING'))
+            .widget<Text>(find.text('WAITING FOR PAYMENT'))
             .style!
             .color;
 

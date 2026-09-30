@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_status.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
@@ -12,26 +13,10 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 /// same semantic bucket.
 enum OrderStatusTone { success, warning, error, neutral }
 
-/// The 4-bucket switch on `status.toLowerCase()`. Case labels preserve the
-/// branch shape of `order_card.dart`'s (pre-existing) `_getStatusColor()`.
-/// The `default` arm returns [OrderStatusTone.neutral].
-OrderStatusTone orderStatusTone(String status) {
-  switch (status.toLowerCase()) {
-    case 'completed':
-      return OrderStatusTone.success;
-    case 'pendingpayment':
-    case 'pending':
-    case 'inprogress':
-      return OrderStatusTone.warning;
-    case 'declined':
-    case 'cancelled':
-    case 'expired':
-    case 'failed':
-      return OrderStatusTone.error;
-    default:
-      return OrderStatusTone.neutral;
-  }
-}
+/// The paint bucket for a Banxa status string; anything unrecognised is
+/// [OrderStatusTone.neutral].
+OrderStatusTone orderStatusTone(String status) =>
+    BanxaOrderStatus.parse(status).tone;
 
 /// The foreground/background paint for a tone, copied verbatim from the
 /// shipped `_statusPill` (`lib/dashboard/home/widgets/transaction_displays.dart`).
@@ -100,7 +85,7 @@ class OrderStatusPill extends StatelessWidget {
           ),
           const SizedBox(width: 5),
           Text(
-            status.toUpperCase(),
+            BanxaOrderStatus.parse(status).label.toUpperCase(),
             style: GeniusWalletTypography.labelMd.copyWith(
               fontWeight: FontWeight.w600,
               color: fg,
