@@ -507,6 +507,28 @@ void main() {
     expect(api.registrationsCallCount, 2);
   });
 
+  test('opened before the node names an account, adopts it once it does '
+      'and never queries an empty address', () async {
+    final api = _FakeApi(registrations: _populatedRegistrations);
+    var appState = _noAccountAppState;
+    final cubit = ChildWalletsCubit(
+      api: api,
+      readAppState: () => appState,
+      mainAddress: '',
+    );
+    expect(cubit.state.status, ChildWalletsStatus.nodeNotRunning);
+    expect(api.registrationsCallCount, 0);
+
+    appState = _selectedAppState;
+    cubit.refresh();
+
+    expect(cubit.state.mainAddress, _mainAddress);
+    expect(cubit.state.status, ChildWalletsStatus.loaded);
+    expect(cubit.state.children, hasLength(2));
+
+    await cubit.close();
+  });
+
   testWidgets('a long linked name ellipsizes at one line', (tester) async {
     const longName =
         'A Very Long Wallet Name That Should Not Wrap Or Overflow The Row';

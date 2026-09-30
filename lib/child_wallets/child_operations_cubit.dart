@@ -12,11 +12,9 @@ import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/squid_router/squid_util.dart' show toBaseUnits;
 import 'package:genius_wallet/utils/wallet_utils.dart';
 
-/// Which SDK write an operation represents. Each kind arrives with its own
-/// submit and resolve arm below. [fund], [recover] and [revoke] are
-/// main-side: they run only while the node runs as the main. [detach],
-/// [register] and [move] are child-side: they run only while the node runs
-/// as the account being detached, registered or moved.
+/// Which SDK write an operation represents. [fund], [recover] and [revoke]
+/// run only while the node runs as the main; [detach], [register] and [move]
+/// only while it runs as the account they act on.
 enum ChildOperationKind { fund, recover, revoke, detach, register, move }
 
 /// True for a kind that runs on the child's own node rather than the main's
