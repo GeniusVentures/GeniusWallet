@@ -1613,7 +1613,9 @@ Plans:
   - Fiat: 29 currencies. Debit/credit card is offered for all of them; a second method appears only for EUR (SEPA, PayPal), AUD, CAD, CLP, ZAR, MXN. "Only debit card" is Banxa's per-currency offer, not an app filter.
   - The production API key is hardcoded (`banxa_api_services.dart:14`, in git since `274da454`) and printed on every order lookup; key rotation is a Banxa dashboard action.
   - KYC WebView loads `gnus.banxa-sandbox.com` while REST calls hit production; Banxa finishes orders as `complete`, the app only handles `completed`; `submitKYC` / `generateHmacSignature` are dead.
-  - Open question: keep the fiat currency picker (29 options) or default from locale with a small override.
+  - Fiat defaults from locale with a small change link (sketch 080).
+  - Callback mismatch: Banxa is sent `geniuswallet://banxa/callback` but the in-app WebView waits for `yourapp://banxa-callback` (`create_order_cubit.dart:225`); the scheme is registered on macOS only.
+  - Design picked 2026-09-30: sketch 080 A (compact card), 081 B (full-screen in-app checkout), 082 C (orders in Transactions behind a Buy orders filter). Also required: an easy way into Buy GNUS from the main surfaces, and a link from Buy GNUS to Transactions with the Buy orders filter already selected.
 
 **Plans:** 0 plans
 
