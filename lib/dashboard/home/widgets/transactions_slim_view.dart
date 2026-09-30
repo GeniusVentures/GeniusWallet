@@ -6,6 +6,9 @@
 // settled). Do not reintroduce it, and do not swap in a FittedBox either.
 import 'package:flutter/material.dart';
 import 'package:genius_api/models/transaction.dart';
+import 'package:genius_wallet/banxa/banxa_components/order_details_drawer.dart';
+import 'package:genius_wallet/banxa/banxa_helpers/order_transaction_mapping.dart';
+import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_section_title.dart';
 import 'package:genius_wallet/components/cards/gw_view_all_link.dart';
@@ -129,6 +132,9 @@ enum Filters {
       overflowTypes.contains(f) || overflowStatuses.contains(f);
 }
 
+/// The filter named by a `?filter=` query value, or null when it names none.
+Filters? filterFromQuery(String? value) => Filters.values.asNameMap()[value];
+
 /// How many of [txs] each non-[Filters.all] filter matches.
 ///
 /// Computed once per build and handed to the bar, rather than each menu item
@@ -192,11 +198,19 @@ class TransactionsSlimView extends StatefulWidget {
   /// inherited.
   final bool page;
 
+  /// The Selected wallet's Banxa orders, listed as purchase rows.
+  final List<Order> buyOrders;
+
+  /// The filter to start on; a new non-null value switches the chip.
+  final Filters? initialFilter;
+
   const TransactionsSlimView({
     super.key,
     required this.transactions,
     this.isShowOnlySGNUSTransactions,
     this.page = false,
+    this.buyOrders = const [],
+    this.initialFilter,
   });
 
   @override
@@ -204,16 +218,33 @@ class TransactionsSlimView extends StatefulWidget {
 }
 
 class _TransactionsSlimViewState extends State<TransactionsSlimView> {
-  Filters selectedFilter = Filters.all;
+  late Filters selectedFilter = widget.initialFilter ?? Filters.all;
+
+  /// Each order's stand-in transaction, keyed by identity so a row finds its
+  /// order again. Rebuilt every build; the rows read the map of the same build.
+  Map<Transaction, Order> _orderRows = const {};
+
+  @override
+  void didUpdateWidget(TransactionsSlimView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final next = widget.initialFilter;
+    if (next != null && next != oldWidget.initialFilter) {
+      selectedFilter = next;
+    }
+  }
 
   /// SGNUS scoping only, NO filter applied — the ONE list that both the menu
   /// counts and the filtered-empty "you have N" number read, so the two can
   /// never disagree about how much history exists (T-12-14). Counts computed
   /// over the already-filtered list would read 0 for every inactive filter.
-  List<Transaction> get scopedTransactions =>
-      (widget.isShowOnlySGNUSTransactions ?? false)
-      ? widget.transactions.where((tx) => tx.isSGNUS ?? false).toList()
-      : widget.transactions;
+  ///
+  /// Orders come after the scoping: they are keyed by address, not by chain.
+  List<Transaction> get scopedTransactions {
+    final base = (widget.isShowOnlySGNUSTransactions ?? false)
+        ? widget.transactions.where((tx) => tx.isSGNUS ?? false).toList()
+        : widget.transactions;
+    return _orderRows.isEmpty ? base : [...base, ..._orderRows.keys];
+  }
 
   /// The rail card's width. A FIXED literal, never a fraction of the incoming
   /// width — the freeze rule (37639d5) allows literals and bounded booleans and
@@ -269,6 +300,9 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
   @override
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    _orderRows = {
+      for (final order in widget.buyOrders) orderAsTransaction(order): order,
+    };
     final scoped = scopedTransactions;
     final txs = scoped.where(selectedFilter.matches).toList();
 
@@ -695,12 +729,16 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
       );
       for (var i = 0; i < day.items.length; i++) {
         final tx = day.items[i];
+        final order = _orderRows[tx];
         entries.add(
           // One anatomy means one constructor: the four-branch switch on
           // tx.type is deleted, not moved.
           TransactionRow(
             tx: tx,
-            onTap: () => showTransactionDetails(context, tx),
+            contentOverride: order == null ? null : orderRowContent(order),
+            onTap: order == null
+                ? () => showTransactionDetails(context, tx)
+                : () => showOrderDetails(context, order),
           ),
         );
         // A rule after every row but the list's last, day boundaries

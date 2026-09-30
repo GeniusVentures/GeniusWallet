@@ -5,6 +5,7 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
@@ -15,6 +16,8 @@ import 'package:genius_wallet/send/send_cubit.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:web3dart/web3dart.dart' show TransactionReceipt;
+
+import '../banxa/fake_banxa_api.dart';
 
 const _hash = '0xfeedfacefeedfacefeedfacefeedfacefeedface';
 const _address = '0xSENDSENDSENDSENDSENDSENDSENDSENDSENDSEND';
@@ -133,6 +136,9 @@ void main() {
           BlocProvider<WalletDetailsCubit>.value(value: walletDetails),
           BlocProvider<TransactionsCubit>.value(value: transactions),
           BlocProvider<AppBloc>.value(value: appBloc),
+          BlocProvider<OrdersCubit>(
+            create: (_) => OrdersCubit(api: FakeBanxaApi()),
+          ),
         ],
         child: MaterialApp(
           theme: ThemeData(extensions: [GWColors.dark()]),

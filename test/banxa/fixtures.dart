@@ -1,7 +1,12 @@
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
+import 'package:genius_api/genius_api.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/banxa/banxa_order/create_order_state.dart';
+import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// Fixture FACTORY FUNCTIONS for Phase 9's `test/banxa/` suite (09-01-PLAN.md
 /// Task 1). Mirrors `test/squid_router/route_details_card_test.dart:15-25`'s
@@ -148,4 +153,36 @@ MakeOrderState testFormState({
     amountText: amountText,
     quote: withQuote ? quote : null,
   );
+}
+
+Wallet testWallet(String address, {WalletType type = WalletType.privateKey}) =>
+    Wallet(
+      coinType: TWCoinType.TWCoinTypeEthereum,
+      walletName: 'Wallet',
+      currencySymbol: 'ETH',
+      walletType: type,
+      balance: 0,
+      address: address,
+    );
+
+/// A [GeniusApi] for cubits that never call it; anything called throws.
+class UnusedGeniusApi implements GeniusApi {
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
+
+/// A [WalletDetailsCubit] whose Selected wallet a test sets directly, with no
+/// storage behind it.
+class PickableWalletCubit extends WalletDetailsCubit {
+  PickableWalletCubit([Wallet? selected])
+    : super(
+        geniusApi: UnusedGeniusApi(),
+        networkTokensProvider: NetworkTokensProvider(),
+      ) {
+    if (selected != null) {
+      pick(selected);
+    }
+  }
+
+  void pick(Wallet wallet) => emit(state.copyWith(selectedWallet: wallet));
 }

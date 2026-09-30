@@ -23,6 +23,8 @@ import 'package:genius_wallet/dashboard/bridge/bridge_screen.dart';
 import 'package:genius_wallet/dashboard/chart/markets_screen.dart';
 import 'package:genius_wallet/dashboard/gnus/cubit/gnus_cubit.dart';
 import 'package:genius_wallet/dashboard/home/view/dashboard_screen.dart';
+import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart'
+    show filterFromQuery;
 import 'package:genius_wallet/dashboard/news/view/crypto_news_screen.dart';
 import 'package:genius_wallet/dashboard/transactions/transactions_screen.dart';
 import 'package:genius_wallet/dev/design_gallery_screen.dart';
@@ -249,7 +251,9 @@ final geniusWalletRouter = GoRouter(
         GoRoute(path: '/dashboard', builder: (_, _) => const DashboardScreen()),
         GoRoute(
           path: '/transactions',
-          builder: (_, _) => const TransactionsScreen(),
+          builder: (_, state) => TransactionsScreen(
+            initialFilter: filterFromQuery(state.uri.queryParameters['filter']),
+          ),
         ),
         // The dashboard's Assets `View all` destination (phase 25). INSIDE the
         // shell is load-bearing: outside it the page would replace the bottom

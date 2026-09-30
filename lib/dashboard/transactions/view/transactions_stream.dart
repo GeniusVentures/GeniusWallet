@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/banxa/banxa_order/banxa_order_state.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transactions_slim_view.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 
@@ -13,13 +15,25 @@ class TransactionsStream extends StatelessWidget {
   /// `/transactions` route opts in.
   final bool page;
 
-  const TransactionsStream({super.key, this.page = false});
+  /// Forwarded to [TransactionsSlimView.initialFilter].
+  final Filters? initialFilter;
+
+  const TransactionsStream({super.key, this.page = false, this.initialFilter});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionsCubit, List<Transaction>>(
       builder: (context, transactions) {
-        return TransactionsSlimView(transactions: transactions, page: page);
+        return BlocBuilder<OrdersCubit, OrdersState>(
+          builder: (context, ordersState) {
+            return TransactionsSlimView(
+              transactions: transactions,
+              page: page,
+              buyOrders: ordersState.orders?.orders ?? const [],
+              initialFilter: initialFilter,
+            );
+          },
+        );
       },
     );
   }

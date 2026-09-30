@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
@@ -17,11 +19,37 @@ class OrdersCubit extends Cubit<OrdersState> {
   ///
   /// Nullable so a test can construct a bare cubit; a null one simply has no
   /// wallet and fetches nothing, which is the honest answer.
-  OrdersCubit({WalletDetailsCubit? walletDetailsCubit})
+  ///
+  /// Follows the selected wallet: a switch clears the list and refetches.
+  OrdersCubit({WalletDetailsCubit? walletDetailsCubit, BanxaApiService? api})
     : _walletDetailsCubit = walletDetailsCubit,
-      super(OrdersState.initial());
+      _api = api ?? BanxaApiService(),
+      super(OrdersState.initial()) {
+    _customerKey = _customerId;
+    _walletSubscription = _walletDetailsCubit?.stream.listen(_onWalletState);
+    if (_customerKey != null) {
+      unawaited(fetchOrders());
+    }
+  }
 
   final WalletDetailsCubit? _walletDetailsCubit;
+  final BanxaApiService _api;
+  StreamSubscription<WalletDetailsState>? _walletSubscription;
+  String? _customerKey;
+
+  /// Bumped by every fetch; only the newest fetch's result may land, so a slow
+  /// response for wallet A can never appear under wallet B.
+  int _fetchGeneration = 0;
+
+  void _onWalletState(WalletDetailsState _) {
+    final key = _customerId;
+    if (key == _customerKey) {
+      return;
+    }
+    _customerKey = key;
+    emit(OrdersState.initial());
+    unawaited(fetchOrders());
+  }
 
   /// The Banxa customer key for the selected wallet, or null when no wallet is
   /// selected. See `banxa_customer_id.dart` for why this is derived rather
@@ -30,6 +58,7 @@ class OrdersCubit extends Cubit<OrdersState> {
       banxaCustomerId(_walletDetailsCubit?.state.selectedWallet?.address);
 
   Future<void> fetchOrders() async {
+    final generation = ++_fetchGeneration;
     final externalCustomerId = _customerId;
     emit(state.copyWith(status: OrdersStatus.loading, error: ''));
 
@@ -82,16 +111,30 @@ class OrdersCubit extends Cubit<OrdersState> {
       }
     }
 
+    if (externalCustomerId == null) {
+      emit(
+        state.copyWith(
+          status: OrdersStatus.success,
+          orders: OrdersResponse(orders: const [], total: 0, pageTotal: 0),
+          filteredOrders: const [],
+        ),
+      );
+      return;
+    }
+
     final now = DateTime.now().toUtc();
     final oneMonthAgo = now.subtract(const Duration(days: 120));
 
     try {
-      final orders = await BanxaApiService().fetchAllOrders(
+      final orders = await _api.fetchAllOrders(
         startDateUtc: oneMonthAgo.toIso8601String(),
         endDateUtc: now.toIso8601String(),
         externalCustomerId: externalCustomerId,
         status: '',
       );
+      if (generation != _fetchGeneration || isClosed) {
+        return;
+      }
 
       emit(
         state.copyWith(
@@ -101,8 +144,17 @@ class OrdersCubit extends Cubit<OrdersState> {
         ),
       );
     } catch (e) {
+      if (generation != _fetchGeneration || isClosed) {
+        return;
+      }
       emit(state.copyWith(status: OrdersStatus.error, error: e.toString()));
     }
+  }
+
+  @override
+  Future<void> close() async {
+    await _walletSubscription?.cancel();
+    return super.close();
   }
 
   void applyFilters({String? status, DateTime? startDate, DateTime? endDate}) {
