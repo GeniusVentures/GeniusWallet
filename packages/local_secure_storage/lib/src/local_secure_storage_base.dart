@@ -227,9 +227,9 @@ class LocalWalletStorage {
   /// names which one goes: an address-only match could delete the key.
   ///
   /// A key wallet's current name is frozen onto every SDK link it produced
-  /// before the entry is gone, so that account still says whose it was
-  /// (D-08, D-09). Links are never removed here. Watch-only deletes have no
-  /// SDK account and never touch links.
+  /// before the entry is gone, so that account still says whose it was.
+  /// Links are never removed here. Watch-only deletes have no SDK account
+  /// and never touch links.
   Future<void> deleteWallet(
     String walletAddress, {
     required bool watchOnly,

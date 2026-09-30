@@ -50,25 +50,9 @@ bool _sameWallet(Wallet a, Wallet b) =>
     a.walletType == b.walletType &&
     a.address.toLowerCase() == b.address.toLowerCase();
 
-/// Flattens [wallets] and [sdkAccounts] (with their [registrations]) into
-/// render order.
-///
-/// Own wallets (sgnus excluded) come first, in [wallets] order, each merged
-/// onto the first SDK account in [sdkAccounts] order whose
-/// `AppBloc.linkedWallet` resolves to it -- a tracking wallet never matches,
-/// since [AppBloc.linkedWallet] never returns one, and a second account
-/// linked to the same wallet stays unmerged. Any SDK account left unclaimed
-/// follows as its own row.
-///
-/// Each root (a merged or unmerged account) then walks its own
-/// [registrations] depth-first: an own child nests one level deeper and is
-/// recursed into (rendering merged when it, too, is linked); a child that is
-/// not one of the user's own accounts becomes a [AccountRowKind.foreignChild]
-/// leaf. One visited set spans the whole walk, so a cycle, a self-listing or
-/// a second main all stop at the first placement, and a wallet whose account
-/// was already placed by nesting is not rendered again at the top level.
-/// Null [registrations] (node down, or a failed read) means no root has
-/// anything to walk, so every row lands at depth 0 in that same order.
+/// Flattens wallets and SDK accounts into render order: each wallet merged
+/// onto its linked account, own children nested depth-first under their main.
+/// Every account is placed once, so cycles and second mains cannot repeat it.
 List<AccountTreeRow> buildAccountTree({
   required List<Wallet> wallets,
   required List<String> sdkAccounts,
