@@ -1658,5 +1658,5 @@ Plans:
 | 36. Child wallet bindings & read-only view | 3/3 | Awaiting human verification (live walk) | - |
 | 37. Child write operations & pending model | 5/5 | Awaiting human verification (live walk) | - |
 | 38. Account tree switcher | 3/3 | Awaiting human verification (live walk) | - |
-| 39. Banxa integration hardening | 0/0 | Not planned | - |
+| 39. Banxa integration hardening | 13/13 | Awaiting human verification (live walk); 2 gates blocked on Banxa listing GNUS | - |
 | 40. Always-available GNUS bridge | 0/0 | Not planned | - |
