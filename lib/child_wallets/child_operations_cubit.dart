@@ -123,12 +123,12 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     Stream<AppState>? appStates,
     DateTime Function() now = DateTime.now,
     bool devTools = kShowDevTools,
-    void Function()? onTransferResolved,
+    void Function()? onResolved,
   }) : _api = api,
        _readAppState = readAppState,
        _now = now,
        _devTools = devTools,
-       _onTransferResolved = onTransferResolved,
+       _onResolved = onResolved,
        super(const ChildOperationsState()) {
     // Every switch runs a pass, so a round trip between two polls can't
     // slip past resolve() unseen.
@@ -142,9 +142,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   final AppState Function() _readAppState;
   final DateTime Function() _now;
 
-  /// Runs once per [resolve] pass that resolved a fund or recover, so a
-  /// holdings view re-reads the balance the transfer just moved.
-  final void Function()? _onTransferResolved;
+  /// Runs once per [resolve] pass that resolved anything: a transfer moves a
+  /// balance, and a registration change decides whether it can be read.
+  final void Function()? _onResolved;
   StreamSubscription<String?>? _accountSwitches;
 
   /// [kShowDevTools] outside tests, which can't pass a define to reach the
@@ -569,8 +569,8 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       return;
     }
     emit(ChildOperationsState(operations: remaining, justResolved: resolved));
-    if (resolved.any((op) => _hasAmount(op.kind))) {
-      _onTransferResolved?.call();
+    if (resolved.isNotEmpty) {
+      _onResolved?.call();
     }
     // Stops once nothing left can resolve on its own: a timed-out fund or
     // recover keeps it running until it expires, so its lock lifts on time.
