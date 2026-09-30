@@ -1133,8 +1133,8 @@ void main() {
     });
   });
 
-  group('onTransferResolved', () {
-    test('runs once when a fund resolves, never for a revoke', () {
+  group('onResolved', () {
+    test('runs once per pass that resolves a transfer or a revoke', () {
       var refreshes = 0;
       final api = _FakeApi()
         ..registrationEntries = const [
@@ -1147,7 +1147,7 @@ void main() {
       final cubit = ChildOperationsCubit(
         api: api,
         readAppState: () => _appState,
-        onTransferResolved: () => refreshes++,
+        onResolved: () => refreshes++,
       );
       cubit.submit(
         kind: ChildOperationKind.fund,
@@ -1166,15 +1166,15 @@ void main() {
       api.registrationEntries = const [];
       cubit.resolve();
       expect(cubit.state.justResolved.single.kind, ChildOperationKind.revoke);
-      expect(refreshes, 0);
+      expect(refreshes, 1);
 
       api.balances[_childAddress] = BigInt.from(1000000);
       cubit.resolve();
       expect(cubit.state.justResolved.single.kind, ChildOperationKind.fund);
-      expect(refreshes, 1);
+      expect(refreshes, 2);
 
       cubit.resolve();
-      expect(refreshes, 1);
+      expect(refreshes, 2);
 
       cubit.close();
     });
