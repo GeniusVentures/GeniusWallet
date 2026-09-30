@@ -1038,12 +1038,22 @@ class _PaymentRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     if (!state.hasManyMethods) {
+      final name = state.method?.name.trim() ?? '';
+      if (name.isEmpty) {
+        return const SizedBox.shrink();
+      }
       return Row(
         children: [
-          Icon(Icons.credit_card_outlined, size: 18, color: gw.textSecondary),
+          Icon(
+            name.toLowerCase().contains('card')
+                ? Icons.credit_card_outlined
+                : Icons.account_balance_outlined,
+            size: 18,
+            color: gw.textSecondary,
+          ),
           const SizedBox(width: GeniusWalletConsts.space4),
           Text(
-            'Paid by card',
+            'Paid by $name',
             style: GeniusWalletTypography.bodyMd.copyWith(
               color: gw.textSecondary,
             ),

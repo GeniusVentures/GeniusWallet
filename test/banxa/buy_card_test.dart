@@ -190,7 +190,7 @@ void main() {
       expect(find.text('YOU GET'), findsOneWidget);
       expect(find.text('US Dollar (USD)'), findsNothing);
       expect(find.text('USD'), findsOneWidget);
-      expect(find.text('Paid by card'), findsOneWidget);
+      expect(find.text('Paid by Card'), findsOneWidget);
       expect(find.text('PAY WITH'), findsNothing);
       expect(find.text(r'Min $20 · Max $15,000'), findsOneWidget);
       for (final chip in [r'$50', r'$100', r'$250', r'$500']) {
@@ -205,6 +205,27 @@ void main() {
       expect(find.text('New quote in 10s'), findsOneWidget);
       expect(find.text('Banxa may ask for ID at checkout.'), findsOneWidget);
       expect(_cta(tester).label, 'Buy GNUS');
+      await _unmount(tester);
+    });
+
+    testWidgets('a single non-card method is named as Banxa names it', (
+      tester,
+    ) async {
+      final api = _api()
+        ..fiats = [
+          FiatCurrency(
+            code: 'BRL',
+            name: 'Real',
+            symbol: 'R\$',
+            supportedPaymentMethods: [
+              PaymentMethod(id: 'pix', name: 'PIX', minimum: 20, maximum: 9000),
+            ],
+          ),
+        ];
+      await _pumpCard(tester, api: api, fiat: 'BRL');
+
+      expect(find.text('Paid by PIX'), findsOneWidget);
+      expect(find.text('Paid by card'), findsNothing);
       await _unmount(tester);
     });
 
@@ -227,7 +248,7 @@ void main() {
       final rig = await _pumpCard(tester, fiat: 'EUR');
 
       expect(find.text('PAY WITH'), findsOneWidget);
-      expect(find.text('Paid by card'), findsNothing);
+      expect(find.text('Paid by Card'), findsNothing);
       expect(find.text('SEPA'), findsOneWidget);
       expect(rig.api.quoteRequests.last['paymentMethodId'], 'sepa');
 

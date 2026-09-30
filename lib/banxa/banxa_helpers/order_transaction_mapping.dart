@@ -101,10 +101,11 @@ TxRowContent orderRowContent(Order order, {DateTime? now}) {
   // `txDayLabel` the tab's headers use, so nothing is lost to `time` being
   // `HH:mm` only.
   final dayLabel = txDayLabel(order.createdAt, now ?? DateTime.now());
-  // The literal 'Card purchase' is `txRowContent`'s own purchase-arm string,
-  // so the row is the tab's anatomy verbatim. The payment method is a detail
-  // and gets its own drawer row.
-  final subtitleBase = '$dayLabel · Card purchase';
+  // Banxa's own method name; 'Card purchase' is only the fallback for an order
+  // that carries none.
+  final method = order.paymentMethodName.trim();
+  final subtitleBase =
+      '$dayLabel · ${method.isEmpty ? 'Card purchase' : method}';
   final subtitle = (banxa == BanxaOrderStatus.complete || statusLabel == null)
       ? subtitleBase
       : '$subtitleBase · $statusLabel';

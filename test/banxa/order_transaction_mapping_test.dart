@@ -81,8 +81,19 @@ void main() {
       expect(content.status, TransactionStatus.completed);
       expect(content.iconSymbols, ['btc']);
       expect(content.subtitle, startsWith(today));
-      expect(content.subtitle, contains('Card purchase'));
+      expect(content.subtitle, contains('Credit Card'));
       expect(content.subtitle, content.subtitleBase);
+    });
+
+    test('the row names the payment method Banxa reports', () {
+      final pix = orderRowContent(
+        testOrder(paymentMethodName: 'PIX'),
+        now: now,
+      );
+      final none = orderRowContent(testOrder(paymentMethodName: ''), now: now);
+
+      expect(pix.subtitleBase, endsWith(' · PIX'));
+      expect(none.subtitleBase, endsWith(' · Card purchase'));
     });
 
     test('a declined order reads Not charged and drops the green', () {
