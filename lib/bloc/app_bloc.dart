@@ -66,14 +66,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
     on<RetryProcessingStatus>(_onRetryProcessingStatus);
     on<InitializationStatusTicked>(_onInitializationStatusTicked);
-    // One at a time: concurrent deletes would each pass the last-wallet guard.
-    on<DeleteWallet>(_onDeleteWallet, transformer: sequential());
+    // One queue for both deletes: run side by side, each would pass the
+    // last-wallet guard and together remove every key wallet.
+    on<WalletRemoval>(
+      (event, emit) => switch (event) {
+        DeleteWallet() => _onDeleteWallet(event, emit),
+        DeleteSDKAccount() => _onDeleteSDKAccount(event, emit),
+      },
+      transformer: sequential(),
+    );
     on<RenameWallet>(_onRenameWallet);
     on<SgnusConnectionChanged>(_onSgnusConnectionChanged);
-    on<SelectSDKAccount>(_onSelectSDKAccount);
+    // One at a time: the native switches must land in the order requested.
+    on<SelectSDKAccount>(_onSelectSDKAccount, transformer: sequential());
     on<SDKSwitchPolled>(_onSDKSwitchPolled);
-    // One at a time: concurrent deletes would each pass the same block check.
-    on<DeleteSDKAccount>(_onDeleteSDKAccount, transformer: sequential());
     on<RefreshSDKAccounts>(_onRefreshSDKAccounts);
     on<SetSDKPayoutAddress>(_onSetSDKPayoutAddress);
     on<SettlePendingSends>(_onSettlePendingSends);
@@ -983,9 +989,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     SetSDKPayoutAddress event,
     Emitter<AppState> emit,
   ) {
-    final result = api.setPayoutAddress(event.publicAddress);
-    // Always emit the result so the UI can display the actual SDK response.
-    emit(state.copyWith(setPayoutAddressResult: result));
+    event.result.complete(api.setPayoutAddress(event.publicAddress));
   }
 
   @override

@@ -96,10 +96,6 @@ class AppState extends Equatable {
   /// material.
   final Map<String, SDKAccountLink> sdkAccountLinks;
 
-  /// The result of the last [SetSDKPayoutAddress] operation, or null if
-  /// no operation has been performed yet.
-  final GeniusNodeReturnValue? setPayoutAddressResult;
-
   const AppState({
     this.wallets = const [],
     this.sdkStatus = AppStatus.initial,
@@ -121,7 +117,6 @@ class AppState extends Equatable {
     this.sdkAccounts = const [],
     this.defaultSDKAccount,
     this.sdkAccountLinks = const {},
-    this.setPayoutAddressResult,
     this.accountStatus = AppStatus.initial,
   });
 
@@ -148,7 +143,6 @@ class AppState extends Equatable {
     List<String>? sdkAccounts,
     String? defaultSDKAccount,
     Map<String, SDKAccountLink>? sdkAccountLinks,
-    GeniusNodeReturnValue? setPayoutAddressResult,
     AppStatus? accountStatus,
   }) {
     return AppState(
@@ -178,8 +172,6 @@ class AppState extends Equatable {
       sdkAccounts: sdkAccounts ?? this.sdkAccounts,
       defaultSDKAccount: defaultSDKAccount ?? this.defaultSDKAccount,
       sdkAccountLinks: sdkAccountLinks ?? this.sdkAccountLinks,
-      setPayoutAddressResult:
-          setPayoutAddressResult ?? this.setPayoutAddressResult,
       accountStatus: accountStatus ?? this.accountStatus,
     );
   }
@@ -207,7 +199,6 @@ class AppState extends Equatable {
     sdkAccounts,
     defaultSDKAccount,
     sdkAccountLinks,
-    setPayoutAddressResult,
   ];
 }
 
