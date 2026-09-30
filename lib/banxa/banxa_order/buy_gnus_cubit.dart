@@ -15,6 +15,9 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 
 const String _disclaimerKey = 'banxaDisclaimerAccepted';
 
+bool readBanxaDisclaimerAccepted() =>
+    Hive.box(preferencesBoxName).get(_disclaimerKey) == true;
+
 /// The order Banxa just created. It leaves the cubit once, on a stream, so
 /// the id and checkout URL never sit in state.
 class BuyOrderStarted {
@@ -32,9 +35,7 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
     bool Function()? readDisclaimerAccepted,
     Future<void> Function()? saveDisclaimerAccepted,
   }) : _api = api,
-       _readDisclaimer =
-           readDisclaimerAccepted ??
-           (() => Hive.box(preferencesBoxName).get(_disclaimerKey) == true),
+       _readDisclaimer = readDisclaimerAccepted ?? readBanxaDisclaimerAccepted,
        _saveDisclaimer =
            saveDisclaimerAccepted ??
            (() => Hive.box(preferencesBoxName).put(_disclaimerKey, true)),

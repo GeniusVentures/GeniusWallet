@@ -11,6 +11,8 @@ import 'package:genius_wallet/dev/dev_banxa_fixtures.dart';
 import 'package:genius_wallet/dev/dev_flags.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
+bool _always() => true;
+
 class OrdersCubit extends Cubit<OrdersState> {
   /// [walletDetailsCubit] supplies the wallet whose orders these are. Same
   /// cross-cubit shape `AppBloc` already uses in `main.dart`, and it is what
@@ -27,9 +29,11 @@ class OrdersCubit extends Cubit<OrdersState> {
     required BanxaApiService api,
     this.pollInterval = const Duration(seconds: 15),
     DateTime Function() now = DateTime.now,
+    bool Function() hasBuyHistory = _always,
   }) : _walletDetailsCubit = walletDetailsCubit,
        _api = api,
        _now = now,
+       _hasBuyHistory = hasBuyHistory,
        super(OrdersState.initial()) {
     _customerKey = _customerId;
     _walletSubscription = _walletDetailsCubit?.stream.listen(_onWalletState);
@@ -41,6 +45,9 @@ class OrdersCubit extends Cubit<OrdersState> {
   final WalletDetailsCubit? _walletDetailsCubit;
   final BanxaApiService _api;
   final DateTime Function() _now;
+  // The wallet address only goes to Banxa once the user has a Banxa
+  // relationship, never just because the app started.
+  final bool Function() _hasBuyHistory;
   StreamSubscription<WalletDetailsState>? _walletSubscription;
   String? _customerKey;
 
@@ -116,7 +123,7 @@ class OrdersCubit extends Cubit<OrdersState> {
       }
     }
 
-    if (externalCustomerId == null) {
+    if (externalCustomerId == null || !_api.isConfigured || !_hasBuyHistory()) {
       emit(
         state.copyWith(
           status: OrdersStatus.success,

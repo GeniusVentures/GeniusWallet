@@ -11,6 +11,7 @@ import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_components/buy_order_toasts.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/deep_link_service.dart';
 import 'package:genius_wallet/banxa/banxa_order/banxa_order_cubit.dart';
+import 'package:genius_wallet/banxa/banxa_order/buy_gnus_cubit.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_operation_status.dart';
 import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
@@ -410,6 +411,7 @@ class MyApp extends StatelessWidget {
             create: (context) => OrdersCubit(
               walletDetailsCubit: context.read<WalletDetailsCubit>(),
               api: context.read<BanxaApiService>(),
+              hasBuyHistory: readBanxaDisclaimerAccepted,
             ),
           ),
           BlocProvider(

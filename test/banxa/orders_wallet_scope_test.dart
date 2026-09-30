@@ -115,4 +115,29 @@ void main() {
     await pumpEventQueue();
     expect(api.fetchAllOrdersCalls, 0);
   });
+
+  test('no address leaves the app without a key or a buy history', () async {
+    final noKey = FakeBanxaApi(orders: [testOrder(id: 'a1')])
+      ..isConfigured = false;
+    final noHistory = FakeBanxaApi(orders: [testOrder(id: 'a1')]);
+    final keyless = OrdersCubit(
+      walletDetailsCubit: PickableWalletCubit(testWallet(_a)),
+      api: noKey,
+    );
+    final fresh = OrdersCubit(
+      walletDetailsCubit: PickableWalletCubit(testWallet(_a)),
+      api: noHistory,
+      hasBuyHistory: () => false,
+    );
+    await pumpEventQueue();
+    await keyless.fetchOrders();
+    await fresh.fetchOrders();
+
+    expect(noKey.fetchAllOrdersCalls, 0);
+    expect(noHistory.fetchAllOrdersCalls, 0);
+    expect(_ids(fresh), isEmpty);
+    expect(fresh.state.status, OrdersStatus.success);
+    await keyless.close();
+    await fresh.close();
+  });
 }
