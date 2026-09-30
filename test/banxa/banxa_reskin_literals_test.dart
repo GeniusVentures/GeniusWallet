@@ -22,13 +22,12 @@ import 'package:flutter_test/flutter_test.dart';
 // `quote_card.dart` was removed from this list (and from `lib/`) by 09-08
 // Task 4: it was dead code with zero callers (its own header comment said
 // so), and the quote grid `banxa_buy_screen.dart` now renders is what it
-// existed to become. Four files remain after the orders pages and the old
-// checkout options sheet were deleted.
+// existed to become. Three files remain after the orders pages, the old
+// checkout options sheet and the separate KYC screen were deleted.
 const _inScopeFiles = <String>[
   'lib/screens/banxa_buy_screen.dart',
   'lib/banxa/checkout/checkout_screen.dart',
   'lib/banxa/checkout_qr.dart',
-  'lib/banxa/user_kyc/kyc_registration.dart',
 ];
 
 /// The two literals this phase deliberately preserved. Each count is
@@ -101,9 +100,9 @@ List<String> _codeLines(String relativePath) {
 void main() {
   group('Banxa re-skin literal gate (09-07)', () {
     test(
-      'names all four in-scope files and none of the fenced Phase-21/cubit/service paths',
+      'names all three in-scope files and none of the fenced Phase-21/cubit/service paths',
       () {
-        expect(_inScopeFiles.length, equals(4));
+        expect(_inScopeFiles.length, equals(3));
         for (final path in _inScopeFiles) {
           expect(
             File(path).existsSync(),

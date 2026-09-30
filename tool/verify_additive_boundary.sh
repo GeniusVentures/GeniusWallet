@@ -143,10 +143,7 @@ echo "== Check 1: shadow import boundary =="
 # that commit. Phase 22 plan 03 (this rename plan) discovered the drift while re-proving this
 # guard and corrects it here, same class of change as the 13-03 note above: a REAL caller
 # leaving (the whole file was deleted), not a silent path-swap. Baseline drops 18 -> 17.
-LOADING_CANONICAL_EXPECTED='lib/banxa/banxa_orders_history.dart
-lib/banxa/banxa_payment.dart
-lib/banxa/checkout_qr.dart
-lib/banxa/user_kyc/kyc_registration.dart
+LOADING_CANONICAL_EXPECTED='lib/banxa/checkout_qr.dart
 lib/components/coins/view/coins_screen.dart
 lib/components/custom_future_builder.dart
 lib/components/sgnus/sgnus_connection_widget.dart

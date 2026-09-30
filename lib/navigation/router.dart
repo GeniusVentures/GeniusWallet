@@ -6,7 +6,6 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/checkout/checkout_screen.dart';
-import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
 import 'package:genius_wallet/child_wallets/child_wallets_screen.dart';
@@ -83,27 +82,10 @@ final geniusWalletRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/createOrder',
-      builder: (context, state) {
-        final args = state.extra as Map<String, dynamic>? ?? {};
-
-        return BanxaBuyScreen(
-          initialFiatCode: args['fiat'] as String?,
-          initialAmount: args['amount'] as String?,
-        );
-      },
-    ),
-    GoRoute(
       // Banxa or anyone can open this link, so its query is ignored; the
       // polled order status says what happened.
       path: '/banxa/callback',
       redirect: (_, _) => '/transactions?filter=purchase',
-    ),
-    GoRoute(
-      path: '/kyc',
-      builder: (context, state) {
-        return const BanxaKycScreen();
-      },
     ),
     GoRoute(
       path: '/checkout',
