@@ -268,6 +268,25 @@ void main() {
     expect(built, hasLength(2));
   });
 
+  screenTest('a return while the bank confirms offers no second payment', (
+    tester,
+  ) async {
+    await pumpScreen(tester, status: 'waitingPayment');
+
+    await tester.tap(find.text('simulate return'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(
+      find.text(
+        'Banxa is waiting for your bank or card to confirm the payment.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Complete payment'), findsNothing);
+    expect(find.text('Back to Buy'), findsOneWidget);
+  });
+
   screenTest('a declined order reads Not charged and can be copied', (
     tester,
   ) async {

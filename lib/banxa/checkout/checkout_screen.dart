@@ -692,7 +692,9 @@ class CheckoutResult extends StatelessWidget {
         status == BanxaOrderStatus.declined ||
         status == BanxaOrderStatus.expired ||
         status == BanxaOrderStatus.cancelled;
-    final unpaid = !status.isPaid && !status.isFinal;
+    final unpaid =
+        status == BanxaOrderStatus.pendingPayment ||
+        status == BanxaOrderStatus.extraVerification;
     final offersSupport =
         notCharged ||
         status == BanxaOrderStatus.extraVerification ||
