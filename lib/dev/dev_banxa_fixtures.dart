@@ -131,8 +131,7 @@ class DevBanxaFixtures {
         cryptoId: 'ETH',
         daysAgo: 2,
       ),
-      // error bucket — the branch order_details_card.dart did NOT have before
-      // Phase 9 (it was a 2-way green/orange ternary).
+      // error bucket
       order(
         id: 'dev-declined',
         status: 'declined',

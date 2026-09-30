@@ -33,8 +33,6 @@ class BanxaApiService {
   /// scheme, host and path, so it follows.
   static const redirectUrl = 'geniuswallet://banxa/callback';
   static final Uri returnUri = Uri.parse(redirectUrl);
-  static const String banxaKycUrl =
-      'https://$kBanxaPartnerCode.banxa-sandbox.com';
 
   bool get isConfigured => _apiKey.isNotEmpty;
   bool get isSandbox => _sandbox;

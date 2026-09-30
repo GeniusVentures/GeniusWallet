@@ -360,19 +360,3 @@ class Crypto {
     };
   }
 }
-
-class BanxaKycResponse {
-  final String accountId;
-  final String accountReference;
-
-  BanxaKycResponse({required this.accountId, required this.accountReference});
-
-  factory BanxaKycResponse.fromJson(Map<String, dynamic> json) {
-    final data = (json['data'] as Map<String, dynamic>?) ?? {};
-    final account = (data['account'] as Map<String, dynamic>?) ?? {};
-    return BanxaKycResponse(
-      accountId: account['account_id'] ?? '',
-      accountReference: account['account_reference'] ?? '',
-    );
-  }
-}

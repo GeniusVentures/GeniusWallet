@@ -51,26 +51,6 @@ void main() {
     });
   });
 
-  group('bannerTone', () {
-    test('cancel -> warning', () {
-      expect(bannerTone('cancel'), OrderStatusTone.warning);
-    });
-
-    test('failure / failed -> error', () {
-      expect(bannerTone('failure'), OrderStatusTone.error);
-      expect(bannerTone('failed'), OrderStatusTone.error);
-    });
-
-    test('success / completed -> success', () {
-      expect(bannerTone('success'), OrderStatusTone.success);
-      expect(bannerTone('completed'), OrderStatusTone.success);
-    });
-
-    test('null -> null', () {
-      expect(bannerTone(null), isNull);
-    });
-  });
-
   group('OrderStatusPill live appearance read', () {
     // NB: `MaterialApp` wraps its content in an implicit `AnimatedTheme`
     // (`kThemeAnimationDuration`), so re-pumping with a different `GWColors`

@@ -19,11 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Plus two companion checks named in the plan: no raw Material button
 /// widget survives, and the file
 /// list itself never drifts onto a fenced Phase-21/cubit/service path.
-// `quote_card.dart` was removed from this list (and from `lib/`) by 09-08
-// Task 4: it was dead code with zero callers (its own header comment said
-// so), and the quote grid `banxa_buy_screen.dart` now renders is what it
-// existed to become. Three files remain after the orders pages, the old
-// checkout options sheet and the separate KYC screen were deleted.
+// Only the screens still in the Buy flow are listed.
 const _inScopeFiles = <String>[
   'lib/screens/banxa_buy_screen.dart',
   'lib/banxa/checkout/checkout_screen.dart',
