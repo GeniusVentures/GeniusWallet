@@ -6,6 +6,10 @@ import 'package:webview_windows/webview_windows.dart'
 
 const _banxaHosts = ['banxa.com', 'banxa-sandbox.com'];
 
+// Dart keeps percent escapes and control characters in a host, which a
+// webview parses differently, so only plain DNS characters are trusted.
+final _plainHost = RegExp(r'^[a-z0-9.-]+$');
+
 /// The API response decides what loads in the app, so only https on a Banxa
 /// domain passes. The dot keeps look-alikes such as evilbanxa.com out.
 bool isTrustedCheckoutUrl(Uri uri) {
@@ -13,6 +17,9 @@ bool isTrustedCheckoutUrl(Uri uri) {
     return false;
   }
   final host = uri.host;
+  if (!_plainHost.hasMatch(host)) {
+    return false;
+  }
   return _banxaHosts.any((h) => host == h || host.endsWith('.$h'));
 }
 

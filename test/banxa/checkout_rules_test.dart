@@ -26,6 +26,8 @@ void main() {
       'https://evilbanxa.com',
       'https://banxa.com.evil.io',
       'https://evil.io/banxa.com',
+      'https://evil.io%2F.banxa.com',
+      'https://evil.io%09.banxa.com',
       'https://user@evil.io/?u=https://banxa.com',
       'javascript:alert(1)',
       'geniuswallet://banxa/callback',
