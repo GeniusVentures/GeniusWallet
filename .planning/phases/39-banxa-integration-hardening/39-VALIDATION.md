@@ -3,7 +3,7 @@ phase: 39
 slug: banxa-integration-hardening
 status: draft
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-09-30
 ---
 
@@ -68,22 +68,34 @@ Automated tests run against `FakeBanxaApi` (test/banxa/fake_banxa_api.dart) or h
 
 ## Wave 0 Requirements
 
-- [ ] `git submodule update --init` and `flutter pub get` in the worktree, baseline recorded (39-01 T1)
-- [ ] Fake Banxa API used by all Banxa tests, constructor-injected (39-01 T1)
-- [ ] Banxa order status enum with a table test covering all eleven wire statuses (39-04 T1)
+- [x] `git submodule update --init` and `flutter pub get` in the worktree, baseline recorded (39-01 T1)
+- [x] Fake Banxa API used by all Banxa tests, constructor-injected (39-01 T1)
+- [x] Banxa order status enum with a table test covering all eleven wire statuses (39-04 T1)
 - [x] Sandbox coin list checked before the Buy card is built (39-06 T3)
 
 ## Manual-Only Verifications
 
-| Behavior | Why Manual | Test Instructions |
-|----------|------------|-------------------|
-| A full sandbox buy completes and lands as `complete` in Transactions | Needs the Banxa sandbox key and hosted checkout | Sandbox build, test card 4111 1111 1111 1111, OTP 7203; watch the order reach Done under Buy orders |
-| Full-screen checkout per platform (Android, iOS, macOS, Windows) | Platform webviews and camera prompts | Open checkout, complete ID step, close early, confirm return and status |
-| GNUS listed on Banxa | Banxa-side action | Re-query `/v2/crypto/buy` for partner `gnus` |
+End-of-phase live walk (Braian). The two Banxa-dependent items are gates with explicit outcomes.
+
+**GATE A, return URL.** Create one order with the custom-scheme return (`geniuswallet://`).
+- Pass: the order is created and the return is followed or harmlessly ignored while polling reaches Done.
+- Fail: create-order is rejected over the return URL. Switch `BanxaApiService.redirectUrl` to the https page on gnus.ai and repeat before the phase closes.
+- Blocked: no key or GNUS unlisted. Record "blocked on Banxa".
+- Status 2026-09-30: blocked on Banxa. It needs a live createBuyOrder, which needs GNUS listed.
+
+**GATE B, sandbox buy.** If the "Sandbox coin list" line below says listed, a sandbox build (card 4111 1111 1111 1111, OTP 7203) must reach complete under Buy orders with one toast. If it says not listed or unchecked, record the sandbox-buy requirement as blocked on Banxa, neither passed nor failed.
+- Status 2026-09-30: blocked on Banxa (GNUS not listed in the sandbox).
+
+**Platform walks (pending human).**
+- [ ] Checkout on Windows, macOS, Android emulator (GW_Test AVD) and iOS, including the ID step's camera and microphone prompt
+- [ ] Android file upload and the leave prompt
+- [ ] Linux browser flow finishing via polling
+- [ ] A build without the key reads "isn't set up"; a production build while GNUS is unlisted reads "isn't on Banxa yet"
+- [ ] Card, checkout header, result view and Buy orders badge in light and dark
+- [ ] Banxa key rotated and `BANXA_API_KEY` set in the repository secrets
+- [ ] Re-query `/v2/crypto/buy` for partner `gnus` once Banxa lists GNUS
 
 Sandbox coin list: not listed, 2026-09-30 (partner gnus answers in sandbox with 159 coins and 32 fiats; GNUS is not among them)
-
-Rule: if listed, the final walk must complete a sandbox buy to pass the sandbox-buy requirement. If not listed or unchecked, that requirement is recorded as blocked on Banxa at the final gate, neither passed nor failed.
 
 ## Validation Sign-Off
 
