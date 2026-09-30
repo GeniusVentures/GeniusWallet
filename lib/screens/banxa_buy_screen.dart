@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/wallet.dart';
-import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
 import 'package:genius_wallet/banxa/banxa_components/order_status_style.dart';
@@ -1013,10 +1012,10 @@ class _ToRow extends StatelessWidget {
                 change,
               ],
             ),
-            if (wallet.walletType == WalletType.tracking) ...[
+            if (BuyGnusState.blockedReason(wallet) case final reason?) ...[
               const SizedBox(height: GeniusWalletConsts.space2),
               Text(
-                BuyGnusState.watchOnlyReason,
+                reason,
                 style: GeniusWalletTypography.bodySm.copyWith(
                   color: gw.statusWarningText,
                 ),

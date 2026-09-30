@@ -363,6 +363,16 @@ void main() {
       await _unmount(tester);
     });
 
+    testWidgets('an address GNUS cannot go to gives a reason too', (
+      tester,
+    ) async {
+      await _pumpCard(tester, wallet: testWallet('bc1qexampleaddress'));
+
+      expect(find.text(BuyGnusState.unsupportedAddressReason), findsOneWidget);
+      expect(_cta(tester).onPressed, isNull);
+      await _unmount(tester);
+    });
+
     testWidgets('with no wallet the card says to add one', (tester) async {
       await _pumpCard(tester, noWallet: true);
 

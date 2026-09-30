@@ -41,6 +41,20 @@ class BuyGnusState {
   static const watchOnlyReason =
       "Watch-only wallets can't receive a buy. Change to a wallet you hold the keys for.";
 
+  static const unsupportedAddressReason =
+      'GNUS can only be delivered to an Ethereum-style address. Change to another wallet.';
+
+  /// Why [wallet] cannot receive a buy, or null when it can.
+  static String? blockedReason(Wallet wallet) {
+    if (wallet.walletType == WalletType.tracking) {
+      return watchOnlyReason;
+    }
+    if (!isEvmAddress(wallet.address)) {
+      return unsupportedAddressReason;
+    }
+    return null;
+  }
+
   final BuyAvailability availability;
   final List<FiatCurrency> fiats;
   final CryptoCurrency? gnus;
@@ -129,8 +143,7 @@ class BuyGnusState {
     if (wallet == null) {
       return const BuyCta('Add a wallet to buy', BuyCtaAction.none);
     }
-    if (wallet.walletType == WalletType.tracking ||
-        !isEvmAddress(wallet.address)) {
+    if (blockedReason(wallet) != null) {
       return const BuyCta('Buy GNUS', BuyCtaAction.none);
     }
     final a = amount;
