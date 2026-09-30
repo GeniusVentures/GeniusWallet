@@ -681,6 +681,36 @@ void main() {
     );
 
     testWidgets(
+      'Delete account on A stays locked while B is still registered under it',
+      (tester) async {
+        final api = _PerMainApi(
+          registrationsByMain: {
+            nestMainA.toLowerCase(): okList([nestMainB], nestMainA),
+          },
+        );
+        final (bloc, details, operations) = await pumpNested(
+          tester,
+          api,
+          selectedSDKAccount: nestMainB,
+        );
+
+        await openMenu(tester, accountRow(nestMainA));
+        final deleteItem = tester.widget<MenuItemButton>(
+          find.widgetWithText(MenuItemButton, 'Delete account'),
+        );
+        expect(deleteItem.onPressed, isNull);
+        expect(
+          find.byTooltip('Recover or revoke its child wallets first'),
+          findsOneWidget,
+        );
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+
+    testWidgets(
       'running as B, Fund on B opens the switch dialog naming A, not B',
       (tester) async {
         final api = _PerMainApi(

@@ -337,7 +337,14 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     // below once 13-03 has consumed the recorded figures.
     final stopwatch = Stopwatch()..start();
     try {
-      emit(state.copyWith(coinsStatus: WalletStatus.loading));
+      // Cleared up front: only this read's own success may set it, or a
+      // failed read would keep the previous wallet's notice.
+      emit(
+        state.copyWith(
+          coinsStatus: WalletStatus.loading,
+          balanceUnreadable: false,
+        ),
+      );
       if (state.selectedWallet == null || state.selectedNetwork == null) {
         emit(state.copyWith(coinsStatus: WalletStatus.error));
         return;

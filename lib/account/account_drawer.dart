@@ -546,6 +546,7 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
                             ? _sgnusWalletFor(row.sdkAddress!, appState.wallets)
                             : null,
                         lockedReason: lockedReason,
+                        registrations: _registrations,
                         onRename: _confirmRenameWallet,
                         onDeleteWallet: _confirmDeleteWallet,
                         expanded: row.hasChildren
@@ -582,6 +583,7 @@ class _AccountRowTile extends StatelessWidget {
     required this.sdkBadge,
     required this.balanceWallet,
     required this.lockedReason,
+    required this.registrations,
     required this.onRename,
     required this.onDeleteWallet,
     required this.expanded,
@@ -605,6 +607,9 @@ class _AccountRowTile extends StatelessWidget {
   /// still pending -- "Earn with this account" refuses every row but the running
   /// one with this as the reason. Never locks a row tap.
   final String? lockedReason;
+
+  /// The drawer's cached [ChildOperationsCubit.ownRegistrations] read.
+  final Map<String, List<ChildWallet>>? registrations;
 
   final void Function(BuildContext context, Wallet wallet) onRename;
   final void Function(BuildContext context, Wallet wallet) onDeleteWallet;
@@ -883,7 +888,7 @@ class _AccountRowTile extends StatelessWidget {
       hasMnemonic: mnemonic != null,
       isStartAccount: isStartAccount,
     );
-    final deleteLock = operations?.deleteLockReason(sdkAddress);
+    final deleteLock = operations?.deleteLockReason(sdkAddress, registrations);
 
     return anchor([
       GWMenuItem(

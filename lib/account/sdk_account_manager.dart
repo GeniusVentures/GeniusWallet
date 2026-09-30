@@ -137,10 +137,12 @@ Future<void> confirmDeleteSDKAccount(
     bloc.state.sdkAccountLinks,
     bloc.state.wallets,
   );
-  // Checked again here, not only by the menu: the account's key is the only
-  // way to reach a transfer still landing on it.
-  final transferLock = context.read<ChildOperationsCubit?>()?.deleteLockReason(
+  // Checked again here, not only by the menu, against a fresh registrations
+  // read: the menu's cached one can be stale by the time the user confirms.
+  final operations = context.read<ChildOperationsCubit?>();
+  final deleteLock = operations?.deleteLockReason(
     address,
+    operations.ownRegistrations(),
   );
   final navigator = Navigator.of(context, rootNavigator: true);
   Navigator.of(context).pop();
@@ -148,11 +150,11 @@ Future<void> confirmDeleteSDKAccount(
   if (block == SDKDeleteBlock.defaultAccount) {
     return;
   }
-  if (transferLock != null) {
+  if (deleteLock != null) {
     await GWDialog.show<void>(
       context: navigator.context,
       title: 'Cannot delete this account',
-      message: '$transferLock. Try again once it has.',
+      message: '$deleteLock.',
       actions: [GWDialogAction(label: 'OK', onPressed: () => navigator.pop())],
     );
     return;

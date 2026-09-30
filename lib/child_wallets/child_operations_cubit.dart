@@ -291,9 +291,13 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         : 'Already recovering from this child';
   }
 
-  /// Why [account] can't be deleted yet, or null when it can: a fund or
-  /// recover that may still land on it, or anything still pending from it.
-  String? deleteLockReason(String account) {
+  /// Why [account] can't be deleted yet, or null when it can. Its key is the
+  /// only way to reach a transfer still landing on it or its registered
+  /// children, so an unreadable [registrations] refuses too.
+  String? deleteLockReason(
+    String account,
+    Map<String, List<ChildWallet>>? registrations,
+  ) {
     final paysOrReceives =
         balanceLockReason(account) != null ||
         state.operations.any(
@@ -303,6 +307,13 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         );
     if (paysOrReceives || hasPendingFrom(account)) {
       return "A transfer for this account hasn't finished yet";
+    }
+    final children = registrations?[account.toLowerCase()];
+    if (children == null) {
+      return "Can't check this account's child wallets right now";
+    }
+    if (children.isNotEmpty) {
+      return 'Recover or revoke its child wallets first';
     }
     return null;
   }
