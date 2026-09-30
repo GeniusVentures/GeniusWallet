@@ -7,6 +7,8 @@ import 'package:genius_wallet/banxa/banxa_env.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import 'fixtures.dart';
+
 const _key = 'test-key-not-a-real-secret';
 
 BanxaApiService _service(
@@ -219,6 +221,43 @@ void main() {
         _createOrder(service),
         throwsA(isA<TimeoutException>()),
       );
+    });
+  });
+
+  group('order parsing', () {
+    test('an echoed string metadata and numeric amounts still parse', () async {
+      final json = testOrder(id: 'good').toJson()
+        ..['metadata'] = 'real'
+        ..['fiatAmount'] = 100;
+      final seen = <http.Request>[];
+      final service = _service(seen, body: jsonEncode(json));
+
+      final order = await service.getOrderById('good');
+
+      expect(order.metadata, isNull);
+      expect(order.fiatAmount, '100');
+    });
+
+    test('one malformed order does not sink the list', () async {
+      final bad = testOrder(id: 'bad').toJson()..['crypto'] = null;
+      final body = jsonEncode({
+        'orders': [
+          testOrder(id: 'a').toJson(),
+          bad,
+          testOrder(id: 'b').toJson(),
+        ],
+        'total': 3,
+        'pageTotal': 1,
+      });
+      final service = _service(<http.Request>[], body: body);
+
+      final all = await service.fetchAllOrders(
+        startDateUtc: 's',
+        endDateUtc: 'e',
+        externalCustomerId: 'gw-x',
+      );
+
+      expect(all.orders.map((o) => o.id), ['a', 'b']);
     });
   });
 }

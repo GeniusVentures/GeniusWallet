@@ -212,9 +212,11 @@ class OrdersResponse {
 
   factory OrdersResponse.fromJson(Map<String, dynamic> json) {
     return OrdersResponse(
-      orders: (json['orders'] as List<dynamic>)
-          .map((e) => Order.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      orders: [
+        for (final e in json['orders'] as List<dynamic>)
+          // One malformed order must not hide the rest of the list.
+          ?_tryOrder(e),
+      ],
       total: json['total'] ?? 0,
       pageTotal: json['pageTotal'] ?? 0,
     );
@@ -226,6 +228,14 @@ class OrdersResponse {
       'total': total,
       'pageTotal': pageTotal,
     };
+  }
+}
+
+Order? _tryOrder(Object? json) {
+  try {
+    return Order.fromJson(json as Map<String, dynamic>);
+  } on Object {
+    return null;
   }
 }
 
@@ -277,28 +287,35 @@ class Order {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    String text(String key) => json[key]?.toString() ?? '';
+    final id = text('id');
+    if (id.isEmpty) {
+      throw const FormatException('order without an id');
+    }
+    final metadata = json['metadata'];
     return Order(
-      id: json['id'],
-      externalId: json['externalOrderId'], // matches API field
-      externalCustomerId: json['externalCustomerId'],
-      country: json['country'],
-      orderStatusUrl: json['orderStatusUrl'],
-      orderType: json['orderType'],
-      crypto: Crypto.fromJson(json['crypto']),
-      fiat: json['fiat'],
-      fiatAmount: json['fiatAmount'],
-      cryptoAmount: json['cryptoAmount'],
-      paymentMethodId: json['paymentMethodId'],
-      paymentMethodName: json['paymentMethodName'],
-      processingFee: json['processingFee'],
-      networkFee: json['networkFee'],
-      transactionHash: json['transactionHash'],
-      walletAddress: json['walletAddress'],
-      walletAddressTag: json['walletAddressTag'],
-      status: json['status'],
-      metadata: json['metadata'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      id: id,
+      externalId: text('externalOrderId'), // matches API field
+      externalCustomerId: text('externalCustomerId'),
+      country: json['country']?.toString(),
+      orderStatusUrl: text('orderStatusUrl'),
+      orderType: text('orderType'),
+      crypto: Crypto.fromJson(json['crypto'] as Map<String, dynamic>),
+      fiat: text('fiat'),
+      fiatAmount: text('fiatAmount'),
+      cryptoAmount: text('cryptoAmount'),
+      paymentMethodId: text('paymentMethodId'),
+      paymentMethodName: text('paymentMethodName'),
+      processingFee: text('processingFee'),
+      networkFee: text('networkFee'),
+      transactionHash: json['transactionHash']?.toString(),
+      walletAddress: text('walletAddress'),
+      walletAddressTag: json['walletAddressTag']?.toString(),
+      status: text('status'),
+      // The app sends a plain string here, so Banxa may echo a string back.
+      metadata: metadata is Map<String, dynamic> ? metadata : null,
+      createdAt: DateTime.parse(text('createdAt')),
+      updatedAt: DateTime.parse(text('updatedAt')),
     );
   }
 
