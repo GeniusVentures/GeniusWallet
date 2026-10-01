@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/action_button.dart';
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/custom/wallet_address_custom.dart';
@@ -228,24 +229,39 @@ class WalletInformationState extends State<WalletInformation> {
                             ),
                             SlidingDrawerButton(
                               onPressed: () {
-                                geniusApi.deleteWallet(
-                                  state.selectedWallet?.address ?? "",
-                                  watchOnly:
-                                      state.selectedWallet?.walletType ==
-                                      WalletType.tracking,
-                                );
-                                showToast(
+                                final appBloc = context.read<AppBloc>();
+                                final navigator = Navigator.of(
                                   context,
-                                  'Wallet ${state.selectedWallet?.walletName ?? ""} deleted!',
+                                  rootNavigator: true,
                                 );
-
+                                final wallet = state.selectedWallet;
                                 Navigator.of(context).pop();
-                                Future.delayed(
-                                  const Duration(milliseconds: 100),
-                                  () {
-                                    // ignore: use_build_context_synchronously
-                                    context.go('/dashboard');
-                                  },
+                                if (wallet == null) {
+                                  return;
+                                }
+                                // Enforced here too, not only in the drawer:
+                                // this button used to call the API directly,
+                                // skipping the last-wallet guard.
+                                if (!AppBloc.canDeleteWallet(
+                                  appBloc.state.wallets,
+                                  deletingWatchOnly:
+                                      wallet.walletType == WalletType.tracking,
+                                )) {
+                                  showToast(
+                                    navigator.context,
+                                    'You must keep at least one wallet.',
+                                    type: ToastType.warning,
+                                    duration: const Duration(seconds: 2),
+                                  );
+                                  return;
+                                }
+                                appBloc.add(
+                                  DeleteWallet(
+                                    wallet.address,
+                                    watchOnly:
+                                        wallet.walletType ==
+                                        WalletType.tracking,
+                                  ),
                                 );
                               },
                               color: context.gw.statusErrorText,

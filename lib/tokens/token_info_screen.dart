@@ -644,9 +644,9 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 ///
 ///  * **Receive** needs no market price, so it renders on the no-market-data
 ///    route too.
-///  * **Bridge** is absent unless `isGnusBridgeEnabled`, `onPressed: null` on
-///    a zero balance rather than hidden (a balance is a state the user can
-///    change, absence is not). Sketch 165 never drew a third action; Bridge
+///  * **Bridge** is absent unless `isGnusBridgeEnabled` and the wallet can sign
+///    here, like Send; `onPressed: null` on a zero balance rather than
+///    hidden (a balance is a state the user can change, absence is not). Sketch 165 never drew a third action; Bridge
 ///    takes the same `gradientOutline` treatment as Receive, the call this
 ///    file already made for the identical situation in sketch 164. **Flagged
 ///    for the walk, not settled** - two outlines beside one fill is still one
@@ -783,7 +783,7 @@ class _CoinActionRow extends StatelessWidget {
             ),
           ),
         ),
-        if (isGnusBridgeEnabled)
+        if (isGnusBridgeEnabled && canSendFrom(selectedWallet, selectedNetwork))
           GWButton(
             // Bridge was not in the 164 brief, but it stands in the same row on
             // GNUS-enabled coins. Leaving it bare next to two bounded siblings

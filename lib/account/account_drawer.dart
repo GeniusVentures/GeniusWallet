@@ -1,16 +1,34 @@
+import 'dart:math' show min;
+
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/account/account_tree.dart';
+import 'package:genius_wallet/account/sdk_account_manager.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_operation_dialogs.dart'
+    show startFund, startRecover, startRevoke;
+import 'package:genius_wallet/child_wallets/child_operation_status.dart'
+    show ChildOperationBadge;
+import 'package:genius_wallet/child_wallets/child_operations_cubit.dart';
+import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
+    show ChildWallet;
+import 'package:genius_wallet/child_wallets/child_wallets_screen.dart'
+    show ChildWalletRow;
 import 'package:genius_wallet/components/bottom_drawer/responsive_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
+import 'package:genius_wallet/components/data/gw_row_badge.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
+import 'package:genius_wallet/components/overlays/gw_menu_item.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
+import 'package:genius_wallet/dev/dev_flags.dart' show kShowDevTools;
+import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/network/network_dropdown_selector.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
@@ -19,37 +37,18 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
-import 'package:genius_wallet/wallets/view/genius_balance_display.dart';
 import 'package:go_router/go_router.dart';
+import 'package:local_secure_storage/local_secure_storage.dart'
+    show SDKAccountLink;
 import 'package:provider/provider.dart';
 
-/// The account drawer, extracted from `AccountDropdownSelector`'s former
-/// private `_showAccountDrawer` so a second surface can open it - the
-/// compute panel's *not linked* state offers a switch-wallet affordance that
-/// otherwise has no destination.
-///
-/// This is a code move, not a redesign: the drawer that opens is the same
-/// drawer, with the same title, the same rows, the same footer and the same
-/// body inset.
+/// The account switcher: one "Accounts" list. Tapping a row selects it for
+/// sends and swaps; running the node as it is a separate menu action -
+/// changing one never touches the other.
 class AccountDrawer {
-  /// Opens the drawer and returns the wallet the user selected, or `null` if
-  /// they dismissed it without picking one.
-  ///
-  /// The selection's side effect - [WalletDetailsCubit.selectWallet], which
-  /// also persists it across restarts - happens HERE, inside the entry, so no
-  /// caller can forget it.
-  ///
-  /// [includeNetwork] prepends a network field and retitles the sheet, which
-  /// is what the phone header's single wallet pill opens: one surface
-  /// answering both "whose wallet" and "on which chain", instead of the two
-  /// separate controls the phone header used to carry.
-  ///
-  /// It defaults to FALSE, and that default is load-bearing. Every existing
-  /// caller - the compute panel's *not linked* state included - passes
-  /// nothing and gets byte-identical behaviour, title included. The title is
-  /// derived here rather than by the body because
-  /// `test/account/account_drawer_show_test.dart` pins `find.text('Accounts')`
-  /// and must stay green without being edited.
+  /// Opens the switcher and returns the picked wallet, selecting it via
+  /// [WalletDetailsCubit] before returning - the entry itself selects the
+  /// wallet, so no caller can forget to.
   static Future<Wallet?> show(
     BuildContext context, {
     bool includeNetwork = false,
@@ -88,10 +87,10 @@ class AccountDrawer {
       // iconSize 28 (sketch 068-A). Gradient because adding a wallet is the
       // panel's only action and it is a commitment.
       footer: GWButton(
-        label: 'Add Wallet',
+        label: 'Add wallet',
         leading: const Icon(Icons.add),
         variant: GWButtonVariant.gradient,
-        size: GWButtonSize.lg,
+        size: GWButtonSize.sm,
         expand: true,
         onPressed: () => context.push('/landing_screen', extra: true),
       ),
@@ -105,6 +104,55 @@ class AccountDrawer {
 
     return selected;
   }
+}
+
+/// Whether an own-wallet row has an SDK account, and if not, whether one is
+/// still on its way.
+enum WalletSDKBadge {
+  /// Tracking and sgnus rows, or an own wallet the SDK is running without
+  /// ever having linked.
+  none,
+
+  /// [links] holds an entry whose wallet address matches this one.
+  linked,
+
+  /// No link yet, but the SDK is not running to make one - not a permanent
+  /// "no", just not yet.
+  pending,
+}
+
+/// Resolves [wallet]'s badge from the link map. Tracking and sgnus
+/// wallets never carry one - the SDK section already says which of THEM has
+/// the link, via `sdk_account_manager.dart`'s row naming.
+WalletSDKBadge walletSDKBadge(
+  Wallet wallet,
+  Map<String, SDKAccountLink> links, {
+  required bool sdkRunning,
+}) {
+  if (wallet.walletType == WalletType.tracking ||
+      wallet.walletType == WalletType.sgnus) {
+    return WalletSDKBadge.none;
+  }
+  final address = wallet.address.toLowerCase();
+  final isLinked = links.values.any((link) => link.walletAddress == address);
+  if (isLinked) {
+    return WalletSDKBadge.linked;
+  }
+  return sdkRunning ? WalletSDKBadge.none : WalletSDKBadge.pending;
+}
+
+/// The sgnus wallet [sdkAddress]'s "View balance" menu item selects, or null
+/// when the SDK has none linked - the same lowercased-address match
+/// [walletSDKBadge] uses.
+Wallet? _sgnusWalletFor(String sdkAddress, List<Wallet> wallets) {
+  final address = sdkAddress.toLowerCase();
+  for (final wallet in wallets) {
+    if (wallet.walletType == WalletType.sgnus &&
+        wallet.address.toLowerCase() == address) {
+      return wallet;
+    }
+  }
+  return null;
 }
 
 /// The drawer's body: the row list plus the two confirm flows reachable from
@@ -129,6 +177,73 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   // build) purely so the rename flow below can update it in place when a
   // rename touches the currently-selected wallet.
   Wallet? _selectedWallet;
+
+  /// The last key [_registrations] was read for -- see [_updateRegistrations].
+  Object? _registrationsKey;
+
+  /// Every own account's registered children, or null while the node is down
+  /// and no dev preset is armed, or a read failed. Read once per open and
+  /// again only when [_updateRegistrations]'s key actually changes, never on
+  /// every rebuild -- an FFI call per own account is too costly to repeat on
+  /// every frame this drawer paints.
+  Map<String, List<ChildWallet>>? _registrations;
+
+  /// Mains hidden by a chevron tap, keyed by lowercased `sdkAddress`. Lives
+  /// for this open only -- a fresh `State` on the next open starts empty,
+  /// i.e. every main expanded.
+  final Set<String> _collapsedMains = {};
+
+  @override
+  void initState() {
+    super.initState();
+    if (kDebugMode && kShowDevTools) {
+      // Removed in dispose() below, under the identical gate, so a listener
+      // never outlives this State -- same idiom as ChildWalletsCubit's own
+      // preset listener. Just a setState: the keyed read in build() already
+      // picks up the new preset value once this repaints.
+      DevMockChildWallets.instance.preset.addListener(_onPresetChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (kDebugMode && kShowDevTools) {
+      DevMockChildWallets.instance.preset.removeListener(_onPresetChanged);
+    }
+    super.dispose();
+  }
+
+  void _onPresetChanged() => setState(() {});
+
+  void _toggleCollapse(String key) {
+    setState(() {
+      if (!_collapsedMains.remove(key)) {
+        _collapsedMains.add(key);
+      }
+    });
+  }
+
+  void _updateRegistrations(
+    AppState appState,
+    ChildOperationsCubit? operations,
+  ) {
+    final key = (
+      appState.selectedSDKAccount,
+      appState.sdkAccounts.join(','),
+      operations?.state,
+      DevMockChildWallets.instance.preset.value,
+      // Bloc state keeps the same list/map instance across an emit that
+      // doesn't touch it, so identity here still catches a rename or a
+      // link change without a per-build deep compare.
+      appState.wallets,
+      appState.sdkAccountLinks,
+    );
+    if (key == _registrationsKey) {
+      return;
+    }
+    _registrationsKey = key;
+    _registrations = operations?.ownRegistrations();
+  }
 
   Future<void> _confirmRenameWallet(BuildContext context, Wallet wallet) async {
     final appBloc = context.read<AppBloc>();
@@ -195,7 +310,10 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
 
     // Guard: at least one of the user's own wallets must remain; SDK accounts
     // do not count (the bloc enforces the same rule).
-    if (!AppBloc.canDeleteWallet(appBloc.state.wallets)) {
+    if (!AppBloc.canDeleteWallet(
+      appBloc.state.wallets,
+      deletingWatchOnly: wallet.walletType == WalletType.tracking,
+    )) {
       showToast(
         navigator.context,
         'You must keep at least one wallet.',
@@ -244,6 +362,19 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     }
   }
 
+  /// True when [wallet] is the row highlighted as selected. Matched on
+  /// lowercased address AND wallet type, not name - an SDK row now carries
+  /// its own wallet's name, so two rows named alike would otherwise
+  /// both light up.
+  bool _matchesSelected(Wallet wallet) {
+    final selected = _selectedWallet;
+    if (selected == null) {
+      return false;
+    }
+    return wallet.address.toLowerCase() == selected.address.toLowerCase() &&
+        wallet.walletType == selected.walletType;
+  }
+
   /// True when [network] is the one the app is currently reading balances
   /// from. Matched on `chainId` AND `rpcUrl` because `networks.json` ships
   /// mainnet/testnet pairs that share neither reliably on their own.
@@ -284,182 +415,29 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     _selectNetwork(context, picked);
   }
 
-  Widget _buildDrawerRow(
-    BuildContext context,
-    Wallet wallet,
-    bool isSelected, {
-    bool isActiveOnNode = false,
-  }) {
-    // Fail-soft read: registers the InheritedWidget dependency (on the
-    // per-row context passed in from the drawer's own itemBuilder, NOT the
-    // widget-level this.context) that forces this row to rebuild on a live
-    // appearance toggle while the drawer stays open (04-02 D-02).
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
-
-    final isWatched = wallet.walletType == WalletType.tracking;
-
-    // Sketch 068-A. This row used to paint selection as
-    // `selectedTileColor: brandPrimaryStrong` -- a FLAT brand fill, the one
-    // thing `drawers-final`'s global accent rule forbids and which quick
-    // 260721-0ze swept out of the rest of the app. This row was missed. It also
-    // needed two on-brand text colours to stay legible ON that fill; with the
-    // gradient tint underneath, ordinary text tokens read fine and both are
-    // gone.
-    //
-    // The shape follows the token row: identity on the LEFT (name over
-    // address), value on the RIGHT (balance). The address moved from a
-    // `SelectableText` to the subtitle -- select-to-copy inside a tappable row
-    // fights the tap, and the overflow menu's "Copy address" is the real path.
-    return GWSelectRow(
-      selected: isSelected,
-      onTap: () => Navigator.of(context).pop(wallet),
-      leading: AccountAvatar(wallet: wallet, isSelected: isSelected, size: 36),
-      title: wallet.walletName,
-      subtitle: wallet.address.isEmpty
-          ? null
-          : WalletUtils.getAddressForDisplay(wallet.address),
-      subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
-        fontFamily: GeniusWalletTypography.monoFamily,
-        color: gw.textSecondary,
-      ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 24-02: which SDK account the NODE computes on is a SEPARATE state
-          // from which wallet the UI is showing. `SelectSDKAccount` is
-          // dispatched from exactly one place -- sdk_account_manager.dart:185 --
-          // and the drawer's own tap only calls `walletCubit.selectWallet`.
-          // So the check glyph and this badge can legitimately sit on different
-          // rows, and before this badge existed nothing said so.
-          if (isActiveOnNode) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: GeniusWalletConsts.space4,
-                vertical: 2,
-              ),
-              decoration: BoxDecoration(
-                color: gw.brandSecondary.withValues(alpha: 0.12),
-                border: Border.all(
-                  color: gw.brandSecondary.withValues(alpha: 0.5),
-                ),
-                borderRadius: BorderRadius.circular(
-                  GeniusWalletConsts.radiusXs,
-                ),
-              ),
-              child: Text(
-                'ACTIVE ON NODE',
-                style: GeniusWalletTypography.labelMd.copyWith(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                  color: gw.brandSecondary,
-                ),
-              ),
-            ),
-            const SizedBox(width: GeniusWalletConsts.space3),
-          ],
-          // `isShowSuffix: false` -- GeniusBalanceDisplay hard-codes the suffix
-          // as the abbreviation "min", so with it on this row read "0 min"
-          // directly above another row reading "0.0 minions". One unit, two
-          // spellings, adjacent. The suffix is written here instead so both
-          // branches say the same word.
-          if (wallet.walletType == WalletType.sgnus) ...[
-            GeniusBalanceDisplay(
-              useMinions: true,
-              fontSize: 12,
-              fontColor: gw.textSecondary,
-            ),
-            Text(
-              ' minions',
-              style: GeniusWalletTypography.labelMd.copyWith(
-                color: gw.textSecondary,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ] else
-            Text(
-              WalletUtils.formatMinions(wallet.balance),
-              style: GeniusWalletTypography.labelMd.copyWith(
-                color: gw.textSecondary,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          if (isWatched) ...[
-            const SizedBox(width: GeniusWalletConsts.space3),
-            Icon(
-              Icons.remove_red_eye_outlined,
-              size: 16,
-              color: gw.textSecondary,
-            ),
-          ],
-        ],
-      ),
-      action: wallet.address.isEmpty
-          ? null
-          // No local `MenuStyle` -- see `theme.dart`'s menuTheme/menuButtonTheme.
-          : MenuAnchor(
-              builder: (context, controller, child) => IconButton(
-                icon: Icon(Icons.more_vert, size: 20, color: gw.textSecondary),
-                onPressed: () {
-                  if (controller.isOpen) {
-                    controller.close();
-                  } else {
-                    controller.open();
-                  }
-                },
-              ),
-              menuChildren: [
-                MenuItemButton(
-                  leadingIcon: Icon(
-                    Icons.copy,
-                    size: 20,
-                    color: gw.textPrimary,
-                  ),
-                  style: MenuItemButton.styleFrom(
-                    foregroundColor: gw.textPrimary,
-                  ),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: wallet.address));
-                    HapticFeedback.lightImpact();
-                    Navigator.of(context).pop();
-                    showToast(
-                      context,
-                      'Address copied to clipboard',
-                      duration: const Duration(seconds: 1),
-                    );
-                  },
-                  child: const Text('Copy address'),
-                ),
-                if (wallet.walletType != WalletType.sgnus)
-                  MenuItemButton(
-                    leadingIcon: Icon(
-                      Icons.edit_outlined,
-                      size: 20,
-                      color: gw.textPrimary,
-                    ),
-                    style: MenuItemButton.styleFrom(
-                      foregroundColor: gw.textPrimary,
-                    ),
-                    onPressed: () => _confirmRenameWallet(context, wallet),
-                    child: const Text('Rename'),
-                  ),
-                if (wallet.walletType != WalletType.sgnus)
-                  MenuItemButton(
-                    leadingIcon: Icon(
-                      Icons.delete_outline,
-                      size: 20,
-                      color: gw.statusErrorText,
-                    ),
-                    onPressed: () => _confirmDeleteWallet(context, wallet),
-                    child: Text(
-                      'Delete',
-                      style: TextStyle(color: gw.statusErrorText),
-                    ),
-                  ),
-              ],
-            ),
-    );
+  /// True when [row]'s selection target (its own wallet, or its account's
+  /// sgnus wallet) matches the active wallet -- never the SDK selection: a
+  /// wallet-kind row IS its wallet, a merged row's identity is still its
+  /// wallet, and an account row's identity is the sgnus wallet its menu's
+  /// "View balance" already resolves.
+  bool _rowSelected(AccountTreeRow row, List<Wallet> wallets) {
+    final target =
+        row.wallet ??
+        (row.sdkAddress != null
+            ? _sgnusWalletFor(row.sdkAddress!, wallets)
+            : null);
+    return target != null && _matchesSelected(target);
   }
+
+  bool _rowOnNode(AccountTreeRow row, String? runningAccount) =>
+      row.sdkAddress != null &&
+      runningAccount != null &&
+      row.sdkAddress!.toLowerCase() == runningAccount.toLowerCase();
+
+  bool _rowIsStart(AccountTreeRow row, String? defaultAccountLower) =>
+      row.sdkAddress != null &&
+      defaultAccountLower != null &&
+      row.sdkAddress!.toLowerCase() == defaultAccountLower;
 
   @override
   Widget build(BuildContext context) {
@@ -469,49 +447,53 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     // seeded once rather than watched.
     _selectedWallet ??= context.read<WalletDetailsCubit>().state.selectedWallet;
 
+    // Nullable: the registry is provided once, at the app root, above the
+    // router -- a host that never wires it (an older test harness, a screen
+    // outside that subtree) simply has nothing pending to lock.
+    final operations = context.watch<ChildOperationsCubit?>();
+
     return BlocBuilder<AppBloc, AppState>(
       builder: (context, appState) {
-        final wallets = appState.wallets;
-        // The blanket "You have no wallets!" early return was removed in 24-02.
-        // With two sections each owning its own empty note, it would have
-        // swallowed BOTH headers -- including the one explanation the user most
-        // needs when the list is short, that the node is disconnected.
-        // 24-02: ONE flat list used to hold two unrelated kinds of account.
-        // `app_bloc.dart:628` returns `[...sgnusWallets, ..._baseWallets]`, so
-        // SDK accounts were already sorted first -- but nothing said they were
-        // a different thing, and they differ in almost every way that matters:
-        // unit (minions vs the network's currency), balance source (native SDK
-        // vs RPC), transactions screen, and whether rename/delete are even
-        // allowed. Splitting the list is the smallest change that stops the
-        // drawer implying they are interchangeable.
-        final sdkWallets = wallets
-            .where((w) => w.walletType == WalletType.sgnus)
-            .toList();
-        final ownWallets = wallets
-            .where((w) => w.walletType != WalletType.sgnus)
-            .toList();
-
-        // `state.sdkAccounts` is filled by `_getSDKAccountState()`, which calls
-        // `api.getAvailableAccounts()` WITHOUT checking the connection.
-        // `_mergeSgnusWallet()` DOES check it and returns base wallets only
-        // when the node is down (app_bloc.dart:606-609). So the two lists
-        // disagreeing is a precise signal: the node has accounts, but is not
-        // connected right now. Without this the rows just vanish and the user
-        // is told nothing.
-        final nodeHasAccounts = appState.sdkAccounts.isNotEmpty;
-        final nodeDisconnected = sdkWallets.isEmpty && nodeHasAccounts;
+        _updateRegistrations(appState, operations);
+        final defaultAccount = appState.defaultSDKAccount?.toLowerCase();
+        // A pending child operation submitted from the running account locks
+        // every OTHER row's "Earn with this account" -- selecting a wallet for
+        // sends/swaps is never touched by this.
+        final running = appState.selectedSDKAccount;
+        final switching = appState.switchingSDKAccount;
+        final lockedReason =
+            operations != null &&
+                running != null &&
+                operations.hasPendingFrom(running)
+            ? 'Waiting for a child operation from ${operations.labelFor(running)} '
+                  'to confirm'
+            : null;
+        // One tree, one row per account: each own wallet, its merged SDK
+        // account when it has one, and any unlinked or wallet-removed
+        // account, in render order.
+        final treeRows = buildAccountTree(
+          wallets: appState.wallets,
+          sdkAccounts: appState.sdkAccounts,
+          links: appState.sdkAccountLinks,
+          registrations: _registrations,
+        );
+        // Full tree for the empty check and for indenting by its real
+        // depth; filtered only for what actually renders, so collapsing a
+        // main never changes what "No wallets yet." means.
+        final visibleRows = visibleAccountRows(treeRows, _collapsedMains);
 
         return ListView(
-          padding: const EdgeInsets.all(GeniusWalletConsts.space10),
+          padding: const EdgeInsets.fromLTRB(
+            GeniusWalletConsts.space10 / 2,
+            GeniusWalletConsts.space10,
+            GeniusWalletConsts.space10,
+            GeniusWalletConsts.space10,
+          ),
           children: [
             // The network field, when this sheet was opened as the combined
             // wallet-and-network surface. One field rather than a list, so the
             // user's own wallets stay above the fold; it opens the same
             // searchable, Mainnet/Testnet picker the desktop selector uses.
-            //
-            // `_AccountSectionHeader` is reused exactly as it stands, with no
-            // variant flag: this section is the same kind of thing the other
-            // two are.
             if (widget.networks.isNotEmpty) ...[
               const _AccountSectionHeader(
                 title: 'Network',
@@ -523,52 +505,63 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
               ),
               const SizedBox(height: GeniusWalletConsts.space8),
             ],
-            // The SDK section appears only when it has something to SAY -
-            // either real accounts, or the fact that the node dropped and took
-            // them away. A user who has never run a node would otherwise get a
-            // header and an empty box pushing their own wallets below the fold,
-            // which is the first thing they came here for.
-            if (sdkWallets.isNotEmpty || nodeDisconnected) ...[
-              const _AccountSectionHeader(
-                title: 'SDK Accounts',
-                caption:
-                    'Node accounts that earn minions for sharing your GPU. '
-                    'Balances come from the SuperGenius node, and these '
-                    'accounts cannot be renamed or deleted.',
-              ),
-              if (sdkWallets.isNotEmpty)
-                ...sdkWallets.map(
-                  (w) => _buildDrawerRow(
-                    context,
-                    w,
-                    w.walletName == _selectedWallet?.walletName,
-                    isActiveOnNode: w.address == appState.selectedSDKAccount,
-                  ),
-                )
-              else
-                const _AccountSectionNote(
-                  text:
-                      'The SuperGenius node is not connected, so its accounts '
-                      'are unavailable right now.',
-                ),
-              const SizedBox(height: GeniusWalletConsts.space8),
-            ],
-            const _AccountSectionHeader(
-              title: 'Your Accounts',
+            // The drawer's own title already says "Accounts" when there is
+            // no Network section above to tell apart.
+            _AccountSectionHeader(
+              title: widget.networks.isNotEmpty ? 'Accounts' : null,
               caption:
-                  'Wallets you created or imported. Used for swaps, sends and '
-                  'everything else on-chain.',
+                  'Tap an account to use it as your wallet for transfers and '
+                  'swaps. Use its menu to earn with it.',
             ),
-            if (ownWallets.isNotEmpty)
-              ...ownWallets.map(
-                (w) => _buildDrawerRow(
-                  context,
-                  w,
-                  w.walletName == _selectedWallet?.walletName,
-                ),
-              )
-            else
+            if (treeRows.isEmpty)
               const _AccountSectionNote(text: 'No wallets yet.'),
+            ...visibleRows.map(
+              (row) => Padding(
+                padding: EdgeInsets.only(
+                  left: min(row.depth, 2) * GeniusWalletConsts.space6,
+                ),
+                child: row.kind == AccountRowKind.foreignChild
+                    ? ChildWalletRow(
+                        wallet: row.child!,
+                        mainAddress: row.parentMain!,
+                      )
+                    : _AccountRowTile(
+                        row: row,
+                        selected: _rowSelected(row, appState.wallets),
+                        // The pending target says so instead of Earning, even
+                        // if a read already names it, until the switch settles.
+                        switching: _rowOnNode(row, switching),
+                        switchPending: switching != null,
+                        onNode:
+                            !_rowOnNode(row, switching) &&
+                            _rowOnNode(row, running),
+                        isStartAccount: _rowIsStart(row, defaultAccount),
+                        sdkBadge: row.kind == AccountRowKind.wallet
+                            ? walletSDKBadge(
+                                row.wallet!,
+                                appState.sdkAccountLinks,
+                                sdkRunning: appState.defaultSDKAccount != null,
+                              )
+                            : WalletSDKBadge.none,
+                        balanceWallet: row.sdkAddress != null
+                            ? _sgnusWalletFor(row.sdkAddress!, appState.wallets)
+                            : null,
+                        lockedReason: lockedReason,
+                        registrations: _registrations,
+                        onRename: _confirmRenameWallet,
+                        onDeleteWallet: _confirmDeleteWallet,
+                        expanded: row.hasChildren
+                            ? !_collapsedMains.contains(
+                                row.sdkAddress!.toLowerCase(),
+                              )
+                            : null,
+                        onToggle: row.hasChildren
+                            ? () =>
+                                  _toggleCollapse(row.sdkAddress!.toLowerCase())
+                            : null,
+                      ),
+              ),
+            ),
           ],
         );
       },
@@ -576,11 +569,477 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   }
 }
 
-/// The wallet avatar, shared by this drawer's rows AND
-/// `AccountDropdownSelector`'s collapsed top-bar chip - both need it, and
-/// Dart's file-scoped privacy means a private method can no longer serve
-/// both once the drawer moved to its own file. A public widget rather than a
-/// top-level function, per the house rule against `_buildFoo()` helpers.
+/// One row of the merged "Accounts" tree: a plain own wallet, an own wallet
+/// merged with its linked SDK account, or an unlinked/wallet-removed SDK
+/// account. A foreign child never reaches this widget - it renders as a
+/// [ChildWalletRow] instead. The mnemonic it reads stays a build-local, never
+/// a field, and only for the row that is actually on node.
+class _AccountRowTile extends StatelessWidget {
+  const _AccountRowTile({
+    required this.row,
+    required this.selected,
+    required this.onNode,
+    required this.switching,
+    required this.switchPending,
+    required this.isStartAccount,
+    required this.sdkBadge,
+    required this.balanceWallet,
+    required this.lockedReason,
+    required this.registrations,
+    required this.onRename,
+    required this.onDeleteWallet,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final AccountTreeRow row;
+  final bool selected;
+  final bool onNode;
+
+  /// The node was asked to run as this row and has not confirmed it yet.
+  final bool switching;
+
+  /// Any earning switch is still in flight, so the node's account may not
+  /// match any row's tag yet.
+  final bool switchPending;
+  final bool isStartAccount;
+  final WalletSDKBadge sdkBadge;
+
+  /// The linked sgnus wallet this row's "View balance" menu item selects, or
+  /// null when the account has none. Only set for merged/account rows.
+  final Wallet? balanceWallet;
+
+  /// Non-null while a child operation submitted from the running account is
+  /// still pending -- "Earn with this account" refuses every row but the running
+  /// one with this as the reason. Never locks a row tap.
+  final String? lockedReason;
+
+  /// The drawer's cached [ChildOperationsCubit.ownRegistrations] read.
+  final Map<String, List<ChildWallet>>? registrations;
+
+  final void Function(BuildContext context, Wallet wallet) onRename;
+  final void Function(BuildContext context, Wallet wallet) onDeleteWallet;
+
+  /// Null for a leaf (no chevron at all); otherwise whether this main's
+  /// children currently show.
+  final bool? expanded;
+
+  /// Flips [expanded]. Null exactly when [expanded] is null.
+  final VoidCallback? onToggle;
+
+  /// True only for a row carrying an SDK account that is not the one
+  /// currently running -- the one condition "Earn with this account" refuses.
+  bool get _locked => row.sdkAddress != null && lockedReason != null && !onNode;
+
+  @override
+  Widget build(BuildContext context) {
+    // Fail-soft read: registers the InheritedWidget dependency that forces
+    // this row to rebuild on a live appearance toggle while the drawer stays
+    // open.
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final appBloc = context.read<AppBloc>();
+    // Nullable for the same reason the drawer body's own read is: a host
+    // that never provides the registry has nothing pending to lock or show.
+    final operations = context.watch<ChildOperationsCubit?>();
+    final wallet = row.wallet;
+    final sdkAddress = row.sdkAddress;
+    final isWatched = wallet?.walletType == WalletType.tracking;
+    final locked = _locked;
+    // A nested own account is reached only through another main's
+    // registrations, so depth >= 1 with a child entry is exactly that case --
+    // a top-level row never carries one.
+    final isNestedOwn = row.depth >= 1 && row.child != null;
+    final pendingOps = isNestedOwn && operations != null
+        ? operations.operationsFor(sdkAddress!)
+        : const <ChildOperation>[];
+
+    final title = wallet != null
+        ? wallet.walletName
+        : AppBloc.sdkAccountName(
+            sdkAddress!,
+            appBloc.state.sdkAccountLinks,
+            appBloc.state.wallets,
+          );
+    final addressText = wallet?.address ?? sdkAddress!;
+    final anyTag =
+        selected ||
+        onNode ||
+        switching ||
+        (sdkBadge != WalletSDKBadge.none && !onNode);
+
+    final tile = GWSelectRow(
+      selected: selected,
+      // Tapping any row picks it for sends/swaps -- never the node account.
+      // An account row with no linked sgnus wallet yet is a no-op.
+      onTap: () {
+        final target =
+            wallet ??
+            (sdkAddress != null
+                ? _sgnusWalletFor(sdkAddress, appBloc.state.wallets)
+                : null);
+        if (target != null) {
+          Navigator.of(context).pop(target);
+        }
+      },
+      leading: _leading(gw, wallet, locked),
+      title: title,
+      titleStyle: locked
+          ? GeniusWalletTypography.bodySm.copyWith(
+              fontWeight: FontWeight.w600,
+              // 80%, not 70% -- a locked row can also be selected, and the
+              // selection tint behind it eats into the 3:1 floor 70% only
+              // clears on the bare panel background.
+              color: gw.textSecondary.withValues(alpha: 0.8),
+            )
+          : null,
+      subtitle:
+          WalletUtils.getAddressForDisplay(addressText) +
+          (isStartAccount ? ' · Default account' : ''),
+      subtitleStyle: GeniusWalletTypography.labelMd.copyWith(
+        fontFamily: GeniusWalletTypography.monoFamily,
+        color: locked
+            ? gw.textSecondary.withValues(alpha: 0.8)
+            : gw.textSecondary,
+      ),
+      titleTrailing: anyTag
+          ? Wrap(
+              spacing: GeniusWalletConsts.space3,
+              runSpacing: GeniusWalletConsts.space2,
+              children: [
+                // A plain wallet's link status drops once Earning shows (a row
+                // on node is always linked), and "Setting up" drops beside
+                // Selected so two long labels never crowd out the name.
+                if (row.kind == AccountRowKind.wallet &&
+                    sdkBadge != WalletSDKBadge.none &&
+                    !onNode &&
+                    !(selected && sdkBadge == WalletSDKBadge.pending))
+                  GWRowBadge(
+                    label: sdkBadge == WalletSDKBadge.linked
+                        ? 'Can earn'
+                        : 'Setting up',
+                    color: sdkBadge == WalletSDKBadge.linked
+                        ? gw.brandPrimaryBadgeText
+                        : gw.statusWarningText,
+                  ),
+                if (selected)
+                  GWRowBadge(
+                    label: 'Selected',
+                    color: gw.brandPrimaryBadgeText,
+                  ),
+                if (onNode)
+                  GWRowBadge(label: 'Earning', color: gw.statusSuccessText),
+                if (switching)
+                  GWRowBadge(label: 'Switching…', color: gw.statusWarningText),
+              ],
+            )
+          : null,
+      // An account row with no wallet of its own shows no balance here;
+      // "View balance" is its menu's own item.
+      subtitleTrailing: wallet != null
+          ? Text(
+              WalletUtils.formatMinions(wallet.balance),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: GeniusWalletTypography.labelMd.copyWith(
+                color: gw.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            )
+          : null,
+      trailing: isWatched || locked
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isWatched)
+                  Icon(
+                    Icons.remove_red_eye_outlined,
+                    size: 16,
+                    color: gw.textSecondary,
+                  ),
+                if (isWatched && locked)
+                  const SizedBox(width: GeniusWalletConsts.space3),
+                if (locked)
+                  Icon(Icons.lock_outline, size: 14, color: gw.textSecondary),
+              ],
+            )
+          : null,
+      action: _menu(context, gw, appBloc, operations),
+    );
+
+    final result = locked ? Tooltip(message: lockedReason, child: tile) : tile;
+    if (pendingOps.isEmpty) {
+      return result;
+    }
+    // Under the tile, inside the same indent: the outer Padding this row
+    // already sits in (account_drawer.dart's ListView) applies to this whole
+    // Column, not just the tile above.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        result,
+        Padding(
+          padding: const EdgeInsets.only(
+            left: GeniusWalletConsts.space6,
+            bottom: GeniusWalletConsts.space4,
+          ),
+          child: Wrap(
+            spacing: GeniusWalletConsts.space2,
+            runSpacing: GeniusWalletConsts.space2,
+            children: [
+              for (final op in pendingOps)
+                ChildOperationBadge(
+                  op: op,
+                  labelFor: operations!.labelFor,
+                  onCheckAgain: operations.resolve,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// The avatar, or an account icon, with a chevron ahead of it when this row
+  /// is a main -- absent, not merely hidden, on a leaf, so a leaf's left edge
+  /// does not move.
+  Widget _leading(GWColors gw, Wallet? wallet, bool locked) {
+    final content = wallet != null
+        ? AccountAvatar(wallet: wallet, isSelected: selected, size: 36)
+        : Icon(
+            Icons.account_balance_wallet,
+            size: 20,
+            color: locked
+                ? gw.textSecondary.withValues(alpha: 0.8)
+                : (onNode ? gw.brandPrimaryStrong : gw.textSecondary),
+          );
+    final isExpanded = expanded;
+    if (isExpanded == null) {
+      return content;
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(
+            isExpanded ? Icons.expand_more : Icons.chevron_right,
+            size: 18,
+          ),
+          iconSize: 18,
+          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+          padding: EdgeInsets.zero,
+          color: gw.textSecondary,
+          tooltip: isExpanded ? 'Hide children' : 'Show children',
+          onPressed: onToggle,
+        ),
+        const SizedBox(width: GeniusWalletConsts.space2),
+        content,
+      ],
+    );
+  }
+
+  /// wallet: Copy address, Rename, Delete, unchanged. merged/account: "Run
+  /// node as this" plus the four gated SDK items, plus Delete
+  /// wallet/account, plus -- when nested under another own main --
+  /// Fund/Recover/Revoke after a divider.
+  Widget? _menu(
+    BuildContext context,
+    GWColors gw,
+    AppBloc appBloc,
+    ChildOperationsCubit? operations,
+  ) {
+    // No local `MenuStyle` -- see `theme.dart`'s menuTheme/menuButtonTheme.
+    Widget anchor(List<Widget> items) => MenuAnchor(
+      builder: (context, controller, child) => IconButton(
+        icon: Icon(Icons.more_vert, size: 20, color: gw.textSecondary),
+        tooltip: 'Account options',
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
+      ),
+      menuChildren: items,
+    );
+
+    final wallet = row.wallet;
+    if (row.kind == AccountRowKind.wallet) {
+      if (wallet!.address.isEmpty) {
+        return null;
+      }
+      return anchor([
+        GWMenuItem(
+          icon: Icons.copy,
+          label: 'Copy address',
+          onPressed: () => _copyAddress(context, wallet.address),
+        ),
+        GWMenuItem(
+          icon: Icons.edit_outlined,
+          label: 'Rename',
+          onPressed: () => onRename(context, wallet),
+        ),
+        GWMenuItem(
+          icon: Icons.delete_outline,
+          label: 'Delete',
+          color: gw.statusErrorText,
+          onPressed: () => onDeleteWallet(context, wallet),
+        ),
+      ]);
+    }
+
+    // merged or account: every row carrying an SDK account.
+    final sdkAddress = row.sdkAddress!;
+    // The SDK only exposes the running account's phrase, and mid-switch that
+    // may already be another row's, so nothing account-bound is offered then.
+    final settled = onNode && !switchPending;
+    final mnemonic = settled ? appBloc.api.getSelectedAccountMnemonic() : null;
+    final can = sdkRowActions(
+      isSelected: settled,
+      hasMnemonic: mnemonic != null,
+      isStartAccount: isStartAccount,
+    );
+    final deleteLock = switchPending
+        ? 'Wait for the earning switch to finish'
+        : operations?.deleteLockReason(sdkAddress, registrations);
+
+    return anchor([
+      GWMenuItem(
+        icon: Icons.dns_outlined,
+        label: 'Earn with this account',
+        lockedReason: _locked ? lockedReason : null,
+        onPressed: onNode || switching || _locked
+            ? null
+            : () {
+                context.read<AppBloc>().add(SelectSDKAccount(sdkAddress));
+                showToast(
+                  context,
+                  'Switching earning…',
+                  duration: const Duration(seconds: 1),
+                );
+              },
+      ),
+      GWMenuItem(
+        icon: Icons.copy,
+        label: 'Copy address',
+        onPressed: () => _copyAddress(context, wallet?.address ?? sdkAddress),
+      ),
+      if (row.kind == AccountRowKind.merged)
+        GWMenuItem(
+          icon: Icons.edit_outlined,
+          label: 'Rename',
+          onPressed: () => onRename(context, wallet!),
+        ),
+      GWMenuItem(
+        icon: Icons.account_balance_wallet_outlined,
+        label: 'View balance',
+        onPressed: balanceWallet != null
+            ? () => Navigator.of(context).pop(balanceWallet)
+            : null,
+      ),
+      GWMenuItem(
+        icon: Icons.edit_location_alt,
+        label: 'Set payout address',
+        onPressed: can.payout
+            ? () => showSetPayoutAddressDialog(context)
+            : null,
+      ),
+      GWMenuItem(
+        icon: Icons.numbers,
+        label: 'Copy recovery phrase',
+        onPressed: can.phrase
+            ? () => copyRecoveryPhrase(context, mnemonic!)
+            : null,
+      ),
+      GWMenuItem(
+        icon: Icons.qr_code,
+        label: 'Show recovery QR',
+        onPressed: can.qr ? () => showRecoveryQr(context, mnemonic!) : null,
+      ),
+      GWMenuItem(
+        icon: Icons.account_tree,
+        label: 'Child wallets',
+        onPressed: can.childWallets
+            ? () {
+                final router = GoRouter.of(context);
+                Navigator.of(context).pop();
+                router.push('/child-wallets', extra: sdkAddress);
+              }
+            : null,
+      ),
+      const Divider(height: 9, indent: 12, endIndent: 12),
+      if (row.kind == AccountRowKind.merged)
+        GWMenuItem(
+          icon: Icons.delete_outline,
+          label: 'Delete wallet',
+          color: gw.statusErrorText,
+          onPressed: () => onDeleteWallet(context, wallet!),
+        ),
+      GWMenuItem(
+        icon: Icons.delete_outline,
+        label: 'Delete account',
+        color: gw.statusErrorText,
+        lockedReason: deleteLock,
+        onPressed: !onNode && can.delete && deleteLock == null
+            ? () => confirmDeleteSDKAccount(context, sdkAddress)
+            : null,
+      ),
+      // Nested under another own main: the kind's own items above are
+      // unchanged by depth, and every other child of this same main gets the
+      // identical block -- only one `startRevoke(` call site in this file.
+      if (row.depth >= 1 && row.child != null && operations != null) ...[
+        const Divider(height: 9, indent: 12, endIndent: 12),
+        GWMenuItem(
+          icon: Icons.arrow_upward,
+          label: 'Fund',
+          lockedReason: operations.lockReason(sdkAddress),
+          onPressed: operations.lockReason(sdkAddress) != null
+              ? null
+              : () => startFund(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+        GWMenuItem(
+          icon: Icons.arrow_downward,
+          label: 'Recover',
+          lockedReason: operations.lockReason(sdkAddress),
+          onPressed: operations.lockReason(sdkAddress) != null
+              ? null
+              : () => startRecover(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+        GWMenuItem(
+          icon: Icons.link_off,
+          label: 'Revoke',
+          lockedReason: operations.lockReason(sdkAddress),
+          color: gw.statusErrorText,
+          onPressed: operations.lockReason(sdkAddress) != null
+              ? null
+              : () => startRevoke(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+      ],
+    ]);
+  }
+
+  void _copyAddress(BuildContext context, String address) {
+    Clipboard.setData(ClipboardData(text: address));
+    HapticFeedback.lightImpact();
+    Navigator.of(context).pop();
+    showToast(
+      context,
+      'Address copied to clipboard',
+      duration: const Duration(seconds: 1),
+    );
+  }
+}
+
+/// The wallet avatar, shared by this drawer's rows and the desktop chip - a
+/// public widget rather than a `_buildFoo()` helper, per the house rule.
 ///
 /// `isSelected` is accepted for parity with the pre-extraction signature but
 /// unused in the body, exactly as it was before this move.
@@ -683,9 +1142,9 @@ class AccountAvatar extends StatelessWidget {
 /// and the practical half of it applies here - this is `const`-constructible at
 /// both call sites, which a helper method never is.
 class _AccountSectionHeader extends StatelessWidget {
-  const _AccountSectionHeader({required this.title, required this.caption});
+  const _AccountSectionHeader({this.title, required this.caption});
 
-  final String title;
+  final String? title;
   final String caption;
 
   @override
@@ -703,15 +1162,17 @@ class _AccountSectionHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title.toUpperCase(),
-            style: GeniusWalletTypography.labelMd.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-              color: gw.textSecondary,
+          if (title != null) ...[
+            Text(
+              title!.toUpperCase(),
+              style: GeniusWalletTypography.labelMd.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+                color: gw.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: GeniusWalletConsts.space2),
+            const SizedBox(height: GeniusWalletConsts.space2),
+          ],
           Text(
             caption,
             // textPrimary80, not textPrimary38: this sentence is the only place

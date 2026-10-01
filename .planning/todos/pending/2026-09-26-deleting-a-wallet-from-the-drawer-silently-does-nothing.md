@@ -2,6 +2,7 @@
 created: 2026-09-26T13:00:00.000Z
 title: Deleting a wallet from the account drawer most likely does nothing
 area: account
+resolves_phase: 34
 files:
   - lib/account/account_drawer.dart
 ---

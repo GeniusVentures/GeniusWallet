@@ -1,6 +1,6 @@
 # Roadmap: GeniusWallet
 
-> **2026-09-24 — Milestone v2.0 (Squid Router integration) shipped and archived to `milestones/v2.0-ROADMAP.md`; a one-line entry sits at the end of this file.** The v1.0 roadmap stands unchanged and is still executing.
+> **2026-09-24 — Milestone v2.0 (Squid Router integration) shipped and archived to `milestones/v2.0-ROADMAP.md`; a one-line entry sits at the end of this file.** **2026-09-28 — Milestone v3.0 (Child wallets & account linking) started; its phases (34-37) are appended at the end of this file, after the v2.0 entry.** The v1.0 roadmap stands unchanged and is still executing.
 
 ## Overview
 
@@ -1460,3 +1460,154 @@ Plans:
 # Milestone v2.0: Squid Router integration — SHIPPED 2026-09-24
 
 Phases 26, 29, 30, 31 (PRs #233-#235, #244). Full roadmap: `milestones/v2.0-ROADMAP.md`; requirements: `milestones/v2.0-REQUIREMENTS.md`.
+
+---
+
+# Milestone v3.0: Child wallets & account linking — IN PROGRESS
+
+Started 2026-09-28. Research: `research/SUMMARY.md`. Requirements: `REQUIREMENTS.md` ## v3.0 Requirements.
+Continues phase numbering from v1.0/v2.0 (last phase: 33) — v3.0 starts at Phase 34. v1.0 stays open
+alongside (phase 11 closeout, plan 14-08); no milestone is archived to make room for this one.
+
+**Precondition:** needs SuperGenius `c575a16`+ built with `upnp_enabled: false`. The live testnet is
+currently stuck in `INITIALIZING_BLOCKCHAIN` (not caused by this SDK build) — this can block VER-02
+on any phase below. Every phase ships dev-mock (`GW_DEV_TOOLS`) verification independent of testnet;
+if testnet stays down, that phase's live walk is recorded as a blocked gap, not silently skipped.
+
+### Build order
+
+Account linking (no new SDK binding, de-risks legacy backfill) → the unified switcher (needs real
+link data) → child-wallet bindings with dev mocks and a read-only list (no write op yet) → child
+write operations, sharing one pending-state/switch-lock mechanism, last (needs the riskiest,
+least-tested SDK-wallet-switch-to-child flow). See `research/SUMMARY.md` "Implications for Roadmap"
+for the full dependency reasoning.
+
+## Phases
+
+- [ ] **Phase 34: Account linking** - Every SDK account is tied to the ETH wallet it came from; no orphan rows
+- [ ] **Phase 35: Unified header switcher** - One header control, desktop and mobile, for the SDK wallet and the active wallet
+- [ ] **Phase 36: Child wallet bindings & read-only view** - The 11 child functions are bound and safe; the user sees their children and balances
+- [ ] **Phase 37: Child write operations & pending model** - Register, fund, recover, revoke, detach, replace-main, with an honest pending state and a switch lock
+- [ ] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
+
+## Phase Details
+
+### Phase 34: Account linking
+
+**Goal**: Every SDK account is tied to and labelled with the ETH wallet it came from — no orphan "Super Genius Wallet N" rows, including for accounts that predate this feature.
+**Depends on**: Nothing (first phase of v3.0)
+**Requirements**: LINK-01, LINK-02, LINK-03
+**Success Criteria** (what must be TRUE):
+
+  1. Creating or importing a key-backed wallet immediately shows its SDK account linked to that wallet's name — never a bare "Super Genius Wallet N" row.
+  2. Every SDK account that existed before this feature shows a linked wallet name wherever a match can be made, and an honest "Unlinked" label — never hidden — where it cannot.
+  3. The link is stored and displayed using public addresses only; no key material appears in the link's state, storage, or logs.
+  4. Standing (VER-02): this phase's linked/unlinked labels are confirmed on a live-testnet walk before closing; if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`, the walk is recorded as a blocked gap, not skipped.
+
+**Plans:** 5/5 plans executed
+
+Plans:
+
+- [x] 34-01-PLAN.md — link capture tracer (storage -> API -> wallet-menu names), start-account rename, links in AppState (wave 1)
+- [x] 34-02-PLAN.md — SDK Accounts rows named by wallet, wallet-menu SDK badges, "Default account" wording (wave 2)
+- [x] 34-03-PLAN.md — provable-only backfill for old accounts, run after SDK start and after import (wave 2)
+- [x] 34-04-PLAN.md — SDK Accounts form saves the wallet and reports added / already there / pending (wave 3)
+- [x] 34-05-PLAN.md — delete coupling: wallet delete keeps the account, account delete takes its wallet, both paths via AppBloc (wave 4)
+
+### Phase 35: Unified header switcher
+
+**Goal**: One header switcher, on desktop and mobile, replaces the old "SDK Accounts" button and wallet dropdown with two clearly labelled, independently changeable selections — which wallet runs the node, and which wallet sends and swaps.
+**Depends on**: Phase 34 (labels accounts with real link data)
+**Requirements**: SWT-01, SWT-02, SWT-03, SWT-04, SWT-05
+**Success Criteria** (what must be TRUE):
+
+  1. On desktop, one header switcher shows both the current SDK wallet and the current active wallet; the old "SDK Accounts" button and wallet dropdown are gone.
+  2. The user can change the SDK wallet and the active wallet independently from that switcher, with each selection's label making clear which one runs the node and which one sends and swaps.
+  3. The same switcher opens and works on mobile.
+  4. The user can create, import and delete accounts from the switcher.
+  5. Send and Swap confirm screens name the active wallet they are spending from.
+  6. Standing (VER-02): a live-testnet walk on both desktop and mobile confirms the switcher before closing, or is recorded as a blocked gap if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`.
+
+**Plans:** 3/3 plans executed
+
+Plans:
+
+- [x] 35-01-PLAN.md — tracer: the account drawer becomes the two-section switcher (Sending from / Node running as), View balance, both add actions; SDK tests hosted by it (wave 1)
+- [x] 35-02-PLAN.md — Send review and Swap name the From wallet (wave 2)
+- [x] 35-03-PLAN.md — one desktop AccountSwitcher chip, old SDK chip and wallet dropdown deleted, full gate + Windows compile (wave 3)
+
+**UI hint**: yes
+
+### Phase 36: Child wallet bindings & read-only view
+
+**Goal**: The 11 child SDK functions and `GeniusSDKGetPubSub` are bound and safe, and the user can see the children registered under their current SDK wallet with balances — before any write path exists.
+**Depends on**: Phase 35 (reads the switcher's current SDK wallet selection)
+**Requirements**: CHILD-01, CHILD-02, VER-01
+**Success Criteria** (what must be TRUE):
+
+  1. The 11 child functions and `GeniusSDKGetPubSub` are bound in `genius_api`, with struct layouts matching `GeniusSDK.h` and every SDK-allocated result freed.
+  2. The user sees the children registered under the currently selected SDK wallet, each with its GNUS balance.
+  3. Dev mocks (`GW_DEV_TOOLS`) reproduce the child list and balances so this phase is verifiable without live testnet.
+  4. Standing (VER-02): a live-testnet walk confirms the real child list and balances render correctly before closing, or is recorded as a blocked gap if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`.
+
+**Plans:** 3/3 plans executed
+
+Plans:
+
+- [x] 36-01-PLAN.md — tracer: SDK-row "Child wallets" -> /child-wallets with names and exact GNUS balances; free contract and struct layout tests; every state, 10 s poll, menu gate (wave 1)
+- [x] 36-02-PLAN.md — the other ten bindings + GENIUS_NODE_ERROR_REGISTRATION, plain-Dart wrappers with boundary checks, opaque unfreed PubSub handle (wave 2)
+- [x] 36-03-PLAN.md — DevMockChildWallets presets + CHILD WALLETS dev-bubble section; phase gate and Windows compile (wave 3)
+
+### Phase 37: Child write operations & pending model
+
+**Goal**: The user can register, fund, recover, revoke, detach and move their child wallets; every write is shown as pending — never a false "done" — and the switcher is locked while one is in flight.
+**Depends on**: Phase 36
+**Requirements**: CHILD-03, CHILD-04, CHILD-05, CHILD-06, CHILD-07, CHILD-08, CHILD-09, PEND-01, PEND-02, SWT-06, VER-02
+**Success Criteria** (what must be TRUE):
+
+  1. The user can register one of their SDK accounts as a child of a chosen main, fund a child from its main, recover funds from a child back to its main, revoke a child, detach a child, and move a child to a new main.
+  2. Every submitted child operation shows as pending until the registration list or balance reflects it, then flips to done; after a timeout it shows "not confirmed yet", never "done".
+  3. The user cannot submit the same child operation twice while it is pending, and cannot switch the SDK wallet while an operation submitted from it is still pending — the switcher says why.
+  4. When an action must run as the other account (main or child), the app says so and offers to switch the SDK wallet.
+  5. VER-02 (closes here for traceability): each of the six write operations is walked on the live testnet before this phase — and the milestone — closes; if testnet stays stuck in `INITIALIZING_BLOCKCHAIN`, this is recorded as a blocking gap, not skipped.
+
+**Plans:** 5/5 plans executed
+
+Plans:
+
+- [x] 37-01-PLAN.md — tracer: fund a child from its row menu through the app-level pending registry to a resolved toast; timeout "Not confirmed yet", Check again, per-child lock (wave 1)
+- [x] 37-02-PLAN.md — recover and revoke on child rows; switch-and-continue guard on every action, refused while the running account has a pending op (wave 2)
+- [x] 37-03-PLAN.md — "This account" card with own position; detach; main picker (own accounts or 0x+128-hex address) and register (wave 3)
+- [x] 37-04-PLAN.md — move to another main; switcher "Node running as" lock while an op from the running account is pending (wave 4)
+- [x] 37-05-PLAN.md — dev-mock write simulation (confirm / time out / fail) and bubble buttons; phase gate and Windows compile; VER-02 live walk stays pending (wave 5)
+
+### Phase 38: Account tree switcher
+
+**Goal**: The switcher shows one list of the user's accounts, each wallet row carrying its linked SDK account, with children nested under their main. Two tags mark the independent selections: "Selected" (wallet features) and "On node" (the account the node runs as).
+**Depends on**: Phase 37
+**Requirements**: SWT-07
+**Success Criteria** (what must be TRUE):
+
+  1. The "Sending from" and "Node running as" lists are replaced by one list; an SDK account linked to a wallet appears once, on that wallet's row; an unlinked SDK account gets its own row; a watch-only wallet never offers "On node".
+  2. Tapping a row selects it for wallet features ("Selected"); "Run node as this" lives in the row menu, is refused with its reason while a child operation from the running account is pending, and never changes "Selected".
+  3. While the node runs, each of the user's own children is nested under its main instead of appearing twice; a child that is not one of the user's accounts shows as a row that cannot be selected; with the node down the list is flat with a one-line note.
+  4. Child rows' menus offer Fund, Recover and Revoke through the same pending registry and locks as the Child wallets screen, which stays.
+  5. Desktop and mobile; both appearance modes meet WCAG AA; dev-bubble child presets drive the tree.
+
+**Plans:** 3/3 plans executed
+
+Plans:
+
+- [x] 38-01-PLAN.md — tracer: registrations -> pure tree -> children nested under their main, foreign children with Fund/Recover/Revoke; cycle-safe walk; one Accounts header with the node-down note (wave 1)
+- [x] 38-02-PLAN.md — GWMenuItem and public SDK actions; each SDK account merged onto its wallet's row, Selected and On node tags, Run node as this with the pending lock (wave 2)
+- [x] 38-03-PLAN.md — child actions on nested own rows, collapsible mains, live refresh, phone-width and contrast checks; phase gate and Windows compile (wave 3)
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 34. Account linking | 5/5 | Awaiting human verification (live walk) | - |
+| 35. Unified header switcher | 3/3 | Awaiting human verification (live walk) | - |
+| 36. Child wallet bindings & read-only view | 3/3 | Awaiting human verification (live walk) | - |
+| 37. Child write operations & pending model | 5/5 | Awaiting human verification (live walk) | - |
+| 38. Account tree switcher | 3/3 | Awaiting human verification (live walk) | - |

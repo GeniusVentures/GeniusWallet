@@ -59,7 +59,7 @@ GWColors currentGwColors() =>
 void main() {
   group('Field-count drift guard', () {
     test(
-      'GWColors declares exactly 70 fields (21 pre-existing + 43 from the 23-01 token map + statusWarningText from the 23-03 follow-up + textMutedOnSunken from the control-track AA fix + statusSuccessText/statusErrorText, the same AA-foreground fix applied to the other two status tones + borderControlOnBrand from the enabled-switch-outline AA fix + surfaceWell for recessed wells)',
+      'GWColors declares exactly 71 fields (21 pre-existing + 43 from the 23-01 token map + statusWarningText from the 23-03 follow-up + textMutedOnSunken from the control-track AA fix + statusSuccessText/statusErrorText, the same AA-foreground fix applied to the other two status tones + borderControlOnBrand from the enabled-switch-outline AA fix + surfaceWell for recessed wells + brandPrimaryBadgeText for a badge label on the account switcher\'s selection tint)',
       () {
         // COMPILE-TIME TRIPWIRE, not a runtime reflection check -- Flutter has
         // no dart:mirrors. `GWColors`'s unnamed constructor makes every field
@@ -116,6 +116,7 @@ void main() {
           brandPrimaryMuted: Colors.black,
           brandPrimarySubtle: Colors.black,
           brandPrimaryOnSurface: Colors.black,
+          brandPrimaryBadgeText: Colors.black,
           brandSecondary: Colors.black,
           brandSecondaryStrong: Colors.black,
           brandSecondaryBright: Colors.black,
@@ -307,6 +308,16 @@ void main() {
         GWColors.dark().brandPrimaryStrong,
       );
       expect(GWColors.dark().brandPrimaryOnSurface, const Color(0xFF0AAEE6));
+    });
+
+    test('brandPrimaryBadgeText -- light', () {
+      setAppearance(GWAppearanceMode.light);
+      expect(GWColors.light().brandPrimaryBadgeText, const Color(0xFF0A6480));
+    });
+
+    test('brandPrimaryBadgeText -- dark', () {
+      setAppearance(GWAppearanceMode.dark);
+      expect(GWColors.dark().brandPrimaryBadgeText, const Color(0xFF0AB2EB));
     });
   });
 

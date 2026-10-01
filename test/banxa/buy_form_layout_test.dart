@@ -402,15 +402,16 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('VTY-03: the card height is the pre-move number, 648.0', (
+    testWidgets('VTY-03: the card height is the pinned number, 640.0', (
       tester,
     ) async {
       // 648.0 was printed by this exact body against the tree before
-      // `gw_text_field.dart` was touched on 2026-07-31. An absolute literal,
+      // `gw_text_field.dart` was touched on 2026-07-31; 640.0 since the Buy
+      // button went from lg (56) to md (48). An absolute literal,
       // because every other height check in this file is self-relative and
       // would stay green if the whole card grew by 16px in one step.
       await pumpForm(tester, testFormState(paymentMethod: method()));
-      expect(formHeight(tester), 648.0);
+      expect(formHeight(tester), 640.0);
     });
 
     testWidgets('identical with quote == null and with a real quote', (

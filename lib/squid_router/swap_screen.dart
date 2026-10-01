@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/coin.dart';
+import 'package:genius_api/models/network.dart';
+import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/loading.dart';
 import 'package:genius_wallet/components/scaffold/gw_page_header.dart';
@@ -11,6 +13,7 @@ import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/reown/utilities.dart';
 import 'package:genius_wallet/squid_router/held_tokens.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/squid_client.dart';
@@ -34,6 +37,7 @@ import 'package:genius_wallet/theme/gw_appearance.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
+import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
 /// The list one side of the swap may pick from: everything except the token the
@@ -456,10 +460,13 @@ class _SwapScreenState extends State<SwapScreen> {
     final rpcUrl = network?.rpcUrl;
     final chainId = network?.chainId;
 
+    // Signing looks the key up by address, so a watch-only row sharing a key
+    // wallet's address would otherwise spend from that key.
     if (request == null ||
         address == null ||
         rpcUrl == null ||
-        chainId == null) {
+        chainId == null ||
+        !canSendFrom(walletState.selectedWallet, network)) {
       return;
     }
 
@@ -734,6 +741,14 @@ class _SwapScreenState extends State<SwapScreen> {
   /// visibility check is gone; a ladder whose disabled rungs never appear is
   /// not a ladder.
   Widget _buildSwapCta(GWColors gw) {
+    // Selected, not read: a watch-only row can share its address with a key
+    // wallet, so switching between them changes nothing else this screen hears.
+    // No wallet yet is transient, not a refusal.
+    final canSign = context.select<WalletDetailsCubit, bool>(
+      (c) =>
+          c.state.selectedWallet == null ||
+          canSendFrom(c.state.selectedWallet, c.state.selectedNetwork),
+    );
     final state = resolveSwapCtaState(
       hasBothTokens: fromToken != null && toToken != null,
       fromAmount: fromAmount,
@@ -743,6 +758,7 @@ class _SwapScreenState extends State<SwapScreen> {
       routeError: routeError,
       isSubmitting: isSubmitting,
       tooPrecise: _tooPrecise,
+      canSign: canSign,
     );
     // The availability gate sits ABOVE the ladder, not inside it: a build that
     // cannot reach Squid has no rung to be on, and the ladder stays the single
@@ -765,7 +781,7 @@ class _SwapScreenState extends State<SwapScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: GWButton(
           variant: GWButtonVariant.gradient,
-          size: GWButtonSize.lg,
+          size: GWButtonSize.md,
           expand: true,
           label: label,
           // ROUTE-ERROR RUNG: retry fetches directly — a user tapping Retry
@@ -782,7 +798,8 @@ class _SwapScreenState extends State<SwapScreen> {
     final isRefused =
         !unavailable &&
         (state == SwapCtaState.insufficientBalance ||
-            state == SwapCtaState.tooPrecise);
+            state == SwapCtaState.tooPrecise ||
+            state == SwapCtaState.cannotSign);
     final background = isRefused
         ? gw.statusError.withValues(alpha: 0.12)
         : gw.surfaceMenu;
@@ -1109,6 +1126,7 @@ class _SwapScreenState extends State<SwapScreen> {
                                 const SizedBox(
                                   height: GeniusWalletConsts.space4,
                                 ),
+                                const _SwapFromWallet(),
                                 _buildSwapCta(gw),
                               ],
                             ),
@@ -1120,6 +1138,64 @@ class _SwapScreenState extends State<SwapScreen> {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Names the wallet a swap will spend from, or says it can't sign here when
+/// it holds no key on this network -- the same wrong-account guard Send's
+/// review row carries. Reads the active wallet directly, so a switch updates.
+class _SwapFromWallet extends StatelessWidget {
+  const _SwapFromWallet();
+
+  @override
+  Widget build(BuildContext context) {
+    final wallet = context.select<WalletDetailsCubit, Wallet?>(
+      (c) => c.state.selectedWallet,
+    );
+    if (wallet == null) {
+      return const SizedBox.shrink();
+    }
+    final network = context.select<WalletDetailsCubit, Network?>(
+      (c) => c.state.selectedNetwork,
+    );
+    final canSend = canSendFrom(wallet, network);
+
+    final gw = context.gw;
+    final short = WalletUtils.getAddressForDisplay(wallet.address);
+    final name = wallet.walletName.isEmpty
+        ? short
+        : '${wallet.walletName} · $short';
+    final label = canSend ? 'Sending from $name' : "Can't sign from $name";
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: GeniusWalletConsts.space6),
+      child: Row(
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GeniusWalletTypography.bodySm.copyWith(
+                color: canSend ? gw.textSecondary : gw.statusErrorText,
+              ),
+            ),
+          ),
+          const SizedBox(width: GeniusWalletConsts.space3),
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              foregroundColor: gw.brandPrimaryOnSurface,
+              textStyle: GeniusWalletTypography.labelMd,
+            ),
+            onPressed: () => unawaited(AccountDrawer.show(context)),
+            child: const Text('Switch ›'),
           ),
         ],
       ),

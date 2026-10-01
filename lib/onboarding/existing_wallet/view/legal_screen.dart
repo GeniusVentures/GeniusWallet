@@ -57,7 +57,7 @@ class LegalScreen extends StatelessWidget {
               GWButton(
                 label: 'Privacy Policy',
                 variant: GWButtonVariant.secondary,
-                size: GWButtonSize.lg,
+                size: GWButtonSize.md,
                 expand: true,
                 onPressed: () => launchWebSite(
                   context,
@@ -67,7 +67,7 @@ class LegalScreen extends StatelessWidget {
               GWButton(
                 label: 'Terms of Service',
                 variant: GWButtonVariant.secondary,
-                size: GWButtonSize.lg,
+                size: GWButtonSize.md,
                 expand: true,
                 onPressed: () =>
                     launchWebSite(context, 'https://www.gnus.ai/tos.html'),
@@ -81,7 +81,7 @@ class LegalScreen extends StatelessWidget {
               GWButton(
                 label: 'Continue',
                 variant: GWButtonVariant.gradient,
-                size: GWButtonSize.lg,
+                size: GWButtonSize.md,
                 expand: true,
                 onPressed: accepted ? onContinue : null,
               ),

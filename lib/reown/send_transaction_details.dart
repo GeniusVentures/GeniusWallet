@@ -12,6 +12,10 @@ import 'package:genius_wallet/theme/gw_context_extension.dart';
 /// every value arrives already formatted from its caller.
 class SendTransactionDetails extends StatelessWidget {
   final String fromAddress;
+
+  /// Shown above [fromAddress] on the From row. Null renders the address
+  /// alone -- callers other than Send's own review pass nothing.
+  final String? fromWalletName;
   final String toAddress;
   final String amount;
   final String totalGasFee;
@@ -33,6 +37,7 @@ class SendTransactionDetails extends StatelessWidget {
   const SendTransactionDetails({
     super.key,
     required this.fromAddress,
+    this.fromWalletName,
     required this.toAddress,
     required this.amount,
     required this.totalGasFee,
@@ -75,7 +80,11 @@ class SendTransactionDetails extends StatelessWidget {
         GWDetailGrid(
           rows: [
             if (fromAddress.isNotEmpty)
-              GWCopyRow(label: 'From', value: fromAddress),
+              GWCopyRow(
+                label: 'From',
+                value: fromAddress,
+                caption: fromWalletName,
+              ),
             if (toAddress.isNotEmpty) GWCopyRow(label: 'To', value: toAddress),
             if (networkName != null && networkName!.isNotEmpty)
               _PlainDetailRow(label: 'Network', value: networkName!),

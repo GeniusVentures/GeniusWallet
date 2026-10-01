@@ -153,6 +153,48 @@ folded into that count, the same treatment WIRE-01/02 already get (see Coverage)
 
 Archived to `milestones/v2.0-REQUIREMENTS.md`.
 
+## v3.0 Requirements — Child wallets & account linking
+
+Started 2026-09-28. Research: `research/SUMMARY.md`.
+
+### Header switcher (SWT)
+
+- [ ] **SWT-01**: User opens one header switcher on desktop that shows the current SDK wallet and the current active wallet; the old "SDK Accounts" button and wallet dropdown are gone
+- [ ] **SWT-02**: User can change the SDK wallet and the active wallet independently from that switcher
+- [ ] **SWT-03**: User can open the same switcher on mobile
+- [ ] **SWT-04**: User can create, import and delete accounts from the switcher
+- [ ] **SWT-05**: Send and Swap confirm screens name the active wallet they spend from, and the switcher labels which selection runs the node and which one sends and swaps
+- [ ] **SWT-06**: User cannot switch the SDK wallet while an operation submitted from it is still pending; the switcher says why
+- [x] **SWT-07**: User sees their accounts as one list in the switcher, children nested under their main, with "Selected" and "On node" tags for the two independent selections
+
+### Account linking (LINK)
+
+- [ ] **LINK-01**: When the user creates or imports a key-backed wallet, the app records which SDK address came from it (public addresses only; no key material in state or logs)
+- [ ] **LINK-02**: Every SDK account shows its source wallet's name; the "Super Genius Wallet N" rows are gone
+- [ ] **LINK-03**: SDK accounts added before this feature are linked on a best-effort basis; any that cannot be linked are shown as unlinked, never hidden
+
+### Child wallets (CHILD)
+
+- [ ] **CHILD-01**: The 11 child functions and `GeniusSDKGetPubSub` are bound in `genius_api`, with struct layouts matching `GeniusSDK.h` and every SDK-allocated result freed
+- [ ] **CHILD-02**: User sees the children registered under the current SDK wallet, each with its GNUS balance
+- [ ] **CHILD-03**: User can register one of their SDK accounts as a child of a chosen main
+- [ ] **CHILD-04**: User can fund a child from its main
+- [ ] **CHILD-05**: User can recover funds from a child back to its main
+- [ ] **CHILD-06**: User can revoke a child from its main
+- [ ] **CHILD-07**: User can detach a child from its main
+- [ ] **CHILD-08**: User can move a child to a new main
+- [ ] **CHILD-09**: When an action must run as the other account (main or child), the app says so and offers to switch the SDK wallet
+
+### Pending operations (PEND)
+
+- [ ] **PEND-01**: Every submitted child operation shows as pending until the registration list or balance reflects it, then as done; after a timeout it shows "not confirmed yet", never "done"
+- [ ] **PEND-02**: User cannot submit the same child operation twice while it is pending
+
+### Verification (VER)
+
+- [ ] **VER-01**: Dev mocks (`GW_DEV_TOOLS`) cover the child list, balances and every child operation, including the pending and timeout states
+- [ ] **VER-02**: Each v3.0 phase closes only after a walk on the live testnet
+
 ## Beyond v2.0 (deferred)
 
 - **FEE-01** *(deferred 2026-09-18 — business, not engineering)*: Squid enables an integrator fee on
@@ -182,6 +224,9 @@ Archived to `milestones/v2.0-REQUIREMENTS.md`.
 | New feature milestones | Deferred until the port lands — **superseded 2026-09-16:** v2.0 (Squid Router integration) authorized alongside the redesign tail; staking and other new chains remain deferred |
 | GNUS on a third-party router (Squid/Symbiosis) (v2.0) | BD-driven on both — Squid wants a "market maker loan" + direct contact (old ITS path deprecated), Symbiosis wants "additional review". Not self-serve, not engineering. The native burn→mint bridge (`lib/dashboard/bridge/`) remains GNUS's cross-chain answer |
 | Symbiosis Finance integration (v2.0) | Named once as a contingency (squidrouter submodule commit `ee95bf6`, 2025-05-26), never built. Decision 2026-09-16: not pursued — the finished Squid client + free API is the cheaper real path |
+| Registration metadata UI (`game_id`, `publisher_id`, `dev_wallet`, `peers_cut`) (v3.0) | No consensus code reads these fields today; sub-accounts register with empty defaults. Revisit when a game integration consumes them |
+| Auto-selecting the linked SDK account when the active wallet changes (v3.0) | The two selections stay independent by decision (2026-09-28) |
+| Confirmation by transaction hash for child operations (v3.0) | The SDK's child calls return no tx hash, so nothing can be polled; pending resolves from the registration list and balances instead. An SDK-side change |
 | Modifying the `squidrouter/` submodule (v2.0) | Auto-generated API client (AGENTS.md: "Files under `/banxa` and `/squidrouter` are auto-generated. Do not change them."). Consume as-is; regenerate upstream if the API drifts |
 
 ## Traceability
@@ -247,4 +292,41 @@ Archived to `milestones/v2.0-REQUIREMENTS.md`.
 - Note: ORG-01..05 are tracked as codebase-quality requirements outside the 24 v1 count, coined 2026-07-28 (see the ORG section above) — Phase 22: 3 complete (ORG-01 closed on developer judgement with CI still unexecuted, ORG-02, ORG-03); Phase 23: 1 complete (ORG-04) and 1 PARTIAL (ORG-05, four extractions refused/deferred).
 
 ---
+
+### Milestone v3.0 — child wallets & account linking
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| LINK-01 | Phase 34 — Account linking | Pending |
+| LINK-02 | Phase 34 — Account linking | Pending |
+| LINK-03 | Phase 34 — Account linking | Pending |
+| SWT-01 | Phase 35 — Unified header switcher | Pending |
+| SWT-02 | Phase 35 — Unified header switcher | Pending |
+| SWT-03 | Phase 35 — Unified header switcher | Pending |
+| SWT-04 | Phase 35 — Unified header switcher | Pending |
+| SWT-05 | Phase 35 — Unified header switcher | Pending |
+| CHILD-01 | Phase 36 — Child wallet bindings & read-only view | Pending |
+| CHILD-02 | Phase 36 — Child wallet bindings & read-only view | Pending |
+| VER-01 | Phase 36 — Child wallet bindings & read-only view | Pending |
+| CHILD-03 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-04 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-05 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-06 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-07 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-08 | Phase 37 — Child write operations & pending model | Pending |
+| CHILD-09 | Phase 37 — Child write operations & pending model | Pending |
+| PEND-01 | Phase 37 — Child write operations & pending model | Pending |
+| PEND-02 | Phase 37 — Child write operations & pending model | Pending |
+| SWT-06 | Phase 37 — Child write operations & pending model | Pending |
+| SWT-07 | Phase 38 — Account tree switcher | Complete |
+| VER-02 | Phase 37 — Child write operations & pending model | Pending — cross-cutting: restated as a standing success criterion in every v3.0 phase, counted/closed here only, mirroring BLD-02's treatment in the v1.0 table above |
+
+**Coverage:**
+
+- v3.0 requirements: **22 total** (6 SWT + 3 LINK + 9 CHILD + 2 PEND + 2 VER)
+- Mapped to phases: **22/22 ✓** — every v3.0 requirement maps to exactly one phase; no orphans, no duplicates
+- Phases: 34-37 (4 phases), continuing numbering from v1.0/v2.0 (last phase: 33)
+- Note: VER-02 ("each v3.0 phase closes only after a walk on the live testnet") is cross-cutting by design — it appears as a standing success criterion in Phases 34-37's ROADMAP entries, but is mapped/counted at Phase 37 only, where the milestone's last write operation closes it
+- Precondition flag: live testnet is currently stuck in `INITIALIZING_BLOCKCHAIN` (unrelated to the required SuperGenius `c575a16` SDK); VER-02 walks are recorded as blocked gaps, not silently skipped, until this clears
+
 *Last updated: 2026-09-16 — merged into `phase-26-swap-wiring`. The drafted SWP-01..08 were retired into SWAP-01, the id the branch's plans and commits already cite; v2.0 is now SWAP-01, FEE-01..02, DAP-01..03 mapped to phases 26-30 (6/6, no orphans). Previous v1.0 traceability stands unchanged below*

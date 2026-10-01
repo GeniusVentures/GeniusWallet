@@ -7,13 +7,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:genius_api/ffi/genius_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
-import 'package:genius_wallet/account/sdk_account_manager.dart';
+import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
+import 'package:local_secure_storage/local_secure_storage.dart';
 
 const _start = '0xAAAA';
 const _other = '0xBBBB';
@@ -36,6 +37,9 @@ class _Api implements GeniusApi {
   List<String> getAvailableAccounts() => const [_start, _other, _selected];
 
   @override
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {};
+
+  @override
   Stream<SGNUSConnection> getSGNUSConnectionStream() =>
       Stream.value(SGNUSConnection.empty());
 
@@ -44,6 +48,9 @@ class _Api implements GeniusApi {
     deleted.add(publicAddress);
     return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   }
+
+  @override
+  Future<void> removeSDKAccountLink(String sdkAddress) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -60,7 +67,7 @@ class _SeededAppBloc extends AppBloc {
       state.copyWith(
         sdkAccounts: const [_start, _other, _selected],
         selectedSDKAccount: _selected,
-        linkedSDKAccount: _start.toLowerCase(),
+        defaultSDKAccount: _start.toLowerCase(),
       ),
     );
   }
@@ -102,12 +109,12 @@ void main() {
       walletDetailsCubit: late,
       networkProvider: NetworkProvider(),
     );
-    expect(fresh.state.linkedSDKAccount, isNull);
+    expect(fresh.state.defaultSDKAccount, isNull);
 
     // The first wallet then starts the SDK; any later refresh must see it.
     fresh.add(RefreshSDKAccounts());
     await fresh.close();
-    expect(fresh.state.linkedSDKAccount, _start);
+    expect(fresh.state.defaultSDKAccount, _start);
     await late.close();
   });
 
@@ -121,18 +128,37 @@ void main() {
   });
 
   testWidgets('Delete is disabled on the start account row', (tester) async {
+    // Tall enough that all three rows and the node section's button build
+    // without a scroll.
+    tester.view.physicalSize = const Size(1200, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(
-      BlocProvider<AppBloc>.value(
-        value: bloc,
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<WalletDetailsCubit>.value(value: details),
+          BlocProvider<AppBloc>.value(value: bloc),
+        ],
         child: MaterialApp(
           theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
-          home: const Scaffold(body: SDKAccountManagerButton()),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => AccountDrawer.show(context),
+                child: const Text('open drawer'),
+              ),
+            ),
+          ),
         ),
       ),
     );
-    await tester.tap(find.byType(SDKAccountManagerButton));
+    await tester.tap(find.text('open drawer'));
     await tester.pumpAndSettle();
-    expect(find.text('The app starts with this account'), findsOneWidget);
+    expect(find.textContaining('Default account'), findsOneWidget);
 
     VoidCallback? delete() => tester
         .widget<MenuItemButton>(

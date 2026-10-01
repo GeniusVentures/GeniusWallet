@@ -28,9 +28,14 @@ import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/send/send_cubit.dart' show settlePendingSends;
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:local_secure_storage/local_secure_storage.dart'
+    show SDKAccountLink;
 
 part 'app_event.dart';
 part 'app_state.dart';
+
+/// Why an SDK-account delete was refused. See [AppBloc.sdkDeleteBlock].
+enum SDKDeleteBlock { defaultAccount, activeWallet, lastWallet }
 
 class AppBloc extends Bloc<AppEvent, AppState> {
   final GeniusApi api;
@@ -40,8 +45,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   Timer? _processingTimer;
   Timer? _initTimer;
+  Timer? _switchPollTimer;
   StreamSubscription<SGNUSConnection>? _sgnusConnectionSubscription;
   StreamSubscription<String?>? _selectedWalletSubscription;
+  StreamSubscription<AppState>? _nodeAccountSubscription;
   List<Wallet> _baseWallets = [];
 
   AppBloc({
@@ -59,14 +66,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     on<ProcessingStatusTicked>(_onProcessingStatusTicked);
     on<RetryProcessingStatus>(_onRetryProcessingStatus);
     on<InitializationStatusTicked>(_onInitializationStatusTicked);
-    // One at a time: concurrent deletes would each pass the last-wallet guard.
-    on<DeleteWallet>(_onDeleteWallet, transformer: sequential());
+    // One queue for both deletes: run side by side, each would pass the
+    // last-wallet guard and together remove every key wallet.
+    on<WalletRemoval>(
+      (event, emit) => switch (event) {
+        DeleteWallet() => _onDeleteWallet(event, emit),
+        DeleteSDKAccount() => _onDeleteSDKAccount(event, emit),
+      },
+      transformer: sequential(),
+    );
     on<RenameWallet>(_onRenameWallet);
     on<SgnusConnectionChanged>(_onSgnusConnectionChanged);
-    on<SelectSDKAccount>(_onSelectSDKAccount);
-    on<AddSDKAccountWithMnemonic>(_onAddSDKAccountWithMnemonic);
-    on<AddSDKAccountWithPrivateKey>(_onAddSDKAccountWithPrivateKey);
-    on<DeleteSDKAccount>(_onDeleteSDKAccount);
+    // One at a time: the native switches must land in the order requested.
+    on<SelectSDKAccount>(_onSelectSDKAccount, transformer: sequential());
+    on<SDKSwitchPolled>(_onSDKSwitchPolled);
     on<RefreshSDKAccounts>(_onRefreshSDKAccounts);
     on<SetSDKPayoutAddress>(_onSetSDKPayoutAddress);
     on<SettlePendingSends>(_onSettlePendingSends);
@@ -85,6 +98,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _selectedWalletSubscription = walletDetailsCubit.stream
         .map((s) => s.selectedWallet?.address)
         .listen(_showTransactionsFor);
+
+    // Whose SDK balance the selected wallet shows depends on the node account.
+    _nodeAccountSubscription = stream.listen(
+      walletDetailsCubit.appStateChanged,
+    );
   }
 
   void _showTransactionsFor(String? address) {
@@ -103,12 +121,31 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     await api.initSDK();
+    final links = await api.getSDKAccountLinks();
     emit(
       state.copyWith(
         sdkStatus: AppStatus.loaded,
-        linkedSDKAccount: api.getStartAccountAddress(),
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: links,
       ),
     );
+
+    await api.linkExistingSDKAccounts();
+
+    // Wait for the wallet list's own emit so the new names land after it,
+    // never racing it; a stuck load must not block this pass forever.
+    if (state.subscribeToWalletStatus != AppStatus.loaded) {
+      try {
+        await stream
+            .firstWhere((s) => s.subscribeToWalletStatus == AppStatus.loaded)
+            .timeout(const Duration(seconds: 30));
+      } catch (_) {
+        // Swallowed: a later refresh still picks up any names found above.
+      }
+    }
+    if (!isClosed) {
+      add(RefreshSDKAccounts());
+    }
   }
 
   Future<void> _onLoadWallets(LoadWallets event, Emitter<AppState> emit) async {
@@ -119,6 +156,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _baseWallets = wallets;
 
     if (_baseWallets.isEmpty) {
+      final links = await api.getSDKAccountLinks();
       final sdkState = _getSDKAccountState();
       emit(
         state.copyWith(
@@ -126,7 +164,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           subscribeToWalletStatus: AppStatus.loaded,
           selectedSDKAccount: sdkState.$1,
           sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
+          defaultSDKAccount: api.getStartAccountAddress(),
+          sdkAccountLinks: links,
         ),
       );
       return;
@@ -170,13 +209,15 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
     _startProcessingPolling();
 
+    final links = await api.getSDKAccountLinks();
     emit(
       state.copyWith(
         wallets: mergedWallets,
         subscribeToWalletStatus: AppStatus.loaded,
         selectedSDKAccount: sdkState.$1,
         sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: links,
       ),
     );
   }
@@ -603,11 +644,30 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         orElse: () => remaining.first,
       );
 
-  /// True while another of the user's own wallets would remain. SDK accounts
-  /// do not count: they are not reloaded once no local wallet is left, so a
-  /// deletion they "covered" would leave the user with nothing after a restart.
-  static bool canDeleteWallet(List<Wallet> wallets) =>
-      wallets.where((w) => w.walletType != WalletType.sgnus).length > 1;
+  /// True while it is safe to delete a row from [wallets]. Removing a
+  /// watch-only row never touches a key, so it only needs another row of any
+  /// kind left; removing a key-holding wallet (the default, and always the
+  /// case for [sdkDeleteBlock]'s linked-wallet check) needs another
+  /// key-holding wallet left - SDK accounts do not count (they are not
+  /// reloaded once no local wallet is left, so a deletion they "covered"
+  /// would leave the user with nothing after a restart), and neither does a
+  /// watch-only row, which holds no key and cannot sign or be restored from.
+  static bool canDeleteWallet(
+    List<Wallet> wallets, {
+    bool deletingWatchOnly = false,
+  }) {
+    if (deletingWatchOnly) {
+      return wallets.where((w) => w.walletType != WalletType.sgnus).length > 1;
+    }
+    return wallets
+            .where(
+              (w) =>
+                  w.walletType != WalletType.sgnus &&
+                  w.walletType != WalletType.tracking,
+            )
+            .length >
+        1;
+  }
 
   /// True for the one row [event] deletes. A key wallet, a watch-only row and
   /// an SDK account made from the same key can all share one address.
@@ -622,15 +682,24 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     // Enforced here, not only in the drawer: deleting a wallet is irreversible.
-    if (!canDeleteWallet(state.wallets)) {
+    if (!canDeleteWallet(state.wallets, deletingWatchOnly: event.watchOnly)) {
       return;
     }
-    await api.deleteWallet(event.address, watchOnly: event.watchOnly);
+    await _deleteWallet(event.address, watchOnly: event.watchOnly);
+    await _emitSDKAccounts(emit);
+  }
+
+  /// Deletes [address]'s wallet from storage and this bloc's own wallet
+  /// list, moving the selection off it if it was selected. Never touches an
+  /// SDK account - shared by a direct wallet delete and, via
+  /// [_onDeleteSDKAccount], the wallet side of an SDK-account delete.
+  Future<void> _deleteWallet(String address, {required bool watchOnly}) async {
+    final event = DeleteWallet(address, watchOnly: watchOnly);
+    await api.deleteWallet(address, watchOnly: watchOnly);
     _baseWallets = _baseWallets.where((w) => !isDeletedRow(w, event)).toList();
     final remaining = await _mergeSgnusWallet();
     // The header reads the selected wallet from the cubit, so a deleted
     // selection is replaced and persisted exactly as a drawer switch does.
-    // The guard above keeps at least one of the user's own wallets.
     final selected = walletDetailsCubit.state.selectedWallet;
     if (remaining.isNotEmpty &&
         selected != null &&
@@ -642,15 +711,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         debugPrint('Persisting the replacement wallet failed: $e');
       }
     }
-    final sdkState = _getSDKAccountState();
-    emit(
-      state.copyWith(
-        wallets: remaining,
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
-      ),
-    );
   }
 
   FutureOr<void> _onRenameWallet(
@@ -670,15 +730,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         selected.address.toLowerCase() == event.address.toLowerCase()) {
       walletDetailsCubit.renameSelectedWallet(event.newName);
     }
-    final sdkState = _getSDKAccountState();
-    emit(
-      state.copyWith(
-        wallets: await _mergeSgnusWallet(),
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
-      ),
-    );
+    await _emitSDKAccounts(emit);
   }
 
   void _startSgnusConnectionListener() {
@@ -696,15 +748,95 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     SgnusConnectionChanged event,
     Emitter<AppState> emit,
   ) async {
-    final sdkState = _getSDKAccountState();
-    emit(
-      state.copyWith(
-        wallets: await _mergeSgnusWallet(),
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
-      ),
-    );
+    await _emitSDKAccounts(emit);
+  }
+
+  /// The user's own wallet [sdkAddress] was linked to, or null when it has
+  /// no link or that wallet was deleted. Never an SDK or watch-only row —
+  /// a deleted wallet's key stays in the SDK, not in [wallets].
+  static Wallet? linkedWallet(
+    String sdkAddress,
+    Map<String, SDKAccountLink> links,
+    List<Wallet> wallets,
+  ) {
+    final link = links[sdkAddress.toLowerCase()];
+    if (link == null) {
+      return null;
+    }
+    for (final wallet in wallets) {
+      if (wallet.walletType != WalletType.sgnus &&
+          wallet.walletType != WalletType.tracking &&
+          wallet.address.toLowerCase() == link.walletAddress) {
+        return wallet;
+      }
+    }
+    return null;
+  }
+
+  /// The SDK account behind [wallet]: an SDK wallet's own address, or the
+  /// account linked to one of the user's own wallets; null for anything else.
+  static String? sdkAccountFor(
+    Wallet wallet,
+    Map<String, SDKAccountLink> links,
+  ) {
+    if (wallet.walletType == WalletType.sgnus) {
+      return wallet.address;
+    }
+    for (final sdkAddress in links.keys) {
+      if (linkedWallet(sdkAddress, links, [wallet]) != null) {
+        return sdkAddress;
+      }
+    }
+    return null;
+  }
+
+  /// The label for the SDK row at [sdkAddress]: the live wallet's name, the
+  /// removed wallet's last known name, or an honest 'Unlinked'.
+  static String sdkAccountName(
+    String sdkAddress,
+    Map<String, SDKAccountLink> links,
+    List<Wallet> wallets,
+  ) {
+    final wallet = linkedWallet(sdkAddress, links, wallets);
+    if (wallet != null) {
+      return wallet.walletName;
+    }
+    final link = links[sdkAddress.toLowerCase()];
+    if (link != null) {
+      return '${link.walletName} (wallet removed)';
+    }
+    return 'Unlinked';
+  }
+
+  /// Why deleting [sdkAddress] must be refused, or null when it is allowed.
+  /// The default account is never deletable. A linked account is refused
+  /// while its wallet is the active one, or while deleting it would leave no
+  /// wallet at all.
+  static SDKDeleteBlock? sdkDeleteBlock({
+    required String sdkAddress,
+    required String? defaultAccount,
+    required Map<String, SDKAccountLink> links,
+    required List<Wallet> wallets,
+    required Wallet? activeWallet,
+  }) {
+    if (defaultAccount != null &&
+        defaultAccount.toLowerCase() == sdkAddress.toLowerCase()) {
+      return SDKDeleteBlock.defaultAccount;
+    }
+    final linked = linkedWallet(sdkAddress, links, wallets);
+    if (linked == null) {
+      return null;
+    }
+    if (activeWallet != null &&
+        activeWallet.walletType != WalletType.sgnus &&
+        activeWallet.walletType != WalletType.tracking &&
+        activeWallet.address.toLowerCase() == linked.address.toLowerCase()) {
+      return SDKDeleteBlock.activeWallet;
+    }
+    if (!canDeleteWallet(wallets)) {
+      return SDKDeleteBlock.lastWallet;
+    }
+    return null;
   }
 
   Future<List<Wallet>> _mergeSgnusWallet() async {
@@ -714,13 +846,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
 
     final accounts = api.getAvailableAccounts();
-    final sgnusWallets = accounts.asMap().entries.map((entry) {
-      final index = entry.key;
-      final address = entry.value;
+    final links = await api.getSDKAccountLinks();
+    final sgnusWallets = accounts.map((address) {
       return Wallet(
-        walletName: accounts.length == 1
-            ? 'Super Genius Wallet'
-            : 'Super Genius Wallet ${index + 1}',
+        walletName: sdkAccountName(address, links, _baseWallets),
         walletType: WalletType.sgnus,
         address: address,
         currencySymbol: 'minions',
@@ -737,6 +866,34 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     debugPrint("FFI mintTokens result: $result");
   }
 
+  /// Re-reads the wallet list and SDK accounts, then emits them. Every await
+  /// finishes before `state` is read, so a status another handler emitted
+  /// meanwhile is never overwritten by a stale snapshot. A real selected
+  /// account ends the switch to [settling], if that is still the one pending.
+  Future<void> _emitSDKAccounts(
+    Emitter<AppState> emit, {
+    String? settling,
+  }) async {
+    final wallets = await _mergeSgnusWallet();
+    final links = await api.getSDKAccountLinks();
+    final sdkState = _getSDKAccountState();
+    final selected = sdkState.$1;
+    emit(
+      state.copyWith(
+        wallets: wallets,
+        selectedSDKAccount: selected,
+        clearSelectedSDKAccount: selected == null,
+        clearSwitchingSDKAccount:
+            selected != null &&
+            settling != null &&
+            state.switchingSDKAccount == settling,
+        sdkAccounts: sdkState.$2,
+        defaultSDKAccount: api.getStartAccountAddress(),
+        sdkAccountLinks: links,
+      ),
+    );
+  }
+
   /// Returns (selectedSDKAccount, sdkAccounts) tuple from the native SDK.
   (String?, List<String>) _getSDKAccountState() {
     final selected = api.getSelectedAccountAddress();
@@ -748,53 +905,45 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     SelectSDKAccount event,
     Emitter<AppState> emit,
   ) async {
-    final result = await api.selectGeniusAccountAsync(event.publicAddress);
-    if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      final sdkState = _getSDKAccountState();
-      emit(
-        state.copyWith(
-          wallets: await _mergeSgnusWallet(),
-          selectedSDKAccount: sdkState.$1,
-          sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
-        ),
+    final target = event.publicAddress;
+    _switchPollTimer?.cancel();
+    emit(state.copyWith(switchingSDKAccount: target));
+    // A throw counts as a refusal, or the row would say "Switching" forever.
+    final ok = await api
+        .selectGeniusAccountAsync(target)
+        .then(
+          (r) => r == GeniusNodeReturnValue.GENIUS_NODE_RET_OK,
+          onError: (Object _) => false,
+        );
+    if (state.switchingSDKAccount != target) {
+      return;
+    }
+    if (!ok) {
+      emit(state.copyWith(clearSwitchingSDKAccount: true));
+      return;
+    }
+    await _emitSDKAccounts(emit, settling: target);
+    // A node that is still starting answers with no account for minutes, so
+    // keep asking until it names one. Uncapped: a cap would only guess.
+    if (state.switchingSDKAccount == target && !isClosed) {
+      _switchPollTimer?.cancel();
+      _switchPollTimer = Timer.periodic(
+        const Duration(seconds: 3),
+        (_) => add(SDKSwitchPolled()),
       );
     }
   }
 
-  FutureOr<void> _onAddSDKAccountWithMnemonic(
-    AddSDKAccountWithMnemonic event,
+  Future<void> _onSDKSwitchPolled(
+    SDKSwitchPolled event,
     Emitter<AppState> emit,
   ) async {
-    final result = api.addAccountWithMnemonic(event.mnemonic);
-    if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      final sdkState = _getSDKAccountState();
-      emit(
-        state.copyWith(
-          wallets: await _mergeSgnusWallet(),
-          selectedSDKAccount: sdkState.$1,
-          sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
-        ),
-      );
+    final target = state.switchingSDKAccount;
+    if (target != null && api.getSelectedAccountAddress() != null) {
+      await _emitSDKAccounts(emit, settling: target);
     }
-  }
-
-  FutureOr<void> _onAddSDKAccountWithPrivateKey(
-    AddSDKAccountWithPrivateKey event,
-    Emitter<AppState> emit,
-  ) async {
-    final result = api.addAccountWithPrivateKey(event.privateKey);
-    if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      final sdkState = _getSDKAccountState();
-      emit(
-        state.copyWith(
-          wallets: await _mergeSgnusWallet(),
-          selectedSDKAccount: sdkState.$1,
-          sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
-        ),
-      );
+    if (state.switchingSDKAccount == null) {
+      _switchPollTimer?.cancel();
     }
   }
 
@@ -802,24 +951,30 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     DeleteSDKAccount event,
     Emitter<AppState> emit,
   ) async {
-    // The next start imports this account's key again, so deleting it would
-    // silently bring it back.
-    final start = api.getStartAccountAddress();
-    if (start != null &&
-        start.toLowerCase() == event.publicAddress.toLowerCase()) {
+    final block = sdkDeleteBlock(
+      sdkAddress: event.publicAddress,
+      defaultAccount: api.getStartAccountAddress(),
+      links: state.sdkAccountLinks,
+      wallets: state.wallets,
+      activeWallet: walletDetailsCubit.state.selectedWallet,
+    );
+    if (block != null) {
       return;
     }
     final result = api.deleteAccount(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      final sdkState = _getSDKAccountState();
-      emit(
-        state.copyWith(
-          wallets: await _mergeSgnusWallet(),
-          selectedSDKAccount: sdkState.$1,
-          sdkAccounts: sdkState.$2,
-          linkedSDKAccount: api.getStartAccountAddress(),
-        ),
+      await api.removeSDKAccountLink(event.publicAddress);
+      // The account's linked wallet goes with it; an unlinked or
+      // already-removed wallet leaves nothing further to delete.
+      final linked = linkedWallet(
+        event.publicAddress,
+        state.sdkAccountLinks,
+        state.wallets,
       );
+      if (linked != null) {
+        await _deleteWallet(linked.address, watchOnly: false);
+      }
+      await _emitSDKAccounts(emit);
     }
   }
 
@@ -827,32 +982,24 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     RefreshSDKAccounts event,
     Emitter<AppState> emit,
   ) async {
-    final sdkState = _getSDKAccountState();
-    emit(
-      state.copyWith(
-        wallets: await _mergeSgnusWallet(),
-        selectedSDKAccount: sdkState.$1,
-        sdkAccounts: sdkState.$2,
-        linkedSDKAccount: api.getStartAccountAddress(),
-      ),
-    );
+    await _emitSDKAccounts(emit);
   }
 
   void _onSetSDKPayoutAddress(
     SetSDKPayoutAddress event,
     Emitter<AppState> emit,
   ) {
-    final result = api.setPayoutAddress(event.publicAddress);
-    // Always emit the result so the UI can display the actual SDK response.
-    emit(state.copyWith(setPayoutAddressResult: result));
+    event.result.complete(api.setPayoutAddress(event.publicAddress));
   }
 
   @override
   Future<void> close() {
     _processingTimer?.cancel();
     _initTimer?.cancel();
+    _switchPollTimer?.cancel();
     _sgnusConnectionSubscription?.cancel();
     _selectedWalletSubscription?.cancel();
+    _nodeAccountSubscription?.cancel();
     return super.close();
   }
 }

@@ -63,7 +63,7 @@ class MoreSheetBody extends StatelessWidget {
             color: gw.textPrimary80,
           ),
           title: 'Accounts',
-          subtitle: 'SDK accounts and your wallets',
+          subtitle: 'Earning accounts and your wallets',
           onTap: () {
             Navigator.of(context).pop();
             AccountDrawer.show(context);

@@ -132,7 +132,7 @@ class _VerifyRecoveryPhraseScreenState
                         child: GWButton(
                           label: 'Continue',
                           variant: GWButtonVariant.gradient,
-                          size: GWButtonSize.lg,
+                          size: GWButtonSize.md,
                           expand: true,
                           onPressed: _triggerContinue,
                         ),

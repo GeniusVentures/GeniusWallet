@@ -42,17 +42,25 @@ import 'package:web3dart/web3dart.dart' show TransactionReceipt;
 /// for inline [ffi.Array]<[ffi.Char]> fields in FFI structs.
 extension _CharArrayToDartString on ffi.Array<ffi.Char> {
   /// Reads this null-terminated C string array, reading at most [maxLength]
-  /// chars.
+  /// bytes and decoding as UTF-8; a byte above 0x7F never throws, and this
+  /// is identical to the old char-code reader for the ASCII data it reads
+  /// today.
   String toDartString(int maxLength) {
     final units = <int>[];
     for (var i = 0; i < maxLength; i++) {
       final c = this[i];
       if (c == 0) break;
-      units.add(c);
+      units.add(c & 0xFF);
     }
-    return String.fromCharCodes(units);
+    return utf8.decode(units, allowMalformed: true);
   }
 }
+
+final _sdkAddressPattern = RegExp(r'^0x[0-9a-fA-F]{128}$');
+
+/// [raw] when it is a real SDK account address ("0x" + 128 hex), else null.
+String? sdkAddressOrNull(String raw) =>
+    _sdkAddressPattern.hasMatch(raw) ? raw : null;
 
 /// Isolate entry point for [GeniusApi.selectGeniusAccountAsync].
 ///
@@ -88,6 +96,214 @@ class GeniusInitStatus {
   final String message;
 
   const GeniusInitStatus({required this.percentage, required this.message});
+}
+
+/// Caller-supplied metadata carried on a child registration. [peersCut]
+/// holds the raw uint64 bits as a Dart int (negative once the top bit is
+/// set), never range-checked here.
+class ChildRegistrationMetadata {
+  const ChildRegistrationMetadata({
+    this.gameId = '',
+    this.publisherId = '',
+    this.devWallet = '',
+    this.peersCut = 0,
+  });
+
+  final String gameId;
+  final String publisherId;
+  final String devWallet;
+  final int peersCut;
+}
+
+/// One child registered under a main account: public addresses, the
+/// registration order, and its metadata.
+class ChildRegistration {
+  const ChildRegistration({
+    required this.childAddress,
+    required this.mainAddress,
+    required this.sequence,
+    this.metadata = const ChildRegistrationMetadata(),
+  });
+
+  final String childAddress;
+  final String mainAddress;
+  final int sequence;
+  final ChildRegistrationMetadata metadata;
+}
+
+/// The result of a registrations read, so a zero-count success (empty list)
+/// stays distinguishable from a query failure (non-OK, also empty).
+typedef ChildRegistrations = ({
+  GeniusNodeReturnValue result,
+  List<ChildRegistration> entries,
+});
+
+/// Lets a caller branch on a registrations read without importing the raw
+/// FFI binding file for two enum comparisons.
+extension ChildRegistrationsStatus on ChildRegistrations {
+  bool get isOk => result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+
+  bool get isNotInitialized =>
+      result == GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+}
+
+/// Drives a registrations query through injected native calls so its free
+/// contract (copy first, free a non-null array exactly once) can be tested
+/// without the real SDK. [GeniusApi.getChildRegistrations] is the caller.
+@visibleForTesting
+ChildRegistrations collectChildRegistrations(
+  String mainAddress, {
+  required int Function(
+    ffi.Pointer<ffi.Char>,
+    ffi.Pointer<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>,
+    ffi.Pointer<ffi.Uint64>,
+  )
+  query,
+  required void Function(ffi.Pointer<ffi.Void>) free,
+}) {
+  final mainPtr = mainAddress.toNativeUtf8().cast<Char>();
+  final entriesPtrPtr = calloc<ffi.Pointer<GeniusRegistrationDiscoveryEntry>>();
+  final countPtr = calloc<ffi.Uint64>();
+  try {
+    final rv = query(mainPtr, entriesPtrPtr, countPtr);
+    final mapped = _mapNodeReturnValue(rv);
+    final entries = entriesPtrPtr.value;
+    try {
+      if (mapped != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+        return (result: mapped, entries: const <ChildRegistration>[]);
+      }
+      final count = countPtr.value;
+      final list = <ChildRegistration>[];
+      if (entries != nullptr) {
+        for (var i = 0; i < count; i++) {
+          final e = entries[i];
+          list.add(
+            ChildRegistration(
+              childAddress: e.child_address.address.toDartString(131),
+              mainAddress: e.main_address.address.toDartString(131),
+              sequence: e.sequence,
+              metadata: ChildRegistrationMetadata(
+                gameId: e.metadata.game_id.toDartString(128),
+                publisherId: e.metadata.publisher_id.toDartString(128),
+                devWallet: e.metadata.dev_wallet.toDartString(128),
+                peersCut: e.metadata.peers_cut,
+              ),
+            ),
+          );
+        }
+      }
+      return (result: mapped, entries: list);
+    } finally {
+      if (entries != nullptr) {
+        free(entries.cast<ffi.Void>());
+      }
+    }
+  } finally {
+    malloc.free(mainPtr);
+    calloc.free(entriesPtrPtr);
+    calloc.free(countPtr);
+  }
+}
+
+/// Writes [m]'s three strings into [out] as UTF-8 plus a NUL terminator,
+/// each capped at 127 bytes, then copies [ChildRegistrationMetadata.peersCut]
+/// through unchecked. Returns false and writes nothing if any string is too
+/// long, leaving a calloc'd [out] zeroed.
+@visibleForTesting
+bool writeRegistrationMetadata(
+  ffi.Pointer<GeniusRegistrationMetadata> out,
+  ChildRegistrationMetadata m,
+) {
+  final gameId = utf8.encode(m.gameId);
+  final publisherId = utf8.encode(m.publisherId);
+  final devWallet = utf8.encode(m.devWallet);
+  if (gameId.length > 127 ||
+      publisherId.length > 127 ||
+      devWallet.length > 127) {
+    return false;
+  }
+  _writeMetadataField(out.ref.game_id, gameId);
+  _writeMetadataField(out.ref.publisher_id, publisherId);
+  _writeMetadataField(out.ref.dev_wallet, devWallet);
+  out.ref.peers_cut = m.peersCut;
+  return true;
+}
+
+void _writeMetadataField(ffi.Array<ffi.Char> field, List<int> bytes) {
+  for (var i = 0; i < bytes.length; i++) {
+    field[i] = bytes[i];
+  }
+  field[bytes.length] = 0;
+}
+
+/// Writes [amountGnus] into [out] as UTF-8 plus a NUL terminator. Returns
+/// false and writes nothing if it exceeds the 21-byte value field.
+@visibleForTesting
+bool writeTokenValue(ffi.Pointer<GeniusTokenValue> out, String amountGnus) {
+  final bytes = utf8.encode(amountGnus);
+  if (bytes.length > 21) {
+    return false;
+  }
+  for (var i = 0; i < bytes.length; i++) {
+    out.ref.value[i] = bytes[i];
+  }
+  out.ref.value[bytes.length] = 0;
+  return true;
+}
+
+/// `null` unless `0 <= v < 2^64`; otherwise the raw 64-bit pattern as a
+/// (possibly negative) Dart int, ready for an `ffi.Uint64` parameter.
+@visibleForTesting
+int? uint64Arg(BigInt v) {
+  if (v < BigInt.zero || v >= (BigInt.one << 64)) {
+    return null;
+  }
+  return v.toSigned(64).toInt();
+}
+
+/// Writes [bytes] as lowercase hex ASCII into [out], NUL-terminated.
+/// [out] must hold `bytes.length * 2 + 1` bytes.
+@visibleForTesting
+void writeHexAscii(Uint8List bytes, Uint8List out) {
+  const digits = '0123456789abcdef';
+  for (var i = 0; i < bytes.length; i++) {
+    out[i * 2] = digits.codeUnitAt(bytes[i] >> 4);
+    out[i * 2 + 1] = digits.codeUnitAt(bytes[i] & 0x0f);
+  }
+  out[bytes.length * 2] = 0;
+}
+
+/// Pads an odd-length hex string with a leading zero so it parses byte-
+/// aligned.
+String _padHexEven(String hex) => hex.length.isOdd ? '0$hex' : hex;
+
+/// Writes [tokenId]'s hex bytes into [out], or all zeros (the default token)
+/// when null. Mirrors the parse every other token-id wrapper already has.
+@visibleForTesting
+void writeTokenId(ffi.Pointer<GeniusTokenID> out, String? tokenId) {
+  if (tokenId == null) {
+    for (var i = 0; i < 32; i++) {
+      out.ref.data[i] = 0;
+    }
+    return;
+  }
+  final cleanTokenId = _padHexEven(
+    tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId,
+  );
+  final maxBytes = (cleanTokenId.length ~/ 2).clamp(0, 32);
+  for (var i = 0; i < maxBytes; i++) {
+    final hexByte = cleanTokenId.substring(i * 2, i * 2 + 2);
+    out.ref.data[i] = int.parse(hexByte, radix: 16);
+  }
+}
+
+GeniusNodeReturnValue _mapNodeReturnValue(int value) {
+  try {
+    return GeniusNodeReturnValue.fromValue(value);
+  } catch (e) {
+    debugPrint("Unknown GeniusNodeReturnValue: $value");
+    return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+  }
 }
 
 class GeniusApi {
@@ -189,12 +405,21 @@ class GeniusApi {
     return await _secureStorage.updateAccountFetchDate();
   }
 
+  /// The wallet each SDK account was produced from. See
+  /// [LocalWalletStorage.getSDKAccountLinks].
+  Future<Map<String, SDKAccountLink>> getSDKAccountLinks() =>
+      _secureStorage.getSDKAccountLinks();
+
+  /// See [LocalWalletStorage.removeSDKAccountLink].
+  Future<void> removeSDKAccountLink(String sdkAddress) =>
+      _secureStorage.removeSDKAccountLink(sdkAddress);
+
   Future<void> initSDK() => _initFuture ??= _doInitSDK();
 
   Future<void> _doInitSDK() async {
     requestPermissions();
 
-    final storedKey = await _secureStorage.getSGNUSLinkedWalletPrivateKey();
+    final storedKey = await _secureStorage.getSDKDefaultWalletKey();
     if (storedKey == null) {
       debugPrint("No suitable wallet found");
       return;
@@ -277,11 +502,26 @@ class GeniusApi {
     // Pinning the key the node now knows keeps later starts from adding an
     // SDK account each time readAll() happens to list another wallet first.
     try {
-      await _secureStorage.saveSGNUSLinkedAddress(
+      await _secureStorage.saveSDKDefaultWalletAddress(
         storedKey.account(0).address(),
       );
     } catch (_) {
-      debugPrint('Failed to record the SDK-linked wallet');
+      debugPrint('Failed to record the SDK default wallet');
+    }
+
+    // The start account never goes through _registerWallet's diff below, so
+    // it needs its own link: this is the only place both addresses are known
+    // for it, on every start including a fresh install's first wallet.
+    if (_address.isNotEmpty) {
+      try {
+        await _secureStorage.saveSDKAccountLink(
+          _address,
+          storedKey.account(0).address(),
+          storedKey.name(),
+        );
+      } catch (_) {
+        debugPrint('Failed to record the SDK account link');
+      }
     }
   }
 
@@ -299,36 +539,200 @@ class GeniusApi {
     }
   }
 
-  Future<void> _registerWallet(StoredKey storedKey) async {
+  /// Saves [storedKey] (unless [save] is false, for a secret that already
+  /// matches a stored wallet) and gets its SDK account running. Returns
+  /// whether the SDK ends up holding the account — never throws, so a
+  /// failure here never undoes or hides a save that already happened.
+  Future<bool> _registerWallet(StoredKey storedKey, {bool save = true}) async {
     final wasAlreadyInitialized = _isSdkInitialized;
+    final before = getAvailableAccounts();
 
-    await _secureStorage.saveStoredKey(storedKey);
-    await _initSDK(storedKey);
+    if (save) {
+      await _secureStorage.saveStoredKey(storedKey);
+    }
 
-    // If the SDK was already initialized, _initSDK returned early and did
-    // NOT register this account on the SDK side. Register it now.
-    if (wasAlreadyInitialized) {
-      if (storedKey.isMnemonic()) {
-        final mnemonic = storedKey.decryptMnemonic(Uint8List(0));
-        if (mnemonic != null) {
-          addAccountWithMnemonic(mnemonic);
+    try {
+      await _initSDK(storedKey);
+
+      bool sdkHasAccount;
+      if (wasAlreadyInitialized) {
+        // _initSDK returned early and did NOT register this account on the
+        // SDK side. Register it now.
+        final result = _addToSDK(storedKey);
+        sdkHasAccount = result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+
+        // Only a clean single new address is trustworthy enough to record;
+        // zero or several leaves this wallet for the backfill pass instead
+        // of guessing.
+        final after = getAvailableAccounts();
+        final newAddresses = after
+            .map((a) => a.toLowerCase())
+            .toSet()
+            .difference(before.map((a) => a.toLowerCase()).toSet());
+        if (newAddresses.length == 1) {
+          try {
+            await _secureStorage.saveSDKAccountLink(
+              newAddresses.single,
+              storedKey.account(0).address(),
+              storedKey.name(),
+            );
+          } catch (_) {
+            debugPrint('Failed to record the SDK account link');
+          }
         }
       } else {
-        final privateKey = storedKey.privateKey(
-          TWCoinType.TWCoinTypeEthereum,
-          Uint8List(0),
+        sdkHasAccount = _isSdkInitialized;
+      }
+
+      // Wallets saved while the node was down get their link the moment it
+      // starts; this also mops up anything the diff above left unlinked.
+      await linkExistingSDKAccounts();
+
+      await loadStoredWallets();
+      return sdkHasAccount;
+    } catch (_) {
+      debugPrint('Failed to bring up the SDK account for a saved wallet');
+      await loadStoredWallets();
+      return false;
+    }
+  }
+
+  /// Adds [key]'s account to the running SDK, the same re-add step
+  /// `_registerWallet` and the backfill pass both need, but returning the
+  /// result so a caller can react to more than a clean single new address.
+  GeniusNodeReturnValue _addToSDK(StoredKey key) {
+    if (key.isMnemonic()) {
+      final mnemonic = key.decryptMnemonic(Uint8List(0));
+      if (mnemonic == null) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      return addAccountWithMnemonic(mnemonic);
+    }
+    final privateKey = key.privateKey(
+      TWCoinType.TWCoinTypeEthereum,
+      Uint8List(0),
+    );
+    if (privateKey == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+    }
+    final twLib = _ffiBridgePrebuilt.twLib;
+    final twData = twLib.TWPrivateKeyData(privateKey.nativehandle.cast());
+    try {
+      return addAccountWithPrivateKey(
+        twLib.TWDataBytes(twData).asTypedList(twLib.TWDataSize(twData)),
+      );
+    } finally {
+      twLib.TWDataReset(twData);
+      twLib.TWDataDelete(twData);
+      privateKey.delete();
+    }
+  }
+
+  /// Links every stored key wallet that predates this feature where the
+  /// link can be proven, skipping any already linked so a fully linked
+  /// install makes no SDK add calls. No-ops if the SDK is not running.
+  Future<void> linkExistingSDKAccounts() async {
+    if (!_isSdkInitialized) {
+      return;
+    }
+    try {
+      final links = await _secureStorage.getSDKAccountLinks();
+      final linkedWalletAddresses = links.values
+          .map((link) => link.walletAddress.toLowerCase())
+          .toSet();
+      final storedKeys = await _secureStorage.getStoredKeys();
+      final unlinked = storedKeys
+          .where(
+            (key) => !linkedWalletAddresses.contains(
+              key.account(0).address().toLowerCase(),
+            ),
+          )
+          .map(
+            (key) => (
+              walletAddress: key.account(0).address(),
+              walletName: key.name(),
+              reAdd: () => _addToSDK(key),
+            ),
+          )
+          .toList();
+
+      final newLinks = backfillLinks(
+        unlinked: unlinked,
+        accounts: getAvailableAccounts,
+        linkedSDKAddresses: links.keys.toSet(),
+      );
+
+      for (final entry in newLinks.entries) {
+        await _secureStorage.saveSDKAccountLink(
+          entry.key,
+          entry.value.walletAddress,
+          entry.value.walletName,
         );
-        if (privateKey != null) {
-          final privateKeyAsStr = privateKey
-              .data()
-              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-              .join();
-          addAccountWithPrivateKey(privateKeyAsStr);
-        }
+      }
+    } catch (_) {
+      debugPrint('Failed to backfill SDK account links');
+    }
+  }
+
+  // ponytail: an account that cannot be proven this way stays 'Unlinked'
+  // forever; the upgrade is an SDK call that derives an address from a key
+  // without registering it, so no re-add is needed to prove a match.
+
+  /// Decides which unlinked wallet produced which leftover SDK address by
+  /// re-adding each key and diffing the account list; a single new address
+  /// or a one-to-one leftover pair links, anything wider stays unlinked.
+  @visibleForTesting
+  static Map<String, SDKAccountLink> backfillLinks({
+    required List<
+      ({
+        String walletAddress,
+        String walletName,
+        GeniusNodeReturnValue Function() reAdd,
+      })
+    >
+    unlinked,
+    required List<String> Function() accounts,
+    required Set<String> linkedSDKAddresses,
+  }) {
+    final newLinks = <String, SDKAccountLink>{};
+    final eliminationCandidates =
+        <({String walletAddress, String walletName})>[];
+
+    for (final wallet in unlinked) {
+      final before = accounts().map((a) => a.toLowerCase()).toSet();
+      final result = wallet.reAdd();
+      if (result != GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
+        continue;
+      }
+      final after = accounts().map((a) => a.toLowerCase()).toSet();
+      final added = after.difference(before);
+      if (added.length == 1) {
+        newLinks[added.single] = (
+          walletAddress: wallet.walletAddress,
+          walletName: wallet.walletName,
+        );
+      } else if (added.isEmpty) {
+        eliminationCandidates.add((
+          walletAddress: wallet.walletAddress,
+          walletName: wallet.walletName,
+        ));
+      } else {
+        return newLinks;
       }
     }
 
-    await loadStoredWallets();
+    if (eliminationCandidates.length == 1) {
+      final claimed = {...linkedSDKAddresses, ...newLinks.keys};
+      final leftover = accounts()
+          .map((a) => a.toLowerCase())
+          .toSet()
+          .difference(claimed);
+      if (leftover.length == 1) {
+        newLinks[leftover.single] = eliminationCandidates.single;
+      }
+    }
+
+    return newLinks;
   }
 
   Future<Map<String, dynamic>> _loadUserOverrides(
@@ -577,13 +981,16 @@ class GeniusApi {
     return wallet.mnemonic().split(' ');
   }
 
+  /// The name a wallet gets when nothing else names it: the first 5 and
+  /// last 4 characters of its ETH address.
+  String _defaultWalletName(String ethAddress) =>
+      "${ethAddress.substring(0, 5)}...${ethAddress.substring(ethAddress.length - 4)}";
+
   // Currently we just create a account with Ethereum wallet for the user
   Future<void> saveWallet(HDWallet wallet) async {
     String mnemonic = wallet.mnemonic();
     String ethAddress = wallet.getAddressForCoin(TWCoinType.TWCoinTypeEthereum);
-    String walletName =
-        wallet.name ??
-        "${ethAddress.substring(0, 5)}...${ethAddress.substring(ethAddress.length - 4)}";
+    String walletName = wallet.name ?? _defaultWalletName(ethAddress);
     StoredKey? storedKey = StoredKey.importHDWallet(
       mnemonic,
       walletName,
@@ -758,14 +1165,9 @@ class GeniusApi {
 
     if (tokenId != null) {
       // Parse provided token ID
-      String cleanTokenId = tokenId.startsWith('0x')
-          ? tokenId.substring(2)
-          : tokenId;
-
-      // Pad odd-length hex strings with a leading zero
-      if (cleanTokenId.length.isOdd) {
-        cleanTokenId = '0$cleanTokenId';
-      }
+      final cleanTokenId = _padHexEven(
+        tokenId.startsWith('0x') ? tokenId.substring(2) : tokenId,
+      );
 
       // Parse hex bytes big-endian (most significant byte first)
       final maxBytes = (cleanTokenId.length ~/ 2).clamp(0, 32);
@@ -1049,16 +1451,26 @@ class GeniusApi {
   }
 
   /// Adds a new Genius account to the SDK using an Ethereum private key.
-  GeniusNodeReturnValue addAccountWithPrivateKey(String privateKey) {
+  /// The key is hex-encoded straight into a native buffer, never a Dart
+  /// `String`, so the only copy can be wiped once the SDK call returns.
+  GeniusNodeReturnValue addAccountWithPrivateKey(Uint8List privateKey) {
     if (!_isSdkInitialized) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
-    final keyPtr = privateKey.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKAddAccountWithPrivateKey(
-      keyPtr,
-    );
-    malloc.free(keyPtr);
-    return _mapNodeReturnValue(result);
+    final length = privateKey.length * 2;
+    final keyPtr = calloc<Uint8>(length + 1);
+    final hexBuf = keyPtr.asTypedList(length + 1);
+    try {
+      writeHexAscii(privateKey, hexBuf);
+      return _mapNodeReturnValue(
+        _ffiBridgePrebuilt.sgnsLib.GeniusSDKAddAccountWithPrivateKey(
+          keyPtr.cast<Char>(),
+        ),
+      );
+    } finally {
+      hexBuf.fillRange(0, hexBuf.length, 0);
+      calloc.free(keyPtr);
+    }
   }
 
   /// Deletes a Genius account from the SDK. The currently selected account
@@ -1090,13 +1502,16 @@ class GeniusApi {
   }
 
   /// Returns the public address of the currently selected Genius account,
-  /// or null if the SDK is not initialized.
+  /// or null when there is none: the SDK is not initialized, or it answers
+  /// with a placeholder such as "0xUNVAILABLE" while an account switch lands.
   String? getSelectedAccountAddress() {
     if (!_isSdkInitialized) {
       return null;
     }
     final rawAddress = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetAddress();
-    return rawAddress.address.toDartString(GENIUS_SDK_ADDRESS_SIZE);
+    return sdkAddressOrNull(
+      rawAddress.address.toDartString(GENIUS_SDK_ADDRESS_SIZE),
+    );
   }
 
   /// The SDK account the node was started with. Every start imports its key
@@ -1150,12 +1565,265 @@ class GeniusApi {
     return _mapNodeReturnValue(result);
   }
 
-  GeniusNodeReturnValue _mapNodeReturnValue(int value) {
+  /// The children registered under [mainAddress], in SDK order. Zero
+  /// registrations is a valid empty list, not an error.
+  ChildRegistrations getChildRegistrations(String mainAddress) {
+    if (!_isSdkInitialized) {
+      return (
+        result: GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED,
+        entries: const <ChildRegistration>[],
+      );
+    }
+    return collectChildRegistrations(
+      mainAddress,
+      query: _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetRegistrationsForMain,
+      free: _ffiBridgePrebuilt.sgnsLib.GeniusSDKFree,
+    );
+  }
+
+  /// [childAddress]'s balance summed across every token it holds, in Minion
+  /// Tokens -- not a GNUS amount; [getChildBalance] reads one token. The native call returns the uint64 reinterpreted as a signed
+  /// 64-bit int, so the top bit must be restored here rather than trusted.
+  BigInt getChildBalanceAll(String childAddress) {
+    if (!_isSdkInitialized) {
+      return BigInt.zero;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
     try {
-      return GeniusNodeReturnValue.fromValue(value);
-    } catch (e) {
-      debugPrint("Unknown GeniusNodeReturnValue: $value");
+      final raw = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetChildBalanceAll(
+        addressPtr,
+      );
+      return BigInt.from(raw).toUnsigned(64);
+    } finally {
+      malloc.free(addressPtr);
+    }
+  }
+
+  /// The node's PubSub handle as an opaque address, or null before the node
+  /// starts it. Node-owned -- nothing here releases it.
+  int? getPubSubHandle() {
+    if (!_isSdkInitialized) {
+      return null;
+    }
+    final ptr = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetPubSub();
+    return ptr == nullptr ? null : ptr.address;
+  }
+
+  /// Registers this node as a child wallet under [mainAddress]. `RET_OK`
+  /// means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue registerChild(
+    String mainAddress,
+    ChildRegistrationMetadata metadata,
+  ) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = mainAddress.toNativeUtf8().cast<Char>();
+    final metadataPtr = calloc<GeniusRegistrationMetadata>();
+    try {
+      if (!writeRegistrationMetadata(metadataPtr, metadata)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRegisterChild(
+        addressPtr,
+        metadataPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(metadataPtr);
+    }
+  }
+
+  /// [childAddress]'s balance for one token, in Minion Tokens.
+  BigInt getChildBalance(String childAddress, {String? tokenId}) {
+    if (!_isSdkInitialized) {
+      return BigInt.zero;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final tokenIdPtr = calloc<GeniusTokenID>();
+    try {
+      writeTokenId(tokenIdPtr, tokenId);
+      final raw = _ffiBridgePrebuilt.sgnsLib.GeniusSDKGetChildBalance(
+        addressPtr,
+        tokenIdPtr.ref,
+      );
+      return BigInt.from(raw).toUnsigned(64);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(tokenIdPtr);
+    }
+  }
+
+  /// Funds [childAddress] with [amountMinions] Minion Tokens. `RET_OK` means
+  /// submitted, not confirmed by consensus.
+  GeniusNodeReturnValue fundChild(
+    BigInt amountMinions,
+    String childAddress, {
+    String? tokenId,
+  }) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final amount = uint64Arg(amountMinions);
+    if (amount == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final tokenIdPtr = calloc<GeniusTokenID>();
+    try {
+      writeTokenId(tokenIdPtr, tokenId);
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKFundChild(
+        amount,
+        addressPtr,
+        tokenIdPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(tokenIdPtr);
+    }
+  }
+
+  /// Funds [childAddress] with a GNUS-string [amountGnus]. `RET_OK` means
+  /// submitted, not confirmed by consensus.
+  GeniusNodeReturnValue fundChildGnus(String amountGnus, String childAddress) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final amountPtr = calloc<GeniusTokenValue>();
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    try {
+      if (!writeTokenValue(amountPtr, amountGnus)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKFundChildGNUS(
+        amountPtr,
+        addressPtr,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      calloc.free(amountPtr);
+      malloc.free(addressPtr);
+    }
+  }
+
+  /// Recovers [amountMinions] Minion Tokens from [childAddress] back to this
+  /// node. `RET_OK` means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue recoverFromChild(
+    BigInt amountMinions,
+    String childAddress, {
+    String? tokenId,
+  }) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final amount = uint64Arg(amountMinions);
+    if (amount == null) {
+      return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    final tokenIdPtr = calloc<GeniusTokenID>();
+    try {
+      writeTokenId(tokenIdPtr, tokenId);
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRecoverFromChild(
+        amount,
+        addressPtr,
+        tokenIdPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(tokenIdPtr);
+    }
+  }
+
+  /// Recovers a GNUS-string [amountGnus] from [childAddress] back to this
+  /// node. `RET_OK` means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue recoverFromChildGnus(
+    String amountGnus,
+    String childAddress,
+  ) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final amountPtr = calloc<GeniusTokenValue>();
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    try {
+      if (!writeTokenValue(amountPtr, amountGnus)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRecoverFromChildGNUS(
+        amountPtr,
+        addressPtr,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      calloc.free(amountPtr);
+      malloc.free(addressPtr);
+    }
+  }
+
+  /// Ends this node's own child-wallet registration under its current main.
+  /// `RET_OK` means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue detachChild(ChildRegistrationMetadata metadata) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final metadataPtr = calloc<GeniusRegistrationMetadata>();
+    try {
+      if (!writeRegistrationMetadata(metadataPtr, metadata)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKDetachChild(
+        metadataPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      calloc.free(metadataPtr);
+    }
+  }
+
+  /// Changes this node's registered main wallet to [newMainAddress]. `RET_OK`
+  /// means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue replaceMain(
+    String newMainAddress,
+    ChildRegistrationMetadata metadata,
+  ) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = newMainAddress.toNativeUtf8().cast<Char>();
+    final metadataPtr = calloc<GeniusRegistrationMetadata>();
+    try {
+      if (!writeRegistrationMetadata(metadataPtr, metadata)) {
+        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      }
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKReplaceMain(
+        addressPtr,
+        metadataPtr.ref,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
+      calloc.free(metadataPtr);
+    }
+  }
+
+  /// Creates a main-initiated revoke transaction against [childAddress].
+  /// `RET_OK` means submitted, not confirmed by consensus.
+  GeniusNodeReturnValue revokeChild(String childAddress) {
+    if (!_isSdkInitialized) {
+      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
+    }
+    final addressPtr = childAddress.toNativeUtf8().cast<Char>();
+    try {
+      final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKRevokeChild(
+        addressPtr,
+      );
+      return _mapNodeReturnValue(result);
+    } finally {
+      malloc.free(addressPtr);
     }
   }
 

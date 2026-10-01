@@ -8,12 +8,25 @@ import 'package:genius_api/models/coin.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/assets/read_asset.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart'
+    show minionsToGnus;
 import 'package:genius_wallet/dev/dev_flags.dart';
+import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:hive_ce/hive.dart';
 
 part 'wallet_details_state.dart';
+
+/// How the node can read the selected wallet's GNUS balance: as its own
+/// account, or as a child registered under it ([childMinions] set).
+class _SdkRead {
+  const _SdkRead.node() : childMinions = null;
+  const _SdkRead.child(BigInt this.childMinions);
+
+  final BigInt? childMinions;
+}
 
 class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   GeniusApi geniusApi;
@@ -32,6 +45,10 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   Wallet? _stashedWallet;
   bool _hasStashedWallet = false;
 
+  /// The latest [AppState], pushed by [AppBloc]: which account the node runs
+  /// as and which wallet each SDK account belongs to.
+  AppState _appState = const AppState();
+
   WalletDetailsCubit({
     WalletDetailsState initialState = const WalletDetailsState(),
     required this.geniusApi,
@@ -48,6 +65,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
         coins: coins,
         coinsNetwork: state.selectedNetwork,
         selectedWalletBalance: balance,
+        balanceUnreadable: false,
       ),
     );
   }
@@ -140,6 +158,82 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     );
 
     emit(state.copyWith(initStatus: WalletStatus.successful));
+  }
+
+  /// Re-reads holdings when the node account or the SDK links change, so a
+  /// node switch never leaves the previous account's balance on screen.
+  void appStateChanged(AppState appState) {
+    final before = _appState;
+    _appState = appState;
+    if (isClosed ||
+        (before.selectedSDKAccount == appState.selectedSDKAccount &&
+            mapEquals(before.sdkAccountLinks, appState.sdkAccountLinks))) {
+      return;
+    }
+    final wallet = state.selectedWallet;
+    final network = state.selectedNetwork;
+    if (wallet != null && network != null && _readsFromNode(wallet, network)) {
+      getCoins();
+    }
+  }
+
+  static bool _readsFromNode(Wallet wallet, Network network) =>
+      wallet.walletType == WalletType.sgnus || isSuperGeniusNetwork(network);
+
+  /// Null when the node can't read [wallet]: it has no SDK account, or that
+  /// account is neither the node's own nor a child registered under it.
+  _SdkRead? _sdkReadFor(Wallet wallet) {
+    final node = _appState.selectedSDKAccount;
+    final account = AppBloc.sdkAccountFor(
+      wallet,
+      _appState.sdkAccountLinks,
+    )?.toLowerCase();
+    if (node == null || account == null) {
+      return null;
+    }
+    if (account == node.toLowerCase()) {
+      return const _SdkRead.node();
+    }
+    final devPreset = (kDebugMode && kShowDevTools)
+        ? DevMockChildWallets.instance.preset.value
+        : null;
+    final registrations = devPreset != null
+        ? DevMockChildWallets.registrationsFor(devPreset, _appState, node)
+        : geniusApi.getChildRegistrations(node);
+    if (!registrations.isOk) {
+      return null;
+    }
+    for (final entry in registrations.entries) {
+      if (entry.childAddress.toLowerCase() == account) {
+        return _SdkRead.child(
+          devPreset != null
+              ? DevMockChildWallets.balanceFor(entry.childAddress)
+              : geniusApi.getChildBalance(entry.childAddress),
+        );
+      }
+    }
+    return null;
+  }
+
+  /// The selected wallet's GNUS balance in both units as the node reads it,
+  /// or null when the node can't read it.
+  ({double gnus, double minions})? readSdkBalance() {
+    final wallet = state.selectedWallet;
+    final read = wallet == null ? null : _sdkReadFor(wallet);
+    if (read == null) {
+      return null;
+    }
+    final childMinions = read.childMinions;
+    if (childMinions == null) {
+      return (
+        gnus: double.tryParse(geniusApi.getSGNUSBalance()) ?? 0,
+        minions: double.tryParse(geniusApi.getMinionsBalance()) ?? 0,
+      );
+    }
+    return (
+      gnus: double.parse(minionsToGnus(childMinions)),
+      minions: childMinions.toDouble(),
+    );
   }
 
   void selectNetwork(Network network) {
@@ -243,7 +337,14 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     // below once 13-03 has consumed the recorded figures.
     final stopwatch = Stopwatch()..start();
     try {
-      emit(state.copyWith(coinsStatus: WalletStatus.loading));
+      // Cleared up front: only this read's own success may set it, or a
+      // failed read would keep the previous wallet's notice.
+      emit(
+        state.copyWith(
+          coinsStatus: WalletStatus.loading,
+          balanceUnreadable: false,
+        ),
+      );
       if (state.selectedWallet == null || state.selectedNetwork == null) {
         emit(state.copyWith(coinsStatus: WalletStatus.error));
         return;
@@ -259,17 +360,33 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
 
       // Use native SDK for Super Genius wallets, or if the selected network
       // is a Super Genius network; otherwise use RPC.
-      final isSgnusWallet =
-          state.selectedWallet?.walletType == WalletType.sgnus;
-
       final Future<List<Coin>> coinFuture;
-      if (isSgnusWallet || isSuperGeniusNetwork(selectedNetwork)) {
-        coinFuture = readSuperGeniusTokenAssets(
-          walletAddress: walletAddress,
-          network: selectedNetwork,
-          networkTokensProvider: networkTokensProvider,
-          geniusApi: geniusApi,
-        );
+      var unreadable = false;
+      if (_readsFromNode(state.selectedWallet!, selectedNetwork)) {
+        final read = _sdkReadFor(state.selectedWallet!);
+        final childMinions = read?.childMinions;
+        unreadable = read == null;
+        if (read == null) {
+          coinFuture = Future.value(const <Coin>[]);
+        } else if (childMinions != null) {
+          coinFuture = Future.value([
+            Coin(
+              balance: double.parse(minionsToGnus(childMinions)),
+              name: selectedNetwork.name,
+              symbol: selectedNetwork.symbol?.toUpperCase(),
+              networkSymbol: selectedNetwork.symbol,
+              iconPath: selectedNetwork.iconPath,
+              coinGeckoId: selectedNetwork.coinGeckoId,
+            ),
+          ]);
+        } else {
+          coinFuture = readSuperGeniusTokenAssets(
+            walletAddress: walletAddress,
+            network: selectedNetwork,
+            networkTokensProvider: networkTokensProvider,
+            geniusApi: geniusApi,
+          );
+        }
       } else {
         final rpcUrl = selectedNetwork.rpcUrl;
         final networkSymbol = selectedNetwork.symbol;
@@ -314,6 +431,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
           state.copyWith(
             coinsStatus: WalletStatus.successful,
             coins: coinList,
+            balanceUnreadable: unreadable,
             // The network this read started for, not the one selected now:
             // a switch during the await must not claim this list as its own.
             coinsNetwork: selectedNetwork,
