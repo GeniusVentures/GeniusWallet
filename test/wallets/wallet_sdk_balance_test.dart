@@ -117,6 +117,26 @@ void main() {
     expect(cubit.state.coins.single.balance, 7);
   });
 
+  test(
+    'mid-switch no node balance is shown, and it returns once settled',
+    () async {
+      final cubit = await _read(_wallet(_node, WalletType.sgnus));
+      expect(cubit.state.balanceUnreadable, isFalse);
+
+      cubit.appStateChanged(
+        const AppState(selectedSDKAccount: _node, switchingSDKAccount: _child),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.balanceUnreadable, isTrue);
+      expect(cubit.readSdkBalance(), isNull);
+
+      cubit.appStateChanged(const AppState(selectedSDKAccount: _node));
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.balanceUnreadable, isFalse);
+      expect(cubit.state.coins.single.balance, 7);
+    },
+  );
+
   test('an account the node cannot read shows no number at all', () async {
     for (final cubit in [
       await _read(_wallet(_stranger, WalletType.sgnus)),

@@ -167,6 +167,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     _appState = appState;
     if (isClosed ||
         (before.selectedSDKAccount == appState.selectedSDKAccount &&
+            before.switchingSDKAccount == appState.switchingSDKAccount &&
             mapEquals(before.sdkAccountLinks, appState.sdkAccountLinks))) {
       return;
     }
@@ -183,6 +184,11 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
   /// Null when the node can't read [wallet]: it has no SDK account, or that
   /// account is neither the node's own nor a child registered under it.
   _SdkRead? _sdkReadFor(Wallet wallet) {
+    // Mid-switch the node may already run as the new account while the app
+    // still names the old one, so no node read is trusted until it settles.
+    if (_appState.switchingSDKAccount != null) {
+      return null;
+    }
     final node = _appState.selectedSDKAccount;
     final account = AppBloc.sdkAccountFor(
       wallet,
