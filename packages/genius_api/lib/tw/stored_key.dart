@@ -235,6 +235,33 @@ class StoredKey {
     return StringUtil.toDartString(twMnemonic.cast());
   }
 
+  /// Runs [use] on the decrypted phrase as native UTF-8, then wipes it, so it
+  /// never becomes an immutable Dart `String`. Null if it can't be decrypted.
+  T? withMnemonic<T>(T Function(Pointer<Char> mnemonic) use) {
+    final twLib = ffiBridgePrebuilt.twLib;
+    final password = Uint8List(0);
+    final twPassword = twLib.TWDataCreateWithBytes(
+      password.toPointerUint8(),
+      password.length,
+    );
+    final twMnemonic = twLib.TWStoredKeyDecryptMnemonic(
+      nativehandle.cast(),
+      twPassword,
+    );
+    twLib.TWDataDelete(twPassword);
+    if (twMnemonic.address == 0) {
+      return null;
+    }
+    final bytes = twLib.TWStringUTF8Bytes(twMnemonic);
+    final size = twLib.TWStringSize(twMnemonic);
+    try {
+      return use(bytes);
+    } finally {
+      bytes.cast<Uint8>().asTypedList(size).fillRange(0, size, 0);
+      twLib.TWStringDelete(twMnemonic);
+    }
+  }
+
   PrivateKey? privateKey(TWCoinType coin, Uint8List password) {
     final twPassword = ffiBridgePrebuilt.twLib.TWDataCreateWithBytes(
       password.toPointerUint8(),

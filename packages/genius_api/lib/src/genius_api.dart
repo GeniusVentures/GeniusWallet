@@ -443,36 +443,47 @@ class GeniusApi {
 
     ffi.Pointer<ffi.Char> retVal;
     if (storedKey.isMnemonic()) {
-      final mnemonic = storedKey.decryptMnemonic(Uint8List(0));
-      if (mnemonic == null) {
+      final started = storedKey.withMnemonic(
+        (mnemonic) => _ffiBridgePrebuilt.sgnsLib.GeniusSDKInitWithMnemonic(
+          basePathPtr.cast(),
+          devConfigPtr.cast(),
+          mnemonic,
+        ),
+      );
+      if (started == null) {
         debugPrint("Error: failed to decrypt mnemonic");
         malloc.free(basePathPtr);
         malloc.free(devConfigPtr);
         return;
       }
-      final mnemonicPtr = mnemonic.toNativeUtf8();
-      retVal = _ffiBridgePrebuilt.sgnsLib.GeniusSDKInitWithMnemonic(
-        basePathPtr.cast(),
-        devConfigPtr.cast(),
-        mnemonicPtr.cast(),
-      );
-      malloc.free(mnemonicPtr);
+      retVal = started;
     } else {
       final privateKey = storedKey.privateKey(
         TWCoinType.TWCoinTypeEthereum,
         Uint8List(0),
       )!;
-      final privateKeyAsStr = privateKey
-          .data()
-          .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
-          .join();
-      final privateKeyAsPtr = privateKeyAsStr.toNativeUtf8();
-      retVal = _ffiBridgePrebuilt.sgnsLib.GeniusSDKInitWithKey(
-        basePathPtr.cast(),
-        devConfigPtr.cast(),
-        privateKeyAsPtr.cast(),
-      );
-      malloc.free(privateKeyAsPtr);
+      final twLib = _ffiBridgePrebuilt.twLib;
+      final twData = twLib.TWPrivateKeyData(privateKey.nativehandle.cast());
+      final keyBytes = twLib
+          .TWDataBytes(twData)
+          .asTypedList(twLib.TWDataSize(twData));
+      final length = keyBytes.length * 2;
+      final keyPtr = calloc<Uint8>(length + 1);
+      final hexBuf = keyPtr.asTypedList(length + 1);
+      try {
+        writeHexAscii(keyBytes, hexBuf);
+        retVal = _ffiBridgePrebuilt.sgnsLib.GeniusSDKInitWithKey(
+          basePathPtr.cast(),
+          devConfigPtr.cast(),
+          keyPtr.cast(),
+        );
+      } finally {
+        hexBuf.fillRange(0, hexBuf.length, 0);
+        calloc.free(keyPtr);
+        twLib.TWDataReset(twData);
+        twLib.TWDataDelete(twData);
+        privateKey.delete();
+      }
     }
     malloc.free(basePathPtr);
     malloc.free(devConfigPtr);
@@ -602,11 +613,17 @@ class GeniusApi {
   /// result so a caller can react to more than a clean single new address.
   GeniusNodeReturnValue _addToSDK(StoredKey key) {
     if (key.isMnemonic()) {
-      final mnemonic = key.decryptMnemonic(Uint8List(0));
-      if (mnemonic == null) {
-        return GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
+      if (!_isSdkInitialized) {
+        return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
       }
-      return addAccountWithMnemonic(mnemonic);
+      return key.withMnemonic(
+            (mnemonic) => _mapNodeReturnValue(
+              _ffiBridgePrebuilt.sgnsLib.GeniusSDKAddAccountWithMnemonic(
+                mnemonic,
+              ),
+            ),
+          ) ??
+          GeniusNodeReturnValue.GENIUS_NODE_INVALID_ARGUMENT;
     }
     final privateKey = key.privateKey(
       TWCoinType.TWCoinTypeEthereum,
@@ -1435,19 +1452,6 @@ class GeniusApi {
       bytes.fillRange(0, bytes.length, 0);
       data.fillRange(0, data.length, 0);
     }
-  }
-
-  /// Adds a new Genius account to the SDK using a mnemonic recovery phrase.
-  GeniusNodeReturnValue addAccountWithMnemonic(String mnemonic) {
-    if (!_isSdkInitialized) {
-      return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
-    }
-    final mnemonicPtr = mnemonic.toNativeUtf8().cast<Char>();
-    final result = _ffiBridgePrebuilt.sgnsLib.GeniusSDKAddAccountWithMnemonic(
-      mnemonicPtr,
-    );
-    malloc.free(mnemonicPtr);
-    return _mapNodeReturnValue(result);
   }
 
   /// Adds a new Genius account to the SDK using an Ethereum private key.
