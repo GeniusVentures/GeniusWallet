@@ -46,6 +46,16 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   Timer? _processingTimer;
   Timer? _initTimer;
   Timer? _switchPollTimer;
+
+  // The account the node ran as when the pending switch began. A read that
+  // still names it means the switch has not landed yet, not that it failed.
+  String? _switchFrom;
+  int _staleSwitchReads = 0;
+
+  // ponytail: a node that still names the old account after ~1 minute of
+  // polls is taken to have refused; a real refusal signal from the SDK
+  // would replace this guess.
+  static const _maxStaleSwitchReads = 20;
   StreamSubscription<SGNUSConnection>? _sgnusConnectionSubscription;
   StreamSubscription<String?>? _selectedWalletSubscription;
   StreamSubscription<AppState>? _nodeAccountSubscription;
@@ -870,15 +880,21 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final links = await api.getSDKAccountLinks();
     final sdkState = _getSDKAccountState();
     final selected = sdkState.$1;
+    var settled =
+        selected != null &&
+        settling != null &&
+        state.switchingSDKAccount == settling;
+    if (settled &&
+        selected.toLowerCase() != settling.toLowerCase() &&
+        selected.toLowerCase() == _switchFrom?.toLowerCase()) {
+      settled = ++_staleSwitchReads > _maxStaleSwitchReads;
+    }
     emit(
       state.copyWith(
         wallets: wallets,
         selectedSDKAccount: selected,
         clearSelectedSDKAccount: selected == null,
-        clearSwitchingSDKAccount:
-            selected != null &&
-            settling != null &&
-            state.switchingSDKAccount == settling,
+        clearSwitchingSDKAccount: settled,
         sdkAccounts: sdkState.$2,
         defaultSDKAccount: api.getStartAccountAddress(),
         sdkAccountLinks: links,
@@ -904,6 +920,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       return;
     }
     _switchPollTimer?.cancel();
+    _switchFrom = state.selectedSDKAccount;
+    _staleSwitchReads = 0;
     emit(state.copyWith(switchingSDKAccount: target));
     // A throw counts as a refusal, or the row would say "Switching" forever.
     final ok = await api
@@ -982,7 +1000,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
           .where((w) => !gone.contains(w.address.toLowerCase()))
           .toList();
       if (linked != null) {
-        await _deleteWallet(linked.address, watchOnly: false);
+        try {
+          await _deleteWallet(linked.address, watchOnly: false);
+        } catch (e) {
+          // The wallet stays listed and can be deleted again; the refresh
+          // below must still run so the list matches the node.
+          debugPrint('Deleting the linked wallet failed: $e');
+        }
       }
       await _emitSDKAccounts(emit);
       // The account's own SGNUS row was the selection: it is gone now.

@@ -34,10 +34,15 @@ class _NodeApi implements GeniusApi {
   int reads = 0;
   final selects = <String>[];
 
+  /// The node keeps naming its old account for a while after the switch.
+  bool keepsOldAccount = false;
+
   @override
   Future<GeniusNodeReturnValue> selectGeniusAccountAsync(String address) async {
     selects.add(address);
-    reported = null;
+    if (!keepsOldAccount) {
+      reported = null;
+    }
     return selectResult;
   }
 
@@ -185,6 +190,43 @@ void main() {
 
     expect(api.selects, [_target]);
     expect(bloc.state.switchingSDKAccount, _target);
+
+    await tester.runAsync(() => bloc.close());
+  });
+
+  testWidgets('a read that still names the old account keeps the switch '
+      'pending until the target lands', (tester) async {
+    final api = _NodeApi()..keepsOldAccount = true;
+    final bloc = _SeededAppBloc(api);
+
+    bloc.add(SelectSDKAccount(_target));
+    await tester.pump();
+    expect(bloc.state.switchingSDKAccount, _target);
+
+    await tester.pump(const Duration(seconds: 6));
+    expect(bloc.state.switchingSDKAccount, _target);
+
+    api.reported = _target;
+    await tester.pump(const Duration(seconds: 3));
+    expect(bloc.state.selectedSDKAccount, _target);
+    expect(bloc.state.switchingSDKAccount, isNull);
+
+    await tester.runAsync(() => bloc.close());
+  });
+
+  testWidgets('a node that never leaves the old account ends the switch '
+      'there after about a minute', (tester) async {
+    final api = _NodeApi()..keepsOldAccount = true;
+    final bloc = _SeededAppBloc(api);
+
+    bloc.add(SelectSDKAccount(_target));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 57));
+    expect(bloc.state.switchingSDKAccount, _target);
+
+    await tester.pump(const Duration(seconds: 6));
+    expect(bloc.state.switchingSDKAccount, isNull);
+    expect(bloc.state.selectedSDKAccount, _old);
 
     await tester.runAsync(() => bloc.close());
   });
