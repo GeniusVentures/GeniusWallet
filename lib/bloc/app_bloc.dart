@@ -898,6 +898,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     Emitter<AppState> emit,
   ) async {
     final target = event.publicAddress;
+    // One switch at a time: the last one's native call has returned but the
+    // node has not named its account yet, and a second could land first.
+    if (state.switchingSDKAccount != null) {
+      return;
+    }
     _switchPollTimer?.cancel();
     emit(state.copyWith(switchingSDKAccount: target));
     // A throw counts as a refusal, or the row would say "Switching" forever.

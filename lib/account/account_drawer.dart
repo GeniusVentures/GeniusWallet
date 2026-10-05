@@ -1109,8 +1109,13 @@ class _RowMenu extends StatelessWidget {
       GWMenuItem(
         icon: Icons.dns_outlined,
         label: 'Earn with this account',
-        lockedReason: tile._locked ? tile.lockedReason : null,
-        onPressed: tile.onNode || tile.switching || tile._locked
+        lockedReason: tile._locked
+            ? tile.lockedReason
+            : (tile.switchPending && !tile.onNode && !tile.switching
+                  ? 'Wait for the earning switch to finish'
+                  : null),
+        onPressed:
+            tile.onNode || tile.switching || tile.switchPending || tile._locked
             ? null
             : () {
                 context.read<AppBloc>().add(SelectSDKAccount(sdkAddress));

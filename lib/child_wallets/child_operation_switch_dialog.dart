@@ -29,6 +29,19 @@ Future<bool> ensureRunningAs(
   // the same pattern every other dialog in this file family uses.
   final navigator = Navigator.of(context, rootNavigator: true);
 
+  final appState = context.read<AppBloc>().state;
+  final pendingSwitch = appState.switchingSDKAccount;
+  if (pendingSwitch != null &&
+      pendingSwitch.toLowerCase() != requiredAccount.toLowerCase()) {
+    await GWDialog.show<void>(
+      context: navigator.context,
+      title: "Can't switch right now",
+      message: 'Wait for the earning switch to finish.',
+      actions: [GWDialogAction(label: 'OK', onPressed: () => navigator.pop())],
+    );
+    return false;
+  }
+
   if (running != null && registry.hasPendingFrom(running)) {
     await GWDialog.show<void>(
       context: navigator.context,

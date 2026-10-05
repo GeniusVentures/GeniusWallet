@@ -32,9 +32,11 @@ class _NodeApi implements GeniusApi {
   /// What the node names as its account; null stands for the placeholder.
   String? reported = _old;
   int reads = 0;
+  final selects = <String>[];
 
   @override
-  Future<GeniusNodeReturnValue> selectGeniusAccountAsync(String _) async {
+  Future<GeniusNodeReturnValue> selectGeniusAccountAsync(String address) async {
+    selects.add(address);
     reported = null;
     return selectResult;
   }
@@ -164,6 +166,25 @@ void main() {
     await tester.pump();
     expect(bloc.state.selectedSDKAccount, _other);
     expect(bloc.state.switchingSDKAccount, isNull);
+
+    await tester.runAsync(() => bloc.close());
+  });
+
+  testWidgets('no second switch starts while the first is still settling', (
+    tester,
+  ) async {
+    final api = _NodeApi();
+    final bloc = _SeededAppBloc(api);
+
+    bloc.add(SelectSDKAccount(_target));
+    await tester.pump();
+    expect(bloc.state.switchingSDKAccount, _target);
+
+    bloc.add(SelectSDKAccount(_other));
+    await tester.pump();
+
+    expect(api.selects, [_target]);
+    expect(bloc.state.switchingSDKAccount, _target);
 
     await tester.runAsync(() => bloc.close());
   });
