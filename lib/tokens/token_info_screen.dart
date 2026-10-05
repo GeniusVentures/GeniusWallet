@@ -646,9 +646,8 @@ class _TokenInfoScreenState extends State<TokenInfoScreen> {
 ///    route too.
 ///  * **Bridge** is absent unless `isGnusBridgeEnabled` and the wallet can sign
 ///    here, like Send; `onPressed: null` on a zero balance rather than
-///    hidden (a balance is a state the user can change, absence is not). Sketch 165 never drew a third action; Bridge
-///    takes the same `gradientOutline` treatment as Receive, the call this
-///    file already made for the identical situation in sketch 164. **Flagged
+///    hidden (a balance is a state the user can change, absence is not).
+///    Bridge takes the same `gradientOutline` treatment as Receive. **Flagged
 ///    for the walk, not settled** - two outlines beside one fill is still one
 ///    fill under the CTA weight rule, but nobody has judged it in place yet.
 ///

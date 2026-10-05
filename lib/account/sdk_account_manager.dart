@@ -81,7 +81,7 @@ Future<void> showRecoveryQr(BuildContext context, String mnemonic) async {
             'account. Do not show it on a shared or recorded screen.',
           ),
           const SizedBox(height: GeniusWalletConsts.space6),
-          // Self-contained, exactly as `CryptoAddressQR` (sketch 034-A2) does
+          // Self-contained, exactly as `CryptoAddressQR` does
           // it: the QR carries its own size and its own white backing. The old
           // shape here was a `SizedBox(width: GeniusBreakpoints.small * 0.5)`
           // around a white `Container` - a BREAKPOINT constant used as a pixel

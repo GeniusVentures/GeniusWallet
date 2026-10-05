@@ -15,8 +15,7 @@ import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 
 /// Shows the SDK's refusal reason for [kind]'s [verb] -- shared by every
-/// main-side action so the wording only differs by the one clause the
-/// UI-SPEC actually varies.
+/// main-side action, so their wording differs only in that one clause.
 void _showRefusalToast(
   BuildContext context,
   GeniusNodeReturnValue result,
