@@ -315,6 +315,10 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     }
   }
 
+  // Bumped by every getCoins, so a read that a newer one overtook (a wallet,
+  // network or node switch during its await) is dropped instead of landing.
+  int _coinsGeneration = 0;
+
   FutureOr<void> getCoins() async {
     // DEV-ONLY, release-safe: while mock-mode is ON, the live read (and the
     // selectNetwork/selectWallet re-fetches that call this) must not
@@ -336,6 +340,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
     // A2. Not a feature — delete alongside the [boot-timing] debugPrint
     // below once 13-03 has consumed the recorded figures.
     final stopwatch = Stopwatch()..start();
+    final generation = ++_coinsGeneration;
     try {
       // Cleared up front: only this read's own success may set it, or a
       // failed read would keep the previous wallet's notice.
@@ -426,7 +431,7 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
       if (kDebugMode && kShowDevTools && mockMode) {
         return;
       }
-      if (!isClosed) {
+      if (!isClosed && generation == _coinsGeneration) {
         emit(
           state.copyWith(
             coinsStatus: WalletStatus.successful,
@@ -447,7 +452,9 @@ class WalletDetailsCubit extends Cubit<WalletDetailsState> {
         );
       }
     } catch (e) {
-      emit(state.copyWith(coinsStatus: WalletStatus.error));
+      if (!isClosed && generation == _coinsGeneration) {
+        emit(state.copyWith(coinsStatus: WalletStatus.error));
+      }
     } finally {
       debugPrint(
         '[boot-timing] getCoins settled in '
