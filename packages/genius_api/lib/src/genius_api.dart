@@ -205,10 +205,9 @@ ChildRegistrations collectChildRegistrations(
   }
 }
 
-/// Writes [m]'s three strings into [out] as UTF-8 plus a NUL terminator,
-/// each capped at 127 bytes, then copies [ChildRegistrationMetadata.peersCut]
-/// through unchecked. Returns false and writes nothing if any string is too
-/// long, leaving a calloc'd [out] zeroed.
+/// Writes [m]'s three strings into [out] as NUL-terminated UTF-8, each
+/// capped at 127 bytes, and copies [ChildRegistrationMetadata.peersCut]
+/// unchecked. Returns false and writes nothing if a string is too long.
 @visibleForTesting
 bool writeRegistrationMetadata(
   ffi.Pointer<GeniusRegistrationMetadata> out,
@@ -550,10 +549,9 @@ class GeniusApi {
     }
   }
 
-  /// Saves [storedKey] (unless [save] is false, for a secret that already
-  /// matches a stored wallet) and gets its SDK account running. Returns
-  /// whether the SDK ends up holding the account — never throws, so a
-  /// failure here never undoes or hides a save that already happened.
+  /// Saves [storedKey] (unless [save] is false) and starts its SDK account.
+  /// Returns whether the SDK holds the account. Never throws, so a failure
+  /// here never undoes or hides a save that already happened.
   Future<bool> _registerWallet(StoredKey storedKey, {bool save = true}) async {
     final wasAlreadyInitialized = _isSdkInitialized;
     final before = getAvailableAccounts();
@@ -658,26 +656,33 @@ class GeniusApi {
           .map((link) => link.walletAddress.toLowerCase())
           .toSet();
       final storedKeys = await _secureStorage.getStoredKeys();
-      final unlinked = storedKeys
-          .where(
-            (key) => !linkedWalletAddresses.contains(
-              key.account(0).address().toLowerCase(),
-            ),
-          )
-          .map(
-            (key) => (
-              walletAddress: key.account(0).address(),
-              walletName: key.name(),
-              reAdd: () => _addToSDK(key),
-            ),
-          )
-          .toList();
+      final Map<String, SDKAccountLink> newLinks;
+      try {
+        final unlinked = storedKeys
+            .where(
+              (key) => !linkedWalletAddresses.contains(
+                key.account(0).address().toLowerCase(),
+              ),
+            )
+            .map(
+              (key) => (
+                walletAddress: key.account(0).address(),
+                walletName: key.name(),
+                reAdd: () => _addToSDK(key),
+              ),
+            )
+            .toList();
 
-      final newLinks = backfillLinks(
-        unlinked: unlinked,
-        accounts: getAvailableAccounts,
-        linkedSDKAddresses: links.keys.toSet(),
-      );
+        newLinks = backfillLinks(
+          unlinked: unlinked,
+          accounts: getAvailableAccounts,
+          linkedSDKAddresses: links.keys.toSet(),
+        );
+      } finally {
+        for (final key in storedKeys) {
+          key.delete();
+        }
+      }
 
       for (final entry in newLinks.entries) {
         await _secureStorage.saveSDKAccountLink(
