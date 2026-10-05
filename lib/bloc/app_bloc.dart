@@ -963,10 +963,29 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         state.sdkAccountLinks,
         state.wallets,
       );
+      final gone = {
+        event.publicAddress.toLowerCase(),
+        ?linked?.address.toLowerCase(),
+      };
+      final remaining = state.wallets
+          .where((w) => !gone.contains(w.address.toLowerCase()))
+          .toList();
       if (linked != null) {
         await _deleteWallet(linked.address, watchOnly: false);
       }
       await _emitSDKAccounts(emit);
+      // The account's own SGNUS row was the selection: it is gone now.
+      final selected = walletDetailsCubit.state.selectedWallet;
+      if (selected != null &&
+          selected.walletType == WalletType.sgnus &&
+          selected.address.toLowerCase() == event.publicAddress.toLowerCase() &&
+          remaining.isNotEmpty) {
+        try {
+          await walletDetailsCubit.selectWallet(replacementWallet(remaining));
+        } catch (e) {
+          debugPrint('Persisting the replacement wallet failed: $e');
+        }
+      }
     }
   }
 

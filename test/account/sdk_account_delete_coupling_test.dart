@@ -295,6 +295,41 @@ void main() {
       expect(api.deletedWallet, isNull);
     });
 
+    test(
+      'deleting the selected SGNUS row moves the selection off it',
+      () async {
+        final api = _Api();
+        const sgnusRow = Wallet(
+          coinType: TWCoinType.TWCoinTypeEthereum,
+          walletName: 'Account B',
+          currencySymbol: 'minions',
+          walletType: WalletType.sgnus,
+          balance: 0,
+          address: _sdkAddr,
+        );
+        final details = WalletDetailsCubit(
+          initialState: const WalletDetailsState(selectedWallet: sgnusRow),
+          geniusApi: api,
+          networkTokensProvider: NetworkTokensProvider(),
+        );
+        final bloc = _SeededAppBloc(
+          api: api,
+          walletDetailsCubit: details,
+          wallets: [wallet, other, sgnusRow],
+        );
+
+        bloc.add(DeleteSDKAccount(_sdkAddr));
+        await bloc.close();
+        await details.close();
+
+        expect(api.deletedAccounts, [_sdkAddr]);
+        expect(
+          details.state.selectedWallet?.walletType,
+          isNot(WalletType.sgnus),
+        );
+      },
+    );
+
     test('an SDK refusal deletes no wallet', () async {
       final api = _Api()
         ..deleteAccountResult =
