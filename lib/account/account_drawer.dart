@@ -674,7 +674,14 @@ class _AccountRowTile extends StatelessWidget {
           Navigator.of(context).pop(target);
         }
       },
-      leading: _leading(gw, wallet, locked),
+      leading: _RowLeading(
+        wallet: wallet,
+        selected: selected,
+        onNode: onNode,
+        locked: locked,
+        expanded: expanded,
+        onToggle: onToggle,
+      ),
       title: title,
       titleStyle: locked
           ? GeniusWalletTypography.bodySm.copyWith(
@@ -757,7 +764,9 @@ class _AccountRowTile extends StatelessWidget {
               ],
             )
           : null,
-      action: _menu(context, gw, appBloc, operations),
+      action: row.kind == AccountRowKind.wallet && wallet!.address.isEmpty
+          ? null
+          : _RowMenu(tile: this, operations: operations),
     );
 
     final result = locked ? Tooltip(message: lockedReason, child: tile) : tile;
@@ -790,242 +799,6 @@ class _AccountRowTile extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  /// The avatar, or an account icon, with a chevron ahead of it when this row
-  /// is a main -- absent, not merely hidden, on a leaf, so a leaf's left edge
-  /// does not move.
-  Widget _leading(GWColors gw, Wallet? wallet, bool locked) {
-    final content = wallet != null
-        ? AccountAvatar(wallet: wallet, isSelected: selected, size: 36)
-        : Icon(
-            Icons.account_balance_wallet,
-            size: 20,
-            color: locked
-                ? gw.textSecondary.withValues(alpha: 0.8)
-                : (onNode ? gw.brandPrimaryStrong : gw.textSecondary),
-          );
-    final isExpanded = expanded;
-    if (isExpanded == null) {
-      return content;
-    }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(
-            isExpanded ? Icons.expand_more : Icons.chevron_right,
-            size: 18,
-          ),
-          iconSize: 18,
-          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
-          padding: EdgeInsets.zero,
-          color: gw.textSecondary,
-          tooltip: isExpanded ? 'Hide children' : 'Show children',
-          onPressed: onToggle,
-        ),
-        const SizedBox(width: GeniusWalletConsts.space2),
-        content,
-      ],
-    );
-  }
-
-  /// wallet: Copy address, Rename, Delete. merged/account: "Run node as
-  /// this", the four gated SDK items and Delete, plus Fund/Recover/Revoke
-  /// after a divider when nested under another own main.
-  Widget? _menu(
-    BuildContext context,
-    GWColors gw,
-    AppBloc appBloc,
-    ChildOperationsCubit? operations,
-  ) {
-    // No local `MenuStyle` -- see `theme.dart`'s menuTheme/menuButtonTheme.
-    Widget anchor(List<Widget> items) => MenuAnchor(
-      builder: (context, controller, child) => IconButton(
-        icon: Icon(Icons.more_vert, size: 20, color: gw.textSecondary),
-        tooltip: 'Account options',
-        onPressed: () =>
-            controller.isOpen ? controller.close() : controller.open(),
-      ),
-      menuChildren: items,
-    );
-
-    final wallet = row.wallet;
-    if (row.kind == AccountRowKind.wallet) {
-      if (wallet!.address.isEmpty) {
-        return null;
-      }
-      return anchor([
-        GWMenuItem(
-          icon: Icons.copy,
-          label: 'Copy address',
-          onPressed: () => _copyAddress(context, wallet.address),
-        ),
-        GWMenuItem(
-          icon: Icons.edit_outlined,
-          label: 'Rename',
-          onPressed: () => onRename(context, wallet),
-        ),
-        GWMenuItem(
-          icon: Icons.delete_outline,
-          label: 'Delete',
-          color: gw.statusErrorText,
-          onPressed: () => onDeleteWallet(context, wallet),
-        ),
-      ]);
-    }
-
-    // merged or account: every row carrying an SDK account.
-    final sdkAddress = row.sdkAddress!;
-    // The SDK only exposes the running account's phrase, and mid-switch that
-    // may already be another row's, so nothing account-bound is offered then.
-    final settled = onNode && !switchPending;
-    final mnemonic = settled ? appBloc.api.getSelectedAccountMnemonic() : null;
-    final can = sdkRowActions(
-      isSelected: settled,
-      hasMnemonic: mnemonic != null,
-      isStartAccount: isStartAccount,
-    );
-    final deleteLock = switchPending
-        ? 'Wait for the earning switch to finish'
-        : operations?.deleteLockReason(sdkAddress, registrations);
-
-    return anchor([
-      GWMenuItem(
-        icon: Icons.dns_outlined,
-        label: 'Earn with this account',
-        lockedReason: _locked ? lockedReason : null,
-        onPressed: onNode || switching || _locked
-            ? null
-            : () {
-                context.read<AppBloc>().add(SelectSDKAccount(sdkAddress));
-                showToast(
-                  context,
-                  'Switching earning…',
-                  duration: const Duration(seconds: 1),
-                );
-              },
-      ),
-      GWMenuItem(
-        icon: Icons.copy,
-        label: 'Copy address',
-        onPressed: () => _copyAddress(context, wallet?.address ?? sdkAddress),
-      ),
-      if (row.kind == AccountRowKind.merged)
-        GWMenuItem(
-          icon: Icons.edit_outlined,
-          label: 'Rename',
-          onPressed: () => onRename(context, wallet!),
-        ),
-      GWMenuItem(
-        icon: Icons.account_balance_wallet_outlined,
-        label: 'View balance',
-        onPressed: balanceWallet != null
-            ? () => Navigator.of(context).pop(balanceWallet)
-            : null,
-      ),
-      GWMenuItem(
-        icon: Icons.edit_location_alt,
-        label: 'Set payout address',
-        onPressed: can.payout
-            ? () => showSetPayoutAddressDialog(context)
-            : null,
-      ),
-      GWMenuItem(
-        icon: Icons.numbers,
-        label: 'Copy recovery phrase',
-        onPressed: can.phrase
-            ? () => copyRecoveryPhrase(context, mnemonic!)
-            : null,
-      ),
-      GWMenuItem(
-        icon: Icons.qr_code,
-        label: 'Show recovery QR',
-        onPressed: can.qr ? () => showRecoveryQr(context, mnemonic!) : null,
-      ),
-      GWMenuItem(
-        icon: Icons.account_tree,
-        label: 'Child wallets',
-        onPressed: can.childWallets
-            ? () {
-                final router = GoRouter.of(context);
-                Navigator.of(context).pop();
-                router.push('/child-wallets', extra: sdkAddress);
-              }
-            : null,
-      ),
-      const Divider(height: 9, indent: 12, endIndent: 12),
-      if (row.kind == AccountRowKind.merged)
-        GWMenuItem(
-          icon: Icons.delete_outline,
-          label: 'Delete wallet',
-          color: gw.statusErrorText,
-          onPressed: () => onDeleteWallet(context, wallet!),
-        ),
-      GWMenuItem(
-        icon: Icons.delete_outline,
-        label: 'Delete account',
-        color: gw.statusErrorText,
-        lockedReason: deleteLock,
-        onPressed: !onNode && can.delete && deleteLock == null
-            ? () => confirmDeleteSDKAccount(context, sdkAddress)
-            : null,
-      ),
-      // Nested under another own main: the kind's own items above are
-      // unchanged by depth, and every other child of this same main gets the
-      // identical block -- only one `startRevoke(` call site in this file.
-      if (row.depth >= 1 && row.child != null && operations != null) ...[
-        const Divider(height: 9, indent: 12, endIndent: 12),
-        GWMenuItem(
-          icon: Icons.arrow_upward,
-          label: 'Fund',
-          lockedReason: operations.lockReason(sdkAddress),
-          onPressed: operations.lockReason(sdkAddress) != null
-              ? null
-              : () => startFund(
-                  context,
-                  child: row.child!,
-                  mainAddress: row.parentMain!,
-                ),
-        ),
-        GWMenuItem(
-          icon: Icons.arrow_downward,
-          label: 'Recover',
-          lockedReason: operations.lockReason(sdkAddress),
-          onPressed: operations.lockReason(sdkAddress) != null
-              ? null
-              : () => startRecover(
-                  context,
-                  child: row.child!,
-                  mainAddress: row.parentMain!,
-                ),
-        ),
-        GWMenuItem(
-          icon: Icons.link_off,
-          label: 'Revoke',
-          lockedReason: operations.lockReason(sdkAddress),
-          color: gw.statusErrorText,
-          onPressed: operations.lockReason(sdkAddress) != null
-              ? null
-              : () => startRevoke(
-                  context,
-                  child: row.child!,
-                  mainAddress: row.parentMain!,
-                ),
-        ),
-      ],
-    ]);
-  }
-
-  void _copyAddress(BuildContext context, String address) {
-    Clipboard.setData(ClipboardData(text: address));
-    HapticFeedback.lightImpact();
-    Navigator.of(context).pop();
-    showToast(
-      context,
-      'Address copied to clipboard',
-      duration: const Duration(seconds: 1),
     );
   }
 }
@@ -1204,6 +977,269 @@ class _AccountSectionNote extends StatelessWidget {
         text,
         style: GeniusWalletTypography.bodySm.copyWith(color: gw.textPrimary80),
       ),
+    );
+  }
+}
+
+/// The avatar, or an account icon, with a chevron ahead of it on a main. A
+/// leaf has no chevron at all, so its left edge does not move.
+class _RowLeading extends StatelessWidget {
+  const _RowLeading({
+    required this.wallet,
+    required this.selected,
+    required this.onNode,
+    required this.locked,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  final Wallet? wallet;
+  final bool selected;
+  final bool onNode;
+  final bool locked;
+  final bool? expanded;
+  final VoidCallback? onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final wallet = this.wallet;
+    final content = wallet != null
+        ? AccountAvatar(wallet: wallet, isSelected: selected, size: 36)
+        : Icon(
+            Icons.account_balance_wallet,
+            size: 20,
+            color: locked
+                ? gw.textSecondary.withValues(alpha: 0.8)
+                : (onNode ? gw.brandPrimaryStrong : gw.textSecondary),
+          );
+    final isExpanded = expanded;
+    if (isExpanded == null) {
+      return content;
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(
+            isExpanded ? Icons.expand_more : Icons.chevron_right,
+            size: 18,
+          ),
+          iconSize: 18,
+          constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+          padding: EdgeInsets.zero,
+          color: gw.textSecondary,
+          tooltip: isExpanded ? 'Hide children' : 'Show children',
+          onPressed: onToggle,
+        ),
+        const SizedBox(width: GeniusWalletConsts.space2),
+        content,
+      ],
+    );
+  }
+}
+
+/// The row's options menu: wallet rows copy, rename and delete; rows with an
+/// SDK account add earning, phrase and child items, and Fund, Recover and
+/// Revoke when nested under another own main.
+class _RowMenu extends StatelessWidget {
+  const _RowMenu({required this.tile, required this.operations});
+
+  final _AccountRowTile tile;
+  final ChildOperationsCubit? operations;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    final appBloc = context.read<AppBloc>();
+    // No local `MenuStyle` -- see `theme.dart`'s menuTheme/menuButtonTheme.
+    return MenuAnchor(
+      builder: (context, controller, child) => IconButton(
+        icon: Icon(Icons.more_vert, size: 20, color: gw.textSecondary),
+        tooltip: 'Account options',
+        onPressed: () =>
+            controller.isOpen ? controller.close() : controller.open(),
+      ),
+      menuChildren: _items(context, gw, appBloc),
+    );
+  }
+
+  List<Widget> _items(BuildContext context, GWColors gw, AppBloc appBloc) {
+    final operations = this.operations;
+    final row = tile.row;
+    final wallet = row.wallet;
+    if (row.kind == AccountRowKind.wallet) {
+      final own = wallet!;
+      return [
+        GWMenuItem(
+          icon: Icons.copy,
+          label: 'Copy address',
+          onPressed: () => _copyAddress(context, own.address),
+        ),
+        GWMenuItem(
+          icon: Icons.edit_outlined,
+          label: 'Rename',
+          onPressed: () => tile.onRename(context, own),
+        ),
+        GWMenuItem(
+          icon: Icons.delete_outline,
+          label: 'Delete',
+          color: gw.statusErrorText,
+          onPressed: () => tile.onDeleteWallet(context, own),
+        ),
+      ];
+    }
+
+    // merged or account: every row carrying an SDK account.
+    final sdkAddress = row.sdkAddress!;
+    // The SDK only exposes the running account's phrase, and mid-switch that
+    // may already be another row's, so nothing account-bound is offered then.
+    final settled = tile.onNode && !tile.switchPending;
+    final mnemonic = settled ? appBloc.api.getSelectedAccountMnemonic() : null;
+    final can = sdkRowActions(
+      isSelected: settled,
+      hasMnemonic: mnemonic != null,
+      isStartAccount: tile.isStartAccount,
+    );
+    final deleteLock = tile.switchPending
+        ? 'Wait for the earning switch to finish'
+        : operations?.deleteLockReason(sdkAddress, tile.registrations);
+
+    return [
+      GWMenuItem(
+        icon: Icons.dns_outlined,
+        label: 'Earn with this account',
+        lockedReason: tile._locked ? tile.lockedReason : null,
+        onPressed: tile.onNode || tile.switching || tile._locked
+            ? null
+            : () {
+                context.read<AppBloc>().add(SelectSDKAccount(sdkAddress));
+                showToast(
+                  context,
+                  'Switching earning…',
+                  duration: const Duration(seconds: 1),
+                );
+              },
+      ),
+      GWMenuItem(
+        icon: Icons.copy,
+        label: 'Copy address',
+        onPressed: () => _copyAddress(context, wallet?.address ?? sdkAddress),
+      ),
+      if (row.kind == AccountRowKind.merged)
+        GWMenuItem(
+          icon: Icons.edit_outlined,
+          label: 'Rename',
+          onPressed: () => tile.onRename(context, wallet!),
+        ),
+      GWMenuItem(
+        icon: Icons.account_balance_wallet_outlined,
+        label: 'View balance',
+        onPressed: tile.balanceWallet != null
+            ? () => Navigator.of(context).pop(tile.balanceWallet)
+            : null,
+      ),
+      GWMenuItem(
+        icon: Icons.edit_location_alt,
+        label: 'Set payout address',
+        onPressed: can.payout
+            ? () => showSetPayoutAddressDialog(context)
+            : null,
+      ),
+      GWMenuItem(
+        icon: Icons.numbers,
+        label: 'Copy recovery phrase',
+        onPressed: can.phrase
+            ? () => copyRecoveryPhrase(context, mnemonic!)
+            : null,
+      ),
+      GWMenuItem(
+        icon: Icons.qr_code,
+        label: 'Show recovery QR',
+        onPressed: can.qr ? () => showRecoveryQr(context, mnemonic!) : null,
+      ),
+      GWMenuItem(
+        icon: Icons.account_tree,
+        label: 'Child wallets',
+        onPressed: can.childWallets
+            ? () {
+                final router = GoRouter.of(context);
+                Navigator.of(context).pop();
+                router.push('/child-wallets', extra: sdkAddress);
+              }
+            : null,
+      ),
+      const Divider(height: 9, indent: 12, endIndent: 12),
+      if (row.kind == AccountRowKind.merged)
+        GWMenuItem(
+          icon: Icons.delete_outline,
+          label: 'Delete wallet',
+          color: gw.statusErrorText,
+          onPressed: () => tile.onDeleteWallet(context, wallet!),
+        ),
+      GWMenuItem(
+        icon: Icons.delete_outline,
+        label: 'Delete account',
+        color: gw.statusErrorText,
+        lockedReason: deleteLock,
+        onPressed: !tile.onNode && can.delete && deleteLock == null
+            ? () => confirmDeleteSDKAccount(context, sdkAddress)
+            : null,
+      ),
+      // Nested under another own main: the kind's own items above are
+      // unchanged by depth, and every other child of this same main gets the
+      // identical block -- only one `startRevoke(` call site in this file.
+      if (row.depth >= 1 && row.child != null && operations != null) ...[
+        const Divider(height: 9, indent: 12, endIndent: 12),
+        GWMenuItem(
+          icon: Icons.arrow_upward,
+          label: 'Fund',
+          lockedReason: operations.lockReason(sdkAddress),
+          onPressed: operations.lockReason(sdkAddress) != null
+              ? null
+              : () => startFund(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+        GWMenuItem(
+          icon: Icons.arrow_downward,
+          label: 'Recover',
+          lockedReason: operations.lockReason(sdkAddress),
+          onPressed: operations.lockReason(sdkAddress) != null
+              ? null
+              : () => startRecover(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+        GWMenuItem(
+          icon: Icons.link_off,
+          label: 'Revoke',
+          lockedReason: operations.lockReason(sdkAddress),
+          color: gw.statusErrorText,
+          onPressed: operations.lockReason(sdkAddress) != null
+              ? null
+              : () => startRevoke(
+                  context,
+                  child: row.child!,
+                  mainAddress: row.parentMain!,
+                ),
+        ),
+      ],
+    ];
+  }
+
+  void _copyAddress(BuildContext context, String address) {
+    Clipboard.setData(ClipboardData(text: address));
+    HapticFeedback.lightImpact();
+    Navigator.of(context).pop();
+    showToast(
+      context,
+      'Address copied to clipboard',
+      duration: const Duration(seconds: 1),
     );
   }
 }
