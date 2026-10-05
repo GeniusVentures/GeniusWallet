@@ -107,11 +107,9 @@ class _ChildWalletsBody extends StatelessWidget {
   }
 }
 
-/// The "This account" card: names the main account this screen is listing
-/// children for, and -- once loaded -- whether the running account is
-/// itself registered as someone else's child, with Detach when it is.
-/// Renders in every state (populated, empty, disconnected, error) -- the
-/// identity itself is never hidden, only the status line and actions are.
+/// The "This account" card: the main account whose children are listed,
+/// and once loaded, whether it is itself someone's child (with Detach).
+/// Renders in every state; only the status line and actions are hidden.
 class _ChildWalletsHeader extends StatelessWidget {
   const _ChildWalletsHeader({required this.state, required this.onRefresh});
 

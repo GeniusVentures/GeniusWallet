@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:genius_wallet/theme/genius_wallet_consts.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 
-/// One small pill for a row's trailing area -- the same padding, tint,
+/// One small pill for a row's trailing area: the same padding, tint,
 /// border and 9px all-caps text wherever a short status label appears.
-/// Promoted from `account_drawer.dart`'s `_RowBadge` once `lib/child_wallets/`
-/// needed the identical shape.
 class GWRowBadge extends StatelessWidget {
   const GWRowBadge({super.key, required this.label, required this.color});
 

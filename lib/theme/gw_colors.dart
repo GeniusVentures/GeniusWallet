@@ -212,11 +212,9 @@ class GWColors extends ThemeExtension<GWColors> {
   /// darker step if a body-text consumer on surfaceSunken ever appears.
   final Color brandPrimaryOnSurface;
 
-  /// [brandPrimaryOnSurface], nudged for a label on its own ~12% wash where
-  /// that wash can itself sit over the account switcher's selection tint --
-  /// a doubled composite [brandPrimaryOnSurface] falls just under 4.5:1 on
-  /// (4.42:1 dark, 4.498:1 light). See `genius_wallet_colors.dart`'s
-  /// `_brandPrimaryBadgeText` for the exact worst-case ratios.
+  /// [brandPrimaryOnSurface], nudged for a label on its own ~12% wash over
+  /// the account switcher's selection tint, where the plain colour falls just
+  /// under 4.5:1 (4.42:1 dark, 4.498:1 light).
   final Color brandPrimaryBadgeText;
 
   // Brand -- secondary (mint/green). Vibrant v1.2 -- electric.

@@ -211,10 +211,9 @@ Future<void> startRevoke(
   }
 }
 
-/// Opens the Detach confirmation for [account], the node's own account,
-/// currently registered under [main]. Runs on the child's own node, so
-/// [ensureRunningAs] guards the node into running as [account] itself, not
-/// [main].
+/// Opens the Detach confirmation for [account], registered under [main].
+/// It runs on the child's own node, so [ensureRunningAs] makes the node run
+/// as [account] itself, not [main].
 Future<void> startDetach(
   BuildContext context, {
   required String account,
@@ -426,11 +425,9 @@ Future<void> startMove(
   }
 }
 
-/// The Fund/Recover confirmation, shaped like `sdk_account_manager.dart`'s
-/// `_AddAccountDialog`: a private `StatefulWidget` building `GWDialog` itself
-/// so the amount field's error text can update live. Parameterized by
-/// [kind]/[title]/[fromToSentence]/[payerLabel]/[primaryLabel] rather than
-/// copied, since Fund and Recover differ only in those five values.
+/// The Fund/Recover confirmation. Stateful so the amount error updates
+/// live; Fund and Recover differ only in [kind], [title], [fromToSentence],
+/// [payerLabel] and [primaryLabel].
 class _AmountDialog extends StatefulWidget {
   const _AmountDialog({
     required this.registry,

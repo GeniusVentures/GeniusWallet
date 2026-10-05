@@ -39,10 +39,9 @@ class DevMockChildWallets {
 
   static final DevMockChildWallets instance = DevMockChildWallets._();
 
-  /// `null` means no override - read the real SDK. Sticky, not one-shot,
-  /// same reasoning as `DevMockJob.scenario`: a walk holds a preset across
-  /// resizes and appearance toggles. `ValueNotifier` only notifies on a
-  /// changed value, so re-arming the same preset is idempotent for free.
+  /// `null` means no override: read the real SDK. Sticky, not one-shot, so
+  /// a walk keeps its preset across resizes and appearance toggles. Re-arming
+  /// the same preset is a no-op, since `ValueNotifier` skips equal values.
   final ValueNotifier<DevChildWalletsPreset?> preset = ValueNotifier(null);
 
   /// Arms the sticky override. Assigns, never toggles - repeated presses of
@@ -76,10 +75,8 @@ class DevMockChildWallets {
   /// them instead of letting a stale one fire after a preset moved on.
   final List<Timer> _pendingWrites = [];
 
-  /// Clears the override so the cubit returns to reading the real SDK, and
-  /// forgets every simulated write along with it. [writeMode] is left alone
-  /// - a walk clearing the read preset mid-way still wants its chosen write
-  /// outcome for the next arm.
+  /// Clears the override and every simulated write, returning to the real
+  /// SDK. [writeMode] is kept so the next arm reuses the chosen outcome.
   void clear() {
     preset.value = null;
     for (final timer in _pendingWrites) {
@@ -91,11 +88,9 @@ class DevMockChildWallets {
     _balanceDelta.clear();
   }
 
-  /// Simulates submitting [op]: `fail` refuses it with the SDK's
-  /// registration error and changes nothing; `timeout` accepts it but never
-  /// applies it, so the caller's own timeout is what ends it; `confirm`
-  /// accepts it and applies it 3 s later. Never a real SDK call - this is
-  /// the only place a write can land while a preset is armed.
+  /// Simulates submitting [op]: `fail` refuses it and changes nothing,
+  /// `timeout` accepts but never applies it, `confirm` applies it after 3 s.
+  /// Never a real SDK call: while a preset is armed, writes land only here.
   GeniusNodeReturnValue submitWrite(ChildOperation op) {
     switch (writeMode.value) {
       case DevChildWalletsWriteMode.fail:
@@ -108,10 +103,8 @@ class DevMockChildWallets {
     }
   }
 
-  /// Applies [op]'s effect to the simulated tables - the same shape a real
-  /// node's observable state would take on once the write actually landed.
-  /// [_addedTo] and [_removedFrom] keep the target's original case, since a
-  /// registrations read has to render it exactly as submitted; only the
+  /// Applies [op] to the simulated tables as a landed write would. Targets
+  /// keep their original case so reads render them as submitted; only the
   /// main key and membership checks are lowercased.
   void _apply(ChildOperation op) {
     final main = op.main.toLowerCase();
@@ -159,10 +152,9 @@ class DevMockChildWallets {
   static const String singleChildAddress =
       '0xDEV1000000000000000000000000000000AAA1';
 
-  /// [DevChildWalletsPreset.threeChildren]'s unlinked pair - one with a
-  /// real balance, one at zero. Both start `0xDEV` and differ only in
-  /// their last four characters from every other synthetic address here,
-  /// so the short address alone tells all of them apart.
+  /// [DevChildWalletsPreset.threeChildren]'s unlinked pair, one funded and
+  /// one at zero. They differ from every other synthetic address here in the
+  /// last four characters, so the short address tells them apart.
   static const String pairAddressA = '0xDEV2000000000000000000000000000000AAA2';
   static const String pairAddressB = '0xDEV3000000000000000000000000000000AAA3';
 
@@ -177,10 +169,9 @@ class DevMockChildWallets {
   static final BigInt mainBalanceMinions =
       BigInt.from(1000) * BigInt.from(1000000);
 
-  /// The registrations [preset] should render for [mainAddress], with every
-  /// simulated register, revoke, detach or move already layered on. [app]
-  /// resolves [DevChildWalletsPreset.threeChildren]'s linked slot without
-  /// duplicating another own account's key material.
+  /// The registrations [preset] renders for [mainAddress], with every
+  /// simulated write layered on. [app] resolves the linked slot of
+  /// [DevChildWalletsPreset.threeChildren] without copying key material.
   static ChildRegistrations registrationsFor(
     DevChildWalletsPreset preset,
     AppState app,
@@ -312,10 +303,9 @@ class DevMockChildWallets {
     return null;
   }
 
-  /// [childAddress]'s GNUS balance, in minions, with any simulated fund or
-  /// recover delta already applied: 1.5 GNUS for [singleChildAddress], the
-  /// mixed pair for [pairAddressA]/[pairAddressB], 250 GNUS for anything
-  /// else (including a real linked sibling, or [fallbackLinkedAddress]).
+  /// [childAddress]'s GNUS balance in minions, with simulated fund/recover
+  /// deltas applied: 1.5 GNUS for [singleChildAddress], the mixed pair for
+  /// [pairAddressA]/[pairAddressB], 250 GNUS for anything else.
   static BigInt balanceFor(String childAddress) {
     final delta =
         instance._balanceDelta[childAddress.toLowerCase()] ?? BigInt.zero;

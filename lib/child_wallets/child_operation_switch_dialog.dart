@@ -6,16 +6,14 @@ import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/components/overlays/gw_dialog.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 
-/// How long a confirmed switch is given to land before this gives up and
-/// tells the user nothing was sent. The node's account switch runs in a
-/// background isolate and can take real seconds, so the delete flow's 3s
-/// (a same-isolate list re-read) would misreport a real switch as failed.
+/// How long a confirmed switch may take before we report nothing was sent.
+/// The node switches accounts in a background isolate and can take seconds,
+/// so a short timeout would misreport a real switch as failed.
 const _switchTimeout = Duration(seconds: 30);
 
-/// Guards every main-side action against running as the wrong account.
-/// Returns true once the node runs as [requiredAccount] -- either because it
-/// already did, or because the user confirmed a switch that then actually
-/// landed.
+/// Guards a main-side action against running as the wrong account. True
+/// once the node runs as [requiredAccount]: it already did, or the user
+/// confirmed a switch that then actually landed.
 Future<bool> ensureRunningAs(
   BuildContext context,
   String requiredAccount,

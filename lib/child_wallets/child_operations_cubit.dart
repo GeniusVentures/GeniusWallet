@@ -112,10 +112,9 @@ class ChildOperationsState {
   final List<ChildOperation> justResolved;
 }
 
-/// The one app-level registry every child write goes through. Owns every
+/// The one app-level registry every child write goes through; it owns each
 /// in-flight operation so a fund keeps resolving after its screen closes.
-/// ponytail: memory-only, a restart forgets it all -- upgrade path is
-/// persisting [ChildOperation]'s public addresses and amounts.
+/// ponytail: memory-only, lost on restart; upgrade: persist [ChildOperation]s.
 class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   ChildOperationsCubit({
     required GeniusApi api,
@@ -179,10 +178,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         : name;
   }
 
-  /// [address]'s linked wallet name, or the literal word "Unlinked" when it
-  /// has none -- unlike [labelFor], for the one place "Unlinked" itself is
-  /// the intended copy (the main picker's row title, paired with the short
-  /// address as its own subtitle).
+  /// [address]'s linked wallet name, or the literal "Unlinked" when it has
+  /// none. Unlike [labelFor], for the main picker's row title, where
+  /// "Unlinked" itself is the intended copy.
   String nameFor(String address) {
     final appState = _readAppState();
     return AppBloc.sdkAccountName(
@@ -286,10 +284,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
         : 'Already recovering from this child';
   }
 
-  /// Why no new operation of any kind on [target] can start yet, or null when
-  /// it can -- the one check [submit] and every menu share. A transfer and a
-  /// registration change on one child never overlap: whichever lands first
-  /// strands the other, as a revoke landing before a fund does.
+  /// Why no new operation on [target] can start yet, or null. Shared by
+  /// [submit] and every menu: a transfer and a registration change on one
+  /// child must not overlap, or whichever lands first strands the other.
   String? lockReason(String target) {
     final balanceLock = balanceLockReason(target);
     if (balanceLock != null) {
@@ -639,10 +636,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   bool _baselineTrusted(ChildOperation op, DateTime at) =>
       at.isBefore(op.submittedAt.add(_baselineLifetime));
 
-  /// Whether an OK read of [main]'s registrations lists [target],
-  /// case-insensitively -- or null when the read itself wasn't OK. Callers
-  /// only resolve on a definite true or false, never on an unknown read, so
-  /// revoke, detach and register all stay pending through a failed read.
+  /// Whether an OK read of [main]'s registrations lists [target], ignoring
+  /// case; null when the read failed, so callers stay pending rather than
+  /// resolve on an unknown.
   bool? _listedUnder(String main, String target) {
     final registrations = _devMocked
         ? DevMockChildWallets.registrationsFor(

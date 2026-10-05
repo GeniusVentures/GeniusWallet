@@ -181,11 +181,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   /// The last key [_registrations] was read for -- see [_updateRegistrations].
   Object? _registrationsKey;
 
-  /// Every own account's registered children, or null while the node is down
-  /// and no dev preset is armed, or a read failed. Read once per open and
-  /// again only when [_updateRegistrations]'s key actually changes, never on
-  /// every rebuild -- an FFI call per own account is too costly to repeat on
-  /// every frame this drawer paints.
+  /// Every own account's registered children; null while the node is down
+  /// with no dev preset armed, or after a failed read. Re-read only when
+  /// [_updateRegistrations]'s key changes: each read is a costly FFI call.
   Map<String, List<ChildWallet>>? _registrations;
 
   /// Mains hidden by a chevron tap, keyed by lowercased `sdkAddress`. Lives
@@ -362,10 +360,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     }
   }
 
-  /// True when [wallet] is the row highlighted as selected. Matched on
-  /// lowercased address AND wallet type, not name - an SDK row now carries
-  /// its own wallet's name, so two rows named alike would otherwise
-  /// both light up.
+  /// True when [wallet] is the selected row. Matched on lowercased address
+  /// AND wallet type, not name: an SDK row carries its wallet's name, so two
+  /// rows named alike would otherwise both light up.
   bool _matchesSelected(Wallet wallet) {
     final selected = _selectedWallet;
     if (selected == null) {
@@ -415,11 +412,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
     _selectNetwork(context, picked);
   }
 
-  /// True when [row]'s selection target (its own wallet, or its account's
-  /// sgnus wallet) matches the active wallet -- never the SDK selection: a
-  /// wallet-kind row IS its wallet, a merged row's identity is still its
-  /// wallet, and an account row's identity is the sgnus wallet its menu's
-  /// "View balance" already resolves.
+  /// True when [row]'s target (its own wallet, or its account's sgnus
+  /// wallet, the one "View balance" opens) is the active wallet. Never
+  /// compared against the SDK selection.
   bool _rowSelected(AccountTreeRow row, List<Wallet> wallets) {
     final target =
         row.wallet ??
@@ -569,11 +564,9 @@ class _AccountDrawerBodyState extends State<_AccountDrawerBody> {
   }
 }
 
-/// One row of the merged "Accounts" tree: a plain own wallet, an own wallet
-/// merged with its linked SDK account, or an unlinked/wallet-removed SDK
-/// account. A foreign child never reaches this widget - it renders as a
-/// [ChildWalletRow] instead. The mnemonic it reads stays a build-local, never
-/// a field, and only for the row that is actually on node.
+/// One row of the "Accounts" tree: an own wallet, one merged with its
+/// linked SDK account, or an unlinked SDK account ([ChildWalletRow] draws
+/// children). The mnemonic is read only for the on-node row, never stored.
 class _AccountRowTile extends StatelessWidget {
   const _AccountRowTile({
     required this.row,
@@ -838,10 +831,9 @@ class _AccountRowTile extends StatelessWidget {
     );
   }
 
-  /// wallet: Copy address, Rename, Delete, unchanged. merged/account: "Run
-  /// node as this" plus the four gated SDK items, plus Delete
-  /// wallet/account, plus -- when nested under another own main --
-  /// Fund/Recover/Revoke after a divider.
+  /// wallet: Copy address, Rename, Delete. merged/account: "Run node as
+  /// this", the four gated SDK items and Delete, plus Fund/Recover/Revoke
+  /// after a divider when nested under another own main.
   Widget? _menu(
     BuildContext context,
     GWColors gw,

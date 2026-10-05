@@ -202,14 +202,8 @@ List<AccountTreeRow> buildAccountTree({
 }
 
 /// Filters [rows] for render, hiding every descendant of a main whose key
-/// (its lowercased [AccountTreeRow.sdkAddress]) is in [collapsedMains].
-///
-/// [rows] is depth-first, so a collapsed main's whole subtree is contiguous:
-/// once a collapsed main is kept, every following row deeper than it is
-/// skipped until the depth returns to the main's own level (a sibling or an
-/// ancestor's next branch), which also makes a collapsed main nested inside
-/// another collapsed main a no-op -- it was already going to be skipped. A
-/// key with no matching row changes nothing.
+/// (lowercased [AccountTreeRow.sdkAddress]) is in [collapsedMains]. Relies on
+/// [rows] being depth-first, so each collapsed subtree is contiguous.
 List<AccountTreeRow> visibleAccountRows(
   List<AccountTreeRow> rows,
   Set<String> collapsedMains,

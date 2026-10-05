@@ -18,13 +18,9 @@ import 'package:genius_wallet/utils/secure_screen.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-/// A seed phrase leaving the app deserves a word about it. This used to be
-/// `onPressed: () => {Clipboard.setData(...)}` and nothing else - no
-/// confirmation, no feedback - while every other copy in the app says
-/// "Address copied to clipboard". This is the one value where a silent
-/// clipboard write is a security event rather than a convenience.
-///
-/// Public: any row carrying an SDK account reaches this from its own menu.
+/// Copies the recovery phrase after a confirmation. Unlike an address copy,
+/// a silent clipboard write of a seed phrase is a security event. Public: any
+/// row carrying an SDK account reaches this from its own menu.
 Future<void> copyRecoveryPhrase(BuildContext context, String mnemonic) async {
   final navigator = Navigator.of(context, rootNavigator: true);
   Navigator.of(context).pop();
@@ -67,12 +63,8 @@ Future<void> copyRecoveryPhrase(BuildContext context, String mnemonic) async {
   }
 }
 
-/// The recovery QR. Was the only dialog in this section still a raw
-/// `AlertDialog` with a stock `TextButton`; it is `GWDialog` now.
-///
-/// The WHITE backdrop behind the code stays and is deliberately
-/// mode-invariant: a QR needs a light quiet zone to scan, so it is not
-/// routed through GWColors (03-GAP-INVENTORY §6).
+/// Shows the recovery QR. The white backdrop is deliberately mode-invariant:
+/// a QR needs a light quiet zone to scan, so it does not use GWColors.
 Future<void> showRecoveryQr(BuildContext context, String mnemonic) async {
   final navigator = Navigator.of(context, rootNavigator: true);
   Navigator.of(context).pop();
@@ -113,10 +105,9 @@ Future<void> showRecoveryQr(BuildContext context, String mnemonic) async {
   );
 }
 
-/// The `isSelected` guard that used to live here is gone: the menu no longer
-/// offers Delete on the active account at all, so a guard here could never
-/// fire. The SDK's own refusal is still the real rule -- see the disabled
-/// item [sdkRowActions] gates.
+/// Confirms and deletes an SDK account. No active-account guard here: the
+/// menu never offers Delete on it, and the SDK's own refusal is the real rule
+/// (see the item [sdkRowActions] disables).
 Future<void> confirmDeleteSDKAccount(
   BuildContext context,
   String address,

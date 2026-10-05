@@ -644,14 +644,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         orElse: () => remaining.first,
       );
 
-  /// True while it is safe to delete a row from [wallets]. Removing a
-  /// watch-only row never touches a key, so it only needs another row of any
-  /// kind left; removing a key-holding wallet (the default, and always the
-  /// case for [sdkDeleteBlock]'s linked-wallet check) needs another
-  /// key-holding wallet left - SDK accounts do not count (they are not
-  /// reloaded once no local wallet is left, so a deletion they "covered"
-  /// would leave the user with nothing after a restart), and neither does a
-  /// watch-only row, which holds no key and cannot sign or be restored from.
+  /// True while it is safe to delete a row from [wallets]. A watch-only row
+  /// needs any other row left; a key-holding one needs another key-holding
+  /// wallet, since SDK accounts are not reloaded once no local wallet is left.
   static bool canDeleteWallet(
     List<Wallet> wallets, {
     bool deletingWatchOnly = false,
@@ -689,10 +684,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     await _emitSDKAccounts(emit);
   }
 
-  /// Deletes [address]'s wallet from storage and this bloc's own wallet
-  /// list, moving the selection off it if it was selected. Never touches an
-  /// SDK account - shared by a direct wallet delete and, via
-  /// [_onDeleteSDKAccount], the wallet side of an SDK-account delete.
+  /// Deletes [address]'s wallet from storage and this bloc's list, moving the
+  /// selection off it if needed. Never touches an SDK account; also used for
+  /// the wallet side of [_onDeleteSDKAccount].
   Future<void> _deleteWallet(String address, {required bool watchOnly}) async {
     final event = DeleteWallet(address, watchOnly: watchOnly);
     await api.deleteWallet(address, watchOnly: watchOnly);
@@ -808,10 +802,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     return 'Unlinked';
   }
 
-  /// Why deleting [sdkAddress] must be refused, or null when it is allowed.
-  /// The default account is never deletable. A linked account is refused
-  /// while its wallet is the active one, or while deleting it would leave no
-  /// wallet at all.
+  /// Why deleting [sdkAddress] must be refused, or null if allowed. The
+  /// default account never is; a linked one is refused while its wallet is
+  /// active, or when deleting it would leave no wallet at all.
   static SDKDeleteBlock? sdkDeleteBlock({
     required String sdkAddress,
     required String? defaultAccount,
@@ -866,10 +859,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     debugPrint("FFI mintTokens result: $result");
   }
 
-  /// Re-reads the wallet list and SDK accounts, then emits them. Every await
-  /// finishes before `state` is read, so a status another handler emitted
-  /// meanwhile is never overwritten by a stale snapshot. A real selected
-  /// account ends the switch to [settling], if that is still the one pending.
+  /// Re-reads the wallet list and SDK accounts, then emits them. All awaits
+  /// finish before `state` is read, so a concurrent emit is never overwritten
+  /// by a stale snapshot. Ends a pending switch to [settling] once it lands.
   Future<void> _emitSDKAccounts(
     Emitter<AppState> emit, {
     String? settling,

@@ -50,10 +50,9 @@ class ChildWalletsState {
   final String mainName;
   final List<ChildWallet> children;
 
-  /// The other own SDK account whose registrations list this screen's own
-  /// account as a child, or null when none does. Only meaningful when
-  /// [status] is [ChildWalletsStatus.loaded] -- a disconnected or failed
-  /// read never sets it.
+  /// The other own SDK account that registers this account as a child, or
+  /// null. Only meaningful when [status] is [ChildWalletsStatus.loaded]; a
+  /// failed or disconnected read never sets it.
   final String? parentMain;
 
   ChildWalletsState copyWith({
@@ -192,9 +191,8 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
     );
   }
 
-  /// Routes a registrations read for [main] through the dev-preset branch
-  /// when one is armed, or the real SDK otherwise -- the one place both the
-  /// main list and the parent-main lookup below read registrations, so a
+  /// Reads [main]'s registrations from the armed dev preset, or the real
+  /// SDK. Both the main list and the parent-main lookup go through here, so a
   /// dev preset covers both.
   ChildRegistrations _registrationsFor(
     String main,
@@ -207,11 +205,9 @@ class ChildWalletsCubit extends Cubit<ChildWalletsState> {
     return _api.getChildRegistrations(main);
   }
 
-  /// The first of the user's other own SDK accounts whose OK-read
-  /// registrations list this screen's own account as a child, in any case --
-  /// the subject itself is never queried as its own main, and a non-OK read
-  /// for one account is simply skipped. A main registered by someone else's
-  /// account stays undiscoverable, since the SDK has no by-child query.
+  /// The first of the user's other own SDK accounts whose OK read registers
+  /// this account as a child (any case); failed reads are skipped. A main owned
+  /// by someone else stays undiscoverable: the SDK has no by-child query.
   // ponytail: one registrations read per own account per poll -- fine for a
   // handful of SDK accounts; upgrade path is an SDK by-child query.
   String? _findParentMain(AppState appState, DevChildWalletsPreset? devPreset) {
