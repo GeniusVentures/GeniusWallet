@@ -539,6 +539,27 @@ void main() {
     }
 
     testWidgets(
+      'the recovery phrase is read only when Copy is tapped, never on build',
+      (tester) async {
+        final api = _PerMainApi();
+        final (bloc, details, operations) = await pumpNested(tester, api);
+
+        await openMenu(tester, accountRow(nestMainA));
+        expect(api.mnemonicReads, 0);
+
+        await tester.tap(
+          find.widgetWithText(MenuItemButton, 'Copy recovery phrase'),
+        );
+        await tester.pump();
+        expect(api.mnemonicReads, 1);
+
+        await tester.runAsync(() => bloc.close());
+        await details.close();
+        await operations.close();
+      },
+    );
+
+    testWidgets(
       'B nested under running A gets Fund/Recover/Revoke after a divider',
       (tester) async {
         final api = _PerMainApi(
@@ -1063,8 +1084,13 @@ class _PerMainApi implements GeniusApi {
     return GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
   }
 
+  int mnemonicReads = 0;
+
   @override
-  String? getSelectedAccountMnemonic() => null;
+  String? getSelectedAccountMnemonic() {
+    mnemonicReads++;
+    return null;
+  }
 
   @override
   List<String> getAvailableAccounts() => const [];

@@ -1020,6 +1020,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
   }
 
+  /// The running account's recovery phrase, read from the SDK on request.
+  /// Never kept on state: states are logged and compared.
+  String? selectedAccountMnemonic() => api.getSelectedAccountMnemonic();
+
   FutureOr<void> _onRefreshSDKAccounts(
     RefreshSDKAccounts event,
     Emitter<AppState> emit,

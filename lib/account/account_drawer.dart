@@ -1095,10 +1095,10 @@ class _RowMenu extends StatelessWidget {
     // The SDK only exposes the running account's phrase, and mid-switch that
     // may already be another row's, so nothing account-bound is offered then.
     final settled = tile.onNode && !tile.switchPending;
-    final mnemonic = settled ? appBloc.api.getSelectedAccountMnemonic() : null;
+    // The phrase is read only when Copy or Show is tapped, never on build.
     final can = sdkRowActions(
       isSelected: settled,
-      hasMnemonic: mnemonic != null,
+      hasMnemonic: true,
       isStartAccount: tile.isStartAccount,
     );
     final deleteLock = tile.switchPending
@@ -1155,13 +1155,29 @@ class _RowMenu extends StatelessWidget {
         icon: Icons.numbers,
         label: 'Copy recovery phrase',
         onPressed: can.phrase
-            ? () => copyRecoveryPhrase(context, mnemonic!)
+            ? () {
+                final mnemonic = appBloc.selectedAccountMnemonic();
+                if (mnemonic == null) {
+                  showToast(context, 'This account has no recovery phrase');
+                  return;
+                }
+                copyRecoveryPhrase(context, mnemonic);
+              }
             : null,
       ),
       GWMenuItem(
         icon: Icons.qr_code,
         label: 'Show recovery QR',
-        onPressed: can.qr ? () => showRecoveryQr(context, mnemonic!) : null,
+        onPressed: can.qr
+            ? () {
+                final mnemonic = appBloc.selectedAccountMnemonic();
+                if (mnemonic == null) {
+                  showToast(context, 'This account has no recovery phrase');
+                  return;
+                }
+                showRecoveryQr(context, mnemonic);
+              }
+            : null,
       ),
       GWMenuItem(
         icon: Icons.account_tree,
