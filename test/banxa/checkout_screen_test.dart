@@ -194,7 +194,6 @@ void main() {
     expect(built.single, Uri.parse(_url));
     expect(progress(tester).pay, CheckoutStepState.active);
     expect(progress(tester).done, isFalse);
-    expect(find.text('Secured by Banxa'), findsOneWidget);
     expect(find.textContaining('Sandbox'), findsNothing);
   });
 
@@ -249,6 +248,27 @@ void main() {
     expect(api.getOrderByIdCalls, before + 1);
   });
 
+  screenTest('a return keeps checking while Banxa still says unpaid', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    api.statuses[_id] = ['pendingPayment', 'paymentReceived'];
+
+    await tester.tap(find.text('simulate return'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Checking your order'), findsOneWidget);
+    expect(find.text('Complete payment'), findsNothing);
+
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+
+    expect(find.text('Complete payment'), findsNothing);
+    expect(find.text('+ ≈100 GNUS'), findsOneWidget);
+    expect(find.text('Back to Buy'), findsOneWidget);
+  });
+
   screenTest('a return with the order still unpaid offers Complete payment', (
     tester,
   ) async {
@@ -257,6 +277,13 @@ void main() {
     await tester.tap(find.text('simulate return'));
     await tester.pump();
     await tester.pump();
+
+    expect(find.text('Complete payment'), findsNothing);
+
+    for (var i = 0; i < 9; i++) {
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump();
+    }
 
     expect(find.text('Complete payment'), findsOneWidget);
     expect(built, hasLength(1));

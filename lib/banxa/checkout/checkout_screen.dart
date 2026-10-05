@@ -101,18 +101,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     unawaited(context.read<OrdersCubit>().track(widget.orderId));
   }
 
+  // Banxa can still report pendingPayment for a few seconds after it sends
+  // the buyer back, so one read would show "Complete payment" for an order
+  // that is already paid. Re-read until it moves, for at most 30s.
+  static const int _returnReads = 10;
+  static const Duration _returnReadGap = Duration(seconds: 3);
+
   Future<void> _onReturn() async {
     if (_returned) {
       return;
     }
     final cubit = context.read<OrdersCubit>();
+    final host = _hostKey;
     setState(() {
       _returned = true;
       _readDone = false;
     });
-    await cubit.refreshOrder(widget.orderId);
-    if (!mounted) {
-      return;
+    for (var read = 1; read <= _returnReads; read++) {
+      await cubit.refreshOrder(widget.orderId);
+      if (!mounted || host != _hostKey) {
+        return;
+      }
+      final status = cubit.state.orders?.orders
+          .where((o) => o.id == widget.orderId)
+          .firstOrNull
+          ?.banxaStatus;
+      if (read == _returnReads ||
+          (status != BanxaOrderStatus.pendingPayment &&
+              status != BanxaOrderStatus.unknown &&
+              status != null)) {
+        break;
+      }
+      await Future<void>.delayed(_returnReadGap);
+      if (!mounted || host != _hostKey) {
+        return;
+      }
     }
     setState(() => _readDone = true);
   }
@@ -186,10 +209,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     final uri = Uri.tryParse(widget.checkoutUrl);
     final trusted = uri != null && isTrustedCheckoutUrl(uri);
-    final wide = MediaQuery.sizeOf(context).width > GeniusBreakpoints.medium;
+    final wide = GeniusBreakpoints.useDesktopLayout(context);
 
     return BlocBuilder<OrdersCubit, OrdersState>(
       builder: (context, state) {
@@ -270,28 +292,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               unawaited(_confirmLeave());
             }
           },
-          child: Scaffold(
-            backgroundColor: gw.surfaceBase,
-            body: SafeArea(
-              child: Column(
-                children: [
-                  _CheckoutHeader(
-                    isSandbox: widget.isSandbox,
-                    onClose: paying ? _confirmLeave : _close,
-                    onPayOnAnotherDevice: paying ? _payOnAnotherDevice : null,
-                    onOpenInBrowser: paying ? _openInBrowserNow : null,
-                    progress: wide ? progress : null,
+          child: _CheckoutFrame(
+            modal: wide,
+            child: Column(
+              children: [
+                _CheckoutHeader(
+                  isSandbox: widget.isSandbox,
+                  onClose: paying ? _confirmLeave : _close,
+                  onPayOnAnotherDevice: paying ? _payOnAnotherDevice : null,
+                  onOpenInBrowser: paying ? _openInBrowserNow : null,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: GeniusWalletConsts.space2,
                   ),
-                  if (!wide)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: GeniusWalletConsts.space4,
-                      ),
-                      child: progress,
-                    ),
-                  Expanded(child: body),
-                ],
-              ),
+                  child: progress,
+                ),
+                Expanded(child: body),
+              ],
             ),
           ),
         );
@@ -313,20 +331,62 @@ CheckoutStepState _payStep(BanxaOrderStatus? status) {
   };
 }
 
+/// Desktop: a dialog-sized card centred over the dimmed app. Phone: the whole
+/// screen, so Banxa's form gets every pixel of width.
+class _CheckoutFrame extends StatelessWidget {
+  const _CheckoutFrame({required this.modal, required this.child});
+
+  final bool modal;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
+    if (!modal) {
+      return Scaffold(
+        backgroundColor: gw.surfaceBase,
+        body: SafeArea(child: child),
+      );
+    }
+    final height = MediaQuery.sizeOf(context).height;
+    return Material(
+      type: MaterialType.transparency,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 480,
+            maxHeight: (height - GeniusWalletConsts.space16 * 2).clamp(
+              320,
+              820,
+            ),
+          ),
+          child: Material(
+            color: gw.surfaceBase,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(GeniusWalletConsts.radius2xl),
+              side: BorderSide(color: gw.borderSubtle),
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _CheckoutHeader extends StatelessWidget {
   const _CheckoutHeader({
     required this.isSandbox,
     required this.onClose,
     required this.onPayOnAnotherDevice,
     required this.onOpenInBrowser,
-    required this.progress,
   });
 
   final bool isSandbox;
   final VoidCallback onClose;
   final VoidCallback? onPayOnAnotherDevice;
   final VoidCallback? onOpenInBrowser;
-  final Widget? progress;
 
   @override
   Widget build(BuildContext context) {
@@ -347,58 +407,25 @@ class _CheckoutHeader extends StatelessWidget {
             onPressed: onClose,
           ),
           const SizedBox(width: GeniusWalletConsts.space4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: GeniusWalletConsts.space4,
-                  runSpacing: GeniusWalletConsts.space2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      'Buy GNUS',
-                      style: GeniusWalletTypography.titleMd.copyWith(
-                        color: gw.textPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (isSandbox)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: GeniusWalletConsts.space4,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: sandbox.bg,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          'Sandbox · no real money',
-                          style: GeniusWalletTypography.labelMd.copyWith(
-                            color: sandbox.fg,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                  ],
+          if (isSandbox)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: GeniusWalletConsts.space4,
+                vertical: 3,
+              ),
+              decoration: BoxDecoration(
+                color: sandbox.bg,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                'Sandbox · no real money',
+                style: GeniusWalletTypography.labelMd.copyWith(
+                  color: sandbox.fg,
+                  fontWeight: FontWeight.w600,
                 ),
-                Row(
-                  children: [
-                    Icon(Icons.lock_outline, size: 14, color: gw.textSecondary),
-                    const SizedBox(width: GeniusWalletConsts.space2),
-                    Text(
-                      'Secured by Banxa',
-                      style: GeniusWalletTypography.labelMd.copyWith(
-                        color: gw.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-          ?progress,
+          const Spacer(),
           if (onPayOnAnotherDevice != null && onOpenInBrowser != null)
             _CheckoutMenu(
               onPayOnAnotherDevice: onPayOnAnotherDevice!,
