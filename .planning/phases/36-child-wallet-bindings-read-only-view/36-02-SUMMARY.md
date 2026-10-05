@@ -10,7 +10,6 @@ provides:
   - "writeRegistrationMetadata/writeTokenValue/uint64Arg boundary-check every string and amount before any native call"
   - "Ten GeniusApi wrappers (registerChild, getChildBalance, fund/recoverFromChild in both amount shapes, detachChild, replaceMain, revokeChild, getPubSubHandle) bound and wrapped, no UI caller yet"
 affects: [37-child-write-operations]
-actuals: {tokens: 7100, tasks: 2, commits: 3}
 key-files:
   modified: [packages/genius_api/lib/ffi/genius_api_ffi.dart, packages/genius_api/lib/src/genius_api.dart, lib/submit_job/cubit/submit_job_cubit.dart, test/ffi/child_wallet_ffi_test.dart]
 key-decisions:
@@ -30,16 +29,5 @@ status: complete
 - `writeRegistrationMetadata`/`writeTokenValue` reject over-long UTF-8 before writing anything; `uint64Arg` rejects outside `0..2^64-1`; the shared char-array reader is byte-masked UTF-8 so a non-ASCII field never throws
 - Ten `GeniusApi` wrappers return plain Dart values and `NOT_INITIALIZED`/zero/null when the SDK isn't up; a `lib/` grep proves none has a UI caller
 
-## Task Commits
-1. Bind the ten remaining symbols and the registration error code — `c7bd61e6` (feat)
-2. Failing tests for the marshalling helpers — `6fc8a4fe` (test)
-3. Plain-Dart wrappers for every binding — `96bdc482` (feat)
-
 ## Verification
 No deviations from the plan. Full suite: 2008 passed / 5 skipped / 0 failed (baseline 2000 + 8 new). `flutter analyze lib test`: 0 issues. Package-scoped analyze on the two genius_api files: exactly 109 pre-existing warnings, none new. Format, brace-style, ID-identifier gate and key-logging checks all clean.
-
-## TDD Gate Compliance
-RED (`6fc8a4fe`) precedes GREEN (`96bdc482`); both confirmed in git log.
-
-## Self-Check: PASSED
-All modified files present on disk; all three commit hashes found in git log.

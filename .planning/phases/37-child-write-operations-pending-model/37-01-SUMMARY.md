@@ -11,9 +11,6 @@ provides:
   - "Fund dialog, pending/notConfirmed badge with Check again, resolved toasts"
   - "GWRowBadge promoted from account_drawer's _RowBadge; _ChildActionMenuItem lock pattern"
 affects: [37-02, 37-03, 37-04, 37-05]
-actuals: {tokens: 15800, tasks: 2, commits: 3}
-tech-stack:
-  patterns: ["submit-consumes-return-value-once", "app-root registry cubit above the router", "await-the-real-signal resolve()"]
 key-files:
   created: [lib/child_wallets/child_operations_cubit.dart, lib/child_wallets/child_operation_dialogs.dart, lib/child_wallets/child_operation_status.dart, lib/components/data/gw_row_badge.dart, test/child_wallets/child_operations_cubit_test.dart, test/child_wallets/child_operation_actions_test.dart]
   modified: [lib/account/account_drawer.dart, lib/child_wallets/child_wallets_screen.dart, lib/main.dart, test/child_wallets/child_wallets_screen_test.dart]
@@ -36,13 +33,5 @@ status: complete
 - Fund dialog, pending/not-confirmed `ChildOperationBadge` with "Check again", root-level `ChildOperationToasts`, and a locked, tooltipped Fund menu item via the new `_ChildActionMenuItem`
 - `GWRowBadge` promoted from `account_drawer.dart`'s `_RowBadge`; the registry provided in `main.dart` above the router
 
-## Task Commits
-1. Tracer: fund a child end to end - `8819fd95` (feat)
-2. Failing coverage for timeout/Check again/lock - `4f177b0f` (test)
-3. Timeout, Check again, and the per-child lock (GREEN) - `b2f994a0` (feat)
-
 ## Verification
 No deviations beyond the two auto-fixes noted in key-decisions (Rule 1: removed a stray `Navigator.pop()` causing a broken RED test; Rule 1: switched a `Row` to `Wrap` fixing a real render overflow). Full suite: 2058 passed / 5 skipped / 0 failed (2034 baseline + 24 new). `flutter analyze lib test`: 0 issues. Format/brace/raw-colour scripts clean. ID-identifier gate: 0 matches on all three commits.
-
-## Self-Check: PASSED
-All created files present on disk; all three commit hashes found in git log.

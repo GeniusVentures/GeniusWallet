@@ -11,9 +11,6 @@ provides:
   - "The 'This account' card: Child of {main} / Not registered as a child, Detach, Register"
   - "detach and register kinds on the registry; child_main_picker_dialog.dart"
 affects: [37-04, 37-05]
-actuals: {tokens: 20300, tasks: 2, commits: 4}
-tech-stack:
-  patterns: ["one registrationsFor() read routes both the main list and the parent-lookup through the dev-preset branch", "child-side kinds require running as target, not main"]
 key-files:
   created: [lib/child_wallets/child_main_picker_dialog.dart, test/child_wallets/child_main_picker_test.dart]
   modified: [lib/child_wallets/child_wallets_cubit.dart, child_wallets_screen.dart, child_operations_cubit.dart, child_operation_dialogs.dart, child_operation_status.dart, test/child_wallets/child_wallets_screen_test.dart, child_operations_cubit_test.dart, child_operation_actions_test.dart]
@@ -36,16 +33,7 @@ status: complete
 - `detach` (child-side, empty metadata, resolves off the old main's list) and `register` (child-side, chosen main + empty metadata, resolves once that main lists the account) join the registry; both share `_listedUnder`'s OK/not-OK/listed tri-state rather than reusing revoke's pessimistic bool
 - `child_main_picker_dialog.dart`: `isSdkAddress` (`0x` + 128 hex, any case) and `showMainPicker` -- the user's other own accounts in a height-bounded, scrolled list, a manual-entry fallback validated against the same shape and the excluded set, Back keeps the earlier pick
 
-## Task Commits
-1. Coverage for the This account card and Detach - `040b028f` (test)
-2. The This account card, own-position lookup, and detach (GREEN) - `b8766a09` (feat)
-3. Coverage for the main picker and register - `468385e6` (test)
-4. The main picker dialog and register (GREEN) - `3a8926fc` (feat)
-
 ## Verification
 No plan deviations. Full suite: 2119 passed / 5 skipped / 0 failed (2079 baseline + 40 new). `flutter analyze lib test`: 0 issues. Format/brace/raw-colour/key-logging scripts clean. ID-identifier gate: 0 matches on all four commits.
 
 **ROADMAP.md deviation:** `roadmap.update-plan-progress` no-ops on this repo's ROADMAP.md -- `editProgressTableSlice` scopes to the FIRST `## Progress` heading in the file (no `</details>` markers exist to bound milestones), which is the v1.0/v2.0 table, not Phase 37's own `## Progress` table further down. Hand-edited Phase 37's checkbox, `Plans:` line and Progress row instead; STATE.md hand-edited per plan instruction.
-
-## Self-Check: PASSED
-All created files present on disk; all four commit hashes found in git log.

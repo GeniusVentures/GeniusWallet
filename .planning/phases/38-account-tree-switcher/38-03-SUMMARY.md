@@ -6,9 +6,6 @@ tags: [flutter_bloc, account-tree, gw_colors, gw_menu_item]
 requires: [{phase: 38-02, provides: "merged rows, GWMenuItem, Selected/On node tags"}]
 provides: ["visibleAccountRows (collapse filter)", "Fund/Recover/Revoke on nested own rows", "gated CHILD WALLETS preset listener", "brandPrimaryBadgeText token"]
 affects: []
-actuals: {tokens: 17600, tasks: 3, commits: 3}
-tech-stack:
-  patterns: ["depth-first row list stays contiguous per subtree, so collapse is a single skip-ahead pass", "depth-gated layout: only a nested row's own indent needs the width-capped Wrap"]
 key-files:
   created: [test/account/account_row_badge_contrast_test.dart]
   modified: [lib/account/account_tree.dart, lib/account/account_drawer.dart, lib/components/overlays/gw_menu_item.dart, lib/theme/gw_colors.dart, lib/theme/genius_wallet_colors.dart, test/account/account_tree_test.dart, test/account/account_drawer_tree_test.dart, test/components/gw_menu_item_test.dart, test/theme/gw_colors_parity_test.dart]
@@ -33,15 +30,8 @@ status: complete
 - Gated `DevMockChildWallets.instance.preset` listener in the drawer State (compiled out under `flutter test`'s `kShowDevTools=false`, same as `ChildWalletsCubit`'s own)
 - A nested row's trailing wraps tags + balance in a 62px cap so a four-deep chain fits 360px with no overflow; depth-0 rows are untouched
 
-## Task Commits
-1. Child actions + collapsible mains - `3463a1df` (feat)
-2. Live refresh, phone width, badge/menu contrast - `fcb529ad` (feat)
-3. Phase gate + Windows compile - `b7f3f349` (docs)
-
 ## Deviations from Plan
 - Plan 02's must-have named `brandPrimaryOnSurface` for Selected/SDK; that token falls short of 4.5:1 on its own wash over the selection tint (4.42:1 dark / 4.498:1 light), so both badges now read `brandPrimaryBadgeText`, a new, documented, near-identical token.
 
 ## Verification
 Full suite 2227/5/0 (2202 baseline + 25 new). Analyze/format/brace/raw-colour/key-logging clean. ID gate 0 (BASE = parent of `docs(38-01)`). Windows debug build compiled clean. SWT-07 marked complete.
-
-## Self-Check: PASSED
