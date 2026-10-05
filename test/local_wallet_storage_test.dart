@@ -292,6 +292,22 @@ void main() {
     });
 
     test(
+      'corrupt links read as none, and a save never overwrites them',
+      () async {
+        FlutterSecureStorage.setMockInitialValues({
+          '__sdk_links__': '{not json',
+        });
+        final storage = await LocalWalletStorage.create();
+
+        expect(await storage.getSDKAccountLinks(), isEmpty);
+        await expectLater(
+          storage.saveSDKAccountLink('0xsdk', '0xwallet', 'Main'),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
+
+    test(
       'an unreadable store fails a save instead of overwriting the links',
       () async {
         final storage = await LocalWalletStorage.create(

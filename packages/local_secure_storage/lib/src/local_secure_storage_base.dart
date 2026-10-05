@@ -454,26 +454,21 @@ class LocalWalletStorage {
     }
   }
 
-  // Throws when storage can't be read, so a read-modify-write never saves
-  // an empty map over links it simply failed to read.
+  // Throws when storage can't be read or parsed, so a read-modify-write
+  // never saves an empty map over links it failed to read.
   Future<Map<String, SDKAccountLink>> _readSDKAccountLinks() async {
     final raw = await _secureStorage.read(key: _sdkAccountLinksKey);
     if (raw == null) {
       return {};
     }
-    try {
-      final decoded = Map<String, dynamic>.from(jsonDecode(raw));
-      return decoded.map((sdkAddress, value) {
-        final entry = Map<String, dynamic>.from(value as Map);
-        return MapEntry(sdkAddress, (
-          walletAddress: entry['wallet'] as String,
-          walletName: entry['name'] as String,
-        ));
-      });
-    } catch (e) {
-      debugPrint('Failed to parse SDK account links: $e');
-      return {};
-    }
+    final decoded = Map<String, dynamic>.from(jsonDecode(raw));
+    return decoded.map((sdkAddress, value) {
+      final entry = Map<String, dynamic>.from(value as Map);
+      return MapEntry(sdkAddress, (
+        walletAddress: entry['wallet'] as String,
+        walletName: entry['name'] as String,
+      ));
+    });
   }
 
   /// Records that [sdkAddress] was produced by [walletAddress], named
