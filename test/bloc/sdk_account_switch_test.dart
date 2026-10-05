@@ -214,19 +214,21 @@ void main() {
     await tester.runAsync(() => bloc.close());
   });
 
-  testWidgets('a node that never leaves the old account ends the switch '
-      'there after about a minute', (tester) async {
+  testWidgets('a slow switch still lands after minutes on the old account', (
+    tester,
+  ) async {
     final api = _NodeApi()..keepsOldAccount = true;
     final bloc = _SeededAppBloc(api);
 
     bloc.add(SelectSDKAccount(_target));
     await tester.pump();
-    await tester.pump(const Duration(seconds: 57));
+    await tester.pump(const Duration(minutes: 3));
     expect(bloc.state.switchingSDKAccount, _target);
 
-    await tester.pump(const Duration(seconds: 6));
+    api.reported = _target;
+    await tester.pump(const Duration(seconds: 3));
+    expect(bloc.state.selectedSDKAccount, _target);
     expect(bloc.state.switchingSDKAccount, isNull);
-    expect(bloc.state.selectedSDKAccount, _old);
 
     await tester.runAsync(() => bloc.close());
   });

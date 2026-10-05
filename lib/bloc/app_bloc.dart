@@ -49,13 +49,10 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   // The account the node ran as when the pending switch began. A read that
   // still names it means the switch has not landed yet, not that it failed.
+  // ponytail: a switch the node never lands keeps polling, and so blocks
+  // every other switch, until restart; a refusal signal from the SDK is the
+  // upgrade path.
   String? _switchFrom;
-  int _staleSwitchReads = 0;
-
-  // ponytail: a node that still names the old account after ~1 minute of
-  // polls is taken to have refused; a real refusal signal from the SDK
-  // would replace this guess.
-  static const _maxStaleSwitchReads = 20;
   StreamSubscription<SGNUSConnection>? _sgnusConnectionSubscription;
   StreamSubscription<String?>? _selectedWalletSubscription;
   StreamSubscription<AppState>? _nodeAccountSubscription;
@@ -880,15 +877,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     final links = await api.getSDKAccountLinks();
     final sdkState = _getSDKAccountState();
     final selected = sdkState.$1;
-    var settled =
+    final settled =
         selected != null &&
         settling != null &&
-        state.switchingSDKAccount == settling;
-    if (settled &&
-        selected.toLowerCase() != settling.toLowerCase() &&
-        selected.toLowerCase() == _switchFrom?.toLowerCase()) {
-      settled = ++_staleSwitchReads > _maxStaleSwitchReads;
-    }
+        state.switchingSDKAccount == settling &&
+        (selected.toLowerCase() == settling.toLowerCase() ||
+            selected.toLowerCase() != _switchFrom?.toLowerCase());
     emit(
       state.copyWith(
         wallets: wallets,
@@ -921,7 +915,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
     _switchPollTimer?.cancel();
     _switchFrom = state.selectedSDKAccount;
-    _staleSwitchReads = 0;
     emit(state.copyWith(switchingSDKAccount: target));
     // A throw counts as a refusal, or the row would say "Switching" forever.
     final ok = await api
