@@ -1405,7 +1405,7 @@ class GeniusApi {
   /// (DynamicLibrary, NativeLibrary, and Pointer) are not sendable across
   /// isolate boundaries.
   GeniusNodeReturnValue selectGeniusAccount(String publicAddress) {
-    if (!_isSdkInitialized) {
+    if (getStartAccountAddress() == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final addressPtr = publicAddress.toNativeUtf8().cast<Char>();
@@ -1423,7 +1423,7 @@ class GeniusApi {
   Future<GeniusNodeReturnValue> selectGeniusAccountAsync(
     String publicAddress,
   ) async {
-    if (!_isSdkInitialized) {
+    if (getStartAccountAddress() == null) {
       return GeniusNodeReturnValue.GENIUS_NODE_ERROR_NOT_INITIALIZED;
     }
     final receivePort = ReceivePort();
@@ -1536,7 +1536,7 @@ class GeniusApi {
       return null;
     }
     // Start read a placeholder: the first real address is still the start
-    // account, since no switch can run before the account list loads.
+    // account, because neither select call switches before this is known.
     final known = sdkAddressOrNull(_address);
     if (known != null) {
       return known;
