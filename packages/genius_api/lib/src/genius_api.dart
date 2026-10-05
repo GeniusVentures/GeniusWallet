@@ -652,8 +652,14 @@ class GeniusApi {
     }
     try {
       final links = await _secureStorage.getSDKAccountLinks();
-      final linkedWalletAddresses = links.values
-          .map((link) => link.walletAddress.toLowerCase())
+      // A link whose account the node no longer has is stale (its delete
+      // stopped half way), so its wallet gets an account again.
+      final accounts = getAvailableAccounts()
+          .map((a) => a.toLowerCase())
+          .toSet();
+      final linkedWalletAddresses = links.entries
+          .where((e) => accounts.contains(e.key.toLowerCase()))
+          .map((e) => e.value.walletAddress.toLowerCase())
           .toSet();
       final storedKeys = await _secureStorage.getStoredKeys();
       final Map<String, SDKAccountLink> newLinks;

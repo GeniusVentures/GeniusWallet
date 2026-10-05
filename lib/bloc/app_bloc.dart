@@ -960,7 +960,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     }
     final result = api.deleteAccount(event.publicAddress);
     if (result == GeniusNodeReturnValue.GENIUS_NODE_RET_OK) {
-      await api.removeSDKAccountLink(event.publicAddress);
+      // The account is already gone, so the cleanup below must still run;
+      // a link left behind is ignored once its account is missing.
+      try {
+        await api.removeSDKAccountLink(event.publicAddress);
+      } catch (e) {
+        debugPrint('Removing the SDK account link failed: $e');
+      }
       // The account's linked wallet goes with it; an unlinked or
       // already-removed wallet leaves nothing further to delete.
       final linked = linkedWallet(

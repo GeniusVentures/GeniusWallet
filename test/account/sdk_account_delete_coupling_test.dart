@@ -53,6 +53,7 @@ final _link = <String, SDKAccountLink>{
 class _Api implements GeniusApi {
   GeniusNodeReturnValue deleteAccountResult =
       GeniusNodeReturnValue.GENIUS_NODE_RET_OK;
+  bool linkRemovalThrows = false;
 
   final deletedAccounts = <String>[];
   final removedLinks = <String>[];
@@ -87,6 +88,9 @@ class _Api implements GeniusApi {
 
   @override
   Future<void> removeSDKAccountLink(String sdkAddress) async {
+    if (linkRemovalThrows) {
+      throw StateError('keychain unavailable');
+    }
     removedLinks.add(sdkAddress);
   }
 
@@ -250,6 +254,28 @@ void main() {
       expect(api.removedLinks, [_sdkAddr]);
       expect(api.deletedWallet, _walletAddr);
       expect(api.deletedWatchOnly, isFalse);
+    });
+
+    test('a failed link removal still deletes the linked wallet', () async {
+      final api = _Api()..linkRemovalThrows = true;
+      final details = WalletDetailsCubit(
+        initialState: WalletDetailsState(selectedWallet: other),
+        geniusApi: api,
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final bloc = _SeededAppBloc(
+        api: api,
+        walletDetailsCubit: details,
+        wallets: [wallet, other],
+        sdkAccountLinks: _link,
+      );
+
+      bloc.add(DeleteSDKAccount(_sdkAddr));
+      await bloc.close();
+      await details.close();
+
+      expect(api.deletedAccounts, [_sdkAddr]);
+      expect(api.deletedWallet, _walletAddr);
     });
 
     test('linked to the active wallet deletes nothing', () async {
