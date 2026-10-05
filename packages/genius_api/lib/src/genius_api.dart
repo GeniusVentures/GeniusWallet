@@ -512,7 +512,7 @@ class GeniusApi {
     // The start account never goes through _registerWallet's diff below, so
     // it needs its own link: this is the only place both addresses are known
     // for it, on every start including a fresh install's first wallet.
-    if (_address.isNotEmpty) {
+    if (sdkAddressOrNull(_address) != null) {
       try {
         await _secureStorage.saveSDKAccountLink(
           _address,
@@ -1516,7 +1516,8 @@ class GeniusApi {
 
   /// The SDK account the node was started with. Every start imports its key
   /// again, so a delete of this account would not survive a restart.
-  String? getStartAccountAddress() => _isSdkInitialized ? _address : null;
+  String? getStartAccountAddress() =>
+      _isSdkInitialized ? sdkAddressOrNull(_address) : null;
 
   String? getSelectedAccountMnemonic() {
     if (!_isSdkInitialized) {
