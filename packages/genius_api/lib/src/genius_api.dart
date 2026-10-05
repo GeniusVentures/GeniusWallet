@@ -315,7 +315,7 @@ class GeniusApi {
   final _sgnusConnectionController = SGNUSConnectionController();
   final _sgnusTransactionsController = SGNUSTransactionsController();
   final _walletsController = BehaviorSubject<List<Wallet>>.seeded([]);
-  late final String _address;
+  late String _address;
   late final String _basePath;
   bool _isSdkInitialized = false;
   // Memoized deliberately, never reset: initSDK()'s only caller is
@@ -1531,8 +1531,22 @@ class GeniusApi {
 
   /// The SDK account the node was started with. Every start imports its key
   /// again, so a delete of this account would not survive a restart.
-  String? getStartAccountAddress() =>
-      _isSdkInitialized ? sdkAddressOrNull(_address) : null;
+  String? getStartAccountAddress() {
+    if (!_isSdkInitialized) {
+      return null;
+    }
+    // Start read a placeholder: the first real address is still the start
+    // account, since no switch can run before the account list loads.
+    final known = sdkAddressOrNull(_address);
+    if (known != null) {
+      return known;
+    }
+    final now = getSelectedAccountAddress();
+    if (now != null) {
+      _address = now;
+    }
+    return now;
+  }
 
   String? getSelectedAccountMnemonic() {
     if (!_isSdkInitialized) {
