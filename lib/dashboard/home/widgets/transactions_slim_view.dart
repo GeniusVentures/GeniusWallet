@@ -664,7 +664,7 @@ class _TransactionsSlimViewState extends State<TransactionsSlimView> {
         title: 'No buy orders yet',
         message: 'GNUS you buy with a card shows up here.',
         actionLabel: 'Buy GNUS',
-        onAction: () => context.push('/buy', extra: {'origin': 'TRANSACTIONS'}),
+        onAction: () => context.push('/buy'),
       );
     }
 

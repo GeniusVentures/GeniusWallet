@@ -157,11 +157,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('buy page'), findsOneWidget);
-      expect(extras.single, {
-        'fiat': 'EUR',
-        'amount': '75',
-        'origin': 'TRANSACTIONS',
-      });
+      expect(extras.single, {'fiat': 'EUR', 'amount': '75'});
     });
   }
 

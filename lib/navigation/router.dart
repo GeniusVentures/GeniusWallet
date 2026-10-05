@@ -36,6 +36,7 @@ import 'package:genius_wallet/settings/settings_screen.dart';
 import 'package:genius_wallet/squid_router/swap_screen.dart';
 import 'package:genius_wallet/submit_job/cubit/submit_job_cubit.dart';
 import 'package:genius_wallet/submit_job/view/submit_job_screen.dart';
+import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/tokens/token_info_args.dart';
 import 'package:genius_wallet/tokens/token_info_screen.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
@@ -89,13 +90,24 @@ final geniusWalletRouter = GoRouter(
     ),
     GoRoute(
       path: '/checkout',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final args = state.extra as Map<String, dynamic>? ?? {};
-
-        return CheckoutScreen(
+        final screen = CheckoutScreen(
           orderId: args['orderId'] as String? ?? '',
           checkoutUrl: args['checkoutUrl'] as String? ?? '',
           isSandbox: context.read<BanxaApiService>().isSandbox,
+        );
+        if (!GeniusBreakpoints.useDesktopLayout(context)) {
+          return MaterialPage(key: state.pageKey, child: screen);
+        }
+        // Desktop: a dialog over the dimmed app, not a full-window page.
+        return CustomTransitionPage(
+          key: state.pageKey,
+          opaque: false,
+          barrierColor: context.gw.surfaceOverlay,
+          child: screen,
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
         );
       },
     ),
@@ -235,8 +247,6 @@ final geniusWalletRouter = GoRouter(
             return BanxaBuyScreen(
               initialFiatCode: args['fiat'] as String?,
               initialAmount: args['amount'] as String?,
-              // Each caller names where it came from; a deep link has none.
-              originLabel: args['origin'] as String?,
             );
           },
         ),

@@ -111,7 +111,7 @@ const _gnus = Coin(symbol: 'GNUS', address: '0xabc', balance: 10);
 const _usdc = Coin(symbol: 'USDC', address: '0xdef', balance: 10);
 
 void main() {
-  testWidgets('Home: Buy GNUS pushes /buy labelled HOME', (tester) async {
+  testWidgets('Home: Buy GNUS pushes /buy', (tester) async {
     _size(tester, 600, 900);
     final extras = <Object?>[];
     final cubit = _cubit(
@@ -136,12 +136,10 @@ void main() {
     await tester.tap(find.text('Buy GNUS'));
     await tester.pumpAndSettle();
 
-    expect(extras, [
-      {'origin': 'HOME'},
-    ]);
+    expect(extras, [null]);
   });
 
-  testWidgets('Assets: Buy GNUS pushes /buy labelled ASSETS', (tester) async {
+  testWidgets('Assets: Buy GNUS pushes /buy', (tester) async {
     _size(tester, 390, 844);
     final extras = <Object?>[];
     final cubit = _cubit();
@@ -159,12 +157,10 @@ void main() {
     await tester.tap(find.text('Buy GNUS'));
     await tester.pumpAndSettle();
 
-    expect(extras, [
-      {'origin': 'ASSETS'},
-    ]);
+    expect(extras, [null]);
   });
 
-  testWidgets('GNUS coin page: Buy pushes /buy labelled GNUS', (tester) async {
+  testWidgets('GNUS coin page: Buy pushes /buy', (tester) async {
     _size(tester, 1000, 900);
     final extras = <Object?>[];
     final cubit = _cubit(coins: [_gnus], selected: _gnus, seedWallet: true);
@@ -176,9 +172,7 @@ void main() {
     await tester.tap(find.text('Buy'));
     await tester.pumpAndSettle();
 
-    expect(extras, [
-      {'origin': 'GNUS'},
-    ]);
+    expect(extras, [null]);
   });
 
   testWidgets('a coin page that is not GNUS has no Buy', (tester) async {
@@ -217,7 +211,7 @@ void main() {
     });
   }
 
-  testWidgets('Transactions: the header Buy GNUS pushes /buy labelled '
+  testWidgets('Transactions: the header Buy GNUS pushes /buy '
       'TRANSACTIONS', (tester) async {
     _size(tester, 1000, 900);
     final extras = <Object?>[];
@@ -248,9 +242,7 @@ void main() {
     await tester.tap(find.text('Buy GNUS'));
     await tester.pumpAndSettle();
 
-    expect(extras, [
-      {'origin': 'TRANSACTIONS'},
-    ]);
+    expect(extras, [null]);
 
     // Cancels the bloc's periodic poll, which would otherwise fail the test.
     await tester.runAsync(appBloc.close);

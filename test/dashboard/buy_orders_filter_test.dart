@@ -311,7 +311,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('buy page'), findsOneWidget);
-    expect(extra, {'origin': 'TRANSACTIONS'});
+    expect(extra, isNull);
   });
 
   testWidgets('a failed orders fetch is an error with a retry, not empty', (

@@ -806,9 +806,7 @@ class _CoinActionRow extends StatelessWidget {
             size: GWButtonSize.sm,
             label: 'Buy',
             leading: const Icon(Icons.add_card),
-            onPressed: () => GoRouter.of(
-              context,
-            ).push('/buy', extra: <String, dynamic>{'origin': 'GNUS'}),
+            onPressed: () => GoRouter.of(context).push('/buy'),
           ),
       ],
     );

@@ -194,9 +194,7 @@ class WalletInformationState extends State<WalletInformation> {
                     semanticLabel: "Buy GNUS crypto",
                     icon: Icons.attach_money,
                     onPressed: () async {
-                      unawaited(
-                        context.push('/buy', extra: {'origin': 'HOME'}),
-                      );
+                      unawaited(context.push('/buy'));
                     },
                   ),
                   const SizedBox(width: 8),

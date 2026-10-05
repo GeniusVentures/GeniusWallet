@@ -113,7 +113,6 @@ Future<_Rig> _pumpCard(
         path: '/buy',
         builder: (_, _) => BanxaBuyScreen(
           initialFiatCode: fiat,
-          originLabel: 'HOME',
           createCubit: (a) => BuyGnusCubit(
             a,
             readDisclaimerAccepted: () => rig.disclaimerAccepted,
@@ -638,7 +637,7 @@ void main() {
     ) async {
       await _pumpCard(tester);
 
-      await tester.tap(find.text('Buy orders'));
+      await tester.tap(find.byTooltip('Buy orders'));
       await tester.pump(const Duration(milliseconds: 300));
       await tester.pump(const Duration(milliseconds: 300));
 

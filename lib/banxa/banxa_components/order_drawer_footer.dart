@@ -78,7 +78,6 @@ class OrderDrawerFooter extends StatelessWidget {
             onPressed: () => _leaveAndPush(context, '/buy', {
               'fiat': order.fiat,
               'amount': order.fiatAmount,
-              'origin': 'TRANSACTIONS',
             }),
           ),
         ],

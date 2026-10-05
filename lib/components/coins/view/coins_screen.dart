@@ -505,10 +505,7 @@ class CoinsScreenState extends State<CoinsScreen> {
                               size: GWButtonSize.sm,
                               label: 'Buy GNUS',
                               expand: true,
-                              onPressed: () => context.push(
-                                '/buy',
-                                extra: {'origin': 'HOME'},
-                              ),
+                              onPressed: () => context.push('/buy'),
                             ),
                           ),
                         ],

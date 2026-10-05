@@ -129,10 +129,7 @@ class TransactionsScreen extends StatelessWidget {
                             variant: GWButtonVariant.gradientOutline,
                             size: GWButtonSize.sm,
                             label: 'Buy GNUS',
-                            onPressed: () => context.push(
-                              '/buy',
-                              extra: {'origin': 'TRANSACTIONS'},
-                            ),
+                            onPressed: () => context.push('/buy'),
                           ),
                         ),
                         // No Expanded: it would demand a bounded height the

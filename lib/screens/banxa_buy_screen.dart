@@ -19,7 +19,6 @@ import 'package:genius_wallet/components/cards/gw_kicker.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/disclaimer_dialogue.dart';
 import 'package:genius_wallet/components/effects/gw_hoverable.dart';
-import 'package:genius_wallet/components/gw_back_link.dart';
 import 'package:genius_wallet/components/gw_control_track.dart';
 import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/components/loading.dart';
@@ -41,16 +40,11 @@ class BanxaBuyScreen extends StatefulWidget {
     super.key,
     this.initialFiatCode,
     this.initialAmount,
-    this.originLabel,
     this.createCubit,
   });
 
   final String? initialFiatCode;
   final String? initialAmount;
-
-  /// Names where the caller pushed `/buy` from; a deep link has none and the
-  /// back link falls back to a neutral label.
-  final String? originLabel;
 
   /// Lets a test hand in a cubit with its own clock and no device storage.
   @visibleForTesting
@@ -124,19 +118,18 @@ class _BanxaBuyScreenState extends State<BanxaBuyScreen> {
             c.errorMessage.isNotEmpty && p.errorMessage != c.errorMessage,
         listener: (context, state) =>
             showToast(context, state.errorMessage, type: ToastType.error),
-        child: _BuyPage(originLabel: widget.originLabel),
+        child: const _BuyPage(),
       ),
     );
   }
 }
 
 class _BuyPage extends StatelessWidget {
-  const _BuyPage({required this.originLabel});
-
-  final String? originLabel;
+  const _BuyPage();
 
   @override
   Widget build(BuildContext context) {
+    final gw = Theme.of(context).extension<GWColors>() ?? GWColors.dark();
     return Scaffold(
       body: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -153,32 +146,32 @@ class _BuyPage extends StatelessWidget {
               constraints: const BoxConstraints(
                 maxWidth: GeniusBreakpoints.xxl,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GWBackLink(
-                    label: originLabel ?? 'BACK',
-                    onTap: () => context.pop(),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GWPageHeader(
+                        title: 'Buy GNUS',
+                        subtitle: 'Powered by Banxa',
+                        centered: true,
+                        trailing: IconButton(
+                          icon: Icon(
+                            Icons.receipt_long_outlined,
+                            color: gw.textSecondary,
+                            size: 24,
+                          ),
+                          tooltip: 'Buy orders',
+                          onPressed: () =>
+                              context.go('/transactions?filter=purchase'),
+                        ),
+                      ),
+                      const _BuyCard(),
+                    ],
                   ),
-                  GWPageHeader(
-                    title: 'Buy GNUS',
-                    subtitle: 'Powered by Banxa',
-                    trailing: GWButton(
-                      variant: GWButtonVariant.gradientOutline,
-                      size: GWButtonSize.sm,
-                      label: 'Buy orders',
-                      onPressed: () =>
-                          context.go('/transactions?filter=purchase'),
-                    ),
-                  ),
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      child: const _BuyCard(),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
