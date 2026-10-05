@@ -10,26 +10,21 @@ import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
 import 'package:genius_wallet/utils/wallet_utils.dart';
 
-/// True for the exact SGNUS address shape (`GeniusSDK.h`'s public-address
-/// format): `0x` plus 128 hex characters, any case, after trimming
-/// surrounding space. The 42-character EVM payout shape does not apply to a
-/// main address here.
+/// True for an SGNUS public address: `0x` plus 128 hex characters, any case,
+/// after trimming. A 42-character EVM address is not a main address.
 bool isSdkAddress(String text) =>
     RegExp(r'^0x[0-9a-fA-F]{128}$').hasMatch(text.trim());
 
-/// Opens the main picker: the user's other own SDK accounts as rows, plus a
-/// manual-entry fallback. Returns the chosen address, or null on Cancel.
-/// [candidates] minus [excluded] (case-insensitive) is what the list shows;
-/// a typed address is also checked against [excluded]. Reads the registry
-/// once here, on the caller's own context, rather than inside the dialog
-/// widget -- a dialog route sits beside `home` in the widget tree, not
-/// under it, so a provider scoped to `home` would not reach it.
+/// Lets the user pick one of [candidates] not in [excluded], or type an
+/// address (also checked against [excluded]). Returns it, or null on Cancel.
 Future<String?> showMainPicker(
   BuildContext context, {
   required String title,
   required List<String> candidates,
   required Set<String> excluded,
 }) {
+  // Read here: the dialog route sits beside `home`, so a provider scoped to
+  // `home` would not reach it.
   final nameFor = context.read<ChildOperationsCubit>().nameFor;
   return showDialog<String>(
     context: context,
