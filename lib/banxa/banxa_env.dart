@@ -4,6 +4,10 @@
 const String kBanxaApiKey = String.fromEnvironment('GW_BANXA_API_KEY');
 const bool kBanxaSandbox = bool.fromEnvironment('GW_BANXA_SANDBOX');
 
+/// Sandbox only: buy this coin instead of GNUS, so checkout can be walked
+/// while Banxa does not list GNUS. Ignored outside the sandbox.
+const String kBanxaTestCoin = String.fromEnvironment('GW_BANXA_TEST_COIN');
+
 const String kBanxaPartnerCode = 'gnus';
 
 String banxaApiBase({required bool sandbox}) {

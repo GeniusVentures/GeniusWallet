@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/models/wallet.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/banxa/banxa_api_services.dart';
+import 'package:genius_wallet/banxa/banxa_env.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/banxa_customer_id.dart';
 import 'package:genius_wallet/banxa/banxa_helpers/buy_defaults.dart';
 import 'package:genius_wallet/banxa/banxa_model.dart';
@@ -96,9 +97,10 @@ class BuyGnusCubit extends Cubit<BuyGnusState> {
     if (isClosed) {
       return;
     }
-    final gnus = cryptos
-        .where((c) => c.code.toUpperCase() == 'GNUS')
-        .firstOrNull;
+    final coin = _api.isSandbox && kBanxaTestCoin.isNotEmpty
+        ? kBanxaTestCoin.toUpperCase()
+        : 'GNUS';
+    final gnus = cryptos.where((c) => c.code.toUpperCase() == coin).firstOrNull;
     if (gnus == null) {
       emit(state.copyWith(availability: BuyAvailability.notListed));
       return;
