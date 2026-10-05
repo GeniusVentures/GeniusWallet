@@ -282,6 +282,30 @@ void main() {
     });
   });
 
+  group('SDK account links', () {
+    test('an unreadable store reads as no links', () async {
+      final storage = await LocalWalletStorage.create(
+        secureStorage: _UnreadableStorage(),
+      );
+
+      expect(await storage.getSDKAccountLinks(), isEmpty);
+    });
+
+    test(
+      'an unreadable store fails a save instead of overwriting the links',
+      () async {
+        final storage = await LocalWalletStorage.create(
+          secureStorage: _UnreadableStorage(),
+        );
+
+        await expectLater(
+          storage.saveSDKAccountLink('0xsdk', '0xwallet', 'Main'),
+          throwsA(isA<PlatformException>()),
+        );
+      },
+    );
+  });
+
   group('SDK default wallet', () {
     const a = 'wallet_0xaaaa';
     const b = 'wallet_0xbbbb';

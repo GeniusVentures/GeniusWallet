@@ -264,7 +264,7 @@ class LocalWalletStorage {
             return;
           }
           final lowered = walletAddress.toLowerCase();
-          final links = await getSDKAccountLinks();
+          final links = await _readSDKAccountLinks();
           var changed = false;
           for (final sdkAddress in links.keys.toList()) {
             final link = links[sdkAddress]!;
@@ -443,8 +443,20 @@ class LocalWalletStorage {
   }
 
   /// The wallet each SDK account was produced from, keyed by lowercased SDK
-  /// address. Never throws — a missing or corrupt value reads as no links.
+  /// address. Never throws — a missing, corrupt or unreadable value reads as
+  /// no links.
   Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async {
+    try {
+      return await _readSDKAccountLinks();
+    } catch (e) {
+      debugPrint('Failed to read SDK account links: $e');
+      return {};
+    }
+  }
+
+  // Throws when storage can't be read, so a read-modify-write never saves
+  // an empty map over links it simply failed to read.
+  Future<Map<String, SDKAccountLink>> _readSDKAccountLinks() async {
     final raw = await _secureStorage.read(key: _sdkAccountLinksKey);
     if (raw == null) {
       return {};
@@ -472,7 +484,7 @@ class LocalWalletStorage {
     String walletAddress,
     String walletName,
   ) => _linksLock.run(() async {
-    final links = await getSDKAccountLinks();
+    final links = await _readSDKAccountLinks();
     links[sdkAddress.toLowerCase()] = (
       walletAddress: walletAddress.toLowerCase(),
       walletName: walletName,
@@ -485,7 +497,7 @@ class LocalWalletStorage {
   /// as "linked" to a wallet that is not coming back.
   Future<void> removeSDKAccountLink(String sdkAddress) =>
       _linksLock.run(() async {
-        final links = await getSDKAccountLinks();
+        final links = await _readSDKAccountLinks();
         if (links.remove(sdkAddress.toLowerCase()) == null) {
           return;
         }
