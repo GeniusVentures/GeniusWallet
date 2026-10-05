@@ -29,9 +29,9 @@ bool _isChildSide(ChildOperationKind kind) =>
 /// confirmed yet" instead.
 const childOperationTimeout = Duration(minutes: 2);
 
-/// How long a fund or recover's balance baseline stays trustworthy. Until
-/// then a timed-out one can still resolve and still locks its child; past it,
-/// it never resolves and releases its hold and its lock.
+/// How long a timed-out operation keeps locking its child: a write submitted
+/// but not yet seen can still land. For a fund or recover it is also how long
+/// its balance baseline stays trustworthy; past it, it never resolves.
 // ponytail: other movement on the child inside this window can still read as
 // the write landing, and one landing after it can read as the next fund or
 // recover on that child; the upgrade path is a per-write tx hash from the SDK.
@@ -67,8 +67,8 @@ class ChildOperation {
   final DateTime submittedAt;
   final bool notConfirmed;
 
-  /// A fund or recover whose baseline is too old: it can no longer resolve,
-  /// hold its amount or lock its child.
+  /// Past [_baselineLifetime]: it no longer locks its child. A fund or
+  /// recover also stops resolving and holding its amount.
   final bool expired;
 
   /// A fund or recover whose node has run as another account since submit:
@@ -295,16 +295,20 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     if (balanceLock != null) {
       return balanceLock;
     }
-    // A notConfirmed one no longer blocks: it has no expiry, so a write that
-    // never lands would otherwise lock its child for good.
+    // A timed-out one still blocks until it expires: a revoke that lands
+    // late would otherwise strand a fund sent in the meantime.
     final change = state.operations
         .where(
           (op) =>
               !_hasAmount(op.kind) &&
-              !op.notConfirmed &&
+              !op.expired &&
               op.target.toLowerCase() == target.toLowerCase(),
         )
         .firstOrNull;
+    if (change != null && change.notConfirmed) {
+      return "An earlier change for this child hasn't confirmed yet. Check "
+          'again, or wait a few minutes.';
+    }
     return switch (change?.kind) {
       ChildOperationKind.revoke => 'Already revoking this child',
       ChildOperationKind.detach => 'Already detaching this account',
@@ -335,7 +339,7 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     // is not reflected in registrations until it lands.
     final incoming = state.operations.any(
       (op) =>
-          !op.notConfirmed &&
+          !op.expired &&
           [
             op.target,
             op.main,
@@ -551,7 +555,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
       // it still holds and locks until it expires, or its late write could
       // read as the next fund on this child from another account.
       final switches = _holdsBalance(op) && !op.switchedAway && !_onOwnView(op);
-      final expires = _holdsBalance(op) && !_baselineTrusted(op, now);
+      final expires = _hasAmount(op.kind)
+          ? _holdsBalance(op) && !_baselineTrusted(op, now)
+          : !op.expired && !now.isBefore(op.submittedAt.add(_baselineLifetime));
       if (timesOut || switches || expires) {
         remaining.add(
           op.copyWith(
@@ -572,9 +578,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
     if (resolved.isNotEmpty) {
       _onResolved?.call();
     }
-    // Stops once nothing left can resolve on its own: a timed-out fund or
-    // recover keeps it running until it expires, so its lock lifts on time.
-    if (remaining.every((op) => op.notConfirmed && !_holdsBalance(op))) {
+    // Stops once every op left has expired: a timed-out one keeps it running
+    // so its lock lifts on time.
+    if (remaining.every((op) => op.expired)) {
       _pollTimer?.cancel();
       _pollTimer = null;
     }
@@ -583,7 +589,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   bool _signalMet(ChildOperation op, DateTime now) {
     // The flags, not the clock or the running account, are final: a clock
     // stepped back or a switch back would otherwise trust a stale baseline.
-    if (op.expired || op.switchedAway) {
+    // A registration change reads the list, not a baseline, so it can still
+    // resolve after it expires.
+    if ((op.expired && _hasAmount(op.kind)) || op.switchedAway) {
       return false;
     }
     // A preset armed or cleared since submit swaps every read's source.

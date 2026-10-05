@@ -1381,13 +1381,13 @@ void main() {
       now: () => now,
     );
 
-    // A pending revoke locks Fund, so the revoke times out first.
+    // A pending revoke locks Fund, so the revoke expires first.
     operations.submit(
       kind: ChildOperationKind.revoke,
       target: _childAddress,
       main: _mainAddress,
     );
-    now = now.add(childOperationTimeout);
+    now = now.add(childOperationTimeout * 3);
     operations.resolve();
     operations.submit(
       kind: ChildOperationKind.fund,
@@ -1436,7 +1436,7 @@ void main() {
       target: _mainAddress,
       main: _parentAddress,
     );
-    now = now.add(childOperationTimeout);
+    now = now.add(childOperationTimeout * 3);
     operations.resolve();
     operations.submit(
       kind: ChildOperationKind.move,

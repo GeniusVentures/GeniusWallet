@@ -1062,7 +1062,7 @@ void main() {
     });
 
     test('deleting a main is refused while a child registers or moves under '
-        'it, until that times out', () {
+        'it, until that expires', () {
       var now = DateTime(2024);
       final api = _FakeApi();
       final cubit = ChildOperationsCubit(
@@ -1092,7 +1092,12 @@ void main() {
         isNotNull,
       );
 
+      // Timed out is not enough: the register can still land.
       now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+      expect(cubit.deleteLockReason(_mainAddress, noChildren), isNotNull);
+
+      now = submittedAt.add(childOperationTimeout * 3);
       cubit.resolve();
       expect(cubit.deleteLockReason(_mainAddress, noChildren), isNull);
 
@@ -1103,6 +1108,46 @@ void main() {
         newMain: _newMainAddress,
       );
       expect(cubit.deleteLockReason(_newMainAddress, noChildren), isNotNull);
+
+      cubit.close();
+    });
+
+    test('a timed-out revoke still locks its child until it expires', () {
+      var now = DateTime(2024);
+      // Still listed under its main, so the revoke has not landed.
+      final api = _FakeApi()
+        ..registrationEntries = const [
+          ChildRegistration(
+            childAddress: _childAddress,
+            mainAddress: _mainAddress,
+            sequence: 0,
+          ),
+        ];
+      final cubit = ChildOperationsCubit(
+        api: api,
+        readAppState: () => const AppState(
+          selectedSDKAccount: _mainAddress,
+          sdkAccounts: [_mainAddress, _childAddress],
+          wallets: [],
+          sdkAccountLinks: <String, SDKAccountLink>{},
+        ),
+        now: () => now,
+      );
+      final submittedAt = now;
+      cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+
+      now = submittedAt.add(childOperationTimeout);
+      cubit.resolve();
+      expect(cubit.state.operations.single.notConfirmed, isTrue);
+      expect(cubit.lockReason(_childAddress), contains("hasn't confirmed"));
+
+      now = submittedAt.add(childOperationTimeout * 3);
+      cubit.resolve();
+      expect(cubit.lockReason(_childAddress), isNull);
 
       cubit.close();
     });
