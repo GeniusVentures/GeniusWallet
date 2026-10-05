@@ -56,6 +56,10 @@ class _NodeApi implements GeniusApi {
   List<String> getAvailableAccounts() => const [_old, _target, _other];
 
   @override
+  GeniusInitStatus getInitializationStatus() =>
+      const GeniusInitStatus(percentage: 1.0, message: 'ready');
+
+  @override
   Future<Map<String, SDKAccountLink>> getSDKAccountLinks() async => {};
 
   @override
@@ -229,6 +233,22 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     expect(bloc.state.selectedSDKAccount, _target);
     expect(bloc.state.switchingSDKAccount, isNull);
+
+    await tester.runAsync(() => bloc.close());
+  });
+
+  testWidgets('finishing initialization re-reads the node account', (
+    tester,
+  ) async {
+    final api = _NodeApi();
+    final bloc = _SeededAppBloc(api);
+    api.reported = _target;
+
+    bloc.add(InitializationStatusTicked());
+    await tester.pump();
+    await tester.pump();
+
+    expect(bloc.state.selectedSDKAccount, _target);
 
     await tester.runAsync(() => bloc.close());
   });

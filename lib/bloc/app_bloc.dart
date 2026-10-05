@@ -567,6 +567,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       );
       if (status.percentage >= 1.0) {
         _initTimer?.cancel();
+        // Reads made while the node was starting may have seen only its
+        // placeholder address, and nothing else refreshes them.
+        add(RefreshSDKAccounts());
       }
     } catch (_) {
       // Swallow and retry next tick, mirroring
