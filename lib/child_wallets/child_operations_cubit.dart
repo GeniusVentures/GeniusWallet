@@ -154,6 +154,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   /// The account the node currently runs as, or null when it isn't running.
   String? get runningAccount => _readAppState().selectedSDKAccount;
 
+  /// The account an earning switch is moving to, while one is pending.
+  String? get switchingTo => _readAppState().switchingSDKAccount;
+
   /// True only in a dev-tools debug build with a read preset armed - every
   /// read and write below then routes to [DevMockChildWallets] instead of
   /// the SDK, so no real write can ever happen while a preset is armed.
@@ -418,7 +421,9 @@ class ChildOperationsCubit extends Cubit<ChildOperationsState> {
   }) {
     final running = runningAccount;
     final requiredRunner = _isChildSide(kind) ? target : main;
-    if (running == null ||
+    // Mid-switch the node may already run as another account than [running].
+    if (switchingTo != null ||
+        running == null ||
         running.toLowerCase() != requiredRunner.toLowerCase()) {
       return null;
     }

@@ -20,7 +20,10 @@ Future<bool> ensureRunningAs(
 ) async {
   final registry = context.read<ChildOperationsCubit>();
   final running = registry.runningAccount;
-  if (running != null &&
+  // Mid-switch the node may already run as another account than [running].
+  final pendingSwitch = registry.switchingTo;
+  if (pendingSwitch == null &&
+      running != null &&
       running.toLowerCase() == requiredAccount.toLowerCase()) {
     return true;
   }
@@ -29,8 +32,6 @@ Future<bool> ensureRunningAs(
   // the same pattern every other dialog in this file family uses.
   final navigator = Navigator.of(context, rootNavigator: true);
 
-  final appState = context.read<AppBloc>().state;
-  final pendingSwitch = appState.switchingSDKAccount;
   if (pendingSwitch != null &&
       pendingSwitch.toLowerCase() != requiredAccount.toLowerCase()) {
     await GWDialog.show<void>(

@@ -1112,6 +1112,29 @@ void main() {
       cubit.close();
     });
 
+    test('no child write starts while an earning switch is pending', () {
+      final cubit = ChildOperationsCubit(
+        api: _FakeApi(),
+        readAppState: () => const AppState(
+          selectedSDKAccount: _mainAddress,
+          switchingSDKAccount: _childAddress,
+          sdkAccounts: [_mainAddress, _childAddress],
+          wallets: [],
+          sdkAccountLinks: <String, SDKAccountLink>{},
+        ),
+      );
+
+      final result = cubit.submit(
+        kind: ChildOperationKind.revoke,
+        target: _childAddress,
+        main: _mainAddress,
+      );
+
+      expect(result, isNull);
+      expect(cubit.state.operations, isEmpty);
+      cubit.close();
+    });
+
     test('a timed-out revoke still locks its child until it expires', () {
       var now = DateTime(2024);
       // Still listed under its main, so the revoke has not landed.
