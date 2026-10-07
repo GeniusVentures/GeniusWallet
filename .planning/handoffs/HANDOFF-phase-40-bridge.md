@@ -1,6 +1,6 @@
 # Handoff: Phase 40, always-available GNUS bridge (2026-10-07)
 
-Worktree `../GW-v3`, branch `gsd/v3.0-banxa-hardening`. Everything is committed locally and not pushed.
+Worktree `../GW-v3`, branch `gsd/v3.0-always-available-bridge` (draft PR #264, base `gsd/v3.0-banxa-hardening`).
 
 ## Done
 - Phase 40 discussed, researched, UI-SPEC'd, planned and executed: 4 plans, 3 waves.
