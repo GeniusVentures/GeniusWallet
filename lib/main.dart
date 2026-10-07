@@ -442,6 +442,7 @@ class MyApp extends StatelessWidget {
               readAppState: () => context.read<AppBloc>().state,
               appStates: context.read<AppBloc>().stream,
               walletDetails: context.read<WalletDetailsCubit>(),
+              childOperations: context.read<ChildOperationsCubit>(),
             ),
           ),
         ],
