@@ -60,8 +60,8 @@ class _MarketsScreenState extends State<MarketsScreen> {
   void _openToken(CoinGeckoCoin coin, CoinGeckoMarketData data) {
     // `TokenInfoArgs` replaces the old `coin` key, which the route never
     // actually read (Findings 1) - `coinGeckoId`/`symbol` are the two fields
-    // anything downstream needs. `isGnusWalletConnected` is gone too: the
-    // route derives it now.
+    // anything downstream needs. No connection flag travels in the extra;
+    // the coin page reads its Bridge gate from its own cubit.
     context.push(
       '/token-info',
       extra: TokenInfoArgs(

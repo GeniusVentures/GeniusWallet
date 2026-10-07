@@ -181,9 +181,8 @@ void main() {
             isFalse,
             reason:
                 '${entry.key}: a /token-info push still carries '
-                'isGnusWalletConnected in its extra - router.dart derives '
-                'this flag now (a BehaviorSubject.seeded read), so no '
-                'call site should carry it any more',
+                'isGnusWalletConnected in its extra - nothing reads that '
+                'key any more, so no call site should carry it',
           );
         }
       }

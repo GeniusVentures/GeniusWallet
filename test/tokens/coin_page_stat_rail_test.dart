@@ -229,9 +229,8 @@ void main() {
       // Swap is wired and works from every route.
       expect(find.widgetWithText(GWButton, 'Swap'), findsOneWidget);
 
-      // Bridge is ABSENT, not greyed: no coin is selected here, so
-      // `isGnusBridgeEnabled`'s symbol check is false regardless of
-      // `isGnusWalletConnected` - the action does not apply rather than being
+      // Bridge is ABSENT, not greyed: it exists only on the GNUS coin, and no
+      // coin is selected here, so the action does not apply rather than being
       // unavailable.
       expect(find.widgetWithText(GWButton, 'Bridge'), findsNothing);
     },
