@@ -19,7 +19,10 @@
 // changing it a deliberate act rather than an accident.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/models/network.dart';
+import 'package:genius_api/models/wallet.dart';
+import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_wallet/reown/utilities.dart';
 
 void main() {
@@ -128,6 +131,41 @@ void main() {
       expect(canSignOn(const Network(chainId: 8453, rpcUrl: '')), isFalse);
       expect(canSignOn(const Network(chainId: 8453)), isFalse);
       expect(canSignOn(const Network(rpcUrl: 'https://x')), isFalse);
+    });
+  });
+
+  Wallet walletOf(WalletType type) => Wallet(
+    coinType: TWCoinType.TWCoinTypeEthereum,
+    walletName: 'w',
+    currencySymbol: 'ETH',
+    walletType: type,
+    balance: 0,
+    address: '0x1234567890123456789012345678901234567890',
+  );
+
+  group('walletCanSign', () {
+    test('only wallets that hold a key can sign', () {
+      expect(walletCanSign(walletOf(WalletType.tracking)), isFalse);
+      expect(walletCanSign(walletOf(WalletType.sgnus)), isFalse);
+      expect(walletCanSign(walletOf(WalletType.privateKey)), isTrue);
+      expect(walletCanSign(walletOf(WalletType.mnemonic)), isTrue);
+      expect(walletCanSign(walletOf(WalletType.keystore)), isTrue);
+    });
+  });
+
+  group('canSendFrom', () {
+    const rpc = Network(chainId: 8453, rpcUrl: 'https://x');
+    final key = walletOf(WalletType.mnemonic);
+
+    test('needs a wallet, a network and an RPC on it', () {
+      expect(canSendFrom(null, rpc), isFalse);
+      expect(canSendFrom(key, null), isFalse);
+      expect(canSendFrom(key, const Network(chainId: 8453)), isFalse);
+      expect(canSendFrom(key, rpc), isTrue);
+    });
+
+    test('a wallet that cannot sign never sends', () {
+      expect(canSendFrom(walletOf(WalletType.tracking), rpc), isFalse);
     });
   });
 
