@@ -400,7 +400,7 @@ TransactionBadgeKind _badgeForType(TransactionType? type, bool isSent) {
 String _actionFor(TransactionType? type, bool isSent) {
   switch (type) {
     case TransactionType.mint:
-      return 'Minted';
+      return 'Earned';
     case TransactionType.escrow:
       return 'Escrow locked';
     case TransactionType.escrowRelease:
@@ -559,7 +559,7 @@ TxRowContent txRowContent(
   final String subtitleBase;
   switch (type) {
     case TransactionType.mint:
-      subtitleLead = 'Minted';
+      subtitleLead = 'Earned';
       subtitleBase = 'to wallet';
     case TransactionType.escrow:
       subtitleLead = 'Locked';

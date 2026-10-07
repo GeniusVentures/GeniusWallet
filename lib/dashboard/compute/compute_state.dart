@@ -33,17 +33,18 @@ enum ComputeState {
 
   /// The SGNUS node does not report itself connected.
   ///
-  /// Deliberately checked BEFORE [notLinked]: `wallet_overview.dart:179`
+  /// Deliberately checked BEFORE [notDefaultAccount]: `wallet_overview.dart:179`
   /// passes `connection?.walletAddress ?? ""` for the node's wallet address
   /// when there is no connection, so without this ordering a disconnected
-  /// node makes every wallet resolve to "not linked" - a false accusation
-  /// against the user's own wallet. A future reader who reorders these two
-  /// rungs re-introduces that bug.
+  /// node makes every wallet resolve to "not the default account" - a false
+  /// accusation against the user's own wallet. A future reader who reorders
+  /// these two rungs re-introduces that bug.
   disconnected,
 
   /// The node is connected, but its own wallet address differs from the
-  /// selected wallet's address.
-  notLinked,
+  /// selected wallet's address - the selected wallet is not the one the SDK
+  /// starts with.
+  notDefaultAccount,
 
   /// The processing feed is flagged unavailable - `app_bloc.dart:192-195`
   /// cancels `_processingTimer` permanently on any exception and emits
@@ -86,7 +87,7 @@ enum ComputeLink {
     ComputeLink.none => null,
     ComputeLink.chooseWallet => 'Choose a wallet ›',
     ComputeLink.switchWallet => 'Switch wallet ›',
-    ComputeLink.seeNodeStatus => 'See node status ›',
+    ComputeLink.seeNodeStatus => 'Earning status ›',
     ComputeLink.reconnect => 'Reconnect ›',
   };
 }
@@ -100,7 +101,7 @@ const Duration jobCompleteWindow = Duration(seconds: 60);
 /// Resolves the compute node's state from the screen's raw inputs.
 ///
 /// Precedence, top to bottom (14-01-PLAN.md Task 2 `<action>`): [noWallet] →
-/// [disconnected] → [notLinked] → [unavailable] → [startingUp] →
+/// [disconnected] → [notDefaultAccount] → [unavailable] → [startingUp] →
 /// [processing] → [jobComplete] → [ready].
 ///
 /// - [hasSelectedWallet]: whether any wallet is selected at all.
@@ -132,19 +133,19 @@ ComputeState resolveComputeState({
     return ComputeState.noWallet;
   }
 
-  // Disconnected outranks not-linked - see the doc comment on
+  // Disconnected outranks not-the-default-account - see the doc comment on
   // ComputeState.disconnected for why this ordering is load-bearing.
   if (!isNodeConnected) {
     return ComputeState.disconnected;
   }
 
   // The emptiness guard (new this phase): a connected node reporting an
-  // empty wallet address never resolves to notLinked, whatever the selected
-  // wallet is. An empty nodeWalletAddress here means the node has not yet
-  // reported one, not that it is linked to nothing.
+  // empty wallet address never resolves to notDefaultAccount, whatever the
+  // selected wallet is. An empty nodeWalletAddress here means the node has
+  // not yet reported one, not that the selected wallet isn't its default.
   if (nodeWalletAddress.isNotEmpty &&
       nodeWalletAddress != selectedWalletAddress) {
-    return ComputeState.notLinked;
+    return ComputeState.notDefaultAccount;
   }
 
   if (isProcessingUnavailable) {
@@ -218,7 +219,8 @@ class ComputeStatusView {
 
   /// Whether the panel's "New processing job" CTA is enabled. Only
   /// [ComputeState.ready] enables it - every other state either has nothing
-  /// selected, nothing linked, nothing reachable, or a job already running.
+  /// selected, is not the default account, nothing reachable, or a job
+  /// already running.
   final bool ctaEnabled;
 
   const ComputeStatusView({
@@ -293,8 +295,8 @@ ComputeStatusView viewForComputeState(
       subline = 'Not connected to the SGNUS network';
       dotRole = ComputeDotRole.error;
       link = ComputeLink.seeNodeStatus;
-    case ComputeState.notLinked:
-      label = 'Not linked';
+    case ComputeState.notDefaultAccount:
+      label = 'Not the default account';
       subline = 'This wallet is not the one connected to SGNUS';
       dotRole = ComputeDotRole.warning;
       link = ComputeLink.switchWallet;
@@ -308,7 +310,7 @@ ComputeStatusView viewForComputeState(
       subline = 'Feed live';
       dotRole = ComputeDotRole.brand;
     case ComputeState.processing:
-      label = 'Processing';
+      label = 'Earning';
       subline = null;
       dotRole = ComputeDotRole.brand;
     case ComputeState.jobComplete:
@@ -318,7 +320,7 @@ ComputeStatusView viewForComputeState(
       dotRole = ComputeDotRole.success;
     case ComputeState.ready:
       label = 'Ready';
-      subline = 'Node online · waiting for work';
+      subline = 'Online · waiting for work';
       trailing = 'idle';
       dotRole = ComputeDotRole.success;
   }

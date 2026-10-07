@@ -261,6 +261,17 @@ class _SendBodyState extends State<_SendBody> {
     final gasSymbol = (cubit.network.nativeSymbol ?? cubit.network.symbol ?? '')
         .toUpperCase();
     final assetSymbol = (cubit.state.coin?.symbol ?? gasSymbol).toUpperCase();
+    // Named only when it is genuinely the signer: a wallet switch mid-review
+    // must not caption the address with a name that no longer signs it.
+    final selectedWallet = context
+        .read<WalletDetailsCubit>()
+        .state
+        .selectedWallet;
+    final fromWalletName =
+        selectedWallet?.address.toLowerCase() ==
+            cubit.walletAddress.toLowerCase()
+        ? selectedWallet?.walletName
+        : null;
     // The drawer opens on the root navigator, but this page sits inside the
     // shell's nested one -- a plain `Navigator.of(context)` would pop /send
     // and leave the drawer open.
@@ -274,6 +285,7 @@ class _SendBodyState extends State<_SendBody> {
       child: SingleChildScrollView(
         child: SendTransactionDetails(
           fromAddress: cubit.walletAddress,
+          fromWalletName: fromWalletName,
           toAddress: review.recipient,
           amount: formatTokenAmount(review.rawAmount, review.decimals),
           amountSymbol: assetSymbol,

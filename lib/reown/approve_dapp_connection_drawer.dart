@@ -101,7 +101,7 @@ class ApproveDappConnectionDrawer {
             child: GWButton(
               label: "Deny",
               variant: GWButtonVariant.gradientOutline,
-              size: GWButtonSize.lg,
+              size: GWButtonSize.sm,
               expand: true,
               onPressed: () => Navigator.of(context).pop(false),
             ),
@@ -111,7 +111,7 @@ class ApproveDappConnectionDrawer {
             child: GWButton(
               label: "Allow",
               variant: GWButtonVariant.gradient,
-              size: GWButtonSize.lg,
+              size: GWButtonSize.sm,
               expand: true,
               onPressed: () => Navigator.of(context).pop(true),
             ),

@@ -49,6 +49,7 @@ class GWCopyRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.shorten = true,
+    this.caption,
   });
 
   final String label;
@@ -62,6 +63,10 @@ class GWCopyRow extends StatelessWidget {
   /// ellipsis. The clipboard always receives the full [value] regardless of
   /// this flag - truncation is display-only, by construction.
   final bool shorten;
+
+  /// Display-only line shown above the value, e.g. a wallet name over its
+  /// address. Never copied -- the clipboard always gets [value] regardless.
+  final String? caption;
 
   String get _displayValue {
     final v = value;
@@ -113,13 +118,36 @@ class GWCopyRow extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: Text(
-                        _displayValue,
-                        textAlign: TextAlign.right,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: mono,
-                      ),
+                      child: (caption == null || caption!.isEmpty)
+                          ? Text(
+                              _displayValue,
+                              textAlign: TextAlign.right,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: mono,
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  caption!,
+                                  textAlign: TextAlign.right,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GeniusWalletTypography.bodySm.copyWith(
+                                    color: gw.textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  _displayValue,
+                                  textAlign: TextAlign.right,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: mono,
+                                ),
+                              ],
+                            ),
                     ),
                     const SizedBox(width: GeniusWalletConsts.space3),
                     Icon(

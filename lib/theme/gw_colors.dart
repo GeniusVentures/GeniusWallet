@@ -87,6 +87,7 @@ class GWColors extends ThemeExtension<GWColors> {
     required this.brandPrimaryMuted,
     required this.brandPrimarySubtle,
     required this.brandPrimaryOnSurface,
+    required this.brandPrimaryBadgeText,
     required this.brandSecondary,
     required this.brandSecondaryStrong,
     required this.brandSecondaryBright,
@@ -210,6 +211,11 @@ class GWColors extends ThemeExtension<GWColors> {
   /// consumer paints body text on surfaceSunken. Upgrade path: a second,
   /// darker step if a body-text consumer on surfaceSunken ever appears.
   final Color brandPrimaryOnSurface;
+
+  /// [brandPrimaryOnSurface], nudged for a label on its own ~12% wash over
+  /// the account switcher's selection tint, where the plain colour falls just
+  /// under 4.5:1 (4.42:1 dark, 4.498:1 light).
+  final Color brandPrimaryBadgeText;
 
   // Brand -- secondary (mint/green). Vibrant v1.2 -- electric.
   final Color brandSecondary;
@@ -360,6 +366,7 @@ class GWColors extends ThemeExtension<GWColors> {
       brandPrimaryMuted: GeniusWalletColors._brandPrimaryMuted,
       brandPrimarySubtle: GeniusWalletColors._brandPrimarySubtle,
       brandPrimaryOnSurface: GeniusWalletColors._brandPrimaryOnSurface,
+      brandPrimaryBadgeText: GeniusWalletColors._brandPrimaryBadgeText,
       brandSecondary: GeniusWalletColors._brandSecondary,
       brandSecondaryStrong: GeniusWalletColors._brandSecondaryStrong,
       brandSecondaryBright: GeniusWalletColors._brandSecondaryBright,
@@ -531,6 +538,7 @@ class GWColors extends ThemeExtension<GWColors> {
       brandPrimaryMuted: GeniusWalletColors._brandPrimaryMuted,
       brandPrimarySubtle: GeniusWalletColors._brandPrimarySubtle,
       brandPrimaryOnSurface: GeniusWalletColors._brandPrimaryOnSurface,
+      brandPrimaryBadgeText: GeniusWalletColors._brandPrimaryBadgeText,
       brandSecondary: GeniusWalletColors._brandSecondary,
       brandSecondaryStrong: GeniusWalletColors._brandSecondaryStrong,
       brandSecondaryBright: GeniusWalletColors._brandSecondaryBright,
@@ -699,6 +707,7 @@ class GWColors extends ThemeExtension<GWColors> {
     Color? brandPrimaryMuted,
     Color? brandPrimarySubtle,
     Color? brandPrimaryOnSurface,
+    Color? brandPrimaryBadgeText,
     Color? brandSecondary,
     Color? brandSecondaryStrong,
     Color? brandSecondaryBright,
@@ -772,6 +781,8 @@ class GWColors extends ThemeExtension<GWColors> {
       brandPrimarySubtle: brandPrimarySubtle ?? this.brandPrimarySubtle,
       brandPrimaryOnSurface:
           brandPrimaryOnSurface ?? this.brandPrimaryOnSurface,
+      brandPrimaryBadgeText:
+          brandPrimaryBadgeText ?? this.brandPrimaryBadgeText,
       brandSecondary: brandSecondary ?? this.brandSecondary,
       brandSecondaryStrong: brandSecondaryStrong ?? this.brandSecondaryStrong,
       brandSecondaryBright: brandSecondaryBright ?? this.brandSecondaryBright,

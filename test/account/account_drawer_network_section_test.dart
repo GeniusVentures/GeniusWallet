@@ -40,6 +40,7 @@ import 'package:genius_wallet/account/account_drawer.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/cards/gw_select_row.dart';
 import 'package:genius_wallet/components/feedback/gw_empty_state.dart';
+import 'package:genius_wallet/components/overlay/mobile_header.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/constants/cache.dart';
@@ -280,8 +281,8 @@ void main() {
           expect(find.text('Wallet and network'), findsNothing);
           expect(find.text('NETWORK'), findsNothing);
           expect(find.byType(NetworkSelectField), findsNothing);
-          // The 174 sections are untouched by the flag.
-          expect(find.text('YOUR ACCOUNTS'), findsOneWidget);
+          // The drawer title already says Accounts; no repeated heading.
+          expect(find.text('ACCOUNTS'), findsNothing);
           expect(find.text('Wallet A'), findsOneWidget);
         },
       );
@@ -311,14 +312,47 @@ void main() {
           expect(find.text('Accounts'), findsNothing);
           expect(find.text('NETWORK'), findsOneWidget);
           expect(find.byType(NetworkSelectField), findsOneWidget);
-          // Still the sketch-174 drawer underneath.
-          expect(find.text('YOUR ACCOUNTS'), findsOneWidget);
+          // Still the account switcher underneath.
+          expect(find.text('ACCOUNTS'), findsOneWidget);
           expect(find.text('Wallet A'), findsOneWidget);
-          expect(find.text('Add Wallet'), findsOneWidget);
+          expect(find.text('Add wallet'), findsOneWidget);
         },
       );
     },
   );
+
+  testWidgets('the phone WalletPill opens this same sheet, the merged Accounts '
+      'section header shown', (tester) async {
+    await _withHarness(
+      tester,
+      current: _netPoly,
+      body: (walletBox, networkBox, harness) async {
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: [
+              BlocProvider<WalletDetailsCubit>.value(
+                value: harness.walletDetailsCubit,
+              ),
+              BlocProvider<AppBloc>.value(value: harness.appBloc),
+              ChangeNotifierProvider<NetworkProvider>.value(
+                value: harness.networkProvider,
+              ),
+            ],
+            child: MaterialApp(
+              theme: ThemeData.dark().copyWith(extensions: [GWColors.dark()]),
+              home: const Scaffold(body: Center(child: WalletPill())),
+            ),
+          ),
+        );
+
+        await tester.tap(find.byType(WalletPill));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Wallet and network'), findsOneWidget);
+        expect(find.text('ACCOUNTS'), findsOneWidget);
+      },
+    );
+  });
 
   testWidgets(
     'the current network is named in WORDS on screen - the whole point of the '

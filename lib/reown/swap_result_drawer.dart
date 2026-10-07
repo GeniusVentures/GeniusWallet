@@ -83,7 +83,7 @@ class SwapResultDrawer {
             onPressed: () => context.push('/transactions'),
             label: 'Go to Transactions',
             variant: GWButtonVariant.gradient,
-            size: GWButtonSize.lg,
+            size: GWButtonSize.sm,
             expand: true,
           ),
           if (explorerUrl.isNotEmpty) ...[
@@ -92,7 +92,7 @@ class SwapResultDrawer {
               onPressed: () => launchWebSite(context, explorerUrl),
               label: 'View on Explorer',
               variant: GWButtonVariant.gradientOutline,
-              size: GWButtonSize.lg,
+              size: GWButtonSize.sm,
               expand: true,
             ),
           ],

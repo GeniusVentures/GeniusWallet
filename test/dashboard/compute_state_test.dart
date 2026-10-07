@@ -44,44 +44,39 @@ void main() {
     });
   });
 
-  group('resolveComputeState — notLinked rung', () {
-    test(
-      'node connected, its wallet address differs from the selected one -> notLinked',
-      () {
-        final state = resolveComputeState(
-          hasSelectedWallet: true,
-          isNodeConnected: true,
-          nodeWalletAddress: '0xNode',
-          selectedWalletAddress: '0xOther',
-          isProcessingUnavailable: false,
-          initPercentage: 1.0,
-          isProcessing: false,
-          sinceJobFinished: null,
-        );
-        expect(state, ComputeState.notLinked);
-      },
-    );
+  group('resolveComputeState — notDefaultAccount rung', () {
+    test('node connected, its wallet address differs from the selected one -> '
+        'notDefaultAccount', () {
+      final state = resolveComputeState(
+        hasSelectedWallet: true,
+        isNodeConnected: true,
+        nodeWalletAddress: '0xNode',
+        selectedWalletAddress: '0xOther',
+        isProcessingUnavailable: false,
+        initPercentage: 1.0,
+        isProcessing: false,
+        sinceJobFinished: null,
+      );
+      expect(state, ComputeState.notDefaultAccount);
+    });
 
-    test(
-      'connected node with an empty wallet address never resolves to notLinked '
-      '(the emptiness guard is new this phase)',
-      () {
-        final state = resolveComputeState(
-          hasSelectedWallet: true,
-          isNodeConnected: true,
-          nodeWalletAddress: '',
-          selectedWalletAddress: '0xWallet',
-          isProcessingUnavailable: false,
-          initPercentage: 1.0,
-          isProcessing: false,
-          sinceJobFinished: null,
-        );
-        expect(state, isNot(ComputeState.notLinked));
-        // Falls through the rest of the ladder to ready — nothing else
-        // disqualifies it in this input set.
-        expect(state, ComputeState.ready);
-      },
-    );
+    test('connected node with an empty wallet address never resolves to '
+        'notDefaultAccount (the emptiness guard is new this phase)', () {
+      final state = resolveComputeState(
+        hasSelectedWallet: true,
+        isNodeConnected: true,
+        nodeWalletAddress: '',
+        selectedWalletAddress: '0xWallet',
+        isProcessingUnavailable: false,
+        initPercentage: 1.0,
+        isProcessing: false,
+        sinceJobFinished: null,
+      );
+      expect(state, isNot(ComputeState.notDefaultAccount));
+      // Falls through the rest of the ladder to ready — nothing else
+      // disqualifies it in this input set.
+      expect(state, ComputeState.ready);
+    });
   });
 
   group('resolveComputeState — unavailable rung', () {
@@ -165,10 +160,11 @@ void main() {
   });
 
   group('resolveComputeState — the four precedence cases that matter', () {
-    test('1. disconnected outranks not-linked when the node reports an empty '
-        'wallet address (wallet_overview.dart:179 passes connection?.walletAddress '
-        "?? '' when there is no connection — without this ordering every wallet "
-        'tests as not-linked and the user is falsely accused)', () {
+    test('1. disconnected outranks not-the-default-account when the node '
+        'reports an empty wallet address (wallet_overview.dart:179 passes '
+        "connection?.walletAddress ?? '' when there is no connection — "
+        'without this ordering every wallet tests as not-the-default-account '
+        'and the user is falsely accused)', () {
       final state = resolveComputeState(
         hasSelectedWallet: true,
         isNodeConnected: false,
@@ -180,7 +176,7 @@ void main() {
         sinceJobFinished: null,
       );
       expect(state, ComputeState.disconnected);
-      expect(state, isNot(ComputeState.notLinked));
+      expect(state, isNot(ComputeState.notDefaultAccount));
     });
 
     test('2. unavailable outranks ready', () {

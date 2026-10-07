@@ -12,6 +12,8 @@ import 'package:genius_wallet/banxa/banxa_payment.dart';
 import 'package:genius_wallet/banxa/checkout_qr.dart';
 import 'package:genius_wallet/banxa/user_kyc/kyc_registration.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
+import 'package:genius_wallet/child_wallets/child_wallets_cubit.dart';
+import 'package:genius_wallet/child_wallets/child_wallets_screen.dart';
 import 'package:genius_wallet/components/overlay/global_swap_fab_host.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/components/toast/toast_manager.dart';
@@ -200,6 +202,25 @@ final geniusWalletRouter = GoRouter(
         return BlocProvider.value(
           value: context.read<WalletDetailsCubit>(),
           child: NetworkStatusPage(geniusApi: context.read<GeniusApi>()),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/child-wallets',
+      builder: (context, state) {
+        final appBloc = context.read<AppBloc>();
+        final extra = state.extra;
+        final mainAddress =
+            (extra is String ? extra : null) ??
+            appBloc.state.selectedSDKAccount ??
+            '';
+        return BlocProvider(
+          create: (_) => ChildWalletsCubit(
+            api: context.read<GeniusApi>(),
+            readAppState: () => appBloc.state,
+            mainAddress: mainAddress,
+          ),
+          child: const ChildWalletsScreen(),
         );
       },
     ),

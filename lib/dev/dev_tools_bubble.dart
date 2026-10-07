@@ -11,6 +11,7 @@ import 'package:genius_wallet/dashboard/home/widgets/transaction_displays.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/dev/dev_banxa_fixtures.dart';
 import 'package:genius_wallet/dev/dev_fault_injector.dart';
+import 'package:genius_wallet/dev/dev_mock_child_wallets.dart';
 import 'package:genius_wallet/dev/dev_mock_holdings.dart';
 import 'package:genius_wallet/dev/dev_mock_job.dart';
 import 'package:genius_wallet/dev/dev_mock_sgnus.dart';
@@ -128,6 +129,7 @@ class DevToolsBubblePanelState {
   bool jobExpanded = false;
   bool navigateExpanded = false;
   bool banxaExpanded = false;
+  bool childWalletsExpanded = false;
   bool appearanceExpanded = true;
 }
 
@@ -172,6 +174,11 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
   bool get _banxaExpanded => DevToolsBubblePanelState.instance.banxaExpanded;
   set _banxaExpanded(bool value) =>
       DevToolsBubblePanelState.instance.banxaExpanded = value;
+
+  bool get _childWalletsExpanded =>
+      DevToolsBubblePanelState.instance.childWalletsExpanded;
+  set _childWalletsExpanded(bool value) =>
+      DevToolsBubblePanelState.instance.childWalletsExpanded = value;
 
   bool get _appearanceExpanded =>
       DevToolsBubblePanelState.instance.appearanceExpanded;
@@ -1160,6 +1167,112 @@ class _DevToolsBubbleState extends State<DevToolsBubble> {
                               'Clears any armed Banxa fixture and refetches '
                               'for real. Press this before testing the error '
                               "state's own Retry, or it will keep failing.",
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: GeniusWalletConsts.space4),
+                // DEV-ONLY: child-wallet presets. The list is otherwise
+                // unreachable without a real registration on a live node.
+                // No cubit read here -- an open Child wallets screen
+                // re-reads through its own listener on
+                // DevMockChildWallets.instance.preset.
+                _Section(
+                  label: 'CHILD WALLETS',
+                  expanded: _childWalletsExpanded,
+                  onToggle: () => setState(
+                    () => _childWalletsExpanded = !_childWalletsExpanded,
+                  ),
+                  gw: gw,
+                  children: [
+                    Wrap(
+                      spacing: GeniusWalletConsts.space2,
+                      runSpacing: GeniusWalletConsts.space2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _devButton(
+                          'None',
+                          () => DevMockChildWallets.instance.arm(
+                            DevChildWalletsPreset.none,
+                          ),
+                          tooltip:
+                              'Connected, zero children registered. STICKY '
+                              'until Clear; an open Child wallets screen '
+                              'follows it.',
+                        ),
+                        _devButton(
+                          'One child',
+                          () => DevMockChildWallets.instance.arm(
+                            DevChildWalletsPreset.oneChild,
+                          ),
+                          tooltip:
+                              'One unlinked child. STICKY until Clear; an '
+                              'open Child wallets screen follows it.',
+                        ),
+                        _devButton(
+                          'Three children',
+                          () => DevMockChildWallets.instance.arm(
+                            DevChildWalletsPreset.threeChildren,
+                          ),
+                          tooltip:
+                              'Three children: one linked, one unlinked, '
+                              'one at a zero balance. STICKY until Clear; '
+                              'an open Child wallets screen follows it.',
+                        ),
+                        _devButton(
+                          'Query error',
+                          () => DevMockChildWallets.instance.arm(
+                            DevChildWalletsPreset.queryError,
+                          ),
+                          tooltip:
+                              "Forces the registration query to fail. "
+                              'STICKY until Clear; an open Child wallets '
+                              'screen follows it.',
+                        ),
+                        _devButton(
+                          'Node not running',
+                          () => DevMockChildWallets.instance.arm(
+                            DevChildWalletsPreset.nodeNotRunning,
+                          ),
+                          tooltip:
+                              'Forces the disconnected state. STICKY until '
+                              'Clear; an open Child wallets screen follows '
+                              'it.',
+                        ),
+                        _devButton(
+                          'Writes confirm',
+                          () => DevMockChildWallets.instance.setWriteMode(
+                            DevChildWalletsWriteMode.confirm,
+                          ),
+                          tooltip:
+                              'Writes succeed; the list or balance changes '
+                              '3 s later. Applies while a preset is armed.',
+                        ),
+                        _devButton(
+                          'Writes time out',
+                          () => DevMockChildWallets.instance.setWriteMode(
+                            DevChildWalletsWriteMode.timeout,
+                          ),
+                          tooltip:
+                              'Writes are accepted but nothing changes, so '
+                              'they end Not confirmed yet after 2 minutes.',
+                        ),
+                        _devButton(
+                          'Writes fail',
+                          () => DevMockChildWallets.instance.setWriteMode(
+                            DevChildWalletsWriteMode.fail,
+                          ),
+                          tooltip:
+                              'Writes are refused at submission with an SDK '
+                              'error.',
+                        ),
+                        _devButton(
+                          'Clear',
+                          () => DevMockChildWallets.instance.clear(),
+                          tooltip:
+                              'Clears any armed preset; the screen returns '
+                              'to reading the real SDK.',
                         ),
                       ],
                     ),

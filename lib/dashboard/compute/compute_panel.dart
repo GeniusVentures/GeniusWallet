@@ -14,6 +14,8 @@ import 'package:genius_wallet/theme/genius_wallet_gradient.dart';
 import 'package:genius_wallet/theme/genius_wallet_typography.dart';
 import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/theme/gw_context_extension.dart';
+import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart'
+    show kBalanceUnreadableMessage;
 
 /// The dashboard's first card - the twin-tile compute panel
 /// (`14-UI-SPEC.md §3.1`, sketch 077's P1). Renders the section kicker, the
@@ -54,8 +56,9 @@ class ComputePanel extends StatelessWidget {
   /// special-case anywhere below. That absence IS the fix for
   /// `14-CONTEXT.md`'s bug 4: `wallet_overview.dart:141-148` paints a zero
   /// balance as `statusError` today, and a wallet with no funds is not a
-  /// broken wallet.
-  final double balance;
+  /// broken wallet. Null when the node can't read the selected wallet's
+  /// balance: the tile then says so instead of showing any number.
+  final double? balance;
 
   /// The balance tile's `≈ $` fiat line, fully formatted by the caller
   /// (e.g. `'≈ \$312.40'`, using `NumberFormat.simpleCurrency()`'s symbol
@@ -89,7 +92,7 @@ class ComputePanel extends StatelessWidget {
   final ValueChanged<bool> onUnitChanged;
 
   /// Fires when a sub-line's inline affordance is tapped - `Choose a wallet
-  /// ›`, `Switch wallet ›`, `See node status ›` or `Reconnect ›`. The
+  /// ›`, `Switch wallet ›`, `Earning status ›` or `Reconnect ›`. The
   /// identity is [ComputeStatusView.link]; this widget only renders it, the
   /// caller decides what it does (open the account drawer, navigate to
   /// `/network`, re-arm the polling timer via `RetryProcessingStatus`).
@@ -181,7 +184,7 @@ TextStyle _sublineStyle(GWColors gw) => GeniusWalletTypography.numericBody
 /// header comment prescribes: the pure state module owns the semantic
 /// role, the call site (here, where `GWColors` is in scope) owns the
 /// colour token. Confirmed as-is rather than overridden: plan 01's
-/// `notLinked -> warning` choice (flagged as an open decision in its
+/// `notDefaultAccount -> warning` choice (flagged as an open decision in its
 /// SUMMARY) is accepted here unchanged, since overriding the STATE→role
 /// mapping would mean editing `compute_state.dart`, which this plan does
 /// not own.
@@ -249,7 +252,7 @@ class _BalanceTile extends StatelessWidget {
   });
 
   final ComputeStatusView view;
-  final double balance;
+  final double? balance;
   final String fiatSubline;
   final bool useMinions;
   final ValueChanged<bool> onUnitChanged;
@@ -267,6 +270,7 @@ class _BalanceTile extends StatelessWidget {
     // (`14-UI-SPEC.md §1.4`): showing "0.00 GNUS" when there is no wallet
     // at all would misreport an empty WALLET, not an absent one.
     final isNoWallet = view.link == ComputeLink.chooseWallet;
+    final balance = this.balance;
 
     // No unit toggle in the no-wallet state - there is no balance to
     // switch units on. Everywhere else, the unit label sits beside the
@@ -280,6 +284,13 @@ class _BalanceTile extends StatelessWidget {
             // already has an established string.
             'No wallet selected',
             maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _sublineStyle(gw),
+          )
+        : balance == null
+        ? Text(
+            kBalanceUnreadableMessage,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: _sublineStyle(gw),
           )
@@ -344,7 +355,9 @@ class _BalanceTile extends StatelessWidget {
           const GWKicker('Balance', dense: true),
           const SizedBox(height: 3),
           valueWidget,
-          if (!isNoWallet && view.showBalanceFiatSubline) ...[
+          if (!isNoWallet &&
+              balance != null &&
+              view.showBalanceFiatSubline) ...[
             const SizedBox(height: GeniusWalletConsts.space2),
             Text(
               fiatSubline,
@@ -617,7 +630,7 @@ class _ComputeTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const GWKicker('Compute node', dense: true),
+          const GWKicker('Earning', dense: true),
           const SizedBox(height: 3),
           // GWStatusDot alone keeps this row at its 18px line box - both
           // the label and the trailing value render at `labelMd`; a

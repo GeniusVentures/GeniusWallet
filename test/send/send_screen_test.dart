@@ -23,6 +23,7 @@ import 'package:genius_wallet/components/inputs/gw_text_field.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
+import 'package:genius_wallet/reown/send_transaction_details.dart';
 import 'package:genius_wallet/reown/utilities.dart' show parseHexToBigInt;
 import 'package:genius_wallet/send/recipient_field.dart';
 import 'package:genius_wallet/send/send_cubit.dart';
@@ -491,6 +492,21 @@ void main() {
       );
     },
   );
+
+  testWidgets('the review drawer names the signing wallet on the From row', (
+    tester,
+  ) async {
+    await _mount(tester, _FakeApi(), _RecordingStorage(), TransactionsCubit());
+    await _openReview(tester);
+
+    expect(
+      find.descendant(
+        of: find.byType(SendTransactionDetails),
+        matching: find.text('Send Wallet'),
+      ),
+      findsOneWidget,
+    );
+  });
 
   testWidgets(
     'a failed review keeps its error under the amount field, not a toast',

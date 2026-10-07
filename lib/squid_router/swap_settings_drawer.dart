@@ -98,7 +98,7 @@ class _ApplyFooter extends StatelessWidget {
         // that drew them, which is why every other footer ran edge to edge.
         return GWButton(
           variant: GWButtonVariant.gradient,
-          size: GWButtonSize.lg,
+          size: GWButtonSize.sm,
           expand: true,
           label: 'Apply',
           // The old Apply was always live and silently did nothing when the

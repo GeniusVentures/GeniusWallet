@@ -23,7 +23,113 @@ class _UnreadableStorage extends Fake implements FlutterSecureStorage {
   }) => Future.error(PlatformException(code: 'locked'));
 }
 
+/// In-memory storage whose calls take a moment and record any overlap, as
+/// the Windows backend's single rewritten file cannot survive one.
+class _OverlapStorage extends Fake implements FlutterSecureStorage {
+  final values = <String, String>{};
+  var active = 0;
+  var maxActive = 0;
+
+  Future<T> _slow<T>(T Function() op) async {
+    active++;
+    maxActive = active > maxActive ? active : maxActive;
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    active--;
+    return op();
+  }
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => _slow(() => values[key]);
+
+  @override
+  Future<Map<String, String>> readAll({
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => _slow(() => Map.of(values));
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => _slow(() => values.remove(key));
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) => _slow(() {
+    if (value == null) {
+      values.remove(key);
+    } else {
+      values[key] = value;
+    }
+  });
+}
+
 void main() {
+  test('concurrent reads and writes never overlap, and concurrent link '
+      'saves all persist', () async {
+    final slow = _OverlapStorage();
+    final store = await LocalWalletStorage.create(secureStorage: slow);
+
+    await Future.wait([
+      store.saveSDKAccountLink('0xA', '0x1', 'One'),
+      store.getSDKAccountLinks(),
+      store.saveSDKAccountLink('0xB', '0x2', 'Two'),
+      store.getSDKAccountLinks(),
+    ]);
+
+    expect(slow.maxActive, 1);
+    expect(
+      (await store.getSDKAccountLinks()).keys,
+      unorderedEquals(['0xa', '0xb']),
+    );
+  });
+
+  test(
+    'a link saved while a wallet delete freezes link names survives',
+    () async {
+      const addr = '0xFEED000000000000000000000000000000FEED';
+      final slow = _OverlapStorage();
+      final store = await LocalWalletStorage.create(secureStorage: slow);
+      slow.values[store.createWalletKey(addr)] = '{"name":"Renamed"}';
+      await store.saveSDKAccountLink('0xSDK', addr, 'Old name');
+
+      await Future.wait([
+        store.deleteWallet(addr, watchOnly: false),
+        store.saveSDKAccountLink('0xB', '0x2', 'Two'),
+      ]);
+
+      expect(
+        (await store.getSDKAccountLinks()).keys,
+        unorderedEquals(['0xsdk', '0xb']),
+      );
+    },
+  );
+
   test('Android options keep v9 wallets readable after the v10 upgrade', () {
     final options = LocalWalletStorage.androidOptions.toMap();
     // migrateWithBackup skips the EncryptedSharedPreferences migration, so v9
@@ -176,7 +282,47 @@ void main() {
     });
   });
 
-  group('SDK-linked wallet', () {
+  group('SDK account links', () {
+    test('an unreadable store reads as no links', () async {
+      final storage = await LocalWalletStorage.create(
+        secureStorage: _UnreadableStorage(),
+      );
+
+      expect(await storage.getSDKAccountLinks(), isEmpty);
+    });
+
+    test(
+      'corrupt links read as none, and a save never overwrites them',
+      () async {
+        FlutterSecureStorage.setMockInitialValues({
+          '__sdk_links__': '{not json',
+        });
+        final storage = await LocalWalletStorage.create();
+
+        expect(await storage.getSDKAccountLinks(), isEmpty);
+        await expectLater(
+          storage.saveSDKAccountLink('0xsdk', '0xwallet', 'Main'),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
+
+    test(
+      'an unreadable store fails a save instead of overwriting the links',
+      () async {
+        final storage = await LocalWalletStorage.create(
+          secureStorage: _UnreadableStorage(),
+        );
+
+        await expectLater(
+          storage.saveSDKAccountLink('0xsdk', '0xwallet', 'Main'),
+          throwsA(isA<PlatformException>()),
+        );
+      },
+    );
+  });
+
+  group('SDK default wallet', () {
     const a = 'wallet_0xaaaa';
     const b = 'wallet_0xbbbb';
     const c = 'wallet_0xcccc';
@@ -187,37 +333,146 @@ void main() {
     };
 
     test('the pick does not depend on the order readAll() returns', () {
-      final forward = storage.sgnusLinkCandidates(ordered([c, a, watched, b]));
-      final backward = storage.sgnusLinkCandidates(ordered([b, watched, a, c]));
+      final forward = storage.sdkDefaultWalletCandidates(
+        ordered([c, a, watched, b]),
+      );
+      final backward = storage.sdkDefaultWalletCandidates(
+        ordered([b, watched, a, c]),
+      );
 
       expect(forward, [a, b, c]);
       expect(backward, forward);
     });
 
-    test('a watch-only wallet is never linked', () {
-      expect(storage.sgnusLinkCandidates(ordered([watched])), isEmpty);
+    test('a watch-only wallet is never a default candidate', () {
+      expect(storage.sdkDefaultWalletCandidates(ordered([watched])), isEmpty);
     });
 
     test('the recorded wallet wins and survives a restart', () async {
-      await storage.saveSGNUSLinkedAddress('0xCCCC');
+      await storage.saveSDKDefaultWalletAddress('0xCCCC');
       for (final key in [b, a, c]) {
         await raw.write(key: key, value: '{}');
       }
 
       final restarted = await LocalWalletStorage.create(secureStorage: raw);
-      final candidates = restarted.sgnusLinkCandidates(await raw.readAll());
+      final candidates = restarted.sdkDefaultWalletCandidates(
+        await raw.readAll(),
+      );
 
       expect(candidates, [c, a, b]);
     });
 
-    test('a deleted linked wallet falls back to the lowest address', () async {
-      await storage.saveSGNUSLinkedAddress('0xdddd');
-      final candidates = storage.sgnusLinkCandidates({
+    test('a deleted default wallet falls back to the lowest address', () async {
+      await storage.saveSDKDefaultWalletAddress('0xdddd');
+      final candidates = storage.sdkDefaultWalletCandidates({
         ...await raw.readAll(),
         ...ordered([c, b]),
       });
 
       expect(candidates, [b, c]);
+    });
+  });
+
+  group('SDK account links', () {
+    test('a saved link round-trips', () async {
+      await storage.saveSDKAccountLink('0xSDK', '0xWallet', 'Main wallet');
+
+      expect(await storage.getSDKAccountLinks(), {
+        '0xsdk': (walletAddress: '0xwallet', walletName: 'Main wallet'),
+      });
+    });
+
+    test('both addresses are lowercased on save', () async {
+      await storage.saveSDKAccountLink('0xAAAA', '0xBBBB', 'Savings');
+
+      final raw2 = await raw.read(key: '__sdk_links__');
+      expect(raw2, contains('0xaaaa'));
+      expect(raw2, contains('0xbbbb'));
+      expect(raw2, isNot(contains('0xAAAA')));
+    });
+
+    test('a corrupt value reads as no links, never throws', () async {
+      storage = await withValues({'__sdk_links__': 'not json'});
+
+      expect(await storage.getSDKAccountLinks(), isEmpty);
+    });
+
+    test('no stored value also reads as no links', () async {
+      expect(await storage.getSDKAccountLinks(), isEmpty);
+    });
+
+    test('a second link is added, not lost', () async {
+      await storage.saveSDKAccountLink('0xSDK1', '0xWallet1', 'One');
+      await storage.saveSDKAccountLink('0xSDK2', '0xWallet2', 'Two');
+
+      expect((await storage.getSDKAccountLinks()).keys, ['0xsdk1', '0xsdk2']);
+    });
+
+    test('the key is never read back as a wallet, watch or account', () {
+      expect(storage.isAWallet('__sdk_links__'), isFalse);
+      expect(storage.isAWatchedWallet('__sdk_links__'), isFalse);
+      expect(storage.isAAccount('__sdk_links__'), isFalse);
+    });
+
+    test('removeSDKAccountLink drops only its entry', () async {
+      await storage.saveSDKAccountLink('0xSDK1', '0xWallet1', 'One');
+      await storage.saveSDKAccountLink('0xSDK2', '0xWallet2', 'Two');
+
+      await storage.removeSDKAccountLink('0xSDK1');
+
+      expect(await storage.getSDKAccountLinks(), {
+        '0xsdk2': (walletAddress: '0xwallet2', walletName: 'Two'),
+      });
+    });
+  });
+
+  group('deleting a wallet freezes its SDK link name', () {
+    const addr = '0xFEED000000000000000000000000000000FEED';
+
+    test('a key wallet delete freezes its current name onto every link '
+        'pointing at it', () async {
+      storage = await withValues({
+        storage.createWalletKey(addr): '{"name":"Renamed"}',
+      });
+      await storage.saveSDKAccountLink('0xSDK', addr, 'Old name');
+
+      await storage.deleteWallet(addr, watchOnly: false);
+
+      expect(await storage.getSDKAccountLinks(), {
+        '0xsdk': (walletAddress: addr.toLowerCase(), walletName: 'Renamed'),
+      });
+    });
+
+    test('a watch-only delete never touches links', () async {
+      storage = await withValues({
+        storage.createWatchedWalletKey(addr): jsonEncode({
+          'walletName': 'Watched',
+          'currencySymbol': 'ETH',
+          'coinType': 60,
+          'balance': 0.0,
+          'address': addr,
+          'walletType': 'tracking',
+        }),
+      });
+      await storage.saveSDKAccountLink('0xSDK', addr, 'Old name');
+      final before = await raw.read(key: '__sdk_links__');
+
+      await storage.deleteWallet(addr, watchOnly: true);
+
+      expect(await raw.read(key: '__sdk_links__'), before);
+    });
+
+    test('a parse failure on the deleted wallet leaves the link name '
+        'unchanged', () async {
+      storage = await withValues({storage.createWalletKey(addr): 'not json'});
+      await storage.saveSDKAccountLink('0xSDK', addr, 'Old name');
+
+      await storage.deleteWallet(addr, watchOnly: false);
+
+      expect(
+        (await storage.getSDKAccountLinks())['0xsdk']?.walletName,
+        'Old name',
+      );
     });
   });
 }

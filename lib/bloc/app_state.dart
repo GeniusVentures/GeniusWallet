@@ -80,15 +80,21 @@ class AppState extends Equatable {
   /// The currently selected SDK account address (for processing/minting).
   final String? selectedSDKAccount;
 
+  /// The account a requested node switch is moving to, until the SDK reports
+  /// a real selected account again or refuses the switch.
+  final String? switchingSDKAccount;
+
   /// All available SDK account addresses.
   final List<String> sdkAccounts;
 
-  /// The SDK account the app starts with; it cannot be deleted.
-  final String? linkedSDKAccount;
+  /// The SDK account the app starts with, shown as 'Default account'; it
+  /// cannot be deleted.
+  final String? defaultSDKAccount;
 
-  /// The result of the last [SetSDKPayoutAddress] operation, or null if
-  /// no operation has been performed yet.
-  final GeniusNodeReturnValue? setPayoutAddressResult;
+  /// The wallet each SDK account was produced from, keyed by lowercased SDK
+  /// address. Holds public addresses and a display name only, never key
+  /// material.
+  final Map<String, SDKAccountLink> sdkAccountLinks;
 
   const AppState({
     this.wallets = const [],
@@ -107,9 +113,10 @@ class AppState extends Equatable {
     this.initPercentage,
     this.initMessage,
     this.selectedSDKAccount,
+    this.switchingSDKAccount,
     this.sdkAccounts = const [],
-    this.linkedSDKAccount,
-    this.setPayoutAddressResult,
+    this.defaultSDKAccount,
+    this.sdkAccountLinks = const {},
     this.accountStatus = AppStatus.initial,
   });
 
@@ -130,9 +137,12 @@ class AppState extends Equatable {
     double? initPercentage,
     String? initMessage,
     String? selectedSDKAccount,
+    bool clearSelectedSDKAccount = false,
+    String? switchingSDKAccount,
+    bool clearSwitchingSDKAccount = false,
     List<String>? sdkAccounts,
-    String? linkedSDKAccount,
-    GeniusNodeReturnValue? setPayoutAddressResult,
+    String? defaultSDKAccount,
+    Map<String, SDKAccountLink>? sdkAccountLinks,
     AppStatus? accountStatus,
   }) {
     return AppState(
@@ -153,11 +163,15 @@ class AppState extends Equatable {
           processingCompletedAt ?? this.processingCompletedAt,
       initPercentage: initPercentage ?? this.initPercentage,
       initMessage: initMessage ?? this.initMessage,
-      selectedSDKAccount: selectedSDKAccount ?? this.selectedSDKAccount,
+      selectedSDKAccount: clearSelectedSDKAccount
+          ? null
+          : selectedSDKAccount ?? this.selectedSDKAccount,
+      switchingSDKAccount: clearSwitchingSDKAccount
+          ? null
+          : switchingSDKAccount ?? this.switchingSDKAccount,
       sdkAccounts: sdkAccounts ?? this.sdkAccounts,
-      linkedSDKAccount: linkedSDKAccount ?? this.linkedSDKAccount,
-      setPayoutAddressResult:
-          setPayoutAddressResult ?? this.setPayoutAddressResult,
+      defaultSDKAccount: defaultSDKAccount ?? this.defaultSDKAccount,
+      sdkAccountLinks: sdkAccountLinks ?? this.sdkAccountLinks,
       accountStatus: accountStatus ?? this.accountStatus,
     );
   }
@@ -181,9 +195,10 @@ class AppState extends Equatable {
     initPercentage,
     initMessage,
     selectedSDKAccount,
+    switchingSDKAccount,
     sdkAccounts,
-    linkedSDKAccount,
-    setPayoutAddressResult,
+    defaultSDKAccount,
+    sdkAccountLinks,
   ];
 }
 

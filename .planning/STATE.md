@@ -1,20 +1,21 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Squid Router integration
-current_phase: 31
-current_phase_name: "Send native coins and ERC-20 tokens - complete, walked on Sepolia"
-status: milestone-complete
-stopped_at: "v2.0 shipped and archived 2026-09-24 (milestones/v2.0-*). PR #246 (4 backlog fixes) open as draft. v1.0 still executing: phase 11 + phase 14 remaining. Next: /gsd-new-milestone or v1.0 phase 11."
-last_updated: "2026-09-24T12:00:00.000Z"
-last_activity: 2026-09-24
-last_activity_desc: v2.0 audited (gaps accepted: DAP-02 partial) and archived; backlog fixes in PR #246
+milestone: v3.0
+milestone_name: Child wallets & account linking
+current_phase: 38
+current_phase_name: Account tree switcher
+status: awaiting_verification
+stopped_at: Phase 38 plan 03 executed (phase complete, live walk pending)
+last_updated: "2026-09-29T10:00:00.000Z"
+last_activity: 2026-09-29
+last_activity_desc: Phase 38 plan 03 executed (child actions on nested rows, collapsible mains, live refresh, phone-width and contrast fixes, Windows compile)
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 19
+  completed_plans: 19
   percent: 100
+resume_file: null
 ---
 
 # Project State
@@ -24,14 +25,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-21)
 
 **Core value:** Users can safely custody their keys and reliably perform core wallet actions.
-**Current focus:** v2.0 shipped and archived 2026-09-24 (`milestones/v2.0-ROADMAP.md`). Next is
-either a new milestone (`/gsd-new-milestone`) or the v1.0 residue below.
+**Current focus:** Phase 38 — Account tree switcher
 
 ## Current Position
 
-Milestone: v2.0 complete — phases 26, 29, 30, 31 merged (PRs #233-#235, #244); backlog fixes in #246.
-DAP-02 accepted as a partial; FEE-01 deferred (business). Open follow-up: swap history rows lack a
-chain id (pending todo). v1.0 is still executing: phase 11 closeout and phase 14's plan 14-08.
+Phase: 38 (Account tree switcher) — 3/3 PLANS EXECUTED, awaiting human live-testnet walk
+Plan: 3 of 3 — complete (38-03: Fund/Recover/Revoke on nested own rows, collapsible mains with a
+chevron, live refresh via a gated CHILD WALLETS preset listener, phone-width wrap for a nested row's
+tags/balance, two AA contrast fixes — a new `brandPrimaryBadgeText` token and GWMenuItem's disabled
+foreground raised from 50% to 70% alpha)
+Status: Phases 34-38 all executed and verified in code; live walks pending for all five (see
+Deferred Verification). v3.0's entire plan list (19/19) is now executed.
+Phase 38 plan 03 closes SWT-07 (marked complete in REQUIREMENTS.md) — the switcher is one list,
+children nest under their main with a working chevron, child rows get Fund/Recover/Revoke, the tree
+stays current while open, fits a phone, and its tags/disabled items are measured in both modes.
+Full suite 2234/5/0 after review fixes and a secure-storage serialisation fix. Windows debug build compiled clean.
+Last activity: 2026-09-29 — Phase 38 plan 03 executed (phase 38 complete pending live walk)
+
+v1.0 is still executing alongside: phase 11 closeout and phase 14's plan 14-08.
 
 ### v2.0 Phase Tracking
 
@@ -247,6 +258,7 @@ Progress: [████████████████████] 36/36 p
 
 Full log in PROJECT.md Key Decisions. Recent:
 
+- **Phase 38 plan 01 (2026-09-29): account tree nesting** — `buildAccountTree` (pure, `lib/account/account_tree.dart`) walks each own SDK account's registrations with one visited set so a cycle, self-listing or second main all dedupe to first placement; `ChildOperationsCubit.ownRegistrations()` does the keyed SDK/dev-mock read (null when the node is down or any read fails), reached through the cubit rather than a direct `GeniusApi` call from the drawer's `State` per AGENTS.md. The switcher's two headers ("Sending from"/"Node running as") are merged into one "Accounts" section with a single flat-list note. SWT-07 stays Pending in REQUIREMENTS.md — plans 02-03 still owe the merged SDK-account-onto-wallet-row and collapsible mains.
 - **v2.0 roadmap created (2026-09-16): 5 phases, 26-30** — dependency chain client foundation → live quotes → real execution → integrator fee, with Reown calldata decoding (30) as an independent parallel subsystem. Derived from SWAP-01, FEE-01..02, DAP-01..03 (6/6 mapped, no orphans — the drafted SWP-01..08 were retired into SWAP-01's criteria on 2026-09-16, that being the id the branch's plans and commits already cite); the v1.0 roadmap is preserved untouched in the same file. Carry-into-planning facts: the integratorId must load from config (only the `test-api` placeholder exists in-repo — confirm where the real one lives); the D-09 route-error contract must survive the mock→real switch; the `squidrouter/` submodule is consumed as-is, never modified
 - **Port the design incrementally, layer by layer** (2026-07-16) — 128 of the design's 172 files collide with develop (74%); one step means reconciling all of them with nothing verifiable in between
 - Sequence by dependency, not subject: tokens → `gw_*` primitives → nav shell → screen areas. Each phase lands on a layer that already exists and has been reviewed
@@ -510,6 +522,16 @@ the redesign track added many test files since the original 14-test snapshot). *
 | Verified fixes | branch `ui-redesign-3.514-develop` | Read-only; source of the 3 BEH-02 fix commits |
 | Regression audit | `.planning/reference/REVIEW_FINDINGS_REDESIGN.md` | 37 findings, assigned per phase in ROADMAP.md |
 
+## Deferred Verification
+
+| Phase | State | Resume |
+|-------|-------|--------|
+| 34 | verification_deferred_human | /gsd-verify-work 34 |
+| 35 | verification_deferred_human | /gsd-verify-work 35 |
+| 36 | verification_deferred_human | /gsd-verify-work 36 |
+| 37 | verification_deferred_human | /gsd-verify-work 37 |
+| 38 | verification_deferred_human | /gsd-verify-work 38 |
+
 ## Deferred Items
 
 | Category | Item | Status | Deferred At |
@@ -653,8 +675,11 @@ Open decisions:
 | Phase 29 P02 | 25min | 2 tasks | 4 files |
 | Phase 29 P03 | 20min | 2 tasks | 3 files |
 | Phase 29 P04 | 25min | 2 tasks | 1 files |
+| Phase 38-account-tree-switcher P01 | n/a | 3 tasks | 7 files |
 
 ### Roadmap Evolution
+
+- Phase 38 added (2026-09-29): Account tree switcher
 
 - Phase 33 added (2026-09-26): App and SDK data out of the Documents folder (Windows/Linux)
 

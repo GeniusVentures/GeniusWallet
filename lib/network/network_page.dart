@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/sgnus_connection.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/utils/breakpoints.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 
@@ -132,6 +133,19 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                   stream: widget.geniusApi.getSGNUSConnectionStream(),
                   builder: (context, snapshot) {
                     final connection = snapshot.data;
+                    // The connection is published once at start; the bloc
+                    // follows every earning switch after it.
+                    final app = context.watch<AppBloc>().state;
+                    final node = app.selectedSDKAccount;
+                    final nodeAddress = node ?? connection?.sgnusAddress;
+                    final nodeWallet = node == null
+                        ? connection?.walletAddress
+                        : AppBloc.linkedWallet(
+                                node,
+                                app.sdkAccountLinks,
+                                app.wallets,
+                              )?.address ??
+                              'Unlinked';
                     return ListTile(
                       leading: Icon(
                         (connection != null && connection.isConnected)
@@ -146,7 +160,7 @@ class _NetworkStatusPageState extends State<NetworkStatusPage> {
                         connection == null
                             ? 'No data'
                             : connection.isConnected
-                            ? "Connected\nAddress: ${connection.sgnusAddress}\nWallet: ${connection.walletAddress}"
+                            ? "Connected\nAddress: $nodeAddress\nWallet: $nodeWallet"
                             : "Disconnected",
                       ),
                     );

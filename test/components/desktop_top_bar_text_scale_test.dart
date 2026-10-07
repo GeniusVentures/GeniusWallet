@@ -14,6 +14,7 @@ import 'package:genius_api/ffi/trust_wallet_api_ffi.dart';
 import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
+import 'package:genius_wallet/account/account_switcher.dart';
 import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/overlay/responsive_overlay.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
@@ -94,6 +95,7 @@ Future<List<String>> _pumpBar(
   WidgetTester tester, {
   required double width,
   required double textScale,
+  void Function()? inspect,
 }) async {
   tester.view.physicalSize = Size(width, 800);
   tester.view.devicePixelRatio = 1.0;
@@ -160,6 +162,7 @@ Future<List<String>> _pumpBar(
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
+    inspect?.call();
   } finally {
     FlutterError.onError = previous;
   }
@@ -200,4 +203,22 @@ void main() {
       );
     }
   }
+
+  testWidgets('the bar holds one account chip naming both selections', (
+    tester,
+  ) async {
+    final errors = await _pumpBar(
+      tester,
+      width: GeniusBreakpoints.large + 1,
+      textScale: 1.0,
+      inspect: () {
+        expect(find.byType(AccountSwitcher), findsOneWidget);
+        expect(
+          find.byTooltip('Wallet: Main · Earning: Unlinked'),
+          findsOneWidget,
+        );
+      },
+    );
+    expect(errors, isEmpty);
+  });
 }

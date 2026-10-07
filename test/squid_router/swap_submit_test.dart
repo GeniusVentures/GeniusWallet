@@ -16,10 +16,12 @@ import 'package:genius_api/genius_api.dart';
 import 'package:genius_api/models/network.dart';
 import 'package:genius_api/types/wallet_type.dart';
 import 'package:genius_api/web3/api_response.dart';
+import 'package:genius_wallet/bloc/app_bloc.dart';
 import 'package:genius_wallet/components/buttons/gw_button.dart';
 import 'package:genius_wallet/dashboard/home/widgets/transaction_utils.dart';
 import 'package:genius_wallet/dashboard/transactions/cubit/transactions_cubit.dart';
 import 'package:genius_wallet/hive/services/transaction_storage_service.dart';
+import 'package:genius_wallet/providers/network_provider.dart';
 import 'package:genius_wallet/providers/network_tokens_provider.dart';
 import 'package:genius_wallet/squid_router/route_details_card.dart';
 import 'package:genius_wallet/squid_router/swap_execution.dart';
@@ -134,15 +136,18 @@ class _SeededCubit extends WalletDetailsCubit {
     required super.geniusApi,
     required super.networkTokensProvider,
     required Network network,
+    Wallet wallet = _wallet,
   }) {
     emit(
       state.copyWith(
-        selectedWallet: _wallet,
+        selectedWallet: wallet,
         selectedNetwork: network,
         selectedWalletBalance: '5',
       ),
     );
   }
+
+  void seat(Wallet wallet) => emit(state.copyWith(selectedWallet: wallet));
 }
 
 /// Mounts the screen and drives it to the ready rung: ETH is preselected onto
@@ -154,6 +159,10 @@ Future<void> _mountReady(
   required TransactionStorageService storage,
   GeniusApi? api,
   Network network = _ethereum,
+  Wallet wallet = _wallet,
+  // Only the "Switch ›" navigation case needs this: `_AccountDrawerBody`
+  // reads `AppBloc` and would otherwise fail its `Provider.of` lookup.
+  AppBloc? appBloc,
 }) async {
   tester.view.physicalSize = const Size(1200, 1800);
   tester.view.devicePixelRatio = 1.0;
@@ -167,9 +176,11 @@ Future<void> _mountReady(
             geniusApi: api ?? _UnusedApi(),
             networkTokensProvider: NetworkTokensProvider(),
             network: network,
+            wallet: wallet,
           ),
         ),
         BlocProvider<TransactionsCubit>(create: (_) => TransactionsCubit()),
+        if (appBloc != null) BlocProvider<AppBloc>.value(value: appBloc),
       ],
       child: MaterialApp(
         theme: ThemeData(extensions: [GWColors.dark()]),
@@ -604,5 +615,190 @@ void main() {
 
       expect(find.text('Submitting swap…'), findsNothing);
     });
+  });
+
+  group('names the wallet the swap will spend from', () {
+    testWidgets(
+      'the ready rung shows the wallet name, short address, and one Switch '
+      'link',
+      (tester) async {
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(const SwapRouteUnavailable(null)),
+          storage: storage,
+        );
+
+        expect(
+          find.text('Sending from Swap Wallet · 0xSWAP...SWAP'),
+          findsOneWidget,
+        );
+        expect(find.widgetWithText(TextButton, 'Switch ›'), findsOneWidget);
+      },
+    );
+
+    testWidgets('an unnamed wallet reads the short address alone', (
+      tester,
+    ) async {
+      final storage = _RecordingStorage();
+      await _mountReady(
+        tester,
+        execute: _answering(const SwapRouteUnavailable(null)),
+        storage: storage,
+        wallet: _wallet.copyWith(walletName: ''),
+      );
+
+      expect(find.text('Sending from 0xSWAP...SWAP'), findsOneWidget);
+    });
+
+    testWidgets('the CTA still submits: adding the From line changes no '
+        'submit behaviour', (tester) async {
+      final storage = _RecordingStorage();
+      await _mountReady(
+        tester,
+        execute: _answering(
+          SwapBroadcast(
+            hash: _hash,
+            status: TransactionStatus.completed,
+            transaction: _route(),
+          ),
+        ),
+        storage: storage,
+      );
+      await _submit(tester);
+
+      expect(storage.writes, hasLength(2));
+    });
+
+    testWidgets('tapping Switch opens the account switcher', (tester) async {
+      final appWalletCubit = WalletDetailsCubit(
+        geniusApi: _UnusedApi(),
+        networkTokensProvider: NetworkTokensProvider(),
+      );
+      final appBloc = AppBloc(
+        api: _UnusedApi(),
+        transactionsCubit: TransactionsCubit(),
+        walletDetailsCubit: appWalletCubit,
+        networkProvider: NetworkProvider(),
+      );
+      try {
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(const SwapRouteUnavailable(null)),
+          storage: storage,
+          appBloc: appBloc,
+        );
+
+        await tester.tap(find.widgetWithText(TextButton, 'Switch ›'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Accounts'), findsOneWidget);
+      } finally {
+        // A real 3s poll `Timer` starts in the constructor; closing it needs
+        // the same real-zone treatment `account_drawer_show_test.dart` uses.
+        await tester.runAsync(() => appBloc.close());
+        await appWalletCubit.close();
+      }
+    });
+  });
+
+  group('a wallet that cannot sign', () {
+    testWidgets(
+      'the CTA refuses instead of reaching ready, and a tap sends nothing',
+      (tester) async {
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(const SwapRouteUnavailable(null)),
+          storage: storage,
+          wallet: _wallet.copyWith(walletType: WalletType.tracking),
+        );
+
+        expect(_cta, findsNothing, reason: 'a tracking wallet cannot sign');
+        expect(find.text("Can't sign with this wallet"), findsOneWidget);
+
+        await tester.tap(find.text("Can't sign with this wallet"));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(storage.writes, isEmpty);
+      },
+    );
+
+    testWidgets(
+      'switching to a watch-only row on the same address takes ready away',
+      (tester) async {
+        final storage = _RecordingStorage();
+        await _mountReady(
+          tester,
+          execute: _answering(
+            SwapBroadcast(
+              hash: _hash,
+              status: TransactionStatus.completed,
+              transaction: _route(),
+            ),
+          ),
+          storage: storage,
+        );
+        expect(_cta, findsOneWidget, reason: 'the fixture never got ready');
+
+        final cubit =
+            BlocProvider.of<WalletDetailsCubit>(
+                  tester.element(find.byType(SwapScreen)),
+                )
+                as _SeededCubit;
+        cubit.seat(_wallet.copyWith(walletType: WalletType.tracking));
+        await tester.pump();
+
+        expect(_cta, findsNothing);
+        expect(find.text("Can't sign with this wallet"), findsOneWidget);
+        await tester.tap(find.text("Can't sign with this wallet"));
+        await tester.pumpAndSettle();
+        expect(storage.writes, isEmpty);
+      },
+    );
+
+    testWidgets(
+      'no wallet selected yet reads enterAmount, not a wallet-specific '
+      'refusal',
+      (tester) async {
+        tester.view.physicalSize = const Size(1200, 1800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(
+          MultiBlocProvider(
+            providers: [
+              BlocProvider<WalletDetailsCubit>(
+                create: (_) => WalletDetailsCubit(
+                  geniusApi: _UnusedApi(),
+                  networkTokensProvider: NetworkTokensProvider(),
+                ),
+              ),
+              BlocProvider<TransactionsCubit>(
+                create: (_) => TransactionsCubit(),
+              ),
+            ],
+            child: MaterialApp(
+              theme: ThemeData(extensions: [GWColors.dark()]),
+              home: SwapScreen(
+                swapAvailable: true,
+                preselectSymbol: 'ETH',
+                preselectChainId: 1,
+                provider: const _Provider(),
+                execute: _answering(const SwapRouteUnavailable(null)),
+                storage: _RecordingStorage(),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text('Enter an amount'), findsOneWidget);
+        expect(find.text("Can't sign with this wallet"), findsNothing);
+      },
+    );
   });
 }

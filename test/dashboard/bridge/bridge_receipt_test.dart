@@ -28,7 +28,7 @@ void main() {
       expect(tx.recipients.first.amount, '42.5');
       expect(tx.recipients.first.toAddr, '0xWallet');
       expect(tx.fromAddress, '0xWallet');
-      expect(tx.type, TransactionType.mint);
+      expect(tx.type, TransactionType.transfer);
       expect(tx.transactionDirection, TransactionDirection.received);
       expect(tx.fees, '');
       expect(tx.exchangeRate, isNull);
@@ -81,7 +81,7 @@ void main() {
       expect(tx.recipients.first.amount, '10');
       expect(tx.recipients.first.toAddr, '0xWallet');
       expect(tx.fromAddress, '0xWallet');
-      expect(tx.type, TransactionType.mint);
+      expect(tx.type, TransactionType.transfer);
       expect(tx.transactionDirection, TransactionDirection.received);
       expect(tx.fees, '');
       expect(tx.exchangeRate, isNull);

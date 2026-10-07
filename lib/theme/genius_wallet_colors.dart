@@ -86,6 +86,21 @@ class GeniusWalletColors {
   static Color get _brandPrimaryOnSurface =>
       _isLight ? _brandPrimaryOnSurfaceLight : _brandPrimaryStrong;
 
+  // Text-safe variant of `_brandPrimaryOnSurface`, for a label sitting on its
+  // own ~12% wash where that wash can itself sit over GWSelectRow's
+  // selection tint (`_brandSecondaryStrong`/`_brandPrimaryStrong` at ~18%
+  // alpha -- the two colours immediately above/below). `_brandPrimaryOnSurface`
+  // clears AA on a plain surface but falls short on that doubled composite:
+  // 4.42:1 (dark, against the secondary-tinted stop) and 4.498:1 (light,
+  // against the primary-tinted stop), both under 4.5:1. A ~1% lightness step
+  // in the surface-appropriate direction clears both:
+  // - dark `#0AB2EB`: 4.59:1 worst case.
+  // - light `#0A6480`: 4.74:1 worst case.
+  static const Color _brandPrimaryBadgeTextLight = Color(0xFF0A6480);
+  static const Color _brandPrimaryBadgeTextDark = Color(0xFF0AB2EB);
+  static Color get _brandPrimaryBadgeText =>
+      _isLight ? _brandPrimaryBadgeTextLight : _brandPrimaryBadgeTextDark;
+
   // Brand — secondary (mint/green). Vibrant v1.2 — electric.
   static const Color _brandSecondary = Color(0xFF2BF5B4);
   static const Color _brandSecondaryStrong = Color(0xFF0AD89C);
