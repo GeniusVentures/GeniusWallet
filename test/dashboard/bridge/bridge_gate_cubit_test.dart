@@ -336,6 +336,30 @@ void main() {
     expect(rig.gate.state.state, BridgeGateState.enabled);
   });
 
+  test('a failed coins read names the failure and recovers', () async {
+    rig.wallet.push(rig.wallet.state.copyWith(coinsStatus: WalletStatus.error));
+    await _settle();
+
+    expect(rig.gate.state.state, BridgeGateState.balanceUnavailable);
+    expect(rig.gate.state.caption, "Couldn't read your GNUS balance.");
+    expect(rig.gate.state.enabled, isFalse);
+
+    rig.wallet.push(
+      rig.wallet.state.copyWith(coinsStatus: WalletStatus.successful),
+    );
+    await _settle();
+    expect(rig.gate.state.state, BridgeGateState.enabled);
+  });
+
+  test('a loading coins read still reads checking', () async {
+    rig.wallet.push(
+      rig.wallet.state.copyWith(coinsStatus: WalletStatus.loading),
+    );
+    await _settle();
+
+    expect(rig.gate.state.state, BridgeGateState.checking);
+  });
+
   group('other-network probe', () {
     String rpc(Network n) => n.rpcUrl!;
 

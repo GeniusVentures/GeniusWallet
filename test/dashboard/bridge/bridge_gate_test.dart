@@ -15,6 +15,7 @@ class _Inputs {
   bool isEarningWallet = true;
   bool networkCanSign = true;
   bool coinsReady = true;
+  bool coinsFailed = false;
   double? gnusBalance = 10;
   bool? gnusElsewhere = false;
 
@@ -27,6 +28,7 @@ class _Inputs {
     isEarningWallet: isEarningWallet,
     networkCanSign: networkCanSign,
     coinsReady: coinsReady,
+    coinsFailed: coinsFailed,
     gnusBalance: gnusBalance,
     gnusElsewhere: gnusElsewhere,
   );
@@ -47,6 +49,13 @@ final _rungs = <(BridgeGateState, void Function(_Inputs))>[
   ),
   (BridgeGateState.notEarning, (i) => i.isEarningWallet = false),
   (BridgeGateState.wrongNetwork, (i) => i.networkCanSign = false),
+  (
+    BridgeGateState.balanceUnavailable,
+    (i) {
+      i.coinsReady = false;
+      i.coinsFailed = true;
+    },
+  ),
   (BridgeGateState.checking, (i) => i.coinsReady = false),
   (
     BridgeGateState.gnusElsewhere,
@@ -157,6 +166,13 @@ void main() {
           expect(caption, isNotEmpty, reason: state.name);
         }
       }
+    });
+
+    test('a failed balance read says so', () {
+      expect(
+        bridgeGateCaption(BridgeGateState.balanceUnavailable),
+        "Couldn't read your GNUS balance.",
+      );
     });
 
     test('captions are distinct', () {

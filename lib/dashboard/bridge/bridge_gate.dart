@@ -28,6 +28,9 @@ enum BridgeGateState {
   /// The selected network has no RPC to burn on.
   wrongNetwork,
 
+  /// The coins read failed, so the balance is not known.
+  balanceUnavailable,
+
   /// Coins are loading, or loaded for another network, the child check could
   /// not be read, or the probe is out.
   checking,
@@ -75,6 +78,7 @@ BridgeGateState resolveBridgeGate({
   required bool isEarningWallet,
   required bool networkCanSign,
   required bool coinsReady,
+  required bool coinsFailed,
   required double? gnusBalance,
   required bool? gnusElsewhere,
 }) {
@@ -98,6 +102,9 @@ BridgeGateState resolveBridgeGate({
   }
   if (!networkCanSign) {
     return BridgeGateState.wrongNetwork;
+  }
+  if (coinsFailed) {
+    return BridgeGateState.balanceUnavailable;
   }
   if (!coinsReady || isChild == null) {
     return BridgeGateState.checking;
@@ -128,6 +135,8 @@ String? bridgeGateCaption(BridgeGateState state, {String? network}) {
       return 'Only the earning wallet can bridge.';
     case BridgeGateState.wrongNetwork:
       return "Can't bridge on this network.";
+    case BridgeGateState.balanceUnavailable:
+      return "Couldn't read your GNUS balance.";
     case BridgeGateState.checking:
       return 'Checking your GNUS balance.';
     case BridgeGateState.gnusElsewhere:

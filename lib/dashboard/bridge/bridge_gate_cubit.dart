@@ -94,6 +94,7 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
       isEarningWallet: isEarning,
       networkCanSign: networkCanSignNow,
       coinsReady: coinsReady,
+      coinsFailed: details.coinsStatus == WalletStatus.error,
       gnusBalance: coin?.balance,
       gnusElsewhere: gnusElsewhere,
     );
