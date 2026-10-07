@@ -51,8 +51,15 @@ class _CheckoutWebViewWindowsState extends State<CheckoutWebViewWindows> {
       );
       _subscriptions.addAll([
         _controller.url.listen((url) {
-          if (isBanxaReturn(Uri.tryParse(url), isMainFrame: true)) {
+          final uri = Uri.tryParse(url);
+          if (isBanxaReturn(uri, isMainFrame: true)) {
             widget.onReturn();
+          } else if (!allowsCheckoutNavigation(uri)) {
+            // ponytail: webview_windows 0.4.0 exposes no NavigationStarting
+            // veto, so the page has already started loading; stop it and drop
+            // the view. Upgrade: cancel in NavigationStarting once exposed.
+            unawaited(_controller.stop());
+            widget.onLoadError();
           }
         }),
         _controller.loadingState.listen((state) {
