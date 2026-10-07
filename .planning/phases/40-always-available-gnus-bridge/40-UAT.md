@@ -29,12 +29,16 @@ result: [pending]
 expected: A registered child reads "Child wallets can't bridge."; a wallet whose GNUS is on another network reads "GNUS is on {network}. Switch network."
 result: [pending]
 
+### 4. Failed balance read
+expected: With the network offline, the caption reads "Couldn't read your GNUS balance." instead of staying on "Checking your GNUS balance."
+result: [pending]
+
 ## Summary
 
-total: 3
+total: 4
 passed: 0
 issues: 0
-pending: 3
+pending: 4
 skipped: 0
 blocked: 0
 
