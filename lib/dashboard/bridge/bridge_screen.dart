@@ -303,10 +303,14 @@ class BridgeScreenState extends State<BridgeScreen> {
     WalletDetailsState state,
   ) async {
     final gate = liveBridgeGate(context);
-    if (!gate.enabled) {
+    final approved = gate.coin?.address?.toLowerCase();
+    final burning = fromToken?.address?.toLowerCase();
+    if (!gate.enabled || approved == null || approved != burning) {
       showToast(
         context,
-        gate.caption ?? '',
+        gate.enabled
+            ? 'The network changed. Reopen Bridge.'
+            : gate.caption ?? '',
         title: "Can't bridge",
         type: ToastType.error,
       );

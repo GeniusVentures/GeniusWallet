@@ -82,9 +82,19 @@ class _RecordingApi implements GeniusApi {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
+class _PushableWalletDetails extends WalletDetailsCubit {
+  _PushableWalletDetails({
+    required super.initialState,
+    required super.geniusApi,
+    required super.networkTokensProvider,
+  });
+
+  void push(WalletDetailsState next) => emit(next);
+}
+
 class _Host {
   _Host(this.app, {this.withGate = true}) {
-    wallet = WalletDetailsCubit(
+    wallet = _PushableWalletDetails(
       initialState: const WalletDetailsState(
         selectedWallet: _wallet,
         selectedNetwork: _amoy,
@@ -107,7 +117,7 @@ class _Host {
   final bool withGate;
   final api = _RecordingApi();
   final appStream = StreamController<AppState>.broadcast();
-  late final WalletDetailsCubit wallet;
+  late final _PushableWalletDetails wallet;
   late final BridgeGateCubit gate;
 
   Future<void> dispose() async {
@@ -194,6 +204,40 @@ void main() {
     expect(host.api.burns, 0);
     expect(find.text("Can't bridge"), findsOneWidget);
     expect(find.text('Checking your GNUS balance.'), findsOneWidget);
+    await _drainToasts(tester);
+  });
+
+  testWidgets('a gate coin other than the one being burned stops the burn', (
+    tester,
+  ) async {
+    final host = _Host(_appState());
+    await _readyCta(tester, host);
+
+    host.wallet.push(
+      host.wallet.state.copyWith(
+        coins: const [Coin(symbol: 'GNUS', address: '0xdef', balance: 10)],
+      ),
+    );
+    await _tap(tester);
+
+    expect(host.api.burns, 0);
+    expect(find.text("Can't bridge"), findsOneWidget);
+    expect(find.text('The network changed. Reopen Bridge.'), findsOneWidget);
+    await _drainToasts(tester);
+  });
+
+  testWidgets('the same contract in another case still burns', (tester) async {
+    final host = _Host(_appState());
+    await _readyCta(tester, host);
+
+    host.wallet.push(
+      host.wallet.state.copyWith(
+        coins: const [Coin(symbol: 'GNUS', address: '0xABC', balance: 10)],
+      ),
+    );
+    await _tap(tester);
+
+    expect(host.api.burns, 1);
     await _drainToasts(tester);
   });
 }
