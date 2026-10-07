@@ -35,10 +35,11 @@ except the start-up one.
   precedence and copy are tested in one small test file.
 
 ### Where Bridge sits
-- **D-05:** Three surfaces: the dashboard wallet overview card, the GNUS row on Assets, and the GNUS
-  coin page. The existing coin-page button moves to the new gate and is disabled instead of hidden.
-- **D-06:** The wallet overview gets a single Bridge button (`GWButton`, `gradientOutline`, `sm`, the
-  same treatment as the coin page). No other actions are added to the card.
+- **D-05 (revised 2026-10-07 after the mockup):** The GNUS coin page only, for now. The existing
+  coin-page button moves to the new gate and is disabled instead of hidden. The dashboard card and
+  /assets placements are dropped: the user wants a better place for Bridge, designed later (todo).
+- **D-06 (superseded by D-05):** No dashboard button in this phase. The coin-page Bridge keeps
+  `GWButton`, `gradientOutline`, `sm`.
 - **D-07:** No new nav destination. The desktop bar stays at 8 tabs and the mobile bar is unchanged.
 
 ### Disabled reasons
@@ -62,8 +63,7 @@ except the start-up one.
 - **D-13:** The bridge refuses at submit time as well. BridgeScreen re-checks the earning gate before
   calling `bridgeOut` and refuses with the same reason. This narrows "the bridge itself is unchanged"
   to the burn and mint mechanics. The tap handler re-reads the gate too.
-- **D-14:** "Assets" means the `/assets` page only. Bridge and its caption sit under the GNUS row
-  there. The dashboard panel's asset list is not touched.
+- **D-14 (superseded by D-05):** No Bridge on /assets in this phase. Neither asset list is touched.
 - **D-15:** The GNUS coin is matched by symbol plus a non-empty contract address, so the Super Genius
   native GNUS (no address) never opens `/bridge`.
 

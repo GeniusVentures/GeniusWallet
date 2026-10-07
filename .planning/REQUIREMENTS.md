@@ -218,7 +218,7 @@ Added 2026-09-30 with the Phase 39 plans. The Banxa key stays in the app as a bu
 
 Added 2026-10-07 with the Phase 40 context. The mint lands in the earning account, so only the earning wallet may bridge.
 
-- [ ] **BRDG-01**: A Bridge button is always visible on the dashboard overview card, under the GNUS row on /assets and on the GNUS coin page, and opens `/bridge` on the Selected wallet's GNUS coin on the selected network
+- [ ] **BRDG-01**: A Bridge button is always visible on the GNUS coin page (other surfaces deferred to a later placement decision) and opens `/bridge` on the Selected wallet's GNUS coin on the selected network
 - [ ] **BRDG-02**: Bridge is enabled only when the Selected wallet is the live earning account (`selectedSDKAccount` + `sdkAccountLinks`), never from the start-up `SGNUSConnection.walletAddress`
 - [ ] **BRDG-03**: A view-only wallet, an SDK account view and a child wallet cannot bridge and show their own reason
 - [ ] **BRDG-04**: Every disabled state shows a one-line muted caption under the button, visible without hover, readable by a screen reader, AA in both modes

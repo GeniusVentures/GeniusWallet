@@ -175,6 +175,8 @@ Nothing in this phase adds a second filled control to any surface.
 
 ### 1. Dashboard wallet overview (compute card)
 
+> Deferred (D-05 revised 2026-10-07): not built in this phase; kept as input for the later placement todo.
+
 - Structure: the existing `New processing job` button and Bridge share one `Row` at the bottom of the compute column. Order is job left, Bridge right.
   - Job button: `GWButton primary sm expand`, wrapped in `Expanded`.
   - Gap: `SizedBox(width: space4)`.
@@ -200,6 +202,8 @@ Comments naming 340 and 314 in `dashboard_screen.dart`, `wallet_overview.dart` a
   - Phones: the panel is uncapped in height (one-column dashboard), so only the width rules apply there. Desktop is the only capped slot.
 
 ### 2. /assets page (GNUS row only)
+
+> Deferred (D-05 revised 2026-10-07): not built in this phase; kept as input for the later placement todo.
 
 - The dashboard panel's asset list (`coins_screen.dart`) is untouched (D-14).
 - Placement: inside the `_body` loop, between the GNUS `CoinCardRow` and its `Divider`. `CoinCardRow` is not edited (its anatomy is pinned by row-rhythm tests, and it must not gain a second tap target).
@@ -253,11 +257,11 @@ Applicable state considerations resolved: 8 covered, 2 backstop, 1 unresolved
 | overflow | Reason caption (static-content) | ✅ covered | `maxLines: 1`, `softWrap: false`, ellipsis; the full string is in the semantics tree. |
 | long-text | Caption with a network name (static-content) | ✅ covered | Name is `Network.name` verbatim, placed before the instruction; longest same-class name `Ethereum Sepolia` ellipsizes only on the narrowest panel. |
 | long-text | Button label (interactive-control) | ✅ covered | Constant `Bridge`; nothing variable. |
-| zero-one-many | Assets rows with a GNUS symbol (list-collection) | ✅ covered | Entry attaches under the first GNUS-symbol row only; never one per matching row. |
-| loading | Layout shift when the caption appears or disappears (list-collection) | ✅ covered | No reserved space; 22px shift accepted on /assets and the coin page, none on the dashboard row (it is the last element and the slot is fixed). |
-| overflow | Dashboard CTA row at 290 and 320 px wide (interactive-control) | 🧪 backstop | Pump at both widths, text scale 1.0 and 1.3, both modes: no overflow, no Bridge truncation, job label may ellipsize at 1.3. |
-| overflow | Dashboard slot height with the worst caption (list-collection) | 🧪 backstop | `compute_panel_height_test.dart` extended with a disabled-with-caption case at both widths: content at most 334 against the 360 slot. |
-| partial | Assets on a network with no GNUS-symbol row (list-collection) | ⚠ unresolved | No row to attach to, so /assets shows no Bridge there; the dashboard card still carries it. Planner treats as an assumption and records it. |
+| zero-one-many | Assets rows with a GNUS symbol (list-collection) | ✅ covered | Deferred (D-05 revised 2026-10-07). Entry attaches under the first GNUS-symbol row only; never one per matching row. |
+| loading | Layout shift when the caption appears or disappears (list-collection) | ✅ covered | Deferred (D-05 revised 2026-10-07) for the /assets and dashboard parts; the coin-page part stands. No reserved space; 22px shift accepted on /assets and the coin page, none on the dashboard row (it is the last element and the slot is fixed). |
+| overflow | Dashboard CTA row at 290 and 320 px wide (interactive-control) | 🧪 backstop | Deferred (D-05 revised 2026-10-07). Pump at both widths, text scale 1.0 and 1.3, both modes: no overflow, no Bridge truncation, job label may ellipsize at 1.3. |
+| overflow | Dashboard slot height with the worst caption (list-collection) | 🧪 backstop | Deferred (D-05 revised 2026-10-07). `compute_panel_height_test.dart` extended with a disabled-with-caption case at both widths: content at most 334 against the 360 slot. |
+| partial | Assets on a network with no GNUS-symbol row (list-collection) | ⚠ unresolved | Deferred (D-05 revised 2026-10-07). No row to attach to, so /assets shows no Bridge there; the dashboard card still carries it. Planner treats as an assumption and records it. |
 
 ---
 
@@ -267,7 +271,7 @@ Applicable state considerations resolved: 8 covered, 2 backstop, 1 unresolved
 2. Disabled `BridgeButton` has no gradient and a label colour that is `textPrimary` at alpha 140; enabled has the `gradientOutline` shader. Same height (44) and same label in both.
 3. Every gate state renders a caption except `enabled`; the Bridge button exists on all three surfaces in every state (never absent).
 4. Each static caption renders on one line (no `didExceedMaxLines`) inside the 264px content width at text scale 1.0.
-5. Dashboard: row fits at 290 and 320, slot constant is 360, tallest state plus caption at most 334.
+5. Deferred (D-05 revised 2026-10-07). Dashboard: row fits at 290 and 320, slot constant is 360, tallest state plus caption at most 334.
 6. Semantics as pinned above.
 7. A grep or test that no surface hard-codes a reason string outside the one resolver file.
 

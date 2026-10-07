@@ -1490,7 +1490,7 @@ for the full dependency reasoning.
 - [ ] **Phase 37: Child write operations & pending model** - Register, fund, recover, revoke, detach, replace-main, with an honest pending state and a switch lock
 - [ ] **Phase 38: Account tree switcher** - One list of accounts with children nested under their main; "Selected" and "On node" tags
 - [ ] **Phase 39: Banxa integration hardening** - A redesigned Buy GNUS page: GNUS only, address prefilled, no Banxa key in the app, and a sandbox mode for real test buys
-- [ ] **Phase 40: Always-available GNUS bridge** - A Bridge button the user can always reach, enabled when the selected wallet can bridge and disabled with a reason when it cannot
+- [ ] **Phase 40: Always-available GNUS bridge** - A Bridge button on the GNUS coin page, always shown, enabled when the selected wallet can bridge and disabled with a reason when it cannot
 
 ## Phase Details
 
@@ -1638,12 +1638,12 @@ Plans:
 
 ### Phase 40: Always-available GNUS bridge
 
-**Goal**: The user can always find Bridge. A Bridge entry sits on the main surfaces, not only the GNUS coin page, and opens the GNUS bridge for the Selected wallet; when that wallet cannot bridge, the button stays visible and disabled with a one-line reason.
+**Goal**: The user can always find Bridge on the GNUS coin page (a better home on other surfaces is a later decision). It opens the GNUS bridge for the Selected wallet; when that wallet cannot bridge, the button stays visible and disabled with a one-line reason.
 **Depends on**: Phase 38
 **Requirements**: BRDG-01, BRDG-02, BRDG-03, BRDG-04, BRDG-05, BRDG-06, BRDG-07, BRDG-08
 **Context**: 2026-09-30. The only Bridge button is on the GNUS coin page (`token_info_screen.dart:794`), shown only when the node started and the selected wallet equals the node's start-up wallet (`router.dart:384`). That wallet is set once at SDK init (`genius_api.dart:263`) and never follows a wallet or earning-account switch, so Bridge vanishes for every other wallet. The bridge itself is GNUS-only, burn on the source chain with an optional mint (`bridgeOut`, `genius_api.dart:1830`; mint token id is hard-coded).
 
-**Plans:** 6 plans
+**Plans:** 4 plans
 
 Plans:
 
@@ -1653,11 +1653,9 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 40-02-PLAN.md — remove the start-up-address route gate
 - [ ] 40-03-PLAN.md — child status and other-network GNUS probes, cached in BridgeGateCubit
-- [ ] 40-04-PLAN.md — submit-time refusal in BridgeScreen; accessibility and contrast tests
-- [ ] 40-05-PLAN.md — Bridge under the GNUS row on /assets
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 40-06-PLAN.md — Bridge on the dashboard card, slot 340 to 360, phase check
+- [ ] 40-04-PLAN.md — submit-time refusal in BridgeScreen; accessibility and contrast tests; phase check
 
 ## Progress
 
@@ -1669,4 +1667,4 @@ Plans:
 | 37. Child write operations & pending model | 5/5 | Awaiting human verification (live walk) | - |
 | 38. Account tree switcher | 3/3 | Awaiting human verification (live walk) | - |
 | 39. Banxa integration hardening | 13/13 | Awaiting human verification (live walk); 2 gates blocked on Banxa listing GNUS | - |
-| 40. Always-available GNUS bridge | 0/6 | Ready to execute | - |
+| 40. Always-available GNUS bridge | 0/4 | Ready to execute | - |
