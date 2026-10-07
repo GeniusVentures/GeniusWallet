@@ -66,7 +66,12 @@ class BridgeGateCubit extends Cubit<BridgeGate> {
   ({String? network})? _outcome;
 
   /// Reads live state now, so a tap never acts on the last frame's gate.
-  BridgeGate resolveNow() {
+  /// [fresh] also re-reads child registrations, which can change outside the
+  /// app without any state event; taps and submits pass it.
+  BridgeGate resolveNow({bool fresh = false}) {
+    if (fresh) {
+      _childKey = null;
+    }
     final app = _readAppState();
     final details = _walletDetails.state;
     final wallet = details.selectedWallet;

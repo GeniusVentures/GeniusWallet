@@ -9,10 +9,11 @@ import 'package:genius_wallet/theme/gw_colors.dart';
 import 'package:genius_wallet/wallets/cubit/wallet_details_cubit.dart';
 import 'package:go_router/go_router.dart';
 
-/// The gate as of this moment. A host with no [BridgeGateCubit] reads
-/// disabled, never enabled.
+/// The gate as of this moment, child registrations included. A host with no
+/// [BridgeGateCubit] reads disabled, never enabled.
 BridgeGate liveBridgeGate(BuildContext context) =>
-    context.read<BridgeGateCubit?>()?.resolveNow() ?? kBridgeGateUnknown;
+    context.read<BridgeGateCubit?>()?.resolveNow(fresh: true) ??
+    kBridgeGateUnknown;
 
 /// Opens the bridge on the gate's GNUS coin. The gate is read again here, so
 /// an earning switch that began after the last frame stops the tap.

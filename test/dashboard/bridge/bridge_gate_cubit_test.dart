@@ -363,6 +363,18 @@ void main() {
     expect(rig.ops.reads, before);
   });
 
+  test('a fresh resolve sees a registration made with no state change', () {
+    expect(rig.gate.resolveNow().state, BridgeGateState.enabled);
+
+    rig.ops.registrations = {
+      _earningAccount.toLowerCase(): [],
+      _mainAccount.toLowerCase(): [_child(_earningAccount)],
+    };
+
+    expect(rig.gate.resolveNow().state, BridgeGateState.enabled);
+    expect(rig.gate.resolveNow(fresh: true).state, BridgeGateState.child);
+  });
+
   test('a re-emitted child operations state reads again', () async {
     final before = rig.ops.reads;
 
