@@ -5,10 +5,10 @@ milestone_name: Child wallets & account linking
 current_phase: 40
 current_phase_name: Always-available GNUS bridge
 status: executing
-stopped_at: Completed 40-02-PLAN.md (route gate removed); 40-03..04 pending; phases 34-39 live walks still pending
+stopped_at: Completed 40-03-PLAN.md (child status and other-network probe); 40-04 pending; phases 34-39 live walks still pending
 last_updated: "2026-10-07T12:00:00.000Z"
 last_activity: 2026-10-07
-last_activity_desc: Phase 40 plan 02 executed
+last_activity_desc: Phase 40 plan 03 executed
 progress:
   total_phases: 5
   completed_phases: 5
